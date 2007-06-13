@@ -91,7 +91,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutils,systems,
+      cutils,cfileutl,systems,
       fmodule,finput,verbose,
       itcpugas,cpubase
       ;

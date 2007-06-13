@@ -46,7 +46,7 @@ implementation
        { common }
        cutils,
        { global }
-       globtype,tokens,verbose,
+       globtype,tokens,verbose,constexp,
        systems,
        { symtable }
        symbase,symconst,symdef,symsym,symtable,defutil,
@@ -745,8 +745,8 @@ implementation
             else
              begin
                { use special -1,-1 argument to copy the whole array }
-               highppn:=cordconstnode.create(-1,s32inttype,false);
-               lowppn:=cordconstnode.create(-1,s32inttype,false);
+               highppn:=cordconstnode.create(int64(-1),s32inttype,false);
+               lowppn:=cordconstnode.create(int64(-1),s32inttype,false);
              end;
 
             { create call to fpc_dynarray_copy }

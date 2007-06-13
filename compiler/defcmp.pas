@@ -126,7 +126,7 @@ interface
 implementation
 
     uses
-      verbose,systems,
+      verbose,systems,constexp,
       symtable,symsym,
       defutil,symutil;
 

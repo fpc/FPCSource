@@ -27,7 +27,7 @@ interface
 
     uses
       tokens,cpuinfo,
-      node,globals,
+      node,globtype,
       symconst,symtype,symdef,symsym,symbase;
 
     type
@@ -157,7 +157,7 @@ implementation
 
     uses
        sysutils,
-       globtype,systems,
+       systems,constexp,globals,
        cutils,cclasses,verbose,
        symtable,
        defutil,defcmp,

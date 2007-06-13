@@ -51,7 +51,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,
       aasmbase,aasmcpu,aasmtai,aasmdata,
@@ -205,7 +205,7 @@ end;
                  internalerror(2005061701);
              end else if (tordconstnode(right).value = 1) then begin
                 cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, numerator, resultreg);
-             end else if (tordconstnode(right).value = -1) then begin
+             end else if (tordconstnode(right).value = int64(-1)) then begin
                 // note: only in the signed case possible..., may overflow
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in current_settings.localswitches], resultreg, numerator));
              end else if (ispowerof2(tordconstnode(right).value, power)) then begin
@@ -222,7 +222,7 @@ end;
                  { from "The PowerPC Compiler Writer's Guide" pg. 53ff      }
                  divreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
                  if (is_signed(right.resultdef)) then begin
-                     getmagic_signed32(tordconstnode(right).value, magic, shift);
+                     getmagic_signed32(tordconstnode(right).value.svalue, magic, shift);
                      // load magic value
                      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, magic, divreg);
                      // multiply
@@ -243,7 +243,7 @@ end;
                      end;                     
                      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, resultreg, divreg, resultreg);
                  end else begin
-                     getmagic_unsigned32(tordconstnode(right).value, u_magic, u_add, u_shift);
+                     getmagic_unsigned32(tordconstnode(right).value.uvalue, u_magic, u_add, u_shift);
                      // load magic in divreg
                      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, aint(u_magic), divreg);
                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHWU, resultreg, numerator, divreg));
@@ -286,11 +286,11 @@ end;
                      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, modreg, maskreg, maskreg);
                      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_INT, maskreg, tempreg, resultreg);
                  end else begin
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).value-1, numerator, resultreg);
+                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).value.svalue-1, numerator, resultreg);
                  end;
              end else begin
                  genOrdConstNodeDiv();
-                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value, resultreg, resultreg);
+                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg, resultreg);
                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
              end;
          end;
@@ -406,7 +406,7 @@ end;
                end;
              if (right.nodetype = ordconstn) then
                begin
-                 shiftval := tordconstnode(right).value;
+                 shiftval := tordconstnode(right).value.svalue;
                  shiftval := shiftval and 63;
 {
               I think the statements below is much more correct instead of the hack above,
@@ -529,7 +529,7 @@ end;
              { shifting by a constant directly coded: }
              if (right.nodetype=ordconstn) then
                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
-                 tordconstnode(right).value and 31,hregister1,resultreg)
+                 tordconstnode(right).value.svalue and 31,hregister1,resultreg)
              else
                begin
                  { load shift count in a register if necessary }

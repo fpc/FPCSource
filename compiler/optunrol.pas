@@ -33,7 +33,7 @@ unit optunrol;
   implementation
 
     uses
-      globtype,globals,
+      globtype,globals,constexp,
       cpuinfo,
       nutils,
       nbas,nflw,ncon,ninl,ncal;

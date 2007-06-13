@@ -50,7 +50,7 @@ implementation
 
 uses
   sysutils,
-  globtype, systems,
+  globtype, systems,constexp,
   cutils, verbose, globals,
   symconst, symdef,
   aasmbase, aasmcpu, aasmtai,aasmdata,
@@ -145,7 +145,7 @@ var
   begin
     if (tordconstnode(right).value = 0) then begin
       internalerror(2005061702);
-    end else if (abs(tordconstnode(right).value) = 1) then begin
+    end else if (abs(tordconstnode(right).value.svalue) = 1) then begin
       { x mod +/-1 is always zero }
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, resultreg);
     end else if (ispowerof2(tordconstnode(right).value, power)) then begin
@@ -154,7 +154,7 @@ var
         maskreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
         modreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
 
-        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, abs(tordconstnode(right).value)-1, modreg);
+        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, abs(tordconstnode(right).value.svalue)-1, modreg);
         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, 63, numerator, maskreg);
         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, numerator, modreg, tempreg);
 
@@ -170,7 +170,7 @@ var
     end else begin
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], OS_INT, 
         tordconstnode(right).value, numerator, resultreg);
-      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value, resultreg, 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg, 
         resultreg);
       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
     end;

@@ -26,7 +26,7 @@ unit ncgrtti;
 interface
 
     uses
-      cclasses,
+      cclasses,constexp,
       aasmbase,
       symbase,symconst,symtype,symdef;
 
@@ -231,7 +231,7 @@ implementation
         var
            typvalue : byte;
            hp : ppropaccesslistitem;
-           address : longint;
+           address,space : longint;
            def : tdef;
            hpropsym : tpropertysym;
            propaccesslist : tpropaccesslist;
@@ -273,7 +273,12 @@ implementation
                            if not(assigned(def) and (def.typ=arraydef)) then
                              internalerror(200402172);
                            def:=tarraydef(def).elementdef;
-                           inc(address,def.size*hp^.value);
+                           {Hp.value is a Tconstexprint, which can be rather large,
+                            sanity check for longint overflow.}
+                           space:=(high(address)-address) div def.size;
+                           if int64(space)<hp^.value then
+                             internalerror(200706101);
+                           inc(address,int64(def.size*hp^.value));
                          end;
                      end;
                      hp:=hp^.next;
@@ -434,8 +439,9 @@ implementation
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(byte(trans[def.ordtype])));
             if (tf_requires_proper_alignment in target_info.flags) then
               current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.low)));
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.high)));
+            {Convert to longint to smuggle values in high(longint)+1..high(cardinal) into asmlist.}
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.low.svalue)));
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.high.svalue)));
           end;
 
         begin
@@ -447,9 +453,9 @@ implementation
                 if (tf_requires_proper_alignment in target_info.flags) then
                   current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
                 { low }
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(int64($80000000) shl 32));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.low.svalue));
                 { high }
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit((int64($7fffffff) shl 32) or int64($ffffffff)));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.high.svalue));
               end;
             u64bit :
               begin
@@ -457,10 +463,11 @@ implementation
                 write_rtti_name(def);
                 if (tf_requires_proper_alignment in target_info.flags) then
                   current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                {use svalue because Create_64bit accepts int64, prevents range checks}
                 { low }
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(0));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.low.svalue));
                 { high }
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(int64((int64($ffffffff) shl 32) or int64($ffffffff))));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.high.svalue));
               end;
             bool8bit:
               begin

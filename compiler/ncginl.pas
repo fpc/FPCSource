@@ -58,7 +58,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,constexp,
       cutils,verbose,globals,fmodule,
       symconst,symdef,defutil,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,parabase,
@@ -444,7 +444,7 @@ implementation
 {$endif cpu64bit}
                   { insert multiply with addvalue if its >1 }
                   if addvalue>1 then
-                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,cgsize,addvalue,hregister);
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,cgsize,addvalue.svalue,hregister);
                   addconstant:=false;
                 end;
             end;
@@ -457,7 +457,7 @@ implementation
               else
 {$endif cpu64bit}
                 cg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],
-                  aint(addvalue),tcallparanode(left).left.location);
+                  aint(addvalue.svalue),tcallparanode(left).left.location);
             end
            else
              begin

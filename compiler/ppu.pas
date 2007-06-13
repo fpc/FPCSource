@@ -26,7 +26,7 @@ unit ppu;
 interface
 
   uses
-    globtype;
+    globtype,constexp;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=80;
+  CurrentPPUVersion=81;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -1010,7 +1010,6 @@ procedure tppufile.putaint(i:aint);
 begin
   putdata(i,sizeof(aint));
 end;
-
 
 procedure tppufile.putreal(d:ppureal);
 var

@@ -308,7 +308,7 @@ implementation
 
               if (nodetype=divn) and
                  (right.nodetype=ordconstn) and
-                 ispowerof2(tordconstnode(right).value,power) then
+                 ispowerof2(tordconstnode(right).value.svalue,power) then
                 Begin
                   { for signed numbers, the numerator must be adjusted before the
                     shift instruction, but not wih unsigned numbers! Otherwise,
@@ -320,7 +320,7 @@ implementation
                       if power=1 then
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,1,hreg1)
                       else
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,tordconstnode(right).value-1,hreg1);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,Tordconstnode(right).value.svalue-1,hreg1);
                       cg.a_label(current_asmdata.CurrAsmList,hl);
                       cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,power,hreg1);
                     End
@@ -400,7 +400,7 @@ implementation
               if right.value<=31 then
               }
               cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,
-                tordconstnode(right).value and 31,location.register);
+                tordconstnode(right).value.uvalue and 31,location.register);
               {
               else
                 emit_reg_reg(A_XOR,S_L,hregister1,

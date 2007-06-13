@@ -26,7 +26,7 @@ unit nset;
 interface
 
     uses
-       cclasses,
+       cclasses,constexp,
        node,globtype,globals,
        aasmbase,aasmtai,aasmdata,symtype;
 
@@ -192,7 +192,7 @@ implementation
               end;
             orddef :
               begin
-                for i:=torddef(psd.elementdef).low to torddef(psd.elementdef).high do
+                for i:=int64(torddef(psd.elementdef).low) to int64(torddef(psd.elementdef).high) do
                   include(pcs^,i);
               end;
           end;
@@ -301,20 +301,20 @@ implementation
                  { to the rule above -> will give range check error if      }
                  { value > high(longint) if we don't take the signedness    }
                  { into account                                             }
-                 if is_signed(left.resultdef) then
-                   t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
+                 if Tordconstnode(left).value.signed then
+                   t:=cordconstnode.create(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
                      booltype,true)
                  else
-                   t:=cordconstnode.create(byte(TConstExprUInt(tordconstnode(left).value) in Tsetconstnode(right).value_set^),
-                     booltype,true);                   
+                   t:=cordconstnode.create(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
+                     booltype,true);
                  typecheckpass(t);
                  result:=t;
                  exit;
                end
              else
                begin
-                 if (is_signed(left.resultdef) and (tordconstnode(left).value < 0)) or
-                    (TConstExprUInt(tordconstnode(left).value) > tsetdef(right.resultdef).setmax) then
+                 if (Tordconstnode(left).value.signed and (Tordconstnode(left).value<0)) or
+                    (Tordconstnode(left).value.uvalue>Tsetdef(right.resultdef).setmax) then
                    begin
                      t:=cordconstnode.create(0, booltype, true);
                      typecheckpass(t);

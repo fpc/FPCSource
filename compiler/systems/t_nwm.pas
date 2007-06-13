@@ -93,7 +93,7 @@ implementation
 
   uses
     SysUtils,
-    cutils,cfileutils,
+    cutils,cfileutl,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,

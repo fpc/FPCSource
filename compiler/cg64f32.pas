@@ -97,7 +97,7 @@ unit cg64f32;
   implementation
 
     uses
-       globtype,systems,
+       globtype,systems,constexp,
        verbose,
        symbase,symconst,symdef,symtable,defutil,paramgr;
 
@@ -784,7 +784,7 @@ unit cg64f32;
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
                  cg.a_label(list,neglabel);
-                 hdef:=torddef.create(s32bit,longint($80000000),-1);
+                 hdef:=torddef.create(s32bit,int64(longint($80000000)),int64(-1));
                  location_copy(temploc,l);
                  temploc.size:=OS_32;
                  cg.g_rangecheck(list,temploc,hdef,todef);

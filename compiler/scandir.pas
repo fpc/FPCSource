@@ -32,7 +32,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutils,
+      cutils,cfileutl,
       globtype,globals,systems,widestr,cpuinfo,
       verbose,comphook,ppu,
       scanner,switches,

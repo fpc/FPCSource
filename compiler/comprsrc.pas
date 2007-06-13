@@ -58,7 +58,7 @@ implementation
 
 uses
   SysUtils,
-  cutils,cfileutils,cclasses,
+  cutils,cfileutl,cclasses,
   Globtype,Globals,Verbose,Fmodule,
   Script;
   

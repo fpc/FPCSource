@@ -211,7 +211,7 @@ interface
 implementation
 
    uses
-      cclasses,globtype,systems,
+      cclasses,globtype,systems,constexp,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symbase,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,nmat,nbas,nutils,
@@ -416,7 +416,7 @@ implementation
                                      inserttypeconv(p2,u8inttype);
                                    end;
 
-                                for l:=tordconstnode(p2).value to tordconstnode(p3).value do
+                                for l:=tordconstnode(p2).value.svalue to tordconstnode(p3).value.svalue do
                                   do_set(l);
                                 p2.free;
                                 p3.free;
@@ -462,7 +462,7 @@ implementation
                             else
                               inserttypeconv(p2,u8inttype);
 
-                            do_set(tordconstnode(p2).value);
+                            do_set(tordconstnode(p2).value.svalue);
                             p2.free;
                           end
                          else
@@ -515,7 +515,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=tsetdef.create(hdef,constsethi);
+        constp.resultdef:=tsetdef.create(hdef,constsethi.svalue);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }
@@ -744,19 +744,19 @@ implementation
             if (sizeof(pointer) > sizeof(TConstPtrUInt)) then
               if (sizeof(TConstPtrUInt) = 4) then
                 begin
-                  if (tordconstnode(left).value < low(longint)) or
-                     (tordconstnode(left).value > high(cardinal)) then
+                  if (tordconstnode(left).value < int64(low(longint))) or
+                     (tordconstnode(left).value > int64(high(cardinal))) then
                   CGMessage(parser_e_range_check_error);
                 end
               else if (sizeof(TConstPtrUInt) = 8) then
                 begin
-                  if (tordconstnode(left).value < low(int64)) or
-                     (tordconstnode(left).value > high(qword)) then
+                  if (tordconstnode(left).value < int64(low(int64))) or
+                     (tordconstnode(left).value > int64(high(qword))) then
                   CGMessage(parser_e_range_check_error);
                 end
               else
                 internalerror(2001020801);
-            t:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value),resultdef);
+            t:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
             result:=t;
           end
          else
@@ -896,15 +896,15 @@ implementation
                begin
                  initwidestring(ws);
                  if torddef(left.resultdef).ordtype=uwidechar then
-                   concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value))
+                   concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.uvalue))
                  else
-                   concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value)));
+                   concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value.uvalue)));
                  hp:=cstringconstnode.createwstr(ws);
                  donewidestring(ws);
                end
               else
                 begin
-                  hp:=cstringconstnode.createstr(chr(tordconstnode(left).value));
+                  hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
                   tstringconstnode(hp).changestringtype(resultdef);
                 end;
               result:=hp;
@@ -970,7 +970,7 @@ implementation
                 (torddef(left.resultdef).ordtype=uwidechar) then
               begin
                 hp:=cordconstnode.create(
-                      ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),
+                      ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
                       cchartype,true);
                 result:=hp;
               end
@@ -978,7 +978,7 @@ implementation
                      (torddef(left.resultdef).ordtype=uchar) then
               begin
                 hp:=cordconstnode.create(
-                      asciichar2unicode(chr(tordconstnode(left).value)),
+                      asciichar2unicode(chr(tordconstnode(left).value.uvalue)),
                       cwidechartype,true);
                 result:=hp;
               end
@@ -1000,7 +1000,7 @@ implementation
            if is_currency(resultdef) then
              v:=v*10000;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(TConstPtrUInt(v),resultdef)
+             result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
            else
              begin
                if is_currency(left.resultdef) then
@@ -1012,7 +1012,7 @@ implementation
          begin
            v:=tpointerconstnode(left).value;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(v,resultdef)
+             result:=cpointerconstnode.create(v.uvalue,resultdef)
            else
              begin
                if is_currency(resultdef) then
@@ -1847,7 +1847,7 @@ implementation
               if (resultdef.typ=pointerdef) and
                  (convtype<>tc_cchar_2_pchar) then
                 begin
-                   hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value),resultdef);
+                   hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(hp.flags, nf_explicit);
                    result:=hp;
@@ -1859,7 +1859,7 @@ implementation
                    { replace the resultdef and recheck the range }
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(left.flags, nf_explicit);
-                   testrange(left.resultdef,resultdef,tordconstnode(left).value,(nf_explicit in flags));
+                   testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags));
                    left.resultdef:=resultdef;
                    result:=left;
                    left:=nil;

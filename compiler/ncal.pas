@@ -27,7 +27,7 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,
+       globtype,constexp,
        paramgr,parabase,
        node,nbas,nutils,
        {$ifdef state_tracking}
@@ -238,7 +238,7 @@ implementation
         statements : tstatementnode;
         result_data,
         params : ttempcreatenode;
-        paramssize : longint;
+        paramssize : cardinal;
         calldescnode : tdataconstnode;
         para : tcallparanode;
         currargpos,
@@ -377,7 +377,7 @@ implementation
                 addstatement(statements,cassignmentnode.create(
                   ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
                     caddrnode.create(ctemprefnode.create(params)),
-                    cordconstnode.create(paramssize,ptruinttype,false)
+                    cordconstnode.create(qword(paramssize),ptruinttype,false)
                   )),voidpointertype),
                   ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
               else
@@ -1748,8 +1748,7 @@ implementation
               else
                if vo_is_high_para in currpara.varoptions then
                 begin
-                  if not assigned(pt) or
-                     (i=0) then
+                  if not assigned(pt) or (i=0) then
                     internalerror(200304082);
                   { we need the information of the previous parameter }
                   hiddentree:=gen_high_tree(pt.left,tparavarsym(procdefinition.paras[i-1]).vardef);
@@ -1791,7 +1790,16 @@ implementation
                if vo_is_overflow_check in currpara.varoptions then
                  begin
                    hiddentree:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),booltype,false);
-                 end;
+                 end
+              else
+                if vo_is_typinfo_para in currpara.varoptions then
+                  begin
+                    if not assigned(pt) or (i=0) then
+                      internalerror(200304082);
+                    hiddentree:=caddrnode.create_internal(
+                      crttinode.create(Tstoreddef(pt.resultdef),fullrtti,rdt_normal)
+                    );
+                  end;
               { add the hidden parameter }
               if not assigned(hiddentree) then
                 internalerror(200304073);

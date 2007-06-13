@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,
+       globtype,globals,constexp,
        symconst,symbase,symtype,symdef,
        cgbase,cpubase;
 
@@ -86,7 +86,7 @@ interface
       orddefs, false otherwise                                              }
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
-    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;
+{    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
 {*****************************************************************************
                               Array helper functions
@@ -201,7 +201,7 @@ interface
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
     }
-    procedure testrange(fromdef, todef : tdef;var l : tconstexprint;explicit:boolean);
+    procedure testrange(todef : tdef;var l : tconstexprint;explicit:boolean);
 
     {# Returns the range of def, where @var(l) is the low-range and @var(h) is
       the high-range.
@@ -295,15 +295,15 @@ implementation
     function range_to_basetype(l,h:TConstExprInt):tordtype;
       begin
         { prefer signed over unsigned }
-        if (l>=-128) and (h<=127) then
+        if (l>=int64(-128)) and (h<=127) then
          range_to_basetype:=s8bit
         else if (l>=0) and (h<=255) then
          range_to_basetype:=u8bit
-        else if (l>=-32768) and (h<=32767) then
+        else if (l>=int64(-32768)) and (h<=32767) then
          range_to_basetype:=s16bit
         else if (l>=0) and (h<=65535) then
          range_to_basetype:=u16bit
-        else if (l>=low(longint)) and (h<=high(longint)) then
+        else if (l>=int64(low(longint))) and (h<=high(longint)) then
          range_to_basetype:=s32bit
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
          range_to_basetype:=u32bit
@@ -315,20 +315,22 @@ implementation
     procedure range_to_type(l,h:TConstExprInt;var def:tdef);
       begin
         { prefer signed over unsigned }
-        if (l>=-128) and (h<=127) then
+        if (l>=int64(-128)) and (h<=127) then
          def:=s8inttype
         else if (l>=0) and (h<=255) then
          def:=u8inttype
-        else if (l>=-32768) and (h<=32767) then
+        else if (l>=int64(-32768)) and (h<=32767) then
          def:=s16inttype
         else if (l>=0) and (h<=65535) then
          def:=u16inttype
-        else if (l>=low(longint)) and (h<=high(longint)) then
+        else if (l>=int64(low(longint))) and (h<=high(longint)) then
          def:=s32inttype
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
          def:=u32inttype
+        else if (l>=low(int64)) and (h<=high(int64)) then
+         def:=s64inttype
         else
-         def:=s64inttype;
+         def:=u64inttype;
       end;
 
 
@@ -367,7 +369,7 @@ implementation
            orddef:
              result:=torddef(def).low;
            enumdef:
-             result:=tenumdef(def).min;
+             result:=int64(tenumdef(def).min);
            else
              result:=0;
          end;
@@ -451,39 +453,14 @@ implementation
         fromqword, toqword: boolean;
 
       begin
-         if (def_from.typ <> orddef) or
-            (def_to.typ <> orddef) then
+         if (def_from.typ <> orddef) or (def_to.typ <> orddef) then
            begin
              is_in_limit := false;
              exit;
            end;
-         fromqword := torddef(def_from).ordtype = u64bit;
-         toqword := torddef(def_to).ordtype = u64bit;
-         is_in_limit:=(toqword and is_signed(def_from)) or
-                      ((not fromqword) and
-                       (torddef(def_from).low>=torddef(def_to).low) and
-                       (torddef(def_from).high<=torddef(def_to).high));
+         is_in_limit:=(torddef(def_from).low>=torddef(def_to).low) and
+                      (torddef(def_from).high<=torddef(def_to).high);
       end;
-
-
-    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;
-
-      begin
-         if (def_from.typ <> orddef) and
-            (def_to.typ <> orddef) then
-           internalerror(200210062);
-         if (torddef(def_to).ordtype = u64bit) then
-          begin
-            is_in_limit_value:=((TConstExprUInt(val_from)>=TConstExprUInt(torddef(def_to).low)) and
-                                (TConstExprUInt(val_from)<=TConstExprUInt(torddef(def_to).high)));
-          end
-         else
-          begin;
-            is_in_limit_value:=((val_from>=torddef(def_to).low) and
-                                (val_from<=torddef(def_to).high));
-          end;
-      end;
-
 
     { true, if p points to an open array def }
     function is_open_string(p : tdef) : boolean;
@@ -692,57 +669,26 @@ implementation
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
-    procedure testrange(fromdef, todef : tdef;var l : tconstexprint;explicit:boolean);
+    procedure testrange(todef : tdef;var l : tconstexprint;explicit:boolean);
       var
          lv,hv: TConstExprInt;
-         error: boolean;
       begin
-         error := false;
          { for 64 bit types we need only to check if it is less than }
          { zero, if def is a qword node                              }
-         if is_64bitint(todef) then
+         getrange(todef,lv,hv);
+         if (l<lv) or (l>hv) then
            begin
-              if (l<0) and
-                 (torddef(todef).ordtype=u64bit) and
-                 { since tconstexprint is an int64, values > high(int64) will }
-                 { always be stored as negative numbers                       }
-                 (not is_64bitint(fromdef) or
-                  (torddef(fromdef).ordtype<>u64bit)) then
-                begin
-                   { don't zero the result, because it may come from hex notation
-                     like $ffffffffffffffff! (JM)
-                   l:=0; }
-                   if not explicit then
-                    begin
-                      if (cs_check_range in current_settings.localswitches) then
-                        Message(parser_e_range_check_error)
-                      else
-                        Message(parser_w_range_check_error);
-                    end;
-                   error := true;
-                end;
-           end
-         else
-           begin
-              getrange(todef,lv,hv);
-              if (l<lv) or (l>hv) then
-                begin
-                   if not explicit then
-                    begin
-                      if ((todef.typ=enumdef) and
-                          { delphi allows range check errors in
-                           enumeration type casts FK }
-                          not(m_delphi in current_settings.modeswitches)) or
-                         (cs_check_range in current_settings.localswitches) then
-                        Message(parser_e_range_check_error)
-                      else
-                        Message(parser_w_range_check_error);
-                    end;
-                   error := true;
-                end;
-           end;
-         if error then
-          begin
+             if not explicit then
+               begin
+                 if ((todef.typ=enumdef) and
+                     { delphi allows range check errors in
+                      enumeration type casts FK }
+                     not(m_delphi in current_settings.modeswitches)) or
+                    (cs_check_range in current_settings.localswitches) then
+                   Message(parser_e_range_check_error)
+                 else
+                   Message(parser_w_range_check_error);
+               end;
              { Fix the value to fit in the allocated space for this type of variable }
              case longint(todef.size) of
                1: l := l and $ff;
@@ -750,16 +696,19 @@ implementation
                { work around sign extension bug (to be fixed) (JM) }
                4: l := l and (int64($fffffff) shl 4 + $f);
              end;
+             {reset sign, i.e. converting -1 to qword changes the value to high(qword)}
+             l.signed:=false;
              { do sign extension if necessary (JM) }
              if is_signed(todef) then
               begin
                 case longint(todef.size) of
-                  1: l := shortint(l);
-                  2: l := smallint(l);
-                  4: l := longint(l);
+                  1: l.svalue := shortint(l.svalue);
+                  2: l.svalue := smallint(l.svalue);
+                  4: l.svalue := longint(l.svalue);
                 end;
+                l.signed:=true;
               end;
-          end;
+           end;
       end;
 
 
@@ -774,13 +723,13 @@ implementation
             end;
           enumdef :
             begin
-              l:=tenumdef(def).min;
-              h:=tenumdef(def).max;
+              l:=int64(tenumdef(def).min);
+              h:=int64(tenumdef(def).max);
             end;
           arraydef :
             begin
-              l:=tarraydef(def).lowrange;
-              h:=tarraydef(def).highrange;
+              l:=int64(tarraydef(def).lowrange);
+              h:=int64(tarraydef(def).highrange);
             end;
           else
             internalerror(200611054);

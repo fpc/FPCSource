@@ -39,7 +39,7 @@ uses
   fksysutl,
 {$ENDIF}
   verbose,comphook,systems,
-  cutils,cfileutils,cclasses,globals,options,fmodule,parser,symtable,
+  cutils,cfileutl,cclasses,globals,options,fmodule,parser,symtable,
   assemble,link,dbgbase,import,export,tokens,pass_1
   { cpu parameter handling }
   ,cpupara

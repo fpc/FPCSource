@@ -66,7 +66,7 @@ implementation
 
   uses
     SysUtils,
-    cutils,cfileutils,cclasses,
+    cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,

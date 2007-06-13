@@ -34,7 +34,7 @@ implementation
        { common }
        cutils,
        { global }
-       globals,tokens,verbose,
+       globals,tokens,verbose,constexp,
        systems,
        ppu,fmodule,
        { symtable }
@@ -126,7 +126,14 @@ implementation
                  begin
                    pt:=comp_expr(true);
                    if pt.nodetype=ordconstn then
-                    hp.index:=tordconstnode(pt).value
+                    if (Tordconstnode(pt).value<int64(low(hp.index))) or
+                       (Tordconstnode(pt).value>int64(high(hp.index))) then
+                      begin
+                        hp.index:=0;
+                        message(parser_e_range_check_error)
+                      end
+                    else
+                      hp.index:=Tordconstnode(pt).value.svalue
                    else
                     begin
                       hp.index:=0;

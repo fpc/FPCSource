@@ -52,10 +52,6 @@ interface
        PAWord = ^AWord;
        PAInt = ^AInt;
 
-       { the ordinal type used when evaluating constant integer expressions }
-       TConstExprInt = int64;
-       { ... the same unsigned }
-       TConstExprUInt = qword;
        { This must be an ordinal type with the same size as a pointer
          Note: Must be unsigned! Otherwise, ugly code like
          pointer(-1) will result in a pointer with the value
@@ -341,12 +337,12 @@ interface
        plongint   = ^longint;
        plongintarray = plongint;
 
-       Tconstant=record
-            case signed:boolean of
-                false:
-                    (valueu:cardinal);
-                true:
-                    (values:longint);
+       pfileposinfo = ^tfileposinfo;
+       tfileposinfo = record
+         line      : longint;
+         column    : word;
+         fileindex : word;
+         moduleindex : word;
        end;
 
   {$ifndef xFPC}

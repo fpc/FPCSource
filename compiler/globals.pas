@@ -43,7 +43,7 @@ interface
 {$ENDIF}
 
       { comphook pulls in sysutils anyways }
-      cutils,cclasses,cfileutils,
+      cutils,cclasses,cfileutl,
       cpuinfo,
       globtype,version,systems;
 
@@ -102,14 +102,6 @@ interface
 {$endif}
 
     type
-       pfileposinfo = ^tfileposinfo;
-       tfileposinfo = record
-         line      : longint;
-         column    : word;
-         fileindex : word;
-         moduleindex : word;
-       end;
-
        tcodepagestring = string[20];
 
        tsettings = record
@@ -235,7 +227,7 @@ interface
        RelocSectionSetExplicitly : boolean;
        LinkTypeSetExplicitly : boolean;
 
-       current_tokenpos,                       { position of the last token }
+       current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
        nwscreenname : string;

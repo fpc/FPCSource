@@ -219,7 +219,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,
@@ -394,7 +394,7 @@ implementation
            while false do }
          if (lnf_testatbegin in loopflags) and
             (left.nodetype=ordconstn) and
-            (tordconstnode(left).value=0) and
+            (tordconstnode(left).value.uvalue=0) and
             assigned(right) then
            CGMessagePos(right.fileinfo,cg_w_unreachable_code);
       end;
@@ -665,7 +665,7 @@ implementation
         { optimize constant expressions }
         if left.nodetype=ordconstn then
           begin
-             if tordconstnode(left).value=1 then
+             if tordconstnode(left).value.uvalue=1 then
                begin
                   if assigned(right) then
                     result:=right

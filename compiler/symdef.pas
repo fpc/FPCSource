@@ -28,7 +28,7 @@ interface
        { common }
        cclasses,
        { global }
-       globtype,globals,tokens,
+       globtype,globals,tokens,constexp,
        { symtable }
        symconst,symbase,symtype,
        { ppu }
@@ -119,7 +119,8 @@ interface
        end;
 
        tformaldef = class(tstoreddef)
-          constructor create;
+          typed:boolean;
+          constructor create(Atyped:boolean);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
@@ -569,6 +570,7 @@ interface
        voidfarpointertype,
        cundefinedtype,
        cformaltype,               { unique formal definition }
+       ctypedformaltype,          { unique typed formal definition }
        voidtype,                  { Void (procedure) }
        cchartype,                 { Char }
        cwidechartype,             { WideChar }
@@ -1447,16 +1449,8 @@ implementation
       begin
          inherited ppuload(orddef,ppufile);
          ordtype:=tordtype(ppufile.getbyte);
-         if sizeof(TConstExprInt)=8 then
-           begin
-             low:=ppufile.getint64;
-             high:=ppufile.getint64;
-           end
-         else
-           begin
-             low:=ppufile.getlongint;
-             high:=ppufile.getlongint;
-           end;
+         low:=ppufile.getexprint;
+         high:=ppufile.getexprint;
          setsize;
       end;
 
@@ -1544,16 +1538,8 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(ordtype));
-         if sizeof(TConstExprInt)=8 then
-          begin
-            ppufile.putint64(low);
-            ppufile.putint64(high);
-          end
-         else
-          begin
-            ppufile.putlongint(low);
-            ppufile.putlongint(high);
-          end;
+         ppufile.putexprint(low);
+         ppufile.putexprint(high);
          ppufile.writeentry(iborddef);
       end;
 
@@ -1755,9 +1741,9 @@ implementation
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=632
+              savesize:=632{+8}
             else
-              savesize:=628;
+              savesize:=628{+8};
           ft_typed,
           ft_untyped :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
@@ -1768,7 +1754,7 @@ implementation
 {$else cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=592;
+            savesize:=592{+4};
           ft_typed,
           ft_untyped :
             savesize:=332;
@@ -2111,9 +2097,10 @@ implementation
                                  TFORMALDEF
 ***************************************************************************}
 
-    constructor tformaldef.create;
+    constructor tformaldef.create(Atyped:boolean);
       begin
          inherited create(formaldef);
+         typed:=Atyped;
          savesize:=0;
       end;
 
@@ -2121,6 +2108,7 @@ implementation
     constructor tformaldef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(formaldef,ppufile);
+         typed:=boolean(ppufile.getbyte);
          savesize:=0;
       end;
 
@@ -2128,13 +2116,17 @@ implementation
     procedure tformaldef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
+         ppufile.putbyte(byte(typed));
          ppufile.writeentry(ibformaldef);
       end;
 
 
     function tformaldef.GetTypeName : string;
       begin
-         GetTypeName:='<Formal type>';
+         if typed then
+           GetTypeName:='<Typed formal type>'
+         else
+           GetTypeName:='<Formal type>';
       end;
 
 

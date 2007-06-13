@@ -242,9 +242,9 @@ implementation
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resultdef));
 {$ifdef cpu64bit}
-         location.value:=value;
+         location.value:=value.svalue;
 {$else cpu64bit}
-         location.value64:=int64(value);
+         location.value64:=value.svalue;
 {$endif cpu64bit}
       end;
 

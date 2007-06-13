@@ -37,7 +37,7 @@ implementation
 
     uses
        cclasses,
-       globtype,cpuinfo,procinfo,
+       globtype,cpuinfo,procinfo,constexp,
        symconst,widestr;
 
 

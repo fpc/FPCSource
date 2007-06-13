@@ -33,7 +33,7 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,globals,systems,
+       globtype,systems,
        cpuinfo,cpubase,
        cgbase,cgutils,
        symtype,
@@ -651,7 +651,9 @@ implementation
 
     uses
       SysUtils,
-      verbose;
+      verbose,
+      globals,
+      fmodule;
 
     const
       pputaimarker = 254;

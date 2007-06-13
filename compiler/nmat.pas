@@ -89,7 +89,7 @@ implementation
     uses
       systems,
       verbose,globals,cutils,
-      globtype,
+      globtype,constexp,
       symconst,symtype,symdef,symtable,
       defutil,
       htypechk,pass_1,
@@ -133,17 +133,9 @@ implementation
 
             case nodetype of
               modn:
-                if (torddef(ld).ordtype <> u64bit) or
-                   (torddef(rd).ordtype <> u64bit) then
-                  t:=genintconstnode(lv mod rv)
-                else
-                  t:=genintconstnode(int64(qword(lv) mod qword(rv)));
+                t:=genintconstnode(lv mod rv);
               divn:
-                if (torddef(ld).ordtype <> u64bit) or
-                   (torddef(rd).ordtype <> u64bit) then
-                  t:=genintconstnode(lv div rv)
-                else
-                  t:=genintconstnode(int64(qword(lv) div qword(rv)));
+                t:=genintconstnode(lv div rv);
             end;
             result:=t;
             exit;
@@ -418,7 +410,7 @@ implementation
               end
             else
               begin
-                dec(tordconstnode(right).value);
+                dec(tordconstnode(right).value.uvalue);
                 result := caddnode.create(andn,left,right);
               end;
             { left and right are reused }
@@ -834,9 +826,7 @@ implementation
                bool32bit,
                bool64bit:
                  begin
-                   { here we do a boolean(byte(..)) type cast because }
-                   { boolean(<int64>) is buggy in 1.00                }
-                   v:=byte(not(boolean(byte(v))));
+                   v:=byte(not(boolean(int64(v))));
                  end;
                uchar,
                uwidechar,

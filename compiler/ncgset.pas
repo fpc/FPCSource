@@ -26,7 +26,7 @@ unit ncgset;
 interface
 
     uses
-       globtype,globals,
+       globtype,globals,constexp,
        node,nset,cpubase,cgbase,cgutils,cgobj,aasmbase,aasmtai,aasmdata;
 
     type
@@ -474,17 +474,18 @@ implementation
              genitem(t^.less);
            { do we need to test the first value? }
            if first and (t^._low>get_min_value(left.resultdef)) then
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
            if t^._low=t^._high then
              begin
-                if t^._low-last=0 then
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
-                else
-                  begin
-                      gensub(aint(t^._low-last));
-                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,aint(t^._low-last),scratch_reg,blocklabel(t^.blockid));
-                  end;
-                last:=t^._low;
+               if t^._low-last=0 then
+                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
+               else
+                 begin
+                   gensub(aint(t^._low.svalue-last.svalue));
+                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,
+                                            OC_EQ,aint(t^._low.svalue-last.svalue),scratch_reg,blocklabel(t^.blockid));
+                 end;
+               last:=t^._low;
              end
            else
              begin
@@ -495,18 +496,18 @@ implementation
                   begin
                      { have we to ajust the first value ? }
                      if (t^._low>get_min_value(left.resultdef)) then
-                       gensub(aint(t^._low));
+                       gensub(aint(t^._low.svalue));
                   end
                 else
                   begin
                     { if there is no unused label between the last and the }
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
-                    gensub(aint(t^._low-last));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,aint(t^._low-last),scratch_reg,elselabel);
+                    gensub(aint(t^._low.svalue-last.svalue));
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,aint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
                   end;
-                gensub(aint(t^._high-t^._low));
-                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,aint(t^._high-t^._low),scratch_reg,blocklabel(t^.blockid));
+                gensub(aint(t^._high.svalue-t^._low.svalue));
+                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,aint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;
@@ -551,14 +552,14 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_NE, aint(hi(int64(t^._low))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_EQ, aint(lo(int64(t^._low))),hregister, blocklabel(t^.blockid));
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_NE, aint(hi(int64(t^._low.svalue))),hregister2,l1);
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_EQ, aint(lo(int64(t^._low.svalue))),hregister, blocklabel(t^.blockid));
                      cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$endif cpu64bit}
                   begin
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low),hregister, blocklabel(t^.blockid));
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low.svalue),hregister, blocklabel(t^.blockid));
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
@@ -575,18 +576,18 @@ implementation
                      if opsize in [OS_64,OS_S64] then
                        begin
                           current_asmdata.getjumplabel(l1);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._low))),
+                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._low.svalue))),
                                hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._low))),
+                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._low.svalue))),
                                hregister2, l1);
                           { the comparisation of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_B, aint(lo(int64(t^._low))), hregister, elselabel);
+                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_B, aint(lo(int64(t^._low.svalue))), hregister, elselabel);
                           cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else
 {$endif cpu64bit}
                        begin
-                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low), hregister,
+                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low.svalue), hregister,
                            elselabel);
                        end;
                   end;
@@ -594,17 +595,17 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._high))), hregister2,
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._high.svalue))), hregister2,
                            blocklabel(t^.blockid));
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._high))), hregister2,
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._high.svalue))), hregister2,
                            l1);
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_BE, aint(lo(int64(t^._high))), hregister, blocklabel(t^.blockid));
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_BE, aint(lo(int64(t^._high.svalue))), hregister, blocklabel(t^.blockid));
                     cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
 {$endif cpu64bit}
                   begin
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high), hregister, blocklabel(t^.blockid));
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high.svalue), hregister, blocklabel(t^.blockid));
                   end;
 
                 last:=t^._high;
@@ -725,13 +726,13 @@ implementation
 
                    if (min_label<0) and (max_label>0) then
                      begin
-                        if min_label=TConstExprInt(low(aint)) then
-                          dist:=aword(max_label)+aword(low(aint))
+                        if min_label=TConstExprInt(int64(low(aint))) then
+                          dist:=aword(max_label.uvalue)+aword(low(aint))
                         else
-                          dist:=aword(max_label)+aword(-min_label)
+                          dist:=aword(max_label.uvalue)+aword(-min_label.svalue)
                      end
                    else
-                     dist:=max_label-min_label;
+                     dist:=max_label.uvalue-min_label.uvalue;
 
                    { optimize for size ? }
                    if cs_opt_size in current_settings.optimizerswitches  then
@@ -742,7 +743,7 @@ implementation
                               ((max_label-min_label)>3*labelcnt)) then
                          begin
                            { if the labels less or more a continuum then }
-                           genjumptable(labels,min_label,max_label);
+                           genjumptable(labels,min_label.svalue,max_label.svalue);
                          end
                        else
                          begin
@@ -767,9 +768,9 @@ implementation
                           begin
                             if (has_jumptable) and
                                (dist<max_dist) and
-                               (min_label>=low(aint)) and
+                               (min_label>=int64(low(aint))) and
                                (max_label<=high(aint)) then
-                              genjumptable(labels,min_label,max_label)
+                              genjumptable(labels,min_label.svalue,max_label.svalue)
                             else
                               genlinearlist(labels);
                           end;

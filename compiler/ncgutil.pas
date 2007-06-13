@@ -280,7 +280,7 @@ implementation
 {$endif OLDREGVARS}
               if is_constboolnode(p) then
                 begin
-                   if tordconstnode(p).value<>0 then
+                   if Tordconstnode(p).value.uvalue<>0 then
                      cg.a_jmp_always(list,current_procinfo.CurrTrueLabel)
                    else
                      cg.a_jmp_always(list,current_procinfo.CurrFalseLabel)

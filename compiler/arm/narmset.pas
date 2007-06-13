@@ -42,7 +42,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      verbose,globals,constexp,
       symconst,symdef,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,
@@ -81,11 +81,11 @@ implementation
             if assigned(t^.less) then
               genitem(list,t^.less);
             { fill possible hole }
-            for i:=last+1 to t^._low-1 do
+            for i:=last.svalue+1 to t^._low.svalue-1 do
               list.concat(Tai_const.Create_sym(elselabel));
-            for i:=t^._low to t^._high do
+            for i:=t^._low.svalue to t^._high.svalue do
               list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
-            last:=t^._high;
+            last:=t^._high.svalue;
             if assigned(t^.greater) then
               genitem(list,t^.greater);
           end;
@@ -129,7 +129,7 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resultdef)) then
                begin
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
@@ -138,7 +138,7 @@ implementation
                   else
                     begin
                       tcgarm(cg).cgsetflags:=true;
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low-last), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(int64(t^._low-last)), hregister);
                       tcgarm(cg).cgsetflags:=false;
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                     end;
@@ -156,7 +156,7 @@ implementation
                        if (t^._low>get_min_value(left.resultdef)) then
                          begin
                            tcgarm(cg).cgsetflags:=true;
-                           cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low), hregister);
+                           cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(int64(t^._low)), hregister);
                            tcgarm(cg).cgsetflags:=false;
                          end;
                     end
@@ -167,7 +167,7 @@ implementation
                       { immediately. else check the range in between:       }
 
                       tcgarm(cg).cgsetflags:=true;
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low-last), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(int64(t^._low-last)), hregister);
                       tcgarm(cg).cgsetflags:=false;
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
@@ -176,7 +176,7 @@ implementation
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
                   tcgarm(cg).cgsetflags:=true;
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,aint(t^._high-t^._low),hregister);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,aint(int64(t^._high-t^._low)),hregister);
                   tcgarm(cg).cgsetflags:=false;
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
 

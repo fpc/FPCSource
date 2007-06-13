@@ -872,7 +872,7 @@ Begin
       begin
         if tconstsym(sym).consttyp=constord then
          begin
-           setconst(tconstsym(sym).value.valueord);
+           setconst(tconstsym(sym).value.valueord.svalue);
            SetupVar:=true;
            Exit;
          end;
@@ -1250,7 +1250,7 @@ Begin
          begin
            if tconstsym(srsym).consttyp=constord then
             Begin
-              l:=tconstsym(srsym).value.valueord;
+              l:=tconstsym(srsym).value.valueord.svalue;
               SearchIConstant:=TRUE;
               exit;
             end;

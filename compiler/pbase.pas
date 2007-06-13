@@ -27,7 +27,7 @@ interface
 
     uses
        cutils,cclasses,
-       tokens,globals,
+       tokens,globtype,
        symconst,symbase,symtype,symdef,symsym,symtable
        ;
 
@@ -98,7 +98,7 @@ interface
 implementation
 
     uses
-       globtype,htypechk,scanner,systems,verbose;
+       globals,htypechk,scanner,systems,verbose;
 
 {****************************************************************************
                                Token Parsing

@@ -26,7 +26,7 @@ unit nutils;
 interface
 
   uses
-    globals,
+    globtype,
     symtype,symsym,node;
 
   const
@@ -83,7 +83,7 @@ interface
 implementation
 
     uses
-      globtype,verbose,
+      verbose,constexp,globals,
       symconst,symbase,symdef,symtable,
       defutil,defcmp,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,

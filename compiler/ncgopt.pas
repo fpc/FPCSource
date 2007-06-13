@@ -178,7 +178,7 @@ begin
       cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,hreg,href2);
     end
   else
-    cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,tordconstnode(right).value,href2);
+    cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,tordconstnode(right).value.svalue,href2);
   lengthreg:=cg.makeregsize(current_asmdata.CurrAsmList,lengthreg,OS_8);
   { increase the string length }
   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_8,1,lengthreg);

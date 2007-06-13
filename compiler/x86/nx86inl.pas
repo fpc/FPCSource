@@ -478,7 +478,7 @@ implementation
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
             begin
               { calculate bit position }
-              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod bitsperop);
+              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value.svalue mod bitsperop);
 
               { determine operator }
               if inlinenumber=in_include_x_y then
@@ -492,7 +492,7 @@ implementation
                 LOC_REFERENCE :
                   begin
                     inc(tcallparanode(left).left.location.reference.offset,
-                      (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div bitsperop)*tcgsize2size[opsize]);
+                      (tordconstnode(tcallparanode(tcallparanode(left).right).left).value.svalue div bitsperop)*tcgsize2size[opsize]);
                     cg.a_op_const_ref(current_asmdata.CurrAsmList,cgop,opsize,l,tcallparanode(left).left.location.reference);
                   end;
                 LOC_CREGISTER :

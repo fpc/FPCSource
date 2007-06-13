@@ -42,7 +42,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      verbose,globals,constexp,
       symconst,symdef,defutil,
       paramgr,
       cpuinfo,
@@ -83,13 +83,13 @@ implementation
             if assigned(t^.less) then
               genitem(list,t^.less);
             { fill possible hole }
-            i:=last+1;
+            i:=last.svalue+1;
             while i<=t^._low-1 do
               begin
                 list.concat(Tai_const.Create_sym(elselabel));
                 inc(i);
               end;
-            i:=t^._low;
+            i:=t^._low.svalue;
             while i<=t^._high do
               begin
                 list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
@@ -159,8 +159,8 @@ implementation
           end;
 
         begin
-           if (get_min_value(left.resultdef) >= low(smallint)) and
-              (get_max_value(left.resultdef) <= high(word)) then
+           if (get_min_value(left.resultdef) >= int64(low(smallint))) and
+              (get_max_value(left.resultdef) <= int64(high(word))) then
              begin
                genlinearcmplist(hp);
                exit;
@@ -170,14 +170,14 @@ implementation
            { need we to test the first value }
            if first and (t^._low>get_min_value(left.resultdef)) then
              begin
-               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,jmp_lt,aword(t^._low),hregister,elselabel);
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,jmp_lt,aword(t^._low.svalue),hregister,elselabel);
              end;
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                 else
-                  gensub(longint(t^._low-last));
+                  gensub(longint(int64(t^._low-last)));
                 tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,blocklabel(t^.blockid));
                 last:=t^._low;
                 lastrange := false;
@@ -191,19 +191,19 @@ implementation
                   begin
                      { have we to ajust the first value ? }
                      if (t^._low>get_min_value(left.resultdef)) then
-                       gensub(longint(t^._low));
+                       gensub(longint(int64(t^._low)));
                   end
                 else
                   begin
                     { if there is no unused label between the last and the }
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
-                    gensub(longint(t^._low-last));
+                    gensub(longint(int64(t^._low-last)));
                     if ((t^._low-last) <> 1) or
                        (not lastrange) then
                       tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList,jmp_lt,elselabel);
                   end;
-                gensub(longint(t^._high-t^._low));
+                gensub(longint(int64(t^._high-t^._low)));
                 tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList,jmp_le,blocklabel(t^.blockid));
                 last:=t^._high;
                 lastrange := true;

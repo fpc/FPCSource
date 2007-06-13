@@ -60,7 +60,7 @@ implementation
        { common }
        cutils,
        { global }
-       globals,tokens,verbose,
+       globals,tokens,verbose,constexp,
        systems,
        { target }
        paramgr,
@@ -379,13 +379,15 @@ implementation
                    hv:=tordconstnode(pt2).value;
                    { Check bounds }
                    if hv<lv then
-                     Message(parser_e_upper_lower_than_lower)
+                     message(parser_e_upper_lower_than_lower)
+                   else if (lv.signed and (lv.svalue<0)) and (not hv.signed and (hv.uvalue>qword(high(int64)))) then
+                     message(type_e_cant_eval_constant_expr)
                    else
                      begin
                        { All checks passed, create the new def }
                        case pt1.resultdef.typ of
                          enumdef :
-                           def:=tenumdef.create_subrange(tenumdef(pt1.resultdef),lv,hv);
+                           def:=tenumdef.create_subrange(tenumdef(pt1.resultdef),lv.svalue,hv.svalue);
                          orddef :
                            begin
                              if is_char(pt1.resultdef) then
@@ -393,6 +395,8 @@ implementation
                              else
                                if is_boolean(pt1.resultdef) then
                                  def:=torddef.create(bool8bit,lv,hv)
+                               else if is_signed(pt1.resultdef) then
+                                 def:=torddef.create(range_to_basetype(lv,hv),lv,hv)
                                else
                                  def:=torddef.create(range_to_basetype(lv,hv),lv,hv);
                            end;
@@ -440,7 +444,10 @@ implementation
                    if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).low>=0) then
                      // !! def:=tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
-                     def:=tsetdef.create(tt2,torddef(tt2).high)
+                     if Torddef(tt2).high>int64(high(longint)) then
+                       message(sym_e_ill_type_decl_set)
+                     else
+                       def:=tsetdef.create(tt2,torddef(tt2).high.svalue)
                    else
                      Message(sym_e_ill_type_decl_set);
                  end;
@@ -504,7 +511,7 @@ implementation
              begin
                 { defaults }
                 indexdef:=generrordef;
-                lowval:=low(aint);
+                lowval:=int64(low(aint));
                 highval:=high(aint);
                 repeat
                   { read the expression and check it, check apart if the
@@ -540,7 +547,7 @@ implementation
                                    Message(parser_e_array_lower_less_than_upper_bound);
                                    highval:=lowval;
                                  end
-                                else if (lowval < low(aint)) or
+                                else if (lowval<int64(low(aint))) or
                                         (highval > high(aint)) then
                                   begin
                                     Message(parser_e_array_range_out_of_bounds);
@@ -565,12 +572,12 @@ implementation
                     as element of the existing array, otherwise create a new array }
                   if assigned(arrdef) then
                     begin
-                      arrdef.elementdef:=tarraydef.create(lowval,highval,indexdef);
+                      arrdef.elementdef:=tarraydef.create(lowval.svalue,highval.svalue,indexdef);
                       arrdef:=tarraydef(arrdef.elementdef);
                     end
                   else
                     begin
-                      arrdef:=tarraydef.create(lowval,highval,indexdef);
+                      arrdef:=tarraydef.create(lowval.svalue,highval.svalue,indexdef);
                       def:=arrdef;
                     end;
                   if is_packed then
@@ -623,7 +630,7 @@ implementation
                 consume(_LKLAMMER);
                 first := true;
                 { allow negativ value_str }
-                l:=-1;
+                l:=int64(-1);
                 enumdupmsg:=false;
                 aktenumdef:=tenumdef.create;
                 repeat
@@ -668,11 +675,11 @@ implementation
                        l:=v;
                     end
                   else
-                    inc(l);
+                    inc(l.svalue);
                   first := false;
                   storepos:=current_tokenpos;
                   current_tokenpos:=defpos;
-                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l));
+                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l.svalue));
                   current_tokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;

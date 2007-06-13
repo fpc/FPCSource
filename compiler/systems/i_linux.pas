@@ -52,7 +52,7 @@ unit i_linux;
             system       : system_i386_LINUX;
             name         : 'Linux for i386';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections},
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections},tf_winlikewidestring,
 {$ifdef segment_threadvars}
                             tf_section_threadvars,
 {$endif segment_threadvars}

@@ -54,7 +54,7 @@ implementation
     uses
       cutils,
       systems,
-      verbose,globtype,globals,
+      verbose,globtype,globals,constexp,
       nutils,
       symconst,symtype,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,ncgrtti,
@@ -610,10 +610,10 @@ implementation
                 if right.nodetype=ordconstn then
                   begin
                     if (target_info.endian = endian_little) then
-                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,(tordconstnode(right).value shl 8) or 1,
+                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,(tordconstnode(right).value.svalue shl 8) or 1,
                           left.location.reference)
                     else
-                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,tordconstnode(right).value or (1 shl 8),
+                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,tordconstnode(right).value.svalue or (1 shl 8),
                           left.location.reference);
                   end
                 else

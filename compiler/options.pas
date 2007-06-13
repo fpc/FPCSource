@@ -26,7 +26,7 @@ unit options;
 interface
 
 uses
-  CClasses,CFileUtils,
+  CClasses,cfileutl,
   globtype,globals,verbose,systems,cpuinfo;
 
 Type

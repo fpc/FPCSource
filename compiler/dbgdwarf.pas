@@ -331,7 +331,7 @@ interface
 implementation
 
     uses
-      cutils,cfileutils,
+      cutils,cfileutl,
       version,globtype,globals,verbose,systems,
       cpubase,cgbase,paramgr,
       fmodule,
@@ -1885,7 +1885,7 @@ implementation
             constord:
               begin
                 current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.svalue));
               end;
             constnil:
               begin

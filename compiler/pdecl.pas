@@ -27,7 +27,7 @@ interface
 
     uses
       { global }
-      globals,
+      globtype,
       { symtable }
       symsym,
       { pass_1 }
@@ -50,7 +50,7 @@ implementation
        { common }
        cutils,cclasses,
        { global }
-       globtype,tokens,verbose,widestr,
+       globals,tokens,verbose,widestr,constexp,
        systems,
        { aasm }
        aasmbase,aasmtai,aasmdata,fmodule,
@@ -90,7 +90,7 @@ implementation
            ordconstn:
              begin
                if p.resultdef.typ=pointerdef then
-                 hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value,p.resultdef)
+                 hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value.uvalue,p.resultdef)
                else
                  hp:=tconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
              end;
@@ -663,7 +663,7 @@ implementation
                            if is_constcharnode(p) then
                              begin
                                 getmem(sp,2);
-                                sp[0]:=chr(tordconstnode(p).value);
+                                sp[0]:=chr(tordconstnode(p).value.svalue);
                                 sp[1]:=#0;
                                 sym:=tconstsym.create_string(orgname,constresourcestring,sp,1);
                              end

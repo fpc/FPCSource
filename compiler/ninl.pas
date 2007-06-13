@@ -80,7 +80,7 @@ interface
 implementation
 
     uses
-      verbose,globals,systems,
+      verbose,globals,systems,constexp,
       globtype, cutils,
       symconst,symdef,symsym,symtable,paramgr,defutil,
       pass_1,
@@ -239,14 +239,14 @@ implementation
             if not assigned(fracpara) then
               begin
                 tmppara.right := ccallparanode.create(
-                  cordconstnode.create(-1,s32inttype,false),
+                  cordconstnode.create(int64(-1),s32inttype,false),
                    tmppara.right);
                 fracpara := tcallparanode(tmppara.right);
               end;
             { if necessary, insert a length para }
             if not assigned(lenpara) then
               fracpara.right := ccallparanode.create(
-                cordconstnode.create(-32767,s32inttype,false),
+                cordconstnode.create(int64(-32767),s32inttype,false),
                    fracpara.right);
           end
         else if is_enum then
@@ -271,14 +271,14 @@ implementation
             if not assigned(lenpara) then
               Tcallparanode(Tcallparanode(newparas.right).right).right:=
                 Ccallparanode.create(
-                  cordconstnode.create(-1,s32inttype,false),
+                  cordconstnode.create(int64(-1),s32inttype,false),
                   Tcallparanode(Tcallparanode(newparas.right).right).right
                 );
           end
         else
           { for a normal parameter, insert a only length parameter if one is missing }
           if not assigned(lenpara) then
-            newparas.right := ccallparanode.create(cordconstnode.create(-1,s32inttype,false),
+            newparas.right := ccallparanode.create(cordconstnode.create(int64(-1),s32inttype,false),
               newparas.right);
 
         { remove the parameters from the original node so they won't get disposed, }
@@ -566,11 +566,11 @@ implementation
                     begin
                       if not assigned(lenpara) then
                         lenpara := ccallparanode.create(
-                          cordconstnode.create(-32767,s32inttype,false),nil);
+                          cordconstnode.create(int64(-32767),s32inttype,false),nil);
                       { also create a default fracpara if necessary }
                       if not assigned(fracpara) then
                         fracpara := ccallparanode.create(
-                          cordconstnode.create(-1,s32inttype,false),nil);
+                          cordconstnode.create(int64(-1),s32inttype,false),nil);
                       { add it to the lenpara }
                       lenpara.right := fracpara;
                       if not is_currency(para.left.resultdef) then
@@ -1298,6 +1298,8 @@ implementation
                     v:=torddef(def).low
                   else
                     v:=torddef(def).high;
+(*
+Low and high are not anymore longints, but Tconstexprints (DM)
                   { low/high of torddef are longints, so we need special }
                   { handling for cardinal and 64bit types (JM)           }
                   { 1.0.x doesn't support int64($ffffffff) correct, it'll expand
@@ -1323,12 +1325,15 @@ implementation
                           v := cardinal(v);
                       end;
                   end;
+*)
                   hp:=cordconstnode.create(v,def,true);
                   typecheckpass(hp);
+(*
                   { fix high(qword) }
                   if (torddef(def).ordtype=u64bit) and
                      (inlinenumber = in_high_x) then
-                    tordconstnode(hp).value := -1; { is the same as qword($ffffffffffffffff) }
+                    tordconstnode(hp).value := int64(-1); { is the same as qword($ffffffffffffffff) }
+*)
                   do_lowhigh:=hp;
                end;
              enumdef:
@@ -1474,9 +1479,9 @@ implementation
                  (index.left.nodetype = ordconstn) and
                  not is_special_array(unpackedarraydef) then
                 begin
-                  testrange(index.left.resultdef,unpackedarraydef,tordconstnode(index.left).value,false);
+                  testrange(unpackedarraydef,tordconstnode(index.left).value,false);
                   tempindex := tordconstnode(index.left).value + packedarraydef.highrange-packedarraydef.lowrange;
-                  testrange(index.left.resultdef,unpackedarraydef,tempindex,false);
+                  testrange(unpackedarraydef,tempindex,false);
                 end;
             end;
 
@@ -1544,19 +1549,30 @@ implementation
                end;
                case inlinenumber of
                  in_const_abs :
-                   hp:=genintconstnode(abs(vl));
-                 in_const_sqr :
-                   hp:=genintconstnode(sqr(vl));
+                   if vl.signed then
+                     hp:=genintconstnode(abs(vl.svalue))
+                   else
+                     hp:=genintconstnode(vl.uvalue);
+                 in_const_sqr:
+                   if vl.signed then
+                     hp:=genintconstnode(sqr(vl.svalue))
+                   else
+                     hp:=genintconstnode(sqr(vl.uvalue));
                  in_const_odd :
-                   hp:=cordconstnode.create(byte(odd(vl)),booltype,true);
+                   hp:=cordconstnode.create(qword(odd(int64(vl))),booltype,true);
                  in_const_swap_word :
                    hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resultdef,true);
                  in_const_swap_long :
                    hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resultdef,true);
                  in_const_swap_qword :
                    hp:=cordconstnode.create((vl and $ffff) shl 32+(vl shr 32),left.resultdef,true);
-                 in_const_ptr :
-                   hp:=cpointerconstnode.create((vl2 shl 4)+vl,voidfarpointertype);
+                 in_const_ptr:
+                   begin
+                     {Don't construct pointers from negative values.}
+                     if (vl.signed and (vl.svalue<0)) or (vl2.signed and (vl2.svalue<0)) then
+                       cgmessage(parser_e_range_check_error);
+                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidfarpointertype);
+                   end
                  else
                    internalerror(88);
                end;
@@ -2084,8 +2100,8 @@ implementation
                         if inlinenumber=in_low_x then
                          begin
                            set_varstate(left,vs_read,[]);
-                           result:=cordconstnode.create(tarraydef(
-                            left.resultdef).lowrange,tarraydef(left.resultdef).rangedef,true);
+                           result:=cordconstnode.create(int64(tarraydef(
+                            left.resultdef).lowrange),tarraydef(left.resultdef).rangedef,true);
                          end
                         else
                          begin
@@ -2110,8 +2126,8 @@ implementation
                            else
                             begin
                               set_varstate(left,vs_read,[]);
-                              result:=cordconstnode.create(tarraydef(
-                               left.resultdef).highrange,tarraydef(left.resultdef).rangedef,true);
+                              result:=cordconstnode.create(int64(tarraydef(
+                               left.resultdef).highrange),tarraydef(left.resultdef).rangedef,true);
                             end;
                          end;
                       end;

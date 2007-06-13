@@ -34,7 +34,7 @@ implementation
     uses
        SysUtils,
        globtype,version,systems,tokens,
-       cutils,cfileutils,cclasses,comphook,
+       cutils,cfileutl,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmtai,aasmdata,aasmcpu,aasmbase,

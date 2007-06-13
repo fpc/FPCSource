@@ -40,7 +40,7 @@ interface
 implementation
 
     uses
-      globals,globtype,verbose,
+      globals,globtype,verbose,constexp,
       systems,
       symconst,symtype,symsym,symdef,symtable,
       aasmtai,aasmdata,aasmcpu,
@@ -121,15 +121,16 @@ implementation
       begin
         symtablestack.push(systemunit);
         cundefinedtype:=tundefineddef.create;
-        cformaltype:=tformaldef.create;
+        cformaltype:=tformaldef.create(false);
+        ctypedformaltype:=tformaldef.create(true);
         voidtype:=torddef.create(uvoid,0,0);
         u8inttype:=torddef.create(u8bit,0,255);
-        s8inttype:=torddef.create(s8bit,-128,127);
+        s8inttype:=torddef.create(s8bit,int64(-128),127);
         u16inttype:=torddef.create(u16bit,0,65535);
-        s16inttype:=torddef.create(s16bit,-32768,32767);
+        s16inttype:=torddef.create(s16bit,int64(-32768),32767);
         u32inttype:=torddef.create(u32bit,0,high(longword));
-        s32inttype:=torddef.create(s32bit,low(longint),high(longint));
-        u64inttype:=torddef.create(u64bit,low(qword),TConstExprInt(high(qword)));
+        s32inttype:=torddef.create(s32bit,int64(low(longint)),int64(high(longint)));
+        u64inttype:=torddef.create(u64bit,low(qword),high(qword));
         s64inttype:=torddef.create(s64bit,low(int64),high(int64));
         booltype:=torddef.create(bool8bit,0,1);
         bool16type:=torddef.create(bool16bit,0,1);
@@ -268,6 +269,7 @@ implementation
         { Internal types }
         addtype('$undefined',cundefinedtype);
         addtype('$formal',cformaltype);
+        addtype('$typedformal',ctypedformaltype);
         addtype('$void',voidtype);
         addtype('$byte',u8inttype);
         addtype('$shortint',s8inttype);
@@ -359,6 +361,7 @@ implementation
         loadtype('int64',s64inttype);
         loadtype('undefined',cundefinedtype);
         loadtype('formal',cformaltype);
+        loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
         loadtype('char',cchartype);
         loadtype('widechar',cwidechartype);

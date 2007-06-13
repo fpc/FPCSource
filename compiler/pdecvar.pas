@@ -47,7 +47,7 @@ implementation
        { common }
        cutils,cclasses,
        { global }
-       globtype,globals,tokens,verbose,
+       globtype,globals,tokens,verbose,constexp,
        systems,
        { symtable }
        symconst,symbase,symtype,symtable,defutil,defcmp,
@@ -178,7 +178,11 @@ implementation
                                  begin
                                    { type/range checking }
                                    inserttypeconv(p,tarraydef(def).rangedef);
-                                   idx:=tordconstnode(p).value
+                                   if (Tordconstnode(p).value<int64(low(longint))) or
+                                      (Tordconstnode(p).value>int64(high(longint))) then
+                                     message(parser_e_array_range_out_of_bounds)
+                                   else
+                                     idx:=Tordconstnode(p).value.svalue
                                  end
                                else
                                 Message(type_e_ordinal_expr_expected)
@@ -345,7 +349,7 @@ implementation
                      begin
                        if is_integer(pt.resultdef) then
                          inserttypeconv_internal(pt,s32inttype);
-                       p.index:=tordconstnode(pt).value;
+                       p.index:=tordconstnode(pt).value.svalue;
                      end
                    else
                      begin
@@ -596,7 +600,11 @@ implementation
                     setconstn :
                       p.default:=plongint(tsetconstnode(pt).value_set)^;
                     ordconstn :
-                      p.default:=longint(tordconstnode(pt).value);
+                      if (Tordconstnode(pt).value<int64(low(p.default))) or
+                         (Tordconstnode(pt).value>int64(high(p.default))) then
+                        message(parser_e_range_check_error)
+                      else
+                        p.default:=longint(tordconstnode(pt).value.svalue);
                     niln :
                       p.default:=0;
                     realconstn:
@@ -771,7 +779,7 @@ implementation
               if pt.nodetype=stringconstn then
                 abssym.asmname:=stringdup(strpas(tstringconstnode(pt).value_str))
               else
-                abssym.asmname:=stringdup(chr(tordconstnode(pt).value));
+                abssym.asmname:=stringdup(chr(tordconstnode(pt).value.svalue));
               consume(token);
               abssym.abstyp:=toasm;
             end
@@ -781,7 +789,11 @@ implementation
               abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               abssym.abstyp:=toaddr;
-              abssym.addroffset:=tordconstnode(pt).value;
+              if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
+                 (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
+                message(parser_e_range_check_error)
+              else
+                abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$ifdef i386}
               abssym.absseg:=false;
               if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
@@ -791,7 +803,11 @@ implementation
                   pt:=expr;
                   if is_constintnode(pt) then
                     begin
-                      abssym.addroffset:=abssym.addroffset shl 4+tordconstnode(pt).value;
+                      if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
+                         (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
+                        message(parser_e_range_check_error)
+                      else
+                        abssym.addroffset:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
                       abssym.absseg:=true;
                     end
                   else

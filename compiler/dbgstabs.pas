@@ -88,8 +88,8 @@ interface
 implementation
 
     uses
-      SysUtils,cutils,cfileutils,
-      systems,globals,globtype,verbose,
+      SysUtils,cutils,cfileutl,
+      systems,globals,globtype,verbose,constexp,
       symconst,defutil,
       cpuinfo,cpubase,cgbase,paramgr,
       aasmbase,procinfo,
@@ -564,7 +564,7 @@ implementation
                   u64bit :
                     result:=def_stabstr_evaluate(def,'r${numberstring};0;-1;',[]);
                   else
-                    result:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low)),tostr(longint(def.high))]);
+                    result:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low.svalue)),tostr(longint(def.high.svalue))]);
                 end;
               end
             else
@@ -591,7 +591,7 @@ implementation
                     result:=strpnew('-31;');
                   {u32bit : result:=def_stab_number(s32inttype)+';0;-1;'); }
                   else
-                    result:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low)),tostr(longint(def.high))]);
+                    result:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low.svalue)),tostr(longint(def.high.svalue))]);
                 end;
              end;
           end;

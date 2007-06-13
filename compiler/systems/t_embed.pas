@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit t_embedded;
+unit t_embed;
 
 {$i fpcdefs.inc}
 
@@ -31,8 +31,8 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_embedded,link;
+       cutils,cfileutl,cclasses,
+       globtype,globals,systems,verbose,script,fmodule,i_embed,link;
 
     type
        TlinkerEmbedded=class(texternallinker)

@@ -41,7 +41,7 @@ implementation
        { common }
        cutils,cclasses,
        { global }
-       globtype,globals,verbose,
+       globtype,globals,verbose,constexp,
        systems,
        { aasm }
        cpubase,aasmbase,aasmtai,aasmdata,
@@ -183,8 +183,8 @@ implementation
                         CGMessage(parser_e_case_lower_less_than_upper_bound);
                       if not casedeferror then
                        begin
-                         testrange(casedef,casedef,hl1,false);
-                         testrange(casedef,casedef,hl2,false);
+                         testrange(casedef,hl1,false);
+                         testrange(casedef,hl2,false);
                        end;
                     end
                   else
@@ -198,7 +198,7 @@ implementation
                     CGMessage(parser_e_case_mismatch);
                   hl1:=get_ordinal_value(p);
                   if not casedeferror then
-                    testrange(casedef,casedef,hl1,false);
+                    testrange(casedef,hl1,false);
                   casenode.addlabel(blockid,hl1,hl1);
                end;
              p.free;
@@ -286,7 +286,7 @@ implementation
 {$ifndef cpu64bit}
           if hp.nodetype=ordconstn then
             begin
-              if (tordconstnode(hp).value<low(longint)) or
+              if (tordconstnode(hp).value<int64(low(longint))) or
                  (tordconstnode(hp).value>high(longint)) then
                 begin
                   CGMessage(parser_e_range_check_error);

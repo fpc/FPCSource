@@ -79,7 +79,7 @@ implementation
 
     uses
       systems,
-      cutils,verbose,globals,
+      cutils,verbose,globals,constexp,
       symconst,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
@@ -722,8 +722,8 @@ implementation
                         not(is_array_of_const(left.resultdef)) and
                         not(is_dynamic_array(left.resultdef)) then
                        begin
-                          if (tordconstnode(right).value>tarraydef(left.resultdef).highrange) or
-                             (tordconstnode(right).value<tarraydef(left.resultdef).lowrange) then
+                          if (tordconstnode(right).value.svalue>tarraydef(left.resultdef).highrange) or
+                             (tordconstnode(right).value.svalue<tarraydef(left.resultdef).lowrange) then
                             begin
                               { this should be caught in the typecheckpass! (JM) }
                               if (cs_check_range in current_settings.localswitches) then
@@ -753,7 +753,7 @@ implementation
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-                              cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value,paraloc2);
+                              cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
                               href:=location.reference;
                               dec(href.offset,sizeof(aint)-offsetdec);
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -786,7 +786,7 @@ implementation
                    not is_ordinal(resultdef))) then
                 begin
                   inc(location.reference.offset,
-                    bytemulsize*tordconstnode(right).value);
+                    bytemulsize*tordconstnode(right).value.svalue);
                   { don't do this for floats etc.; needed to properly set the }
                   { size for bitpacked arrays (e.g. a bitpacked array of      }
                   { enums who are size 2 but fit in one byte -> in the array  }
@@ -802,9 +802,9 @@ implementation
                   if not ispowerof2(subsetref.ref.alignment,temp) then
                     internalerror(2006081212);
                   alignpow:=temp;
-                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value-tarraydef(left.resultdef).lowrange)) shr (3+alignpow)) shl alignpow);
+                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) shr (3+alignpow)) shl alignpow);
                   subsetref.bitindexreg := NR_NO;
-                  subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resultdef).lowrange)) and ((1 shl (3+alignpow))-1);
+                  subsetref.startbit := (mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) and ((1 shl (3+alignpow))-1);
                   subsetref.bitlen := resultdef.packedbitsize;
                   if (left.location.loc = LOC_REFERENCE) then
                     location.loc := LOC_SUBSETREF
@@ -829,7 +829,7 @@ implementation
                      begin
                         if taddnode(right).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).right).value;
+                             extraoffset:=tordconstnode(taddnode(right).right).value.svalue;
                              t:=taddnode(right).left;
                              { First pass processed this with the assumption   }
                              { that there was an add node which may require an }
@@ -841,7 +841,7 @@ implementation
                           end
                         else if taddnode(right).left.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).left).value;
+                             extraoffset:=tordconstnode(taddnode(right).left).value.svalue;
                              t:=taddnode(right).right;
                              t.registersint :=  right.registersint;
                              taddnode(right).right:=nil;
@@ -853,7 +853,7 @@ implementation
                      begin
                         if taddnode(right).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=-tordconstnode(taddnode(right).right).value;
+                             extraoffset:=-tordconstnode(taddnode(right).right).value.svalue;
                              t:=taddnode(right).left;
                              t.registersint :=  right.registersint;
                              taddnode(right).left:=nil;

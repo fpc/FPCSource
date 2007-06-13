@@ -125,7 +125,7 @@ interface
 Implementation
 
     uses
-      cutils,cfileutils,
+      cutils,cfileutl,
       script,globals,verbose,comphook,ppu,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       owbase,owar,ogmap;

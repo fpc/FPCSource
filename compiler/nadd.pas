@@ -85,7 +85,7 @@ implementation
 {$ELSE}
       fksysutl,
 {$ENDIF}
-      globtype,systems,
+      globtype,systems,constexp,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       cgbase,
@@ -140,7 +140,7 @@ implementation
         t : tnode;
         lt,rt   : tnodetype;
         rd,ld   : tdef;
-        rv,lv   : tconstexprint;
+        rv,lv,v : tconstexprint;
         rvd,lvd : bestreal;
         ws1,ws2 : pcompilerwidestring;
         concatstrings : boolean;
@@ -254,90 +254,53 @@ implementation
              case nodetype of
                addn :
                  begin
-                   {$ifopt Q-}
-                     {$define OVERFLOW_OFF}
-                     {$Q+}
-                   {$endif}
-                   try
-                     if (lt=pointerconstn) then
-                       t := cpointerconstnode.create(lv+rv,left.resultdef)
+                   v:=lv+rv;
+                   if v.overflow then
+                     begin
+                       Message(parser_e_arithmetic_operation_overflow);
+                       { Recover }
+                       t:=genintconstnode(0)
+                     end
+                   else if (lt=pointerconstn) then
+                     t := cpointerconstnode.create(qword(v),left.resultdef)
+                   else
+                     if is_integer(ld) then
+                       t := genintconstnode(v)
                      else
-                       if is_integer(ld) then
-                         t := genintconstnode(lv+rv)
-                     else
-                       t := cordconstnode.create(lv+rv,left.resultdef,(ld.typ<>enumdef));
-                   except
-                     on E:EIntOverflow do
-                       begin
-                         Message(parser_e_arithmetic_operation_overflow);
-                         { Recover }
-                         t:=genintconstnode(0)
-                       end;
-                   end;
-                   {$ifdef OVERFLOW_OFF}
-                     {$Q-}
-                     {$undef OVERFLOW_OFF}
-                   {$endif}
+                       t := cordconstnode.create(v,left.resultdef,(ld.typ<>enumdef));
                  end;
                subn :
                  begin
-                   {$ifopt Q-}
-                     {$define OVERFLOW_OFF}
-                     {$Q+}
-                   {$endif}
-                   try
-                     if (lt=pointerconstn) then
-                       begin
-                         { pointer-pointer results in an integer }
-                         if (rt=pointerconstn) then
-                           t := genintconstnode((lv-rv) div tpointerdef(ld).pointeddef.size)
-                         else
-                           t := cpointerconstnode.create(lv-rv,left.resultdef);
-                       end
+                   v:=lv-rv;
+                   if v.overflow then
+                     begin
+                       Message(parser_e_arithmetic_operation_overflow);
+                       { Recover }
+                       t:=genintconstnode(0)
+                     end
+                   else if (lt=pointerconstn) then
+                     { pointer-pointer results in an integer }
+                     if (rt=pointerconstn) then
+                       t := genintconstnode(v div tpointerdef(ld).pointeddef.size)
                      else
-                       begin
-                         if is_integer(ld) then
-                           t:=genintconstnode(lv-rv)
-                         else
-                           t:=cordconstnode.create(lv-rv,left.resultdef,(ld.typ<>enumdef));
-                       end;
-                   except
-                     on E:EIntOverflow do
-                       begin
-                         Message(parser_e_arithmetic_operation_overflow);
-                         { Recover }
-                         t:=genintconstnode(0)
-                       end;
-                   end;
-                   {$ifdef OVERFLOW_OFF}
-                     {$Q-}
-                     {$undef OVERFLOW_OFF}
-                   {$endif}
+                       t := cpointerconstnode.create(qword(v),left.resultdef)
+                   else
+                     if is_integer(ld) then
+                       t:=genintconstnode(v)
+                     else
+                       t:=cordconstnode.create(v,left.resultdef,(ld.typ<>enumdef));
                  end;
                muln :
                  begin
-                   {$ifopt Q-}
-                     {$define OVERFLOW_OFF}
-                     {$Q+}
-                   {$endif}
-                   try
-                     if (torddef(ld).ordtype <> u64bit) or
-                        (torddef(rd).ordtype <> u64bit) then
-                       t:=genintconstnode(lv*rv)
-                     else
-                       t:=genintconstnode(int64(qword(lv)*qword(rv)));
-                   except
-                     on E:EIntOverflow do
-                       begin
-                         Message(parser_e_arithmetic_operation_overflow);
-                         { Recover }
-                         t:=genintconstnode(0)
-                       end;
-                   end;
-                   {$ifdef OVERFLOW_OFF}
-                     {$Q-}
-                     {$undef OVERFLOW_OFF}
-                   {$endif}
+                   v:=lv*rv;
+                   if v.overflow then
+                     begin
+                       message(parser_e_arithmetic_operation_overflow);
+                       { Recover }
+                       t:=genintconstnode(0)
+                     end
+                   else
+                     t:=genintconstnode(v)
                  end;
                xorn :
                  if is_integer(ld) then
@@ -388,9 +351,6 @@ implementation
            if a>0 then
          ... always evaluates to true. (DM)}
         else if is_constintnode(left) and (right.resultdef.typ=orddef) and
-            { all type limits are stored using tconstexprint = int64   }
-            { currently, so u64bit support would need extra type casts }
-            (Torddef(right.resultdef).ordtype<>u64bit) and
             { don't ignore type checks }
             is_subequal(left.resultdef,right.resultdef) then
             begin
@@ -432,9 +392,9 @@ implementation
                 end
             end
           else if (left.resultdef.typ=orddef) and is_constintnode(right) and
-              { all type limits are stored using tconstexprint = int64   }
+(*              { all type limits are stored using tconstexprint = int64   }
               { currently, so u64bit support would need extra type casts }
-              (Torddef(left.resultdef).ordtype<>u64bit) and
+              (Torddef(left.resultdef).ordtype<>u64bit) and*)
               { don't ignore type checks }
               is_subequal(left.resultdef,right.resultdef) then
             begin
@@ -620,10 +580,10 @@ implementation
         if (lt=ordconstn) and (rt=ordconstn) and
            is_char(ld) and is_char(rd) then
           begin
-             c1[0]:=char(byte(tordconstnode(left).value));
+             c1[0]:=char(int64(tordconstnode(left).value));
              c1[1]:=#0;
              l1:=1;
-             c2[0]:=char(byte(tordconstnode(right).value));
+             c2[0]:=char(int64(tordconstnode(right).value));
              c2[1]:=#0;
              l2:=1;
              s1:=@c1[0];
@@ -634,7 +594,7 @@ implementation
           begin
              s1:=tstringconstnode(left).value_str;
              l1:=tstringconstnode(left).len;
-             c2[0]:=char(byte(tordconstnode(right).value));
+             c2[0]:=char(int64(tordconstnode(right).value));
              c2[1]:=#0;
              s2:=@c2[0];
              l2:=1;
@@ -642,7 +602,7 @@ implementation
           end
         else if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
           begin
-             c1[0]:=char(byte(tordconstnode(left).value));
+             c1[0]:=char(int64(tordconstnode(left).value));
              c1[1]:=#0;
              l1:=1;
              s1:=@c1[0];
@@ -2168,8 +2128,8 @@ implementation
             result :=
              ((v >= 0) or
               todefsigned) and
-             (v >= low(longint)) and
-             (v <= high(longint))
+             (v >= int64(low(longint))) and
+             (v <= int64(high(longint)))
           else
             result :=
              (qword(v) >= low(cardinal)) and

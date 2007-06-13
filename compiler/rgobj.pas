@@ -250,8 +250,8 @@ unit rgobj;
   implementation
 
     uses
-       systems,
-       globals,verbose,tgobj,procinfo;
+       systems,fmodule,globals,
+       verbose,tgobj,procinfo;
 
 
     procedure sort_movelist(ml:Pmovelist);

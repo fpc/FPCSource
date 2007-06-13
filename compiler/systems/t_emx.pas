@@ -24,8 +24,8 @@
    A lot of code in this unit has been ported from C to Pascal from the
    emximp utility, part of the EMX development system. Emximp is copyrighted
    by Eberhard Mattes. Note: Eberhard doesn't know much about the Pascal
-   port, please send questions to Daniel Mantione
-   <d.s.p.mantione@twi.tudelft.nl>.
+   port, please send questions to Tomas Hajny <hajny@freepascal.org> or
+   Daniel Mantione <daniel@freepascal.org>.
 }
 unit t_emx;
 
@@ -38,7 +38,7 @@ implementation
 
   uses
      sysutils,
-     cutils,cfileutils,cclasses,
+     cutils,cfileutl,cclasses,
      globtype,comphook,systems,symconst,symsym,symdef,
      globals,verbose,fmodule,script,ogbase,
      comprsrc,import,link,i_emx,ppu;

@@ -169,7 +169,7 @@ uses
   fmodule,
   ppheap,
 {$endif heaptrc}
-  CFileUtils,
+  cfileutl,
   Globals,Systems
   ;
 

@@ -29,7 +29,7 @@ interface
       cutils,
       cclasses,
       { global }
-      globtype,globals,
+      globtype,globals,constexp,
       { symtable }
       symconst,symbase,
       { aasm }
@@ -171,14 +171,14 @@ interface
        public
          procedure checkerror;
          procedure getguid(var g: tguid);
-         function  getexprint:tconstexprint;
+         function  getexprint:Tconstexprint;
          function  getptruint:TConstPtrUInt;
          procedure getposinfo(var p:tfileposinfo);
          procedure getderef(var d:tderef);
          function  getpropaccesslist:tpropaccesslist;
          function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
-         procedure putexprint(v:tconstexprint);
+         procedure putexprint(const v:tconstexprint);
          procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(const d:tderef);
@@ -763,13 +763,13 @@ implementation
       end;
 
 
-    function tcompilerppufile.getexprint:tconstexprint;
-      begin
-        if sizeof(tconstexprint)=8 then
-          result:=tconstexprint(getint64)
-        else
-          result:=tconstexprint(getlongint);
-      end;
+    function tcompilerppufile.getexprint:Tconstexprint;
+
+    begin
+      getexprint.overflow:=false;
+      getexprint.signed:=boolean(getbyte);
+      getexprint.svalue:=getint64;
+    end;
 
 
     function tcompilerppufile.getPtrUInt:TConstPtrUInt;
@@ -953,15 +953,14 @@ implementation
       end;
 
 
-    procedure tcompilerppufile.putexprint(v:tconstexprint);
-      begin
-        if sizeof(TConstExprInt)=8 then
-          putint64(int64(v))
-        else if sizeof(TConstExprInt)=4 then
-          putlongint(longint(v))
-        else
-          internalerror(2002082601);
-      end;
+    procedure Tcompilerppufile.putexprint(const v:Tconstexprint);
+
+    begin
+      if v.overflow then
+        internalerror(200706102);
+      putbyte(byte(v.signed));
+      putint64(v.svalue);
+    end;
 
 
     procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
@@ -1005,7 +1004,7 @@ implementation
                putderef(hp^.defderef);
              sl_vec :
                begin
-                 putlongint(hp^.value);
+                 putlongint(int64(hp^.value));
                  putderef(hp^.valuedefderef);
                end;
              else

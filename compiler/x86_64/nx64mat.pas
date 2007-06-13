@@ -46,7 +46,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmdata,defutil,
       pass_1,pass_2,

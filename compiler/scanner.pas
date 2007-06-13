@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,version,tokens,
+       globtype,globals,constexp,version,tokens,
        verbose,comphook,
        finput,
        widestr;
@@ -209,7 +209,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutils,
+      cutils,cfileutl,
       systems,
       switches,
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
@@ -282,7 +282,7 @@ implementation
           current_settings.modeswitches:=objfpcmodeswitches;
           { TODO: enable this for 2.3/2.9 }
           //  include(current_settings.localswitches, cs_typed_addresses);
-        end 
+        end
 {$ifdef gpc_mode}
         else if s='GPC' then
           current_settings.modeswitches:=gpcmodeswitches
@@ -964,7 +964,7 @@ In case not, the value returned can be arbitrary.
                                                   end
                                                 else if is_char(constdef) then
                                                   begin
-                                                    read_factor:=chr(value.valueord);
+                                                    read_factor:=char(qword(value.valueord));
                                                     factorType:= [ctetString];
                                                   end
                                               end;

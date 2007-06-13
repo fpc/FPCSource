@@ -42,8 +42,8 @@ unit fmodule;
 interface
 
     uses
-       cutils,cclasses,cfileutils,
-       globals,finput,ogbase,
+       cutils,cclasses,cfileutl,
+       globtype,finput,ogbase,
        symbase,symsym,aasmbase,aasmtai,aasmdata;
 
 
@@ -195,6 +195,7 @@ interface
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }
 
+
     procedure set_current_module(p:tmodule);
     function get_module(moduleindex : longint) : tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
@@ -204,8 +205,7 @@ interface
 implementation
 
     uses
-      SysUtils,
-      GlobType,
+      SysUtils,globals,
       verbose,systems,
       scanner,ppu,
       procinfo;

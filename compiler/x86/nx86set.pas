@@ -162,7 +162,7 @@ implementation
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values or be signed !! }
          use_small:=(tsetdef(right.resultdef).settype=smallset) and not is_signed(left.resultdef) and
-                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<32) or
+                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high.svalue<32) or
                      (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<32));
 
          { Can we generate jumps? Possible for all types of sets }
@@ -291,12 +291,12 @@ implementation
                     LOC_CREGISTER:
                       begin
                          emit_const_reg(A_TEST,S_L,
-                           1 shl (tordconstnode(left).value and 31),right.location.register);
+                           1 shl (tordconstnode(left).value.svalue and 31),right.location.register);
                       end;
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-                        emit_const_ref(A_TEST,S_L,1 shl (tordconstnode(left).value and 31),
+                        emit_const_ref(A_TEST,S_L,1 shl (tordconstnode(left).value.svalue and 31),
                            right.location.reference);
                       end;
                     else
@@ -385,7 +385,7 @@ implementation
                  but also used if the left side contains values > 32 or < 0 }
                else if left.nodetype=ordconstn then
                 begin
-                  if (tordconstnode(left).value < 0) or ((tordconstnode(left).value shr 3) >= right.resultdef.size) then
+                  if (tordconstnode(left).value.svalue<0) or ((tordconstnode(left).value.svalue shr 3) >= right.resultdef.size) then
                     {should be caught earlier }
                     internalerror(2007020201);
 
@@ -393,12 +393,12 @@ implementation
                   case right.location.loc of
                     LOC_REFERENCE,LOC_CREFERENCE:
                       begin
-                        inc(right.location.reference.offset,tordconstnode(left).value shr 3);
-                        emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);
+                        inc(right.location.reference.offset,tordconstnode(left).value.svalue shr 3);
+                        emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value.svalue and 7),right.location.reference);
                       end;
                     LOC_REGISTER,LOC_CREGISTER:
                       begin
-                        emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],1 shl (tordconstnode(left).value),right.location.register);
+                        emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],1 shl (tordconstnode(left).value.svalue),right.location.register);
                       end;
                     else
                       internalerror(2007051901);
@@ -410,7 +410,7 @@ implementation
                   pleftreg:=left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }
-                    ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high > tsetdef(right.resultdef).setmax)) or
+                    ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high.svalue > tsetdef(right.resultdef).setmax)) or
                     ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax)) then
                    begin
 

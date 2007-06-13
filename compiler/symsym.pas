@@ -28,7 +28,7 @@ interface
        { common }
        cutils,
        { target }
-       globtype,globals,widestr,
+       globtype,globals,widestr,constexp,
        { symtable }
        symconst,symbase,symtype,symdef,defcmp,
        { ppu }

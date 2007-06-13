@@ -167,7 +167,7 @@ Implementation
 {$ifdef hasunix}
       unix,
 {$endif}
-      cutils,cfileutils,
+      cutils,cfileutl,
 {$ifdef memdebug}
       cclasses,
 {$endif memdebug}

@@ -355,7 +355,8 @@ type
     vo_has_mangledname,
     vo_is_typed_const,
     vo_is_range_check,
-    vo_is_overflow_check
+    vo_is_overflow_check,
+    vo_is_typinfo_para
   );
   tvaroptions=set of tvaroption;
 

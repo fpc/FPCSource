@@ -30,7 +30,7 @@ unit aasmcpu;
 interface
 
     uses
-      globtype,globals,verbose,
+      globtype,verbose,
       cpubase,
       cgbase,cgutils,
       symtype,
@@ -180,7 +180,7 @@ interface
         ops     : byte;
         optypes : array[0..2] of longint;
         code    : array[0..maxinfolen] of char;
-        flags   : longint;
+        flags   : cardinal;
       end;
       pinsentry=^tinsentry;
 
@@ -273,6 +273,7 @@ implementation
 
      uses
        cutils,
+       globals,
        itcpugas,
        symsym;
 
@@ -337,7 +338,7 @@ implementation
        IF_CENTAUR = $0d000000;  { centaur-specific instruction  }
        { added flags }
        IF_PRE    = $40000000;  { it's a prefix instruction }
-       IF_PASS2  = longint($80000000);  { if the instruction can change in a second pass }
+       IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
 
      type
        TInsTabCache=array[TasmOp] of longint;
@@ -1037,9 +1038,9 @@ implementation
       }
       var
         insot,
-        insflags,
         currot,
         i,j,asize,oprs : longint;
+        insflags:cardinal;
         siz : array[0..2] of longint;
       begin
         result:=false;

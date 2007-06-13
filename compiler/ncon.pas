@@ -26,7 +26,7 @@ unit ncon;
 interface
 
     uses
-      globtype,widestr,
+      globtype,widestr,constexp,
       cclasses,
       node,
       aasmbase,aasmtai,aasmdata,cpuinfo,globals,
@@ -623,7 +623,7 @@ implementation
         resultdef:=typedef;
         { only do range checking when explicitly asked for it }
         if rangecheck then
-           testrange(resultdef,resultdef,value,false);
+           testrange(resultdef,value,false);
       end;
 
     function tordconstnode.pass_1 : tnode;
@@ -643,7 +643,7 @@ implementation
     procedure Tordconstnode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'value = ',value);
+        writeln(t,printnodeindention,'value = ',tostr(value));
       end;
 
 

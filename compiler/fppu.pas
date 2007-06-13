@@ -94,7 +94,7 @@ implementation
 
 uses
   SysUtils,
-  cfileutils,
+  cfileutl,
   verbose,systems,version,
   symtable, symsym,
   scanner,

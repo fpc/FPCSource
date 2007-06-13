@@ -32,7 +32,7 @@ interface
       fksysutl,
 {$ENDIF}
       cutils,
-      globals,finput,
+      globtype,finput,
       cmsgs;
 
 {$ifndef EXTERN_MSG}
@@ -67,6 +67,7 @@ interface
 
     var
       msg : pmessage;
+      paraprintnodetree : byte;
 
     type
       tmsgqueueevent = procedure(s:string;v,w:longint) of object;
@@ -117,7 +118,7 @@ interface
 implementation
 
     uses
-      comphook,fmodule;
+      comphook,fmodule,constexp,globals;
 
 
 {****************************************************************************
@@ -876,6 +877,7 @@ end;
 
 
 initialization
+  constexp.internalerror:=@internalerror;
 finalization
   { Be sure to close the redirect files to flush all data }
   DoneRedirectFile;

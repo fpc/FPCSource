@@ -28,7 +28,7 @@ interface
     uses
       symtype,symdef,symbase,
       node,ncal,
-      tokens,globtype,globals;
+      tokens,globtype,globals,constexp;
 
     { reads a whole expression }
     function expr : tnode;
@@ -123,11 +123,11 @@ implementation
 {                   t:=tstringdef.createlong(tordconstnode(p).value))}
                      Message(parser_e_invalid_string_size);
                      tordconstnode(p).value:=255;
-                     def:=tstringdef.createshort(tordconstnode(p).value);
+                     def:=tstringdef.createshort(int64(tordconstnode(p).value));
                   end
                  else
                    if tordconstnode(p).value<>255 then
-                     def:=tstringdef.createshort(tordconstnode(p).value);
+                     def:=tstringdef.createshort(int64(tordconstnode(p).value));
                end;
               p.free;
            end
@@ -543,13 +543,13 @@ implementation
                   p1:=p2;
                 end;
               if p1.nodetype=typen then
-                ttypenode(p1).allowed:=true
-              else
+                ttypenode(p1).allowed:=true;
+{              else
                 begin
                    p1.destroy;
                    p1:=cerrornode.create;
                    Message(parser_e_illegal_parameter_list);
-                end;
+                end;}
               consume(_RKLAMMER);
               p2:=geninlinenode(in_typeinfo_x,false,p1);
               statement_syssym:=p2;
@@ -2396,8 +2396,8 @@ implementation
                if code=0 then
                  begin
                     consume(_INTCONST);
-                    int_to_type(card,hdef);
-                    p1:=cordconstnode.create(card,hdef,true);
+                    int_to_type(qword(card),hdef);
+                    p1:=cordconstnode.create(qword(card),hdef,true);
                  end
                else
                  begin
@@ -2406,8 +2406,8 @@ implementation
                    if code = 0 then
                      begin
                        consume(_INTCONST);
-                       int_to_type(l,hdef);
-                       p1:=cordconstnode.create(l,hdef,true);
+                       int_to_type(int64(l),hdef);
+                       p1:=cordconstnode.create(int64(l),hdef,true);
                      end
                    else
                      begin
@@ -2922,7 +2922,7 @@ implementation
       if p.nodetype<>stringconstn then
         begin
           if (p.nodetype=ordconstn) and is_char(p.resultdef) then
-            get_stringconst:=char(tordconstnode(p).value)
+            get_stringconst:=char(int64(tordconstnode(p).value))
           else
             Message(parser_e_illegal_expression);
         end

@@ -36,7 +36,7 @@ unit cgobj;
   interface
 
     uses
-       cclasses,globtype,
+       cclasses,globtype,constexp,
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symbase,symtype,symdef,symtable,rgobj
@@ -3300,8 +3300,8 @@ implementation
         if (fromdef = todef) and
            (fromdef.typ=orddef) and
            (((((torddef(fromdef).ordtype = s32bit) and
-               (lfrom = low(longint)) and
-               (hfrom = high(longint))) or
+               (lfrom = int64(low(longint))) and
+               (hfrom = int64(high(longint)))) or
               ((torddef(fromdef).ordtype = u32bit) and
                (lfrom = low(cardinal)) and
                (hfrom = high(cardinal)))))) then
@@ -3402,7 +3402,7 @@ implementation
           end;
         hreg:=getintregister(list,OS_INT);
         a_load_loc_reg(list,OS_INT,l,hreg);
-        a_op_const_reg(list,OP_SUB,OS_INT,aint(lto),hreg);
+        a_op_const_reg(list,OP_SUB,OS_INT,aint(int64(lto)),hreg);
         current_asmdata.getjumplabel(neglabel);
         {
         if from_signed then
@@ -3414,7 +3414,7 @@ implementation
           a_cmp_const_reg_label(list,OS_INT,OC_BE,aintmax,hreg,neglabel)
         else
 {$endif cpu64bit}
-          a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(hto-lto),hreg,neglabel);
+          a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(int64(hto-lto)),hreg,neglabel);
         a_call_name(list,'FPC_RANGEERROR');
         a_label(list,neglabel);
       end;

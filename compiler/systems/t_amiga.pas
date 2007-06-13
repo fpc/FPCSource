@@ -50,7 +50,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutils,cclasses,
+       cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_amiga;
 
 {$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}

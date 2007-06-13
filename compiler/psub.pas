@@ -78,7 +78,7 @@ implementation
        { common }
        cutils,
        { global }
-       globtype,tokens,verbose,comphook,
+       globtype,tokens,verbose,comphook,constexp,
        systems,
        { aasm }
        cpubase,aasmbase,aasmtai,aasmdata,

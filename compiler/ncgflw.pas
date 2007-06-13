@@ -91,7 +91,7 @@ interface
 implementation
 
     uses
-      verbose,globals,systems,globtype,
+      verbose,globals,systems,globtype,constexp,
       symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
       cpubase,cpuinfo,
@@ -495,7 +495,7 @@ implementation
              if lnf_testatbegin in loopflags then
                begin
                  cg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,opsize,hcond,
-                   tordconstnode(t1).value,
+                   tordconstnode(t1).value.svalue,
                    left.location,current_procinfo.CurrBreakLabel);
                end;
            end;
@@ -599,7 +599,7 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if byte(cmp_const)=low(byte) then
+                           if byte(cmp_const.svalue)=low(byte) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=high(byte);
@@ -607,7 +607,7 @@ implementation
                          end
                        else
                          begin
-                           if byte(cmp_const)=high(byte) then
+                           if byte(cmp_const.svalue)=high(byte) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=low(byte);
@@ -618,7 +618,7 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if word(cmp_const)=high(word) then
+                           if word(cmp_const.svalue)=high(word) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=low(word);
@@ -626,7 +626,7 @@ implementation
                          end
                        else
                          begin
-                           if word(cmp_const)=low(word) then
+                           if word(cmp_const.svalue)=low(word) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=high(word);
@@ -637,7 +637,7 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if cardinal(cmp_const)=high(cardinal) then
+                           if cardinal(cmp_const.svalue)=high(cardinal) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=low(cardinal);
@@ -645,7 +645,7 @@ implementation
                          end
                        else
                          begin
-                           if cardinal(cmp_const)=low(cardinal) then
+                           if cardinal(cmp_const.svalue)=low(cardinal) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=high(cardinal);
@@ -656,7 +656,7 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if qword(cmp_const)=high(qword) then
+                           if qword(cmp_const.uvalue)=high(qword) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=low(qword);
@@ -664,7 +664,7 @@ implementation
                          end
                        else
                          begin
-                           if qword(cmp_const)=low(qword) then
+                           if qword(cmp_const.uvalue)=low(qword) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=high(qword);
@@ -675,7 +675,7 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if shortint(cmp_const)=low(shortint) then
+                           if shortint(cmp_const.svalue)=low(shortint) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=high(shortint);
@@ -683,10 +683,10 @@ implementation
                          end
                        else
                          begin
-                           if shortint(cmp_const)=high(shortint) then
+                           if shortint(cmp_const.svalue)=high(shortint) then
                              begin
                                hcond:=OC_NE;
-                               cmp_const:=low(shortint);
+                               cmp_const:=int64(low(shortint));
                              end
                          end
                      end;
@@ -694,18 +694,18 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if integer(cmp_const)=high(smallint) then
+                           if integer(cmp_const.svalue)=high(smallint) then
                              begin
                                hcond:=OC_NE;
-                               cmp_const:=low(smallint);
+                               cmp_const:=int64(low(smallint));
                              end
                          end
                        else
                          begin
-                           if integer(cmp_const)=low(smallint) then
+                           if integer(cmp_const.svalue)=low(smallint) then
                              begin
                                hcond:=OC_NE;
-                               cmp_const:=high(smallint);
+                               cmp_const:=int64(high(smallint));
                              end
                          end
                      end;
@@ -713,18 +713,18 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if longint(cmp_const)=high(longint) then
+                           if longint(cmp_const.svalue)=high(longint) then
                              begin
                                hcond:=OC_NE;
-                               cmp_const:=low(longint);
+                               cmp_const:=int64(low(longint));
                              end
                          end
                        else
                          begin
-                           if longint(cmp_const)=low(longint) then
+                           if longint(cmp_const.svalue)=low(longint) then
                              begin
                                hcond:=OC_NE;
-                               cmp_const:=high(longint);
+                               cmp_const:=int64(high(longint));
                              end
                          end
                      end;
@@ -732,7 +732,7 @@ implementation
                      begin
                        if lnf_backward in loopflags then
                          begin
-                           if int64(cmp_const)=high(int64) then
+                           if int64(cmp_const.svalue)=high(int64) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=low(int64);
@@ -740,7 +740,7 @@ implementation
                          end
                        else
                          begin
-                           if int64(cmp_const)=low(int64) then
+                           if int64(cmp_const.svalue)=low(int64) then
                              begin
                                hcond:=OC_NE;
                                cmp_const:=high(int64);
@@ -753,7 +753,7 @@ implementation
                end;
 
              cg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,opsize,hcond,
-               aint(cmp_const),left.location,l3);
+               aint(cmp_const.svalue),left.location,l3);
            end;
 
          { this is the break label: }

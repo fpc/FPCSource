@@ -57,7 +57,7 @@ interface
 implementation
 
     uses
-      cutils,cfileutils,
+      cutils,cfileutl,
       globals,verbose;
 
 

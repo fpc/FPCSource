@@ -46,7 +46,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,
       aasmbase,aasmcpu,aasmtai,aasmdata,
@@ -98,14 +98,14 @@ implementation
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
-            ispowerof2(tordconstnode(right).value,power) then
+            ispowerof2(tordconstnode(right).value.svalue,power) then
            begin
              if is_signed(left.resultdef) Then
                begin
                  tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
                  { if signed, tmpreg=right value-1, otherwise 0 }
-                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
+                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
                  { add to the left value }
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
@@ -203,7 +203,7 @@ implementation
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
-            shiftval := tordconstnode(right).value and 63;
+            shiftval := tordconstnode(right).value.svalue and 63;
             if shiftval > 31 then
               begin
                 if nodetype = shln then
@@ -264,7 +264,7 @@ implementation
             if (right.nodetype=ordconstn) then
               begin
                 if tordconstnode(right).value and 31<>0 then
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,OS_32,tordconstnode(right).value and 31,hregister1,resultreg)
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,OS_32,tordconstnode(right).value.svalue and 31,hregister1,resultreg)
               end
             else
               begin

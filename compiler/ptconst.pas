@@ -34,7 +34,7 @@ implementation
 
     uses
        SysUtils,
-       globtype,systems,tokens,verbose,
+       globtype,systems,tokens,verbose,constexp,
        cutils,globals,widestr,scanner,
        symconst,symbase,symdef,symtable,
        aasmbase,aasmtai,aasmcpu,defutil,defcmp,
@@ -179,28 +179,28 @@ implementation
               bool8bit :
                 begin
                    if is_constboolnode(n) then
-                     list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value)))
+                     list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value.svalue)))
                    else
                      IncompatibleTypes(n.resultdef, def);
                 end;
               bool16bit :
                 begin
                    if is_constboolnode(n) then
-                     list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value)))
+                     list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value.svalue)))
                    else
                      IncompatibleTypes(n.resultdef, def);
                 end;
               bool32bit :
                 begin
                    if is_constboolnode(n) then
-                     list.concat(Tai_const.Create_32bit(longint(tordconstnode(n).value)))
+                     list.concat(Tai_const.Create_32bit(longint(tordconstnode(n).value.svalue)))
                    else
                      IncompatibleTypes(n.resultdef, def);
                 end;
               bool64bit :
                 begin
                    if is_constboolnode(n) then
-                     list.concat(Tai_const.Create_64bit(int64(tordconstnode(n).value)))
+                     list.concat(Tai_const.Create_64bit(int64(tordconstnode(n).value.svalue)))
                    else
                      IncompatibleTypes(n.resultdef, def);
                 end;
@@ -210,7 +210,7 @@ implementation
                      ((m_delphi in current_settings.modeswitches) and
                       is_constwidecharnode(n) and
                       (tordconstnode(n).value <= 255)) then
-                     list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value)))
+                     list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value.svalue)))
                    else
                      IncompatibleTypes(n.resultdef, def);
                 end;
@@ -219,7 +219,7 @@ implementation
                    if is_constcharnode(n) then
                      inserttypeconv(n,cwidechartype);
                    if is_constwidecharnode(n) then
-                     list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value)))
+                     list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value.svalue)))
                    else
                      IncompatibleTypes(n.resultdef, def);
                 end;
@@ -230,16 +230,16 @@ implementation
                 begin
                    if is_constintnode(n) then
                      begin
-                       testrange(n.resultdef,def,tordconstnode(n).value,false);
+                       testrange(def,tordconstnode(n).value,false);
                        case def.size of
                          1 :
-                           list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value)));
+                           list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value.svalue)));
                          2 :
-                           list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value)));
+                           list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value.svalue)));
                          4 :
-                           list.concat(Tai_const.Create_32bit(longint(tordconstnode(n).value)));
+                           list.concat(Tai_const.Create_32bit(longint(tordconstnode(n).value.svalue)));
                          8 :
-                           list.concat(Tai_const.Create_64bit(tordconstnode(n).value));
+                           list.concat(Tai_const.Create_64bit(tordconstnode(n).value.svalue));
                        end;
                      end
                    else
@@ -334,6 +334,7 @@ implementation
           i,len     : longint;
           base,
           offset    : aint;
+          v         : Tconstexprint;
           ll        : tasmlabel;
           varalign  : shortint;
         begin
@@ -399,7 +400,7 @@ implementation
                   end
                 else
                   if is_constcharnode(p) then
-                    current_asmdata.asmlists[al_const].concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
+                    current_asmdata.asmlists[al_const].concat(Tai_string.Create(char(byte(tordconstnode(p).value.svalue))+#0))
                 else
                   IncompatibleTypes(p.resultdef, def);
             end
@@ -473,7 +474,16 @@ implementation
                                    Message(parser_e_illegal_expression);
                                end;
                                if is_constintnode(tvecnode(hp).right) then
-                                 inc(offset,len*(get_ordinal_value(tvecnode(hp).right)-base))
+                                 begin
+                                   {Prevent overflow.}
+                                   v:=get_ordinal_value(tvecnode(hp).right)-base;
+                                   if (v<int64(low(offset))) or (v>int64(high(offset))) then
+                                     message(parser_e_range_check_error);
+                                   if high(offset)-offset div len>v then
+                                     inc(offset,len*v.svalue)
+                                   else
+                                     message(parser_e_range_check_error);
+                                 end
                                else
                                  Message(parser_e_illegal_expression);
                              end;
@@ -592,9 +602,9 @@ implementation
                  is_subequal(p.resultdef,def) then
                 begin
                   case longint(p.resultdef.size) of
-                    1 : list.concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value)));
-                    2 : list.concat(Tai_const.Create_16bit(Word(tordconstnode(p).value)));
-                    4 : list.concat(Tai_const.Create_32bit(Longint(tordconstnode(p).value)));
+                    1 : list.concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value.svalue)));
+                    2 : list.concat(Tai_const.Create_16bit(Word(tordconstnode(p).value.svalue)));
+                    4 : list.concat(Tai_const.Create_32bit(Longint(tordconstnode(p).value.svalue)));
                   end;
                 end
               else
@@ -629,7 +639,7 @@ implementation
             begin
               { strval:=pchar(@tordconstnode(n).value);
                 THIS FAIL on BIG_ENDIAN MACHINES PM }
-              strch:=chr(tordconstnode(n).value and $ff);
+              strch:=chr(tordconstnode(n).value.svalue and $ff);
               strval:=@strch;
               strlength:=1
             end
@@ -742,7 +752,10 @@ implementation
                 result:=false;
                 exit;
               end;
-            bitpackval(tordconstnode(n).value,bp);
+            if (Tordconstnode(n).value<qword(low(Aword))) or (Tordconstnode(n).value>qword(high(Aword))) then
+              message(parser_e_range_check_error)
+            else
+              bitpackval(Tordconstnode(n).value.uvalue,bp);
             if (bp.curbitoffset>=AIntBits) then
               flush_packed_value(list,bp);
             n.free;
@@ -829,7 +842,7 @@ implementation
                else
                  if is_constcharnode(n) then
                   begin
-                    ch:=chr(tordconstnode(n).value and $ff);
+                    ch:=chr(tordconstnode(n).value.uvalue and $ff);
                     ca:=@ch;
                     len:=1;
                   end

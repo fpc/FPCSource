@@ -48,7 +48,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmdata,defutil,
       cgbase,pass_2,
@@ -99,7 +99,7 @@ implementation
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
           begin
-            if ispowerof2(tordconstnode(right).value,power) then
+            if ispowerof2(tordconstnode(right).value.svalue,power) then
               begin
                 { for signed numbers, the numerator must be adjusted before the
                   shift instruction, but not wih unsigned numbers! Otherwise,
@@ -117,7 +117,7 @@ implementation
                         {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
                         emit_const_reg(A_SAR,S_L,31,hreg2);
                         {If signed, hreg2=right value-1, otherwise 0.}
-                        emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
+                        emit_const_reg(A_AND,S_L,tordconstnode(right).value.svalue-1,hreg2);
                         { add to the left value }
                         emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
                         { do the shift }
@@ -132,7 +132,7 @@ implementation
                         if power=1 then
                           emit_reg(A_INC,S_L,hreg1)
                         else
-                          emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
+                          emit_const_reg(A_ADD,S_L,tordconstnode(right).value.svalue-1,hreg1);
                         cg.a_label(current_asmdata.CurrAsmList,hl);
                         emit_const_reg(A_SAR,S_L,power,hreg1);
                       end
@@ -145,7 +145,7 @@ implementation
               begin
                 if is_signed(left.resultdef) then
                   begin
-                    e:=tordconstnode(right).value;
+                    e:=tordconstnode(right).value.svalue;
                     d:=abs(e);
                     { Determine algorithm (a), multiplier (m), and shift factor (s) for 32-bit
                       signed integer division. Based on: Granlund, T.; Montgomery, P.L.:
@@ -219,7 +219,7 @@ implementation
                   end
                 else
                   begin
-                    d:=tordconstnode(right).value;
+                    d:=tordconstnode(right).value.svalue;
                     if d>=$80000000 then
                       begin
                         emit_const_reg(A_CMP,S_L,aint(d),hreg1);
@@ -385,13 +385,13 @@ implementation
                   begin
                     emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
                     if ((v and 31) <> 0) then
-                      emit_const_reg(A_SHL,S_L,v and 31,hreg64lo);
+                      emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
                   end
                 else
                   begin
                     emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
                     if ((v and 31) <> 0) then
-                      emit_const_reg(A_SHR,S_L,v and 31,hreg64hi);
+                      emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
                   end;
                 location.register64.reghi:=hreg64lo;
                 location.register64.reglo:=hreg64hi;
@@ -400,13 +400,13 @@ implementation
               begin
                 if nodetype=shln then
                   begin
-                    emit_const_reg_reg(A_SHLD,S_L,v and 31,hreg64lo,hreg64hi);
-                    emit_const_reg(A_SHL,S_L,v and 31,hreg64lo);
+                    emit_const_reg_reg(A_SHLD,S_L,v.svalue and 31,hreg64lo,hreg64hi);
+                    emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
                   end
                 else
                   begin
-                    emit_const_reg_reg(A_SHRD,S_L,v and 31,hreg64hi,hreg64lo);
-                    emit_const_reg(A_SHR,S_L,v and 31,hreg64hi);
+                    emit_const_reg_reg(A_SHRD,S_L,v.svalue and 31,hreg64hi,hreg64lo);
+                    emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
                   end;
                 location.register64.reglo:=hreg64lo;
                 location.register64.reghi:=hreg64hi;

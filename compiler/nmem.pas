@@ -724,7 +724,7 @@ implementation
                not(is_char(right.resultdef) or is_widechar(right.resultdef)) and
                not(is_boolean(right.resultdef))
              ) or
-             (left.resultdef.typ <> arraydef) 
+             (left.resultdef.typ <> arraydef)
             ) then
            begin
              inserttypeconv(right,sinttype);
@@ -763,8 +763,8 @@ implementation
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      hightree.free;
                    end;
-      
-      
+
+
              end;
            pointerdef :
              begin
@@ -810,7 +810,7 @@ implementation
                  begin
                    { indexed access to 0 element is only allowed for shortstrings }
                    if (right.nodetype=ordconstn) and
-                      (tordconstnode(right).value=0) and
+                      (Tordconstnode(right).value.svalue=0) and
                       not is_shortstring(left.resultdef) then
                      CGMessage(cg_e_can_access_element_zero);
                    resultdef:=elementdef;
@@ -986,7 +986,7 @@ implementation
 
     function is_big_untyped_addrnode(p: tnode): boolean;
       begin
-        is_big_untyped_addrnode:=(p.nodetype=addrn) and 
+        is_big_untyped_addrnode:=(p.nodetype=addrn) and
 	  not (nf_typedaddr in p.flags) and (taddrnode(p).left.resultdef.size > 1);
       end;
 

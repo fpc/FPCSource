@@ -26,7 +26,7 @@ unit crefs;
 interface
 
 uses
-  globals,
+  globtype,
   cclasses;
 
   type

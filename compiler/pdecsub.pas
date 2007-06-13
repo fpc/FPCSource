@@ -67,7 +67,7 @@ implementation
        { common }
        cutils,cclasses,
        { global }
-       globtype,globals,verbose,
+       globtype,globals,verbose,constexp,
        systems,
        cpuinfo,
        { symtable }
@@ -292,6 +292,12 @@ implementation
                  if not (po_external in pd.procoptions) then
                    Message(parser_w_cdecl_has_no_high);
                end;
+              if (vardef.typ=formaldef) and (Tformaldef(vardef).typed) then
+                begin
+                  hvs:=tparavarsym.create('$typinfo'+name,paranr+1,vs_const,voidpointertype,
+                                          [vo_is_typinfo_para,vo_is_hidden_para]);
+                  owner.insert(hvs);
+                end;
             end;
          end;
       end;
@@ -525,7 +531,10 @@ implementation
               begin
                 if (m_mac in current_settings.modeswitches) then
                   try_to_consume(_UNIV); {currently does nothing}
-                single_type(hdef,false);
+                if try_to_consume(_TYPE) then
+                  hdef:=ctypedformaltype
+                else
+                  single_type(hdef,false);
 
                 { open string ? }
                 if (varspez in [vs_out,vs_var]) and
@@ -1188,20 +1197,36 @@ begin
   pd.parast.SymList.ForEachCall(@check_inline_para,pd);
 end;
 
+
 procedure pd_internconst(pd:tabstractprocdef);
+
+var v:Tconstexprint;
+
 begin
   if pd.typ<>procdef then
     internalerror(200304268);
   consume(_COLON);
-  tprocdef(pd).extnumber:=longint(get_intconst);
+  v:=get_intconst;
+  if (v<int64(low(longint))) or (v>int64(high(longint))) then
+    message(parser_e_range_check_error)
+  else
+    Tprocdef(pd).extnumber:=longint(v.svalue);
 end;
 
+
 procedure pd_internproc(pd:tabstractprocdef);
+
+var v:Tconstexprint;
+
 begin
   if pd.typ<>procdef then
     internalerror(200304268);
   consume(_COLON);
-  tprocdef(pd).extnumber:=longint(get_intconst);
+  v:=get_intconst;
+  if (v<int64(low(longint))) or (v>int64(high(longint))) then
+    message(parser_e_range_check_error)
+  else
+    Tprocdef(pd).extnumber:=longint(v.svalue);
   { the proc is defined }
   tprocdef(pd).forwarddef:=false;
 end;
@@ -1255,16 +1280,21 @@ end;
 
 
 procedure pd_dispid(pd:tabstractprocdef);
-var
-  pt : tnode;
+
+var pt:Tnode;
+    v:Tconstexprint;
+
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
   pt:=comp_expr(true);
   if is_constintnode(pt) then
-    tprocdef(pd).dispid:=tordconstnode(pt).value
+    if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
+      message(parser_e_range_check_error)
+    else
+      Tprocdef(pd).dispid:=Tordconstnode(pt).value.svalue
   else
-    Message(parser_e_dispid_must_be_ord_const);
+    message(parser_e_dispid_must_be_ord_const);
   pt.free;
 end;
 
@@ -1318,7 +1348,11 @@ begin
    if is_constintnode(pt) then
     begin
       include(pd.procoptions,po_msgint);
-      tprocdef(pd).messageinf.i:=tordconstnode(pt).value;
+      if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
+         (Tordconstnode(pt).value>int64(high(Tprocdef(pd).messageinf.i))) then
+        message(parser_e_range_check_error)
+      else
+        Tprocdef(pd).messageinf.i:=tordconstnode(pt).value.svalue;
     end
   else
     Message(parser_e_ill_msg_expr);
@@ -1341,6 +1375,7 @@ var
   vs  : tparavarsym;
   sym : tsym;
   symtable : TSymtable;
+  v: Tconstexprint;
 {$endif defined(powerpc) or defined(m68k)}
 begin
   if (pd.typ<>procdef) and (target_info.system <> system_powerpc_amiga) then
@@ -1373,7 +1408,11 @@ begin
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,callerside);
 
-      tprocdef(pd).extnumber:=get_intconst;
+      v:=get_intconst;
+      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
+        message(parser_e_range_check_error)
+      else
+        Tprocdef(pd).extnumber:=v.uvalue;
     end;
 {$endif m68k}
 {$ifdef powerpc}
@@ -1400,7 +1439,11 @@ begin
       (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
 
-      tprocdef(pd).extnumber:=get_intconst;
+      v:=get_intconst;
+      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
+        message(parser_e_range_check_error)
+      else
+        Tprocdef(pd).extnumber:=v.uvalue;
     end else
 
    if target_info.system = system_powerpc_morphos then
@@ -1488,7 +1531,11 @@ begin
       (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
 
-      tprocdef(pd).extnumber:=get_intconst;
+      v:=get_intconst;
+      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
+        message(parser_e_range_check_error)
+      else
+        Tprocdef(pd).extnumber:=v.uvalue;
     end;
 {$endif powerpc}
 end;
@@ -1505,6 +1552,8 @@ procedure pd_external(pd:tabstractprocdef);
 }
 var
   hs : string;
+  v:Tconstexprint;
+
 begin
   if pd.typ<>procdef then
     internalerror(2003042615);
@@ -1540,7 +1589,11 @@ begin
            begin
              {After the word index follows the index number in the DLL.}
              consume(_INDEX);
-             import_nr:=longint(get_intconst);
+             v:=get_intconst;
+             if (v<int64(low(import_nr))) or (v>int64(high(import_nr))) then
+               message(parser_e_range_check_error)
+             else
+               import_nr:=longint(v.svalue);
            end;
           { default is to used the realname of the procedure }
           if (import_nr=0) and not assigned(import_name) then
