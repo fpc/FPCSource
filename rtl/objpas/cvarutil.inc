@@ -1180,7 +1180,7 @@ begin
         varSingle   : Result := FloatToStr(vSingle);
         varDouble   : Result := FloatToStr(vDouble);
         varCurrency : Result := FloatToStr(vCurrency);
-        varDate     : Result := FloatToStr(vDate);
+        varDate     : Result := DateToStr(vDate);
         varBoolean  : Result := BoolToStr(vBoolean, True);
         varVariant  : Result := VariantToAnsiString(PVarData(vPointer)^);
         varByte     : Result := IntToStr(vByte);
@@ -1200,7 +1200,7 @@ begin
         varSingle   : Result := FloatToStr(PSingle(vPointer)^);
         varDouble   : Result := FloatToStr(PDouble(vPointer)^);
         varCurrency : Result := FloatToStr(PCurrency(vPointer)^);
-        varDate     : Result := FloatToStr(PDate(vPointer)^);
+        varDate     : Result := DateToStr(PDate(vPointer)^);
         varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
         varVariant  : Result := VariantToAnsiString(PVarData(vPointer)^);
         varByte     : Result := IntToStr(PByte(vPointer)^);
