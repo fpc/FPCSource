@@ -83,8 +83,8 @@ begin
     end;
   end;
   freearray(p, sizeof(p) div sizeof(pointer));
-  sleep(200);
   entercriticalsection(freefifolock);
+  sleep(200);
   freearray(fifo, sizeof(fifo) div sizeof(pointer));
   freemem(shared);
   leavecriticalsection(freefifolock);
