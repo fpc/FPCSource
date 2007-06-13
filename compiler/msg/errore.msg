@@ -2534,7 +2534,6 @@ S*2Aas_assemble using GNU AS
 **2Mobjfpc_switch some Delphi 2 extensions on
 **2Mdelphi_tries to be Delphi compatible
 **2Mtp_tries to be TP/BP 7.0 compatible
-**2Mgpc_tries to be gpc compatible
 **2Mmacpas_tries to be compatible to the macintosh pascal dialects
 **1n_don't read the default config file
 **1N<x>_node tree optimizations
