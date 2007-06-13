@@ -934,7 +934,7 @@ implementation
       var
         sym : tsym;
         def : tdef;
-        i,
+        i : integer;
         varalignrecord,varalign,
         storesize,storealign : aint;
         bitsize: aint;
