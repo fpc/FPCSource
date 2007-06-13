@@ -68,11 +68,20 @@ type
      palPalEntry   : array[Byte] of TPaletteEntry;
   end;
   PMaxLogPalette = ^TMaxLogPalette;
-  
+
   POSVersionInfoA = POSVERSIONINFO;
-  
+
   TBitmapFileHeader = BITMAPFILEHEADER;
   PBitmapFileHeader = ^TBitmapFileHeader;
+
+  TOwnerDrawState = set of (
+    odSelected,odGrayed,odDisabled,odChecked,
+    odFocused,odDefault,odHotLight,odInactive,odNoAccel,odNoFocusRect,
+    odReserved1,odReserved2,odComboBoxEdit);
+
+type
+  PKeyboardState = ^TKeyboardState;
+  TKeyboardState = array[0..255] of Byte;
 
 const
   { dll names }
@@ -102,7 +111,7 @@ const
   CP_UTF7 = 65000;
   CP_UTF8 = 65001;
   CREATE_NO_WINDOW = $08000000;
-  
+
   VK_ATTN = 246;
   VK_CRSEL = 247;
   VK_EXSEL = 248;
@@ -973,7 +982,9 @@ function AnsiUpper(lpsz:LPSTR):LPSTR; external 'user32' name 'CharUpperA';
 function AnsiUpperBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharUpperBuffA';
 function AnsiLower(lpsz:LPSTR):LPSTR; external 'user32' name 'CharLowerA';
 function AnsiLowerBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharLowerBuffA';
-
+function CreateIcon(hInstance:HINST; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE;lpbANDbits:pointer; lpbXORbits:pointer):HICON; external 'user32' name 'CreateIcon';
+function GetKeyboardState(var KeyState:TKeyboardState):WINBOOL; external 'user32' name 'GetKeyboardState';
+function SetKeyboardState(var KeyState:TKeyboardState):WINBOOL; external 'user32' name 'SetKeyboardState';
 {$endif read_interface}
 
 
