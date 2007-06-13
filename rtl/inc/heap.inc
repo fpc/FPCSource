@@ -134,8 +134,10 @@ type
   poschunk = ^toschunk;
   toschunk = record
     size : ptrint;
-    next : poschunk;
-    used : ptrint;
+    next_free : poschunk;
+    prev_any : poschunk;
+    next_any : poschunk;
+    used : ptrint;          { 0: free, >0: fixed, -1: var }
     freelists : pfreelists;
     { padding inserted automatically by alloc_oschunk }
   end;
@@ -178,8 +180,9 @@ type
   tfixedfreelists = array[1..maxblockindex] of pmemchunk_fixed;
 
   tfreelists = record
-    oslist : poschunk;
-    oscount : dword;
+    oslist : poschunk;      { os chunks free, available for use }
+    oscount : dword;        { number of os chunks on oslist }
+    oslist_all : poschunk;  { all os chunks allocated }
     fixedlists : tfixedfreelists;
     varlist : pmemchunk_var;
     { chunks waiting to be freed from other thread }
@@ -205,6 +208,8 @@ const
 var
   main_orig_freelists : pfreelists;
   main_relo_freelists : pfreelists;
+  orphaned_freelists : tfreelists;
+  orphaned_oslist_lock : trtlcriticalsection;
 threadvar
   freelists : tfreelists;
 
@@ -398,6 +403,14 @@ end;
 {$endif}
 
 
+{*****************************************************************************
+                                Forwards
+*****************************************************************************}
+
+procedure finish_waitfixedlist(loc_freelists: pfreelists); forward;
+procedure finish_waitvarlist(loc_freelists: pfreelists); forward;
+function  try_finish_waitfixedlist(loc_freelists: pfreelists): boolean; forward;
+procedure try_finish_waitvarlist(loc_freelists: pfreelists); forward;
 
 {*****************************************************************************
                                 List adding/removal
@@ -453,12 +466,19 @@ begin
     freelists.varlist := pmc^.next_var;
 end;
 
-procedure remove_all_from_list_fixed(chunksize: ptrint; poc: poschunk);
+procedure remove_freed_fixed_chunks(poc: poschunk);
+  { remove all fixed chunks from the fixed free list, as this os chunk
+    is going to be used for other purpose }
 var
   pmc, pmc_end: pmemchunk_fixed;
   fixedlist: ppmemchunk_fixed;
+  chunksize: ptrint;
 begin
+  { exit if this is a var size os chunk, function only applicable to fixed size }
+  if poc^.used < 0 then
+    exit;
   pmc := pmemchunk_fixed(pointer(poc)+fixedfirstoffset);
+  chunksize := pmc^.size and fixedsizemask;
   pmc_end := pmemchunk_fixed(pointer(poc)+(poc^.size and sizemask)-chunksize);
   fixedlist := @poc^.freelists^.fixedlists[chunksize shr blockshift];
   repeat
@@ -467,9 +487,24 @@ begin
   until pmc > pmc_end;
 end;
 
-procedure append_to_oslist(poc: poschunk; chunksize: ptrint);
+procedure free_oschunk(loc_freelists: pfreelists; poc: poschunk);
 var
   pocsize: ptrint;
+begin
+  remove_freed_fixed_chunks(poc);
+  if assigned(poc^.prev_any) then
+    poc^.prev_any^.next_any := poc^.next_any
+  else
+    loc_freelists^.oslist_all := poc^.next_any;
+  if assigned(poc^.next_any) then
+    poc^.next_any^.prev_any := poc^.prev_any;
+  pocsize := poc^.size and sizemask;
+  dec(loc_freelists^.internal_status.currheapsize, pocsize);
+  SysOSFree(poc, pocsize);
+end;
+
+procedure append_to_oslist(poc: poschunk);
+var
   loc_freelists: pfreelists;
 begin
   loc_freelists := poc^.freelists;
@@ -482,30 +517,20 @@ begin
     end;
   { decide whether to free block or add to list }
 {$ifdef HAS_SYSOSFREE}
-  pocsize := poc^.size and sizemask;
   if (loc_freelists^.oscount >= MaxKeptOSChunks) or
-     (pocsize > growheapsize2) then
+     ((poc^.size and sizemask) > growheapsize2) then
     begin
-      if chunksize <> 0 then
-        remove_all_from_list_fixed(chunksize, poc);
-      dec(loc_freelists^.internal_status.currheapsize, pocsize);
-      SysOSFree(poc, pocsize);
+      free_oschunk(loc_freelists, poc);
     end
   else
     begin
 {$endif}
-      poc^.next := loc_freelists^.oslist;
+      poc^.next_free := loc_freelists^.oslist;
       loc_freelists^.oslist := poc;
       inc(loc_freelists^.oscount);
 {$ifdef HAS_SYSOSFREE}
-   end;
+    end;
 {$endif}
-end;
-
-procedure clear_oschunk_on_freelist_fixed_flag(poc: poschunk); inline;
-  { prevent thinking this os chunk is on the fixed freelists }
-begin
-  pmemchunk_fixed(pointer(poc) + fixedfirstoffset)^.size := 0;
 end;
 
 procedure append_to_oslist_var(pmc: pmemchunk_var);
@@ -515,8 +540,42 @@ begin
   // block eligable for freeing
   poc := pointer(pmc)-varfirstoffset;
   remove_from_list_var(pmc);
-  clear_oschunk_on_freelist_fixed_flag(poc);
-  append_to_oslist(poc, 0);
+  append_to_oslist(poc);
+end;
+
+procedure modify_oschunk_freelists(poc: poschunk; new_freelists: pfreelists);
+var
+  pmcv: pmemchunk_var;
+begin
+  poc^.freelists := new_freelists;
+  { only if oschunk contains var memchunks, we need additional assignments }
+  if poc^.used <> -1 then exit;
+  pmcv := pmemchunk_var(pointer(poc)+varfirstoffset);
+  repeat
+    pmcv^.freelists := new_freelists;
+    if (pmcv^.size and lastblockflag) <> 0 then
+      break;
+    pmcv := pmemchunk_var(pointer(pmcv)+(pmcv^.size and sizemask));
+  until false;
+end;
+
+function modify_freelists(loc_freelists, new_freelists: pfreelists): poschunk;
+var
+  poc: poschunk;
+begin
+  poc := loc_freelists^.oslist_all;
+  if assigned(poc) then
+  begin
+    repeat
+      { fixed and var freelist for orphaned freelists do not need maintenance }
+      { we assume the heap is not severely fragmented at thread exit }
+      modify_oschunk_freelists(poc, new_freelists);
+      if not assigned(poc^.next_any) then
+        exit(poc);
+      poc := poc^.next_any;
+    until false;
+  end;
+  modify_freelists := nil;
 end;
 
 {*****************************************************************************
@@ -627,6 +686,47 @@ end;
                                 Grow Heap
 *****************************************************************************}
 
+function find_free_oschunk(loc_freelists: pfreelists; 
+  minsize, maxsize: ptrint; var size: ptrint): poschunk;
+var
+  pmc: pmemchunk_fixed;
+  prev_poc, poc: poschunk;
+  pocsize: ptrint;
+begin
+  poc := loc_freelists^.oslist;
+  prev_poc := nil;
+  while poc <> nil do
+    begin
+      if (poc^.size and ocrecycleflag) <> 0 then
+      begin
+        { oops! we recycled this chunk; remove it from list }
+        poc^.size := poc^.size and not ocrecycleflag;
+        poc := poc^.next_free;
+        if prev_poc = nil then
+          loc_freelists^.oslist := poc
+        else
+          prev_poc^.next_free := poc;
+        continue;
+      end;
+      pocsize := poc^.size and sizemask;
+      if (pocsize >= minsize) and
+         (pocsize <= maxsize) then
+        begin
+          size := pocsize;
+          if prev_poc = nil then
+            loc_freelists^.oslist := poc^.next_free
+          else
+            prev_poc^.next_free := poc^.next_free;
+          dec(loc_freelists^.oscount);
+          remove_freed_fixed_chunks(poc);
+          break;
+        end;
+      prev_poc := poc;
+      poc := poc^.next_free;
+    end;
+  result := poc;
+end;
+
 function alloc_oschunk(loc_freelists: pfreelists; chunkindex, size: ptrint): pointer;
 var
   pmc,
@@ -650,38 +750,35 @@ begin
   else
     maxsize := high(ptrint);
   { blocks available in freelist? }
-  poc := loc_freelists^.oslist;
-  prev_poc := nil;
-  while poc <> nil do
+  poc := find_free_oschunk(loc_freelists, minsize, maxsize, size);
+  if not assigned(poc) and (assigned(orphaned_freelists.waitfixed) 
+      or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
     begin
-      if (poc^.size and ocrecycleflag) <> 0 then
-      begin
-        { oops! we recycled this chunk; remove it from list }
-        poc^.size := poc^.size and not ocrecycleflag;
-        poc := poc^.next;
-        if prev_poc = nil then
-          loc_freelists^.oslist := poc
-        else
-          prev_poc^.next := poc;
-        continue;
-      end;
-      pocsize := poc^.size and sizemask;
-      if (pocsize >= minsize) and
-         (pocsize <= maxsize) then
+      entercriticalsection(orphaned_oslist_lock);
+      try_finish_waitfixedlist(@orphaned_freelists);
+      try_finish_waitvarlist(@orphaned_freelists);
+      if orphaned_freelists.oscount > 0 then
         begin
-          size := pocsize;
-          if prev_poc = nil then
-            loc_freelists^.oslist := poc^.next
-          else
-            prev_poc^.next := poc^.next;
-          dec(loc_freelists^.oscount);
-          pmc := pmemchunk_fixed(pointer(poc)+fixedfirstoffset);
-          if pmc^.size <> 0 then
-            remove_all_from_list_fixed(pmc^.size and fixedsizemask, poc);
-          break;
+          { blocks available in orphaned freelist ? }
+          poc := find_free_oschunk(@orphaned_freelists, minsize, maxsize, size);
+          if assigned(poc) then
+            begin
+              { adopt this os chunk }
+              poc^.freelists := loc_freelists;
+              if assigned(poc^.prev_any) then
+                poc^.prev_any^.next_any := poc^.next_any
+              else
+                orphaned_freelists.oslist_all := poc^.next_any;
+              if assigned(poc^.next_any) then
+                poc^.next_any^.prev_any := poc^.prev_any;
+              poc^.next_any := loc_freelists^.oslist_all;
+              if assigned(loc_freelists^.oslist_all) then
+                loc_freelists^.oslist_all^.prev_any := poc;
+              poc^.prev_any := nil;
+              loc_freelists^.oslist_all := poc;
+            end;
         end;
-      prev_poc := poc;
-      poc := poc^.next;
+      leavecriticalsection(orphaned_oslist_lock);
     end;
   if poc = nil then
     begin
@@ -730,10 +827,13 @@ begin
               HandleError(203);
           end;
       end;
-      { prevent thinking this os chunk is on some freelist }
-      clear_oschunk_on_freelist_fixed_flag(poc);
-      poc^.next := nil;
+      poc^.next_free := nil;
       poc^.freelists := loc_freelists;
+      poc^.prev_any := nil;
+      poc^.next_any := loc_freelists^.oslist_all;
+      if assigned(loc_freelists^.oslist_all) then
+        loc_freelists^.oslist_all^.prev_any := poc;
+      loc_freelists^.oslist_all := poc;
       { set the total new heap size }
       status := @loc_freelists^.internal_status;
       inc(status^.currheapsize, size);
@@ -741,10 +841,10 @@ begin
         status^.maxheapsize := status^.currheapsize;
     end;
   { initialize os-block }
-  poc^.used := 0;
   poc^.size := size;
   if chunkindex<>0 then
     begin
+      poc^.used := 0;
       { chop os chunk in fixedsize parts,
         maximum of $ffff elements are allowed, otherwise
         there will be an overflow }
@@ -774,6 +874,7 @@ begin
     end
   else
     begin
+      poc^.used := -1;
       { we need to align the user pointers to 8 byte at least for
         mmx/sse and doubles on sparc, align to 16 bytes }
       result := pointer(poc)+varfirstoffset;
@@ -788,9 +889,6 @@ end;
 {*****************************************************************************
                                  SysGetMem
 *****************************************************************************}
-
-function finish_waitfixedlist(loc_freelists: pfreelists): boolean; forward;
-procedure finish_waitvarlist(loc_freelists: pfreelists); forward;
 
 function SysGetMem_Fixed(chunksize: ptrint): pointer;
 var
@@ -814,7 +912,7 @@ begin
           dec(loc_freelists^.oscount);
         end;
     end
-  else if finish_waitfixedlist(loc_freelists) then
+  else if try_finish_waitfixedlist(loc_freelists) then
       { freed some to-be freed chunks, retry allocation }
     exit(SysGetMem_Fixed(chunksize))
   else
@@ -856,7 +954,7 @@ begin
   result:=nil;
   { free pending items }
   loc_freelists := @freelists;
-  finish_waitvarlist(loc_freelists);
+  try_finish_waitvarlist(loc_freelists);
   pbest := nil;
   pcurr := loc_freelists^.varlist;
   iter := high(longint);
@@ -893,7 +991,6 @@ begin
   size := split_block(pcurr, size);
   { flag block as used }
   pcurr^.size := pcurr^.size or usedflag;
-  pcurr^.freelists := loc_freelists;
   { statistics }
   with loc_freelists^.internal_status do
   begin
@@ -999,10 +1096,10 @@ begin
   if poc^.used <= 0 then
     begin
       { decrease used blocks count }
-      if poc^.used=-1 then
+      if poc^.used<0 then
         HandleError(204);
       { osblock can be freed? }
-      append_to_oslist(poc, chunksize);
+      append_to_oslist(poc);
     end;
   result := chunksize;
 end;
@@ -1064,14 +1161,11 @@ begin
     result := sysfreemem_fixed(pmc);
 end;
 
-function finish_waitfixedlist(loc_freelists: pfreelists): boolean;
+procedure finish_waitfixedlist(loc_freelists: pfreelists);
   { free to-be-freed chunks, return whether we freed anything }
 var
   pmc: pmemchunk_fixed;
 begin
-  if loc_freelists^.waitfixed = nil then 
-    exit(false);
-  entercriticalsection(loc_freelists^.lockfixed);
   while loc_freelists^.waitfixed <> nil do
   begin
     { keep next_fixed, might be destroyed }
@@ -1079,6 +1173,14 @@ begin
     loc_freelists^.waitfixed := pmc^.next_fixed;
     SysFreeMem_Fixed(pmc);
   end;
+end;
+
+function try_finish_waitfixedlist(loc_freelists: pfreelists): boolean;
+begin
+  if loc_freelists^.waitfixed = nil then 
+    exit(false);
+  entercriticalsection(loc_freelists^.lockfixed);
+  finish_waitfixedlist(loc_freelists);
   leavecriticalsection(loc_freelists^.lockfixed);
   result := true;
 end;
@@ -1088,10 +1190,6 @@ procedure finish_waitvarlist(loc_freelists: pfreelists);
 var
   pmcv: pmemchunk_var;
 begin
-  loc_freelists := @freelists;
-  if loc_freelists^.waitvar = nil then 
-    exit;
-  entercriticalsection(loc_freelists^.lockvar);
   while loc_freelists^.waitvar <> nil do
   begin
     { keep next_var, might be destroyed }
@@ -1099,6 +1197,14 @@ begin
     loc_freelists^.waitvar := pmcv^.next_var;
     SysFreeMem_Var(pmcv);
   end;
+end;
+
+procedure try_finish_waitvarlist(loc_freelists: pfreelists);
+begin
+  if loc_freelists^.waitvar = nil then 
+    exit;
+  entercriticalsection(loc_freelists^.lockvar);
+  finish_waitvarlist(loc_freelists);
   leavecriticalsection(loc_freelists^.lockvar);
 end;
 
@@ -1344,6 +1450,7 @@ begin
     not loaded yet }
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
+  fillchar(orphaned_freelists,sizeof(orphaned_freelists),0);
   { main freelist will be copied in memory }
   main_orig_freelists := loc_freelists;
 end;
@@ -1358,21 +1465,64 @@ begin
   main_relo_freelists := loc_freelists;
   initcriticalsection(loc_freelists^.lockfixed);
   initcriticalsection(loc_freelists^.lockvar);
+  initcriticalsection(orphaned_freelists.lockfixed);
+  initcriticalsection(orphaned_freelists.lockvar);
+  initcriticalsection(orphaned_oslist_lock);
+  modify_freelists(loc_freelists, main_relo_freelists);
   if MemoryManager.RelocateHeap <> nil then
     MemoryManager.RelocateHeap();
 end;
 
 procedure FinalizeHeap;
 var
-  poc : poschunk;
+  poc, poc_next: poschunk;
   i : longint;
   loc_freelists: pfreelists;
 begin
   loc_freelists := @freelists;
-  finish_waitfixedlist(loc_freelists);
-  finish_waitvarlist(loc_freelists);
   if main_relo_freelists <> nil then
   begin
+    entercriticalsection(loc_freelists^.lockfixed);
+    finish_waitfixedlist(loc_freelists);
+    entercriticalsection(loc_freelists^.lockvar);
+    finish_waitvarlist(loc_freelists);
+{$ifdef HAS_SYSOSFREE}
+  end;
+  poc := loc_freelists^.oslist;
+  while assigned(poc) do
+  begin
+    poc_next := poc^.next_free;
+    { check if this os chunk was 'recycled' i.e. taken in use again }
+    if (poc^.size and ocrecycleflag) = 0 then
+      free_oschunk(loc_freelists, poc);
+    poc := poc_next;
+  end;
+  loc_freelists^.oslist := nil;
+  loc_freelists^.oscount := 0;
+  if main_relo_freelists <> nil then
+  begin
+{$endif HAS_SYSOSFREE}
+    if main_relo_freelists = loc_freelists then
+    begin
+      donecriticalsection(orphaned_freelists.lockfixed);
+      donecriticalsection(orphaned_freelists.lockvar);
+      donecriticalsection(orphaned_oslist_lock);
+    end else begin
+      entercriticalsection(orphaned_oslist_lock);
+      entercriticalsection(orphaned_freelists.lockfixed);
+      entercriticalsection(orphaned_freelists.lockvar);
+      poc := modify_freelists(loc_freelists, @orphaned_freelists);
+      if assigned(poc) then
+      begin
+        poc^.next_any := orphaned_freelists.oslist_all;
+        if assigned(orphaned_freelists.oslist_all) then
+          orphaned_freelists.oslist_all^.prev_any := poc;
+        orphaned_freelists.oslist_all := loc_freelists^.oslist_all;
+      end;
+      leavecriticalsection(orphaned_freelists.lockvar);
+      leavecriticalsection(orphaned_freelists.lockfixed);
+      leavecriticalsection(orphaned_oslist_lock);
+    end;
     donecriticalsection(loc_freelists^.lockfixed);
     donecriticalsection(loc_freelists^.lockvar);
   end;
@@ -1388,15 +1538,6 @@ begin
   writeln('size >', sizeusagesize, ' usage ', maxsizeusage[sizeusageindex]);
   flush(output);
 {$endif}
-{$ifdef HAS_SYSOSFREE}
-  while assigned(loc_freelists^.oslist) do
-    begin
-      poc:=loc_freelists^.oslist^.next;
-      SysOSFree(loc_freelists^.oslist, loc_freelists^.oslist^.size and sizemask);
-      dec(loc_freelists^.oscount);
-      loc_freelists^.oslist:=poc;
-    end;
-{$endif HAS_SYSOSFREE}
 end;
 
 {$endif HAS_MEMORYMANAGER}
