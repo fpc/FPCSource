@@ -1317,7 +1317,8 @@ implementation
                end
              else
               if (sp_published in current_object_option) and
-                 not(oo_can_have_published in tobjectdef(hdef).objectoptions) then
+                 not(oo_can_have_published in tobjectdef(hdef).objectoptions) and
+                 not(m_delphi in current_settings.modeswitches) then
                begin
                  Message(parser_e_only_publishable_classes_can_be_published);
                  exclude(current_object_option,sp_published);
