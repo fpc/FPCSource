@@ -415,9 +415,10 @@ begin
  if j <> k then
    result := false;
 
- { The next statement would create an range check error }
- {$R-}
- if j <> (1000000000-(qword(1000000000) * 10)) then
+ { Since qword variable<>negative constant is always false according to the 
+   compiler (allowing it to optimize the if away) we need to do a preventive
+   typecast to qword.}
+ if j <> qword(1000000000-(qword(1000000000) * 10)) then
    result := false;
  j := (qword(1) shl 33);
  i := (qword(1) shl 34) - j;
@@ -425,7 +426,10 @@ begin
    result := false;
 
  i := 1 - j;
- if (i <> (1-(qword(1) shl 33))) then
+ { Since qword variable<>negative constant is always false according to the 
+   compiler (allowing it to optimize the if away) we need to do a preventive
+   typecast to qword.}
+ if i <> qword(1-(qword(1) shl 33)) then
    result := false;
 
  i := 100000;
