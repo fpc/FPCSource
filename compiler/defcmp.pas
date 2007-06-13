@@ -1252,6 +1252,14 @@ implementation
                     end;
                  end
                else
+                 if (m_delphi in current_settings.modeswitches) and
+                    is_voidpointer(def_from) then
+                  begin
+                    doconv:=tc_equal;
+                    { prefer pointer-pointer assignments }
+                    eq:=te_convert_l2;
+                  end
+                 else
                 { nil is compatible with class references }
                 if (fromtreetype=niln) then
                  begin
