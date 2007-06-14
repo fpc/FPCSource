@@ -449,9 +449,6 @@ implementation
 
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
-      var
-        fromqword, toqword: boolean;
-
       begin
          if (def_from.typ <> orddef) or (def_to.typ <> orddef) then
            begin
@@ -693,8 +690,7 @@ implementation
              case longint(todef.size) of
                1: l := l and $ff;
                2: l := l and $ffff;
-               { work around sign extension bug (to be fixed) (JM) }
-               4: l := l and (int64($fffffff) shl 4 + $f);
+               4: l := l and $ffffffff;
              end;
              {reset sign, i.e. converting -1 to qword changes the value to high(qword)}
              l.signed:=false;

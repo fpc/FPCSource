@@ -1298,42 +1298,8 @@ implementation
                     v:=torddef(def).low
                   else
                     v:=torddef(def).high;
-(*
-Low and high are not anymore longints, but Tconstexprints (DM)
-                  { low/high of torddef are longints, so we need special }
-                  { handling for cardinal and 64bit types (JM)           }
-                  { 1.0.x doesn't support int64($ffffffff) correct, it'll expand
-                    to -1 instead of staying $ffffffff. Therefor we use $ffff with
-                    shl twice (PFV) }
-                  case torddef(def).ordtype of
-                    s64bit,scurrency :
-                      begin
-                        if (inlinenumber=in_low_x) then
-                          v := int64($80000000) shl 32
-                        else
-                          v := (int64($7fffffff) shl 32) or int64($ffff) shl 16 or int64($ffff)
-                      end;
-                    u64bit :
-                      begin
-                        { we have to use a dirty trick for high(qword),     }
-                        { because it's bigger than high(tconstexprint) (JM) }
-                        v := 0
-                      end
-                    else
-                      begin
-                        if not is_signed(def) then
-                          v := cardinal(v);
-                      end;
-                  end;
-*)
                   hp:=cordconstnode.create(v,def,true);
                   typecheckpass(hp);
-(*
-                  { fix high(qword) }
-                  if (torddef(def).ordtype=u64bit) and
-                     (inlinenumber = in_high_x) then
-                    tordconstnode(hp).value := int64(-1); { is the same as qword($ffffffffffffffff) }
-*)
                   do_lowhigh:=hp;
                end;
              enumdef:
