@@ -199,6 +199,9 @@ function MakeResult(p1,p2,mask : Longint) : HRESULT;
 function HResultFromWin32(x : Longint) : HRESULT;
 function HResultFromNT(x : Longint) : HRESULT;
 
+function SmallPointToPoint(const P: TSmallPoint): TPoint;
+function PointToSmallPoint(const P: TPoint): TSmallPoint;
+
 procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
 procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
 procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
@@ -206,7 +209,6 @@ procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); exte
 function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD) : BOOL; external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
 function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external 'kernel32' name 'TryEnterCriticalSection';
-
 
 
 function ControlService(hService:SC_HANDLE; dwControl:DWORD; var ServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'ControlService';
@@ -1096,6 +1098,18 @@ end;
 function LOCALE_INVARIANT: DWORD;
 begin
   LOCALE_INVARIANT := MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT);
+end;
+
+function SmallPointToPoint(const P: TSmallPoint): TPoint;
+begin
+  Result.X:=P.X;
+  Result.Y:=P.Y;
+end;
+
+function PointToSmallPoint(const P: TPoint): TSmallPoint;
+begin
+  Result.X:=P.X;
+  Result.Y:=P.Y;
 end;
 
 {$endif read_implementation}
