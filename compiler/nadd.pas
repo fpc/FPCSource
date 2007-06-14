@@ -221,8 +221,8 @@ implementation
         { both are int constants }
         if (
             (
-             is_constintnode(left) and
-             is_constintnode(right)
+             is_constintnode(left) and (Torddef(ld).ordtype<>u64bit) and
+             is_constintnode(right) and (Torddef(rd).ordtype<>u64bit)
             ) or
             (
              is_constboolnode(left) and
