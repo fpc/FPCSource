@@ -373,17 +373,17 @@ initialization
   SetCWideStringManager;
   initcriticalsection(iconv_lock);
   { init conversion tables }
-{$ifndef darwin}
+{$if not defined(darwin) and not defined(solaris)}}
   iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding);
   iconv_ansi2wide:=iconv_open(unicode_encoding,nl_langinfo(CODESET));
   iconv_ucs42ansi:=iconv_open(nl_langinfo(CODESET),'UCS4');
   iconv_ansi2ucs4:=iconv_open('UCS4',nl_langinfo(CODESET));
-{$else darwin}
+{$else darwin or solaris}
   iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding);
   iconv_ansi2wide:=iconv_open(unicode_encoding,'UTF-8');
   iconv_ucs42ansi:=iconv_open('UTF-8','UCS4');
   iconv_ansi2ucs4:=iconv_open('UCS4','UTF-8');
-{$endif darwin}
+{$endif darwin or solaris}
 finalization
   donecriticalsection(iconv_lock);
   iconv_close(iconv_ansi2wide);
