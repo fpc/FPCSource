@@ -2122,18 +2122,10 @@ implementation
 
     function taddnode.try_make_mul32to64: boolean;
 
-      function canbe32bitint(v: tconstexprint; fromdef: torddef; todefsigned: boolean): boolean;
+      function canbe32bitint(v: tconstexprint): boolean;
         begin
-          if (fromdef.ordtype <> u64bit) then
-            result :=
-             ((v >= 0) or
-              todefsigned) and
-             (v >= int64(low(longint))) and
-             (v <= int64(high(longint)))
-          else
-            result :=
-             (qword(v) >= low(cardinal)) and
-             (qword(v) <= high(cardinal))
+          result := ((v >= int64(low(longint))) and (v <= int64(high(longint)))) or
+                    ((v >= qword(low(cardinal))) and (v <= qword(high(cardinal))))
         end;
 
       var
@@ -2142,9 +2134,8 @@ implementation
         result := false;
         if ((left.nodetype = typeconvn) and
             is_integer(ttypeconvnode(left).left.resultdef) and
-            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit]))  and
-           (((right.nodetype = ordconstn) and
-             canbe32bitint(tordconstnode(right).value,torddef(right.resultdef),is_signed(left.resultdef))) or
+            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit])) and
+           (((right.nodetype = ordconstn) and canbe32bitint(tordconstnode(right).value)) or
             ((right.nodetype = typeconvn) and
              is_integer(ttypeconvnode(right).left.resultdef) and
              not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit])) and

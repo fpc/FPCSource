@@ -1456,16 +1456,16 @@ end;
       constord :
         begin
           if sym.constdef.typ=enumdef then
-            Name:=sym.constdef.typesym.name+'('+IntToStr(sym.value.valueord)+')'
+            Name:=sym.constdef.typesym.name+'('+tostr(sym.value.valueord)+')'
           else
             if is_boolean(sym.constdef) then
-              Name:='Longbool('+IntToStr(sym.value.valueord)+')'
+              Name:='Longbool('+tostr(sym.value.valueord)+')'
           else
             if is_char(sym.constdef) or
                is_widechar(sym.constdef) then
-              Name:=''''+chr(sym.value.valueord)+''''
+              Name:=''''+chr(sym.value.valueord.svalue)+''''
           else
-            Name:=IntToStr(sym.value.valueord);
+            Name:=tostr(sym.value.valueord);
         end;
       constresourcestring,
       conststring :
