@@ -505,7 +505,7 @@ function pass_arr31(s : struct_arr31; b: byte) : int64_t; cdecl; external;
 function pass_arr32(s : struct_arr32; b: byte) : int64_t; cdecl; external;
 function pass_arr33(s : struct_arr33; b: byte) : int64_t; cdecl; external;
 
-
+procedure dotest;
 var
   sa1 : struct_arr1;
   sa2 : struct_arr2;
@@ -629,4 +629,8 @@ begin
 
   if (not success) then
     halt(1);
+end;
+
+begin
+  dotest;
 end.

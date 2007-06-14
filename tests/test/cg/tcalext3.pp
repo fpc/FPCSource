@@ -497,6 +497,7 @@ function pass_arr32(s : struct_arr32) : int64_t; cdecl; external;
 function pass_arr33(s : struct_arr33) : int64_t; cdecl; external;
 
 
+procedure dotest;
 var
   sa1 : struct_arr1;
   sa2 : struct_arr2;
@@ -614,4 +615,8 @@ begin
 
   if (not success) then
     halt(1);
+end;
+
+begin
+  dotest;
 end.

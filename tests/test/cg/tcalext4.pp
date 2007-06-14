@@ -75,6 +75,7 @@ function pass31(s : arr31) : int64; cdecl; external;
 function pass32(s : arr32) : int64; cdecl; external;
 function pass33(s : arr33) : int64; cdecl; external;
 
+procedure dotest;
 var
   s1 : arr1;
   s2 : arr2;
@@ -130,4 +131,8 @@ begin
 
   if (not success) then
     halt(1);
+end;
+
+begin
+  dotest;
 end.

@@ -151,7 +151,6 @@ function test_function_struct : _7byte_; cdecl; external;
 
 
 
-
 var
  global_u8bit : byte; cvar; external;
  global_u16bit : word; cvar; external;
@@ -222,6 +221,7 @@ const
    end;
 
 
+procedure dotest;
 var failed : boolean;
     tinystruct : _1BYTE_;
     smallstruct : _3BYTE_;
@@ -259,4 +259,8 @@ begin
 
   if has_errors then
     Halt(1);
+end;
+
+begin
+  dotest;
 end.
