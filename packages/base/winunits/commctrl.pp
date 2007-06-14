@@ -1,4 +1,3 @@
-Unit CommCtrl;
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by Marco van de Voort
@@ -40,6 +39,7 @@ Unit CommCtrl;
 }
 
 
+Unit CommCtrl;
 Interface
 
 {$Mode ObjFPC}
@@ -298,7 +298,7 @@ CONST
 //====== WM_NOTIFY Macros =====================================================
 
 // Macro 8
-Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var  lParam : NMHDR ;fn :Pointer);
+Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var  _lParam : NMHDR ;fn :Pointer);
 
 // Macro 9
 Function FORWARD_WM_NOTIFY( hwnd : hwnd; idFrom : cint;var  pnmhdr : NMHDR ; fn :pointer ):LRESULT;
@@ -2147,6 +2147,9 @@ TYPE
          LPNMTOOLBAR         = LPNMTOOLBARW;
 {$ELSE}
          NMTOOLBAR           = NMTOOLBARA;
+         TNMTOOLBAR          = NMTOOLBARA;
+         PNMTOOLBAR          = LPNMTOOLBARA;
+
 {$ENDIF}
 
          TBNOTIFY                       = NMTOOLBAR;
@@ -4267,6 +4270,7 @@ Procedure ListView_SetItemCountEx( hwndLV : hwnd; cItems : WPARAM; dwFlags : LPA
 
 TYPE
          PFNLVCOMPARE=Function(a,b,c:LPARAM):cint;
+         TLVCompare = PFNLVCOMPARE;
 
 CONST
          LVM_SORTITEMS                  = (LVM_FIRST + 48);
@@ -6117,6 +6121,7 @@ Function TreeView_MapHTREEITEMToAccID( hwnd : hwnd; htreeitem : WPARAM):UINT;
 
 TYPE
          PFNTVCOMPARE =function (lparam1:LPARAM;lparam2:LPARAM;lParamSort:LParam): cint; STDCALL;
+         TTVCompare = PFNTVCOMPARE;
 
 
          tagTVSORTCB          = Record
@@ -7068,7 +7073,8 @@ CONST
          TCM_HITTEST                    = (TCM_FIRST + 13);
 
 // Macro 228
-Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;
+Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;inline;
+Function TabCtrl_HitTest( hwndTC : hwnd;pinfo : LPTCHITTESTINFO ):cint;inline;
 
 CONST
          TCM_SETITEMEXTRA               = (TCM_FIRST + 14);
@@ -9073,12 +9079,12 @@ IMPLEMENTATION
 //#define HANDLE_WM_NOTIFY(hwnd, wParam, lParam, fn) \
 //     (fn)((hwnd), (int)(wParam), (NMHDR *)(lParam))
 
-Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var  lParam : NMHDR ;fn:Pointer);
+Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var _lParam : NMHDR ;fn:Pointer);
 
-TYPE FnType=procedure ( hwnd : hwnd; wParam : cint;tst:longint); stdcall;
+TYPE FnType=procedure ( hwnd : hwnd; wParam : cint;tst:LPARAM); stdcall;
 
 Begin
- fnType(fn)(hwnd, wParam, Longint(@lParam));
+ fnType(fn)(hwnd, wParam, LPARAM(@_lParam));
 end;
 
 // Macro 9
@@ -9091,7 +9097,7 @@ Function FORWARD_WM_NOTIFY( hwnd : hwnd; idFrom : cint;var  pnmhdr : NMHDR ; fn 
 TYPE FnType=Function( hwnd : hwnd; wParam : cint;wparam2:cint;lparam1:lparam):LResult; stdcall;
 
 Begin
- Result:=LRESULT(fntype(fn)(hwnd, WM_NOTIFY, idFrom, Longint(@pnmhdr)));
+ Result:=LRESULT(fntype(fn)(hwnd, WM_NOTIFY, idFrom, LPARAM(@pnmhdr)));
 end;
 
 // Macro 10
@@ -9145,7 +9151,7 @@ End;
 Function Header_GetItemCount( hwndHD : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwndHD), HDM_GETITEMCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwndHD), HDM_GETITEMCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -9156,17 +9162,17 @@ end;
 Function Header_InsertItem( hwndHD : hwnd; i : cint;const phdi : HD_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwndHD), HDM_INSERTITEM, (i), Longint(@phdi)));
+ Result:=cint(SendMessage((hwndHD), HDM_INSERTITEM, (i), LPARAM(@phdi)));
 end;
 
 // Macro 18
 //#define Header_DeleteItem(hwndHD, i) \
-//     (BOOL)SNDMSG((hwndHD), HDM_DELETEITEM, (WPARAM)(int)(i), DWord(0))
+//     (BOOL)SNDMSG((hwndHD), HDM_DELETEITEM, (WPARAM)(int)(i), LPARAM(0))
 
 Function Header_DeleteItem( hwndHD : hwnd; i : cint):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_DELETEITEM, (i), DWord(0)));
+ Result:=BOOL(SendMessage((hwndHD), HDM_DELETEITEM, (i), LPARAM(0)));
 end;
 
 
@@ -9177,7 +9183,7 @@ end;
 Function Header_GetItem( hwndHD : hwnd; i : cint;var  phdi : HD_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_GETITEM, (i), Longint(@phdi)));
+ Result:=BOOL(SendMessage((hwndHD), HDM_GETITEM, (i), LPARAM(@phdi)));
 end;
 
 
@@ -9188,7 +9194,7 @@ end;
 Function Header_SetItem( hwndHD : hwnd; i : cint;const phdi : HD_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_SETITEM, (i), Longint(@phdi)));
+ Result:=BOOL(SendMessage((hwndHD), HDM_SETITEM, (i), LPARAM(@phdi)));
 end;
 
 
@@ -9199,7 +9205,7 @@ end;
 Function Header_Layout( hwndHD : hwnd;var  playout : HD_LAYOUT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_LAYOUT, 0, Longint(@playout)))
+ Result:=BOOL(SendMessage((hwndHD), HDM_LAYOUT, 0, LPARAM(@playout)))
 end;
 
 
@@ -9406,12 +9412,12 @@ end;
 
 // Macro 40
 // #define ListView_GetBkColor(hwnd)  \
-//     (COLORREF)SNDMSG((hwnd), LVM_GETBKCOLOR, 0, DWord(0))
+//     (COLORREF)SNDMSG((hwnd), LVM_GETBKCOLOR, 0, LPARAM(0))
 
 Function ListView_GetBkColor( hwnd : hwnd):COLORREF;
 
 Begin
- Result:=COLORREF(SendMessage((hwnd), LVM_GETBKCOLOR, 0, DWord(0)))
+ Result:=COLORREF(SendMessage((hwnd), LVM_GETBKCOLOR, 0, LPARAM(0)))
 end;
 
 
@@ -9433,7 +9439,7 @@ end;
 Function ListView_GetImageList( hwnd : hwnd; iImageList : CINT):HIMAGELIST;
 
 Begin
- Result:=HIMAGELIST(SendMessage((hwnd), LVM_GETIMAGELIST, iImageList, DWord(0)))
+ Result:=HIMAGELIST(SendMessage((hwnd), LVM_GETIMAGELIST, iImageList, LPARAM(0)))
 end;
 
 
@@ -9455,7 +9461,7 @@ end;
 Function ListView_GetItemCount( hwnd : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_GETITEMCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwnd), LVM_GETITEMCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -9469,7 +9475,7 @@ end;
 Function ListView_GetItem( hwnd : hwnd;var  pitem : LV_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETITEM, 0, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -9480,7 +9486,7 @@ end;
 Function ListView_SetItem( hwnd : hwnd;const pitem : LV_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_SETITEM, 0, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), LVM_SETITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -9491,7 +9497,7 @@ end;
 Function ListView_InsertItem( hwnd : hwnd;Const pitem : LV_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_INSERTITEM, 0, Longint(@pitem)))
+ Result:=cint(SendMessage((hwnd), LVM_INSERTITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -9502,7 +9508,7 @@ end;
 Function ListView_DeleteItem( hwnd : hwnd; i : cint):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_DELETEITEM, (i), DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), LVM_DELETEITEM, (i), LPARAM(0)))
 end;
 
 
@@ -9513,7 +9519,7 @@ end;
 Function ListView_DeleteAllItems( hwnd : hwnd):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_DELETEALLITEMS, 0, DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), LVM_DELETEALLITEMS, 0, LPARAM(0)))
 end;
 
 
@@ -9557,7 +9563,7 @@ end;
 Function ListView_FindItem( hwnd : hwnd; iStart : cint;const plvfi : LV_FINDINFO ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_FINDITEM, iStart, Longint(@plvfi)))
+ Result:=cint(SendMessage((hwnd), LVM_FINDITEM, iStart, LPARAM(@plvfi)))
 end;
 
 
@@ -9656,7 +9662,7 @@ end;
 Function ListView_Arrange( hwndLV : hwnd; code : UINT):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndLV), LVM_ARRANGE, code, DWord(0)))
+ Result:=BOOL(SendMessage((hwndLV), LVM_ARRANGE, code, LPARAM(0)))
 end;
 
 
@@ -9667,7 +9673,7 @@ end;
 Function ListView_EditLabel( hwndLV : hwnd; i : cint):HWND;
 
 Begin
- Result:=HWND(SendMessage((hwndLV), LVM_EDITLABEL, (i), DWord(0)))
+ Result:=HWND(SendMessage((hwndLV), LVM_EDITLABEL, (i), LPARAM(0)))
 end;
 
 
@@ -9678,7 +9684,7 @@ end;
 Function ListView_GetEditControl( hwndLV : hwnd):HWND;
 
 Begin
- Result:=HWND(SendMessage((hwndLV), LVM_GETEDITCONTROL, 0, DWord(0)))
+ Result:=HWND(SendMessage((hwndLV), LVM_GETEDITCONTROL, 0, LPARAM(0)))
 end;
 
 
@@ -9689,7 +9695,7 @@ end;
 Function ListView_GetColumn( hwnd : hwnd; iCol : cint;var  pcol : LV_COLUMN ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETCOLUMN, iCol, Longint(@pcol)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETCOLUMN, iCol, LPARAM(@pcol)))
 end;
 
 
@@ -9700,7 +9706,7 @@ end;
 Function ListView_SetColumn( hwnd : hwnd; iCol : cint; Const pcol : LV_COLUMN ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_SETCOLUMN, iCol, Longint(@pcol)))
+ Result:=BOOL(SendMessage((hwnd), LVM_SETCOLUMN, iCol, LPARAM(@pcol)))
 end;
 
 
@@ -9711,7 +9717,7 @@ end;
 Function ListView_InsertColumn( hwnd : hwnd; iCol : cint;const pcol : LV_COLUMN ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_INSERTCOLUMN, iCol, Longint(@pcol)))
+ Result:=cint(SendMessage((hwnd), LVM_INSERTCOLUMN, iCol, LPARAM(@pcol)))
 end;
 
 
@@ -9755,7 +9761,7 @@ end;
 Function ListView_GetHeader( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, DWord(0)));
+ Result:=Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, LPARAM(0)));
 end;
 
 
@@ -9777,7 +9783,7 @@ end;
 Function ListView_GetViewRect( hwnd : hwnd;var  prc : RECT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETVIEWRECT, 0, Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETVIEWRECT, 0, LPARAM(@prc)))
 end;
 
 // Macro 75
@@ -9787,7 +9793,7 @@ end;
 Function ListView_GetTextColor( hwnd : hwnd):COLORREF;
 
 Begin
- Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTCOLOR, 0, DWord(0)))
+ Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTCOLOR, 0, LPARAM(0)))
 end;
 
 
@@ -9809,7 +9815,7 @@ end;
 Function ListView_GetTextBkColor( hwnd : hwnd):COLORREF;
 
 Begin
- Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTBKCOLOR, 0, DWord(0)))
+ Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTBKCOLOR, 0, LPARAM(0)))
 end;
 
 
@@ -9854,7 +9860,7 @@ end;
 Function ListView_GetOrigin( hwndLV : hwnd;var  ppt : POINT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndLV), LVM_GETORIGIN, WPARAM(0), Longint(@ppt)))
+ Result:=BOOL(SendMessage((hwndLV), LVM_GETORIGIN, WPARAM(0), LPARAM(@ppt)))
 end;
 
 
@@ -9865,7 +9871,7 @@ end;
 Function ListView_Update( hwndLV : hwnd; i : WPARAM):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndLV), LVM_UPDATE, (i), DWord(0)))
+ Result:=BOOL(SendMessage((hwndLV), LVM_UPDATE, (i), LPARAM(0)))
 end;
 
 
@@ -9884,7 +9890,7 @@ Var _ms_lvi : LV_ITEM;
 Begin
  _ms_lvi.stateMask:=mask;
  _ms_lvi.state:=data;
- SendMessage(hwndLV, LVM_SETITEMSTATE, i,longint(@_ms_lvi));
+ SendMessage(hwndLV, LVM_SETITEMSTATE, i,LPARAM(@_ms_lvi));
 end;
 
 
@@ -10012,7 +10018,7 @@ Var ptNewPos:POINT;
 
 Begin
  ptNewPos.X:=x0; ptNewPos.Y:=y0;
- SendMessage(hwndlv, LVM_SETITEMPOSITION32, I,Longint(@ptNewPos));
+ SendMessage(hwndlv, LVM_SETITEMPOSITION32, I,LPARAM(@ptNewPos));
 end;
 
 
@@ -10023,7 +10029,7 @@ end;
 Function ListView_GetSelectedCount( hwndLV : hwnd):UINT;
 
 Begin
- Result:=SendMessage(hwndLV, LVM_GETSELECTEDCOUNT, 0, DWord(0));
+ Result:=SendMessage(hwndLV, LVM_GETSELECTEDCOUNT, 0, LPARAM(0));
 end;
 
 // Macro 94
@@ -10033,7 +10039,7 @@ end;
 Function ListView_GetItemSpacing( hwndLV : hwnd; fSmall : cint ):DWORD;
 
 Begin
- Result:=DWORD(SendMessage((hwndLV), LVM_GETITEMSPACING, fSmall, DWord(0)));
+ Result:=LPARAM(SendMessage((hwndLV), LVM_GETITEMSPACING, fSmall, LPARAM(0)));
 end;
 
 // Macro 95
@@ -10195,7 +10201,7 @@ end;
 
 Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var prc : RECT ):BOOL;
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_SETWORKAREAS, nWorkAreas, Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), LVM_SETWORKAREAS, nWorkAreas, LPARAM(@prc)))
 end;
 
 
@@ -10205,7 +10211,7 @@ end;
 
 Function ListView_GetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var  prc : RECT ):BOOL;
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETWORKAREAS, nWorkAreas, Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETWORKAREAS, nWorkAreas, LPARAM(@prc)))
 end;
 
 
@@ -10215,7 +10221,7 @@ end;
 
 Function ListView_GetNumberOfWorkAreas( hwnd : hwnd;var pnWorkAreas : UINT ):BOOL;
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETNUMBEROFWORKAREAS, 0, Longint(@pnWorkAreas)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETNUMBEROFWORKAREAS, 0, LPARAM(@pnWorkAreas)))
 end;
 
 
@@ -10720,7 +10726,7 @@ end;
 Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;
 Begin
  HTREEITEM(prc)^:=HITEM;
- Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, code, longint(prc)));
+ Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, code, LPARAM(prc)));
 end;
 
 // Macro 161
@@ -10768,7 +10774,7 @@ end;
 
 Function TreeView_SetImageList( hwnd : hwnd; himl : HIMAGELIST; iImage : cint ):HIMAGELIST;
 Begin
- Result:=HIMAGELIST(SendMessage((hwnd), TVM_SETIMAGELIST, iImage, himl))
+  Result:=HIMAGELIST(SendMessage((hwnd), TVM_SETIMAGELIST, iImage, himl))
 end;
 
 // Macro 166
@@ -10778,16 +10784,16 @@ end;
 Function TreeView_GetNextItem( hwnd : hwnd; hitem : HTREEITEM; code : WPARAM):HTREEITEM;
 
 Begin
- Result:=HTREEITEM(SendMessage((hwnd), TVM_GETNEXTITEM, code, lparam(hitem)))
+  Result:=HTREEITEM(SendMessage((hwnd), TVM_GETNEXTITEM, code, lparam(hitem)))
 end;
 
 
 // Macro 167
 
-procedure TreeView_GetChild(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetChild(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 
 Begin
- TreeView_GetNextItem(hwnd, hitem, TVGN_CHILD)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_CHILD)
 End;
 // Macro 168
 
@@ -10797,44 +10803,43 @@ End;
 
 
 
-procedure TreeView_GetNextSibling(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetNextSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 // (hwnd, hitem)
 // TreeView_GetNextItem(hwnd, hitem, TVGN_NEXT)
 
 Begin
- TreeView_getNextItem(hwnd,hitem,TVGN_NEXT);
+  Result:=TreeView_getNextItem(hwnd,hitem,TVGN_NEXT);
 end;
 
 // Macro 169
-Procedure TreeView_GetPrevSibling(hwnd:hwnd; hitem:HTREEITEM);
-
+function TreeView_GetPrevSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 begin
- TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUS);
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUS);
 end;
 
 // Macro 170
 
-procedure TreeView_GetParent(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetParent(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 begin
- TreeView_GetNextItem(hwnd, hitem, TVGN_PARENT)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PARENT)
 end;
 
 // Macro 171
 // #define TreeView_GetFirstVisible(hwnd:hwnd);
 // TreeView_GetNextItem(hwnd, NULL,  TVGN_FIRSTVISIBLE)
 
-Procedure TreeView_GetFirstVisible(hwnd:hwnd);
+function TreeView_GetFirstVisible(hwnd:hwnd) : HTREEITEM;
 begin
-TreeView_GetNextItem(hwnd, NIL,  TVGN_FIRSTVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_FIRSTVISIBLE)
 end;
 
 // Macro 172
 
 //#define TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM);
 //(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
-Procedure TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 begin
-  TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
 end;
 
 // Macro 173
@@ -10842,9 +10847,9 @@ end;
 // (hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
 
 
-Procedure TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 Begin
-  TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
 end;
 
 // Macro 174
@@ -10924,7 +10929,7 @@ End;
 Function TreeView_GetItem( hwnd : hwnd;var  pitem : TV_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TVM_GETITEM, 0, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), TVM_GETITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -11363,7 +11368,7 @@ end;
 Function TabCtrl_GetImageList( hwnd : hwnd):HIMAGELIST;
 
 Begin
- Result:=HIMAGELIST(SendMessage((hwnd), TCM_GETIMAGELIST, 0, DWord(0)))
+ Result:=HIMAGELIST(SendMessage((hwnd), TCM_GETIMAGELIST, 0, LPARAM(0)))
 end;
 
 
@@ -11387,7 +11392,7 @@ end;
 Function TabCtrl_GetItemCount( hwnd : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_GETITEMCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwnd), TCM_GETITEMCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -11399,7 +11404,7 @@ end;
 Function TabCtrl_GetItem( hwnd : hwnd; iItem : cint;var  pitem : TC_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_GETITEM, iItem, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), TCM_GETITEM, iItem, LPARAM(@pitem)))
 end;
 
 
@@ -11411,7 +11416,7 @@ end;
 Function TabCtrl_SetItem( hwnd : hwnd; iItem : cint;var  pitem : TC_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_SETITEM, iItem, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), TCM_SETITEM, iItem, LPARAM(@pitem)))
 end;
 
 
@@ -11423,7 +11428,7 @@ end;
 Function TabCtrl_InsertItem( hwnd : hwnd; iItem : cint;const  pitem : TC_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, Longint(@pitem)))
+ Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, LPARAM(@pitem)))
 end;
 
 
@@ -11435,7 +11440,7 @@ end;
 Function TabCtrl_DeleteItem( hwnd : hwnd; i : cint):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_DELETEITEM, (i), DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), TCM_DELETEITEM, (i), LPARAM(0)))
 end;
 
 
@@ -11447,7 +11452,7 @@ end;
 Function TabCtrl_DeleteAllItems( hwnd : hwnd):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_DELETEALLITEMS, 0, DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), TCM_DELETEALLITEMS, 0, LPARAM(0)))
 end;
 
 
@@ -11459,7 +11464,7 @@ end;
 Function TabCtrl_GetItemRect( hwnd : hwnd; i : cint;var  prc : RECT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_GETITEMRECT, (i), Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), TCM_GETITEMRECT, (i), LPARAM(@prc)))
 end;
 
 
@@ -11492,10 +11497,17 @@ end;
 //#define TabCtrl_HitTest(hwndTC, pinfo) \
 //     (int)SNDMSG((hwndTC), TCM_HITTEST, 0, (LPARAM)(TC_HITTESTINFO *)(pinfo))
 
-Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;
+Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;inline;
 
 Begin
- Result:=cint(SendMessage((hwndTC), TCM_HITTEST, 0, Longint(@pinfo)))
+ Result:=cint(SendMessage((hwndTC), TCM_HITTEST, 0, LPARAM(@pinfo)))
+end;
+
+
+Function TabCtrl_HitTest( hwndTC : hwnd;pinfo : LPTCHITTESTINFO ):cint;inline;
+
+Begin
+ Result:=cint(SendMessage((hwndTC), TCM_HITTEST, 0, LPARAM(@pinfo)))
 end;
 
 
@@ -11507,7 +11519,7 @@ end;
 Function TabCtrl_SetItemExtra( hwndTC : hwnd; cb : WPARAM):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndTC), TCM_SETITEMEXTRA, cb, DWord(0)))
+ Result:=BOOL(SendMessage((hwndTC), TCM_SETITEMEXTRA, cb, LPARAM(0)))
 end;
 
 
@@ -11543,7 +11555,7 @@ end;
 Procedure TabCtrl_RemoveImage( hwnd : hwnd; i : cint);
 
 Begin
-SendMessage((hwnd), TCM_REMOVEIMAGE, i, DWord(0))
+SendMessage((hwnd), TCM_REMOVEIMAGE, i, LPARAM(0))
 end;
 
 
@@ -11567,7 +11579,7 @@ end;
 Function TabCtrl_GetRowCount( hwnd : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_GETROWCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwnd), TCM_GETROWCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -11579,7 +11591,7 @@ end;
 Function TabCtrl_GetToolTips( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, DWord(0)))
+ Result:=Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, LPARAM(0)))
 end;
 
 
@@ -11591,7 +11603,7 @@ end;
 Procedure TabCtrl_SetToolTips( hwnd : hwnd; hwndTT : WPARAM);
 
 Begin
-SendMessage((hwnd), TCM_SETTOOLTIPS, hwndTT, DWord(0))
+SendMessage((hwnd), TCM_SETTOOLTIPS, hwndTT, LPARAM(0))
 end;
 
 
