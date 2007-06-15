@@ -848,7 +848,11 @@ implementation
                    begin
                      { string constant (which can be part of array constructor)
                        to zero terminated string constant }
-                     if (fromtreetype in [arrayconstructorn,stringconstn]) and
+                     if (((fromtreetype = arrayconstructorn) and
+                          { can't use is_chararray, because returns false for }
+                          { array constructors                                }
+                          is_char(tarraydef(def_from).elementdef)) or
+                         (fromtreetype = stringconstn)) and
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
@@ -937,7 +941,11 @@ implementation
                    begin
                      { string constant (which can be part of array constructor)
                        to zero terminated string constant }
-                     if (fromtreetype in [arrayconstructorn,stringconstn]) and
+                     if (((fromtreetype = arrayconstructorn) and
+                          { can't use is_chararray, because returns false for }
+                          { array constructors                                }
+                          is_char(tarraydef(def_from).elementdef)) or
+                         (fromtreetype = stringconstn)) and
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
