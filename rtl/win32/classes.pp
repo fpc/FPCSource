@@ -35,6 +35,12 @@ uses
 type
   TWndMethod = procedure(var msg : TMessage) of object;
 
+function MakeObjectInstance(Method: TWndMethod): Pointer;
+procedure FreeObjectInstance(ObjectInstance: Pointer);
+
+function AllocateHWnd(Method: TWndMethod): HWND;
+procedure DeallocateHWnd(Wnd: HWND);
+
 {$i classesh.inc}
 
 implementation
@@ -44,6 +50,34 @@ uses
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
+
+function MakeObjectInstance(Method: TWndMethod): Pointer;
+  begin
+    { dummy }
+    runerror(217);
+  end;
+
+
+procedure FreeObjectInstance(ObjectInstance: Pointer);
+  begin
+    { dummy }
+    runerror(217);
+  end;
+
+
+function AllocateHWnd(Method: TWndMethod): HWND;
+  begin
+    { dummy }
+    runerror(217);
+  end;
+
+
+procedure DeallocateHWnd(Wnd: HWND);
+  begin
+    { dummy }
+    runerror(217);
+  end;
+
 
 initialization
   CommonInit;
