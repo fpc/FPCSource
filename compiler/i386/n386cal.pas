@@ -81,6 +81,16 @@ implementation
             exit;
           end;
 
+        { on win32, the caller is responsible for removing the funcret     }
+        { pointer from the stack, unlike on Linux. Don't know about        }
+        { elsewhere (except Darwin, handled above), but since the default  }
+        { was "callee removes funcret pointer from stack" until now, we'll }
+        { keep that default for everyone else (ncgcal decreases popsize by }
+        { sizeof(aint) in case of ret_in_param())                          }
+        if (target_info.system = system_i386_win32) and
+            paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
+           inc(pop_size,sizeof(aint));
+
         { better than an add on all processors }
         if pop_size=4 then
           begin
