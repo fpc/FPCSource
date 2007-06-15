@@ -490,7 +490,8 @@ TYPE
          LPNMCUSTOMDRAW       = ^tagNMCUSTOMDRAWINFO;
          TNMCUSTOMDRAWINFO    = tagNMCUSTOMDRAWINFO;
          PNMCUSTOMDRAWINFO    = ^tagNMCUSTOMDRAWINFO;
-
+         PNMCustomDraw        = PNMCUSTOMDRAWINFO;
+         TNMCustomDraw        = tagNMCUSTOMDRAWINFO;
 
          tagNMTTCUSTOMDRAW    = Record
                                  nmcd         : NMCUSTOMDRAW;
@@ -833,6 +834,8 @@ TYPE
          LPHDITEMA            = ^_HD_ITEMA;
          THD_ITEMA            = _HD_ITEMA;
          PHD_ITEMA            = ^_HD_ITEMA;
+         THDItem              = THD_ITEMA;
+         PHDItem              = PHD_ITEMA;
 
 
 // #define HDITEMA_V1_SIZE CCSIZEOF_STRUCT(HDITEMA, lParam)
@@ -1007,15 +1010,18 @@ CONST
 
 TYPE
          _HD_HITTESTINFO      = Record
-                                 pt           : POINT;
-                                 flags        : UINT;
-                                 iItem        : cint;
+                                  case integer of
+                                    1: (pt           : POINT;flags        : UINT;iItem        : cint);
+                                    { delphi }
+                                    2: (point        : POINT;dummyflags   : UINT;Item        : cint);
                                  END;
          HDHITTESTINFO        = _HD_HITTESTINFO;
          HD_HITTESTINFO       = _HD_HITTESTINFO;
          LPHDHITTESTINFO      = ^_HD_HITTESTINFO;
          THD_HITTESTINFO      = _HD_HITTESTINFO;
          PHD_HITTESTINFO      = ^_HD_HITTESTINFO;
+         THDHitTestInfo       = THD_HITTESTINFO;
+         PHDHitTestInfo       = LPHDHITTESTINFO;
 
 
 CONST
@@ -1062,7 +1068,7 @@ CONST
          HDM_SETORDERARRAY              = (HDM_FIRST + 18);
 
 // Macro 28
-Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : LPARAM):BOOL;
+Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : PInteger):BOOL;inline;
 
 // lparam = int array of size HDM_GETITEMCOUNT
 // the array specifies the order that all items should be displayed.
@@ -1202,9 +1208,10 @@ CONST
 TYPE
          tagNMHEADERA         = Record
                                  hdr          : NMHDR;
-                                 iItem        : cint;
-                                 iButton      : cint;
-                                 pitem        : PHDITEMA;
+                                 case integer of
+                                   1: (iItem        : cint;iButton      : cint;pitem        : PHDITEMA);
+                                   { delphi: }
+                                   2: (Item        : cint;Button      : cint);
                                  END;
          NMHEADERA            = tagNMHEADERA;
          LPNMHEADERA          = ^tagNMHEADERA;
@@ -1243,7 +1250,8 @@ TYPE
 {$ENDIF}
 
          HD_NOTIFY           = NMHEADER;
-
+         THDNotify           = HD_NOTIFY;
+         PHDNotify           = ^HD_NOTIFY;
 
          tagNMHDDISPINFOW     = Record
                                  hdr          : NMHDR;
@@ -5481,6 +5489,8 @@ TYPE
          TVITEMW             = TV_ITEMW;
          LPTVITEMW           = LPTV_ITEMW;
 {$ENDIF}
+         TTVItem             = TVITEMA;
+         PTVItem             = LPTVITEMA;
 
 
 
@@ -5523,11 +5533,9 @@ Type
                                  hParent      : HTREEITEM;
                                  hInsertAfter : HTREEITEM;
 {$ifdef ie4plus}
-                                 dumunion     : record
-                                                 case boolean of
-                                     false:   (itemex       : TVITEMEXA;);
-                                     True:    (item         : TV_ITEMA;);
-                                                 end;
+                                 case boolean of
+                                     false:   (itemex       : TVITEMEXA);
+                                     True:    (item         : TV_ITEMA);
 {$ELSE}
                                  item         : TV_ITEMA;
 {$ENDIF}
@@ -5536,17 +5544,17 @@ Type
          LPTVINSERTSTRUCTA    = ^tagTVINSERTSTRUCTA;
          TTVINSERTSTRUCTA     = tagTVINSERTSTRUCTA;
          PTVINSERTSTRUCTA     = ^tagTVINSERTSTRUCTA;
+         TTVINSERTSTRUCT      = TTVINSERTSTRUCTA;
+         PTVINSERTSTRUCT      = PTVINSERTSTRUCTA;
 
 
          tagTVINSERTSTRUCTW   = Record
                                  hParent      : HTREEITEM;
                                  hInsertAfter : HTREEITEM;
 {$ifdef ie4plus}
-                                 dumunion     : record
-                                                 case boolean of
+                                 case boolean of
                                      false:   (itemex       : TVITEMEXW);
                                      True:    (item         : TV_ITEMW);
-                                                 end;
 {$ELSE}
                                  item         : TV_ITEMW;
 {$ENDIF}
@@ -5596,7 +5604,8 @@ TYPE
 
 
 // Macro 156
-Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;
+Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;inline;
+Function TreeView_InsertItem( hwnd : hwnd; const lpis : TV_INSERTSTRUCT):HTREEITEM;inline;
 
 CONST
          TVM_DELETEITEM                 = (TV_FIRST + 1);
@@ -5626,7 +5635,8 @@ CONST
          TVM_GETITEMRECT                = (TV_FIRST + 4);
 
 // Macro 160
-Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;inline;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM; var prc : TRECT;code : Bool):BOOL;inline;
 
 CONST
          TVM_GETCOUNT                   = (TV_FIRST + 5);
@@ -5688,42 +5698,17 @@ CONST
          TVSI_NOSINGLEEXPAND            = $8000;              // Should not conflict with TVGN flags.
 {$ENDIF}
 
-// Macro 167
-
-// #define TreeView_GetChild(hwnd, hitem)          TreeView_GetNextItem(hwnd, hitem, TVGN_CHILD)
-// Macro 168
-
-// #define TreeView_GetNextSibling(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_NEXT)
-// Macro 169
-
-// #define TreeView_GetPrevSibling(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUS)
-// Macro 170
-
-// #define TreeView_GetParent(hwnd, hitem)         TreeView_GetNextItem(hwnd, hitem, TVGN_PARENT)
-// Macro 171
-
-// #define TreeView_GetFirstVisible(hwnd)          TreeView_GetNextItem(hwnd, NULL,  TVGN_FIRSTVISIBLE)
-// Macro 172
-
-// #define TreeView_GetNextVisible(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
-// Macro 173
-
-// #define TreeView_GetPrevVisible(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
-// Macro 174
-
-// #define TreeView_GetSelection(hwnd)             TreeView_GetNextItem(hwnd, NULL,  TVGN_CARET)
-// Macro 175
-
-// #define TreeView_GetDropHilight(hwnd)           TreeView_GetNextItem(hwnd, NULL,  TVGN_DROPHILITE)
-// Macro 176
-
-// #define TreeView_GetRoot(hwnd)                  TreeView_GetNextItem(hwnd, NULL,  TVGN_ROOT)
-{$ifdef ie4plus}
-// Macro 177
-
-// #define TreeView_GetLastVisible(hwnd)          TreeView_GetNextItem(hwnd, NULL,  TVGN_LASTVISIBLE)
-{$ENDIF}      // _WIN32_IE >= 0x0400
-
+function TreeView_GetChild(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetNextSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetPrevSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetParent(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetFirstVisible(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetSelection(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetDropHilight(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 
 
 CONST
@@ -5901,7 +5886,8 @@ CONST
 // Macro 192
 
 
-Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;inline;
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : Bool):BOOL;inline;
 
 
 
@@ -6159,6 +6145,8 @@ TYPE
          LPNMTREEVIEWA        = ^tagNMTREEVIEWA;
          TNMTREEVIEWA         = tagNMTREEVIEWA;
          PNMTREEVIEWA         = ^tagNMTREEVIEWA;
+         PNMTreeView          = PNMTreeViewA;
+         TNMTreeView          = TNMTreeViewA;
 
 
 
@@ -6265,7 +6253,8 @@ CONST
          TVM_SORTCHILDRENCB             = (TV_FIRST + 21);
 
 // Macro 191
-Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;
+Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;inline;
+Function TreeView_SortChildrenCB( hwnd : hwnd;const psort :tagTVsortcb; recurse : WPARAM):BOOL;inline;
 
 CONST
          TVN_ITEMEXPANDINGA             = (TVN_FIRST-5);
@@ -9279,10 +9268,10 @@ end;
 // #define Header_SetOrderArray(hwnd, iCount, lpi) \
 //         (BOOL)SNDMSG((hwnd), HDM_SETORDERARRAY, (WPARAM)(iCount), (LPARAM)(lpi))
 
-Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : LPARAM):BOOL;
+Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : PInteger):BOOL;inline;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), HDM_SETORDERARRAY, iCount, lpi))
+ Result:=BOOL(SendMessage((hwnd), HDM_SETORDERARRAY, iCount, LPARAM(lpi)))
 end;
 
 
@@ -10683,11 +10672,16 @@ end;
 // #define TreeView_InsertItem(hwnd, lpis) \
 //     (HTREEITEM)SNDMSG((hwnd), TVM_INSERTITEM, 0, (LPARAM)(LPTV_INSERTSTRUCT)(lpis))
 
-Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;
+Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;inline;
 Begin
  Result:=HTREEITEM(SendMessage((hwnd), TVM_INSERTITEM, 0, LPARAM(lpis)));
 end;
 
+
+Function TreeView_InsertItem( hwnd : hwnd; const lpis : TV_INSERTSTRUCT):HTREEITEM;inline;
+Begin
+ Result:=HTREEITEM(SendMessage((hwnd), TVM_INSERTITEM, 0, LPARAM(@lpis)));
+end;
 
 // Macro 157
 // #define TreeView_DeleteItem(hwnd, hitem) \
@@ -10723,10 +10717,16 @@ end;
 // #define TreeView_GetItemRect(hwnd, hitem, prc, code) \
 //     (*(HTREEITEM *)prc = (hitem), (BOOL)SNDMSG((hwnd), TVM_GETITEMRECT, (WPARAM)(code), (LPARAM)(RECT *)(prc)))
 
-Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;inline;
 Begin
  HTREEITEM(prc)^:=HITEM;
  Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, code, LPARAM(prc)));
+end;
+
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM; var prc : TRECT;code : Bool):BOOL;inline;
+Begin
+ HTREEITEM(Pointer(@prc)^):=HITEM;
+ Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, WPARAM(code), LPARAM(@prc)));
 end;
 
 // Macro 161
@@ -10828,7 +10828,7 @@ end;
 // #define TreeView_GetFirstVisible(hwnd:hwnd);
 // TreeView_GetNextItem(hwnd, NULL,  TVGN_FIRSTVISIBLE)
 
-function TreeView_GetFirstVisible(hwnd:hwnd) : HTREEITEM;
+function TreeView_GetFirstVisible(hwnd:hwnd) : HTREEITEM;inline;
 begin
   Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_FIRSTVISIBLE)
 end;
@@ -10837,7 +10837,7 @@ end;
 
 //#define TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM);
 //(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
-function TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
+function TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
 begin
   Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
 end;
@@ -10847,16 +10847,16 @@ end;
 // (hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
 
 
-function TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
+function TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
 Begin
-  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE);
 end;
 
 // Macro 174
 
-Procedure TreeView_GetSelection(hwnd:hwnd);
+function TreeView_GetSelection(hwnd:hwnd) : HTREEITEM;inline;
 begin
- TreeView_GetNextItem(hwnd, NIL,  TVGN_CARET)
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_CARET);
 end;
 
 // Macro 175
@@ -10864,26 +10864,26 @@ end;
 //#define TreeView_GetDropHilight(hwnd:hwnd);
 //TreeView_GetNextItem(hwnd, NULL,  TVGN_DROPHILITE)
 
-Procedure TreeView_GetDropHilight(hwnd:hwnd);
+function TreeView_GetDropHilight(hwnd:hwnd) : HTREEITEM;inline;
 
 begin
-  TreeView_GetNextItem(hwnd, NIL,  TVGN_DROPHILITE)
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_DROPHILITE);
 end;
 
 
 // Macro 176
 
-Procedure TreeView_GetRoot(hwnd:hwnd);
+function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
 
 begin
-  TreeView_GetNextItem(hwnd, NIL,  TVGN_ROOT)
+  TreeView_GetNextItem(hwnd, NIL,  TVGN_ROOT);
 end;
 
 // Macro 177
 //#define TreeView_GetLastVisible(hwnd:hwnd);
 //TreeView_GetNextItem(hwnd, NULL,  TVGN_LASTVISIBLE)
 
-Procedure TreeView_GetLastVisible(hwnd:hwnd);
+function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 begin
   TreeView_GetNextItem(hwnd, NIL,  TVGN_LASTVISIBLE)
 end;
@@ -11035,10 +11035,17 @@ end;
 //     (BOOL)SNDMSG((hwnd), TVM_SORTCHILDRENCB, (WPARAM)(recurse), \
 //     (LPARAM)(LPTV_SORTCB)(psort))
 
-Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;
+Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;inline;
 
 Begin
  Result:=BOOL(SendMessage((hwnd), TVM_SORTCHILDRENCB, recurse, LPARAM(psort)))
+end;
+
+
+Function TreeView_SortChildrenCB( hwnd : hwnd;const psort :tagTVsortcb; recurse : WPARAM):BOOL;inline;
+
+Begin
+ Result:=BOOL(SendMessage((hwnd), TVM_SORTCHILDRENCB, recurse, LPARAM(@psort)))
 end;
 
 
@@ -11047,10 +11054,17 @@ end;
 //#define TreeView_EndEditLabelNow(hwnd, fCancel) \
 //     (BOOL)SNDMSG((hwnd), TVM_ENDEDITLABELNOW, (WPARAM)(fCancel), 0)
 
-Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;inline;
 
 Begin
  Result:=BOOL(SendMessage((hwnd), TVM_ENDEDITLABELNOW, fCancel, 0))
+end;
+
+
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : Bool):BOOL;inline;
+
+Begin
+ Result:=BOOL(SendMessage((hwnd), TVM_ENDEDITLABELNOW, WPARAM(fCancel), 0))
 end;
 
 
