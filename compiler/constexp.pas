@@ -355,7 +355,10 @@ begin
       if sa xor sb then
         begin
           result.signed:=true;
-          result.svalue:=-r;
+          if r>qword(high(int64)) then
+            result.overflow:=true
+          else
+            result.svalue:=-int64(r);
         end
       else
         begin
