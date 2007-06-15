@@ -1168,7 +1168,8 @@ implementation
         if not is_funcret_sym(sym) and
            (defowner.typ=procdef) and
            assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           not(m_duplicate_names in current_settings.modeswitches) then
           result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
       end;
 
