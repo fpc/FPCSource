@@ -11,7 +11,32 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+{$ASMMODE ATT}
 
+ {this optimisations ported from Cris Kaspersky articles 
+ 	kpnc@itech.ru, kpnc@programme.ru
+ }
+ {$define FPC_MATH_HAS_MIN_QWORD}
+ function Min(a, b: QWord): QWord;inline;assembler;nostackframe;
+	 asm
+		movq b, %rax
+		subq a ,%rax
+		sbbq %rcx, %rcx
+		andq %rcx, %rax
+		addq a, %rax
+	 end['RAX','RCX'];
+  
+ {$define FPC_MATH_HAS_MAX_QWORD}
+ function Max(a, b: QWord): QWord;inline;assembler;nostackframe;
+	 asm
+		movq b, %rax
+		subq a ,%rax
+		sbbq %rcx, %rcx
+		andq %rax, %rcx
+		movq b ,%rax
+		subq %rcx,%rax
+	 end['RAX','RCX'];
+ 
 {$ifndef WIN64}
 {$define FPC_MATH_HAS_ARCTAN2}
 function arctan2(y,x : float) : float;assembler;

@@ -136,6 +136,10 @@ interface
 function MinIntValue(const Data: array of Integer): Integer;
 function MaxIntValue(const Data: array of Integer): Integer;
 
+function Min(a, b: byte): byte;inline;
+function Max(a, b: byte): byte;inline;
+function Min(a, b: ShortInt): ShortInt;inline;
+function Max(a, b: ShortInt): ShortInt;inline;
 { Extra, not present in Delphi, but used frequently  }
 function Min(a, b: Integer): Integer;inline;
 function Max(a, b: Integer): Integer;inline;
@@ -143,8 +147,13 @@ function Max(a, b: Integer): Integer;inline;
 function Min(a, b: Cardinal): Cardinal;
 function Max(a, b: Cardinal): Cardinal;
 }
+function Min(a, b: LongWord): LongWord;inline;
+function Max(a, b: LongWord): LongWord;inline;
 function Min(a, b: Int64): Int64;inline;
 function Max(a, b: Int64): Int64;inline;
+function Min(a, b: QWord): QWord;inline;
+function Max(a, b: QWord): QWord;inline;
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;inline;
 function Max(a, b: Single): Single;inline;
@@ -166,6 +175,8 @@ function InRange(const AValue, AMin, AMax: Double): Boolean;inline;
 
 function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
 function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
+function EnsureRange(const AValue, AMin, AMax: LongWord): LongWord;inline;
+function EnsureRange(const AValue, AMin, AMax: QWord): QWord;inline;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
 {$endif FPC_HAS_TYPE_DOUBLE}
@@ -410,11 +421,23 @@ function maxvalue(const data : array of Extended) : Extended;
 function maxvalue(const data : PExtended; Const N : Integer) : Extended;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+function MinValue(const Data: array of LongWord): LongWord;
+function MinValue(const Data : PLongWord; Const N : cardinal): LongWord;
+
+function MinValue(const Data: array of byte): byte;
+function MinValue(const Data : PByte; Const N : cardinal): byte;
+
 function minvalue(const data : array of integer) : Integer;
-function MinValue(const Data : PInteger; Const N : Integer): Integer;
+function MinValue(const Data : PInteger; Const N : cardinal): Integer;
+
+function MaxValue(const Data: array of LongWord): LongWord;
+function MaxValue(const Data : PLongWord; Const N : cardinal): LongWord;
+
+function MaxValue(const Data: array of byte): byte;
+function MaxValue(const Data : PByte; Const N : cardinal): byte;
 
 function maxvalue(const data : array of integer) : Integer;
-function maxvalue(const data : PInteger; Const N : Integer) : Integer;
+function maxvalue(const data : PInteger; Const N : cardinal) : Integer;
 
 { returns random values with gaussian distribution }
 function randg(mean,stddev : float) : float;
@@ -1705,12 +1728,44 @@ begin
     If Data[I] > Result Then Result := Data[I];
 end;
 
-function MinValue(const Data: array of Integer): Integer;
+function MinValue(const Data: array of LongWord): LongWord;
+begin
+  Result:=MinValue(PLongWord(@Data[0]),Length(Data))
+end;
 
+{$ifndef FPC_MATH_HAS_MIN_DWORDS}
+function MinValue(const Data : PLongWord; Const N : cardinal): LongWord;
+var
+  I			: Integer;
+begin
+  Result := Data[0];
+    For I := 1 To N-1 do
+		Result := Min(Data[I], Result);
+end;
+{$endif FPC_MATH_HAS_MIN_DWORDS}
+
+function MinValue(const Data: array of byte): byte;
+begin
+  Result:=MinValue(PByte(@Data[0]),Length(Data))
+end;
+
+{$ifndef FPC_MATH_HAS_MIN_BYTES}
+function MinValue(const Data : PByte; Const N : cardinal): byte;
+var
+  I: Integer;
+begin
+	Result := Data[0];
+	For I := 1 To N-1 do 
+		Result := Min(Data[I], Result);
+end;
+{$endif FPC_MATH_HAS_MIN_BYTES}
+
+function MinValue(const Data: array of Integer): Integer;
 begin
   Result:=MinValue(Pinteger(@Data[0]),High(Data)+1)
 end;
 
+{$ifndef FPC_MATH_HAS_MIN_INTS}
 function MinValue(const Data: PInteger; Const N : Integer): Integer;
 var
   I: Integer;
@@ -1719,18 +1774,17 @@ begin
   For I := 1 To N-1 do
     If Data[I] < Result Then Result := Data[I];
 end;
+{$endif FPC_MATH_HAS_MIN_INTS}
 
 function MaxValue(const Data: array of Integer): Integer;
-
 begin
   Result:=MaxValue(PInteger(@Data[0]),High(Data)+1)
 end;
 
+{$ifndef FPC_MATH_HAS_MAX_INTS}
 function maxvalue(const data : PInteger; Const N : Integer) : Integer;
-
 var
-   i : longint;
-
+  i : longint;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1738,6 +1792,39 @@ begin
      if data[i]>maxvalue then
        maxvalue:=data[i];
 end;
+{$endif FPC_MATH_HAS_MAX_INTS}
+
+function MaxValue(const Data: array of LongWord): LongWord;
+begin
+  Result:=MaxValue(PLongWord(@Data[0]),High(Data)+1)
+end;
+
+{$ifndef FPC_MATH_HAS_MAX_DWORDS}
+function MaxValue(const Data : PLongWord; Const N : cardinal): LongWord;
+var
+  I: Integer;
+begin
+  Result := Data[0];
+  For I := 1 To N-1 do 
+	Result := Max(Data[I], Result);
+end;
+{$endif FPC_MATH_HAS_MAX_DWORDS}
+
+function MaxValue(const Data: array of byte): byte;
+begin
+  Result:=MaxValue(PByte(@Data[0]),High(Data)+1)
+end;
+
+{$ifndef FPC_MATH_HAS_MAX_BYTES}
+function MaxValue(const Data : PByte; Const N : cardinal): byte;
+var
+  I: Integer;
+begin
+  Result := Data[0];
+  For I := 1 To N-1 do 
+	Result := Max(Data[I], Result);
+end;
+{$endif FPC_MATH_HAS_MAX_BYTES}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function minvalue(const data : array of Single) : Single;
@@ -1747,10 +1834,8 @@ begin
 end;
 
 function minvalue(const data : PSingle; Const N : Integer) : Single;
-
 var
-   i : longint;
-
+  i : longint;
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1767,10 +1852,8 @@ begin
 end;
 
 function maxvalue(const data : PSingle; Const N : Integer) : Single;
-
 var
    i : longint;
-
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1788,10 +1871,8 @@ begin
 end;
 
 function minvalue(const data : PDouble; Const N : Integer) : Double;
-
 var
    i : longint;
-
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1800,7 +1881,6 @@ begin
        minvalue:=data[i];
 end;
 
-
 function maxvalue(const data : array of Double) : Double;
 
 begin
@@ -1808,10 +1888,8 @@ begin
 end;
 
 function maxvalue(const data : PDouble; Const N : Integer) : Double;
-
 var
    i : longint;
-
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1832,7 +1910,6 @@ function minvalue(const data : PExtended; Const N : Integer) : Extended;
 
 var
    i : longint;
-
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1849,10 +1926,8 @@ begin
 end;
 
 function maxvalue(const data : PExtended; Const N : Integer) : Extended;
-
 var
    i : longint;
-
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1862,7 +1937,47 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+{$ifndef FPC_MATH_HAS_MIN_BYTE}
+function Min(a, b: byte): byte;inline;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MIN_BYTE}
 
+{$ifndef FPC_MATH_HAS_MAX_BYTE}
+function Max(a, b: byte): byte;inline;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MAX_BYTE}
+
+{$ifndef FPC_MATH_HAS_MIN_SINT}
+function Min(a, b: ShortInt): ShortInt;inline;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MIN_SINT}
+
+{$ifndef FPC_MATH_HAS_MAX_SINT}
+function Max(a, b: ShortInt): ShortInt;inline;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MAX_SINT}
+
+{$ifndef FPC_MATH_HAS_MIN_INT}
 function Min(a, b: Integer): Integer;inline;
 begin
   if a < b then
@@ -1870,7 +1985,9 @@ begin
   else
     Result := b;
 end;
+{$endif FPC_MATH_HAS_MIN_INT}
 
+{$ifndef FPC_MATH_HAS_MAX_INT}
 function Max(a, b: Integer): Integer;inline;
 begin
   if a > b then
@@ -1878,6 +1995,7 @@ begin
   else
     Result := b;
 end;
+{$endif FPC_MATH_HAS_MAX_INT}
 
 {
 function Min(a, b: Cardinal): Cardinal;inline;
@@ -1896,7 +2014,27 @@ begin
     Result := b;
 end;
 }
+{$ifndef FPC_MATH_HAS_MIN_DWORD}
+function Min(a, b: LongWord): LongWord;inline;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MIN_DWORD}
 
+{$ifndef FPC_MATH_HAS_MAX_DWORD}
+function Max(a, b: LongWord): LongWord;inline;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MAX_DWORD}
+
+{$ifndef FPC_MATH_HAS_MIN_INT64}
 function Min(a, b: Int64): Int64;inline;
 begin
   if a < b then
@@ -1904,7 +2042,9 @@ begin
   else
     Result := b;
 end;
+{$endif FPC_MATH_HAS_MIN_INT64}
 
+{$ifndef FPC_MATH_HAS_MAX_INT64}
 function Max(a, b: Int64): Int64;inline;
 begin
   if a > b then
@@ -1912,6 +2052,27 @@ begin
   else
     Result := b;
 end;
+{$endif FPC_MATH_HAS_MIN_INT64}
+
+{$ifndef FPC_MATH_HAS_MIN_QWORD}
+function Min(a, b: QWord): QWord;inline;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MIN_QWORD}
+
+{$ifndef FPC_MATH_HAS_MAX_QWORD}
+function Max(a, b: QWord): QWord;inline;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+{$endif FPC_MATH_HAS_MAX_QWORD}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;inline;
@@ -1987,7 +2148,6 @@ end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
-
 begin
   Result:=AValue;
   If Result<AMin then
@@ -1997,7 +2157,6 @@ begin
 end;
 
 function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
-
 begin
   Result:=AValue;
   If Result<AMin then
@@ -2006,9 +2165,18 @@ begin
     Result:=AMax;
 end;
 
+function EnsureRange(const AValue, AMin, AMax: LongWord): LongWord;inline;
+begin
+	Result := Min(AMax,Max(AValue, AMin));
+end;
+
+function EnsureRange(const AValue, AMin, AMax: QWord): QWord;inline;
+begin
+	Result := Min(AMax,Max(AValue, AMin));
+end;
+
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
-
 begin
   Result:=AValue;
   If Result<AMin then
