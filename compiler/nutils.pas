@@ -125,7 +125,7 @@ implementation
             result := foreachnode(tcallnode(n).methodpointer,f,arg) or result;
             result := foreachnode(tcallnode(n).methodpointerdone,f,arg) or result;
           end;
-        ifn, whilerepeatn, forn:
+        ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
           begin
             { not in one statement, won't work because of b- }
             result := foreachnode(tloopnode(n).t1,f,arg) or result;
@@ -173,7 +173,7 @@ implementation
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointer,f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointerdone,f,arg) or result;
             end;
-          ifn, whilerepeatn, forn:
+          ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
             begin
               { not in one statement, won't work because of b- }
               result := foreachnodestatic(procmethod,tloopnode(n).t1,f,arg) or result;
