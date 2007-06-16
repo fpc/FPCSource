@@ -212,6 +212,8 @@ var
     value_long_double := 0.0;
   end;
 
+{ in sub procedure to detect stack corruption when exiting }
+procedure dotest;
 const
   has_errors : boolean = false;
 
@@ -788,4 +790,8 @@ begin
 
   if has_errors then
     Halt(1);
+end;
+
+begin
+  dotest;
 end.

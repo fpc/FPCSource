@@ -623,6 +623,7 @@ Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; const S : WideStr
 }
 var
   SLen : longint;
+  a: ansistring;
 begin
   If (pointer(S)=nil) or (InOutRes<>0) then
    exit;
@@ -632,7 +633,9 @@ begin
         SLen:=Length(s);
         If Len>SLen Then
           fpc_WriteBlanks(f,Len-SLen);
-        fpc_WriteBuffer(f,PChar(AnsiString(S))^,SLen);
+        a:=s;
+        { length(a) can be > slen, e.g. after utf-16 -> utf-8 }
+        fpc_WriteBuffer(f,pchar(a)^,length(a));
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
