@@ -17,6 +17,8 @@
 
 unit windows;
 
+{$PACKSET 1}
+
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
 {$endif}
