@@ -1800,6 +1800,8 @@ TYPE
          TBBUTTONINFO        = TBBUTTONINFOA;
          LPTBBUTTONINFO      = LPTBBUTTONINFOA;
 {$ENDIF}
+         TTBButtonInfo       = TBBUTTONINFO;
+         PTBButtonInfo       = LPTBBUTTONINFO;
 
 
 // BUTTONINFO APIs do NOT support the string pool.
@@ -2344,6 +2346,9 @@ TYPE
          REBARBANDINFO       = REBARBANDINFOA;
          LPREBARBANDINFO     = LPREBARBANDINFOA;
          LPCREBARBANDINFO    = LPCREBARBANDINFOA;
+
+         TRebarBandInfo      = REBARBANDINFO;
+         PRebarBandInfo      = ^LPREBARBANDINFO;
 
 //         REBARBANDINFO_V3_SIZE          = REBARBANDINFOA_V3_SIZE;
 {$ENDIF}
@@ -2955,6 +2960,8 @@ TYPE
          TOOLTIPTEXTA        = NMTTDISPINFOA;
          LPTOOLTIPTEXTA      = LPNMTTDISPINFOA;
          LPTOOLTIPTEXTW      = LPNMTTDISPINFOW;
+         TTOOLTIPTEXTW       = NMTTDISPINFOW;
+         PTOOLTIPTEXTW       = LPNMTTDISPINFOW;
 {$ELSE}
 //         tagNMTTDISPINFOA    = tagTOOLTIPTEXTA;
          NMTTDISPINFOA       = TOOLTIPTEXTA;
@@ -3443,7 +3450,7 @@ CONST
 
 {$IFDEF _WIN32}
          HOTKEY_CLASSA                  = 'msctls_hotkey32';
-         HOTKEY_CLASSW                  = {L}'msctls_hotkey32';
+         HOTKEY_CLASSW                  = widestring('msctls_hotkey32');
 {$IFDEF UNICODE}
          HOTKEY_CLASS                   = HOTKEY_CLASSW;
 {$ELSE}
@@ -3454,6 +3461,7 @@ CONST
 {$ENDIF}
 
 {$ENDIF}  // NOHOTKEY
+         HOTKEYCLASS                    = HOTKEY_CLASSA;
 
 // begin_r_commctrl
 
@@ -3692,6 +3700,8 @@ Type
          LVITEMW             = LV_ITEMW;
 {$ENDIF}
          LV_ITEM                        = LVITEM;
+         TLVItem                        = LVITEM;
+         PLVItem                        = LPLVITEM;
 
 CONST
          LPSTR_TEXTCALLBACKW = LPWSTR(-1);
@@ -3946,7 +3956,8 @@ CONST
          LVM_ENSUREVISIBLE              = (LVM_FIRST + 19);
 
 // Macro 60
-Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;inline;
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : BOOL ):BOOL;inline;
 
 CONST
          LVM_SCROLL                     = (LVM_FIRST + 20);
@@ -4053,6 +4064,8 @@ TYPE
 
 
          LV_COLUMN                      = LVCOLUMN;
+         TLVColumn                      = LVCOLUMN;
+         PLVColumn                      = LPLVCOLUMN;
 
 CONST
          LVCF_FMT                       = $0001;
@@ -4439,7 +4452,8 @@ CONST
          LVM_SETWORKAREAS               = (LVM_FIRST + 65);
 
 // Macro 109
-Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var  prc : RECT ):BOOL;
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var  prc : RECT ):BOOL;inline;
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;  prc : PRECT ):BOOL;inline;
 
 CONST
          LVM_GETWORKAREAS               = (LVM_FIRST + 70);
@@ -5707,6 +5721,7 @@ function TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
 function TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
 function TreeView_GetSelection(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetDropHilight(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetDropHilite(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 
@@ -5849,7 +5864,8 @@ CONST
          TVM_CREATEDRAGIMAGE            = (TV_FIRST + 18);
 
 // Macro 187
-Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;
+Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;inline;
+Function TreeView_HitTest( hwnd : hwnd; var lpht : TV_HITTESTINFO):HTREEITEM;inline;
 
 
 // Macro 188
@@ -6217,6 +6233,8 @@ Type
          LPNMTVDISPINFOA      = ^tagTVDISPINFOA;
          TTVDISPINFOA         = tagTVDISPINFOA;
          PTVDISPINFOA         = ^tagTVDISPINFOA;
+         TTVDispInfo          = TTVDISPINFOA;
+         PTVDispInfo          = PTVDISPINFOA;
 
 
          tagTVDISPINFOW       = Record
@@ -6487,6 +6505,7 @@ TYPE
          PCOMBOBOXEXITEM     = PCOMBOBOXEXITEMA;
          PCCOMBOBOXEXITEM    = PCCOMBOBOXEXITEMA;
 {$ENDIF}
+         TComboBoxExItem     = COMBOBOXEXITEM;
 
 
 CONST
@@ -7352,6 +7371,8 @@ TYPE
 
          MONTHDAYSTATE       = DWORD;
          LPMONTHDAYSTATE     = ^MONTHDAYSTATE;
+         TMonthDayState      = MONTHDAYSTATE;
+         PMonthDayState      = LPMONTHDAYSTATE;
 
 
 CONST
@@ -7952,6 +7973,8 @@ TYPE
          NMDATETIMESTRING    = NMDATETIMESTRINGA;
          LPNMDATETIMESTRING  = LPNMDATETIMESTRINGA;
 {$ENDIF}
+         TNMDateTimeString   = NMDATETIMESTRING;
+         PNMDateTimeString   = LPNMDATETIMESTRING;
 
 
 
@@ -8393,8 +8416,8 @@ TYPE
                                  END;
          NMPGSCROLL           = DummyStruct17;
          LPNMPGSCROLL         = ^DummyStruct17;
-         TDummyStruct17       = DummyStruct17;
-         PDummyStruct17       = ^DummyStruct17;
+         TNMPGScroll          = NMPGSCROLL;
+         PNMPGScroll          = LPNMPGSCROLL;
 
 
 {$IFDEF _WIN32}
@@ -8420,8 +8443,8 @@ TYPE
                                  END;
          NMPGCALCSIZE         = DummyStruct18;
          LPNMPGCALCSIZE       = ^DummyStruct18;
-         TDummyStruct18       = DummyStruct18;
-         PDummyStruct18       = ^DummyStruct18;
+         TNMPGCalcSize        = DummyStruct18;
+         PNMPGCalcSize        = LPNMPGCALCSIZE;
 
 
 
@@ -9615,10 +9638,17 @@ end;
 // #define ListView_EnsureVisible(hwndLV, i, fPartialOK) \
 //     (BOOL)SNDMSG((hwndLV), LVM_ENSUREVISIBLE, (WPARAM)(int)(i), MAKELPARAM((fPartialOK), 0))
 
-Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;inline;
 
 Begin
  Result:=BOOL(SendMessage((hwndLV), LVM_ENSUREVISIBLE, (i), MAKELPARAM((fPartialOK), 0)))
+end;
+
+
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : BOOL ):BOOL;inline;
+
+Begin
+ Result:=BOOL(SendMessage((hwndLV), LVM_ENSUREVISIBLE, (i), LPARAM(fPartialOK)))
 end;
 
 
@@ -10188,11 +10218,16 @@ end;
 // #define ListView_SetWorkAreas(hwnd, nWorkAreas, prc) \
 //     (BOOL)SNDMSG((hwnd), LVM_SETWORKAREAS, (WPARAM)(int)(nWorkAreas), (LPARAM)(RECT *)(prc))
 
-Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var prc : RECT ):BOOL;
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var prc : RECT ):BOOL;inline;
 Begin
  Result:=BOOL(SendMessage((hwnd), LVM_SETWORKAREAS, nWorkAreas, LPARAM(@prc)))
 end;
 
+
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;  prc : PRECT ):BOOL;inline;
+Begin
+ Result:=BOOL(SendMessage((hwnd), LVM_SETWORKAREAS, nWorkAreas, LPARAM(prc)))
+end;
 
 // Macro 110
 // #define ListView_GetWorkAreas(hwnd, nWorkAreas, prc) \
@@ -10870,6 +10905,12 @@ begin
   Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_DROPHILITE);
 end;
 
+function TreeView_GetDropHilite(hwnd:hwnd) : HTREEITEM;inline;
+
+begin
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_DROPHILITE);
+end;
+
 
 // Macro 176
 
@@ -10986,13 +11027,18 @@ end;
 //#define TreeView_HitTest(hwnd, lpht) \
 //     (HTREEITEM)SNDMSG((hwnd), TVM_HITTEST, 0, (LPARAM)(LPTV_HITTESTINFO)(lpht))
 
-Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;
+Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;inline;
 
 Begin
  Result:=HTREEITEM(SendMessage((hwnd), TVM_HITTEST, 0, lparam(lpht)))
 end;
 
 
+Function TreeView_HitTest( hwnd : hwnd; var lpht : TV_HITTESTINFO):HTREEITEM;inline;
+
+Begin
+ Result:=HTREEITEM(SendMessage((hwnd), TVM_HITTEST, 0, lparam(@lpht)))
+end;
 // Macro 188
 
 //#define TreeView_CreateDragImage(hwnd, hitem) \
