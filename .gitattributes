@@ -6453,6 +6453,7 @@ tests/test/cg/taddset2.pp svneol=native#text/plain
 tests/test/cg/tadint64.pp svneol=native#text/plain
 tests/test/cg/tassign1.pp svneol=native#text/plain
 tests/test/cg/tassign2.pp svneol=native#text/plain
+tests/test/cg/tautom.pp svneol=native#text/x-pascal
 tests/test/cg/tcalcla1.pp svneol=native#text/plain
 tests/test/cg/tcalcon1.pp svneol=native#text/plain
 tests/test/cg/tcalcst1.pp svneol=native#text/plain
