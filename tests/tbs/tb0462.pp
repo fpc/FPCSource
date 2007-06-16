@@ -1,4 +1,12 @@
 { %version=1.1 }
+
+{$ifdef fpc}
+{$ifdef unix}
+uses
+  cwstring;
+{$endif}
+{$endif}
+
 type
   RR = record
     RA : WideString;
