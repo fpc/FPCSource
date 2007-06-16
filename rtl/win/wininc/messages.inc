@@ -59,20 +59,20 @@
     { UNICODE  }
 
     const
-       ACM_PLAY = 1125;
-       ACM_STOP = 1126;
-       ACN_START = 1;
-       ACN_STOP = 2;
-    { Buttons  }
-       BM_CLICK = 245;
-       BM_GETCHECK = 240;
-       BM_GETIMAGE = 246;
-       BM_GETSTATE = 242;
-       BM_SETCHECK = 241;
-       BM_SETIMAGE = 247;
-       BM_SETSTATE = 243;
-       BM_SETSTYLE = 244;
-       BN_CLICKED = 0;
+     ACM_PLAY = 1125;
+     ACM_STOP = 1126;
+     ACN_START = 1;
+     ACN_STOP = 2;
+  { Buttons  }
+     BM_CLICK = 245;
+     BM_GETCHECK = 240;
+     BM_GETIMAGE = 246;
+     BM_GETSTATE = 242;
+     BM_SETCHECK = 241;
+     BM_SETIMAGE = 247;
+     BM_SETSTATE = 243;
+     BM_SETSTYLE = 244;
+     BN_CLICKED = 0;
      BN_DBLCLK = 5;
      BN_DISABLE = 4;
      BN_DOUBLECLICKED = 5;
@@ -1159,7 +1159,11 @@
      WM_XBUTTONUP     = 524;
      WM_XBUTTONDBLCLK = 525;
 
-Type
+     WM_CHANGEUISTATE  = $0127;
+     WM_UPDATEUISTATE  = $0128;
+     WM_QUERYUISTATE   = $0129;
+
+  Type
 {$ifdef MESSAGESUNIT}
 
     MSG                 = Windows.MSG;
@@ -1740,7 +1744,7 @@ Type
 	     HitTestCode: Word;
 	     MouseMsg: Word;
 	     Result: Longint;
-	  end; 
+	  end;
 {$endif messagesunit}
 
 {$endif read_interface}
