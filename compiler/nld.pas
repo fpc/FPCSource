@@ -698,6 +698,23 @@ implementation
            exit;
          end;
 
+        { call helpers for composite types containing automated types }
+        if (left.resultdef.needs_inittable) and
+           (left.resultdef.typ in [arraydef,objectdef,recorddef]) then
+         begin
+           hp:=ccallparanode.create(caddrnode.create_internal(
+                  crttinode.create(tstoreddef(left.resultdef),fullrtti,rdt_normal)),
+               ccallparanode.create(ctypeconvnode.create_internal(
+                 caddrnode.create_internal(left),voidpointertype),
+               ccallparanode.create(ctypeconvnode.create_internal(
+                 caddrnode.create_internal(right),voidpointertype),
+               nil)));
+           result:=ccallnode.createintern('fpc_copy',hp);
+           left:=nil;
+           right:=nil;
+           exit;
+         end;
+
         { call helpers for windows widestrings, they aren't ref. counted }
         if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resultdef) then
          begin
