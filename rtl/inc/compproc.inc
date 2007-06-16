@@ -410,7 +410,7 @@ Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
 Procedure fpc_DecRef (Data,TypeInfo : Pointer);  compilerproc;
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); compilerproc;
-procedure fpc_Copy (Src, Dest, TypeInfo : Pointer); compilerproc;
+Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt; compilerproc;
 {$endif FPC_HAS_FEATURE_RTTI}
 
 

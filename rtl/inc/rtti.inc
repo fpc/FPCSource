@@ -223,18 +223,21 @@ begin
 end;
 
 { define alias for internal use in the system unit }
-Procedure fpc_Copy_internal (Src, Dest, TypeInfo : Pointer);[external name 'FPC_COPY'];
+Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY'];
 
-Procedure fpc_Copy (Src, Dest, TypeInfo : Pointer);[Public,alias : 'FPC_COPY'];  compilerproc;
+Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
 var
   Temp : pbyte;
   namelen : byte;
+  copiedsize,
+  expectedoffset,
   count,
   offset,
   size,
   i : SizeInt;
   info : pointer;
 begin
+  result:=sizeof(pointer);
   case PByte(TypeInfo)^ of
     tkAstring:
       begin
@@ -263,6 +266,7 @@ begin
         { Process elements }
         for I:=0 to Count-1 do
           fpc_Copy_internal(Src+(I*size),Dest+(I*size),Info);
+        Result:=size*count;
       end;
     tkobject,
     tkrecord:
@@ -275,22 +279,26 @@ begin
         temp:=aligntoptr(temp);
 
         { copy data }
-        move(src^,dest^,plongint(temp)^);
+        Result:=plongint(temp)^;
 
         { Skip size }
         inc(Temp,4);
         { Element count }
         Count:=PLongint(Temp)^;
         inc(Temp,sizeof(Count));
+        expectedoffset:=0;
         { Process elements with rtti }
         for i:=1 to count Do
           begin
             Info:=PPointer(Temp)^;
             inc(Temp,sizeof(Info));
             Offset:=PLongint(Temp)^;
+            if Offset>expectedoffset then
+              move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
             inc(Temp,sizeof(Offset));
-            fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
-	  end;
+            copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
+            expectedoffset:=Offset+copiedsize;
+          end;
       end;
     tkDynArray:
       begin
@@ -305,7 +313,10 @@ begin
         PPointer(Dest)^:=PPointer(Src)^;
       end;
     tkVariant:
-      VarCopyProc(pvardata(dest)^,pvardata(src)^);
+      begin
+        VarCopyProc(pvardata(dest)^,pvardata(src)^);
+        result:=sizeof(tvardata);
+      end;
   end;
 end;
 
