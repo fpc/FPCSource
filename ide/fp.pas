@@ -249,7 +249,7 @@ begin
   if doserror=0 then
     errorbox('Debian system detected!'#13#13+
              'Debian systems use an incompatible gpm'#13+
-             'library, therefore your system might'#13+
+             'daemon, therefore your system might'#13+
              'suffer from Debian bug 412927. Please'#13+
              'see http://bugs.debian.org/cgi-bin/'#13+
              'bugreport.cgi?bug=412927 for details.',nil);
