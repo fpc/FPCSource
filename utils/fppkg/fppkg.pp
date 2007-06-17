@@ -10,7 +10,7 @@ uses
   Classes, SysUtils, TypInfo, custapp,
   // Repository handler objects
   fprepos, fpxmlrep,
-  pkgmessages, pkgglobals, pkgoptions,
+  pkgmessages, pkgglobals, pkgoptions, pkgrepos,
   // Package Handler components
   pkghandler,pkgmkconv, pkgdownload,
   pkgarchive, pkgfpmake, pkgcommands
@@ -28,10 +28,7 @@ Type
     ActionStack : TActionStack;
     ParaAction : string;
     ParaPackages : TStringList;
-    FRepository : TFPRepository;
-    FCompilerConfig : String;
     procedure GenerateParaActions;
-    procedure LoadRepository;
     procedure MaybeCreateLocalDirs;
     procedure ShowUsage;
   Public
@@ -91,7 +88,7 @@ begin
   for i:=0 to SL.Count-1 do
     Include(Verbosity,StringToVerbosity(SL[i]));
   SL.Free;
-  FCompilerConfig:=Defaults.DefaultCompilerConfig;
+  Defaults.CurrentCompilerConfig:=Defaults.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
     Log(vDebug,SLogGeneratingGlobalConfig,[cfgfile])
@@ -112,7 +109,7 @@ procedure TMakeTool.LoadCompilerDefaults;
 var
   S : String;
 begin
-  S:=Defaults.CompilerConfigDir+FCompilerConfig;
+  S:=Defaults.CompilerConfigDir+Defaults.CurrentCompilerConfig;
   if FileExists(S) then
     begin
       Log(vDebug,SLogLoadingCompilerConfig,[S]);
@@ -127,32 +124,6 @@ begin
 end;
 
 
-procedure TMakeTool.LoadRepository;
-var
-  S : String;
-  X : TFPXMLRepositoryHandler;
-begin
-  FRepository:=TFPRepository.Create(Nil);
-  // Repository
-  Log(vDebug,SLogLoadingPackagesFile,[Defaults.LocalPackagesFile]);
-  if FileExists(Defaults.LocalPackagesFile) then
-    begin
-      X:=TFPXMLRepositoryHandler.Create;
-      With X do
-        try
-          LoadFromXml(FRepository,Defaults.LocalPackagesFile);
-        finally
-          Free;
-        end;
-    end;
-  // Versions
-  S:=Defaults.LocalVersionsFile(FCompilerConfig);
-  Log(vDebug,SLogLoadingVersionsFile,[S]);
-  if FileExists(S) then
-    FRepository.LoadStatusFromFile(S);
-end;
-
-
 procedure TMakeTool.ShowUsage;
 begin
   Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
@@ -161,8 +132,8 @@ begin
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Set verbosity');
   Writeln('Actions:');
-  Writeln('  update             Update available packages');
-  Writeln('  listpackages       List available packages');
+  Writeln('  update             Update packages list');
+  Writeln('  avail              List available packages');
   Writeln('  build              Build package');
   Writeln('  install            Install package');
   Writeln('  download           Download package');
@@ -236,7 +207,7 @@ begin
       Inc(I);
       // Check options.
       if CheckOption(I,'c','config') then
-        FCompilerConfig:=OptionArg(I)
+        Defaults.CurrentCompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         Include(Verbosity,StringToVerbosity(OptionArg(I)))
       else if CheckOption(I,'h','help') then
@@ -279,7 +250,7 @@ begin
         begin
           for i:=0 to ParaPackages.Count-1 do
             begin
-              ActionPackage:=FRepository.PackageByName(ParaPackages[i]);
+              ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
               Log(vDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
               ActionStack.Push(ActionPackage,ParaAction,[]);
             end;
@@ -303,7 +274,7 @@ begin
     ProcessCommandLine;
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
-    LoadRepository;
+    LoadLocalRepository;
     GenerateParaActions;
 
     repeat

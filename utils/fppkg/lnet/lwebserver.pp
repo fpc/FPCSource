@@ -70,11 +70,6 @@ type
     FParsePos: pchar;
     FReadPos: integer;
     FParsingHeaders: boolean;
-    FDocumentRoot: string;
-    FExtraPath: string;
-    FEnvPath: string;
-    FScriptFileName: string;
-    FScriptName: string;
    
     procedure AddEnvironment(const AName, AValue: string); virtual; abstract;
     procedure AddHTTPParam(const AName: string; AParam: TLHTTPParameter);
@@ -83,17 +78,17 @@ type
     procedure WriteCGIBlock;
     function  WriteCGIData: TWriteBlockStatus; virtual; abstract;
   public
+    FDocumentRoot: string;
+    FExtraPath: string;
+    FEnvPath: string;
+    FScriptFileName: string;
+    FScriptName: string;
+
     constructor Create(ASocket: TLHTTPSocket);
     destructor Destroy; override;
 
     function  FillBuffer: TWriteBlockStatus; override;
     procedure StartRequest; virtual;
-   
-    property DocumentRoot: string read FDocumentRoot write FDocumentRoot;
-    property EnvPath: string read FEnvPath write FEnvPath;
-    property ExtraPath: string read FExtraPath write FExtraPath;
-    property ScriptFileName: string read FScriptFileName write FScriptFileName;
-    property ScriptName: string read FScriptName write FScriptName;
   end;
 
   TSimpleCGIOutput = class(TCGIOutput)
@@ -142,17 +137,12 @@ type
 
   TCGIHandler = class(TURIHandler)
   protected
-    FScriptPathPrefix: string;
-    FCGIRoot: string;
-    FDocumentRoot: string;
-    FEnvPath: string;
-
     function HandleURI(ASocket: TLHTTPServerSocket): TOutputItem; override;
   public
-    property CGIRoot: string read FCGIRoot write FCGIRoot;
-    property DocumentRoot: string read FDocumentRoot write FDocumentRoot;
-    property EnvPath: string read FEnvPath write FEnvPath;
-    property ScriptPathPrefix: string read FScriptPathPrefix write FScriptPathPrefix;
+    FCGIRoot: string;
+    FEnvPath: string;
+    FDocumentRoot: string;
+    FScriptPathPrefix: string;
   end;
 
   TDocumentRequest = record
@@ -183,8 +173,6 @@ type
   protected
     FDocHandlerList: TDocumentHandler;
     FDirIndexList: TStrings;
-  protected
-    FDocumentRoot: string;
     FMimeTypeFile: string;
 
     procedure SetMimeTypeFile(const AValue: string);
@@ -192,13 +180,14 @@ type
     function HandleURI(ASocket: TLHTTPServerSocket): TOutputItem; override;
     procedure RegisterWithEventer(AEventer: TLEventer); override;
   public
+    DocumentRoot: string;
+
     constructor Create;
     destructor Destroy; override;
     
     procedure RegisterHandler(AHandler: TDocumentHandler);
 
     property DirIndexList: TStrings read FDirIndexList;
-    property DocumentRoot: string read FDocumentRoot write FDocumentRoot;
     property MimeTypeFile: string read FMimeTypeFile write SetMimeTypeFile;
   end;
 
@@ -321,25 +310,25 @@ var
   lOutput: TSimpleCGIOutput;
   lExecPath: string;
 begin
-  if StrLComp(ASocket.RequestInfo.Argument, PChar(ScriptPathPrefix),
-      Length(ScriptPathPrefix)) = 0 then
+  if StrLComp(ASocket.FRequestInfo.Argument, PChar(FScriptPathPrefix),
+      Length(FScriptPathPrefix)) = 0 then
   begin
     lOutput := TSimpleCGIOutput.Create(ASocket);
-    lOutput.DocumentRoot := FDocumentRoot;
-    lOutput.EnvPath := FEnvPath;
+    lOutput.FDocumentRoot := FDocumentRoot;
+    lOutput.FEnvPath := FEnvPath;
     lOutput.Process.CurrentDirectory := FCGIRoot;
-    lExecPath := (ASocket.RequestInfo.Argument+Length(ScriptPathPrefix));
+    lExecPath := ASocket.FRequestInfo.Argument+Length(FScriptPathPrefix);
     DoDirSeparators(lExecPath);
     lExecPath := FCGIRoot+lExecPath;
-    if SeparatePath(lExecPath, lOutput.ExtraPath, faAnyFile and not faDirectory) then
+    if SeparatePath(lExecPath, lOutput.FExtraPath, faAnyFile and not faDirectory) then
     begin
       lOutput.Process.CommandLine := lExecPath;
-      lOutput.ScriptFileName := lExecPath;
-      lOutput.ScriptName := Copy(lExecPath, Length(FCGIRoot), 
+      lOutput.FScriptFileName := lExecPath;
+      lOutput.FScriptName := Copy(lExecPath, Length(FCGIRoot), 
         Length(lExecPath)-Length(FCGIRoot)+1);
       lOutput.StartRequest;
     end else
-      ASocket.ResponseInfo.Status := hsNotFound;
+      ASocket.FResponseInfo.Status := hsNotFound;
     Result := lOutput;
   end else
     Result := nil;
@@ -388,9 +377,9 @@ begin
   Result := nil;
   if ARequest.InfoValid then
   begin
-    lReqInfo := @ARequest.Socket.RequestInfo;
-    lRespInfo := @ARequest.Socket.ResponseInfo;
-    lHeaderOut := @ARequest.Socket.HeaderOut;
+    lReqInfo := @ARequest.Socket.FRequestInfo;
+    lRespInfo := @ARequest.Socket.FResponseInfo;
+    lHeaderOut := @ARequest.Socket.FHeaderOut;
     if not (lReqInfo^.RequestType in [hmHead, hmGet]) then
     begin
       lRespInfo^.Status := hsNotAllowed;
@@ -422,10 +411,11 @@ var
 begin
   Result := nil;
   lDocRequest.Socket := ASocket;
-  lDocRequest.URIPath := ASocket.RequestInfo.Argument;
+  lDocRequest.URIPath := ASocket.FRequestInfo.Argument;
   lDocRequest.Document := lDocRequest.URIPath;
   DoDirSeparators(LDocRequest.Document);
-  lDocRequest.Document := IncludeTrailingPathDelimiter(FDocumentRoot)+lDocRequest.Document;
+  lDocRequest.Document := IncludeTrailingPathDelimiter(DocumentRoot)
+    + lDocRequest.Document;
   lDocRequest.InfoValid := SeparatePath(lDocRequest.Document,lDocRequest.ExtraPath, 
     faAnyFile, @lDocRequest.Info);
   if not lDocRequest.InfoValid then
@@ -461,7 +451,7 @@ begin
   begin
     Result := lHandler.HandleDocument(lDocRequest);
     if Result <> nil then exit;
-    if ASocket.ResponseInfo.Status <> hsOK then exit;
+    if ASocket.FResponseInfo.Status <> hsOK then exit;
     lHandler := lHandler.FNext;
   end;
 
@@ -484,12 +474,12 @@ begin
   if ExtractFileExt(ARequest.Document) = '.php' then
   begin
     lOutput := TSimpleCGIOutput.Create(ARequest.Socket);
-    lOutput.DocumentRoot := FFileHandler.DocumentRoot;
+    lOutput.FDocumentRoot := FFileHandler.DocumentRoot;
     lOutput.Process.CommandLine := FAppName;
-    lOutput.ScriptName := ARequest.URIPath;
-    lOutput.ScriptFileName := ARequest.Document;
-    lOutput.ExtraPath := ARequest.ExtraPath;
-    lOutput.EnvPath := FEnvPath;
+    lOutput.FScriptName := ARequest.URIPath;
+    lOutput.FScriptFileName := ARequest.Document;
+    lOutput.FExtraPath := ARequest.ExtraPath;
+    lOutput.FEnvPath := FEnvPath;
     lOutput.StartRequest;
     Result := lOutput;
   end else
@@ -564,17 +554,17 @@ begin
     if fcgiRequest <> nil then
     begin
       lOutput := TFastCGIOutput.Create(ARequest.Socket);
-      lOutput.DocumentRoot := FFileHandler.DocumentRoot;
-      lOutput.ScriptName := ARequest.URIPath;
-      lOutput.ScriptFileName := ARequest.Document;
-      lOutput.ExtraPath := ARequest.ExtraPath;
-      lOutput.EnvPath := FEnvPath;
+      lOutput.FDocumentRoot := FFileHandler.DocumentRoot;
+      lOutput.FScriptName := ARequest.URIPath;
+      lOutput.FScriptFileName := ARequest.Document;
+      lOutput.FExtraPath := ARequest.ExtraPath;
+      lOutput.FEnvPath := FEnvPath;
       lOutput.Request := fcgiRequest;
       ARequest.Socket.SetupEncoding(lOutput);
       lOutput.StartRequest;
       Result := lOutput;
     end else begin
-      ARequest.Socket.ResponseInfo.Status := hsInternalError;
+      ARequest.Socket.FResponseInfo.Status := hsInternalError;
       ARequest.Socket.StartResponse(nil);
       Result := nil;
     end;
@@ -666,21 +656,21 @@ begin
     AddEnvironment('SERVER_SOFTWARE', tempStr);
 
   AddEnvironment('GATEWAY_INTERFACE', 'CGI/1.1'); 
-  AddEnvironment('SERVER_PROTOCOL', lServerSocket.RequestInfo.VersionStr);
-  AddEnvironment('REQUEST_METHOD', lServerSocket.RequestInfo.Method);
-  AddEnvironment('REQUEST_URI', '/'+lServerSocket.RequestInfo.Argument);
+  AddEnvironment('SERVER_PROTOCOL', lServerSocket.FRequestInfo.VersionStr);
+  AddEnvironment('REQUEST_METHOD', lServerSocket.FRequestInfo.Method);
+  AddEnvironment('REQUEST_URI', '/'+lServerSocket.FRequestInfo.Argument);
 
   if Length(FExtraPath) > 0 then
   begin
     AddEnvironment('PATH_INFO', FExtraPath);
     { do not set PATH_TRANSLATED: bug in PHP }
-//    AddEnvironment('PATH_TRANSLATED', FDocumentRoot+FExtraPath);
+//    AddEnvironment('PATH_TRANSLATED', DocumentRoot+FExtraPath);
   end;
 
   AddEnvironment('SCRIPT_NAME', FScriptName);
   AddEnvironment('SCRIPT_FILENAME', FScriptFileName);
   
-  AddEnvironment('QUERY_STRING', lServerSocket.RequestInfo.QueryParams);
+  AddEnvironment('QUERY_STRING', lServerSocket.FRequestInfo.QueryParams);
   AddHTTPParam('CONTENT_TYPE', hpContentType);
   AddHTTPParam('CONTENT_LENGTH', hpContentLength);
 
@@ -716,7 +706,8 @@ var
 
   procedure AddExtraHeader;
   begin
-    AppendString(lServerSocket.HeaderOut.ExtraHeaders, FParsePos + ': ' + pValue + #13#10);
+    AppendString(lServerSocket.FHeaderOut.ExtraHeaders, 
+      FParsePos + ': ' + pValue + #13#10);
   end;
 
 begin
@@ -745,13 +736,13 @@ begin
     pValue := FParsePos+iEnd+2;
     if StrIComp(FParsePos, 'Content-type') = 0 then
     begin
-      lServerSocket.ResponseInfo.ContentType := pValue;
+      lServerSocket.FResponseInfo.ContentType := pValue;
     end else 
     if StrIComp(FParsePos, 'Location') = 0 then
     begin
       if StrLIComp(pValue, 'http://', 7) = 0 then
       begin
-        lServerSocket.ResponseInfo.Status := hsMovedPermanently;
+        lServerSocket.FResponseInfo.Status := hsMovedPermanently;
         { add location header as-is to response }
         AddExtraHeader;
       end else
@@ -768,19 +759,19 @@ begin
         break;
       for lHttpStatus := Low(TLHTTPStatus) to High(TLHTTPStatus) do
         if HTTPStatusCodes[lHttpStatus] = lStatus then
-          lServerSocket.ResponseInfo.Status := lHttpStatus;
+          lServerSocket.FResponseInfo.Status := lHttpStatus;
     end else
     if StrIComp(FParsePos, 'Content-Length') = 0 then
     begin
       Val(pValue, lLength, lCode);
       if lCode <> 0 then
         break;
-      lServerSocket.HeaderOut.ContentLength := lLength;
+      lServerSocket.FHeaderOut.ContentLength := lLength;
     end else
     if StrIComp(FParsePos, 'Last-Modified') = 0 then
     begin
       if not TryHTTPDateStrToDateTime(pValue, 
-          lServerSocket.ResponseInfo.LastModified) then
+          lServerSocket.FResponseInfo.LastModified) then
         InternalWrite('WARNING: unable to parse last-modified string from CGI script: ' + pValue);
     end else
       AddExtraHeader;
@@ -788,7 +779,7 @@ begin
   until false;
 
   { error happened }
-  lServerSocket.ResponseInfo.Status := hsInternalError;
+  lServerSocket.FResponseInfo.Status := hsInternalError;
   exit(true);
 end;
 
@@ -886,9 +877,9 @@ var
   ServerSocket: TLHTTPServerSocket absolute FSocket;
 begin
   if FProcess.ExitStatus = 127 then
-    ServerSocket.ResponseInfo.Status := hsNotFound
+    ServerSocket.FResponseInfo.Status := hsNotFound
   else
-    ServerSocket.ResponseInfo.Status := hsInternalError;
+    ServerSocket.FResponseInfo.Status := hsInternalError;
 end;
 
 procedure TSimpleCGIOutput.CGIProcNeedInput(AHandle: TLHandle);
@@ -939,7 +930,7 @@ end;
 
 procedure TFastCGIOutput.CGIOutputError;
 begin
-  TLHTTPServerSocket(FSocket).ResponseInfo.Status := hsInternalError;
+  TLHTTPServerSocket(FSocket).FResponseInfo.Status := hsInternalError;
 end;
 
 procedure TFastCGIOutput.DoneInput;
@@ -1201,7 +1192,7 @@ procedure TFormOutput.SetCookie(const AName, AValue: string; const AExpires: TDa
 var
   headers: PStringBuffer;
 begin
-  headers := @TLHTTPServerSocket(FSocket).HeaderOut.ExtraHeaders;
+  headers := @TLHTTPServerSocket(FSocket).FHeaderOut.ExtraHeaders;
   AppendString(headers^, 'Set-Cookie: ' + HTTPEncode(AName) + '=' + HTTPEncode(AValue));
   AppendString(headers^, ';path=' + APath + ';expires=' + FormatDateTime(HTTPDateFormat, AExpires));
   if Length(ADomain) > 0 then
@@ -1247,7 +1238,7 @@ begin
   if newFormOutput = nil then
     exit(nil);
 
-  newFormOutput.AddVariables(ASocket.RequestInfo.QueryParams, -1, URIParamSepChar);
+  newFormOutput.AddVariables(ASocket.FRequestInfo.QueryParams, -1, URIParamSepChar);
   newFormOutput.AddVariables(ASocket.Parameters[hpCookie], -1, CookieSepChar);
   contentType := TLHTTPServerSocket(ASocket).Parameters[hpContentType];
   if StrIComp(contentType, FormURLContentType) = 0 then

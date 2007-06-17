@@ -16,7 +16,10 @@ unit pkgoptions;
 
 interface
 
-uses Classes, Sysutils, Inifiles, fpmktype;
+uses Classes, Sysutils, Inifiles, fprepos;
+
+Const
+  DefaultManifestFile      = 'manifest.xml';
 
 Type
 
@@ -34,6 +37,7 @@ Type
     FPackagesDir,
     FBuildDir : String;
     FDefaultVerbosity,
+    FCurrentCompilerConfig,
     FDefaultCompilerConfig : String;
     // Compiler specific options
     FCompiler : String;
@@ -80,13 +84,14 @@ Type
     Property CompilerConfigDir : String Index 13 Read GetOptString Write SetOptString;
     Property FPMakeCompiler : String Index 14 Read GetOptString Write SetOptString;
     Property FPMakeUnitDir : String Index 15 Read GetOptString Write SetOptString;
+    Property CurrentCompilerConfig : String Index 16 Read GetOptString Write SetOptString;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
 
 var
   Defaults : TPackagerOptions;
-    
+
 Implementation
 
 uses
@@ -157,6 +162,7 @@ begin
    13 : Result:=FCompilerConfigDir;
    14 : Result:=FFPMakeCompiler;
    15 : Result:=FFPMakeUnitDir;
+   16 : Result:=FCurrentCompilerConfig;
   end;
 end;
 
@@ -180,6 +186,7 @@ begin
    13 : FCompilerConfigDir:=FixPath(AValue);
    14 : FFPMakeCompiler:=AValue;
    15 : FFPMakeUnitDir:=FixPath(AValue);
+   16 : FCurrentCompilerConfig:=AValue;
   end;
   FDirty:=True;
 end;
@@ -250,19 +257,28 @@ begin
   FRemoteRepository:=DefaultRemoteRepository;
   // Other config
   FDefaultCompilerConfig:='default';
-  FDefaultVerbosity:='error,info,debug,commands';
+  FCurrentCompilerConfig:=FDefaultCompilerConfig;
+  FDefaultVerbosity:='error,warning,info,debug,commands';
 end;
 
 
 Procedure TPackagerOptions.InitCompilerDefaults;
+var
+  infoSL : TStringList;
 begin
   FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
-{$warning TODO detect compiler version/target from -i options }
-  FCompilerVersion:='2.0.4';
-  FCompilerCPU:=StringToCPU({$I %FPCTARGETCPU%});
-  FCompilerOS:=StringToOS({$I %FPCTARGETOS%});
+  // Detect compiler version/target from -i option
+  infosl:=TStringList.Create;
+  infosl.Delimiter:=' ';
+  infosl.DelimitedText:=GetCompilerInfo(FCompiler,'-iVTPTO');
+  if infosl.Count<>3 then
+    Raise EPackagerError.Create(SErrInvalidFPCInfo);
+  FCompilerVersion:=infosl[0];
+  FCompilerCPU:=StringToCPU(infosl[1]);
+  FCompilerOS:=StringToOS(infosl[2]);
+  Log(vDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
   // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
   FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
@@ -283,9 +299,12 @@ begin
         FInstallDir:=FInstallDir+'../';
     end;
 {$endif unix}
+  Log(vDebug,SLogDetectedFPCDIR,[FInstallDir]);
   // Detect directory where fpmake units are located
   FFPMakeCompiler:=FCompiler;
-  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim+'fpmake'+PathDelim;
+  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim+'fpmkunit'+PathDelim;
+  if not DirectoryExists(FFPMakeUnitDir) then
+    Log(vWarning,SWarnFPMKUnitNotFound);
 end;
 
 

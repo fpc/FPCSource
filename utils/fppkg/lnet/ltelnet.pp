@@ -87,6 +87,8 @@ type
     FCommandArgs: string[3];
     FOrders: TLTelnetControlChars;
     FConnected: Boolean;
+    FBuffer: string;
+
     function Question(const Command: Char; const Value: Boolean): Char;
     
     function GetTimeout: DWord;
@@ -104,6 +106,8 @@ type
     procedure React(const Operation, Command: Char); virtual; abstract;
     
     procedure SendCommand(const Command: Char; const Value: Boolean); virtual; abstract;
+
+    procedure OnCs(aSocket: TLSocket);
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -136,8 +140,6 @@ type
 
   { TLTelnetClient }
 
-  { TLTelnetClient }
-
   TLTelnetClient = class(TLTelnet, ILClient)
    protected
     FLocalEcho: Boolean;
@@ -145,7 +147,7 @@ type
     procedure OnDs(aSocket: TLSocket);
     procedure OnRe(aSocket: TLSocket);
     procedure OnCo(aSocket: TLSocket);
-    
+
     procedure React(const Operation, Command: Char); override;
     
     procedure SendCommand(const Command: Char; const Value: Boolean); override;
@@ -180,7 +182,10 @@ var
 constructor TLTelnet.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
+  
   FConnection := TLTCP.Create(aOwner);
+  FConnection.OnCanSend := @OnCs;
+  
   FOutput := TMemoryStream.Create;
   FCommandCharIndex := 0;
   FStack := TLControlStack.Create;
@@ -274,6 +279,20 @@ begin
       FOutput.WriteByte(Byte(msg[i]));
 end;
 
+procedure TLTelnet.OnCs(aSocket: TLSocket);
+var
+  n: Integer;
+begin
+  n := 1;
+
+  while n > 0 do begin
+    n := FConnection.SendMessage(FBuffer);
+
+    if n > 0 then
+      System.Delete(FBuffer, 1, n);
+  end;
+end;
+
 function TLTelnet.OptionIsSet(const Option: Char): Boolean;
 begin
   Result := False;
@@ -315,7 +334,8 @@ begin
   {$ifdef debug}
   Writeln('**SENT** ', TNames[Char(How)], ' ', TNames[aCommand]);
   {$endif}
-  FConnection.SendMessage(TS_IAC + Char(How) + aCommand);
+  FBuffer := FBuffer + TS_IAC + Char(How) + aCommand;
+  OnCs(nil);
 end;
 
 //****************************TLTelnetClient*****************************
@@ -327,6 +347,7 @@ begin
   FConnection.OnDisconnect := @OnDs;
   FConnection.OnReceive := @OnRe;
   FConnection.OnConnect := @OnCo;
+
   FConnected := False;
   FPossible := [TS_ECHO, TS_HYI, TS_SGA];
   FActive := [];
@@ -373,7 +394,8 @@ procedure TLTelnetClient.React(const Operation, Command: Char);
     {$ifdef debug}
     Writeln('**SENT** ', TNames[Operation], ' ', TNames[Command]);
     {$endif}
-    FConnection.SendMessage(TS_IAC + Operation + Command);
+    FBuffer := FBuffer + TS_IAC + Operation + Command;
+    OnCs(nil);
   end;
   
   procedure Refuse(const Operation, Command: Char);
@@ -382,7 +404,8 @@ procedure TLTelnetClient.React(const Operation, Command: Char);
     {$ifdef debug}
     Writeln('**SENT** ', TNames[Operation], ' ', TNames[Command]);
     {$endif}
-    FConnection.SendMessage(TS_IAC + Operation + Command);
+    FBuffer := FBuffer + TS_IAC + Operation + Command;
+    OnCs(nil);
   end;
   
 begin
@@ -411,7 +434,8 @@ begin
     case Question(Command, Value) of
       TS_WILL : FActive := FActive + [Command];
     end;
-    FConnection.SendMessage(TS_IAC + Question(Command, Value) + Command);
+    FBuffer := FBuffer + TS_IAC + Question(Command, Value) + Command;
+    OnCs(nil);
   end;
 end;
 
@@ -459,7 +483,11 @@ begin
     DoubleIAC(Tmp);
     if LocalEcho and (not OptionIsSet(TS_ECHO)) and (not OptionIsSet(TS_HYI)) then
       FOutput.Write(PChar(Tmp)^, Length(Tmp));
-    Result := FConnection.SendMessage(Tmp);
+      
+    FBuffer := FBuffer + Tmp;
+    OnCs(nil);
+    
+    Result := aSize;
   end;
   {$ifdef debug}
   Writeln('**SEND END** ');

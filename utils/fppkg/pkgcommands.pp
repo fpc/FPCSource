@@ -15,6 +15,20 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
+  { TCommandAvail }
+
+  TCommandAvail = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
+  { TCommandScanPackages }
+
+  TCommandScanPackages = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
   { TCommandDownload }
 
   TCommandDownload = Class(TPackagehandler)
@@ -51,11 +65,27 @@ uses
   pkgmessages,
   pkgglobals,
   pkgoptions,
-  pkgdownload;
+  pkgdownload,
+  pkgrepos;
 
 function TCommandUpdate.Execute(const Args:TActionArgs):boolean;
 begin
   DownloadFile(Defaults.RemotePackagesFile,Defaults.LocalPackagesFile);
+  LoadLocalRepository;
+end;
+
+
+function TCommandAvail.Execute(const Args:TActionArgs):boolean;
+begin
+  ListRepository;
+end;
+
+
+function TCommandScanPackages.Execute(const Args:TActionArgs):boolean;
+begin
+  RebuildRepository;
+  ListRepository;
+  SaveRepository;
 end;
 
 
@@ -96,6 +126,8 @@ end;
 
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
+  RegisterPkgHandler('avail',TCommandAvail);
+  RegisterPkgHandler('scan',TCommandScanPackages);
   RegisterPkgHandler('download',TCommandDownload);
   RegisterPkgHandler('unzip',TCommandUnzip);
   RegisterPkgHandler('build',TCommandBuild);

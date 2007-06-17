@@ -97,8 +97,6 @@ begin
       { Call compiler }
       C:=Defaults.FPMakeCompiler;
       O:='-vi -n -Fu'+Defaults.FPMakeUnitDir+' -Fu'+RTLDir;
-//      if FPPkgDir<>'' then
-//        O:=O+' -Fu'+FPPkgDir+' -Fafpmkpkg';
       O:=O+' '+FPmakeSrc;
       If ExecuteProcess(C,O)<>0 then
         Error(SErrFailedToCompileFPCMake)
@@ -120,7 +118,6 @@ end;
 
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
-  I : integer;
   FPMakeBin : string;
 begin
   { Maybe compile fpmake executable? }

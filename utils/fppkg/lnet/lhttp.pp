@@ -33,6 +33,7 @@ uses
 
 type
   TLHTTPMethod = (hmHead, hmGet, hmPost, hmUnknown);
+  TLHTTPMethods = set of TLHTTPMethod;
   TLHTTPParameter = (hpConnection, hpContentLength, hpContentType,
     hpAccept, hpAcceptCharset, hpAcceptEncoding, hpAcceptLanguage, hpHost,
     hpFrom, hpReferer, hpUserAgent, hpRange, hpTransferEncoding,
@@ -338,9 +339,6 @@ type
   TLHTTPServerSocket = class(TLHTTPSocket)
   protected
     FLogMessage: TStringBuffer;
-    FRequestInfo: TRequestInfo;
-    FResponseInfo: TResponseInfo;
-    FHeaderOut: THeaderOutInfo;
     FSetupEncodingState: TSetupEncodingState;
 
     procedure AddContentLength(ALength: integer); override;
@@ -358,24 +356,29 @@ type
     procedure WriteError(AStatus: TLHTTPStatus); override;
     procedure WriteHeaders(AHeaderResponse, ADataResponse: TOutputItem);
   public
+    FHeaderOut: THeaderOutInfo;
+    FRequestInfo: TRequestInfo;
+    FResponseInfo: TResponseInfo;
+
     constructor Create; override;
     destructor Destroy; override;
 
     function  SetupEncoding(AOutputItem: TBufferOutput): boolean;
     procedure StartMemoryResponse(AOutputItem: TMemoryOutput; ACustomErrorMessage: boolean = false);
     procedure StartResponse(AOutputItem: TBufferOutput; ACustomErrorMessage: boolean = false);
-
-    property HeaderOut: THeaderOutInfo read FHeaderOut;
-    property RequestInfo: TRequestInfo read FRequestInfo;
-    property ResponseInfo: TResponseInfo read FResponseInfo;
   end;
   
   TURIHandler = class(TObject)
   private
     FNext: TURIHandler;
+    FMethods: TLHTTPMethods;
   protected
     function HandleURI(ASocket: TLHTTPServerSocket): TOutputItem; virtual; abstract;
     procedure RegisterWithEventer(AEventer: TLEventer); virtual;
+  public
+    constructor Create;
+
+    property Methods: TLHTTPMethods read FMethods write FMethods;
   end;
 
   TLAccessEvent = procedure(AMessage: string) of object;
@@ -557,6 +560,11 @@ begin
 end;
 
 { TURIHandler }
+
+constructor TURIHandler.Create;
+begin
+  FMethods := [hmHead, hmGet, hmPost];
+end;
 
 procedure TURIHandler.RegisterWithEventer(AEventer: TLEventer);
 begin
@@ -1594,14 +1602,8 @@ begin
   lPos^ := #0;
   for I := Low(TLHTTPMethod) to High(TLHTTPMethod) do
   begin
-    if I = hmUnknown then
-    begin
-      WriteError(hsNotImplemented);
-      exit;
-    end;
-    
-    if ((lPos-FBufferPos) = Length(HTTPMethodStrings[I]))
-    and CompareMem(FBufferPos, PChar(HTTPMethodStrings[I]), lPos-FBufferPos) then
+    if (I = hmUnknown) or (((lPos-FBufferPos) = Length(HTTPMethodStrings[I]))
+      and CompareMem(FBufferPos, PChar(HTTPMethodStrings[I]), lPos-FBufferPos)) then
     begin
       repeat
         inc(lPos);
@@ -1913,9 +1915,12 @@ begin
   lHandler := FHandlerList;
   while lHandler <> nil do
   begin
-    Result := lHandler.HandleURI(ASocket);
-    if ASocket.ResponseInfo.Status <> hsOK then break;
-    if Result <> nil then break;
+    if ASocket.FRequestInfo.RequestType in lHandler.Methods then
+    begin
+      Result := lHandler.HandleURI(ASocket);
+      if ASocket.FResponseInfo.Status <> hsOK then break;
+      if Result <> nil then break;
+    end;
     lHandler := lHandler.FNext;
   end;
 end;

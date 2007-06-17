@@ -38,33 +38,6 @@ uses
   pkgglobals,
   pkgmessages;
 
-Procedure DeleteDir(const ADir:string);
-const
-{$ifdef unix}
-  AllFiles='*';
-{$else}
-  AllFiles='*.*';
-{$endif}
-var
-  Info : TSearchRec;
-begin
-  if FindFirst(ADir+PathDelim+AllFiles,faAnyFile, Info)=0 then
-    try
-      repeat
-        if (Info.Attr and faDirectory)=faDirectory then
-          begin
-            if (Info.Name<>'.') and (Info.Name<>'..') then
-              DeleteDir(ADir+PathDelim+Info.Name)
-          end
-        else
-          DeleteFile(ADir+PathDelim+Info.Name);
-      until FindNext(Info)<>0;
-    finally
-      FindClose(Info);
-    end;
-end;
-
-
 { TUnzipArchive }
 
 Procedure TUnzipArchive.UnzipArchive;
@@ -109,15 +82,14 @@ var
   P : TFPPackage;
   PS : TFPPackages;
   X : TFPXMLRepositoryHandler;
-  i : integer;
+  SL : TStringList;
 begin
   if assigned(CurrentPackage) then
     Error(SErrOnlyLocalDir);
   { Generate manifest.xml if it doesn't exists yet }
   if not FileExists(PackageManifestFile) then
     ExecuteAction(CurrentPackage,'fpmakemanifest');
-
-
+  { Load manifest.xml }
   PS:=TFPPackages.Create(TFPPackage);
   X:=TFPXMLRepositoryHandler.Create;
   With X do
@@ -126,13 +98,29 @@ begin
     finally
       Free;
     end;
-
-  for i:=0 to PS.Count-1 do
-    begin
-      P:=PS[i];
-      Writeln(P.Name);
-      Writeln(P.FileName);
+  { Create archive, currently support only 1 file per package, this
+    can be enhanced in the future if needed }
+  if PS.Count<>1 then
+    Error('Only one package supported per manifest');
+  P:=PS[0];
+  { Unzip Archive }
+  With TZipper.Create do
+    try
+      Log(vCommands,SLogZippping,[P.FileName]);
+{$warning TODO replace with files from manifest}
+      try
+        SL:=TStringList.Create;
+        SearchFiles(SL,AllFiles);
+        if SL.Count=0 then
+          Error('No files found');
+        ZipFiles(P.FileName,SL);
+      finally
+        SL.Free;
+      end;
+    Finally
+      Free;
     end;
+  P.Free;
 end;
 
 

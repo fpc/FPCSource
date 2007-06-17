@@ -173,7 +173,7 @@ end;
 
 function TPackageHandler.PackageManifestFile: String;
 begin
-  Result:='manifest.xml';
+  Result:=DefaultManifestFile;
 end;
 
 

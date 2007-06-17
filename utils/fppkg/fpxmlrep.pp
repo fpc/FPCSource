@@ -17,7 +17,7 @@ unit fpxmlrep;
 interface
 
 uses
-  Classes, SysUtils, dom, fprepos, fpmktype;
+  Classes, SysUtils, dom, fprepos;
 
 Type
 
@@ -647,8 +647,9 @@ begin
     P:=PS.AddPackage('');
     try
       DoXMLToPackage(PN,P);
-    finally
+    except
       P.Free;
+      Raise;
     end;
     PN:=FindNextElement(PN.NextSibling,SNodePackage);
     end;
@@ -677,8 +678,9 @@ begin
       P:=R.AddPackage('');
       try
         DoXMLToPackage(PN,P);
-      finally
+      except
         P.Free;
+        Raise;
       end;
       PN:=FindNextElement(PN.NextSibling,SNodePackage);
       end;
