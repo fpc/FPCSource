@@ -640,7 +640,7 @@ implementation
               internalerror(200204249);
           end
        { try to reuse memory locations instead of copying }
-           { copy to a memory location ... }
+       { copy to a memory location ... }
         else if (right.location.loc = LOC_REFERENCE) and
            maybechangetemp(current_asmdata.CurrAsmList,left,right.location.reference) then
           begin

@@ -703,7 +703,7 @@ implementation
            (left.resultdef.typ in [arraydef,objectdef,recorddef]) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(
-                  crttinode.create(tstoreddef(left.resultdef),fullrtti,rdt_normal)),
+                  crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
                ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(left),voidpointertype),
                ccallparanode.create(ctypeconvnode.create_internal(
