@@ -368,27 +368,18 @@ procedure UpdateScreen;
 var
   event : EventRef;
 begin
-  EnterCriticalSection(graphdrawing);
   if (updatepending) then
-    begin
-      LeaveCriticalSection(graphdrawing);
-      exit;
-    end;
+    exit;
 
   if (CreateEvent(nil, kEventClassFPCGraph, kEventFlush, GetCurrentEventTime(), 0, event) <> noErr) then
-    begin
-      LeaveCriticalSection(graphdrawing);
-      exit;
-    end;
+    exit;
 
   if (PostEventToQueue(MainEventQueue,event,kEventPriorityLow) <> noErr) then
     begin
-      LeaveCriticalSection(graphdrawing);
       ReleaseEvent(event);
       exit;
     end;
   updatepending:=true;
-  LeaveCriticalSection(graphdrawing);
 end;
 
 
@@ -507,8 +498,8 @@ begin
 //  writeln('direct: (',x,',',y,') := ',color);
   EnterCriticalSection(graphdrawing);
   CGContextStrokeRect(offscreen,CGRectMake(x-0.5,y-0.5,0.5,0.5));
-  LeaveCriticalSection(graphdrawing);
   UpdateScreen;
+  LeaveCriticalSection(graphdrawing);
 end;
 
 procedure q_putpixelproc(X,Y: smallint; Color: Word);
@@ -519,8 +510,8 @@ begin
 //  writeln('regular: (',x,',',y,') := ',color);
   EnterCriticalSection(graphdrawing);
   CGContextStrokeRect(offscreen,CGRectMake(x-0.5,y-0.5,0.5,0.5));
-  LeaveCriticalSection(graphdrawing);
   UpdateScreen;
+  LeaveCriticalSection(graphdrawing);
 end;
 
 function q_getpixelproc (X,Y: smallint): word;
@@ -569,8 +560,8 @@ begin
   q_SetColor(CurrentBkColor);
   EnterCriticalSection(graphdrawing);
   CGContextFillRect(offscreen,CGRectMake(StartXViewPort,StartYViewPort,ViewWidth,ViewHeight));
-  LeaveCriticalSection(graphdrawing);
   UpdateScreen;
+  LeaveCriticalSection(graphdrawing);
   { reset coordinates }
   CurrentX := 0;
   CurrentY := 0;
@@ -632,8 +623,8 @@ begin
   CGContextAddLineToPoint(offscreen,x2,y2);
   CGContextClosePath(offscreen);
   CGContextStrokePath(offscreen);
-  LeaveCriticalSection(graphdrawing);
   UpdateScreen;
+  LeaveCriticalSection(graphdrawing);
 end;
 
 
@@ -668,8 +659,8 @@ begin
   CGContextAddLineToPoint(offscreen,x2,y2);
   CGContextClosePath(offscreen);
   CGContextStrokePath(offscreen);
-  LeaveCriticalSection(graphdrawing);
   UpdateScreen;
+  LeaveCriticalSection(graphdrawing);
 end;
 
 
