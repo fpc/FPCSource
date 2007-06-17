@@ -5,7 +5,7 @@ unit fpmkunit;
 
 Interface
 
-uses SysUtils,Classes,fpmktype;
+uses SysUtils,Classes;
 
 Type
   TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
@@ -3696,9 +3696,9 @@ begin
     Raise EDictionaryError.CreateFmt(SErrNoDictionaryItem,[AName]);
   O:=Flist.Objects[I];
   If O is TValueItem then
-    Result:=Result+TValueItem(O).FValue
+    Result:=TValueItem(O).FValue
   else
-    Result:=Result+TFunctionItem(O).FFunc(AName,Args);
+    Result:=TFunctionItem(O).FFunc(AName,Args);
 end;
 
 function TDictionary.ReplaceStrings(Const ASource: String): String;
