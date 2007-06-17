@@ -2018,6 +2018,12 @@ begin
 
     if CurToken <> tkSemicolon then
     begin
+      if ( AObjKind = okInterface ) and ( CurToken = tkSquaredBraceOpen ) then
+      begin
+        ExpectToken(tkString);
+        TPasClassType(Result).InterfaceGUID := CurTokenString;
+        ExpectToken(tkSquaredBraceClose);
+      end;    
       CurVisibility := visDefault;
       while CurToken <> tkEnd do
       begin
