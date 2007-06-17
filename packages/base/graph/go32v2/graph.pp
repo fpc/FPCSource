@@ -678,7 +678,7 @@ End;
         end;
       NotPut:
         begin
-          Color := Not Color;
+          Color := (Not CurrentColor) and 15;
         end
       else
         Color := CurrentColor;
