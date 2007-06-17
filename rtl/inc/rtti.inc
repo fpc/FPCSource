@@ -148,7 +148,7 @@ begin
   case PByte(TypeInfo)^ of
     tkAstring :
       begin
-       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+        fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
     tkWstring :
@@ -299,6 +299,9 @@ begin
             copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
             expectedoffset:=Offset+copiedsize;
           end;
+        { elements remaining? }
+        if result>expectedoffset then
+          move((Src+expectedoffset)^,(Dest+expectedoffset)^,Result-expectedoffset);
       end;
     tkDynArray:
       begin
