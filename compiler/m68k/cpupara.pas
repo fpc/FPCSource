@@ -210,6 +210,13 @@ unit cpupara;
             location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
             exit;
           end;
+        { Return is passed as var parameter }
+        if ret_in_param(p.returndef,p.proccalloption) then
+          begin
+            p.funcretloc[side].loc:=LOC_REFERENCE;
+            p.funcretloc[side].size:=retcgsize;
+            exit;
+          end;
         { Return in FPU register? }
         if not(cs_fp_emulation in current_settings.moduleswitches) and (p.returndef.typ=floatdef) then
           begin
@@ -218,8 +225,7 @@ unit cpupara;
             p.funcretloc[side].size:=retcgsize;
           end
         else
-         { Return in register? }
-         if not ret_in_param(p.returndef,p.proccalloption) then
+         { Return in register }
           begin
             if retcgsize in [OS_64,OS_S64] then
              begin
@@ -245,11 +251,6 @@ unit cpupara;
                else
                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
              end;
-          end
-        else
-          begin
-            p.funcretloc[side].loc:=LOC_REFERENCE;
-            p.funcretloc[side].size:=retcgsize;
           end;
       end;
 

@@ -225,15 +225,21 @@ begin
     p.funcretloc[side].loc := LOC_VOID;
     exit;
   end;
-
+  { Return is passed as var parameter }
+  if ret_in_param(p.returndef, p.proccalloption) then
+    begin
+      p.funcretloc[side].loc := LOC_REFERENCE;
+      p.funcretloc[side].size := retcgsize;
+      exit;
+    end;
   { Return in FPU register? }
   if p.returndef.typ = floatdef then begin
     p.funcretloc[side].loc := LOC_FPUREGISTER;
     p.funcretloc[side].register := NR_FPU_RESULT_REG;
     p.funcretloc[side].size := retcgsize;
   end else
-    { Return in register? } 
-    if not ret_in_param(p.returndef, p.proccalloption) then begin
+    { Return in register }
+    begin
       p.funcretloc[side].loc := LOC_REGISTER;
       p.funcretloc[side].size := retcgsize;
       if side = callerside then
@@ -242,9 +248,6 @@ begin
       else
         p.funcretloc[side].register := newreg(R_INTREGISTER,
           RS_FUNCTION_RETURN_REG, cgsize2subreg(retcgsize));
-    end else begin
-      p.funcretloc[side].loc := LOC_REFERENCE;
-      p.funcretloc[side].size := retcgsize;
     end;
 end;
 
