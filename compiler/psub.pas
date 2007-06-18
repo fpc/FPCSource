@@ -1034,6 +1034,12 @@ implementation
             current_filepos:=entrypos;
             gen_proc_entry_code(templist);
             aktproccode.insertlistafter(headertai,templist);
+{$if defined(x86) or defined(arm)}
+            { Set return value of safecall procedure if implicit try/finally blocks are disabled }
+            if not (cs_implicit_exceptions in current_settings.moduleswitches) and
+               (procdef.proccalloption=pocall_safecall) then
+              cg.a_load_const_reg(aktproccode,OS_ADDR,0,NR_FUNCTION_RETURN_REG);
+{$endif}
             { Add exit code at the end }
             current_filepos:=exitpos;
             gen_proc_exit_code(templist);
