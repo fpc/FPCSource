@@ -51,7 +51,7 @@ implementation
       ,t_nds
     {$endif}
     {$ifndef NOTARGETEMBEDDED}
-      ,t_embedded
+      ,t_embed
     {$endif}
 
 {**************************************
