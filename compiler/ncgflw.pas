@@ -1479,9 +1479,13 @@ implementation
                exit;
 {$if defined(x86) or defined(arm)}
              if current_procinfo.procdef.proccalloption=pocall_safecall then
-               { Set return value of safecall procedure to indicate exception.       }
-               { Exception will be raised after procedure exit based on return value }
-               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,aint($8000FFFF),NR_FUNCTION_RETURN_REG)
+               begin
+                 { Remove the last exception object }
+                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPOBJECTSTACK');
+                 { Set return value of safecall procedure to indicate exception.       }
+                 { Exception will be raised after procedure exit based on return value }
+                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,aint($8000FFFF),NR_FUNCTION_RETURN_REG);
+               end
              else
 {$endif}
                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE');
