@@ -386,7 +386,6 @@ begin
     list^ := list^^.todonext;
     bp := pointer(pp)+sizeof(theap_mem_info);
     InternalFreeMemSize(loc_info,bp,pp,pp^.size,false);
-    //TraceFreeMem(bp);
   until list^ = nil;
 end;
 
@@ -420,7 +419,7 @@ begin
   loc_info := @heap_info;
   try_finish_heap_free_todo_list(loc_info);
   inc(loc_info^.getmem_size,size);
-  inc(loc_info^.getmem8_size,((size+7) div 8)*8);
+  inc(loc_info^.getmem8_size,(size+7) and not 7);
 { Do the real GetMem, but alloc also for the info block }
 {$ifdef cpuarm}
   allocsize:=(size + 3) and not 3+sizeof(theap_mem_info)+extra_info_size;
@@ -530,7 +529,7 @@ begin
   else
     ptext:=@stderr;
   inc(loc_info^.freemem_size,size);
-  inc(loc_info^.freemem8_size,((size+7) div 8)*8);
+  inc(loc_info^.freemem8_size,(size+7) and not 7);
   if not quicktrace then
     begin
       if not(is_in_getmem_list(loc_info, pp)) then
@@ -850,9 +849,9 @@ begin
   { adjust like a freemem and then a getmem, so you get correct
     results in the summary display }
   inc(loc_info^.freemem_size,oldsize);
-  inc(loc_info^.freemem8_size,((oldsize+7) div 8)*8);
+  inc(loc_info^.freemem8_size,(oldsize+7) and not 7);
   inc(loc_info^.getmem_size,size);
-  inc(loc_info^.getmem8_size,((size+7) div 8)*8);
+  inc(loc_info^.getmem8_size,(size+7) and not 7);
   { generate new backtrace }
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
@@ -1295,7 +1294,7 @@ begin
   { the total size must stay multiple of 8, also allocate 2 pointers for
     the fill and display procvars }
   exact_info_size:=size + sizeof(theap_extra_info);
-  extra_info_size:=((exact_info_size+7) div 8)*8;
+  extra_info_size:=(exact_info_size+7) and not 7;
   fill_extra_info_proc:=fillproc;
   display_extra_info_proc:=displayproc;
 end;
@@ -1365,7 +1364,8 @@ begin
   TraceExitThread;
   if heap_info.error_in_heap and (exitcode=0) then
     exitcode:=203;
-  donecriticalsection(orphaned_info.heap_free_todo.lock);
+  if main_relo_todolist <> nil then
+    donecriticalsection(orphaned_info.heap_free_todo.lock);
 {$ifdef EXTRA}
   Close(error_file);
 {$endif EXTRA}
