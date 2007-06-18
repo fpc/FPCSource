@@ -141,9 +141,10 @@ type
   protected
     function GetDisplayName: string; override;
     procedure SetDisplayName(const AValue: string); override;
-  public
+  Public  
+    property DisplayName : string read GetDisplayName write SetDisplayName;
+  published
     property Name : string read FName write SetDisplayName;
-    property DisplayName : string read GetDisplayName;
   end;
 
   { TDefCollection }
