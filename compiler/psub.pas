@@ -747,6 +747,11 @@ implementation
         procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
         procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
 
+{$if defined(x86) or defined(arm)}
+        { set implicit_finally flag for if procedure is safecall }
+        if procdef.proccalloption=pocall_safecall then
+          include(flags, pi_needs_implicit_finally);
+{$endif}
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
