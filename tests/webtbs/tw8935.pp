@@ -20,8 +20,12 @@ begin
 end;
 
 begin
-  DoTest1;
-  if DoTest2 <> $12345678 then
+  try
+    DoTest1;
+  except
     Halt(1);
+  end;
+  if DoTest2 <> $12345678 then
+    Halt(2);
   DoTest3;
 end.
