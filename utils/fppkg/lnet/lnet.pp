@@ -1,4 +1,4 @@
-{ lNet v0.5.1
+{ lNet v0.5.2
 
   CopyRight (C) 2004-2006 Ales Katona
 
@@ -408,8 +408,9 @@ destructor TLSocket.Destroy;
 begin
   if Assigned(FOnFree) then
     FOnFree(Self);
+
+  inherited Destroy; // important! must be called before disconnect
   Disconnect;
-  inherited Destroy;
 end;
 
 procedure TLSocket.Disconnect;

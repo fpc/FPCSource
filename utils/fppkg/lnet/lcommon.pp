@@ -101,31 +101,58 @@ uses
 
 {$IFDEF WINDOWS}
   , Windows;
+  
+{$IFDEF WINCE}
 
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
+const
+  MAX_ERROR = 1024;
+var
+  Tmp: string;
+  TmpW: widestring;
+begin
+  Result := '[' + IntToStr(Ernum) + '] ';
+    SetLength(TmpW, MAX_ERROR);
+    SetLength(TmpW, FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM or
+                                   FORMAT_MESSAGE_IGNORE_INSERTS or
+                                   FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                                   nil, Ernum, 0, @TmpW[1], MAX_ERROR, nil));
+    Tmp := UTF8Encode(TmpW);
+  if Length(Tmp) > 2 then
+    Delete(Tmp, Length(Tmp)-1, 2);
+  Result := Tmp;
+end;
+
+{$ELSE} // any other windows
+
+function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
+const
+  MAX_ERROR = 1024;
 var
   Tmp: string;
   TmpW: widestring;
 begin
   Result := '[' + IntToStr(Ernum) + '] ';
   if USEUtf8 then begin
-    SetLength(TmpW, 256);
+    SetLength(TmpW, MAX_ERROR);
     SetLength(TmpW, FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM or
                                    FORMAT_MESSAGE_IGNORE_INSERTS or
                                    FORMAT_MESSAGE_ARGUMENT_ARRAY,
-                                   nil, Ernum, 0, @TmpW[1], 256, nil));
+                                   nil, Ernum, 0, @TmpW[1], MAX_ERROR, nil));
     Tmp := UTF8Encode(TmpW);
   end else begin
-    SetLength(Tmp, 256);
+    SetLength(Tmp, MAX_ERROR);
     SetLength(Tmp, FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM or
                                  FORMAT_MESSAGE_IGNORE_INSERTS or
                                  FORMAT_MESSAGE_ARGUMENT_ARRAY,
-                                 nil, Ernum, 0, @Tmp[1], 256, nil));
+                                 nil, Ernum, 0, @Tmp[1], MAX_ERROR, nil));
   end;
   if Length(Tmp) > 2 then
     Delete(Tmp, Length(Tmp)-1, 2);
   Result := Tmp;
 end;
+
+{$ENDIF}
 
 function TZSeconds: integer; inline;
 var
