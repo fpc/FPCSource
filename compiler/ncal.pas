@@ -2851,7 +2851,7 @@ implementation
            begin
              tcallparanode(left).det_registers;
 
-             if cs_opt_level1 in current_settings.optimizerswitches then
+             if (current_settings.optimizerswitches*[cs_opt_stackframe,cs_opt_level1]<>[]) then
                begin
                  { check for stacked parameters }
                  check_stack_parameters;
