@@ -1,6 +1,8 @@
 {%cpu=x86_64,i386,arm}
 {%result=229}
 
+{$mode objfpc}
+
 procedure DoTest1; safecall;
 var
   i: integer;
@@ -23,6 +25,7 @@ begin
   try
     DoTest1;
   except
+    ErrorAddr:=nil;
     Halt(1);
   end;
   if DoTest2 <> $12345678 then
