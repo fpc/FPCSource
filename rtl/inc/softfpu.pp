@@ -119,7 +119,9 @@ TYPE
 {$ifndef fpc}
   qword = int64;
 {$endif}
+  { now part of the system unit
   uint64 = qword;
+  }
   bits64 = qword;
   sbits64 = int64;
 
