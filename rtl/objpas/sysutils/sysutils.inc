@@ -289,6 +289,7 @@ begin
   206 : E:=EOverflow.Create(SUnderflow);
   207 : E:=EInvalidOp.Create(SInvalidOp);
   211 : E:=EAbstractError.Create(SAbstractError);
+  212 : E:=EExternalException.Create(SExternalException);
   214 : E:=EBusError.Create(SBusError);
   215 : E:=EIntOverflow.Create(SIntOverflow);
   216 : E:=EAccessViolation.Create(SAccessViolation);
@@ -302,9 +303,8 @@ begin
   224 : E:=EVariantError.Create(SVarNotArray);
   225 : E:=EVariantError.Create(SVarArrayBounds);
   227 : E:=EAssertionFailed.Create(SAssertionFailed);
-  228 : E:=EExternalException.Create(SExternalException);
-  229 : E:=EIntfCastError.Create(SIntfCastError);
-  230 : E:=ESafecallException.Create(SSafecallException);
+  228 : E:=EIntfCastError.Create(SIntfCastError);
+  229 : E:=ESafecallException.Create(SSafecallException);
   231 : E:=EConvertError.Create(SiconvError);
   232 : E:=ENoThreadSupport.Create(SNoThreadSupport);
   else

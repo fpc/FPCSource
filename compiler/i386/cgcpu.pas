@@ -310,7 +310,9 @@ unit cgcpu;
                 (not use_fixed_stack)  then
          begin
            { complex return values are removed from stack in C code PM }
-           if paramanager.ret_in_param(current_procinfo.procdef.returndef,
+           { but not on win32 }
+           if (target_info.system <> system_i386_win32) and
+              paramanager.ret_in_param(current_procinfo.procdef.returndef,
                                        current_procinfo.procdef.proccalloption) then
              list.concat(Taicpu.Op_const(A_RET,S_W,sizeof(aint)))
            else
