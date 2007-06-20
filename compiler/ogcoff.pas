@@ -2517,12 +2517,12 @@ const pemagic : array[0..3] of byte = (
         i,j,k,offset : longint;
         w: word;
       begin
-        if not IsSharedLibrary then
+        if not RelocSection then
           exit;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           exit;
-        objsec:=internalObjData.createsection('.reloc',0,exesec.SecOptions);
+        objsec:=internalObjData.createsection('.reloc',0,exesec.SecOptions+[oso_data]);
         exesec.AddObjSection(objsec);
         pgaddr:=-1;
         hdrpos:=-1;

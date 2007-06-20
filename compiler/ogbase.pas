@@ -2355,7 +2355,7 @@ implementation
                           break;
                         end;
                   end;
-                if doremove then
+                if doremove and not (RelocSection and (exesec.Name='.reloc')) then
                   begin
                     Comment(V_Debug,'Deleting empty section '+exesec.name);
                     ExeSectionList[i]:=nil;
