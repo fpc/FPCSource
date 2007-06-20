@@ -283,7 +283,7 @@ Procedure TComponent.SetName(const NewName: TComponentName);
 
 begin
   If FName=NewName then exit;
-  If not IsValidIdent(NewName) then
+  If (NewName<>'') and not IsValidIdent(NewName) then
     Raise EComponentError.CreateFmt(SInvalidName,[NewName]);
   If Assigned(FOwner) Then
     FOwner.ValidateRename(Self,FName,NewName)
