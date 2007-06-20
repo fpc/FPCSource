@@ -53,7 +53,6 @@ const
   maxblocksize = 512+blocksize; { 1024+8 needed for heaprecord }
 {$endif}
   maxblockindex = maxblocksize div blocksize; { highest index in array of lists of memchunks }
-  maxreusebigger = 8; { max reuse bigger tries }
 
   { common flags }
   fixedsizeflag  = 1;   { flag if the block is of fixed size }
@@ -187,9 +186,7 @@ type
     varlist : pmemchunk_var;
     { chunks waiting to be freed from other thread }
     waitfixed : pmemchunk_fixed;
-    lockfixed : trtlcriticalsection;
     waitvar : pmemchunk_var;
-    lockvar : trtlcriticalsection;
     { heap statistics }
     internal_status : TFPCHeapStatus;
   end;
@@ -209,7 +206,7 @@ var
   main_orig_freelists : pfreelists;
   main_relo_freelists : pfreelists;
   orphaned_freelists : tfreelists;
-  orphaned_oslist_lock : trtlcriticalsection;
+  heap_lock : trtlcriticalsection;
 threadvar
   freelists : tfreelists;
 
@@ -754,9 +751,9 @@ begin
   if not assigned(poc) and (assigned(orphaned_freelists.waitfixed) 
       or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
     begin
-      entercriticalsection(orphaned_oslist_lock);
-      try_finish_waitfixedlist(@orphaned_freelists);
-      try_finish_waitvarlist(@orphaned_freelists);
+      entercriticalsection(heap_lock);
+      finish_waitfixedlist(@orphaned_freelists);
+      finish_waitvarlist(@orphaned_freelists);
       if orphaned_freelists.oscount > 0 then
         begin
           { blocks available in orphaned freelist ? }
@@ -778,7 +775,7 @@ begin
               loc_freelists^.oslist_all := poc;
             end;
         end;
-      leavecriticalsection(orphaned_oslist_lock);
+      leavecriticalsection(heap_lock);
     end;
   if poc = nil then
     begin
@@ -1045,31 +1042,29 @@ end;
 
 procedure waitfree_fixed(pmc: pmemchunk_fixed; loc_freelists: pfreelists);
 begin
-  entercriticalsection(loc_freelists^.lockfixed);
+  entercriticalsection(heap_lock);
   pmc^.next_fixed := loc_freelists^.waitfixed;
   loc_freelists^.waitfixed := pmc;
-  leavecriticalsection(loc_freelists^.lockfixed);
+  leavecriticalsection(heap_lock);
 end;
 
 procedure waitfree_var(pmcv: pmemchunk_var; loc_freelists: pfreelists);
 begin
-  entercriticalsection(loc_freelists^.lockvar);
+  entercriticalsection(heap_lock);
   pmcv^.next_var := loc_freelists^.waitvar;
   loc_freelists^.waitvar := pmcv;
-  leavecriticalsection(loc_freelists^.lockvar);
+  leavecriticalsection(heap_lock);
 end;
 
-function SysFreeMem_Fixed(pmc: pmemchunk_fixed): ptrint;
+function SysFreeMem_Fixed(loc_freelists: pfreelists; pmc: pmemchunk_fixed): ptrint;
 var
   chunkindex,
   chunksize: ptrint;
   poc: poschunk;
   pmc_next: pmemchunk_fixed;
-  loc_freelists: pfreelists;
 begin
   poc := poschunk(pointer(pmc)-(pmc^.size shr fixedoffsetshift));
   chunksize := pmc^.size and fixedsizemask;
-  loc_freelists := @freelists;
   if loc_freelists <> poc^.freelists then
   begin
     if poc^.freelists = main_orig_freelists then
@@ -1104,13 +1099,11 @@ begin
   result := chunksize;
 end;
 
-function SysFreeMem_Var(pmcv: pmemchunk_var): ptrint;
+function SysFreeMem_Var(loc_freelists: pfreelists; pmcv: pmemchunk_var): ptrint;
 var
   chunksize: ptrint;
-  loc_freelists: pfreelists;
 begin
   chunksize := pmcv^.size and sizemask;
-  loc_freelists := @freelists;
   if loc_freelists <> pmcv^.freelists then
   begin
     if pmcv^.freelists = main_orig_freelists then
@@ -1137,6 +1130,7 @@ end;
 function SysFreeMem(p: pointer): ptrint;
 var
   pmc: pmemchunk_fixed;
+  loc_freelists: pfreelists;
 {$ifdef DUMP_MEM_USAGE}
   size: sizeint;
 {$endif}
@@ -1153,12 +1147,13 @@ begin
   else
     dec(sizeusage[size shr sizeusageshift]);
 {$endif}
+  loc_freelists := @freelists;
   pmc := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
   { check if this is a fixed- or var-sized chunk }
   if (pmc^.size and fixedsizeflag) = 0 then
-    result := sysfreemem_var(pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))
+    result := sysfreemem_var(loc_freelists, pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))
   else
-    result := sysfreemem_fixed(pmc);
+    result := sysfreemem_fixed(loc_freelists, pmc);
 end;
 
 procedure finish_waitfixedlist(loc_freelists: pfreelists);
@@ -1171,7 +1166,7 @@ begin
     { keep next_fixed, might be destroyed }
     pmc := loc_freelists^.waitfixed;
     loc_freelists^.waitfixed := pmc^.next_fixed;
-    SysFreeMem_Fixed(pmc);
+    SysFreeMem_Fixed(loc_freelists, pmc);
   end;
 end;
 
@@ -1179,9 +1174,9 @@ function try_finish_waitfixedlist(loc_freelists: pfreelists): boolean;
 begin
   if loc_freelists^.waitfixed = nil then 
     exit(false);
-  entercriticalsection(loc_freelists^.lockfixed);
+  entercriticalsection(heap_lock);
   finish_waitfixedlist(loc_freelists);
-  leavecriticalsection(loc_freelists^.lockfixed);
+  leavecriticalsection(heap_lock);
   result := true;
 end;
 
@@ -1195,7 +1190,7 @@ begin
     { keep next_var, might be destroyed }
     pmcv := loc_freelists^.waitvar;
     loc_freelists^.waitvar := pmcv^.next_var;
-    SysFreeMem_Var(pmcv);
+    SysFreeMem_Var(loc_freelists, pmcv);
   end;
 end;
 
@@ -1203,9 +1198,9 @@ procedure try_finish_waitvarlist(loc_freelists: pfreelists);
 begin
   if loc_freelists^.waitvar = nil then 
     exit;
-  entercriticalsection(loc_freelists^.lockvar);
+  entercriticalsection(heap_lock);
   finish_waitvarlist(loc_freelists);
-  leavecriticalsection(loc_freelists^.lockvar);
+  leavecriticalsection(heap_lock);
 end;
 
 {*****************************************************************************
@@ -1434,8 +1429,6 @@ var
 begin
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
-  initcriticalsection(loc_freelists^.lockfixed);
-  initcriticalsection(loc_freelists^.lockvar);
 {$ifdef DUMP_MEM_USAGE}
   fillchar(sizeusage,sizeof(sizeusage),0);
   fillchar(maxsizeusage,sizeof(sizeusage),0);
@@ -1463,11 +1456,7 @@ begin
   { this function should be called in main thread context }
   loc_freelists := @freelists;
   main_relo_freelists := loc_freelists;
-  initcriticalsection(loc_freelists^.lockfixed);
-  initcriticalsection(loc_freelists^.lockvar);
-  initcriticalsection(orphaned_freelists.lockfixed);
-  initcriticalsection(orphaned_freelists.lockvar);
-  initcriticalsection(orphaned_oslist_lock);
+  initcriticalsection(heap_lock);
   modify_freelists(loc_freelists, main_relo_freelists);
   if MemoryManager.RelocateHeap <> nil then
     MemoryManager.RelocateHeap();
@@ -1482,9 +1471,8 @@ begin
   loc_freelists := @freelists;
   if main_relo_freelists <> nil then
   begin
-    entercriticalsection(loc_freelists^.lockfixed);
+    entercriticalsection(heap_lock);
     finish_waitfixedlist(loc_freelists);
-    entercriticalsection(loc_freelists^.lockvar);
     finish_waitvarlist(loc_freelists);
 {$ifdef HAS_SYSOSFREE}
   end;
@@ -1494,7 +1482,10 @@ begin
     poc_next := poc^.next_free;
     { check if this os chunk was 'recycled' i.e. taken in use again }
     if (poc^.size and ocrecycleflag) = 0 then
+    begin
+      poc^.size := poc^.size and not ocrecycleflag;
       free_oschunk(loc_freelists, poc);
+    end;
     poc := poc_next;
   end;
   loc_freelists^.oslist := nil;
@@ -1502,15 +1493,8 @@ begin
   if main_relo_freelists <> nil then
   begin
 {$endif HAS_SYSOSFREE}
-    if main_relo_freelists = loc_freelists then
+    if main_relo_freelists <> loc_freelists then
     begin
-      donecriticalsection(orphaned_freelists.lockfixed);
-      donecriticalsection(orphaned_freelists.lockvar);
-      donecriticalsection(orphaned_oslist_lock);
-    end else begin
-      entercriticalsection(orphaned_oslist_lock);
-      entercriticalsection(orphaned_freelists.lockfixed);
-      entercriticalsection(orphaned_freelists.lockvar);
       poc := modify_freelists(loc_freelists, @orphaned_freelists);
       if assigned(poc) then
       begin
@@ -1519,12 +1503,11 @@ begin
           orphaned_freelists.oslist_all^.prev_any := poc;
         orphaned_freelists.oslist_all := loc_freelists^.oslist_all;
       end;
-      leavecriticalsection(orphaned_freelists.lockvar);
-      leavecriticalsection(orphaned_freelists.lockfixed);
-      leavecriticalsection(orphaned_oslist_lock);
+      leavecriticalsection(heap_lock);
     end;
-    donecriticalsection(loc_freelists^.lockfixed);
-    donecriticalsection(loc_freelists^.lockvar);
+    leavecriticalsection(heap_lock);
+    if main_relo_freelists = loc_freelists then
+      donecriticalsection(heap_lock);
   end;
 {$ifdef SHOW_MEM_USAGE}
   writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/', 

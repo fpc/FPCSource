@@ -111,12 +111,6 @@ type
   ppheap_mem_info = ^pheap_mem_info;
   pheap_mem_info = ^theap_mem_info;
 
-  pheap_todo = ^theap_todo;
-  theap_todo = record
-    lock : trtlcriticalsection;
-    list : pheap_mem_info;
-  end;
-
   { warning the size of theap_mem_info
     must be a multiple of 8
     because otherwise you will get
@@ -126,7 +120,7 @@ type
   theap_mem_info = record
     previous,
     next     : pheap_mem_info;
-    todolist : pheap_todo;
+    todolist : ppheap_mem_info;
     todonext : pheap_mem_info;
     size     : ptrint;
     sig      : longword;
@@ -147,7 +141,7 @@ type
     heap_valid_last : pheap_mem_info;
 {$endif EXTRA}
     heap_mem_root : pheap_mem_info;
-    heap_free_todo : theap_todo;
+    heap_free_todo : pheap_mem_info;
     getmem_cnt,
     freemem_cnt   : ptrint;
     getmem_size,
@@ -164,9 +158,10 @@ var
 {$ifdef EXTRA}
   error_file : text;
 {$endif EXTRA}
-  main_orig_todolist: pheap_todo;
-  main_relo_todolist: pheap_todo;
+  main_orig_todolist: ppheap_mem_info;
+  main_relo_todolist: ppheap_mem_info;
   orphaned_info: theap_info;
+  todo_lock: trtlcriticalsection;
 threadvar
   heap_info: theap_info;
 
@@ -259,7 +254,7 @@ end;
 *****************************************************************************}
 
 function InternalFreeMemSize(loc_info: pheap_info; p: pointer; pp: pheap_mem_info;
-  size: ptrint; release_orphaned_lock: boolean): ptrint; forward;
+  size: ptrint; release_todo_lock: boolean): ptrint; forward;
 function TraceFreeMem(p: pointer): ptrint; forward;
 
 procedure call_stack(pp : pheap_mem_info;var ptext : text);
@@ -380,7 +375,7 @@ var
   pp: pheap_mem_info;
   list: ppheap_mem_info;
 begin
-  list := @loc_info^.heap_free_todo.list;
+  list := @loc_info^.heap_free_todo;
   repeat
     pp := list^;
     list^ := list^^.todonext;
@@ -393,11 +388,11 @@ procedure try_finish_heap_free_todo_list(loc_info: pheap_info);
 var
   bp: pointer;
 begin
-  if loc_info^.heap_free_todo.list <> nil then
+  if loc_info^.heap_free_todo <> nil then
   begin
-    entercriticalsection(loc_info^.heap_free_todo.lock);
+    entercriticalsection(todo_lock);
     finish_heap_free_todo_list(loc_info);
-    leavecriticalsection(loc_info^.heap_free_todo.lock);
+    leavecriticalsection(todo_lock);
   end;
 end;
 
@@ -620,7 +615,7 @@ begin
 end;
 
 function InternalFreeMemSize(loc_info: pheap_info; p: pointer; pp: pheap_mem_info;
-  size: ptrint; release_orphaned_lock: boolean): ptrint;
+  size: ptrint; release_todo_lock: boolean): ptrint;
 var
   i,ppsize : ptrint;
   bp : pointer;
@@ -634,8 +629,8 @@ begin
     inc(ppsize,sizeof(ptrint));
   { do various checking }
   release_mem := CheckFreeMemSize(loc_info, pp, size, ppsize);
-  if release_orphaned_lock then
-    leavecriticalsection(orphaned_info.heap_free_todo.lock);
+  if release_todo_lock then
+    leavecriticalsection(todo_lock);
   if release_mem then
   begin
     { release the normal memory at least }
@@ -665,7 +660,7 @@ begin
   begin
     if pp^.todolist = main_orig_todolist then
       pp^.todolist := main_relo_todolist;
-    entercriticalsection(pp^.todolist^.lock);
+    entercriticalsection(todo_lock);
     if pp^.todolist = @orphaned_info.heap_free_todo then
     begin
       loc_info := @orphaned_info;
@@ -673,9 +668,9 @@ begin
     if pp^.todolist <> @loc_info^.heap_free_todo then
     begin
       { allocated in different heap, push to that todolist }
-      pp^.todonext := pp^.todolist^.list;
-      pp^.todolist^.list := pp;
-      leavecriticalsection(pp^.todolist^.lock);
+      pp^.todonext := pp^.todolist^;
+      pp^.todolist^ := pp;
+      leavecriticalsection(todo_lock);
       exit(pp^.size);
     end;
   end;
@@ -1183,24 +1178,21 @@ begin
   loc_info^.error_in_heap := false;
   loc_info^.inside_trace_getmem := false;
   EntryMemUsed := SysGetFPCHeapStatus.CurrHeapUsed;
-  if main_relo_todolist <> nil then
-    initcriticalsection(loc_info^.heap_free_todo.lock);
 end;
 
 procedure TraceRelocateHeap;
 begin
   main_relo_todolist := @heap_info.heap_free_todo;
-  initcriticalsection(main_relo_todolist^.lock);
-  initcriticalsection(orphaned_info.heap_free_todo.lock);
+  initcriticalsection(todo_lock);
 end;
 
 procedure move_heap_info(src_info, dst_info: pheap_info);
 var
   heap_mem: pheap_mem_info;
 begin
-  if src_info^.heap_free_todo.list <> nil then
+  if src_info^.heap_free_todo <> nil then
     finish_heap_free_todo_list(src_info);
-  if dst_info^.heap_free_todo.list <> nil then
+  if dst_info^.heap_free_todo <> nil then
     finish_heap_free_todo_list(dst_info);
   heap_mem := src_info^.heap_mem_root;
   if heap_mem <> nil then
@@ -1237,21 +1229,9 @@ var
   heap_mem: pheap_mem_info;
 begin
   loc_info := @heap_info;
-  entercriticalsection(loc_info^.heap_free_todo.lock);
-  entercriticalsection(orphaned_info.heap_free_todo.lock);
-  { if not main thread exiting, move bookkeeping to orphaned heap }
-  if (@loc_info^.heap_free_todo <> main_orig_todolist) 
-    and (@loc_info^.heap_free_todo <> main_relo_todolist) then
-  begin
-    move_heap_info(loc_info, @orphaned_info);
-  end else
-  if not loc_info^.error_in_heap then
-  begin
-    move_heap_info(@orphaned_info, loc_info);
-    Dumpheap;
-  end;
-  leavecriticalsection(orphaned_info.heap_free_todo.lock);
-  donecriticalsection(loc_info^.heap_free_todo.lock);
+  entercriticalsection(todo_lock);
+  move_heap_info(loc_info, @orphaned_info);
+  leavecriticalsection(todo_lock);
 end;
 
 function TraceGetHeapStatus:THeapStatus;
@@ -1361,11 +1341,12 @@ begin
          end;
        exit;
     end;
-  TraceExitThread;
+  move_heap_info(@orphaned_info, @heap_info);
+  dumpheap;
   if heap_info.error_in_heap and (exitcode=0) then
     exitcode:=203;
   if main_relo_todolist <> nil then
-    donecriticalsection(orphaned_info.heap_free_todo.lock);
+    donecriticalsection(todo_lock);
 {$ifdef EXTRA}
   Close(error_file);
 {$endif EXTRA}
