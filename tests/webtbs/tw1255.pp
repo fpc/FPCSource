@@ -25,7 +25,7 @@ begin
   {$ifdef wince}
     testff('\windows\calc.*');
   {$else}
-    testff('c:\autoexec.*');
+    testff(ChangeFileExt(GetEnvironmentVariable('comspec'), '.*'));
   {$endif wince}
 {$endif}
 end.
