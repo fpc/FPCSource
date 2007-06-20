@@ -1,3 +1,5 @@
+{%skiptarget=wince}
+
 program tb0532;
 
 {Append was the recommended way to open devices in TP.
