@@ -290,7 +290,6 @@ function CreateHIView (inWindow: WindowRef; const inBounds: Rect; var outControl
   var
     root  : ControlRef;
     event : EventRef;
-    contentView: HIViewRef;
     err   : OSStatus;
   label
     CantCreate, CantGetRootControl, CantSetParameter, CantCreateEvent{, CantRegister};
@@ -339,7 +338,7 @@ function MyDrawEventHandler (myHandler: EventHandlerCallRef;
   var
     myContext: CGContextRef;
     bounds: HIRect;
-    
+    img: CGImageRef;
   begin
 //      writeln('event');
       MyDrawEventHandler := GetEventParameter (event, // 1
@@ -355,9 +354,11 @@ function MyDrawEventHandler (myHandler: EventHandlerCallRef;
     if (MyDrawEventHandler <> noErr) then
       exit;
     EnterCriticalSection(graphdrawing);
+    img:=CGBitmapContextCreateImage(offscreen);
     CGContextDrawImage(myContext,
                        bounds,
-                       CGBitmapContextCreateImage(offscreen));
+                       img);
+    CGImageRelease(img);
     updatepending:=false;
     LeaveCriticalSection(graphdrawing);
 end;
@@ -1019,7 +1020,7 @@ begin
   if assigned(newEvent) then
     if PostEventToQueue(source,newEvent,kEventPriorityStandard) <> noErr then
       runerror(218);
-  result := noErr;
+  GraphEventHandler := noErr;
   ReleaseEvent(event);
 end;
 
