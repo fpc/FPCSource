@@ -1,7 +1,7 @@
 program stored;
 {$mode objfpc}{$h+}
 uses
-  Classes;
+  SysUtils, Classes;
 
 const
   ShowTheException = true; //set this to false for halt(128) instead of exception
@@ -106,4 +106,3 @@ begin
   writeln('ok. done.');
   DeleteFile('testfile.tmp');
 end.
-
