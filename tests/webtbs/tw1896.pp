@@ -21,4 +21,6 @@ begin
      writeln('Error');
      halt(1);
    end;
+  close(fin);
+  erase(fin);
 end.

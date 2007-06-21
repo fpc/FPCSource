@@ -72,6 +72,7 @@ Const S : String = '0123456789';
 Var Stream : TBufStream;
     Buf : String;
     L : word;
+    f : file;
 
 begin
   StreamError:= @StreamErrorProcedure;
@@ -119,4 +120,6 @@ begin
   Stream.Init('testobj.tmp',StOpenWrite,8);
   Stream.Truncate;
   Stream.Done;
+  Assign(f,'testobj.tmp');
+  Erase(f);
 end.

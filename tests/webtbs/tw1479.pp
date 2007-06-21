@@ -24,4 +24,5 @@ begin
   writeln('found: ',fn);
   if fn<>ThisDir+fname then
    halt(1);
+  erase(f);
 end.

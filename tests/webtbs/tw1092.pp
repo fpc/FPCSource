@@ -18,4 +18,5 @@ BEGIN
      writeln('FSearch didn''t find file in the current dir!');
      halt(1);
    end;
+  erase(t);
 END.

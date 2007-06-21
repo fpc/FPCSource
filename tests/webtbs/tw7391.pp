@@ -104,5 +104,6 @@ begin
     end;
   end;
   writeln('ok. done.');
+  DeleteFile('testfile.tmp');
 end.
 

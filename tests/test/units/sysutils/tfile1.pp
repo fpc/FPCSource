@@ -31,4 +31,10 @@ BEGIN
   dateTime := IncMonth(Now, -1);
   if FileSetDate('datetest.dat', DateTimeToFileDate(dateTime))<>0 then
     do_error(1002);
+
+  if FileExists('datetest.dat') then
+    begin
+      Assign(f,'datetest.dat');
+      Erase(f);
+    end;
 END.

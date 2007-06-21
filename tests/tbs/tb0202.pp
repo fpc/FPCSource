@@ -35,4 +35,5 @@ begin
   reset(fileof);
   test;
   close(fileof);
+  erase(fileof);
 end.

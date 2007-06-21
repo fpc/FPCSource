@@ -43,4 +43,5 @@ begin
    readln(f,st);
    if st<>'Invalid Opcode' then halt(1);
    close(f);
+   erase(f);
 end.

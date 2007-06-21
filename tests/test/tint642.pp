@@ -724,6 +724,7 @@ procedure testioqword;
                do_error(2101);
             end;
        end;
+    erase(t);
   end;
 
 procedure teststringqword;

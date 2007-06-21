@@ -24,6 +24,8 @@ begin
         reset(input);
 	readln(v, k);
 	readln(a1, a2, b1, b2, c1, c2);
+  close(input);
+  erase(input);
 end;
 
 procedure dfs(a, b, c, k1: Byte);

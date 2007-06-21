@@ -32,6 +32,7 @@ end;
 var
   pTempStream: PMyStream;
   mem : sizeint;
+  f : file;
 begin
   DoMem(mem);
   pTempStream := nil;
@@ -46,4 +47,6 @@ begin
       Writeln('Memory lost');
       Halt(1);
     end;
+  Assign(f,'tw1658.tmp');
+  Erase(f);
 end.

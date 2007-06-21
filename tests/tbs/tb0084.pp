@@ -52,4 +52,5 @@ typecasting thing.}
  ReadLn(F,S);                          { Show that it worked, the same }
  WriteLn('That line again:',S);        { line readed again! }
  Close(F);                             { Close it }
+ Erase(F);
 end.
