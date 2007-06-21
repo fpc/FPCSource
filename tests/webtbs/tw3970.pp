@@ -26,4 +26,5 @@ begin
      ReadLn (f, s); // Warning!
 
      Close (f);
+     Erase (f);
 end.

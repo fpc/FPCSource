@@ -56,5 +56,6 @@ begin
   stream2.free;
   testcomp1.free;
   testcomp2.free;
+  deletefile('test.txt');
  end;
 end.

@@ -512,12 +512,12 @@ begin
     failed := true;
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
   If failed then
    fail
   else
     WriteLn('Passed!');
-{$endif FPC_HAS_TYPE_EXTENDED}
 
   Write('External struct parameter testing...');
 

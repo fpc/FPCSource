@@ -31,4 +31,6 @@ begin
     end;
   Close(dat);
   close(dat2);
+  Erase(dat);
+  Erase(dat2);
 end.

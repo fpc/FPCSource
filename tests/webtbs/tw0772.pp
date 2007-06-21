@@ -36,4 +36,5 @@ begin
   if Foo.A<>4 then
    Halt(1);
   close(t);
+  erase(t);
 end.

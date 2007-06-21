@@ -1,3 +1,4 @@
+{%skiptarget=wince}
 var
   f:file;
   p:pointer;
@@ -10,6 +11,7 @@ begin
   p:=nil;
   BlockWrite(f,p^,12345);
   Close(f);
+  Erase(f);
   {$I+}
   i:=ioresult;
   writeln('IOResult: ',i);

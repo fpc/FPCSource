@@ -1,4 +1,4 @@
-{$D+,E-,I+,L+,P-,Q+,R+,S+,T+,V+,X+,Y+}
+{$D+,I+,L+,P-,Q+,R+,S+,T+,V+,X+,Y+}
 {$M 8192,0,655360}
 PROGRAM TEST;
 CONST

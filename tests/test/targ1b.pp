@@ -1,3 +1,5 @@
+{%skiptarget=wince}
+
 { This file is to check if there is some memory corruption
   due to startup code with argument loading
   go32v2 target had this problem

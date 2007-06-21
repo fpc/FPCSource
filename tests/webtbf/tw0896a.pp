@@ -14,4 +14,5 @@ begin
   { writeln should not be allowed for typed files }
     writeln (dat,Buffer[j]);
   Close(dat);
+  Erase(dat);
 end.

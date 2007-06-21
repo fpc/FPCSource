@@ -17,6 +17,7 @@ var
   pStream2: PStream;
   lAux    : Longint;
   error : boolean;
+  f : file;
 begin
   error := false;
   Write('Error checking for object streams...');
@@ -35,6 +36,10 @@ begin
 
   pStream2^.Free;
   pStream1^.Free;
+
+  Assign(f,csFName1);
+  Erase(f);
+
   if error then
     Begin
       WriteLn('FAILED! Errors are mixed up!');

@@ -9,4 +9,5 @@ begin
    w:=20;
    write(outf, w);
    close(outf);
+   erase(outf);
 end.

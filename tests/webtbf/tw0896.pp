@@ -14,4 +14,5 @@ begin
   { write should not be allowed for untyped files }
     write (dat,Buffer[j]);
   Close(dat);
+  Erase(dat);
 end.

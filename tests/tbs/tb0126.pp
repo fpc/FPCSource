@@ -25,6 +25,7 @@ begin
   reset(fin);
   read(fin,b1);
   close(fin);
+  erase(fin);
   if not b1[512*Mb]=1 then
    begin
       writeln('data err');

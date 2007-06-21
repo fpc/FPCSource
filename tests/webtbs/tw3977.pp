@@ -13,5 +13,6 @@ begin
   assign(input,'tw3977.tmp');
   reset(input);
   readln(n);
-  close(output);
+  close(input);
+  erase(input);
 end.

@@ -52,4 +52,6 @@ begin
       Writeln('Error reading I value, should be one');
       Halt(1);
     end;
+  close(f);
+  erase(f);
 end.
