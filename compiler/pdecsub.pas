@@ -2254,8 +2254,8 @@ const
                     if s<>'' then
                       begin
                         { Replace ? and @ in import name }
-                        Replace(s,'?','$_q_$');
-                        Replace(s,'@','$_a_$');
+                        Replace(s,'?','__q$$');
+                        Replace(s,'@','__a$$');
                         pd.setmangledname(s);
                       end;
                   end;

@@ -1358,8 +1358,8 @@ implementation
         FIsVar:=AIsVar;
         FMangledName:=AName;
         { Replace ? and @ in import name }
-        Replace(FMangledName,'?','$_q_$');
-        Replace(FMangledName,'@','$_a_$');
+        Replace(FMangledName,'?','__q$$');
+        Replace(FMangledName,'@','__a$$');
       end;
 
 
