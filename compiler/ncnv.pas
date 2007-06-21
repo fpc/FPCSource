@@ -1995,19 +1995,23 @@ implementation
                 if is_currency(left.resultdef) then
                   left.resultdef := s64inttype;
                 if is_signed(left.resultdef) then
-                  fname:='I64TOD'
+                  fname:='I64TO'
                 else
-                  fname:='UI64TOD';
+                  fname:='UI64TO';
               end
             else
               { other integers are supposed to be 32 bit }
               begin
                 if is_signed(left.resultdef) then
-                  fname:='ITOD'
+                  fname:='ITO'
                 else
-                  fname:='UTOD';
+                  fname:='UTO';
                 firstpass(left);
               end;
+            if tfloatdef(resultdef).floattype=s64real then
+              fname:=fname+'D'
+            else
+              fname:=fname+'S';
             result:=ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;

@@ -174,6 +174,18 @@ function ui64tod(i : qword) : double; compilerproc;
 
 function i64tod(i : int64) : double; compilerproc;
    cdecl;external 'coredll' name '__i64tod';
+   
+function utos(i : dword) : single; compilerproc;
+   cdecl;external 'coredll' name '__utos';
+
+function itos(i : longint) : single; compilerproc;
+   cdecl;external 'coredll' name '__itos';
+
+function ui64tos(i : qword) : single; compilerproc;
+   cdecl;external 'coredll' name '__u64tos';
+
+function i64tos(i : int64) : single; compilerproc;
+   cdecl;external 'coredll' name '__i64tos';
 
 function adds(s1,s2 : single) : single; compilerproc;
 function subs(s1,s2 : single) : single; compilerproc;
