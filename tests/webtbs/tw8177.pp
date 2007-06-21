@@ -6,6 +6,10 @@ program ValidateStrToInt;
   {$mode delphi}
 {$ENDIF}
 
+{$ifdef cpuarm}
+  {$define slowcpu}
+{$endif}
+
 uses
   SysUtils;
 
@@ -13,17 +17,17 @@ const
   AllowSlow = False;
 
 const
- VALIDATE8MIN : Integer = -80000;
- VALIDATE8MAX : Integer = 800000;
- VALIDATE9MAX : Integer = 200000;
- VALIDATE10MAX : Integer = 200000;
- VALIDATE13MIN : Integer = -1234678;
- VALIDATE13MAX : Integer = 123457;
- VALIDATE14MIN : Integer = -1234567;
- VALIDATE14MAX : Integer = 1234568;
- VALIDATE15MIN : Integer = -2235678;
- VALIDATE15MAX : Integer = 234578;
- VALIDATE16MIN : Integer = -1123478;
+ VALIDATE8MIN : Integer = {$ifdef slowcpu}-20000{$else}-80000{$endif};
+ VALIDATE8MAX : Integer = {$ifdef slowcpu}20000{$else}80000{$endif};
+ VALIDATE9MAX : Integer = {$ifdef slowcpu}50000{$else}200000{$endif};
+ VALIDATE10MAX : Integer = {$ifdef slowcpu}50000{$else}200000{$endif};
+ VALIDATE13MIN : Integer = {$ifdef slowcpu}-12345{$else}-1234678{$endif};
+ VALIDATE13MAX : Integer = {$ifdef slowcpu}12345{$else}123457{$endif};
+ VALIDATE14MIN : Integer = {$ifdef slowcpu}-12345{$else}-1234567{$endif};
+ VALIDATE14MAX : Integer = {$ifdef slowcpu}12345{$else}1234568{$endif};
+ VALIDATE15MIN : Integer = {$ifdef slowcpu}-22356{$else}-2235678{$endif};
+ VALIDATE15MAX : Integer = {$ifdef slowcpu}23457{$else}234578{$endif};
+ VALIDATE16MIN : Integer = {$ifdef slowcpu}-11234{$else}-1123478{$endif};
  VALIDATE16MAX : Integer = 45678;
  VALIDATE29OFFSETMAX : Integer = 400000;
  VALIDATE30OFFSETMAX : Integer = 400000;
