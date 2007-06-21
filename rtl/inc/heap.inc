@@ -1503,7 +1503,6 @@ begin
           orphaned_freelists.oslist_all^.prev_any := poc;
         orphaned_freelists.oslist_all := loc_freelists^.oslist_all;
       end;
-      leavecriticalsection(heap_lock);
     end;
     leavecriticalsection(heap_lock);
     if main_relo_freelists = loc_freelists then
