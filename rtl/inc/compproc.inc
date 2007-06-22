@@ -390,6 +390,7 @@ Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
 Procedure fpc_DecRef (Data,TypeInfo : Pointer);  compilerproc;
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); compilerproc;
+Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt; compilerproc;
 {$endif FPC_HAS_FEATURE_RTTI}
 
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; compilerproc;

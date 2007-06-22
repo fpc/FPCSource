@@ -45,6 +45,7 @@ Const
 type
   TRTTIProc=procedure(Data,TypeInfo:Pointer);
 
+{ if you modify this procedure, fpc_copy must be probably modified as well }
 procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
 {
   A record is designed as follows :
@@ -87,6 +88,7 @@ begin
 end;
 
 
+{ if you modify this procedure, fpc_copy must be probably modified as well }
 procedure ArrayRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
 {
   An array is designed as follows :
@@ -220,17 +222,22 @@ begin
   end;
 end;
 
+{ define alias for internal use in the system unit }
+Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY'];
 
-(*
-Procedure fpc_Copy (Src, Dest, TypeInfo : Pointer);[Public,alias : 'FPC_COPY'];  compilerproc;
+Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
 var
   Temp : pbyte;
   namelen : byte;
+  copiedsize,
+  expectedoffset,
   count,
   offset,
-  i : longint;
+  size,
+  i : SizeInt;
   info : pointer;
 begin
+  result:=sizeof(pointer);
   case PByte(TypeInfo)^ of
     tkAstring:
       begin
@@ -239,13 +246,27 @@ begin
         PPointer(Dest)^:=PPointer(Src)^;
       end;
     tkWstring:
-      begin
-        fpc_WideStr_Incr_Ref(PPointer(Src)^);
-        fpc_WideStr_Decr_Ref(PPointer(Dest)^);
-      end;
+      fpc_WideStr_Assign(PPointer(Dest)^,PPointer(Src)^);
     tkArray:
       begin
-        arrayrtti(data,typeinfo,@fpc_systemDecRef);
+        Temp:=PByte(TypeInfo);
+        inc(Temp);
+        { Skip Name }
+        namelen:=Temp^;
+        inc(temp,namelen+1);
+        temp:=aligntoptr(temp);
+        { Element size }
+        size:=PSizeInt(Temp)^;
+        inc(Temp,sizeof(Size));
+        { Element count }
+        Count:=PSizeInt(Temp)^;
+        inc(Temp,sizeof(Count));
+        Info:=PPointer(Temp)^;
+        inc(Temp,sizeof(Info));
+        { Process elements }
+        for I:=0 to Count-1 do
+          fpc_Copy_internal(Src+(I*size),Dest+(I*size),Info);
+        Result:=size*count;
       end;
     tkobject,
     tkrecord:
@@ -258,26 +279,31 @@ begin
         temp:=aligntoptr(temp);
 
         { copy data }
-        move(src^,dest^,plongint(temp)^);
+        Result:=plongint(temp)^;
 
         { Skip size }
         inc(Temp,4);
         { Element count }
         Count:=PLongint(Temp)^;
         inc(Temp,sizeof(Count));
-        { Process elements }
+        expectedoffset:=0;
+        { Process elements with rtti }
         for i:=1 to count Do
           begin
             Info:=PPointer(Temp)^;
             inc(Temp,sizeof(Info));
             Offset:=PLongint(Temp)^;
+            if Offset>expectedoffset then
+              move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
             inc(Temp,sizeof(Offset));
-            fpc_Copy(Src+Offset,Src+Offset,Info);
-	  end;
+            copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
+            expectedoffset:=Offset+copiedsize;
+          end;
+      end;
     tkDynArray:
       begin
         fpc_dynarray_Incr_Ref(PPointer(Src)^);
-        fpc_dynarray_Decr_Ref(PPointer(Dest)^);
+        fpc_dynarray_Decr_Ref(PPointer(Dest)^,typeinfo);
         PPointer(Dest)^:=PPointer(Src)^;
       end;
     tkInterface:
@@ -287,10 +313,12 @@ begin
         PPointer(Dest)^:=PPointer(Src)^;
       end;
     tkVariant:
-      VarCopyProc(pvardata(dest)^,pvardata(src)^);
+      begin
+        VarCopyProc(pvardata(dest)^,pvardata(src)^);
+        result:=sizeof(tvardata);
+      end;
   end;
 end;
-*)
 
 
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;
