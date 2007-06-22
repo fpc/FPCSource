@@ -39,6 +39,7 @@ interface
 
     procedure read_record_fields(options:Tvar_dec_options);
 
+    procedure read_public_and_external(vs: tabstractvarsym);
 
 implementation
 
@@ -701,6 +702,137 @@ implementation
     const
        variantrecordlevel : longint = 0;
 
+
+    procedure read_public_and_external_sc(sc:TFPObjectList);
+    var
+      vs: tabstractvarsym;
+    begin
+      { only allowed for one var }
+      vs:=tabstractvarsym(sc[0]);
+      if sc.count>1 then
+        Message(parser_e_absolute_only_one_var);
+      read_public_and_external(vs);
+    end;
+
+
+    procedure read_public_and_external(vs: tabstractvarsym);
+    var
+      is_dll,
+      is_cdecl,
+      is_external_var,
+      is_public_var  : boolean;
+      dll_name,
+      C_name      : string;
+    begin
+      { only allowed for one var }
+      { only allow external and public on global symbols }
+      if vs.typ<>staticvarsym then
+        begin
+          Message(parser_e_no_local_var_external);
+          exit;
+        end;
+      { defaults }
+      is_dll:=false;
+      is_cdecl:=false;
+      is_external_var:=false;
+      is_public_var:=false;
+      C_name:=vs.realname;
+
+      { macpas specific handling due to some switches}
+      if (m_mac in current_settings.modeswitches) then
+        begin
+          if (cs_external_var in current_settings.localswitches) then
+            begin {The effect of this is the same as if cvar; external; has been given as directives.}
+              is_cdecl:=true;
+              is_external_var:=true;
+            end
+          else if (cs_externally_visible in current_settings.localswitches) then
+            begin {The effect of this is the same as if cvar has been given as directives and it's made public.}
+              is_cdecl:=true;
+              is_public_var:=true;
+            end;
+        end;
+
+      { cdecl }
+      if try_to_consume(_CVAR) then
+        begin
+          consume(_SEMICOLON);
+          is_cdecl:=true;
+        end;
+
+      { external }
+      if try_to_consume(_EXTERNAL) then
+        begin
+          is_external_var:=true;
+          if not is_cdecl then
+            begin
+              if idtoken<>_NAME then
+                begin
+                  is_dll:=true;
+                  dll_name:=get_stringconst;
+                  if ExtractFileExt(dll_name)='' then
+                    dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
+                end;
+              if try_to_consume(_NAME) then
+                C_name:=get_stringconst;
+            end;
+          consume(_SEMICOLON);
+        end;
+
+      { export or public }
+      if idtoken in [_EXPORT,_PUBLIC] then
+        begin
+          consume(_ID);
+          if is_external_var then
+            Message(parser_e_not_external_and_export)
+          else
+            is_public_var:=true;
+          if try_to_consume(_NAME) then
+            C_name:=get_stringconst;
+          consume(_SEMICOLON);
+        end;
+
+      { Windows uses an indirect reference using import tables }
+      if is_dll and
+         (target_info.system in system_all_windows) then
+        include(vs.varoptions,vo_is_dll_var);
+
+      { Add C _ prefix }
+      if is_cdecl or
+         (
+          is_dll and
+          (target_info.system in systems_darwin)
+         ) then
+        C_Name := target_info.Cprefix+C_Name;
+
+      if is_public_var then
+        begin
+          include(vs.varoptions,vo_is_public);
+          vs.varregable := vr_none;
+          { mark as referenced }
+          inc(vs.refs);
+        end;
+
+      { now we can insert it in the import lib if its a dll, or
+        add it to the externals }
+      if is_external_var then
+        begin
+          if vo_is_typed_const in vs.varoptions then
+            Message(parser_e_initialized_not_for_external);
+          include(vs.varoptions,vo_is_external);
+          vs.varregable := vr_none;
+          if is_dll then
+            current_module.AddExternalImport(dll_name,C_Name,0,true)
+          else
+            if tf_has_dllscanner in target_info.flags then
+              current_module.dllscannerinputlist.Add(vs.mangledname,vs);
+        end;
+
+      { Set the assembler name }
+      tstaticvarsym(vs).set_mangledname(C_Name);
+    end;
+
+
     procedure read_var_decls(options:Tvar_dec_options);
 
         procedure read_default_value(sc : TFPObjectList);
@@ -858,127 +990,6 @@ implementation
             end;
         end;
 
-        procedure read_public_and_external(sc:TFPObjectList);
-        var
-          vs          : tabstractvarsym;
-          is_dll,
-          is_cdecl,
-          is_external_var,
-          is_public_var  : boolean;
-          dll_name,
-          C_name      : string;
-        begin
-          { only allowed for one var }
-          vs:=tabstractvarsym(sc[0]);
-          if sc.count>1 then
-            Message(parser_e_absolute_only_one_var);
-          { only allow external and public on global symbols }
-          if vs.typ<>staticvarsym then
-            begin
-              Message(parser_e_no_local_var_external);
-              exit;
-            end;
-          { defaults }
-          is_dll:=false;
-          is_cdecl:=false;
-          is_external_var:=false;
-          is_public_var:=false;
-          C_name:=vs.realname;
-
-          { macpas specific handling due to some switches}
-          if (m_mac in current_settings.modeswitches) then
-            begin
-              if (cs_external_var in current_settings.localswitches) then
-                begin {The effect of this is the same as if cvar; external; has been given as directives.}
-                  is_cdecl:=true;
-                  is_external_var:=true;
-                end
-              else if (cs_externally_visible in current_settings.localswitches) then
-                begin {The effect of this is the same as if cvar has been given as directives and it's made public.}
-                  is_cdecl:=true;
-                  is_public_var:=true;
-                end;
-            end;
-
-          { cdecl }
-          if try_to_consume(_CVAR) then
-            begin
-              consume(_SEMICOLON);
-              is_cdecl:=true;
-            end;
-
-          { external }
-          if try_to_consume(_EXTERNAL) then
-            begin
-              is_external_var:=true;
-              if not is_cdecl then
-                begin
-                  if idtoken<>_NAME then
-                    begin
-                      is_dll:=true;
-                      dll_name:=get_stringconst;
-                      if ExtractFileExt(dll_name)='' then
-                        dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
-                    end;
-                  if try_to_consume(_NAME) then
-                    C_name:=get_stringconst;
-                end;
-              consume(_SEMICOLON);
-            end;
-
-          { export or public }
-          if idtoken in [_EXPORT,_PUBLIC] then
-            begin
-              consume(_ID);
-              if is_external_var then
-                Message(parser_e_not_external_and_export)
-              else
-                is_public_var:=true;
-              if try_to_consume(_NAME) then
-                C_name:=get_stringconst;
-              consume(_SEMICOLON);
-            end;
-
-          { Windows uses an indirect reference using import tables }
-          if is_dll and
-             (target_info.system in system_all_windows) then
-            include(vs.varoptions,vo_is_dll_var);
-
-          { Add C _ prefix }
-          if is_cdecl or
-             (
-              is_dll and
-              (target_info.system in systems_darwin)
-             ) then
-            C_Name := target_info.Cprefix+C_Name;
-
-          if is_public_var then
-            begin
-              include(vs.varoptions,vo_is_public);
-              vs.varregable := vr_none;
-              { mark as referenced }
-              inc(vs.refs);
-            end;
-
-          { now we can insert it in the import lib if its a dll, or
-            add it to the externals }
-          if is_external_var then
-            begin
-              if vo_is_typed_const in vs.varoptions then
-                Message(parser_e_initialized_not_for_external);
-              include(vs.varoptions,vo_is_external);
-              vs.varregable := vr_none;
-              if is_dll then
-                current_module.AddExternalImport(dll_name,C_Name,0,true)
-              else
-                if tf_has_dllscanner in target_info.flags then
-                  current_module.dllscannerinputlist.Add(vs.mangledname,vs);
-            end;
-
-          { Set the assembler name }
-          tstaticvarsym(vs).set_mangledname(C_Name);
-        end;
-
       var
          sc   : TFPObjectList;
          vs   : tabstractvarsym;
@@ -1059,7 +1070,7 @@ implementation
              { Check for EXTERNAL etc directives before a semicolon }
              if (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
                begin
-                 read_public_and_external(sc);
+                 read_public_and_external_sc(sc);
                  allowdefaultvalue:=false;
                  semicoloneaten:=true;
                end;
@@ -1084,7 +1095,6 @@ implementation
                     (hdef.typesym=nil) then
                    handle_calling_convention(tprocvardef(hdef));
                  read_default_value(sc);
-                 consume(_SEMICOLON);
                  hasdefaultvalue:=true;
                end
              else
@@ -1108,7 +1118,6 @@ implementation
                     (symtablestack.top.symtabletype<>parasymtable) then
                    begin
                      read_default_value(sc);
-                     consume(_SEMICOLON);
                      hasdefaultvalue:=true;
                    end;
                end;
@@ -1127,7 +1136,7 @@ implementation
                   )
                  )
                 ) then
-               read_public_and_external(sc);
+               read_public_and_external_sc(sc);
 
              { allocate normal variable (non-external and non-typed-const) staticvarsyms }
              for i:=0 to sc.count-1 do

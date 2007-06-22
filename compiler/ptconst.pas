@@ -42,7 +42,7 @@ implementation
        node,htypechk,procinfo,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser specific stuff }
-       pbase,pexpr,
+       pbase,pexpr,pdecvar,
        { codegen }
        cpuinfo,cgbase,dbgbase
        ;
@@ -1303,6 +1303,7 @@ implementation
         storefilepos : tfileposinfo;
         cursectype   : TAsmSectionType;
         C_name       : string;
+        valuelist    : tasmlist;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
@@ -1319,6 +1320,33 @@ implementation
         else
           cursectype:=sec_data;
         maybe_new_object_file(list);
+        valuelist:=tasmlist.create;
+        read_typed_const_data(valuelist,sym.vardef);
+
+        { Parse hints }
+        try_consume_hintdirective(sym.symoptions);
+
+        consume(_SEMICOLON);
+
+        { parse public/external/export/... }
+        if (
+            (
+             (token = _ID) and
+             (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) and
+             (m_cvar_support in current_settings.modeswitches)
+            ) or
+            (
+             (m_mac in current_settings.modeswitches) and
+             (
+              (cs_external_var in current_settings.localswitches) or
+              (cs_externally_visible in current_settings.localswitches)
+             )
+            )
+           ) then
+          read_public_and_external(sym);
+
+        { only now add items based on the symbolname, because it may }
+        { have been modified by the directives parsed above          }
         new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
@@ -1328,23 +1356,12 @@ implementation
           list.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,0))
         else
           list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
-        read_typed_const_data(list,sym.vardef);
+
+        { add the parsed value }
+        list.concatlist(valuelist);
+        valuelist.free;
         list.concat(tai_symbol_end.Createname(sym.mangledname));
         current_filepos:=storefilepos;
-
-        { Parse hints }
-        try_consume_hintdirective(sym.symoptions);
-
-        { Support public name directive }
-        if try_to_consume(_PUBLIC) then
-          begin
-            include(sym.varoptions,vo_is_public);
-            if try_to_consume(_NAME) then
-              C_name:=get_stringconst
-            else
-              C_name:=sym.realname;
-            sym.set_mangledname(C_Name);
-          end;
       end;
 
 end.
