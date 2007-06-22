@@ -2726,24 +2726,17 @@
      TDOCINFO2 = DOC_INFO_2;
      PDOCINFO2 = ^DOC_INFO_2;
 
-     DOCINFO = record
-          cbSize : longint;
-          lpszDocName : LPCTSTR;
-          lpszOutput : LPCTSTR;
-          lpszDatatype : LPCTSTR;
-          fwType : DWORD;
-       end;
-     TDOCINFO = DOCINFO;
-     TDOCINFOA = DOCINFO;
-     PDOCINFO = ^DOCINFO;
-
-     DOCINFOW = record //+wingdi
+     DOCINFO = record //+wingdi
           cbSize : Integer;
           lpszDocName : LPCWSTR;
           lpszOutput : LPCWSTR;
           lpszDatatype : LPCWSTR;
           fwType : DWORD;
        end;
+     TDOCINFO = DOCINFO;
+     PDOCINFO = ^DOCINFO;
+     DOCINFOW = DOCINFO;
+     TDOCINFOW = DOCINFOW;
      _DOCINFOW=DOCINFOW; //+wingdi
      LPDOCINFOW=^PDOCINFO; //+wingdi
      PDOCINFOW=^PDOCINFO; //+wingdi
