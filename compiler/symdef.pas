@@ -1527,7 +1527,7 @@ implementation
           varUndefined,
           varbyte,varqword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
-          varboolean,varUndefined,varUndefined,varUndefined,
+          varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
         result:=basetype2vardef[ordtype];
