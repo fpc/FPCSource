@@ -289,7 +289,6 @@
       16F GetServiceByIndex
       174 GetServiceHandle
       102 GetStoreInformation
-      138 GetStringTypeW
       14A GetSystemDefaultUILanguage
       17C GetSystemMemoryDivision
       15E GetSystemPowerState
@@ -566,7 +565,6 @@
       135 SetSystemDefaultLCID
       17D SetSystemMemoryDivision
       15F SetSystemPowerState
-      302 SetThreadContext
       3A0 SetTimeZoneBias
       2CF SetUserData
       137 SetUserDefaultLCID
@@ -664,7 +662,6 @@
       35D VirtualCopy
       35E VirtualSetAttributes
       3C2 WriteDebugLED
-       F5 WriteFile
       182 WriteFileWithSeek
       113 WriteMsgQueue
       3C1 WriteRegistryToOEM
@@ -975,7 +972,6 @@
       16F __imp_GetServiceByIndex
       174 __imp_GetServiceHandle
       102 __imp_GetStoreInformation
-      138 __imp_GetStringTypeW
       14A __imp_GetSystemDefaultUILanguage
       17C __imp_GetSystemMemoryDivision
       15E __imp_GetSystemPowerState
@@ -1254,7 +1250,6 @@
       135 __imp_SetSystemDefaultLCID
       17D __imp_SetSystemMemoryDivision
       15F __imp_SetSystemPowerState
-      302 __imp_SetThreadContext
       3A0 __imp_SetTimeZoneBias
       2CF __imp_SetUserData
       137 __imp_SetUserDefaultLCID
@@ -1352,7 +1347,6 @@
       35D __imp_VirtualCopy
       35E __imp_VirtualSetAttributes
       3C2 __imp_WriteDebugLED
-       F5 __imp_WriteFile
       182 __imp_WriteFileWithSeek
       113 __imp_WriteMsgQueue
       3C1 __imp_WriteRegistryToOEM
