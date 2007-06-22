@@ -186,11 +186,6 @@
      BSM_NETDRIVER = 2;
      BSM_VXDS = 1;
      BROADCAST_QUERY_DENY = 1112363332;
-  { BrowseCallbackProc  }
-  { CallNamedPipe  }
-     NMPWAIT_NOWAIT = 1;
-     NMPWAIT_WAIT_FOREVER = -(1);
-     NMPWAIT_USE_DEFAULT_WAIT = 0;
   { CascadeWindows, TileWindows  }
      MDITILE_SKIPDISABLED = 2;
      MDITILE_HORIZONTAL = 1;
@@ -579,9 +574,6 @@
   { already defined above !!
   #define LR_MONOCHROME (1)
    }
-  { CreateMailslot, GetMailslotInfo  }
-     MAILSLOT_WAIT_FOREVER = $ffffffff;
-     MAILSLOT_NO_MESSAGE = $ffffffff;
   { CreateMappedBitmap  }
      CMB_MASKED = 2;
   { CreateNamedPipe  }
@@ -618,9 +610,6 @@
      PS_STYLE_MASK = 15;
      PS_ENDCAP_MASK = 3840;
      PS_TYPE_MASK = 983040;
-  { CreatePolygonRgn  }
-     ALTERNATE = 1;
-     WINDING = 2;
   { CreateProcess  }
      CREATE_DEFAULT_ERROR_MODE = 67108864;
      CREATE_NEW_CONSOLE = 16;
@@ -1236,15 +1225,6 @@
      ETO_GLYPH_INDEX = 16;
      ETO_OPAQUE = 2;
      ETO_RTLREADING = 128;
-  { FillConsoleOutputAttribute  }
-     FOREGROUND_BLUE = 1;
-     FOREGROUND_GREEN = 2;
-     FOREGROUND_RED = 4;
-     FOREGROUND_INTENSITY = 8;
-     BACKGROUND_BLUE = 16;
-     BACKGROUND_GREEN = 32;
-     BACKGROUND_RED = 64;
-     BACKGROUND_INTENSITY = 128;
   { FindFirstChangeNotification  }
      FILE_NOTIFY_CHANGE_FILE_NAME = 1;
      FILE_NOTIFY_CHANGE_DIR_NAME = 2;
@@ -1286,40 +1266,6 @@
   { GetArcDirection  }
      AD_COUNTERCLOCKWISE = 1;
      AD_CLOCKWISE = 2;
-  { GetBinaryTypes  }
-     SCS_32BIT_BINARY = 0;
-     SCS_DOS_BINARY = 1;
-     SCS_OS216_BINARY = 5;
-     SCS_PIF_BINARY = 3;
-     SCS_POSIX_BINARY = 4;
-     SCS_WOW_BINARY = 2;
-  { GetBoundsRect, SetBoundsRect  }
-     DCB_DISABLE = 8;
-     DCB_ENABLE = 4;
-     DCB_RESET = 1;
-     DCB_SET = 3;
-     DCB_ACCUMULATE = 2;
-  { GetCharacterPlacement, GetFontLanguageInfo  }
-     GCP_DBCS = 1;
-     GCP_ERROR = $8000;
-     GCP_CLASSIN = $80000;
-     GCP_DIACRITIC = 256;
-     GCP_DISPLAYZWG = $400000;
-     GCP_GLYPHSHAPE = 16;
-     GCP_JUSTIFY = $10000;
-     GCP_JUSTIFYIN = $200000;
-     GCP_KASHIDA = 1024;
-     GCP_LIGATE = 32;
-     GCP_MAXEXTENT = $100000;
-     GCP_NEUTRALOVERRIDE = $2000000;
-     GCP_NUMERICOVERRIDE = $1000000;
-     GCP_NUMERICSLATIN = $4000000;
-     GCP_NUMERICSLOCAL = $8000000;
-     GCP_REORDER = 2;
-     GCP_SYMSWAPOFF = $800000;
-     GCP_USEKERNING = 8;
-     FLI_GLYPHS = $40000;
-     FLI_MASK = $103b;
   { GetClassLong, GetClassWord  }
      GCW_ATOM = -(32);
      GCL_CBCLSEXTRA = -(20);
@@ -1381,14 +1327,6 @@
      MS_RLSD_ON = $80;
   { GetComputerName  }
      MAX_COMPUTERNAME_LENGTH = 15;
-  { GetConsoleMode  }
-     ENABLE_LINE_INPUT = 2;
-     ENABLE_ECHO_INPUT = 4;
-     ENABLE_PROCESSED_INPUT = 1;
-     ENABLE_WINDOW_INPUT = 8;
-     ENABLE_MOUSE_INPUT = 16;
-     ENABLE_PROCESSED_OUTPUT = 1;
-     ENABLE_WRAP_AT_EOL_OUTPUT = 2;
   { GetCPInfo  }
      CP_ACP = 0;
      CP_MACCP = 2;
@@ -1564,20 +1502,10 @@
      FILE_TYPE_DISK = 1;
      FILE_TYPE_CHAR = 2;
      FILE_TYPE_PIPE = 3;
-  { GetGlyphOutline  }
-     GGO_BITMAP = 1;
-     GGO_NATIVE = 2;
-     GGO_METRICS = 0;
-     GGO_GRAY2_BITMAP = 4;
-     GGO_GRAY4_BITMAP = 5;
-     GGO_GRAY8_BITMAP = 6;
      GDI_ERROR = $ffffffff;
   { GetGraphicsMode  }
      GM_COMPATIBLE = 1;
      GM_ADVANCED = 2;
-  { GetHandleInformation  }
-     HANDLE_FLAG_INHERIT = 1;
-     HANDLE_FLAG_PROTECT_FROM_CLOSE = 2;
   { GetIconInfo  }
      IDC_ARROW = MAKEINTRESOURCE(32512);
      IDC_IBEAM = MAKEINTRESOURCE(32513);
@@ -1620,13 +1548,6 @@
      PM_NOREMOVE = 0;
      PM_REMOVE = 1;
      PM_NOYIELD = 2;
-  { GetNamedPipeHandleState  }
-  {   PIPE_NOWAIT = 1; already above }
-  {   PIPE_READMODE_MESSAGE = 2;already above }
-  { GetNamedPipeInfo  }
-     PIPE_CLIENT_END = 0;
-     PIPE_SERVER_END = 1;
-  {   PIPE_TYPE_MESSAGE = 4;already above }
   { GetNextWindow, GetWindow  }
      GW_HWNDNEXT = 2;
      GW_HWNDPREV = 3;
@@ -1636,13 +1557,6 @@
      GW_OWNER = 4;
      GW_MAX = 5; //+winuser
 
-  { GetPath  }
-     PT_MOVETO = 6;
-     PT_LINETO = 2;
-     PT_BEZIERTO = 4;
-     PT_CLOSEFIGURE = 1;
-  { GetProcessShutdownParameters  }
-     SHUTDOWN_NORETRY = 1;
   { GetQueueStatus  }
      QS_ALLEVENTS = 191;
      QS_ALLINPUT = 255;
@@ -1867,14 +1781,6 @@
      SYSPAL_NOSTATIC = 2;
      SYSPAL_STATIC = 1;
      SYSPAL_ERROR = 0;
-  { GetTapeParameters, SetTapeParameters  }
-     GET_TAPE_MEDIA_INFORMATION = 0;
-     GET_TAPE_DRIVE_INFORMATION = 1;
-     SET_TAPE_MEDIA_INFORMATION = 0;
-     SET_TAPE_DRIVE_INFORMATION = 1;
-  { GetTapePosition  }
-     TAPE_ABSOLUTE_POSITION = 0;
-     TAPE_LOGICAL_POSITION = $1;
   { GetTextAlign  }
      TA_BASELINE = 24;
      TA_BOTTOM = 8;
@@ -1911,17 +1817,6 @@
      TIME_ZONE_ID_UNKNOWN = 0;
      TIME_ZONE_ID_STANDARD = 1;
      TIME_ZONE_ID_DAYLIGHT = 2;
-  { GetUserObjectInformation  }
-     UOI_FLAGS = 1;
-     UOI_NAME = 2;
-     UOI_TYPE = 3;
-  { GetVolumeInformation  }
-     FS_CASE_IS_PRESERVED = 2;
-     FS_CASE_SENSITIVE = 1;
-     FS_UNICODE_STORED_ON_DISK = 4;
-     FS_PERSISTENT_ACLS = 8;
-     FS_FILE_COMPRESSION = 16;
-     FS_VOL_IS_COMPRESSED = 32768;
   { GetWindowLong  }
      GWL_EXSTYLE = -(20);
      GWL_STYLE = -(16);
@@ -2155,11 +2050,6 @@
      LMEM_DISCARDED = 16384;
      LMEM_INVALID_HANDLE = 32768;
      LMEM_VALID_FLAGS=$0F72;       //+winbase
-  { LockFileEx  }
-     LOCKFILE_FAIL_IMMEDIATELY = 1;
-     LOCKFILE_EXCLUSIVE_LOCK = 2;
-  { LogonUser  }
-  { LZCopy, LZInit, LZRead  }
   { MessageBeep, MessageBox  }
      MB_USERICON = $80;
      MB_ICONASTERISK = $40;
@@ -2237,45 +2127,11 @@
      MB_COMPOSITE = 2;
      MB_ERR_INVALID_CHARS = 8;
      MB_USEGLYPHCHARS = 4;
-  { NDdeSetTrustedShare  }
-  { NetAccessCheck  }
-  { NetServerEnum  }
-  { NetServiceControl  }
-  { NetUserEnum  }
-  { OpenProcessToken  }
-     TOKEN_ADJUST_DEFAULT = 128;
-     TOKEN_ADJUST_GROUPS = 64;
-     TOKEN_ADJUST_PRIVILEGES = 32;
-     TOKEN_ALL_ACCESS = $f00ff;
-     TOKEN_ASSIGN_PRIMARY = 1;
-     TOKEN_DUPLICATE = 2;
-     TOKEN_EXECUTE = $20000;
-     TOKEN_IMPERSONATE = 4;
-     TOKEN_QUERY = 8;
-     TOKEN_QUERY_SOURCE = 16;
-     TOKEN_READ = $20008;
-     TOKEN_WRITE = $200e0;
-  { OpenSCManager  }
-     SC_MANAGER_ALL_ACCESS = $f003f;
-     SC_MANAGER_CONNECT = 1;
-     SC_MANAGER_CREATE_SERVICE = 2;
-     SC_MANAGER_ENUMERATE_SERVICE = 4;
-     SC_MANAGER_LOCK = 8;
-     SC_MANAGER_QUERY_LOCK_STATUS = 16;
-     SC_MANAGER_MODIFY_BOOT_CONFIG = 32;
   { PostMessage  }
     { was #define dname def_expr }
     HWND_BROADCAST              = HWND($FFFF);
 
-  { PrepareTape  }
-
   const
-     TAPE_FORMAT = $5;
-     TAPE_LOAD = 0;
-     TAPE_LOCK = $3;
-     TAPE_TENSION = $2;
-     TAPE_UNLOAD = $1;
-     TAPE_UNLOCK = $4;
   { PropertySheet  }
      IS_PSREBOOTSYSTEM = 3;
      IS_PSRESTARTWINDOWS = 2;
@@ -2292,16 +2148,6 @@
      GROUP_SECURITY_INFORMATION = $2;
      DACL_SECURITY_INFORMATION = $4;
      SACL_SECURITY_INFORMATION = $8;
-  { ReadEventLog, ReportEvent  }
-     EVENTLOG_FORWARDS_READ = 4;
-     EVENTLOG_BACKWARDS_READ = 8;
-     EVENTLOG_SEEK_READ = 2;
-     EVENTLOG_SEQUENTIAL_READ = 1;
-     EVENTLOG_ERROR_TYPE = 1;
-     EVENTLOG_WARNING_TYPE = 2;
-     EVENTLOG_INFORMATION_TYPE = 4;
-     EVENTLOG_AUDIT_SUCCESS = 8;
-     EVENTLOG_AUDIT_FAILURE = 16;
   { RedrawWindow  }
      RDW_ERASE = 4;
      RDW_FRAME = 1024;
@@ -2781,33 +2627,6 @@
      TCI_SRCCHARSET = 1;
      TCI_SRCCODEPAGE = 2;
      TCI_SRCFONTSIG = 3;
-  { VerFindFile  }
-     VFFF_ISSHAREDFILE = 1;
-     VFF_CURNEDEST = 1;
-     VFF_FILEINUSE = 2;
-     VFF_BUFFTOOSMALL = 4;
-  { VerInstallFile  }
-     VIFF_FORCEINSTALL = 1;
-     VIFF_DONTDELETEOLD = 2;
-     VIF_TEMPFILE = $1;
-     VIF_MISMATCH = $2;
-     VIF_SRCOLD = $4;
-     VIF_DIFFLANG = $8;
-     VIF_DIFFCODEPG = $10;
-     VIF_DIFFTYPE = $20;
-     VIF_WRITEPROT = $40;
-     VIF_FILEINUSE = $80;
-     VIF_OUTOFSPACE = $100;
-     VIF_ACCESSVIOLATION = $200;
-     VIF_SHARINGVIOLATION = $400;
-     VIF_CANNOTCREATE = $800;
-     VIF_CANNOTDELETE = $1000;
-     VIF_CANNOTDELETECUR = $4000;
-     VIF_CANNOTRENAME = $2000;
-     VIF_OUTOFMEMORY = $8000;
-     VIF_CANNOTREADSRC = $10000;
-     VIF_CANNOTREADDST = $20000;
-     VIF_BUFFTOOSMALL = $40000;
   { WideCharToMultiByte  }
      WC_COMPOSITECHECK = 512;
      WC_DISCARDNS = 16;
@@ -5202,21 +5021,6 @@
      BI_RLE4 = 2;
      BI_BITFIELDS = 3;
   { Extensions to OpenGL  }
-  { ChoosePixelFormat  }
-     PFD_DOUBLEBUFFER = $1;
-     PFD_STEREO = $2;
-     PFD_DRAW_TO_WINDOW = $4;
-     PFD_DRAW_TO_BITMAP = $8;
-     PFD_SUPPORT_GDI = $10;
-     PFD_SUPPORT_OPENGL = $20;
-     PFD_DEPTH_DONTCARE = $20000000;
-     PFD_DOUBLEBUFFER_DONTCARE = $40000000;
-     PFD_STEREO_DONTCARE = $80000000;
-     PFD_TYPE_RGBA = 0;
-     PFD_TYPE_COLORINDEX = 1;
-     PFD_MAIN_PLANE = 0;
-     PFD_OVERLAY_PLANE = 1;
-     PFD_UNDERLAY_PLANE = -(1);
   { wglUseFontOutlines  }
      WGL_FONT_LINES = 0;
      WGL_FONT_POLYGONS = 1;
@@ -5758,13 +5562,6 @@ const
 { Manually added, bug 2672}
   ICON_SMALL                           = 0;
   ICON_BIG                             = 1;
-
-  // For the TRackMouseEvent
-  TME_HOVER     = $00000001;
-  TME_LEAVE     = $00000002;
-  TME_QUERY     = $40000000;
-  TME_CANCEL    = DWORD($80000000);
-  HOVER_DEFAULT = DWORD($FFFFFFFF);
 
 // Manually added, bug 3270
   COLOR_HOTLIGHT                = 26;
