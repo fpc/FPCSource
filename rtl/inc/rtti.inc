@@ -280,7 +280,6 @@ begin
         inc(temp,namelen+1);
         temp:=aligntoptr(temp);
 
-        { copy data }
         Result:=plongint(temp)^;
 
         { Skip size }
