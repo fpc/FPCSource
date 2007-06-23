@@ -1747,26 +1747,26 @@ TYPE
 
     ISequentialStream = interface(IUnknown)
        ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
-       function Read(pv : Pointer;cb : DWord;pcbRead : PDWord) : HRESULT;stdcall;
-       function Write(pv : Pointer;cb : DWord;pcbWritten : PDWord): HRESULT;stdcall;
-       end;
+       function Read(pv : Pointer;cb : ULONG;pcbRead : PULONG) : HRESULT;stdcall;
+       function Write(pv : Pointer;cb : ULONG;pcbWritten : PULONG): HRESULT;stdcall;
+     end;
 
     IStream = interface(ISequentialStream)
        ['{0000000C-0000-0000-C000-000000000046}']
-       function Seek(dlibMove : Large_integer; dwOrigin: Longint;
-            out libNewPosition : Large_Integer): HResult; stdcall;
-       function SetSize(libNewSize : Large_Integer) : HRESULT;stdcall;
-       function CopyTo(stm: IStream;cb : Large_Integer;out cbRead : Large_Integer;
-            out cbWritten: Large_Integer) : HRESULT;stdcall;
+       function Seek(dlibMove : LargeInt; dwOrigin: Longint;
+            out libNewPosition : LargeInt): HResult; stdcall;
+       function SetSize(libNewSize : LargeInt) : HRESULT;stdcall;
+       function CopyTo(stm: IStream;cb : LargeInt;out cbRead : LargeInt;
+            out cbWritten: LargeInt) : HRESULT;stdcall;
        function Commit(grfCommitFlags : Longint) : HRESULT; stdcall;
        function Revert : HRESULT; stdcall;
-       function LockRegion(libOffset : Large_Integer;cb : Large_Integer;
+       function LockRegion(libOffset : LargeInt;cb : LargeInt;
             dwLockType: Longint) : HRESULT;stdcall;
-       function UnlockRegion(libOffset: Large_Integer;cb: Large_Integer;
+       function UnlockRegion(libOffset: LargeInt;cb: LargeInt;
             dwLockType: Longint) : HRESULT;stdcall;
        Function Stat(out statstg : TStatStg; grfStatFlag: Longint): HRESULT;stdcall;
        function Clone(out stm : IStream) : HRESULT; stdcall;
-       end;
+     end;
 
     IEnumSTATSTG = Interface (IUnknown)
        ['{0000000d-0000-0000-C000-000000000046}']

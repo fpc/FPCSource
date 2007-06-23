@@ -242,10 +242,12 @@ type
      Function LockServer(fLock : LongBool) : HResult;StdCall;
   End;
 
-  ISequentialStream = interface(IUnknown) ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
-     function Read(pv : Pointer;cb : DWord;pcbRead : PDWord) : HRESULT;stdcall;
-     function Write(pv : Pointer;cb : DWord;pcbWritten : PDWord) : HRESULT;stdcall;
-  end;
+    ISequentialStream = interface(IUnknown)
+       ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
+       function Read(pv : Pointer;cb : ULONG;pcbRead : PULONG) : HRESULT;stdcall;
+       function Write(pv : Pointer;cb : ULONG;pcbWritten : PULONG): HRESULT;stdcall;
+     end;
+
 
   IStream = interface(ISequentialStream) ['{0000000C-0000-0000-C000-000000000046}']
      function Seek(dlibMove : LargeInt; dwOrigin : Longint;
