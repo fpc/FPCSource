@@ -648,6 +648,7 @@ function TraceFreeMemSize(p:pointer;size:ptrint):ptrint;
 var
   loc_info: pheap_info;
   pp: pheap_mem_info;
+  release_lock: boolean;
 begin
   if p=nil then
     begin
@@ -656,11 +657,13 @@ begin
     end;
   loc_info:=@heap_info;
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
+  release_lock:=false;
   if @loc_info^.heap_free_todo <> pp^.todolist then
   begin
     if pp^.todolist = main_orig_todolist then
       pp^.todolist := main_relo_todolist;
     entercriticalsection(todo_lock);
+    release_lock:=true;
     if pp^.todolist = @orphaned_info.heap_free_todo then
     begin
       loc_info := @orphaned_info;
@@ -674,7 +677,7 @@ begin
       exit(pp^.size);
     end;
   end;
-  TraceFreeMemSize:=InternalFreeMemSize(loc_info,p,pp,size,loc_info = @orphaned_info);
+  TraceFreeMemSize:=InternalFreeMemSize(loc_info,p,pp,size,release_lock);
 end;
 
 
