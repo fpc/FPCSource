@@ -70,7 +70,8 @@ CONST CommCtrlDLL = 'commctrl.dll';
 {$DEFINE IE3PLUS}
 {$DEFINE IE4PLUS}
 {$define IE5plus}
-{$DEFINE WIN32XP}
+{$define WIN32XP}
+{$define ie501plus}
 
 {$ifdef win32}
   {$define _win32}
@@ -3857,6 +3858,8 @@ TYPE
          LVFINDINFOW         = LV_FINDINFOW;
 {$ENDIF}
 
+         TLVFindInfo         = LVFINDINFO;
+         PLVFindInfo         = ^LVFindInfo;
 
          LV_FINDINFO                    = LVFINDINFO;
 
@@ -3882,7 +3885,7 @@ CONST
          LVM_GETITEMRECT                = (LVM_FIRST + 14);
 
 // Macro 55 NI
-// Function ListView_GetItemRect( hwnd : hwnd; i : cint;prc {!};code {!}):BOOL;
+Function ListView_GetItemRect( hwnd : hwnd; i : cint;var prc : TRect;code : cint):BOOL;
 
 CONST
          LVM_SETITEMPOSITION            = (LVM_FIRST + 15);
@@ -3975,7 +3978,11 @@ CONST
          LVA_DEFAULT                    = $0000;
          LVA_ALIGNLEFT                  = $0001;
          LVA_ALIGNTOP                   = $0002;
+         LVA_ALIGNRIGHT                 = $0003;
+         LVA_ALIGNBOTTOM                = $0004;
          LVA_SNAPTOGRID                 = $0005;
+         LVA_SORTASCENDING              = $0100;
+         LVA_SORTDESCENDING             = $0200;
          LVM_ARRANGE                    = (LVM_FIRST + 22);
 
 // Macro 63
@@ -4159,7 +4166,8 @@ CONST
          LVM_CREATEDRAGIMAGE            = (LVM_FIRST + 33);
 
 // Macro 73
-Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;inline;
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; const lpptUpLeft : POINT):HIMAGELIST;inline;
 
 CONST
          LVM_GETVIEWRECT                = (LVM_FIRST + 34);
@@ -5105,6 +5113,8 @@ TYPE
          NMLVFINDITEM        = NMLVFINDITEMA;
          LPNMLVFINDITEM      = LPNMLVFINDITEMA;
 {$ENDIF}
+         PNMLVFindItem       = LPNMLVFINDITEM;
+         TNMLVFindItem       = NMLVFINDITEM;
 
          tagNMLVODSTATECHANGE = Record
                                  hdr          : NMHDR;
@@ -9584,11 +9594,16 @@ end;
 //      (BOOL)SNDMSG((hwnd), LVM_GETITEMRECT, (WPARAM)(int)(i), \
 //            ((prc) ? (((RECT *)(prc))->left = (code),(LPARAM)(RECT *)(prc)) : (LPARAM)(RECT *)NULL))
 
-// Function ListView_GetItemRect( hwnd : hwnd; i : cint;prc {!};code {!}):BOOL;
-//
-// Begin
-// Result:=BOOL(SendMessage((hwnd), LVM_GETITEMRECT, (i), \)
-// end;
+Function ListView_GetItemRect( hwnd : hwnd; i : cint;var prc : TRect;code : cint):BOOL;
+begin
+  if assigned(@prc) then
+    begin
+      prc.left:=Code;
+      Result:=BOOL(SendMessage(hWnd,LVM_GETITEMRECT,i,LPARAM(@prc)));
+    end
+  else
+    Result:=BOOL(SendMessage(hWnd,LVM_GETITEMRECT,i,0));
+end;
 
 
 // Macro 56
@@ -9788,10 +9803,16 @@ end;
 // #define ListView_CreateDragImage(hwnd, i, lpptUpLeft) \
 //     (HIMAGELIST)SNDMSG((hwnd), LVM_CREATEDRAGIMAGE, (WPARAM)(int)(i), (LPARAM)(LPPOINT)(lpptUpLeft))
 
-Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;inline;
 
 Begin
  Result:=HIMAGELIST(SendMessage((hwnd), LVM_CREATEDRAGIMAGE, WPARAM(i), LPARAM(lpptUpLeft)))
+end;
+
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; const lpptUpLeft : POINT):HIMAGELIST;inline;
+
+Begin
+ Result:=HIMAGELIST(SendMessage((hwnd), LVM_CREATEDRAGIMAGE, WPARAM(i), LPARAM(@lpptUpLeft)))
 end;
 
 
