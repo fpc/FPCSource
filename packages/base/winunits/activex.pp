@@ -31,6 +31,7 @@ type
    TBStr = POleStr;
    PBStr = ^TBStr;
    TOleEnum = type LongWord;
+   LargeInt = Types.LargeInt;
 
 {Glue types, should be linked to the proper windows unit types}
 TYPE

@@ -37,6 +37,8 @@ type
   PSmallInt = System.PSmallInt;
   PDouble = System.PDouble;
   PByte = System.PByte;
+  Largeint = int64;
+  LARGE_INT = LargeInt;
 
   TIntegerDynArray = array of Integer;
   TCardinalDynArray = array of Cardinal;
@@ -187,8 +189,6 @@ type
   PCLSID = PGUID;
   TCLSID = TGUID;
 
-  LARGE_INT = Int64;
-  Largeint = LARGE_INT;
   PDWord = ^DWord;
 
   PDisplay = Pointer;
