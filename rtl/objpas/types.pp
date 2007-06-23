@@ -244,8 +244,8 @@ type
 
     ISequentialStream = interface(IUnknown)
        ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
-       function Read(pv : Pointer;cb : ULONG;pcbRead : PULONG) : HRESULT;stdcall;
-       function Write(pv : Pointer;cb : ULONG;pcbWritten : PULONG): HRESULT;stdcall;
+       function Read(pv : Pointer;cb : DWORD;pcbRead : PDWORD) : HRESULT;stdcall;
+       function Write(pv : Pointer;cb : DWORD;pcbWritten : PDWORD): HRESULT;stdcall;
      end;
 
 
