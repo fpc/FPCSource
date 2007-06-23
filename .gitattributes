@@ -3751,6 +3751,8 @@ packages/extra/univint/UnicodeUtilities.pas svneol=native#text/plain
 packages/extra/univint/UniversalAccess.pas svneol=native#text/plain
 packages/extra/univint/Video.pas svneol=native#text/plain
 packages/extra/univint/WorldScript.pas svneol=native#text/plain
+packages/extra/univint/examples/Makefile.fpc -text
+packages/extra/univint/examples/controldemo.pas -text
 packages/extra/univint/fenv.pas svneol=native#text/plain
 packages/extra/univint/fp.pas svneol=native#text/plain
 packages/extra/univint/vBLAS.pas svneol=native#text/plain

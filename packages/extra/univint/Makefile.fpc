@@ -82,6 +82,7 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   CGImageDestination AXValueConstants AXAttributeConstants \
   AXTextAttributedString CGImageProperties CGImageSource \
   UniversalAccess HostTime
+exampledirs=examples
 
 [libs]
 libversion=2.0.0
