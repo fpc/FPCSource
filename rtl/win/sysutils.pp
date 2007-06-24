@@ -51,8 +51,13 @@ Var
 { Compatibility with Delphi }
 function Win32Check(res:boolean):boolean;inline;
 function WinCheck(res:boolean):boolean;
+function CheckWin32Version(Major,Minor : Integer ): Boolean;
+function CheckWin32Version(Major : Integer): Boolean;
+Procedure RaiseLastWin32Error;
 
 function GetFileVersion(const AFileName: string): Cardinal;
+
+procedure GetFormatSettings;
 
 implementation
 
@@ -70,6 +75,25 @@ function WinCheck(res:boolean):boolean;
 function Win32Check(res:boolean):boolean;inline;
   begin
     result:=WinCheck(res);
+  end;
+
+
+procedure RaiseLastWin32Error;
+  begin
+    RaiseLastOSError;
+  end;
+
+
+function CheckWin32Version(Major : Integer): Boolean;
+  begin
+    Result:=CheckWin32Version(Major,0)
+  end;
+
+
+function CheckWin32Version(Major,Minor: Integer): Boolean;
+  begin
+    Result:=(Win32MajorVersion>Major) or
+            ((Win32MajorVersion=Major) and (Win32MinorVersion>=Minor));
   end;
 
 
@@ -901,7 +925,7 @@ Procedure LoadVersionInfo;
 Var
    versioninfo : TOSVERSIONINFO;
 begin
-   kernel32dll:=0;
+  kernel32dll:=0;
   GetDiskFreeSpaceEx:=nil;
   versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
   GetVersionEx(versioninfo);
