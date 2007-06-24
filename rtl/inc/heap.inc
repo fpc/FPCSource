@@ -964,8 +964,8 @@ begin
         pbest := pcurr;
         if pcurr^.size = size then
           break;
+        iter := matcheffort;
       end;
-      iter := matcheffort;
     end;
     pcurr := pcurr^.next_var;
     dec(iter);
