@@ -874,13 +874,13 @@ begin
       u:=16;
      end;
      prev := fpc_Val_UInt_Shortstr;
+     fpc_Val_UInt_Shortstr:=fpc_Val_UInt_Shortstr*ValUInt(base) + u;
      If (u>=base) or
-        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<prev) then
+        (prev>fpc_Val_UInt_Shortstr) then
       begin
         fpc_Val_UInt_Shortstr:=0;
         exit;
       end;
-     fpc_Val_UInt_Shortstr:=fpc_Val_UInt_Shortstr*ValUInt(base) + u;
      inc(code);
    end;
   code := 0;
@@ -975,13 +975,13 @@ end;
         u:=16;
        end;
        prev := fpc_val_qword_shortstr;
+       fpc_val_qword_shortstr:=fpc_val_qword_shortstr*QWord(base) + u;
        If (u>=base) or
-         ((QWord(maxqword-u) div QWord(base))<prev) then
+          (prev>fpc_val_qword_shortstr) then
          Begin
            fpc_val_qword_shortstr := 0;
            Exit
          End;
-       fpc_val_qword_shortstr:=fpc_val_qword_shortstr*QWord(base) + u;
        inc(code);
      end;
     code := 0;
