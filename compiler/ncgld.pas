@@ -413,7 +413,7 @@ implementation
                       tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(aint),tt_normal,location.reference);
                       secondpass(left);
 
-                      { load class instance address }
+                      { load class instance/classrefdef address }
                       if left.location.loc=LOC_CONSTANT then
                         location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,false);
                       case left.location.loc of
@@ -429,7 +429,7 @@ implementation
                          LOC_REFERENCE:
                            begin
                               hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                              if is_class_or_interface(left.resultdef) then
+                              if not is_object(left.resultdef) then
                                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister)
                               else
                                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,hregister);
@@ -439,7 +439,7 @@ implementation
                            internalerror(200610311);
                       end;
 
-                      { store the class instance address }
+                      { store the class instance or classredef address }
                       href:=location.reference;
                       inc(href.offset,sizeof(aint));
                       cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,href);
@@ -448,10 +448,14 @@ implementation
                       if (po_virtualmethod in procdef.procoptions) and
                          not(nf_inherited in flags) then
                         begin
-                          { load vmt pointer }
-                          reference_reset_base(href,hregister,0);
-                          hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+                          { a classrefdef already points to the VMT }
+                          if (left.resultdef.typ<>classrefdef) then
+                            begin
+                              { load vmt pointer }
+                              reference_reset_base(href,hregister,0);
+                              hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+                            end;
                           { load method address }
                           reference_reset_base(href,hregister,procdef._class.vmtmethodoffset(procdef.extnumber));
                           hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
