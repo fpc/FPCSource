@@ -202,6 +202,8 @@ function HResultFromNT(x : Longint) : HRESULT;
 function SmallPointToPoint(const P: TSmallPoint): TPoint;
 function PointToSmallPoint(const P: TPoint): TSmallPoint;
 
+function GetCurrentTime: Longint;inline;
+
 procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
 procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
 procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
@@ -389,9 +391,9 @@ function EnumDisplaySettings(lpszDeviceName: PChar; iModeNum: DWORD; var lpDevMo
 function EnumDisplaySettingsA(lpszDeviceName: LPCSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeA): BOOL; external 'user32' name 'EnumDisplaySettingsA';
 function EnumDisplaySettingsW(lpszDeviceName: LPWSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeW): BOOL; external 'user32' name 'EnumDisplaySettingsW';
 //function EnumEnhMetaFile(DC: HDC; p2: HENHMETAFILE; p3: TFNEnhMFEnumProc; p4: Pointer; const p5: TRect): BOOL; external 'gdi32' name 'EnumEnhMetaFile';
-//function EnumFontFamiliesEx(DC: HDC; var p2: TLogFont; p3: TFNFontEnumProc; p4: LPARAM; p5: DWORD): BOOL;external 'gdi32' name 'EnumFontFamiliesExA';
-//function EnumFontFamiliesExA(DC: HDC; var p2: TLogFontA; p3: TFNFontEnumProcA; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExA';
-//function EnumFontFamiliesExW(DC: HDC; var p2: TLogFontW; p3: TFNFontEnumProcW; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExW';
+function EnumFontFamiliesEx(DC: HDC; var p2: TLogFont; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL;external 'gdi32' name 'EnumFontFamiliesExA';
+function EnumFontFamiliesExA(DC: HDC; var p2: TLogFontA; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExA';
+function EnumFontFamiliesExW(DC: HDC; var p2: TLogFontW; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExW';
 //function EqualRect(const lprc1, lprc2: TRect): BOOL; external 'user32' name 'EqualRect';
 function ExtCreatePen(PenStyle, Width: DWORD; const Brush: TLogBrush; StyleCount: DWORD; Style: Pointer): HPEN; external 'gdi32' name 'ExtCreatePen';
 function ExtCreateRegion(p1: PXForm; p2: DWORD; const p3: TRgnData): HRGN; external 'gdi32' name 'ExtCreateRegion';
@@ -1112,5 +1114,9 @@ begin
   Result.Y:=P.Y;
 end;
 
+function GetCurrentTime: Longint;inline;
+begin
+  Result:=GetTickCount;
+end;
 {$endif read_implementation}
 
