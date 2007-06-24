@@ -673,8 +673,9 @@ begin
       { allocated in different heap, push to that todolist }
       pp^.todonext := pp^.todolist^;
       pp^.todolist^ := pp;
+      TraceFreeMemSize := pp^.size;
       leavecriticalsection(todo_lock);
-      exit(pp^.size);
+      exit;
     end;
   end;
   TraceFreeMemSize:=InternalFreeMemSize(loc_info,p,pp,size,release_lock);
