@@ -1168,7 +1168,10 @@ implementation
         if not is_funcret_sym(sym) and
            (defowner.typ=procdef) and
            assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           { delphi allows local typed consts. having the same name as class members, probably
+             a delphi bug, but some delphi code depends on it }
+           not((m_duplicate_names in current_settings.modeswitches) and (sym.typ=staticvarsym)) then
           result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
       end;
 
