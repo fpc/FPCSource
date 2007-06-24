@@ -7409,7 +7409,8 @@ CONST
 // DWORD MonthCal_GetMaxSelCount(HWND hmc)
 //   returns the maximum number of selectable days allowed
 
-function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool;
+function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool;inline;
+function MonthCal_SetCurSel(hwndMC:HWND; var lpSysTime :TSYSTEMTIME):Bool;inline;
 
 
 CONST
@@ -7499,7 +7500,8 @@ CONST
 // #define MonthCal_GetMinReqRect(hmc, prc)        SNDMSG(hmc, MCM_GETMINREQRECT, 0, (LPARAM)(prc))
 // set colors to draw control with -- see MCSC_ bits below
 
-function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;
+function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;inline;
+function MonthCal_GetMinReqRect(hwndMC:HWND; var lpr :TRect):Bool;inline;
 
 
 CONST
@@ -7508,7 +7510,7 @@ CONST
 // Macro 262
 // #define MonthCal_SetColor(hmc, iColor, clr) SNDMSG(hmc, MCM_SETCOLOR, iColor, clr)
 
-function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):Bool;
+function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):DWORD;inline;
 
 
 CONST
@@ -7813,6 +7815,7 @@ CONST
 // Macro 277
 
 // #define DateTime_SetSystemtime(hdp, gd, pst)    (BOOL)SNDMSG(hdp, DTM_SETSYSTEMTIME, (WPARAM)(gd), (LPARAM)(pst))
+function DateTime_SetSystemTime(hdp: HWND; gd: DWORD; const pst: TSystemTime): BOOL;inline;
 
 // DWORD DateTime_GetRange(HWND hdp, LPSYSTEMTIME rgst)
 //   modifies rgst[0] to be the minimum ALLOWABLE systemtime (or 0 if no minimum)
@@ -7835,6 +7838,7 @@ CONST
 // Macro 279
 
 // #define DateTime_SetRange(hdp, gd, rgst)  (BOOL)SNDMSG(hdp, DTM_SETRANGE, (WPARAM)(gd), (LPARAM)(rgst))
+function DateTime_SetRange(hdp: HWND; gdtr: DWORD; rgst: PSystemTime): BOOL;inline;
 
 // BOOL DateTime_SetFormat(HWND hdp, LPCTSTR sz)
 //   sets the display formatting string to sz (see GetDateFormat and GetTimeFormat for valid formatting chars)
@@ -7865,7 +7869,7 @@ CONST
 // Macro 281
 
 // #define DateTime_SetMonthCalColor(hdp, iColor, clr) SNDMSG(hdp, DTM_SETMCCOLOR, iColor, clr)
-
+function DateTime_SetMonthCalColor(hdp: HWND; iColor: DWORD; clr: TColorRef): TColorRef;inline;
 
 CONST
          DTM_GETMCCOLOR                 = (DTM_FIRST + 7);
@@ -7882,6 +7886,7 @@ CONST
 // Macro 283
 
 // #define DateTime_GetMonthCal(hdp) (HWND)SNDMSG(hdp, DTM_GETMONTHCAL, 0, 0)
+function DateTime_GetMonthCal(hdp: HWND): HWND;inline;
 
 {$ifdef ie4plus}
 
@@ -11873,10 +11878,16 @@ end;
 // Macro 254
 //#define MonthCal_SetCurSel(hmc, pst)    (BOOL)SNDMSG(hmc, MCM_SETCURSEL, 0, (LPARAM)(pst))
 
-function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool;
+function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool; inline;
 
 begin
      Result:=BOOL(SendMessage(hwndmc, MCM_SETCURSEL, 0, LPARAM(lpsystime)));
+end;
+
+function MonthCal_SetCurSel(hwndMC:HWND; var lpSysTime :SYSTEMTIME):Bool; inline;
+
+begin
+     Result:=BOOL(SendMessage(hwndmc, MCM_SETCURSEL, 0, LPARAM(@lpsystime)));
 end;
 
 // Macro 255
@@ -11937,19 +11948,25 @@ end;
 // Macro 261
 // #define MonthCal_GetMinReqRect(hmc, prc)        SNDMSG(hmc, MCM_GETMINREQRECT, 0, (LPARAM)(prc))
 
-function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;
+function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;inline;
 
 begin
      Result:=BOOL(SendMessage(hwndmc, MCM_GETMINREQRECT,0, LPARAM(lpr)));
 end;
 
+function MonthCal_GetMinReqRect(hwndMC:HWND;var lpr :TRect):Bool;inline;
+
+begin
+     Result:=BOOL(SendMessage(hwndmc, MCM_GETMINREQRECT,0, LPARAM(@lpr)));
+end;
+
 // Macro 262
 // #define MonthCal_SetColor(hmc, iColor, clr) SNDMSG(hmc, MCM_SETCOLOR, iColor, clr)
 
-function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):Bool;
+function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):DWORD;inline;
 
 begin
-     Result:=BOOL(SendMessage(hwndmc, MCM_SETCOLOR,ic, LPARAM(clr)));
+     Result:=DWORD(SendMessage(hwndmc, MCM_SETCOLOR,ic, LPARAM(clr)));
 end;
 
 // Macro 263
@@ -12098,6 +12115,10 @@ end;
 // Macro 277
 
 //#define DateTime_SetSystemtime(hdp, gd, pst)    (BOOL)SNDMSG(hdp, DTM_SETSYSTEMTIME, (WPARAM)(gd), (LPARAM)(pst))
+function DateTime_SetSystemTime(hdp: HWND; gd: DWORD; const pst: TSystemTime): BOOL;inline;
+begin
+  result:=BOOL(SendMessage(hdp, DTM_SETSYSTEMTIME, WPARAM(gd), LPARAM(@pst)));
+end;
 
 // Macro 278
 
@@ -12106,6 +12127,10 @@ end;
 // Macro 279
 
 //#define DateTime_SetRange(hdp, gd, rgst)  (BOOL)SNDMSG(hdp, DTM_SETRANGE, (WPARAM)(gd), (LPARAM)(rgst))
+function DateTime_SetRange(hdp: HWND; gdtr: DWORD; rgst: PSystemTime): BOOL;inline;
+begin
+  result:=BOOL(SendMessage(hdp, DTM_SETRANGE, WPARAM(gdtr), LPARAM(rgst)));
+end;
 
 // Macro 280
 
@@ -12114,6 +12139,10 @@ end;
 // Macro 281
 
 //#define DateTime_SetMonthCalColor(hdp, iColor, clr) SNDMSG(hdp, DTM_SETMCCOLOR, iColor, clr)
+function DateTime_SetMonthCalColor(hdp: HWND; iColor: DWORD; clr: TColorRef): TColorRef;inline;
+begin
+  result:=TColorRef(SendMessage(hdp, DTM_SETMCCOLOR, iColor, clr));
+end;
 
 // Macro 282
 
@@ -12122,6 +12151,10 @@ end;
 // Macro 283
 
 //#define DateTime_GetMonthCal(hdp) (HWND)SNDMSG(hdp, DTM_GETMONTHCAL, 0, 0)
+function DateTime_GetMonthCal(hdp: HWND): HWND;inline;
+begin
+  result:=HWND(SendMessage(hdp, DTM_GETMONTHCAL, 0, 0));
+end;
 
 // Macro 284
 
