@@ -2368,10 +2368,7 @@ implementation
 
            _INTCONST :
              begin
-{$ifdef cpu64}
-               { when already running under 64bit must read int64 constant, because reading
-                 cardinal first will also succeed (code=0) for values > maxcardinal, because
-                 range checking is off by default (PFV) }
+               {Try first wether the value fits in an int64.}
                val(pattern,ic,code);
                if code=0 then
                  begin
@@ -2386,53 +2383,10 @@ implementation
                    if code=0 then
                      begin
                         consume(_INTCONST);
-                        hdef:=u64inttype;
+                        int_to_type(qc,hdef);
                         p1:=cordconstnode.create(qc,hdef,true);
                      end;
                  end;
-{$else}
-               { try cardinal first }
-               val(pattern,card,code);
-               if code=0 then
-                 begin
-                    consume(_INTCONST);
-                    int_to_type(qword(card),hdef);
-                    p1:=cordconstnode.create(qword(card),hdef,true);
-                 end
-               else
-                 begin
-                   { then longint }
-                   val(pattern,l,code);
-                   if code = 0 then
-                     begin
-                       consume(_INTCONST);
-                       int_to_type(int64(l),hdef);
-                       p1:=cordconstnode.create(int64(l),hdef,true);
-                     end
-                   else
-                     begin
-                       { then int64 }
-                       val(pattern,ic,code);
-                       if code=0 then
-                         begin
-                            consume(_INTCONST);
-                            int_to_type(ic,hdef);
-                            p1:=cordconstnode.create(ic,hdef,true);
-                         end
-                       else
-                         begin
-                           { try qword next }
-                           val(pattern,qc,code);
-                           if code=0 then
-                             begin
-                                consume(_INTCONST);
-                                hdef:=u64inttype;
-                                p1:=cordconstnode.create(tconstexprint(qc),hdef,true);
-                             end;
-                         end;
-                     end;
-                 end;
-{$endif}
                if code<>0 then
                  begin
                    { finally float }
