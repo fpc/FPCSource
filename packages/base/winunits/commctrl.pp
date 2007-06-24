@@ -43,20 +43,9 @@ Unit CommCtrl;
 Interface
 
 {$Mode ObjFPC}
-Uses Windows,ActiveX;
+Uses Windows,CTypes,ActiveX;
 
 // --------------------
-
-TYPE CINT = Longint;
-     CUINT= CARDINAL;
-
-     DWORD_PTR   = ^DWORD;
-     PDWORD_PTR  = ^DWORD_PTR;
-     ULONG_PTR   = ^ULONG;
-     INT_PTR     = ^CINT;
-     UINT_PTR    = ^UINT;
-
-
 
 // --------------------
 CONST CommCtrlDLL = 'commctrl.dll';
@@ -2361,6 +2350,7 @@ CONST
          RB_SETBARINFO                  = (WM_USER +  4);
 {$ifdef IE4plus}
          RB_GETBANDINFO                 = (WM_USER +  5);
+         RB_GETBANDINFO_PRE_IE4         = (WM_USER +  5);
 {$ENDIF}
          RB_SETBANDINFOA                = (WM_USER +  6);
          RB_SETPARENT                   = (WM_USER +  7);
@@ -2580,6 +2570,8 @@ TYPE
          LPRBHITTESTINFO      = ^_RB_HITTESTINFO;
          TRB_HITTESTINFO      = _RB_HITTESTINFO;
          PRB_HITTESTINFO      = ^_RB_HITTESTINFO;
+         PRBHitTestInfo       = PRB_HITTESTINFO;
+         TRBHitTestInfo       = TRB_HITTESTINFO;
 
 
 {$ENDIF}      // _WIN32_IE >= 0x0400
