@@ -140,4 +140,5 @@ function CurrentYear:Word;
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 
-procedure  ReplaceTime(var dati:TDateTime; NewTime : TDateTime); inline;
+procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime); inline;
+procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline;

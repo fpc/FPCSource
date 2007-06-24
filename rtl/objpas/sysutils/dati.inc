@@ -483,14 +483,14 @@ If (i<5) and (TimeValues[I]=-1) then
   TimeValues[I]:=0;
 if PM then
   begin
-  if (TimeValues[0] <> 12) then 
+  if (TimeValues[0] <> 12) then
     Inc(TimeValues[0], 12);
   end
 else
   begin
   if (TimeValues[0]=12) then
     TimeValues[0]:=0;
-  end;   
+  end;
 result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
 end ;
 
@@ -847,7 +847,16 @@ begin
 end;
 
 procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime);inline;
-
 begin
   dati:=trunc(dati)+frac(newtime);
 end;
+
+procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline;
+var
+  tmp : TDateTime;
+begin
+  tmp:=NewDate;
+  ReplaceTime(tmp,DateTime);
+  DateTime:=tmp;
+end;
+
