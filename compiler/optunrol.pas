@@ -39,7 +39,7 @@ unit optunrol;
       nbas,nflw,ncon,ninl,ncal;
 
     var
-      nodecount : aint;
+      nodecount : aword;
 
     function donodecount(var n: tnode; arg: pointer): foreachnoderesult;
       begin
@@ -49,7 +49,7 @@ unit optunrol;
 
 
     { rough estimation how large the tree "node" is }
-    function countnodes(node : tnode) : aint;
+    function countnodes(node : tnode) : aword;
       begin
         nodecount:=0;
         foreachnodestatic(node,@donodecount,nil);
@@ -57,7 +57,7 @@ unit optunrol;
       end;
 
 
-    function number_unrolls(node : tnode) : integer;
+    function number_unrolls(node : tnode) : cardinal;
       begin
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
@@ -74,7 +74,7 @@ unit optunrol;
 
     function unroll_loop(node : tnode) : tnode;
       var
-        unrolls,i : integer;
+        unrolls,i : cardinal;
         counts : qword;
         unrollstatement : tstatementnode;
         unrollblock : tblocknode;

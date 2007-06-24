@@ -546,7 +546,7 @@ interface
           elementdefderef : tderef;
           settype  : tsettype;
           setbase,
-          setmax   : aint;
+          setmax   : aword;
           constructor create(def:tdef;high : aint);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
