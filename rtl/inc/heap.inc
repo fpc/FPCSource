@@ -1482,10 +1482,9 @@ begin
     poc_next := poc^.next_free;
     { check if this os chunk was 'recycled' i.e. taken in use again }
     if (poc^.size and ocrecycleflag) = 0 then
-    begin
+      free_oschunk(loc_freelists, poc)
+    else
       poc^.size := poc^.size and not ocrecycleflag;
-      free_oschunk(loc_freelists, poc);
-    end;
     poc := poc_next;
   end;
   loc_freelists^.oslist := nil;
