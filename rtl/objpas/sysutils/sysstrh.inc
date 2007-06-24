@@ -69,7 +69,7 @@ procedure AppendStr(var Dest: String; const S: string);
 function UpperCase(const s: string): string;
 function LowerCase(const s: string): string; overload;
 { the compiler can't decide else if it should use the char or the ansistring
-  version for a variant } 
+  version for a variant }
 function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareStr(const S1, S2: string): Integer;
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
@@ -97,7 +97,7 @@ function TrimLeft(const S: string): string;
 function TrimRight(const S: string): string;
 function QuotedStr(const S: string): string;
 function AnsiQuotedStr(const S: string; Quote: char): string;
-function AnsiDequotedStr(const S: string; AQuote: Char): string; 
+function AnsiDequotedStr(const S: string; AQuote: Char): string;
 function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
@@ -123,7 +123,7 @@ Function Format (Const Fmt: string; const Args: array of const; const FormatSett
 Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
 Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
-Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar; 
+Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar;
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : Pchar;
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
@@ -218,6 +218,7 @@ Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
 Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
 Function ByteToCharIndex(const S: string; Index: Integer): Integer;
 Function StrCharLength(const Str: PChar): Integer;
+function StrNextChar(const Str: PChar): PChar;
 
 
 const
