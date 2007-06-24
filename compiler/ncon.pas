@@ -621,8 +621,9 @@ implementation
       begin
         result:=nil;
         resultdef:=typedef;
-        { only do range checking when explicitly asked for it }
-        if rangecheck then
+        { only do range checking when explicitly asked for it
+          and if the type can be range checked, see tests/tbs/tb0539.pp }
+        if rangecheck and (resultdef.typ in [orddef,enumdef]) then
            testrange(resultdef,value,false);
       end;
 
