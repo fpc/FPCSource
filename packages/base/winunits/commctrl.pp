@@ -66,6 +66,10 @@ CONST CommCtrlDLL = 'commctrl.dll';
   {$define _win32}
 {$endif win32}
 
+{$ifdef win64}
+  {$define _win32}
+{$endif win64}
+
 {$DEFINE WIN32_WINNT=0}                     // NO XP
 {$DEFINE __IStream_INTERFACE_DEFINED__}  // lpstream defined in activex afaik.
 
@@ -7168,7 +7172,7 @@ CONST
          TCM_SETCURFOCUS                = (TCM_FIRST + 48);
 
 // Macro 238
-Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : WParam );
+Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : LParam );
 
 
 {$ifdef ie3plus}
@@ -7201,7 +7205,7 @@ CONST
          TCM_SETEXTENDEDSTYLE           = (TCM_FIRST + 52);   // optional wParam == mask
 
 // Macro 242
-Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw :LPAram ):DWORD;
+Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw :LPARAM ):DWORD;
 
 
 CONST
@@ -7353,7 +7357,7 @@ Function Animate_Create(hwndP :HWND;id:HMENU;dwStyle:dword;hInstance:HINST):HWND
 //====== MONTHCAL CONTROL ======================================================
 
 {$IFNDEF NOMONTHCAL}
-{$IFDEF WIN32}
+{$IFDEF _WIN32}
 
 
 CONST
@@ -8528,7 +8532,7 @@ CONST
 
 {$IFNDEF NOBUTTON}
 
-{$IFDEF WIN32}
+{$IFDEF _WIN32}
 
 // Button Class Name
          WC_BUTTONA                     = 'Button';
@@ -11618,7 +11622,7 @@ end;
 //#define TabCtrl_SetItemSize(hwnd, x, y) \
 //     (DWORD)SNDMSG((hwnd), TCM_SETITEMSIZE, 0, MAKELPARAM(x,y))
 
-Function TabCtrl_SetItemSize( hwnd : hwnd; x : cint ; y : cint ):DWORD;
+Function TabCtrl_SetItemSize( hwnd : hwnd; x : wparam ; y : lparam ):DWORD;
 
 Begin
  Result:=DWORD(SendMessage((hwnd), TCM_SETITEMSIZE, 0, MAKELPARAM(x,y)))
@@ -11630,7 +11634,7 @@ end;
 //#define TabCtrl_RemoveImage(hwnd, i) \
 //         (void)SNDMSG((hwnd), TCM_REMOVEIMAGE, i, DWord(0))
 
-Procedure TabCtrl_RemoveImage( hwnd : hwnd; i : cint);
+Procedure TabCtrl_RemoveImage( hwnd : hwnd; i : WPARAM);
 
 Begin
 SendMessage((hwnd), TCM_REMOVEIMAGE, i, LPARAM(0))
@@ -11642,7 +11646,7 @@ end;
 //#define TabCtrl_SetPadding(hwnd,  cx, cy) \
 //         (void)SNDMSG((hwnd), TCM_SETPADDING, 0, MAKELPARAM(cx, cy))
 
-Procedure TabCtrl_SetPadding( hwnd : hwnd; cx : cint ; cy : cint );
+Procedure TabCtrl_SetPadding( hwnd : hwnd; cx : WPARAM ; cy : LPARAM );
 
 Begin
 SendMessage((hwnd), TCM_SETPADDING, 0, MAKELPARAM(cx, cy))
@@ -11702,7 +11706,7 @@ end;
 //#define TabCtrl_SetCurFocus(hwnd, i) \
 //     SNDMSG((hwnd),TCM_SETCURFOCUS, i, 0)
 
-Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : cint );
+Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : LPARAM );
 
 Begin
 SendMessage((hwnd),TCM_SETCURFOCUS, i, 0)
@@ -11714,7 +11718,7 @@ end;
 //#define TabCtrl_SetMinTabWidth(hwnd, x) \
 //         (int)SNDMSG((hwnd), TCM_SETMINTABWIDTH, 0, x)
 
-Function TabCtrl_SetMinTabWidth( hwnd : hwnd; x : cint ):cint;
+Function TabCtrl_SetMinTabWidth( hwnd : hwnd; x : WPARAM ):cint;
 
 Begin
  Result:=cint(SendMessage((hwnd), TCM_SETMINTABWIDTH, 0, x))
@@ -11726,7 +11730,7 @@ end;
 //#define TabCtrl_DeselectAll(hwnd, fExcludeFocus)\
 //         (void)SNDMSG((hwnd), TCM_DESELECTALL, fExcludeFocus, 0)
 
-Procedure TabCtrl_DeselectAll( hwnd : hwnd; fExcludeFocus :cint );
+Procedure TabCtrl_DeselectAll( hwnd : hwnd; fExcludeFocus : WPARAM );
 
 Begin
 SendMessage((hwnd), TCM_DESELECTALL, fExcludeFocus, 0)
@@ -11750,7 +11754,7 @@ end;
 //#define TabCtrl_SetExtendedStyle(hwnd, dw)\
 //         (DWORD)SNDMSG((hwnd), TCM_SETEXTENDEDSTYLE, 0, dw)
 
-Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw : cint):DWORD;
+Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw : LPARAM):DWORD;
 
 Begin
  Result:=DWORD(SendMessage((hwnd), TCM_SETEXTENDEDSTYLE, 0,lparam(dw)))
