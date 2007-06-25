@@ -225,8 +225,8 @@ implementation
                           u8bit,u16bit,u32bit,u64bit,
                           s8bit,s16bit,s32bit,s64bit:
                             begin
-                              if (torddef(def_from).low=torddef(def_to).low) and
-                                 (torddef(def_from).high=torddef(def_to).high) then
+                              if (torddef(def_from).low>=torddef(def_to).low) and
+                                 (torddef(def_from).high<=torddef(def_to).high) then
                                 eq:=te_equal
                               else
                                 begin
