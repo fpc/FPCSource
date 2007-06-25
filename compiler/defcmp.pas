@@ -275,6 +275,20 @@ implementation
                         eq:=te_convert_l2;
                       end;
                    end;
+                 objectdef:
+                   begin
+                     if is_class_or_interface_or_dispinterface(def_from) and (cdo_explicit in cdoptions) then
+                      begin
+                        eq:=te_convert_l1;
+                        if (fromtreetype=niln) then
+                         begin
+                           { will be handled by the constant folding }
+                           doconv:=tc_equal;
+                         end
+                        else
+                         doconv:=tc_int_2_int;
+                      end;
+                   end;
                  classrefdef,
                  procvardef,
                  pointerdef :
