@@ -53,9 +53,28 @@ unit IniFiles;
 
 interface
 
-uses classes, sysutils;
+uses classes, sysutils, contnrs;
 
 type
+  { THashedStringList }
+
+  THashedStringList = class(TStringList)
+  private
+    FValueHash: TFPHashList;
+    FNameHash: TFPHashList;
+    FValueHashValid: Boolean;
+    FNameHashValid: Boolean;
+    procedure UpdateValueHash;
+    procedure UpdateNameHash;
+  protected
+    procedure Changed; override;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function IndexOf(const S: String): Integer; override;
+    function IndexOfName(const Name: String): Integer; override;
+  end;
+
   TIniFileKey = class
   Private
     FIdent: string;
@@ -201,6 +220,87 @@ begin
   Result := False;
   if AString > '' then
     Result := (Copy(AString, 1, 1) = Comment);
+end;
+
+{ THashedStringList }
+
+constructor THashedStringList.Create;
+begin
+  inherited;
+  FValueHash := nil;
+  FNameHash := nil;
+  FValueHashValid := False;
+  FNameHashValid := False;
+end;
+
+destructor THashedStringList.Destroy;
+begin
+  if Assigned(FValueHash) then
+    FValueHash.Free;
+  if Assigned(FNameHash) then
+    FNameHash.Free;
+  inherited Destroy;
+end;
+
+function THashedStringList.IndexOf(const S: String): Integer;
+var
+  I: Integer;
+begin
+  if not FValueHashValid then
+    UpdateValueHash;
+
+  I := FValueHash.FindIndexOf(S);
+  if I >= 0 then
+    Result := Integer(FValueHash[I])
+  else
+    Result := -1;
+end;
+
+function THashedStringList.IndexOfName(const Name: String): Integer;
+var
+  I: Integer;
+begin
+  if not FNameHashValid then
+    UpdateNameHash;
+
+  I := FNameHash.FindIndexOf(Name);
+  if I >= 0 then
+    Result := Integer(FNameHash[I])
+  else
+    Result := -1;
+end;
+
+procedure THashedStringList.Changed;
+begin
+  FValueHashValid := False;
+  FNameHashValid := False;
+  inherited Changed;
+end;
+
+procedure THashedStringList.UpdateValueHash;
+var
+  I: Integer;
+begin
+  if not Assigned(FValueHash) then
+    FValueHash := TFPHashList.Create
+  else
+    FValueHash.Clear;
+  for I := 0 to Count - 1 do
+    FValueHash.Add(Strings[I], Pointer(I));
+  FValueHashValid := True;
+end;
+
+procedure THashedStringList.UpdateNameHash;
+var
+  I: Integer;
+begin
+  if not Assigned(FNameHash) then
+    FNameHash := TFPHashList.Create
+  else
+    FNameHash.Clear;
+  for I := 0 to Count - 1 do
+    FNameHash.Add(Names[I], Pointer(I));
+  FNameHashValid := True;
 end;
 
 { TIniFileKey }
