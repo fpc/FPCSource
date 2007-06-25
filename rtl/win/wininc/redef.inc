@@ -107,7 +107,6 @@ const
 
   { Some missing consts }
   SIF_TRACKPOS = $10;
-  HTBORDER = 18;
   CP_UTF7 = 65000;
   CP_UTF8 = 65001;
   CREATE_NO_WINDOW = $08000000;
@@ -121,6 +120,18 @@ const
   VK_NONAME = 252;
   VK_PA1 = 253;
   VK_OEM_CLEAR = 254;
+
+  WHEEL_DELTA = 120;
+  WHEEL_PAGESCROLL = MAXDWORD;
+
+  MSH_MOUSEWHEEL   = 'MSWHEEL_ROLLMSG';
+  MOUSEZ_CLASSNAME = 'MouseZ';
+  MOUSEZ_TITLE     = 'Magellan MSWHEEL';
+  MSH_WHEELSUPPORT = 'MSH_WHEELSUPPORT_MSG';
+  MSH_SCROLL_LINES = 'MSH_SCROLL_LINES_MSG';
+
+  MSH_WHEELMODULE_CLASS = MOUSEZ_CLASSNAME;
+  MSH_WHEELMODULE_TITLE = MOUSEZ_TITLE;
 
 const
   { Severity values }
@@ -989,6 +1000,9 @@ function AnsiLowerBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' nam
 function CreateIcon(hInstance:HINST; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE;lpbANDbits:pointer; lpbXORbits:pointer):HICON; external 'user32' name 'CreateIcon';
 function GetKeyboardState(var KeyState:TKeyboardState):WINBOOL; external 'user32' name 'GetKeyboardState';
 function SetKeyboardState(var KeyState:TKeyboardState):WINBOOL; external 'user32' name 'SetKeyboardState';
+function GetWindowThreadProcessId(hWnd:HWND;var lpdwProcessId:DWORD):DWORD; external 'user32' name 'GetWindowThreadProcessId';
+function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScrollLines: UINT;
+  var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
 {$endif read_interface}
 
 
@@ -1117,6 +1131,24 @@ end;
 function GetCurrentTime: Longint;inline;
 begin
   Result:=GetTickCount;
+end;
+
+function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScrollLines: UINT;
+  var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
+begin
+  Result:=FindWindow(MSH_WHEELMODULE_CLASS, MSH_WHEELMODULE_TITLE);
+  puiMsh_MsgMouseWheel:=RegisterWindowMessage(MSH_MOUSEWHEEL);
+  puiMsh_Msg3DSupport:=RegisterWindowMessage(MSH_WHEELSUPPORT);
+  puiMsh_MsgScrollLines:=RegisterWindowMessage(MSH_SCROLL_LINES);
+  if (puiMsh_Msg3DSupport<>0) and (Result<>0) then
+    pf3DSupport:=BOOL(SendMessage(Result,puiMsh_Msg3DSupport,0,0))
+  else
+    pf3DSupport:=False;
+
+  if (puiMsh_MsgScrollLines<>0)  and (Result<>0) then
+    piScrollLines:=SendMessage(Result,puiMsh_MsgScrollLines,0,0)
+  else
+    piScrollLines:=3;
 end;
 {$endif read_implementation}
 

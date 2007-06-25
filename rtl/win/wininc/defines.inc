@@ -4483,6 +4483,17 @@
      SW_OTHERZOOM = 2;
      SW_PARENTCLOSING = 1;
      SW_PARENTOPENING = 3;
+
+     AW_HOR_POSITIVE = $00000001;
+     AW_HOR_NEGATIVE = $00000002;
+     AW_VER_POSITIVE = $00000004;
+     AW_VER_NEGATIVE = $00000008;
+     AW_CENTER = $00000010;
+     AW_HIDE = $00010000;
+     AW_ACTIVATE = $00020000;
+     AW_SLIDE = $00040000;
+     AW_BLEND = $00080000;
+
   { Virtual Key codes  }
      VK_LBUTTON = 1;
      VK_RBUTTON = 2;
@@ -4679,6 +4690,16 @@
      HTTRANSPARENT = -(1);
      HTVSCROLL = 7;
      HTZOOM = 9;
+
+     HTBORDER = 18;
+     HTSIZEFIRST = HTLEFT;
+     HTSIZELAST = HTBOTTOMRIGHT;
+     HTOBJECT = 19;
+     HTCLOSE = 20;
+     HTHELP = 21;
+     HTMINBUTTON = HTREDUCE;
+     HTMAXBUTTON = HTZOOM;
+
   { Mouse messages  }
      MK_CONTROL = 8;
      MK_LBUTTON = 1;
@@ -4699,6 +4720,10 @@
      CS_PARENTDC = 128;
      CS_SAVEBITS = 2048;
      CS_VREDRAW = 1;
+
+     CS_IME = $10000;
+     CS_DROPSHADOW = $20000;
+
      DLGWINDOWEXTRA = 30;
   { ACCEL structure  }
      FALT = 16;
