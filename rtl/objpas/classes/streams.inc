@@ -785,3 +785,86 @@ begin
   inherited Destroy;
 end;
 
+{****************************************************************************}
+{*                             TStreamAdapter                               *}
+{****************************************************************************}
+constructor TStreamAdapter.Create(Stream: TStream; Ownership: TStreamOwnership = soReference);
+begin
+  inherited Create;
+  FStream:=Stream;
+  FOwnership:=Ownership;
+end;
+
+
+destructor TStreamAdapter.Destroy;
+begin
+  if StreamOwnership=soOwned then
+    FreeAndNil(FStream);
+  inherited Destroy;
+end;
+  
+  
+function TStreamAdapter.Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.Write(pv: Pointer; cb: DWORD; pcbWritten: PDWORD): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.Seek(dlibMove: Largeint; dwOrigin: Longint; out libNewPosition: Largeint): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.SetSize(libNewSize: Largeint): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint; out cbWritten: Largeint): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.Commit(grfCommitFlags: Longint): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.Revert: HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.LockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.UnlockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult; stdcall;
+begin
+  runerror(217);
+end;
+
+
+function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
+begin
+  runerror(217);
+end;
