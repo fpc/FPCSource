@@ -5992,23 +5992,21 @@
      PSYSTEMAUDITACE = ^SYSTEM_AUDIT_ACE;
 
      SYSTEM_INFO = record
-          u : record
               case longint of
-                 0 : ( dwOemId : DWORD );
-                 1 : ( s : record
+                 0 : ( dwOemId : DWORD;
+		       dwPageSize : DWORD;
+          	       lpMinimumApplicationAddress : LPVOID;
+          	       lpMaximumApplicationAddress : LPVOID;
+          	       dwActiveProcessorMask : DWORD;
+          	       dwNumberOfProcessors : DWORD;
+                       dwProcessorType : DWORD;
+                       dwAllocationGranularity : DWORD;
+                       wProcessorLevel : WORD;
+                       wProcessorRevision : WORD;	
+			 );
+                 1 : ( 
                       wProcessorArchitecture : WORD;
-                      wReserved : WORD;
-                   end );
-              end;
-          dwPageSize : DWORD;
-          lpMinimumApplicationAddress : LPVOID;
-          lpMaximumApplicationAddress : LPVOID;
-          dwActiveProcessorMask : DWORD;
-          dwNumberOfProcessors : DWORD;
-          dwProcessorType : DWORD;
-          dwAllocationGranularity : DWORD;
-          wProcessorLevel : WORD;
-          wProcessorRevision : WORD;
+                    );
        end;
      LPSYSTEM_INFO = ^SYSTEM_INFO;
      _SYSTEM_INFO = SYSTEM_INFO;
