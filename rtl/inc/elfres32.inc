@@ -89,8 +89,8 @@ begin
         CurrentResource:=pFPCResourceInfo(pointer(FPCResourceSectionLocation^.reshash.ptr+i*sizeof(TFPCResourceInfo)));
         FPCRuntimeResourceInfoArray[i].reshash:=CurrentResource^.reshash;
         FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
-        FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+PtrInt(FPCResourceSectionLocation^.resdata.ptr);
-        FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+PtrInt(FPCResourceSectionLocation^.ressym.ptr);
+        FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+ptruint(FPCResourceSectionLocation^.resdata.ptr);
+        FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+ptruint(FPCResourceSectionLocation^.ressym.ptr);
         FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
       end;
     end;
