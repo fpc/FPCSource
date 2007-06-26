@@ -613,6 +613,20 @@ implementation
           to use the div operator.}
          if (node.nodetype=slashn) and (def.typ=orddef) then
            cgmessage(type_h_use_div_for_int);
+         {In expressions like int64:=longint+longint, an integer overflow could be avoided
+          by simply converting the operands to int64 first. Give a hint to do this.}
+         if (node.nodetype in [addn,subn,muln]) and
+            (def.typ=orddef) and (node.resultdef<>nil) and (node.resultdef.typ=orddef) and
+            ((Torddef(node.resultdef).low>=Torddef(def).low) and (Torddef(node.resultdef).high<=Torddef(def).high)) and
+            ((Torddef(node.resultdef).low>Torddef(def).low) or (Torddef(node.resultdef).high<Torddef(def).high)) then
+           case node.nodetype of
+             addn:
+               cgmessage1(type_h_convert_add_operands_to_prevent_overflow,def.gettypename);
+             subn:
+               cgmessage1(type_h_convert_sub_operands_to_prevent_overflow,def.gettypename);
+             muln:
+               cgmessage1(type_h_convert_mul_operands_to_prevent_overflow,def.gettypename);
+           end;
       end;
 
 

@@ -1399,6 +1399,15 @@ type_e_cant_export_local=04077_E_Can't export subroutine marked as local from a 
 type_e_not_automatable=04078_E_Type is not automatable: "$1"
 % Only byte, integer, longint, smallint, currency, single, double, ansistring,
 % widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
+type_h_convert_add_operands_to_prevent_overflow=04079_H_Converting the operands to "$1" before doing the add could prevent overflow errors.
+% Adding two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the addition.
+type_h_convert_sub_operands_to_prevent_overflow=04080_H_Converting the operands to "$1" before doing the subtract could prevent overflow errors.
+% Subtracting two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the subtraction.
+type_h_convert_mul_operands_to_prevent_overflow=04081_H_Converting the operands to "$1" before doing the multiply could prevent overflow errors.
+% Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the multiplication.
 % \end{description}
 #
 # Symtable
