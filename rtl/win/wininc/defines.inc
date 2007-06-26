@@ -1230,6 +1230,7 @@
      EWX_POWEROFF = 8;
      EWX_REBOOT = 2;
      EWX_SHUTDOWN = 1;
+     EWX_FORCEIFHUNG = 16;
   { ExtFloodFill  }
      FLOODFILLBORDER = 0;
      FLOODFILLSURFACE = 1;
