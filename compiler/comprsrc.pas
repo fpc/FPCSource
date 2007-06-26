@@ -219,7 +219,7 @@ type
 
 var
   fs: TCFileStream;
-  i: longint;
+  i, sz: longint;
   hdr: TResHeader;
 begin
   if fn='' then
@@ -248,22 +248,29 @@ begin
         end
       else
         fs.Seek(32, soFromBeginning);
-      fs.ReadBuffer(hdr, SizeOf(hdr));
-      FOut.WriteBuffer(hdr, SizeOf(hdr));
-      i:=hdr.HeaderSize + hdr.DataSize - SizeOf(hdr);
-      if fs.Position + i > fs.Size then
-        begin
-          Comment(V_Error,'Invalid resource file: '+fn);
-          Include(current_settings.globalswitches, cs_link_nolink);
-          fs.Free;
-          exit;
-        end;
-      FOut.CopyFrom(fs, i);
+      sz:=fs.Size;
+      repeat
+        fs.ReadBuffer(hdr, SizeOf(hdr));
+        FOut.WriteBuffer(hdr, SizeOf(hdr));
+        i:=hdr.HeaderSize + hdr.DataSize - SizeOf(hdr);
+        if fs.Position + i > sz then
+          begin
+            Comment(V_Error,'Invalid resource file: '+fn);
+            Include(current_settings.globalswitches, cs_link_nolink);
+            fs.Free;
+            exit;
+          end;
+        FOut.CopyFrom(fs, i);
+        { align resource to dword }
+        i:=4 - FOut.Position mod 4;
+        if i<4 then
+          FOut.WriteBuffer(zeroes, i);
+        { position to the next resource }
+        i:=4 - fs.Position mod 4;
+        if i<4 then
+          fs.Seek(i, soFromCurrent);
+      until fs.Position + SizeOf(hdr) >= sz;
       fs.Free;
-      { align resource to dword }
-      i:=4 - FOut.Position mod 4;
-      if i<4 then
-        FOut.WriteBuffer(zeroes, i);
     except
       on E:EOSError do begin
         Comment(V_Error,'Error processing resource file: '+fn+': '+E.Message);
