@@ -1,4 +1,4 @@
-program tb0201;
+program tb0540;
 
 {$mode objfpc}
 {$H-}

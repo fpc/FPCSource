@@ -5799,7 +5799,6 @@ tests/tbf/tb0198.pp svneol=native#text/plain
 tests/tbf/tb0199.pp -text
 tests/tbf/tb0199a.pp -text
 tests/tbf/tb0200.pp svneol=native#text/x-pascal
-tests/tbf/tb0201.pp svneol=native#text/x-pascal
 tests/tbf/ub0115.pp svneol=native#text/plain
 tests/tbf/ub0149.pp svneol=native#text/plain
 tests/tbf/ub0158a.pp svneol=native#text/plain
@@ -6336,6 +6335,7 @@ tests/tbs/tb0536.pp svneol=native#text/plain
 tests/tbs/tb0537.pp svneol=native#text/plain
 tests/tbs/tb0538.pp svneol=native#text/plain
 tests/tbs/tb0539.pp svneol=native#text/plain
+tests/tbs/tb0540.pp svneol=native#text/x-pascal
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
 tests/tbs/ub0119.pp svneol=native#text/plain

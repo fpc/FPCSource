@@ -1,3 +1,5 @@
+{%NORUN}
+{%FAIL}
 program tb0200;
 
 {$H-}
