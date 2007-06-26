@@ -1501,7 +1501,6 @@ const pemagic : array[0..3] of byte = (
         rel_type  : TObjRelocationType;
         i         : longint;
         p         : TObjSymbol;
-        extradist : longint;
       begin
         for i:=1 to s.coffrelocs do
          begin
@@ -2532,12 +2531,17 @@ const pemagic : array[0..3] of byte = (
             for j:=0 to exesec.ObjSectionList.count-1 do
               begin
                 objsec:=TObjSection(exesec.ObjSectionList[j]);
+                { create relocs only for sections which are loaded in memory }
+                if not (oso_load in objsec.SecOptions) then
+                  continue;
                 for k:=0 to objsec.ObjRelocations.Count-1 do
                   begin
                     objreloc:=TObjRelocation(objsec.ObjRelocations[k]);
                     if not (objreloc.typ in [{$ifdef x86_64}RELOC_ABSOLUTE32,{$endif x86_64}RELOC_ABSOLUTE]) then
                       continue;
                     offset:=objsec.MemPos+objreloc.dataoffset;
+                    if offset<pgaddr then
+                      Internalerror(2007062701);
                     if (offset-pgaddr>=4096) or (pgaddr=-1) then
                       begin
                         FinishBlock;
@@ -2566,7 +2570,7 @@ const pemagic : array[0..3] of byte = (
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           exit;
-        exesec.SecOptions:=exesec.SecOptions + [oso_Data,oso_keep];
+        exesec.SecOptions:=exesec.SecOptions + [oso_Data,oso_keep,oso_load];
       end;
 
 
