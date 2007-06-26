@@ -210,9 +210,17 @@ end;
 procedure TWinLikeResourceFile.Collect(const fn: ansistring);
 const
   zeroes: array[1..3] of byte = (0,0,0);
+
+type
+  TResHeader = packed record
+    DataSize: dword;
+    HeaderSize: dword;
+  end;
+
 var
   fs: TCFileStream;
   i: longint;
+  hdr: TResHeader;
 begin
   if fn='' then
     begin
@@ -223,24 +231,44 @@ begin
         end;
     end
   else
-    begin
+    try
       fs:=TCFileStream.Create(fn,fmOpenRead or fmShareDenyNone);
       if CStreamError<>0 then
         begin
           fs.Free;
           Comment(V_Error,'Can''t open resource file: '+fn);
+          Include(current_settings.globalswitches, cs_link_nolink);
           exit;
         end;
       if FOut=nil then
-        FOut:=TCFileStream.Create(fname,fmCreate)
+        begin
+          FOut:=TCFileStream.Create(fname,fmCreate);
+          { writing res signature }
+          FOut.CopyFrom(fs, 32);
+        end
       else
         fs.Seek(32, soFromBeginning);
-      FOut.CopyFrom(fs, fs.Size-fs.Position);
+      fs.ReadBuffer(hdr, SizeOf(hdr));
+      FOut.WriteBuffer(hdr, SizeOf(hdr));
+      i:=hdr.HeaderSize + hdr.DataSize - SizeOf(hdr);
+      if fs.Position + i > fs.Size then
+        begin
+          Comment(V_Error,'Invalid resource file: '+fn);
+          Include(current_settings.globalswitches, cs_link_nolink);
+          fs.Free;
+          exit;
+        end;
+      FOut.CopyFrom(fs, i);
       fs.Free;
       { align resource to dword }
       i:=4 - FOut.Position mod 4;
       if i<4 then
         FOut.WriteBuffer(zeroes, i);
+    except
+      on E:EOSError do begin
+        Comment(V_Error,'Error processing resource file: '+fn+': '+E.Message);
+        Include(current_settings.globalswitches, cs_link_nolink);
+      end;
     end;
 end;
 
@@ -278,12 +306,14 @@ begin
               if CStreamError<>0 then
                 begin
                   Comment(V_Error,'Can''t open resource file: '+src.FileName);
+                  Include(current_settings.globalswitches, cs_link_nolink);
                   exit;
                 end;
               dst:=TCFileStream.Create(current_module.outputpath^+res.FPStr,fmCreate);
               if CStreamError<>0 then
                 begin
                   Comment(V_Error,'Can''t create resource file: '+dst.FileName);
+                  Include(current_settings.globalswitches, cs_link_nolink);
                   exit;
                 end;
               dst.CopyFrom(src,src.Size);
@@ -343,6 +373,8 @@ var
   s : TCmdStr;
 begin
   if (target_info.res=res_none) or (target_res.rcbin='') then
+    exit;
+  if cs_link_nolink in current_settings.globalswitches then
     exit;
   s:=main_module.outputpath^+GlobalResName+target_info.resext;
   resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass.create(s));

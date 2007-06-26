@@ -108,6 +108,8 @@ implementation
 
         { resource files }
         CompileResourceFiles;
+        { create global resource file by collecting all resource files }
+        CollectResourceFiles;
       end;
 
 
@@ -1474,9 +1476,6 @@ implementation
          { create dwarf debuginfo }
          create_dwarf;
 
-         { create global resource file by collecting all resource files }
-         CollectResourceFiles;
-         
          { insert own objectfile }
          insertobjectfile;
 
