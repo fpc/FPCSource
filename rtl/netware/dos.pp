@@ -105,7 +105,7 @@ end;
 
 function GetMsCount: int64;
 begin
-  GetMsCount := Nwserv.GetCurrentTicks * 55;
+  GetMsCount := int64 (Nwserv.GetCurrentTicks) * 55;
 end;
 
 
