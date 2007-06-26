@@ -470,6 +470,8 @@ function DdeQueryStringW(_para1:DWORD; _para2:HSZ; _para3:LPCWSTR; _para4:DWORD;
 function LogonUserW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _para5:DWORD;_para6:PHANDLE):WINBOOL; external 'advapi32' name 'LogonUserW';
 function CreateProcessAsUserW(_para1:HANDLE; _para2:LPCWSTR; _para3:LPWSTR; _para4:LPSECURITY_ATTRIBUTES; _para5:LPSECURITY_ATTRIBUTES;_para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCWSTR;
   _para10:LPSTARTUPINFO;_para11:LPPROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserW';
+function CreateWaitableTimerW(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPWSTR):THandle;external 'kernel32' name 'CreateWaitableTimerW'; 
+function OpenWaitableTimerW(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPWSTR):THandle;external 'kernel32' name 'OpenWaitableTimerW'; 
 {$endif read_interface}
 
 
