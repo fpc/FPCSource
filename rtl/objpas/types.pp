@@ -39,6 +39,10 @@ type
   PByte = System.PByte;
   Largeint = int64;
   LARGE_INT = LargeInt;
+  PLargeInt = ^LargeInt;
+  LargeUint = qword;
+  LARGE_UINT= LargeUInt;
+  PLargeuInt = ^LargeuInt;
 
   TIntegerDynArray = array of Integer;
   TCardinalDynArray = array of Cardinal;
