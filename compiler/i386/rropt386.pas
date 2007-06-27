@@ -166,7 +166,12 @@ begin
               internalerror(200402263);
           top_reg:
             begin
+              { "addl %reg2,%reg1" must become "leal (%reg1,%reg1),%reg2" }
+              { since at this point reg1 holds the value that reg2 would  }
+              { otherwise contain                                         }
               tmpref.index := p.oper[0]^.reg;
+              if (getsupreg(tmpref.index)=reg2) then
+                setsupreg(tmpref.index,reg1);
               tmpref.scalefactor := 1;
             end;
           else internalerror(200010031);
