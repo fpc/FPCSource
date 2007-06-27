@@ -796,7 +796,6 @@ Implementation
         pcurr,
         pendquote : pchar;
         oldsec    : TObjSection;
-        reltype   : TObjRelocationType;
       begin
         pcurr:=nil;
         pstr:=nil;
@@ -885,13 +884,7 @@ Implementation
             oldsec:=ObjData.CurrObjSec;
             ObjData.SetSection(ObjData.StabsSec);
             ObjData.Writebytes(stab,sizeof(TObjStabEntry)-4);
-            if assigned(relocsym) and
-               (target_info.system in system_windows+system_wince) and
-               (DLLSource and RelocSection) then
-              reltype:=RELOC_RVA
-            else
-              reltype:=RELOC_ABSOLUTE;
-            ObjData.Writereloc(stab.nvalue,4,relocsym,reltype);
+            ObjData.Writereloc(stab.nvalue,4,relocsym,RELOC_ABSOLUTE);
             ObjData.setsection(oldsec);
           end;
         if assigned(pendquote) then
