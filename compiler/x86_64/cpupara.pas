@@ -550,9 +550,14 @@ unit cpupara;
             for i:=0 to paras.count-1 do
               begin
                 hp:=tparavarsym(paras[i]);
-                with hp.paraloc[side].location^ do
-                  if (loc=LOC_REFERENCE) then
-                    inc(reference.offset,target_info.first_parm_offset);
+                paraloc:=hp.paraloc[side].location;
+                while paraloc<>nil do
+                  begin
+                    with paraloc^ do
+                     if (loc=LOC_REFERENCE) then
+                       inc(reference.offset,target_info.first_parm_offset);
+                    paraloc:=paraloc^.next;
+                  end;
               end;
           end;
       end;

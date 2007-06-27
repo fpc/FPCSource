@@ -958,7 +958,7 @@ Var
 
 begin
   DecodeTime(AValue,H,M,S,MS);
-  Result:=((M+(H+((DayOfTheYear(AValue)-1)*24))*60)*60+S)*1000+MS;
+  Result:=((M+(H+((int64(DayOfTheYear(AValue))-1)*24))*60)*60+S)*1000+MS;
 end;
 
 

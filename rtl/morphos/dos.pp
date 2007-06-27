@@ -431,7 +431,7 @@ var
   TV: TTimeVal;
 begin
   Get_Sys_Time (@TV);
-  GetMsCount := TV.TV_Secs * 1000 + TV.TV_Micro div 1000;
+  GetMsCount := int64 (TV.TV_Secs) * 1000 + TV.TV_Micro div 1000;
 end;
 
 {******************************************************************************

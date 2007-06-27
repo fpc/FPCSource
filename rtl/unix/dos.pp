@@ -296,7 +296,7 @@ var
 {  tz : TimeZone;}
 begin
   FPGetTimeOfDay (@tv, nil {,tz});
-  GetMsCount := tv.tv_Sec * 1000 + tv.tv_uSec div 1000;
+  GetMsCount := int64(tv.tv_Sec) * 1000 + tv.tv_uSec div 1000;
 end;
 
 

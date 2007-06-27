@@ -151,7 +151,7 @@ end;
 
 function GetMsCount: int64;
 begin
-  GetMsCount := MemL [$40:$6c] * 55;
+  GetMsCount := int64 (MemL [$40:$6c]) * 55;
 end;
 
 {******************************************************************************
