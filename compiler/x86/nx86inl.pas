@@ -475,10 +475,11 @@ implementation
             opsize:=OS_32;
           bitsperop:=(8*tcgsize2size[opsize]);
           secondpass(tcallparanode(left).left);
-          if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
+          secondpass(tcallparanode(tcallparanode(left).right).left);
+          if tcallparanode(tcallparanode(left).right).left.location.loc=LOC_CONSTANT then
             begin
               { calculate bit position }
-              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value.svalue mod bitsperop);
+              l:=1 shl (tcallparanode(tcallparanode(left).right).left.location.value mod bitsperop);
 
               { determine operator }
               if inlinenumber=in_include_x_y then
@@ -492,7 +493,7 @@ implementation
                 LOC_REFERENCE :
                   begin
                     inc(tcallparanode(left).left.location.reference.offset,
-                      (tordconstnode(tcallparanode(tcallparanode(left).right).left).value.svalue div bitsperop)*tcgsize2size[opsize]);
+                      (tcallparanode(tcallparanode(left).right).left.location.value div bitsperop)*tcgsize2size[opsize]);
                     cg.a_op_const_ref(current_asmdata.CurrAsmList,cgop,opsize,l,tcallparanode(left).left.location.reference);
                   end;
                 LOC_CREGISTER :
@@ -503,29 +504,16 @@ implementation
             end
           else
             begin
-              if opsize=OS_8 then
+              if opsize in [OS_8,OS_S8] then
                 opsize:=OS_32;
-              { generate code for the element to set }
-              secondpass(tcallparanode(tcallparanode(left).right).left);
               { determine asm operator }
               if inlinenumber=in_include_x_y then
                  asmop:=A_BTS
               else
                  asmop:=A_BTR;
 
-              if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-                { we don't need a mod 32 because this is done automatically  }
-                { by the bts instruction. For proper checking we would       }
-
-                { note: bts doesn't do any mod'ing, that's why we can also use }
-                { it for normalsets! (JM)                                      }
-
-                { need a cmp and jmp, but this should be done by the         }
-                { type cast code which does range checking if necessary (FK) }
-                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,Tcallparanode(Tcallparanode(left).right).left.location.register,opsize)
-              else
-                hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-              cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,tcallparanode(tcallparanode(left).right).left.location,hregister);
+              location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,opsize,true);
+              hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
               else
