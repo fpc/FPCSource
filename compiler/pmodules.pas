@@ -108,8 +108,6 @@ implementation
 
         { resource files }
         CompileResourceFiles;
-        { create global resource file by collecting all resource files }
-        CollectResourceFiles;
       end;
 
 
@@ -1504,6 +1502,8 @@ implementation
              { create the executable when we are at level 1 }
              if (compile_level=1) then
                begin
+                 { create global resource file by collecting all resource files }
+                 CollectResourceFiles;
                  { write .def file }
                  if (cs_link_deffile in current_settings.globalswitches) then
                   deffile.writefile;
