@@ -58,6 +58,21 @@ const
   ApiSuffix = 'A';
 {$endif WINCE}
 
-  function OleStrToString(source: PWideChar) : ansistring;inline;
-  procedure OleStrToStrVar(source : PWideChar;var dest : ansistring);inline;
-  function StringToOleStr(const source : ansistring) : PWideChar;inline;
+function OleStrToString(source: PWideChar) : ansistring;inline;
+procedure OleStrToStrVar(source : PWideChar;var dest : ansistring);inline;
+function StringToOleStr(const source : ansistring) : PWideChar;inline;
+
+{ package stuff }
+type
+  PLibModule = ^TLibModule;
+  TLibModule = record
+    Next: PLibModule;
+    Instance: THandle;
+    CodeInstance: THandle;
+    DataInstance: THandle;
+    ResInstance: THandle;
+    Reserved: PtrInt;
+  end;
+
+var
+  LibModuleList: PLibModule = nil;
