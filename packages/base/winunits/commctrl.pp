@@ -48,7 +48,7 @@ Uses Windows,CTypes,ActiveX;
 // --------------------
 
 // --------------------
-CONST CommCtrlDLL = 'commctrl.dll';
+CONST CommCtrlDLL = 'comctl32.dll';
 
 // Some reasonal defaults.
 // for XP only set NT to $%0501 and IE to $0600
@@ -644,7 +644,7 @@ function ImageList_Copy(himlDst:HIMAGELIST;iDst:cint;himlSrc:HIMAGELIST;iSrc:cin
 {$ENDIF}
 
 function ImageList_BeginDrag(himlTrack:HIMAGELIST;iTrack:cint;dxHotspot:cint;dyHotspot:cint):BOOL; external commctrldll name 'ImageList_BeginDrag';
-Procedure ImageList_EndDrag; external commctrldll name 'ImageList_EndDrag';
+function ImageList_EndDrag:BOOL; external commctrldll name 'ImageList_EndDrag';
 function ImageList_DragEnter(hwndLock:HWND;x:cint;y:cint):BOOL; external commctrldll name 'ImageList_DragEnter';
 function ImageList_DragLeave(hwndLock:HWND):BOOL; external commctrldll name 'ImageList_DragLeave';
 function ImageList_DragMove(x:cint;y:cint):BOOL; external commctrldll name 'ImageList_DragMove';
@@ -699,8 +699,10 @@ TYPE
 {$ENDIF}
 
 function ImageList_GetIconSize(himl:HIMAGELIST;cx:Pint;cy:Pint):BOOL; external commctrldll name 'ImageList_GetIconSize';
+function ImageList_GetIconSize(himl:HIMAGELIST;var cx:cint;var cy:cint):BOOL; external commctrldll name 'ImageList_GetIconSize';
 function ImageList_SetIconSize(himl:HIMAGELIST;cx:cint;cy:cint):BOOL; external commctrldll name 'ImageList_SetIconSize';
 function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;pImageInfo:PIMAGEINFO):BOOL; external commctrldll name 'ImageList_GetImageInfo';
+function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;var pImageInfo:_IMAGEINFO):BOOL; external commctrldll name 'ImageList_GetImageInfo';
 function ImageList_Merge(himl1:HIMAGELIST;i1:cint;himl2:HIMAGELIST;i2:cint;dx:cint;dy:cint):HIMAGELIST; external commctrldll name 'ImageList_Merge';
 {$ifdef ie4plus}
 function ImageList_Duplicate(himl:HIMAGELIST):HIMAGELIST; external commctrldll name 'ImageList_Duplicate';
