@@ -1211,12 +1211,14 @@ implementation
                RelocSection:=true;
            end;
 
-         { relocation works only without stabs under win32 !! PM }
-         { internal assembler uses rva for stabs info
-           so it should work with relocated DLLs }
+         { Relocation works only without stabs under Windows when }
+         { external linker (LD) is used.  LD generates relocs for }
+         { stab sections which is not loaded in memory. It causes }
+         { AV error when DLL is loaded and relocation is needed.  }
+         { Internal linker does not have this problem.            }
          if RelocSection and
-            (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-            (target_info.assem<>as_i386_pecoff) then
+            (target_info.system in system_all_windows+[system_i386_wdosx]) and
+            (cs_link_extern in current_settings.globalswitches) then
            begin
               include(current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
@@ -1227,7 +1229,6 @@ implementation
                   exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;
            end;
-
          { get correct output names }
          main_file := current_scanner.inputfile;
          while assigned(main_file.next) do
