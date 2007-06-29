@@ -709,7 +709,9 @@ implementation
             not(is_dynamic_array(left.resultdef)) and
             (not(is_packed_array(left.resultdef)) or
              ((mulsize mod 8 = 0) and
-              ispowerof2(mulsize div 8,temp))) then
+              ispowerof2(mulsize div 8,temp)) or
+              { only orddefs are bitpacked }
+              not is_ordinal(resultdef)) then
            dec(location.reference.offset,bytemulsize*tarraydef(left.resultdef).lowrange);
 
          if right.nodetype=ordconstn then
