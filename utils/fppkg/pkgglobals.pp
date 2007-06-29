@@ -44,9 +44,21 @@ var
 
 Implementation
 
+// define use_shell to use sysutils.executeprocess 
+//  as alternate to using 'process' in getcompilerinfo 
+{$IFDEF GO32v2}
+ {$DEFINE USE_SHELL}
+{$ENDIF GO32v2}
+
+{$IFDEF OS2}
+ {$DEFINE USE_SHELL}
+{$ENDIF OS2}
+
 uses
   typinfo,
-  process,
+{$IFNDEF USE_SHELL}  
+  process, 
+{$ENDIF USE_SHELL}
   contnrs,
   uriparser,
   pkgmessages;
@@ -196,22 +208,46 @@ begin
 end;
 
 
-Function GetCompilerInfo(const ACompiler,AOptions:string):string;
-Const
-  BUFSIZE=1024;
-Var
-  S : TProcess;
-  Buf : Array[0..BUFSIZE-1] of char;
-  Count : longint;
+//
+// if use_shell defined uses sysutils.executeprocess else uses 'process'
+//  
+function GetCompilerInfo(const ACompiler,AOptions:string):string;
+const
+  BufSize = 1024;
+var
+{$IFDEF USE_SHELL}
+  TmpFileName, ProcIDStr: shortstring;
+  TmpFile: file;
+  CmdLine2: string;
+{$ELSE USE_SHELL}
+  S: TProcess;
+{$ENDIF USE_SHELL}
+  Buf: array [0..BufSize - 1] of char;
+  Count: longint;
 begin
+{$IFDEF USE_SHELL}
+  Str (GetProcessID, ProcIDStr);
+  TmpFileName := GetEnvironmentVariable ('TEMP');
+  if TmpFileName <> '' then
+   TmpFileName := TmpFileName + DirectorySeparator + 'fppkgout.' + ProcIDStr
+  else
+   TmpfileName := 'fppkgout.' + ProcIDStr;
+  CmdLine2 := '/C ' + ACompiler + ' ' + AOptions + ' > ' + TmpFileName;
+  SysUtils.ExecuteProcess (GetEnvironmentVariable ('COMSPEC'), CmdLine2);
+  Assign (TmpFile, TmpFileName);
+  Reset (TmpFile, 1);
+  BlockRead (TmpFile, Buf, BufSize, Count);
+  Close (TmpFile);
+{$ELSE USE_SHELL}
   S:=TProcess.Create(Nil);
-  S.Commandline:=ACOmpiler+' '+AOptions;
+  S.Commandline:=ACompiler+' '+AOptions;
   S.Options:=[poUsePipes,poNoConsole];
   S.execute;
   Count:=s.output.read(buf,BufSize);
+  S.Free;
+{$ENDIF USE_SHELL}
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
-  S.Free;
 end;
 
 end.
