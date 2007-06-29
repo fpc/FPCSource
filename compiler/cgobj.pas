@@ -3664,7 +3664,7 @@ implementation
       var
         hsym : tsym;
         href : treference;
-        paraloc : tcgparalocation;
+        paraloc : Pcgparalocation;
       begin
         { calculate the parameter info for the procdef }
         if not procdef.has_paraloc_info then
@@ -3676,20 +3676,25 @@ implementation
         if not(assigned(hsym) and
                (hsym.typ=paravarsym)) then
           internalerror(200305251);
-        paraloc:=tparavarsym(hsym).paraloc[callerside].location^;
-        case paraloc.loc of
-          LOC_REGISTER:
-            a_op_const_reg(list,OP_SUB,paraloc.size,ioffset,paraloc.register);
-          LOC_REFERENCE:
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        while paraloc<>nil do
+          with paraloc^ do
             begin
-               { offset in the wrapper needs to be adjusted for the stored
-                 return address }
-               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset+sizeof(aint));
-               a_op_const_ref(list,OP_SUB,paraloc.size,ioffset,href);
-            end
-          else
-            internalerror(200309189);
-        end;
+              case loc of
+                LOC_REGISTER:
+                  a_op_const_reg(list,OP_SUB,size,ioffset,register);
+                LOC_REFERENCE:
+                  begin
+                    { offset in the wrapper needs to be adjusted for the stored
+                      return address }
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint));
+                    a_op_const_ref(list,OP_SUB,size,ioffset,href);
+                  end
+                else
+                  internalerror(200309189);
+              end;
+              paraloc:=next;
+            end;
       end;
 
 
