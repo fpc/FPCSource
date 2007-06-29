@@ -7243,8 +7243,8 @@ type
   PIMAGE_NT_HEADERS = PIMAGE_NT_HEADERS32;
   {$EXTERNALSYM PIMAGE_NT_HEADERS}
 
+  TImageNtHeaders = IMAGE_NT_HEADERS32;
   PImageNtHeaders = PIMAGE_NT_HEADERS;
-
 
 {$endif read_interface}
 
