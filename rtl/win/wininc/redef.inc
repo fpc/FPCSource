@@ -1005,6 +1005,8 @@ function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScr
   var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
 function CreateWaitableTimer(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
 function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA'; 
+function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
+
 {$endif read_interface}
 
 
