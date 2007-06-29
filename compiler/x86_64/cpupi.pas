@@ -57,7 +57,7 @@ implementation
               tg.setfirsttemp(tg.direction*maxpushedparasize+4*8);
           end
         else
-          inherited;
+          tg.setfirsttemp(tg.direction*maxpushedparasize);
       end;
 
 
