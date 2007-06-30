@@ -272,6 +272,19 @@ implementation
     fpccrc,
     cutils;
 
+
+function swapendian_ppureal(d:ppureal):ppureal;
+
+type ppureal_bytes=array[0..sizeof(d)-1] of byte;
+
+var i:0..sizeof(d)-1;
+
+begin
+  for i:=low(ppureal_bytes) to high(ppureal_bytes) do
+    ppureal_bytes(swapendian_ppureal)[i]:=ppureal_bytes(d)[high(ppureal_bytes)-i];
+end;
+
+
 {*****************************************************************************
                                   TPPUFile
 *****************************************************************************}
@@ -653,7 +666,10 @@ begin
          exit;
        end;
       readdata(hd,sizeof(hd));
-      getreal:=hd;
+      if change_endian then
+        getreal:=swapendian(qword(hd))
+      else
+        getreal:=hd;
       inc(entryidx,sizeof(hd));
     end
   else
@@ -665,7 +681,10 @@ begin
          exit;
        end;
       readdata(d,sizeof(ppureal));
-      getreal:=d;
+      if change_endian then
+        getreal:=swapendian_ppureal(d)
+      else
+        getreal:=d;
       inc(entryidx,sizeof(ppureal));
     end;
 end;
