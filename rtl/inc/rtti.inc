@@ -148,7 +148,7 @@ begin
   case PByte(TypeInfo)^ of
     tkAstring :
       begin
-       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+        fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
     tkWstring :
@@ -255,9 +255,11 @@ begin
         namelen:=Temp^;
         inc(temp,namelen+1);
         temp:=aligntoptr(temp);
+
         { Element size }
         size:=PSizeInt(Temp)^;
         inc(Temp,sizeof(Size));
+
         { Element count }
         Count:=PSizeInt(Temp)^;
         inc(Temp,sizeof(Count));
@@ -278,14 +280,14 @@ begin
         inc(temp,namelen+1);
         temp:=aligntoptr(temp);
 
-        { copy data }
         Result:=plongint(temp)^;
 
         { Skip size }
         inc(Temp,4);
+
         { Element count }
         Count:=PLongint(Temp)^;
-        inc(Temp,sizeof(Count));
+        inc(Temp,sizeof(longint));
         expectedoffset:=0;
         { Process elements with rtti }
         for i:=1 to count Do
@@ -295,10 +297,13 @@ begin
             Offset:=PLongint(Temp)^;
             if Offset>expectedoffset then
               move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
-            inc(Temp,sizeof(Offset));
+            inc(Temp,sizeof(longint));
             copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
             expectedoffset:=Offset+copiedsize;
           end;
+        { elements remaining? }
+        if result>expectedoffset then
+          move((Src+expectedoffset)^,(Dest+expectedoffset)^,Result-expectedoffset);
       end;
     tkDynArray:
       begin
