@@ -581,7 +581,7 @@ implementation
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
-          'fpc',
+          '.fpc',
           '.toc',
           '.init'
         );
@@ -598,7 +598,7 @@ implementation
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
-          'fpc',
+          '.fpc',
           '.toc',
           '.init'
         );
@@ -614,14 +614,17 @@ implementation
         if (use_smartlink_section and
            (aname<>'')) or (atype=sec_fpc) then
           begin
-            case aorder of
-              secorder_begin :
-                sep:='.b_';
-              secorder_end :
-                sep:='.z_';
-              else
-                sep:='.n_';
-            end;
+            if (atype=sec_fpc) and (aname='resptrs') then
+              sep:='.'
+            else
+              case aorder of
+                secorder_begin :
+                  sep:='.b_';
+                secorder_end :
+                  sep:='.z_';
+                else
+                  sep:='.n_';
+              end;
             result:=secname+sep+aname
           end
         else
