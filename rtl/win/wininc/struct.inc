@@ -7205,6 +7205,10 @@ type
   TImageNtHeaders = IMAGE_NT_HEADERS32;
   PImageNtHeaders = PIMAGE_NT_HEADERS;
 
+  _GET_FILEEX_INFO_LEVELS = (GetFileExInfoStandard, GetFileExMaxInfoLevel);
+  GET_FILEEX_INFO_LEVELS = _GET_FILEEX_INFO_LEVELS;
+  TGetFileExInfoLevels = GET_FILEEX_INFO_LEVELS;
+
 {$endif read_interface}
 
 
