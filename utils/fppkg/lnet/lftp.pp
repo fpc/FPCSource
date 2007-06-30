@@ -31,6 +31,9 @@ interface
 uses
   Classes, lNet, lTelnet;
   
+const
+  DEFAULT_FTP_PORT    = 1025;
+
 type
   TLFTP = class;
   TLFTPClient = class;
@@ -88,7 +91,7 @@ type
     property SocketClass: TLSocketClass read GetSocketClass write SetSocketClass;
     property ControlConnection: TLTelnetClient read FControl;
     property DataConnection: TLTCP read FData;
-    property TransferMethod: TLFTPTransferMethod read FTransferMethod write FTransferMethod;
+    property TransferMethod: TLFTPTransferMethod read FTransferMethod write FTransferMethod default ftPassive;
   end;
 
   { TLFTPTelnetClient }
@@ -203,7 +206,7 @@ type
     property Binary: Boolean read GetBinary write SetBinary;
     property PipeLine: Boolean read FPipeLine write FPipeLine;
     property Echo: Boolean read GetEcho write SetEcho;
-    property StartPort: Word read FStartPort write FStartPort;
+    property StartPort: Word read FStartPort write FStartPort default DEFAULT_FTP_PORT;
     property Transfer: Boolean read GetTransfer;
 
     property OnError: TLSocketErrorEvent read FOnError write FOnError;
@@ -224,7 +227,6 @@ uses
 
 const
   FLE             = #13#10;
-  DEFAULT_PORT    = 1024;
 
   EMPTY_REC: TLFTPStatusRec = (Status: fsNone; Args: ('', ''));
 
@@ -352,7 +354,7 @@ begin
   FStatusSet := []; // empty Event set
   FPassWord := '';
   FChunkSize := DEFAULT_CHUNK;
-  FStartPort := DEFAULT_PORT;
+  FStartPort := DEFAULT_FTP_PORT;
   FSL := TStringList.Create;
   FLastPort := FStartPort;
 

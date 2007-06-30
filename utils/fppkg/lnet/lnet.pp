@@ -1,4 +1,4 @@
-{ lNet v0.5.2
+{ lNet v0.5.3
 
   CopyRight (C) 2004-2006 Ales Katona
 
@@ -465,9 +465,10 @@ var
   a: TSockAddr;
   l: Integer;
 begin
+  Result := '';
   l := SizeOf(a);
-  fpGetSockName(FHandle, @a, @l);
-  Result := HostAddrToStr(LongWord(a.sin_addr));
+  if fpGetSockName(FHandle, @a, @l) = 0 then
+    Result := NetAddrToStr(LongWord(a.sin_addr));
 end;
 
 function TLSocket.CanSend: Boolean;
@@ -562,7 +563,7 @@ end;
 
 function TLSocket.GetLocalPort: Word;
 begin
-  Result := FAddress.sin_port;
+  Result := ntohs(FAddress.sin_port);
 end;
 
 function TLSocket.GetPeerPort: Word;
@@ -1056,6 +1057,7 @@ begin
   if FRootSock.Listen(APort, AIntf) then begin
     FRootSock.FConnected := True;
     FRootSock.FServerSocket := True;
+    FIterator := FRootSock;
     RegisterWithEventer;
     Result := true;
   end;
@@ -1161,8 +1163,9 @@ begin
     end;
     FRootSock.FNextSock := Tmp;
     Tmp.FPrevSock := FRootSock;
-    if not Assigned(FIterator) then
-      FIterator := Tmp;
+    if not Assigned(FIterator)      // if we don't have (bug?) an iterator yet
+    or FIterator.FServerSocket then // or if it's the first socket accepted
+      FIterator := Tmp;  // assign it as iterator (don't assign later acceptees)
     Inc(FCount);
     FEventer.AddHandle(Tmp);
     AcceptEvent(Tmp);
