@@ -460,7 +460,7 @@ begin
   if assigned(pmc^.prev_var) then
     pmc^.prev_var^.next_var := pmc^.next_var
   else
-    freelists.varlist := pmc^.next_var;
+    pmc^.freelists^.varlist := pmc^.next_var;
 end;
 
 procedure remove_freed_fixed_chunks(poc: poschunk);
@@ -824,7 +824,6 @@ begin
               HandleError(203);
           end;
       end;
-      poc^.next_free := nil;
       poc^.freelists := loc_freelists;
       poc^.prev_any := nil;
       poc^.next_any := loc_freelists^.oslist_all;
@@ -1040,19 +1039,19 @@ end;
                                SysFreeMem
 *****************************************************************************}
 
-procedure waitfree_fixed(pmc: pmemchunk_fixed; loc_freelists: pfreelists);
+procedure waitfree_fixed(pmc: pmemchunk_fixed; poc: poschunk);
 begin
   entercriticalsection(heap_lock);
-  pmc^.next_fixed := loc_freelists^.waitfixed;
-  loc_freelists^.waitfixed := pmc;
+  pmc^.next_fixed := poc^.freelists^.waitfixed;
+  poc^.freelists^.waitfixed := pmc;
   leavecriticalsection(heap_lock);
 end;
 
-procedure waitfree_var(pmcv: pmemchunk_var; loc_freelists: pfreelists);
+procedure waitfree_var(pmcv: pmemchunk_var);
 begin
   entercriticalsection(heap_lock);
-  pmcv^.next_var := loc_freelists^.waitvar;
-  loc_freelists^.waitvar := pmcv;
+  pmcv^.next_var := pmcv^.freelists^.waitvar;
+  pmcv^.freelists^.waitvar := pmcv;
   leavecriticalsection(heap_lock);
 end;
 
@@ -1067,14 +1066,9 @@ begin
   chunksize := pmc^.size and fixedsizemask;
   if loc_freelists <> poc^.freelists then
   begin
-    if poc^.freelists = main_orig_freelists then
-      poc^.freelists := main_relo_freelists;
-    if loc_freelists <> poc^.freelists then
-    begin
-      { deallocated in wrong thread! add to to-be-freed list of correct thread }
-      waitfree_fixed(pmc, poc^.freelists);
-      exit(chunksize);
-    end;
+    { deallocated in wrong thread! add to to-be-freed list of correct thread }
+    waitfree_fixed(pmc, poc);
+    exit(chunksize);
   end;
 
   dec(loc_freelists^.internal_status.currheapused, chunksize);
@@ -1106,14 +1100,9 @@ begin
   chunksize := pmcv^.size and sizemask;
   if loc_freelists <> pmcv^.freelists then
   begin
-    if pmcv^.freelists = main_orig_freelists then
-      pmcv^.freelists := main_relo_freelists;
-    if loc_freelists <> pmcv^.freelists then
-    begin
-      { deallocated in wrong thread! add to to-be-freed list of correct thread }
-      waitfree_var(pmcv, pmcv^.freelists);
-      exit(chunksize);
-    end;
+    { deallocated in wrong thread! add to to-be-freed list of correct thread }
+    waitfree_var(pmcv);
+    exit(chunksize);
   end;
 
   dec(loc_freelists^.internal_status.currheapused, chunksize);
