@@ -71,12 +71,14 @@ interface
           procedure writederefmap;
           procedure writederefdata;
           procedure writeImportSymbols;
+          procedure writeResources;
           procedure readsourcefiles;
           procedure readloadunit;
           procedure readlinkcontainer(var p:tlinkcontainer);
           procedure readderefmap;
           procedure readderefdata;
           procedure readImportSymbols;
+          procedure readResources;
 {$IFDEF MACRO_DIFF_HINT}
           procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
           procedure writeusedmacros;
@@ -624,6 +626,20 @@ uses
       end;
 
 
+    procedure tppumodule.writeResources;
+      var
+        res : TCmdStrListItem;
+      begin
+        res:=TCmdStrListItem(ResourceFiles.First);
+        while res<>nil do
+          begin
+            ppufile.putstring(res.FPStr);
+            res:=TCmdStrListItem(res.Next);
+          end;
+        ppufile.writeentry(ibresources);
+      end;
+
+
 {$IFDEF MACRO_DIFF_HINT}
 
 {
@@ -877,6 +893,13 @@ uses
       end;
 
 
+    procedure tppumodule.readResources;
+      begin
+        while not ppufile.endofentry do
+          resourcefiles.Insert(ppufile.getstring);
+      end;
+
+
     procedure tppumodule.load_interface;
       var
         b : byte;
@@ -923,6 +946,8 @@ uses
                readderefmap;
              ibderefdata :
                readderefdata;
+             ibresources:
+               readResources;
              ibendinterface :
                break;
            else
@@ -1006,6 +1031,7 @@ uses
          writelinkcontainer(linkotherstaticlibs,iblinkotherstaticlibs,true);
          writelinkcontainer(linkothersharedlibs,iblinkothersharedlibs,true);
          writeImportSymbols;
+         writeResources;
          ppufile.do_crc:=true;
 
          { generate implementation deref data, the interface deref data is

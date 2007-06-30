@@ -31,14 +31,20 @@ unit i_linux;
           (
              id     : res_elf;
              resbin : 'fpcres';
-             rescmd : '-o $OBJ -i $RES'
+             rescmd : '-o $OBJ -i $RES';
+             { cross compiled windres can be used to compile .rc files on linux }
+             rcbin  : 'windres';
+             rccmd  : '--include $INC -O res -o $RES $RC';
           );
 
        res_elf64_info : tresinfo =
           (
              id     : res_elf;
              resbin : 'fpcres';
-             rescmd : '-o $OBJ -i $RES'
+             rescmd : '-o $OBJ -i $RES';
+             { cross compiled windres can be used to compile .rc files on linux }
+             rcbin  : 'windres';
+             rccmd  : '--include $INC -O res -o $RES $RC';
           );
 
        system_i386_linux_info : tsysteminfo =

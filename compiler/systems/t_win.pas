@@ -91,7 +91,7 @@ interface
       end;
 
 
-      TWinResourceFile = class(TResourceFile)
+      TWinResourceFile = class(TWinLikeResourceFile)
         procedure PostProcessResourcefile(const s : ansistring);override;
       end;
 
@@ -110,14 +110,18 @@ implementation
         (
           id     : res_gnu_windres;
           resbin : 'windres';
-          rescmd : '--include $INC -O coff -o $OBJ $RES'
+          rescmd : '--include $INC -O coff -o $OBJ $RES';
+          rcbin  : 'windres';
+          rccmd  : '--include $INC -O res -o $RES $RC';
         );
 
     res_gnu_wince_windres_info : tresinfo =
         (
           id     : res_gnu_wince_windres;
           resbin : 'windres';
-          rescmd : '--include $INC -O coff -o $OBJ $RES'
+          rescmd : '--include $INC -O coff -o $OBJ $RES';
+          rcbin  : 'windres';
+          rccmd  : '--include $INC -O res -o $RES $RC';
         );
 
 
