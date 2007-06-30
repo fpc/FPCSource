@@ -759,7 +759,10 @@ implementation
 
     procedure tcompilerppufile.getguid(var g: tguid);
       begin
-        getdata(g,sizeof(g));
+        longint(g.d1):=getlongint;
+        g.d2:=getword;
+        g.d3:=getword;
+        getdata(g.d4,sizeof(g.d4));
       end;
 
 
@@ -949,7 +952,10 @@ implementation
 
     procedure tcompilerppufile.putguid(const g: tguid);
       begin
-        putdata(g,sizeof(g));
+        putlongint(longint(g.d1));
+        putword(g.d2);
+        putword(g.d3);
+        putdata(g.d4,sizeof(g.d4));
       end;
 
 
