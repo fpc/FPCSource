@@ -381,6 +381,7 @@ Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_
 }
 begin
 {$ifdef FPC_WINLIKEWIDESTRING}
+  if S1=S2 then exit;
   { Decrease the reference count on the old S1 }
   fpc_widestr_decr_ref (S1);
   if S2<>nil then
