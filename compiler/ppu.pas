@@ -273,34 +273,6 @@ implementation
     cutils;
 
 {*****************************************************************************
-                             Endian Handling
-*****************************************************************************}
-
-Function SwapLong(x : longint): longint;
-var
-  y : word;
-  z : word;
-Begin
-  y := x shr 16;
-  y := word(longint(y) shl 8) or (y shr 8);
-  z := x and $FFFF;
-  z := word(longint(z) shl 8) or (z shr 8);
-  SwapLong := (longint(z) shl 16) or longint(y);
-End;
-
-
-Function SwapWord(x : word): word;
-var
-  z : byte;
-Begin
-  z := x shr 8;
-  x := x and $ff;
-  x := word(x shl 8);
-  SwapWord := x or z;
-End;
-
-
-{*****************************************************************************
                                   TPPUFile
 *****************************************************************************}
 
@@ -424,13 +396,13 @@ begin
   { The header is always stored in little endian order }
   { therefore swap if on a big endian machine          }
 {$IFDEF ENDIAN_BIG}
-  header.compiler := SwapWord(header.compiler);
-  header.cpu := SwapWord(header.cpu);
-  header.target := SwapWord(header.target);
-  header.flags := SwapLong(header.flags);
-  header.size := SwapLong(header.size);
-  header.checksum := cardinal(SwapLong(longint(header.checksum)));
-  header.interface_checksum := cardinal(SwapLong(longint(header.interface_checksum)));
+  header.compiler := swapendian(header.compiler);
+  header.cpu := swapendian(header.cpu);
+  header.target := swapendian(header.target);
+  header.flags := swapendian(header.flags);
+  header.size := swapendian(header.size);
+  header.checksum := swapendian(header.checksum);
+  header.interface_checksum := swapendian(header.interface_checksum);
 {$ENDIF}
   { the PPU DATA is stored in native order }
   if (header.flags and uf_big_endian) = uf_big_endian then
@@ -491,7 +463,7 @@ begin
       exit;
   until false;
   { For small values copy directly }
-  if len<=sizeof(ptrint) then
+  if len<=sizeof(ptruint) then
     begin
       pmax:=p+len;
       while (p<pmax) do
@@ -536,7 +508,7 @@ begin
    skipdata(entry.size-entryidx);
   readdata(entry,sizeof(tppuentry));
   if change_endian then
-   entry.size:=swaplong(entry.size);
+    entry.size:=swapendian(entry.size);
   entrystart:=bufstart+bufidx;
   entryidx:=0;
   if not(entry.id in [mainentryid,subentryid]) then
@@ -612,7 +584,7 @@ begin
    end;
   readdata(w,2);
   if change_endian then
-   getword:=swapword(w)
+   getword:=swapendian(w)
   else
    getword:=w;
   inc(entryidx,2);
@@ -631,7 +603,7 @@ begin
    end;
   readdata(l,4);
   if change_endian then
-   getlongint:=swaplong(l)
+   getlongint:=swapendian(l)
   else
    getlongint:=l;
   inc(entryidx,4);
@@ -650,7 +622,7 @@ begin
    end;
   readdata(i,8);
   if change_endian then
-    result:=swapint64(i)
+    result:=swapendian(i)
   else
     result:=i;
   inc(entryidx,8);
@@ -731,10 +703,8 @@ var
   i : longint;
 begin
   if change_endian then
-    begin
-      for i:=0 to 7 do
-        SetLongintArray(b)[i]:=getlongint;
-    end
+    for i:=0 to 7 do
+      SetLongintArray(b)[i]:=getlongint;
   else
     getdata(b,32);
 end;
@@ -819,13 +789,13 @@ begin
 {$else not FPC_BIG_ENDIAN}
     header.flags := header.flags or uf_big_endian;
     { Now swap the header in the correct endian (always little endian) }
-    header.compiler := SwapWord(header.compiler);
-    header.cpu := SwapWord(header.cpu);
-    header.target := SwapWord(header.target);
-    header.flags := SwapLong(header.flags);
-    header.size := SwapLong(header.size);
-    header.checksum := cardinal(SwapLong(longint(header.checksum)));
-    header.interface_checksum := cardinal(SwapLong(longint(header.interface_checksum)));
+    header.compiler := swapendian(header.compiler);
+    header.cpu := swapendian(header.cpu);
+    header.target := swapendian(header.target);
+    header.flags := swapendian(header.flags);
+    header.size := swapendian(header.size);
+    header.checksum := swapendian(header.checksum);
+    header.interface_checksum := swapendian(header.interface_checksum);
 {$endif not FPC_BIG_ENDIAN}
 { write header and restore filepos after it }
   opos:=filepos(f);
@@ -1025,75 +995,68 @@ begin
 end;
 
 
-    procedure tppufile.putstring(s:string);
-      begin
-        putdata(s,length(s)+1);
-      end;
+procedure tppufile.putstring(s:string);
+  begin
+    putdata(s,length(s)+1);
+  end;
 
 
-    procedure tppufile.putsmallset(const b);
-      var
-        l : longint;
-      begin
-        l:=longint(b);
-        putlongint(l);
-      end;
+procedure tppufile.putsmallset(const b);
+  var
+    l : longint;
+  begin
+    l:=longint(b);
+    putlongint(l);
+  end;
 
 
-    procedure tppufile.putnormalset(const b);
-      type
-        SetLongintArray = Array [0..7] of longint;
-      var
-        i : longint;
-        tempb : setlongintarray;
-      begin
-        if change_endian then
-          begin
-            for i:=0 to 7 do
-              tempb[i]:=SwapLong(SetLongintArray(b)[i]);
-            putdata(tempb,32);
-          end
-        else
-          putdata(b,32);
-      end;
+procedure tppufile.putnormalset(const b);
+  type
+    SetLongintArray = Array [0..7] of longint;
+  var
+    i : longint;
+    tempb : setlongintarray;
+  begin
+    putdata(b,32);
+  end;
 
 
-    procedure tppufile.tempclose;
-      begin
-        if not closed then
-         begin
-           closepos:=filepos(f);
-           {$I-}
-            system.close(f);
-           {$I+}
-           if ioresult<>0 then;
-           closed:=true;
-           tempclosed:=true;
-         end;
-      end;
+procedure tppufile.tempclose;
+  begin
+    if not closed then
+     begin
+       closepos:=filepos(f);
+       {$I-}
+        system.close(f);
+       {$I+}
+       if ioresult<>0 then;
+       closed:=true;
+       tempclosed:=true;
+     end;
+  end;
 
 
-    function tppufile.tempopen:boolean;
-      var
-        ofm : byte;
-      begin
-        tempopen:=false;
-        if not closed or not tempclosed then
-         exit;
-        ofm:=filemode;
-        filemode:=0;
-        {$I-}
-         reset(f,1);
-        {$I+}
-        filemode:=ofm;
-        if ioresult<>0 then
-         exit;
-        closed:=false;
-        tempclosed:=false;
+function tppufile.tempopen:boolean;
+  var
+    ofm : byte;
+  begin
+    tempopen:=false;
+    if not closed or not tempclosed then
+     exit;
+    ofm:=filemode;
+    filemode:=0;
+    {$I-}
+     reset(f,1);
+    {$I+}
+    filemode:=ofm;
+    if ioresult<>0 then
+     exit;
+    closed:=false;
+    tempclosed:=false;
 
-      { restore state }
-        seek(f,closepos);
-        tempopen:=true;
-      end;
+  { restore state }
+    seek(f,closepos);
+    tempopen:=true;
+  end;
 
 end.
