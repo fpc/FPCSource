@@ -817,6 +817,8 @@ begin
     header.size := swapendian(header.size);
     header.checksum := swapendian(header.checksum);
     header.interface_checksum := swapendian(header.interface_checksum);
+    header.deflistsize:=swapendian(header.deflistsize);
+    header.symlistsize:=swapendian(header.symlistsize);
 {$endif not FPC_BIG_ENDIAN}
 { write header and restore filepos after it }
   opos:=filepos(f);
