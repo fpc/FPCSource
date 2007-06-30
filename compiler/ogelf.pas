@@ -327,19 +327,19 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.e_type:=swapword(e_type);
-                result.e_machine:=swapword(e_machine);
-                result.e_version:=swaplong(e_version);
-                result.e_entry:=swaplong(e_entry);
-                result.e_phoff:=swaplong(e_phoff);
-                result.e_shoff:=swaplong(e_shoff);
-                result.e_flags:=swaplong(e_flags);
-                result.e_ehsize:=swapword(e_ehsize);
-                result.e_phentsize:=swapword(e_phentsize);
-                result.e_phnum:=swapword(e_phnum);
-                result.e_shentsize:=swapword(e_shentsize);
-                result.e_shnum:=swapword(e_shnum);
-                result.e_shstrndx:=swapword(e_shstrndx);
+                result.e_type:=swapendian(e_type);
+                result.e_machine:=swapendian(e_machine);
+                result.e_version:=swapendian(e_version);
+                result.e_entry:=swapendian(e_entry);
+                result.e_phoff:=swapendian(e_phoff);
+                result.e_shoff:=swapendian(e_shoff);
+                result.e_flags:=swapendian(e_flags);
+                result.e_ehsize:=swapendian(e_ehsize);
+                result.e_phentsize:=swapendian(e_phentsize);
+                result.e_phnum:=swapendian(e_phnum);
+                result.e_shentsize:=swapendian(e_shentsize);
+                result.e_shnum:=swapendian(e_shnum);
+                result.e_shstrndx:=swapendian(e_shstrndx);
               end;
         end;
 
@@ -350,19 +350,19 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.e_type:=swapword(e_type);
-                result.e_machine:=swapword(e_machine);
-                result.e_version:=swaplong(e_version);
-                result.e_entry:=swapqword(e_entry);
-                result.e_phoff:=swapqword(e_phoff);
-                result.e_shoff:=swapqword(e_shoff);
-                result.e_flags:=swaplong(e_flags);
-                result.e_ehsize:=swapword(e_ehsize);
-                result.e_phentsize:=swapword(e_phentsize);
-                result.e_phnum:=swapword(e_phnum);
-                result.e_shentsize:=swapword(e_shentsize);
-                result.e_shnum:=swapword(e_shnum);
-                result.e_shstrndx:=swapword(e_shstrndx);
+                result.e_type:=swapendian(e_type);
+                result.e_machine:=swapendian(e_machine);
+                result.e_version:=swapendian(e_version);
+                result.e_entry:=swapendian(e_entry);
+                result.e_phoff:=swapendian(e_phoff);
+                result.e_shoff:=swapendian(e_shoff);
+                result.e_flags:=swapendian(e_flags);
+                result.e_ehsize:=swapendian(e_ehsize);
+                result.e_phentsize:=swapendian(e_phentsize);
+                result.e_phnum:=swapendian(e_phnum);
+                result.e_shentsize:=swapendian(e_shentsize);
+                result.e_shnum:=swapendian(e_shnum);
+                result.e_shstrndx:=swapendian(e_shstrndx);
               end;
         end;
 
@@ -373,16 +373,16 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.sh_name:=SwapLong(sh_name);
-                result.sh_type:=SwapLong(sh_type);
-                result.sh_flags:=SwapLong(sh_flags);
-                result.sh_addr:=SwapLong(sh_addr);
-                result.sh_offset:=SwapLong(sh_offset);
-                result.sh_size:=SwapLong(sh_size);
-                result.sh_link:=SwapLong(sh_link);
-                result.sh_info:=SwapLong(sh_info);
-                result.sh_addralign:=SwapLong(sh_addralign);
-                result.sh_entsize:=SwapLong(sh_entsize);
+                result.sh_name:=swapendian(sh_name);
+                result.sh_type:=swapendian(sh_type);
+                result.sh_flags:=swapendian(sh_flags);
+                result.sh_addr:=swapendian(sh_addr);
+                result.sh_offset:=swapendian(sh_offset);
+                result.sh_size:=swapendian(sh_size);
+                result.sh_link:=swapendian(sh_link);
+                result.sh_info:=swapendian(sh_info);
+                result.sh_addralign:=swapendian(sh_addralign);
+                result.sh_entsize:=swapendian(sh_entsize);
               end;
         end;
 
@@ -393,16 +393,16 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.sh_name:=SwapLong(sh_name);
-                result.sh_type:=SwapLong(sh_type);
-                result.sh_flags:=SwapQWord(sh_flags);
-                result.sh_addr:=SwapQWord(sh_addr);
-                result.sh_offset:=SwapQWord(sh_offset);
-                result.sh_size:=SwapQWord(sh_size);
-                result.sh_link:=SwapLong(sh_link);
-                result.sh_info:=SwapLong(sh_info);
-                result.sh_addralign:=SwapQWord(sh_addralign);
-                result.sh_entsize:=SwapQWord(sh_entsize);
+                result.sh_name:=swapendian(sh_name);
+                result.sh_type:=swapendian(sh_type);
+                result.sh_flags:=swapendian(sh_flags);
+                result.sh_addr:=swapendian(sh_addr);
+                result.sh_offset:=swapendian(sh_offset);
+                result.sh_size:=swapendian(sh_size);
+                result.sh_link:=swapendian(sh_link);
+                result.sh_info:=swapendian(sh_info);
+                result.sh_addralign:=swapendian(sh_addralign);
+                result.sh_entsize:=swapendian(sh_entsize);
               end;
         end;
 
@@ -413,10 +413,10 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.st_name:=SwapLong(st_name);
-                result.st_value:=SwapLong(st_value);
-                result.st_size:=SwapLong(st_size);
-                result.st_shndx:=SwapWord(st_shndx);
+                result.st_name:=swapendian(st_name);
+                result.st_value:=swapendian(st_value);
+                result.st_size:=swapendian(st_size);
+                result.st_shndx:=swapendian(st_shndx);
               end;
         end;
 
@@ -427,10 +427,10 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.st_name:=SwapLong(st_name);
-                result.st_value:=SwapQWord(st_value);
-                result.st_size:=SwapQWord(st_size);
-                result.st_shndx:=SwapWord(st_shndx);
+                result.st_name:=swapendian(st_name);
+                result.st_value:=swapendian(st_value);
+                result.st_size:=swapendian(st_size);
+                result.st_shndx:=swapendian(st_shndx);
               end;
         end;
 
@@ -441,8 +441,8 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.address:=SwapLong(address);
-                result.info:=SwapLong(info);
+                result.address:=swapendian(address);
+                result.info:=swapendian(info);
               end;
         end;
 
@@ -453,8 +453,8 @@ implementation
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.address:=SwapQWord(address);
-                result.info:=SwapQWord(info);
+                result.address:=swapendian(address);
+                result.info:=swapendian(info);
               end;
         end;
 

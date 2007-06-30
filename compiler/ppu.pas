@@ -704,7 +704,7 @@ var
 begin
   if change_endian then
     for i:=0 to 7 do
-      SetLongintArray(b)[i]:=getlongint;
+      SetLongintArray(b)[i]:=getlongint
   else
     getdata(b,32);
 end;

@@ -44,14 +44,6 @@ interface
     {# Returns the maximum value between @var(a) and @var(b) }
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
-    {# Returns the value in @var(x) swapped to different endian }
-    Function SwapInt64(x : int64): int64;{$ifdef USEINLINE}inline;{$endif}
-    {# Returns the value in @var(x) swapped to different endian }
-    function SwapLong(x : longint): longint;{$ifdef USEINLINE}inline;{$endif}
-    {# Returns the value in @va(x) swapped to different endian }
-    function SwapWord(x : word): word;{$ifdef USEINLINE}inline;{$endif}
-    {# Returns the value in @va(x) swapped to different endian }
-    Function SwapQWord(x : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     {# Return @var(b) with the bit order reversed }
@@ -198,45 +190,6 @@ implementation
          else
            max:=b;
       end;
-
-
-    Function SwapLong(x : longint): longint;{$ifdef USEINLINE}inline;{$endif}
-      var
-        y : word;
-        z : word;
-      Begin
-        y := x shr 16;
-        y := word(longint(y) shl 8) or (y shr 8);
-        z := x and $FFFF;
-        z := word(longint(z) shl 8) or (z shr 8);
-        SwapLong := (longint(z) shl 16) or longint(y);
-      End;
-
-
-    Function SwapInt64(x : int64): int64;{$ifdef USEINLINE}inline;{$endif}
-      Begin
-        result:=swaplong(longint(hi(x)));
-        result:=result or (swaplong(longint(lo(x))) shl 32);
-      End;
-
-
-    Function SwapQWord(x : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
-      Begin
-        result:=swaplong(longint(hi(x)));
-        result:=result or (swaplong(longint(lo(x))) shl 32);
-      End;
-
-
-    Function SwapWord(x : word): word;{$ifdef USEINLINE}inline;{$endif}
-      var
-        z : byte;
-      Begin
-        z := x shr 8;
-        x := x and $ff;
-        x := (x shl 8);
-        SwapWord := x or z;
-      End;
-
 
     function reverse_byte(b: byte): byte;
       const

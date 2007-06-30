@@ -536,7 +536,7 @@ implementation
              end
            else
              begin
-               location.value:=cardinal(SwapLong(pLongint(value_set)^));
+               location.value:=swapendian(Pcardinal(value_set)^);
                location.value:= reverse_byte (location.value         and $ff)         or
                                (reverse_byte((location.value shr  8) and $ff) shl  8) or
                                (reverse_byte((location.value shr 16) and $ff) shl 16) or
