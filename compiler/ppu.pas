@@ -416,6 +416,8 @@ begin
   header.size := swapendian(header.size);
   header.checksum := swapendian(header.checksum);
   header.interface_checksum := swapendian(header.interface_checksum);
+  header.deflistsize:=swapendian(header.deflistsize);
+  header.symlistsize:=swapendian(header.symlistsize);
 {$ENDIF}
   { the PPU DATA is stored in native order }
   if (header.flags and uf_big_endian) = uf_big_endian then
