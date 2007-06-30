@@ -5467,6 +5467,33 @@ const
   IMAGE_DEBUG_TYPE_RESERVED10    = 10;
   IMAGE_DEBUG_TYPE_CLSID         = 11;
 
+  IMAGE_SUBSYSTEM_UNKNOWN                 = 0; // Unknown subsystem.
+  IMAGE_SUBSYSTEM_NATIVE                  = 1; // Image doesn't require a subsystem.
+  IMAGE_SUBSYSTEM_WINDOWS_GUI             = 2; // Image runs in the Windows GUI subsystem.
+  IMAGE_SUBSYSTEM_WINDOWS_CUI             = 3; // Image runs in the Windows character subsystem.
+  IMAGE_SUBSYSTEM_OS2_CUI                 = 5; // image runs in the OS/2 character subsystem.
+  IMAGE_SUBSYSTEM_POSIX_CUI               = 7; // image runs in the Posix character subsystem.
+  IMAGE_SUBSYSTEM_NATIVE_WINDOWS          = 8; // image is a native Win9x driver.
+  IMAGE_SUBSYSTEM_WINDOWS_CE_GUI          = 9; // Image runs in the Windows CE subsystem.
+  IMAGE_SUBSYSTEM_EFI_APPLICATION         = 10;
+  IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER = 11;
+  IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER      = 12;
+  IMAGE_SUBSYSTEM_EFI_ROM                 = 13;
+  IMAGE_SUBSYSTEM_XBOX                    = 14;
+
+// DllCharacteristics Entries
+
+//      IMAGE_LIBRARY_PROCESS_INIT           0x0001     // Reserved.
+//      IMAGE_LIBRARY_PROCESS_TERM           0x0002     // Reserved.
+//      IMAGE_LIBRARY_THREAD_INIT            0x0004     // Reserved.
+//      IMAGE_LIBRARY_THREAD_TERM            0x0008     // Reserved.
+  IMAGE_DLLCHARACTERISTICS_NO_ISOLATION    = $0200;    // Image understands isolation and doesn't want it
+  IMAGE_DLLCHARACTERISTICS_NO_SEH  	   = $0400; // Image does not use SEH.  No SE handler may reside in this image
+  IMAGE_DLLCHARACTERISTICS_NO_BIND 	   = $0800; // Do not bind this image.
+  IMAGE_DLLCHARACTERISTICS_WDM_DRIVER	   = $2000; // Driver uses WDM model
+  IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = $8000;
+
+
 // Directory Entries
 
   IMAGE_DIRECTORY_ENTRY_EXPORT    = 0; // Export Directory
