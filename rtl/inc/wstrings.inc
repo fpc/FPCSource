@@ -221,6 +221,14 @@ Begin
   if declocked(l^) then
     { Ref count dropped to zero ...
       ... remove }
+{$else}
+  { Here we check if widestring is constant (located in .data section).
+    initialstklen variable is compiler generated and always located at the beginning of .data section.
+    ExitCode is zero initialized variable and located somewhere in .bss section which is followed
+    by .data section in memory.
+    If widestring points to the address space between initialstklen and ExitCode then it is constant
+    and there is no need to dispose it. }
+  if (S<@initialstklen) or (S>@ExitCode) then
 {$endif FPC_WINLIKEWIDESTRING}
     DisposeWideString(S);
 end;
