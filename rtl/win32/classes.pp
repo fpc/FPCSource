@@ -74,6 +74,7 @@ type
 var
   WrapperBlockList : PWrapperBlock;
   TrampolineFreeList : PMethodWrapperTrampoline;
+  CritObjectInstance : TCriticalSection;
 
 function TrampolineWndProc(Window: HWND; Message, WParam: WPARAM;LParam: LPARAM): HRESULT; stdcall; assembler;
 asm
@@ -111,38 +112,67 @@ function MakeObjectInstance(Method: TWndMethod): Pointer;
     NewBlock : PWrapperBlock;
     Trampoline : PMethodWrapperTrampoline;
   begin
-    if not(assigned(TrampolineFreeList)) then
-      begin
-        NewBlock:=VirtualAlloc(nil,SizeOfPage,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-        NewBlock^.UsageCount:=0;
-        NewBlock^.Next:=WrapperBlockList;
-        WrapperBlockList:=NewBlock;
-        Trampoline:=@NewBlock^.Trampolines;
-        while pointer(Trampoline)+sizeof(Trampoline)<pointer(NewBlock)+SizeOfPage do
-          begin
-            Trampoline^.Next:=TrampolineFreeList;
-            Trampoline^.Block:=NewBlock;
-            TrampolineFreeList:=Trampoline;
-            inc(Trampoline);
-          end;
-      end;
-    Trampoline:=TrampolineFreeList;
-    TrampolineFreeList:=TrampolineFreeList^.Next;
-    inc(Trampoline^.Block^.UsageCount);
-    Trampoline^.Call:=$e8;
-    Trampoline^.CallOffset:=pointer(@get_method_offset)-pointer(@Trampoline^.Call)-5;
-    Trampoline^.Jmp:=$e9;
-    Trampoline^.JmpOffset:=pointer(@TrampolineWndProc)-pointer(@Trampoline^.Jmp)-5;
-    Trampoline^.Method:=Method;
-    Result:=Trampoline;
+    EnterCriticalSection(CritObjectInstance);
+    try
+      if not(assigned(TrampolineFreeList)) then
+        begin
+          NewBlock:=VirtualAlloc(nil,SizeOfPage,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+          NewBlock^.UsageCount:=0;
+          NewBlock^.Next:=WrapperBlockList;
+          WrapperBlockList:=NewBlock;
+          Trampoline:=@NewBlock^.Trampolines;
+          while pointer(Trampoline)+sizeof(Trampoline)<pointer(NewBlock)+SizeOfPage do
+            begin
+              Trampoline^.Next:=TrampolineFreeList;
+              Trampoline^.Block:=NewBlock;
+              TrampolineFreeList:=Trampoline;
+              inc(Trampoline);
+            end;
+        end;
+      Trampoline:=TrampolineFreeList;
+      TrampolineFreeList:=TrampolineFreeList^.Next;
+      inc(Trampoline^.Block^.UsageCount);
+      Trampoline^.Call:=$e8;
+      Trampoline^.CallOffset:=pointer(@get_method_offset)-pointer(@Trampoline^.Call)-5;
+      Trampoline^.Jmp:=$e9;
+      Trampoline^.JmpOffset:=pointer(@TrampolineWndProc)-pointer(@Trampoline^.Jmp)-5;
+      Trampoline^.Method:=Method;
+      Result:=Trampoline;
+    finally
+      LeaveCriticalSection(CritObjectInstance);
+    end;
   end;
 
 
 procedure FreeObjectInstance(ObjectInstance: Pointer);
   begin
-    dec(PMethodWrapperTrampoline(ObjectInstance)^.Block^.UsageCount);
-    PMethodWrapperTrampoline(ObjectInstance)^.Next:=TrampolineFreeList;
-    TrampolineFreeList:=PMethodWrapperTrampoline(ObjectInstance);
+    EnterCriticalSection(CritObjectInstance);
+    try
+      // block gets overwritten by method dec(PMethodWrapperTrampoline(ObjectInstance)^.Block^.UsageCount);
+      PMethodWrapperTrampoline(ObjectInstance)^.Next:=TrampolineFreeList;
+      TrampolineFreeList:=PMethodWrapperTrampoline(ObjectInstance);
+    finally
+      LeaveCriticalSection(CritObjectInstance);
+    end;
+  end;
+
+
+procedure DeleteInstBlockList;
+  var
+    hp : PWrapperBlock;
+  begin
+    EnterCriticalSection(CritObjectInstance);
+    try
+      while assigned(WrapperBlockList) do
+        begin
+          hp:=WrapperBlockList^.Next;
+          if VirtualFree(WrapperBlockList,4096,MEM_DECOMMIT) then
+            VirtualFree(WrapperBlockList,0,MEM_RELEASE);
+          WrapperBlockList:=hp;
+        end;
+    finally
+      LeaveCriticalSection(CritObjectInstance);
+    end;
   end;
 
 
@@ -160,26 +190,14 @@ procedure DeallocateHWnd(Wnd: HWND);
   end;
 
 
-procedure DeleteInstBlockList;
-  var
-    hp : PWrapperBlock;
-  begin
-    while assigned(WrapperBlockList) do
-      begin
-        hp:=WrapperBlockList^.Next;
-        if VirtualFree(WrapperBlockList,4096,MEM_DECOMMIT) then
-          VirtualFree(WrapperBlockList,0,MEM_RELEASE);
-        WrapperBlockList:=hp;
-      end;
-  end;
-
-
 initialization
   WrapperBlockList:=nil;
   TrampolineFreeList:=nil;
+  InitCriticalSection(CritObjectInstance);
   CommonInit;
 
 finalization
   CommonCleanup;
   DeleteInstBlockList;
+  DoneCriticalSection(CritObjectInstance);
 end.
