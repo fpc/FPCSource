@@ -25,6 +25,7 @@ program ppudump;
 
 uses
   SysUtils,
+  constexp,
   ppu,
   globals,
   tokens;
@@ -519,6 +520,13 @@ begin
    end;
 end;
 
+function getexprint:Tconstexprint;
+
+begin
+  getexprint.overflow:=false;
+  getexprint.signed:=boolean(ppufile.getbyte);
+  getexprint.svalue:=ppufile.getint64;
+end;
 
 Procedure ReadPosInfo;
 var
@@ -1718,7 +1726,7 @@ begin
                scurrency : writeln('ucurrency');
                else        writeln('!! Warning: Invalid base type ',b);
              end;
-             writeln(space,'            Range : ',getint64,' to ',getint64);
+             writeln(space,'            Range : ',constexp.tostr(getexprint),' to ',constexp.tostr(getexprint));
            end;
 
          ibfloatdef :
