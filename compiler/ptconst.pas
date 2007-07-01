@@ -1302,7 +1302,6 @@ implementation
       var
         storefilepos : tfileposinfo;
         cursectype   : TAsmSectionType;
-        C_name       : string;
         valuelist    : tasmlist;
       begin
         { mark the staticvarsym as typedconst }
