@@ -194,8 +194,8 @@ implementation
           begin
             repeat
               if ((dir.attr and faDirectory)<>faDirectory) or
-                 (dir.Name<>'.') or
-                 (dir.Name<>'..') then
+                 ((dir.Name<>'.') and
+                  (dir.Name<>'..')) then
                 begin
                   if not(tf_files_case_sensitive in source_info.flags) then
                     if (tf_files_case_aware in source_info.flags) then
@@ -353,11 +353,22 @@ implementation
 
 
     function TDirectoryCache.FindNext(var Res:TCachedSearchRec):boolean;
+      var
+        entry: PCachedDirectoryEntry;
       begin
         if Res.EntryIndex<Res.CachedDir.DirectoryEntries.Count then
           begin
-            Res.Name:=Res.CachedDir.DirectoryEntries.NameOfIndex(Res.EntryIndex);
-            Res.Attr:=PtrInt(Res.CachedDir.DirectoryEntries[Res.EntryIndex]);
+            if (tf_files_case_aware in source_info.flags) then
+              begin
+                entry:=Res.CachedDir.DirectoryEntries[Res.EntryIndex];
+                Res.Name:=entry^.RealName;
+                Res.Attr:=entry^.Attr;
+              end
+            else
+              begin
+                Res.Name:=Res.CachedDir.DirectoryEntries.NameOfIndex(Res.EntryIndex);
+                Res.Attr:=PtrInt(Res.CachedDir.DirectoryEntries[Res.EntryIndex]);
+              end;
             inc(Res.EntryIndex);
             Result:=true;
           end
@@ -510,7 +521,10 @@ implementation
                 begin
                   result:=DirCache.FileExistsCaseAware(FoundFile,fn2);
                   if result then
-                    exit
+                    begin
+                      FoundFile:=fn2;
+                      exit;
+                    end;
                 end
               else
 {$endif usedircache}
