@@ -75,13 +75,15 @@ var
   DLLSSLName2: string = 'libssl32.dll';
   DLLUtilName: string = 'libeay32.dll';
   {$ELSE}
-    {$IFDEF DARWIN}
-    DLLSSLName: string = 'libssl.dylib';
-    DLLUtilName: string = 'libcrypto.dylib';
-    {$ELSE}
-    DLLSSLName: string = 'libssl.so';
-    DLLUtilName: string = 'libcrypto.so';
-    {$ENDIF}
+  DLLSSLName: string = 'libssl';
+  DLLUtilName: string = 'libcrypto';
+  
+  { ADD NEW ONES WHEN THEY APPEAR!
+    Always make .so/dylib first, then versions, in descending order!
+    Add "." .before the version, first is always just "" }
+  DLLVersions: array[1..10] of string = ('', '.0.9.9'{futureproof :D}, '.0.9.8',
+                                        '.0.9.7', '.0.9.6', '.0.9.5', '.0.9.4',
+                                        '.0.9.3', '.0.9.2', '.0.9.1');
   {$ENDIF}
 
 type
@@ -1151,9 +1153,34 @@ begin
     _DESecbencrypt(Input, output, ks, enc);
 end;
 
+{$IFNDEF WINDOWS}
+{ Try to load all library versions until you find or run out }
+function LoadLibHack(const Value: String): HModule;
+var
+  i: Integer;
+begin
+  Result := NilHandle;
+  
+  for i := Low(DLLVersions) to High(DLLVersions) do begin
+    {$IFDEF DARWIN}
+    Result := LoadLibrary(Value + DLLVersions[i] + '.dylib');
+    {$ELSE}
+    Result := LoadLibrary(Value + '.so' + DLLVersions[i]);
+    {$ENDIF}
+    
+    if Result <> NilHandle then
+      Break;
+  end;
+end;
+{$ENDIF}
+
 function LoadLib(const Value: String): HModule;
 begin
+  {$IFDEF WINDOWS}
   Result := LoadLibrary(Value);
+  {$ELSE}
+  Result := LoadLibHack(Value);
+  {$ENDIF}
 end;
 
 function GetProcAddr(module: HModule; const ProcName: string): SslPtr;
