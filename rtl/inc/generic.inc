@@ -368,7 +368,7 @@ type
   ppointer = ^pointer;
   pvmt = ^tvmt;
   tvmt=packed record
-    size,msize:ptrint;
+    size,msize:ptruint;
     parent:pointer;
   end;
 var
@@ -406,7 +406,7 @@ type
   ppointer = ^pointer;
   pvmt = ^tvmt;
   tvmt = packed record
-    size,msize : ptrint;
+    size,msize : ptruint;
     parent : pointer;
   end;
 begin
@@ -428,18 +428,11 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 { Note: _self will not be reset, the compiler has to generate the reset }
 procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_FAIL'];compilerproc;
-type
-  ppointer = ^pointer;
-  pvmt = ^tvmt;
-  tvmt = packed record
-    size,msize : ptrint;
-    parent : pointer;
-  end;
 begin
    if (_self=nil) or (_vmt=nil) then
      exit;
-   { vmt=-1 when memory was allocated }
-   if ptrint(_vmt)=-1 then
+   { vmt=$ffffffff when memory was allocated }
+   if ptruint(_vmt)=high(ptruint) then
      begin
        if (_self=nil) or (ppointer(_self+vmt_pos)^=nil) then
          HandleError(210)
@@ -462,7 +455,7 @@ procedure fpc_check_object(_vmt : pointer); [public,alias:'FPC_CHECK_OBJECT'];  
 type
   pvmt = ^tvmt;
   tvmt = packed record
-    size,msize : ptrint;
+    size,msize : ptruint;
     parent : pointer;
   end;
 begin
@@ -483,7 +476,7 @@ procedure fpc_check_object_ext(vmt, expvmt : pointer); [public,alias:'FPC_CHECK_
 type
   pvmt = ^tvmt;
   tvmt = packed record
-    size,msize : ptrint;
+    size,msize : ptruint;
     parent : pointer;
   end;
 begin
