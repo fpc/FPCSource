@@ -152,7 +152,11 @@ Var
 begin
 {$ifdef MSWINDOWS}
   if winwidestringalloc then
-    P:=SysAllocStringLen(nil,Len)
+    begin
+      P:=SysAllocStringLen(nil,Len);
+      if P=nil then
+        WideStringError;
+    end
   else
 {$endif MSWINDOWS}
     begin
@@ -199,6 +203,14 @@ end;
 var
   __data_start: byte; external name '__data_start__';
   __data_end: byte; external name '__data_end__';
+  
+function IsWideStringConstant(S: pointer): boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+{
+  Returns True if widestring is constant (located in .data section);
+}
+begin
+  Result:=(S>=@__data_start) and (S<@__data_end);
+end;
 {$endif FPC_WINLIKEWIDESTRING}
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
@@ -227,8 +239,7 @@ Begin
     { Ref count dropped to zero ...
       ... remove }
 {$else}
-  { Here we check if widestring is not constant (located in .data section). }
-  if (S<@__data_start) or (S>=@__data_end) then
+  if not IsWideStringConstant(S) then
 {$endif FPC_WINLIKEWIDESTRING}
     DisposeWideString(S);
 end;
@@ -382,15 +393,33 @@ Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_
 begin
 {$ifdef FPC_WINLIKEWIDESTRING}
   if S1=S2 then exit;
-  { Decrease the reference count on the old S1 }
-  fpc_widestr_decr_ref (S1);
   if S2<>nil then
     begin
-      S1:=NewWidestring(length(WideString(S2)));
-      move(s2^,s1^,(length(WideString(s1))+1)*sizeof(widechar));
+      if IsWideStringConstant(S1) then
+        begin
+          S1:=NewWidestring(length(WideString(S2)));
+          move(s2^,s1^,(length(WideString(s1))+1)*sizeof(widechar));
+        end
+      else
+{$ifdef MSWINDOWS}
+        if winwidestringalloc then
+          begin
+            if SysReAllocStringLen(S1, S2, Length(WideString(S2))) = 0 then
+              WideStringError;
+          end
+        else
+{$endif MSWINDOWS}
+          begin
+            SetLength(WideString(S1),length(WideString(S2)));
+            move(s2^,s1^,(length(WideString(s1))+1)*sizeof(widechar));
+          end;
     end
   else
-    S1:=nil;
+    begin
+      { Free S1 }
+      fpc_widestr_decr_ref (S1);
+      S1:=nil;
+    end;
 {$else FPC_WINLIKEWIDESTRING}
   If S2<>nil then
     If PWideRec(S2-WideFirstOff)^.Ref>0 then
@@ -921,12 +950,16 @@ begin
         is anyways subject to be removed because widestrings shouldn't be
         ref. counted anymore (FK) }
       else
-{$ifndef FPC_WINLIKEWIDESTRING}
         if
 {$ifdef MSWINDOWS}
               not winwidestringalloc and
 {$endif MSWINDOWS}
-              (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1) then
+{$ifdef FPC_WINLIKEWIDESTRING}
+              not IsWideStringConstant(pointer(S))
+{$else}
+              (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1)
+{$endif FPC_WINLIKEWIDESTRING}
+              then
         begin
           Dec(Pointer(S),WideFirstOff);
           if L*sizeof(WideChar)+WideRecLen>MemSize(Pointer(S)) then
@@ -934,7 +967,6 @@ begin
           Inc(Pointer(S), WideFirstOff);
         end
       else
-{$endif FPC_WINLIKEWIDESTRING}
         begin
           { Reallocation is needed... }
           Temp:=Pointer(NewWideString(L));
