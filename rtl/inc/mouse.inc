@@ -11,6 +11,8 @@
 
  **********************************************************************}
 
+{$T+}
+
 Var
   CurrentMouseDriver : TMouseDriver;
   MouseInitialized : Boolean;
@@ -118,7 +120,7 @@ Procedure GetPendingEvent(Var MouseEvent:TMouseEvent);
 begin
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
-  if PtrInt(PendingMouseHead)=Ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+  if PendingMouseHead=@PendingMouseEvent[MouseEventBufSize] then
    PendingMouseHead:=@PendingMouseEvent[0];
   dec(PendingMouseEvents);
   if (LastMouseEvent.x<>MouseEvent.x) or
@@ -161,7 +163,7 @@ begin
     begin
     PendingMouseTail^:=MouseEvent;
     inc(PendingMouseTail);
-    if PtrInt(PendingMouseTail)=Ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+    if PendingMouseTail=@PendingMouseEvent[MouseEventBufSize] then
       PendingMouseTail:=@PendingMouseEvent[0];
     inc(PendingMouseEvents);
     end
