@@ -317,7 +317,7 @@
    type
       PVarRec = ^TVarRec;
       TVarRec = record
-         case VType : sizeuint of
+         case VType : sizeint of
 {$ifdef ENDIAN_BIG}
            vtInteger    : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
            vtBoolean    : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
