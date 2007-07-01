@@ -710,24 +710,23 @@ end;
 
 procedure tppufile.getsmallset(var b);
 var
-  l : longint;
+  i : longint;
 begin
-  l:=getlongint;
-  longint(b):=l;
+  getdata(b,4);
+  if change_endian then
+    for i:=0 to 3 do
+      Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
 end;
 
 
 procedure tppufile.getnormalset(var b);
-type
-  SetLongintArray = Array [0..7] of longint;
 var
   i : longint;
 begin
+  getdata(b,32);
   if change_endian then
-    for i:=0 to 7 do
-      SetLongintArray(b)[i]:=getlongint
-  else
-    getdata(b,32);
+    for i:=0 to 31 do
+      Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
 end;
 
 
