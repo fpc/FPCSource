@@ -75,8 +75,8 @@ var
   DLLSSLName2: string = 'libssl32.dll';
   DLLUtilName: string = 'libeay32.dll';
   {$ELSE}
-  DLLSSLName: string = 'libssl.so';
-  DLLUtilName: string = 'libcrypto.so';
+  DLLSSLName: string = 'libssl';
+  DLLUtilName: string = 'libcrypto';
   {$ENDIF}
 
 type
