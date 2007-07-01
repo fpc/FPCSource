@@ -962,8 +962,8 @@ TYPE
 CONSTRUCTOR TObject.Init;
 VAR LinkSize: LongInt; Dummy: DummyObject;
 BEGIN
-   LinkSize := PtrInt(@Dummy.Data)-PtrInt(@Dummy);  { Calc VMT link size }
-   FillChar(Pointer(PtrInt(@Self)+LinkSize)^,
+   LinkSize := Pbyte(@Dummy.Data)-Pbyte(@Dummy);  { Calc VMT link size }
+   FillChar((Pbyte(@Self)+LinkSize)^,
      SizeOf(Self)-LinkSize, #0);                      { Clear data fields }
 END;
 
@@ -1914,7 +1914,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF Boolean(Byte(ptrint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
+       IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1931,7 +1931,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF Boolean(Byte(ptrint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
+     IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
