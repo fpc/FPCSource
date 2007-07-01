@@ -3011,6 +3011,8 @@ packages/extra/opengl/tinygl.inc -text
 packages/extra/opengl/tinyglh.inc -text
 packages/extra/openssl/Makefile svneol=native#text/plain
 packages/extra/openssl/Makefile.fpc svneol=native#text/plain
+packages/extra/openssl/examples/Makefile svneol=native#text/plain
+packages/extra/openssl/examples/test1.pas svneol=native#text/plain
 packages/extra/openssl/fpmake.inc svneol=native#text/plain
 packages/extra/openssl/fpmake.pp svneol=native#text/plain
 packages/extra/openssl/openssl.pas -text svneol=unset#text/plain
