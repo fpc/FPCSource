@@ -1,7 +1,7 @@
 unit sdl_mixer;
 {******************************************************************************}
 {
-  $Id: sdl_mixer.pas,v 1.11 2005/01/01 02:05:19 savage Exp $
+  $Id: sdl_mixer.pas,v 1.18 2007/05/29 21:31:44 savage Exp $
   
 }
 {                                                                              }
@@ -91,6 +91,27 @@ unit sdl_mixer;
 {                                                                              }
 {
   $Log: sdl_mixer.pas,v $
+  Revision 1.18  2007/05/29 21:31:44  savage
+  Changes as suggested by Almindor for 64bit compatibility.
+
+  Revision 1.17  2007/05/20 20:31:17  savage
+  Initial Changes to Handle 64 Bits
+
+  Revision 1.16  2006/12/02 00:16:17  savage
+  Updated to latest version
+
+  Revision 1.15  2005/04/10 11:48:33  savage
+  Changes as suggested by Michalis, thanks.
+
+  Revision 1.14  2005/02/24 20:20:07  savage
+  Changed definition of MusicType and added GetMusicType function
+
+  Revision 1.13  2005/01/05 01:47:09  savage
+  Changed LibName to reflect what MacOS X should have. ie libSDL*-1.2.0.dylib respectively.
+
+  Revision 1.12  2005/01/04 23:14:56  savage
+  Changed LibName to reflect what most Linux distros will have. ie libSDL*-1.2.so.0 respectively.
+
   Revision 1.11  2005/01/01 02:05:19  savage
   Updated to v1.2.6
 
@@ -132,28 +153,31 @@ unit sdl_mixer;
 
 interface
 
-{$IFDEF FPC}
-{$IFDEF FPC_LITTLE_ENDIAN}
-{$DEFINE IA32}
-{$ENDIF}
-{$ENDIF}
-
 uses
+{$IFDEF __GPC__}
+  gpc,
+{$ENDIF}
 {$IFNDEF DARWIN}
+{$IFNDEF no_smpeg}
   smpeg,
+{$ENDIF}
 {$ENDIF}
   sdl;
 
 const
-{$IFDEF windows}
+{$IFDEF WINDOWS}
   SDL_MixerLibName = 'SDL_mixer.dll';
 {$ENDIF}
 
 {$IFDEF UNIX}
 {$IFDEF DARWIN}
-  SDL_MixerLibName = 'libSDL_mixer.dylib';
+  SDL_MixerLibName = 'libSDL_mixer-1.2.0.dylib';
 {$ELSE}
-  SDL_MixerLibName = 'libSDL_mixer.so';
+  {$IFDEF FPC}
+    SDL_MixerLibName = 'libSDL_mixer.so';
+  {$ELSE}
+    SDL_MixerLibName = 'libSDL_mixer-1.2.so.0';
+  {$ENDIF}
 {$ENDIF}
 {$ENDIF}
 
@@ -166,7 +190,7 @@ const
 {$EXTERNALSYM MIX_MAJOR_VERSION}
   SDL_MIXER_MINOR_VERSION = 2;
 {$EXTERNALSYM MIX_MINOR_VERSION}
-  SDL_MIXER_PATCHLEVEL    = 6;
+  SDL_MIXER_PATCHLEVEL    = 7;
 {$EXTERNALSYM MIX_PATCHLEVEL}
 
   // Backwards compatibility
@@ -405,13 +429,16 @@ type
     );
   Mix_Fading = TMix_Fading;
 
-  TMusic = ( MUS_CMD,
+  TMix_MusicType = (
+    MUS_NONE,
+    MUS_CMD,
     MUS_WAV,
     MUS_MOD,
     MUS_MID,
     MUS_OGG,
     MUS_MP3
     );
+  Mix_MusicType = TMix_MusicType;
 
   TMusicUnion = record
     case Byte of
@@ -427,7 +454,7 @@ type
 
   P_Mix_Music = ^T_Mix_Music;
   T_Mix_Music = record
-    type_ : TMusic;
+    type_ : TMix_MusicType;
     data : TMusicUnion;
     fading : TMix_Fading;
     fade_volume : integer;
@@ -510,6 +537,12 @@ cdecl; external {$IFDEF __GPC__}name 'Mix_FreeChunk'{$ELSE} SDL_MixerLibName{$EN
 procedure Mix_FreeMusic( music : PMix_Music );
 cdecl; external {$IFDEF __GPC__}name 'Mix_FreeMusic'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
 {$EXTERNALSYM Mix_FreeMusic}
+
+{ Find out the music format of a mixer music, or the currently playing
+   music, if 'music' is NULL.}
+function Mix_GetMusicType( music : PMix_Music ) : TMix_MusicType;
+cdecl; external {$IFDEF __GPC__}name 'Mix_GetMusicType'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
+{$EXTERNALSYM Mix_GetMusicType}
 
 { Set a function that is called after all mixing is performed.
    This can be used to provide real-time visual display of the audio stream
@@ -1013,6 +1046,23 @@ cdecl; external {$IFDEF __GPC__}name 'Mix_PlayingMusic'{$ELSE} SDL_MixerLibName{
 function Mix_SetMusicCMD( const command : PChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'Mix_SetMusicCMD'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
 {$EXTERNALSYM Mix_SetMusicCMD}
+
+{ Synchro value is set by MikMod from modules while playing }
+function Mix_SetSynchroValue( value : integer ) : integer; overload;
+cdecl; external {$IFDEF __GPC__}name 'Mix_SetSynchroValue'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
+{$EXTERNALSYM Mix_SetSynchroValue}
+
+function Mix_GetSynchroValue : integer; overload;
+cdecl; external {$IFDEF __GPC__}name 'Mix_GetSynchroValue'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
+{$EXTERNALSYM Mix_SetSynchroValue}
+
+{
+  Get the Mix_Chunk currently associated with a mixer channel
+    Returns nil if it's an invalid channel, or there's no chunk associated.
+}
+function Mix_GetChunk( channel : integer ) : PMix_Chunk;
+cdecl; external {$IFDEF __GPC__}name 'Mix_GetChunk'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
+{$EXTERNALSYM Mix_GetChunk}
 
 { Close the mixer, halting all playing audio }
 procedure Mix_CloseAudio;

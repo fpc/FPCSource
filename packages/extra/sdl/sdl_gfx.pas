@@ -1,10 +1,16 @@
 unit sdl_gfx;
 {
-  $Id: sdl_gfx.pas,v 1.1 2005/01/03 19:08:32 savage Exp $
+  $Id: sdl_gfx.pas,v 1.3 2007/05/29 21:31:04 savage Exp $
 
 }
 {
   $Log: sdl_gfx.pas,v $
+  Revision 1.3  2007/05/29 21:31:04  savage
+  Changes as suggested by Almindor for 64bit compatibility.
+
+  Revision 1.2  2007/05/20 20:30:18  savage
+  Initial Changes to Handle 64 Bits
+
   Revision 1.1  2005/01/03 19:08:32  savage
   Header for the SDL_Gfx library.
 
@@ -20,7 +26,7 @@ uses
   sdl;
 
 const
-{$IFDEF windows}
+{$IFDEF WINDOWS}
   SDLgfxLibName = 'SDL_gfx.dll';
 {$ENDIF}
 
