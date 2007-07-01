@@ -195,6 +195,9 @@ begin
   S:=Nil;
 end;
 
+var
+  __data_start: byte; external name '__data_start__';
+  __data_end: byte; external name '__data_end__';
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
@@ -222,13 +225,8 @@ Begin
     { Ref count dropped to zero ...
       ... remove }
 {$else}
-  { Here we check if widestring is constant (located in .data section).
-    initialstklen variable is compiler generated and always located at the beginning of .data section.
-    ExitCode is zero initialized variable and located somewhere in .bss section which is followed
-    by .data section in memory.
-    If widestring points to the address space between initialstklen and ExitCode then it is constant
-    and there is no need to dispose it. }
-  if (S<@initialstklen) or (S>@ExitCode) then
+  { Here we check if widestring is not constant (located in .data section). }
+  if (S<@__data_start) or (S>=@__data_end) then
 {$endif FPC_WINLIKEWIDESTRING}
     DisposeWideString(S);
 end;
