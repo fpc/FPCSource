@@ -5,7 +5,6 @@
 [target]
 dirs=hash paszlib pasjpeg regexpr netdb
 dirs_i386_linux=libc
-dirs_x86_64_linux=libc
 dirs_linux=gdbint libasync mysql ibase postgres oracle odbc \
             pthreads sqlite graph imagemagick dbus httpd
 dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle graph imagemagick httpd winunits
