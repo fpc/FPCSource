@@ -31,7 +31,7 @@
 
     const
        vmtInstanceSize         = 0;
-       vmtParent               = sizeof(ptrint)*2;
+       vmtParent               = sizeof(ptruint)*2;
        { These were negative value's, but are now positive, else classes
          couldn't be used with shared linking which copies only all data from
          the .global directive and not the data before the directive (PFV) }
@@ -84,7 +84,7 @@
        PMsgStrTable = ^TMsgStrTable;
 
        TStringMessageTable = record
-          count : PtrInt;
+          count : ptruint;
           msgstrtable : array[0..0] of tmsgstrtable;
        end;
 
@@ -122,7 +122,7 @@
        tinterfaceentry = record
          IID         : pguid; { if assigned(IID) then Com else Corba}
          VTable      : Pointer;
-         IOffset     : PtrInt;
+         IOffset     : ptruint;
          IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
          case boolean of
            true      : (IType       : tinterfaceentrytype);
@@ -131,7 +131,7 @@
 
        pinterfacetable = ^tinterfacetable;
        tinterfacetable = record
-         EntryCount : PtrInt;
+         EntryCount : ptruint;
          Entries    : array[0..0] of tinterfaceentry;
        end;
 
@@ -317,7 +317,7 @@
    type
       PVarRec = ^TVarRec;
       TVarRec = record
-         case VType : Ptrint of
+         case VType : sizeuint of
 {$ifdef ENDIAN_BIG}
            vtInteger    : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
            vtBoolean    : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);

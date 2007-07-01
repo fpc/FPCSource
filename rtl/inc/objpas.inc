@@ -488,10 +488,10 @@
            while assigned(vmt) do
              begin
                 p:=(pointer(vmt)+vmtMsgStrPtr);
-                If (P<>Nil) and (PPtrInt(P)^<>0) then
+                If (P<>Nil) and (PPtruInt(P)^<>0) then
                   begin
-                  count:=PPtrInt(PSizeUInt(p)^)^;
-                  msgstrtable:=pmsgstrtable(PSizeUInt(P)^+sizeof(ptrint));
+                  count:=Pptruint(PSizeUInt(p)^)^;
+                  msgstrtable:=pmsgstrtable(PSizeUInt(P)^+sizeof(ptruint));
                   end
                 else
                   Count:=0;
@@ -610,18 +610,18 @@
               etStandard:
                 begin
                   //writeln('Doing etStandard cast of ', TObject(Instance).classname(), ' with self = ', ptruint(Instance), ' and offset = ', IEntry^.IOffset);
-                  Pointer(Obj) := Pointer(PtrInt(Instance) + IEntry^.IOffset);
+                  Pbyte(Obj):=Pbyte(instance)+IEntry^.IOffset;
                 end;
               etFieldValue:
                 begin
                   //writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.IOffset);
-                  Pointer(obj) := ppointer(Pointer(Instance)+IEntry^.IOffset)^;
+                  Pointer(obj) := ppointer(Pbyte(Instance)+IEntry^.IOffset)^;
                 end;
               etVirtualMethodResult:
                 begin
                   //writeln('Doing etVirtualMethodResult cast of ', TObject(Instance).classname());
                   TMethod(Getter).data := Instance;
-                  TMethod(Getter).code := ppointer(ptrint(Instance) + IEntry^.IOffset)^;
+                  TMethod(Getter).code := ppointer(Pbyte(Instance) + IEntry^.IOffset)^;
                   Pointer(obj) := Pointer(Getter());
                 end;
               etStaticMethodResult:
