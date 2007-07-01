@@ -933,7 +933,6 @@ implementation
                          eq:=te_convert_l1;
                        end;
                    end;
-{
                  enumdef :
                    begin
                      { allow explicit typecasts from enums to pointer.
@@ -950,7 +949,6 @@ implementation
                          eq:=te_convert_l1;
                        end;
                    end;
-}
                  arraydef :
                    begin
                      { string constant (which can be part of array constructor)
