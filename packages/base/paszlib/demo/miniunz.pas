@@ -19,13 +19,13 @@ program MiniUnz;
   {$endif}
 {$endif}
 
-uses {$ifdef Delphi}
-  SysUtils,
+uses
+  sysutils,
+  {$ifdef Delphi}
   Windows,
- {$else}
-   {$endif}
-  zutil,
-  //zlib,
+  {$else}
+   zlib,ctypes,
+  {$endif}
   ziputils,
   unzip;
 
@@ -55,7 +55,7 @@ const
   end;
 
 {$else}
-  {$ifdef FPC}
+{$if defined(FPC) and defined(win32)}
 var
   hFile : THandle;
   ftm,ftLocal,ftCreate,ftLastAcc,ftLastWrite : TFileTime;
@@ -69,14 +69,8 @@ begin
   CloseHandle(hFile);
 end;
   {$else} {  msdos }
-var
-  f: file;
 begin
-  Assign(f, filename);
-  Reset(f, 1); { open file for reading }
-   { (Otherwise, close will update time) }
-  SetFTime(f,dosDate);
-  Close(f);
+  FileSetDate(filename,dosdate);
 end;
   {$endif}
 {$endif}
@@ -99,7 +93,7 @@ end;
   var
     buffer: PChar;
     p:      PChar;
-    len:    int;
+    len:    cint;
   var
     hold:   char;
   begin
@@ -109,7 +103,7 @@ end;
     if (len <= 0) then
       exit;
 
-    buffer := PChar(zcalloc(nil, len + 1, 1));
+    buffer := PChar(allocmem( len + 1));
 
     strcopy(buffer, newdir);
 
@@ -119,7 +113,7 @@ end;
     if mymkdir(buffer) then
     begin
       if Assigned(buffer) then
-        zcfree(nil, buffer);
+        freemem( buffer);
       makedir := True;
       exit;
     end;
@@ -135,7 +129,7 @@ end;
       begin
         WriteLn('couldn''t create directory ', buffer);
         if Assigned(buffer) then
-          zcfree(nil, buffer);
+          freemem( buffer);
         exit;
       end;
       if (hold = #0) then
@@ -144,7 +138,7 @@ end;
       Inc(p);
     end;
     if Assigned(buffer) then
-      zcfree(nil, buffer);
+      freemem( buffer);
     makedir := True;
   end;
 
@@ -172,13 +166,13 @@ end;
     LeadingZero := s;
   end;
 
-  function HexToStr(w: long): string;
+  function HexToStr(w: clong): string;
   const
     ByteToChar: array[0..$F] of char = '0123456789ABCDEF';
   var
     s: string;
-    i: int;
-    x: long;
+    i: cint;
+    x: clong;
   begin
     s := '';
     x := w;
@@ -190,18 +184,18 @@ end;
     HexToStr := s;
   end;
 
-  function do_list(uf: unzFile): int;
+  function do_list(uf: unzFile): cint;
   var
     i:      longword;
     gi:     unz_global_info;
-    err:    int;
+    err:    cint;
   var
     filename_inzip: array[0..255] of char;
     file_info: unz_file_info;
     ratio:  longword;
     string_method: string[255];
   var
-    iLevel: uInt;
+    iLevel: cuInt;
   begin
     err := unzGetGlobalInfo(uf, gi);
     if (err <> UNZ_OK) then
@@ -225,7 +219,7 @@ end;
       else
       if (file_info.compression_method = Z_DEFLATED) then
       begin
-        iLevel := uInt((file_info.flag and $06) div 2);
+        iLevel := cuInt((file_info.flag and $06) div 2);
         case iLevel of
           0: string_method    := 'Defl:N';
           1: string_method    := 'Defl:X';
@@ -261,19 +255,19 @@ end;
   end;
 
 
-  function do_extract_currentfile(uf: unzFile; const popt_extract_without_path: int; var popt_overwrite: int): int;
+  function do_extract_currentfile(uf: unzFile; const popt_extract_without_path: cint; var popt_overwrite: cint): cint;
   var
     filename_inzip: packed array[0..255] of char;
     filename_withoutpath: PChar;
     p:      PChar;
-    err:    int;
+    err:    cint;
     fout:   FILEptr;
     buf:    pointer;
-    size_buf: uInt;
+    size_buf: cuInt;
     file_info: unz_file_info;
   var
     write_filename: PChar;
-    skip:   int;
+    skip:   cint;
   var
     rep:    char;
     ftestexist: FILEptr;
@@ -295,7 +289,7 @@ end;
     end;
 
     size_buf := WRITEBUFFERSIZE;
-    buf      := zcalloc(nil, size_buf, 1);
+    buf      := allocmem(size_buf);
     if (buf = nil) then
     begin
       WriteLn('Error allocating memory');
@@ -415,16 +409,16 @@ end;
     end;
 
     if buf <> nil then
-      zcfree(nil, buf);
+      freemem( buf);
     do_extract_currentfile := err;
   end;
 
 
-  function do_extract(uf: unzFile; opt_extract_without_path: int; opt_overwrite: int): int;
+  function do_extract(uf: unzFile; opt_extract_without_path: cint; opt_overwrite: cint): cint;
   var
     i:   longword;
     gi:  unz_global_info;
-    err: int;
+    err: cint;
   begin
     err := unzGetGlobalInfo(uf, gi);
     if (err <> UNZ_OK) then
@@ -450,7 +444,7 @@ end;
     do_extract := 0;
   end;
 
-  function do_extract_onefile(uf: unzFile; const filename: PChar; opt_extract_without_path: int; opt_overwrite: int): int;
+  function do_extract_onefile(uf: unzFile; const filename: PChar; opt_extract_without_path: cint; opt_overwrite: cint): cint;
   begin
     if (unzLocateFile(uf, filename, CASESENSITIVITY) <> UNZ_OK) then
     begin
@@ -467,20 +461,20 @@ end;
   end;
 
   { -------------------------------------------------------------------- }
-  function main: int;
+  function main: cint;
   const
     zipfilename: PChar = nil;
     filename_to_extract: PChar = nil;
   var
-    i:    int;
-    opt_do_list: int;
-    opt_do_extract: int;
-    opt_do_extract_withoutpath: int;
-    opt_overwrite: int;
+    i:    cint;
+    opt_do_list: cint;
+    opt_do_extract: cint;
+    opt_do_extract_withoutpath: cint;
+    opt_overwrite: cint;
     filename_try: array[0..512 - 1] of char;
     uf:   unzFile;
   var
-    p:    int;
+    p:    cint;
     pstr: string[255];
     c:    char;
   begin

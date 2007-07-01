@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=paszlib
-override PACKAGE_VERSION=2.0.0
+override PACKAGE_VERSION=2.2.0
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zip ziputils unzip
 endif
@@ -389,160 +389,160 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zip ziputils unzip
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_EXAMPLES+=demo
+override TARGET_EXAMPLEDIRS+=demo
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -2132,6 +2132,207 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
+ifeq ($(FULL_TARGET),i386-linux)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-go32v2)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-win32)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-os2)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-freebsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-beos)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-netbsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-solaris)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-qnx)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-netware)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-darwin)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-emx)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-watcom)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-netwlibc)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-wince)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-embedded)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),i386-symbian)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-linux)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-netbsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-amiga)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-atari)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-palmos)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),m68k-embedded)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc-linux)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc-netbsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc-amiga)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc-macos)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc-darwin)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc-morphos)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc-embedded)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),sparc-linux)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),sparc-netbsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),sparc-solaris)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),sparc-embedded)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),x86_64-embedded)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),arm-linux)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),arm-palmos)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),arm-wince)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),arm-gba)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),arm-nds)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),arm-embedded)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),arm-symbian)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc64-linux)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc64-darwin)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifeq ($(FULL_TARGET),powerpc64-embedded)
+TARGET_EXAMPLEDIRS_DEMO=1
+endif
+ifdef TARGET_EXAMPLEDIRS_DEMO
+demo_all:
+	$(MAKE) -C demo all
+demo_debug:
+	$(MAKE) -C demo debug
+demo_smart:
+	$(MAKE) -C demo smart
+demo_release:
+	$(MAKE) -C demo release
+demo_units:
+	$(MAKE) -C demo units
+demo_examples:
+	$(MAKE) -C demo examples
+demo_shared:
+	$(MAKE) -C demo shared
+demo_install:
+	$(MAKE) -C demo install
+demo_sourceinstall:
+	$(MAKE) -C demo sourceinstall
+demo_exampleinstall:
+	$(MAKE) -C demo exampleinstall
+demo_distinstall:
+	$(MAKE) -C demo distinstall
+demo_zipinstall:
+	$(MAKE) -C demo zipinstall
+demo_zipsourceinstall:
+	$(MAKE) -C demo zipsourceinstall
+demo_zipexampleinstall:
+	$(MAKE) -C demo zipexampleinstall
+demo_zipdistinstall:
+	$(MAKE) -C demo zipdistinstall
+demo_clean:
+	$(MAKE) -C demo clean
+demo_distclean:
+	$(MAKE) -C demo distclean
+demo_cleanall:
+	$(MAKE) -C demo cleanall
+demo_info:
+	$(MAKE) -C demo info
+demo_makefiles:
+	$(MAKE) -C demo makefiles
+demo:
+	$(MAKE) -C demo all
+.PHONY: demo_all demo_debug demo_smart demo_release demo_units demo_examples demo_shared demo_install demo_sourceinstall demo_exampleinstall demo_distinstall demo_zipinstall demo_zipsourceinstall demo_zipexampleinstall demo_zipdistinstall demo_clean demo_distclean demo_cleanall demo_info demo_makefiles demo
+endif
 all: fpc_all
 debug: fpc_debug
 smart: fpc_smart
@@ -2147,7 +2348,7 @@ zipinstall: fpc_zipinstall
 zipsourceinstall: fpc_zipsourceinstall
 zipexampleinstall: fpc_zipexampleinstall
 zipdistinstall: fpc_zipdistinstall
-clean: fpc_clean
+clean: fpc_clean $(addsuffix _clean,$(TARGET_EXAMPLEDIRS))
 distclean: fpc_distclean
 cleanall: fpc_cleanall
 info: fpc_info

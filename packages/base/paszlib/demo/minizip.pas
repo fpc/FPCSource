@@ -11,18 +11,22 @@ program MiniZip;
   Pascal tranlastion
   Copyright (C) 2000 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
-}{$ifdef WIN32}
+}
+
+{$ifdef WIN32}
   {$define Delphi}
   {$ifndef FPC}
     {$define Delphi32}
   {$endif}
 {$endif}
 
-uses {$ifdef Delphi}
-  SysUtils,
-//  Windows,
+uses
+ Sysutils,
+ {$ifdef Delphi}
+  Windows,
  {$else}
-   {$endif}
+   zlib,ctypes,
+ {$endif}
   //zutil,
   //zlib,
   ziputils,
@@ -56,7 +60,7 @@ const
   end;
 
 {$else}
-{$ifdef FPC}
+{$ifdef delphi)} // fpcwin32
 function filetime(f : PChar;               { name of file to get info on }
    var tmzip : tm_zip; { return value: access, modific. and creation times }
    var dt : uLong) : uLong;                { dostime }
@@ -81,29 +85,22 @@ end;
 {$else}
 function filetime(f : PChar;               { name of file to get info on }
    var tmzip : tm_zip; { return value: access, modific. and creation times }
-   var dt : uLong) : uLong;                { dostime }
+   var dt : cuLong) : cuLong;                { dostime }
 var
   fl : file;
   yy, mm, dd, dow : Word;
   h, m, s, hund : Word; { For GetTime}
   dtrec : TDateTime; { For Pack/UnpackTime}
+  stime:tsystemtime;
 begin
-  {$i-}
-  Assign(fl, f);
-  Reset(fl, 1);
-  if IOresult = 0 then
-  begin
-    GetFTime(fl,dt); { Get creation time }
-    UnpackTime(dt, dtrec);
-    Close(fl);
-    tmzip.tm_sec  := dtrec.sec;
-    tmzip.tm_min  := dtrec.min;
-    tmzip.tm_hour := dtrec.hour;
-    tmzip.tm_mday := dtrec.day;
-    tmzip.tm_mon  := dtrec.month;
-    tmzip.tm_year := dtrec.year;
-  end;
-
+  dtrec:=FileDateToDateTime(fileage(f));
+  datetimetosystemtime(dtrec,stime);
+  tmzip.tm_sec  := stime.second;
+  tmzip.tm_min  := stime.minute;
+  tmzip.tm_hour := stime.hour;
+  tmzip.tm_mday := stime.day;
+  tmzip.tm_mon  := stime.month;
+  tmzip.tm_year := stime.year;
   filetime := 0;
 end;
 {$endif}
