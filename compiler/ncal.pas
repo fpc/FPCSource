@@ -175,7 +175,7 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0) : tnode;
+    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
 
     var
       ccallnode : tcallnodeclass;
@@ -227,7 +227,7 @@ implementation
       end;
 
 
-    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0) : tnode;
+    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -240,6 +240,7 @@ implementation
         params : ttempcreatenode;
         paramssize : cardinal;
         calldescnode : tdataconstnode;
+        resultvalue : tnode;
         para : tcallparanode;
         currargpos,
         namedparacount,
@@ -284,10 +285,12 @@ implementation
         result:=internalstatements(statements);
         fillchar(calldesc,sizeof(calldesc),0);
 
-        { get temp for the result }
-        result_data:=ctempcreatenode.create(colevarianttype,colevarianttype.size,tt_persistent,true);
-        addstatement(statements,result_data);
-
+        if useresult then
+          begin
+            { get temp for the result }
+            result_data:=ctempcreatenode.create(colevarianttype,colevarianttype.size,tt_persistent,true);
+            addstatement(statements,result_data);
+          end;
         { build parameters }
 
         { first, count and check parameters }
@@ -422,6 +425,12 @@ implementation
         calldescnode.append(calldesc,3+calldesc.argcount);
 
         pvardatadef:=tpointerdef(search_system_type('PVARDATA').typedef);
+
+        if useresult then
+          resultvalue:=caddrnode.create(ctemprefnode.create(result_data))
+        else
+          resultvalue:=cpointerconstnode.create(0,voidpointertype);
+
         if variantdispatch then
           begin
             methodname:=methodname+#0;
@@ -436,9 +445,7 @@ implementation
               ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
               ccallparanode.create(caddrnode.create(calldescnode),
               ccallparanode.create(ctypeconvnode.create_internal(selfnode,vardatadef),
-              ccallparanode.create(ctypeconvnode.create_internal(caddrnode.create(
-                  ctemprefnode.create(result_data)
-                ),pvardatadef),nil)))))
+              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
             );
           end
         else
@@ -448,14 +455,15 @@ implementation
               ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
               ccallparanode.create(caddrnode.create(calldescnode),
               ccallparanode.create(ctypeconvnode.create_internal(selfnode,voidpointertype),
-              ccallparanode.create(ctypeconvnode.create_internal(caddrnode.create(
-                  ctemprefnode.create(result_data)
-                ),pvardatadef),nil)))))
+              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
             );
           end;
-        { clean up }
-        addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
-        addstatement(statements,ctemprefnode.create(result_data));
+        if useresult then
+          begin
+            { clean up }
+            addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
+            addstatement(statements,ctemprefnode.create(result_data));
+          end;
       end;
 
 
@@ -2273,13 +2281,13 @@ implementation
                  converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
                  addstatement(statements,converted_result_data);
                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid),
+                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid,true),
                    procdefinition.returndef)));
                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
                  addstatement(statements,ctemprefnode.create(converted_result_data));
                end
              else
-               result:=translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid);
+               result:=translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid,false);
 
              { don't free reused nodes }
              methodpointer:=nil;

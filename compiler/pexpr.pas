@@ -2081,7 +2081,7 @@ implementation
                                  end
                                else
                                  p2:=nil;
-                               p1:=translate_disp_call(p1,p2,dispatchstring);
+                               p1:=translate_disp_call(p1,p2,dispatchstring,0,afterassignment);
                              end
                            else { Error }
                              Consume(_ID);
