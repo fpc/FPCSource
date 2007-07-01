@@ -1414,7 +1414,7 @@ type_h_convert_sub_operands_to_prevent_overflow=04080_H_Converting the operands 
 type_h_convert_mul_operands_to_prevent_overflow=04081_H_Converting the operands to "$1" before doing the multiply could prevent overflow errors.
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
-type_w_pointer_to_signed=04082_W_Converting pointers to signed types is a bad idea.
+type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may result in wrong comparison results and range errors, use an unsigned type instead.
 % The virtual address space on 32-bit machines runs from $00000000 to $ffffffff. Many operating systems allow you to
 % allocate memory above $80000000, for example both Windows and Linux allow pointers in the range $0000000 to $bfffffff.
 % If you convert pointers to signed types, this can cause overflow and range check errors, but also $80000000 < $7fffffff.
