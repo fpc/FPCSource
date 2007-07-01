@@ -759,7 +759,7 @@ begin
           end;
         ftFloat:
           SetFloat(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsFloat, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
-        ftBlob:
+        ftBlob, ftMemo:
           begin
           SetBlobParam;
           end;
