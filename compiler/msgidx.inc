@@ -320,6 +320,7 @@ const
   parser_f_no_anonymous_specializations=03232;
   parser_e_initialized_not_for_external=03233;
   parser_e_illegal_function_result=03234;
+  parser_e_no_common_type=03235;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -392,6 +393,7 @@ const
   type_h_convert_add_operands_to_prevent_overflow=04079;
   type_h_convert_sub_operands_to_prevent_overflow=04080;
   type_h_convert_mul_operands_to_prevent_overflow=04081;
+  type_w_pointer_to_signed=04082;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -726,9 +728,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 43459;
+  MsgTxtSize = 43572;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,83,235,82,63,49,107,22,135,60,
+    24,83,236,83,63,49,107,22,135,60,
     42,1,1,1,1,1,1,1,1,1
   );

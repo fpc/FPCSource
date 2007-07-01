@@ -627,6 +627,9 @@ implementation
              muln:
                cgmessage1(type_h_convert_mul_operands_to_prevent_overflow,def.gettypename);
            end;
+         {Converting pointers to signed integers is a bad idea. Warn.}
+         if (node.resultdef<>nil) and (node.resultdef.typ=pointerdef) and is_signed(def) then
+            cgmessage(type_w_pointer_to_signed);
       end;
 
 

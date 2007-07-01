@@ -354,7 +354,7 @@ scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by 
 #
 # Parser
 #
-# 03192 is the last used one
+# 03235 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1134,11 +1134,17 @@ parser_e_initialized_not_for_external=03233_E_Cannot initialize variables declar
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Illegal function result type
 % Some types like file types can not be used as function result.
+parser_e_no_common_type=03235_E_No common type possible between "$1" and "$2"
+% To perform an operation beween integers, the compiler converts both operands
+% to their common type, which appears to be an invalid type. To determine the
+% common type of the operands, the compiler takes the minimum of the minimal values
+% of both types, and the maximum of the maximal values of both types. The common
+% type is then minimum..maximum.
 % \end{description}
 #
 # Type Checking
 #
-# 04049 is the last used one
+# 04082 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1408,6 +1414,11 @@ type_h_convert_sub_operands_to_prevent_overflow=04080_H_Converting the operands 
 type_h_convert_mul_operands_to_prevent_overflow=04081_H_Converting the operands to "$1" before doing the multiply could prevent overflow errors.
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
+type_w_pointer_to_signed=04082_W_Converting pointers to signed types is a bad idea.
+% The virtual address space on 32-bit machines runs from $00000000 to $ffffffff. Many operating systems allow you to
+% allocate memory above $80000000, for example both Windows and Linux allow pointers in the range $0000000 to $bfffffff.
+% If you convert pointers to signed types, this can cause overflow and range check errors, but also $80000000 < $7fffffff.
+% This can cause random errors in code like "if p>q".
 % \end{description}
 #
 # Symtable
