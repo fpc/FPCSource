@@ -207,15 +207,16 @@ implementation
        var
          adjustment : aint;
          l, l2      : tasmlabel;
-         href : treference;
-         hr,hr2,
+         otl, ofl   : tasmlabel;
+         hr,
          pleftreg   : tregister;
          setparts   : Tsetparts;
          opsize     : tcgsize;
          uopsize    : tcgsize;
          orgopsize  : tcgsize;
          genjumps,
-         use_small  : boolean;
+         use_small,
+         isjump     : boolean;
          i,numparts : byte;
          needslabel : Boolean;
        begin
@@ -232,10 +233,36 @@ implementation
            opsize := uopsize;
          needslabel := false;
 
-         { calculate both operators }
-         { the complex one first }
-         firstcomplex(self);
+         isjump:=false;
+         if (left.expectloc=LOC_JUMP) then
+           begin
+             otl:=current_procinfo.CurrTrueLabel;
+             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+             ofl:=current_procinfo.CurrFalseLabel;
+             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+             isjump:=true;
+           end
+         else if not genjumps then
+           { calculate both operators }
+           { the complex one first }
+           { only if left will not be a LOC_JUMP, to keep complexity in the }
+           { code generator down. This almost never happens anyway, only in }
+           { case like "if ((a in someset) in someboolset) then" etc        }
+           { also not in case of genjumps, because then we don't secondpass }
+           { right at all (so we have to make sure that "right" really is   }
+           { "right" and not "swapped left" in that case)                   }
+           firstcomplex(self);
+
          secondpass(left);
+         if isjump then
+           begin
+             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+             current_procinfo.CurrTrueLabel:=otl;
+             current_procinfo.CurrFalseLabel:=ofl;
+           end
+         else if (left.location.loc=LOC_JUMP) then
+           internalerror(2007070101);
+
          { Only process the right if we are not generating jumps }
          if not genjumps then
            secondpass(right);

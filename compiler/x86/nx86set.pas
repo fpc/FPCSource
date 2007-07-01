@@ -170,7 +170,11 @@ implementation
                    analizeset(tsetconstnode(right).value_set,use_small);
          { calculate both operators }
          { the complex one first }
-         firstcomplex(self);
+         { not in case of genjumps, because then we don't secondpass    }
+         { right at all (so we have to make sure that "right" really is }
+         { "right" and not "swapped left" in that case)                 }
+         if not(genjumps) then
+           firstcomplex(self);
          secondpass(left);
          { Only process the right if we are not generating jumps }
          if not genjumps then
