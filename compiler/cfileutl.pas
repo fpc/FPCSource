@@ -321,7 +321,11 @@ implementation
         Result:=false;
         CachedDir:=GetDirectory(ExtractFileDir(AName));
         if assigned(CachedDir) then
-          Result:=CachedDir.FileExistsCaseAware(ExtractFileName(AName),FoundName);
+          begin
+            Result:=CachedDir.FileExistsCaseAware(ExtractFileName(AName),FoundName);
+            if Result then
+              FoundName:=ExtractFilePath(AName)+FoundName;
+          end;
       end;
 
 
@@ -505,11 +509,8 @@ implementation
               if allowcache then
                 begin
                   result:=DirCache.FileExistsCaseAware(FoundFile,fn2);
-                  if (result) then
-                    begin
-                      FoundFile:=path+fn2;
-                      exit
-                    end
+                  if result then
+                    exit
                 end
               else
 {$endif usedircache}
@@ -517,7 +518,7 @@ implementation
                   begin
                     { don't know the real name in this case }
                     result:=true;
-                   exit;
+                    exit;
                  end;
            end
         else
