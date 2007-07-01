@@ -195,9 +195,11 @@ begin
   S:=Nil;
 end;
 
+{$ifdef FPC_WINLIKEWIDESTRING}
 var
   __data_start: byte; external name '__data_start__';
   __data_end: byte; external name '__data_end__';
+{$endif FPC_WINLIKEWIDESTRING}
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
