@@ -293,31 +293,6 @@ begin
 end;
 
 
-const
-  HexTbl : array[0..15] of char='0123456789ABCDEF';
-function HexB(b:byte):shortstring;
-begin
-  HexB[0]:=#2;
-  HexB[1]:=HexTbl[b shr 4];
-  HexB[2]:=HexTbl[b and $f];
-end;
-
-
-function hexstr(val : cardinal;cnt : byte) : shortstring;
-const
-  HexTbl : array[0..15] of char='0123456789ABCDEF';
-var
-  i : longint;
-begin
-  hexstr[0]:=char(cnt);
-  for i:=cnt downto 1 do
-   begin
-     hexstr[i]:=hextbl[val and $f];
-     val:=val shr 4;
-   end;
-end;
-
-
     Function L0(l:longint):string;
     {
       return the string of value l, if l<10 then insert a zero, so
@@ -1499,7 +1474,7 @@ begin
                        begin
                          if j>1 then
                           write(',');
-                         write(hexb(getbyte));
+                         write(hexstr(getbyte,2));
                        end;
                       writeln;
                     end;
