@@ -7,24 +7,83 @@ uses
   sysutils,
   classes;
 
+const
+  fifolength = 1024;
 type
+  tpair = class;
+
   tproducethread = class(tthread)
+    pair: tpair;
+    constructor create(apair: tpair);
     procedure execute; override;
   end;
 
   tconsumethread = class(tthread)
+    pair: tpair;
+    constructor create(apair: tpair);
     procedure execute; override;
   end;
 
-const
-  fifolength = 1024;
+  tpair = class(tobject)
+  public
+    readindex: integer;
+    writeindex: integer;
+    fifo: array[0..fifolength-1] of pointer;
+    shared: pointer;
+    freefifolock: trtlcriticalsection;
+    produce_thread: tproducethread;
+    consume_thread: tconsumethread;
+
+    constructor create;
+    destructor destroy; override;
+
+    procedure resume;
+    procedure waitfor;
+  end;
+
 var
-  readindex: integer;
-  writeindex: integer;
-  fifo: array[0..fifolength-1] of pointer;
-  shared: pointer;
   done: boolean;
-  freefifolock: trtlcriticalsection;
+
+constructor tproducethread.create(apair: tpair);
+begin
+  pair := apair;
+  inherited create(false);
+end;
+
+constructor tconsumethread.create(apair: tpair);
+begin
+  pair := apair;
+  inherited create(false);
+end;
+
+constructor tpair.create;
+begin
+  filldword(fifo, sizeof(fifo) div sizeof(dword), 0);
+  readindex := 0;
+  writeindex := 0;
+  initcriticalsection(freefifolock);
+  produce_thread := tproducethread.create(self);
+  consume_thread := tconsumethread.create(self);
+end;
+
+destructor tpair.destroy;
+begin
+  produce_thread.free;
+  consume_thread.free;
+  donecriticalsection(freefifolock);
+end;
+
+procedure tpair.resume;
+begin
+  produce_thread.resume;
+  consume_thread.resume;
+end;
+
+procedure tpair.waitfor;
+begin
+  produce_thread.waitfor;
+  consume_thread.waitfor;
+end;
 
 type
   ttestarray = array[0..31] of pointer;
@@ -56,22 +115,23 @@ begin
   end;
 end;
 
-procedure producer;
+procedure producer(pair: tpair);
 var
   p: ttestarray;
   i, j, k: longint;
 begin
+  done := false;
   filldword(p, sizeof(p) div sizeof(dword), 0);
   i := 0;
   j := 0;
   k := 0;
   while not done do
   begin
-    if ((writeindex+1) mod fifolength) <> readindex then
+    if ((pair.writeindex+1) mod fifolength) <> pair.readindex then
     begin
-      freemem(fifo[writeindex]);
-      fifo[writeindex] := getmem(((writeindex*17) mod 520)+8);
-      writeindex := (writeindex + 1) mod 1024;
+      freemem(pair.fifo[pair.writeindex]);
+      pair.fifo[pair.writeindex] := getmem(((pair.writeindex*17) mod 520)+8);
+      pair.writeindex := (pair.writeindex + 1) mod 1024;
     end else begin
       exercise_heap(p,i,j);
       inc(k);
@@ -83,30 +143,31 @@ begin
     end;
   end;
   freearray(p, sizeof(p) div sizeof(pointer));
-  entercriticalsection(freefifolock);
+  entercriticalsection(pair.freefifolock);
   sleep(200);
-  freearray(fifo, sizeof(fifo) div sizeof(pointer));
-  freemem(shared);
-  leavecriticalsection(freefifolock);
+  freearray(pair.fifo, sizeof(pair.fifo) div sizeof(pointer));
+  freemem(pair.shared);
+  leavecriticalsection(pair.freefifolock);
 end;
 
-procedure consumer;
+procedure consumer(pair: tpair);
 var
   p: ttestarray;
   i, j, k: longint;
 begin
+  done := false;
   filldword(p, sizeof(p) div sizeof(dword), 0);
   i := 0;
   j := 0;
   k := 0;
-  entercriticalsection(freefifolock);
+  entercriticalsection(pair.freefifolock);
   while not done do
   begin
-    if readindex <> writeindex then
+    if pair.readindex <> pair.writeindex then
     begin
-      freemem(fifo[readindex]);
-      fifo[readindex] := getmem(((writeindex*17) mod 520)+8);
-      readindex := (readindex + 1) mod fifolength;
+      freemem(pair.fifo[pair.readindex]);
+      pair.fifo[pair.readindex] := getmem(((pair.writeindex*17) mod 520)+8);
+      pair.readindex := (pair.readindex + 1) mod fifolength;
     end else begin
       exercise_heap(p,i,j);
       inc(k);
@@ -117,37 +178,43 @@ begin
       end;
     end;
   end;
-  shared := getmem(12);
-  leavecriticalsection(freefifolock);
+  pair.shared := getmem(12);
+  leavecriticalsection(pair.freefifolock);
   freearray(p, sizeof(p) div sizeof(pointer));
 end;
 
 procedure tproducethread.execute;
 begin
-  producer;
+  producer(pair);
 end;
 
 procedure tconsumethread.execute;
 begin
-  consumer;
+  consumer(pair);
 end;
 
+const
+  numpairs = 2;
 var
-  produce_thread: tproducethread;
-  consume_thread: tconsumethread;
+  pairs: array[1..numpairs] of tpair;
+  i, iter, num_iterations: integer;
 begin
-  initcriticalsection(freefifolock);
-  done := false;
-  filldword(fifo, sizeof(fifo) div sizeof(dword), 0);
-  readindex := 0;
-  writeindex := 0;
-  produce_thread := tproducethread.create(false);
-  consume_thread := tconsumethread.create(false);
-  sleep(3000);
-  done := true;
-  produce_thread.waitfor;
-  consume_thread.waitfor;
-  produce_thread.free;
-  consume_thread.free;
-  donecriticalsection(freefifolock);
+  num_iterations := 20;
+  if paramcount > 0 then
+    num_iterations := strtointdef(paramstr(1), num_iterations);
+  for iter := 1 to num_iterations do
+  begin
+    done := false;
+    for i := low(pairs) to high(pairs) do
+      pairs[i] := tpair.create;
+    for i := low(pairs) to high(pairs) do
+      pairs[i].resume;
+    sleep(5000);
+    done := true;
+    for i := low(pairs) to high(pairs) do
+    begin
+      pairs[i].waitfor;
+      pairs[i].free;
+    end;
+  end;
 end.
