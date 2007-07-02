@@ -188,6 +188,7 @@ interface
             ,res_m68k_palmos,res_m68k_mpw
             ,res_powerpc_mpw,res_elf
             ,res_gnu_wince_windres
+            ,res_win64_gorc
        );
 
        tdbg = (dbg_none
