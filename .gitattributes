@@ -3381,8 +3381,9 @@ packages/extra/rexx/test/Makefile svneol=native#text/plain
 packages/extra/rexx/test/Makefile.fpc svneol=native#text/plain
 packages/extra/rexx/test/backward.fnc -text
 packages/extra/rexx/test/callrexx.pas svneol=native#text/plain
-packages/extra/sdl/LICENSE -text
-packages/extra/sdl/LICENSE.addon -text
+packages/extra/sdl/LGPL -text
+packages/extra/sdl/LGPL.addon -text
+packages/extra/sdl/MPL-1.1 -text
 packages/extra/sdl/Makefile.fpc -text
 packages/extra/sdl/README -text
 packages/extra/sdl/fpmake.inc svneol=native#text/plain
