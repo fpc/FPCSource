@@ -659,11 +659,11 @@ implementation
               LOC_CONSTANT :
                 begin
 {$ifndef cpu64bit}
-                  if right.location.size in [OS_64,OS_S64] then
-                   cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
+                  if (left.location.size in [OS_64,OS_S64]) or (right.location.size in [OS_64,OS_S64]) then
+                    cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
                   else
 {$endif cpu64bit}
-                   cg.a_load_const_loc(current_asmdata.CurrAsmList,right.location.value,left.location);
+                    cg.a_load_const_loc(current_asmdata.CurrAsmList,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
               LOC_CREFERENCE :
