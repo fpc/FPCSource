@@ -927,7 +927,7 @@ initialization
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
-  RegisterRes(res_elf32_info,TResourceFile);
+  RegisterRes(res_elf32_info,TWinLikeResourceFile);
 
   RegisterExternalLinker(system_x86_6432_linux_info,TLinkerLinux);
   RegisterImport(system_x86_6432_linux,timportliblinux);
@@ -963,7 +963,7 @@ initialization
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
-  RegisterRes(res_elf64_info,TResourceFile);
+  RegisterRes(res_elf64_info,TWinLikeResourceFile);
 {$endif x86_64}
 {$ifdef SPARC}
   RegisterExternalLinker(system_sparc_linux_info,TLinkerLinux);

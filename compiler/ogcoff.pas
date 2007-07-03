@@ -1775,12 +1775,7 @@ const pemagic : array[0..3] of byte = (
                InputError('Error reading COFF Symtable');
                exit;
              end;
-           if strsize<4 then
-             begin
-               InputError('Error reading COFF Symtable');
-               exit;
-             end;
-           if not AReader.ReadArray(FCoffStrs,Strsize-4) then
+           if (strsize>4) and not AReader.ReadArray(FCoffStrs,Strsize-4) then
              begin
                InputError('Error reading COFF Symtable');
                exit;
