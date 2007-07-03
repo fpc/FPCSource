@@ -719,11 +719,10 @@ implementation
          { maybe type conversion for the index value, but
            do not convert enums,booleans,char
            and do not convert range nodes }
-         if ((right.nodetype<>rangen) and is_integer(right.resultdef)) or (left.resultdef.typ<>arraydef) then
+         if (right.nodetype<>rangen) and (is_integer(right.resultdef) or (left.resultdef.typ<>arraydef)) then
            case left.resultdef.typ of
              arraydef:
-//               if ado_IsDynamicArray in Tarraydef(left.resultdef).arrayoptions then 
-               if (Tarraydef(left.resultdef).lowrange=0) and (Tarraydef(left.resultdef).highrange=-1) then
+               if is_special_array(left.resultdef) then
                  {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
                   convert indexes into these arrays to aword.}
                  inserttypeconv(right,uinttype)
