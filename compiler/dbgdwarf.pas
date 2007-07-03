@@ -29,6 +29,9 @@
   The easiest way to debug dwarf debug info generation is the usage of
   readelf --debug-dump <executable>
   This works only with elf targets though.
+  
+  There is a similar utility called dwarfdump which is not elf-specific and
+  which has been ported to most systems.
 }
 unit dbgdwarf;
 
@@ -331,7 +334,7 @@ interface
 implementation
 
     uses
-      cutils,cfileutl,
+      cutils,cfileutl,constexp,
       version,globtype,globals,verbose,systems,
       cpubase,cgbase,paramgr,
       fmodule,
@@ -1011,40 +1014,35 @@ implementation
       end;
 
     procedure TDebugInfoDwarf.appenddef_ord(def:torddef);
+      var
+        sign: tdwarf_type;
       begin
         case def.ordtype of
           s8bit,
           s16bit,
-          s32bit :
-            begin
-              { we should generate a subrange type here }
-              if assigned(def.typesym) then
-                append_entry(DW_TAG_base_type,false,[
-                  DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                  DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
-                  DW_AT_byte_size,DW_FORM_data1,def.size
-                  ])
-              else
-                append_entry(DW_TAG_base_type,false,[
-                  DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
-                  DW_AT_byte_size,DW_FORM_data1,def.size
-                  ]);
-              finish_entry;
-            end;
+          s32bit,
           u8bit,
           u16bit,
           u32bit :
             begin
+              { generate proper signed/unsigned info for types like 0..3 }
+              { these are s8bit, but should be identified as unsigned    }
+              { because otherwise they are interpreted wrongly when used }
+              { in a bitpacked record                                    }
+              if (def.low<0) then
+                sign:=DW_ATE_signed
+              else
+                sign:=DW_ATE_unsigned;
               { we should generate a subrange type here }
               if assigned(def.typesym) then
                 append_entry(DW_TAG_base_type,false,[
                   DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                  DW_AT_encoding,DW_FORM_data1,sign,
                   DW_AT_byte_size,DW_FORM_data1,def.size
                   ])
               else
                 append_entry(DW_TAG_base_type,false,[
-                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                  DW_AT_encoding,DW_FORM_data1,sign,
                   DW_AT_byte_size,DW_FORM_data1,def.size
                   ]);
               finish_entry;
@@ -1842,15 +1840,57 @@ implementation
 
 
       procedure TDebugInfoDwarf.appendsym_fieldvar(sym: tfieldvarsym);
+        var
+          bitoffset,
+          fieldoffset,
+          fieldnatsize: aint;
         begin
           if sp_static in sym.symoptions then Exit;
 
-          append_entry(DW_TAG_member,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
-            DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sym.fieldoffset)
-            ]);
+          if (tabstractrecordsymtable(sym.owner).usefieldalignment<>bit_alignment) or
+             { only ordinals are bitpacked }
+             not is_ordinal(sym.vardef) then
+            begin
+              { other kinds of fields can however also appear in a bitpacked   }
+              { record, and then their offset is also specified in bits rather }
+              { than in bytes                                                  }
+              if (tabstractrecordsymtable(sym.owner).usefieldalignment<>bit_alignment) then
+                fieldoffset:=sym.fieldoffset
+              else
+                fieldoffset:=sym.fieldoffset div 8;
+              append_entry(DW_TAG_member,false,[
+                DW_AT_name,DW_FORM_string,symname(sym)+#0,
+                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(fieldoffset)
+                ]);
+            end
+          else
+            begin
+              if (sym.vardef.packedbitsize > 255) then
+                internalerror(2007061201);
+
+              { we don't bitpack according to the ABI, but as close as }
+              { possible, i.e., equivalent to gcc's                    }
+              { __attribute__((__packed__)), which is also what gpc    }
+              { does.                                                  }
+              fieldnatsize:=max(sizeof(aint),sym.vardef.size);
+              fieldoffset:=(sym.fieldoffset div (fieldnatsize*8)) * fieldnatsize;
+              bitoffset:=sym.fieldoffset mod (fieldnatsize*8);
+              if (target_info.endian=endian_little) then
+                bitoffset:=(fieldnatsize*8)-bitoffset-sym.vardef.packedbitsize;
+              append_entry(DW_TAG_member,false,[
+                DW_AT_name,DW_FORM_string,symname(sym)+#0,
+                { gcc also generates both a bit and byte size attribute }
+                { we don't support ordinals >= 256 bits }
+                DW_AT_byte_size,DW_FORM_data1,fieldnatsize,
+                { nor >= 256 bits (not yet, anyway, see IE above) }
+                DW_AT_bit_size,DW_FORM_data1,sym.vardef.packedbitsize,
+                { data1 and data2 are unsigned, bitoffset can also be negative }
+                DW_AT_bit_offset,DW_FORM_data4,bitoffset,
+                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(fieldoffset)
+                ]);
+            end;
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.fieldoffset));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(fieldoffset));
 
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
           finish_entry;
