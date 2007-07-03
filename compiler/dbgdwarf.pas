@@ -1356,7 +1356,7 @@ implementation
 
           { length entry }
           append_entry(DW_TAG_member,false,[
-            DW_AT_name,DW_FORM_string,'Length'#0,
+            DW_AT_name,DW_FORM_string,'length'#0,
             DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
             ]);
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
@@ -1366,7 +1366,7 @@ implementation
 
           { string data entry }
           append_entry(DW_TAG_member,false,[
-            DW_AT_name,DW_FORM_string,'Data'#0,
+            DW_AT_name,DW_FORM_string,'st'#0,
             DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(1)
             ]);
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
