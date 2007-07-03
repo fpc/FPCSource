@@ -722,7 +722,13 @@ implementation
          if (right.nodetype<>rangen) and (is_integer(right.resultdef) or (left.resultdef.typ<>arraydef)) then
            case left.resultdef.typ of
              arraydef:
-               if is_special_array(left.resultdef) then
+               if ado_isvariant in Tarraydef(left.resultdef).arrayoptions then
+                 {Variant arrays are a special array, can have negative indexes and would therefore
+                  need s32bit. However, they should not appear in a vecn, as they are handled in
+                  handle_variantarray in pexpr.pas. Therefore, encountering a variant array is an
+                  internal error... }
+                 internalerror(200707031)
+               else if is_special_array(left.resultdef) then
                  {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
                   convert indexes into these arrays to aword.}
                  inserttypeconv(right,uinttype)
