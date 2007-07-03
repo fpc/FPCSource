@@ -740,6 +740,8 @@ const
   LastCallcounter : longint = 0;
 
 procedure SysGetMouseEvent(var MouseEvent: TMouseEvent);
+var
+ RR: TRealRegs;
 begin
   if not MousePresent then
     begin
@@ -754,11 +756,15 @@ begin
 {$endif EXTMOUSEDEBUG}
   LastCallcounter:=Callcounter;
 {$endif DEBUG}
-  repeat until PendingMouseEvents>0;
+  while PendingMouseEvents = 0 do
+   begin
+(* Give up time slices while waiting for mouse events. *)
+    RealIntr ($28, RR);
+   end;
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
-  if longint(PendingMouseHead)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-   PendingMouseHead:=@PendingMouseEvent;
+  if ptruint(PendingMouseHead)=ptruint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+   PendingMouseHead:=PMouseEvent(@PendingMouseEvent);
   dec(PendingMouseEvents);
   if (LastMouseEvent.x<>MouseEvent.x) or (LastMouseEvent.y<>MouseEvent.y) then
    MouseEvent.Action:=MouseActionMove;
