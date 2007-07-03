@@ -289,7 +289,7 @@ interface
        public
           function elesize : aint;
           function elepackedbitsize : aint;
-          function elecount : aint;
+          function elecount : aword;
           constructor create_from_pointer(def:tdef);
           constructor create(l,h : aint;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -2206,10 +2206,10 @@ implementation
       begin
         if (ado_IsBitPacked in arrayoptions) then
           internalerror(2006080101);
-	if assigned(_elementdef) then
+        if assigned(_elementdef) then
           result:=_elementdef.size
-	else
-	  result:=0;
+        else
+          result:=0;
       end;
 
 
@@ -2224,7 +2224,7 @@ implementation
       end;
 
 
-    function tarraydef.elecount : aint;
+    function tarraydef.elecount : aword;
       var
         qhigh,qlow : qword;
       begin
@@ -2237,9 +2237,9 @@ implementation
           begin
             qhigh:=highrange;
             qlow:=qword(-lowrange);
-            { prevent overflow, return -1 to indicate overflow }
+            { prevent overflow, return 0 to indicate overflow }
             if qhigh+qlow>qword(high(aint)-1) then
-              result:=-1
+              result:=0
             else
               result:=qhigh+qlow+1;
           end
@@ -2250,7 +2250,7 @@ implementation
 
     function tarraydef.size : aint;
       var
-        cachedelecount,
+        cachedelecount : aword;
         cachedelesize : aint;
       begin
         if ado_IsDynamicArray in arrayoptions then
@@ -2274,7 +2274,7 @@ implementation
             exit;
           end;
 
-        if (cachedelecount = -1) then
+        if (cachedelecount = 0) then
           begin
             size := -1;
             exit;

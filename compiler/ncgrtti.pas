@@ -539,7 +539,7 @@ implementation
            { size of elements }
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(def.elesize));
            if not(ado_IsDynamicArray in def.arrayoptions) then
-             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(def.elecount));
+             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(aint(def.elecount)));
            { element type }
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
            { variant type }
