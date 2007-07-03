@@ -120,7 +120,7 @@ Procedure GetPendingEvent(Var MouseEvent:TMouseEvent);
 begin
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
-  if PendingMouseHead=@PendingMouseEvent[MouseEventBufSize] then
+  if PendingMouseHead=@PendingMouseEvent[0]+MouseEventBufSize then
    PendingMouseHead:=@PendingMouseEvent[0];
   dec(PendingMouseEvents);
   if (LastMouseEvent.x<>MouseEvent.x) or
@@ -163,7 +163,7 @@ begin
     begin
     PendingMouseTail^:=MouseEvent;
     inc(PendingMouseTail);
-    if PendingMouseTail=@PendingMouseEvent[MouseEventBufSize] then
+    if PendingMouseTail=@PendingMouseEvent[0]+MouseEventBufSize then
       PendingMouseTail:=@PendingMouseEvent[0];
     inc(PendingMouseEvents);
     end
