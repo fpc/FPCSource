@@ -763,8 +763,8 @@ begin
    end;
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
-  if ptruint(PendingMouseHead)=ptruint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-   PendingMouseHead:=PMouseEvent(@PendingMouseEvent);
+  if PendingMouseHead=@PendingMouseEvent[0]+MouseEventBufsize then
+   PendingMouseHead:=@PendingMouseEvent[0];
   dec(PendingMouseEvents);
   if (LastMouseEvent.x<>MouseEvent.x) or (LastMouseEvent.y<>MouseEvent.y) then
    MouseEvent.Action:=MouseActionMove;

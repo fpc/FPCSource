@@ -275,7 +275,7 @@ begin
    WF := Mou_NoWait;
    if (MouReadEventQue (SysEvent, WF, Handle) = 0) then
    begin
-    if PendingMouseHead = @PendingMouseEvent then
+    if PendingMouseHead = @PendingMouseEvent[0] then
                            P := @PendingMouseEvent [MouseEventBufSize - 1] else
     begin
      P := PendingMouseHead;
@@ -297,7 +297,7 @@ begin
        TranslateEvents (SysEvent, Event);
        if Event.Action <> MouseActionMove then
        begin
-        if Q = @PendingMouseEvent then
+        if Q = @PendingMouseEvent[0] then
                   Q := @PendingMouseEvent [MouseEventBufSize - 1] else Dec (Q);
         if MouseEventOrderHead = 0 then
                   MouseEventOrderHead := MouseEventBufSize - 1 else
@@ -359,8 +359,8 @@ begin
   LastMouseEvent := MouseEvent;
  end;
  Inc (PendingMouseHead);
- if longint (PendingMouseHead) = longint (@PendingMouseEvent)
-      + SizeOf (PendingMouseEvent) then PendingMouseHead := @PendingMouseEvent;
+ if PendingMouseHead = @PendingMouseEvent[0]+MouseEventBufsize then
+   PendingMouseHead := @PendingMouseEvent[0];
  Inc (MouseEventOrderHead);
  if MouseEventOrderHead = MouseEventBufSize then MouseEventOrderHead := 0;
  Dec (PendingMouseEvents);
@@ -374,8 +374,8 @@ begin
  begin
   PendingMouseTail^ := MouseEvent;
   Inc (PendingMouseTail);
-  if longint (PendingMouseTail) = longint (@PendingMouseEvent) +
-        SizeOf (PendingMouseEvent) then PendingMouseTail := @PendingMouseEvent;
+  if PendingMouseTail=@PendingMouseEvent[0]+MouseEventBufSize then
+    PendingMouseTail := @PendingMouseEvent[0];
   MouGetNumQueEl (QI, Handle);
   PendingMouseEventOrder [MouseEventOrderTail] := QI.cEvents;
   Inc (MouseEventOrderTail);
