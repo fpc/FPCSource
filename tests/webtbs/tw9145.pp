@@ -1,4 +1,6 @@
-program main;
+{ %norun }
+
+rogram main;
 {$mode objfpc}
 uses
   ctypes;
