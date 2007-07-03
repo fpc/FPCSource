@@ -722,8 +722,10 @@ implementation
          if ((right.nodetype<>rangen) and is_integer(right.resultdef)) or (left.resultdef.typ<>arraydef) then
            case left.resultdef.typ of
              arraydef:
-               if ado_IsDynamicArray in Tarraydef(left.resultdef).arrayoptions then 
-                 {Convert indexes into dynamic arrays to aword.}
+//               if ado_IsDynamicArray in Tarraydef(left.resultdef).arrayoptions then 
+               if (Tarraydef(left.resultdef).lowrange=0) and (Tarraydef(left.resultdef).highrange=-1) then
+                 {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
+                  convert indexes into these arrays to aword.}
                  inserttypeconv(right,uinttype)
                else
                  {Convert array indexes to low_bound..high_bound.}
