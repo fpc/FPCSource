@@ -124,6 +124,15 @@ implementation
           rccmd  : '--include $INC -O res -o $RES $RC';
         );
 
+    res_win64_gorc_info : tresinfo =
+        (
+          id     : res_win64_gorc;
+          resbin : 'gorc';
+          rescmd : '/machine x64 /nw /ni /o /fo $OBJ $RES';
+          rcbin  : 'gorc';
+          rccmd  : '/machine x64 /nw /ni /r /fo $RES $RC';
+        );
+
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);
     var
@@ -1767,7 +1776,7 @@ initialization
   RegisterImport(system_x86_64_win64,TImportLibWin);
   RegisterExport(system_x86_64_win64,TExportLibWin);
   RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin);
-  RegisterRes(res_gnu_windres_info,TWinResourceFile);
+  RegisterRes(res_win64_gorc_info,TWinResourceFile);
   RegisterTarget(system_x64_win64_info);
 {$endif x86_64}
 {$ifdef arm}
