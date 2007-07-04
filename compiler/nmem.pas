@@ -739,7 +739,9 @@ implementation
                                                      int64(Tarraydef(left.resultdef).highrange)
                                                     ));
              stringdef:
-               if Tstringdef(left.resultdef).stringtype=st_shortstring then
+               if is_open_string(left.resultdef) then
+                 inserttypeconv(right,u8inttype)
+               else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
                  inserttypeconv(right,Torddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
                else
