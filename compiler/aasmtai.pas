@@ -81,11 +81,7 @@ interface
           ait_regalloc,
           ait_tempalloc,
           { used to mark assembler blocks and inlined functions }
-          ait_marker,
-          { new source file (dwarf) }
-          ait_file,
-          { new line/loc in source file (dwarf) }
-          ait_loc
+          ait_marker
           );
 
         taiconst_type = (
@@ -148,9 +144,7 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker',
-          'file',
-          'line'
+          'marker'
           );
 
     type
@@ -209,8 +203,7 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
-                   ,ait_file,ait_loc];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
@@ -220,7 +213,7 @@ interface
                      ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
                      ait_const,
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
-                     ait_file,ait_loc,ait_symbol
+                     ait_symbol
                     ];
 
 
@@ -527,27 +520,6 @@ interface
           constructor dealloc(r : tregister;ainstr:tai);
           constructor sync(r : tregister);
           constructor resize(r : tregister);
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-       end;
-
-       { Generates a dwarf file location }
-       tai_file = class(tai)
-          str : pchar;
-          idx : longint;
-          constructor Create(_str : string);
-          destructor Destroy; override;
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy:tlinkedlistitem;override;
-       end;
-
-       { Generates a dwarf line location }
-       tai_loc = class(tai)
-          fileentry : tai_file;
-          line,
-          column : longint;
-          constructor Create(_fileidx : tai_file;_line,_column : longint);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -1884,94 +1856,6 @@ implementation
         ppufile.putbyte(byte(ratype));
       end;
 
-
-{****************************************************************************
-                                    tai_file
- ****************************************************************************}
-
-    constructor tai_file.Create(_str : string);
-      begin
-        inherited Create;
-        typ:=ait_file;
-        getmem(str,length(_str)+1);
-        move(_str[1],str^,length(_str));
-        str[length(_str)]:=#0;
-      end;
-
-
-    destructor tai_file.destroy;
-      begin
-         freemem(str);
-         inherited Destroy;
-      end;
-
-
-    constructor tai_file.ppuload(t:taitype;ppufile:tcompilerppufile);
-      var
-        len : longint;
-      begin
-        inherited ppuload(t,ppufile);
-        len:=ppufile.getlongint;
-        getmem(str,len+1);
-        ppufile.getdata(str^,len);
-        str[len]:=#0;
-        idx:=ppufile.getlongint;
-      end;
-
-
-    procedure tai_file.ppuwrite(ppufile:tcompilerppufile);
-      var
-        len : longint;
-      begin
-        inherited ppuwrite(ppufile);
-        len:=strlen(str);
-        ppufile.putlongint(len);
-        ppufile.putdata(str^,len);
-        ppufile.putlongint(idx);
-      end;
-
-
-    function tai_file.getcopy : tlinkedlistitem;
-      var
-        p : tlinkedlistitem;
-      begin
-        p:=inherited getcopy;
-        getmem(tai_comment(p).str,strlen(str)+1);
-        move(str^,tai_comment(p).str^,strlen(str)+1);
-        getcopy:=p;
-      end;
-
-
-{****************************************************************************
-                                    tai_loc
- ****************************************************************************}
-
-    constructor tai_loc.Create(_fileidx : tai_file;_line,_column : longint);
-      begin
-        inherited Create;
-        typ:=ait_loc;
-        fileentry:=_fileidx;
-        line:=_line;
-        column:=_column;
-      end;
-
-
-    constructor tai_loc.ppuload(t:taitype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        {!!!! fileidx:=ppufile.getlongint; }
-        line:=ppufile.getlongint;
-        column:=ppufile.getlongint;
-      end;
-
-
-    procedure tai_loc.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        {!!!!! ppufile.putlongint(fileidx); }
-        ppufile.putlongint(line);
-        ppufile.putlongint(column);
-      end;
 
 {*****************************************************************************
                                TaiInstruction

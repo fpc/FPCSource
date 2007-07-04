@@ -972,23 +972,6 @@ implementation
                  end;
              end;
 
-           ait_file :
-             begin
-               tai_file(hp).idx:=nextdwarffileidx;
-               inc(nextdwarffileidx);
-               AsmWrite(#9'.file '+tostr(tai_file(hp).idx)+' "');
-
-               AsmWritePChar(tai_file(hp).str);
-               AsmWrite('"');
-               AsmLn;
-             end;
-
-           ait_loc :
-             begin
-               AsmWrite(#9'.loc '+tostr(tai_loc(hp).fileentry.idx)+' '+tostr(tai_loc(hp).line)+' '+tostr(tai_loc(hp).column));
-               AsmLn;
-             end;
-
            ait_force_line,
            ait_function_name : ;
 
