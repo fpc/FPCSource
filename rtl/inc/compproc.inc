@@ -45,7 +45,7 @@ type
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 { Needed to solve overloading problem with call from assembler (PFV) }
-Function  fpc_getmem(size:ptrint):pointer;compilerproc;
+Function  fpc_getmem(size:ptruint):pointer;compilerproc;
 Procedure fpc_freemem(p:pointer);compilerproc;
 {$endif FPC_HAS_FEATURE_HEAP}
 
