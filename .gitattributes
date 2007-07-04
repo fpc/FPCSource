@@ -3400,6 +3400,7 @@ packages/extra/sdl/sdl_cpuinfo.pas svneol=native#text/plain
 packages/extra/sdl/sdl_gfx.pas -text svneol=unset#text/plain
 packages/extra/sdl/sdl_image.pas -text svneol=unset#text/plain
 packages/extra/sdl/sdl_mixer.pas -text svneol=unset#text/plain
+packages/extra/sdl/sdl_mixer_nosmpeg.pas -text svneol=unset#text/plain
 packages/extra/sdl/sdl_net.pas svneol=native#text/plain
 packages/extra/sdl/sdl_sound.pas svneol=native#text/plain
 packages/extra/sdl/sdl_ttf.pas svneol=native#text/plain

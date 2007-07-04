@@ -11,6 +11,7 @@
     T:=Targets.AddUnit('sdl');
     T:=Targets.AddUnit('sdl_image');
     T:=Targets.AddUnit('sdl_mixer');
+    T:=Targets.AddUnit('sdl_mixer_nosmpeg');
     T:=Targets.AddUnit('sdl_ttf');
     T:=Targets.AddUnit('sdl_gfx');
     T:=Targets.AddUnit('sdl_net');
