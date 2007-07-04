@@ -16,7 +16,7 @@
  **********************************************************************}
 function sbrk2 (size : longint):pointer; cdecl; external name 'sbrk';
 
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 begin
   result := sbrk2(size);
 {  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
@@ -29,7 +29,7 @@ end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 begin
 //  fpmunmap(p, size);
 //  WriteLn('TODO : SysOSFree');

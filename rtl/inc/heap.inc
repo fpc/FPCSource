@@ -132,7 +132,7 @@ type
 
   poschunk = ^toschunk;
   toschunk = record
-    size : ptrint;
+    size : 0..high(ptrint); {Cannot be ptruint because used field is signed.}
     next_free : poschunk;
     prev_any : poschunk;
     next_any : poschunk;
@@ -145,7 +145,7 @@ type
   pmemchunk_fixed = ^tmemchunk_fixed;
   tmemchunk_fixed = record
     { aligning is done automatically in alloc_oschunk }
-    size  : ptrint;
+    size  : ptruint;
     next_fixed,
     prev_fixed : pmemchunk_fixed;
   end;
@@ -153,9 +153,9 @@ type
   ppmemchunk_var = ^pmemchunk_var;
   pmemchunk_var = ^tmemchunk_var;
   tmemchunk_var = record
-    prevsize : ptrint;
+    prevsize : ptruint;
     freelists : pfreelists;
-    size  : ptrint;
+    size  : ptruint;
     next_var,
     prev_var  : pmemchunk_var;
   end;
@@ -166,12 +166,12 @@ type
     record. }
   tmemchunk_fixed_hdr = record
     { aligning is done automatically in alloc_oschunk }
-    size : ptrint;
+    size : ptruint;
   end;
   tmemchunk_var_hdr = record
-    prevsize : ptrint;
+    prevsize : ptruint;
     freelists : pfreelists;
-    size : ptrint;
+    size : ptruint;
   end;
 
   pfpcheapstatus = ^tfpcheapstatus;
@@ -244,22 +244,22 @@ begin
     or (MemoryManager.FreeMem<>@SysFreeMem);
 end;
 
-procedure GetMem(Var p:pointer;Size:ptrint);
+procedure GetMem(Var p:pointer;Size:ptruint);
 begin
   p := MemoryManager.GetMem(Size);
 end;
 
-procedure GetMemory(Var p:pointer;Size:ptrint);
+procedure GetMemory(Var p:pointer;Size:ptruint);
 begin
   GetMem(p,size);
 end;
 
-procedure FreeMem(p:pointer;Size:ptrint);
+procedure FreeMem(p:pointer;Size:ptruint);
 begin
   MemoryManager.FreeMemSize(p,Size);
 end;
 
-procedure FreeMemory(p:pointer;Size:ptrint);
+procedure FreeMemory(p:pointer;Size:ptruint);
 begin
   FreeMem(p,size);
 end;
@@ -277,52 +277,52 @@ begin
 end;
 
 
-function MemSize(p:pointer):ptrint;
+function MemSize(p:pointer):ptruint;
 begin
   MemSize := MemoryManager.MemSize(p);
 end;
 
 
 { Delphi style }
-function FreeMem(p:pointer):ptrint;[Public,Alias:'FPC_FREEMEM_X'];
+function FreeMem(p:pointer):ptruint;[Public,Alias:'FPC_FREEMEM_X'];
 begin
   FreeMem := MemoryManager.FreeMem(p);
 end;
 
-function FreeMemory(p:pointer):ptrint;
+function FreeMemory(p:pointer):ptruint;
 begin
   FreeMemory := FreeMem(p);
 end;
 
-function GetMem(size:ptrint):pointer;
+function GetMem(size:ptruint):pointer;
 begin
   GetMem := MemoryManager.GetMem(Size);
 end;
 
-function GetMemory(size:ptrint):pointer;
+function GetMemory(size:ptruint):pointer;
 begin
   GetMemory := GetMem(size);
 end;
 
-function AllocMem(Size:ptrint):pointer;
+function AllocMem(Size:ptruint):pointer;
 begin
   AllocMem := MemoryManager.AllocMem(size);
 end;
 
 
-function ReAllocMem(var p:pointer;Size:ptrint):pointer;
+function ReAllocMem(var p:pointer;Size:ptruint):pointer;
 begin
   ReAllocMem := MemoryManager.ReAllocMem(p,size);
 end;
 
-function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
+function ReAllocMemory(var p:pointer;Size:ptruint):pointer;
 begin
   ReAllocMemory := ReAllocMem(p,size);
 end;
 
 
 { Needed for calls from Assembler }
-function fpc_getmem(size:ptrint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
+function fpc_getmem(size:ptruint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
 begin
   fpc_GetMem := MemoryManager.GetMem(size);
 end;
@@ -368,7 +368,7 @@ end;
 {$ifdef DUMPBLOCKS}   // TODO
 procedure DumpBlocks(loc_freelists: pfreelists);
 var
-  s,i,j : ptrint;
+  s,i,j : ptruint;
   hpfixed  : pmemchunk_fixed;
   hpvar  : pmemchunk_var;
 begin
@@ -427,7 +427,7 @@ end;
 
 {$ifdef HEAP_DEBUG}
 
-function find_fixed_mc(loc_freelists: pfreelists; chunkindex: ptrint; 
+function find_fixed_mc(loc_freelists: pfreelists; chunkindex: ptruint; 
   pmc: pmemchunk_fixed): boolean;
 var
   pmc_temp: pmemchunk_fixed;
@@ -469,7 +469,7 @@ procedure remove_freed_fixed_chunks(poc: poschunk);
 var
   pmc, pmc_end: pmemchunk_fixed;
   fixedlist: ppmemchunk_fixed;
-  chunksize: ptrint;
+  chunksize: ptruint;
 begin
   { exit if this is a var size os chunk, function only applicable to fixed size }
   if poc^.used < 0 then
@@ -486,7 +486,7 @@ end;
 
 procedure free_oschunk(loc_freelists: pfreelists; poc: poschunk);
 var
-  pocsize: ptrint;
+  pocsize: ptruint;
 begin
   remove_freed_fixed_chunks(poc);
   if assigned(poc^.prev_any) then
@@ -579,10 +579,10 @@ end;
                          Split block
 *****************************************************************************}
 
-function split_block(pcurr: pmemchunk_var; size: ptrint): ptrint;
+function split_block(pcurr: pmemchunk_var; size: ptruint): ptruint;
 var
   pcurr_tmp : pmemchunk_var;
-  size_flags, oldsize, sizeleft: ptrint;
+  size_flags, oldsize, sizeleft: ptruint;
 begin
   size_flags := pcurr^.size;
   oldsize := size_flags and sizemask;
@@ -616,7 +616,7 @@ end;
 procedure concat_two_blocks(mc_left, mc_right: pmemchunk_var);
 var
   mc_tmp : pmemchunk_var;
-  size_right : ptrint;
+  size_right : ptruint;
 begin
   // mc_right can't be a fixed size block
   if mc_right^.size and fixedsizeflag<>0 then
@@ -684,11 +684,11 @@ end;
 *****************************************************************************}
 
 function find_free_oschunk(loc_freelists: pfreelists; 
-  minsize, maxsize: ptrint; var size: ptrint): poschunk;
+  minsize, maxsize: ptruint; var size: ptruint): poschunk;
 var
   pmc: pmemchunk_fixed;
   prev_poc, poc: poschunk;
-  pocsize: ptrint;
+  pocsize: ptruint;
 begin
   poc := loc_freelists^.oslist;
   prev_poc := nil;
@@ -724,7 +724,7 @@ begin
   result := poc;
 end;
 
-function alloc_oschunk(loc_freelists: pfreelists; chunkindex, size: ptrint): pointer;
+function alloc_oschunk(loc_freelists: pfreelists; chunkindex, size: ptruint): pointer;
 var
   pmc,
   pmc_next  : pmemchunk_fixed;
@@ -733,9 +733,9 @@ var
   prev_poc  : poschunk;
   minsize,
   maxsize,
-  i         : ptrint;
-  chunksize : ptrint;
-  pocsize   : ptrint;
+  i         : ptruint;
+  chunksize : ptruint;
+  pocsize   : ptruint;
   status    : pfpcheapstatus;
 begin
   { increase size by size needed for os block header }
@@ -745,7 +745,7 @@ begin
   if chunkindex<>0 then
     maxsize := 1 shl (32-fixedoffsetshift)
   else
-    maxsize := high(ptrint);
+    maxsize := high(ptruint);
   { blocks available in freelist? }
   poc := find_free_oschunk(loc_freelists, minsize, maxsize, size);
   if not assigned(poc) and (assigned(orphaned_freelists.waitfixed) 
@@ -886,11 +886,11 @@ end;
                                  SysGetMem
 *****************************************************************************}
 
-function SysGetMem_Fixed(chunksize: ptrint): pointer;
+function SysGetMem_Fixed(chunksize: ptruint): pointer;
 var
   pmc, pmc_next: pmemchunk_fixed;
   poc: poschunk;
-  chunkindex: ptrint;
+  chunkindex: ptruint;
   loc_freelists: pfreelists;
 begin
   { try to find a block in one of the freelists per size }
@@ -940,12 +940,12 @@ begin
   end;
 end;
 
-function SysGetMem_Var(size: ptrint): pointer;
+function SysGetMem_Var(size: ptruint): pointer;
 var
   pcurr : pmemchunk_var;
   pbest : pmemchunk_var;
   loc_freelists : pfreelists;
-  iter : longint;
+  iter : cardinal;
 begin
   result:=nil;
   { free pending items }
@@ -953,7 +953,7 @@ begin
   try_finish_waitvarlist(loc_freelists);
   pbest := nil;
   pcurr := loc_freelists^.varlist;
-  iter := high(longint);
+  iter := high(iter);
   while assigned(pcurr) and (iter>0) do
   begin
     if (pcurr^.size>size) then
@@ -1001,7 +1001,7 @@ begin
   end;
 end;
 
-function SysGetMem(size : ptrint):pointer;
+function SysGetMem(size : ptruint):pointer;
 begin
 { Something to allocate ? }
   if size<=0 then
@@ -1055,10 +1055,10 @@ begin
   leavecriticalsection(heap_lock);
 end;
 
-function SysFreeMem_Fixed(loc_freelists: pfreelists; pmc: pmemchunk_fixed): ptrint;
+function SysFreeMem_Fixed(loc_freelists: pfreelists; pmc: pmemchunk_fixed): ptruint;
 var
   chunkindex,
-  chunksize: ptrint;
+  chunksize: ptruint;
   poc: poschunk;
   pmc_next: pmemchunk_fixed;
 begin
@@ -1093,9 +1093,9 @@ begin
   result := chunksize;
 end;
 
-function SysFreeMem_Var(loc_freelists: pfreelists; pmcv: pmemchunk_var): ptrint;
+function SysFreeMem_Var(loc_freelists: pfreelists; pmcv: pmemchunk_var): ptruint;
 var
-  chunksize: ptrint;
+  chunksize: ptruint;
 begin
   chunksize := pmcv^.size and sizemask;
   if loc_freelists <> pmcv^.freelists then
@@ -1116,7 +1116,7 @@ begin
 end;
 
 
-function SysFreeMem(p: pointer): ptrint;
+function SysFreeMem(p: pointer): ptruint;
 var
   pmc: pmemchunk_fixed;
   loc_freelists: pfreelists;
@@ -1196,7 +1196,7 @@ end;
                               SysFreeMemSize
 *****************************************************************************}
 
-Function SysFreeMemSize(p: pointer; size: ptrint):ptrint;
+Function SysFreeMemSize(p: pointer; size: ptruint):ptruint;
 begin
   if size<=0 then
   begin
@@ -1213,7 +1213,7 @@ end;
                                  SysMemSize
 *****************************************************************************}
 
-function SysMemSize(p: pointer): ptrint;
+function SysMemSize(p: pointer): ptruint;
 begin
   result := pmemchunk_fixed(pointer(p)-sizeof(tmemchunk_fixed_hdr))^.size;
   if (result and fixedsizeflag) = 0 then
@@ -1233,7 +1233,7 @@ end;
                                  SysAllocMem
 *****************************************************************************}
 
-function SysAllocMem(size: ptrint): pointer;
+function SysAllocMem(size: ptruint): pointer;
 begin
   result := MemoryManager.GetMem(size);
   if result<>nil then
@@ -1245,11 +1245,11 @@ end;
                                  SysResizeMem
 *****************************************************************************}
 
-function SysTryResizeMem(var p: pointer; size: ptrint): boolean;
+function SysTryResizeMem(var p: pointer; size: ptruint): boolean;
 var
   chunksize,
   oldsize,
-  currsize : ptrint;
+  currsize : ptruint;
   pcurr : pmemchunk_var;
   pnext : pmemchunk_var;
 begin
@@ -1330,11 +1330,11 @@ end;
                                  SysResizeMem
 *****************************************************************************}
 
-function SysReAllocMem(var p: pointer; size: ptrint):pointer;
+function SysReAllocMem(var p: pointer; size: ptruint):pointer;
 var
   newsize,
   oldsize,
-  minsize : ptrint;
+  minsize : ptruint;
   p2 : pointer;
 begin
   { Free block? }

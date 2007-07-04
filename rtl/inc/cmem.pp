@@ -35,37 +35,34 @@ Const
   LibName = 'c';
 {$endif}
 
-Function Malloc (Size : ptrint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
+Function Malloc (Size : ptruint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
 Procedure Free (P : pointer); {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'free';
-function ReAlloc (P : Pointer; Size : ptrint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'realloc';
-Function CAlloc (unitSize,UnitCount : ptrint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'calloc';
+function ReAlloc (P : Pointer; Size : ptruint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'realloc';
+Function CAlloc (unitSize,UnitCount : ptruint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'calloc';
 
 implementation
 
-type
-  pptrint = ^ptrint;
-
-Function CGetMem  (Size : ptrint) : Pointer;
+Function CGetMem  (Size : ptruint) : Pointer;
 
 begin
-  CGetMem:=Malloc(Size+sizeof(ptrint));
+  CGetMem:=Malloc(Size+sizeof(ptruint));
   if (CGetMem <> nil) then
     begin
-      pptrint(CGetMem)^ := size;
-      inc(CGetMem,sizeof(ptrint));
+      Pptruint(CGetMem)^ := size;
+      inc(CGetMem,sizeof(ptruint));
     end;
 end;
 
-Function CFreeMem (P : pointer) : ptrint;
+Function CFreeMem (P : pointer) : ptruint;
 
 begin
   if (p <> nil) then
-    dec(p,sizeof(ptrint));
+    dec(p,sizeof(ptruint));
   Free(P);
   CFreeMem:=0;
 end;
 
-Function CFreeMemSize(p:pointer;Size:ptrint):ptrint;
+Function CFreeMemSize(p:pointer;Size:ptruint):ptruint;
 
 begin
   if size<=0 then
@@ -76,58 +73,58 @@ begin
     end;
   if (p <> nil) then
     begin
-      if (size <> pptrint(p-sizeof(ptrint))^) then
+      if (size <> Pptruint(p-sizeof(ptruint))^) then
         runerror(204);
     end;
   CFreeMemSize:=CFreeMem(P);
 end;
 
-Function CAllocMem(Size : ptrint) : Pointer;
+Function CAllocMem(Size : ptruint) : Pointer;
 
 begin
-  CAllocMem:=calloc(Size+sizeof(ptrint),1);
+  CAllocMem:=calloc(Size+sizeof(ptruint),1);
   if (CAllocMem <> nil) then
     begin
-      pptrint(CAllocMem)^ := size;
-      inc(CAllocMem,sizeof(ptrint));
+      Pptruint(CAllocMem)^ := size;
+      inc(CAllocMem,sizeof(ptruint));
     end;
 end;
 
-Function CReAllocMem (var p:pointer;Size:ptrint):Pointer;
+Function CReAllocMem (var p:pointer;Size:ptruint):Pointer;
 
 begin
   if size=0 then
     begin
       if p<>nil then
         begin
-          dec(p,sizeof(ptrint));
+          dec(p,sizeof(ptruint));
           free(p);
           p:=nil;
         end;
     end
   else
     begin
-      inc(size,sizeof(ptrint));
+      inc(size,sizeof(ptruint));
       if p=nil then
         p:=malloc(Size)
       else
         begin
-          dec(p,sizeof(ptrint));
+          dec(p,sizeof(ptruint));
           p:=realloc(p,size);
         end;
       if (p <> nil) then
         begin
-          pptrint(p)^ := size-sizeof(ptrint);
-          inc(p,sizeof(ptrint));
+          Pptruint(p)^ := size-sizeof(ptruint);
+          inc(p,sizeof(ptruint));
         end;
     end;
   CReAllocMem:=p;
 end;
 
-Function CMemSize (p:pointer): ptrint;
+Function CMemSize (p:pointer): ptruint;
 
 begin
-  CMemSize:=pptrint(p-sizeof(ptrint))^;
+  CMemSize:=Pptruint(p-sizeof(ptruint))^;
 end;
 
 function CGetHeapStatus:THeapStatus;

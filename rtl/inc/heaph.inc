@@ -20,7 +20,7 @@ type
     MaxHeapUsed,
     CurrHeapSize,
     CurrHeapUsed,
-    CurrHeapFree  : ptrint;
+    CurrHeapFree  : ptruint;
   end;
   THeapStatus = record
     TotalAddrSpace: Cardinal;
@@ -38,12 +38,12 @@ type
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
     NeedLock            : boolean;
-    Getmem              : Function(Size:ptrint):Pointer;
-    Freemem             : Function(p:pointer):ptrint;
-    FreememSize         : Function(p:pointer;Size:ptrint):ptrint;
-    AllocMem            : Function(Size:ptrint):Pointer;
-    ReAllocMem          : Function(var p:pointer;Size:ptrint):Pointer;
-    MemSize             : function(p:pointer):ptrint;
+    Getmem              : Function(Size:ptruint):Pointer;
+    Freemem             : Function(p:pointer):ptruint;
+    FreememSize         : Function(p:pointer;Size:ptruint):ptruint;
+    AllocMem            : Function(Size:ptruint):Pointer;
+    ReAllocMem          : Function(var p:pointer;Size:ptruint):Pointer;
+    MemSize             : function(p:pointer):ptruint;
     InitThread          : procedure;
     DoneThread          : procedure;
     RelocateHeap        : procedure;
@@ -59,40 +59,40 @@ function  IsMemoryManagerSet: Boolean;
 const
   MaxKeptOSChunks: DWord = 4; { if more than MaxKeptOSChunks are free, the heap manager will release
                               chunks back to the OS }
-  growheapsizesmall : ptrint=32*1024; { fixed-size small blocks will grow with 32k }
-  growheapsize1 : ptrint=256*1024;  { < 256k will grow with 256k }
-  growheapsize2 : ptrint=1024*1024; { > 256k will grow with 1m }
+  growheapsizesmall : ptruint=32*1024; { fixed-size small blocks will grow with 32k }
+  growheapsize1 : ptruint=256*1024;  { < 256k will grow with 256k }
+  growheapsize2 : ptruint=1024*1024; { > 256k will grow with 1m }
 var
   ReturnNilIfGrowHeapFails : boolean;
 
 { Default MemoryManager functions }
-Function  SysGetmem(Size:ptrint):Pointer;
-Function  SysFreemem(p:pointer):ptrint;
-Function  SysFreememSize(p:pointer;Size:ptrint):ptrint;
-Function  SysMemSize(p:pointer):ptrint;
-Function  SysAllocMem(size:ptrint):Pointer;
-function  SysTryResizeMem(var p:pointer;size : ptrint):boolean;
-Function  SysReAllocMem(var p:pointer;size:ptrint):Pointer;
+Function  SysGetmem(Size:ptruint):Pointer;
+Function  SysFreemem(p:pointer):ptruint;
+Function  SysFreememSize(p:pointer;Size:ptruint):ptruint;
+Function  SysMemSize(p:pointer):ptruint;
+Function  SysAllocMem(size:ptruint):Pointer;
+function  SysTryResizeMem(var p:pointer;size:ptruint):boolean;
+Function  SysReAllocMem(var p:pointer;size:ptruint):Pointer;
 function  SysGetHeapStatus:THeapStatus;
 function  SysGetFPCHeapStatus:TFPCHeapStatus;
 
 { Tp7 functions }
-Procedure Getmem(Var p:pointer;Size:ptrint);
-Procedure Getmemory(Var p:pointer;Size:ptrint);
-Procedure Freemem(p:pointer;Size:ptrint);
-Procedure Freememory(p:pointer;Size:ptrint);
+Procedure Getmem(Var p:pointer;Size:ptruint);
+Procedure Getmemory(Var p:pointer;Size:ptruint);
+Procedure Freemem(p:pointer;Size:ptruint);
+Procedure Freememory(p:pointer;Size:ptruint);
 
 { FPC additions }
-Function  MemSize(p:pointer):ptrint;
+Function  MemSize(p:pointer):ptruint;
 
 { Delphi functions }
-function GetMem(size:ptrint):pointer;
-function GetMemory(size:ptrint):pointer;
-function Freemem(p:pointer):ptrint;
-function Freememory(p:pointer):ptrint;
-function AllocMem(Size:ptrint):pointer;
-function ReAllocMem(var p:pointer;Size:ptrint):pointer;
-function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
+function GetMem(size:ptruint):pointer;
+function GetMemory(size:ptruint):pointer;
+function Freemem(p:pointer):ptruint;
+function Freememory(p:pointer):ptruint;
+function AllocMem(Size:ptruint):pointer;
+function ReAllocMem(var p:pointer;Size:ptruint):pointer;
+function ReAllocMemory(var p:pointer;Size:ptruint):pointer;
 function GetHeapStatus:THeapStatus;
 function GetFPCHeapStatus:TFPCHeapStatus;
 

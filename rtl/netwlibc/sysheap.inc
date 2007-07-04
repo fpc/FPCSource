@@ -32,7 +32,7 @@ var  HeapSbrkBlockList : ^THeapSbrkBlockList = nil;
 { must return the first address of new data space or nil if fail }
 { for netware all allocated blocks are saved to free them at }
 { exit (to avoid message "Module did not release xx resources") }
-Function SysOSAlloc(size : longint):pointer;
+Function SysOSAlloc(size : ptruint):pointer;
 var P2 : POINTER;
     i  : longint;
     Slept : longint;
@@ -106,7 +106,7 @@ end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 var i : longint;
 begin
   if HeapSbrkReleased then
@@ -133,7 +133,7 @@ begin
   _free (p);
 end;
 
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 begin
   SysOSAlloc := _Alloc(size,HeapAllocResourceTag);
 end;

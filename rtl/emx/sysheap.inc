@@ -65,14 +65,14 @@ asm
 end {['eax', 'edx']};
 {$ENDIF DUMPGROW}
 
-function SysOSAlloc (Size: ptrint): pointer;
+function SysOSAlloc (Size: ptruint): pointer;
 begin
  SysOSAlloc := Sbrk (Size);
 end;
 
 {.$define HAS_SYSOSFREE}
 
-procedure SysOSFree (P: pointer; Size: ptrint);
+procedure SysOSFree (P: pointer; Size: ptruint);
 begin
 end;
 

@@ -21,14 +21,14 @@
  ****************************************************************************}
 
 
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 begin
   result := nil;//pointer($02000000);
 end;
 
 { $define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 begin
   
 end;

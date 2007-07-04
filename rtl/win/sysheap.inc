@@ -31,20 +31,20 @@
 {$ENDIF}
 
 
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 var
   p : pointer;
 begin
   p := HeapAlloc(GetProcessHeap, 0, size);
 {$ifdef DUMPGROW}
-  Writeln('new heap part at $',hexstr(ptrint(p),sizeof(ptrint)*2), ' size = ',WinAPIHeapSize(GetProcessHeap()));
+  Writeln('new heap part at $',hexstr(p), ' size = ',WinAPIHeapSize(GetProcessHeap()));
 {$endif}
   SysOSAlloc := p;
 end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 begin
   HeapFree(GetProcessHeap, 0, p);
 end;

@@ -93,14 +93,14 @@ end;
       OS Memory allocation / deallocation
  ****************************************************************************}
 
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 begin
   result := sbrk(size);
 end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 var i : longint;
 begin
 //fpmunmap(p, size);
@@ -119,12 +119,12 @@ end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 begin
   _free (p);
 end;
 
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 begin
   SysOSAlloc := _malloc (size);
 end;

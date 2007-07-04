@@ -54,7 +54,7 @@ end ['EAX'];
 }
 
 
-function SysOSAlloc (Size: PtrInt): pointer;
+function SysOSAlloc (Size: ptruint): pointer;
 var
   P: pointer;
   RC: cardinal;
@@ -103,7 +103,7 @@ end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree (P: pointer; Size: PtrInt);
+procedure SysOSFree (P: pointer; Size: ptruint);
 {$IFDEF EXTDUMPGROW}
 var
   RC: cardinal;

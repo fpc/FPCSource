@@ -20,7 +20,7 @@
       OS Memory allocation / deallocation
  ****************************************************************************}
 
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 {$IFDEF MOSFPC_MEMDEBUG}
 var values: array[0..2] of dword;
 {$ENDIF}
@@ -36,7 +36,7 @@ end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 {$IFDEF MOSFPC_MEMDEBUG}
 var values: array[0..2] of dword;
 {$ENDIF}

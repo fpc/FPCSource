@@ -19,18 +19,15 @@
 
 { function to allocate size bytes more for the program }
 { must return the first address of new data space or nil if failed }
-function SysOSAlloc(size: ptrint): pointer;
+function SysOSAlloc(size: ptruint): pointer;
 begin
   result := NewPtr(size);
 end;
 
 {$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 begin
   DisposePtr(p);
 end;
-
-
-
 

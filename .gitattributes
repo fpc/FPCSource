@@ -4897,7 +4897,7 @@ rtl/nds/prt07.as -text
 rtl/nds/prt09.as -text
 rtl/nds/sysdir.inc -text
 rtl/nds/sysfile.inc -text
-rtl/nds/sysheap.inc -text
+rtl/nds/sysheap.inc svneol=native#text/x-pascal
 rtl/nds/sysos.inc -text
 rtl/nds/sysosh.inc -text
 rtl/nds/systhrd.inc -text

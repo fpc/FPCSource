@@ -22,7 +22,7 @@
 
 function __sbrk(size:longint):longint;cdecl;external;
 
-function SysOSAlloc (size: PtrInt): pointer; assembler;
+function SysOSAlloc (size: ptruint): pointer; assembler;
 asm
 {$ifdef SYSTEMDEBUG}
         cmpb    $1,accept_sbrk
@@ -51,7 +51,7 @@ end;
 }
 {.$define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 begin
 end;
 
