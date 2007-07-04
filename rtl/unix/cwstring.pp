@@ -44,16 +44,7 @@ Const
     libiconvname='iconv';
 {$endif}
 
-{ Case-mapping "arrays" }
-var
-  AnsiUpperChars: AnsiString; // 1..255
-  AnsiLowerChars: AnsiString; // 1..255
-  WideUpperChars: WideString; // 1..65535
-  WideLowerChars: WideString; // 1..65535
-
-{ the following declarations are from the libc unit for linux so they
-  might be very linux centric
-  maybe this needs to be splitted in an os depend way later }
+{ helper functions from libc }
 function towlower(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towlower';
 function towupper(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towupper';
 function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external libiconvname name 'wcscoll';
@@ -92,9 +83,11 @@ const
 
 { unicode encoding name }
 {$ifdef FPC_LITTLE_ENDIAN}
-  unicode_encoding = 'UTF-16LE';
+  unicode_encoding2 = 'UTF-16LE';
+  unicode_encoding4 = 'UCS-4LE'; 
 {$else  FPC_LITTLE_ENDIAN}
-  unicode_encoding = 'UTF-16BE';
+  unicode_encoding2 = 'UTF-16BE';
+  unicode_encoding4 = 'UCS-4BE';
 {$endif  FPC_LITTLE_ENDIAN}
 
 type
@@ -113,33 +106,11 @@ function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppc
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'libiconv_close';
 {$endif}
 
-var
+threadvar
   iconv_ansi2ucs4,
   iconv_ucs42ansi,
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
-  
-  lock_ansi2ucs4 : integer = -1;
-  lock_ucs42ansi : integer = -1;
-  lock_ansi2wide : integer = -1;
-  lock_wide2ansi : integer = -1;
-
-  iconv_lock : TRTLcriticalsection;
-
-{
-procedure lockiconv(var lockcount: integer);
-begin
- while interlockedincrement(lockcount) <> 0 do begin
-  interlockeddecrement(lockcount);
-  sleep(0);
- end;
-end;
-
-procedure unlockiconv(var lockcount: integer);
-begin
- interlockeddecrement(lockcount);
-end;
-}
  
 procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   var
@@ -161,7 +132,6 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength;
-    entercriticalsection(iconv_lock);
     while iconv(iconv_wide2ansi,ppchar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
@@ -187,11 +157,9 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            leavecriticalsection(iconv_lock);
             runerror(231);
         end;
       end;
-    leavecriticalsection(iconv_lock);
     // truncate string
     setlength(dest,length(dest)-outleft);
   end;
@@ -216,7 +184,6 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*2;
-    entercriticalsection(iconv_lock);
     while iconv(iconv_ansi2wide,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
@@ -242,11 +209,9 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            leavecriticalsection(iconv_lock);
             runerror(231);
         end;
       end;
-    leavecriticalsection(iconv_lock);
     // truncate string
     setlength(dest,length(dest)-outleft div 2);
   end;
@@ -291,7 +256,6 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*4;
-    entercriticalsection(iconv_lock);
     while iconv(iconv_ansi2ucs4,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
@@ -306,11 +270,9 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            leavecriticalsection(iconv_lock);
             runerror(231);
         end;
       end;
-    leavecriticalsection(iconv_lock);
     // truncate string
     setlength(dest,length(dest)-outleft div 4);
   end;
@@ -336,6 +298,28 @@ function StrCompAnsi(s1,s2 : PChar): PtrInt;
   begin
     result:=strcoll(s1,s2);
   end;
+
+
+procedure InitThread;
+begin
+  iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding2);
+  iconv_ansi2wide:=iconv_open(unicode_encoding2,nl_langinfo(CODESET));
+  iconv_ucs42ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding4);
+  iconv_ansi2ucs4:=iconv_open(unicode_encoding4,nl_langinfo(CODESET));
+end;
+
+
+procedure FiniThread;
+begin
+  if (iconv_wide2ansi <> iconv_t(-1)) then
+    iconv_close(iconv_wide2ansi);
+  if (iconv_ansi2wide <> iconv_t(-1)) then
+    iconv_close(iconv_ansi2wide);
+  if (iconv_ucs42ansi <> iconv_t(-1)) then
+    iconv_close(iconv_ucs42ansi);
+  if (iconv_ansi2ucs4 <> iconv_t(-1)) then
+    iconv_close(iconv_ansi2ucs4);
+end;
 
 
 Procedure SetCWideStringManager;
@@ -369,6 +353,8 @@ begin
       StrLowerAnsiStringProc
       StrUpperAnsiStringProc
       }
+      ThreadInitProc:=@InitThread;
+      ThreadFiniProc:=@FiniThread;
     end;
   SetWideStringManager(CWideStringManager);
 end;
@@ -376,19 +362,15 @@ end;
 
 initialization
   SetCWideStringManager;
-  initcriticalsection(iconv_lock);
 
   { you have to call setlocale(LC_ALL,'') to initialise the langinfo stuff  }
   { with the information from the environment variables according to POSIX  }
   { (some OSes do this automatically, but e.g. Darwin and Solaris don't)    }
   setlocale(LC_ALL,'');
 
-  { init conversion tables }
-  iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding);
-  iconv_ansi2wide:=iconv_open(unicode_encoding,nl_langinfo(CODESET));
-  iconv_ucs42ansi:=iconv_open(nl_langinfo(CODESET),'UCS4');
-  iconv_ansi2ucs4:=iconv_open('UCS4',nl_langinfo(CODESET));
+  { init conversion tables for main program }
+  InitThread;
 finalization
-  donecriticalsection(iconv_lock);
-  iconv_close(iconv_ansi2wide);
+  { fini conversion tables for main program }
+  FiniThread;
 end.

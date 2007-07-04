@@ -30,6 +30,10 @@ Var
 {$endif HAS_MEMORYMANAGER}
         if MemoryManager.InitThread <> nil then
           MemoryManager.InitThread();
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+        if assigned(widestringmanager.ThreadInitProc) then
+          widestringmanager.ThreadInitProc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
         { so every thread has its on exception handling capabilities }
         SysInitExceptions;
@@ -45,6 +49,10 @@ Var
 
     procedure DoneThread;
       begin
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+        if assigned(widestringmanager.ThreadFiniProc) then
+          widestringmanager.ThreadFiniProc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef HAS_MEMORYMANAGER}
         FinalizeHeap;
 {$endif HAS_MEMORYMANAGER}
