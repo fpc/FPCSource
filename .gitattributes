@@ -8597,6 +8597,15 @@ utils/h2pas/yyparse.cod -text
 utils/kalyptus/kalyptus -text
 utils/kalyptus/kalyptusCxxToPas.pm -text
 utils/kalyptus/kalyptusDataDict.pm -text
+utils/mksymbian/Makefile.fpc -text
+utils/mksymbian/cfgfile.pas -text
+utils/mksymbian/cmdline.pas -text
+utils/mksymbian/compiler.pas -text
+utils/mksymbian/constants.pas -text
+utils/mksymbian/mksymbian.lpi -text
+utils/mksymbian/mksymbian.pas -text
+utils/mksymbian/projectparser.pas -text
+utils/mksymbian/sdkutil.pas -text
 utils/postw32.pp svneol=native#text/plain
 utils/ppdep.pp svneol=native#text/plain
 utils/ptop.pp svneol=native#text/plain

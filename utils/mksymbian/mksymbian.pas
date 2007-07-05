@@ -1,0 +1,84 @@
+{
+mksymbian.pas
+
+Main program file
+
+Copyright (C) 2006-2007 Felipe Monteiro de Carvalho
+
+This file is part of MkSymbian build tool.
+
+MkSymbian is free software;
+you can redistribute it and/or modify it under the
+terms of the GNU General Public License version 2
+as published by the Free Software Foundation.
+
+MkSymbian is distributed in the hope
+that it will be useful, but WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the GNU General Public License for more details.
+
+Please note that the General Public License version 2 does not permit
+incorporating MkSymbian into proprietary programs.
+}
+program mksymbian;
+
+{$ifdef fpc}
+  {$mode delphi}{$H+}
+{$endif}
+
+{$apptype console}
+
+uses
+  Classes, SysUtils,
+  cmdline, constants, cfgfile, sdkutil, compiler, projectparser;
+
+var
+  opts: TMkSymbianOptions;
+begin
+
+  vSDKUtil := TSDKUtil.Create;
+  vCmdLine := TCmdLine.Create;
+  vCompiler := TCompiler.Create;
+  vProject := TProject.Create;
+
+  try
+    vCmdLine.ParseCmdLineOptions(opts);
+    
+    vCompiler.opts := opts;
+    vProject.opts := opts;
+
+    case opts.task of
+
+      stBuildApp:
+      begin
+        vProject.ParseFile;
+        
+        if CompareText(vProject.Language, STR_OPT_Cpp) = 0 then
+         vCompiler.MakeBuildCpp
+        else
+         vCompiler.MakeBuildPascal;
+
+        vCompiler.BuildResource(vProject.MainResource);
+
+        vCompiler.RegisterInEmulator;
+      end;
+
+      stBuildBindings:
+      begin
+        vProject.ParseFile;
+
+        vCompiler.MakeBuildBindings;
+      end;
+      
+    end;
+    
+  finally
+    vCmdLine.Free;
+    vSDKUtil.Free;
+    vCompiler.Free;
+    vProject.Free;
+
+  end;
+  
+end.
+
