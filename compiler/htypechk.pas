@@ -2571,6 +2571,10 @@ implementation
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
       begin
+      {These checks create too much false positives. They might be usefull if we have
+       TP styled common type arithmetic semantics, but with the current semantics
+       there are not usefull.}
+      {$ifdef check_ranges_warnings}
         { check if the assignment may cause a range check error }
         { if its not explicit, and only if the values are       }
         { ordinals, enumdef and floatdef                        }
@@ -2590,6 +2594,7 @@ implementation
                  MessagePos(location,type_h_smaller_possible_range_check);
              end;
          end;
+      {$endif}
       end;
 
 
