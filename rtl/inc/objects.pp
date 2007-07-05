@@ -47,7 +47,6 @@ UNIT Objects;
 
 {==== Compiler directives ===========================================}
 {$H-} { No ansistrings }
-{$E+} { Emulation is on }
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
 {$ifndef Unix}
@@ -1907,7 +1906,7 @@ END;
 {$DEFINE STACKFRAME_OFF}
 {$W+}
 {$ENDIF}
-       
+
 FUNCTION TCollection.LastThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 
