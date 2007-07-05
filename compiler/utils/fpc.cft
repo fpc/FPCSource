@@ -22,7 +22,7 @@
 
 # For a release compile with optimizes and strip debuginfo
 #IFDEF RELEASE
-  -O2p3
+  -O2
   -Xs
   #WRITE Compiling Release Version
 #ENDIF
