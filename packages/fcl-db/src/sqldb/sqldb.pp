@@ -295,6 +295,7 @@ type
   TSQLQuery = Class(TCustomSQLQuery)
   Published
     //    property SchemaInfo default stNoSchema;
+    property Database;
     property Transaction;
     property ReadOnly;
     property SQL;
