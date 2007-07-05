@@ -22,12 +22,12 @@ unit sharemem;
     const
       fpcmemdll = 'fpcmemdll.dll';
 
-    function  SysGetmem(Size:ptrint):Pointer;external fpcmemdll;
-    function  SysFreemem(p:pointer):ptrint;external fpcmemdll;
-    function  SysFreememSize(p:pointer;Size:ptrint):ptrint;external fpcmemdll;
-    function  SysAllocMem(size:ptrint):Pointer;external fpcmemdll;
-    function  SysReAllocMem(var p:pointer;size:ptrint):Pointer;external fpcmemdll;
-    function  SysMemSize(p:pointer):ptrint;external fpcmemdll;
+    function  SysGetmem(Size:ptruint):Pointer;external fpcmemdll;
+    function  SysFreemem(p:pointer):ptruint;external fpcmemdll;
+    function  SysFreememSize(p:pointer;Size:ptruint):ptruint;external fpcmemdll;
+    function  SysAllocMem(size:ptruint):Pointer;external fpcmemdll;
+    function  SysReAllocMem(var p:pointer;size:ptruint):Pointer;external fpcmemdll;
+    function  SysMemSize(p:pointer):ptruint;external fpcmemdll;
     function  SysGetHeapStatus:THeapStatus;external fpcmemdll;
     function  SysGetFPCHeapStatus:TFPCHeapStatus;external fpcmemdll;
 
