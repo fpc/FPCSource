@@ -50,8 +50,7 @@ Implementation
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
-      next1, next2: tai;
-      l1, l2, shlcount: longint;
+      next1: tai;
     begin
       result := false;
       case p.typ of
@@ -110,6 +109,7 @@ Implementation
       l : longint;
       condition : tasmcond;
       hp3: tai;
+      WasLast: boolean;
       { UsedRegs, TmpUsedRegs: TRegSet; }
 
     begin
@@ -131,6 +131,7 @@ Implementation
                              xxx:
                          }
                          l:=0;
+                         WasLast:=False;
                          GetNextInstruction(p, hp1);
                          while assigned(hp1) and
                            (l<=4) and
@@ -141,6 +142,7 @@ Implementation
                               inc(l);
                               if MustBeLast(hp1) then
                                 begin
+                                  WasLast:=True;
                                   GetNextInstruction(hp1,hp1);
                                   break;
                                 end
@@ -180,13 +182,17 @@ Implementation
                                     end;
                                 end
                               else
+                                { do not perform further optimizations if there is inctructon
+                                  in block #1 which can not be optimized.
+                                 }
+                                if not WasLast then
                                 begin
                                    { check further for
                                           Bcc   xxx
-                                          <several movs 1>
+                                          <several instructions 1>
                                           B   yyy
                                   xxx:
-                                          <several movs 2>
+                                          <several instructions 2>
                                   yyy:
                                    }
                                   { hp2 points to jmp yyy }
