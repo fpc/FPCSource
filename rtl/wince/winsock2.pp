@@ -58,13 +58,13 @@ const
 
 type
   PFDSet = ^TFDSet;
-  TFDSet = packed record
+  TFDSet = record
     fd_count: u_int;
     fd_array: array[0..FD_SETSIZE-1] of TSocket;
   end;
 
   PTimeVal = ^TTimeVal;
-  TTimeVal = packed record
+  TTimeVal = record
     tv_sec: Longint;
     tv_usec: Longint;
   end;
@@ -88,7 +88,7 @@ const
 
 type
   PHostEnt = ^THostEnt;
-  THostEnt = packed record
+  THostEnt = record
     h_name: PChar;
     h_aliases: ^PChar;
     h_addrtype: Smallint;
@@ -99,7 +99,7 @@ type
   end;
 
   PNetEnt = ^TNetEnt;
-  TNetEnt = packed record
+  TNetEnt = record
     n_name: PChar;
     n_aliases: ^PChar;
     n_addrtype: Smallint;
@@ -107,7 +107,7 @@ type
   end;
 
   PServEnt = ^TServEnt;
-  TServEnt = packed record
+  TServEnt = record
     s_name: PChar;
     s_aliases: ^PChar;
     s_port: Smallint;
@@ -115,7 +115,7 @@ type
   end;
 
   PProtoEnt = ^TProtoEnt;
-  TProtoEnt = packed record
+  TProtoEnt = record
     p_name: PChar;
     p_aliases: ^Pchar;
     p_proto: Smallint;
@@ -354,16 +354,16 @@ const
 
 type
 
-  SunB = packed record
+  SunB = record
     s_b1, s_b2, s_b3, s_b4: u_char;
   end;
 
-  SunW = packed record
+  SunW = record
     s_w1, s_w2: u_short;
   end;
 
   PInAddr = ^TInAddr;
-  TInAddr = packed record
+  TInAddr = record
     case integer of
       0: (S_un_b: SunB);
       1: (S_un_w: SunW);
@@ -371,7 +371,7 @@ type
   end;
 
   PSockAddrIn = ^TSockAddrIn;
-  TSockAddrIn = packed record
+  TSockAddrIn = record
     case Integer of
       0: (sin_family: u_short;
           sin_port: u_short;
@@ -388,14 +388,14 @@ type
 
   { Structure used by kernel to pass protocol information in raw sockets. }
   PSockProto = ^TSockProto;
-  TSockProto = packed record
+  TSockProto = record
     sp_family: u_short;
     sp_protocol: u_short;
   end;
 
 { Structure used for manipulating linger option. }
   PLinger = ^TLinger;
-  TLinger = packed record
+  TLinger = record
     l_onoff: u_short;
     l_linger: u_short;
   end;
@@ -613,7 +613,7 @@ const
 
 type
   PWSAData = ^TWSAData;
-  TWSAData = packed record
+  TWSAData = record
     wVersion: Word;
     wHighVersion: Word;
     szDescription: array[0..WSADESCRIPTION_LEN] of Char;
