@@ -1587,46 +1587,43 @@ procedure InitWinCEWidestrings;
                     Memory manager
 ****************************************************************************}
 
-function malloc(Size : ptrint) : Pointer; cdecl; external 'coredll';
+function malloc(Size : ptruint) : Pointer; cdecl; external 'coredll';
 procedure free(P : pointer); cdecl; external 'coredll';
-function realloc(P : Pointer; Size : ptrint) : pointer; cdecl; external 'coredll';
-function _msize(P : pointer): ptrint; cdecl; external 'coredll';
+function realloc(P : Pointer; Size : ptruint) : pointer; cdecl; external 'coredll';
+function _msize(P : pointer): ptruint; cdecl; external 'coredll';
 
-function SysGetMem (Size : ptrint) : Pointer;
+function SysGetMem (Size : ptruint) : Pointer;
 begin
   Result:=malloc(Size);
 end;
 
-Function SysFreeMem (P : pointer) : ptrint;
+Function SysFreeMem (P : pointer) : ptruint;
 begin
   free(P);
   Result:=0;
 end;
 
-Function SysFreeMemSize(p:pointer;Size:ptrint):ptrint;
+Function SysFreeMemSize(p:pointer;Size:ptruint):ptruint;
 begin
   Result:=0;
-  if size < 0 then
-    runerror(204)
-  else
-    if (size > 0) and (p <> nil) then
-      Result:=SysFreeMem(P);
+  if (size > 0) and (p <> nil) then
+    Result:=SysFreeMem(P);
 end;
 
-Function SysAllocMem(Size : ptrint) : Pointer;
+Function SysAllocMem(Size : ptruint) : Pointer;
 begin
   Result:=SysGetMem(Size);
   if Result <> nil then
     FillChar(Result^, Size, 0);
 end;
 
-Function SysReAllocMem (var p:pointer;Size:ptrint):Pointer;
+Function SysReAllocMem (var p:pointer;Size:ptruint):Pointer;
 begin
   Result:=realloc(p, Size);
   p:=Result;
 end;
 
-function SysTryResizeMem(var p:pointer;size : ptrint):boolean;
+function SysTryResizeMem(var p:pointer;size : ptruint):boolean;
 var
   res: pointer;
 begin
@@ -1636,7 +1633,7 @@ begin
     p:=res;
 end;
 
-function SysMemSize(P : pointer): ptrint;
+function SysMemSize(P : pointer): ptruint;
 begin
   Result:=_msize(P);
 end;
