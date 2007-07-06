@@ -42,12 +42,16 @@ type
     { Main section }
     ExeName, Language: string;
     { FPC section }
-    CompilerPath, RTLUnitsDir: string;
+    CompilerPath, AssemblerPath, RTLUnitsDir: string;
     { UIDs section }
     UID2, UID3: string;
     { Files section }
     MainSource, MainSourceNoExt, MainResource: string;
+    { Objects section }
+    ObjectFiles: TStringList;
   public
+    constructor Create;
+    destructor Destroy; override;
     procedure ParseFile;
   end;
 
@@ -57,6 +61,20 @@ var
 implementation
 
 { TProject }
+
+constructor TProject.Create;
+begin
+  inherited Create;
+  
+  ObjectFiles := TStringList.Create;
+end;
+
+destructor TProject.Destroy;
+begin
+  ObjectFiles.Free;
+
+  inherited Destroy;
+end;
 
 {*******************************************************************
 *  TProject.ParseFile ()
@@ -78,6 +96,7 @@ begin
     Language := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_Language, 'Pascal');
 
     CompilerPath := IniFile.ReadString(STR_PRJ_FPC, STR_PRJ_CompilerPath, 'C:\Programas\fpc21\compiler\ppc386.exe');
+    AssemblerPath := IniFile.ReadString(STR_PRJ_FPC, STR_PRJ_AssemblerPath, 'C:\Programas\lazarus20\fpc\2.1.5\bin\i386-win32\as.exe');
     RTLUnitsDir := IniFile.ReadString(STR_PRJ_FPC, STR_PRJ_RTLUnitsDir, 'C:\Programas\fpc21\rtl\units\i386-symbian\');
 
     UID2 := IniFile.ReadString(STR_PRJ_UIDs, STR_PRJ_UID2, '0x100039CE');
@@ -86,6 +105,8 @@ begin
     MainSource := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_MainSource, 'default.pas');
     MainSourceNoExt := ExtractFileExt(MainSource);
     MainResource := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_MainResource, 'default.rss');
+
+    IniFile.ReadSection(STR_PRJ_Objects, ObjectFiles);
   finally
     IniFile.Free;
   end;

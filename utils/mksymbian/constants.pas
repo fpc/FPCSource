@@ -84,6 +84,7 @@ const
   STR_PRJ_Emulator = 'Emulator';
 
   STR_PRJ_CompilerPath = 'CompilerPath';
+  STR_PRJ_AssemblerPath = 'AssemblerPath';
   STR_PRJ_RTLUnitsDir = 'RTLUnitsDir';
 
   STR_PRJ_UID2 = 'UID2';

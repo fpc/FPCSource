@@ -40,7 +40,7 @@ type
   private
     AProcess: TProcess;
     CurrentDirectory: string;
-    MakeFolder, MakePartialFolder: string;
+    MakeFolder, MakePartialFolder, BindingsUnitsFolder: string;
   public
     opts: TMkSymbianOptions;
     constructor Create;
@@ -82,6 +82,9 @@ begin
   CurrentDirectory := ExtractFilePath(ParamStr(0));
   MakePartialFolder := Copy(CurrentDirectory, 3, Length(CurrentDirectory) - 2);
   MakeFolder := IncludeTrailingBackslash(CurrentDirectory);
+  
+  { When compiling the bindings we use a relative directory to get the output dir }
+  BindingsUnitsFolder := MakeFolder + '../../units/i386-symbian/';
 
   AProcess.Options := AProcess.Options + [poWaitOnExit];
 end;
@@ -144,8 +147,8 @@ end;
 procedure TCompiler.MakeBuildPascal;
 var
   STR_LINK_FLAGSUDEB, STR_EPOCBLDUDEB, STR_LINK_OBJSUDEB: string;
-  STR_GAS: string;
   STR_FPC_RTL_OBJECTS: string;
+  i: Integer;
 begin
 
   WriteLn('');
@@ -168,8 +171,6 @@ begin
 
   { Compilation }
 
-  STR_GAS := 'C:\Programas\lazarus20\fpc\2.0.4\bin\i386-win32\as.exe';
-
   WriteLn('');
   WriteLn('Compiling file ' + vProject.MainSource);
   WriteLn('');
@@ -183,7 +184,7 @@ begin
   WriteLn('Assembling file QPasHello.s');
   WriteLn('');
 
-  AProcess.CommandLine := STR_GAS + ' QPasHello.s -o QPasHello.o';
+  AProcess.CommandLine := vProject.AssemblerPath + ' QPasHello.s -o QPasHello.o';
   WriteLn(AProcess.CommandLine);
   AProcess.Execute;
 
@@ -199,7 +200,14 @@ begin
     vSDKUtil.SDKPartialFolder + 'EPOC32\RELEASE\WINSCW\UDEB\EUSER.LIB ' +
     '-o "' + MakeFolder + 'QPasHello.exe" -noimplib';
   STR_EPOCBLDUDEB := MakeFolder + 'WINSCW\UDEB';
-  STR_LINK_OBJSUDEB := 'QPasHello.o ' + UID_OBJECT_FILENAME;
+
+  STR_LINK_OBJSUDEB :=
+    ' ' + MakeFolder + UID_OBJECT_FILENAME;
+
+  for i := 0 to vProject.ObjectFiles.Count - 1 do
+   STR_LINK_OBJSUDEB := STR_LINK_OBJSUDEB +
+    ' ' + MakeFolder + vProject.ObjectFiles.Strings[i];
+
   STR_FPC_RTL_OBJECTS :=
     ' ' + vProject.RTLUnitsDir + 'system.o' +
     ' ' + vProject.RTLUnitsDir + 'symbian.o' +
@@ -213,7 +221,7 @@ begin
 
   AProcess.CommandLine := vSDKUtil.SDKFolder + Str_Path_CWTools +
     'mwldsym2.exe ' + STR_LINK_FLAGSUDEB +
-    ' -l ' + STR_EPOCBLDUDEB +
+    ' -l ' + MakeFolder +
     ' -search ' + STR_LINK_OBJSUDEB + STR_FPC_RTL_OBJECTS;
   WriteLn(AProcess.CommandLine);
   AProcess.Execute;
@@ -312,6 +320,8 @@ end;
 *
 *  DESCRIPTION:    Builds and links the C interface for the symbian libraries
 *
+*                  Note the we use a output directory relative to the current directory
+*
 *  PARAMETERS:     None
 *
 *  RETURNS:        Nothing
@@ -321,7 +331,10 @@ procedure TCompiler.MakeBuildBindings;
 var
   STR_CWUFLAGS, STR_CWDEFS, STR_INCDIR, STR_CWUDEB, STR_CWCOMPILER: string;
 begin
+  { Makes sure that the output directory exists }
 
+  SysUtils.ForceDirectories(BindingsUnitsFolder);
+  
   { Compilation }
 
   STR_CWUFLAGS := '-wchar_t off -align 4 -warnings on ' +
@@ -339,12 +352,11 @@ begin
   WriteLn('Compiling file pbeexe.cpp');
   WriteLn('');
 
-  AProcess.CommandLine := STR_CWUDEB + ' -o "' + MakePartialFolder + 'pbeexe.o" ' +
+  AProcess.CommandLine := STR_CWUDEB +
+    ' -o "' + BindingsUnitsFolder + 'pbeexe.o" ' +
     '-c "' + MakePartialFolder + 'pbeexe.cpp"';
   WriteLn(AProcess.CommandLine);
   AProcess.Execute;
-
-  FileCopy(MakePartialFolder + 'pbeexe.o', vProject.RTLUnitsDir + 'pbeexe.o');
 end;
 
 {*******************************************************************
