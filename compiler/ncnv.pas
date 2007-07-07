@@ -100,6 +100,7 @@ interface
           function first_int_to_bool : tnode;virtual;
           function first_bool_to_bool : tnode;virtual;
           function first_proc_to_procvar : tnode;virtual;
+          function first_nil_to_methodprocvar : tnode;virtual;
           function first_set_to_set : tnode;virtual;
           function first_cord_to_pointer : tnode;virtual;
           function first_ansistring_to_pchar : tnode;virtual;
@@ -126,6 +127,7 @@ interface
           function _first_int_to_bool : tnode;
           function _first_bool_to_bool : tnode;
           function _first_proc_to_procvar : tnode;
+          function _first_nil_to_methodprocvar : tnode;
           function _first_cord_to_pointer : tnode;
           function _first_ansistring_to_pchar : tnode;
           function _first_arrayconstructor_to_set : tnode;
@@ -146,6 +148,7 @@ interface
           procedure _second_real_to_real;virtual;
           procedure _second_cord_to_pointer;virtual;
           procedure _second_proc_to_procvar;virtual;
+          procedure _second_nil_to_methodprocvar;virtual;
           procedure _second_bool_to_int;virtual;
           procedure _second_int_to_bool;virtual;
           procedure _second_bool_to_bool;virtual;
@@ -168,6 +171,7 @@ interface
           procedure second_real_to_real;virtual;abstract;
           procedure second_cord_to_pointer;virtual;abstract;
           procedure second_proc_to_procvar;virtual;abstract;
+          procedure second_nil_to_methodprocvar;virtual;abstract;
           procedure second_bool_to_int;virtual;abstract;
           procedure second_int_to_bool;virtual;abstract;
           procedure second_bool_to_bool;virtual;abstract;
@@ -726,6 +730,7 @@ implementation
           'tc_int_2_real',
           'tc_real_2_currency',
           'tc_proc_2_procvar',
+          'tc_nil_2_methodprocvar',
           'tc_arrayconstructor_2_set',
           'tc_set_2_set',
           'tc_cord_2_pointer',
@@ -1461,6 +1466,7 @@ implementation
           { int_2_real } @ttypeconvnode.typecheck_int_to_real,
           { real_2_currency } @ttypeconvnode.typecheck_real_to_currency,
           { proc_2_procvar } @ttypeconvnode.typecheck_proc_to_procvar,
+          { nil_2_methodprocvar } nil,
           { arrayconstructor_2_set } @ttypeconvnode.typecheck_arrayconstructor_to_set,
           { set_to_set } @ttypeconvnode.typecheck_set_to_set,
           { cord_2_pointer } @ttypeconvnode.typecheck_cord_to_pointer,
@@ -2272,6 +2278,13 @@ implementation
           end
       end;
 
+    function ttypeconvnode.first_nil_to_methodprocvar : tnode;
+
+    begin
+      first_nil_to_methodprocvar:=nil;
+      registersint:=0;
+      expectloc:=LOC_REFERENCE;
+    end;
 
     function ttypeconvnode.first_set_to_set : tnode;
       var
@@ -2422,6 +2435,11 @@ implementation
          result:=first_proc_to_procvar;
       end;
 
+    function ttypeconvnode._first_nil_to_methodprocvar : tnode;
+      begin
+         result:=first_nil_to_methodprocvar;
+      end;
+
     function ttypeconvnode._first_set_to_set : tnode;
       begin
          result:=first_set_to_set;
@@ -2479,6 +2497,7 @@ implementation
            @ttypeconvnode._first_int_to_real,
            nil, { removed in typecheck_real_to_currency }
            @ttypeconvnode._first_proc_to_procvar,
+           @ttypeconvnode._first_nil_to_methodprocvar,
            @ttypeconvnode._first_arrayconstructor_to_set,
            @ttypeconvnode._first_set_to_set,
            @ttypeconvnode._first_cord_to_pointer,
@@ -2646,6 +2665,10 @@ implementation
         second_proc_to_procvar;
       end;
 
+    procedure ttypeconvnode._second_nil_to_methodprocvar;
+      begin
+        second_nil_to_methodprocvar;
+      end;
 
     procedure ttypeconvnode._second_bool_to_int;
       begin
@@ -2721,6 +2744,7 @@ implementation
            @ttypeconvnode._second_int_to_real,
            @ttypeconvnode._second_nothing, { real_to_currency, handled in resultdef pass }
            @ttypeconvnode._second_proc_to_procvar,
+           @ttypeconvnode._second_nil_to_methodprocvar,
            @ttypeconvnode._second_nothing, { arrayconstructor_to_set }
            @ttypeconvnode._second_nothing, { second_set_to_set, handled in first pass }
            @ttypeconvnode._second_cord_to_pointer,

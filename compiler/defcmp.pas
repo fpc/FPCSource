@@ -63,6 +63,7 @@ interface
           tc_int_2_real,
           tc_real_2_currency,
           tc_proc_2_procvar,
+          tc_nil_2_methodprocvar,
           tc_arrayconstructor_2_set,
           tc_set_to_set,
           tc_cord_2_pointer,
@@ -1155,7 +1156,12 @@ implementation
                      { nil is compatible with procvars }
                      if (fromtreetype=niln) then
                       begin
-                        doconv:=tc_equal;
+                        if not Tprocvardef(def_to).is_addressonly then
+                          {Nil to method pointers requires to convert a single
+                           pointer nil value to a two pointer procvardef.}
+                          doconv:=tc_nil_2_methodprocvar
+                        else
+                          doconv:=tc_equal;
                         eq:=te_convert_l1;
                       end
                      else

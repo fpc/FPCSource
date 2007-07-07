@@ -41,6 +41,7 @@ interface
          procedure second_real_to_real;override;
          procedure second_cord_to_pointer;override;
          procedure second_proc_to_procvar;override;
+         procedure second_nil_to_methodprocvar;override;
          procedure second_bool_to_int;override;
          procedure second_bool_to_bool;override;
          procedure second_ansistring_to_pchar;override;
@@ -372,6 +373,18 @@ interface
           location_copy(location,left.location);
       end;
 
+    procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
+    
+    var r:Treference;
+
+    begin
+      tg.gettemp(current_asmdata.currasmlist,2*sizeof(aword),tt_normal,r);
+      location_reset(location,LOC_REFERENCE,OS_NO);
+      location.reference:=r;
+      cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
+      inc(r.offset,8);
+      cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
+    end;
 
     procedure tcgtypeconvnode.second_bool_to_int;
       var
