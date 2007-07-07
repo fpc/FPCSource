@@ -228,11 +228,6 @@ function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint):
 
 implementation
 
-// FUTEX_OP is a macro, doesn't exist in libC as function
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
-end;
 
 {$ifndef FPC_USE_LIBC}
 uses Syscall;
@@ -259,5 +254,12 @@ begin
     tsysparam(events), tsysparam(maxevents), tsysparam(timeout));
 end;
 {$endif}
+
+// FUTEX_OP is a macro, doesn't exist in libC as function
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
+end;
+
 
 end.
