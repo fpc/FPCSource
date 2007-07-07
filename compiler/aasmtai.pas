@@ -1289,7 +1289,7 @@ implementation
             else
               result:=sizeof(aint);
           aitconst_uleb128bit :
-            result:=LengthUleb128(value);
+            result:=LengthUleb128(qword(value));
           aitconst_sleb128bit :
             result:=LengthSleb128(value);
           else

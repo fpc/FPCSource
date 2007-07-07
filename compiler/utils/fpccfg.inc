@@ -28,7 +28,7 @@ const DefaultConfig : array[0..23,1..240] of char=(
   #010+
   '# For a release compile w','ith optimizes and strip debuginfo'#010+
   '#IFDEF RELEASE'#010+
-  '  -O2p3'#010+
+  '  -O2'#010+
   '  -Xs'#010+
   '  #WRITE Compiling Release Version'#010+
   '#ENDIF'#010+
@@ -38,7 +38,7 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '#IFDEF DEBUG'#010+
   '  -glh'#010+
   '  -Crtoi'#010+
-  '  #WRITE Compiling Debug Ve','rsion'#010+
+  '  #WRITE Compiling Debug Vers','ion'#010+
   '#ENDIF'#010+
   #010+
   '# ----------------'#010+
@@ -48,7 +48,7 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# Pascal language mode'#010+
   '#      -Mfpc      free pascal dialect (default)'#010+
   '#      -Mobjfpc   switch some Delphi 2 extensions on'#010+
-  '#      -Mdelphi   tries to be Delphi compati','ble'#010+
+  '#      -Mdelphi   tries to be Delphi compatibl','e'#010+
   '#      -Mtp       tries to be TP/BP 7.0 compatible'#010+
   '#      -Mgpc      tries to be gpc compatible'#010+
   '#      -Mmacpas   tries to be compatible to the macintosh pascal diale'+
@@ -57,7 +57,7 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# Turn on Object Pascal extensions by default'#010+
   '#-Mobjfpc'#010+
   #010+
-  '# Assem','bler reader mode'#010+
+  '# Assembl','er reader mode'#010+
   '#      -Rdefault  use default assembler'#010+
   '#      -Ratt      read AT&T style assembler'#010+
   '#      -Rintel    read Intel style assembler'#010+
@@ -66,23 +66,23 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '#-Ratt'#010+
   #010+
   '# Semantic checking'#010+
-  '#      -S2    ','    same as -Mobjfpc'#010+
+  '#      -S2      ','  same as -Mobjfpc'#010+
   '#      -Sc        supports operators like C (*=,+=,/= and -=)'#010+
   '#      -Sa        include assertion code.'#010+
   '#      -Sd        same as -Mdelphi'#010+
   '#      -Se<x>     compiler stops after the <x> errors (default is 1)'#010+
-  '#      -Sg ','       allow LABEL and GOTO'#010+
+  '#      -Sg   ','     allow LABEL and GOTO'#010+
   '#      -Sh        Use ansistrings'#010+
   '#      -Si        support C++ styled INLINE'#010+
   '#      -SI<x>     set interface style to <x>'#010+
   '#         -SIcomCOM compatible interface (default)'#010+
-  '#         -SIcorbaCORBA compatible int','erface'#010+
+  '#         -SIcorbaCORBA compatible inter','face'#010+
   '#      -Sm        support macros like C (global)'#010+
   '#      -So        same as -Mtp'#010+
   '#      -Sp        same as -Mgpc'#010+
   '#      -Ss        constructor name must be init (destructor must be do'+
   'ne)'#010+
-  '#      -St        allow static keyword in objec','ts'#010+
+  '#      -St        allow static keyword in objects',#010+
   '#'#010+
   '# Allow goto, inline, C-operators, C-vars'#010+
   '-Sgic'#010+
@@ -93,8 +93,8 @@ const DefaultConfig : array[0..23,1..240] of char=(
   #010+
   '# Uncomment the next line if you always want static/dynamic units by d'+
   'efault'#010+
-  '# (can be overruled with -CD, -CS at the commandline)'#010,
-  '#-CS'#010+
+  '# (can be overruled with -CD, -CS at the commandline)'#010+
+  '#-','CS'#010+
   '#-CD'#010+
   #010+
   '# Set the default heapsize to 8Mb'#010+
@@ -108,12 +108,12 @@ const DefaultConfig : array[0..23,1..240] of char=(
   #010+
   '# Optimizer switches for i386 compiler'#010+
   '# -Os        generate smaller code'#010+
-  '# -O1        leve','l 1 optimizations (quick optimizations)'#010+
+  '# -O1        level ','1 optimizations (quick optimizations)'#010+
   '# -O2        level 2 optimizations (-O1 + slower optimizations)'#010+
   '# -O3        level 3 optimizations (same as -O2u)'#010+
   '# -Oa=N      set alignment to N'#010+
   '# -OoX       switch on optimalization X. '#010+
-  '# -OoNOX    ',' switch off optimalization X.'#010+
+  '# -OoNOX     s','witch off optimalization X.'#010+
   '#               X is one of REGVAR UNCERTAIN STACKFRAME PEEPHOLE ASMCS'+
   'E LOOPUNROLL'#010+
   '# -OpCPU     set target processor.'#010+
@@ -121,7 +121,7 @@ const DefaultConfig : array[0..23,1..240] of char=(
   ', PENTIUMM '#010+
   #010+
   #010+
-  '# ------','-----------------'#010+
+  '# --------','---------------'#010+
   '# Set Filenames and Paths'#010+
   '# -----------------------'#010+
   #010+
@@ -130,7 +130,7 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# path to the messagefile, not necessary anymore but can be used to ov'+
   'erride'#010+
   '# the default language'#010+
-  '#-Fr%basepath%/m','sg/errore.msg'#010+
+  '#-Fr%basepath%/msg','/errore.msg'#010+
   '#-Fr%basepath%/msg/errorn.msg'#010+
   '#-Fr%basepath%/msg/errores.msg'#010+
   '#-Fr%basepath%/msg/errord.msg'#010+
@@ -142,19 +142,19 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# searchpath for includefiles'#010+
   '#-Fi/pp/inc;/pp/rtl/inc'#010+
   #010+
-  '# search','path for includefiles'#010+
+  '# searchpa','th for includefiles'#010+
   '# release them only if you know what you do'#010+
   '# because this could cause a rebuild of the runtime library'#010+
   '# if you tell them compiler/ide to build the project (FK)'#010+
-  '#-Fi%basepath%/source/rtl/inc;%basepath%/source/rtl/i386',#010+
-  #010+
+  '#-Fi%basepath%/source/rtl/inc;%basepath%/source/rtl/i386'#010+
+  #010,
   '# searchpath for objectfiles'#010+
   '#-Fo%basepath%/source/rtl/inc;%basepath%/source/rtl/i386'#010+
   #010+
   '# searchpath for units and other system dependent things'#010+
   '-Fu%basepath%/units/$FPCTARGET/'#010+
   '-Fu%basepath%/units/$FPCTARGET/*'#010+
-  '-Fu%basepath%/units/$FPCTARGE','T/rtl'#010+
+  '-Fu%basepath%/units/$FPCTARGET/','rtl'#010+
   #010+
   '# searchpath for libraries'#010+
   '#-Fl%basepath%/lib'#010+
@@ -170,8 +170,8 @@ const DefaultConfig : array[0..23,1..240] of char=(
   #010+
   #010+
   '# -------------'#010+
-  '# Linking',#010+
-  '# -------------'#010+
+  '# Linking'#010+
+  '#',' -------------'#010+
   #010+
   '# generate always debugging information for GDB (slows down the compil'+
   'ing'#010+
@@ -179,12 +179,12 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '#      -gc        generate checks for pointers'#010+
   '#      -gd        use dbx'#010+
   '#      -gg        use gsym'#010+
-  '#      -gh        use heap trace unit',' (for memory leak debugging)'#010+
+  '#      -gh        use heap trace unit (','for memory leak debugging)'#010+
   '#      -gl        use line info unit to show more info for backtraces'#010+
   '#      -gv        generates programs tracable with valgrind'#010+
   '#      -gw        generate dwarf debugging info'#010+
   '#'#010+
-  '# Enable debuginfo and use the ','line info unit by default'#010+
+  '# Enable debuginfo and use the li','ne info unit by default'#010+
   '#-gl'#010+
   #010+
   '# always pass an option to the linker'#010+
@@ -202,15 +202,15 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '-l'#010+
   #010+
   '# Verbosity'#010+
-  '#      e : Sh','ow errors (default)       d : Show debug info'#010+
+  '#      e : Show',' errors (default)       d : Show debug info'#010+
   '#      w : Show warnings               u : Show unit info'#010+
   '#      n : Show notes                  t : Show tried/used files'#010+
   '#      h : Show hints                  m : Show defined macros'#010+
-  '#      i',' : Show general info           p : Show compiled procedures'#010+
+  '#      i :',' Show general info           p : Show compiled procedures'#010+
   '#      l : Show linenumbers            c : Show conditionals'#010+
   '#      a : Show everything             0 : Show nothing (except errors'+
   ')'#010+
-  '#      b : Show all procedure          r : Rhid','e/GCC compatibility m'+
+  '#      b : Show all procedure          r : Rhide/','GCC compatibility m'+
   'ode'#010+
   '#          declarations if an error    x : Executable info (Win32 only'+
   ')'#010+

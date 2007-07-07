@@ -1,4 +1,3 @@
-unit constexp;
 {
     Copyright (c) 2007 by Daniel Mantione
 
@@ -21,12 +20,17 @@ unit constexp;
 
  ****************************************************************************
 }
-
-{****************************************************************************}
-interface
-{****************************************************************************}
+unit constexp;
 
 {$i fpcdefs.inc}
+
+interface
+
+{ bootstrapping with 2.0.x }
+{$ifdef VER2_0}
+  {$Q-}
+  {$R-}
+{$endif}
 
 {$ifopt q+}
   {$define ena_q}
