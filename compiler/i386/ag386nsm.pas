@@ -725,8 +725,6 @@ interface
                  swap64bitarray(t64bitarray(d));
                AsmWrite(#9#9'DB'#9);
 {$ifdef arm}
-{ on a real arm cpu, it's already hi/lo swapped }
-{$ifndef cpuarm}
                if tai_real_64bit(hp).formatoptions=fo_hiloswapped then
                  begin
                    for i:=4 to 7 do
@@ -742,7 +740,6 @@ interface
                      end;
                  end
                else
-{$endif cpuarm}
 {$endif arm}
                  begin
                    for i:=0 to 7 do
