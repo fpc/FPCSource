@@ -224,7 +224,8 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef :
-            result:=(varspez=vs_const) or ((target_info.system=system_x86_64_win64) and (def.size>8));
+            result:=((varspez=vs_const) and (def.size>16)) or 
+                    ((target_info.system=system_x86_64_win64) and (def.size>8));
           arraydef :
             begin
               result:=not(
@@ -240,7 +241,7 @@ unit cpupara;
           stringdef :
             result:=(tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
-            result:=(po_methodpointer in tprocvardef(def).procoptions);
+            result:=(po_methodpointer in tprocvardef(def).procoptions) and (target_info.system=system_x86_64_win64);
           setdef :
             result:=(tsetdef(def).settype<>smallset);
         end;
