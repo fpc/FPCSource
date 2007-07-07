@@ -26,7 +26,7 @@ begin
 end;
 
 
-function shmget(key: Tkey; size:cint; flag:cint):cint;
+function shmget(key: Tkey; size:size_t; flag:cint):cint;
 begin
   shmget:=do_syscall (syscall_nr_SHMGET,TSysParam(key),TSysParam(size),TSysParam(flag));
 end;

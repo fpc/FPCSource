@@ -15,7 +15,7 @@
  **********************************************************************}
 
 
-function cshmget(key:key_t;size:cint;shmflg:cint):cint; cdecl; external;
+function cshmget(key:key_t;size:size_t;shmflg:cint):cint; cdecl; external;
 Function cshmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer; cdecl;external;
 Function cshmdt (shmaddr:pointer):cint;  cdecl; external;
 Function cshmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint; cdecl; external;
@@ -37,7 +37,7 @@ begin
   ftok:=cftok(path,id);
 end;
 
-function shmget(key:key_t;size:cint;flag:cint):cint;
+function shmget(key:key_t;size:size_t;flag:cint):cint;
 begin
   shmget:=cshmget(key, size, flag);
 end;
@@ -69,7 +69,7 @@ begin
   semop:=csemop(semid, sops, nsops);
 end;
 
-Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): longint;
+Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
 begin
   semctl:=csemctl(semid, semnum, cmd, arg);
 end;
