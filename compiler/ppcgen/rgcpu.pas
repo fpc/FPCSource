@@ -77,19 +77,23 @@ unit rgcpu;
               end
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
+
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_hi;
+            tmpref.refaddr := addr_higha;
             ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
             add_cpu_interferences(ins);
             helplist.concat(ins);
             tmpref:=spilltemp;
-            tmpref.refaddr:=addr_lo;
+            tmpref.refaddr := addr_low;
             tmpref.base:=hreg;
+	    
             ins:=spilling_create_load(tmpref,tempreg);
             add_cpu_interferences(ins);
+	    
+	    
             helplist.concat(ins);
-
+	    
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
 
@@ -127,12 +131,12 @@ unit rgcpu;
               hreg:=cg.getintregister(helplist,OS_ADDR);
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_hi;
+            tmpref.refaddr := addr_higha;
             ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
             add_cpu_interferences(ins);
             helplist.concat(ins);
             tmpref:=spilltemp;
-            tmpref.refaddr:=addr_lo;
+            tmpref.refaddr := addr_low;
             tmpref.base:=hreg;
             ins:=spilling_create_store(tempreg,tmpref);
             add_cpu_interferences(ins);

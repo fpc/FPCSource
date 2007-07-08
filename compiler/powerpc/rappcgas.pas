@@ -103,9 +103,11 @@ Unit rappcgas;
             if actasmtoken=AS_ID then
               begin
                 if upper(actasmpattern)='L' then
-                  oper.opr.ref.refaddr:=addr_lo
+                  oper.opr.ref.refaddr:=addr_low
+                else if upper(actasmpattern)='HI' then
+                  oper.opr.ref.refaddr:=addr_high
                 else if upper(actasmpattern)='HA' then
-                  oper.opr.ref.refaddr:=addr_hi
+                  oper.opr.ref.refaddr:=addr_higha
                 else
                   Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_ID);

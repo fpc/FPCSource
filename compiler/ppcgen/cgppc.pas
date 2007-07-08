@@ -170,9 +170,9 @@ unit cgppc;
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
         reference_reset_symbol(href,l1,0);
-        href.refaddr := addr_hi;
+        href.refaddr := addr_higha;
         current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
-        href.refaddr := addr_lo;
+        href.refaddr := addr_low;
         href.base := NR_R11;
 {$ifndef cpu64bit}
         current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
@@ -240,7 +240,7 @@ unit cgppc;
                  tmpref.offset := ref2.offset;
                  tmpref.symbol := ref2.symbol;
                  tmpref.relsymbol := ref2.relsymbol;
-                 tmpref.refaddr := addr_hi;
+                 tmpref.refaddr := addr_higha;
                  if ref2.base<> NR_NO then
                    begin
                      list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
@@ -249,7 +249,7 @@ unit cgppc;
                  else
                    list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
                  tmpref.base := NR_NO;
-                 tmpref.refaddr := addr_lo;
+                 tmpref.refaddr := addr_low;
                  { can be folded with one of the next instructions by the }
                  { optimizer probably                                     }
                  list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,tmpref));
@@ -688,14 +688,14 @@ unit cgppc;
                 tmpref.symbol := ref.symbol;
                 tmpref.relsymbol := ref.relsymbol;
                 tmpref.offset := ref.offset;
-                tmpref.refaddr := addr_hi;
+                tmpref.refaddr := addr_higha;
                 if ref.base <> NR_NO then
                   list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
                     ref.base,tmpref))
                 else
                   list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
                 ref.base := tmpreg;
-                ref.refaddr := addr_lo;
+                ref.refaddr := addr_low;
                 list.concat(taicpu.op_reg_ref(op,reg,ref));
               end
             else

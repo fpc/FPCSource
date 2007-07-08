@@ -64,21 +64,21 @@ interface
        trefaddr = (
          addr_no,
          addr_full,
-         {IFNDEF POWERPC64}
-         // these are also available for ppc64 on Mac OS X
-         addr_hi,
-         addr_lo,
-         {ENDIF}
          addr_pic
-         {$IFDEF POWERPC64}
+         {$IF defined(POWERPC) or defined(POWERPC64)}
          ,
          addr_low,         // bits 48-63
          addr_high,        // bits 32-47
+         {$IF defined(POWERPC64)}
          addr_higher,      // bits 16-31
          addr_highest,     // bits 00-15
-         addr_higha,       // bits 16-31, adjusted
+         {$ENDIF}
+         addr_higha        // bits 16-31, adjusted
+         {$IF defined(POWERPC64)}
+         ,
          addr_highera,     // bits 32-47, adjusted
          addr_highesta     // bits 48-63, adjusted
+         {$ENDIF}
          {$ENDIF}
          );
 

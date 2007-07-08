@@ -118,15 +118,9 @@ begin
         Message(asmr_e_invalid_reference_syntax);
 
       { darwin/ppc64's relocation symbols are 32 bits }
-      if (target_info.system = system_powerpc64_darwin) then
-        case oper.opr.ref.refaddr of
-          addr_low:
-            oper.opr.ref.refaddr:=addr_lo;
-          addr_higha:
-            oper.opr.ref.refaddr:=addr_hi;
-          else if (oper.opr.ref.refaddr<>addr_no) then
-            Message(asmr_e_invalid_reference_syntax);
-        end;
+      if (target_info.system = system_powerpc64_darwin) and
+        (not (oper.opr.ref.refaddr in [addr_no, addr_low, addr_higha])) then
+        Message(asmr_e_invalid_reference_syntax);
 
       Consume(AS_ID);
     end

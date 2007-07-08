@@ -250,9 +250,6 @@ type
 *****************************************************************************}
 
 const
-  symaddr2str: array[trefaddr] of string[9] = ('', '', 'ha16','lo16','', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
-
-const
   { MacOS only. Whether the direct data area (TOC) directly contain
     global variables. Otherwise it contains pointers to global variables. }
   macos_direct_globals = false;
