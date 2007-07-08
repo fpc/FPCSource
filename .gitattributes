@@ -3393,6 +3393,7 @@ packages/extra/sdl/fpmake.pp svneol=native#text/plain
 packages/extra/sdl/jedi-sdl.inc svneol=native#text/plain
 packages/extra/sdl/libxmlparser.pas svneol=native#text/plain
 packages/extra/sdl/logger.pas svneol=native#text/plain
+packages/extra/sdl/powersdl.inc -text
 packages/extra/sdl/sdl.pas svneol=native#text/plain
 packages/extra/sdl/sdl_gfx.pas -text svneol=unset#text/plain
 packages/extra/sdl/sdl_image.pas -text svneol=unset#text/plain

@@ -320,6 +320,10 @@ uses
   GPCMacOSAll;
 {$ENDIF}
 
+{$IFDEF MORPHOS}
+  exec;
+{$ENDIF}
+
 const
 {$IFDEF WINDOWS}
   SDLLibName = 'SDL.dll';
@@ -349,6 +353,10 @@ const
   {$linklib libc.a}
   {$linklib libgcc.a}
   {$linklib libsysbase.a}
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  SDLLibName = 'powersdl.library';
 {$ENDIF}
 
   // SDL_verion.h constants
@@ -2125,6 +2133,14 @@ type
   end;
 {$ENDIF}
 
+{$IFDEF MORPHOS}
+  PSDL_Mutex = ^TSDL_Mutex;
+  TSDL_Mutex = record
+{$WARNING FIXME!!}
+    dummy: longint;
+  end;
+{$ENDIF}
+
 {$IFDEF __MACH__}
   {$define USE_NAMED_SEMAPHORES}
   // Broken sem_getvalue() in MacOS X Public Beta */
@@ -2195,6 +2211,10 @@ PSDL_semaphore = ^TSDL_semaphore;
 
 {$IFDEF NDS}
   TSYS_ThreadHandle = Integer;
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  TSYS_ThreadHandle = Pointer;
 {$ENDIF}
 
   { This is the system-independent thread info structure }
@@ -2268,6 +2288,9 @@ PSDL_semaphore = ^TSDL_semaphore;
   Unless the SDL_INIT_NOPARACHUTE flag is set, it will install cleanup
   signal handlers for some commonly ignored fatal signals (like SIGSEGV) }
 
+{$IFDEF MORPHOS}
+{$I powersdl.inc}
+{$ELSE}
 function SDL_Init( flags : UInt32 ) : Integer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_Init'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_Init}
@@ -3972,6 +3995,8 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_UnloadObject'{$ELSE} SDLL
 
 function SDL_Swap32(D: Uint32): Uint32;
 {$EXTERNALSYM SDL_Swap32}
+
+{$ENDIF MORPHOS}
 
 { FreeAndNil frees the given TObject instance and sets the variable reference
   to nil.  Be careful to only pass TObjects to this routine. }

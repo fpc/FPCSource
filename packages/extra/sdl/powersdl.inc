@@ -1,0 +1,233 @@
+{ 
+  Header used to support MorphOS' PowerSDL
+}
+
+var
+  PowerSDLBase: Pointer;
+
+function SDL_Init(flags : DWord) : LongInt; syscall basesysv PowerSDLBase 028;
+procedure SDL_Quit; syscall basesysv PowerSDLBase 034;
+function SDL_InitSubSystem(flags : DWord) : LongInt; syscall basesysv PowerSDLBase 040;
+procedure SDL_QuitSubSystem(flags : DWord); syscall basesysv PowerSDLBase 046;
+function SDL_WasInit(flags : DWord) : DWord; syscall basesysv PowerSDLBase 052;
+function SDL_RWFromFile(const _file : pShortInt; const mode : pShortInt) : pSDL_RWops; syscall basesysv PowerSDLBase 058;
+function SDL_RWFromMem(mem : Pointer; size : LongInt) : pSDL_RWops; syscall basesysv PowerSDLBase 070;
+function SDL_AllocRW : pSDL_RWops; syscall basesysv PowerSDLBase 076;
+procedure SDL_FreeRW(area : pSDL_RWops); syscall basesysv PowerSDLBase 082;
+function SDL_LoadBMP_RW(src : pSDL_RWops; freesrc : LongInt) : pSDL_Surface; syscall basesysv PowerSDLBase 088;
+function SDL_DisplayFormat(surface : pSDL_Surface) : pSDL_Surface; syscall basesysv PowerSDLBase 094;
+procedure SDL_FreeSurface(surface : pSDL_Surface); syscall basesysv PowerSDLBase 100;
+function SDL_FillRect(dst : pSDL_Surface; dstrect : pSDL_Rect; color : DWord) : LongInt; syscall basesysv PowerSDLBase 106;
+function SDL_UpperBlit(src : pSDL_Surface; srcrect : pSDL_Rect; dst : pSDL_Surface; dstrect : pSDL_Rect) : LongInt; syscall basesysv PowerSDLBase 112;
+function SDL_Flip(screen : pSDL_Surface) : LongInt; syscall basesysv PowerSDLBase 118;
+procedure SDL_UpdateRects(screen : pSDL_Surface; numrects : LongInt; rects : pSDL_Rect); syscall basesysv PowerSDLBase 124;
+procedure SDL_UpdateRect(screen : pSDL_Surface; x : LongInt; y : LongInt; w : DWord; h : DWord); syscall basesysv PowerSDLBase 130;
+function SDL_SetVideoMode(width : LongInt; height : LongInt; bpp : LongInt; flags : DWord) : pSDL_Surface; syscall basesysv PowerSDLBase 142;
+function SDL_MapRGB(format : pSDL_PixelFormat; r : Byte; g : Byte; b : Byte) : DWord; syscall basesysv PowerSDLBase 148;
+function SDL_MapRGBA(format : pSDL_PixelFormat; r : Byte; g : Byte; b : Byte; a : Byte) : DWord; syscall basesysv PowerSDLBase 154;
+function SDL_VideoDriverName(namebuf : pShortInt; maxlen : LongInt) : pShortInt; syscall basesysv PowerSDLBase 160;
+function SDL_GetVideoSurface : pSDL_Surface; syscall basesysv PowerSDLBase 166;
+function SDL_VideoModeOK(width : LongInt; height : LongInt; bpp : LongInt; flags : DWord) : LongInt; syscall basesysv PowerSDLBase 172;
+function SDL_ListModes(format : pSDL_PixelFormat; flags : DWord) : ppSDL_Rect; syscall basesysv PowerSDLBase 178;
+function SDL_SetGamma(red : LongInt; green : LongInt; blue : LongInt) : LongInt; syscall basesysv PowerSDLBase 184;
+function SDL_SetGammaRamp(const red : LongInt; const green : LongInt; const blue : LongInt) : LongInt; syscall basesysv PowerSDLBase 190;
+function SDL_GetGammaRamp(var red : Word; var green : Word; var blue : Word) : LongInt; syscall basesysv PowerSDLBase 196;
+function SDL_SetColors(surface : pSDL_Surface; colors : pSDL_Color; firstcolor : LongInt; ncolors : LongInt) : LongInt; syscall basesysv PowerSDLBase 202;
+function SDL_SetPalette(surface : pSDL_Surface; flags : LongInt; colors : pSDL_Color; firstcolor : LongInt; ncolors : LongInt) : LongInt; syscall basesysv PowerSDLBase 208;
+procedure SDL_GetRGB(pixel : DWord; format : pSDL_PixelFormat; r : pCHAR; g : pCHAR; b : pCHAR); syscall basesysv PowerSDLBase 214;
+procedure SDL_GetRGBA(pixel : DWord; format : pSDL_PixelFormat; r : pCHAR; g : pCHAR; b : pCHAR; a : pCHAR); syscall basesysv PowerSDLBase 220;
+function SDL_CreateRGBSurface(flags : DWord; width : LongInt; height : LongInt; depth : LongInt; Rmask : DWord; Gmask : DWord; Bmask : DWord; Amask : DWord) : pSDL_Surface; syscall basesysv PowerSDLBase 226;
+function SDL_CreateRGBSurfaceFrom(pixels : Pointer; width : LongInt; height : LongInt; depth : LongInt; pitch : LongInt; Rmask : DWord; Gmask : DWord; Bmask : DWord; Amask : DWord) : pSDL_Surface; syscall basesysv PowerSDLBase 232;
+function SDL_LockSurface(surface : pSDL_Surface) : LongInt; syscall basesysv PowerSDLBase 238;
+procedure SDL_UnlockSurface(surface : pSDL_Surface); syscall basesysv PowerSDLBase 244;
+function SDL_SaveBMP_RW(surface : pSDL_Surface; dst : pSDL_RWops; freedst : LongInt) : LongInt; syscall basesysv PowerSDLBase 250;
+function SDL_SetColorKey(surface : pSDL_Surface; flag : DWord; key : DWord) : LongInt; syscall basesysv PowerSDLBase 256;
+function SDL_SetAlpha(surface : pSDL_Surface; flag : DWord; alpha : Byte) : LongInt; syscall basesysv PowerSDLBase 262;
+function SDL_SetClipRect(surface : pSDL_Surface; const rect : LongInt) : LongInt; syscall basesysv PowerSDLBase 268;
+procedure SDL_GetClipRect(surface : pSDL_Surface; rect : pSDL_Rect); syscall basesysv PowerSDLBase 274;
+function SDL_ConvertSurface(src : pSDL_Surface; fmt : pSDL_PixelFormat; flags : DWord) : pSDL_Surface; syscall basesysv PowerSDLBase 280;
+function SDL_DisplayFormatAlpha(surface : pSDL_Surface) : pSDL_Surface; syscall basesysv PowerSDLBase 286;
+function SDL_CreateYUVOverlay(width : LongInt; height : LongInt; format : DWord; display : pSDL_Surface) : pSDL_Overlay; syscall basesysv PowerSDLBase 292;
+function SDL_LockYUVOverlay(overlay : pSDL_Overlay) : LongInt; syscall basesysv PowerSDLBase 298;
+procedure SDL_UnlockYUVOverlay(overlay : pSDL_Overlay); syscall basesysv PowerSDLBase 304;
+function SDL_DisplayYUVOverlay(overlay : pSDL_Overlay; dstrect : pSDL_Rect) : LongInt; syscall basesysv PowerSDLBase 310;
+procedure SDL_FreeYUVOverlay(overlay : pSDL_Overlay); syscall basesysv PowerSDLBase 316;
+function SDL_GL_LoadLibrary(const path : pShortInt) : LongInt; syscall basesysv PowerSDLBase 322;
+function SDL_GL_GetProcAddress(const proc : pShortInt) : Pointer; syscall basesysv PowerSDLBase 328;
+function SDL_GL_SetAttribute(attr : LongInt; value : LongInt) : LongInt; syscall basesysv PowerSDLBase 334;
+function SDL_GL_GetAttribute(attr : LongInt; value : pLongInt) : LongInt; syscall basesysv PowerSDLBase 340;
+procedure SDL_GL_SwapBuffers; syscall basesysv PowerSDLBase 346;
+procedure SDL_GL_UpdateRects(numrects : LongInt; rects : pSDL_Rect); syscall basesysv PowerSDLBase 352;
+procedure SDL_GL_Lock; syscall basesysv PowerSDLBase 358;
+procedure SDL_GL_Unlock; syscall basesysv PowerSDLBase 364;
+procedure SDL_WM_SetCaption(const title : pShortInt; const icon : pShortInt); syscall basesysv PowerSDLBase 370;
+procedure SDL_WM_GetCaption(title : pShortInt; icon : pShortInt); syscall basesysv PowerSDLBase 376;
+procedure SDL_WM_SetIcon(icon : pSDL_Surface; mask : pCHAR); syscall basesysv PowerSDLBase 382;
+function SDL_WM_IconifyWindow : LongInt; syscall basesysv PowerSDLBase 388;
+function SDL_WM_ToggleFullScreen(surface : pSDL_Surface) : LongInt; syscall basesysv PowerSDLBase 394;
+function SDL_WM_GrabInput(mode : LongInt) : LongInt; syscall basesysv PowerSDLBase 400;
+function SDL_GetTicks : DWord; syscall basesysv PowerSDLBase 406;
+procedure SDL_Delay(ms : DWord); syscall basesysv PowerSDLBase 412;
+function SDL_SetTimer(interval : DWord; callback : Pointer) : LongInt; syscall basesysv PowerSDLBase 418;
+function SDL_AddTimer(interval : DWord; callback : Pointer; param : Pointer) : tSDL_TimerID; syscall basesysv PowerSDLBase 424;
+function SDL_RemoveTimer(t : tSDL_TimerID) : LongInt; syscall basesysv PowerSDLBase 430;
+procedure SDL_PumpEvents; syscall basesysv PowerSDLBase 436;
+function SDL_PollEvent(event : pSDL_Event) : LongInt; syscall basesysv PowerSDLBase 442;
+function SDL_WaitEvent(event : pSDL_Event) : LongInt; syscall basesysv PowerSDLBase 448;
+function SDL_PeepEvents(events : pSDL_Event; numevents : LongInt; action : LongInt; mask : DWord) : LongInt; syscall basesysv PowerSDLBase 454;
+function SDL_PushEvent(event : pSDL_Event) : LongInt; syscall basesysv PowerSDLBase 460;
+procedure SDL_SetEventFilter(filter : Pointer); syscall basesysv PowerSDLBase 466;
+function SDL_GetEventFilter : Pointer; syscall basesysv PowerSDLBase 472;
+function SDL_EventState(_type : Byte; state : LongInt) : Byte; syscall basesysv PowerSDLBase 478;
+function SDL_NumJoysticks : LongInt; syscall basesysv PowerSDLBase 484;
+function SDL_JoystickName(device_index : LongInt) : pShortInt; syscall basesysv PowerSDLBase 490;
+function SDL_JoystickOpen(device_index : LongInt) : pSDL_Joystick; syscall basesysv PowerSDLBase 496;
+function SDL_JoystickOpened(device_index : LongInt) : LongInt; syscall basesysv PowerSDLBase 502;
+function SDL_JoystickIndex(joystick : pSDL_Joystick) : LongInt; syscall basesysv PowerSDLBase 508;
+function SDL_JoystickNumAxes(joystick : pSDL_Joystick) : LongInt; syscall basesysv PowerSDLBase 514;
+function SDL_JoystickNumBalls(joystick : pSDL_Joystick) : LongInt; syscall basesysv PowerSDLBase 520;
+function SDL_JoystickNumHats(joystick : pSDL_Joystick) : LongInt; syscall basesysv PowerSDLBase 526;
+function SDL_JoystickNumButtons(joystick : pSDL_Joystick) : LongInt; syscall basesysv PowerSDLBase 532;
+procedure SDL_JoystickUpdate; syscall basesysv PowerSDLBase 538;
+function SDL_JoystickEventState(state : LongInt) : LongInt; syscall basesysv PowerSDLBase 544;
+function SDL_JoystickGetAxis(joystick : pSDL_Joystick; axis : LongInt) : Integer; syscall basesysv PowerSDLBase 550;
+function SDL_JoystickGetHat(joystick : pSDL_Joystick; hat : LongInt) : Byte; syscall basesysv PowerSDLBase 556;
+function SDL_JoystickGetBall(joystick : pSDL_Joystick; ball : LongInt; dx : pLongInt; dy : pLongInt) : LongInt; syscall basesysv PowerSDLBase 562;
+function SDL_JoystickGetButton(joystick : pSDL_Joystick; button : LongInt) : Byte; syscall basesysv PowerSDLBase 568;
+procedure SDL_JoystickClose(joystick : pSDL_Joystick); syscall basesysv PowerSDLBase 574;
+function SDL_EnableUNICODE(enable : LongInt) : LongInt; syscall basesysv PowerSDLBase 580;
+function SDL_EnableKeyRepeat(delay : LongInt; interval : LongInt) : LongInt; syscall basesysv PowerSDLBase 586;
+function SDL_GetKeyState(numkeys : pLongInt) : pCHAR; syscall basesysv PowerSDLBase 592;
+function SDL_GetModState : DWord; syscall basesysv PowerSDLBase 598;
+procedure SDL_SetModState(modstate : DWord); syscall basesysv PowerSDLBase 604;
+function SDL_GetKeyName(key : DWord) : pShortInt; syscall basesysv PowerSDLBase 610;
+function SDL_GetMouseState(x : pLongInt; y : pLongInt) : Byte; syscall basesysv PowerSDLBase 616;
+function SDL_GetRelativeMouseState(x : pLongInt; y : pLongInt) : Byte; syscall basesysv PowerSDLBase 622;
+procedure SDL_WarpMouse(x : Word; y : Word); syscall basesysv PowerSDLBase 628;
+function SDL_CreateCursor(data : pCHAR; mask : pCHAR; w : LongInt; h : LongInt; hot_x : LongInt; hot_y : LongInt) : pSDL_Cursor; syscall basesysv PowerSDLBase 634;
+procedure SDL_SetCursor(cursor : pSDL_Cursor); syscall basesysv PowerSDLBase 640;
+function SDL_GetCursor : pSDL_Cursor; syscall basesysv PowerSDLBase 646;
+procedure SDL_FreeCursor(cursor : pSDL_Cursor); syscall basesysv PowerSDLBase 652;
+function SDL_ShowCursor(toggle : LongInt) : LongInt; syscall basesysv PowerSDLBase 658;
+function SDL_GetAppState : Byte; syscall basesysv PowerSDLBase 664;
+function SDL_GetError : pShortInt; syscall basesysv PowerSDLBase 676;
+procedure SDL_ClearError; syscall basesysv PowerSDLBase 682;
+function SDL_AudioInit(const driver_name : pShortInt) : LongInt; syscall basesysv PowerSDLBase 688;
+procedure SDL_AudioQuit; syscall basesysv PowerSDLBase 694;
+function SDL_AudioDriverName(namebuf : pShortInt; maxlen : LongInt) : pShortInt; syscall basesysv PowerSDLBase 700;
+function SDL_OpenAudio(desired : pSDL_AudioSpec; obtained : pSDL_AudioSpec) : LongInt; syscall basesysv PowerSDLBase 706;
+function SDL_GetAudioStatus : LongInt; syscall basesysv PowerSDLBase 712;
+procedure SDL_PauseAudio(pause_on : LongInt); syscall basesysv PowerSDLBase 718;
+function SDL_LoadWAV_RW(src : pSDL_RWops; freesrc : LongInt; spec : pSDL_AudioSpec; audio_buf : pByte; var audio_len : DWord) : pSDL_AudioSpec; syscall basesysv PowerSDLBase 724;
+procedure SDL_FreeWAV(audio_buf : pCHAR); syscall basesysv PowerSDLBase 730;
+function SDL_BuildAudioCVT(cvt : pSDL_AudioCVT; src_format : Word; src_channels : Byte; src_rate : LongInt; dst_format : Word; dst_channels : Byte; dst_rate : LongInt) : LongInt; syscall basesysv PowerSDLBase 736;
+function SDL_ConvertAudio(cvt : pSDL_AudioCVT) : LongInt; syscall basesysv PowerSDLBase 742;
+procedure SDL_MixAudio(dst : pCHAR; const src : LongInt; len : DWord; volume : LongInt); syscall basesysv PowerSDLBase 748;
+procedure SDL_LockAudio; syscall basesysv PowerSDLBase 754;
+procedure SDL_UnlockAudio; syscall basesysv PowerSDLBase 760;
+procedure SDL_CloseAudio; syscall basesysv PowerSDLBase 766;
+function SDL_CreateThread(fn : TProcedure; data : Pointer) : pSDL_Thread; syscall basesysv PowerSDLBase 772;
+function SDL_ThreadID : DWord; syscall basesysv PowerSDLBase 778;
+function SDL_GetThreadID(thread : pSDL_Thread) : DWord; syscall basesysv PowerSDLBase 784;
+procedure SDL_WaitThread(thread : pSDL_Thread; status : pLongInt); syscall basesysv PowerSDLBase 790;
+procedure SDL_KillThread(thread : pSDL_Thread); syscall basesysv PowerSDLBase 796;
+function SDL_SoftStretch(src : pSDL_Surface; srcrect : pSDL_Rect; dest : pSDL_Surface; dstrect : pSDL_Rect) : LongInt; syscall basesysv PowerSDLBase 808;
+function SDL_UNIX2AMIGA(const _file : pShortInt) : pShortInt; syscall basesysv PowerSDLBase 814;
+function SDL_AMIGA_RWFromFile(const _file : pShortInt; const mode : pShortInt) : pSDL_RWops; syscall basesysv PowerSDLBase 820;
+function SDL_AMIGA_RWFromFP(fp : LongInt; autoclose : LongInt) : pSDL_RWops; syscall basesysv PowerSDLBase 826;
+function SDL_CDNumDrives : LongInt; syscall basesysv PowerSDLBase 832;
+function SDL_CDName(drive : LongInt) : pShortInt; syscall basesysv PowerSDLBase 838;
+function SDL_CDOpen(drive : LongInt) : pSDL_CD; syscall basesysv PowerSDLBase 844;
+function SDL_CDStatus(cdrom : pSDL_CD) : LongInt; syscall basesysv PowerSDLBase 850;
+function SDL_CDPlay(cdrom : pSDL_CD; sframe : LongInt; length : LongInt) : LongInt; syscall basesysv PowerSDLBase 856;
+function SDL_CDPause(cdrom : pSDL_CD) : LongInt; syscall basesysv PowerSDLBase 862;
+function SDL_CDResume(cdrom : pSDL_CD) : LongInt; syscall basesysv PowerSDLBase 868;
+function SDL_CDStop(cdrom : pSDL_CD) : LongInt; syscall basesysv PowerSDLBase 874;
+function SDL_CDEject(cdrom : pSDL_CD) : LongInt; syscall basesysv PowerSDLBase 880;
+procedure SDL_CDClose(cdrom : pSDL_CD); syscall basesysv PowerSDLBase 886;
+function SDL_CreateMutex : pSDL_Mutex; syscall basesysv PowerSDLBase 892;
+procedure SDL_DestroyMutex(mutex : pSDL_Mutex); syscall basesysv PowerSDLBase 898;
+function SDL_mutexP(mutex : pSDL_Mutex) : LongInt; syscall basesysv PowerSDLBase 904;
+function SDL_mutexV(mutex : pSDL_Mutex) : LongInt; syscall basesysv PowerSDLBase 910;
+function SDL_CreateSemaphore(initial_value : DWord) : pSDL_Sem; syscall basesysv PowerSDLBase 916;
+procedure SDL_DestroySemaphore(sem : pSDL_Sem); syscall basesysv PowerSDLBase 922;
+function SDL_SemTryWait(sem : pSDL_Sem) : LongInt; syscall basesysv PowerSDLBase 928;
+function SDL_SemWaitTimeout(sem : pSDL_Sem; timeout : DWord) : LongInt; syscall basesysv PowerSDLBase 934;
+function SDL_SemWait(sem : pSDL_Sem) : LongInt; syscall basesysv PowerSDLBase 940;
+function SDL_SemValue(sem : pSDL_Sem) : DWord; syscall basesysv PowerSDLBase 946;
+function SDL_SemPost(sem : pSDL_Sem) : LongInt; syscall basesysv PowerSDLBase 952;
+procedure SDL_Error(code : DWord); syscall basesysv PowerSDLBase 958;
+function SDL_CreateCond : pSDL_Cond; syscall basesysv PowerSDLBase 964;
+procedure SDL_DestroyCond(cond : pSDL_Cond); syscall basesysv PowerSDLBase 970;
+function SDL_CondSignal(cond : pSDL_Cond) : LongInt; syscall basesysv PowerSDLBase 976;
+function SDL_CondBroadcast(cond : pSDL_Cond) : LongInt; syscall basesysv PowerSDLBase 982;
+function SDL_CondWaitTimeout(cond : pSDL_Cond; mutex : pSDL_Mutex; ms : DWord) : LongInt; syscall basesysv PowerSDLBase 988;
+function SDL_CondWait(cond : pSDL_Cond; mutex : pSDL_Mutex) : LongInt; syscall basesysv PowerSDLBase 994;
+procedure SDL_InitTGL(glc : Pointer; tgl : Pointer); syscall basesysv PowerSDLBase 1000;
+function SDL_HasAltiVec : LongInt; syscall basesysv PowerSDLBase 1096;
+function SDL_HasRDTSC : LongInt; syscall basesysv PowerSDLBase 1102;
+function SDL_HasMMX : LongInt; syscall basesysv PowerSDLBase 1108;
+function SDL_Has3DNow : LongInt; syscall basesysv PowerSDLBase 1114;
+function SDL_HasSSE : LongInt; syscall basesysv PowerSDLBase 1120;
+function SDL_HasMMXExt : LongInt; syscall basesysv PowerSDLBase 1126;
+function SDL_Has3DNowExt : LongInt; syscall basesysv PowerSDLBase 1132;
+function SDL_HasSSE2 : LongInt; syscall basesysv PowerSDLBase 1138;
+function SDL_LowerBlit(src : pSDL_Surface; srcrect : pSDL_Rect; dst : pSDL_Surface; dstrect : pSDL_Rect) : LongInt; syscall basesysv PowerSDLBase 1144;
+function SDL_CDPlayTracks(cdrom : pSDL_CD; strack : LongInt; sframe : LongInt; ntracks : LongInt; nframes : LongInt) : LongInt; syscall basesysv PowerSDLBase 1150;
+procedure SDL_OpenPrefs; syscall basesysv PowerSDLBase 1156;
+
+
+{
+
+function SDL_Init( flags : UInt32 ) : Integer;
+syscall BaseSysV PowerSDLBase 28;
+
+procedure SDL_Quit;
+syscall BaseSysV PowerSDLBase 34;
+
+function SDL_InitSubSystem( flags : UInt32 ) : Integer;
+syscall BaseSysV PowerSDLBase 40;
+
+procedure SDL_QuitSubSystem( flags : UInt32 );
+syscall BaseSysV PowerSDLBase 46;
+
+function SDL_WasInit( flags : UInt32 ): UInt32;
+syscall BaseSysV PowerSDLBase 52;
+
+
+//function SDL_VideoInit(driver_name: PChar; flags: UInt32): Integer;
+
+//procedure SDL_VideoQuit;
+
+//function SDL_VideoDriverName(namebuf: PChar; maxlen: Integer): PChar;
+
+//function SDL_GetVideoSurface: PSDL_Surface;
+
+//function SDL_GetVideoInfo: PSDL_VideoInfo;
+
+function SDL_Flip(screen: PSDL_Surface): Integer;
+syscall BaseSysV PowerSDLBase 118;
+
+procedure SDL_UpdateRects(screen: PSDL_Surface; numrects: Integer; rects: PSDL_Rect);
+syscall BaseSysV PowerSDLBase 124;
+
+procedure SDL_UpdateRect(screen: PSDL_Surface; x, y: SInt32; w, h: UInt32);
+syscall BaseSysV PowerSDLBase 130;
+
+function SDL_SetVideoMode(width, height, bpp: Integer; flags: UInt32): PSDL_Surface;
+syscall BaseSysV PowerSDLBase 142;
+
+function SDL_VideoModeOK(width, height, bpp: Integer; flags: UInt32): Integer;
+syscall BaseSysV PowerSDLBase 172;
+
+function SDL_ListModes(format: PSDL_PixelFormat; flags: UInt32): PPSDL_Rect;
+syscall BaseSysV PowerSDLBase 178;
+
+
+function SDL_PollEvent(event: PSDL_Event): Integer;
+syscall BaseSysV PowerSDLBase 442;
+
+
+function SDL_EventState(type_: UInt8; state: Integer): UInt8;
+syscall BaseSysV PowerSDLBase 478;
+*}
