@@ -224,7 +224,7 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef :
-            result:=((varspez=vs_const) and (def.size>16)) or 
+            result:=((varspez=vs_const) and ((def.size>16) or (calloption<>pocall_register))) or 
                     ((target_info.system=system_x86_64_win64) and (def.size>8));
           arraydef :
             begin
