@@ -382,7 +382,7 @@ interface
       location_reset(location,LOC_REFERENCE,OS_NO);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
-      inc(r.offset,8);
+      inc(r.offset,sizeof(aword));
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
     end;
 
