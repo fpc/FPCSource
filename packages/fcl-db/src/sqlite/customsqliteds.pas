@@ -1251,7 +1251,7 @@ end;
 
 function TCustomSqliteDataset.ApplyUpdates:Boolean;
 var
-  iFields,iItems,StatementsCounter:Integer;
+  iFields, iItems, StatementsCounter, TempReturnCode:Integer;
   SqlTemp,WhereKeyNameEqual,ASqlLine,TemplateStr:String;
   TempItem: PDataRecord;
 begin
@@ -1264,6 +1264,7 @@ begin
   Result:=False;
   if FPrimaryKeyNo <> -1 then
   begin
+    FReturnCode := SQLITE_OK;
     StatementsCounter:=0;
     WhereKeyNameEqual:=' WHERE '+Fields[FPrimaryKeyNo].FieldName+' = ';
     {$ifdef DEBUG_SQLITEDS}
@@ -1288,7 +1289,9 @@ begin
       if StatementsCounter = 400 then
       begin
         SqlTemp:=SqlTemp+'COMMIT;';
-        FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
+        TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
+        if TempReturnCode <> SQLITE_OK then
+          FReturnCode := TempReturnCode;  
         StatementsCounter:=0;
         SqlTemp:='BEGIN;';
       end;    
@@ -1314,7 +1317,9 @@ begin
       if StatementsCounter = 400 then
       begin
         SqlTemp:=SqlTemp+'COMMIT;';
-        FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
+        TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
+        if TempReturnCode <> SQLITE_OK then
+          FReturnCode := TempReturnCode;
         StatementsCounter:=0;
         SqlTemp:='BEGIN;';
       end;  
@@ -1344,7 +1349,9 @@ begin
       if StatementsCounter = 400 then
       begin
         SqlTemp:=SqlTemp+'COMMIT;';
-        FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
+        TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
+        if TempReturnCode <> SQLITE_OK then
+          FReturnCode := TempReturnCode;
         StatementsCounter:=0;
         SqlTemp:='BEGIN;';
       end;  
@@ -1356,7 +1363,9 @@ begin
    FAddedItems.Clear;
    FUpdatedItems.Clear;
    FDeletedItems.Clear;   
-   FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
+   TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
+   if TempReturnCode <> SQLITE_OK then
+     FReturnCode := TempReturnCode;
    Result:= FReturnCode = SQLITE_OK;
   end;  
   {$ifdef DEBUG_SQLITEDS}
