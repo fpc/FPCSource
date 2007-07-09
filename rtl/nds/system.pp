@@ -18,6 +18,9 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
+{ $define USE_NOTHREADMANAGER}
+{ $define HAS_MEMORYMANAGER}
+{ $undef FPC_HAS_FEATURE_TEXTIO}
 
 {$i ndsbiosh.inc}
 
@@ -27,6 +30,7 @@ interface
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
+procedure InitHeapThread;
 
 const
  LineEnding = #10;
@@ -55,8 +59,18 @@ var
   argv: PPChar;
   envp: PPChar;
   errno: integer;
-  fake_heap_start: pchar; cvar;
-  fake_heap_end: pchar; cvar;
+//  fake_heap_start: ^byte; cvar;
+  fake_heap_end: ^byte; cvar; 
+//  heap_start: longint; external name 'end';
+//  heap_end: longint; external name '__eheap_end';
+  heap_start: longint; external name 'end';
+  heap_end: longint; external name 'fake_heap_end';
+//  __eheap_start: longint; cvar; external;
+//  fake_heap_end: longint; cvar; external;
+
+
+
+
 
 implementation
 
@@ -133,41 +147,79 @@ begin
 end;
 
 
+(*
 procedure InitHeap;
 begin
-{
   FillChar(freelists_fixed,sizeof(tfreelists),0);
   FillChar(freelists_free_chunk,sizeof(freelists_free_chunk),0);
 
   freelist_var:=nil;
+  {The GBA has no operating system from which we ask memory, so we
+   initialize the heap with a single block of memory.}
   freeoslistcount:=1;
-  freeoslist:=pointer($2040000);
+  //freeoslist:=pointer($023FF000);
+  freeoslist:=pointer(heap_start);
   fillchar(freeoslist^,sizeof(freeoslist^),0);
-  freeoslist^.size:=$40000;
+  //freeoslist^.size:=$00040000;//$003FF000;
+  freeoslist^.size:=heap_end-heap_start;
   fillchar(internal_status,sizeof(internal_status),0);
-}
+end;
+*)
+
+procedure InitHeap;
+var
+  loc_freelists: pfreelists;
+begin
+  { we cannot initialize the locks here yet, thread support is
+    not loaded yet }
+  loc_freelists := @freelists;
+
+  // PROVA -->
+  loc_freelists^.varlist := nil;
+  loc_freelists^.oscount := 1;
+  loc_freelists := pointer(heap_start);
+
+  fillchar(loc_freelists^, sizeof(tfreelists), 0);
+  fillchar(orphaned_freelists, sizeof(orphaned_freelists), 0);
+
+  loc_freelists^.oslist^.size := heap_end - heap_start;
+  fillchar(loc_freelists^.internal_status, sizeof(TFPCHeapStatus), 0);  
+  // <-- PROVA
+
 end;
 
+
+procedure InitHeapThread;
+var
+  loc_freelists: pfreelists;
+begin
+  loc_freelists := @freelists;
+  fillchar(loc_freelists^,sizeof(tfreelists),0);
+{$ifdef DUMP_MEM_USAGE}
+  fillchar(sizeusage,sizeof(sizeusage),0);
+  fillchar(maxsizeusage,sizeof(sizeusage),0);
+{$endif}
+end;
 
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
   ///StackBottom := Sptr - StackLength;
   StackBottom := StackTop - StackLength;
 { OS specific startup }
-  fake_heap_start := pchar(0);
-  fake_heap_end := pchar(0);
+//  fake_heap_start := pchar(0);
+//  fake_heap_end := pchar(0);
 { Set up signals handlers }
 
+  fpc_cpucodeinit;
 { Setup heap }
   InitHeap;
-  //SysInitExceptions;
+  SysInitExceptions;
 { Setup stdin, stdout and stderr }
-  //SysInitStdIO;
+  SysInitStdIO;
 { Reset IO Error }
-  InOutRes := 0;
+  InOutRes:=0;
 { Arguments }
 
-  //InitSystemThreads;
-  //initvariantmanager;
-  //initwidestringmanager;
+  InitSystemThreads;
+  initvariantmanager;
 end.

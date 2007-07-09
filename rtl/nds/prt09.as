@@ -101,8 +101,8 @@ _start:
 	@-------------------------------------------------------------------------
 	@ DCache & ICache enable
 	@-------------------------------------------------------------------------
-	ldr	r0,=0b01000110
-	ldr	r0,=0x42
+	ldr	r0,=0b01000010
+
 	mcr	p15, 0, r0, c2, c0, 0
 	mcr	p15, 0, r0, c2, c0, 1
 
@@ -161,9 +161,6 @@ _start:
 	ldr	r1, =fake_heap_end	@ set heap end
 	ldr	r0, =__eheap_end
 	str	r0, [r1]
-
-
-
 
 	mov	r0, #0			@ int argc
 	mov	r1, #0			@ char *argv[]

@@ -150,7 +150,8 @@ type
              system_ia64_win64,         { 39 }
              system_i386_wince,         { 40 }
              system_x86_6432_linux,     { 41 }
-             system_arm_gba             { 42 }
+             system_arm_gba,            { 42 }
+             system_arm_nds             { 43 }
        );
 const
   Targets : array[ttarget] of string[17]=(
@@ -196,7 +197,8 @@ const
   { 39 }  'Win64-iA64',
   { 40 }  'WinCE-i386',
   { 41 }  'Linux-x64',
-  { 42 }  'GBA-ARM'
+  { 42 }  'GBA-arm',
+  { 43 }  'NDS-arm'
   );
 begin
   if w<=ord(high(ttarget)) then

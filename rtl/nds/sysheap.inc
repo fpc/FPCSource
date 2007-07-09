@@ -23,7 +23,7 @@
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
-  result := nil;//pointer($02000000);
+  result := pointer($02000000);
 end;
 
 { $define HAS_SYSOSFREE}
