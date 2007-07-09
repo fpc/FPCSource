@@ -53,12 +53,21 @@ begin
       begin
         vProject.ParseFile;
         
+        { compilation }
         if CompareText(vProject.Language, STR_OPT_Cpp) = 0 then
          vCompiler.MakeBuildCpp
         else
          vCompiler.MakeBuildPascal;
 
+        { Main resource file }
+        
         vCompiler.BuildResource(vProject.MainResource);
+
+        vCompiler.InstallResource(vProject.MainResource);
+
+        { Registration resource file }
+        
+        vCompiler.BuildResource(vProject.RegResource);
 
         vCompiler.RegisterInEmulator;
       end;

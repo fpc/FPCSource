@@ -51,6 +51,7 @@ type
     procedure MakeBuildBindings;
     procedure BuildUIDFile;
     procedure BuildResource(AFileName: string);
+    procedure InstallResource(AFileName: string);
     procedure RegisterInEmulator;
   end;
 
@@ -121,6 +122,11 @@ procedure TCompiler.FileCopy(source, dest: string);
 var
   SourceStream, DestStream: TFileStream;
 begin
+  WriteLn('');
+  WriteLn('Copying file: ', source);
+  WriteLn('To: ', dest);
+  WriteLn('');
+
   SourceStream := TFileStream.Create(source, fmOpenRead);
   try
     DestStream := TFileStream.Create(dest, fmCreate);
@@ -454,7 +460,34 @@ begin
     ' -o"' + MakeFolder + ChangeFileExt(AFileName, STR_RESOURCE_EXT) + '"' +
     ' -s"' + MakeFolder + ChangeFileExt(AFileName, STR_RESOURCE_TMP_EXT) + '"';
   WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  System.Flush(System.StdOut);
   AProcess.Execute;
+end;
+
+{*******************************************************************
+*  TCompiler.InstallResource ()
+*
+*  DESCRIPTION:    Install a resource file
+*
+*  PARAMETERS:     None
+*
+*  RETURNS:        Nothing
+*
+*******************************************************************}
+procedure TCompiler.InstallResource(AFileName: string);
+var
+  StrFrom, StrTo: string;
+begin
+  WriteLn('');
+  WriteLn('Installing resource file: ', AFileName);
+  WriteLn('');
+
+  StrFrom := MakeFolder + ChangeFileExt(vProject.MainResource, STR_RESOURCE_EXT);
+  StrTo := vSDKUtil.SDKFolder + Str_Path_Resource_Files +
+   ChangeFileExt(vProject.MainResource, STR_RESOURCE_EXT);
+
+  FileCopy(StrFrom, StrTo);
 end;
 
 {*******************************************************************
@@ -479,11 +512,6 @@ begin
   StrFrom := MakeFolder + ChangeFileExt(vProject.MainResource, STR_RESOURCE_EXT);
   StrTo := vSDKUtil.SDKFolder + Str_Path_Emulator_Registration +
    ChangeFileExt(vProject.MainResource, STR_RESOURCE_EXT);
-
-  WriteLn('');
-  WriteLn('Copying file: ', StrFrom);
-  WriteLn('To: ', StrTo);
-  WriteLn('');
 
   FileCopy(StrFrom, StrTo);
 end;

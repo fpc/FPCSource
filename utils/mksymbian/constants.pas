@@ -54,6 +54,7 @@ const
   Str_Path_CWTools = 'epoc32\tools\nokia_compiler\Symbian_Tools\Command_Line_Tools\';
   Str_Path_RComp = 'epoc32\tools\rcomp.exe';
   Str_Path_Cpp = 'epoc32\tools\scpp.exe';
+  Str_Path_Resource_Files = 'epoc32\release\winscw\udeb\Z\resource\apps\';
   Str_Path_Emulator_Registration = 'epoc32\release\winscw\udeb\Z\private\10003a3f\apps\';
 
 { Other constants }
@@ -92,6 +93,7 @@ const
 
   STR_PRJ_MainSource = 'mainsource';
   STR_PRJ_MainResource = 'mainresource';
+  STR_PRJ_RegResource = 'regresource';
 
   STR_PRJ_File = 'file';
 
