@@ -527,7 +527,7 @@ defaultcfg=
 
 # For a release compile with optimizes and strip debuginfo
 #IFDEF RELEASE
-  -OG2p3
+  -O3
   -Xs
   #WRITE Compiling Release Version
 #ENDIF
@@ -587,20 +587,9 @@ defaultcfg=
 #-Ct
 
 # Optimizer switches
-# -Og        generate smaller code
-# -OG        generate faster code (default)
-# -Or        keep certain variables in registers (still BUGGY!!!)
-# -Ou        enable uncertain optimizations (see docs)
-# -O1        level 1 optimizations (quick optimizations)
-# -O2        level 2 optimizations (-O1 + slower optimizations)
-# -O3        level 3 optimizations (same as -O2u)
-# -Op        target processor
-#     -Op1  set target processor to 386/486
-#     -Op2  set target processor to Pentium/PentiumMMX (tm)
-#     -Op3  set target processor to PPro/PII/c6x86/K6 (tm)
-
-# Optimize always for Size and PentiumII
-#-Og2p3
+# -O1        level 1 optimizations (quick and debugger friendly)
+# -O2        level 2 optimizations (-O1 + quick optimizations)
+# -O3        level 3 optimizations (-O2 + slow optimizations)
 
 
 # -----------------------
@@ -686,8 +675,7 @@ defaultidecfg=
  -T%targetos%
  -Sg
  -O1
- -OG
- -Op3
+ -OpPENTIUM
  -Ratt
  -Fu%basepath%\units\%fpctargetmacro%
  -Fu%basepath%\units\%fpctargetmacro%\*
@@ -703,8 +691,7 @@ defaultidecfg=
  -Cr
  -Ci
  -Co
- -OG
- -Op3
+ -OpPENTIUM
  -Ratt
  -Fu%basepath%\units\%fpctargetmacro%
  -Fu%basepath%\units\%fpctargetmacro%\*
@@ -717,10 +704,8 @@ defaultidecfg=
 #IFDEF RELEASE
  -T%targetos%
  -Sg
- -O1
- -O2
- -OG
- -Op3
+ -O3
+ -OpPENTIUM
  -Ratt
  -Fu%basepath%\units\%fpctargetmacro%
  -Fu%basepath%\units\%fpctargetmacro%\*
