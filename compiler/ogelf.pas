@@ -611,20 +611,21 @@ implementation
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];
-        if (use_smartlink_section and
-           (aname<>'')) or (atype=sec_fpc) then
+        if (atype=sec_fpc) and (Copy(aname,1,3)='res') then
           begin
-            if (atype=sec_fpc) and (aname='resptrs') then
-              sep:='.'
-            else
-              case aorder of
-                secorder_begin :
-                  sep:='.b_';
-                secorder_end :
-                  sep:='.z_';
-                else
-                  sep:='.n_';
-              end;
+            result:=secname+'.'+aname;
+            exit;
+          end;
+        if use_smartlink_section and (aname<>'') then
+          begin
+            case aorder of
+              secorder_begin :
+                sep:='.b_';
+              secorder_end :
+                sep:='.z_';
+              else
+                sep:='.n_';
+            end;
             result:=secname+sep+aname
           end
         else
