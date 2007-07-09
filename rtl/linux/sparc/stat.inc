@@ -20,26 +20,26 @@
   Stat = record  // No unix typing because of differences
     case byte of
     0:
-      (dev   : culonglong;
-      ino    : culonglong;
-      mode   : cuint;
-      nlink  : cuint;
-      uid    : cuint;
-      gid    : cuint;
-      rdev   : culonglong;
-      __pad3 : array[0..7] of cuchar;
-      size   : clonglong;
-      blksize: cuint;
-      __pad4 : array[0..7] of cuchar;
-      blocks : cuint;
-      atime  : cuint;
-      atime_nsec : cuint;
-      mtime  : cuint;
-      mtime_nsec : cuint;
-      ctime  : cuint;
-      ctime_nsec : cuint;
-      __unused4 : cuint;
-      __unused5 : cuint);
+      (dev   : culonglong deprecated;
+      ino    : culonglong deprecated;
+      mode   : cuint deprecated;
+      nlink  : cuint deprecated;
+      uid    : cuint deprecated;
+      gid    : cuint deprecated;
+      rdev   : culonglong deprecated;
+      __pad3 : array[0..7] of cuchar deprecated;
+      size   : clonglong deprecated;
+      blksize: cuint deprecated;
+      __pad4 : array[0..7] of cuchar deprecated;
+      blocks : cuint deprecated;
+      atime  : cuint deprecated;
+      atime_nsec : cuint deprecated;
+      mtime  : cuint deprecated;
+      mtime_nsec : cuint deprecated;
+      ctime  : cuint deprecated;
+      ctime_nsec : cuint deprecated;
+      __unused4 : cuint deprecated;
+      __unused5 : cuint deprecated);
     1:
       (st_dev    : culonglong;
       st_ino    : culonglong;
@@ -70,17 +70,17 @@
   Stat = record
     case byte of
      0:
-      (dev     : cULongLong;
-      ino     : cULongLong;
-      mode    : mode_t;
-      nlink   : nlink_t;
-      uid     : uid_t;
-      gid     : gid_t;
-      rdev    : cULongLong;
-      __pad2  : cushort;
-      size    : cLongLong;
-      blksize : cULong;
-      blocks  : cULongLong;
+      (dev     : cULongLong deprecated;
+      ino     : cULongLong deprecated;
+      mode    : mode_t deprecated;
+      nlink   : nlink_t deprecated;
+      uid     : uid_t deprecated;
+      gid     : gid_t deprecated;
+      rdev    : cULongLong deprecated;
+      __pad2  : cushort deprecated;
+      size    : cLongLong deprecated;
+      blksize : cULong deprecated;
+      blocks  : cULongLong deprecated;
       atime,
       atime_nsec,
       mtime,
