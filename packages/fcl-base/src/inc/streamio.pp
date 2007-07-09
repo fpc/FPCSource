@@ -126,6 +126,11 @@ begin
     begin
     OpenFunc:=@StreamOpen;
     CloseFunc:=@StreamClose;
+ Case DefaultTextLineBreakStyle Of
+    tlbsLF: TextRec(f).LineEnd := #10;
+    tlbsCRLF: TextRec(f).LineEnd := #13#10;
+    tlbsCR: TextRec(f).LineEnd := #13;
+  End;
     PStream(@UserData)^:=Stream;
     Mode:=fmClosed;
     BufSize:=SizeOf(Buffer);

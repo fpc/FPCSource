@@ -239,7 +239,7 @@ begin
             Break;
         end;
       until count = 0;
-      writeln(Result);
+      // writeln(Result);
       // we are now either at the end of the stream, or encountered our first '=', stored in c
       if c = '=' then begin // '=' found
         if Result mod 4 <= 1 then // badly placed '=', disregard last block
