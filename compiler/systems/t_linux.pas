@@ -616,7 +616,7 @@ begin
       add('  .data           :');
       add('  {');
       add('    *(.data .data.* .gnu.linkonce.d.*)');
-      add('    KEEP (*(.fpc .fpc.version .fpc.links))');
+      add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       add('    KEEP (*(.gnu.linkonce.d.*personality*))');
       add('  }');
       add('  PROVIDE (_edata = .);');
@@ -746,7 +746,7 @@ begin
       add('  .data           :');
       add('  {');
       add('    *(.data .data.* .gnu.linkonce.d.*)');
-      add('    KEEP (*(.fpc .fpc.version .fpc.links))');
+      add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       add('    KEEP (*(.gnu.linkonce.d.*personality*))');
       add('  }');
       add('  PROVIDE (_edata = .);');
