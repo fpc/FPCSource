@@ -1018,6 +1018,8 @@ implementation
 
     { initializes the regvars from staticsymtable with 0 }
     procedure initialize_regvars(p:TObject;arg:pointer);
+      var
+        href : treference;
       begin
         if (tsym(p).typ=staticvarsym) then
          begin
@@ -1041,7 +1043,13 @@ implementation
                  tstaticvarsym(p).initialloc.register,
                  nil);
              LOC_CFPUREGISTER :
-               ;
+               begin
+                 { initialize fpu regvar by loading from memory }              
+                 reference_reset_symbol(href,
+                   current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname), 0);
+                 cg.a_loadfpu_ref_reg(TAsmList(arg), tstaticvarsym(p).initialloc.size,
+                   tstaticvarsym(p).initialloc.size, href, tstaticvarsym(p).initialloc.register);
+               end;
              LOC_INVALID :
                ;
              else
