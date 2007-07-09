@@ -758,16 +758,23 @@ const
   SQL_ROW_IDENTIFIER = 1;
 {$endif}
 
+//* Reserved values for UNIQUE argument of SQLStatistics() */
+  SQL_INDEX_UNIQUE   = 0;
+  SQL_INDEX_ALL      = 1;
+
+//* Reserved values for RESERVED argument of SQLStatistics() */
+  SQL_QUICK   = 0;
+  SQL_ENSURE  = 1;
+
+//* Values that may appear in the result set of SQLStatistics() */
+  SQL_TABLE_STAT      = 0;
+  SQL_INDEX_CLUSTERED = 1;
+  SQL_INDEX_HASHED    = 2;
+  SQL_INDEX_OTHER     = 3;
+//  SQL_INDEX_BTREE     = ???;
+//  SQL_INDEX_CONTENT   = ???;
+
 {
-/* Reserved values for UNIQUE argument of SQLStatistics() */
-#define SQL_INDEX_UNIQUE    0
-#define SQL_INDEX_ALL       1
-
-/* Values that may appear in the result set of SQLStatistics() */
-#define SQL_INDEX_CLUSTERED 1
-#define SQL_INDEX_HASHED    2
-#define SQL_INDEX_OTHER     3
-
 /* Information requested by SQLGetInfo() */
 #if (ODBCVER >= 0x0300)
 #define SQL_MAX_DRIVER_CONNECTIONS           0
@@ -1197,6 +1204,12 @@ type   TSQLProcedureColumns = function(hstmt: SQLHSTMT;
            SchemaName: PSQLCHAR; NameLength2: SQLSMALLINT;
            ProcName: PSQLCHAR; NameLength3: SQLSMALLINT;
            ColumnName: PSQLCHAR; NameLength4: SQLSMALLINT): SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
+type   TSQLStatistics = function (hstmt: SQLHSTMT;
+           CatalogName:PSQLCHAR; NameLength1:SQLSMALLINT;
+           SchemaName:PSQLCHAR; NameLength2:SQLSMALLINT;
+           TableName:PSQLCHAR; NameLength3:SQLSMALLINT;
+           Unique:SQLUSMALLINT;
+           Reserved:SQLUSMALLINT): SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 var    SQLAllocHandle:tSQLAllocHandle;
 var    SQLSetEnvAttr:tSQLSetEnvAttr;
@@ -1239,6 +1252,7 @@ var    SQLEndTran:TSQLEndTran;
 var    SQLTables:TSQLTables;
 var    SQLPrimaryKeys:TSQLPrimaryKeys;
 var    SQLProcedureColumns : TSQLProcedureColumns;
+var    SQLStatistics: TSQLStatistics;
 var    odbcversion:word;
 
 {$else}
@@ -1489,6 +1503,12 @@ var    odbcversion:word;
                 ProcName: PSQLCHAR; NameLength3: SQLSMALLINT;
                 ColumnName: PSQLCHAR; NameLength4: SQLSMALLINT): SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
                 external odbclib;
+   function SQLStatistics(hstmt: SQLHSTMT;
+                CatalogName:PSQLCHAR; NameLength1:SQLSMALLINT;
+                SchemaName:PSQLCHAR; NameLength2:SQLSMALLINT;
+                TableName:PSQLCHAR; NameLength3:SQLSMALLINT;
+                Unique:SQLUSMALLINT;
+                Reserved:SQLUSMALLINT): SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif}; external odbclib;
 {$endif}
 // This function always load dynamic
 
@@ -1567,6 +1587,7 @@ begin
     pointer(SQLTables) := GetProcedureAddress(ODBCLibraryHandle,'SQLTables');
     pointer(SQLPrimaryKeys) := GetProcedureAddress(ODBCLibraryHandle,'SQLPrimaryKeys');
     pointer(SQLProcedureColumns) := GetProcedureAddress(ODBCLibraryHandle,'SQLProcedureColumns');
+    pointer(SQLStatistics) := GetProcedureAddress(ODBCLibraryHandle,'SQLStatistics');
 {$else}
     SQLAllocHandle := GetProcedureAddress(ODBCLibraryHandle,'SQLAllocHandle');
     SQLSetEnvAttr := GetProcedureAddress(ODBCLibraryHandle,'SQLSetEnvAttr');
@@ -1611,6 +1632,7 @@ begin
     SQLTables := GetProcedureAddress(ODBCLibraryHandle,'SQLTables');
     SQLPrimaryKeys := GetProcedureAddress(ODBCLibraryHandle,'SQLPrimaryKeys');
     SQLProcedureColumns := GetProcedureAddress(ODBCLibraryHandle,'SQLProcedureColumns');
+    SQLStatistics := GetProcedureAddress(ODBCLibraryHandle,'SQLStatistics');
 {$endif}
     end;
 end;
