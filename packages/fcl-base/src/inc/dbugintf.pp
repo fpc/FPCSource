@@ -34,10 +34,13 @@ procedure SendSeparator;
 procedure SendDebugFmt(const Msg: string; const Args: array of const);
 procedure SendDebugFmtEx(const Msg: string; const Args: array of const; MType: TDebugLevel);
 
+procedure SetDebuggingEnabled(const AValue : boolean);
+function GetDebuggingEnabled : Boolean;
+
 { low-level routines }
 
 Function  StartDebugServer : integer;
-Procedure InitDebugClient;
+Function InitDebugClient : Boolean;
 
 Const
   SendError       : String = '';
@@ -65,6 +68,7 @@ var
   DebugClient : TSimpleIPCClient = nil;
   MsgBuffer : TMemoryStream = Nil;
   ServerID : Integer;
+  DebugDisabled : Boolean;
   Indent : Integer = 0;
   
 Procedure WriteMessage(Const Msg : TDebugMessage);
@@ -79,6 +83,7 @@ end;
 procedure SendDebugMessage(Var Msg : TDebugMessage);
 
 begin
+  if DebugDisabled then exit;
   try
     If (DebugClient=Nil) then
       InitDebugClient;
@@ -190,16 +195,29 @@ begin
   SendDebugMessage(Mesg);
 end;
 
+procedure SetDebuggingEnabled(const AValue: boolean);
+begin
+  DebugDisabled := not AValue;
+end;
+
+function GetDebuggingEnabled: Boolean;
+begin
+  Result := not DebugDisabled;
+end;
+
 function StartDebugServer : Integer;
 
 begin
   With TProcess.Create(Nil) do
+    begin
     Try
       CommandLine:='debugserver';
       Execute;
       Result:=ProcessID;
-    Finally
-      Free;
+    Except
+      Result := 0;
+    end;
+    Free;
     end;
 end;
 
@@ -224,18 +242,26 @@ begin
   end;
 end;
 
-Procedure InitDebugClient;
+Function InitDebugClient : Boolean;
 
 Var
   msg : TDebugMessage;
   I : Integer;
   
 begin
+  Result := False;
   DebugClient:=TSimpleIPCClient.Create(Nil);
   DebugClient.ServerID:=DebugServerID;
   If not DebugClient.ServerRunning then
     begin
     ServerID:=StartDebugServer;
+    if ServerID = 0 then
+      begin
+      DebugDisabled := True;
+      Exit;
+      end
+    else
+      DebugDisabled := False;
     I:=0;
     While (I<10) and not DebugClient.ServerRunning do
       begin
@@ -249,10 +275,11 @@ begin
   Msg.MsgTimeStamp:=Now;
   Msg.Msg:=Format(SProcessID,[ApplicationName]);
   WriteMessage(Msg);
+  Result := True;
 end;
 
 Initialization
-
+  DebugDisabled := False;
 Finalization
   FreeDebugClient;
 end.

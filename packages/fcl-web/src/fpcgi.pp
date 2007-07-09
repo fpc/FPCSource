@@ -121,6 +121,7 @@ Var
   
 begin
   MC:=Nil;
+  M:=Nil;
   If (OnGetModule<>Nil) then
     OnGetModule(Self,ARequest,MC);
   If (MC=Nil) then
