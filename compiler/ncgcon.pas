@@ -122,11 +122,7 @@ implementation
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
 {$ifdef ARM}
-        hiloswapped:=(current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
-          not(cs_fp_emulation in current_settings.moduleswitches);
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-        hiloswapped:=not hiloswapped;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
+        hiloswapped:=is_double_hilo_swapped;
 {$endif ARM}
         { const already used ? }
         if not assigned(lab_real) then

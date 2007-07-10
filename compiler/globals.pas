@@ -340,6 +340,9 @@ interface
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(siz: longint): shortint;
+{$ifdef ARM}
+    function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
+{$endif ARM}
 
 implementation
 
@@ -1005,6 +1008,17 @@ implementation
         const_align := used_align(siz,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
       end;
 
+{$ifdef ARM}
+    function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result := (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
+          not(cs_fp_emulation in current_settings.moduleswitches);
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
+        { inverse result if compiler was compiled with swapped hilo already }
+        result := not result;
+{$endif FPC_DOUBLE_HILO_SWAPPED}
+      end;
+{$endif ARM}
 
 {****************************************************************************
                                     Init
