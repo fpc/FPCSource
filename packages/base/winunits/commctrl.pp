@@ -1,4 +1,3 @@
-Unit CommCtrl;
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2004 by Marco van de Voort
@@ -40,26 +39,16 @@ Unit CommCtrl;
 }
 
 
+Unit CommCtrl;
 Interface
 
 {$Mode ObjFPC}
-Uses Windows,ActiveX;
+Uses Windows,CTypes,ActiveX;
 
 // --------------------
 
-TYPE CINT = Longint;
-     CUINT= CARDINAL;
-
-     DWORD_PTR   = ^DWORD;
-     PDWORD_PTR  = ^DWORD_PTR;
-     ULONG_PTR   = ^ULONG;
-     INT_PTR     = ^CINT;
-     UINT_PTR    = ^UINT;
-
-
-
 // --------------------
-CONST CommCtrlDLL = 'commctrl.dll';
+CONST CommCtrlDLL = 'comctl32.dll';
 
 // Some reasonal defaults.
 // for XP only set NT to $%0501 and IE to $0600
@@ -70,8 +59,16 @@ CONST CommCtrlDLL = 'commctrl.dll';
 {$DEFINE IE3PLUS}
 {$DEFINE IE4PLUS}
 {$define IE5plus}
-{$DEFINE WIN32XP}
+{$define WIN32XP}
+{$define ie501plus}
 
+{$ifdef win32}
+  {$define _win32}
+{$endif win32}
+
+{$ifdef win64}
+  {$define _win32}
+{$endif win64}
 
 {$DEFINE WIN32_WINNT=0}                     // NO XP
 {$DEFINE __IStream_INTERFACE_DEFINED__}  // lpstream defined in activex afaik.
@@ -295,7 +292,7 @@ CONST
 //====== WM_NOTIFY Macros =====================================================
 
 // Macro 8
-Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var  lParam : NMHDR ;fn :Pointer);
+Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var  _lParam : NMHDR ;fn :Pointer);
 
 // Macro 9
 Function FORWARD_WM_NOTIFY( hwnd : hwnd; idFrom : cint;var  pnmhdr : NMHDR ; fn :pointer ):LRESULT;
@@ -487,7 +484,8 @@ TYPE
          LPNMCUSTOMDRAW       = ^tagNMCUSTOMDRAWINFO;
          TNMCUSTOMDRAWINFO    = tagNMCUSTOMDRAWINFO;
          PNMCUSTOMDRAWINFO    = ^tagNMCUSTOMDRAWINFO;
-
+         PNMCustomDraw        = PNMCUSTOMDRAWINFO;
+         TNMCustomDraw        = tagNMCUSTOMDRAWINFO;
 
          tagNMTTCUSTOMDRAW    = Record
                                  nmcd         : NMCUSTOMDRAW;
@@ -625,13 +623,15 @@ function ImageList_DrawIndirect(pimldp:PIMAGELISTDRAWPARAMS):BOOL; external comm
 {$ENDIF}
 function ImageList_Remove(himl:HIMAGELIST;i:cint):BOOL; external commctrldll name 'ImageList_Remove';
 function ImageList_GetIcon(himl:HIMAGELIST;i:cint;flags:UINT):HICON; external commctrldll name 'ImageList_GetIcon';
-function ImageList_LoadImageA(hi:HINSTANCE;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
-function ImageList_LoadImageW(hi:HINSTANCE;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
+function ImageList_LoadImageA(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
+function ImageList_LoadImageW(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
+function ImageList_LoadImage(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
+function ImageList_LoadImage(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
 
 {$IFDEF UNICODE}
-function ImageList_LoadImageW(hi:HINSTANCE;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
+// function ImageList_LoadImageW(hi:HINSTANCE;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
 {$ELSE}
-function ImageList_LoadImageA(hi:HINSTANCE;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
+// function ImageList_LoadImageA(hi:HINSTANCE;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
 {$ENDIF}
 
 {$ifdef ie3plus}
@@ -644,7 +644,7 @@ function ImageList_Copy(himlDst:HIMAGELIST;iDst:cint;himlSrc:HIMAGELIST;iSrc:cin
 {$ENDIF}
 
 function ImageList_BeginDrag(himlTrack:HIMAGELIST;iTrack:cint;dxHotspot:cint;dyHotspot:cint):BOOL; external commctrldll name 'ImageList_BeginDrag';
-Procedure ImageList_EndDrag; external commctrldll name 'ImageList_EndDrag';
+function ImageList_EndDrag:BOOL; external commctrldll name 'ImageList_EndDrag';
 function ImageList_DragEnter(hwndLock:HWND;x:cint;y:cint):BOOL; external commctrldll name 'ImageList_DragEnter';
 function ImageList_DragLeave(hwndLock:HWND):BOOL; external commctrldll name 'ImageList_DragLeave';
 function ImageList_DragMove(x:cint;y:cint):BOOL; external commctrldll name 'ImageList_DragMove';
@@ -661,12 +661,12 @@ Procedure ImageList_ExtractIcon(hi:longint; {dummy?} himl:HIMAGELIST;i:cint);
 
 
 // Macro 15
-Procedure ImageList_LoadBitmap(hi:HInstance;lpbmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
+Procedure ImageList_LoadBitmap(hi:HInst;bmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
 
 {$IFDEF __IStream_INTERFACE_DEFINED__}
 
-function ImageList_Read(pstm:LPSTREAM):HIMAGELIST; external commctrldll name 'ImageList_Read';
-function ImageList_Write(himl:HIMAGELIST;pstm:LPSTREAM):BOOL; external commctrldll name 'ImageList_Write';
+function ImageList_Read(pstm:ISTREAM):HIMAGELIST; external commctrldll name 'ImageList_Read';
+function ImageList_Write(himl:HIMAGELIST;pstm:ISTREAM):BOOL; external commctrldll name 'ImageList_Write';
 
 {$ifdef Win32XP}
 
@@ -675,8 +675,8 @@ CONST
          ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel sematics.
 
 
-function ImageList_ReadEx(dwFlags:DWORD;pstm:LPSTREAM;riid:REFIID;ppv:PPVOID):HRESULT; external commctrldll name 'ImageList_ReadEx';
-function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:LPSTREAM):HRESULT; external commctrldll name 'ImageList_WriteEx';
+function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;riid:REFIID;ppv:PPointer):HRESULT; external commctrldll name 'ImageList_ReadEx';
+function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:ISTREAM):HRESULT; external commctrldll name 'ImageList_WriteEx';
 {$ENDIF}
 
 {$ENDIF}
@@ -699,8 +699,10 @@ TYPE
 {$ENDIF}
 
 function ImageList_GetIconSize(himl:HIMAGELIST;cx:Pint;cy:Pint):BOOL; external commctrldll name 'ImageList_GetIconSize';
+function ImageList_GetIconSize(himl:HIMAGELIST;var cx:cint;var cy:cint):BOOL; external commctrldll name 'ImageList_GetIconSize';
 function ImageList_SetIconSize(himl:HIMAGELIST;cx:cint;cy:cint):BOOL; external commctrldll name 'ImageList_SetIconSize';
 function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;pImageInfo:PIMAGEINFO):BOOL; external commctrldll name 'ImageList_GetImageInfo';
+function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;var pImageInfo:_IMAGEINFO):BOOL; external commctrldll name 'ImageList_GetImageInfo';
 function ImageList_Merge(himl1:HIMAGELIST;i1:cint;himl2:HIMAGELIST;i2:cint;dx:cint;dy:cint):HIMAGELIST; external commctrldll name 'ImageList_Merge';
 {$ifdef ie4plus}
 function ImageList_Duplicate(himl:HIMAGELIST):HIMAGELIST; external commctrldll name 'ImageList_Duplicate';
@@ -722,8 +724,6 @@ function ImageList_Duplicate(himl:HIMAGELIST):HIMAGELIST; external commctrldll n
 CONST
          WC_HEADERA                     = 'SysHeader32';
          WC_HEADERW                     = {L}'SysHeader32';
-
-TYPE
 {$IFDEF UNICODE}
          WC_HEADER           = WC_HEADERW;
 {$ELSE}
@@ -735,6 +735,8 @@ TYPE
 CONST
          WC_HEADER                      = 'SysHeader';
 {$ENDIF}
+
+CONST
 
 // begin_r_commctrl
 
@@ -828,6 +830,8 @@ TYPE
          LPHDITEMA            = ^_HD_ITEMA;
          THD_ITEMA            = _HD_ITEMA;
          PHD_ITEMA            = ^_HD_ITEMA;
+         THDItem              = THD_ITEMA;
+         PHDItem              = PHD_ITEMA;
 
 
 // #define HDITEMA_V1_SIZE CCSIZEOF_STRUCT(HDITEMA, lParam)
@@ -1002,15 +1006,18 @@ CONST
 
 TYPE
          _HD_HITTESTINFO      = Record
-                                 pt           : POINT;
-                                 flags        : UINT;
-                                 iItem        : cint;
+                                  case integer of
+                                    1: (pt           : POINT;flags        : UINT;iItem        : cint);
+                                    { delphi }
+                                    2: (point        : POINT;dummyflags   : UINT;Item        : cint);
                                  END;
          HDHITTESTINFO        = _HD_HITTESTINFO;
          HD_HITTESTINFO       = _HD_HITTESTINFO;
          LPHDHITTESTINFO      = ^_HD_HITTESTINFO;
          THD_HITTESTINFO      = _HD_HITTESTINFO;
          PHD_HITTESTINFO      = ^_HD_HITTESTINFO;
+         THDHitTestInfo       = THD_HITTESTINFO;
+         PHDHitTestInfo       = LPHDHITTESTINFO;
 
 
 CONST
@@ -1057,7 +1064,7 @@ CONST
          HDM_SETORDERARRAY              = (HDM_FIRST + 18);
 
 // Macro 28
-Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : LPARAM):BOOL;
+Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : PInteger):BOOL;inline;
 
 // lparam = int array of size HDM_GETITEMCOUNT
 // the array specifies the order that all items should be displayed.
@@ -1197,9 +1204,10 @@ CONST
 TYPE
          tagNMHEADERA         = Record
                                  hdr          : NMHDR;
-                                 iItem        : cint;
-                                 iButton      : cint;
-                                 pitem        : PHDITEMA;
+                                 case integer of
+                                   1: (iItem        : cint;iButton      : cint;pitem        : PHDITEMA);
+                                   { delphi: }
+                                   2: (Item        : cint;Button      : cint);
                                  END;
          NMHEADERA            = tagNMHEADERA;
          LPNMHEADERA          = ^tagNMHEADERA;
@@ -1238,7 +1246,8 @@ TYPE
 {$ENDIF}
 
          HD_NOTIFY           = NMHEADER;
-
+         THDNotify           = HD_NOTIFY;
+         PHDNotify           = ^HD_NOTIFY;
 
          tagNMHDDISPINFOW     = Record
                                  hdr          : NMHDR;
@@ -1305,7 +1314,6 @@ CONST
          TOOLBARCLASSNAMEW              = {L}'ToolbarWindow32';
          TOOLBARCLASSNAMEA              = 'ToolbarWindow32';
 
-TYPE
 {$IFDEF  UNICODE}
          TOOLBARCLASSNAME    = TOOLBARCLASSNAMEW;
 {$ELSE}
@@ -1313,8 +1321,6 @@ TYPE
 {$ENDIF}
 
 {$ELSE}
-
-CONST
          TOOLBARCLASSNAME               = 'ToolbarWindow';
 {$ENDIF}
 
@@ -1497,7 +1503,7 @@ CONST
 TYPE
 
          tagTBADDBITMAP       = Record
-                                 hInst        : HINSTANCE;
+                                 hInst        : HINST;
                                  nID          : UINT_PTR;
                                  END;
          TBADDBITMAP          = tagTBADDBITMAP;
@@ -1508,7 +1514,7 @@ TYPE
 
 
 CONST
-         HINST_COMMCTRL                 = ((HINSTANCE)-1);
+         HINST_COMMCTRL                 = HINST(-1);
          IDB_STD_SMALL_COLOR            = 0;
          IDB_STD_LARGE_COLOR            = 1;
          IDB_VIEW_SMALL_COLOR           = 4;
@@ -1790,6 +1796,8 @@ TYPE
          TBBUTTONINFO        = TBBUTTONINFOA;
          LPTBBUTTONINFO      = LPTBBUTTONINFOA;
 {$ENDIF}
+         TTBButtonInfo       = TBBUTTONINFO;
+         PTBButtonInfo       = LPTBBUTTONINFO;
 
 
 // BUTTONINFO APIs do NOT support the string pool.
@@ -1800,11 +1808,12 @@ CONST
          TB_GETBUTTONINFOA              = (WM_USER + 65);
          TB_SETBUTTONINFOA              = (WM_USER + 66);
 
-TYPE
 {$IFDEF UNICODE}
+CONST
          TB_GETBUTTONINFO    = TB_GETBUTTONINFOW;
          TB_SETBUTTONINFO    = TB_SETBUTTONINFOW;
 {$ELSE}
+CONST
          TB_GETBUTTONINFO    = TB_GETBUTTONINFOA;
          TB_SETBUTTONINFO    = TB_SETBUTTONINFOA;
 {$ENDIF}
@@ -1819,11 +1828,12 @@ CONST
 // is a pointer to a string, it will be handled as a string like listview
 // (although LPSTR_TEXTCALLBACK is not supported).
 
-TYPE
 {$IFDEF UNICODE}
+CONST
          TB_INSERTBUTTON     = TB_INSERTBUTTONW;
          TB_ADDBUTTONS       = TB_ADDBUTTONSW;
 {$ELSE}
+CONST
          TB_INSERTBUTTON     = TB_INSERTBUTTONA;
          TB_ADDBUTTONS       = TB_ADDBUTTONSA;
 {$ENDIF}
@@ -2009,11 +2019,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          TBN_GETINFOTIP      = TBN_GETINFOTIPW;
+TYPE
          NMTBGETINFOTIP      = NMTBGETINFOTIPW;
          LPNMTBGETINFOTIP    = LPNMTBGETINFOTIPW;
 {$ELSE}
+CONST
          TBN_GETINFOTIP      = TBN_GETINFOTIPA;
+TYPE
          NMTBGETINFOTIP      = NMTBGETINFOTIPA;
          LPNMTBGETINFOTIP    = LPNMTBGETINFOTIPA;
 {$ENDIF}
@@ -2054,11 +2068,15 @@ TYPE
          PNMTBDISPINFOW       = ^NMTBDISPINFOW;
 
 {$IFDEF UNICODE}
+CONST
          TBN_GETDISPINFO     = TBN_GETDISPINFOW;
+TYPE
          NMTBDISPINFO        = NMTBDISPINFOW;
          LPNMTBDISPINFO      = LPNMTBDISPINFOW;
 {$ELSE}
+CONST
          TBN_GETDISPINFO     = TBN_GETDISPINFOA;
+TYPE
          NMTBDISPINFO        = NMTBDISPINFOA;
          LPNMTBDISPINFO      = LPNMTBDISPINFOA;
 {$ENDIF}
@@ -2071,36 +2089,12 @@ CONST
          TBDDRET_TREATPRESSED           = 2;                  // Treat as a standard press button
 
 {$ENDIF}
-
-
 {$IFDEF UNICODE}
-
-TYPE
          TBN_GETBUTTONINFO   = TBN_GETBUTTONINFOW;
 {$ELSE}
          TBN_GETBUTTONINFO   = TBN_GETBUTTONINFOA;
 {$ENDIF}
-
-{$ifdef ie3plus}
-         TBNOTIFYA           = NMTOOLBARA;
-         TBNOTIFYW           = NMTOOLBARW;
-         LPTBNOTIFYA         = LPNMTOOLBARA;
-         LPTBNOTIFYW         = LPNMTOOLBARW;
-{$ELSE}
-         tagNMTOOLBARA       = tagTBNOTIFYA;
-         NMTOOLBARA          = TBNOTIFYA;
-         LPNMTOOLBARA        = LPTBNOTIFYA;
-         tagNMTOOLBARW       = tagTBNOTIFYW;
-         NMTOOLBARW          = TBNOTIFYW;
-         LPNMTOOLBARW        = LPTBNOTIFYW;
-{$ENDIF}
-
-
-CONST
-         TBNOTIFY                       = NMTOOLBAR;
-
 TYPE
-         LPTBNOTIFY          = LPNMTOOLBAR;
 
 {$ifdef ie3plus}
          tagNMTOOLBARA        = Record
@@ -2115,10 +2109,12 @@ TYPE
                                  END;
          NMTOOLBARA           = tagNMTOOLBARA;
          LPNMTOOLBARA         = ^tagNMTOOLBARA;
+         LPNMTOOLBAR          = LPNMTOOLBARA;
          TNMTOOLBARA          = tagNMTOOLBARA;
-         PNMTOOLBARA          = ^tagNMTOOLBARA;
-
+         PNMTOOLBARA          = LPNMTOOLBARA;
 {$ENDIF}
+         LPTBNOTIFY          = LPNMTOOLBARA;
+         TBNOTIFYA           = NMTOOLBARA;
 
 
 {$ifdef ie3plus}
@@ -2136,7 +2132,19 @@ TYPE
          LPNMTOOLBARW         = ^tagNMTOOLBARW;
          TNMTOOLBARW          = tagNMTOOLBARW;
          PNMTOOLBARW          = ^tagNMTOOLBARW;
+{$ENDIF}
 
+
+{$ifdef ie3plus}
+         TBNOTIFYW           = NMTOOLBARW;
+         LPTBNOTIFYA         = LPNMTOOLBARA;
+{$ELSE}
+         tagNMTOOLBARA       = tagTBNOTIFYA;
+         NMTOOLBARA          = TBNOTIFYA;
+         LPNMTOOLBARA        = LPTBNOTIFYA;
+         tagNMTOOLBARW       = tagTBNOTIFYW;
+         NMTOOLBARW          = TBNOTIFYW;
+         LPNMTOOLBARW        = LPTBNOTIFYW;
 {$ENDIF}
 
 
@@ -2145,13 +2153,17 @@ TYPE
          LPNMTOOLBAR         = LPNMTOOLBARW;
 {$ELSE}
          NMTOOLBAR           = NMTOOLBARA;
-         LPNMTOOLBAR         = LPNMTOOLBARA;
+         TNMTOOLBAR          = NMTOOLBARA;
+         PNMTOOLBAR          = LPNMTOOLBARA;
+
 {$ENDIF}
 
+         TBNOTIFY                       = NMTOOLBAR;
 {$ENDIF}
 
 {$ENDIF}      // NOTOOLBAR
 
+         LPTBNOTIFYW         = LPNMTOOLBARW;
 
 {$ifdef ie3plus}
 //====== REBAR CONTROL ========================================================
@@ -2164,7 +2176,6 @@ CONST
          REBARCLASSNAMEW                = {L}'ReBarWindow32';
          REBARCLASSNAMEA                = 'ReBarWindow32';
 
-TYPE
 {$IFDEF  UNICODE}
          REBARCLASSNAME      = REBARCLASSNAMEW;
 {$ELSE}
@@ -2177,6 +2188,7 @@ CONST
          REBARCLASSNAME                 = 'ReBarWindow';
 {$ENDIF}
 
+CONST
          RBIM_IMAGELIST                 = $00000001;
 
 // begin_r_commctrl
@@ -2331,6 +2343,9 @@ TYPE
          LPREBARBANDINFO     = LPREBARBANDINFOA;
          LPCREBARBANDINFO    = LPCREBARBANDINFOA;
 
+         TRebarBandInfo      = REBARBANDINFO;
+         PRebarBandInfo      = ^LPREBARBANDINFO;
+
 //         REBARBANDINFO_V3_SIZE          = REBARBANDINFOA_V3_SIZE;
 {$ENDIF}
 
@@ -2341,6 +2356,7 @@ CONST
          RB_SETBARINFO                  = (WM_USER +  4);
 {$ifdef IE4plus}
          RB_GETBANDINFO                 = (WM_USER +  5);
+         RB_GETBANDINFO_PRE_IE4         = (WM_USER +  5);
 {$ENDIF}
          RB_SETBANDINFOA                = (WM_USER +  6);
          RB_SETPARENT                   = (WM_USER +  7);
@@ -2560,6 +2576,8 @@ TYPE
          LPRBHITTESTINFO      = ^_RB_HITTESTINFO;
          TRB_HITTESTINFO      = _RB_HITTESTINFO;
          PRB_HITTESTINFO      = ^_RB_HITTESTINFO;
+         PRBHitTestInfo       = PRB_HITTESTINFO;
+         TRBHitTestInfo       = TRB_HITTESTINFO;
 
 
 {$ENDIF}      // _WIN32_IE >= 0x0400
@@ -2941,6 +2959,8 @@ TYPE
          TOOLTIPTEXTA        = NMTTDISPINFOA;
          LPTOOLTIPTEXTA      = LPNMTTDISPINFOA;
          LPTOOLTIPTEXTW      = LPNMTTDISPINFOW;
+         TTOOLTIPTEXTW       = NMTTDISPINFOW;
+         PTOOLTIPTEXTW       = LPNMTTDISPINFOW;
 {$ELSE}
 //         tagNMTTDISPINFOA    = tagTOOLTIPTEXTA;
          NMTTDISPINFOA       = TOOLTIPTEXTA;
@@ -3429,7 +3449,7 @@ CONST
 
 {$IFDEF _WIN32}
          HOTKEY_CLASSA                  = 'msctls_hotkey32';
-         HOTKEY_CLASSW                  = {L}'msctls_hotkey32';
+         HOTKEY_CLASSW                  = widestring('msctls_hotkey32');
 {$IFDEF UNICODE}
          HOTKEY_CLASS                   = HOTKEY_CLASSW;
 {$ELSE}
@@ -3440,6 +3460,7 @@ CONST
 {$ENDIF}
 
 {$ENDIF}  // NOHOTKEY
+         HOTKEYCLASS                    = HOTKEY_CLASSA;
 
 // begin_r_commctrl
 
@@ -3678,6 +3699,8 @@ Type
          LVITEMW             = LV_ITEMW;
 {$ENDIF}
          LV_ITEM                        = LVITEM;
+         TLVItem                        = LVITEM;
+         PLVItem                        = LPLVITEM;
 
 CONST
          LPSTR_TEXTCALLBACKW = LPWSTR(-1);
@@ -3833,6 +3856,8 @@ TYPE
          LVFINDINFOW         = LV_FINDINFOW;
 {$ENDIF}
 
+         TLVFindInfo         = LVFINDINFO;
+         PLVFindInfo         = ^LVFindInfo;
 
          LV_FINDINFO                    = LVFINDINFO;
 
@@ -3858,7 +3883,7 @@ CONST
          LVM_GETITEMRECT                = (LVM_FIRST + 14);
 
 // Macro 55 NI
-// Function ListView_GetItemRect( hwnd : hwnd; i : cint;prc {!};code {!}):BOOL;
+Function ListView_GetItemRect( hwnd : hwnd; i : cint;var prc : TRect;code : cint):BOOL;
 
 CONST
          LVM_SETITEMPOSITION            = (LVM_FIRST + 15);
@@ -3932,7 +3957,8 @@ CONST
          LVM_ENSUREVISIBLE              = (LVM_FIRST + 19);
 
 // Macro 60
-Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;inline;
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : BOOL ):BOOL;inline;
 
 CONST
          LVM_SCROLL                     = (LVM_FIRST + 20);
@@ -3950,7 +3976,11 @@ CONST
          LVA_DEFAULT                    = $0000;
          LVA_ALIGNLEFT                  = $0001;
          LVA_ALIGNTOP                   = $0002;
+         LVA_ALIGNRIGHT                 = $0003;
+         LVA_ALIGNBOTTOM                = $0004;
          LVA_SNAPTOGRID                 = $0005;
+         LVA_SORTASCENDING              = $0100;
+         LVA_SORTDESCENDING             = $0200;
          LVM_ARRANGE                    = (LVM_FIRST + 22);
 
 // Macro 63
@@ -4039,6 +4069,8 @@ TYPE
 
 
          LV_COLUMN                      = LVCOLUMN;
+         TLVColumn                      = LVCOLUMN;
+         PLVColumn                      = LPLVCOLUMN;
 
 CONST
          LVCF_FMT                       = $0001;
@@ -4132,7 +4164,8 @@ CONST
          LVM_CREATEDRAGIMAGE            = (LVM_FIRST + 33);
 
 // Macro 73
-Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;inline;
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; const lpptUpLeft : POINT):HIMAGELIST;inline;
 
 CONST
          LVM_GETVIEWRECT                = (LVM_FIRST + 34);
@@ -4264,6 +4297,7 @@ Procedure ListView_SetItemCountEx( hwndLV : hwnd; cItems : WPARAM; dwFlags : LPA
 
 TYPE
          PFNLVCOMPARE=Function(a,b,c:LPARAM):cint;
+         TLVCompare = PFNLVCOMPARE;
 
 CONST
          LVM_SORTITEMS                  = (LVM_FIRST + 48);
@@ -4424,7 +4458,8 @@ CONST
          LVM_SETWORKAREAS               = (LVM_FIRST + 65);
 
 // Macro 109
-Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var  prc : RECT ):BOOL;
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var  prc : RECT ):BOOL;inline;
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;  prc : PRECT ):BOOL;inline;
 
 CONST
          LVM_GETWORKAREAS               = (LVM_FIRST + 70);
@@ -5076,6 +5111,8 @@ TYPE
          NMLVFINDITEM        = NMLVFINDITEMA;
          LPNMLVFINDITEM      = LPNMLVFINDITEMA;
 {$ENDIF}
+         PNMLVFindItem       = LPNMLVFINDITEM;
+         TNMLVFindItem       = NMLVFINDITEM;
 
          tagNMLVODSTATECHANGE = Record
                                  hdr          : NMHDR;
@@ -5474,6 +5511,8 @@ TYPE
          TVITEMW             = TV_ITEMW;
          LPTVITEMW           = LPTV_ITEMW;
 {$ENDIF}
+         TTVItem             = TVITEMA;
+         PTVItem             = LPTVITEMA;
 
 
 
@@ -5516,11 +5555,9 @@ Type
                                  hParent      : HTREEITEM;
                                  hInsertAfter : HTREEITEM;
 {$ifdef ie4plus}
-                                 dumunion     : record
-                                                 case boolean of
-                                     false:   (itemex       : TVITEMEXA;);
-                                     True:    (item         : TV_ITEMA;);
-                                                 end;
+                                 case boolean of
+                                     false:   (itemex       : TVITEMEXA);
+                                     True:    (item         : TV_ITEMA);
 {$ELSE}
                                  item         : TV_ITEMA;
 {$ENDIF}
@@ -5529,17 +5566,17 @@ Type
          LPTVINSERTSTRUCTA    = ^tagTVINSERTSTRUCTA;
          TTVINSERTSTRUCTA     = tagTVINSERTSTRUCTA;
          PTVINSERTSTRUCTA     = ^tagTVINSERTSTRUCTA;
+         TTVINSERTSTRUCT      = TTVINSERTSTRUCTA;
+         PTVINSERTSTRUCT      = PTVINSERTSTRUCTA;
 
 
          tagTVINSERTSTRUCTW   = Record
                                  hParent      : HTREEITEM;
                                  hInsertAfter : HTREEITEM;
 {$ifdef ie4plus}
-                                 dumunion     : record
-                                                 case boolean of
+                                 case boolean of
                                      false:   (itemex       : TVITEMEXW);
                                      True:    (item         : TV_ITEMW);
-                                                 end;
 {$ELSE}
                                  item         : TV_ITEMW;
 {$ENDIF}
@@ -5589,7 +5626,8 @@ TYPE
 
 
 // Macro 156
-Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;
+Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;inline;
+Function TreeView_InsertItem( hwnd : hwnd; const lpis : TV_INSERTSTRUCT):HTREEITEM;inline;
 
 CONST
          TVM_DELETEITEM                 = (TV_FIRST + 1);
@@ -5619,7 +5657,8 @@ CONST
          TVM_GETITEMRECT                = (TV_FIRST + 4);
 
 // Macro 160
-Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;inline;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM; var prc : TRECT;code : Bool):BOOL;inline;
 
 CONST
          TVM_GETCOUNT                   = (TV_FIRST + 5);
@@ -5681,42 +5720,18 @@ CONST
          TVSI_NOSINGLEEXPAND            = $8000;              // Should not conflict with TVGN flags.
 {$ENDIF}
 
-// Macro 167
-
-// #define TreeView_GetChild(hwnd, hitem)          TreeView_GetNextItem(hwnd, hitem, TVGN_CHILD)
-// Macro 168
-
-// #define TreeView_GetNextSibling(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_NEXT)
-// Macro 169
-
-// #define TreeView_GetPrevSibling(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUS)
-// Macro 170
-
-// #define TreeView_GetParent(hwnd, hitem)         TreeView_GetNextItem(hwnd, hitem, TVGN_PARENT)
-// Macro 171
-
-// #define TreeView_GetFirstVisible(hwnd)          TreeView_GetNextItem(hwnd, NULL,  TVGN_FIRSTVISIBLE)
-// Macro 172
-
-// #define TreeView_GetNextVisible(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
-// Macro 173
-
-// #define TreeView_GetPrevVisible(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
-// Macro 174
-
-// #define TreeView_GetSelection(hwnd)             TreeView_GetNextItem(hwnd, NULL,  TVGN_CARET)
-// Macro 175
-
-// #define TreeView_GetDropHilight(hwnd)           TreeView_GetNextItem(hwnd, NULL,  TVGN_DROPHILITE)
-// Macro 176
-
-// #define TreeView_GetRoot(hwnd)                  TreeView_GetNextItem(hwnd, NULL,  TVGN_ROOT)
-{$ifdef ie4plus}
-// Macro 177
-
-// #define TreeView_GetLastVisible(hwnd)          TreeView_GetNextItem(hwnd, NULL,  TVGN_LASTVISIBLE)
-{$ENDIF}      // _WIN32_IE >= 0x0400
-
+function TreeView_GetChild(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetNextSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetPrevSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetParent(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetFirstVisible(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
+function TreeView_GetSelection(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetDropHilight(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetDropHilite(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
+function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 
 
 CONST
@@ -5857,7 +5872,8 @@ CONST
          TVM_CREATEDRAGIMAGE            = (TV_FIRST + 18);
 
 // Macro 187
-Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;
+Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;inline;
+Function TreeView_HitTest( hwnd : hwnd; var lpht : TV_HITTESTINFO):HTREEITEM;inline;
 
 
 // Macro 188
@@ -5894,7 +5910,8 @@ CONST
 // Macro 192
 
 
-Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;inline;
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : Bool):BOOL;inline;
 
 
 
@@ -6114,6 +6131,7 @@ Function TreeView_MapHTREEITEMToAccID( hwnd : hwnd; htreeitem : WPARAM):UINT;
 
 TYPE
          PFNTVCOMPARE =function (lparam1:LPARAM;lparam2:LPARAM;lParamSort:LParam): cint; STDCALL;
+         TTVCompare = PFNTVCOMPARE;
 
 
          tagTVSORTCB          = Record
@@ -6151,6 +6169,8 @@ TYPE
          LPNMTREEVIEWA        = ^tagNMTREEVIEWA;
          TNMTREEVIEWA         = tagNMTREEVIEWA;
          PNMTREEVIEWA         = ^tagNMTREEVIEWA;
+         PNMTreeView          = PNMTreeViewA;
+         TNMTreeView          = TNMTreeViewA;
 
 
 
@@ -6221,6 +6241,8 @@ Type
          LPNMTVDISPINFOA      = ^tagTVDISPINFOA;
          TTVDISPINFOA         = tagTVDISPINFOA;
          PTVDISPINFOA         = ^tagTVDISPINFOA;
+         TTVDispInfo          = TTVDISPINFOA;
+         PTVDispInfo          = PTVDISPINFOA;
 
 
          tagTVDISPINFOW       = Record
@@ -6257,7 +6279,8 @@ CONST
          TVM_SORTCHILDRENCB             = (TV_FIRST + 21);
 
 // Macro 191
-Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;
+Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;inline;
+Function TreeView_SortChildrenCB( hwnd : hwnd;const psort :tagTVsortcb; recurse : WPARAM):BOOL;inline;
 
 CONST
          TVN_ITEMEXPANDINGA             = (TVN_FIRST-5);
@@ -6290,7 +6313,7 @@ CONST
 
 
 {$IFDEF _WIN32}
-#include <pshpack1.h>
+// #include <pshpack1.h>
 {$ENDIF}
 
 TYPE
@@ -6314,7 +6337,7 @@ TYPE
 
 
 {$IFDEF _WIN32}
-#include <poppack.h>
+// #include <poppack.h>
 {$ENDIF}
 
 Const
@@ -6490,6 +6513,7 @@ TYPE
          PCOMBOBOXEXITEM     = PCOMBOBOXEXITEMA;
          PCCOMBOBOXEXITEM    = PCCOMBOBOXEXITEMA;
 {$ENDIF}
+         TComboBoxExItem     = COMBOBOXEXITEM;
 
 
 CONST
@@ -7065,7 +7089,8 @@ CONST
          TCM_HITTEST                    = (TCM_FIRST + 13);
 
 // Macro 228
-Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;
+Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;inline;
+Function TabCtrl_HitTest( hwndTC : hwnd;pinfo : LPTCHITTESTINFO ):cint;inline;
 
 CONST
          TCM_SETITEMEXTRA               = (TCM_FIRST + 14);
@@ -7149,7 +7174,7 @@ CONST
          TCM_SETCURFOCUS                = (TCM_FIRST + 48);
 
 // Macro 238
-Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : WParam );
+Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : LParam );
 
 
 {$ifdef ie3plus}
@@ -7182,7 +7207,7 @@ CONST
          TCM_SETEXTENDEDSTYLE           = (TCM_FIRST + 52);   // optional wParam == mask
 
 // Macro 242
-Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw :LPAram ):DWORD;
+Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw :LPARAM ):DWORD;
 
 
 CONST
@@ -7216,7 +7241,7 @@ CONST
 
 
 {$IFDEF _WIN32}
-#include <pshpack1.h>
+// #include <pshpack1.h>
 {$ENDIF}
 
 TYPE
@@ -7239,7 +7264,7 @@ TYPE
 
 
 {$IFDEF _WIN32}
-#include <poppack.h>
+// #include <poppack.h>
 {$ENDIF}
 
 
@@ -7306,7 +7331,7 @@ CONST
 // Macro 246
 
 
-Procedure Animate_Create(hwndP :HWND;id:HMENU;dwStyle:dword;hInstance:HINST);
+Function Animate_Create(hwndP :HWND;id:HMENU;dwStyle:dword;hInstance:HINST):HWND;
 
 // Macro 247
 
@@ -7334,7 +7359,7 @@ Procedure Animate_Create(hwndP :HWND;id:HMENU;dwStyle:dword;hInstance:HINST);
 //====== MONTHCAL CONTROL ======================================================
 
 {$IFNDEF NOMONTHCAL}
-{$IFDEF WIN32}
+{$IFDEF _WIN32}
 
 
 CONST
@@ -7354,6 +7379,8 @@ TYPE
 
          MONTHDAYSTATE       = DWORD;
          LPMONTHDAYSTATE     = ^MONTHDAYSTATE;
+         TMonthDayState      = MONTHDAYSTATE;
+         PMonthDayState      = LPMONTHDAYSTATE;
 
 
 CONST
@@ -7388,7 +7415,8 @@ CONST
 // DWORD MonthCal_GetMaxSelCount(HWND hmc)
 //   returns the maximum number of selectable days allowed
 
-function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool;
+function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool;inline;
+function MonthCal_SetCurSel(hwndMC:HWND; var lpSysTime :TSYSTEMTIME):Bool;inline;
 
 
 CONST
@@ -7478,7 +7506,8 @@ CONST
 // #define MonthCal_GetMinReqRect(hmc, prc)        SNDMSG(hmc, MCM_GETMINREQRECT, 0, (LPARAM)(prc))
 // set colors to draw control with -- see MCSC_ bits below
 
-function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;
+function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;inline;
+function MonthCal_GetMinReqRect(hwndMC:HWND; var lpr :TRect):Bool;inline;
 
 
 CONST
@@ -7487,7 +7516,7 @@ CONST
 // Macro 262
 // #define MonthCal_SetColor(hmc, iColor, clr) SNDMSG(hmc, MCM_SETCOLOR, iColor, clr)
 
-function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):Bool;
+function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):DWORD;inline;
 
 
 CONST
@@ -7792,6 +7821,7 @@ CONST
 // Macro 277
 
 // #define DateTime_SetSystemtime(hdp, gd, pst)    (BOOL)SNDMSG(hdp, DTM_SETSYSTEMTIME, (WPARAM)(gd), (LPARAM)(pst))
+function DateTime_SetSystemTime(hdp: HWND; gd: DWORD; const pst: TSystemTime): BOOL;inline;
 
 // DWORD DateTime_GetRange(HWND hdp, LPSYSTEMTIME rgst)
 //   modifies rgst[0] to be the minimum ALLOWABLE systemtime (or 0 if no minimum)
@@ -7814,6 +7844,7 @@ CONST
 // Macro 279
 
 // #define DateTime_SetRange(hdp, gd, rgst)  (BOOL)SNDMSG(hdp, DTM_SETRANGE, (WPARAM)(gd), (LPARAM)(rgst))
+function DateTime_SetRange(hdp: HWND; gdtr: DWORD; rgst: PSystemTime): BOOL;inline;
 
 // BOOL DateTime_SetFormat(HWND hdp, LPCTSTR sz)
 //   sets the display formatting string to sz (see GetDateFormat and GetTimeFormat for valid formatting chars)
@@ -7844,7 +7875,7 @@ CONST
 // Macro 281
 
 // #define DateTime_SetMonthCalColor(hdp, iColor, clr) SNDMSG(hdp, DTM_SETMCCOLOR, iColor, clr)
-
+function DateTime_SetMonthCalColor(hdp: HWND; iColor: DWORD; clr: TColorRef): TColorRef;inline;
 
 CONST
          DTM_GETMCCOLOR                 = (DTM_FIRST + 7);
@@ -7861,6 +7892,7 @@ CONST
 // Macro 283
 
 // #define DateTime_GetMonthCal(hdp) (HWND)SNDMSG(hdp, DTM_GETMONTHCAL, 0, 0)
+function DateTime_GetMonthCal(hdp: HWND): HWND;inline;
 
 {$ifdef ie4plus}
 
@@ -7942,14 +7974,20 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_USERSTRING      = DTN_USERSTRINGW;
+TYPE
          NMDATETIMESTRING    = NMDATETIMESTRINGW;
          LPNMDATETIMESTRING  = LPNMDATETIMESTRINGW;
 {$ELSE}
+CONST
          DTN_USERSTRING      = DTN_USERSTRINGA;
+TYPE
          NMDATETIMESTRING    = NMDATETIMESTRINGA;
          LPNMDATETIMESTRING  = LPNMDATETIMESTRINGA;
 {$ENDIF}
+         TNMDateTimeString   = NMDATETIMESTRING;
+         PNMDateTimeString   = LPNMDATETIMESTRING;
 
 
 
@@ -7983,11 +8021,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_WMKEYDOWN       = DTN_WMKEYDOWNW;
+TYPE
          NMDATETIMEWMKEYDOWN = NMDATETIMEWMKEYDOWNW;
          LPNMDATETIMEWMKEYDOWN= LPNMDATETIMEWMKEYDOWNW;
 {$ELSE}
+CONST
          DTN_WMKEYDOWN       = DTN_WMKEYDOWNA;
+TYPE
          NMDATETIMEWMKEYDOWN = NMDATETIMEWMKEYDOWNA;
          LPNMDATETIMEWMKEYDOWN= LPNMDATETIMEWMKEYDOWNA;
 {$ENDIF}
@@ -8026,11 +8068,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_FORMAT          = DTN_FORMATW;
+TYPE
          NMDATETIMEFORMAT    = NMDATETIMEFORMATW;
          LPNMDATETIMEFORMAT  = LPNMDATETIMEFORMATW;
 {$ELSE}
+CONST
          DTN_FORMAT          = DTN_FORMATA;
+TYPE
          NMDATETIMEFORMAT    = NMDATETIMEFORMATA;
          LPNMDATETIMEFORMAT  = LPNMDATETIMEFORMATA;
 {$ENDIF}
@@ -8065,11 +8111,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_FORMATQUERY     = DTN_FORMATQUERYW;
+TYPE
          NMDATETIMEFORMATQUERY= NMDATETIMEFORMATQUERYW;
          LPNMDATETIMEFORMATQUERY= LPNMDATETIMEFORMATQUERYW;
 {$ELSE}
+CONST
          DTN_FORMATQUERY     = DTN_FORMATQUERYA;
+TYPE
          NMDATETIMEFORMATQUERY= NMDATETIMEFORMATQUERYA;
          LPNMDATETIMEFORMATQUERY= LPNMDATETIMEFORMATQUERYA;
 {$ENDIF}
@@ -8362,7 +8412,7 @@ CONST
 
 
 {$IFDEF _WIN32}
-#include <pshpack1.h>
+// #include <pshpack1.h>
 {$ENDIF}
 
 // This structure is sent along with PGN_SCROLL notifications
@@ -8379,12 +8429,12 @@ TYPE
                                  END;
          NMPGSCROLL           = DummyStruct17;
          LPNMPGSCROLL         = ^DummyStruct17;
-         TDummyStruct17       = DummyStruct17;
-         PDummyStruct17       = ^DummyStruct17;
+         TNMPGScroll          = NMPGSCROLL;
+         PNMPGScroll          = LPNMPGSCROLL;
 
 
 {$IFDEF _WIN32}
-#include <poppack.h>
+// #include <poppack.h>
 {$ENDIF}
 
 // PGN_CALCSIZE Notification Message
@@ -8406,8 +8456,8 @@ TYPE
                                  END;
          NMPGCALCSIZE         = DummyStruct18;
          LPNMPGCALCSIZE       = ^DummyStruct18;
-         TDummyStruct18       = DummyStruct18;
-         PDummyStruct18       = ^DummyStruct18;
+         TNMPGCalcSize        = DummyStruct18;
+         PNMPGCalcSize        = LPNMPGCALCSIZE;
 
 
 
@@ -8484,7 +8534,7 @@ CONST
 
 {$IFNDEF NOBUTTON}
 
-{$IFDEF WIN32}
+{$IFDEF _WIN32}
 
 // Button Class Name
          WC_BUTTONA                     = 'Button';
@@ -8813,7 +8863,7 @@ CONST
 
          INVALID_LINK_INDEX             = (-1);
          MAX_LINKID_TEXT                = 48;
-         L_MAX_URL_LENGTH               = (2048 + 32 + sizeof("://"));
+         L_MAX_URL_LENGTH               = (2048 + 32 + length('://'));
 
          WC_LINK                        = {L}'SysLink';
 
@@ -8842,7 +8892,7 @@ TYPE
          LITEM                = tagLITEM;
          PLITEM               = ^tagLITEM;
          TLITEM               = tagLITEM;
-         PLITEM               = ^tagLITEM;
+//         PLITEM               = ^tagLITEM;
 
 
          tagLHITTESTINFO      = Record
@@ -8852,7 +8902,7 @@ TYPE
          LHITTESTINFO         = tagLHITTESTINFO;
          PLHITTESTINFO        = ^tagLHITTESTINFO;
          TLHITTESTINFO        = tagLHITTESTINFO;
-         PLHITTESTINFO        = ^tagLHITTESTINFO;
+//         PLHITTESTINFO        = ^tagLHITTESTINFO;
 
 
          tagNMLINK            = Record
@@ -8862,7 +8912,7 @@ TYPE
          NMLINK               = tagNMLINK;
          PNMLINK              = ^tagNMLINK;
          TNMLINK              = tagNMLINK;
-         PNMLINK              = ^tagNMLINK;
+//         PNMLINK              = ^tagNMLINK;
 
 
 //  SysLink notifications
@@ -8919,7 +8969,7 @@ CONST
          TME_LEAVE                      = $00000002;
 {$ifdef win32xp}
          TME_NONCLIENT                  = $00000010;
-{$ENDIF} /* WINVER >= 0x0500 */
+{$ENDIF} { WINVER >= 0x0500 }
          TME_QUERY                      = $40000000;
          TME_CANCEL                     = $80000000;
 
@@ -8960,54 +9010,53 @@ function _TrackMouseEvent(lpEventTrack:LPTRACKMOUSEEVENT):BOOL; external commctr
 
 
 CONST
-         WSB_PROP_CYVSCROLL             = $00000001L;
-         WSB_PROP_CXHSCROLL             = $00000002L;
-         WSB_PROP_CYHSCROLL             = $00000004L;
-         WSB_PROP_CXVSCROLL             = $00000008L;
-         WSB_PROP_CXHTHUMB              = $00000010L;
-         WSB_PROP_CYVTHUMB              = $00000020L;
-         WSB_PROP_VBKGCOLOR             = $00000040L;
-         WSB_PROP_HBKGCOLOR             = $00000080L;
-         WSB_PROP_VSTYLE                = $00000100L;
-         WSB_PROP_HSTYLE                = $00000200L;
-         WSB_PROP_WINSTYLE              = $00000400L;
-         WSB_PROP_PALETTE               = $00000800L;
-         WSB_PROP_MASK                  = $00000FFFL;
+         WSB_PROP_CYVSCROLL             = LONG($00000001);
+         WSB_PROP_CXHSCROLL             = LONG($00000002);
+         WSB_PROP_CYHSCROLL             = LONG($00000004);
+         WSB_PROP_CXVSCROLL             = LONG($00000008);
+         WSB_PROP_CXHTHUMB              = LONG($00000010);
+         WSB_PROP_CYVTHUMB              = LONG($00000020);
+         WSB_PROP_VBKGCOLOR             = LONG($00000040);
+         WSB_PROP_HBKGCOLOR             = LONG($00000080);
+         WSB_PROP_VSTYLE                = LONG($00000100);
+         WSB_PROP_HSTYLE                = LONG($00000200);
+         WSB_PROP_WINSTYLE              = LONG($00000400);
+         WSB_PROP_PALETTE               = LONG($00000800);
+         WSB_PROP_MASK                  = LONG($00000FFF);
 
          FSB_FLAT_MODE                  = 2;
          FSB_ENCARTA_MODE               = 1;
          FSB_REGULAR_MODE               = 0;
 
-function FlatSB_EnableScrollBar(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_EnableScrollBar';
-function FlatSB_ShowScrollBar(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_ShowScrollBar';
+function FlatSB_EnableScrollBar(hwnd:HWND;code : cint;p3 : UINT):BOOL; external commctrldll name 'FlatSB_EnableScrollBar';
+function FlatSB_ShowScrollBar(hwnd:HWND;code : cint;p3 : BOOL):BOOL; external commctrldll name 'FlatSB_ShowScrollBar';
 
-function FlatSB_GetScrollRange(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
-function FlatSB_GetScrollInfo(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
+function FlatSB_GetScrollRange(hwnd:HWND;code : cint;p3 : LPINT;p4 : LPINT):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
+function FlatSB_GetScrollRange(hwnd:HWND;code : cint;var p3,p4 : cint):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
+function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;ScrollInfo : LPSCROLLINFO):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
+function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;var ScrollInfo : TSCROLLINFO):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
 
-function FlatSB_GetScrollPos(hwnd:HWND):cint; external commctrldll name 'FlatSB_GetScrollPos';
+function FlatSB_GetScrollPos(hwnd:HWND;code : cint):cint; external commctrldll name 'FlatSB_GetScrollPos';
 
 
 function FlatSB_GetScrollProp(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
 {$IFDEF _WIN64}
-function FlatSB_GetScrollPropPtr(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollPropPtr';
+function FlatSB_GetScrollPropPtr(hwnd:HWND;propIndex : cint;p3 : LPINT):BOOL; external commctrldll name 'FlatSB_GetScrollPropPtr';
 {$ELSE}
-function FlatSB_GetScrollPropPtr(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
+function FlatSB_GetScrollPropPtr(hwnd:HWND;code : cint):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
 {$ENDIF}
 
 
-function FlatSB_SetScrollPos(:HWND):cint; external commctrldll name 'FlatSB_SetScrollPos';
+function FlatSB_SetScrollPos(hWnd:HWND;nBar,nPos:cint;bRedraw:BOOL):cint; external commctrldll name 'FlatSB_SetScrollPos';
 
-function FlatSB_SetScrollInfo(:HWND):cint; external commctrldll name 'FlatSB_SetScrollInfo';
+function FlatSB_SetScrollInfo(hWnd:HWND;BarFlag:cint;const ScrollInfo:TScrollInfo;Redraw:BOOL):cint; external commctrldll name 'FlatSB_SetScrollInfo';
 
 
-function FlatSB_SetScrollRange(:HWND):cint; external commctrldll name 'FlatSB_SetScrollRange';
-function FlatSB_SetScrollProp(:HWND):BOOL; external commctrldll name 'FlatSB_SetScrollProp';
+function FlatSB_SetScrollRange(hWnd: HWND; nBar,nMinPos,nMaxPos: cint; bRedraw: BOOL):cint; external commctrldll name 'FlatSB_SetScrollRange';
+function FlatSB_SetScrollProp(p1: HWND; index : UINT; newValue: INT_PTR; p4: BOOL):BOOL; external commctrldll name 'FlatSB_SetScrollProp';
 
-CONST
-         FlatSB_SetScrollPropPtr        = FlatSB_SetScrollProp;
-
-function InitializeFlatSB(:HWND):BOOL; external commctrldll name 'InitializeFlatSB';
-function UninitializeFlatSB(:HWND):HRESULT; external commctrldll name 'UninitializeFlatSB';
+function InitializeFlatSB(hWnd:HWND):BOOL; external commctrldll name 'InitializeFlatSB';
+function UninitializeFlatSB(hWnd:HWND):HRESULT; external commctrldll name 'UninitializeFlatSB';
 
 {$ENDIF}  //  NOFLATSBAPIS
 
@@ -9055,12 +9104,12 @@ IMPLEMENTATION
 //#define HANDLE_WM_NOTIFY(hwnd, wParam, lParam, fn) \
 //     (fn)((hwnd), (int)(wParam), (NMHDR *)(lParam))
 
-Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var  lParam : NMHDR ;fn:Pointer);
+Procedure HANDLE_WM_NOTIFY( hwnd : hwnd; wParam : cint;var _lParam : NMHDR ;fn:Pointer);
 
-TYPE FnType=procedure ( hwnd : hwnd; wParam : cint;tst:longint); stdcall;
+TYPE FnType=procedure ( hwnd : hwnd; wParam : cint;tst:LPARAM); stdcall;
 
 Begin
- fnType(fn)(hwnd, wParam, Longint(@lParam));
+ fnType(fn)(hwnd, wParam, LPARAM(@_lParam));
 end;
 
 // Macro 9
@@ -9073,7 +9122,7 @@ Function FORWARD_WM_NOTIFY( hwnd : hwnd; idFrom : cint;var  pnmhdr : NMHDR ; fn 
 TYPE FnType=Function( hwnd : hwnd; wParam : cint;wparam2:cint;lparam1:lparam):LResult; stdcall;
 
 Begin
- Result:=LRESULT(fntype(fn)(hwnd, WM_NOTIFY, idFrom, Longint(@pnmhdr)));
+ Result:=LRESULT(fntype(fn)(hwnd, WM_NOTIFY, idFrom, LPARAM(@pnmhdr)));
 end;
 
 // Macro 10
@@ -9114,10 +9163,10 @@ end;
 // #define     ImageList_LoadBitmap(hi, lpbmp, cx, cGrow, crMask)
 // ImageList_LoadImage(hi, lpbmp, cx, cGrow, crMask, IMAGE_BITMAP, 0)
 
-Procedure ImageList_LoadBitmap(hi:HINST;lpbmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
+Procedure ImageList_LoadBitmap(hi:HINST;bmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
 
 Begin
- ImageList_LoadImage(hi, lpbmp, cx, cGrow, crMask, IMAGE_BITMAP, 0);
+ ImageList_LoadImage(hi, bmp, cx, cGrow, crMask, IMAGE_BITMAP, 0);
 End;
 
 // Macro 16
@@ -9127,7 +9176,7 @@ End;
 Function Header_GetItemCount( hwndHD : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwndHD), HDM_GETITEMCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwndHD), HDM_GETITEMCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -9138,17 +9187,17 @@ end;
 Function Header_InsertItem( hwndHD : hwnd; i : cint;const phdi : HD_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwndHD), HDM_INSERTITEM, (i), Longint(@phdi)));
+ Result:=cint(SendMessage((hwndHD), HDM_INSERTITEM, (i), LPARAM(@phdi)));
 end;
 
 // Macro 18
 //#define Header_DeleteItem(hwndHD, i) \
-//     (BOOL)SNDMSG((hwndHD), HDM_DELETEITEM, (WPARAM)(int)(i), DWord(0))
+//     (BOOL)SNDMSG((hwndHD), HDM_DELETEITEM, (WPARAM)(int)(i), LPARAM(0))
 
 Function Header_DeleteItem( hwndHD : hwnd; i : cint):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_DELETEITEM, (i), DWord(0)));
+ Result:=BOOL(SendMessage((hwndHD), HDM_DELETEITEM, (i), LPARAM(0)));
 end;
 
 
@@ -9159,7 +9208,7 @@ end;
 Function Header_GetItem( hwndHD : hwnd; i : cint;var  phdi : HD_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_GETITEM, (i), Longint(@phdi)));
+ Result:=BOOL(SendMessage((hwndHD), HDM_GETITEM, (i), LPARAM(@phdi)));
 end;
 
 
@@ -9170,7 +9219,7 @@ end;
 Function Header_SetItem( hwndHD : hwnd; i : cint;const phdi : HD_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_SETITEM, (i), Longint(@phdi)));
+ Result:=BOOL(SendMessage((hwndHD), HDM_SETITEM, (i), LPARAM(@phdi)));
 end;
 
 
@@ -9181,7 +9230,7 @@ end;
 Function Header_Layout( hwndHD : hwnd;var  playout : HD_LAYOUT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndHD), HDM_LAYOUT, 0, Longint(@playout)))
+ Result:=BOOL(SendMessage((hwndHD), HDM_LAYOUT, 0, LPARAM(@playout)))
 end;
 
 
@@ -9255,10 +9304,10 @@ end;
 // #define Header_SetOrderArray(hwnd, iCount, lpi) \
 //         (BOOL)SNDMSG((hwnd), HDM_SETORDERARRAY, (WPARAM)(iCount), (LPARAM)(lpi))
 
-Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : LPARAM):BOOL;
+Function Header_SetOrderArray( hwnd : hwnd; iCount : WPARAM; lpi : PInteger):BOOL;inline;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), HDM_SETORDERARRAY, iCount, lpi))
+ Result:=BOOL(SendMessage((hwnd), HDM_SETORDERARRAY, iCount, LPARAM(lpi)))
 end;
 
 
@@ -9388,12 +9437,12 @@ end;
 
 // Macro 40
 // #define ListView_GetBkColor(hwnd)  \
-//     (COLORREF)SNDMSG((hwnd), LVM_GETBKCOLOR, 0, DWord(0))
+//     (COLORREF)SNDMSG((hwnd), LVM_GETBKCOLOR, 0, LPARAM(0))
 
 Function ListView_GetBkColor( hwnd : hwnd):COLORREF;
 
 Begin
- Result:=COLORREF(SendMessage((hwnd), LVM_GETBKCOLOR, 0, DWord(0)))
+ Result:=COLORREF(SendMessage((hwnd), LVM_GETBKCOLOR, 0, LPARAM(0)))
 end;
 
 
@@ -9415,7 +9464,7 @@ end;
 Function ListView_GetImageList( hwnd : hwnd; iImageList : CINT):HIMAGELIST;
 
 Begin
- Result:=HIMAGELIST(SendMessage((hwnd), LVM_GETIMAGELIST, iImageList, DWord(0)))
+ Result:=HIMAGELIST(SendMessage((hwnd), LVM_GETIMAGELIST, iImageList, LPARAM(0)))
 end;
 
 
@@ -9437,7 +9486,7 @@ end;
 Function ListView_GetItemCount( hwnd : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_GETITEMCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwnd), LVM_GETITEMCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -9451,7 +9500,7 @@ end;
 Function ListView_GetItem( hwnd : hwnd;var  pitem : LV_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETITEM, 0, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -9462,7 +9511,7 @@ end;
 Function ListView_SetItem( hwnd : hwnd;const pitem : LV_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_SETITEM, 0, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), LVM_SETITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -9473,7 +9522,7 @@ end;
 Function ListView_InsertItem( hwnd : hwnd;Const pitem : LV_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_INSERTITEM, 0, Longint(@pitem)))
+ Result:=cint(SendMessage((hwnd), LVM_INSERTITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -9484,7 +9533,7 @@ end;
 Function ListView_DeleteItem( hwnd : hwnd; i : cint):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_DELETEITEM, (i), DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), LVM_DELETEITEM, (i), LPARAM(0)))
 end;
 
 
@@ -9495,7 +9544,7 @@ end;
 Function ListView_DeleteAllItems( hwnd : hwnd):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_DELETEALLITEMS, 0, DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), LVM_DELETEALLITEMS, 0, LPARAM(0)))
 end;
 
 
@@ -9539,7 +9588,7 @@ end;
 Function ListView_FindItem( hwnd : hwnd; iStart : cint;const plvfi : LV_FINDINFO ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_FINDITEM, iStart, Longint(@plvfi)))
+ Result:=cint(SendMessage((hwnd), LVM_FINDITEM, iStart, LPARAM(@plvfi)))
 end;
 
 
@@ -9548,11 +9597,16 @@ end;
 //      (BOOL)SNDMSG((hwnd), LVM_GETITEMRECT, (WPARAM)(int)(i), \
 //            ((prc) ? (((RECT *)(prc))->left = (code),(LPARAM)(RECT *)(prc)) : (LPARAM)(RECT *)NULL))
 
-// Function ListView_GetItemRect( hwnd : hwnd; i : cint;prc {!};code {!}):BOOL;
-//
-// Begin
-// Result:=BOOL(SendMessage((hwnd), LVM_GETITEMRECT, (i), \)
-// end;
+Function ListView_GetItemRect( hwnd : hwnd; i : cint;var prc : TRect;code : cint):BOOL;
+begin
+  if assigned(@prc) then
+    begin
+      prc.left:=Code;
+      Result:=BOOL(SendMessage(hWnd,LVM_GETITEMRECT,i,LPARAM(@prc)));
+    end
+  else
+    Result:=BOOL(SendMessage(hWnd,LVM_GETITEMRECT,i,0));
+end;
 
 
 // Macro 56
@@ -9602,10 +9656,17 @@ end;
 // #define ListView_EnsureVisible(hwndLV, i, fPartialOK) \
 //     (BOOL)SNDMSG((hwndLV), LVM_ENSUREVISIBLE, (WPARAM)(int)(i), MAKELPARAM((fPartialOK), 0))
 
-Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : cint ):BOOL;inline;
 
 Begin
  Result:=BOOL(SendMessage((hwndLV), LVM_ENSUREVISIBLE, (i), MAKELPARAM((fPartialOK), 0)))
+end;
+
+
+Function ListView_EnsureVisible( hwndLV : hwnd; i : cint; fPartialOK : BOOL ):BOOL;inline;
+
+Begin
+ Result:=BOOL(SendMessage((hwndLV), LVM_ENSUREVISIBLE, (i), LPARAM(fPartialOK)))
 end;
 
 
@@ -9638,7 +9699,7 @@ end;
 Function ListView_Arrange( hwndLV : hwnd; code : UINT):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndLV), LVM_ARRANGE, code, DWord(0)))
+ Result:=BOOL(SendMessage((hwndLV), LVM_ARRANGE, code, LPARAM(0)))
 end;
 
 
@@ -9649,7 +9710,7 @@ end;
 Function ListView_EditLabel( hwndLV : hwnd; i : cint):HWND;
 
 Begin
- Result:=HWND(SendMessage((hwndLV), LVM_EDITLABEL, (i), DWord(0)))
+ Result:=HWND(SendMessage((hwndLV), LVM_EDITLABEL, (i), LPARAM(0)))
 end;
 
 
@@ -9660,7 +9721,7 @@ end;
 Function ListView_GetEditControl( hwndLV : hwnd):HWND;
 
 Begin
- Result:=HWND(SendMessage((hwndLV), LVM_GETEDITCONTROL, 0, DWord(0)))
+ Result:=HWND(SendMessage((hwndLV), LVM_GETEDITCONTROL, 0, LPARAM(0)))
 end;
 
 
@@ -9671,7 +9732,7 @@ end;
 Function ListView_GetColumn( hwnd : hwnd; iCol : cint;var  pcol : LV_COLUMN ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETCOLUMN, iCol, Longint(@pcol)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETCOLUMN, iCol, LPARAM(@pcol)))
 end;
 
 
@@ -9682,7 +9743,7 @@ end;
 Function ListView_SetColumn( hwnd : hwnd; iCol : cint; Const pcol : LV_COLUMN ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_SETCOLUMN, iCol, Longint(@pcol)))
+ Result:=BOOL(SendMessage((hwnd), LVM_SETCOLUMN, iCol, LPARAM(@pcol)))
 end;
 
 
@@ -9693,7 +9754,7 @@ end;
 Function ListView_InsertColumn( hwnd : hwnd; iCol : cint;const pcol : LV_COLUMN ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), LVM_INSERTCOLUMN, iCol, Longint(@pcol)))
+ Result:=cint(SendMessage((hwnd), LVM_INSERTCOLUMN, iCol, LPARAM(@pcol)))
 end;
 
 
@@ -9737,7 +9798,7 @@ end;
 Function ListView_GetHeader( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, DWord(0)));
+ Result:=Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, LPARAM(0)));
 end;
 
 
@@ -9745,10 +9806,16 @@ end;
 // #define ListView_CreateDragImage(hwnd, i, lpptUpLeft) \
 //     (HIMAGELIST)SNDMSG((hwnd), LVM_CREATEDRAGIMAGE, (WPARAM)(int)(i), (LPARAM)(LPPOINT)(lpptUpLeft))
 
-Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; lpptUpLeft : LPPOINT):HIMAGELIST;inline;
 
 Begin
  Result:=HIMAGELIST(SendMessage((hwnd), LVM_CREATEDRAGIMAGE, WPARAM(i), LPARAM(lpptUpLeft)))
+end;
+
+Function ListView_CreateDragImage( hwnd : hwnd; i : cint; const lpptUpLeft : POINT):HIMAGELIST;inline;
+
+Begin
+ Result:=HIMAGELIST(SendMessage((hwnd), LVM_CREATEDRAGIMAGE, WPARAM(i), LPARAM(@lpptUpLeft)))
 end;
 
 
@@ -9759,7 +9826,7 @@ end;
 Function ListView_GetViewRect( hwnd : hwnd;var  prc : RECT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETVIEWRECT, 0, Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETVIEWRECT, 0, LPARAM(@prc)))
 end;
 
 // Macro 75
@@ -9769,7 +9836,7 @@ end;
 Function ListView_GetTextColor( hwnd : hwnd):COLORREF;
 
 Begin
- Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTCOLOR, 0, DWord(0)))
+ Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTCOLOR, 0, LPARAM(0)))
 end;
 
 
@@ -9791,7 +9858,7 @@ end;
 Function ListView_GetTextBkColor( hwnd : hwnd):COLORREF;
 
 Begin
- Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTBKCOLOR, 0, DWord(0)))
+ Result:=COLORREF(SendMessage((hwnd), LVM_GETTEXTBKCOLOR, 0, LPARAM(0)))
 end;
 
 
@@ -9836,7 +9903,7 @@ end;
 Function ListView_GetOrigin( hwndLV : hwnd;var  ppt : POINT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndLV), LVM_GETORIGIN, WPARAM(0), Longint(@ppt)))
+ Result:=BOOL(SendMessage((hwndLV), LVM_GETORIGIN, WPARAM(0), LPARAM(@ppt)))
 end;
 
 
@@ -9847,7 +9914,7 @@ end;
 Function ListView_Update( hwndLV : hwnd; i : WPARAM):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndLV), LVM_UPDATE, (i), DWord(0)))
+ Result:=BOOL(SendMessage((hwndLV), LVM_UPDATE, (i), LPARAM(0)))
 end;
 
 
@@ -9866,7 +9933,7 @@ Var _ms_lvi : LV_ITEM;
 Begin
  _ms_lvi.stateMask:=mask;
  _ms_lvi.state:=data;
- SendMessage(hwndLV, LVM_SETITEMSTATE, i,longint(@_ms_lvi));
+ SendMessage(hwndLV, LVM_SETITEMSTATE, i,LPARAM(@_ms_lvi));
 end;
 
 
@@ -9994,7 +10061,7 @@ Var ptNewPos:POINT;
 
 Begin
  ptNewPos.X:=x0; ptNewPos.Y:=y0;
- SendMessage(hwndlv, LVM_SETITEMPOSITION32, I,Longint(@ptNewPos));
+ SendMessage(hwndlv, LVM_SETITEMPOSITION32, I,LPARAM(@ptNewPos));
 end;
 
 
@@ -10005,7 +10072,7 @@ end;
 Function ListView_GetSelectedCount( hwndLV : hwnd):UINT;
 
 Begin
- Result:=SendMessage(hwndLV, LVM_GETSELECTEDCOUNT, 0, DWord(0));
+ Result:=SendMessage(hwndLV, LVM_GETSELECTEDCOUNT, 0, LPARAM(0));
 end;
 
 // Macro 94
@@ -10015,7 +10082,7 @@ end;
 Function ListView_GetItemSpacing( hwndLV : hwnd; fSmall : cint ):DWORD;
 
 Begin
- Result:=DWORD(SendMessage((hwndLV), LVM_GETITEMSPACING, fSmall, DWord(0)));
+ Result:=LPARAM(SendMessage((hwndLV), LVM_GETITEMSPACING, fSmall, LPARAM(0)));
 end;
 
 // Macro 95
@@ -10175,11 +10242,16 @@ end;
 // #define ListView_SetWorkAreas(hwnd, nWorkAreas, prc) \
 //     (BOOL)SNDMSG((hwnd), LVM_SETWORKAREAS, (WPARAM)(int)(nWorkAreas), (LPARAM)(RECT *)(prc))
 
-Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var prc : RECT ):BOOL;
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var prc : RECT ):BOOL;inline;
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_SETWORKAREAS, nWorkAreas, Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), LVM_SETWORKAREAS, nWorkAreas, LPARAM(@prc)))
 end;
 
+
+Function ListView_SetWorkAreas( hwnd : hwnd; nWorkAreas : cint;  prc : PRECT ):BOOL;inline;
+Begin
+ Result:=BOOL(SendMessage((hwnd), LVM_SETWORKAREAS, nWorkAreas, LPARAM(prc)))
+end;
 
 // Macro 110
 // #define ListView_GetWorkAreas(hwnd, nWorkAreas, prc) \
@@ -10187,7 +10259,7 @@ end;
 
 Function ListView_GetWorkAreas( hwnd : hwnd; nWorkAreas : cint;var  prc : RECT ):BOOL;
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETWORKAREAS, nWorkAreas, Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETWORKAREAS, nWorkAreas, LPARAM(@prc)))
 end;
 
 
@@ -10197,7 +10269,7 @@ end;
 
 Function ListView_GetNumberOfWorkAreas( hwnd : hwnd;var pnWorkAreas : UINT ):BOOL;
 Begin
- Result:=BOOL(SendMessage((hwnd), LVM_GETNUMBEROFWORKAREAS, 0, Longint(@pnWorkAreas)))
+ Result:=BOOL(SendMessage((hwnd), LVM_GETNUMBEROFWORKAREAS, 0, LPARAM(@pnWorkAreas)))
 end;
 
 
@@ -10659,11 +10731,16 @@ end;
 // #define TreeView_InsertItem(hwnd, lpis) \
 //     (HTREEITEM)SNDMSG((hwnd), TVM_INSERTITEM, 0, (LPARAM)(LPTV_INSERTSTRUCT)(lpis))
 
-Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;
+Function TreeView_InsertItem( hwnd : hwnd; lpis : LPTV_INSERTSTRUCT):HTREEITEM;inline;
 Begin
  Result:=HTREEITEM(SendMessage((hwnd), TVM_INSERTITEM, 0, LPARAM(lpis)));
 end;
 
+
+Function TreeView_InsertItem( hwnd : hwnd; const lpis : TV_INSERTSTRUCT):HTREEITEM;inline;
+Begin
+ Result:=HTREEITEM(SendMessage((hwnd), TVM_INSERTITEM, 0, LPARAM(@lpis)));
+end;
 
 // Macro 157
 // #define TreeView_DeleteItem(hwnd, hitem) \
@@ -10699,10 +10776,16 @@ end;
 // #define TreeView_GetItemRect(hwnd, hitem, prc, code) \
 //     (*(HTREEITEM *)prc = (hitem), (BOOL)SNDMSG((hwnd), TVM_GETITEMRECT, (WPARAM)(code), (LPARAM)(RECT *)(prc)))
 
-Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: TREEITEM; code : WPARAM; prc : pRECT):BOOL;inline;
 Begin
  HTREEITEM(prc)^:=HITEM;
- Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, code, longint(prc)));
+ Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, code, LPARAM(prc)));
+end;
+
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM; var prc : TRECT;code : Bool):BOOL;inline;
+Begin
+ HTREEITEM(Pointer(@prc)^):=HITEM;
+ Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, WPARAM(code), LPARAM(@prc)));
 end;
 
 // Macro 161
@@ -10750,7 +10833,7 @@ end;
 
 Function TreeView_SetImageList( hwnd : hwnd; himl : HIMAGELIST; iImage : cint ):HIMAGELIST;
 Begin
- Result:=HIMAGELIST(SendMessage((hwnd), TVM_SETIMAGELIST, iImage, himl))
+  Result:=HIMAGELIST(SendMessage((hwnd), TVM_SETIMAGELIST, iImage, himl))
 end;
 
 // Macro 166
@@ -10760,16 +10843,16 @@ end;
 Function TreeView_GetNextItem( hwnd : hwnd; hitem : HTREEITEM; code : WPARAM):HTREEITEM;
 
 Begin
- Result:=HTREEITEM(SendMessage((hwnd), TVM_GETNEXTITEM, code, lparam(hitem)))
+  Result:=HTREEITEM(SendMessage((hwnd), TVM_GETNEXTITEM, code, lparam(hitem)))
 end;
 
 
 // Macro 167
 
-procedure TreeView_GetChild(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetChild(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 
 Begin
- TreeView_GetNextItem(hwnd, hitem, TVGN_CHILD)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_CHILD)
 End;
 // Macro 168
 
@@ -10779,44 +10862,43 @@ End;
 
 
 
-procedure TreeView_GetNextSibling(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetNextSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 // (hwnd, hitem)
 // TreeView_GetNextItem(hwnd, hitem, TVGN_NEXT)
 
 Begin
- TreeView_getNextItem(hwnd,hitem,TVGN_NEXT);
+  Result:=TreeView_getNextItem(hwnd,hitem,TVGN_NEXT);
 end;
 
 // Macro 169
-Procedure TreeView_GetPrevSibling(hwnd:hwnd; hitem:HTREEITEM);
-
+function TreeView_GetPrevSibling(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 begin
- TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUS);
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUS);
 end;
 
 // Macro 170
 
-procedure TreeView_GetParent(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetParent(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;
 begin
- TreeView_GetNextItem(hwnd, hitem, TVGN_PARENT)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PARENT)
 end;
 
 // Macro 171
 // #define TreeView_GetFirstVisible(hwnd:hwnd);
 // TreeView_GetNextItem(hwnd, NULL,  TVGN_FIRSTVISIBLE)
 
-Procedure TreeView_GetFirstVisible(hwnd:hwnd);
+function TreeView_GetFirstVisible(hwnd:hwnd) : HTREEITEM;inline;
 begin
-TreeView_GetNextItem(hwnd, NIL,  TVGN_FIRSTVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_FIRSTVISIBLE)
 end;
 
 // Macro 172
 
 //#define TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM);
 //(hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
-Procedure TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetNextVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
 begin
-  TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_NEXTVISIBLE)
 end;
 
 // Macro 173
@@ -10824,16 +10906,16 @@ end;
 // (hwnd, hitem)    TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
 
 
-Procedure TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM);
+function TreeView_GetPrevVisible(hwnd:hwnd; hitem:HTREEITEM) : HTREEITEM;inline;
 Begin
-  TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, hitem, TVGN_PREVIOUSVISIBLE);
 end;
 
 // Macro 174
 
-Procedure TreeView_GetSelection(hwnd:hwnd);
+function TreeView_GetSelection(hwnd:hwnd) : HTREEITEM;inline;
 begin
- TreeView_GetNextItem(hwnd, NIL,  TVGN_CARET)
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_CARET);
 end;
 
 // Macro 175
@@ -10841,26 +10923,32 @@ end;
 //#define TreeView_GetDropHilight(hwnd:hwnd);
 //TreeView_GetNextItem(hwnd, NULL,  TVGN_DROPHILITE)
 
-Procedure TreeView_GetDropHilight(hwnd:hwnd);
+function TreeView_GetDropHilight(hwnd:hwnd) : HTREEITEM;inline;
 
 begin
-  TreeView_GetNextItem(hwnd, NIL,  TVGN_DROPHILITE)
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_DROPHILITE);
+end;
+
+function TreeView_GetDropHilite(hwnd:hwnd) : HTREEITEM;inline;
+
+begin
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_DROPHILITE);
 end;
 
 
 // Macro 176
 
-Procedure TreeView_GetRoot(hwnd:hwnd);
+function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
 
 begin
-  TreeView_GetNextItem(hwnd, NIL,  TVGN_ROOT)
+  TreeView_GetNextItem(hwnd, NIL,  TVGN_ROOT);
 end;
 
 // Macro 177
 //#define TreeView_GetLastVisible(hwnd:hwnd);
 //TreeView_GetNextItem(hwnd, NULL,  TVGN_LASTVISIBLE)
 
-Procedure TreeView_GetLastVisible(hwnd:hwnd);
+function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 begin
   TreeView_GetNextItem(hwnd, NIL,  TVGN_LASTVISIBLE)
 end;
@@ -10906,7 +10994,7 @@ End;
 Function TreeView_GetItem( hwnd : hwnd;var  pitem : TV_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TVM_GETITEM, 0, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), TVM_GETITEM, 0, LPARAM(@pitem)))
 end;
 
 
@@ -10963,13 +11051,18 @@ end;
 //#define TreeView_HitTest(hwnd, lpht) \
 //     (HTREEITEM)SNDMSG((hwnd), TVM_HITTEST, 0, (LPARAM)(LPTV_HITTESTINFO)(lpht))
 
-Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;
+Function TreeView_HitTest( hwnd : hwnd; lpht : LPTV_HITTESTINFO):HTREEITEM;inline;
 
 Begin
  Result:=HTREEITEM(SendMessage((hwnd), TVM_HITTEST, 0, lparam(lpht)))
 end;
 
 
+Function TreeView_HitTest( hwnd : hwnd; var lpht : TV_HITTESTINFO):HTREEITEM;inline;
+
+Begin
+ Result:=HTREEITEM(SendMessage((hwnd), TVM_HITTEST, 0, lparam(@lpht)))
+end;
 // Macro 188
 
 //#define TreeView_CreateDragImage(hwnd, hitem) \
@@ -11012,10 +11105,17 @@ end;
 //     (BOOL)SNDMSG((hwnd), TVM_SORTCHILDRENCB, (WPARAM)(recurse), \
 //     (LPARAM)(LPTV_SORTCB)(psort))
 
-Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;
+Function TreeView_SortChildrenCB( hwnd : hwnd;psort :lpTV_sortcb; recurse : WPARAM):BOOL;inline;
 
 Begin
  Result:=BOOL(SendMessage((hwnd), TVM_SORTCHILDRENCB, recurse, LPARAM(psort)))
+end;
+
+
+Function TreeView_SortChildrenCB( hwnd : hwnd;const psort :tagTVsortcb; recurse : WPARAM):BOOL;inline;
+
+Begin
+ Result:=BOOL(SendMessage((hwnd), TVM_SORTCHILDRENCB, recurse, LPARAM(@psort)))
 end;
 
 
@@ -11024,10 +11124,17 @@ end;
 //#define TreeView_EndEditLabelNow(hwnd, fCancel) \
 //     (BOOL)SNDMSG((hwnd), TVM_ENDEDITLABELNOW, (WPARAM)(fCancel), 0)
 
-Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : WPARAM):BOOL;inline;
 
 Begin
  Result:=BOOL(SendMessage((hwnd), TVM_ENDEDITLABELNOW, fCancel, 0))
+end;
+
+
+Function TreeView_EndEditLabelNow( hwnd : hwnd; fCancel : Bool):BOOL;inline;
+
+Begin
+ Result:=BOOL(SendMessage((hwnd), TVM_ENDEDITLABELNOW, WPARAM(fCancel), 0))
 end;
 
 
@@ -11345,7 +11452,7 @@ end;
 Function TabCtrl_GetImageList( hwnd : hwnd):HIMAGELIST;
 
 Begin
- Result:=HIMAGELIST(SendMessage((hwnd), TCM_GETIMAGELIST, 0, DWord(0)))
+ Result:=HIMAGELIST(SendMessage((hwnd), TCM_GETIMAGELIST, 0, LPARAM(0)))
 end;
 
 
@@ -11369,7 +11476,7 @@ end;
 Function TabCtrl_GetItemCount( hwnd : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_GETITEMCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwnd), TCM_GETITEMCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -11381,7 +11488,7 @@ end;
 Function TabCtrl_GetItem( hwnd : hwnd; iItem : cint;var  pitem : TC_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_GETITEM, iItem, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), TCM_GETITEM, iItem, LPARAM(@pitem)))
 end;
 
 
@@ -11393,7 +11500,7 @@ end;
 Function TabCtrl_SetItem( hwnd : hwnd; iItem : cint;var  pitem : TC_ITEM ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_SETITEM, iItem, Longint(@pitem)))
+ Result:=BOOL(SendMessage((hwnd), TCM_SETITEM, iItem, LPARAM(@pitem)))
 end;
 
 
@@ -11405,7 +11512,7 @@ end;
 Function TabCtrl_InsertItem( hwnd : hwnd; iItem : cint;const  pitem : TC_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, Longint(@pitem)))
+ Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, LPARAM(@pitem)))
 end;
 
 
@@ -11417,7 +11524,7 @@ end;
 Function TabCtrl_DeleteItem( hwnd : hwnd; i : cint):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_DELETEITEM, (i), DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), TCM_DELETEITEM, (i), LPARAM(0)))
 end;
 
 
@@ -11429,7 +11536,7 @@ end;
 Function TabCtrl_DeleteAllItems( hwnd : hwnd):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_DELETEALLITEMS, 0, DWord(0)))
+ Result:=BOOL(SendMessage((hwnd), TCM_DELETEALLITEMS, 0, LPARAM(0)))
 end;
 
 
@@ -11441,7 +11548,7 @@ end;
 Function TabCtrl_GetItemRect( hwnd : hwnd; i : cint;var  prc : RECT ):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwnd), TCM_GETITEMRECT, (i), Longint(@prc)))
+ Result:=BOOL(SendMessage((hwnd), TCM_GETITEMRECT, (i), LPARAM(@prc)))
 end;
 
 
@@ -11474,10 +11581,17 @@ end;
 //#define TabCtrl_HitTest(hwndTC, pinfo) \
 //     (int)SNDMSG((hwndTC), TCM_HITTEST, 0, (LPARAM)(TC_HITTESTINFO *)(pinfo))
 
-Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;
+Function TabCtrl_HitTest( hwndTC : hwnd;var  pinfo : TC_HITTESTINFO ):cint;inline;
 
 Begin
- Result:=cint(SendMessage((hwndTC), TCM_HITTEST, 0, Longint(@pinfo)))
+ Result:=cint(SendMessage((hwndTC), TCM_HITTEST, 0, LPARAM(@pinfo)))
+end;
+
+
+Function TabCtrl_HitTest( hwndTC : hwnd;pinfo : LPTCHITTESTINFO ):cint;inline;
+
+Begin
+ Result:=cint(SendMessage((hwndTC), TCM_HITTEST, 0, LPARAM(@pinfo)))
 end;
 
 
@@ -11489,7 +11603,7 @@ end;
 Function TabCtrl_SetItemExtra( hwndTC : hwnd; cb : WPARAM):BOOL;
 
 Begin
- Result:=BOOL(SendMessage((hwndTC), TCM_SETITEMEXTRA, cb, DWord(0)))
+ Result:=BOOL(SendMessage((hwndTC), TCM_SETITEMEXTRA, cb, LPARAM(0)))
 end;
 
 
@@ -11510,7 +11624,7 @@ end;
 //#define TabCtrl_SetItemSize(hwnd, x, y) \
 //     (DWORD)SNDMSG((hwnd), TCM_SETITEMSIZE, 0, MAKELPARAM(x,y))
 
-Function TabCtrl_SetItemSize( hwnd : hwnd; x : cint ; y : cint ):DWORD;
+Function TabCtrl_SetItemSize( hwnd : hwnd; x : wparam ; y : lparam ):DWORD;
 
 Begin
  Result:=DWORD(SendMessage((hwnd), TCM_SETITEMSIZE, 0, MAKELPARAM(x,y)))
@@ -11522,10 +11636,10 @@ end;
 //#define TabCtrl_RemoveImage(hwnd, i) \
 //         (void)SNDMSG((hwnd), TCM_REMOVEIMAGE, i, DWord(0))
 
-Procedure TabCtrl_RemoveImage( hwnd : hwnd; i : cint);
+Procedure TabCtrl_RemoveImage( hwnd : hwnd; i : WPARAM);
 
 Begin
-SendMessage((hwnd), TCM_REMOVEIMAGE, i, DWord(0))
+SendMessage((hwnd), TCM_REMOVEIMAGE, i, LPARAM(0))
 end;
 
 
@@ -11534,7 +11648,7 @@ end;
 //#define TabCtrl_SetPadding(hwnd,  cx, cy) \
 //         (void)SNDMSG((hwnd), TCM_SETPADDING, 0, MAKELPARAM(cx, cy))
 
-Procedure TabCtrl_SetPadding( hwnd : hwnd; cx : cint ; cy : cint );
+Procedure TabCtrl_SetPadding( hwnd : hwnd; cx : WPARAM ; cy : LPARAM );
 
 Begin
 SendMessage((hwnd), TCM_SETPADDING, 0, MAKELPARAM(cx, cy))
@@ -11549,7 +11663,7 @@ end;
 Function TabCtrl_GetRowCount( hwnd : hwnd):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_GETROWCOUNT, 0, DWord(0)))
+ Result:=cint(SendMessage((hwnd), TCM_GETROWCOUNT, 0, LPARAM(0)))
 end;
 
 
@@ -11561,7 +11675,7 @@ end;
 Function TabCtrl_GetToolTips( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, DWord(0)))
+ Result:=Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, LPARAM(0)))
 end;
 
 
@@ -11573,7 +11687,7 @@ end;
 Procedure TabCtrl_SetToolTips( hwnd : hwnd; hwndTT : WPARAM);
 
 Begin
-SendMessage((hwnd), TCM_SETTOOLTIPS, hwndTT, DWord(0))
+SendMessage((hwnd), TCM_SETTOOLTIPS, hwndTT, LPARAM(0))
 end;
 
 
@@ -11594,7 +11708,7 @@ end;
 //#define TabCtrl_SetCurFocus(hwnd, i) \
 //     SNDMSG((hwnd),TCM_SETCURFOCUS, i, 0)
 
-Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : cint );
+Procedure TabCtrl_SetCurFocus( hwnd : hwnd; i : LPARAM );
 
 Begin
 SendMessage((hwnd),TCM_SETCURFOCUS, i, 0)
@@ -11606,7 +11720,7 @@ end;
 //#define TabCtrl_SetMinTabWidth(hwnd, x) \
 //         (int)SNDMSG((hwnd), TCM_SETMINTABWIDTH, 0, x)
 
-Function TabCtrl_SetMinTabWidth( hwnd : hwnd; x : cint ):cint;
+Function TabCtrl_SetMinTabWidth( hwnd : hwnd; x : WPARAM ):cint;
 
 Begin
  Result:=cint(SendMessage((hwnd), TCM_SETMINTABWIDTH, 0, x))
@@ -11618,7 +11732,7 @@ end;
 //#define TabCtrl_DeselectAll(hwnd, fExcludeFocus)\
 //         (void)SNDMSG((hwnd), TCM_DESELECTALL, fExcludeFocus, 0)
 
-Procedure TabCtrl_DeselectAll( hwnd : hwnd; fExcludeFocus :cint );
+Procedure TabCtrl_DeselectAll( hwnd : hwnd; fExcludeFocus : WPARAM );
 
 Begin
 SendMessage((hwnd), TCM_DESELECTALL, fExcludeFocus, 0)
@@ -11642,7 +11756,7 @@ end;
 //#define TabCtrl_SetExtendedStyle(hwnd, dw)\
 //         (DWORD)SNDMSG((hwnd), TCM_SETEXTENDEDSTYLE, 0, dw)
 
-Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw : cint):DWORD;
+Function TabCtrl_SetExtendedStyle( hwnd : hwnd; dw : LPARAM):DWORD;
 
 Begin
  Result:=DWORD(SendMessage((hwnd), TCM_SETEXTENDEDSTYLE, 0,lparam(dw)))
@@ -11770,10 +11884,16 @@ end;
 // Macro 254
 //#define MonthCal_SetCurSel(hmc, pst)    (BOOL)SNDMSG(hmc, MCM_SETCURSEL, 0, (LPARAM)(pst))
 
-function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool;
+function MonthCal_SetCurSel(hwndMC:HWND; lpSysTime :LPSYSTEMTIME):Bool; inline;
 
 begin
      Result:=BOOL(SendMessage(hwndmc, MCM_SETCURSEL, 0, LPARAM(lpsystime)));
+end;
+
+function MonthCal_SetCurSel(hwndMC:HWND; var lpSysTime :SYSTEMTIME):Bool; inline;
+
+begin
+     Result:=BOOL(SendMessage(hwndmc, MCM_SETCURSEL, 0, LPARAM(@lpsystime)));
 end;
 
 // Macro 255
@@ -11834,19 +11954,25 @@ end;
 // Macro 261
 // #define MonthCal_GetMinReqRect(hmc, prc)        SNDMSG(hmc, MCM_GETMINREQRECT, 0, (LPARAM)(prc))
 
-function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;
+function MonthCal_GetMinReqRect(hwndMC:HWND; lpr :LPRect):Bool;inline;
 
 begin
      Result:=BOOL(SendMessage(hwndmc, MCM_GETMINREQRECT,0, LPARAM(lpr)));
 end;
 
+function MonthCal_GetMinReqRect(hwndMC:HWND;var lpr :TRect):Bool;inline;
+
+begin
+     Result:=BOOL(SendMessage(hwndmc, MCM_GETMINREQRECT,0, LPARAM(@lpr)));
+end;
+
 // Macro 262
 // #define MonthCal_SetColor(hmc, iColor, clr) SNDMSG(hmc, MCM_SETCOLOR, iColor, clr)
 
-function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):Bool;
+function MonthCal_SetColor(hwndMC:HWND; ic:longint;clr:COLORREF):DWORD;inline;
 
 begin
-     Result:=BOOL(SendMessage(hwndmc, MCM_SETCOLOR,ic, LPARAM(clr)));
+     Result:=DWORD(SendMessage(hwndmc, MCM_SETCOLOR,ic, LPARAM(clr)));
 end;
 
 // Macro 263
@@ -11995,6 +12121,10 @@ end;
 // Macro 277
 
 //#define DateTime_SetSystemtime(hdp, gd, pst)    (BOOL)SNDMSG(hdp, DTM_SETSYSTEMTIME, (WPARAM)(gd), (LPARAM)(pst))
+function DateTime_SetSystemTime(hdp: HWND; gd: DWORD; const pst: TSystemTime): BOOL;inline;
+begin
+  result:=BOOL(SendMessage(hdp, DTM_SETSYSTEMTIME, WPARAM(gd), LPARAM(@pst)));
+end;
 
 // Macro 278
 
@@ -12003,6 +12133,10 @@ end;
 // Macro 279
 
 //#define DateTime_SetRange(hdp, gd, rgst)  (BOOL)SNDMSG(hdp, DTM_SETRANGE, (WPARAM)(gd), (LPARAM)(rgst))
+function DateTime_SetRange(hdp: HWND; gdtr: DWORD; rgst: PSystemTime): BOOL;inline;
+begin
+  result:=BOOL(SendMessage(hdp, DTM_SETRANGE, WPARAM(gdtr), LPARAM(rgst)));
+end;
 
 // Macro 280
 
@@ -12011,6 +12145,10 @@ end;
 // Macro 281
 
 //#define DateTime_SetMonthCalColor(hdp, iColor, clr) SNDMSG(hdp, DTM_SETMCCOLOR, iColor, clr)
+function DateTime_SetMonthCalColor(hdp: HWND; iColor: DWORD; clr: TColorRef): TColorRef;inline;
+begin
+  result:=TColorRef(SendMessage(hdp, DTM_SETMCCOLOR, iColor, clr));
+end;
 
 // Macro 282
 
@@ -12019,6 +12157,10 @@ end;
 // Macro 283
 
 //#define DateTime_GetMonthCal(hdp) (HWND)SNDMSG(hdp, DTM_GETMONTHCAL, 0, 0)
+function DateTime_GetMonthCal(hdp: HWND): HWND;inline;
+begin
+  result:=HWND(SendMessage(hdp, DTM_GETMONTHCAL, 0, 0));
+end;
 
 // Macro 284
 

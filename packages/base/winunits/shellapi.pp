@@ -44,13 +44,9 @@ Uses Windows;
     shellapi.h -  SHELL.DLL functions, types, and definitions
     Copyright (c) Microsoft Corporation. All rights reserved.             }
 
-Type   HDROP    = THandle;
-       UINT_PTR = ^UINT;
-       DWORD_PTR= ^DWORD;
-       pHICON   = ^HICON;
-       pBool    = ^BOOL;
-
-
+  Type   
+     HDROP    = THandle;
+     PHIcon   = ^HIcon;
 
      STARTUPINFOW = record  // a guess. Omission should get fixed in Windows.
           cb : DWORD;

@@ -82,6 +82,8 @@
      UINT_PTR = PtrUInt;
      LONG_PTR = PtrInt;
      ULONG_PTR = PtrUInt;
+     DWORD_PTR   = ULONG_PTR;
+     PDWORD_PTR  = ^DWORD_PTR;
 
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
