@@ -88,7 +88,7 @@ function TFPCustomCanvas.CreateDefaultFont : TFPCustomFont;
 begin
   result := DoCreateDefaultFont;
   if not assigned (result) then
-    raise TFPCanvasException.CreateFmt (ErrCouldNotCreate, [EPen])
+    raise TFPCanvasException.CreateFmt (ErrCouldNotCreate, [EFont])
   else
     begin
     result.AllocateResources (self);
@@ -112,7 +112,7 @@ function TFPCustomCanvas.CreateDefaultBrush : TFPCustomBrush;
 begin
   result := DoCreateDefaultBrush;
   if not assigned (result) then
-    raise TFPCanvasException.CreateFmt (ErrCouldNotCreate, [EPen])
+    raise TFPCanvasException.CreateFmt (ErrCouldNotCreate, [EBrush])
   else
     begin
     result.AllocateResources (self);

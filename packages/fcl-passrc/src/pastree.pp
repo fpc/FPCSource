@@ -248,6 +248,7 @@ type
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsPacked: Boolean;        // 12/04/04 - Dave - Added
     Members: TList;     // array of TPasElement objects
+    InterfaceGUID : string; // 15/06/07 - Inoussa
   end;
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut);
