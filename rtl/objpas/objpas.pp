@@ -40,6 +40,10 @@ unit objpas;
        PPointerArray = ^PointerArray;
        TBoundArray = array of integer;
 
+Var
+   ExceptionClass: TClass; { Exception base class (must actually be Exception, defined in sysutils ) }
+   ExceptObjProc: Pointer; { Used to convert OS exceptions to exceptions in Delphi. Unused in FPC}
+
 {****************************************************************************
                              Compatibility routines.
 ****************************************************************************}
@@ -93,7 +97,6 @@ unit objpas;
      PResStringRec=^AnsiString;
      TResStringRec=AnsiString;
    Function LoadResString(p:PResStringRec):AnsiString;
-
 
   implementation
 

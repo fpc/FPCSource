@@ -358,6 +358,7 @@ Procedure InitExceptions;
   (e.g: SIGSEGV -> ESegFault or so.)
 }
 begin
+  ExceptionClass := Exception;
   ExceptProc:=@CatchUnhandledException;
   // Create objects that may have problems when there is no memory.
   OutOfMemory:=EOutOfMemory.Create(SOutOfMemory);
