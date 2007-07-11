@@ -60,77 +60,118 @@
 
 {$else}
 
+// info taken from /usr/include/asm-i386/stat.h you must have some -dev installed for this I think.. or linux-headers
+
 {$packrecords C}
+
+{$ifdef fs32bit}
   Stat =  Record
     case byte of
-      0:
-                              // kernel <->libc
-        (dev    	 : dev_t    deprecated;
-        pad1    	 : word     deprecated;
-{$ifdef fs32bit}
-        ino     	 : ino_t    deprecated;
-{$else}
-        __ino   	 : ino_t    deprecated;
-{$endif}
-        mode    	 : mode_t   deprecated;
-        nlink   	 : nlink_t  deprecated;
-        uid     	 : uid_t    deprecated;
-        gid     	 : gid_t    deprecated;
-        rdev    	 : dev_t    deprecated;
-        pad2    	 : word     deprecated;
-        size    	 : off_t    deprecated;
-        blksize 	 : blksize_t deprecated;
-{$ifdef fs32bit}
-        blocks  	 : blkcnt_t deprecated;
-{$else}    
-        blocks  	 : blkcnt64_t deprecated;
-{$endif}    
-        atime		 : cardinal deprecated;
-        atime_nsec 	 : cardinal deprecated;
-        mtime 		 : cardinal deprecated;
-        mtime_nsec 	 : cardinal deprecated;
-        ctime 		 : cardinal deprecated;
-        ctime_nsec 	 : cardinal deprecated;
-{$ifdef fs32bit}
-        unused4		 : cardinal deprecated;
-	unused5		 : cardinal deprecated;
-{$else}    
-        ino     	 : ino64_t  deprecated;
-{$endif});
-      1:
-                              // kernel <->libc
-        (st_dev    : dev_t;
-        pad1_      : word;
-{$ifdef fs32bit}
-        st_ino     : ino_t;
-{$else}
-        __st_ino   : ino_t;
-{$endif}    
-        st_mode    : mode_t;
-        st_nlink   : nlink_t;
-        st_uid     : uid_t;
-        st_gid     : gid_t;
-        st_rdev    : dev_t;
-        pad2_       : word;
-        st_size    : off_t;
-        st_blksize : blksize_t;
-{$ifdef fs32bit}
-        st_blocks  : blkcnt_t;
-{$else}    
-        st_blocks  : blkcnt64_t;
-{$endif}    
-        st_atime,
-        st_atime_nsec,
-        st_mtime,
-        st_mtime_nsec,
-        st_ctime,
-        st_ctime_nsec : culong;
-{$ifdef fs32bit}
-        unused4_, unused5_: culong;
-{$else}    
-        st_ino     : ino64_t;
-{$endif});
+      0:(dev: cuLong deprecated;
+         ino: cuLong deprecated;
+         mode: cuShort deprecated;
+         nlink: cuShort deprecated; 
+         uid: cuShort deprecated;
+         gid: cuShort deprecated;
+         rdev: cuLong deprecated;
+         size: cuLong deprecated;
+         blksize: cuLong deprecated;
+         blocks: cuLong deprecated;
+         atime: cuLong deprecated; 
+         atime_nsec: cuLong deprecated;
+         mtime: cuLong deprecated;
+         mtime_nsec: cuLong deprecated;
+         ctime: cuLong deprecated;
+         ctime_nsec: cuLong deprecated;
+         __unused4: cuLong deprecated;
+         __unused5: cuLong deprecated);
+
+      1:(st_dev: cuLong;
+         st_ino: cuLong;
+         st_mode: cuShort;
+         st_nlink: cuShort; 
+         st_uid: cuShort;
+         st_gid: cuShort;
+         st_rdev: cuLong;
+         st_size: cuLong;
+         st_blksize: cuLong;
+         st_blocks: cuLong;
+         st_atime: cuLong;
+         st_atime_nsec: cuLong;
+         st_mtime: cuLong;
+         st_mtime_nsec: cuLong;
+         st_ctime: cuLong;
+         st_ctime_nsec: cuLong;
+         __unused4_: cuLong;
+         __unused5_: cuLong);
   end;
+
+{$else} // 64 bit stat
+
+  Stat = record
+    case Byte of
+    0 :(dev: cuLongLong deprecated;
+    __pad0: array[0..3] of cuChar deprecated;
+
+    __ino: cuLong deprecated;
+
+    mode: cuInt deprecated;
+    nlink: cuInt deprecated;
+
+    uid: cuLong deprecated;
+    gid: cuLong deprecated;
+
+    rdev: cuLongLong deprecated;
+    __pad3: array[0..3] of cuChar deprecated;
+
+    size: cLongLong deprecated;
+    blksize: cuLong deprecated;
+
+    blocks: cuLongLong deprecated;	//* Number 512-byte blocks allocated. */
+
+    atime: cuLong deprecated;
+    atime_nsec: cuLong deprecated;
+
+    mtime: cuLong deprecated;
+    mtime_nsec: cuInt deprecated;
+
+    ctime: cuLong deprecated;
+    ctime_nsec: cuLong deprecated;
+
+    ino: cuLongLong deprecated);
+
+    1 :(st_dev: cuLongLong;
+    __pad0_: array[0..3] of cuChar;
+
+    __st_ino: cuLong;
+
+    st_mode: cuInt;
+    st_nlink: cuInt;
+
+    st_uid: cuLong;
+    st_gid: cuLong;
+
+    st_rdev: cuLongLong;
+    __pad3_: array[0..3] of cuChar;
+
+    st_size: cLongLong;
+    st_blksize: cuLong;
+
+    st_blocks: cuLongLong;	//* Number 512-byte blocks allocated. */
+
+    st_atime: cuLong;
+    st_atime_nsec: cuLong;
+
+    st_mtime: cuLong;
+    st_mtime_nsec: cuInt;
+
+    st_ctime: cuLong;
+    st_ctime_nsec: cuLong;
+
+    st_ino: cuLongLong);
+  end;
+
+{$endif}
 
 
 {$endif}
