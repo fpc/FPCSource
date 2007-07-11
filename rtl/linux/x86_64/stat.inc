@@ -63,8 +63,7 @@
 {$else}
 
 {$packrecords C}
-// (* get it from glibc/sysdeps/unix/sysv/linux/x86_64/bits/stat.h and check defines with gcc *)
-// kill the one who made the st_less idea!
+// god from /usr/include/asm-x86_64 some -dev of linux-headers must be installed
 
   Stat = record
   case Byte of
