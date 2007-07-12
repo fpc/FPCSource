@@ -846,9 +846,6 @@ implementation
                 ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
                         pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
                         pi_needs_stackframe])=[])
-                {$ifdef arm}
-                and ((cs_fp_emulation in current_settings.moduleswitches) or not (pi_uses_fpu in flags))
-                {$endif arm}
                )
              then
                begin
