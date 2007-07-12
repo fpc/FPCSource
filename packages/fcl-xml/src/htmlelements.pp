@@ -119,6 +119,10 @@ type
   { THTML_text }
 
   THTML_text = class (THTMLCustomElement)
+    FNodeValue : DOMString;
+  protected
+    function  GetNodeValue: DOMString; override;
+    procedure SetNodeValue(const AValue: DOMString); override;
   public
     constructor create (AOwner: TDOMDocument); override;
     procedure WriteToStream (const aStream : TStream);  override;
@@ -294,6 +298,16 @@ end;
 {$i tagsimpl.inc}
 
 { THTML_text }
+
+function THTML_text.GetNodeValue: DOMString;
+begin
+  Result := FNodeValue;
+end;
+
+procedure THTML_text.SetNodeValue(const AValue: DOMString);
+begin
+  FNodeValue := AValue;
+end;
 
 constructor THTML_text.create (AOwner: TDOMDocument);
 begin
