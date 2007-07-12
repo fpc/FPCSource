@@ -94,7 +94,9 @@ const
    if (oldval CMP CMPARG)
      wake UADDR2; }
 
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifndef FPC_USE_LIBC}
+function futex_op(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif}
 
 const
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
@@ -153,7 +155,7 @@ const
   LED_SCR         = 1;    {scroll lock led}
   LED_NUM         = 2;    {num lock led}
   LED_CAP         = 4;    {caps lock led}
-
+    
   {Tty modes. (for KDSETMODE)}
   KD_TEXT         = 0;
   KD_GRAPHICS     = 1;
@@ -169,7 +171,16 @@ const
 type
   TCloneFunc = function(args:pointer):longint;cdecl;
 
-//function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
+{$ifdef cpui386}
+  {$define clone_implemented}
+{$endif}
+{$ifdef cpum68k}
+  {$define clone_implemented}
+{$endif}
+
+{$ifdef clone_implemented}
+function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
+{$endif}
 
 const
   MODIFY_LDT_CONTENTS_DATA       = 0;
@@ -207,7 +218,6 @@ type
       2: (u32: cuint);
       3: (u64: cuint64);
   end;
-
   TEPoll_Data =  Epoll_Data;
   PEPoll_Data = ^Epoll_Data;
 
@@ -219,6 +229,7 @@ type
   TEPoll_Event =  Epoll_Event;
   PEpoll_Event = ^Epoll_Event;
 
+
 { open an epoll file descriptor }
 function epoll_create(size: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_create'; {$endif}
 { control interface for an epoll descriptor }
@@ -226,16 +237,151 @@ function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint; {$ifdef FPC_U
 { wait for an I/O event on an epoll file descriptor }
 function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_wait'; {$endif}
 
+type Puser_cap_header=^user_cap_header;
+     user_cap_header=packed record
+       version,pid:cardinal;
+     end;
+     
+     Puser_cap_data=^user_cap_data;
+     user_cap_data=packed record
+        effective,permitted,inheritable:cardinal;
+     end;
+
+{Get a capability.}
+function capget(header:Puser_cap_header;data:Puser_cap_data):cint;{$ifdef FPC_USE_LIBC} cdecl; external name 'capget'; {$endif}
+{Set a capability.}
+function capset(header:Puser_cap_header;data:Puser_cap_data):cint;{$ifdef FPC_USE_LIBC} cdecl; external name 'capset'; {$endif}
+
+     
+const CAP_CHOWN            = 0;
+      CAP_DAC_OVERRIDE     = 1;
+      CAP_DAC_READ_SEARCH  = 2;
+      CAP_FOWNER           = 3;
+      CAP_FSETID           = 4;
+      CAP_FS_MASK          = $1f;
+      CAP_KILL             = 5;
+      CAP_SETGID           = 6;
+      CAP_SETUID           = 7;
+      CAP_SETPCAP          = 8;
+      CAP_LINUX_IMMUTABLE  = 9;
+      CAP_NET_BIND_SERVICE = 10;
+      CAP_NET_BROADCAST    = 11;
+      CAP_NET_ADMIN        = 12;
+      CAP_NET_RAW          = 13;
+      CAP_IPC_LOCK         = 14;
+      CAP_IPC_OWNER        = 15;
+      CAP_SYS_MODULE       = 16;
+      CAP_SYS_RAWIO        = 17;
+      CAP_SYS_CHROOT       = 18;
+      CAP_SYS_PTRACE       = 19;
+      CAP_SYS_PACCT        = 20;
+      CAP_SYS_ADMIN        = 21;
+      CAP_SYS_BOOT         = 22;
+      CAP_SYS_NICE         = 23;
+      CAP_SYS_RESOURCE     = 24;
+      CAP_SYS_TIME         = 25;
+      CAP_SYS_TTY_CONFIG   = 26;
+      CAP_MKNOD            = 27;
+      CAP_LEASE            = 28;
+      CAP_AUDIT_WRITE      = 29;
+      CAP_AUDIT_CONTROL    = 30;
+
+      LINUX_CAPABILITY_VERSION = $19980330;
+
 implementation
 
 
 {$ifndef FPC_USE_LIBC}
-uses Syscall;
+Uses Syscall;
 
-function Sysinfo(var Info: TSysinfo): Boolean;
+Function Sysinfo(var Info:TSysinfo):Boolean;
+{
+  Get system info
+}
+Begin
+  Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,TSysParam(@info))=0;
+End;
+
+{$ifdef clone_implemented}
+function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+
 begin
-  Sysinfo := do_SysCall(SysCall_nr_Sysinfo,TSysParam(@info))=0;
+  if (pointer(func)=nil) or (sp=nil) then
+   exit(-1); // give an error result
+{$ifdef cpui386}
+{$ASMMODE ATT}
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        movl    flags,%ebx
+        movl    SysCall_nr_clone,%eax
+        int     $0x80
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
+{$endif cpui386}
+{$ifdef cpum68k}
+  { No yet translated, my m68k assembler is too weak for such things PM }
+(*
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        movl    flags,%ebx
+        movl    SysCall_nr_clone,%eax
+        int     $0x80
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
+  *)
+{$endif cpum68k}
 end;
+{$endif}
 
 function epoll_create(size: cint): cint;
 begin
@@ -253,9 +399,22 @@ begin
   epoll_wait := do_syscall(syscall_nr_epoll_wait, tsysparam(epfd),
     tsysparam(events), tsysparam(maxevents), tsysparam(timeout));
 end;
+
+function capget(header:Puser_cap_header;data:Puser_cap_data):cint;
+
+begin
+  capget:=do_syscall(syscall_nr_capget,Tsysparam(header),Tsysparam(data));
+end;
+
+function capset(header:Puser_cap_header;data:Puser_cap_data):cint;
+
+begin
+  capset:=do_syscall(syscall_nr_capset,Tsysparam(header),Tsysparam(data));
+end;
+
 {$endif}
 
-// FUTEX_OP is a macro, doesn't exist in libC as function
+{ FUTEX_OP is a macro, doesn't exist in libC as function}
 function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
