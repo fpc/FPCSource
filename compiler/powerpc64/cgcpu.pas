@@ -714,7 +714,7 @@ begin
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
-   required to load the value is greater than 2, store (and later load) the value from there }
+   required to load the value is greater than 2, store (and later load) the value from there } 
   if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
     (getInstructionLength(a) > 2)) then
     loadConstantPIC(list, size, a, reg)
@@ -1903,15 +1903,7 @@ var
   ref: treference;
   symname : string;
 begin
-  maybe_new_object_file(current_asmdata.asmlists[al_picdata]);
-  symname := '_$' + current_asmdata.name + '$got$' + symbol;
-  l:=current_asmdata.getasmsymbol(symname);
-  if not(assigned(l)) then begin
-    l:=current_asmdata.DefineAsmSymbol(symname, AB_COMMON, AT_DATA);
-    current_asmdata.asmlists[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
-    current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
-    current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + symbol));
-  end;
+  l:=current_asmdata.getasmsymbol(symbol);
   reference_reset_symbol(ref,l,0);
   ref.base := NR_R2;
   ref.refaddr := addr_pic;
@@ -2177,7 +2169,7 @@ begin
   end;
   reference_reset_symbol(ref,l,0);
   ref.base := NR_R2;
-  ref.refaddr := addr_pic;
+  ref.refaddr := addr_no;
 
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('loading value from TOC reference for ' + symname)));

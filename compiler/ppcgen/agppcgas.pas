@@ -123,7 +123,11 @@ unit agppcgas;
                  s := s+refaddr2str[refaddr];
              end;
 {$ifdef cpu64bit}
-           if (refaddr = addr_pic) then s := s + ')';
+           if (refaddr = addr_pic) then
+	     if (target_info.system <> system_powerpc64_linux) then
+	       s := s + ')'
+	     else
+	       s := s + ')@got';
 {$endif cpu64bit}
 
            if (index=NR_NO) and (base<>NR_NO) then
