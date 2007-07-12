@@ -228,11 +228,11 @@ begin
       result := el.asstring;
     finally
       if WCreated then
-        FWriter.Free;
+        FreeAndNil(FWriter);
     end;
   finally
     if created then
-      FDocument.Free;
+      FreeAndNil(FDocument);
   end;
 end;
 
@@ -419,7 +419,7 @@ Var
   M : TMemoryStream;
   
 begin
-  CreateDocument;
+  FDocument := CreateDocument;
   Try
     FWriter:=CreateWriter(FDocument);
     Try
@@ -435,10 +435,10 @@ begin
         end;
       FDocument.SaveToStream(AResponse.ContentStream);
     Finally
-      FWriter.Free;
+      FreeAndNil(FWriter);
     end;
   Finally
-    FDocument.Free;
+    FreeAndNil(FDocument);
   end;
 end;
 
