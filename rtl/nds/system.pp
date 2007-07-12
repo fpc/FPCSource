@@ -30,6 +30,7 @@ interface
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
+function IsARM9(): boolean; 
 procedure InitHeapThread;
 
 const
@@ -93,6 +94,22 @@ implementation
 {$I system.inc}
 
 {$i ndsbios.inc}
+
+{ NDS CPU detecting function (thanks to 21o6): 
+  --------------------------------------------
+   "You see, the ARM7 can't write to bank A of VRAM, but it doesn't give any 
+    error ... it just doesn't write there... so it's easily determinable what 
+    CPU is running the code"}
+function IsARM9(): boolean; 
+var
+  Dummy : pword absolute $06800000;
+  tmp: word;
+begin
+  tmp := Dummy^;
+  Dummy^ := $C0DE;
+  IsARM9 := Dummy^ = $C0DE;
+  Dummy^ := tmp;
+end;
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: SizeUInt;
@@ -210,7 +227,9 @@ begin
 //  fake_heap_end := pchar(0);
 { Set up signals handlers }
 
-  fpc_cpucodeinit;
+  if IsARM9 then 
+    fpc_cpucodeinit;
+    
 { Setup heap }
   InitHeap;
   SysInitExceptions;
