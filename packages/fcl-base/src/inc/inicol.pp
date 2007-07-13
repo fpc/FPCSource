@@ -8,6 +8,8 @@ Uses SysUtils,Classes,Inifiles;
 
 Type
 
+  { TIniCollectionItem }
+
   TIniCollectionItem = Class(TCollectionItem)
   protected
     function GetSectionName: String; virtual; abstract;
@@ -40,6 +42,37 @@ Type
     Property GlobalSection : String Read FGlobalSection Write FGlobalSection;
   end;
 
+  { TNamedIniCollectionItem }
+
+  TNamedIniCollectionItem = Class(TIniCollectionItem)
+  private
+    procedure SetName(const AValue: String);
+  Protected
+    FName : String;
+    FUserData : TObject;
+  Protected
+    Procedure SetCollection(Value : TCollection); override;
+    function GetSectionName: String; override;
+    procedure SetSectionName(const Value: String); override;
+  Public
+    Property UserData : TObject Read FUserData Write FUserData;
+  Published
+    Property Name : String Read FName Write SetName;
+  end;
+
+  { TNamedIniCollection }
+  TNamedIniCollection = Class(TIniCollection)
+  private
+    function GetNamedItem(Index: Integer): TNamedIniCollectionItem;
+    procedure SetNamedItem(Index: Integer; const AValue: TNamedIniCollectionItem);
+  Public
+    Function IndexOfUserData(UserData : TObject) : Integer;
+    Function IndexOfName(Const AName : String) : Integer;
+    Function FindByName(Const AName : string) : TNamedIniCollectionItem;
+    Function FindByUserData(UserData : TObject) : TNamedIniCollectionItem;
+    Property NamedItems [Index: Integer] : TNamedIniCollectionItem Read GetNamedItem Write SetNamedItem; default;
+  end;
+
   EIniCol = Class(Exception);
 
 Const
@@ -51,9 +84,10 @@ implementation
 { TIniCollectionItem }
 
 resourcestring
-  SErrNoFileName = '%s: Geen bestandsnaam gespecifieerd.';
-  SErrNoSection = '%s: Geen [global] sectie gespecifieerd.';
-
+  SErrNoFileName = '%s: No filename specified.';
+  SErrNoSection = '%s: No [global] section specified.';
+  SErrDuplicateName = 'Duplicate names "%s" not allowed in collection';
+  
 procedure TIniCollectionItem.LoadFromFile(FileName, Section: String);
 
 Var
@@ -82,6 +116,7 @@ begin
     Ini.Free;
   end;
 end;
+
 
 { TIniCollection }
 
@@ -182,6 +217,101 @@ begin
       CI.SaveToIni(Ini,SP+V);
       end;
     end;
+end;
+
+{ ---------------------------------------------------------------------
+  TNamedIniCollectionItem
+  ---------------------------------------------------------------------}
+
+procedure TNamedIniCollectionItem.SetName(const AValue: String);
+begin
+  If (CompareText(AValue,FName)<>0) then
+    begin
+    If (AValue<>'') and (Collection<>Nil) and (Collection is TNamedIniCollection) then
+      If TNamedIniCollection(Collection).IndexOfName(AValue)<>-1 then
+        Raise EIniCol.CreateFmt(SErrDuplicateName,[AValue]);
+    end;
+  FName:=AValue;
+end;
+
+procedure TNamedIniCollectionItem.SetCollection(Value: TCollection);
+begin
+  If (Value<>Collection) then
+    begin
+    If (Value<>Nil) and (Value is TNamedIniCollection) Then
+      If TNamedIniCollection(Value).IndexOfName(Self.Name)<>-1 then
+        Raise EIniCol.CreateFmt(SErrDuplicateName,[Self.Name]);
+    end;
+  inherited SetCollection(Value);
+end;
+
+function TNamedIniCollectionItem.GetSectionName: String;
+begin
+  Result:=FName;
+end;
+
+procedure TNamedIniCollectionItem.SetSectionName(const Value: String);
+begin
+  FName:=Value; // Skip check. Ini files have only 1 named section
+end;
+
+{ ---------------------------------------------------------------------
+  TNamedIniCollection
+  ---------------------------------------------------------------------}
+
+function TNamedIniCollection.GetNamedItem(Index: Integer): TNamedIniCollectionItem;
+begin
+  Result:=Items[Index] as TNamedIniCollectionItem;
+end;
+
+procedure TNamedIniCollection.SetNamedItem(Index: Integer; const AValue: TNamedIniCollectionItem);
+begin
+  Items[Index]:=AValue;
+end;
+
+function TNamedIniCollection.IndexOfUserData(UserData: TObject): Integer;
+begin
+  If (UserData=Nil) then
+    Result:=-1
+  else
+    begin
+    Result:=Count-1;
+    While (Result>=0) and (GetNamedItem(Result).UserData<>UserData) do
+      Dec(Result);
+    end;
+end;
+
+function TNamedIniCollection.IndexOfName(const AName: String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and (CompareText(GetNamedItem(Result).Name,AName)<>0) do
+    Dec(Result);
+end;
+
+function TNamedIniCollection.FindByName(const AName : string): TNamedIniCollectionItem;
+
+Var
+  I : Integer;
+
+begin
+  I:=IndexOfName(AName);
+  If (I=-1) then
+    Result:=Nil
+  else
+    Result:=GetNamedItem(I);
+end;
+
+function TNamedIniCollection.FindByUserData(UserData: TObject): TNamedIniCollectionItem;
+
+Var
+  I : Integer;
+
+begin
+  I:=IndexOfUserData(UserData);
+  If (I=-1) then
+    Result:=Nil
+  else
+    Result:=GetNamedItem(I);
 end;
 
 end.
