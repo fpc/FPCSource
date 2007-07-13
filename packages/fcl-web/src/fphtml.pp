@@ -192,6 +192,7 @@ Uses dbugintf;
 
 resourcestring
   SErrRequestNotHandled = 'Web request was not handled by actions.';
+  SErrNoContentProduced = 'The content producer "%s" didn''t produce any content.';
 
 { THTMLContentProducer }
 
@@ -225,6 +226,8 @@ begin
     try
       FWriter.CurrentElement := ParentElement;
       el := WriteContent (FWriter);
+      if not assigned(el) then
+        Raise EHTMLError.CreateFmt(SErrNoContentProduced,[Self.Name]);
       result := el.asstring;
     finally
       if WCreated then
