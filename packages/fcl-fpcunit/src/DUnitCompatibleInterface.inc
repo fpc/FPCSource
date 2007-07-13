@@ -20,6 +20,8 @@
     class procedure CheckSame(expected, actual: TObject; msg: string = ''); overload;
     class procedure FailNotEquals(expected, actual: string; msg: string = ''; errorAddr: Pointer = nil); virtual;
 
+    class function Suite: TTest;
+
     {
     *** TODO  ***
     procedure CheckEqualsBin(expected, actual: longword; msg: string = ''; digits: integer=32); virtual;
@@ -131,6 +133,11 @@ class procedure TAssert.FailNotEquals(expected, actual: string; msg: string;
   errorAddr: Pointer);
 begin
   Fail(msg + ComparisonMsg(Expected, Actual));
+end;
+
+class function TAssert.Suite: TTest;
+begin
+  result := TTestSuite.Create(self);
 end;
 
 {$ENDIF read_implementation}
