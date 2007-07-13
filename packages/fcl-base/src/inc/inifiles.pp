@@ -76,6 +76,7 @@ type
   end;
 
   TIniFileKey = class
+  Private
     FIdent: string;
     FValue: string;
   public
@@ -95,9 +96,11 @@ type
   end;
 
   TIniFileSection = class
+  private
     FName: string;
     FKeyList: TIniFileKeyList;
   public
+    Function Empty : Boolean;
     constructor Create(AName: string);
     destructor Destroy; override;
     property Name: string read FName;
@@ -160,6 +163,8 @@ type
     FCacheUpdates: Boolean;
     FDirty : Boolean;
     procedure FillSectionList(AStrings: TStrings);
+    Procedure DeleteSection(ASection : TIniFileSection);
+    Procedure MaybeDeleteSection(ASection : TIniFileSection);
   protected
     procedure MaybeUpdateFile;
     property Dirty : Boolean Read FDirty;
@@ -353,6 +358,22 @@ begin
   inherited Clear;
 end;
 
+Function TIniFileSection.Empty : Boolean;
+
+Var
+  I : Integer;
+
+begin
+  Result:=True;
+  I:=0;
+  While Result and (I<KeyList.Count)  do
+    begin
+    result:=IsComment(KeyList[i].Ident);
+    Inc(i);
+    end;
+end;
+
+
 { TIniFileSection }
 
 constructor TIniFileSection.Create(AName: string);
@@ -430,8 +451,13 @@ begin
 end;
 
 function TCustomIniFile.SectionExists(const Section: string): Boolean;
+
+Var
+  S : TIniFileSection;
+
 begin
-  Result := (FSectionList.SectionByName(Section,CaseSensitive) <> nil);
+  S:=FSectionList.SectionByName(Section,CaseSensitive);
+  Result:=Assigned(S) and Not S.Empty;
 end;
 
 function TCustomIniFile.ReadInteger(const Section, Ident: string; Default: Longint): Longint;
@@ -863,6 +889,20 @@ begin
   end;
 end;
 
+procedure TIniFile.DeleteSection(ASection : TIniFileSection);
+
+begin
+  FSectionList.Delete(FSectionList.IndexOf(ASection));
+  ASection.Free;
+end;
+
+Procedure TIniFile.MaybeDeleteSection(ASection : TIniFileSection);
+
+begin
+  If Asection.Empty then
+    DeleteSection(ASection);
+end;
+
 procedure TIniFile.EraseSection(const Section: string);
 var
   oSection: TIniFileSection;
@@ -871,8 +911,7 @@ begin
   if oSection <> nil then begin
     { It is needed so UpdateFile doesn't find a defunct section }
     { and cause the program to crash }
-    FSectionList.Delete(FSectionList.IndexOf(oSection));
-    oSection.Free;
+    DeleteSection(OSection);
     MaybeUpdateFile;
   end;
 end;
@@ -882,15 +921,18 @@ var
  oSection: TIniFileSection;
  oKey: TIniFileKey;
 begin
- oSection := FSectionList.SectionByName(Section,CaseSensitive);
- if oSection <> nil then begin
-   oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
-   if oKey <> nil then begin
-     oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
-     oKey.Free;
-     MaybeUpdateFile;
-   end;
- end;
+  oSection := FSectionList.SectionByName(Section,CaseSensitive);
+  if oSection <> nil then 
+    begin
+    oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
+    if oKey <> nil then 
+      begin
+      oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
+      oKey.Free;
+      MaybeDeleteSection(oSection);
+      MaybeUpdateFile;
+      end;
+    end;
 end;
 
 procedure TIniFile.UpdateFile;

@@ -1116,7 +1116,10 @@ end;
 
 function TPasArrayType.GetDeclaration (full : boolean) : string;
 begin
-  Result:='Array['+IndexRange+'] of ';
+  Result:='Array';
+  If (IndexRange<>'') then
+    Result:=Result+'['+IndexRange+']';
+  Result:=Result+' of ';
   If IsPacked then
      Result := 'packed '+Result;      // 12/04/04 Dave - Added
   If Assigned(Eltype) then
