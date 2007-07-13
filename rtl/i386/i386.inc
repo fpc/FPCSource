@@ -1236,15 +1236,19 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 procedure fpc_cpucodeinit;
   begin
     os_supports_sse:=true;
-    sse_check:=true;
-    asm
-      { force an sse exception if no sse is supported, the exception handler sets
-        os_supports_sse to false then }
-      { don't change this instruction, the code above depends on its size }
-      movaps %xmm7, %xmm6
-    end;
-    sse_check:=false;
-    has_sse_support:=sse_support;
+    os_supports_sse:=sse_support;
+    if os_supports_sse then
+      begin
+        sse_check:=true;
+        asm
+          { force an sse exception if no sse is supported, the exception handler sets
+            os_supports_sse to false then }
+          { don't change this instruction, the code above depends on its size }
+          movaps %xmm7, %xmm6
+        end;
+        sse_check:=false;
+      end;
+    has_sse_support:=os_supports_sse;
     has_mmx_support:=mmx_support;
     SysResetFPU;
 {$ifdef USE_FASTMOVE}
