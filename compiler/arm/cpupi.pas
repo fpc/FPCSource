@@ -91,7 +91,9 @@ unit cpupi;
           floatsavesize:=0;
         floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
         result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+floatsavesize;
-        floatregstart:=-result+maxpushedparasize;
+        floatregstart:=tg.direction*result+maxpushedparasize;
+        if tg.direction=1 then
+          dec(floatregstart,floatsavesize);
       end;
 
 

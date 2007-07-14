@@ -1304,15 +1304,15 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref);
-                if tarmprocinfo(current_procinfo).floatregstart<=-1023 then
+                if tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023 then
                   begin
                     a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
-                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,NR_FRAME_POINTER_REG,NR_R12));
+                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
                     ref.base:=NR_R12;
                   end
                 else
                   begin
-                    ref.base:=NR_FRAME_POINTER_REG;
+                    ref.base:=current_procinfo.framepointer;
                     ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
                   end;
                 list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
@@ -1347,15 +1347,15 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref);
-                if tarmprocinfo(current_procinfo).floatregstart<=-1023 then
+                if tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023 then
                   begin
                     a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
-                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,NR_FRAME_POINTER_REG,NR_R12));
+                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
                     ref.base:=NR_R12;
                   end
                 else
                   begin
-                    ref.base:=NR_FRAME_POINTER_REG;
+                    ref.base:=current_procinfo.framepointer;
                     ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
                   end;
                 list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
