@@ -1918,10 +1918,6 @@ end;
 
 
 function tcgppc.fixref(list: TAsmList; var ref: treference): boolean;
-  { symbol names must not be larger than this to be able to make a GOT reference out of them,
-   otherwise they get truncated by the compiler resulting in failing of the assembling stage }
-const
-  MAX_GOT_SYMBOL_NAME_LENGTH_HACK = 120;
 var
   tmpreg: tregister;
   name : string;
@@ -1950,12 +1946,10 @@ begin
       ref.symbol := nil;
     end;
 
-
   { if we have to create PIC, add the symbol to the TOC/GOT }
-  {$WARNING Hack for avoiding too long manglednames enabled!!}
   if (target_info.system <> system_powerpc64_darwin) and
-     (cs_create_pic in current_settings.moduleswitches) and (assigned(ref.symbol) and
-    (length(ref.symbol.name) < MAX_GOT_SYMBOL_NAME_LENGTH_HACK)) then begin
+     (cs_create_pic in current_settings.moduleswitches) and 
+     (assigned(ref.symbol)) then begin
     tmpreg := load_got_symbol(list, ref.symbol.name);
     if (ref.base = NR_NO) then
       ref.base := tmpreg
