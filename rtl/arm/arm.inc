@@ -24,10 +24,11 @@ const
 procedure fpc_cpuinit;
 begin
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
+  { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   asm
     rfs r0
     and r0,r0,#0xffe0ffff
-    orr r0,r0,#0x00020000
+    orr r0,r0,#0x00070000
     wfs r0
   end;
 {$endif}
