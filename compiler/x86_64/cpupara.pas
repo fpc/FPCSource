@@ -517,7 +517,18 @@ unit cpupara;
                         begin
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_REFERENCE;
-                          if paracgsize in [OS_F32,OS_F64,OS_F80,OS_F128] then
+                          {Hack alert!!! We should modify int_cgsize to handle OS_128,
+                           however, since int_cgsize is called in many places in the
+                           compiler where only a few can already handle OS_128, fixing it
+                           properly is out of the question to release 2.2.0 in time. (DM)}
+                          if paracgsize=OS_128 then
+                            if paralen=8 then
+                              paraloc^.size:=OS_64
+                            else if paralen=16 then
+                              paraloc^.size:=OS_128
+                            else
+                              internalerror(200707143)
+                          else if paracgsize in [OS_F32,OS_F64,OS_F80,OS_F128] then
                             paraloc^.size:=int_float_cgsize(paralen)
                           else
                             paraloc^.size:=int_cgsize(paralen);

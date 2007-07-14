@@ -897,9 +897,14 @@ implementation
             begin
               if tprocvardef(def).is_methodpointer and
                  (not tprocvardef(def).is_addressonly) then
-                result := OS_64
+                if (sizeof(aint) = 4) then
+                  result:=OS_64
+                else if (sizeof(aint) = 8) then
+                  result:=OS_128
+                else
+                  internalerror(200707141)
               else
-                result := OS_ADDR;
+                result:=OS_ADDR;
             end;
           stringdef :
             begin
