@@ -489,7 +489,7 @@ implementation
       begin
         { allow the register allocator to remove unnecessary moves }
         result:=(((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
-                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER))
+                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER) and (oppostfix in [PF_None,PF_D]))
                 ) and
                 (condition=C_None) and
                 (ops=2) and
