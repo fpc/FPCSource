@@ -1566,6 +1566,8 @@ unit cgx86;
         cm:copymode;
 
     begin
+      if len=0 then
+        internalerror(200707142);
       cm:=copy_move;
       helpsize:=12;
       if cs_opt_size in current_settings.optimizerswitches then
