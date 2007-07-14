@@ -5083,7 +5083,7 @@ var
 Begin
     if ( a = 0 ) then
       Begin
-       packFloat64( 0, 0, 0, 0, float_result );
+       packFloat64( 0, 0, 0, 0, result );
        exit;
       end;
     zSign := flag( a < 0 );
