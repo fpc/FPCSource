@@ -1569,9 +1569,9 @@ unit cgx86;
       if len=0 then
         internalerror(200707142);
       cm:=copy_move;
-      helpsize:=12;
+      helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
-        helpsize:=8;
+        helpsize:=2*sizeof(aword);
       if (cs_mmx in current_settings.localswitches) and
          not(pi_uses_fpu in current_procinfo.flags) and
          ((len=8) or (len=16) or (len=24) or (len=32)) then
@@ -1604,7 +1604,15 @@ unit cgx86;
                   begin
                     copysize:=4;
                     cgsize:=OS_32;
-                  end;
+                  end
+{$ifdef cpu64bit}
+                else if len<16 then
+                  begin
+                    copysize:=8;
+                    cgsize:=OS_64;
+                  end
+{$endif}
+                ;
                 dec(len,copysize);
                 r:=getintregister(list,cgsize);
                 a_load_ref_reg(list,cgsize,cgsize,srcref,r);
