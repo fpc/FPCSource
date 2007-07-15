@@ -13,7 +13,7 @@ programs=chmcmd chmls
 examples=
 
 [require]
-package=rtl
+packages=rtl fcl-xml
 
 [install]
 fpcpackage=y
