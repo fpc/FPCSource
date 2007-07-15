@@ -714,7 +714,7 @@ begin
       lzxd^.bit_buf := lzxd^.bit_buf or (bits shr rshift_bits) and mask_bits;
     end;
 {$IFDEF ENDIAN_BIG}
-    lzxd^.bit_buf := ((lzxd^.bit_buf and $FF)shl8) or (lzxd^.bit_buf shr 8);
+    lzxd^.bit_buf := ((lzxd^.bit_buf and $FF)shl 8) or (lzxd^.bit_buf shr 8);
 {$ENDIF}
     lzxd^.put_bytes(lzxd^.out_arg, sizeof(lzxd^.bit_buf), @lzxd^.bit_buf);
     Inc(lzxd^.len_compressed_output, sizeof(lzxd^.bit_buf));
