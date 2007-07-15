@@ -4262,6 +4262,7 @@ var
   si : TScrollInfo;
 begin
   si.cbSize:=SizeOf(si);
+  si.fMask:=SIF_POS;
   if GetScrollInfo(hWnd, nBar, si) then
     Result:=si.nPos
   else
@@ -4273,6 +4274,7 @@ var
   si : TScrollInfo;
 begin
   si.cbSize:=SizeOf(si);
+  si.fMask:=SIF_RANGE;
   Result:=GetScrollInfo(hWnd, nBar, si);
   if Result then begin
     lpMinPos:=si.nMin;
