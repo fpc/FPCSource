@@ -2,6 +2,7 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 [target]
+dirs=chm
 dirs_linux=unzip zlib fftw \
            x11 opengl gtk gtk2 syslog \
            forms svgalib ggi libpng libgd \
