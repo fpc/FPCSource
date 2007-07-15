@@ -1810,8 +1810,10 @@ implementation
             symtablestack.push(pu.u.globalsymtable);
             pu:=tused_unit(pu.next);
           end;
-        symtablestack.push(hmodule.globalsymtable);
-        symtablestack.push(hmodule.localsymtable);
+        if assigned(hmodule.globalsymtable) then
+          symtablestack.push(hmodule.globalsymtable);
+        if assigned(hmodule.localsymtable) then
+          symtablestack.push(hmodule.localsymtable);
 
         { definitions }
         for i:=0 to tobjectdef(ttypesym(p).typedef).symtable.DefList.Count-1 do
