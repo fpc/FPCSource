@@ -50,7 +50,7 @@ begin
   {$IFDEF ENDIAN_BIG}
     for I := 1 to 13 do begin
       PWord(@MSCompressedName[I])^ := NToLE(PWord(@MSCompressedName[I])^);
-      PWord(@MSCompressedName[I])^ := NToLE(PWord(@UnCompressedName[I])^);
+      PWord(@UnCompressedName[I])^ := NToLE(PWord(@UnCompressedName[I])^);
     end;
   {$ENDIF}
 
@@ -67,11 +67,11 @@ begin
   AStream.WriteWord(NToLE(Size));
   AStream.WriteWord(NToLE(NEntries));
   if snUnCompressed in SectionNames then begin
-    AStream.WriteWord(NToLE(12));
+    AStream.WriteWord(NToLE(Word(12)));
     AStream.Write(UnCompressedName[1], 13*2);
   end;
   if snMSCompressed in SectionNames then begin
-    AStream.WriteWord(NToLE(12));
+    AStream.WriteWord(NToLE(Word(12)));
     AStream.Write(MSCompressedName[1], 13*2);
   end;
   
@@ -85,9 +85,9 @@ var
 begin
   //  ::DataSpace/Storage/MSCompressed/ControlData
   Result := AStream.Position;
-  AStream.WriteDWord(NToLE(6)); // number of dwords following this one
+  AStream.WriteDWord(NToLE(DWord(6))); // number of dwords following this one
   AStream.Write(LZXC, 4);
-  AStream.WriteDWord(NToLE(2)); // Version
+  AStream.WriteDWord(NToLE(DWord(2))); // Version
   AStream.WriteDWord(NToLE(LZXResetInterval));
   AStream.WriteDWord(NToLE(WindowSize));
   AStream.WriteDWord(NToLE(CacheSize)); // what is this??

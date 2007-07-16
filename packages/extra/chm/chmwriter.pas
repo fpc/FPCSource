@@ -136,12 +136,12 @@ procedure TChmWriter.InitITSFHeader;
 begin
   with ITSFHeader do begin
     ITSFsig := ITSFFileSig;
-    Version := NToLE(3);
+    Version := NToLE(DWord(3));
     // we fix endian order when this is written to the stream
-    HeaderLength := NToLE(SizeOf(TITSFHeader) + (SizeOf(TITSFHeaderEntry)*2) + SizeOf(TITSFHeaderSuffix));
-    Unknown_1 := NToLE(1);
+    HeaderLength := NToLE(DWord(SizeOf(TITSFHeader) + (SizeOf(TITSFHeaderEntry)*2) + SizeOf(TITSFHeaderSuffix)));
+    Unknown_1 := NToLE(DWord(1));
     TimeStamp:= NToBE(MilliSecondOfTheDay(Now)); //bigendian
-    LanguageID := NToLE($0409); // English / English_US
+    LanguageID := NToLE(DWord($0409)); // English / English_US
     Guid1 := ITSFHeaderGUID;
     Guid2 := ITSFHeaderGUID;
   end;
@@ -166,7 +166,7 @@ begin
   HeaderSection1Table.Length := NToLE(HeaderSection1Table.Length);
 
   with HeaderSection0 do begin // TITSPHeaderPrefix;
-    Unknown1 := NToLE($01FE);
+    Unknown1 := NToLE(DWord($01FE));
     Unknown2 := 0;
     // at this point we are putting together the headers. content sections 0 and 1 are complete
     FileSize := NToLE(HeaderSuffix.Offset + FSection0.Size + FSection1Size);
@@ -175,25 +175,25 @@ begin
   end;
   with HeaderSection1 do begin // TITSPHeader; // DirectoryListings header
     ITSPsig := ITSPHeaderSig;
-    Version := NToLE(1);
-    DirHeaderLength := NToLE(SizeOf(TITSPHeader));  // Length of the directory header
-    Unknown1 := NToLE($0A);
-    ChunkSize := NToLE($1000);
-    Density := NToLE(2);
+    Version := NToLE(DWord(1));
+    DirHeaderLength := NToLE(DWord(SizeOf(TITSPHeader)));  // Length of the directory header
+    Unknown1 := NToLE(DWord($0A));
+    ChunkSize := NToLE(DWord($1000));
+    Density := NToLE(DWord(2));
     // updated when directory listings were created
     //IndexTreeDepth := 1 ; // 1 if there is no index 2 if there is one level of PMGI chunks. will update as
     //IndexOfRootChunk := -1;// if no root chunk
     //FirstPMGLChunkIndex,
     //LastPMGLChunkIndex: LongWord;
     
-    Unknown2 := NToLE(-1);
+    Unknown2 := NToLE(DWord(-1));
     //DirectoryChunkCount: LongWord;
-    LanguageID := NToLE($0409);
+    LanguageID := NToLE(DWord($0409));
     GUID := ITSPHeaderGUID;
-    LengthAgain := NToLE($54);
-    Unknown3 := NToLE(-1);
-    Unknown4 := NToLE(-1);
-    Unknown5 := NToLE(-1);
+    LengthAgain := NToLE(DWord($54));
+    Unknown3 := NToLE(DWord(-1));
+    Unknown4 := NToLE(DWOrd(-1));
+    Unknown5 := NToLE(DWord(-1));
   end;
   
   // more endian stuff
@@ -256,7 +256,7 @@ const
   begin
     with IndexHeader do begin
       PMGIsig := PMGI;
-      UnusedSpace := IndexBlock.FreeSpace;
+      UnusedSpace := NToLE(IndexBlock.FreeSpace);
     end;
     IndexBlock.WriteHeader(@IndexHeader);
     IndexBlock.WriteChunkToStream(FDirectoryListings, ChunkIndex, ShouldFinish);
@@ -284,7 +284,7 @@ const
       UnusedSpace := NToLE(ListingBlock.FreeSpace);
       Unknown1 :=  0;
       PreviousChunkIndex := NToLE(LastListIndex);
-      NextChunkIndex := NToLE(-1); // we update this when we write the next chunk
+      NextChunkIndex := NToLE(DWord(-1)); // we update this when we write the next chunk
     end;
     if HeaderSection1.FirstPMGLChunkIndex <= 0 then
       HeaderSection1.FirstPMGLChunkIndex := NToLE(ChunkIndex);
@@ -305,6 +305,7 @@ begin
   // first sort the listings
   FInternalFiles.Sort;
   HeaderSection1.IndexTreeDepth := 1;
+  HeaderSection1.IndexOfRootChunk := -1;
   
   ChunkIndex := 0;
 
@@ -353,7 +354,7 @@ begin
     then WriteIndexChunk(True);
   end;
 
-  HeaderSection1.DirectoryChunkCount := NToLE(FDirectoryListings.Size div $1000);
+  HeaderSection1.DirectoryChunkCount := NToLE(DWord(FDirectoryListings.Size div $1000));
 
   IndexBlock.Free;
   ListingBlock.Free;
@@ -420,7 +421,7 @@ begin
   // 4 A struct that is only needed to set if full text search is on.
   FSection0.WriteWord(NToLE(Word(4)));
   FSection0.WriteWord(NToLE(Word(36))); // size
-  FSection0.WriteDWord(NToLE($0409));
+  FSection0.WriteDWord(NToLE(DWord($0409)));
   FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch))));
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(0);
@@ -512,7 +513,7 @@ begin
 
   FContextStream.Position := 0;
   // the size of all the entries
-  FContextStream.WriteDWord(NToLE(FContextStream.Size-SizeOf(dword)));
+  FContextStream.WriteDWord(NToLE(DWord(FContextStream.Size-SizeOf(dword))));
   
   FContextStream.Position := 0;
   AddStreamToArchive('#IVB', '/', FContextStream);
@@ -705,10 +706,10 @@ var
 begin
   if FSection1ResetTable.Size = 0 then begin
     // Write the header
-    FSection1ResetTable.WriteDWord(NtoLE(2));
+    FSection1ResetTable.WriteDWord(NtoLE(DWord(2)));
     FSection1ResetTable.WriteDWord(0); // number of entries. we will correct this with IncEntryCount
-    FSection1ResetTable.WriteDWord(NtoLE(8)); // Size of Entries (qword)
-    FSection1ResetTable.WriteDWord(NtoLE($28)); // Size of this header
+    FSection1ResetTable.WriteDWord(NtoLE(DWord(8))); // Size of Entries (qword)
+    FSection1ResetTable.WriteDWord(NtoLE(DWord($28))); // Size of this header
     WriteQWord(0); // Total Uncompressed Size
     WriteQWord(0); // Total Compressed Size
     WriteQWord(NtoLE($8000)); // Block Size
@@ -819,7 +820,7 @@ begin
   Entry.DecompressedSize := AStream.Size;
   FInternalFiles.AddEntry(Entry);
   AStream.Position := 0;
-  FCurrentStream.CopyFrom(AStream, AStream.Size);
+  TargetStream.CopyFrom(AStream, AStream.Size);
 end;
 
 procedure TChmWriter.AddContext(AContext: DWord; ATopic: String);

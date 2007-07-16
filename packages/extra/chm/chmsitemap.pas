@@ -495,7 +495,7 @@ procedure TChmSiteMapItems.Clear;
 var
   I: LongInt;
 begin
-  for I := Count downto 0 do Delete(I);
+  for I := Count-1 downto 0 do Delete(I);
 end;
 
 end.
