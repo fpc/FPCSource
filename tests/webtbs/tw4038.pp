@@ -11,7 +11,7 @@ begin
 {$ifdef unix}
   s:='/bin/echo';
 {$else}
-{$ifdef win32}
+{$ifdef windows}
   s:='gecho';
 {$else win32}
   s:='echo';
