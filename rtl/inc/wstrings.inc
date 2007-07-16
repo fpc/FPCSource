@@ -1537,6 +1537,7 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; S
               else
                 inc(j,3);
             end;
+            inc(i);
           end;
       end;
     result:=j+1;
