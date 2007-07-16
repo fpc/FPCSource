@@ -395,6 +395,7 @@ type
 Procedure RegisterConnection(Def : TConnectionDefClass);
 Procedure UnRegisterConnection(Def : TConnectionDefClass);
 Procedure UnRegisterConnection(ConnectionName : String);
+Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
 Procedure GetConnectionList(List : TSTrings);
 
 implementation
