@@ -15,7 +15,7 @@
 {$ifdef supported}
 
 const
-{$ifdef win32}
+{$ifdef windows}
   libname='tlibrary1.dll';
 {$else}
   libname='tlibrary1';
