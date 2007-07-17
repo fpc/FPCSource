@@ -287,11 +287,6 @@ begin
 {$endif cpum68k}
 end;
 
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint;
-begin
-  FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
-end;
-
 function epoll_create(size: cint): cint;
 begin
   epoll_create := do_syscall(syscall_nr_epoll_create,tsysparam(size));
@@ -309,5 +304,12 @@ begin
     tsysparam(events), tsysparam(maxevents), tsysparam(timeout));
 end;
 {$endif}
+
+// FUTEX_OP is a macro, doesn't exist in libC as function
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
+end;
+
 
 end.
