@@ -4,7 +4,7 @@
     {$ELSEIF defined(EXTRAPACKAGES)}
     Directory:='sdl';
     {$ENDIF}
-    OS:=[linux,netbsd,freebsd,openbsd,win32,win64];
+    OS:=[linux,freebsd,win32,win64,darwin];
     Dependencies.Add('pthreads');
     Dependencies.Add('x11');
     Dependencies.Add('smpeg');
@@ -16,4 +16,5 @@
     T:=Targets.AddUnit('sdl_gfx');
     T:=Targets.AddUnit('sdl_net');
     T:=Targets.AddUnit('smpeg');
+    T.CPU := [I386,X86_64,PPC];
     EndPackage;
