@@ -1282,7 +1282,6 @@ end;
 procedure pd_dispid(pd:tabstractprocdef);
 
 var pt:Tnode;
-    v:Tconstexprint;
 
 begin
   if pd.typ<>procdef then

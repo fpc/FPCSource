@@ -982,8 +982,6 @@ uses
 
 
     procedure tppumodule.writeppu;
-      var
-        pu : tused_unit;
       begin
          Message1(unit_u_ppu_write,realmodulename^);
 
@@ -1195,11 +1193,9 @@ uses
     procedure tppumodule.load_usedunits;
       var
         pu           : tused_unit;
-        load_refs    : boolean;
       begin
         if current_module<>self then
          internalerror(200212284);
-        load_refs:=true;
 
         { load the used units from interface }
         in_interface:=true;

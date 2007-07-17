@@ -1684,7 +1684,7 @@ implementation
       var
         p: tnode;
         newstatement : tstatementnode;
-        tempnode,tempnode2 : ttempcreatenode;
+        tempnode (*,tempnode2*) : ttempcreatenode;
         cmpfuncname: string;
       begin
         { when we get here, we are sure that both the left and the right }

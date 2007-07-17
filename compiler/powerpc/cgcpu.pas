@@ -890,8 +890,8 @@ const
      var regcounter,firstregfpu,firstregint: TSuperRegister;
          href : treference;
          usesfpr,usesgpr,gotgot : boolean;
-         cond : tasmcond;
-         instr : taicpu;
+{         cond : tasmcond;
+         instr : taicpu; }
 
       begin
         { CR and LR only have to be saved in case they are modified by the current }

@@ -443,12 +443,9 @@ implementation
       do_line  : boolean;
 
       sepChar : char;
-      nextdwarffileidx : longint;
     begin
       if not assigned(p) then
        exit;
-
-       nextdwarffileidx:=1;
 
       last_align := 2;
       InlineLevel:=0;
@@ -995,9 +992,6 @@ implementation
                   if CurrSecType<>sec_none then
                     WriteSection(CurrSecType,'',secorder_default);
                   AsmStartSize:=AsmSize;
-
-                  { reset dwarf file index }
-                  nextdwarffileidx:=1;
                 end;
              end;
 

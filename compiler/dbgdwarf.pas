@@ -1620,8 +1620,6 @@ implementation
       var
         procendlabel   : tasmlabel;
         funcrettype    : tasmsymbol;
-        mangled_length : longint;
-        p              : pchar;
         procentry      : string;
         dreg           : byte;
       begin
@@ -2489,7 +2487,6 @@ implementation
         lastfileinfo : tfileposinfo;
         currfuncname : pshortstring;
         currsectype  : TAsmSectiontype;
-        hlabel       : tasmlabel;
         hp : tai;
         infile : tinputfile;
         prevcolumn,

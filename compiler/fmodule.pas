@@ -413,9 +413,8 @@ implementation
 
     constructor tmodule.create(LoadedFrom:TModule;const s:string;_is_unit:boolean);
       var
-        p,n : string;
+        n : string;
       begin
-        p:=ExtractFilePath(s);
         n:=ChangeFileExt(ExtractFileName(s),'');
         { Programs have the name 'Program' to don't conflict with dup id's }
         if _is_unit then

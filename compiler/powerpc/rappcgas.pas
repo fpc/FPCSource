@@ -653,7 +653,7 @@ Unit rappcgas;
             dec(ord(hs[0]));
             actcondition.dirhint:=DH_Plus;
           end;
-	actopcode := tasmop(ptrint(iasmops.find(hs)));
+	actopcode := tasmop(ptruint(iasmops.find(hs)));
         if actopcode <> A_NONE then
           begin
             if actcondition.dirhint<>DH_None then

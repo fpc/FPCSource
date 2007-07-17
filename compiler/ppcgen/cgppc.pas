@@ -483,7 +483,6 @@ unit cgppc;
   procedure tcgppcgen.g_profilecode(list: TAsmList);
     var
       paraloc1 : tcgpara;
-      reg: tregister;
     begin
       if (target_info.system in [system_powerpc_darwin]) then
         begin

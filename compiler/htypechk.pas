@@ -2339,8 +2339,7 @@ implementation
         end;
 
       var
-        paraidx,
-        res: integer;
+        paraidx : integer;
         currpara, bestpara: tparavarsym;
         currvcl, bestvcl: tvariantequaltype;
       begin

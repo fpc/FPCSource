@@ -57,7 +57,6 @@ unit rgcpu;
       var
         tmpref : treference;
         helplist : TAsmList;
-        l : tasmlabel;
         hreg : tregister;
         ins : Taicpu;
       begin
@@ -109,7 +108,6 @@ unit rgcpu;
       var
         tmpref : treference;
         helplist : TAsmList;
-        l : tasmlabel;
         hreg : tregister;
         ins : Taicpu;
       begin

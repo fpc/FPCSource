@@ -1362,15 +1362,13 @@ implementation
        procedure factor_read_id(var p1:tnode;var again:boolean);
          var
            pc    : pchar;
-           len   : longint;
            srsym : tsym;
-           unit_found,
-           possible_error : boolean;
+           unit_found : boolean;
            srsymtable : TSymtable;
            hdef  : tdef;
-           static_name : string;
            orgstoredpattern,
            storedpattern : string;
+           len   : longint;
          begin
            { allow post fix operators }
            again:=true;
@@ -2208,9 +2206,6 @@ implementation
          l          : longint;
          ic         : int64;
          qc         : qword;
-{$ifndef cpu64}
-         card       : cardinal;
-{$endif cpu64}
          oldp1,
          p1         : tnode;
          code       : integer;

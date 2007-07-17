@@ -104,7 +104,6 @@ implementation
     function tmoddivnode.simplify:tnode;
       var
         t : tnode;
-        rd,ld : torddef;
         rv,lv : tconstexprint;
       begin
         result:=nil;
@@ -125,9 +124,6 @@ implementation
 
         if is_constintnode(right) and is_constintnode(left) then
           begin
-            rd:=torddef(right.resultdef);
-            ld:=torddef(left.resultdef);
-
             rv:=tordconstnode(right).value;
             lv:=tordconstnode(left).value;
 

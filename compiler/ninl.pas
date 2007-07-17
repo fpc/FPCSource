@@ -853,7 +853,6 @@ implementation
         filetemp      : Ttempcreatenode;
         name          : string[31];
         textsym       : ttypesym;
-        readfunctype  : tdef;
         is_typed,
         do_read,
         is_rwstr,

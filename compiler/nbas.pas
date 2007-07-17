@@ -443,8 +443,6 @@ implementation
 
 
     function tblocknode.simplify: tnode;
-      var
-        hp, next: tstatementnode;
       begin
         result := nil;
         { Warning: never replace a blocknode with another node type,      }

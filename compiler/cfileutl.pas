@@ -177,9 +177,9 @@ implementation
                 Result:=0;
             end
           else
-            Result:=PtrInt(DirectoryEntries.Find(Lower(AName)))
+            Result:=PtrUInt(DirectoryEntries.Find(Lower(AName)))
         else
-          Result:=PtrInt(DirectoryEntries.Find(AName));
+          Result:=PtrUInt(DirectoryEntries.Find(AName));
       end;
 
 
@@ -367,7 +367,7 @@ implementation
             else
               begin
                 Res.Name:=Res.CachedDir.DirectoryEntries.NameOfIndex(Res.EntryIndex);
-                Res.Attr:=PtrInt(Res.CachedDir.DirectoryEntries[Res.EntryIndex]);
+                Res.Attr:=PtrUInt(Res.CachedDir.DirectoryEntries[Res.EntryIndex]);
               end;
             inc(Res.EntryIndex);
             Result:=true;

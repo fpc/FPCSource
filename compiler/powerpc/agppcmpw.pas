@@ -675,9 +675,7 @@ interface
 
     procedure TPPCMPWAssembler.WriteTree(p:TAsmList);
     var
-      s,
-      prefix,
-      suffix   : string;
+      s        : string;
       hp       : tai;
       hp1      : tailineinfo;
       counter,
@@ -685,11 +683,8 @@ interface
       InlineLevel : longint;
       i,j,l    : longint;
       consttype : taiconst_type;
-      found,
       do_line,DoNotSplitLine,
       quoted   : boolean;
-      sep      : char;
-      replaced : boolean;
       sin      : single;
       d        : double;
 
@@ -1215,43 +1210,13 @@ interface
 
 
     function TPPCMPWAssembler.DoAssemble : boolean;
-    var f : file;
     begin
       DoAssemble:=Inherited DoAssemble;
-      (*
-      { masm does not seem to recognize specific extensions and uses .obj allways PM }
-      if (target_asm.id = as_i386_masm) then
-        begin
-          if not(cs_asm_extern in current_settings.globalswitches) then
-            begin
-              if Not FileExists(objfile) and
-                 FileExists(ForceExtension(objfile,'.obj')) then
-                begin
-                  Assign(F,ForceExtension(objfile,'.obj'));
-                  Rename(F,objfile);
-                end;
-            end
-          else
-            AsmRes.AddAsmCommand('mv',ForceExtension(objfile,'.obj')+' '+objfile,objfile);
-        end;
-      *)
     end;
 
     procedure TPPCMPWAssembler.WriteAsmFileHeader;
 
     begin
-      (*
-      AsmWriteLn(#9'.386p');
-      { masm 6.11 does not seem to like LOCALS PM }
-      if (target_asm.id = as_i386_tasm) then
-        begin
-          AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
-        end;
-      AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
-      AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
-      AsmLn;
-      *)
-
       AsmWriteLn(#9'string asis');  {Interpret strings just to be the content between the quotes.}
       AsmWriteLn(#9'aligning off'); {We do our own aligning.}
       AsmLn;

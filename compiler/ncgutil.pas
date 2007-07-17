@@ -2138,9 +2138,11 @@ implementation
 ****************************************************************************}
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
+{$ifdef x86}
       var
         ref : treference;
         sym : tasmsymbol;
+{$endif x86}
       begin
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
@@ -2765,8 +2767,10 @@ implementation
 
 
     procedure gen_pic_helpers(list : TAsmList);
+{$ifdef i386}
       var
         href : treference;
+{$endif i386}
       begin
         { if other cpus require such helpers as well, it can be solved more cleaner }
 {$ifdef i386}

@@ -162,7 +162,7 @@ unit cp1251;
        (unicode : 8226; flag : umf_noinfo; reserved : 0),
        (unicode : 8211; flag : umf_noinfo; reserved : 0),
        (unicode : 8212; flag : umf_noinfo; reserved : 0),
-       (unicode : 65535; flag : umf_unused),
+       (unicode : 65535; flag : umf_unused; reserved : 0),
        (unicode : 8482; flag : umf_noinfo; reserved : 0),
        (unicode : 1113; flag : umf_noinfo; reserved : 0),
        (unicode : 8250; flag : umf_noinfo; reserved : 0),

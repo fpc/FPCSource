@@ -199,7 +199,7 @@ function sub_from(const a:Tconstexprint;b:qword):Tconstexprint;
 
 const abs_low_int64=qword(9223372036854775808);   {abs(low(int64)) -> overflow error}
 
-var sspace,uspace:qword;
+var sspace:qword;
 
 label try_qword,ov;
 
@@ -375,7 +375,6 @@ end;
 operator mod (const a,b:Tconstexprint):Tconstexprint;
 
 var aa,bb:qword;
-    sa,sb:boolean;
 
 begin
   if a.overflow or b.overflow then
@@ -385,25 +384,13 @@ begin
     end;
   result.overflow:=false;
   if a.signed then
-    begin
-      aa:=qword(a.svalue);
-      sa:=a.svalue<0;
-    end
+    aa:=qword(a.svalue)
   else
-    begin
-      aa:=a.uvalue;
-      sa:=false;
-    end;
+    aa:=a.uvalue;
   if b.signed then
-    begin
-      bb:=qword(b.svalue);
-      sb:=b.svalue<0;
-    end
+    bb:=qword(b.svalue)
   else
-    begin
-      bb:=b.uvalue;
-      sb:=false;
-    end;
+    bb:=b.uvalue;
   if bb=0 then
     result.overflow:=true
   else
