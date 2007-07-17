@@ -25,7 +25,7 @@ begin
    ftok:=key_t( byte(id) shl 24 + ((st.st_dev and 255) shl 16) + (st.st_ino and $ffff));
 end;
 
-function shmget(key:key_t;size:cint;flag:cint):cint;
+function shmget(key:key_t;size:size_t;flag:cint):cint;
 begin
 {$ifdef NetBSD}
   shmget:=do_syscall(syscall_nr_shmget,3, key, size, flag);

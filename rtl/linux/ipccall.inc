@@ -46,7 +46,7 @@ begin
 // ipcerror:=fpgetErrno;
 end;
 
-function shmget(key: Tkey; size:cint; flag:cint):cint;
+function shmget(key: Tkey; size:size_t; flag:cint):cint;
 begin
   shmget:=ipccall (CALL_SHMGET,key,size,flag,nil);
 end;

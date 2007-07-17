@@ -13,12 +13,7 @@
 
  **********************************************************************}
 
-{$ifdef linux}
-{$ifdef FPC_USE_LIBC}
-  {$fatal This unit must be completely overhauled for use with libc on linux}
-{$endif}
-{$endif linux}
-Unit ipc;
+unit ipc;
 
 interface
 
@@ -106,7 +101,7 @@ type
 {$endif}
 
 { Function to generate a IPC key. }
-Function ftok (Path : pchar;  ID : cint) : TKey;
+Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; external name 'ftok'; {$endif}
 
 { ----------------------------------------------------------------------
   Sys V Shared memory stuff
@@ -203,10 +198,10 @@ type            // the shm*info kind is "kernel" only.
   end;
 {$endif}
 
-Function shmget(key: Tkey; size:cint; flag:cint):cint;
-Function shmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer;
-Function shmdt (shmaddr:pointer):cint;
-Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint;
+Function shmget(key: Tkey; size:size_t; flag:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmget'; {$endif}
+Function shmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmat'; {$endif}
+Function shmdt (shmaddr:pointer):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmdt'; {$endif}
+Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmctl'; {$endif}
 
 { ----------------------------------------------------------------------
   Message queue stuff
@@ -306,10 +301,10 @@ type
   end;
 {$endif}
 
-Function msgget(key: TKey; msgflg:cint):cint;
-Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint;
-Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint;
-Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;
+Function msgget(key: TKey; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgget'; {$endif}
+Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgsnd'; {$endif}
+Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgrcv'; {$endif}
+Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgctl'; {$endif}
 
 { ----------------------------------------------------------------------
   Semaphores stuff
@@ -422,17 +417,15 @@ Type
 {$endif}
    end;
 
-Function semget(key:Tkey; nsems:cint; semflg:cint): cint;
-Function semop(semid:cint; sops: psembuf; nsops: cuint): cint;
-Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): longint;
+Function semget(key:Tkey; nsems:cint; semflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semget'; {$endif}
+Function semop(semid:cint; sops: psembuf; nsops: cuint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semop'; {$endif}
+Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semctl'; {$endif}
 
 implementation
 
 uses Syscall;
 
-{$ifdef FPC_USE_LIBC}
- {$i ipccdecl.inc}
-{$else}
+{$ifndef FPC_USE_LIBC}
  {$ifdef Linux}
   {$ifdef cpux86_64}
     {$i ipcsys.inc}
