@@ -299,6 +299,10 @@ end;
 var
   initialstkptr : Pointer;external name '__stkptr';
 begin
+{$if defined(i386) and not defined(FPC_USE_LIBC)}
+  InitSyscallIntf;
+{$endif}
+
   SysResetFPU;
 {$if defined(cpupowerpc)}
   // some PPC kernels set the exception bits FE0/FE1 in the MSR to zero,
