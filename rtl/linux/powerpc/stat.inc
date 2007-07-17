@@ -73,22 +73,23 @@
 
 {$ELSE FPC_USE_LIBC}
 
-{ when linking to libc, we need to use some other, 64 bit enhanced stat type.
- Found out by having too much time on hand and some sophisticated guessing. }
+{ when linking to libc, we need to use some other, 64 bit enhanced stat type }
+
+{ i.e. powerpc kernel sources (2.6.20-15) /include/asm-powerpc/stat.h, stat64 struct }
 
   stat = record
     case byte of
       0: (
         st_dev     : cULongLong;
         st_ino     : cULongLong;
-        st_mode    : mode_t;
-        st_nlink   : nlink_t;
-        st_uid     : uid_t;
-        st_gid     : gid_t;
+        st_mode    : cUInt;
+        st_nlink   : cUInt;
+        st_uid     : cUInt;
+        st_gid     : cUInt;
         st_rdev    : cULongLong;
-        __pad2     : cushort;
+        __pad2     : cUShort;
         st_size    : cLongLong;
-        st_blksize : cULong;
+        st_blksize : cInt;
         st_blocks  : cULongLong;
         st_atime,
         st_atime_nsec,
@@ -101,14 +102,14 @@
       1: (
         dev    : cULongLong deprecated;
         ino    : cULongLong deprecated;
-        mode   : mode_t deprecated;
-        nlink  : nlink_t deprecated;
-        uid    : uid_t deprecated;
-        gid    : gid_t deprecated;
+        mode   : cUInt deprecated;
+        nlink  : cUInt deprecated;
+        uid    : cUInt deprecated;
+        gid    : cUInt deprecated;
         rdev   : cULongLong deprecated;
-        __pad2_: cushort deprecated;
+        __pad2_: cUShort deprecated;
         size   : cLongLong deprecated;
-        blksize: cULong deprecated;
+        blksize: cInt deprecated;
         blocks : cULongLong deprecated;
         atime,
         __unused1_dummy,

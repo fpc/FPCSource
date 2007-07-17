@@ -62,7 +62,54 @@
 
 {$else}
 
-(* get it from glibc/sysdeps/unix/sysv/linux/x86_64/bits/stat.h and check defines with gcc *)
+{$packrecords C}
+// (* get it from glibc/sysdeps/unix/sysv/linux/x86_64/bits/stat.h and check defines with gcc *)
+// kill the one who made the st_less idea!
+
+  Stat = record
+  case Byte of
+    0:(dev: cuLong deprecated;
+    ino: cuLong deprecated;
+    nlink: cuLong deprecated;
+
+    mode: cuInt deprecated;
+    uid: cuInt deprecated;
+    gid: cuInt deprecated;
+    __pad0: cuInt deprecated;
+    rdev: cuLong deprecated;
+    size: cLong deprecated;
+    blksize: cLong deprecated;
+    blocks: cLong	deprecated; //* Number 512-byte blocks allocated. */
+
+    atime: cuLong deprecated;
+    atime_nsec: cuLong deprecated;
+    mtime: cuLong deprecated;
+    mtime_nsec: cuLong deprecated;
+    ctime: cuLong deprecated;
+    ctime_nsec: cuLong deprecated;
+    __unused: array[0..2] of cLong deprecated;);
+
+    1:(st_dev: cuLong;
+    st_ino: cuLong;
+    st_nlink: cuLong;
+
+    st_mode: cuInt;
+    st_uid: cuInt;
+    st_gid: cuInt;
+    __pad1: cuInt;
+    st_rdev: cuLong;
+    st_size: cLong;
+    st_blksize: cLong;
+    st_blocks: cLong;	//* Number 512-byte blocks allocated. */
+
+    st_atime: cuLong;
+    st_atime_nsec: cuLong; 
+    st_mtime: cuLong;
+    st_mtime_nsec: cuLong;
+    st_ctime: cuLong;
+    st_ctime_nsec: cuLong;
+    __unused2: array[0..2] of cLong);
+  end;
 
 {$endif}
 
