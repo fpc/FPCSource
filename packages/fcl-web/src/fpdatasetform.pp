@@ -301,11 +301,11 @@ type
       // method of the form, Get or Post
     Property DataSource : TDataSource read FDataSource write FDataSource;
       // the data to use
-    property Controls : TFormFieldCollection read FControls;
+    property Controls : TFormFieldCollection read FControls write FControls;
       // configuration of the fields and how to generate the html
     property SeparateLabel : boolean read FSeparateLabel write SetSeparateLabel;
       // place label and value/edit in same table cell
-    property buttonrow : TFormButtonCollection read Fbuttonrow;
+    property buttonrow : TFormButtonCollection read Fbuttonrow write Fbuttonrow;
       // buttons to place in the form
     property TableCols : integer read FTableCols write FTableCols default 2;
       // number columns in the grid for 1 record

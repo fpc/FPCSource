@@ -192,6 +192,7 @@ Uses dbugintf;
 
 resourcestring
   SErrRequestNotHandled = 'Web request was not handled by actions.';
+  SErrNoContentProduced = 'The content producer "%s" didn''t produce any content.';
 
 { THTMLContentProducer }
 
@@ -225,14 +226,16 @@ begin
     try
       FWriter.CurrentElement := ParentElement;
       el := WriteContent (FWriter);
+      if not assigned(el) then
+        Raise EHTMLError.CreateFmt(SErrNoContentProduced,[Self.Name]);
       result := el.asstring;
     finally
       if WCreated then
-        FWriter.Free;
+        FreeAndNil(FWriter);
     end;
   finally
     if created then
-      FDocument.Free;
+      FreeAndNil(FDocument);
   end;
 end;
 
@@ -419,7 +422,7 @@ Var
   M : TMemoryStream;
   
 begin
-  CreateDocument;
+  FDocument := CreateDocument;
   Try
     FWriter:=CreateWriter(FDocument);
     Try
@@ -435,10 +438,10 @@ begin
         end;
       FDocument.SaveToStream(AResponse.ContentStream);
     Finally
-      FWriter.Free;
+      FreeAndNil(FWriter);
     end;
   Finally
-    FDocument.Free;
+    FreeAndNil(FDocument);
   end;
 end;
 
