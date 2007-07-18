@@ -104,8 +104,14 @@ begin
        end;
   except
     on e: exception do begin
-      WRITE_DEBUG('got exception: ',e.message);
       LThread.FFatalException := TObject(AcquireExceptionObject);
+      lErrorAddr:=ExceptAddr;
+      lErrorBase:=ExceptFrames^;
+      writeln(stderr,'Exception caught in thread $',hexstr(LThread),
+        ' at $',hexstr(lErrorAddr));
+      writeln(stderr,BackTraceStrFunc(lErrorAddr));
+      dump_stack(stderr,lErrorBase);
+      writeln(stderr);
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?
       if e is EThreadDestroyCalled then LThread.FFreeOnTerminate := true;
