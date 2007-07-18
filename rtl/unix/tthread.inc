@@ -73,19 +73,21 @@ end;
 function ThreadFunc(parameter: Pointer): ptrint;
 var
   LThread: TThread;
+  lErrorAddr, lErrorBase: Pointer;
 begin
   WRITE_DEBUG('ThreadFunc is here...');
   LThread := TThread(parameter);
-  WRITE_DEBUG('thread initing, parameter = ', ptrint(LThread));
+  WRITE_DEBUG('thread initing, parameter = ', ptruint(LThread));
   try
     // wait until AfterConstruction has been called, so we cannot
     // free ourselves before TThread.Create has finished
     // (since that one may check our VTM in case of $R+, and
     //  will call the AfterConstruction method in all cases)
 //    LThread.Suspend;
-    WRITE_DEBUG('AfterConstruction should have been called for ',ptrint(lthread));
+    WRITE_DEBUG('AfterConstruction should have been called for ',ptruint(lthread));
     if LThread.FInitialSuspended then
       begin
+        WRITE_DEBUG('thread ', ptruint(LThread), ' waiting for semaphore ', ptruint(LThread.FSem));
         CurrentTM.SemaphoreWait(LThread.FSem);
         if not(LThread.FTerminated) then
           begin
@@ -94,8 +96,12 @@ begin
                 LThread.FInitialSuspended := false;
                 WRITE_DEBUG('going into LThread.Execute');
                 LThread.Execute;
-              end;
-          end;
+              end
+            else
+              WRITE_DEBUG('thread ', ptruint(LThread), ' initially created suspended, resumed, but still suspended?!');
+          end
+        else
+          WRITE_DEBUG('initially created suspended, but already terminated');
       end
      else
        begin
@@ -124,7 +130,7 @@ begin
   LThread.DoTerminate;
   if LThread.FreeOnTerminate then
     begin
-      WRITE_DEBUG('Thread ',ptrint(lthread),' should be freed');
+      WRITE_DEBUG('Thread ',ptruint(lthread),' should be freed');
       LThread.Free;
       WRITE_DEBUG('Thread freed');
       WRITE_DEBUG('thread func calling EndThread');
@@ -150,6 +156,7 @@ begin
   FSem := CurrentTM.SemaphoreInit();
   if FSem = nil then
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
+  WRITE_DEBUG('thread ', ptruint(self), ' created semaphore ', ptruint(FSem));
   FSuspended := CreateSuspended;
   FSuspendedExternal := false;
   FThreadReaped := false;
@@ -159,7 +166,7 @@ begin
   FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
   if FHandle = TThreadID(0) then
     raise EThread.create('Failed to create new thread');
-  WRITE_DEBUG('TThread.Create done, fhandle = ', ptrint(fhandle));
+  WRITE_DEBUG('TThread.Create done, fhandle = ', ptruint(fhandle));
 end;
 
 
@@ -243,7 +250,7 @@ begin
       if FSuspended and
          (InterLockedExchange(longint(FSuspended),ord(false)) = ord(true)) then
         begin
-          WRITE_DEBUG('resuming ',ptrint(self));
+          WRITE_DEBUG('resuming ',ptruint(self));
           CurrentTM.SemaphorePost(FSem);
         end
     end
@@ -263,7 +270,7 @@ end;
 
 function TThread.WaitFor: Integer;
 begin
-  WRITE_DEBUG('waiting for thread ',ptrint(FHandle));
+  WRITE_DEBUG('waiting for thread ',ptruint(FHandle));
   WaitFor := WaitForThreadTerminate(FHandle, 0);
   { should actually check for errors in WaitForThreadTerminate, but no }
   { error api is defined for that function                             }
