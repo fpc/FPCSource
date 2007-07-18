@@ -125,8 +125,8 @@ esac
 CPUCROSSIFDEF1="#DEFINE NEEDCROSSBINUTILS"
 CPUCROSSIFDEF2=""
 
-case `arch` in
-  i?86|x86_64)
+case `fpc -PP` in
+  i?86|x86_64|amd64)
     # Cross-binutils are not needed to compile for i386 on an x86_64 system
     CPUCROSSIFDEF1="
 #IFNDEF CPUI386
