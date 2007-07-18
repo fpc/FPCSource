@@ -485,7 +485,7 @@ uses cutils, cclasses;
         p: tai;
         newjmp: taicpu;
         labelpositions: TFPList;
-        instrpos: ptruint;
+        instrpos: ptrint;
         l: tasmlabel;
         inserted_something: boolean;
       begin
@@ -539,7 +539,7 @@ uses cutils, cclasses;
 {$q-}
 {$define overflowon}
 {$endif}
-                           (ptruint(abs(ptruint(labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
+                           (ptruint(abs(ptrint(labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
 {$ifdef overflowon}
 {$q+}
 {$undef overflowon}

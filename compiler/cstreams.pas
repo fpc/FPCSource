@@ -462,7 +462,7 @@ begin
     begin
     Result:=FSize-FPosition;
     If Result>Count then Result:=Count;
-    Move (Pointer(PtrUInt(FMemory)+FPosition)^,Buffer,Result);
+    Move (Pointer(PtrUInt(FMemory)+PtrUInt(FPosition))^,Buffer,Result);
     FPosition:=Fposition+Result;
     end;
 end;
@@ -613,7 +613,7 @@ begin
       SetCapacity (NewPos);
     FSize:=Newpos;
     end;
-  System.Move (Buffer,Pointer(Ptruint(FMemory)+FPosition)^,Count);
+  System.Move (Buffer,Pointer(Ptruint(FMemory)+PtrUInt(FPosition))^,Count);
   FPosition:=NewPos;
   Result:=Count;
 end;
