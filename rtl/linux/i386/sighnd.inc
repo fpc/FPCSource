@@ -79,6 +79,11 @@ begin
   reenable_signal(sig);
 { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(UContext^.uc_mcontext.eip),pointer(UContext^.uc_mcontext.ebp));
+  begin
+    ucontext^.uc_mcontext.eax := res;
+    ucontext^.uc_mcontext.edx := ucontext^.uc_mcontext.eip;
+    ucontext^.uc_mcontext.ecx := ucontext^.uc_mcontext.ebp;
+    ucontext^.uc_mcontext.eip := ptruint(@HandleErrorAddrFrame);
+  end;
 end;
 
