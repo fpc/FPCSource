@@ -1439,7 +1439,10 @@ implementation
          n : tonnode;
       begin
          n:=tonnode(inherited dogetcopy);
-         n.excepTSymtable:=excepTSymtable.getcopy;
+         if assigned(exceptsymtable) then
+           n.exceptsymtable:=exceptsymtable.getcopy
+         else
+           n.exceptsymtable:=nil;
          n.excepttype:=excepttype;
          result:=n;
       end;
