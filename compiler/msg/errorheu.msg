@@ -4,7 +4,7 @@
 #
 #   Hebrew (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 7423
+#   Based on errore.msg of SVN revision 8090
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -350,6 +350,8 @@ scan_e_only_packset=02080_E_ערך של אריזה לא חוקי
 scan_w_pic_ignored=02081_W_מתעלם מהוראת PIC
 % Several targets like windows do not support the PIC directive and need it to be
 % ignored.
+scan_w_unsupported_switch_by_target=02082_W_המתג "$1" אינו נתמך בסוג תוצאה שנבחר
+% Some compiler switches like $E are not supported by all targets.
 % \end{description}
 #
 # Parser
@@ -850,7 +852,7 @@ parser_e_ill_property_storage_sym=03155_E_הסימול אינו יכול להש�
 % You can't use this type of symbol as storage specifier in property
 % declaration. You can use only methods with the result type boolean,
 % boolean class fields or boolean constants
-parser_e_only_publishable_classes_can__be_published=03156_E_רק מחלקה המהודרת במצב $M+ יכולה להיות איזור ה published
+parser_e_only_publishable_classes_can_be_published=03156_E_רק מחלקה המהודרת במצב $M+ יכולה להיות איזור ה published
 % In the published section of a class can be only class as fields used which
 % are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
@@ -1133,6 +1135,12 @@ parser_e_initialized_not_for_external=03233_E_לא ניתן לאתחל ערך ב
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_טיפוס החזרה של הפונקציה אינו חוקי
 % Some types like file types can not be used as function result
+parser_e_no_common_type=03235_E_אין טיפוס משותף ל "$1" ו "$2"
+% To perform an operation beween integers, the compiler converts both operands
+% to their common type, which appears to be an invalid type. To determine the
+% common type of the operands, the compiler takes the minimum of the minimal values
+% of both types, and the maximum of the maximal values of both types. The common
+% type is then minimum..maximum.
 % \end{description}
 #
 # Type Checking
@@ -1398,6 +1406,20 @@ type_e_cant_export_local=04077_E_לא ניתן לייצא שיגרה המסומ�
 type_e_not_automatable=04078_E_הטיפוס אינו אוטומט: "$1"
 % Only byte, integer, longint, smallint, currency, single, double, ansistring,
 % widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
+type_h_convert_add_operands_to_prevent_overflow=04079_H_המרת האופרנד ל"$1" לפני פעולת החיבור, יכול למנוע שגיאות גלישה.
+% Adding two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the addition.
+type_h_convert_sub_operands_to_prevent_overflow=04080_H_המרת האופרנד ל"$1" לפני פעולת החיבור יכולה למנוע שגיאות גלישה.
+% Subtracting two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the subtraction.
+type_h_convert_mul_operands_to_prevent_overflow=04081_H_המרת האופרנד "$1" לפני פעולת הכפל יכולה למנוע שגיאות גלישה.
+% Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the multiplication.
+type_w_pointer_to_signed=04082_W_המרת מצביעים למספרים שלמים עם סימן עלולה לגרום לשגיאות בתוצאות השוואה ובטווחים. יש להשתמש במקום זאת בטיפוס ללא סימן.
+% The virtual address space on 32-bit machines runs from $00000000 to $ffffffff. Many operating systems allow you to
+% allocate memory above $80000000, for example both Windows and Linux allow pointers in the range $0000000 to $bfffffff.
+% If you convert pointers to signed types, this can cause overflow and range check errors, but also $80000000 < $7fffffff.
+% This can cause random errors in code like "if p>q".
 % \end{description}
 #
 # Symtable
@@ -2214,7 +2236,7 @@ unit_w_cant_compile_unit_with_changed_incfile=10040_W_לא ניתן להדר א�
 % some source files were not found, so recompilation is impossible.
 unit_u_source_modified=10041_U_הקובץ $1 חדש יותר מהקובץ PPU $2
 % A modified source file for a compiler unit was found.
-unit_u_ppu_invalid_fpumode=10042_U_משתמש ביחידה אשר לא הודרה בצורה נכונה במצב FPU
+unit_u_ppu_invalid_fpumode=10042_U_מנסה להשתמש ביחידה אשר הודרה למצב FPU שונה
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
@@ -2533,7 +2555,6 @@ S*2Aas_אסוף עם GNU AS
 **2Mobjfpc_אפשר כמה תוספות של Delphi 2
 **2Mdelphi_מנסה להיות תואם Delphi
 **2Mtp_מנסה להיות תואם ל TP/BP 7.0
-**2Mgpc_מנסה להיות תואם gpc
 **2Mmacpas_מנסה להיות תואם ללהג של Macintosh Pascal
 **1n_אל תקרא את קובץ הגדרות ברירת המחדל
 **1N<x>_מיטוב צמתי עץ
