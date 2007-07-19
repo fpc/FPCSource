@@ -42,7 +42,7 @@ Type
   Public
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean);
     Function  HaveContent : Boolean; virtual;
-    Procedure ContentToStream(Stream : TStream); virtual;
+    function ContentToStream(Stream : TStream) : boolean; virtual;
   end;
   
   { TCustomWebAction }
@@ -243,9 +243,7 @@ end;
 
 procedure THTTPContentProducer.DoGetContent(ARequest: TRequest; Content: TStream; Var Handled : Boolean);
 begin
-  Handled:=HaveContent;
-  If Handled then
-    ContentToStream(Content);
+  Handled:=ContentToStream(Content);
 end;
 
 function THTTPContentProducer.ProduceContent: String;
@@ -258,7 +256,7 @@ begin
   Result:=(ProduceContent<>'');
 end;
 
-procedure THTTPContentProducer.ContentToStream(Stream: TStream);
+function THTTPContentProducer.ContentToStream(Stream: TStream) : boolean;
 
 Var
   S : String;
@@ -266,7 +264,12 @@ Var
 begin
   S:=ProduceContent;
   If length(S)>0 then
+    begin
     Stream.WriteBuffer(S[1],Length(S));
+    Result := True;
+    end
+  else
+    Result := False;
 end;
 
 { TCustomWebAction }
