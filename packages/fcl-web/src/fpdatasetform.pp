@@ -185,6 +185,7 @@ type
     FSize: integer;
     FSpanned: boolean;
     FValue: string;
+    procedure WriteLabel(aWriter: THTMLWriter);
   public
     function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement;
     function WriteHeader (aWriter : THTMLWriter) : THTMLCustomElement;
@@ -647,7 +648,7 @@ begin
   aWriter.StartTableRow;
   with tabledef do
     begin
-    for r := 0 to count-2 do
+    for r := 0 to count-1 do
       with TTableCell (Items[r]) do
         begin
         if CellType <> ctSpanned then
@@ -664,7 +665,7 @@ begin
           aWriter.StartTableRow;
           end;
         end;
-    TTableCell(Items[Count-1]).WriteContent(aWriter);
+//    TTableCell(Items[Count-1]).WriteContent(aWriter);
     end;
   aWriter.EndTableRow;
   aWriter.Endtablebody;
@@ -1026,9 +1027,9 @@ procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFie
   end;
 
 begin
-  if assigned (aControlDef.FField) then
+  if assigned (aControlDef.FField) and not IsHeader then
     PlaceFieldValue;
-  if FSeparateLabel and (aControlDef.LabelCaption <> '') then
+  if (IsHeader or FSeparateLabel) and (aControlDef.LabelCaption <> '') then
     PlaceLabel;
 end;
 
@@ -1046,17 +1047,18 @@ end;
 
 { TTableCell }
 
-function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
+procedure TTableCell.WriteLabel(aWriter: THTMLWriter);
+var HasLink : boolean;
+begin
+  HasLink := (Link <> '');
+  if HasLink then
+    aWriter.Anchor(Value).href := Link
+  else
+    aWriter.Text (Value);
+end;
 
-  procedure WriteLabel;
-  var HasLink : boolean;
-  begin
-    HasLink := (Link <> '');
-    if HasLink then
-      aWriter.Anchor(Value).href := Link
-    else
-      aWriter.Text (Value);
-  end;
+
+function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
 
   procedure WriteTextArea;
   begin
@@ -1139,7 +1141,7 @@ begin
             WriteTextArea
           else
             WriteInput;
-        ctLabel : WriteLabel;
+        ctLabel : WriteLabel(aWriter);
         ctProducer : WriteProducer;
       end;
       Endtablecell;
@@ -1165,17 +1167,12 @@ begin
         align := AlignHorizontal;
         valign := AlignVertical;
         end;
-      if CellType <> ctLabel then
-        begin
-        s := FormField.LabelCaption;
-        if self.Link <> '' then
-          aWriter.Anchor(s).href := self.Link
-        else
-          aWriter.Text (s);
-        end
-      else
-        aWriter.Text ('');
-      Endtablecell;
+      case CellType of
+        ctEmpty : ;
+        ctLabel : WriteLabel(aWriter);
+//        ctProducer : WriteProducer;
+      end;
+      Endtableheadcell;
       result := c;
       end;
 end;
