@@ -4702,11 +4702,13 @@
      HTMAXBUTTON = HTZOOM;
 
   { Mouse messages  }
-     MK_CONTROL = 8;
      MK_LBUTTON = 1;
-     MK_MBUTTON = 16;
      MK_RBUTTON = 2;
      MK_SHIFT = 4;
+     MK_CONTROL = 8;
+     MK_MBUTTON = 16;
+     MK_XBUTTON1 = 32;
+     MK_XBUTTON2 = 64;
   { WNDCLASS structure  }
      CS_BYTEALIGNCLIENT = 4096;
      CS_BYTEALIGNWINDOW = 8192;
