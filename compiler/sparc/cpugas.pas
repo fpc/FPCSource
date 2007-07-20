@@ -70,9 +70,9 @@ implementation
                  else if offset<0 then
                    GetReferenceString:=GetReferenceString+ToStr(offset);
                  case refaddr of
-                   addr_hi:
+                   addr_high:
                      GetReferenceString:='%hi('+GetReferenceString+')';
-                   addr_lo:
+                   addr_low:
                      GetReferenceString:='%lo('+GetReferenceString+')';
                  end;
               end
@@ -80,7 +80,7 @@ implementation
               begin
 {$ifdef extdebug}
                 if assigned(symbol) and
-                  not(refaddr in [addr_pic,addr_lo]) then
+                  not(refaddr in [addr_pic,addr_low]) then
                   internalerror(2003052601);
 {$endif extdebug}
                 if base<>NR_NO then
@@ -99,7 +99,7 @@ implementation
                     }
                     if assigned(symbol) then
                       begin
-                        if refaddr=addr_lo then
+                        if refaddr=addr_low then
                           GetReferenceString:='%lo('+symbol.name+')+'+GetReferenceString
                         else
                           GetReferenceString:=symbol.name+'+'+GetReferenceString;
@@ -127,7 +127,7 @@ implementation
             top_const:
               getopstr:=tostr(longint(val));
             top_ref:
-              if (oper.ref^.refaddr in [addr_no,addr_pic]) or ((oper.ref^.refaddr=addr_lo) and ((oper.ref^.base<>NR_NO) or
+              if (oper.ref^.refaddr in [addr_no,addr_pic]) or ((oper.ref^.refaddr=addr_low) and ((oper.ref^.base<>NR_NO) or
                 (oper.ref^.index<>NR_NO))) then
                 getopstr:='['+getreferencestring(ref^)+']'
               else

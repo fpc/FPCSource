@@ -187,17 +187,17 @@ implementation
             reference_reset(tmpref);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
-            tmpref.refaddr:=addr_hi;
+            tmpref.refaddr:=addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
             if (ref.offset=0) and (ref.index=NR_NO) and
               (ref.base=NR_NO) then
               begin
-                ref.refaddr:=addr_lo;
+                ref.refaddr:=addr_low;
               end
             else
               begin
                 { Load the low part is left }
-                tmpref.refaddr:=addr_lo;
+                tmpref.refaddr:=addr_low;
                 list.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
                 ref.offset:=0;
                 { symbol is loaded }
@@ -636,10 +636,10 @@ implementation
             reference_reset(tmpref);
             tmpref.symbol := href.symbol;
             tmpref.offset := href.offset;
-            tmpref.refaddr := addr_hi;
+            tmpref.refaddr := addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
             { Only the low part is left }
-            tmpref.refaddr:=addr_lo;
+            tmpref.refaddr:=addr_low;
             list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
             if href.base<>NR_NO then
               begin

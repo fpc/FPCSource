@@ -185,7 +185,7 @@ implementation
       begin
          inherited create(op);
          { only allowed to load the address }
-         if not(_op2.refaddr in [addr_lo,addr_hi]) then
+         if not(_op2.refaddr in [addr_low,addr_high]) then
            internalerror(200305311);
          ops:=3;
          loadreg(0,_op1);
