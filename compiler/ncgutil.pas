@@ -2502,7 +2502,9 @@ implementation
             begin
               if (ttemprefnode(n).tempinfo^.valid) and
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
-                 (ttemprefnode(n).tempinfo^.location.register = rr^.old) then
+                 (ttemprefnode(n).tempinfo^.location.register = rr^.old) and
+                 (not ttemprefnode(n).tempinfo^.is_inlined_result or
+                  not(fc_exit in flowcontrol)) then
                 begin
 {$ifndef cpu64bit}
                   { it's possible a 64 bit location was shifted and/xor typecasted }

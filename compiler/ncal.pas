@@ -2450,15 +2450,19 @@ implementation
           end
         else
           begin
-            tempnode := ctempcreatenode.create(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
-            addstatement(tempinfo^.createstatement,tempnode);
             if (vo_is_funcret in tlocalvarsym(p).varoptions) then
               begin
+                tempnode := ctempcreatenode.create_inlined_result(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
+                addstatement(tempinfo^.createstatement,tempnode);
                 funcretnode := ctemprefnode.create(tempnode);
                 addstatement(tempinfo^.deletestatement,ctempdeletenode.create_normal_temp(tempnode));
               end
             else
-              addstatement(tempinfo^.deletestatement,ctempdeletenode.create(tempnode));
+              begin
+                tempnode := ctempcreatenode.create(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
+                addstatement(tempinfo^.createstatement,tempnode);
+                addstatement(tempinfo^.deletestatement,ctempdeletenode.create(tempnode));
+              end;
             inlinelocals[indexnr] := ctemprefnode.create(tempnode);
           end;
       end;

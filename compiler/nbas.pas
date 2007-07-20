@@ -111,6 +111,7 @@ interface
          may_be_in_reg              : boolean;
          valid                      : boolean;
          nextref_set_hookoncopy_nil : boolean;
+         is_inlined_result          : boolean;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -127,6 +128,7 @@ interface
           { to it and *not* generate a ttempdeletenode                          }
           constructor create(_typedef: tdef; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
+          constructor create_inlined_result(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -736,6 +738,13 @@ implementation
       end;
 
 
+    constructor ttempcreatenode.create_inlined_result(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean);
+      begin
+        self.create(_typedef,_size,_temptype,allowreg);
+        tempinfo^.is_inlined_result:=true;
+      end;
+
+
     function ttempcreatenode.dogetcopy: tnode;
       var
         n: ttempcreatenode;
@@ -748,6 +757,8 @@ implementation
         n.tempinfo^.owner:=n;
         n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
+        n.tempinfo^.may_be_in_reg := tempinfo^.may_be_in_reg;
+        n.tempinfo^.is_inlined_result := tempinfo^.is_inlined_result;
         if assigned(tempinfo^.withnode) then
           n.tempinfo^.withnode := tempinfo^.withnode.getcopy
         else
@@ -776,6 +787,7 @@ implementation
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.may_be_in_reg:=boolean(ppufile.getbyte);
+        tempinfo^.is_inlined_result:=boolean(ppufile.getbyte);
         ppufile.getderef(tempinfo^.typedefderef);
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
@@ -788,6 +800,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putlongint(size);
         ppufile.putbyte(byte(tempinfo^.may_be_in_reg));
+        ppufile.putbyte(byte(tempinfo^.is_inlined_result));
         ppufile.putderef(tempinfo^.typedefderef);
         ppufile.putbyte(byte(tempinfo^.temptype));
         ppuwritenode(ppufile,tempinfo^.withnode);
@@ -847,6 +860,7 @@ implementation
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
           (ttempcreatenode(p).tempinfo^.may_be_in_reg = tempinfo^.may_be_in_reg) and
+          (ttempcreatenode(p).tempinfo^.is_inlined_result = tempinfo^.is_inlined_result) and
           (ttempcreatenode(p).tempinfo^.withnode.isequal(tempinfo^.withnode)) and
           equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef);
       end;

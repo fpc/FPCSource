@@ -334,6 +334,7 @@ interface
       var
         hp : tstatementnode;
         oldexitlabel : tasmlabel;
+        oldflowcontrol : tflowcontrol;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -342,6 +343,9 @@ interface
           begin
             oldexitlabel:=current_procinfo.CurrExitLabel;
             current_asmdata.getjumplabel(current_procinfo.CurrExitLabel);
+            oldflowcontrol:=flowcontrol;
+            { the nested block will not span an exit statement of the parent }
+            exclude(flowcontrol,fc_exit);
           end;
 
         { do second pass on left node }
@@ -365,6 +369,9 @@ interface
           begin
             cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
             current_procinfo.CurrExitLabel:=oldexitlabel;
+            { the exit statements inside this block are not exit statements }
+            { out of the parent                                             }
+            flowcontrol:=oldflowcontrol+(flowcontrol - [fc_exit]);
           end;
       end;
 
