@@ -665,7 +665,6 @@ begin
           aWriter.StartTableRow;
           end;
         end;
-//    TTableCell(Items[Count-1]).WriteContent(aWriter);
     end;
   aWriter.EndTableRow;
   aWriter.Endtablebody;
@@ -679,7 +678,7 @@ begin
   aWriter.StartTableRow;
   with tabledef do
     begin
-    for r := 0 to count-2 do
+    for r := 0 to count-1 do
       with TTableCell (Items[r]) do
         begin
         c := WriteHeader(aWriter);
@@ -691,7 +690,6 @@ begin
           aWriter.StartTableRow;
           end;
         end;
-    TTableCell(Items[Count-1]).WriteContent(aWriter);
     end;
   aWriter.EndTableRow;
   aWriter.Endtablehead;
