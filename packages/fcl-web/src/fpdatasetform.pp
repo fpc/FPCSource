@@ -1006,6 +1006,8 @@ procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFie
       CellType := ctLabel;
       IsLabel := false;
       Value := aControlDef.FField.asstring;
+      if aControldef.Action <> '' then
+        Link := Format(aControldef.Action,[value]);
       if not FSeparateLabel and not FIncludeHeader then
         begin
         Caption := aControldef.LabelCaption;
