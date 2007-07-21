@@ -415,6 +415,11 @@ implementation
                    if (block_type=bt_specialize) then
                      generate_specialization(pt1,name);
                    def:=ttypenode(pt1).resultdef;
+                   if (block_type<>bt_specialize) and (df_generic in def.defoptions)  then
+                     begin
+                       Message(parser_e_no_generics_as_types);
+                       def:=generrordef;
+                     end;
                  end
                else
                  Message(sym_e_error_in_type_def);

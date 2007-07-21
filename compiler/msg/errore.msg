@@ -1140,6 +1140,8 @@ parser_e_no_common_type=03235_E_No common type possible between "$1" and "$2"
 % common type of the operands, the compiler takes the minimum of the minimal values
 % of both types, and the maximum of the maximal values of both types. The common
 % type is then minimum..maximum.
+parser_e_no_generics_as_types=03236_E_Generics without specialization can not be used as a type for a variable
+% Generics must be always specialized before being used as variable type
 % \end{description}
 #
 # Type Checking
