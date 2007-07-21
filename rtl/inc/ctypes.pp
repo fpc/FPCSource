@@ -76,7 +76,8 @@ type
 {$ifdef windows}
   clongdouble=double;
 {$else}
-  {$define longdouble_assignment_overload}
+  {$ifdef x86}
+  {$define longdouble_assignment_overload_real80}
   clongdouble = packed record
     value:extended;
   {$ifdef defined(cpu64) or defined(darwin)}
@@ -85,6 +86,10 @@ type
     padding:array[0..1] of byte;
   {$endif}
   end;
+  {$else}
+  {$define longdouble_assignment_overload_real128}
+  clongdouble = packed array [0..15] of byte;
+  {$endif}
 {$endif}
   Pclongdouble=^clongdouble;
 
@@ -94,14 +99,20 @@ type
 
 {$endif}
 
-{$ifdef longdouble_assignment_overload}
+{$ifdef longdouble_assignment_overload_real80}
 operator := (const v:clongdouble):r:extended;
 operator := (const v:extended):r:clongdouble;
 {$endif}
 
+{$ifdef longdouble_assignment_overload_real128}
+{Non-x86 typically doesn't have extended. To be fixed once this changes.}
+operator := (const v:clongdouble):r:double;
+operator := (const v:double):r:clongdouble;
+{$endif}
+
 implementation
 
-{$ifdef longdouble_assignment_overload}
+{$ifdef longdouble_assignment_overload_real80}
 operator := (const v:clongdouble):r:extended;inline;
 
 begin
@@ -112,6 +123,31 @@ operator := (const v:extended):r:clongdouble;inline;
 
 begin
   r.value:=v;
+end;
+{$endif}
+
+{$ifdef longdouble_assignment_overload_real128}
+
+{$ifdef ENDIAN_LITTLE}
+const r128_mantissa_ofs=0;
+      r128_exponent_ofs=14;
+{$else}
+const r128_mantissa_ofs=2;
+      r128_exponent_ofs=0;
+{$endif}
+
+operator := (const v:clongdouble):r:double;inline;
+
+begin
+  qword(r):=(qword(Pword(@v[r128_exponent_ofs])^) shl 52) or
+            (Pqword(@v[r128_mantissa_ofs])^ shr 12);
+end;
+
+operator := (const v:double):r:clongdouble;inline;
+
+begin
+  Pword(@r[r128_exponent_ofs])^:=qword(v) shr 52;
+  Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
 end;
 {$endif}
 
