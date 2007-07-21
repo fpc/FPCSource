@@ -793,29 +793,16 @@ implementation
 
 
     function guid2string(const GUID: TGUID): string;
-        function long2hex(l, len: longint): string;
-          const
-            hextbl: array[0..15] of char = '0123456789ABCDEF';
-          var
-            rs: string;
-            i: integer;
-          begin
-            rs[0]:=chr(len);
-            for i:=len downto 1 do begin
-              rs[i]:=hextbl[l and $F];
-              l:=l shr 4;
-            end;
-            long2hex:=rs;
-          end;
+
       begin
         guid2string:=
-          '{'+long2hex(GUID.D1,8)+
-          '-'+long2hex(GUID.D2,4)+
-          '-'+long2hex(GUID.D3,4)+
-          '-'+long2hex(GUID.D4[0],2)+long2hex(GUID.D4[1],2)+
-          '-'+long2hex(GUID.D4[2],2)+long2hex(GUID.D4[3],2)+
-              long2hex(GUID.D4[4],2)+long2hex(GUID.D4[5],2)+
-              long2hex(GUID.D4[6],2)+long2hex(GUID.D4[7],2)+
+          '{'+hexstr(GUID.D1,8)+
+          '-'+hexstr(GUID.D2,4)+
+          '-'+hexstr(GUID.D3,4)+
+          '-'+hexstr(GUID.D4[0],2)+hexstr(GUID.D4[1],2)+
+          '-'+hexstr(GUID.D4[2],2)+hexstr(GUID.D4[3],2)+
+              hexstr(GUID.D4[4],2)+hexstr(GUID.D4[5],2)+
+              hexstr(GUID.D4[6],2)+hexstr(GUID.D4[7],2)+
           '}';
       end;
 
