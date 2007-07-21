@@ -72,7 +72,21 @@ type
 
   cfloat                 = single;             pcfloat                = ^cfloat;
   cdouble                = double;             pcdouble               = ^cdouble;
-  clongdouble            = extended;           pclongdouble           = ^clongdouble;
+
+{$ifdef windows}
+  clongdouble=double;
+{$else}
+  {$define longdouble_assignment_overload}
+  clongdouble = packed record
+    value:extended;
+  {$ifdef cpu64}
+    padding:array[0..5] of byte;
+  {$else}
+    padding:array[0..1] of byte;
+  {$endif}
+  end;
+{$endif}
+  Pclongdouble=^clongdouble;
 
 // Kylix compat types
   u_long  = culong;
@@ -80,6 +94,25 @@ type
 
 {$endif}
 
+{$ifdef longdouble_assignment_overload}
+operator := (const v:clongdouble):r:extended;
+operator := (const v:extended):r:clongdouble;
+{$endif}
+
 implementation
+
+{$ifdef longdouble_assignment_overload}
+operator := (const v:clongdouble):r:extended;inline;
+
+begin
+  r:=v.value;
+end;
+
+operator := (const v:extended):r:clongdouble;inline;
+
+begin
+  r.value:=v;
+end;
+{$endif}
 
 end.
