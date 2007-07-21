@@ -79,7 +79,7 @@ type
   {$define longdouble_assignment_overload}
   clongdouble = packed record
     value:extended;
-  {$ifdef cpu64}
+  {$ifdef defined(cpu64) or defined(darwin)}
     padding:array[0..5] of byte;
   {$else}
     padding:array[0..1] of byte;
