@@ -345,7 +345,9 @@ interface
 
     procedure ti386addnode.second_mul;
 
-    var r:Tregister;
+    var reg:Tregister;
+        ref:Treference;
+        use_ref:boolean;
         hl4 : tasmlabel;
 
     begin
@@ -353,17 +355,32 @@ interface
 
       {The location.register will be filled in later (JM)}
       location_reset(location,LOC_REGISTER,OS_INT);
-      {Get a temp register and load the left value into it
-       and free the location.}
-      r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,left.location,r);
+      { Mul supports registers and references, so if not register/reference,
+        load the location into a register}
+      use_ref:=false;
+      if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+        reg:=left.location.register
+      else if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+        begin
+          ref:=left.location.reference;
+          use_ref:=true;
+        end
+      else
+        begin
+          {LOC_CONSTANT for example.}
+          reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,left.location,reg);
+        end;
       {Allocate EAX.}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
       {Load the right value.}
       cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,NR_EAX);
       {Also allocate EDX, since it is also modified by a mul (JM).}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-      emit_reg(A_MUL,S_L,r);
+      if use_ref then
+        emit_ref(A_MUL,S_L,ref)
+      else
+        emit_reg(A_MUL,S_L,reg);
       if cs_check_overflow in current_settings.localswitches  then
        begin
          current_asmdata.getjumplabel(hl4);
