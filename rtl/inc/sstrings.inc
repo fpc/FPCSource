@@ -65,9 +65,9 @@ begin
    index:=length(s)+1;
   indexlen:=Length(s)-Index+1;
   srclen:=length(Source);
-  if SizeInt(length(source)+length(s))>=sizeof(s) then
+  if sizeInt(length(source))+sizeint(length(s))>=sizeof(s) then
    begin
-     cut:=SizeInt(length(source)+length(s))-sizeof(s)+1;
+     cut:=sizeInt(length(source))+sizeint(length(s))-sizeof(s)+1;
      if cut>indexlen then
       begin
         dec(srclen,cut-indexlen);
@@ -91,7 +91,7 @@ begin
   if index>length(s) then
    index:=length(s)+1;
   indexlen:=Length(s)-Index+1;
-  if (length(s)+1=sizeof(s)) and (indexlen>0) then
+  if (sizeint(length(s))+1=sizeof(s)) and (indexlen>0) then
    dec(indexlen);
   move(s[Index],s[Index+1],indexlen);
   s[Index]:=Source;
@@ -107,7 +107,7 @@ begin
   Pos:=0;
   if Length(SubStr)>0 then
    begin
-     MaxLen:=Length(s)-Length(SubStr);
+     MaxLen:=sizeint(Length(s))-Length(SubStr);
      i:=0;
      pc:=@s[1];
      while (i<=MaxLen) do
@@ -317,9 +317,9 @@ end;
 function hexstr(val : pointer) : shortstring;
 var
   i : longint;
-  v : ptrint;
+  v : ptruint;
 begin
-  v:=ptrint(val);
+  v:=ptruint(val);
   hexstr[0]:=chr(sizeof(pointer)*2);
   for i:=sizeof(pointer)*2 downto 1 do
    begin
@@ -785,8 +785,8 @@ end;
 
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; compilerproc;
 var
-  u, temp, prev, maxPrevValue, maxNewValue: ValUInt;
-  base : byte;
+  temp, prev, maxPrevValue, maxNewValue: ValUInt;
+  base,u : byte;
   negative : boolean;
 begin
   fpc_Val_SInt_ShortStr := 0;
@@ -849,8 +849,8 @@ Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code
 
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; compilerproc;
 var
-  u, prev : ValUInt;
-  base : byte;
+  prev : ValUInt;
+  base,u : byte;
   negative : boolean;
 begin
   fpc_Val_UInt_Shortstr:=0;

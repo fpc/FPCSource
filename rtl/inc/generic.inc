@@ -217,7 +217,7 @@ begin
       I:=0
      else
       begin
-        I:=bytearray(Buf1)[I]-bytearray(Buf2)[I];
+        I:=longint(bytearray(Buf1)[I])-longint(bytearray(Buf2)[I]);
         if I>0 then
          I:=1
         else
@@ -246,7 +246,7 @@ begin
       I:=0
      else
       begin
-        I:=wordarray(Buf1)[I]-wordarray(Buf2)[I];
+        I:=longint(wordarray(Buf1)[I])-longint(wordarray(Buf2)[I]);
         if I>0 then
          I:=1
         else
@@ -341,7 +341,7 @@ begin
       I:=0
      else
       begin
-        I:=bytearray(Buf1)[I]-bytearray(Buf2)[I];
+        I:=longint(bytearray(Buf1)[I])-longint(bytearray(Buf2)[I]);
         if I>0 then
          I:=1
         else
