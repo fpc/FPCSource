@@ -54,6 +54,10 @@ interface
 
     procedure range_to_type(l,h:TConstExprInt;var def:tdef);
 
+    {# Returns the common ordtype of a and b, i.e. a type that can handle
+     values of both a and b.}
+    function get_common_type(a,b:Torddef;rebase:boolean):Torddef;
+
     procedure int_to_type(v:TConstExprInt;var def:tdef);
 
     {# Returns true, if definition defines an integer type }
@@ -307,31 +311,99 @@ implementation
          range_to_basetype:=s32bit
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
          range_to_basetype:=u32bit
+        else if (l>=low(int64)) and (h<=high(int64)) then
+         range_to_basetype:=s64bit
         else
-         range_to_basetype:=s64bit;
+         range_to_basetype:=u64bit;
       end;
 
 
     procedure range_to_type(l,h:TConstExprInt;var def:tdef);
-      begin
-        { prefer signed over unsigned }
-        if (l>=int64(-128)) and (h<=127) then
-         def:=s8inttype
-        else if (l>=0) and (h<=255) then
-         def:=u8inttype
-        else if (l>=int64(-32768)) and (h<=32767) then
-         def:=s16inttype
-        else if (l>=0) and (h<=65535) then
-         def:=u16inttype
-        else if (l>=int64(low(longint))) and (h<=high(longint)) then
-         def:=s32inttype
-        else if (l>=low(cardinal)) and (h<=high(cardinal)) then
-         def:=u32inttype
-        else if (l>=low(int64)) and (h<=high(int64)) then
-         def:=s64inttype
-        else
-         def:=u64inttype;
-      end;
+
+    var ot:Tordtype;
+
+    begin
+      if cs_common_type in current_settings.localswitches then
+        begin
+          { prefer signed over unsigned }
+          if (l>=int64(-128)) and (h<=127) then
+            ot:=s8bit
+          else if (l>=0) and (h<=255) then
+            ot:=u8bit
+          else if (l>=int64(-32768)) and (h<=32767) then
+            ot:=s16bit
+          else if (l>=0) and (h<=65535) then
+            ot:=u16bit
+          else if (l>=int64(low(longint))) and (h<=high(longint)) then
+            ot:=s32bit
+          else if (l>=low(cardinal)) and (h<=high(cardinal)) then
+            ot:=u32bit
+          else if (l>=low(int64)) and (h<=high(int64)) then
+            ot:=s64bit
+          else
+            ot:=u64bit;
+          def:=Torddef.create(ot,l,h);
+        end
+      else
+        begin
+          { prefer signed over unsigned }
+          if (l>=int64(-128)) and (h<=127) then
+            def:=s8inttype
+          else if (l>=0) and (h<=255) then
+            def:=u8inttype
+          else if (l>=int64(-32768)) and (h<=32767) then
+            def:=s16inttype
+          else if (l>=0) and (h<=65535) then
+            def:=u16inttype
+          else if (l>=int64(low(longint))) and (h<=high(longint)) then
+            def:=s32inttype
+          else if (l>=low(cardinal)) and (h<=high(cardinal)) then
+            def:=u32inttype
+          else if (l>=low(int64)) and (h<=high(int64)) then
+            def:=s64inttype
+          else
+            def:=u64inttype;
+        end;
+    end;
+
+    function get_common_type(a,b:Torddef;rebase:boolean):Torddef;
+
+    {Determines the common ordtype of a and b, i.e. a type that can handle
+     values of both a and b.}
+
+    const common_ordtypes:array[u8bit..s64bit,u8bit..s64bit] of Tordtype=
+              {u8bit}   {u16bit}  {u32bit}  {u64bit}  {s8bit}  {s16bit}  {s32bit}  {s64bit}
+    {u8bit}  ((u8bit,    u16bit,   u32bit,   u64bit,   s16bit,  s16bit,   s32bit,   s64bit),
+    {u16bit}  (u16bit,   u16bit,   u32bit,   u64bit,   s32bit,  s32bit,   s32bit,   s64bit),
+    {u32bit}  (u32bit,   u32bit,   u32bit,   u64bit,   s64bit,  s64bit,   s64bit,   s64bit),
+    {u64bit}  (u64bit,   u64bit,   u64bit,   u64bit,   uvoid,   uvoid,    uvoid,    uvoid),
+    {s8bit}   (s16bit,   s32bit,   s64bit,   uvoid,    s8bit,   s16bit,   s32bit,   s64bit),
+    {s16bit}  (s32bit,   s32bit,   s64bit,   uvoid,   s16bit,   s16bit,   s32bit,   s64bit),
+    {s32bit}  (s32bit,   s32bit,   s64bit,   uvoid,   s32bit,   s32bit,   s32bit,   s64bit),
+    {s64bit}  (s64bit,   s64bit,   s64bit,   uvoid,   s64bit,   s64bit,   s64bit,   s64bit));
+
+    var l,h:Tconstexprint;
+        ordtype:Tordtype;
+
+    begin
+      get_common_type:=nil;
+      ordtype:=common_ordtypes[a.ordtype,b.ordtype];
+      if rebase or (ordtype<>uvoid) then
+        begin
+          l:=a.low;
+          if b.low<l then
+            l:=b.low;
+          h:=a.high;
+          if b.high>h then
+            h:=b.high;
+          if rebase then
+            ordtype:=range_to_basetype(l,h);
+          if not(not h.signed and (h.uvalue>qword(high(int64))) and
+                 (l.signed and (l.svalue<0))
+                ) then
+            get_common_type:=Torddef.create(ordtype,l,h);
+        end;
+    end;
 
 
     procedure int_to_type(v:TConstExprInt;var def:tdef);

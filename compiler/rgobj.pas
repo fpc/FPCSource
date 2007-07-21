@@ -1581,7 +1581,7 @@ unit rgobj;
     procedure Trgobj.translate_registers(list:TAsmList);
       var
         hp,p,q:Tai;
-        i:shortint;
+        i:byte;
 {$ifdef arm}
         so:pshifterop;
 {$endif arm}
@@ -1643,8 +1643,8 @@ unit rgobj;
                 with Taicpu(p) do
                   begin
                     current_filepos:=fileinfo;
-                    for i:=0 to ops-1 do
-                      with oper[i]^ do
+                    for i:=1 to ops do
+                      with oper[i-1]^ do
                         case typ of
                           Top_reg:
                              if (getregtype(reg)=regtype) then
@@ -1892,7 +1892,7 @@ unit rgobj;
 
         { check whether and if so which and how (read/written) this instructions contains
           registers that must be spilled }
-        for counter := 0 to instr.ops-1 do
+        for counter := 0 to longint(instr.ops)-1 do
          with instr.oper[counter]^ do
           begin
             case typ of
@@ -2057,7 +2057,7 @@ unit rgobj;
         live_registers:=oldlive_registers;
 
         { substitute registers }
-        for counter:=0 to instr.ops-1 do
+        for counter:=0 to longint(instr.ops)-1 do
           with instr.oper[counter]^ do
             case typ of
               top_reg:

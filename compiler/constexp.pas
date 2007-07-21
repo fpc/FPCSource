@@ -165,7 +165,7 @@ begin
   else if not a.signed and (a.uvalue>qword(high(int64))) then
     goto try_qword
   else
-    sspace:=qword(high(int64))-a.svalue;
+    sspace:=qword(high(int64))-qword(a.svalue);
 
   if sspace>=b then
     begin

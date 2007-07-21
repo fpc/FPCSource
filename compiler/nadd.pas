@@ -724,7 +724,7 @@ implementation
       var
         hp      : tnode;
         lt,rt   : tnodetype;
-        rd,ld   : tdef;
+        rd,ld,d : tdef;
         ot      : tnodetype;
         hsym    : tfieldvarsym;
         i       : longint;
@@ -1061,108 +1061,122 @@ implementation
                  else
                    inserttypeconv_internal(right,left.resultdef);
                end
-             { is there a signed 64 bit type ? }
-             else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
+             else if cs_common_type in current_settings.localswitches then
                begin
-                  if (torddef(ld).ordtype<>s64bit) then
-                   inserttypeconv(left,s64inttype);
-                  if (torddef(rd).ordtype<>s64bit) then
-                   inserttypeconv(right,s64inttype);
-               end
-             { is there a unsigned 64 bit type ? }
-             else if ((torddef(rd).ordtype=u64bit) or (torddef(ld).ordtype=u64bit)) then
-               begin
-                  if (torddef(ld).ordtype<>u64bit) then
-                   inserttypeconv(left,u64inttype);
-                  if (torddef(rd).ordtype<>u64bit) then
-                   inserttypeconv(right,u64inttype);
-               end
-             { 64 bit cpus do calculations always in 64 bit }
-{$ifndef cpu64bit}
-             { is there a cardinal? }
-             else if ((torddef(rd).ordtype=u32bit) or (torddef(ld).ordtype=u32bit)) then
-               begin
-                 { convert positive constants to u32bit }
-                 if (torddef(ld).ordtype<>u32bit) and
-                    is_constintnode(left) and
-                    (tordconstnode(left).value >= 0) then
-                   inserttypeconv(left,u32inttype);
-                 if (torddef(rd).ordtype<>u32bit) and
-                    is_constintnode(right) and
-                    (tordconstnode(right).value >= 0) then
-                   inserttypeconv(right,u32inttype);
-                 { when one of the operand is signed or the operation is subn then perform
-                   the operation in 64bit, can't use rd/ld here because there
-                   could be already typeconvs inserted.
-                   This is compatible with the code below for other unsigned types (PFV) }
-                 if is_signed(left.resultdef) or
-                    is_signed(right.resultdef) or
-                    (nodetype=subn) then
-                   begin
-                     if nodetype<>subn then
-                       CGMessage(type_w_mixed_signed_unsigned);
-                     inserttypeconv(left,s64inttype);
-                     inserttypeconv(right,s64inttype);
-                   end
+                 d:=get_common_type(Torddef(ld),Torddef(rd),true);
+                 if d=nil then
+                   message2(parser_e_no_common_type,ld.gettypename,rd.gettypename)
                  else
                    begin
-                     if (torddef(left.resultdef).ordtype<>u32bit) then
-                       inserttypeconv(left,u32inttype);
-                     if (torddef(right.resultdef).ordtype<>u32bit) then
-                       inserttypeconv(right,u32inttype);
+                     inserttypeconv(left,d);
+                     inserttypeconv(right,d);
                    end;
                end
-{$endif cpu64bit}
-             { generic ord conversion is sinttype }
              else
                begin
-                 { if the left or right value is smaller than the normal
-                   type sinttype and is unsigned, and the other value
-                   is a constant < 0, the result will always be false/true
-                   for equal / unequal nodes.
-                 }
-                 if (
-                      { left : unsigned ordinal var, right : < 0 constant }
-                      (
-                       ((is_signed(ld)=false) and (is_constintnode(left) =false)) and
-                       ((is_constintnode(right)) and (tordconstnode(right).value < 0))
-                      ) or
-                      { right : unsigned ordinal var, left : < 0 constant }
-                      (
-                       ((is_signed(rd)=false) and (is_constintnode(right) =false)) and
-                       ((is_constintnode(left)) and (tordconstnode(left).value < 0))
-                      )
-                    )  then
-                    begin
-                      if nodetype = equaln then
-                         CGMessage(type_w_signed_unsigned_always_false)
-                      else
-                      if nodetype = unequaln then
-                         CGMessage(type_w_signed_unsigned_always_true)
-                      else
-                      if (is_constintnode(left) and (nodetype in [ltn,lten])) or
-                         (is_constintnode(right) and (nodetype in [gtn,gten])) then
-                         CGMessage(type_w_signed_unsigned_always_true)
-                      else
-                      if (is_constintnode(right) and (nodetype in [ltn,lten])) or
-                         (is_constintnode(left) and (nodetype in [gtn,gten])) then
-                         CGMessage(type_w_signed_unsigned_always_false);
-                    end;
-
-                 { When there is a signed type or there is a minus operation
-                   we convert to signed int. Otherwise (both are unsigned) we keep
-                   the result also unsigned. This is compatible with Delphi (PFV) }
-                 if is_signed(ld) or
-                    is_signed(rd) or
-                    (nodetype=subn) then
+                 { is there a signed 64 bit type ? }
+                 if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
                    begin
-                     inserttypeconv(right,sinttype);
-                     inserttypeconv(left,sinttype);
+                      if (torddef(ld).ordtype<>s64bit) then
+                       inserttypeconv(left,s64inttype);
+                      if (torddef(rd).ordtype<>s64bit) then
+                       inserttypeconv(right,s64inttype);
                    end
+                 { is there a unsigned 64 bit type ? }
+                 else if ((torddef(rd).ordtype=u64bit) or (torddef(ld).ordtype=u64bit)) then
+                   begin
+                      if (torddef(ld).ordtype<>u64bit) then
+                       inserttypeconv(left,u64inttype);
+                      if (torddef(rd).ordtype<>u64bit) then
+                       inserttypeconv(right,u64inttype);
+                   end
+                 { 64 bit cpus do calculations always in 64 bit }
+{$ifndef cpu64bit}
+                 { is there a cardinal? }
+                 else if ((torddef(rd).ordtype=u32bit) or (torddef(ld).ordtype=u32bit)) then
+                   begin
+                     { convert positive constants to u32bit }
+                     if (torddef(ld).ordtype<>u32bit) and
+                        is_constintnode(left) and
+                        (tordconstnode(left).value >= 0) then
+                       inserttypeconv(left,u32inttype);
+                     if (torddef(rd).ordtype<>u32bit) and
+                        is_constintnode(right) and
+                        (tordconstnode(right).value >= 0) then
+                       inserttypeconv(right,u32inttype);
+                     { when one of the operand is signed or the operation is subn then perform
+                       the operation in 64bit, can't use rd/ld here because there
+                       could be already typeconvs inserted.
+                       This is compatible with the code below for other unsigned types (PFV) }
+                     if is_signed(left.resultdef) or
+                        is_signed(right.resultdef) or
+                        (nodetype=subn) then
+                       begin
+                         if nodetype<>subn then
+                           CGMessage(type_w_mixed_signed_unsigned);
+                         inserttypeconv(left,s64inttype);
+                         inserttypeconv(right,s64inttype);
+                       end
+                     else
+                       begin
+                         if (torddef(left.resultdef).ordtype<>u32bit) then
+                           inserttypeconv(left,u32inttype);
+                         if (torddef(right.resultdef).ordtype<>u32bit) then
+                           inserttypeconv(right,u32inttype);
+                       end;
+                   end
+{$endif cpu64bit}
+                 { generic ord conversion is sinttype }
                  else
                    begin
-                     inserttypeconv(right,uinttype);
-                     inserttypeconv(left,uinttype);
+                     { if the left or right value is smaller than the normal
+                       type sinttype and is unsigned, and the other value
+                       is a constant < 0, the result will always be false/true
+                       for equal / unequal nodes.
+                     }
+                     if (
+                          { left : unsigned ordinal var, right : < 0 constant }
+                          (
+                           ((is_signed(ld)=false) and (is_constintnode(left) =false)) and
+                           ((is_constintnode(right)) and (tordconstnode(right).value < 0))
+                          ) or
+                          { right : unsigned ordinal var, left : < 0 constant }
+                          (
+                           ((is_signed(rd)=false) and (is_constintnode(right) =false)) and
+                           ((is_constintnode(left)) and (tordconstnode(left).value < 0))
+                          )
+                        )  then
+                        begin
+                          if nodetype = equaln then
+                             CGMessage(type_w_signed_unsigned_always_false)
+                          else
+                          if nodetype = unequaln then
+                             CGMessage(type_w_signed_unsigned_always_true)
+                          else
+                          if (is_constintnode(left) and (nodetype in [ltn,lten])) or
+                             (is_constintnode(right) and (nodetype in [gtn,gten])) then
+                             CGMessage(type_w_signed_unsigned_always_true)
+                          else
+                          if (is_constintnode(right) and (nodetype in [ltn,lten])) or
+                             (is_constintnode(left) and (nodetype in [gtn,gten])) then
+                             CGMessage(type_w_signed_unsigned_always_false);
+                        end;
+
+                     { When there is a signed type or there is a minus operation
+                       we convert to signed int. Otherwise (both are unsigned) we keep
+                       the result also unsigned. This is compatible with Delphi (PFV) }
+                     if is_signed(ld) or
+                        is_signed(rd) or
+                        (nodetype=subn) then
+                       begin
+                         inserttypeconv(right,sinttype);
+                         inserttypeconv(left,sinttype);
+                       end
+                     else
+                       begin
+                         inserttypeconv(right,uinttype);
+                         inserttypeconv(left,uinttype);
+                       end;
                    end;
                end;
            end

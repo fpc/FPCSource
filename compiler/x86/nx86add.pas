@@ -1067,9 +1067,14 @@ unit nx86add;
     procedure tx86addnode.second_addordinal;
       begin
          { filter unsigned MUL opcode, which requires special handling }
-         if (nodetype=muln) and
+{         if (nodetype=muln) and
             (not(is_signed(left.resultdef)) or
-             not(is_signed(right.resultdef))) then
+             not(is_signed(right.resultdef))) then}
+          {Handle unsigned with the 1 operand mul/imul and signed 8-bit as
+           well, because there is no mul immediate for signed 8-bit.}
+          if (nodetype=muln) and
+             ((def_cgsize(left.resultdef) in [OS_8,OS_16,OS_32,OS_64,OS_S8]) or
+              (def_cgsize(right.resultdef) in [OS_8,OS_16,OS_32,OS_64,OS_S8])) then
            begin
              second_mul;
              exit;
