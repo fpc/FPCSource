@@ -148,6 +148,8 @@ operator := (const v:double):r:clongdouble;inline;
 begin
   Pword(@r[r128_exponent_ofs])^:=qword(v) shr 52;
   Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
+  Pcardinal(@r[r128_mantissa_ofs+8])^:=0;
+  Pword(@r[r128_mantissa_ofs+12])^:=0;
 end;
 {$endif}
 
