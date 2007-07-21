@@ -341,6 +341,8 @@ operator <=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;
 
 { variant helpers }
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
+procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of SizeInt);
+function VarArrayGet(const A: Variant; const Indices: array of SizeInt): Variant;
 procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 
 {**********************************************************************
