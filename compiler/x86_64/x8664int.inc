@@ -594,5 +594,11 @@
 'movabs',
 'movsxd',
 'cqo',
-'cmpxchg16b'
+'cmpxchg16b',
+'movntss',
+'movntsd',
+'insertq',
+'extrq',
+'lzcnt',
+'popcnt'
 );

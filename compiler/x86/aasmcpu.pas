@@ -316,6 +316,8 @@ implementation
        {IF_PFMASK = longint($F001FF00);}
        { SVM instructions  }
        IF_SVM    = $00100000;
+       { SSE4 instructions  }
+       IF_SSE4   = $00200000;
 
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
