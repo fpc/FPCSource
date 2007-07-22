@@ -342,12 +342,16 @@ begin
   result.overflow:=false;
   sa:=a.signed and (a.svalue<0);
   if sa then
+    {$Q-}
     aa:=qword(-a.svalue)
+    {$ifdef ena_q}{$Q+}{$endif}
   else
     aa:=a.uvalue;
   sb:=b.signed and (b.svalue<0);
   if sb then
+    {$Q-}
     bb:=qword(-b.svalue)
+    {$ifdef ena_q}{$Q+}{$endif}
   else
     bb:=b.uvalue;
 
