@@ -524,9 +524,8 @@ begin
          if current_module.islibrary then
            found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
          else
-{$else x86_64}
-           found1:=librarysearchpath.FindFile('crtend.o',false,s1);
 {$endif x86_64}
+           found1:=librarysearchpath.FindFile('crtend.o',false,s1);
          found2:=librarysearchpath.FindFile('crtn.o',false,s2);
          if found1 or found2 then
           begin
