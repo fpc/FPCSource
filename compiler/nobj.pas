@@ -128,7 +128,7 @@ implementation
     uses
        SysUtils,
        globals,verbose,systems,
-       symtable,symconst,symtype,defcmp,
+       symbase,symtable,symconst,symtype,defcmp,
        dbgbase,
        ncgrtti
        ;
@@ -308,8 +308,9 @@ implementation
                               MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                           end;
                       end
-                    { same parameters }
-                    else if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal) then
+                    { same parameter and return types (parameter specifiers will be checked below) }
+                    else if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_none,[])>=te_equal) and
+                            compatible_childmethod_resultdef(procdefcoll^.data.returndef,pd.returndef) then
                       begin
                         { overload is inherited }
                         if (po_overload in procdefcoll^.data.procoptions) then
@@ -324,9 +325,10 @@ implementation
                             include(pd.procoptions,po_hascallingconvention);
                           end;
 
-                        { the flags have to match except abstract and override }
-                        { only if both are virtual !!  }
-                        if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
+                        { All parameter specifiers and some procedure the flags have to match
+                          except abstract and override }
+                        if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])<te_equal) or
+                           (procdefcoll^.data.proccalloption<>pd.proccalloption) or
                            (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
                            ((procdefcoll^.data.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
                            begin
@@ -334,19 +336,6 @@ implementation
                              tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
                            end;
 
-                        { error, if the return types aren't equal }
-                        if not compatible_childmethod_resultdef(procdefcoll^.data.returndef,pd.returndef) then
-                          begin
-                            if not((m_delphi in current_settings.modeswitches) and
-                                   is_interface(_class)) then
-                              Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
-                                       procdefcoll^.data.fullprocname(false))
-                            else
-                              { Delphi allows changing the result type of interface methods from anything to
-                                anything (JM) }
-                              Message2(parser_w_overridden_methods_not_same_ret,pd.fullprocname(false),
-                                       procdefcoll^.data.fullprocname(false));
-                          end;
                         { check if the method to override is visible, check is only needed
                           for the current parsed class. Parent classes are already validated and
                           need to include all virtual methods including the ones not visible in the
@@ -451,36 +440,37 @@ implementation
         po_comp = [po_classmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
       var
-        sym: tsym;
         implprocdef : Tprocdef;
         i: cardinal;
+        hclass : tobjectdef;
+        hashedid : THashedIDString;
+        srsym      : tsym;
       begin
         result:=nil;
-
-        sym:=tsym(search_class_member(_class,name));
-        if assigned(sym) and
-           (sym.typ=procsym) then
+        hashedid.id:=name;
+        hclass:=_class;
+        while assigned(hclass) do
           begin
-            { when the definition has overload directive set, we search for
-              overloaded definitions in the class, this only needs to be done once
-              for class entries as the tree keeps always the same }
-            if (not tprocsym(sym).overloadchecked) and
-               (po_overload in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) and
-               (tprocsym(sym).owner.symtabletype=ObjectSymtable) then
-             search_class_overloads(tprocsym(sym));
-
-            for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
+            srsym:=tsym(hclass.symtable.FindWithHash(hashedid));
+            if assigned(srsym) and
+               (srsym.typ=procsym) then
               begin
-                implprocdef:=tprocdef(Tprocsym(sym).ProcdefList[i]);
-                if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
-                   (proc.proccalloption=implprocdef.proccalloption) and
-                   (proc.proctypeoption=implprocdef.proctypeoption) and
-                   ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then
+                for i:=0 to Tprocsym(srsym).ProcdefList.Count-1 do
                   begin
-                    result:=implprocdef;
-                    exit;
+                    implprocdef:=tprocdef(tprocsym(srsym).ProcdefList[i]);
+                    if (implprocdef.procsym=tprocsym(srsym)) and
+                       (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue])>=te_equal) and
+                       compatible_childmethod_resultdef(proc.returndef,implprocdef.returndef) and
+                       (proc.proccalloption=implprocdef.proccalloption) and
+                       (proc.proctypeoption=implprocdef.proctypeoption) and
+                       ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then
+                      begin
+                        result:=implprocdef;
+                        exit;
+                      end;
                   end;
               end;
+            hclass:=hclass.childof;
           end;
       end;
 
@@ -513,13 +503,7 @@ implementation
                   implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
                 { Add procdef to the implemented interface }
                 if assigned(implprocdef) then
-                  begin
-                    if (compare_paras(tprocdef(def).paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue])<te_equal) or
-                       not compatible_childmethod_resultdef(tprocdef(def).returndef,implprocdef.returndef) then
-                      MessagePos1(tprocdef(implprocdef).fileinfo,parser_e_header_dont_match_forward,
-                                  tprocdef(def).fullprocname(false));
-                    ImplIntf.AddImplProc(implprocdef)
-                  end
+                  ImplIntf.AddImplProc(implprocdef)
                 else
                   if ImplIntf.IType = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));

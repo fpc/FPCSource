@@ -7285,7 +7285,6 @@ tests/webtbf/tw3116.pp svneol=native#text/plain
 tests/webtbf/tw3126.pp svneol=native#text/plain
 tests/webtbf/tw3145.pp svneol=native#text/plain
 tests/webtbf/tw3183.pp svneol=native#text/plain
-tests/webtbf/tw3183b.pp svneol=native#text/plain
 tests/webtbf/tw3186.pp svneol=native#text/plain
 tests/webtbf/tw3218.pp svneol=native#text/plain
 tests/webtbf/tw3241.pp svneol=native#text/plain
@@ -8353,6 +8352,8 @@ tests/webtbs/tw9209.pp svneol=native#text/plain
 tests/webtbs/tw9221.pp svneol=native#text/plain
 tests/webtbs/tw9261.pp svneol=native#text/x-pascal
 tests/webtbs/tw9278.pp svneol=native#text/plain
+tests/webtbs/tw9306a.pp -text
+tests/webtbs/tw9306b.pp -text
 tests/webtbs/tw9309.pp -text
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
