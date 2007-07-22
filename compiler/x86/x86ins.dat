@@ -2151,7 +2151,7 @@ void                  \333\3\x0F\xA7\xE8              P6,CYRIX
 reg16|32|64,regmem    \301\320\1\x0F\13\x40\110      P6,SM
 
 [Jcc]
-(Ch_None, Ch_None, Ch_None)
+(Ch_RFLAGS, Ch_None, Ch_None)
 imm8                  \13\x70\50                     8086
 imm16|32              \320\1\x0F\13\x80\64           386,PASS2
 imm|short             \13\x70\50                     8086
@@ -3262,8 +3262,9 @@ mem,xmmreg              \101\300\334\325\76\2\x0F\x2B\77                SSE4 ;,S
 
 [INSERTQ]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,xmmreg,imm,imm   \110\334\76\2\x0F\x78\77\375\22\375\23          SSE4,SB
 xmmreg,xmmreg           \110\334\76\2\x0F\x79\77                        SSE4
+; four operands are not possible yet
+; xmmreg,xmmreg,imm,imm   \110\334\76\2\x0F\x78\77\375\22\375\23          SSE4,SB
 
 [EXTRQ]
 (Ch_All, Ch_None, Ch_None)
