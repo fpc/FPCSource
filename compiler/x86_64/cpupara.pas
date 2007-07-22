@@ -178,18 +178,12 @@ unit cpupara;
 
 
     function tx86_64paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
-      var
-        loc1,loc2:tcgloc;
       begin
         if target_info.system=system_x86_64_win64 then
           result:=(calloption=pocall_safecall) or
             (def.size>8) or not(def.size in [1,2,4,8])
         else
-          begin
-            { get memory class }
-            getvalueparaloc(p,loc1,loc2);
-            result:=loc1=LOC_REFERENCE;
-          end;
+          result:=inherited ret_in_param(def,calloption);
       end;
 
 
@@ -230,7 +224,7 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef :
-            result:=((varspez=vs_const) and ((def.size>16) or (calloption<>pocall_register))) or
+            result:=((varspez=vs_const) and ((def.size>16) or (calloption<>pocall_register))) or 
                     ((target_info.system=system_x86_64_win64) and (def.size>8));
           arraydef :
             begin
