@@ -1037,10 +1037,9 @@ implementation
        * required to have unspecified size in the instruction too...)
       }
       var
-        i,j,oprs:byte;
         insot,
         currot,
-        asize: longint;
+        i,j,asize,oprs : longint;
         insflags:cardinal;
         siz : array[0..2] of longint;
       begin
@@ -1050,10 +1049,10 @@ implementation
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
           exit;
 
-        for i:=1 to p^.ops do
+        for i:=0 to p^.ops-1 do
          begin
-           insot:=p^.optypes[i-1];
-           currot:=oper[i-1]^.ot;
+           insot:=p^.optypes[i];
+           currot:=oper[i]^.ot;
            { Check the operand flags }
            if (insot and (not currot) and OT_NON_SIZE)<>0 then
              exit;
@@ -1103,11 +1102,11 @@ implementation
                 oprs:=2
                else
                 oprs:=p^.ops;
-               for i:=1 to oprs do
-                if ((p^.optypes[i-1] and OT_SIZE_MASK) <> 0) then
+               for i:=0 to oprs-1 do
+                if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
                  begin
-                   for j:=1 to oprs do
-                    siz[j-1]:=p^.optypes[i-1] and OT_SIZE_MASK;
+                   for j:=0 to oprs-1 do
+                    siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
                    break;
                  end;
               end
@@ -1115,15 +1114,15 @@ implementation
               oprs:=2;
 
             { Check operand sizes }
-            for i:=1 to p^.ops do
+            for i:=0 to p^.ops-1 do
               begin
-                insot:=p^.optypes[i-1];
-                currot:=oper[i-1]^.ot;
+                insot:=p^.optypes[i];
+                currot:=oper[i]^.ot;
                 if ((insot and OT_SIZE_MASK)=0) and
-                   ((currot and OT_SIZE_MASK and (not siz[i-1]))<>0) and
+                   ((currot and OT_SIZE_MASK and (not siz[i]))<>0) and
                    { Immediates can always include smaller size }
                    ((currot and OT_IMMEDIATE)=0) and
-                    (((insot and OT_SIZE_MASK) or siz[i-1])<(currot and OT_SIZE_MASK)) then
+                    (((insot and OT_SIZE_MASK) or siz[i])<(currot and OT_SIZE_MASK)) then
                   exit;
               end;
           end;

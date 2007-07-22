@@ -125,7 +125,7 @@ general_i_number_of_notes=01023_I_$1 note(s) issued
 #
 # Scanner
 #
-# 02083 is the last used one
+# 02063 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -350,8 +350,6 @@ scan_w_pic_ignored=02081_W_PIC directive ignored
 % ignored.
 scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by the currently selected target
 % Some compiler switches like $E are not supported by all targets.
-scanner_e_illegal_intpromotion=02083_E_Illegal state for $INTPROMOTION directive
-% Only COMMON_TYPE and NATIVE)_INTEGER can be used as state with a \$INTPROMOTION compiler directive
 % \end{description}
 #
 # Parser
@@ -2500,9 +2498,6 @@ S*2Aas_assemble using GNU AS
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
-**2CI_Integer promotion
-**3CIcommon_type=Promote integers to common type before doing operation
-**3CInative_integer=Promote integers to native_integer before doing operation
 **2Cn_omit linking stage
 **2Co_check overflow of integer operations
 **2Cp<x>_select instruction set, see fpc -i for possible values

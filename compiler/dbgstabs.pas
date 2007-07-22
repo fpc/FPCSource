@@ -653,7 +653,7 @@ implementation
                  info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
              end;
             stabsstr:=def.mangledname;
-            getmem(p,sizeint(length(stabsstr))+255);
+            getmem(p,length(stabsstr)+255);
             strpcopy(p,'"'+obj+':'+RType
                   +def_stab_number(def.returndef)+info+'",'+tostr(n_function)
                   +',0,'+

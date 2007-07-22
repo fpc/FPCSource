@@ -1222,21 +1222,6 @@ implementation
         do_localswitch(cs_bitpacking);
       end;
 
-    procedure dir_intpromotion;
-
-    var s:string;
-
-      begin
-        current_scanner.skipspace;
-        s:=upper(current_scanner.readcomment);
-        if s='COMMON_TYPE' then
-          include(current_settings.localswitches,cs_common_type)
-        else if s='NATIVE_INTEGER' then
-          exclude(current_settings.localswitches,cs_common_type)
-        else
-          message1(scanner_e_illegal_intpromotion,s);
-      end;
-
 
 {****************************************************************************
                          Initialize Directives
@@ -1284,7 +1269,6 @@ implementation
         AddDirective('INFO',directive_all, @dir_info);
         AddDirective('INLINE',directive_all, @dir_inline);
         AddDirective('INTERFACES',directive_all, @dir_interfaces);
-        AddDirective('INTPROMOTION',directive_all, @dir_intpromotion);
         AddDirective('L',directive_all, @dir_link);
         AddDirective('LIBEXPORT',directive_mac, @dir_libexport);
         AddDirective('LIBRARYPATH',directive_all, @dir_librarypath);

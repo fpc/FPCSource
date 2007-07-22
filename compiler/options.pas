@@ -504,17 +504,6 @@ begin
                            IllegalPara(opt);
                          break;
                       end;
-                    'I':
-                      begin
-                        delete(more,1,1);
-                        if upper(more)='COMMON_TYPE' then
-                          include(init_settings.localswitches,cs_common_type)
-                        else if upper(more)='NATIVE_INTEGER' then
-                          exclude(init_settings.localswitches,cs_common_type)
-                        else
-                          illegalpara(opt);
-                        break;
-                      end;
                     'i' :
                       If UnsetBool(More, j) then
                         exclude(init_settings.localswitches,cs_check_io)

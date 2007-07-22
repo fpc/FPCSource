@@ -40,11 +40,11 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,defutil,
+      symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
-      cga,ncgutil,cgobj,cg64f32,cgx86;
+      cga,ncgutil,cgobj,cg64f32;
 
 {*****************************************************************************
                                 Add64bit
@@ -349,31 +349,12 @@ interface
         ref:Treference;
         use_ref:boolean;
         hl4 : tasmlabel;
-        acc1,acc2:Tregister;
 
     begin
       pass_left_right;
 
-      case Tcgsize2unsigned[left.location.size] of
-        OS_8:
-          begin
-            acc1:=NR_AL;
-            acc2:=NR_AH;
-          end;
-        OS_16:
-          begin
-            acc1:=NR_AX;
-            acc2:=NR_DX;
-          end;
-        OS_32:
-          begin
-            acc1:=NR_EAX;
-            acc2:=NR_EDX;
-          end;
-      end;
-
       {The location.register will be filled in later (JM)}
-      location_reset(location,LOC_REGISTER,left.location.size);
+      location_reset(location,LOC_REGISTER,OS_INT);
       { Mul supports registers and references, so if not register/reference,
         load the location into a register}
       use_ref:=false;
@@ -391,16 +372,15 @@ interface
           cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,left.location,reg);
         end;
       {Allocate EAX.}
-      cg.getcpuregister(current_asmdata.CurrAsmList,acc1);
+      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
       {Load the right value.}
-      cg.a_load_loc_reg(current_asmdata.CurrAsmList,right.location.size,right.location,acc1);
+      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,NR_EAX);
       {Also allocate EDX, since it is also modified by a mul (JM).}
-      if not(location.size in [OS_8,OS_S8]) then
-        cg.getcpuregister(current_asmdata.CurrAsmList,acc2);
+      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
       if use_ref then
-        emit_ref(A_MUL,Tcgsize2opsize[location.size],ref)
+        emit_ref(A_MUL,S_L,ref)
       else
-        emit_reg(A_MUL,Tcgsize2opsize[location.size],reg);
+        emit_reg(A_MUL,S_L,reg);
       if cs_check_overflow in current_settings.localswitches  then
        begin
          current_asmdata.getjumplabel(hl4);
@@ -409,12 +389,11 @@ interface
          cg.a_label(current_asmdata.CurrAsmList,hl4);
        end;
       {Free EAX,EDX}
-      if not(location.size in [OS_8,OS_S8]) then
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,acc2);
-      cg.ungetcpuregister(current_asmdata.CurrAsmList,acc1);
+      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
       {Allocate a new register and store the result in EAX in it.}
-      location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-      cg.a_load_reg_reg(current_asmdata.CurrAsmList,location.size,location.size,acc1,location.register);
+      location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EAX,location.register);
       location_freetemp(current_asmdata.CurrAsmList,left.location);
       location_freetemp(current_asmdata.CurrAsmList,right.location);
     end;

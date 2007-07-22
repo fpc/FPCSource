@@ -66,7 +66,7 @@ implementation
         p:=0;
         i:=regnumber_count_bsstart;
         repeat
-          if (p<=high(tregisterindex)-i) and (int_regname_table[int_regname_index[p+i]]<=s) then
+          if (p+i<=high(tregisterindex)) and (int_regname_table[int_regname_index[p+i]]<=s) then
             p:=p+i;
           i:=i shr 1;
         until i=0;

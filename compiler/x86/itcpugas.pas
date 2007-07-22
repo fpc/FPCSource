@@ -107,7 +107,7 @@ implementation
         p:=0;
         i:=regnumber_count_bsstart;
         repeat
-          if (p<=high(tregisterindex)-i) and (att_regname_table[att_regname_index[p+i]]<=s) then
+          if (p+i<=high(tregisterindex)) and (att_regname_table[att_regname_index[p+i]]<=s) then
             p:=p+i;
           i:=i shr 1;
         until i=0;

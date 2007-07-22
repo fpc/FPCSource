@@ -1297,10 +1297,7 @@ implementation
                     v:=torddef(def).low
                   else
                     v:=torddef(def).high;
-                  if cs_common_type in current_settings.localswitches then
-                    hp:=cordconstnode.create(v,Torddef.create(Torddef(def).ordtype,v,v),true)
-                  else
-                    hp:=cordconstnode.create(v,def,true);
+                  hp:=cordconstnode.create(v,def,true);
                   typecheckpass(hp);
                   do_lowhigh:=hp;
                end;

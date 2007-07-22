@@ -1876,10 +1876,10 @@ implementation
 
     destructor tai_cpu_abstract.Destroy;
       var
-        i : byte;
+        i : integer;
       begin
-        for i:=1 to opercnt do
-          freeop(i-1);
+        for i:=0 to opercnt-1 do
+          freeop(i);
         inherited destroy;
       end;
 
@@ -2092,7 +2092,7 @@ implementation
         { make a copy of the references }
         p.opercnt:=0;
         p.allocate_oper(ops);
-        for i:=0 to longint(ops)-1 do
+        for i:=0 to ops-1 do
           begin
             p.oper[i]^:=oper[i]^;
             case oper[i]^.typ of
@@ -2144,14 +2144,14 @@ implementation
 
     constructor tai_cpu_abstract.ppuload(t:taitype;ppufile:tcompilerppufile);
       var
-        i : byte;
+        i : integer;
       begin
         inherited ppuload(t,ppufile);
         { hopefully, we don't get problems with big/litte endian here when cross compiling :/ }
         ppufile.getdata(condition,sizeof(tasmcond));
         allocate_oper(ppufile.getbyte);
-        for i:=1 to ops do
-          ppuloadoper(ppufile,oper[i-1]^);
+        for i:=0 to ops-1 do
+          ppuloadoper(ppufile,oper[i]^);
         opcode:=tasmop(ppufile.getword);
 {$ifdef x86}
         ppufile.getdata(segprefix,sizeof(Tregister));
@@ -2162,13 +2162,13 @@ implementation
 
     procedure tai_cpu_abstract.ppuwrite(ppufile:tcompilerppufile);
       var
-        i : byte;
+        i : integer;
       begin
         inherited ppuwrite(ppufile);
         ppufile.putdata(condition,sizeof(tasmcond));
         ppufile.putbyte(ops);
-        for i:=1 to ops do
-          ppuwriteoper(ppufile,oper[i-1]^);
+        for i:=0 to ops-1 do
+          ppuwriteoper(ppufile,oper[i]^);
         ppufile.putword(word(opcode));
 {$ifdef x86}
         ppufile.putdata(segprefix,sizeof(Tregister));
@@ -2179,19 +2179,19 @@ implementation
 
     procedure tai_cpu_abstract.buildderefimpl;
       var
-        i : byte;
+        i : integer;
       begin
-        for i:=1 to ops do
-          ppubuildderefimploper(oper[i-1]^);
+        for i:=0 to ops-1 do
+          ppubuildderefimploper(oper[i]^);
       end;
 
 
     procedure tai_cpu_abstract.derefimpl;
       var
-        i : byte;
+        i : integer;
       begin
-        for i:=1 to ops do
-          ppuderefoper(oper[i-1]^);
+        for i:=0 to ops-1 do
+          ppuderefoper(oper[i]^);
       end;
 
 

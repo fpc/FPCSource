@@ -349,14 +349,6 @@ implementation
                  include(init_settings.moduleswitches,cs_support_goto);
              end;
 
-           { turn on common type promotion for mode tp }
-           if (m_tp7 in current_settings.modeswitches) then
-             begin
-               include(current_settings.localswitches,cs_common_type);
-               if changeinit then
-                 include(init_settings.localswitches,cs_common_type);
-             end;
-
            { Default enum packing for delphi/tp7 }
            if (m_tp7 in current_settings.modeswitches) or
               (m_delphi in current_settings.modeswitches) then
