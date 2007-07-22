@@ -21,7 +21,7 @@
 {$MODE OBJFPC}
 {$STATIC ON}
 {$R+}
-uses strings;
+uses strings,ctypes;
 {$L ctest.o}
 {$endif USE_PASCAL_OBJECT}
 { Use C alignment of records }
@@ -36,9 +36,7 @@ const
    RESULT_S64BIT = -12000;
    RESULT_FLOAT  = 14.54;
    RESULT_DOUBLE = 15.54;
-{$ifdef FPC_HAS_TYPE_EXTENDED}
    RESULT_LONGDOUBLE = 16.54;
-{$endif FPC_HAS_TYPE_EXTENDED}
    RESULT_PCHAR  = 'Hello world';
 
 type
@@ -75,7 +73,7 @@ end;
   int64_array = array [0..1] of int64;
   single_array = array [0..1] of single;
   double_array = array [0..1] of double;
-  extended_array = array [0..1] of extended;
+  clongdouble_array = array [0..1] of clongdouble;
 
 
 { simple parameter passing }
@@ -88,9 +86,7 @@ procedure test_param_s32(x: longint); cdecl; external;
 procedure test_param_s64(x: int64); cdecl; external;
 procedure test_param_float(x : single); cdecl; external;
 procedure test_param_double(x: double); cdecl; external;
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-procedure test_param_longdouble(x: extended); cdecl; external;
-{$endif FPC_HAS_TYPE_EXTENDED}
+procedure test_param_longdouble(x: clongdouble); cdecl; external;
 procedure test_param_var_u8(var x: byte); cdecl; external;
 
 { array parameter passing }
@@ -103,9 +99,7 @@ procedure test_array_param_s32(x: longint_array); cdecl; external;
 procedure test_array_param_s64(x: int64_array); cdecl; external;
 procedure test_array_param_float(x : single_array); cdecl; external;
 procedure test_array_param_double(x: double_array); cdecl; external;
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-procedure test_array_param_longdouble(x: extended_array); cdecl; external;
-{$endif FPC_HAS_TYPE_EXTENDED}
+procedure test_array_param_longdouble(x: clongdouble_array); cdecl; external;
 
 { mixed parameter passing }
 procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; external;
@@ -113,7 +107,7 @@ procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl; external;
 procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl; external;
 procedure test_param_mixed_float(x: single; y: byte); cdecl; external;
 procedure test_param_mixed_double(x: double; y: byte); cdecl; external;
-procedure test_param_mixed_long_double(x: extended; y: byte); cdecl; external;
+procedure test_param_mixed_long_double(x: clongdouble; y: byte); cdecl; external;
 procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl; external;
 { structure parameter testing }
 procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl; external;
@@ -138,9 +132,7 @@ function test_function_s64: int64; cdecl; external;
 function test_function_pchar: pchar; cdecl; external;
 function test_function_float : single; cdecl; external;
 function test_function_double : double; cdecl; external;
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-function test_function_longdouble: extended; cdecl; external;
-{$endif FPC_HAS_TYPE_EXTENDED}
+function test_function_longdouble: clongdouble; cdecl; external;
 function test_function_tiny_struct : _1byte_; cdecl; external;
 function test_function_small_struct : _3byte_; cdecl; external;
 function test_function_small_struct_s : _3byte_s; cdecl; external;
@@ -162,7 +154,7 @@ var
  global_s64bit : int64; cvar; external;
  global_float : single; cvar;external;
  global_double : double; cvar;external;
- global_long_double : extended; cvar; external;
+ global_long_double : clongdouble; cvar; external;
  value_u8bit : byte;
  value_s16bit : smallint;
  value_s32bit : longint;
@@ -182,7 +174,7 @@ var
  array_u64bit : array [0..1] of qword;
  array_float : array [0..1] of single;
  array_double : array [0..1] of double;
- array_long_double : array [0..1] of extended;
+ array_long_double : array [0..1] of clongdouble;
 
  procedure clear_globals;
   begin
@@ -310,12 +302,10 @@ begin
   clear_values;
   clear_globals;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
   value_long_double := RESULT_LONGDOUBLE;
   test_param_longdouble(value_long_double);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
     failed := true;
-{$endif FPC_HAS_TYPE_EXTENDED}
 
   { var parameter testing }
   clear_values;
@@ -407,7 +397,6 @@ begin
   clear_values;
   clear_globals;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
   array_long_double[1] := RESULT_LONGDOUBLE;
   test_array_param_longdouble(array_long_double);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
@@ -421,7 +410,6 @@ begin
 {$endif cpui386}
         failed := true;
     end;
-{$endif FPC_HAS_TYPE_EXTENDED}
 
   If failed then
    fail
@@ -737,11 +725,9 @@ begin
   clear_values;
   clear_globals;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
   value_long_double := test_function_longdouble;
   if trunc(value_long_double) <> trunc(RESULT_LONGDOUBLE) then
     failed := true;
-{$endif FPC_HAS_TYPE_EXTENDED}
 
   clear_values;
   clear_globals;
