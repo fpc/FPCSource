@@ -213,13 +213,13 @@ CONST
 {$if defined(cpusparc) or defined(cpusparc64)}
     O_LARGEFILE =   $40000;
 {$endif}
-{$if defined(cpui386) or defined(cpux86_64) or defined(cpupowerpc) or defined(cpuia64)}
+{$if defined(cpupowerpc)}
+    O_LARGEFILE =   $10000;
+{$endif}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuia64)}
     O_LARGEFILE =    $8000;
 {$endif}
 {$if defined(cpumips)}
-    O_LARGEFILE =    $2000;
-{$endif}
-{$if defined(cpupowerpc)}
     O_LARGEFILE =    $2000;
 {$endif}
     { mode_t possible values                                 }
