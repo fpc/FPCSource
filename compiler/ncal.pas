@@ -591,7 +591,8 @@ implementation
               if (paradef.typ<>arraydef) then
                 internalerror(200405241);
               { passing a string to an array of char }
-              if (p.nodetype=stringconstn) then
+              if (p.nodetype=stringconstn) and
+                 is_char(tarraydef(paradef).elementdef) then
                 begin
                   len:=tstringconstnode(p).len;
                   if len>0 then
@@ -679,22 +680,25 @@ implementation
                  hightree := geninlinenode(in_high_x,false,p.getcopy);
                end
               else
-               begin
-                 { passing a string to an array of char }
-                 if (p.nodetype=stringconstn) then
-                   begin
-                     len:=tstringconstnode(p).len;
-                     if len>0 then
-                      dec(len);
-                   end
-                 else
-                   begin
-                     maybe_load_para_in_temp(p);
-                     hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy),
-                                               cordconstnode.create(1,sinttype,false));
-                     loadconst:=false;
-                   end;
-               end;
+               { handle special case of passing an single string to an array of string }
+               if compare_defs(tarraydef(paradef).elementdef,p.resultdef,nothingn)>=te_equal then
+                len:=0
+              else
+               { passing a string to an array of char }
+               if (p.nodetype=stringconstn) and
+                  is_char(tarraydef(paradef).elementdef) then
+                 begin
+                   len:=tstringconstnode(p).len;
+                   if len>0 then
+                    dec(len);
+                 end
+              else
+                begin
+                  maybe_load_para_in_temp(p);
+                  hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy),
+                                            cordconstnode.create(1,sinttype,false));
+                  loadconst:=false;
+                end;
            end;
         else
           len:=0;
