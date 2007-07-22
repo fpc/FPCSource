@@ -516,7 +516,13 @@ implementation
            the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
          if (not is_64bit(left.resultdef)) and
             (torddef(left.resultdef).ordtype<>u32bit) then
-           inserttypeconv(left,s32inttype);
+           begin
+             { keep singness of orignal type }
+             if is_signed(left.resultdef) then
+               inserttypeconv(left,s32inttype)
+             else
+               inserttypeconv(left,u32inttype);
+           end;
 
          inserttypeconv(right,sinttype);
 
