@@ -72,8 +72,17 @@ type
 
   cfloat                 = single;             pcfloat                = ^cfloat;
   cdouble                = double;             pcdouble               = ^cdouble;
+{$endif}
 
 {$ifdef windows}
+  {$define longdouble_is_double}
+{$endif}
+
+{$if defined(linux) and (defined(cpupowerpc) or defined(cpuarm))}
+  {$define longdouble_is_double}
+{$endif}
+
+{$ifdef longdouble_is_double}
   clongdouble=double;
 {$else}
   {$ifdef x86}
@@ -97,7 +106,6 @@ type
   u_long  = culong;
   u_short = cushort;
 
-{$endif}
 
 {$ifdef longdouble_assignment_overload_real80}
 operator := (const v:clongdouble):r:extended;
@@ -106,20 +114,20 @@ operator := (const v:extended):r:clongdouble;
 
 {$ifdef longdouble_assignment_overload_real128}
 {Non-x86 typically doesn't have extended. To be fixed once this changes.}
-operator := (const v:clongdouble):r:double;
-operator := (const v:double):r:clongdouble;
+operator := (const v:clongdouble) r:double;
+operator := (const v:double) r:clongdouble;
 {$endif}
 
 implementation
 
 {$ifdef longdouble_assignment_overload_real80}
-operator := (const v:clongdouble):r:extended;inline;
+operator := (const v:clongdouble) r:extended;inline;
 
 begin
   r:=v.value;
 end;
 
-operator := (const v:extended):r:clongdouble;inline;
+operator := (const v:extended) r:clongdouble;inline;
 
 begin
   r.value:=v;
@@ -136,14 +144,14 @@ const r128_mantissa_ofs=2;
       r128_exponent_ofs=0;
 {$endif}
 
-operator := (const v:clongdouble):r:double;inline;
+operator := (const v:clongdouble) r:double;inline;
 
 begin
   qword(r):=(qword(Pword(@v[r128_exponent_ofs])^) shl 52) or
             (Pqword(@v[r128_mantissa_ofs])^ shr 12);
 end;
 
-operator := (const v:double):r:clongdouble;inline;
+operator := (const v:double) r:clongdouble;inline;
 
 begin
   Pword(@r[r128_exponent_ofs])^:=qword(v) shr 52;
