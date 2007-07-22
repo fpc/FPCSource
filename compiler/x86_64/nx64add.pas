@@ -80,9 +80,9 @@ interface
       { Also allocate RDX, since it is also modified by a mul (JM). }
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDX);
       if use_ref then
-        emit_ref(A_MUL,S_L,ref)
+        emit_ref(A_MUL,S_Q,ref)
       else
-        emit_reg(A_MUL,S_L,reg);
+        emit_reg(A_MUL,S_Q,reg);
       if cs_check_overflow in current_settings.localswitches  then
        begin
          current_asmdata.getjumplabel(hl4);
