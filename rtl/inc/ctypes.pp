@@ -17,6 +17,8 @@
 
 unit ctypes;
 
+{$inline on}
+
 interface
 
 {$ifdef unix}
