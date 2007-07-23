@@ -8,14 +8,14 @@ main=rtl
 [target]
 loaders=prt0
 units=$(SYSTEMUNIT) objpas macpas strings \
-      dos heaptrc \
+      dos heaptrc ctypes \
       sysutils classes fgl strutils math typinfo varutils \
       charset ucomplex getopts matrix fmtbcd \
       variants types rtlconsts sysconst dateutil objects \
       exec timer doslib utility hardware inputevent keymap graphics layers \
       intuition aboxlib mui \
 # these units are here, because they depend on system interface units above
-      kvm video keyboard mouse \
+      kvm video keyboard mouse sockets \
 # these can be moved to packages later
       clipboard datatypes asl ahi tinygl get9 muihelper
 rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
@@ -237,3 +237,8 @@ mouse$(PPUEXT) : mouse.pp
 
 keyboard$(PPUEXT) : keyboard.pp 
 #windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+                   ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
