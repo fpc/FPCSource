@@ -16,22 +16,6 @@
  **********************************************************************}
 
 
-const
-  FPU_All = $7f;
-
-function GetFPUState(const SigContext : TSigContext) : longint;
-begin
-  if assigned(SigContext.fpstate) then
-    GetfpuState:=SigContext.fpstate^.sw;
-{$ifdef SYSTEM_DEBUG}
-  writeln('xx:',sigcontext.en_tw,' ',sigcontext.en_cw);
-{$endif SYSTEM_DEBUG}
-{$ifdef SYSTEM_DEBUG}
-  Writeln(stderr,'FpuState = ',GetFpuState);
-{$endif SYSTEM_DEBUG}
-end;
-
-
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; UContext: Pucontext);cdecl;
 var
   res,fpustate : word;
@@ -43,24 +27,28 @@ begin
         { this is not allways necessary but I don't know yet
           how to tell if it is or not PM }
         res:=200;
-        fpustate:=GetFPUState(UContext^.uc_mcontext);
-        if (FpuState and FPU_All) <> 0 then
+        if assigned(ucontext^.uc_mcontext.fpstate) then
           begin
-            { first check the more precise options }
-            if (FpuState and FPU_DivisionByZero)<>0 then
-              res:=200
-            else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
-              res:=207
-            else if (FpuState and FPU_Overflow)<>0 then
-              res:=205
-            else if (FpuState and FPU_Underflow)<>0 then
-              res:=206
-            else if (FpuState and FPU_Denormal)<>0 then
-              res:=216
-            else
-              res:=207;  {'Coprocessor Error'}
+            FpuState:=ucontext^.uc_mcontext.fpstate^.sw;
+            if (FpuState and FPU_ExceptionMask) <> 0 then
+              begin
+                { first check the more precise options }
+                if (FpuState and FPU_DivisionByZero)<>0 then
+                  res:=200
+                else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
+                  res:=207
+                else if (FpuState and FPU_Overflow)<>0 then
+                  res:=205
+                else if (FpuState and FPU_Underflow)<>0 then
+                  res:=206
+                else if (FpuState and FPU_Denormal)<>0 then
+                  res:=216
+                else
+                  res:=207;  {'Coprocessor Error'}
+              end;
+            with ucontext^.uc_mcontext.fpstate^ do
+              sw:=sw and not FPU_ExceptionMask;
           end;
-        sysResetFPU;
       end;
     SIGBUS:
       res:=214;
