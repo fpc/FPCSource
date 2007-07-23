@@ -496,7 +496,10 @@ begin
                        break;
                      end;
                     'g' :
-                      include(init_settings.moduleswitches,cs_create_pic);
+                       if tf_no_pic_supported in target_info.flags then
+                         message(scan_w_pic_ignored)
+                       else
+                         include(init_settings.moduleswitches,cs_create_pic);
                     'h' :
                       begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -672,7 +675,12 @@ begin
            'f' :
              begin
                if more='PIC' then
-                 include(init_settings.moduleswitches,cs_create_pic)
+                 begin
+                   if tf_no_pic_supported in target_info.flags then
+                     message(scan_w_pic_ignored)
+                   else
+                     include(init_settings.moduleswitches,cs_create_pic)
+                 end
                else
                  IllegalPara(opt);
              end;

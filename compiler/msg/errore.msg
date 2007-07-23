@@ -345,8 +345,8 @@ scanner_e_illegal_warn_state=02079_E_Illegal state for $WARN directive
 % Only ON and OFF can be used as state with a \$warn compiler directive
 scan_e_only_packset=02080_E_Illegal set packing value
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
-scan_w_pic_ignored=02081_W_PIC directive ignored
-% Several targets like windows do not support the PIC directive and need it to be
+scan_w_pic_ignored=02081_W_PIC directive or switch ignored
+% Several targets like windows do not support neither need PIC so the PIC directive and switch are
 % ignored.
 scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by the currently selected target
 % Some compiler switches like $E are not supported by all targets.

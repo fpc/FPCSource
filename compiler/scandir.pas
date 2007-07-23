@@ -851,10 +851,10 @@ implementation
     procedure dir_pic;
       begin
         { windows doesn't need/support pic }
-        if not(target_info.system in system_windows+system_wince) then
-          do_moduleswitch(cs_create_pic)
+        if tf_no_pic_supported in target_info.flags then
+          message(scan_w_pic_ignored)
         else
-          message(scan_w_pic_ignored);
+          do_moduleswitch(cs_create_pic);
       end;
 
     procedure dir_pop;
