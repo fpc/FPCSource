@@ -225,6 +225,9 @@ unit widestr;
         dest   : pchar;
         i      : longint;
       begin
+        { This routine must work the same as the
+          the routine in the RTL to have the same compile time (for constant strings)
+          and runtime conversion (for variables) }
         source:=tcompilerwidecharptr(r^.data);
         dest:=p;
         for i:=1 to r^.len do
@@ -232,7 +235,7 @@ unit widestr;
            if word(source^)<128 then
             dest^:=char(word(source^))
            else
-            dest^:=' ';
+            dest^:='?';
            inc(dest);
            inc(source);
          end;
