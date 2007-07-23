@@ -112,7 +112,7 @@ unit optunrol;
                     if (counts mod unrolls<>0) and
                       ((counts mod unrolls)=unrolls-i) then
                       begin
-                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create);
+                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,nil);
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 

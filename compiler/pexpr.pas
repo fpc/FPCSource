@@ -1702,7 +1702,7 @@ implementation
                         if tlabelsym(srsym).defined then
                           Message(sym_e_label_already_defined);
                         tlabelsym(srsym).defined:=true;
-                        p1:=clabelnode.create(nil);
+                        p1:=clabelnode.create(nil,tlabelsym(srsym));
                         tlabelsym(srsym).code:=p1;
                       end;
                   end;
