@@ -1,5 +1,7 @@
 { %cpu=i386,x86_64 }
 
+{$goto on}
+
 label l1;
 var
   err : boolean;
