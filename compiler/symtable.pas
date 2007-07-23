@@ -1038,9 +1038,10 @@ implementation
          if not assigned(defowner) then
            internalerror(200602061);
 
-         { check for duplicate field, parameter or local names
-           also in inherited classes }
-         if (sym.typ in [fieldvarsym,paravarsym,localvarsym]) and
+         { procsym and propertysym have special code
+           to override values in inherited classes. For other
+           symbols check for duplicates }
+         if not(sym.typ in [procsym,propertysym]) and
             (
              not(m_delphi in current_settings.modeswitches) or
              is_object(tdef(defowner))
@@ -1057,8 +1058,7 @@ implementation
            end
          else
            begin
-             if not(m_duplicate_names in current_settings.modeswitches) or
-                not(sym.typ in [paravarsym,localvarsym]) then
+             if not(m_duplicate_names in current_settings.modeswitches) then
                result:=inherited checkduplicate(hashedid,sym);
            end;
       end;
@@ -1168,10 +1168,7 @@ implementation
         if not is_funcret_sym(sym) and
            (defowner.typ=procdef) and
            assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
-           { delphi allows local typed consts. having the same name as class members, probably
-             a delphi bug, but some delphi code depends on it }
-           not((m_duplicate_names in current_settings.modeswitches) and (sym.typ=staticvarsym)) then
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
           result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
       end;
 
