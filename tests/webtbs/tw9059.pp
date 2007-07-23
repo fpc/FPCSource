@@ -1,5 +1,8 @@
 { %opt=-Oodfa -vw -Sew}
 program DoesNotSeemToBeInited;
+
+{$goto on}
+
 label 10, 20, 30;
 var i: integer;
 begin
