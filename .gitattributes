@@ -7365,6 +7365,7 @@ tests/webtbf/tw6631.pp svneol=native#text/plain
 tests/webtbf/tw6686.pp svneol=native#text/plain
 tests/webtbf/tw6796.pp svneol=native#text/plain
 tests/webtbf/tw6922.pp svneol=native#text/plain
+tests/webtbf/tw6957.pp -text
 tests/webtbf/tw6970.pp svneol=native#text/plain
 tests/webtbf/tw7070.pp svneol=native#text/plain
 tests/webtbf/tw7322.pp svneol=native#text/plain

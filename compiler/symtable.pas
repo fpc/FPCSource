@@ -1256,10 +1256,10 @@ implementation
         hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
           begin
-            { Delphi you can have a symbol with the same name as the
+            { Delphi (contrary to TP) you can have a symbol with the same name as the
               unit, the unit can then not be accessed anymore using
               <unit>.<id>, so we can hide the symbol }
-            if (m_duplicate_names in current_settings.modeswitches) and
+            if (m_delphi in current_settings.modeswitches) and
                (hsym.typ=symconst.unitsym) then
               HideSym(hsym)
             else
@@ -1310,10 +1310,10 @@ implementation
         hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
           begin
-            { Delphi you can have a symbol with the same name as the
+            { Delphi (contrary to TP) you can have a symbol with the same name as the
               unit, the unit can then not be accessed anymore using
               <unit>.<id>, so we can hide the symbol }
-            if (m_duplicate_names in current_settings.modeswitches) and
+            if (m_delphi in current_settings.modeswitches) and
                (hsym.typ=symconst.unitsym) then
               HideSym(hsym)
             else

@@ -787,8 +787,9 @@ implementation
                  else
                    begin
                      { when the other symbol is a unit symbol then hide the unit
-                       symbol }
-                     if (srsym.typ=unitsym) then
+                       symbol, this is not supported in tp7 }
+                     if not(m_tp7 in current_settings.modeswitches) and
+                        (srsym.typ=unitsym) then
                       begin
                         HideSym(srsym);
                         searchagain:=true;
