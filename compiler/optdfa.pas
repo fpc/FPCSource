@@ -411,10 +411,7 @@ unit optdfa;
 
             raisen:
               begin
-                calclife(node);
-                node.allocoptinfo;
-                if not(assigned(node.optinfo^.def)) and
-                   not(assigned(node.optinfo^.use)) then
+                if not(assigned(node.optinfo^.life)) then
                   begin
                     dfainfo.use:=@node.optinfo^.use;
                     dfainfo.def:=@node.optinfo^.def;
@@ -422,8 +419,12 @@ unit optdfa;
                     foreachnodestatic(pm_postprocess,traisenode(node).left,@AddDefUse,@dfainfo);
                     foreachnodestatic(pm_postprocess,traisenode(node).right,@AddDefUse,@dfainfo);
                     foreachnodestatic(pm_postprocess,traisenode(node).third,@AddDefUse,@dfainfo);
+                    { update node }
+                    l:=node.optinfo^.life;
+                    DFASetIncludeSet(l,node.optinfo^.use);
+                    UpdateLifeInfo(node,l);
+                    printdfainfo(output,node);
                   end;
-                calclife(node);
               end;
 
             calln:
