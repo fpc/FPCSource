@@ -137,12 +137,12 @@ type
     function ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
     function ReadFloat(const Section, Ident: string; Default: Double): Double; virtual;
     function ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
-    function ReadBinaryStream(const Section, Name: string; Value: TStream): Integer;
+    function ReadBinaryStream(const Section, Name: string; Value: TStream): Integer; virtual;
     procedure WriteDate(const Section, Ident: string; Value: TDateTime); virtual;
     procedure WriteDateTime(const Section, Ident: string; Value: TDateTime); virtual;
     procedure WriteFloat(const Section, Ident: string; Value: Double); virtual;
     procedure WriteTime(const Section, Ident: string; Value: TDateTime); virtual;
-    procedure WriteBinaryStream(const Section, Name: string; Value: TStream); 
+    procedure WriteBinaryStream(const Section, Name: string; Value: TStream); virtual;
     procedure ReadSection(const Section: string; Strings: TStrings); virtual; abstract;
     procedure ReadSections(Strings: TStrings); virtual; abstract;
     procedure ReadSectionValues(const Section: string; Strings: TStrings); virtual; abstract;
