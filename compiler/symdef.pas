@@ -769,7 +769,7 @@ implementation
            newlen:=length(s);
            { Replace with CRC if the parameter line is very long }
            if (newlen-oldlen>12) and
-              ((newlen>128) or (newlen-oldlen>64)) then
+              ((newlen+length(prefix)>128) or (newlen-oldlen>32)) then
              begin
                crc:=$ffffffff;
                for i:=0 to tprocdef(st.defowner).paras.count-1 do
