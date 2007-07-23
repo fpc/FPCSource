@@ -28,7 +28,7 @@ interface
     uses
       cclasses,globals,
       node,nbas,
-      symdef,procinfo;
+      symdef,procinfo,optdfa;
 
     type
       tcgprocinfo = class(tprocinfo)
@@ -46,6 +46,7 @@ interface
         final_asmnode : tasmnode;
         { list to store the procinfo's of the nested procedures }
         nestedprocs : tlinkedlist;
+        dfabuilder : TDFABuilder;
         constructor create(aparent:tprocinfo);override;
         destructor  destroy;override;
         procedure printproc;
@@ -105,7 +106,6 @@ implementation
        optbase,
        opttail,
        optcse,
-       optdfa,
        optutils
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
@@ -771,18 +771,19 @@ implementation
                   pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
                   pi_needs_stackframe])=[]) then
           begin
-            createdfainfo(code);
+            dfabuilder:=TDFABuilder.Create;
+            dfabuilder.createdfainfo(code);
             { when life info is available, we can give more sophisticated warning about unintialized
               variables }
 
             { iterate through life info of the first node }
-            for i:=0 to nodemap.count-1 do
+            for i:=0 to dfabuilder.nodemap.count-1 do
               begin
                 if DFASetIn(code.optinfo^.life,i) then
-                  case tnode(nodemap[i]).nodetype of
+                  case tnode(dfabuilder.nodemap[i]).nodetype of
                     loadn:
                       begin
-                        varsym:=tabstractnormalvarsym(tloadnode(nodemap[i]).symtableentry);
+                        varsym:=tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry);
 
                         { Give warning/note for living locals }
                         if assigned(varsym.owner) and
@@ -1099,6 +1100,8 @@ implementation
             cg.done_register_allocators;
             tg:=nil;
           end;
+
+        dfabuilder.free;
 
         { restore symtablestack }
         remove_from_symtablestack;

@@ -31,13 +31,22 @@ unit optdfa;
   interface
 
     uses
-      node;
+      node,optutils;
 
-    { reset all dfa info, this is required before creating dfa info
-      if the tree has been changed without updating dfa }
-    procedure resetdfainfo(node : tnode);
+    type
+      TDFABuilder = class
+      protected
+        procedure CreateLifeInfo(node : tnode;map : TIndexedNodeSet);
+      public
+        resultnode : tnode;
+        nodemap : TIndexedNodeSet;
+        { reset all dfa info, this is required before creating dfa info
+          if the tree has been changed without updating dfa }
+        procedure resetdfainfo(node : tnode);
 
-    procedure createdfainfo(node : tnode);
+        procedure createdfainfo(node : tnode);
+        destructor destroy;override;
+      end;
 
   implementation
 
@@ -50,7 +59,7 @@ unit optdfa;
       procinfo,
       nutils,
       nbas,nflw,ncon,ninl,ncal,nset,
-      optbase,optutils;
+      optbase;
 
 
     (*
@@ -131,11 +140,10 @@ unit optdfa;
       end;
 
 
-    procedure CreateLifeInfo(node : tnode;map : TIndexedNodeSet);
+    procedure TDFABuilder.CreateLifeInfo(node : tnode;map : TIndexedNodeSet);
 
       var
         changed : boolean;
-        Resultnode : TNode;
 
       procedure CreateInfo(node : tnode);
 
@@ -484,26 +492,33 @@ unit optdfa;
 {$ifdef DEBUG_DFA}
         writeln('DFA solver iterations: ',runs);
 {$endif DEBUG_DFA}
-        resultnode.free;
       end;
 
 
     { reset all dfa info, this is required before creating dfa info
       if the tree has been changed without updating dfa }
-    procedure resetdfainfo(node : tnode);
+    procedure TDFABuilder.resetdfainfo(node : tnode);
       begin
       end;
 
 
-    procedure createdfainfo(node : tnode);
+    procedure TDFABuilder.createdfainfo(node : tnode);
       begin
-        if not(assigned(current_procinfo.nodemap)) then
-          current_procinfo.nodemap:=TIndexedNodeSet.Create;
+        if not(assigned(nodemap)) then
+          nodemap:=TIndexedNodeSet.Create;
         { add controll flow information }
         SetNodeSucessors(node);
 
         { now, collect life information }
-        CreateLifeInfo(node,current_procinfo.nodemap);
+        CreateLifeInfo(node,nodemap);
+      end;
+
+
+    destructor TDFABuilder.Destroy;
+      begin
+        Resultnode.free;
+        nodemap.free;
+        inherited destroy;
       end;
 
 end.

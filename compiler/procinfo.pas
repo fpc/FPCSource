@@ -103,9 +103,6 @@ unit procinfo;
           { max. of space need for parameters }
           maxpushedparasize : aint;
 
-          { node to index mapping for the node level optimizer }
-          nodemap : TIndexedNodeSet;
-
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 
