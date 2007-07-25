@@ -40,7 +40,8 @@ Type
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
-    ParaLibraryPath : TSearchPathList;
+    ParaLibraryPath,
+    ParaFrameworkPath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
     Constructor Create;
     Destructor Destroy;override;
@@ -712,6 +713,14 @@ begin
                    SetRedirectFile(More);
                  'E' :
                    OutputExeDir:=FixPath(More,true);
+                 'f' :
+                     if (target_info.system in systems_darwin) then
+                       if ispara then
+                         ParaFrameworkPath.AddPath(More,false)
+                       else
+                         frameworksearchpath.AddPath(More,true)
+                     else
+                       IllegalPara(opt);
                  'i' :
                    begin
                      if ispara then
@@ -1886,6 +1895,7 @@ begin
   ParaObjectPath:=TSearchPathList.Create;
   ParaUnitPath:=TSearchPathList.Create;
   ParaLibraryPath:=TSearchPathList.Create;
+  ParaFrameworkPath:=TSearchPathList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
 end;
 
@@ -1896,6 +1906,7 @@ begin
   ParaObjectPath.Free;
   ParaUnitPath.Free;
   ParaLibraryPath.Free;
+  ParaFrameworkPath.Free;
 end;
 
 
@@ -2257,6 +2268,7 @@ begin
   ObjectSearchPath.AddList(option.ParaObjectPath,true);
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   LibrarySearchPath.AddList(option.ParaLibraryPath,true);
+  FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then

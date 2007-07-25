@@ -125,7 +125,7 @@ general_i_number_of_notes=01023_I_$1 note(s) issued
 #
 # Scanner
 #
-# 02063 is the last used one
+# 02084 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -350,6 +350,8 @@ scan_w_pic_ignored=02081_W_PIC directive or switch ignored
 % ignored.
 scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by the currently selected target
 % Some compiler switches like $E are not supported by all targets.
+scan_w_frameworks_darwin_only=02084_W_Framework-related options are only supported for Darwin/Mac OS X
+% Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
 % \end{description}
 #
 # Parser
@@ -2522,6 +2524,7 @@ S*2Aas_assemble using GNU AS
 **2FC<x>_sets RC compiler binary name to <x>
 **2FD<x>_sets the directory where to search for compiler utilities
 **2Fe<x>_redirect error output to <x>
+**2Ff<x>_adds <x> to framework path (Darwin only)
 **2FE<x>_set exe/unit output path to <x>
 **2Fi<x>_adds <x> to include path
 **2Fl<x>_adds <x> to library path

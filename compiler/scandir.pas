@@ -389,6 +389,23 @@ implementation
         def_system_macro('FPU'+fputypestr[current_settings.fputype]);
      end;
 
+    procedure dir_frameworkpath;
+      begin
+        if not current_module.in_global then
+         Message(scan_w_switch_is_global)
+        else if not(target_info.system in systems_darwin) then
+          begin
+            Message(scan_w_frameworks_darwin_only);
+            current_scanner.skipspace;
+            current_scanner.readcomment
+          end
+        else
+          begin
+            current_scanner.skipspace;
+            current_module.localframeworksearchpath.AddPath(current_scanner.readcomment,false);
+          end;
+      end;
+
     procedure dir_goto;
       begin
         do_moduleswitch(cs_support_goto);
@@ -493,6 +510,25 @@ implementation
         if ExtractFileExt(s)='' then
           s:=ChangeFileExt(s,target_info.objext);
         current_module.linkotherofiles.add(s,link_always);
+      end;
+
+    procedure dir_linkframework;
+      var
+        s : string;
+      begin
+        current_scanner.skipspace;
+        if scanner.c = '''' then
+          begin
+            s:= current_scanner.readquotedstring;
+            current_scanner.readcomment
+          end
+        else
+          s:= trimspace(current_scanner.readcomment);
+        s:=FixFileName(s);
+        if (target_info.system in systems_darwin) then
+          current_module.linkotherframeworks.add(s,link_always)
+        else
+          Message(scan_w_frameworks_darwin_only);
       end;
 
     procedure dir_linklib;
@@ -1258,6 +1294,7 @@ implementation
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
         AddDirective('FATAL',directive_all, @dir_fatal);
         AddDirective('FPUTYPE',directive_all, @dir_fputype);
+        AddDirective('FRAMEWORKPATH',directive_all, @dir_frameworkpath);
         AddDirective('GOTO',directive_all, @dir_goto);
         AddDirective('HINT',directive_all, @dir_hint);
         AddDirective('HINTS',directive_all, @dir_hints);
@@ -1273,6 +1310,7 @@ implementation
         AddDirective('LIBEXPORT',directive_mac, @dir_libexport);
         AddDirective('LIBRARYPATH',directive_all, @dir_librarypath);
         AddDirective('LINK',directive_all, @dir_link);
+        AddDirective('LINKFRAMEWORK',directive_all, @dir_linkframework);
         AddDirective('LINKLIB',directive_all, @dir_linklib);
         AddDirective('LOCALSYMBOLS',directive_all, @dir_localsymbols);
         AddDirective('LONGSTRINGS',directive_all, @dir_longstrings);

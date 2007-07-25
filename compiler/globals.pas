@@ -199,7 +199,8 @@ interface
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
-       includesearchpath  : TSearchPathList;
+       includesearchpath,
+       frameworksearchpath  : TSearchPathList;
        autoloadunits      : string;
 
        { linking }
@@ -1064,6 +1065,7 @@ implementation
        unitsearchpath.Free;
        objectsearchpath.Free;
        includesearchpath.Free;
+       frameworksearchpath.Free;
        LinkLibraryAliases.Free;
        LinkLibraryOrder.Free;
      end;
@@ -1102,6 +1104,7 @@ implementation
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
+        frameworksearchpath:=TSearchPathList.Create;
 
         { Def file }
         usewindowapi:=false;

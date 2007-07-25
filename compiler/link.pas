@@ -51,7 +51,8 @@ interface
          SysInitUnit     : string[20];
          ObjectFiles,
          SharedLibFiles,
-         StaticLibFiles  : TCmdStrList;
+         StaticLibFiles,
+         FrameworkFiles  : TCmdStrList;
          Constructor Create;virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
@@ -60,6 +61,7 @@ interface
          Procedure AddSharedLibrary(S : TCmdStr);
          Procedure AddStaticCLibrary(const S : TCmdStr);
          Procedure AddSharedCLibrary(S : TCmdStr);
+         Procedure AddFramework(S : TCmdStr);
          procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
          Procedure InitSysInitUnitName;virtual;
          Function  MakeExecutable:boolean;virtual;
@@ -290,6 +292,7 @@ Implementation
         ObjectFiles:=TCmdStrList.Create_no_double;
         SharedLibFiles:=TCmdStrList.Create_no_double;
         StaticLibFiles:=TCmdStrList.Create_no_double;
+        FrameworkFiles:=TCmdStrList.Create_no_double;
       end;
 
 
@@ -298,6 +301,7 @@ Implementation
         ObjectFiles.Free;
         SharedLibFiles.Free;
         StaticLibFiles.Free;
+        FrameworkFiles.Free;
       end;
 
 
@@ -386,6 +390,8 @@ Implementation
             AddStaticCLibrary(linkotherstaticlibs.Getusemask(mask));
            while not linkothersharedlibs.empty do
             AddSharedCLibrary(linkothersharedlibs.Getusemask(mask));
+           while not linkotherframeworks.empty do
+             AddFramework(linkotherframeworks.Getusemask(mask));
            { Known Library/DLL Imports }
            for i:=0 to ImportLibraryList.Count-1 do
              begin
@@ -452,6 +458,15 @@ Implementation
           Delete(s,length(s)-length(target_info.sharedclibext)+1,length(target_info.sharedclibext)+1);
         { ready to be added }
         SharedLibFiles.Concat(S);
+      end;
+
+
+    Procedure TLinker.AddFramework(S:TCmdStr);
+      begin
+        if s='' then
+          exit;
+        { ready to be added }
+        FrameworkFiles.Concat(S);
       end;
 
 

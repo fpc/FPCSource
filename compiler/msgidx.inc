@@ -103,6 +103,7 @@ const
   scan_e_only_packset=02080;
   scan_w_pic_ignored=02081;
   scan_w_unsupported_switch_by_target=02082;
+  scan_w_frameworks_darwin_only=02084;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -729,9 +730,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 43827;
+  MsgTxtSize = 43950;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,83,237,83,63,49,107,22,135,60,
+    24,85,237,83,63,49,107,22,135,60,
     42,1,1,1,1,1,1,1,1,1
   );

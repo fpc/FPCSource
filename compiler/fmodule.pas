@@ -142,7 +142,8 @@ interface
         linkunitsharedlibs,
         linkotherofiles,           { objects,libs loaded from the source }
         linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
-        linkotherstaticlibs  : tlinkcontainer;
+        linkotherstaticlibs,
+        linkotherframeworks  : tlinkcontainer;
 
         used_units           : tlinkedlist;
         dependent_units      : tlinkedlist;
@@ -150,7 +151,8 @@ interface
         localunitsearchpath,           { local searchpaths }
         localobjectsearchpath,
         localincludesearchpath,
-        locallibrarysearchpath : TSearchPathList;
+        locallibrarysearchpath,
+        localframeworksearchpath : TSearchPathList;
 
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
@@ -433,6 +435,7 @@ implementation
         localobjectsearchpath:=TSearchPathList.Create;
         localincludesearchpath:=TSearchPathList.Create;
         locallibrarysearchpath:=TSearchPathList.Create;
+        localframeworksearchpath:=TSearchPathList.Create;
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
         resourcefiles:=TCmdStrList.Create;
@@ -442,6 +445,7 @@ implementation
         linkotherofiles:=TLinkContainer.Create;
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs:=TLinkContainer.Create;
+        linkotherframeworks:=TLinkContainer.Create;
         FImportLibraryList:=TFPHashObjectList.Create(true);
         crc:=0;
         interface_crc:=0;
@@ -533,6 +537,7 @@ implementation
         linkotherofiles.Free;
         linkotherstaticlibs.Free;
         linkothersharedlibs.Free;
+        linkotherframeworks.Free;
         FImportLibraryList.Free;
         stringdispose(objfilename);
         stringdispose(asmfilename);
@@ -550,6 +555,7 @@ implementation
         localobjectsearchpath.free;
         localincludesearchpath.free;
         locallibrarysearchpath.free;
+        localframeworksearchpath.free;
 {$ifdef MEMDEBUG}
         memsymtable.start;
 {$endif}
@@ -672,6 +678,8 @@ implementation
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs.Free;
         linkothersharedlibs:=TLinkContainer.Create;
+        linkotherframeworks.Free;
+        linkotherframeworks:=TLinkContainer.Create;
         FImportLibraryList.Free;
         FImportLibraryList:=TFPHashObjectList.Create;
         do_compile:=false;

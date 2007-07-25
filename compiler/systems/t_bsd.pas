@@ -397,6 +397,22 @@ begin
      HPath:=TCmdStrListItem(HPath.Next);
    end;
 
+  if (target_info.system in systems_darwin) then
+    begin
+      HPath:=TCmdStrListItem(current_module.localframeworksearchpath.First);
+      while assigned(HPath) do
+       begin
+         LinkRes.Add(maybequoted('-F'+HPath.Str));
+         HPath:=TCmdStrListItem(HPath.Next);
+       end;
+      HPath:=TCmdStrListItem(FrameworkSearchPath.First);
+      while assigned(HPath) do
+       begin
+         LinkRes.Add(maybequoted('-F'+HPath.Str));
+         HPath:=TCmdStrListItem(HPath.Next);
+       end;
+    end;
+
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
@@ -475,6 +491,12 @@ begin
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
    end;
+   
+  { frameworks for Darwin }
+  if IsDarwin then
+    while not FrameworkFiles.empty do
+      LinkRes.Add('-framework '+FrameworkFiles.GetFirst);
+     
   { objects which must be at the end }
   if linklibc and
      not IsDarwin Then
