@@ -53,6 +53,9 @@ type
 procedure CompileResourceFiles;
 procedure CollectResourceFiles;
 
+Var
+  ResCompiler : String;
+  RCCompiler  : String;
 
 implementation
 
@@ -96,6 +99,16 @@ end;
 
 
 procedure tresourcefile.compile(output: tresoutput; const OutName: ansistring);
+
+  Function SelectBin(Const Bin1,Bin2 : String) : String;
+  
+  begin
+    If (Bin1<>'') then
+      SelectBin:=Bin1
+    else
+      SelectBin:=Bin2;  
+  end;
+  
 var
   respath,
   srcfilepath,
@@ -106,9 +119,9 @@ var
   objused  : boolean;
 begin
   if output=roRES then
-    bin:=target_res.rcbin
+    Bin:=SelectBin(RCCompiler,target_res.rcbin)
   else
-    bin:=target_res.resbin;
+    Bin:=SelectBin(ResCompiler,target_res.resbin);
   if bin='' then
     exit;
   resfound:=false;

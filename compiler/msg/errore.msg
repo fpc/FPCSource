@@ -2519,6 +2519,7 @@ S*2Aas_assemble using GNU AS
 **1F<x>_set file names and paths:
 **2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
 **2Fc<x>_sets input codepage to <x>
+**2FC<x>_sets RC compiler binary name to <x>
 **2FD<x>_sets the directory where to search for compiler utilities
 **2Fe<x>_redirect error output to <x>
 **2FE<x>_set exe/unit output path to <x>
@@ -2528,6 +2529,7 @@ S*2Aas_assemble using GNU AS
 **2Fm<x>_load unicode conversion table from <x>.txt in the compiler dir
 **2Fo<x>_adds <x> to object path
 **2Fr<x>_load error message file <x>
+**2FR<x>_sets resource (.res) linker to <x>
 **2Fu<x>_adds <x> to unit path
 **2FU<x>_set unit output path to <x>, overrides -FE
 *g1g_generate debugger information:

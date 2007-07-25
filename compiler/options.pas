@@ -27,7 +27,7 @@ interface
 
 uses
   CClasses,cfileutl,
-  globtype,globals,verbose,systems,cpuinfo;
+  globtype,globals,verbose,systems,cpuinfo, comprsrc;
 
 Type
   TOption=class
@@ -704,6 +704,8 @@ begin
                      else
                        init_settings.sourcecodepage:=more;
                    end;
+                 'C' : 
+                   RCCompiler := More;  
                  'D' :
                    utilsdirectory:=FixPath(More,true);
                  'e' :
@@ -750,6 +752,8 @@ begin
                    end;
                  'r' :
                    Msgfilename:=More;
+                 'R' :
+                   ResCompiler := More;  
                  'u' :
                    begin
                      if ispara then
