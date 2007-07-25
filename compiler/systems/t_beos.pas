@@ -247,19 +247,22 @@ begin
   else
    LinkRes.Add('ld -o $1 -e 0 $2 $3 $4 $5 $6 $7 $8 $9\');
   }
-  LinkRes.Add('-m elf_i386_be -shared -Bsymbolic');
+  LinkRes.Add('-m');
+  LinkRes.Add('elf_i386_be');
+  LinkRes.Add('-shared');
+  LinkRes.Add('-Bsymbolic');
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add(maybequoted('-L'+HPath.Str));
+     LinkRes.Add('-L'+HPath.Str);
      HPath:=TCmdStrListItem(HPath.Next);
    end;
   HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add(maybequoted('-L'+HPath.Str));
+     LinkRes.Add('-L'+HPath.Str);
      HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -293,7 +296,7 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(maybequoted(s));
+      LinkRes.AddFileName(s);
    end;
 
 {  LinkRes.Add('-lroot \');
@@ -306,7 +309,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(s))
+        LinkRes.AddFileName(s)
       end;
    end;
 
