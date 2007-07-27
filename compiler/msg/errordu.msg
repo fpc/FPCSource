@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 7907
+#   Based on errore.msg of SVN revision 8165
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -128,7 +128,7 @@ general_i_number_of_notes=01023_I_$1 Anmerkung(en) ausgegeben
 #
 # Scanner
 #
-# 02063 is the last used one
+# 02084 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -348,11 +348,13 @@ scanner_e_illegal_warn_state=02079_E_Ungültiger Wert für die $WARN Direktive
 % Only ON and OFF can be used as state with a \$warn compiler directive
 scan_e_only_packset=02080_E_Ungültiger Wert für das set packing
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
-scan_w_pic_ignored=02081_W_PIC Direktive wird ignoriert
-% Several targets like windows do not support the PIC directive and need it to be
+scan_w_pic_ignored=02081_W_PIC Direktive oder Schalter wird ignoriert
+% Several targets like windows do not support neither need PIC so the PIC directive and switch are
 % ignored.
 scan_w_unsupported_switch_by_target=02082_W_Der Schalter "$1" wird vom derzeit ausgewählten Zielbetriebssystem nicht unterstützt
 % Some compiler switches like $E are not supported by all targets.
+scan_w_frameworks_darwin_only=02084_W_Framework-bezogene Optionen werden nur für Darwin/Mac OS X unterstützt
+% Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
 % \end{description}
 #
 # Parser
@@ -1143,6 +1145,8 @@ parser_e_no_common_type=03235_E_"$1" und "$2" haben keinen gemeinsamen Typ
 % common type of the operands, the compiler takes the minimum of the minimal values
 % of both types, and the maximum of the maximal values of both types. The common
 % type is then minimum..maximum.
+parser_e_no_generics_as_types=03236_E_Generische Typen können nicht ohne Spezialisierung als Typ für eine Variable verwendet werden
+% Generics must be always specialized before being used as variable type
 % \end{description}
 #
 # Type Checking
@@ -2520,8 +2524,10 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **1F<x>_Dateinamen und Pfade:
 **2Fa<x>[,y]_ein Program soll die Units <x> und [y] laden, bevor uses analysiert wird
 **2Fc<x>_setze die Eingabe-Codepage zu <x>
+**2FC<x>_setze den Namen des RC Compiler-Binärprograms auf <x>
 **2FD<x>_setze das Verzeichnis für die Compiler-Hilfsprogramme
 **2Fe<x>_leite die Fehlerausgabe um nach <x>
+**2Ff<x>_ergänze <x> zum Framework-Pfad (nur Darwin)
 **2FE<x>_setze den Pfad für Exe/Unit-Dateien auf <x>
 **2Fi<x>_ergänze <x> zum Include-Pfad
 **2Fl<x>_ergänze <x> zum Bibliotheks-Pfad
@@ -2529,6 +2535,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2Fm<x>_lade die Unicode-Konversionstabelle aus <x>.txt im Compiler-Verzeichnis
 **2Fo<x>_ergänze <x> zum Objektdatei-Pfad
 **2Fr<x>_lade die Fehler-Meldungs Datei <x>
+**2FR<x>_setze den Resource (.res) Linker auf <x>
 **2Fu<x>_ergänze <x> zum Unit-Pfad
 **2FU<x>_Units werden nach <x> ausgegen, hat Vorrang vor -FE
 *g1g<x>_erzeuge Informationen zur Fehlersuche:
