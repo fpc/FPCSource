@@ -903,7 +903,7 @@ implementation
                if (target_info.system = system_powerpc64_linux) and
                  (tai_symbol(hp).sym.typ = AT_FUNCTION) then
                  begin
-                   AsmWriteLn('.section "opd", "aw"');
+                   AsmWriteLn('.section ".opd", "aw"');
                    AsmWriteLn('.align 3');
                    AsmWriteLn(tai_symbol(hp).sym.name + ':');
                    AsmWriteLn('.quad .' + tai_symbol(hp).sym.name + ', .TOC.@tocbase, 0');
