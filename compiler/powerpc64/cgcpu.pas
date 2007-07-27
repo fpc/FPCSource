@@ -544,7 +544,7 @@ end;
 procedure tcgppc.a_call_name(list: TAsmList; const s: string);
 begin
     if (target_info.system <> system_powerpc64_darwin) then
-      a_call_name_direct(list, s, true, true)
+      a_call_name_direct(list, s, false, true)
     else
       begin
         list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
@@ -715,10 +715,10 @@ begin
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
    required to load the value is greater than 2, store (and later load) the value from there } 
-  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
-    (getInstructionLength(a) > 2)) then
-    loadConstantPIC(list, size, a, reg)
-  else
+//  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
+//    (getInstructionLength(a) > 2)) then
+//    loadConstantPIC(list, size, a, reg)
+//  else
     loadConstantNormal(list, size, a, reg);
 end;
 
