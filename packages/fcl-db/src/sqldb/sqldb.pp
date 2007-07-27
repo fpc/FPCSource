@@ -1413,7 +1413,7 @@ begin
   DS:=DataSource;
   If (AValue<>DS) then
     begin
-    If (AValue.Dataset=Self) then
+    If Assigned(AValue) and (AValue.Dataset=Self) then
       DatabaseError(SErrCircularDataSourceReferenceNotAllowed,Self);
     If Assigned(DS) then
       DS.RemoveFreeNotification(Self);
