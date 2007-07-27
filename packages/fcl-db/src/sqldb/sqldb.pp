@@ -754,9 +754,9 @@ begin
   if FWhereStartPos = 0 then
     SQLstr := SQLstr + ' where (' + Filter + ')'
   else if FWhereStopPos > 0 then
-    system.insert(' and ('+Filter+') ',SQLstr,FWhereStopPos+1)
+    system.insert(' and ('+ServerFilter+') ',SQLstr,FWhereStopPos+1)
   else
-    system.insert(' where ('+Filter+') ',SQLstr,FWhereStartPos);
+    system.insert(' where ('+ServerFilter+') ',SQLstr,FWhereStartPos);
   Result := SQLstr;
 end;
 
