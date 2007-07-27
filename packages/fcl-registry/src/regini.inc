@@ -13,6 +13,16 @@ begin
    fPath := '';
 end;
 
+constructor TRegIniFile.Create(const FN: String;aaccess:longword);
+begin
+  inherited Create(aaccess);
+  fFileName := FN;
+  if fFileName<>'' then
+   fPath := fFileName + '\'
+  else
+   fPath := '';
+end;
+
 procedure TRegIniFile.DeleteKey(const Section, Ident: String);
 begin
 	if not OpenKey(fPath+Section,true) then Exit;

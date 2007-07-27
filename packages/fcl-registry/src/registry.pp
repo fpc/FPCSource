@@ -14,6 +14,7 @@ Uses
     Windows,
   {$endif XMLREG}
     Classes,
+    inifiles,
     SysUtils;
 
   {$I regdef.inc}
@@ -132,6 +133,7 @@ type
     fPath    : String;
   public
     constructor Create(const FN: string);
+    constructor Create(const FN: string;aaccess:longword); overload;
     function ReadString(const Section, Ident, Default: string): string;
     function ReadInteger(const Section, Ident: string;
                 Default: Longint): Longint;
