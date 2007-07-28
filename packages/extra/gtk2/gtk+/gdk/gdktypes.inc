@@ -42,7 +42,7 @@
 
    PGdkAtom = ^TGdkAtom;
    // internal type
-   TGdkAtom = cardinal;
+   TGdkAtom = PtrUInt;
 
    PGdkByteOrder = ^TGdkByteOrder;
    TGdkByteOrder = (
