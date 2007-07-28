@@ -1493,13 +1493,13 @@ const
 
 { ************* concatcopy ************ }
 
-{$ifndef ppc603}
+{$ifndef use8byteconcatcopy}
   const
     maxmoveunit = 8;
-{$else ppc603}
+{$else use8byteconcatcopy}
   const
     maxmoveunit = 4;
-{$endif ppc603}
+{$endif use8byteconcatcopy}
 
     procedure tcgppc.g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);
 
@@ -1569,7 +1569,7 @@ const
             dst := dest;
           end;
 
-{$ifndef ppc603}
+{$ifndef use8byteconcatcopy}
         if count > 4 then
           { generate a loop }
           begin
@@ -1619,7 +1619,7 @@ const
             inc(dst.offset,4);
             a_reg_dealloc(list,NR_R0);
           end;
-{$else not ppc603}
+{$else not use8byteconcatcopy}
         if count > 4 then
           { generate a loop }
           begin
@@ -1661,7 +1661,7 @@ const
             a_reg_dealloc(list,NR_R0);
             len := len mod 4;
           end;
-{$endif not ppc603}
+{$endif not use8byteconcatcopy}
        { copy the leftovers }
        if (len and 2) <> 0 then
          begin
