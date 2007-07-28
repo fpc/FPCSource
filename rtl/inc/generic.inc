@@ -1573,3 +1573,19 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
       Result := SwapEndian(AValue);
     {$ENDIF}
   end;
+
+{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
+
+procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+end;
+
+procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+end;
+
+procedure WriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+end;
+
+{$endif}
