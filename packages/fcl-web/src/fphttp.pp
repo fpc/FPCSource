@@ -31,6 +31,7 @@ Type
   private
     FAfterResponse: TResponseEvent;
     FBeforeRequest: TRequestEvent;
+    FRequest      : TRequest;
   Protected
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
@@ -43,6 +44,7 @@ Type
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean);
     Function  HaveContent : Boolean; virtual;
     function ContentToStream(Stream : TStream) : boolean; virtual;
+    Property Request : TRequest Read FRequest;
   end;
   
   { TCustomWebAction }
@@ -243,6 +245,7 @@ end;
 
 procedure THTTPContentProducer.DoGetContent(ARequest: TRequest; Content: TStream; Var Handled : Boolean);
 begin
+  FRequest := ARequest;
   Handled:=ContentToStream(Content);
 end;
 
