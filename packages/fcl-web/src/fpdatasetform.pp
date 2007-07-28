@@ -36,7 +36,7 @@ type
   TFieldCheckEvent = procedure (aField:TField; var check:boolean) of object;
   
   TFormInputType = (fittext,fitpassword,fitcheckbox,fitradio,fitfile,fithidden,
-                    fitproducer,fittextarea,fitrecordselection);
+                    fitproducer,fittextarea,fitrecordselection,fitlabel);
 
   { TTablePosition }
 
@@ -244,7 +244,7 @@ type
   TButtonVerPosition = (bvpTop, bvpBottom);
   TButtonVerPositionSet = set of TButtonVerPosition;
   TButtonHorPosition = (bhpLeft, bhpCenter, bhpJustify, bhpRight);
-  TFormMethod = (fmGet, fmPost);
+  TFormMethod = (fmNone, fmGet, fmPost);
 
   { THTMLDatasetFormProducer }
 
@@ -734,10 +734,10 @@ begin
 end;
 
 function THTMLDatasetFormProducer.StartForm(aWriter: THTMLWriter) : THTMLCustomElement;
-const MethodAttribute : array[TFormMethod] of string = ('GET','POST');
+const MethodAttribute : array[TFormMethod] of string = ('','GET','POST');
 var t : THTMLCustomElement;
 begin
-  if FormAction <> '' then
+  if Self.FormMethod <> fmNone then
     begin
     result := aWriter.Startform;
     with THTML_Form(result) do
@@ -761,7 +761,7 @@ begin
   with aWriter do
     begin
     EndTable;
-    if FormAction <> '' then
+    if self.FormMethod <> fmNone then
       Endform;
     end;
 end;
@@ -854,6 +854,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
     with TableDef.CopyTablePosition(aControlDef.ValuePos) do
       begin
       case aControlDef.inputtype of
+        fitlabel,
         fittext,
         fitpassword,
         fitcheckbox,
@@ -1099,6 +1100,8 @@ function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
         aWriter.FormFile(Name, Value);
       fithidden :
         aWriter.FormHidden (Name, Value);
+      fitlabel :
+        aWriter.Text (Value);
     end;
   end;
 
