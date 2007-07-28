@@ -366,17 +366,19 @@ begin
 
   if (not isdll) then
     begin
-      if  target_info.system in [system_powerpc_darwin,system_i386_darwin,system_powerpc64_darwin,system_x86_64_darwin] Then
-        LinkRes.Add('-arch');
-      case target_info.system of
-        system_powerpc_darwin:
-           LinkRes.Add('ppc');
-        system_i386_darwin:
-           LinkRes.Add('i386');
-        system_powerpc64_darwin:
-           LinkRes.Add('ppc64');
-        system_x86_64_darwin:
-           LinkRes.Add('x86_64');
+      if (target_info.system in systems_darwin) then
+        begin
+          LinkRes.Add('-arch');
+          case target_info.system of
+            system_powerpc_darwin:
+              LinkRes.Add('ppc');
+            system_i386_darwin:
+              LinkRes.Add('i386');
+            system_powerpc64_darwin:
+              LinkRes.Add('ppc64');
+            system_x86_64_darwin:
+              LinkRes.Add('x86_64');
+          end;
       end;
   end;
   { Write path to search libraries }
