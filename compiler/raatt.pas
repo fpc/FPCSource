@@ -52,7 +52,7 @@ unit raatt;
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,
-        AS_DATA,AS_TEXT,AS_INIT,AS_END,
+        AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_LO,AS_HI);
@@ -74,7 +74,7 @@ unit raatt;
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat',
-        '.data','.text','.init','END',
+        '.data','.text','.init','.fini','END',
         'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi');
 
     type
@@ -985,6 +985,13 @@ unit raatt;
                new_section(curList,sec_init,lower(current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_init;
                Consume(AS_INIT);
+             end;
+
+           AS_FINI:
+             Begin
+               new_section(curList,sec_fini,lower(current_procinfo.procdef.mangledname),0);
+               lasTSec:=sec_fini;
+               Consume(AS_FINI);
              end;
 
            AS_DB:

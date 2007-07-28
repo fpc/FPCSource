@@ -265,7 +265,8 @@ implementation
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '.toc',
-          '.init'
+          '.init',
+          '.fini'
         );
         secnames_pic : array[TAsmSectiontype] of string[17] = ('',
           '.text',
@@ -282,7 +283,8 @@ implementation
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '.toc',
-          '.init'
+          '.init',
+          '.fini'
         );
       var
         sep     : string[3];
@@ -1161,7 +1163,8 @@ implementation
          sec_code (* sec_fpc *),
          { Table of contents section }
          sec_code (* sec_toc *),
-         sec_code (* sec_init *)
+         sec_code (* sec_init *),
+         sec_code (* sec_fini *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

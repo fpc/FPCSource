@@ -87,7 +87,8 @@ interface
          sec_fpc,
          { Table of contents section }
          sec_toc,
-         sec_init
+         sec_init,
+         sec_fini
        );
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
