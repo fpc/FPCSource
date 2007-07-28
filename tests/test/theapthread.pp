@@ -131,6 +131,7 @@ begin
     begin
       freemem(pair.fifo[pair.writeindex]);
       pair.fifo[pair.writeindex] := getmem(((pair.writeindex*17) mod 520)+8);
+      writebarrier;
       pair.writeindex := (pair.writeindex + 1) mod 1024;
     end else begin
       exercise_heap(p,i,j);
@@ -167,6 +168,7 @@ begin
     begin
       freemem(pair.fifo[pair.readindex]);
       pair.fifo[pair.readindex] := getmem(((pair.writeindex*17) mod 520)+8);
+      writebarrier;
       pair.readindex := (pair.readindex + 1) mod fifolength;
     end else begin
       exercise_heap(p,i,j);
