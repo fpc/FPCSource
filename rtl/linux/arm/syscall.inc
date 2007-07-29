@@ -44,6 +44,8 @@ asm
   mvn  r0,#0
   b    .LDone
 .LThread:
+  ldr  r0,[r0]
+  mov  lr,pc
   mov  pc,r2
   str  r4,[r0]
   mvn  r0,#0
@@ -79,6 +81,8 @@ asm
   mvn  r0,#0
   b    .LDone
 .LThread:
+  ldr  r0,[r0]
+  mov  lr,pc
   mov  pc,r2
   str  r4,[r0]
   mvn  r0,#0
@@ -114,6 +118,8 @@ asm
   mvn  r0,#0
   b    .LDone
 .LThread:
+  ldr  r0,[r0]
+  mov  lr,pc
   mov  pc,r2
   str  r4,[r0]
   mvn  r0,#0
@@ -149,6 +155,8 @@ asm
   mvn  r0,#0
   b    .LDone
 .LThread:
+  ldr  r0,[r0]
+  mov  lr,pc
   mov  pc,r2
   str  r4,[r0]
   mvn  r0,#0
@@ -185,6 +193,8 @@ asm
   mvn  r0,#0
   b    .LDone
 .LThread:
+  ldr  r0,[r0]
+  mov  lr,pc
   mov  pc,r2
   str  r4,[r0]
   mvn  r0,#0
@@ -223,6 +233,8 @@ asm
   mvn  r0,#0
   b    .LDone
 .LThread:
+  ldr  r0,[r0]
+  mov  lr,pc
   mov  pc,r2
   str  r4,[r0]
   mvn  r0,#0
@@ -264,6 +276,8 @@ asm
   mvn  r0,#0
   b    .LDone
 .LThread:
+  ldr  r0,[r0]
+  mov  lr,pc
   mov  pc,r2
   str  r4,[r0]
   mvn  r0,#0
@@ -277,5 +291,3 @@ asm
   ldr r5,_r5
   ldr r6,_r6
 end ['r4','r5','r6'];
-
-
