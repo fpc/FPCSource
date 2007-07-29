@@ -1,4 +1,4 @@
-{% OPT=-Or}
+{ %OPT=-Ooregvar }
 
 {$goto on}
 

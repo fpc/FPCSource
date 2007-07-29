@@ -6779,7 +6779,6 @@ tests/test/opt/tcse2.pp svneol=native#text/plain
 tests/test/opt/tcse3.pp svneol=native#text/plain
 tests/test/opt/tgotoreg.pp svneol=native#text/plain
 tests/test/opt/treg1.pp svneol=native#text/plain
-tests/test/opt/treg2.dat -text
 tests/test/opt/treg2.pp svneol=native#text/plain
 tests/test/opt/treg3.pp svneol=native#text/plain
 tests/test/opt/treg4.pp svneol=native#text/plain

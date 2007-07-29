@@ -36,7 +36,17 @@ procedure p;
 
 begin
    assign(t,'treg2.dat');
+   rewrite(t);
+   writeln(t,'1.0');
+   writeln(t,'2.0');
+   writeln(t,'3.0');
+   writeln(t,'4.0');
+   writeln(t,'5.0');
+   writeln(t,'6.0');
+   close(t);
    reset(t);
    p;
    close(t);
+   erase(t);
 end.
+
