@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$inline on}
 
 type
   pshortstring=^shortstring;
@@ -15,11 +16,11 @@ type
 
 var
   p,p2,p3: pointer;
-  failed: boolean;
+  inlined, failed: boolean;
 
 procedure error(err: longint);
 begin
-  writeln('error near ',err);
+  writeln('error near ',err, ' (inlined: ',inlined,')');
   failed:=true;
 end;
 
@@ -135,6 +136,23 @@ begin
   t:=f9;
 end;
 
+
+procedure testrecinl; inline;
+var
+  t: tr;
+begin
+  inlined:=true;
+  t.a:='x';
+  t:=f1(@t.a[1]);
+  t:=f2(t.a);
+  t:=f3(t.a);
+  t:=f4(t);
+  p:=@t.a;
+  t:=f9;
+  inlined:=false;
+end;
+
+
 procedure testrec2;
 var
   t: tr;
@@ -144,7 +162,20 @@ begin
   t:=f10;
 end;
 
-{$if defined(cpupowerpc) or defined(cpui386)}
+
+procedure testrec2inl; inline;
+var
+  t: tr;
+begin
+  inlined:=true;
+  t.a:='x';
+  temp2(t.a);
+  t:=f10;
+  inlined:=false;
+end;
+
+
+{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpui386)}
 function f11: tr;
 begin
   fillchar(result,sizeof(result),0);
@@ -168,6 +199,18 @@ begin
   {$endif}
     stw  r3,0(r4)
 {$endif}
+{$ifdef cpupowerpc64}
+    la  r3,t
+{$ifndef darwin}
+    lis  r4, p3@highesta
+    ori  r4, r4, p3@highera
+    sldi r4, r4, 32
+    oris r4, r4, p3@ha
+{$else darwin}
+    lis  r4, p3@ha
+{$endif darwin}
+    std  r3,p3@l(r4)
+{$endif}
 {$ifdef cpui386}
     leal t,%eax
     movl %eax,p3
@@ -176,6 +219,46 @@ begin
 
   t.a:='x';
   t:=f11;
+end;
+
+
+procedure testrec3inl; inline;
+var
+  t: tr;
+begin
+  inlined:=true;
+  asm
+{$ifdef cpupowerpc}
+    la  r3,t
+  {$ifndef macos}
+    lis  r4,p3@ha
+    addi r4,r4,p3@l
+  {$else}
+    lwz  r4,p3(r2)
+  {$endif}
+    stw  r3,0(r4)
+{$endif}
+{$ifdef cpupowerpc64}
+    la  r3,t
+{$ifndef darwin}
+    lis  r4, p3@highesta
+    ori  r4, r4, p3@highera
+    sldi r4, r4, 32
+    oris r4, r4, p3@ha
+{$else darwin}
+    lis  r4, p3@ha
+{$endif darwin}
+    std  r3,p3@l(r4)
+{$endif}
+{$ifdef cpui386}
+    leal t,%eax
+    movl %eax,p3
+{$endif}
+  end;
+
+  t.a:='x';
+  t:=f11;
+  inlined:=false;
 end;
 
 {$endif}
@@ -193,13 +276,31 @@ begin
   t:=f8(t);
 end;
 
+
+procedure testarrinl; inline;
+var
+  t: ta;
+begin
+  inlined:=true;
+  t[3]:='x';
+  t:=f5(@t[3][1]);
+  t:=f6(t[3]);
+  t:=f7(t[3]);
+  t:=f8(t);
+  inlined:=false;
+end;
+
+
 begin
   testrec;
+  testrecinl;
   testrec2;
+  testrec2inl;
 {$if defined(cpupowerpc) or defined(cpui386)}
   testrec3;
 {$endif}
   testarr;
+  testarrinl;
   if failed then
     halt(1);
 end.
