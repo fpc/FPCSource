@@ -169,10 +169,19 @@ implementation
     { this procedure reads typed constants }
     procedure read_typed_const_data(list:tasmlist;def:tdef);
 
-        procedure parse_orddef(list:tasmlist;def:torddef);
+      procedure parse_orddef(list:tasmlist;def:torddef);
         var
           n : tnode;
           intvalue : tconstexprint;
+
+        procedure do_error;
+          begin
+            if is_constnode(n) then
+              IncompatibleTypes(n.resultdef, def)
+            else
+              Message(parser_e_illegal_expression);
+          end;
+
         begin
            n:=comp_expr(true);
            case def.ordtype of
@@ -181,28 +190,28 @@ implementation
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value.svalue)))
                    else
-                     IncompatibleTypes(n.resultdef, def);
+                     do_error;
                 end;
               bool16bit :
                 begin
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value.svalue)))
                    else
-                     IncompatibleTypes(n.resultdef, def);
+                     do_error;
                 end;
               bool32bit :
                 begin
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_32bit(longint(tordconstnode(n).value.svalue)))
                    else
-                     IncompatibleTypes(n.resultdef, def);
+                     do_error;
                 end;
               bool64bit :
                 begin
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_64bit(int64(tordconstnode(n).value.svalue)))
                    else
-                     IncompatibleTypes(n.resultdef, def);
+                     do_error;
                 end;
               uchar :
                 begin
@@ -212,7 +221,7 @@ implementation
                       (tordconstnode(n).value <= 255)) then
                      list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value.svalue)))
                    else
-                     IncompatibleTypes(n.resultdef, def);
+                     do_error;
                 end;
               uwidechar :
                 begin
@@ -221,7 +230,7 @@ implementation
                    if is_constwidecharnode(n) then
                      list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value.svalue)))
                    else
-                     IncompatibleTypes(n.resultdef, def);
+                     do_error;
                 end;
               s8bit,u8bit,
               u16bit,s16bit,
@@ -243,7 +252,7 @@ implementation
                        end;
                      end
                    else
-                     IncompatibleTypes(n.resultdef, def);
+                     do_error;
                 end;
               scurrency:
                 begin
