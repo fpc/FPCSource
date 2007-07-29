@@ -14,14 +14,20 @@ type
   end;
 
 var
-  p: pointer;
+  p,p2: pointer;
+  failed: boolean;
 
+procedure error(err: longint);
+begin
+  writeln('error near ',err);
+  failed:=true;
+end;
 
 function f1(p: pchar): tr;
 begin
   fillchar(result,sizeof(tr),0);
   if (p^<>'x') then
-    halt(1);
+    error(1);
   f1.a:=p^;
 end;
 
@@ -30,7 +36,7 @@ function f2(var s: shortstring): tr;
 begin
   fillchar(result,sizeof(tr),0);
   if (s<>'x') then
-    halt(2);
+    error(2);
   f2.a:=s;
 end;
 
@@ -39,7 +45,7 @@ function f3(const s: shortstring): tr;
 begin
   fillchar(result,sizeof(tr),0);
   if (s<>'x') then
-    halt(3);
+    error(3);
   f3.a:=s;
 end;
 
@@ -48,7 +54,7 @@ function f4(const t: tr): tr;
 begin
   fillchar(result,sizeof(tr),0);
   if (t.a<>'x') then
-    halt(4);
+    error(4);
   f4:=t;
 end;
 
@@ -58,7 +64,7 @@ function f5(p: pchar): ta;
 begin
   fillchar(result,sizeof(result),0);
   if (p^<>'x') then
-    halt(5);
+    error(5);
   result[3]:=p^;
 end;
 
@@ -67,7 +73,7 @@ function f6(var s: shortstring): ta;
 begin
   fillchar(result,sizeof(result),0);
   if (s<>'x') then
-    halt(6);
+    error(6);
   result[3]:=s;
 end;
 
@@ -76,7 +82,7 @@ function f7(const s: shortstring): ta;
 begin
   fillchar(result,sizeof(result),0);
   if (s<>'x') then
-    halt(7);
+    error(7);
   result[3]:=s;
 end;
 
@@ -85,7 +91,7 @@ function f8(const t: ta): ta;
 begin
   fillchar(result,sizeof(result),0);
   if (t[3]<>'x') then
-    halt(8);
+    error(8);
   result:=t;
 end;
 
@@ -93,13 +99,26 @@ end;
 procedure temp;
 begin
   if (pshortstring(p)^<>'x') then
-    halt(9);
+    error(9);
 end;
 
 function f9: tr;
 begin
   fillchar(result,sizeof(result),0);
   temp;
+  result.a:='x';
+end;
+
+procedure temp2(var a);
+begin
+  p2:=@a;
+end;
+
+function f10: tr;
+begin
+  fillchar(result,sizeof(result),0);
+  if (pshortstring(p2)^<>'x') then
+    error(10);
   result.a:='x';
 end;
 
@@ -116,6 +135,15 @@ begin
   t:=f9;
 end;
 
+procedure testrec2;
+var
+  t: tr;
+begin
+  t.a:='x';
+  temp2(t.a);
+  t:=f10;
+end;
+
 
 procedure testarr;
 var
@@ -130,5 +158,8 @@ end;
 
 begin
   testrec;
+  testrec2;
   testarr;
+  if failed then
+    halt(1);
 end.
