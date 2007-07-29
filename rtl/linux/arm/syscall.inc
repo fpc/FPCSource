@@ -22,272 +22,79 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL0'];
 {
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
+  Perform syscall and set errno variable if needed.
 }
-var
-  _r4 : dword;
 asm
-  str  r4,_r4
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  rsb  r4,r0,#0
-  ldr  r2,.Lthread_var
-  ldr  r2,[r2]
-  ldr  r0,.LErrno
-  cmp  r2,#0
-  bne  .LThread
-  str  r4,[r0,#4]
-  mvn  r0,#0
-  b    .LDone
-.LThread:
-  ldr  r0,[r0]
-  mov  lr,pc
-  mov  pc,r2
-  str  r4,[r0]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.Lthread_var:
-  .word fpc_threadvar_relocate_proc
-.LDone:
-  ldr r4,_r4
-end ['r4'];
+  swi   #0x900071
+  cmn   r0,#126
+  movls pc,lr
+  stmfd sp!,{lr}
+  rsb   r0,r0,#0
+  bl    seterrno
+  mvn   r0,#0
+  ldmfd sp!,{pc}
+end;
 
 
-function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+procedure FPC_SYSCALL; external name 'FPC_SYSCALL0';
+
+function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL1'];
 {
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
+  Jump to FPC_SYSCALL0 because code for FPC_SYSCALL0-FPC_SYSCALL3 is the same.
 }
-var
-  _r4 : dword;
 asm
-  str  r4,_r4
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  rsb  r4,r0,#0
-  ldr  r2,.Lthread_var
-  ldr  r2,[r2]
-  ldr  r0,.LErrno
-  cmp  r2,#0
-  bne  .LThread
-  str  r4,[r0,#4]
-  mvn  r0,#0
-  b    .LDone
-.LThread:
-  ldr  r0,[r0]
-  mov  lr,pc
-  mov  pc,r2
-  str  r4,[r0]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.Lthread_var:
-  .word fpc_threadvar_relocate_proc
-.LDone:
-  ldr r4,_r4
-end ['r4'];
+  b FPC_SYSCALL
+end;
 
 
-function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL2'];
 {
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
+  Jump to FPC_SYSCALL0 because code for FPC_SYSCALL0-FPC_SYSCALL3 is the same.
 }
-var
-  _r4 : dword;
 asm
-  str  r4,_r4
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  rsb  r4,r0,#0
-  ldr  r2,.Lthread_var
-  ldr  r2,[r2]
-  ldr  r0,.LErrno
-  cmp  r2,#0
-  bne  .LThread
-  str  r4,[r0,#4]
-  mvn  r0,#0
-  b    .LDone
-.LThread:
-  ldr  r0,[r0]
-  mov  lr,pc
-  mov  pc,r2
-  str  r4,[r0]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.Lthread_var:
-  .word fpc_threadvar_relocate_proc
-.LDone:
-  ldr r4,_r4
-end ['r4'];
+  b FPC_SYSCALL
+end;
 
 
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL3'];
 {
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
+  Jump to FPC_SYSCALL0 because code for FPC_SYSCALL0-FPC_SYSCALL3 is the same.
 }
-var
-  _r4 : dword;
 asm
-  str  r4,_r4
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  rsb  r4,r0,#0
-  ldr  r2,.Lthread_var
-  ldr  r2,[r2]
-  ldr  r0,.LErrno
-  cmp  r2,#0
-  bne  .LThread
-  str  r4,[r0,#4]
-  mvn  r0,#0
-  b    .LDone
-.LThread:
-  ldr  r0,[r0]
-  mov  lr,pc
-  mov  pc,r2
-  str  r4,[r0]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.Lthread_var:
-  .word fpc_threadvar_relocate_proc
-.LDone:
-  ldr r4,_r4
-end ['r4'];
+  b FPC_SYSCALL
+end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL4'];
 {
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
+  This function loads some parameters from stack and calls FPC_SYSCALL0.
 }
-var
-  _r4 : dword;
 asm
-  str  r4,_r4
   ldr  r4,param4
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  rsb  r4,r0,#0
-  ldr  r2,.Lthread_var
-  ldr  r2,[r2]
-  ldr  r0,.LErrno
-  cmp  r2,#0
-  bne  .LThread
-  str  r4,[r0,#4]
-  mvn  r0,#0
-  b    .LDone
-.LThread:
-  ldr  r0,[r0]
-  mov  lr,pc
-  mov  pc,r2
-  str  r4,[r0]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.Lthread_var:
-  .word fpc_threadvar_relocate_proc
-.LDone:
-  ldr r4,_r4
+  bl FPC_SYSCALL
 end ['r4'];
 
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
 {
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
+  This function loads some parameters from stack and calls FPC_SYSCALL0.
 }
-var
-  _r4,_r5 : dword;
 asm
-  str  r4,_r4
-  str  r5,_r5
-  ldr  r5,param5
   ldr  r4,param4
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  rsb  r4,r0,#0
-  ldr  r2,.Lthread_var
-  ldr  r2,[r2]
-  ldr  r0,.LErrno
-  cmp  r2,#0
-  bne  .LThread
-  str  r4,[r0,#4]
-  mvn  r0,#0
-  b    .LDone
-.LThread:
-  ldr  r0,[r0]
-  mov  lr,pc
-  mov  pc,r2
-  str  r4,[r0]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.Lthread_var:
-  .word fpc_threadvar_relocate_proc
-.LDone:
-  ldr r4,_r4
-  ldr r5,_r5
+  ldr  r5,param5
+  bl FPC_SYSCALL
 end ['r4','r5'];
 
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
 {
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
+  This function loads some parameters from stack and calls FPC_SYSCALL0.
 }
-var
-  _r4,_r5,_r6 : dword;
 asm
-  str  r4,_r4
-  str  r5,_r5
-  str  r6,_r6
-  ldr  r6,param6
-  ldr  r5,param5
   ldr  r4,param4
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  rsb  r4,r0,#0
-  ldr  r2,.Lthread_var
-  ldr  r2,[r2]
-  ldr  r0,.LErrno
-  cmp  r2,#0
-  bne  .LThread
-  str  r4,[r0,#4]
-  mvn  r0,#0
-  b    .LDone
-.LThread:
-  ldr  r0,[r0]
-  mov  lr,pc
-  mov  pc,r2
-  str  r4,[r0]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.Lthread_var:
-  .word fpc_threadvar_relocate_proc
-.LDone:
-  ldr r4,_r4
-  ldr r5,_r5
-  ldr r6,_r6
+  ldr  r5,param5
+  ldr  r6,param6
+  bl FPC_SYSCALL
 end ['r4','r5','r6'];
