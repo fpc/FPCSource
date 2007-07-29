@@ -1493,7 +1493,7 @@ const
 
 { ************* concatcopy ************ }
 
-{$ifndef use8byteconcatcopy}
+{$ifdef use8byteconcatcopy}
   const
     maxmoveunit = 8;
 {$else use8byteconcatcopy}
@@ -1569,7 +1569,7 @@ const
             dst := dest;
           end;
 
-{$ifndef use8byteconcatcopy}
+{$ifdef use8byteconcatcopy}
         if count > 4 then
           { generate a loop }
           begin
@@ -1619,7 +1619,7 @@ const
             inc(dst.offset,4);
             a_reg_dealloc(list,NR_R0);
           end;
-{$else not use8byteconcatcopy}
+{$else use8byteconcatcopy}
         if count > 4 then
           { generate a loop }
           begin
@@ -1661,7 +1661,7 @@ const
             a_reg_dealloc(list,NR_R0);
             len := len mod 4;
           end;
-{$endif not use8byteconcatcopy}
+{$endif use8byteconcatcopy}
        { copy the leftovers }
        if (len and 2) <> 0 then
          begin
