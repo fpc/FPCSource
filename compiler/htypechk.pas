@@ -696,10 +696,10 @@ implementation
                 else
                   tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
             temprefn :
-              if (ttemprefnode(p).tempinfo^.may_be_in_reg) and
+              if (ti_may_be_in_reg in ttemprefnode(p).tempinfo^.flags) and
                  ((not records_only) or
                   (ttemprefnode(p).tempinfo^.typedef.typ = recorddef)) then
-                ttemprefnode(p).tempinfo^.may_be_in_reg:=false;
+                exclude(ttemprefnode(p).tempinfo^.flags,ti_may_be_in_reg);
          end;
       end;
 

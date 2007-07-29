@@ -2378,7 +2378,7 @@ implementation
             { tempinfo^.valid will be false and so we do not add            }
             { unnecessary registers. This way, we don't have to look at     }
             { tempcreate and tempdestroy nodes to get this info (JM)        }
-            if (ttemprefnode(n).tempinfo^.valid) then
+            if (ti_valid in ttemprefnode(n).tempinfo^.flags) then
               add_regvars(rv^,ttemprefnode(n).tempinfo^.location);
           loadn:
             if (tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
@@ -2500,10 +2500,10 @@ implementation
             end;
           temprefn:
             begin
-              if (ttemprefnode(n).tempinfo^.valid) and
+              if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
                  (ttemprefnode(n).tempinfo^.location.register = rr^.old) and
-                 (not ttemprefnode(n).tempinfo^.is_inlined_result or
+                 (not(ti_is_inlined_result in ttemprefnode(n).tempinfo^.flags) or
                   not(fc_exit in flowcontrol)) then
                 begin
 {$ifndef cpu64bit}

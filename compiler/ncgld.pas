@@ -104,7 +104,7 @@ implementation
             end;
           temprefn:
             begin
-              if (ttemprefnode(n).tempinfo^.valid) and
+              if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
                  { memory temp... }
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_REFERENCE]) and
                  { ... at the place we are looking for }

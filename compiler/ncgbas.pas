@@ -385,7 +385,7 @@ interface
         location_reset(location,LOC_VOID,OS_NO);
 
         { if we're secondpassing the same tcgtempcreatenode twice, we have a bug }
-        if tempinfo^.valid then
+        if (ti_valid in tempinfo^.flags) then
           internalerror(200108222);
 
         { get a (persistent) temp }
@@ -397,7 +397,7 @@ interface
               because we're in a loop }
             cg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
           end
-        else if tempinfo^.may_be_in_reg then
+        else if (ti_may_be_in_reg in tempinfo^.flags) then
           begin
             if tempinfo^.typedef.typ=floatdef then
               begin
@@ -442,7 +442,7 @@ interface
             location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef));
             tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.temptype,tempinfo^.location.reference);
           end;
-        tempinfo^.valid := true;
+        include(tempinfo^.flags,ti_valid);
       end;
 
 
@@ -453,19 +453,19 @@ interface
     procedure tcgtemprefnode.pass_generate_code;
       begin
         { check if the temp is valid }
-        if not tempinfo^.valid then
+        if not(ti_valid in tempinfo^.flags) then
           internalerror(200108231);
         location:=tempinfo^.location;
         case tempinfo^.location.loc of
           LOC_REFERENCE:
             begin
               inc(location.reference.offset,offset);
-              { tempinfo^.valid should be set to false it it's a normal temp }
+              { ti_valid should be excluded if it's a normal temp }
             end;
           LOC_REGISTER,
           LOC_FPUREGISTER,
           LOC_MMREGISTER :
-            tempinfo^.valid := false;
+            exclude(tempinfo^.flags,ti_valid);
         end;
       end;
 
@@ -473,7 +473,7 @@ interface
     procedure tcgtemprefnode.changelocation(const ref: treference);
       begin
         { check if the temp is valid }
-        if not tempinfo^.valid then
+        if not(ti_valid in tempinfo^.flags) then
           internalerror(200306081);
         if (tempinfo^.location.loc<>LOC_REFERENCE) then
           internalerror(2004020203);
@@ -504,7 +504,7 @@ interface
               else
                 begin
                   tg.UnGetTemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
-                  tempinfo^.valid := false;
+                  exclude(tempinfo^.flags,ti_valid);
                 end;
             end;
           LOC_CREGISTER,
@@ -528,7 +528,7 @@ interface
               if release_to_normal then
                 tempinfo^.location.loc := LOC_REGISTER
               else
-                tempinfo^.valid := false;
+                exclude(tempinfo^.flags,ti_valid);
             end;
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
@@ -543,7 +543,7 @@ interface
               if release_to_normal then
                 tempinfo^.location.loc := LOC_FPUREGISTER
               else
-                tempinfo^.valid := false;
+                exclude(tempinfo^.flags,ti_valid);
             end;
           LOC_CMMREGISTER,
           LOC_MMREGISTER:
@@ -558,7 +558,7 @@ interface
               if release_to_normal then
                 tempinfo^.location.loc := LOC_MMREGISTER
               else
-                tempinfo^.valid := false;
+                exclude(tempinfo^.flags,ti_valid);
             end;
           else
             internalerror(200507161);
