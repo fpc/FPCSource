@@ -14,7 +14,7 @@ type
   end;
 
 var
-  p,p2: pointer;
+  p,p2,p3: pointer;
   failed: boolean;
 
 procedure error(err: longint);
@@ -144,6 +144,43 @@ begin
   t:=f10;
 end;
 
+{$if defined(cpupowerpc) or defined(cpui386)}
+function f11: tr;
+begin
+  fillchar(result,sizeof(result),0);
+  if (pshortstring(p3)^<>'x') then
+    error(11);
+  result.a:='x';
+end;
+
+procedure testrec3;
+var
+  t: tr;
+begin
+  asm
+{$ifdef cpupowerpc}
+    la  r3,t
+  {$ifndef macos}
+    lis  r4,p3@ha
+    addi r4,r4,p3@l
+  {$else}
+    lwz  r4,p3(r2)
+  {$endif}
+    stw  r3,0(r4)
+{$endif}
+{$ifdef cpui386}
+    leal t,%eax
+    movl %eax,p3
+{$endif}
+  end;
+
+  t.a:='x';
+  t:=f11;
+end;
+
+{$endif}
+
+
 
 procedure testarr;
 var
@@ -159,6 +196,9 @@ end;
 begin
   testrec;
   testrec2;
+{$if defined(cpupowerpc) or defined(cpui386)}
+  testrec3;
+{$endif}
   testarr;
   if failed then
     halt(1);
