@@ -298,6 +298,7 @@ begin
   testrec2inl;
 {$if defined(cpupowerpc) or defined(cpui386)}
   testrec3;
+  testrec3inl;
 {$endif}
   testarr;
   testarrinl;
