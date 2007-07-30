@@ -1409,7 +1409,6 @@ end;
                                  InitHeap
 *****************************************************************************}
 
-{$if not(defined(gba)) and not(defined(nds))}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 procedure InitHeapThread;
@@ -1436,7 +1435,6 @@ begin
   { main freelist will be copied in memory }
   main_orig_freelists := loc_freelists;
 end;
-{$endif}
 
 procedure RelocateHeap;
 var

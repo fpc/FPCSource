@@ -1735,6 +1735,7 @@ rtl/freebsd/x86_64/*.ppu
 rtl/freebsd/x86_64/*.s
 rtl/freebsd/x86_64/fpcmade.*
 rtl/freebsd/x86_64/units
+rtl/gba/Copia[!!-~]di[!!-~]system.pp
 rtl/gba/backup
 rtl/gba/build_rtl.bat
 rtl/gba/build_rtl_EABI.bat
@@ -1829,6 +1830,7 @@ rtl/morphos/*.ppu
 rtl/morphos/*.s
 rtl/morphos/fpcmade.*
 rtl/morphos/units
+rtl/nds/backup
 rtl/nds/parcheggio
 rtl/netbsd/*.bak
 rtl/netbsd/*.exe
