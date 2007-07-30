@@ -72,9 +72,11 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   This function loads some parameters from stack and calls FPC_SYSCALL0.
 }
 asm
+  stmfd sp!,{r4}
   ldr  r4,param4
   bl FPC_SYSCALL
-end ['r4'];
+  ldmfd sp!,{r4}
+end;
 
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
@@ -82,10 +84,12 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   This function loads some parameters from stack and calls FPC_SYSCALL0.
 }
 asm
+  stmfd sp!,{r4,r5}
   ldr  r4,param4
   ldr  r5,param5
   bl FPC_SYSCALL
-end ['r4','r5'];
+  ldmfd sp!,{r4,r5}
+end;
 
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
@@ -93,8 +97,10 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
   This function loads some parameters from stack and calls FPC_SYSCALL0.
 }
 asm
+  stmfd sp!,{r4,r5,r6}
   ldr  r4,param4
   ldr  r5,param5
   ldr  r6,param6
   bl FPC_SYSCALL
-end ['r4','r5','r6'];
+  ldmfd sp!,{r4,r5,r6}
+end;
