@@ -6480,8 +6480,8 @@
           hIcon : HICON;
           iIcon : longint;
           dwAttributes : DWORD;
-          szDisplayName : array[0..(MAX_PATH)-1] of char;
-          szTypeName : array[0..79] of char;
+          szDisplayName : array[0..MAX_PATH-1] of TCHAR;
+          szTypeName : array[0..79] of TCHAR;
        end;
      _SHFILEINFO = SHFILEINFO;
      TSHFILEINFO = SHFILEINFO;
