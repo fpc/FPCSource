@@ -11,8 +11,8 @@
     FChanges: array of TKEvent;
     FFreeSlot: Integer;
     FQueue: THandle;
-    function GetTimeout: DWord; override;
-    procedure SetTimeout(const Value: DWord); override;
+    function GetTimeout: Integer; override;
+    procedure SetTimeout(const Value: Integer); override;
     procedure HandleIgnoreRead(aHandle: TLHandle); override;
     procedure Inflate;
    public

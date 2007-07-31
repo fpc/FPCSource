@@ -22,15 +22,20 @@ begin
   inherited Destroy;
 end;
 
-function TLKQueueEventer.GetTimeout: DWord;
+function TLKQueueEventer.GetTimeout: Integer;
 begin
   Result := FTimeout.tv_sec + FTimeout.tv_nsec * 1000 * 1000;
 end;
 
-procedure TLKQueueEventer.SetTimeout(const Value: DWord);
+procedure TLKQueueEventer.SetTimeout(const Value: Integer);
 begin
-  FTimeout.tv_sec := Value div 1000;
-  FTimeout.tv_nsec := (Value mod 1000) * 1000;
+  if Value >= 0 then begin
+    FTimeout.tv_sec := Value div 1000;
+    FTimeout.tv_nsec := (Value mod 1000) * 1000;
+  end else begin
+    FTimeout.tv_sec := -1;
+    FTimeout.tv_nsec := 0;
+  end;
 end;
 
 procedure TLKQueueEventer.HandleIgnoreRead(aHandle: TLHandle);
@@ -85,11 +90,16 @@ var
   i, n: Integer;
   Temp: TLHandle;
 begin
-  n := KEvent(FQueue, @FChanges[0], FFreeSlot,
-            @FEvents[0], Length(FEvents), @FTimeout);
+  if FTimeout.tv_sec >= 0 then
+    n := KEvent(FQueue, @FChanges[0], FFreeSlot,
+              @FEvents[0], Length(FEvents), @FTimeout)
+  else
+    n := KEvent(FQueue, @FChanges[0], FFreeSlot,
+              @FEvents[0], Length(FEvents), nil);
+
   FFreeSlot := 0;
   if n < 0 then
-    Bail('Error on kqueue: ', LSocketError);
+    Bail('Error on kqueue', LSocketError);
   Result := n > 0;
   if Result then begin
     FInLoop := True;

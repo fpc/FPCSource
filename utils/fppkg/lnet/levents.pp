@@ -140,8 +140,8 @@ type
     FFreeRoot: TLHandle; // the root of "free" list if any
     FFreeIter: TLHandle; // the last of "free" list if any
     FInLoop: Boolean;
-    function GetTimeout: DWord; virtual;
-    procedure SetTimeout(const Value: DWord); virtual;
+    function GetTimeout: Integer; virtual;
+    procedure SetTimeout(const Value: Integer); virtual;
     function Bail(const msg: string; const Ernum: Integer): Boolean;
     procedure AddForFree(aHandle: TLHandle);
     procedure FreeHandles;
@@ -162,7 +162,7 @@ type
     procedure Clear;
     procedure AddRef;
     procedure DeleteRef;
-    property Timeout: DWord read GetTimeout write SetTimeout;
+    property Timeout: Integer read GetTimeout write SetTimeout;
     property OnError: TLEventerErrorEvent read FOnError write FOnError;
     property Count: Integer read FCount;
   end;
@@ -176,8 +176,8 @@ type
     FReadFDSet: TFDSet;
     FWriteFDSet: TFDSet;
     FErrorFDSet: TFDSet;
-    function GetTimeout: DWord; override;
-    procedure SetTimeout(const Value: DWord); override;
+    function GetTimeout: Integer; override;
+    procedure SetTimeout(const Value: Integer); override;
     procedure ClearSets;
    public
     constructor Create; override;
@@ -301,12 +301,12 @@ begin
   Clear;
 end;
 
-function TLEventer.GetTimeout: DWord;
+function TLEventer.GetTimeout: Integer;
 begin
   Result := 0;
 end;
 
-procedure TLEventer.SetTimeout(const Value: DWord);
+procedure TLEventer.SetTimeout(const Value: Integer);
 begin
 end;
 
@@ -314,7 +314,7 @@ function TLEventer.Bail(const msg: string; const Ernum: Integer): Boolean;
 begin
   Result := False; // always false, substitute for caller's result
   if Assigned(FOnError) then
-    FOnError(msg + '[' + IntToStr(Ernum) + ']: ' + LStrError(Ernum), Self);
+    FOnError(msg + LStrError(Ernum), Self);
 end;
 
 procedure TLEventer.AddForFree(aHandle: TLHandle);
@@ -467,15 +467,23 @@ begin
   FTimeout.tv_usec := 0;
 end;
 
-function TLSelectEventer.GetTimeout: DWord;
+function TLSelectEventer.GetTimeout: Integer;
 begin
-  Result := (FTimeout.tv_sec * 1000) + FTimeout.tv_usec;
+  if FTimeout.tv_sec < 0 then
+    Result := -1
+  else
+    Result := (FTimeout.tv_sec * 1000) + FTimeout.tv_usec;
 end;
 
-procedure TLSelectEventer.SetTimeout(const Value: DWord);
+procedure TLSelectEventer.SetTimeout(const Value: Integer);
 begin
-  FTimeout.tv_sec := Value div 1000;
-  FTimeout.tv_usec := Value mod 1000;
+  if Value >= 0 then begin
+    FTimeout.tv_sec := Value div 1000;
+    FTimeout.tv_usec := Value mod 1000;
+  end else begin
+    FTimeout.tv_sec := -1;
+    FTimeout.tv_usec := 0;
+  end;
 end;
 
 procedure TLSelectEventer.ClearSets;
@@ -522,7 +530,10 @@ begin
   end;
 
   TempTime := FTimeout;
-  n := fpSelect(MaxHandle + 1, @FReadFDSet, @FWriteFDSet, @FErrorFDSet, @TempTime);
+  if FTimeout.tv_sec >= 0 then
+    n := fpSelect(MaxHandle + 1, @FReadFDSet, @FWriteFDSet, @FErrorFDSet, @TempTime)
+  else
+    n := fpSelect(MaxHandle + 1, @FReadFDSet, @FWriteFDSet, @FErrorFDSet, nil);
   
   if n < 0 then
     Bail('Error on select', LSocketError);
