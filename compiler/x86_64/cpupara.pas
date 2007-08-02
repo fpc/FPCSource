@@ -65,7 +65,18 @@ unit cpupara;
       paraintsupregs_winx64 : array[0..3] of tsuperregister = (RS_RCX,RS_RDX,RS_R8,RS_R9);
       parammsupregs_winx64 : array[0..3] of tsuperregister = (RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3);
 
-    procedure getvalueparaloc(p : tdef;var loc1,loc2:tcgloc);
+
+    function structure_in_registers(varspez:tvarspez;size:longint):boolean;
+      begin
+        if (target_info.system=system_x86_64_win64) then
+{$warning Temporary hack: vs_const parameters are always passed by reference for win64}
+          result:=(varspez=vs_value) and (size in [1,2,4,8])
+        else
+          result:=(size<=16);
+      end;
+
+
+    procedure getvalueparaloc(varspez:tvarspez;p : tdef;var loc1,loc2:tcgloc);
       begin
         loc1:=LOC_INVALID;
         loc2:=LOC_INVALID;
@@ -96,11 +107,12 @@ unit cpupara;
              end;
            recorddef:
              begin
-               { win64 abi }
-               if ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
-               { linux abi }
-                 ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
-                 loc1:=LOC_REGISTER
+               if structure_in_registers(varspez,p.size) then
+                 begin
+                   loc1:=LOC_REGISTER;
+                   if p.size>8 then
+                     loc2:=LOC_REGISTER;
+                 end
                else
                  loc1:=LOC_REFERENCE;
              end;
@@ -108,10 +120,7 @@ unit cpupara;
              begin
                if is_object(p) then
                  begin
-                   { win64 abi }
-                   if ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
-                   { linux abi }
-                     ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
+                   if structure_in_registers(varspez,p.size) then
                      loc1:=LOC_REGISTER
                    else
                      loc1:=LOC_REFERENCE;
@@ -122,13 +131,12 @@ unit cpupara;
            arraydef:
              begin
                if not(is_special_array(p)) and
-                  (
-                   { win64 abi }
-                   ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
-                   { linux abi }
-                   ((target_info.system<>system_x86_64_win64) and (p.size<=16))
-                  ) then
-                 loc1:=LOC_REGISTER
+                  structure_in_registers(varspez,p.size) then
+                 begin
+                   loc1:=LOC_REGISTER;
+                   if p.size>8 then
+                     loc2:=LOC_REGISTER;
+                 end
                else
                  loc1:=LOC_REFERENCE;
              end;
@@ -142,11 +150,12 @@ unit cpupara;
              if is_shortstring(p) or is_longstring(p) then
                begin
                  { handle long and shortstrings like arrays }
-                 { win64 abi }
-                 if ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
-                   { linux abi }
-                   ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
-                   loc1:=LOC_REGISTER
+                 if structure_in_registers(varspez,p.size) then
+                   begin
+                     loc1:=LOC_REGISTER;
+                     if p.size>8 then
+                       loc2:=LOC_REGISTER;
+                   end
                  else
                    loc1:=LOC_REFERENCE;
                end
@@ -159,11 +168,16 @@ unit cpupara;
                loc1:=LOC_REFERENCE;
            procvardef:
              begin
-               { This is a record < 16 bytes }
                if (po_methodpointer in tprocvardef(p).procoptions) then
                  begin
-                   loc1:=LOC_REGISTER;
-                   loc2:=LOC_REGISTER;
+                   { This is a record of 16 bytes }
+                   if structure_in_registers(varspez,p.size) then
+                     begin
+                       loc1:=LOC_REGISTER;
+                       loc2:=LOC_REGISTER;
+                     end
+                   else
+                     loc1:=LOC_REFERENCE;
                  end
                else
                  loc1:=LOC_REGISTER;
@@ -224,8 +238,7 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef :
-            result:=((varspez=vs_const) and ((def.size>16) or (calloption<>pocall_register))) or 
-                    ((target_info.system=system_x86_64_win64) and (def.size>8));
+            result:=not structure_in_registers(varspez,def.size);
           arraydef :
             begin
               result:=not(
@@ -237,11 +250,20 @@ unit cpupara;
                          );
             end;
           objectdef :
-            result:=is_object(def);
+            begin
+              if is_object(def) then
+                result:=not structure_in_registers(varspez,def.size);
+            end;
           stringdef :
-            result:=(tstringdef(def).stringtype in [st_shortstring,st_longstring]);
+            begin
+              if (tstringdef(def).stringtype in [st_shortstring,st_longstring]) then
+                result:=not structure_in_registers(varspez,def.size);
+            end;
           procvardef :
-            result:=(po_methodpointer in tprocvardef(def).procoptions) and (target_info.system=system_x86_64_win64);
+            begin
+              if (po_methodpointer in tprocvardef(def).procoptions) then
+                result:=not structure_in_registers(varspez,def.size);
+            end;
           setdef :
             result:=(tsetdef(def).settype<>smallset);
         end;
@@ -408,7 +430,7 @@ unit cpupara;
               end
             else
               begin
-                getvalueparaloc(hp.vardef,loc[1],loc[2]);
+                getvalueparaloc(hp.varspez,hp.vardef,loc[1],loc[2]);
                 paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
                 paracgsize:=def_cgsize(hp.vardef);
               end;
