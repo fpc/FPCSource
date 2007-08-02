@@ -1014,8 +1014,8 @@ end;
 
 destructor TDOMNode_WithChildren.Destroy;
 begin
-  FreeAndNil(FChildNodeTree);
   FreeChildren;
+  FreeAndNil(FChildNodeTree);  
   inherited Destroy;
 end;
 
@@ -1243,6 +1243,8 @@ procedure TDOMNode_WithChildren.FreeChildren;
 var
   child, next: TDOMNode;
 begin
+  if Assigned(FChildNodeTree) then
+    FChildNodeTree.Clear;
   child := FFirstChild;
   while Assigned(child) do
   begin
