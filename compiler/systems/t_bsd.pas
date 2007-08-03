@@ -234,7 +234,10 @@ begin
          else
            begin
              ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
-             DllCmd[1]:='libtool $OPT -dynamic -multiply_defined suppress  -L. -o $EXE `cat $RES`'
+             if (not RelocSection) then
+               DllCmd[1]:='libtool $OPT -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
+             else
+               DllCmd[1]:='ld $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
        end
      else
@@ -354,7 +357,15 @@ begin
           end
       else
         begin
-          prtobj:='';
+          if RelocSection then
+            begin
+              if librarysearchpath.FindFile('bundle1.o',false,s) then
+                prtobj:=s
+              else
+                prtobj:='/usr/lib/bundle1.o'
+            end
+          else
+            prtobj:=''
         end;
     end;
 

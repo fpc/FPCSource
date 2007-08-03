@@ -263,6 +263,9 @@ begin
 {$ifdef powerpc}
       'P',
 {$endif}
+{$ifdef powerpc64}
+      'p',
+{$endif}
 {$ifdef sparc}
       'S',
 {$endif}
@@ -1252,6 +1255,13 @@ begin
                           apptype:=app_native
                         else
                           apptype:=app_cui;
+                      end;
+                    'b':
+                      begin
+                        if (target_info.system in systems_darwin) then
+                          RelocSection:=not UnsetBool(More, j)
+                        else
+                          IllegalPara(opt);
                       end;
                     'B':
                       begin

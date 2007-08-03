@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000186] of string[240]=(
+const msgtxt : array[0..000187] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000186,1..240] of char=(
+const msgtxt : array[0..000187,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -1036,41 +1036,44 @@ const msgtxt : array[0..000186,1..240] of char=(
   '3*1W<x>_Target-specific options',' (targets)'#010+
   'A*1W<x>_Target-specific options (targets)'#010+
   'P*1W<x>_Target-specific options (targets)'#010+
+  '3*2Wb_Create a bundle instead of a library (Darwin)'#010+
+  'P*2Wb_Create a bundle instead of a library (Darwin)'#010+
+  'p*2Wb_Create a bundle instead of a librar','y (Darwin)'#010+
   '3*2WB_Create a relocatable image (Windows)'#010+
   'A*2WB_Create a relocatable image (Windows, Symbian)'#010+
-  '3*2WC_Specify console type application (EMX, OS/2,',' Windows)'#010+
+  '3*2WC_Specify console type application (EMX, OS/2, Windows)'#010+
   'A*2WC_Specify console type application (Windows)'#010+
-  'P*2WC_Specify console type application (Classic Mac OS)'#010+
+  'P*2WC_Specify console typ','e application (Classic Mac OS)'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
   'A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
-  '3','*2WF_Specify full-screen type application (EMX, OS/2)'#010+
-  '3*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
+  '3*2WF_Specify full-screen type application (EMX, OS/2)'#010+
+  '3*2WG_Specify graphic type app','lication (EMX, OS/2, Windows)'#010+
   'A*2WG_Specify graphic type application (Windows)'#010+
   'P*2WG_Specify graphic type application (Classic Mac OS)'#010+
-  '3*2WN_Do not generate',' relocation code, needed for debugging (Windows'+
+  '3*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
+  'A*2WN_Do not generate relocation co','de, needed for debugging (Windows'+
   ')'#010+
-  'A*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   '3*2WR_Generate relocation code (Windows)'#010+
   'A*2WR_Generate relocation code (Windows)'#010+
-  'P*2WT_Specify MPW tool type application',' (Classic Mac OS)'#010+
+  'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
   '**1X_Executable options:'#010+
-  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Lin'+
-  'ux)'#010+
+  '**2Xc_Pass --shared/-dynamic to the linke','r (BeOS, Darwin, FreeBSD, L'+
+  'inux)'#010+
   '**2Xd_Do not use standard library search path (needed for cross compil'+
   'e)'#010+
   '**2Xe_Use external linker'#010+
-  '**2XD_Try to link units ','dynamic          (defines FPC_LINK_DYNAMIC)'#010+
+  '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
-  '**2Xm_Generate link map'#010+
+  '**2Xm_Generate',' link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
   '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
-  '**2Xr<x>_Set libra','ry search path to <x> (needed for cross compile)'#010+
-  '**2Xs_Strip all symbols from executable'#010+
-  '**2XS_Try to link units static (default) (defines FPC_LINK_STATIC)'#010+
+  '**2Xr<x>_Set library search path to <x> (needed for cross compile)'#010+
+  '**2Xs_Strip all symbols from execut','able'#010+
+  '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
-  '**2XX_Try to smartlin','k units             (defines FPC_LINK_SMART)'#010+
+  '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
-  '**1h_Shows this help without waiting'#000
+  '**1h_Shows',' this help without waiting'#000
 );
