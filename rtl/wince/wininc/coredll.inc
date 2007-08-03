@@ -646,7 +646,6 @@
       367 ThreadDetachAllDLLs
         B ThreadExceptionExit
       4C7 TouchCalibrate
-      4F5 TransparentImage
       3A6 TurnOffProfiling
       3A5 TurnOnProfiling
       36C U_rclose
@@ -3119,6 +3118,8 @@ function TranslateAcceleratorW(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint
 function TranslateCharsetInfo(var lpSrc:DWORD; lpCs:LPCHARSETINFO; dwFlags:DWORD):WINBOOL; external KernelDLL name 'TranslateCharsetInfo';
 function TranslateMessage(lpMsg:LPMSG):WINBOOL; external KernelDLL name 'TranslateMessage';
 function TransmitCommChar(hFile:HWND; cChar:char):WINBOOL; external KernelDLL name 'TransmitCommChar';
+function TransparentBlt(hdcDest : HDC;DstX : LONG;DstY : LONG;DstCx : LONG;DstCy : LONG;hSrc : HANDLE;SrcX : LONG;SrcY : LONG;SrcCx : LONG;SrcCy : LONG;TransparentColor : COLORREF): WINBOOL; external KernelDLL name 'TransparentImage';
+function TransparentImage(hdcDest : HDC;DstX : LONG;DstY : LONG;DstCx : LONG;DstCy : LONG;hSrc : HANDLE;SrcX : LONG;SrcY : LONG;SrcCx : LONG;SrcCy : LONG;TransparentColor : COLORREF): WINBOOL; external KernelDLL name 'TransparentImage';
 function TreeView_InsertItem(hwnd:HWND;lpis : LPTV_INSERTSTRUCT) : LRESULT;
 function TreeView_DeleteItem(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
 function TreeView_DeleteAllItems(hwnd : HWND) : LRESULT;
