@@ -2460,151 +2460,153 @@ Report bugs,suggestions etc to:
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_put + after a boolean switch option to enable it, - to disable it
-**1a_the compiler doesn't delete the generated assembler file
-**2al_list sourcecode lines in assembler file
-**2an_list node info in assembler file
-*L2ap_use pipes instead of creating temporary assembler files
-**2ar_list register allocation/release info in assembler file
-**2at_list temp allocation/release info in assembler file
-**1A<x>_output format:
-**2Adefault_use default assembler
-3*2Aas_assemble using GNU AS
-3*2Anasmcoff_coff (Go32v2) file using Nasm
-3*2Anasmelf_elf32 (Linux) file using Nasm
+**0*_Put + after a boolean switch option to enable it, - to disable it
+**1a_The compiler doesn't delete the generated assembler file
+**2al_List sourcecode lines in assembler file
+**2an_List node info in assembler file
+*L2ap_Use pipes instead of creating temporary assembler files
+**2ar_List register allocation/release info in assembler file
+**2at_List temp allocation/release info in assembler file
+**1A<x>_Output format:
+**2Adefault_Use default assembler
+3*2Aas_Assemble using GNU AS
+3*2Anasmcoff_COFF (Go32v2) file using Nasm
+3*2Anasmelf_ELF32 (Linux) file using Nasm
 3*2Anasmwin32_Win32 object file using Nasm
 3*2Anasmwdosx_Win32/WDOSX object file using Nasm
-3*2Awasm_obj file using Wasm (Watcom)
-3*2Anasmobj_obj file using Nasm
-3*2Amasm_obj file using Masm (Microsoft)
-3*2Atasm_obj file using Tasm (Borland)
-3*2Aelf_elf32 (Linux) using internal writer
-3*2Acoff_coff (Go32v2) using internal writer
-3*2Apecoff_pecoff (Win32) using internal writer
-4*2Aas_assemble using GNU AS
+3*2Awasm_Obj file using Wasm (Watcom)
+3*2Anasmobj_Obj file using Nasm
+3*2Amasm_Obj file using Masm (Microsoft)
+3*2Atasm_Obj file using Tasm (Borland)
+3*2Aelf_ELF (Linux) using internal writer
+3*2Acoff_COFF (Go32v2) using internal writer
+3*2Apecoff_PE-COFF (Win32) using internal writer
+4*2Aas_Assemble using GNU AS
 6*2Aas_Unix o-file using GNU AS
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
-A*2Aas_assemble using GNU AS
-P*2Aas_assemble using GNU AS
-S*2Aas_assemble using GNU AS
-**1b_generate browser info
-**2bl_generate local symbol info
-**1B_build all modules
-**1C<x>_code generation options:
-**2Cc<x>_set default calling convention to <x>
-**2CD_create also dynamic library (not supported)
+A*2Aas_Assemble using GNU AS
+P*2Aas_Assemble using GNU AS
+S*2Aas_Assemble using GNU AS
+**1b_Generate browser info
+**2bl_Generate local symbol info
+**1B_Build all modules
+**1C<x>_Code generation options:
+**2Cc<x>_Set default calling convention to <x>
+**2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
 **2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
-**2Cn_omit linking stage
-**2Co_check overflow of integer operations
-**2Cp<x>_select instruction set, see fpc -i for possible values
+**2Cn_Omit linking stage
+**2Co_Check overflow of integer operations
+**2Cp<x>_Select instruction set, see fpc -i for possible values
 **2CP<x>=<y>_ packing settings
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
-**2Cr_range checking
-**2CR_verify object method call validity
-**2Cs<n>_set stack size to <n>
-**2Ct_stack checking
-**2CX_create also smartlinked library
-**1d<x>_defines the symbol <x>
-**1D_generate a DEF file
-**2Dd<x>_set description to <x>
-**2Dv<x>_set DLL version to <x>
+**2Cr_Range checking
+**2CR_Verify object method call validity
+**2Cs<n>_Set stack size to <n>
+**2Ct_Stack checking
+**2CX_Create also smartlinked library
+**1d<x>_Defines the symbol <x>
+**1D_Generate a DEF file
+**2Dd<x>_Set description to <x>
+**2Dv<x>_Set DLL version to <x>
 *O2Dw_PM application
-**1e<x>_set path to executable
-**1E_same as -Cn
-**1fPIC_same as -Cg
-**1F<x>_set file names and paths:
-**2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
-**2Fc<x>_sets input codepage to <x>
-**2FC<x>_sets RC compiler binary name to <x>
-**2FD<x>_sets the directory where to search for compiler utilities
-**2Fe<x>_redirect error output to <x>
-**2Ff<x>_adds <x> to framework path (Darwin only)
-**2FE<x>_set exe/unit output path to <x>
-**2Fi<x>_adds <x> to include path
-**2Fl<x>_adds <x> to library path
-**2FL<x>_uses <x> as dynamic linker
-**2Fm<x>_load unicode conversion table from <x>.txt in the compiler dir
-**2Fo<x>_adds <x> to object path
-**2Fr<x>_load error message file <x>
-**2FR<x>_sets resource (.res) linker to <x>
-**2Fu<x>_adds <x> to unit path
-**2FU<x>_set unit output path to <x>, overrides -FE
-*g1g_generate debugger information:
-*g2gc_generate checks for pointers
-*g2gd_use dbx
-*g2gg_use gsym
-*g2gh_use heap trace unit (for memory leak debugging)
-*g2gl_use line info unit to show more info for backtraces
-*g2gp_preserve case in stabs symbol names
-*g2gt_trash local variables (to detect uninitialized uses)
-*g2gv_generates programs traceable with valgrind
-*g2gw_generate dwarf debugging info
-**1i_information
-**2iD_return compiler date
-**2iV_return compiler version
-**2iW_return full compiler version
-**2iSO_return compiler OS
-**2iSP_return compiler processor
-**2iTO_return target OS
-**2iTP_return target processor
-**1I<x>_adds <x> to include path
+**1e<x>_Set path to executable
+**1E_Same as -Cn
+**1fPIC_Same as -Cg
+**1F<x>_Set file names and paths:
+**2Fa<x>[,y]_(for a program) load units <x> and [y] before uses is parsed
+**2Fc<x>_Set input codepage to <x>
+**2FC<x>_Set RC compiler binary name to <x>
+**2FD<x>_Set the directory where to search for compiler utilities
+**2Fe<x>_Redirect error output to <x>
+**2Ff<x>_Add <x> to framework path (Darwin only)
+**2FE<x>_Set exe/unit output path to <x>
+**2Fi<x>_Add <x> to include path
+**2Fl<x>_Add <x> to library path
+**2FL<x>_Use <x> as dynamic linker
+**2Fm<x>_Load unicode conversion table from <x>.txt in the compiler dir
+**2Fo<x>_Add <x> to object path
+**2Fr<x>_Load error message file <x>
+**2FR<x>_Set resource (.res) linker to <x>
+**2Fu<x>_Add <x> to unit path
+**2FU<x>_Det unit output path to <x>, overrides -FE
+*g1g_Generate debug information (default format for target)
+*g2gc_Generate checks for pointers
+*g2gd_Use dbx
+*g2gg_Use gsym
+*g2gh_Use heaptrace unit (for memory leak/corruption debugging)
+*g2gl_Use line info unit (show more info with backtraces)
+*g2gp_Preserve case in stabs symbol names
+*g2gs_Generate stabs debug information
+*g2gt_Trash local variables (to detect uninitialized uses)
+*g2gv_Generates programs traceable with valgrind
+*g2gw_Generate dwarf-2 debug information (same as -gw2)
+*g2gw2_Generate dwarf-2 debug information
+*g2gw3_Generate dwarf-3 debug information
+**1i_Information
+**2iD_Return compiler date
+**2iV_Return short compiler version
+**2iW_Return full compiler version
+**2iSO_Return compiler OS
+**2iSP_Return compiler host processor
+**2iTO_Return target OS
+**2iTP_Return target processor
+**1I<x>_Add <x> to include path
 **1k<x>_Pass <x> to the linker
-**1l_write logo
-**1M<x>_set language mode to <x>
-**2Mfpc_free pascal dialect (default)
-**2Mobjfpc_switch some Delphi 2 extensions on
-**2Mdelphi_tries to be Delphi compatible
-**2Mtp_tries to be TP/BP 7.0 compatible
-**2Mmacpas_tries to be compatible to the macintosh pascal dialects
-**1n_don't read the default config file
-**1N<x>_node tree optimizations
-**2Nu_unroll loops
-**1o<x>_change the name of the executable produced to <x>
-**1O<x>_optimizations:
-**2O-_disable optimizations
-**2O1_level 1 optimizations (quick and debugger friendly)
-**2O2_level 2 optimizations (-O1 + quick optimizations)
-**2O3_level 3 optimizations (-O2 + slow optimizations)
-**2Oa<x>=<y>_set alignment
-**2Oo[NO]<x>_enable or disable optimizations, see fpc -i for possible values
-**2Op<x>_set target cpu for optimizing, see fpc -i for possible values
-**2Os_generate smaller code
-**1pg_generate profile code for gprof (defines FPC_PROFILE)
-**1R<x>_assembler reading style:
-**2Rdefault_use default assembler
-3*2Ratt_read AT&T style assembler
-3*2Rintel_read Intel style assembler
-6*2RMOT_read motorola style assembler
-**1S<x>_syntax options:
-**2S2_same as -Mobjfpc
-**2Sc_supports operators like C (*=,+=,/= and -=)
-**2Sa_include assertion code.
-**2Sd_same as -Mdelphi
-**2Se<x>_error options. <x> is a combination of the following:
-**3*_<n> : compiler stops after the <n> errors (default is 1)
-**3*_w : compiler stops also after warnings
-**3*_n : compiler stops also after notes
-**3*_h : compiler stops also after hints
-**2Sg_allow LABEL and GOTO
-**2Sh_Use ansistrings
-**2Si_support C++ styled INLINE
-**2Sk_load fpcylix unit
-**2SI<x>_set interface style to <x>
+**1l_Write logo
+**1M<x>_Set language mode to <x>
+**2Mfpc_Free Pascal dialect (default)
+**2Mobjfpc_FPC mode with Object Pascal support
+**2Mdelphi_Delphi 7 compatibility mode
+**2Mtp_TP/BP 7.0 compatibility mode
+**2Mmacpas_Macintosh Pascal dialects compatibility mode
+**1n_Do not read the default config files
+**1N<x>_Node tree optimizations
+**2Nu_Unroll loops
+**1o<x>_Change the name of the executable produced to <x>
+**1O<x>_Optimizations:
+**2O-_Disable optimizations
+**2O1_Level 1 optimizations (quick and debugger friendly)
+**2O2_Level 2 optimizations (-O1 + quick optimizations)
+**2O3_Level 3 optimizations (-O2 + slow optimizations)
+**2Oa<x>=<y>_Set alignment
+**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible values
+**2Op<x>_Set target cpu for optimizing, see fpc -i for possible values
+**2Os_Optimize for size rather than speed
+**1pg_Generate profile code for gprof (defines FPC_PROFILE)
+**1R<x>_Assembler reading style:
+**2Rdefault_Use default assembler for target
+3*2Ratt_Read AT&T style assembler
+3*2Rintel_Read Intel style assembler
+6*2RMOT_Read motorola style assembler
+**1S<x>_Syntax options:
+**2S2_Same as -Mobjfpc
+**2Sc_Support operators like C (*=,+=,/= and -=)
+**2Sa_Turn on assertions
+**2Sd_Same as -Mdelphi
+**2Se<x>_Error options. <x> is a combination of the following:
+**3*_<n> : Compiler halts after the <n> errors (default is 1)
+**3*_w : Compiler also halts after warnings
+**3*_n : Compiler also halts after notes
+**3*_h : Compiler also halts after hints
+**2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
+**2Sh_Use ansistrings by default instead of shortstrings
+**2Si_Turn on inlining of procedures/functions declared as "inline"
+**2Sk_Load fpcylix unit
+**2SI<x>_Set interface style to <x>
 **3SIcom_COM compatible interface (default)
 **3SIcorba_CORBA compatible interface
-**2Sm_support macros like C (global)
-**2So_same as -Mtp
-**2Sp_same as -Mgpc
-**2Ss_constructor name must be init (destructor must be done)
-**2St_allow static keyword in objects
-**2Sx_enable exception keywords (default in Delphi/ObjFPC modes)
-**1s_don't call assembler and linker
+**2Sm_Support macros like C (global)
+**2So_Same as -Mtp
+**2Ss_Constructor name must be init (destructor must be done)
+**2St_Allow static keyword in objects
+**2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
+**1s_Do not call assembler and linker
 **2sh_Generate script to link on host
 **2st_Generate script to link on target
 **2sr_Skip register allocation phase (use with -alr)
@@ -2639,9 +2641,9 @@ P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
 **1u<x>_undefines the symbol <x>
 **1U_unit options:
-**2Un_don't check the unit name
-**2Ur_generate release unit files
-**2Us_compile a system unit
+**2Un_Do not check where the unit name matches the file name
+**2Ur_Generate release unit files (never automatically recompiled)
+**2Us_Compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
 **2*_e : Show errors (default)       0 : Show nothing (except errors)
 **2*_w : Show warnings               u : Show unit info
@@ -2653,35 +2655,42 @@ S*2Tlinux_Linux
 **2*_b : Write file names messages with full path
 **2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
 **2*_    lots of debugging info
-3*1W<x>_Win32-like target options
-3*2WB_Create a relocatable image
-3*2WB<x>_Set Image base to Hexadecimal <x> value
-3*2WC_Specify console type application
-3*2WD_Use DEFFILE to export functions of DLL or EXE
-3*2WF_Specify full-screen type application (OS/2 only)
-3*2WG_Specify graphic type application
-3*2WN_Do not generate relocation code (necessary for debugging)
-3*2WR_Generate relocation code
-P*2WC_Specify console type application (Mac OS only)
-P*2WG_Specify graphic type application (Mac OS only)
-P*2WT_Specify tool type application (MPW tool, Mac OS only)
-**1X_executable options:
-**2Xc_pass --shared to the linker (Unix only)
-**2Xd_don't use standard library search path (needed for cross compile)
-**2Xe_use external linker
-**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)
-**2Xi_use internal linker
-**2Xm_generate link map
-**2XM<x>_set the name of the 'main' program routine (default is 'main')
-**2XP<x>_prepend the binutils names with the prefix <x>
-**2Xr<x>_set library search path to <x> (needed for cross compile)
-**2Xs_strip all symbols from executable
-**2XS_try to link units static (default) (defines FPC_LINK_STATIC)
-**2Xt_link with static libraries (-static is passed to linker)
-**2XX_try to link units smart            (defines FPC_LINK_SMART)
+3*1W<x>_Target-specific options (targets)
+A*1W<x>_Target-specific options (targets)
+P*1W<x>_Target-specific options (targets)
+3*2WB_Create a relocatable image (Windows)
+A*2WB_Create a relocatable image (Windows, Symbian)
+3*2WC_Specify console type application (EMX, OS/2, Windows)
+A*2WC_Specify console type application (Windows)
+P*2WC_Specify console type application (Classic Mac OS)
+3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
+A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
+3*2WF_Specify full-screen type application (EMX, OS/2)
+3*2WG_Specify graphic type application (EMX, OS/2, Windows)
+A*2WG_Specify graphic type application (Windows)
+P*2WG_Specify graphic type application (Classic Mac OS)
+3*2WN_Do not generate relocation code, needed for debugging (Windows)
+A*2WN_Do not generate relocation code, needed for debugging (Windows)
+3*2WR_Generate relocation code (Windows)
+A*2WR_Generate relocation code (Windows)
+P*2WT_Specify MPW tool type application (Classic Mac OS)
+**1X_Executable options:
+**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
+**2Xd_Do not use standard library search path (needed for cross compile)
+**2Xe_Use external linker
+**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
+**2Xi_Use internal linker
+**2Xm_Generate link map
+**2XM<x>_Set the name of the 'main' program routine (default is 'main')
+**2XP<x>_Prepend the binutils names with the prefix <x>
+**2Xr<x>_Set library search path to <x> (needed for cross compile)
+**2Xs_Strip all symbols from executable
+**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)
+**2Xt_Link with static libraries (-static is passed to linker)
+**2XX_Try to smartlink units             (defines FPC_LINK_SMART)
 **1*_
-**1?_shows this help
-**1h_shows this help without waiting
+**1?_Show this help
+**1h_Shows this help without waiting
 ]
 
 #
