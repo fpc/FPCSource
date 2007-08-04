@@ -214,7 +214,8 @@ interface
          app_fs,        { full-screen type application (OS/2 and EMX only) }
          app_tool,      { tool application, (MPW tool for MacOS, MacOS only)}
          app_arm7,
-         app_arm9
+         app_arm9,
+         app_bundle     { dynamically loadable bundle, Darwin only }
        );
 
        { interface types }

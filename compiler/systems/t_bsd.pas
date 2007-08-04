@@ -234,7 +234,7 @@ begin
          else
            begin
              ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
-             if (not RelocSection) then
+             if (apptype<>app_bundle) then
                DllCmd[1]:='libtool $OPT -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
                DllCmd[1]:='ld $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
@@ -357,7 +357,7 @@ begin
           end
       else
         begin
-          if RelocSection then
+          if (apptype=app_bundle) then
             begin
               if librarysearchpath.FindFile('bundle1.o',false,s) then
                 prtobj:=s

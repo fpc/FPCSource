@@ -1259,7 +1259,12 @@ begin
                     'b':
                       begin
                         if (target_info.system in systems_darwin) then
-                          RelocSection:=not UnsetBool(More, j)
+                          begin
+                            if not UnsetBool(More, j) then
+                              apptype:=app_bundle
+                            else
+                              apptype:=app_cui
+                          end
                         else
                           IllegalPara(opt);
                       end;
