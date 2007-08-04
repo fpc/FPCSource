@@ -1970,11 +1970,13 @@ Var
       Str(Value:Width+8,Digits);
       { Find and cut out exponent. Always the
         last 6 characters in the string.
-        -> 0000E+0000                         }
-      I:=Length(Digits)-5;
-      Val(Copy(Digits,I+1,5),Exp,J);
+        -> 0000E+0000                         
+        *** No, not always the last 6 characters, this depends on
+            the maximally supported precision (JM)}
+      I:=Pos('E',Digits);
+      Val(Copy(Digits,I+1,255),Exp,J);
       Exp:=Exp+1-(Placehold[1]+Placehold[2]);
-      Delete(Digits, I, 6);
+      Delete(Digits, I, 255);
       { Str() always returns at least one digit after the decimal point.
         If we don't want it, we have to remove it. }
       If (Decimals=0) And (Placehold[1]+Placehold[2]<= 1) Then
