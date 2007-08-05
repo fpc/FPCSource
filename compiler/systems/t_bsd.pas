@@ -375,7 +375,8 @@ begin
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
-  if (not isdll) then
+  if (not isdll) or
+     (apptype=app_bundle) then
     begin
       if (target_info.system in systems_darwin) then
         begin
