@@ -131,6 +131,7 @@ unit cpupara;
            arraydef:
              begin
                if not(is_special_array(p)) and
+                  (target_info.system=system_x86_64_win64) and
                   structure_in_registers(varspez,p.size) then
                  begin
                    loc1:=LOC_REGISTER;
@@ -238,16 +239,35 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef :
-            result:=not structure_in_registers(varspez,def.size);
+            begin
+              { Win ABI depends on size to pass it in a register or not }
+              if (target_info.system=system_x86_64_win64) then
+                result:=not structure_in_registers(varspez,def.size)
+              else
+              { linux ABI always passes it as value parameter }
+                result:=false;
+            end;
           arraydef :
             begin
-              result:=not(
-                          { cdecl array of const need to be ignored and therefor be puhsed
-                            as value parameter with length 0 }
-                          (calloption in [pocall_cdecl,pocall_cppdecl]) and
-                          (is_array_of_const(def) or
-                           is_dynamic_array(def))
-                         );
+              { cdecl array of const need to be ignored and therefor be puhsed
+                as value parameter with length 0 }
+              if (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                 (is_array_of_const(def) or
+                  is_dynamic_array(def)) then
+                result:=false
+              else
+                if is_special_array(def) then
+                  result:=true
+                else
+                { normal arrays }
+                  begin
+                    { Win ABI depends on size to pass it in a register or not }
+                    if (target_info.system=system_x86_64_win64) then
+                      result:=not structure_in_registers(varspez,def.size)
+                    else
+                    { linux ABI always passes it var parameter }
+                      result:=true;
+                  end;
             end;
           objectdef :
             begin
