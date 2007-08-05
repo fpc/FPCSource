@@ -477,6 +477,7 @@ begin
     WriteLn('Passed!');
 
   Write('External mixed parameter testing with floating values...');
+  failed := false;
 
   clear_values;
   clear_globals;
@@ -508,7 +509,6 @@ begin
     WriteLn('Passed!');
 
   Write('External struct parameter testing...');
-
   failed := false;
 
   clear_values;
@@ -574,7 +574,6 @@ begin
 
 
   Write('External mixed struct/byte parameter testing...');
-
   failed := false;
 
   clear_values;
@@ -696,6 +695,7 @@ begin
 
   Write('pchar function result testing...');
   failed := false;
+  
   { verify if the contents both strings are equal }
   pc := test_function_pchar;
   if strcomp(pc, RESULT_PCHAR) <> 0 then
@@ -738,6 +738,7 @@ begin
     WriteLn('Passed!');
 
   Write('Function result testing for struct...');
+  failed := false;
 
   tinystruct := test_function_tiny_struct;
   if tinystruct.u8 <> RESULT_U8BIT then
