@@ -1,4 +1,4 @@
-{ lNet v0.5.5
+{ lNet v0.5.6
 
   CopyRight (C) 2004-2006 Ales Katona
 
@@ -446,7 +446,7 @@ end;
 
 function TLSocket.Bail(const msg: string; const ernum: Integer): Boolean;
 begin
-  Result  :=  False; // return the result for the caller
+  Result := False; // return the result for the caller
 
   Disconnect;
   LogError(msg, ernum);
@@ -505,7 +505,8 @@ end;
 
 function TLSocket.Get(var aData; const aSize: Integer): Integer;
 var
-  AddressLength: Integer = SizeOf(FAddress);
+  AddressLength: Integer = SizeOf(FPeerAddress);
+  LastError: Longint;
 begin
   Result := 0;
   if CanReceive then begin
@@ -516,10 +517,12 @@ begin
     if Result = 0 then
       Disconnect;
     if Result = SOCKET_ERROR then begin
-      if IsBlockError(LSocketError) then begin
+      LastError := LSocketError;
+      if IsBlockError(LastError) then begin
         FCanReceive  :=  False;
         IgnoreRead  :=  False;
-      end else Bail('Receive Error', LSocketError);
+      end else
+        Bail('Receive Error', LastError);
       Result := 0;
     end;
   end;
@@ -622,6 +625,8 @@ begin
 end;
 
 function TLSocket.Send(const aData; const aSize: Integer): Integer;
+var
+  LastError: Longint;
 begin
   Result := 0;
   if not FServerSocket then begin
@@ -633,11 +638,12 @@ begin
     if CanSend then begin
       Result := DoSend(aData, aSize);
       if Result = SOCKET_ERROR then begin
-        if IsBlockError(LSocketError) then begin
+        LastError := LSocketError;
+        if IsBlockError(LastError) then begin
           FCanSend := False;
           IgnoreWrite := False;
         end else
-          Bail('Send error', LSocketError);
+          Bail('Send error', LastError);
         Result := 0;
       end;
     end;
@@ -849,7 +855,7 @@ procedure TLUdp.Disconnect;
 begin
   if Assigned(FRootSock) then begin
     FRootSock.Disconnect;
-    FreeAndNil(FRootSock);
+    FRootSock := nil; // even if the old one exists, eventer takes care of it
   end;
 end;
 
@@ -1042,7 +1048,7 @@ begin
     FIterator := FRootSock;
     RegisterWithEventer;
   end else begin
-    FreeAndNil(FRootSock);
+    FreeAndNil(FRootSock); // one possible use, since we're not in eventer yet
     FIterator := nil;
   end;
 end;

@@ -132,7 +132,11 @@ end;
 
 function BestEventerClass: TLEventerClass;
 begin
+  {$IFNDEF FORCE_SELECT}
   Result := TLKQueueEventer;
+  {$ELSE}
+  Result := TLSelectEventer;
+  {$ENDIF}
 end;
 
 {$endif} // BSD

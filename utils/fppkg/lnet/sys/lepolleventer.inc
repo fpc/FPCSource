@@ -194,34 +194,23 @@ begin
 end;
 
 function BestEventerClass: TLEventerClass;
-
-  function GetVersion(s: string): Integer;
-  const
-    Numbers = ['0'..'9'];
-  var
-    i: Integer;
-  begin
-    s := StringReplace(s, '.', '', [rfReplaceAll]);
-    i := 1;
-    while (i <= Length(s)) and (s[i] in Numbers) do
-      Inc(i);
-    s := Copy(s, 1, i - 1);
-    if Length(s) < 4 then // varies OS to OS
-      Insert('0', s, 3); // in linux, last part can be > 10
-    Result := StrToInt(s);
-  end;
-
-{$ifndef DISABLE_EPOLL}
 var
-  u: TUTSName;
-{$endif}
+  tmp: THandle;
 begin
-  Result := TLSelectEventer;
-{$ifndef DISABLE_EPOLL}
-  if fpUname(u) = 0 then   // check for 2.6+
-    if GetVersion(u.release) >= 2600 then
+  {$IFNDEF FORCE_SELECT}
+  try
+    tmp := epoll_create(1);
+    if tmp >= 0 then begin
+      FpClose(tmp);
       Result := TLEpollEventer;
-{$endif}
+    end else
+      Result := TLSelectEventer;
+  except
+    Result := TLSelectEventer;
+  end;
+  {$ELSE}
+  Result := TLSelectEventer;
+  {$ENDIF}
 end;
 
 {$endif} // Linux

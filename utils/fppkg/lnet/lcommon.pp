@@ -53,10 +53,14 @@ const
   {$IFDEF UNIX}
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;
-    {$IFDEF LINUX} // TODO: fix this crap, some don't even have MSD_NOSIGNAL
+    {$IFDEF LINUX} // TODO: fix this crap, some don't even have MSG_NOSIGNAL
     LMSG = MSG_NOSIGNAL;
     {$ELSE}
-    LMSG = $20000; // FPC BUG in 2.0.4-
+      {$IFDEF FREEBSD}
+        LMSG = $20000; // FPC BUG in 2.0.4-, freeBSD value
+      {$ELSE}
+        LMSG = 0;
+      {$ENDIF}
     {$ENDIF}
   {$ENDIF}
   { Default Values }
