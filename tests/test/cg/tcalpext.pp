@@ -24,7 +24,8 @@
 { Compile ptest.o }
 uses
   strings,
-  ptest
+  ptest,
+  ctypes
   ;
 
 

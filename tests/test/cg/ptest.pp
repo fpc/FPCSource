@@ -8,6 +8,9 @@ unit ptest;
 
 interface
 
+uses
+  ctypes;
+	
 { Use C alignment of records }
 {$PACKRECORDS C}
 const
@@ -57,7 +60,7 @@ end;
   int64_array = array [0..1] of int64;
   single_array = array [0..1] of single;
   double_array = array [0..1] of double;
-  extended_array = array [0..1] of extended;
+  clongdouble_array = array [0..1] of clongdouble;
 
 var
   global_u8bit : byte; cvar;
@@ -69,7 +72,7 @@ var
   global_s64bit : int64; cvar;
   global_float : single; cvar;
   global_double : double; cvar;
-  global_long_double : extended; cvar;
+  global_long_double : clongdouble; cvar;
 
 { simple parameter passing }
 procedure test_param_u8(x: byte); cdecl; public;
@@ -81,7 +84,7 @@ procedure test_param_s32(x: longint); cdecl; public;
 procedure test_param_s64(x: int64); cdecl; public;
 procedure test_param_float(x : single); cdecl; public;
 procedure test_param_double(x: double); cdecl; public;
-procedure test_param_longdouble(x: extended); cdecl; public;
+procedure test_param_longdouble(x: clongdouble); cdecl; public;
 procedure test_param_var_u8(var x: byte); cdecl; public;
 
 { array parameter passing }
@@ -94,7 +97,7 @@ procedure test_array_param_s32(x: longint_array); cdecl; public;
 procedure test_array_param_s64(x: int64_array); cdecl; public;
 procedure test_array_param_float(x : single_array); cdecl; public;
 procedure test_array_param_double(x: double_array); cdecl; public;
-procedure test_array_param_longdouble(x: extended_array); cdecl; public;
+procedure test_array_param_longdouble(x: clongdouble_array); cdecl; public;
 
 { mixed parameter passing }
 procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; public;
@@ -102,7 +105,7 @@ procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl; public;
 procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl; public;
 procedure test_param_mixed_float(x: single; y: byte); cdecl; public;
 procedure test_param_mixed_double(x: double; y: byte); cdecl; public;
-procedure test_param_mixed_long_double(x: extended; y: byte); cdecl; public;
+procedure test_param_mixed_long_double(x: clongdouble; y: byte); cdecl; public;
 procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl; public;
 { structure parameter testing }
 procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl; public;
@@ -127,7 +130,7 @@ function test_function_s64: int64; cdecl; public;
 function test_function_pchar: pchar; cdecl; public;
 function test_function_float : single; cdecl; public;
 function test_function_double : double; cdecl; public;
-function test_function_longdouble: extended; cdecl; public;
+function test_function_longdouble: clongdouble; cdecl; public;
 function test_function_tiny_struct : _1byte_; cdecl; public;
 function test_function_small_struct : _3byte_; cdecl; public;
 function test_function_small_struct_s : _3byte_s; cdecl; public;
@@ -183,7 +186,7 @@ procedure test_param_double(x: double); cdecl; public;
     global_double:=x;
   end;
 
-procedure test_param_longdouble(x: extended); cdecl; public;
+procedure test_param_longdouble(x: clongdouble); cdecl; public;
   begin
     global_long_double:=x;
   end;
@@ -240,7 +243,7 @@ procedure test_array_param_double(x: double_array); cdecl; public;
    global_double:=x[1];
   end;
 
-procedure test_array_param_longdouble(x: extended_array); cdecl; public;
+procedure test_array_param_longdouble(x: clongdouble_array); cdecl; public;
   begin
    global_long_double:=x[1];
   end;
@@ -277,7 +280,7 @@ procedure test_param_mixed_double(x: double; y: byte); cdecl; public;
     global_u8bit:=y;
   end;
 
-procedure test_param_mixed_long_double(x: extended; y: byte); cdecl; public;
+procedure test_param_mixed_long_double(x: clongdouble; y: byte); cdecl; public;
   begin
     global_long_double:=x;
     global_u8bit:=y;
@@ -402,7 +405,7 @@ function test_function_double : double; cdecl; public;
     test_function_double:=RESULT_DOUBLE;
   end;
 
-function test_function_longdouble: extended; cdecl; public;
+function test_function_longdouble: clongdouble; cdecl; public;
   begin
     test_function_longdouble:=RESULT_LONGDOUBLE;
   end;
