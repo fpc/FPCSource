@@ -1132,6 +1132,8 @@ parser_e_initialized_not_for_external=03233_E_Cannot initialize variables declar
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Illegal function result type
 % Some types like file types can not used as function result
+parser_e_no_generics_as_types=03236_E_Generics without specialization can not be used as a type for a variable
+% Generics must be always specialized before being used as variable type
 % \end{description}
 #
 # Type Checking
