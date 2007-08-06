@@ -145,6 +145,9 @@ implementation
                 pt2.free;
               end;
           end;
+        { force correct error location if too much type parameters are passed }
+        if token<>_RSHARPBRACKET then
+          consume(_RSHARPBRACKET);
         { Reparse the original type definition }
         if not err then
           begin
