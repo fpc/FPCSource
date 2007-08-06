@@ -256,18 +256,7 @@ unit cpupara;
                   is_dynamic_array(def)) then
                 result:=false
               else
-                if is_special_array(def) then
-                  result:=true
-                else
-                { normal arrays }
-                  begin
-                    { Win ABI depends on size to pass it in a register or not }
-                    if (target_info.system=system_x86_64_win64) then
-                      result:=not structure_in_registers(varspez,def.size)
-                    else
-                    { linux ABI always passes it var parameter }
-                      result:=true;
-                  end;
+                result:=true;
             end;
           objectdef :
             begin
