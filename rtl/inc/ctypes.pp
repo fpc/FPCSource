@@ -112,12 +112,48 @@ type
 {$ifdef longdouble_assignment_overload_real80}
 operator := (const v:clongdouble) r:extended;inline;
 operator := (const v:extended) r:clongdouble;inline;
+operator +(const e:Extended;const c:clongdouble) r:extended;inline;
+operator +(const c:clongdouble;const e:Extended) r:extended;inline;
+operator -(const e:Extended;const c:clongdouble) r:extended;inline;
+operator -(const c:clongdouble;const e:Extended) r:extended;inline;
+operator *(const e:Extended;const c:clongdouble) r:extended;inline;
+operator *(const c:clongdouble;const e:Extended) r:extended;inline;
+operator /(const e:Extended;const c:clongdouble) r:extended;inline;
+operator /(const c:clongdouble;const e:Extended) r:extended;inline;
+operator =(const e:Extended;const c:clongdouble) r:boolean;inline;
+operator =(const c:clongdouble;const e:Extended) r:boolean;inline;
+operator <(const e:Extended;const c:clongdouble) r:boolean;inline;
+operator <(const c:clongdouble;const e:Extended) r:boolean;inline;
+operator >(const e:Extended;const c:clongdouble) r:boolean;inline;
+operator >(const c:clongdouble;const e:Extended) r:boolean;inline;
+operator >=(const e:Extended;const c:clongdouble) r:boolean;inline;
+operator >=(const c:clongdouble;const e:Extended) r:boolean;inline;
+operator <=(const e:Extended;const c:clongdouble) r:boolean;inline;
+operator <=(const c:clongdouble;const e:Extended) r:boolean;inline;
 {$endif}
 
 {$ifdef longdouble_assignment_overload_real128}
 {Non-x86 typically doesn't have extended. To be fixed once this changes.}
 operator := (const v:clongdouble) r:double;inline;
 operator := (const v:double) r:clongdouble;inline;
+operator +(const e:Double;const c:clongdouble) r:Double;inline;
+operator +(const c:clongdouble;const e:Double) r:Double;inline;
+operator -(const e:Double;const c:clongdouble) r:Double;inline;
+operator -(const c:clongdouble;const e:Double) r:Double;inline;
+operator *(const e:Double;const c:clongdouble) r:Double;inline;
+operator *(const c:clongdouble;const e:Double) r:Double;inline;
+operator /(const e:Double;const c:clongdouble) r:Double;inline;
+operator /(const c:clongdouble;const e:Double) r:Double;inline;
+operator =(const e:Double;const c:clongdouble) r:boolean;inline;
+operator =(const c:clongdouble;const e:Double) r:boolean;inline;
+operator <(const e:Double;const c:clongdouble) r:boolean;inline;
+operator <(const c:clongdouble;const e:Double) r:boolean;inline;
+operator >(const e:Double;const c:clongdouble) r:boolean;inline;
+operator >(const c:clongdouble;const e:Double) r:boolean;inline;
+operator >=(const e:Double;const c:clongdouble) r:boolean;inline;
+operator >=(const c:clongdouble;const e:Double) r:boolean;inline;
+operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
+operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
 {$endif}
 
 implementation
@@ -133,6 +169,96 @@ operator := (const v:extended) r:clongdouble;
 
 begin
   r.value:=v;
+end;
+
+operator +(const e:Extended;const c:clongdouble) r:extended;inline;
+begin
+  r:=e+c.value;
+end;
+
+operator +(const c:clongdouble;const e:Extended) r:extended;inline;
+begin
+  r:=c.value+e;
+end;
+
+operator -(const e:Extended;const c:clongdouble) r:extended;inline;
+begin
+  r:=e-c.value;
+end;
+
+operator -(const c:clongdouble;const e:Extended) r:extended;inline;
+begin
+  r:=c.value-e;
+end;
+
+operator *(const e:Extended;const c:clongdouble) r:extended;inline;
+begin
+  r:=e*c.value;
+end;
+
+operator *(const c:clongdouble;const e:Extended) r:extended;inline;
+begin
+  r:=c.value*e;
+end;
+
+operator /(const e:Extended;const c:clongdouble) r:extended;inline;
+begin
+  r:=e/c.value;
+end;
+
+operator /(const c:clongdouble;const e:Extended) r:extended;inline;
+begin
+  r:=c.value/e;
+end;
+
+operator =(const e:Extended;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e=c.value;
+end;
+
+operator =(const c:clongdouble;const e:Extended) r:boolean;inline;
+begin
+  r:=c.value=e;
+end;
+
+operator <(const e:Extended;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e<c.value;
+end;
+
+operator <(const c:clongdouble;const e:Extended) r:boolean;inline;
+begin
+  r:=c.value<e;
+end;
+
+operator >(const e:Extended;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e>c.value;
+end;
+
+operator >(const c:clongdouble;const e:Extended) r:boolean;inline;
+begin
+  r:=c.value>e;
+end;
+
+operator >=(const e:Extended;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e>=c.value;
+end;
+
+operator >=(const c:clongdouble;const e:Extended) r:boolean;inline;
+begin
+  r:=c.value>=e;
+end;
+
+operator <=(const e:Extended;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e<=c.value;
+end;
+
+operator <=(const c:clongdouble;const e:Extended) r:boolean;inline;
+begin
+  r:=c.value<=e;
 end;
 {$endif}
 
@@ -160,6 +286,96 @@ begin
   Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
   Pcardinal(@r[r128_mantissa_ofs+8])^:=0;
   Pword(@r[r128_mantissa_ofs+12])^:=0;
+end;
+
+operator +(const e:Double;const c:clongdouble) r:Double;inline;
+begin
+  r:=e+c.value;
+end;
+
+operator +(const c:clongdouble;const e:Double) r:Double;inline;
+begin
+  r:=c.value+e;
+end;
+
+operator -(const e:Double;const c:clongdouble) r:Double;inline;
+begin
+  r:=e-c.value;
+end;
+
+operator -(const c:clongdouble;const e:Double) r:Double;inline;
+begin
+  r:=c.value-e;
+end;
+
+operator *(const e:Double;const c:clongdouble) r:Double;inline;
+begin
+  r:=e*c.value;
+end;
+
+operator *(const c:clongdouble;const e:Double) r:Double;inline;
+begin
+  r:=c.value*e;
+end;
+
+operator /(const e:Double;const c:clongdouble) r:Double;inline;
+begin
+  r:=e/c.value;
+end;
+
+operator /(const c:clongdouble;const e:Double) r:Double;inline;
+begin
+  r:=c.value/e;
+end;
+
+operator =(const e:Double;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e=c.value;
+end;
+
+operator =(const c:clongdouble;const e:Double) r:boolean;inline;
+begin
+  r:=c.value=e;
+end;
+
+operator <(const e:Double;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e<c.value;
+end;
+
+operator <(const c:clongdouble;const e:Double) r:boolean;inline;
+begin
+  r:=c.value<e;
+end;
+
+operator >(const e:Double;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e>c.value;
+end;
+
+operator >(const c:clongdouble;const e:Double) r:boolean;inline;
+begin
+  r:=c.value>e;
+end;
+
+operator >=(const e:Double;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e>=c.value;
+end;
+
+operator >=(const c:clongdouble;const e:Double) r:boolean;inline;
+begin
+  r:=c.value>=e;
+end;
+
+operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
+begin
+  r:=e<=c.value;
+end;
+
+operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
+begin
+  r:=c.value<=e;
 end;
 {$endif}
 
