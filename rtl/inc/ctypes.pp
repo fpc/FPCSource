@@ -136,6 +136,7 @@ operator <=(const c:clongdouble;const e:Extended) r:boolean;inline;
 {Non-x86 typically doesn't have extended. To be fixed once this changes.}
 operator := (const v:clongdouble) r:double;inline;
 operator := (const v:double) r:clongdouble;inline;
+{$ifdef dummy}
 operator +(const e:Double;const c:clongdouble) r:Double;inline;
 operator +(const c:clongdouble;const e:Double) r:Double;inline;
 operator -(const e:Double;const c:clongdouble) r:Double;inline;
@@ -154,6 +155,7 @@ operator >=(const e:Double;const c:clongdouble) r:boolean;inline;
 operator >=(const c:clongdouble;const e:Double) r:boolean;inline;
 operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
 operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
+{$endif dummy}
 {$endif}
 
 implementation
@@ -288,6 +290,10 @@ begin
   Pword(@r[r128_mantissa_ofs+12])^:=0;
 end;
 
+{$ifdef dummy}
+
+// There is no record with a value field in this case
+
 operator +(const e:Double;const c:clongdouble) r:Double;inline;
 begin
   r:=e+c.value;
@@ -377,6 +383,7 @@ operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
   r:=c.value<=e;
 end;
+{$endif}
 {$endif}
 
 end.
