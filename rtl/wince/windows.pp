@@ -47,6 +47,7 @@ interface
 {$i ceshell.inc}
 {$i oleaut32.inc}
 {$i iphlpapi.inc}
+{$i tapi.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
@@ -68,6 +69,7 @@ implementation
 {$i commdlg.inc}
 {$i ceshell.inc}
 {$i oleaut32.inc}
+{$i tapi.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
