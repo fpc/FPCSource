@@ -1580,6 +1580,10 @@ procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
 end;
 
+procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+end;
+
 procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
 end;

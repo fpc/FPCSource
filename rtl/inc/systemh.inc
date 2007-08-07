@@ -432,6 +432,10 @@ procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 procedure prefetch(const mem);[internproc:fpc_in_prefetch_var];
+procedure ReadBarrier;{$ifdef INLINEGENERICS}inline;{$endif}
+procedure ReadDependencyBarrier;{$ifdef INLINEGENERICS}inline;{$endif}
+procedure ReadWriteBarrier;{$ifdef INLINEGENERICS}inline;{$endif}
+procedure WriteBarrier;{$ifdef INLINEGENERICS}inline;{$endif}
 
 {$ifdef INTERNALMOVEFILLCHAR}
 var

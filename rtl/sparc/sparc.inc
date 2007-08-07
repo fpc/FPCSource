@@ -507,3 +507,43 @@ asm
   or %g1,%lo(fpc_system_lock), %g1
   stb %g0,[%g1]
 end;
+
+{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
+{$define FPC_SYSTEM_HAS_MEM_BARRIER}
+
+const
+  LoadLoad   = $01;
+  StoreLoad  = $02;
+  LoadStore  = $04;
+  StoreStore = $08;
+  LookAside  = $10;
+  MemIssue   = $20;
+  Sync       = $40;
+
+procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  ba,pt .L1
+  membar LoadLoad
+.L1:
+end;
+
+procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  { reads imply barrier on earlier reads depended on }
+end;
+
+procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  ba,pt .L1
+  membar LoadLoad + LoadStore + StoreLoad + StoreStore
+.L1:
+end;
+
+procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  ba,pt .L1
+  stbar
+.L1:
+end;
+
+{$endif}

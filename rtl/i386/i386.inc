@@ -1334,3 +1334,32 @@ asm
 end;
 
 {$endif darwin}
+
+{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
+{$define FPC_SYSTEM_HAS_MEM_BARRIER}
+
+procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  lock
+  addl $0,0(%esp)
+  { alternative: lfence on SSE capable CPUs }
+end;
+
+procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  { reads imply barrier on earlier reads depended on }
+end;
+
+procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  lock
+  addl $0,0(%esp)
+  { alternative: mfence on SSE capable CPUs }
+end;
+
+procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  { no write reordering on intel CPUs (yet) }
+end;
+
+{$endif}

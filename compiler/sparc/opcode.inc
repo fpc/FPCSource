@@ -69,5 +69,7 @@ A_tst,
 { Internal instructions }
 A_FMOVd,
 A_FABSd,
-A_FABSq
-
+A_FABSq,
+{ Memory barrier instructions }
+A_STBAR,
+A_MEMBAR

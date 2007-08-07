@@ -208,7 +208,11 @@ implementation
            id     : as_gas;
            idtxt  : 'AS';
            asmbin : 'as';
+{$ifdef FPC_SPARC_V8_ONLY}
            asmcmd : '-o $OBJ $ASM';
+{$else}
+           asmcmd : '-Av9 -o $OBJ $ASM';
+{$endif}
            supported_target : system_any;
            flags : [af_allowdirect,af_needar,af_smartlink_sections];
            labelprefix : '.L';
