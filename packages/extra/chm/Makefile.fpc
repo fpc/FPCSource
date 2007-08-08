@@ -22,6 +22,8 @@ fpcpackage=y
 fpcdir=../../..
 
 [rules]
+.NOTPARALLEL:
+
 cdmcmd$(EXEEXT): chmcmd.lpr
 
 chmls$(EXEEXT): chmls.lpr

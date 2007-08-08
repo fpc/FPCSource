@@ -22,17 +22,41 @@ fpcsubdir=packages
 fpcdir=..
 
 [rules]
+extra_all: base_all fcl-xml_all
+extra_debug: base_debug fcl-xml_debug
+extra_smart: base_smart fcl-xml_smart
+extra_release: base_release fcl-xml_release
+extra_shared: base_shared fcl-xml_shared
+
+fcl-base_all: base_all
+fcl-base_debug: base_debug
+fcl-base_smart: base_smart
+fcl-base_release: base_release
+fcl-base_shared: base_shared
+
 fcl-xml_all: fcl-base_all
 fcl-xml_debug: fcl-base_debug
 fcl-xml_smart: fcl-base_smart
 fcl-xml_release: fcl-base_release
 fcl-xml_shared: fcl-base_shared
 
-fpcunit_all: fcl-xml_all
-fpcunit_debug: fcl-xml_debug
-fpcunit_smart: fcl-xml_smart
-fpcunit_release: fcl-xml_release
-fpcunit_shared: fcl-xml_shared
+fcl-image_all: fcl-base_all
+fcl-image_debug: fcl-base_debug
+fcl-image_smart: fcl-base_smart
+fcl-image_release: fcl-base_release
+fcl-image_shared: fcl-base_shared
+
+fcl-fpcunit_all: fcl-xml_all
+fcl-fpcunit_debug: fcl-xml_debug
+fcl-fpcunit_smart: fcl-xml_smart
+fcl-fpcunit_release: fcl-xml_release
+fcl-fpcunit_shared: fcl-xml_shared
+
+fcl-registry_all: fcl-xml_all
+fcl-registry_debug: fcl-xml_debug
+fcl-registry_smart: fcl-xml_smart
+fcl-registry_release: fcl-xml_release
+fcl-registry_shared: fcl-xml_shared
 
 fcl-net_all: fcl-passrc_all fcl-xml_all
 fcl-net_debug: fcl-passrc_debug fcl-xml_debug
