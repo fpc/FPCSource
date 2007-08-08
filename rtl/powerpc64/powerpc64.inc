@@ -842,11 +842,13 @@ end;
 
 procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
+{$ifdef FPC_HAS_LWSYNC}
   lwsync
+{$endif}
 end;
 
 procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
+begin
   { reads imply barrier on earlier reads depended on }
 end;
 

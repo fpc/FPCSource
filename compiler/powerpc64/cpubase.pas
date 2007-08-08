@@ -103,7 +103,8 @@ type
     A_MULLDO, A_MULLDO_, A_MULHDU, A_MULHDU_,
     A_MFXER,
     A_FCTID, A_FCTID_, A_FCTIDZ, A_FCTIDZ_,
-    A_EXTRDI, A_EXTRDI_, A_INSRDI, A_INSRDI_);
+    A_EXTRDI, A_EXTRDI_, A_INSRDI, A_INSRDI_,
+    A_LWSYNC);
 
   {# This should define the array of instructions as string }
   op2strtable = array[tasmop] of string[8];
