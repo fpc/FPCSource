@@ -61,6 +61,12 @@ Uses
   ;
 
 {*****************************************************************************
+                             System unit import
+*****************************************************************************}
+
+procedure fpc_threaderror; [external name 'FPC_THREADERROR'];
+
+{*****************************************************************************
                              Generic overloaded
 *****************************************************************************}
 
@@ -363,19 +369,19 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         res:= pthread_mutex_init(@CS,NIL);
       pthread_mutexattr_destroy(@MAttr);
       if res <> 0 then
-        runerror(6);
+        fpc_threaderror;
     end;
 
     procedure CEnterCriticalSection(var CS);
       begin
          if pthread_mutex_lock(@CS) <> 0 then
-           runerror(6);
+           fpc_threaderror
       end;
 
     procedure CLeaveCriticalSection(var CS);
       begin
          if pthread_mutex_unlock(@CS) <> 0 then
-           runerror(6)
+           fpc_threaderror
       end;
 
     procedure CDoneCriticalSection(var CS);
@@ -386,7 +392,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
            ;
 
          if pthread_mutex_destroy(@CS) <> 0 then
-           runerror(6);
+           fpc_threaderror;
       end;
 
 
@@ -543,7 +549,7 @@ begin
   if plocaleventstate(result)^.FSem=nil then
     begin
       FreeMem(result);
-      runerror(6);
+      fpc_threaderror;
     end;
 {$else}
 {$ifdef has_sem_open}
@@ -551,14 +557,14 @@ begin
   if (plocaleventstate(result)^.FSem = NIL) then
     begin
       FreeMem(result);
-      runerror(6);
+      fpc_threaderror;
     end;
 {$else}
   plocaleventstate(result)^.FSem:=cSemaphoreInit;
   if (plocaleventstate(result)^.FSem = NIL) then
     begin
       FreeMem(result);
-      runerror(6);
+      fpc_threaderror;
     end;
   if InitialState then
     cSemaphorePost(plocaleventstate(result)^.FSem);
@@ -581,7 +587,7 @@ begin
     begin
       cSemaphoreDestroy(plocaleventstate(result)^.FSem);
       FreeMem(result);
-      runerror(6);
+      fpc_threaderror;
     end;
 end;
 
@@ -656,7 +662,7 @@ begin
         cSemaphorePost(plocaleventstate(state)^.FSem);
       end
     else
-      runerror(6);
+      fpc_threaderror;
 {$else has_sem_init or has_sem_open}
     tv.tv_sec:=0;
     tv.tv_usec:=0;

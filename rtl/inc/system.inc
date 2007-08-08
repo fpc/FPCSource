@@ -563,6 +563,12 @@ begin
 end;
 
 
+procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
+begin
+  HandleErrorFrame(6,get_frame);
+end;
+
+
 procedure fpc_iocheck;[public,alias:'FPC_IOCHECK']; compilerproc;
 var
   l : longint;
