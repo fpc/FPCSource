@@ -2635,8 +2635,8 @@ implementation
                       in the parent procedures }
                     case localloc.loc of
                       LOC_CREGISTER :
-{$ifndef cpu64bit}
                         if (pi_has_goto in current_procinfo.flags) then
+{$ifndef cpu64bit}
                           if def_cgsize(vardef) in [OS_64,OS_S64] then
                             begin
                               cg.a_reg_sync(list,localloc.register64.reglo);
