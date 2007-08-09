@@ -2019,72 +2019,6 @@
       583 labs
       584 ldexp
       585 ldiv
-      21F lineAccept
-      21D lineAddProvider
-      220 lineAddToConference
-      221 lineAnswer
-      222 lineBlindTransfer
-      20C lineClose
-      223 lineCompleteTransfer
-      21C lineConfigDialogEdit
-      20D lineDeallocateCall
-      224 lineDevSpecific
-      225 lineDial
-      20E lineDrop
-      226 lineForward
-      227 lineGenerateDigits
-      228 lineGenerateTone
-      229 lineGetAddressCaps
-      22A lineGetAddressID
-      22B lineGetAddressStatus
-      22C lineGetAppPriority
-      22D lineGetCallInfo
-      22E lineGetCallStatus
-      22F lineGetConfRelatedCalls
-      20F lineGetDevCaps
-      210 lineGetDevConfig
-      21A lineGetID
-      230 lineGetIcon
-      231 lineGetLineDevStatus
-      232 lineGetMessage
-      233 lineGetNewCalls
-      234 lineGetNumRings
-      235 lineGetProviderList
-      236 lineGetStatusMessages
-      211 lineGetTranslateCaps
-      237 lineHandoff
-      238 lineHold
-      212 lineInitialize
-      239 lineInitializeEx
-      213 lineMakeCall
-      23A lineMonitorDigits
-      23B lineMonitorMedia
-      214 lineNegotiateAPIVersion
-      23C lineNegotiateExtVersion
-      215 lineOpen
-      23D linePickup
-      23E linePrepareAddToConference
-      23F lineRedirect
-      240 lineReleaseUserUserInfo
-      241 lineRemoveFromConference
-      242 lineSendUserUserInfo
-      243 lineSetAppPriority
-      244 lineSetCallParams
-      245 lineSetCallPrivilege
-      21E lineSetCurrentLocation
-      216 lineSetDevConfig
-      246 lineSetMediaMode
-      247 lineSetNumRings
-      217 lineSetStatusMessages
-      248 lineSetTerminal
-      249 lineSetTollList
-      24A lineSetupConference
-      24B lineSetupTransfer
-      218 lineShutdown
-      24C lineSwapHold
-      219 lineTranslateAddress
-      21B lineTranslateDialog
-      24D lineUnhold
       586 log
       587 log10
       589 longjmp
@@ -2106,29 +2040,6 @@
       2B0 mixerOpen
       2B1 mixerSetControlDetails
       596 modf
-      24E phoneClose
-      24F phoneConfigDialog
-      250 phoneDevSpecific
-      251 phoneGetDevCaps
-      252 phoneGetGain
-      253 phoneGetHookSwitch
-      255 phoneGetID
-      254 phoneGetIcon
-      256 phoneGetMessage
-      257 phoneGetRing
-      258 phoneGetStatus
-      259 phoneGetStatusMessages
-      25A phoneGetVolume
-      25B phoneInitializeEx
-      25C phoneNegotiateAPIVersion
-      25D phoneNegotiateExtVersion
-      25E phoneOpen
-      25F phoneSetGain
-      260 phoneSetHookSwitch
-      261 phoneSetRing
-      262 phoneSetStatusMessages
-      263 phoneSetVolume
-      264 phoneShutdown
       599 pow
       60D printf
       610 putchar
@@ -4294,5 +4205,6 @@ begin
 end;
 
 {$endif read_implementation}
+
 
 

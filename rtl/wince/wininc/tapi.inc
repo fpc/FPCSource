@@ -12,7 +12,7 @@
  **********************************************************************}
 
 { Declarations for tapi WinCE API, note than on WinCE tapi functions originally
-  based in core.dll
+  based in coredll.dll
 }
 
 { this port based on Windows Mobile 5 Smartphone Edition SDK
@@ -1791,13 +1791,13 @@ function phoneSetStatusMessages(hPhone:HPHONE; dwPhoneStates:DWORD; dwButtonMode
 function phoneSetVolume(hPhone:HPHONE; dwHookSwitchDev:DWORD; dwVolume:DWORD):LONG;external KernelDLL name 'phoneSetVolume';
 function phoneShutdown(hPhoneApp:HPHONEAPP):LONG;external KernelDLL name 'phoneShutdown';
 
-function TAPIERROR_FORMATMESSAGE(const AErrCode: Longint): Longint; // C Macros conversion, may be wrong
+function TAPIERROR_FORMATMESSAGE(const AErrCode: Longword): Longword; // C Macros conversion, may be wrong
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function TAPIERROR_FORMATMESSAGE(const AErrCode: Longint): Longint;
+function TAPIERROR_FORMATMESSAGE(const AErrCode: Longword): Longword;
 begin
  if AErrCode>$FFFF0000 then Exit(AErrCode and $0000FFFF);
  if (AErrCode and $10000000)<>0 then Exit(AErrCode-$90000000+$F000);
