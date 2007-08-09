@@ -38,6 +38,7 @@ function far_strlen(selector : word;linear_address : longint) : longint;assemble
 asm
         movl linear_address,%edx
         movl %edx,%ecx
+        pushl %gs
         movw selector,%gs
 .Larg19:
         movb %gs:(%edx),%al
@@ -46,6 +47,7 @@ asm
         incl %edx
         jmp .Larg19
 .Larg20:
+        popl %gs
         movl %edx,%eax
         subl %ecx,%eax
 end;
