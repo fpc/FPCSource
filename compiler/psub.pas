@@ -821,7 +821,6 @@ implementation
                 in pstatment.pas (for cases not caught by the Delphi
                 exception below)
               - no exceptions are used
-              - no debug info
               - no pushes are used/esp modifications, could be:
                 * outgoing parameters on the stack
                 * incoming parameters on the stack
