@@ -597,7 +597,7 @@ begin
         movl    djgpp_exception_state_ptr, %eax
         movl    %eax, 60(%edi)
         { restore EDI }
-        pop     %edi
+        popl    %edi
         { we come from the initial call }
         xorl    %eax,%eax
         movl    %eax,__RESULT
