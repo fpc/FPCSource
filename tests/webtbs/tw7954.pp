@@ -17,5 +17,4 @@ begin
   except on Exception do
     halt(0);
   end;
-  halt(1);
 end.
