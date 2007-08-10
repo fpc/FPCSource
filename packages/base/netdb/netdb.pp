@@ -38,7 +38,6 @@ Type
 
 Const
   DNSPort        = 53;
-  MaxServers     = 4;
   MaxResolveAddr = 10;
   SResolveFile   = '/etc/resolv.conf';
   SServicesFile  = '/etc/services'; 
@@ -50,7 +49,7 @@ Const
   MaxIP4Mapped = 10;
   
 Type
-  TDNSServerArray = Array[1..MaxServers] of THostAddr;
+  TDNSServerArray = Array of THostAddr;
   TServiceEntry = record
     Name     : String;
     Protocol : String;
@@ -96,7 +95,6 @@ Type
 
 Var  
   DNSServers            : TDNSServerArray;
-  DNSServerCount        : Integer;
   DefaultDomainList     : String;
   CheckResolveFileAge   : Boolean; 
   CheckHostsFileAge     : Boolean; 
@@ -482,13 +480,15 @@ begin
           H:=HostToNet(StrToHostAddr(L));
           If (H.s_bytes[1]<>0) then
             begin
-            Inc(Result);
+            setlength(DNSServers,Result+1);
             DNSServers[Result]:=H;
+            Inc(Result);
             end
           else if FindHostEntryInHostsFile(L,H,E) then
             begin
-            Inc(Result);
+            setlength(DNSServers,Result+1);
             DNSServers[Result]:=E.Addr;
+            Inc(Result);
             end;
           end
         else if CheckDirective('domain') then
@@ -499,7 +499,6 @@ begin
   Finally
     Close(R);
   end;    
-  DNSServerCount:=Result;
 end;
 
 Procedure CheckResolveFile;
@@ -834,9 +833,9 @@ Var
 
 begin
   CheckResolveFile;
-  I:=1;
+  I:=0;
   Result:=0;
-  While (Result<=0) and (I<=DNSServerCount) do
+  While (Result<=0) and (I<=high(DNSServers)) do
     begin
     Result:=ResolveNameAt(I,HostName,Addresses,0);
     Inc(I);
@@ -916,9 +915,9 @@ var
   i: Integer;
 begin
   CheckResolveFile;
-  i := 1;
+  i := 0;
   Result := 0;
-  while (Result <= 0) and (I<= DNSServerCount) do begin
+  while (Result <= 0) and (I<= high(DNSServers)) do begin
     Result := ResolveNameAt6(I, Hostname, Addresses, 0);
     Inc(i);
   end;
@@ -969,11 +968,11 @@ Var
   
 begin
   CheckResolveFile;
-  I:=1;
+  I:=0;
   Result:=0;
   nt:=hosttonet(hostaddr);
   S:=Format('%d.%d.%d.%d.in-addr.arpa',[nt.s_bytes[4],nt.s_bytes[3],nt.s_bytes[2],nt.s_bytes[1]]);
-  While (Result=0) and (I<=DNSServerCount) do
+  While (Result=0) and (I<=high(DNSServers)) do
     begin
     Result:=ResolveAddressAt(I,S,Addresses);
     Inc(I);
@@ -999,8 +998,8 @@ begin
     S[1+(7-i)*8] := hexdig[1+(HostAddr.u6_addr16[i] and $0F00) shr 08];
     S[3+(7-i)*8] := hexdig[1+(HostAddr.u6_addr16[i] and $F000) shr 12];
   end;
-  I := 1;
-  While (Result=0) and (I<=DNSServerCount) do
+  I := 0;
+  While (Result=0) and (I<=high(DNSServers)) do
     begin
     Result:=ResolveAddressAt(I,S,Addresses);
     Inc(I);
