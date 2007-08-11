@@ -849,6 +849,7 @@ interface
     function free_memory_block(blockhandle : longint) : boolean;
       begin
          asm
+            pushl %edi
             pushl %esi
             movl blockhandle,%esi
             movl %esi,%edi
@@ -859,6 +860,7 @@ interface
             call test_int31
             movb %al,__RESULT
             popl %esi
+            popl %edi
          end;
       end;
 
