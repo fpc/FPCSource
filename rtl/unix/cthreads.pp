@@ -735,6 +735,7 @@ var
   timespec, timetemp, timeleft: ttimespec;
   nanores, nanoerr: cint;
   twres: TTryWaitResult;
+  lastloop: boolean;
 begin
   { safely check whether we are being destroyed, if so immediately return. }
   { otherwise (under the same mutex) increase the number of waiters        }
@@ -780,6 +781,7 @@ begin
           if (i = loopcnt) then
             timespec.tv_nsec:=(timeout mod 500) * 1000000;
           timetemp:=timespec;
+          lastloop:=false;
           { every time our sleep is interrupted for whatever reason, }
           { also check whether the semaphore has been posted in the  }
           { mean time                                                }
@@ -806,12 +808,16 @@ begin
                   break;
                 end;
             end;
+            if (lastloop) then
+              break;
             nanores:=fpnanosleep(@timetemp,@timeleft);
             nanoerr:=fpgeterrno;
             timetemp:=timeleft;
-          { loop until 1) we slept complete interval; 2) an error occurred; }
-          { 3) we're being destroyed                                        }
-          until (nanores=0) or ((nanores<>0) and (nanoerr<>ESysEINTR)) or plocaleventstate(state)^.FDestroying;
+            lastloop:=(i=loopcnt);
+          { loop until 1) we slept complete interval (except if last for-loop }
+          { in which case we try to lock once more); 2) an error occurred;    }
+          { 3) we're being destroyed                                          }
+          until ((nanores=0) and not lastloop) or ((nanores<>0) and (nanoerr<>ESysEINTR)) or plocaleventstate(state)^.FDestroying;
           { adjust result for error or being destroyed }
           if (nanores <> 0) then
             result := wrError
