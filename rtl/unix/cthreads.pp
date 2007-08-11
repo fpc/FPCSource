@@ -818,11 +818,13 @@ begin
           { in which case we try to lock once more); 2) an error occurred;    }
           { 3) we're being destroyed                                          }
           until ((nanores=0) and not lastloop) or ((nanores<>0) and (nanoerr<>ESysEINTR)) or plocaleventstate(state)^.FDestroying;
-          { adjust result for error or being destroyed }
-          if (nanores <> 0) then
-            result := wrError
-          else if plocaleventstate(state)^.FDestroying then
-            result := wrAbandoned;
+          { adjust result being destroyed or error (in this order, since   }
+          { if we're being destroyed the "error" could be ESysEINTR, which }
+          { is not a real error                                            }
+          if plocaleventstate(state)^.FDestroying then
+            result := wrAbandoned
+          else if (nanores <> 0) then
+            result := wrError;
           { break out of greater loop when we got the lock, when an error }
           { occurred, or when we are being destroyed                      }
           if (result<>wrTimeOut) then
