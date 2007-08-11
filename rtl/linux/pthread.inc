@@ -34,6 +34,13 @@ Type
    TSemaphore = sem_t;
    PSemaphore = ^TSemaphore;
 
+{$ifndef FPC_USE_LIBC}
+   tlibc_sigset = array[0..(1024 div 32)-1] of cuLong;
+   plibc_sigset = ^tlibc_sigset;
+{$else not FPC_USE_LIBC}
+   tlibc_sigset = tsigset;
+   plibc_sigset = psigset;
+{$endif not FPC_USE_LIBC}
 
      TThreadPriority = (tpIdle, tpLowest, tpLower, tpNormal, tpHigher, tpHighest, tpTimeCritical);
 
@@ -43,12 +50,6 @@ Type
        THREAD_PRIORITY_NORMAL, THREAD_PRIORITY_ABOVE_NORMAL,
        THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL
      );
-
-{
-  type
-     psigset_t = ^sigset_t;
-     sigset_t = DWORD; // unsigned long 32 bits
-}
 
   const
      _POSIX_THREAD_THREADS_MAX = 64;
@@ -127,6 +128,8 @@ Type
     function pthread_attr_getschedpolicy(__attr:ppthread_attr_t; __policy:plongint):longint;cdecl;external;
     function pthread_attr_setinheritsched(__attr:ppthread_attr_t; __inherit:longint):longint;cdecl;external;
     function pthread_attr_getinheritsched(__attr:ppthread_attr_t; __inherit:plongint):longint;cdecl;external;
+    function pthread_attr_setstacksize(p: ppthread_attr_t;s:size_t):cint;cdecl;external;
+    function pthread_attr_getstacksize(p: ppthread_attr_t;s:psize_t):cint;cdecl;external;
     function pthread_attr_setscope(__attr:ppthread_attr_t; __scope:longint):longint;cdecl;external;
     function pthread_attr_getscope(__attr:ppthread_attr_t; __scope:plongint):longint;cdecl;external;
     function pthread_setschedparam(__target_thread:pthread_t; __policy:longint; __param:psched_param):longint;cdecl;external;
@@ -159,11 +162,12 @@ Type
     procedure pthread_testcancel;cdecl;external;
 {    procedure _pthread_cleanup_push(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;external; }
 {    procedure _pthread_cleanup_push_defer(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;external;}
-{    function pthread_sigmask(__how:longint; __newmask:psigset_t; __oldmask:psigset_t):longint;cdecl;external;}
+{    function pthread_sigmask(__how:longint; __newmask:plibc_sigset; __oldmask:plibc_sigset):longint;cdecl;external;}
     function pthread_kill(__thread:pthread_t; __signo:longint):longint;cdecl;external;
-{    function sigwait(__set:psigset_t; __sig:plongint):longint;cdecl;external;}
+{    function sigwait(__set:plibc_sigset; __sig:plongint):longint;cdecl;external;}
     function pthread_atfork(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;external;
     procedure pthread_kill_other_threads_np;cdecl;external;
+    function pthread_sigmask(how: cint; nset: plibc_sigset; oset: plibc_sigset): cint; cdecl; external;
 
     function sem_init (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;external;
     function sem_destroy  (__sem:Psem_t):longint;cdecl;external;
@@ -227,11 +231,12 @@ Var
     pthread_testcancel : Procedure ;cdecl;
 {    _pthread_cleanup_push : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;}
 {    _pthread_cleanup_push_defer : procedure (__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;}
-{    pthread_sigmask : Function(__how:longint; __newmask:psigset_t; __oldmask:psigset_t):longint;cdecl;}
+{    pthread_sigmask : Function(__how:longint; __newmask:plibc_sigset; __oldmask:plibc_sigset):longint;cdecl;}
     pthread_kill : Function(__thread:pthread_t; __signo:longint):longint;cdecl;
-{    sigwait : Function(__set:psigset_t; __sig:plongint):longint;cdecl;}
+{    sigwait : Function(__set:plibc_sigset; __sig:plongint):longint;cdecl;}
     pthread_atfork : Function(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;
     pthread_kill_other_threads_np : procedure;cdecl;
+    pthread_sigmask: Function(how: cint; nset: plibc_sigset; oset: plibc_sigset): cint;
 
     sem_init     :   function (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;
     sem_destroy  :   function (__sem:Psem_t):longint;cdecl;
@@ -308,6 +313,7 @@ begin
   Pointer(pthread_kill)  := dlsym(PthreadDLL,'pthread_kill');
   Pointer(pthread_atfork):= dlsym(PthreadDLL,'pthread_atfork');
   Pointer(pthread_kill_other_threads_np) := dlsym(PthreadDLL,'pthread_kill_other_threads_np');
+  Pointer(pthread_sigmask) := dlsym(PthreadDLL,'pthread_sigmask');
   Pointer(sem_init     ) := dlsym(PthreadDLL,'sem_init');
   Pointer(sem_destroy  ) := dlsym(PthreadDLL,'sem_destroy');
   Pointer(sem_close    ) := dlsym(PthreadDLL,'sem_close');

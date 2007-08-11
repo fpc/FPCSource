@@ -3,7 +3,7 @@
     Copyright (c) 2002 by Peter Vreman,
     member of the Free Pascal development team.
 
-    Linux (pthreads) threading support implementation
+    pthreads threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -184,6 +184,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
+        nset: tsigset;
+{$if defined(linux) and not defined(FPC_USE_LIBC)}
+        nlibcset: tlibc_sigset;
+{$endif linux/no FPC_USE_LIBC}
 {$ifdef DEBUG_MT}
         // in here, don't use write/writeln before having called
         // InitThread! I wonder if anyone ever debugged these routines,
@@ -198,6 +202,24 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         s := 'New thread started, initing threadvars'#10;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
+        { unblock all signals we are interested in (may be blocked by }
+        { default in new threads on some OSes, see #9073)             }
+        fpsigemptyset(nset);
+        fpsigaddset(nset,SIGSEGV);
+        fpsigaddset(nset,SIGBUS);
+        fpsigaddset(nset,SIGFPE);
+        fpsigaddset(nset,SIGILL);
+{$if defined(linux) and not defined(FPC_USE_LIBC)}
+        { sigset_t has a different size for linux/kernel and linux/libc }
+        fillchar(nlibcset,sizeof(nlibcset),0);
+        if (sizeof(nlibcset)>sizeof(nset)) then
+          move(nset,nlibcset,sizeof(nset))
+        else
+          move(nset,nlibcset,sizeof(nlibcset));
+        pthread_sigmask(SIG_UNBLOCK,@nlibcset,nil);
+{$else linux}
+        pthread_sigmask(SIG_UNBLOCK,@nset,nil);
+{$endif linux}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         CAllocateThreadVars;
