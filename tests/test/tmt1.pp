@@ -1,7 +1,6 @@
 { %version=1.1 }
 
 {$mode objfpc}
-{$threading on}
 
 uses
   sysutils
