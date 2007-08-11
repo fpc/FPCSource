@@ -44,8 +44,8 @@ var
 
 Implementation
 
-// define use_shell to use sysutils.executeprocess 
-//  as alternate to using 'process' in getcompilerinfo 
+// define use_shell to use sysutils.executeprocess
+//  as alternate to using 'process' in getcompilerinfo
 {$IFDEF GO32v2}
  {$DEFINE USE_SHELL}
 {$ENDIF GO32v2}
@@ -60,8 +60,8 @@ Implementation
 
 uses
   typinfo,
-{$IFNDEF USE_SHELL}  
-  process, 
+{$IFNDEF USE_SHELL}
+  process,
 {$ENDIF USE_SHELL}
   contnrs,
   uriparser,
@@ -214,7 +214,7 @@ end;
 
 //
 // if use_shell defined uses sysutils.executeprocess else uses 'process'
-//  
+//
 function GetCompilerInfo(const ACompiler,AOptions:string):string;
 const
   BufSize = 1024;
@@ -245,7 +245,7 @@ begin
 {$ELSE USE_SHELL}
   S:=TProcess.Create(Nil);
   S.Commandline:=ACompiler+' '+AOptions;
-  S.Options:=[poUsePipes,poNoConsole];
+  S.Options:=[poUsePipes];
   S.execute;
   Count:=s.output.read(buf,BufSize);
   S.Free;
