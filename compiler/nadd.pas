@@ -1314,6 +1314,9 @@ implementation
            pchar is converted to string }
          else if (rd.typ=stringdef) or
                  (ld.typ=stringdef) or
+                 { stringconstn's can be arraydefs }
+                 (lt=stringconstn) or
+                 (rt=stringconstn) or
                  ((is_pchar(rd) or is_chararray(rd) or is_char(rd) or is_open_chararray(rd) or
                    is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd)) and
                   (is_pchar(ld) or is_chararray(ld) or is_char(ld) or is_open_chararray(ld) or
