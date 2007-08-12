@@ -424,7 +424,10 @@ implementation
          typecheckpass(hto);
          set_varstate(hto,vs_read,[vsf_must_be_valid]);
          typecheckpass(hloopvar);
-         set_varstate(hloopvar,vs_readwritten,[]);
+         { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
+         { for some subnodes                                                  }
+         set_varstate(hloopvar,vs_written,[]);
+         set_varstate(hloopvar,vs_read,[]);
 
          { ... now the instruction block }
          hblock:=statement;
