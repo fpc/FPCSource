@@ -882,25 +882,25 @@ implementation
                             if (vo_is_funcret in hsym.varoptions) then
                               begin
                                 if (vsf_use_hints in varstateflags) then
-                                  CGMessage(sym_h_function_result_uninitialized)
+                                  CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
                                 else
-                                  CGMessage(sym_w_function_result_uninitialized)
+                                  CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
                               end
                             else
                               begin
                                 if tloadnode(p).symtable.symtabletype=localsymtable then
                                   begin
                                     if (vsf_use_hints in varstateflags) then
-                                      CGMessage1(sym_h_uninitialized_local_variable,hsym.realname)
+                                      CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
                                     else
-                                      CGMessage1(sym_w_uninitialized_local_variable,hsym.realname);
+                                      CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
                                   end
                                 else
                                   begin
                                     if (vsf_use_hints in varstateflags) then
-                                      CGMessage1(sym_h_uninitialized_variable,hsym.realname)
+                                      CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
                                     else
-                                      CGMessage1(sym_w_uninitialized_variable,hsym.realname);
+                                      CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
                                   end;
                               end;
                           end
