@@ -54,7 +54,8 @@ implementation
 Uses
   BaseUnix,
   unix,
-  unixtype
+  unixtype,
+  initc
 {$ifdef dynpthreads}
   ,dl
 {$endif}
@@ -433,7 +434,7 @@ begin
 {$if defined(has_sem_init) or defined(has_sem_open)}
   repeat
     res:=sem_wait(PSemaphore(FSem));
-    err:=fpgeterrno;
+    err:=fpgetCerrno;
   until (res<>-1) or (err<>ESysEINTR);
 {$else}
   repeat
@@ -472,7 +473,7 @@ var
 begin
   repeat
     res:=sem_trywait(FSem);
-    err:=fpgeterrno;
+    err:=fpgetCerrno;
   until (res<>-1) or (err<>ESysEINTR);
   if (res=0) then
     result:=tw_semwasunlocked
@@ -515,7 +516,7 @@ var
 begin
   repeat
     cIntSemaphoreOpen := sem_open(name,O_CREAT,0,ord(initvalue));
-    err:=fpgeterrno;
+    err:=fpgetCerrno;
   until (ptrint(cIntSemaphoreOpen) <> SEM_FAILED) or (err <> ESysEINTR);
   if (ptrint(cIntSemaphoreOpen) <> SEM_FAILED) then
     { immediately unlink so the semaphore will be destroyed when the }
@@ -718,12 +719,12 @@ begin
         if Value=0 then
           cSemaphorePost(plocaleventstate(state)^.FSem);
       end
-    else if (fpgeterrno = ESysENOSYS) then
+    else if (fpgetCerrno = ESysENOSYS) then
       { not yet implemented on Mac OS X 10.4.8 }
       begin
         repeat
           res:=sem_trywait(psem_t(plocaleventstate(state)^.FSem));
-          err:=fpgeterrno;
+          err:=fpgetCerrno;
         until ((res<>-1) or (err<>ESysEINTR));
         { now we've either decreased the semaphore by 1 (if it was  }
         { not zero), or we've done nothing (if it was already zero) }
