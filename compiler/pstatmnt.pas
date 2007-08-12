@@ -427,7 +427,7 @@ implementation
          { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
          { for some subnodes                                                  }
          set_varstate(hloopvar,vs_written,[]);
-         set_varstate(hloopvar,vs_read,[]);
+         set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
 
          { ... now the instruction block }
          hblock:=statement;
