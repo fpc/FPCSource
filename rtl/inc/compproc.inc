@@ -187,6 +187,7 @@ Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString)
 function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring; compilerproc;
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
+
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
 Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
 {$ifndef FPC_STRTOCHARARRAYPROC}
@@ -224,7 +225,7 @@ function fpc_WideStr_Concat_multi (const sarr:array of Widestring): widestring; 
 Procedure fpc_WideStr_Concat (Var DestS : Widestring;const S1,S2 : WideString); compilerproc;
 Procedure fpc_WideStr_Concat_multi (Var DestS : Widestring;const sarr:array of Widestring); compilerproc;
 {$endif STR_CONCAT_PROCS}
-Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;
+Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char; zerobased: boolean = true): WideString; compilerproc;
 {$ifndef FPC_STRTOCHARARRAYPROC}
@@ -250,6 +251,11 @@ Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideSt
 {$ifndef FPC_WINLIKEWIDESTRING}
 function fpc_widestr_Unique(Var S : Pointer): Pointer; compilerproc;
 {$endif FPC_WINLIKEWIDESTRING}
+Function fpc_Char_To_WChar(const c : Char): WideChar; compilerproc;
+Function fpc_WChar_To_Char(const c : WideChar): Char; compilerproc;
+Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
+Function fpc_WChar_To_AnsiStr(const c : WideChar): AnsiString; compilerproc;
+Function fpc_WChar_To_WideStr(const c : WideChar): WideString; compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}

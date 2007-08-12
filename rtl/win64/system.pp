@@ -968,9 +968,11 @@ procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     destlen: SizeInt;
   begin
     // retrieve length including trailing #0
-    destlen:=WideCharToMultiByte(CP_ACP, 0, source, len+1, nil, 0, nil, nil);
-    setlength(dest, destlen-1);
-    WideCharToMultiByte(CP_ACP, 0, source, len+1, @dest[1], destlen, nil, nil);
+    // not anymore, because this must also be usable for single characters
+    destlen:=WideCharToMultiByte(CP_ACP, 0, source, len, nil, 0, nil, nil);
+    // this will null-terminate
+    setlength(dest, destlen);
+    WideCharToMultiByte(CP_ACP, 0, source, len, @dest[1], destlen, nil, nil);
   end;
 
 procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
@@ -978,9 +980,11 @@ procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     destlen: SizeInt;
   begin
     // retrieve length including trailing #0
-    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len+1, nil, 0);
-    setlength(dest, destlen-1);
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len+1, @dest[1], destlen);
+    // not anymore, because this must also be usable for single characters
+    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
+    // this will null-terminate
+    setlength(dest, destlen);
+    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], destlen);
   end;
 
 

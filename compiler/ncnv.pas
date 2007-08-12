@@ -875,12 +875,16 @@ implementation
 
       begin
          result:=nil;
-         if left.nodetype=stringconstn then
-          begin
+         if (left.nodetype=stringconstn) and
+            ((tstringdef(left.resultdef).stringtype<>st_widestring) or
+             (tstringdef(resultdef).stringtype=st_widestring) or
+             { non-ascii chars would be replaced with '?' -> loses info }
+             not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str))) then
+           begin
              tstringconstnode(left).changestringtype(resultdef);
              result:=left;
              left:=nil;
-          end
+           end
          else
            begin
              { get the correct procedure name }
@@ -913,7 +917,13 @@ implementation
 
       begin
          result:=nil;
-         if left.nodetype=ordconstn then
+         { we can't do widechar to ansichar conversions at compile time, since }
+         { this maps all non-ascii chars to '?' -> loses information           }
+         if (left.nodetype=ordconstn) and
+            ((tstringdef(resultdef).stringtype=st_widestring) or
+             (torddef(left.resultdef).ordtype=uchar) or
+             { >=128 is destroyed }
+             (tordconstnode(left).value.uvalue<128)) then
            begin
               if tstringdef(resultdef).stringtype=st_widestring then
                begin
@@ -927,21 +937,29 @@ implementation
                end
               else
                 begin
-                  hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
+                  if torddef(left.resultdef).ordtype=uwidechar then
+                    hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)))
+                  else
+                    hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
                   tstringconstnode(hp).changestringtype(resultdef);
                 end;
               result:=hp;
            end
          else
-           { shortstrings are handled 'inline' }
-           if tstringdef(resultdef).stringtype <> st_shortstring then
+           { shortstrings are handled 'inline' (except for widechars) }
+           if (tstringdef(resultdef).stringtype <> st_shortstring) or
+              (torddef(left.resultdef).ordtype = uwidechar) then
              begin
-               { create the parameter }
+               { create the procname }
+               if torddef(left.resultdef).ordtype<>uwidechar then
+                 procname := 'fpc_char_to_'
+               else
+                 procname := 'fpc_wchar_to_';
+               procname:=procname+tstringdef(resultdef).stringtypname;
+
+               { and the parameter }
                para := ccallparanode.create(left,nil);
                left := nil;
-
-               { and the procname }
-               procname := 'fpc_char_to_' +tstringdef(resultdef).stringtypname;
 
                { and finally the call }
                result := ccallnode.createinternres(procname,para,resultdef);
@@ -987,7 +1005,11 @@ implementation
 
       begin
          result:=nil;
-         if left.nodetype=ordconstn then
+         if (left.nodetype=ordconstn) and
+            ((torddef(resultdef).ordtype<>uchar) or
+             (torddef(left.resultdef).ordtype<>uwidechar) or
+             { >= 128 is replaced by '?' currently -> loses information }
+             (tordconstnode(left).value.uvalue<128)) then
            begin
              if (torddef(resultdef).ordtype=uchar) and
                 (torddef(left.resultdef).ordtype=uwidechar) then
@@ -2248,9 +2270,21 @@ implementation
 
 
     function ttypeconvnode.first_char_to_char : tnode;
-
+      var
+        fname: string[18];
       begin
-         first_char_to_char:=first_int_to_int;
+        if (torddef(resultdef).ordtype=uchar) and
+           (torddef(left.resultdef).ordtype=uwidechar) then
+          fname := 'fpc_wchar_to_char'
+        else if (torddef(resultdef).ordtype=uwidechar) and
+           (torddef(left.resultdef).ordtype=uchar) then
+          fname := 'fpc_char_to_wchar'
+        else
+          internalerror(2007081201);
+
+        result := ccallnode.createintern(fname,ccallparanode.create(left,nil));
+        left:=nil;
+        firstpass(result);
       end;
 
 

@@ -514,9 +514,7 @@ interface
 
     procedure tcgtypeconvnode.second_char_to_char;
       begin
-        {$warning todo: add RTL routine for widechar-char conversion }
-        { Quick hack to at least generate 'working' code (PFV) }
-        second_int_to_int;
+        internalerror(2007081202);
       end;
 
 

@@ -832,7 +832,7 @@ End;
 
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_WIDECHAR']; compilerproc;
 var
-  ch : char;
+  a : ansistring;
 Begin
   If (InOutRes<>0) then
     exit;
@@ -848,9 +848,9 @@ Begin
     fpc_WriteBlanks(t,Len-1);
   If TextRec(t).BufPos>=TextRec(t).BufSize Then
     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
-  ch:=c;
-  TextRec(t).Bufptr^[TextRec(t).BufPos]:=ch;
-  Inc(TextRec(t).BufPos);
+  { a widechar can be translated into more than a single ansichar }
+  a:=c;
+  fpc_WriteBuffer(t,pchar(a)^,length(a));
 End;
 
 

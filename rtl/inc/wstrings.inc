@@ -592,19 +592,71 @@ end;
 
 {$endif STR_CONCAT_PROCS}
 
+Function fpc_Char_To_WChar(const c : Char): WideChar; compilerproc;
+var
+  w: widestring;
+begin
+  widestringmanager.Ansi2WideMoveProc(@c, w, 1);
+  fpc_Char_To_WChar:= w[1];    
+end;  
+ 
 
-Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;
+
+Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
 {
   Converts a Char to a WideString;
 }
 begin
-  if c = #0 then
-    { result is automatically set to '' }
-    exit;
   Setlength(fpc_Char_To_WideStr,1);
   fpc_Char_To_WideStr[1]:=c;
   { Terminating Zero }
   PWideChar(Pointer(fpc_Char_To_WideStr)+sizeof(WideChar))^:=#0;
+end;
+
+
+Function fpc_WChar_To_Char(const c : WideChar): Char; compilerproc;
+{
+  Converts a WideChar to a Char;
+}
+var
+  s: ansistring;
+begin
+  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
+  if length(s)=1 then
+    fpc_WChar_To_Char:= s[1]
+  else
+    fpc_WChar_To_Char:='?';
+end;
+
+
+Function fpc_WChar_To_WideStr(const c : WideChar): WideString; compilerproc;
+{
+  Converts a WideChar to a WideString;
+}
+begin
+  Setlength (fpc_WChar_To_WideStr,1);
+  fpc_WChar_To_WideStr[1]:= c;
+end;
+
+
+Function fpc_WChar_To_AnsiStr(const c : WideChar): AnsiString; compilerproc;
+{
+  Converts a WideChar to a AnsiString;
+}
+begin
+  widestringmanager.Wide2AnsiMoveProc(@c, fpc_WChar_To_AnsiStr, 1);
+end;
+
+
+Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
+{
+  Converts a WideChar to a ShortString;
+}
+var
+  s: ansistring;
+begin
+  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
+  fpc_WChar_To_ShortStr:= s;
 end;
 
 
