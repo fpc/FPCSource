@@ -715,17 +715,6 @@ type
         PQOS = ^TQualityOfService;
         LPQOS = PQOS;
         
-  PWSAMSG = ^TWSAMSG;
-  TWSAMSG = record
-    name: PSOCKET_ADDRESS;
-    namelen: Longint;
-    lpBuffers: LPWSABUF;
-    dwBufferCount: DWORD;
-    Control: WSABUF;
-    dwFlags: DWORD;
-  end;
-  WSAMSG = TWSAMSG;
-
 Const
         SERVICETYPE_NOTRAFFIC             =  $00000000;  // No data in this direction
         SERVICETYPE_BESTEFFORT            =  $00000001;  // Best Effort
@@ -1041,6 +1030,18 @@ Type
         PWSAQuerySet = PWSAQuerySetA;
         LPWSAQuerySet = PWSAQuerySetA;
 {$ENDIF}
+
+  PWSAMSG = ^TWSAMSG;
+  TWSAMSG = record
+    name: PSOCKET_ADDRESS;
+    namelen: Longint;
+    lpBuffers: LPWSABUF;
+    dwBufferCount: DWORD;
+    Control: WSABUF;
+    dwFlags: DWORD;
+  end;
+  WSAMSG = TWSAMSG;
+  LPWSAMSG = PWSAMSG;
 
 Const
         LUP_DEEP = $0001;
