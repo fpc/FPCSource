@@ -249,7 +249,7 @@ implementation
           '.data',
 { why doesn't .rodata work? (FK) }
 {$warning TODO .rodata not yet working}
-{$if defined(arm) or defined(powerpc)}
+{$if defined(arm) or defined(powerpc) or defined(powerpc64)}
           '.rodata',
 {$else arm}
           '.data',
