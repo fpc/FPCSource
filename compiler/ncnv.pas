@@ -1183,7 +1183,17 @@ implementation
          else
            if is_pchar(resultdef) and
               is_widestring(left.resultdef) then
-             inserttypeconv(left,cansistringtype);
+             begin
+               inserttypeconv(left,cansistringtype);
+               { the second pass of second_cstring_to_pchar expects a  }
+               { strinconstn, but this may become a call to the        }
+               { widestring manager in case left contains "high ascii" }
+               if (left.nodetype<>stringconstn) then
+                 begin
+                   result:=left;
+                   left:=nil;
+                 end;
+             end;
       end;
 
 

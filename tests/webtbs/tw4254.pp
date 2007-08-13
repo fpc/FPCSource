@@ -1,3 +1,5 @@
+{$codepage utf8}
+
 { Source provided for Free Pascal Bug Report 4254 }
 { Submitted by "rimga" on  2005-08-04 }
 { e-mail: rimga@ktl.mii.lt }
