@@ -714,6 +714,17 @@ type
         end {TQualityOfService};
         PQOS = ^TQualityOfService;
         LPQOS = PQOS;
+        
+  PWSAMSG = ^TWSAMSG;
+  TWSAMSG = record
+    name: PSOCKET_ADDRESS;
+    namelen: Longint;
+    lpBuffers: LPWSABUF;
+    dwBufferCount: DWORD;
+    Control: WSABUF;
+    dwFlags: DWORD;
+  end;
+  WSAMSG = TWSAMSG;
 
 Const
         SERVICETYPE_NOTRAFFIC             =  $00000000;  // No data in this direction
@@ -1240,12 +1251,14 @@ function WSARecv( s : TSocket; lpBuffers : LPWSABUF; dwBufferCount : DWORD; var 
 function WSARecvDisconnect( s : TSocket; lpInboundDisconnectData : LPWSABUF ): Longint; stdcall; external WINSOCK2_DLL name 'WSARecvDisconnect';
 function WSARecvFrom( s : TSocket; lpBuffers : LPWSABUF; dwBufferCount : DWORD; var lpNumberOfBytesRecvd : DWORD; var lpFlags : DWORD;
         lpFrom : PSockAddr; lpFromlen : PLongint; lpOverlapped : LPWSAOVERLAPPED; lpCompletionRoutine : LPWSAOVERLAPPED_COMPLETION_ROUTINE ): Longint; stdcall; external WINSOCK2_DLL name 'WSARecvFrom';
+function WSARecvMsg( s : TSocket; lpMsg : LPWSAMSG; lpdwNumberOfBytesRecvd : DWORD; lpOverlapped : LPWSAOVERLAPPED; lpCompletionRoutine : LPWSAOVERLAPPED_COMPLETION_ROUTINE) : Longint; stdcall; external WINSOCK2_DLL name 'WSARecvMsg';
 function WSAResetEvent( hEvent : WSAEVENT ): WordBool; stdcall; external WINSOCK2_DLL name 'WSAResetEvent';
 function WSASend( s : TSocket; lpBuffers : LPWSABUF; dwBufferCount : DWORD; var lpNumberOfBytesSent : DWORD; dwFlags : DWORD;
         lpOverlapped : LPWSAOVERLAPPED; lpCompletionRoutine : LPWSAOVERLAPPED_COMPLETION_ROUTINE ): Longint; stdcall; external WINSOCK2_DLL name 'WSASend';
 function WSASendDisconnect( s : TSocket; lpOutboundDisconnectData : LPWSABUF ): Longint; stdcall; external WINSOCK2_DLL name 'WSASendDisconnect';
 function WSASendTo( s : TSocket; lpBuffers : LPWSABUF; dwBufferCount : DWORD; var lpNumberOfBytesSent : DWORD; dwFlags : DWORD;
         lpTo : PSockAddr; iTolen : Longint; lpOverlapped : LPWSAOVERLAPPED; lpCompletionRoutine : LPWSAOVERLAPPED_COMPLETION_ROUTINE ): Longint; stdcall; external WINSOCK2_DLL name 'WSASendTo';
+function WSASendMsg( s : TSocket; lpMsg : LPWSAMSG; dwFlags : DWORD; lpNumberOfBytesSent : DWORD; lpOverlapped : LPWSAOVERLAPPED; lpCompletionRoutine : LPWSAOVERLAPPED_COMPLETION_ROUTINE) : Longint; stdcall; external WINSOCK2_DLL name 'WSASendMsg';
 function WSASetEvent( hEvent : WSAEVENT ): WordBool; stdcall; external WINSOCK2_DLL name 'WSASetEvent';
 function WSASocketA( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_InfoA; g : GROUP; dwFlags : DWORD ): TSocket; stdcall; external WINSOCK2_DLL name 'WSASocketA';
 function WSASocketW( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_InfoW; g : GROUP; dwFlags : DWORD ): TSocket; stdcall; external WINSOCK2_DLL name 'WSASocketW';
