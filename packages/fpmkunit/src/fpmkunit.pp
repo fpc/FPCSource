@@ -1,7 +1,24 @@
+{
+    This file is part of the Free Pascal Makefile Package
+
+    Implementation of fpmake classes and functions
+    
+    Copyright (c) 2007 by the freepascal team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+unit fpmkunit;
+
 {$Mode objfpc}
 {$H+}
-{$define debug}
-unit fpmkunit;
+{ $define debug}
 
 Interface
 
@@ -194,7 +211,7 @@ Type
     procedure SetName(const AValue: String);override;
     Procedure GetCleanFiles(List : TStrings; APrefixU, APrefixB : String; AnOS : TOS); virtual;
     Procedure GetSourceFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
-    Procedure GetInstallFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
+    Procedure GetInstallFiles(List : TStrings; APrefixU, APrefixB: String; AnOS : TOS); virtual;
     Procedure GetArchiveFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
     Property HasUnitPath : Boolean Index 0 Read GetHasStrings;
     Property HasObjectPath : Boolean Index 1 Read GetHasStrings;
@@ -332,7 +349,7 @@ Type
     Procedure AddDependency(AName : String);
     Procedure AddInstallFile(AFileName : String);
     Procedure GetCleanFiles(List : TStrings; Const APrefixU, APrefixB : String; AOS : TOS); virtual;
-    procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix : String; AOS : TOS);
+    procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix, APrefixU, APrefixB: String; AOS : TOS);
     Procedure GetArchiveFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
     Procedure GetSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
@@ -395,9 +412,9 @@ Type
     Property PackageItems[AIndex : Integer] : TPackage Read GetPackageItem Write SetPackageItem;
   end;
 
-  { TDefaults }
+  { TCustomDefaults }
 
-  TDefaults = Class(TPersistent)
+  TCustomDefaults = Class(TPersistent)
   Private
     FArchive: String;
     FCompiler: String;
@@ -435,7 +452,7 @@ Type
     Constructor Create;
     Procedure InitDefaults;
     Procedure Assign(ASource : TPersistent);override;
-    procedure CompilerDefaults;
+    procedure CompilerDefaults; virtual;
     Procedure LocalInit(Const AFileName : String);
     Procedure LoadFromFile(Const AFileName : String);
     Procedure SaveToFile(Const AFileName : String);
@@ -464,6 +481,18 @@ Type
     Property Archive : String Read FArchive Write FArchive;    // zip $(ARCHIVE) $(FILESORDIRS)
   end;
 
+  { TBasicDefaults }
+
+  TBasicDefaults = Class(TCustomDefaults)
+  end;
+
+  { TFPCDefaults }
+
+  TFPCDefaults = Class(TCustomDefaults)
+  public
+    procedure CompilerDefaults; override;
+  end;
+
   { TBuildEngine }
 
   TBuildEngine = Class(TComponent)
@@ -472,7 +501,7 @@ Type
     FCompiler : String;
     FStartDir : String;
     FTargetDir : String;
-    FDefaults : TDefaults;
+    FDefaults : TCustomDefaults;
     FForceCompile : Boolean;
     FListMode : Boolean;
     // Variables used when compiling a package.
@@ -491,7 +520,7 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
-    procedure SetDefaults(const AValue: TDefaults);
+    procedure SetDefaults(const AValue: TCustomDefaults);
     procedure SetTargetDir(const AValue: String);
   Protected
     Procedure Error(Msg : String);
@@ -560,7 +589,7 @@ Type
     Procedure GetManifest(Packages : TPackages; Manifest : TStrings);
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
-    Property Defaults : TDefaults Read FDefaults Write SetDefaults;
+    Property Defaults : TCustomDefaults Read FDefaults Write SetDefaults;
     Property TargetDir : String Read FTargetDir Write SetTargetDir;
     // Events
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
@@ -576,25 +605,28 @@ Type
     Property OnLog : TLogEvent Read FOnLog Write FOnlog;
   end;
 
-  { TInstaller }
+  { TCustomInstaller }
 
-  TInstaller = Class(TComponent)
+  TCustomInstaller = Class(TComponent)
   private
+    FBaseInstallDir: string;
     FBuildEngine: TBuildEngine;
     FDefaultPackage: TPackage;
-    FDefaults: TDefaults;
+    FDefaults: TCustomDefaults;
     FPackages: TPackages;
     FRunMode: TRunMode;
     FListMode : Boolean;
     FLogLevels : TVerboseLevels;
+    function GetBaseInstallDir: string;
     Function GetPackageString(Index : Integer) : String;
     Procedure SetPackageString(Index : Integer; AValue : String);
     function GetStrings(AIndex : Integer): TStrings;
     function GetOSes: TOSes;
     function GetTargets: TTargets;
     function GetSources: TSources;
+    procedure SetBaseInstallDir(AValue: string);
     procedure SetDefaultPackage(const AValue: TPackage);
-    procedure SetDefaults(const AValue: TDefaults);
+    procedure SetDefaults(const AValue: TCustomDefaults);
     procedure SetStrings(AIndex : Integer; const AValue: TStrings);
     procedure SetOses(const AValue: TOSes);
   Protected
@@ -615,7 +647,7 @@ Type
     Procedure GetSourceFiles; virtual;
     Property BuildEngine : TBuildEngine Read FBuildEngine;
   Public
-    Constructor Create(AOWner : TComponent); override;
+    Constructor Create(AOwner : TComponent); virtual; abstract;
     Destructor destroy; override;
     Function StartPackage(Const AName : String) : TPackage;
     Procedure EndPackage;
@@ -628,9 +660,10 @@ Type
     Property InstallFiles : TStrings Index 1 Read GetStrings Write SetStrings;
     Property CleanFiles : TStrings Index 2 Read GetStrings Write SetStrings;
     Property ArchiveFiles : TStrings Index 3 Read GetStrings Write SetStrings;
-    Property Defaults : TDefaults Read FDefaults Write SetDefaults;
+    Property Defaults : TCustomDefaults Read FDefaults Write SetDefaults;
     Property RunMode : TRunMode Read FRunMode;
     Property ListMode : Boolean Read FListMode;
+    Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
     // Default Package redirects.
     Property Targets : TTargets Read GetTargets;
     Property Sources : TSources Read GetSources;
@@ -645,6 +678,17 @@ Type
     Property DescriptionFileName: String Index 7 Read GetPackageString Write SetPackageString;
     Property Version : String Index 8 Read GetPackageString Write SetPackageString;
     Property FileName : String Index 9 Read GetPackageString Write SetPackageString;
+  end;
+
+  { TFPCInstaller }
+  TFPCInstaller = class(TCustomInstaller)
+  public
+    Constructor Create(AOwner : TComponent); override;
+  end;
+
+  { TBasicInstaller }
+  TBasicInstaller = class(TCustomInstaller)
+    Constructor Create(AOwner : TComponent); override;
   end;
 
   TReplaceFunction = Function (Const AName,Args : String) : String of Object;
@@ -682,16 +726,14 @@ Type
   EDictionaryError = Class(Exception);
   EInstallerError = Class(Exception);
 
-  TInstallerClass = Class of TInstaller;
+  TInstallerClass = Class of TCustomInstaller;
   TDictionaryClass = Class of TDictionary;
-
 
 Type
   TArchiveEvent = Procedure (Const AFileName : String; List : TStrings) of Object;
   TArchiveProc = Procedure (Const AFileName : String; List : TStrings);
 
 Var
-  InstallerClass : TInstallerClass = TInstaller;
   DictionaryClass : TDictionaryClass = TDictionary;
   OnArchiveFiles : TArchiveEvent = Nil;
   ArchiveFilesProc : TArchiveProc = Nil;
@@ -699,8 +741,10 @@ Var
 Function CurrentOS : String;
 Function CurrentCPU : String;
 
-Function Installer : TInstaller;
-Function Defaults : TDefaults; // Set by installer.
+Function Installer(InstallerClass: TInstallerClass) : TCustomInstaller; overload;
+Function Installer : TCustomInstaller; overload;
+
+Function Defaults : TCustomDefaults; // Set by installer.
 Function Dictionary : TDictionary;
 
 Function OSToString(OS: TOS) : String;
@@ -952,16 +996,13 @@ begin
 end;
 
 Function AddStrings(Dest,Src : TStrings) : Integer ;
-
 begin
   Result:=AddStrings(Dest,Src,'');
 end;
 
 Procedure AddStrings(Var S : String; L : TStrings; Prefix : String);
-
 Var
   I : Integer;
-
 begin
   For I:=0 to L.Count-1 do
     begin
@@ -1015,7 +1056,7 @@ begin
     P:=PChar(Result);
     While (P^<>#0) do
       begin
-      If P^ in ['/','\',':'] then // do not use drive letters.
+      If P^ in ['/','\'] then
         P^:=PathDelim;
       Inc(P);
       end;
@@ -1250,38 +1291,38 @@ begin
   Result:=TNamedItem(Items[i]);
 end;
 
-{ TDefaults }
+{ TCustomDefaults }
 
-procedure TDefaults.SetCPU(const AValue: TCPU);
+procedure TCustomDefaults.SetCPU(const AValue: TCPU);
 begin
   FCPU:=AValue;
   RecalcTarget;
 end;
 
-function TDefaults.GetBaseInstallDir: String;
+function TCustomDefaults.GetBaseInstallDir: String;
 begin
   If (FBaseInstallDir<>'') then
     Result:=FBaseInstallDir
   else
     if UnixPaths then
-      Result:=Prefix+PathDelim+'lib'+PathDelim+'fpc'
+      Result:=Prefix +'lib' + PathDelim + 'fpc'
     else
       Result:=Prefix;
 
 end;
 
-function TDefaults.GetBinInstallDir: String;
+function TCustomDefaults.GetBinInstallDir: String;
 begin
   If (FBinInstallDir<>'') then
     Result:=FBinInstallDir
   else
     If UnixPaths then
-      Result:=BaseInstallDir+PathDelim+'bin'
+      Result:=BaseInstallDir+'bin'
     else
-      Result:=BaseInstallDir+PathDelim+'bin';
+      Result:=BaseInstallDir+'bin';
 end;
 
-function TDefaults.GetCompiler: String;
+function TCustomDefaults.GetCompiler: String;
 begin
   If (FCompiler<>'') then
     Result:=FCompiler
@@ -1289,61 +1330,61 @@ begin
     Result:='fpc';
 end;
 
-function TDefaults.GetDocInstallDir: String;
+function TCustomDefaults.GetDocInstallDir: String;
 begin
   If (FBinInstallDir<>'') then
     Result:=FBinInstallDir
   else
     If UnixPaths then
-      Result:=Prefix+PathDelim+'share'+PathDelim+'docs'
+      Result:=Prefix +'share'+PathDelim+'docs'
     else
-      Result:=BaseInstallDir+PathDelim+'docs';
+      Result:=BaseInstallDir+'docs';
 end;
 
-function TDefaults.GetExamplesInstallDir: String;
+function TCustomDefaults.GetExamplesInstallDir: String;
 begin
   If (FExamplesInstallDir<>'') then
     Result:=FExamplesInstallDir
   else
     If UnixPaths then
-      Result:=Prefix+PathDelim+'share'+PathDelim+'docs'+PathDelim+'examples'
+      Result:=Prefix +'share'+PathDelim+'docs'+PathDelim+'examples'
     else
-      Result:=BaseInstallDir+PathDelim+'examples';
+      Result:=BaseInstallDir+'examples';
 end;
 
-function TDefaults.GetUnitInstallDir: String;
+function TCustomDefaults.GetUnitInstallDir: String;
 begin
   If (FUnitInstallDir<>'') then
     Result:=FUnitInstallDir
   else
     If UnixPaths then
-      Result:=BaseInstallDir+PathDelim+'units'+PathDelim+Target
+      Result:=BaseInstallDir+'units'+PathDelim+Target
     else
-      Result:=BaseInstallDir+PathDelim+'units'+PathDelim+Target;
+      Result:=BaseInstallDir+'units'+PathDelim+Target;
 end;
 
-procedure TDefaults.SetBaseInstallDir(const AValue: String);
+procedure TCustomDefaults.SetBaseInstallDir(const AValue: String);
 begin
-  FBaseInstallDir:=AValue;
+  FBaseInstallDir:=IncludeTrailingPathDelimiter(AValue);
   UnitInstallDir:='';
   BinInstallDir:='';
   ExamplesInstallDir:='';
 end;
 
-procedure TDefaults.SetOS(const AValue: TOS);
+procedure TCustomDefaults.SetOS(const AValue: TOS);
 begin
   FOS:=AValue;
   Recalctarget;
 end;
 
-procedure TDefaults.SetPrefix(const AValue: String);
+procedure TCustomDefaults.SetPrefix(const AValue: String);
 begin
   if FPrefix=AValue then exit;
-  FPrefix:=AValue;
+  FPrefix:=IncludeTrailingPathDelimiter(AValue);
   BaseInstallDir:='';
 end;
 
-procedure TDefaults.SetTarget(const AValue: String);
+procedure TCustomDefaults.SetTarget(const AValue: String);
 
 Var
   P : Integer;
@@ -1363,17 +1404,17 @@ begin
     end;
 end;
 
-procedure TDefaults.RecalcTarget;
+procedure TCustomDefaults.RecalcTarget;
 begin
   Ftarget:=CPUToString(FCPU)+'-'+OStoString(FOS);
 end;
 
-constructor TDefaults.Create;
+constructor TCustomDefaults.Create;
 begin
   InitDefaults;
 end;
 
-procedure TDefaults.InitDefaults;
+procedure TCustomDefaults.InitDefaults;
 begin
   {$ifdef unix}
   UnixPaths:=True;
@@ -1382,15 +1423,15 @@ begin
   {$endif}
 end;
 
-procedure TDefaults.Assign(ASource: TPersistent);
+procedure TCustomDefaults.Assign(ASource: TPersistent);
 
 Var
-  d : TDefaults;
+  d : TCustomDefaults;
 
 begin
-  If ASource is TDefaults then
+  If ASource is TCustomDefaults then
     begin
-    D:=ASource as TDefaults;
+    D:=ASource as TCustomDefaults;
     FArchive:=D.Farchive;
     FCompiler:=D.Compiler;
     FCopy:=D.FCopy;
@@ -1412,7 +1453,7 @@ begin
     end;
 end;
 
-procedure TDefaults.LocalInit(Const AFileName : String);
+procedure TCustomDefaults.LocalInit(Const AFileName : String);
 
 Var
   FN : String;
@@ -1446,7 +1487,7 @@ begin
 end;
 
 
-procedure TDefaults.CompilerDefaults;
+procedure TCustomDefaults.CompilerDefaults;
 begin
   if Compiler<>'' then
     Compiler:='fpc';
@@ -1456,32 +1497,9 @@ begin
     OS:=StringToOS({$I %FPCTARGETOS%});
   if FCompilerVersion='' then
     FCompilerVersion:='2.0.4';
-  if (FBaseInstallDir='') and (FPrefix='') then
-    begin
-      // Use the same algorithm as the compiler, see options.pas
-{$ifdef Unix}
-      FBaseInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-      if FBaseInstallDir='' then
-        begin
-          FBaseInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion;
-          if not DirectoryExists(FBaseInstallDir) and
-             DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
-            FBaseInstallDir:='/usr/lib/fpc/'+FCompilerVersion;
-        end;
-{$else unix}
-      FBaseInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-      if FBaseInstallDir='' then
-        begin
-          FBaseInstallDir:=ExtractFilePath(FCompiler)+'..';
-          if not(DirectoryExists(FBaseInstallDir+'/units')) and
-             not(DirectoryExists(FBaseInstallDir+'/rtl')) then
-            FBaseInstallDir:=FBaseInstallDir+'..';
-        end;
-{$endif unix}
-    end;
 end;
 
-procedure TDefaults.LoadFromFile(Const AFileName: String);
+procedure TCustomDefaults.LoadFromFile(Const AFileName: String);
 
 Var
   F : TFileStream;
@@ -1495,7 +1513,7 @@ begin
   end;
 end;
 
-procedure TDefaults.SaveToFile(Const AFileName: String);
+procedure TCustomDefaults.SaveToFile(Const AFileName: String);
 
 Var
   F : TFileStream;
@@ -1509,7 +1527,7 @@ begin
   end;
 end;
 
-procedure TDefaults.SaveToStream(S : TStream);
+procedure TCustomDefaults.SaveToStream(S : TStream);
 
 Var
   L : TStringList;
@@ -1543,7 +1561,7 @@ begin
   end;
 end;
 
-procedure TDefaults.LoadFromStream(S: TStream);
+procedure TCustomDefaults.LoadFromStream(S: TStream);
 
 Var
   L : TStrings;
@@ -1595,6 +1613,37 @@ begin
   Finally
     L.Free;
   end;
+end;
+
+{ TFPCDefaults }
+
+procedure TFPCDefaults.CompilerDefaults;
+begin
+  inherited CompilerDefaults;
+
+  if (FBaseInstallDir='') and (FPrefix='') then
+    begin
+      // Use the same algorithm as the compiler, see options.pas
+{$ifdef Unix}
+      FBaseInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+      if FBaseInstallDir='' then
+        begin
+          FBaseInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion;
+          if not DirectoryExists(FBaseInstallDir) and
+             DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
+            FBaseInstallDir:='/usr/lib/fpc/'+FCompilerVersion;
+        end;
+{$else unix}
+      FBaseInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+      if FBaseInstallDir='' then
+        begin
+          FBaseInstallDir:=ExtractFilePath(FCompiler)+'..';
+          if not(DirectoryExists(FBaseInstallDir+'/units')) and
+             not(DirectoryExists(FBaseInstallDir+'/rtl')) then
+            FBaseInstallDir:=FBaseInstallDir+'..';
+        end;
+{$endif unix}
+    end;
 end;
 
 { TPackage }
@@ -1860,19 +1909,17 @@ begin
     FSources.SourceItems[I].GetSourceFiles(List);
 end;
 
-procedure TPackage.GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix : String; AOS : TOS);
-
+procedure TPackage.GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix, APrefixU, APrefixB: String; AOS : TOS);
 Var
   I : Integer;
   T : TTarget;
-
 begin
   AddStrings(List,InstallFiles,APrefix);
   For I:=0 to FTargets.Count-1 do
     begin
     T:=FTargets.TargetItems[I];
     if (T.TargetType in Types)  then
-      T.GetInstallFiles(List,APrefix,AOS);
+      T.GetInstallFiles(List, APrefixU, APrefixB, AOS);
     end;
 end;
 
@@ -1953,9 +2000,9 @@ begin
 end;
 
 
-{ TInstaller }
+{ TCustomInstaller }
 
-function TInstaller.GetStrings(AIndex : Integer): TStrings;
+function TCustomInstaller.GetStrings(AIndex : Integer): TStrings;
 begin
   CheckDefaultPackage;
   Case AIndex of
@@ -1966,7 +2013,12 @@ begin
   end;
 end;
 
-Function TInstaller.GetPackageString(Index : Integer) : String;
+function TCustomInstaller.GetBaseInstallDir: string;
+begin
+  Result := Defaults.BaseInstallDir;
+end;
+
+Function TCustomInstaller.GetPackageString(Index : Integer) : String;
 
 Var
   P : TPackage;
@@ -1990,7 +2042,7 @@ begin
 end;
 
 
-Procedure TInstaller.SetPackageString(Index : Integer; AValue : String);
+Procedure TCustomInstaller.SetPackageString(Index : Integer; AValue : String);
 
 Var
   P : TPackage;
@@ -2013,36 +2065,42 @@ begin
 end;
 
 
-function TInstaller.GetOSes: TOSes;
+function TCustomInstaller.GetOSes: TOSes;
 begin
   CheckDefaultPackage;
   Result:=DefaultPackage.OS;
 end;
 
-function TInstaller.GetTargets: TTargets;
+function TCustomInstaller.GetTargets: TTargets;
 begin
   CheckDefaultPackage;
   Result:=DefaultPackage.Targets;
 end;
 
-function TInstaller.GetSources: TSources;
+function TCustomInstaller.GetSources: TSources;
 begin
   CheckDefaultPackage;
   Result:=DefaultPackage.Sources;
 end;
 
-procedure TInstaller.SetDefaultPackage(const AValue: TPackage);
+procedure TCustomInstaller.SetBaseInstallDir(AValue: string);
+begin
+  if AValue <> Defaults.BaseInstallDir then
+    Defaults.BaseInstallDir := AValue;
+end;
+
+procedure TCustomInstaller.SetDefaultPackage(const AValue: TPackage);
 begin
   if FDefaultPackage=AValue then exit;
   FDefaultPackage:=AValue;
 end;
 
-procedure TInstaller.SetDefaults(const AValue: TDefaults);
+procedure TCustomInstaller.SetDefaults(const AValue: TCustomDefaults);
 begin
   FDefaults.Assign(AValue);
 end;
 
-procedure TInstaller.SetStrings(AIndex : Integer; const AValue: TStrings);
+procedure TCustomInstaller.SetStrings(AIndex : Integer; const AValue: TStrings);
 
 Var
   Res : TStrings;
@@ -2058,24 +2116,24 @@ begin
   Res.Assign(Avalue);
 end;
 
-procedure TInstaller.SetOses(const AValue: TOSes);
+procedure TCustomInstaller.SetOses(const AValue: TOSes);
 begin
   CheckDefaultPackage;
   DefaultPackage.OS:=AValue;
 end;
 
-procedure TInstaller.Log(Level: TVerboseLevel; const Msg: String);
+procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
 begin
   If Level in FLogLevels then
     Writeln(StdErr,Msg);
 end;
 
-procedure TInstaller.CreatePackages;
+procedure TCustomInstaller.CreatePackages;
 begin
   FPAckages:=TPackages.Create(TPackage);
 end;
 
-procedure TInstaller.CreateBuildEngine;
+procedure TCustomInstaller.CreateBuildEngine;
 begin
   FBuildEngine:=TBuildEngine.Create(Self);
   FBuildEngine.Defaults:=Defaults;
@@ -2083,34 +2141,34 @@ begin
   FBuildEngine.OnLog:=@Self.Log;
 end;
 
-procedure TInstaller.CheckDefaultPackage;
+procedure TCustomInstaller.CheckDefaultPackage;
 begin
   If (FDefaultPackage=Nil) then
     Raise EInstallerError.Create(SErrNoPackage);
 end;
 
-procedure TInstaller.Error(Msg: String);
+procedure TCustomInstaller.Error(Msg: String);
 begin
   Raise EInstallerError.Create(Msg);
 end;
 
-procedure TInstaller.Error(Fmt: String; Args: array of const);
+procedure TCustomInstaller.Error(Fmt: String; Args: array of const);
 begin
   Raise EInstallerError.CreateFmt(Fmt,Args);
 end;
 
-Function TInstaller.StartPackage(const AName: String) : TPackage;
+Function TCustomInstaller.StartPackage(const AName: String) : TPackage;
 begin
   FDefaultPackage:=FPackages.AddPackage(AName);
   Result:=FDefaultPackage;
 end;
 
-procedure TInstaller.EndPackage;
+procedure TCustomInstaller.EndPackage;
 begin
   FDefaultPackage:=Nil;
 end;
 
-procedure TInstaller.AnalyzeOptions;
+procedure TCustomInstaller.AnalyzeOptions;
 
   Function CheckOption(Index : Integer;Short,Long : String): Boolean;
 
@@ -2228,9 +2286,7 @@ begin
 {$endif}
 end;
 
-
-
-procedure TInstaller.Usage(FMT: String; Args: array of const);
+procedure TCustomInstaller.Usage(FMT: String; Args: array of const);
 
   Procedure WriteCmd(LC : String; Msg : String);
 
@@ -2280,28 +2336,28 @@ begin
     halt(0);
 end;
 
-procedure TInstaller.Compile(Force: Boolean);
+procedure TCustomInstaller.Compile(Force: Boolean);
 begin
   FBuildEngine.ForceCompile:=Force;
   FBuildEngine.Compile(FPackages);
 end;
 
-procedure TInstaller.Clean;
+procedure TCustomInstaller.Clean;
 begin
   BuildEngine.Clean(FPackages);
 end;
 
-procedure TInstaller.Install;
+procedure TCustomInstaller.Install;
 begin
   BuildEngine.Install(FPackages);
 end;
 
-procedure TInstaller.Archive;
+procedure TCustomInstaller.Archive;
 begin
   FBuildEngine.Archive(FPackages);
 end;
 
-procedure TInstaller.Manifest;
+procedure TCustomInstaller.Manifest;
 
 Var
   L : TStrings;
@@ -2317,7 +2373,7 @@ begin
   end;
 end;
 
-procedure TInstaller.GetSourceFiles;
+procedure TCustomInstaller.GetSourceFiles;
 
 Var
   L : TStrings;
@@ -2333,22 +2389,13 @@ begin
   end;
 end;
 
-
-constructor TInstaller.Create(AOWner: TComponent);
-begin
-  inherited Create(AOWner);
-  FDefaults:=TDefaults.Create;
-  AnalyzeOptions;
-  CreatePackages;
-end;
-
-destructor TInstaller.destroy;
+destructor TCustomInstaller.destroy;
 begin
   FreeAndNil(FDefaults);
   inherited destroy;
 end;
 
-procedure TInstaller.CheckPackages;
+procedure TCustomInstaller.CheckPackages;
 
 begin
   If (FPackages.Count=0) then
@@ -2356,7 +2403,7 @@ begin
   // Check for other obvious errors ?
 end;
 
-Function TInstaller.Run : Boolean;
+Function TCustomInstaller.Run : Boolean;
 
 begin
   Result:=True;
@@ -2382,21 +2429,39 @@ begin
   end;
 end;
 
-function TInstaller.AddTarget(AName: String): TTarget;
+function TCustomInstaller.AddTarget(AName: String): TTarget;
 begin
   CheckDefaultPackage;
   Result:=DefaultPackage.AddTarget(AName);
 end;
 
-procedure TInstaller.AddDependency(AName: String);
+procedure TCustomInstaller.AddDependency(AName: String);
 begin
   CheckDefaultPackage;
   DefaultPackage.AddDependency(AName);
 end;
 
+{ TFPCInstaller }
+
+constructor TFPCInstaller.Create(AOwner: TComponent);
+begin
+  FDefaults:=TFPCDefaults.Create;
+  AnalyzeOptions;
+  CreatePackages;
+end;
+
+{ TBasicInstaller }
+
+constructor TBasicInstaller.Create(AOwner: TComponent);
+begin
+  FDefaults:=TBasicDefaults.Create;
+  AnalyzeOptions;
+  CreatePackages;
+end;
+
 { TBuildEngine }
 
-procedure TBuildEngine.SetDefaults(const AValue: TDefaults);
+procedure TBuildEngine.SetDefaults(const AValue: TCustomDefaults);
 begin
   FDefaults.Assign(AValue);
 end;
@@ -2420,7 +2485,7 @@ end;
 constructor TBuildEngine.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FDefaults:=TDefaults.Create;
+  FDefaults:=TCustomDefaults.Create;
   // Maybe this should be the current directory ?
   // Or have it as a command-line option.
   // Would allow to put all 'installers' in one dir and call them
@@ -2914,7 +2979,7 @@ begin
       Result:='';
     If (APackage.Directory<>'') then
       Result:=IncludeTrailingPathDelimiter(Result+APackage.Directory);
-    Result:=Result + AName + PathDelim + Defaults.Target;
+    Result := IncludeTrailingPathDelimiter(Result + AName + PathDelim + Defaults.Target);
     end;
 end;
 
@@ -3058,11 +3123,14 @@ Procedure TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetType
 
 Var
   List : TStringList;
-
+  UnitsDir: string;
+  BinDir: string;
 begin
   List:=TStringList.Create;
   Try
-    APackage.GetInstallFiles(List,[tt],Src,Defaults.OS);
+    UnitsDir := GetUnitsOutputDir(APackage);
+    BinDir := GetBinOutputDir(APackage);
+    APackage.GetInstallFiles(List,[tt],Src, UnitsDir, BinDir, Defaults.OS);
     if (List.Count>0) then
       CmdCopyFiles(List,Dest);
   Finally
@@ -3129,17 +3197,19 @@ end;
 
 
 procedure TBuildEngine.Archive(APackage: TPackage);
-
 Var
   L : TStrings;
   A : String;
-
+  UnitsDir: string;
+  BinDir: string;
 begin
   Log(vlInfo,SLogArchivingPackage,[APackage.Name]);
   DoBeforeArchive(Apackage);
   L:=TStringList.Create;
   Try
-    APackage.GetInstallFiles(L,[ttUnit],TargetDir,Defaults.OS);
+    UnitsDir := GetUnitsOutputDir(APackage);
+    BinDir := GetUnitsOutputDir(APackage);
+    APackage.GetInstallFiles(L,[ttUnit], TargetDir, UnitsDir, BinDir, Defaults.OS);
     A:=APackage.Name+ZipExt;
     CmdArchiveFiles(L,A);
   Finally
@@ -3488,13 +3558,13 @@ procedure TTarget.GetCleanFiles(List: TStrings; APrefixU, APrefixB : String; AnO
 begin
   If (OS=[]) or (AnOS in OS) then
     begin
-    List.Add(APrefixU+ObjectFileName);
+    List.Add(APrefixU + ObjectFileName);
     If (TargetType in [ttUnit,ttExampleUnit]) then
-      List.Add(APrefixU+UnitFileName)
+      List.Add(APrefixU + UnitFileName)
     else If (TargetType in [ttProgram,ttExampleProgram]) then
-      List.Add(APrefixB+GetProgramFileName(AnOS));
+      List.Add(APrefixB + GetProgramFileName(AnOS));
     If ResourceStrings then
-      List.Add(APrefixU+RSTFileName);
+      List.Add(APrefixU + RSTFileName);
     // Maybe add later ?  AddStrings(List,CleanFiles);
     end;
 end;
@@ -3514,18 +3584,18 @@ begin
     end;
 end;
 
-procedure TTarget.GetInstallFiles(List: TStrings; APrefix : String; AnOS : TOS);
+procedure TTarget.GetInstallFiles(List: TStrings; APrefixU, APrefixB: String; AnOS : TOS);
 begin
   If (OS=[]) or (AnOS in OS) then
     begin
     If Not (TargetType in [ttProgram,ttExampleProgram]) then
-      List.Add(APrefix+ObjectFileName);
+      List.Add(APrefixU + ObjectFileName);
     If (TargetType in [ttUnit,ttExampleUnit]) then
-      List.Add(APrefix+UnitFileName)
+      List.Add(APrefixU + UnitFileName)
     else If (TargetType in [ttProgram,ttExampleProgram]) then
-      List.Add(APrefix+GetProgramFileName(AnOS));
+      List.Add(APrefixB + GetProgramFileName(AnOS));
     If ResourceStrings then
-      List.Add(APrefix+RSTFileName);
+      List.Add(APrefixU + RSTFileName);
     // Maybe add later ?  AddStrings(List,InstallFiles);
     end;
 end;
@@ -3615,18 +3685,22 @@ begin
 end;
 
 Var
-  DefInstaller : TInstaller = Nil;
+  DefInstaller : TCustomInstaller = Nil;
   DefDictionary : TDictionary = Nil;
 
-Function Installer : TInstaller;
-
+Function Installer(InstallerClass: TInstallerClass): TCustomInstaller;
 begin
   If Not Assigned(DefInstaller) then
     DefInstaller:=InstallerClass.Create(Nil);
   Result:=DefInstaller;
 end;
 
-Function Defaults : TDefaults;
+Function Installer: TCustomInstaller;
+begin
+  Result := Installer(TFPCInstaller);
+end;
+
+Function Defaults : TCustomDefaults;
 
 begin
   Result:=Installer.Defaults;
@@ -3777,10 +3851,8 @@ begin
 end;
 
 Function Substitute(Const Source : String; Macros : Array of string) : String;
-
 Var
   I : Integer;
-
 begin
   I:=0;
   While I<High(Macros) do
