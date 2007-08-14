@@ -1,4 +1,6 @@
-{ $mode objfpc}
+{ %fail }
+
+{$mode delphi}
 const
   WideNull = widechar(#0);
   WideSpace = widechar(#32);

@@ -386,13 +386,31 @@ implementation
                 end;
               if codegenerror then
                break;
+              current_filepos:=p2.fileinfo;
               case p2.resultdef.typ of
                  enumdef,
                  orddef:
                    begin
+                      { widechars are not yet supported }
+                      if is_widechar(p2.resultdef) then
+                        begin
+                          inserttypeconv(p2,cchartype);
+                          if (p2.nodetype<>ordconstn) then
+                            incompatibletypes(cwidechartype,cchartype);
+                        end;
+
                       getrange(p2.resultdef,lr,hr);
                       if assigned(p3) then
                        begin
+                         if is_widechar(p3.resultdef) then
+                           begin
+                             inserttypeconv(p3,cchartype);
+                             if (p3.nodetype<>ordconstn) then
+                               begin
+                                 current_filepos:=p3.fileinfo;
+                                 incompatibletypes(cwidechartype,cchartype);
+                               end;
+                           end;
                          { this isn't good, you'll get problems with
                            type t010 = 0..10;
                                 ts = set of t010;
@@ -405,8 +423,7 @@ implementation
                          }
                          if assigned(hdef) and not(equal_defs(hdef,p3.resultdef)) then
                            begin
-                              current_filepos:=p3.fileinfo;
-                              CGMessage(type_e_typeconflict_in_set);
+                              CGMessagePos(p3.fileinfo,type_e_typeconflict_in_set);
                            end
                          else
                            begin
