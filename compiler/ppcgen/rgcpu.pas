@@ -160,20 +160,15 @@ unit rgcpu;
             case taicpu(p).opcode of
               A_ADDI, A_ADDIS,
               A_STB, A_LBZ, A_STBX, A_LBZX, A_STH, A_LHZ, A_STHX, A_LHZX, A_LHA, A_LHAX,
-              A_STBU, A_LBZU, A_STBUX, A_LBZUX, A_STHU, A_LHZU, A_STHUX, A_LHZUX, A_LHAUX,
               A_STW, A_LWZ, A_STWX, A_LWZX,
-              A_STWU, A_LWZU, A_STWUX, A_LWZUX,
               A_STFS, A_LFS, A_STFSX, A_LFSX, A_STFD, A_LFD, A_STFDX, A_LFDX, A_STFIWX,
-              A_STFSU, A_LFSU, A_STFSUX, A_LFSUX, A_STFDU, A_LFDU, A_STFDUX, A_LFDUX,
               A_STHBRX, A_LHBRX, A_STWBRX, A_LWBRX, A_STWCX_, A_LWARX,
               A_ECIWX, A_ECOWX,
               A_LMW, A_STMW,A_LSWI,A_LSWX,A_STSWI,A_STSWX
 {$ifdef cpu64bit}
-              , A_STDU, A_STDUX, 
-              A_LDU, A_LDUX,
-              A_STD, A_STDX,
+              , A_STD, A_STDX,
               A_LD, A_LDX,
-              A_LWA, A_LWAX, A_LWAUX,
+              A_LWA, A_LWAX,
               A_STDCX_,A_LDARX
 {$endif cpu64bit}
                 :
