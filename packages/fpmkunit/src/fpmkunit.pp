@@ -192,7 +192,7 @@ Type
     Destructor Destroy; override;
     Function GetOutputFileName (AOs : TOS) : String; Virtual;
     procedure SetName(const AValue: String);override;
-    Procedure GetCleanFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
+    Procedure GetCleanFiles(List : TStrings; APrefixU, APrefixB : String; AnOS : TOS); virtual;
     Procedure GetSourceFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
     Procedure GetInstallFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
     Procedure GetArchiveFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
@@ -331,7 +331,7 @@ Type
     Function AddTarget(AName : String) : TTarget;
     Procedure AddDependency(AName : String);
     Procedure AddInstallFile(AFileName : String);
-    Procedure GetCleanFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
+    Procedure GetCleanFiles(List : TStrings; Const APrefixU, APrefixB : String; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix : String; AOS : TOS);
     Procedure GetArchiveFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
     Procedure GetSourceFiles(List : TStrings); virtual;
@@ -508,6 +508,9 @@ Type
     Procedure InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Src,Dest : String); virtual;
     Function FileNewer(Src,Dest : String) : Boolean;
 
+    //package commands
+    Function  GetOutputDir(AName: string; APackage : TPackage; AbsolutePath : Boolean = False) : String;
+
   Public
     Constructor Create(AOwner : TComponent); override;
     // Public Copy/delete/Move/Archive/Mkdir Commands.
@@ -527,7 +530,8 @@ Type
     Procedure FixDependencies(Target: TTarget);
     // Package commands
     Function  GetPackageDir(APackage : TPackage; AbsolutePath : Boolean = False) : String;
-    Function  GetOutputDir(APackage : TPackage; AbsolutePath : Boolean = False) : String;
+    Function  GetUnitsOutputDir(APackage : TPackage; AbsolutePath : Boolean = False) : String;
+    Function  GetBinOutputDir(APackage : TPackage; AbsolutePath : Boolean = False) : String;
     Function  PackageOK(APackage : TPackage) : Boolean; virtual;
     Procedure DoBeforeCompile(APackage : TPackage);virtual;
     Procedure DoAfterCompile(APackage : TPackage);virtual;
@@ -1834,15 +1838,15 @@ begin
   FInstallFiles.add(AFileName);
 end;
 
-procedure TPackage.GetCleanFiles(List: TStrings; Const APrefix : String; AOS : TOS);
+procedure TPackage.GetCleanFiles(List: TStrings; Const APrefixU, APrefixB : String; AOS : TOS);
 
 Var
   I : Integer;
 
 begin
-  AddStrings(List,CleanFiles,APrefix);
+  AddStrings(List,CleanFiles,APrefixU);
   For I:=0 to FTargets.Count-1 do
-    FTargets.TargetItems[I].GetCleanFiles(List,APrefix,AOS);
+    FTargets.TargetItems[I].GetCleanFiles(List, APrefixU, APrefixB, AOS);
 end;
 
 procedure TPackage.GetSourceFiles(List: TStrings);
@@ -2722,10 +2726,19 @@ begin
   If (OD<>'') then
     OD:=IncludeTrailingPathDelimiter(OD);
   OFN:=OD+Target.GetOutPutFileName(Defaults.OS);
+
+  if Target.TargetType in ProgramTargets then
+    OFN := GetBinOutputDir(FCurrentPackage, True) + PathDelim + OFN
+  else
+    OFN := GetUnitsOutputDir(FCurrentPackage, True) + PathDelim + OFN;
+
   SD:=Target.Directory;
   If (SD<>'') then
       SD:=IncludeTrailingPathDelimiter(SD);
+
   Result:=Not FileExists(OFN);
+  {$ifdef debug} Writeln('Checking : ',OFN); {$endif}
+
   // Check dependencies
   If not Result then
     If Target.HasDependencies then
@@ -2753,7 +2766,7 @@ begin
         SFN:=SFN+'.pp'
       else
         SFN:=SFN+'.pas';
-    // Writeln('Checking : ',OFN,' against ',SFN);
+    {$ifdef debug} Writeln('Checking : ',OFN,' against ',SFN); {$endif}
     Result:=FileNewer(SFN,OFN);
     // here we should check file timestamps.
     end;
@@ -2763,18 +2776,21 @@ end;
 
 Function TBuildEngine.GetCompilerCommand(APackage : TPackage; Target : TTarget) : String;
 
-
 Var
   PD,TD,OD,RD : String;
 
 begin
   PD:=IncludeTrailingPathDelimiter(GetPackageDir(APackage,True));
-  OD:=IncludeTrailingPathDelimiter(GetOutputDir(APackage,True));
+
+  OD:=IncludeTrailingPathDelimiter(GetBinOutputDir(APackage,True));
   RD:=ExtractRelativePath(PD,OD);
+  Result := '';
   If Target.TargetType in ProgramTargets then
-    Result:='-FE.' // Make this relative to target directory.
-  else
-    Result:='-FU'+RD;
+    Result:='-FE' + RD;
+
+  OD:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(APackage,True));
+  RD:=ExtractRelativePath(PD,OD);
+  Result := Result + ' -FU' + RD;
   If Target.Mode<>cmFPC then
     Result:=Result+' -M'+ModeToString(Target.Mode)
   else If Defaults.Mode<>cmFPC then
@@ -2886,9 +2902,7 @@ begin
     Result:= ExcludeTrailingPathDelimiter(Result)
 end;
 
-
-Function TBuildEngine.GetOutputDir(APackage : TPackage; AbsolutePath : Boolean = False) : String;
-
+Function TBuildEngine.GetOutputDir(AName: string; APackage : TPackage; AbsolutePath : Boolean = False) : String;
 begin
   If (TargetDir<>'') then
     Result:=TargetDir
@@ -2900,17 +2914,27 @@ begin
       Result:='';
     If (APackage.Directory<>'') then
       Result:=IncludeTrailingPathDelimiter(Result+APackage.Directory);
-    Result:=Result+'units'+PathDelim+Defaults.Target;
+    Result:=Result + AName + PathDelim + Defaults.Target;
     end;
 end;
 
-procedure TBuildEngine.CreateOutputDir(APackage: TPackage);
+Function TBuildEngine.GetUnitsOutputDir(APackage : TPackage; AbsolutePath : Boolean = False) : String;
+begin
+  Result := GetOutputDir('units', APackage, AbsolutePath);
+end;
 
+Function TBuildEngine.GetBinOutputDir(APackage : TPackage; AbsolutePath : Boolean = False) : String;
+begin
+  Result := GetOutputDir('bin', APackage, AbsolutePath);
+end;
+
+procedure TBuildEngine.CreateOutputDir(APackage: TPackage);
 Var
   D : String;
-
+  i: integer;
 begin
-  D:=GetOutputDir(APackage,True);
+  //create a units directory
+  D:=GetUnitsOutputDir(APackage,True);
   If DirectoryExists(D) then
     Log(vlInfo,SLogOutputDirExists,[D])
   else
@@ -2918,6 +2942,24 @@ begin
     Log(vlInfo,SLogCreatingOutputDir,[D]);
     CmdCreateDir(D);
     end;
+
+  //also create a bin directory for programtargets
+  For i := 0 to Pred(APackage.Targets.Count) do
+  begin
+    if APackage.Targets.TargetItems[i].TargetType in ProgramTargets then
+    begin
+      D:=GetBinOutputDir(APackage,True);
+      If DirectoryExists(D) then
+        Log(vlInfo,SLogOutputDirExists,[D])
+      else
+      begin
+        Log(vlInfo,SLogCreatingOutputDir,[D]);
+        CmdCreateDir(D);
+      end;
+
+      exit; //do not continue loop, directory is made anyway
+    end;
+  end;
 end;
 
 Function TBuildEngine.PackageOK(APackage : TPackage) : Boolean;
@@ -2946,16 +2988,13 @@ begin
 end;
 
 procedure TBuildEngine.Compile(APackage: TPackage);
-
-
 Var
   T : TTarget;
   I : Integer;
-
 begin
   Log(vlInfo,SLogCompilingPackage,[APackage.Name]);
   FCurrentPackage:=APackage;
-  FCurrentOutputDir:=GetOutputDir(APackage,True);
+  FCurrentOutputDir:=GetUnitsOutputDir(APackage,True);
   Try
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
@@ -3059,7 +3098,7 @@ begin
     Compile(APackage);
   Log(vlInfo,SLogInstallingPackage,[APackage.Name]);
   DoBeforeInstall(APackage);
-  O:=IncludeTrailingPathDelimiter(GetOutputDir(APAckage));
+  O:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(APAckage));
   PD:=IncludeTrailingPathDelimiter(GetPackageDir(APackage));
   // units
   D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackage.Name;
@@ -3129,16 +3168,18 @@ end;
 procedure TBuildEngine.Clean(APackage: TPackage);
 
 Var
-  O : String;
+  OU : String;
+  OB : String;
   List : TStringList;
 
 begin
   Log(vlInfo,SLogCleaningPackage,[APackage.Name]);
   DoBeforeClean(Apackage);
-  O:=IncludeTrailingPathDelimiter(GetOutputDir(APAckage));
+  OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(APAckage));
+  OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(APAckage));
   List:=TStringList.Create;
   try
-    APackage.GetCleanFiles(List,O,Defaults.OS);
+    APackage.GetCleanFiles(List,OU, OB,Defaults.OS);
     if (List.Count>0) then
       CmdDeleteFiles(List);
   Finally
@@ -3157,9 +3198,9 @@ begin
   ResolveDependencies(APackage.Dependencies,(APackage.Collection as TPackages));
   Result:=False;
   I:=0;
-  While (Not Result) and (I<APAckage.Dependencies.Count) do
+  While (Not Result) and (I<APackage.Dependencies.Count) do
     begin
-    P:=TPackage(APAckage.Dependencies.Objects[i]);
+    P:=TPackage(APackage.Dependencies.Objects[i]);
     // I'm not sure whether the target dir is OK here ??
     Result:=Assigned(P) and NeedsCompile(P);
     Inc(I);
@@ -3212,6 +3253,7 @@ begin
   For I:=0 to Packages.Count-1 do
     begin
     P:=Packages.PackageItems[i];
+    FCurrentPackage := P;
     If PackageOK(P) then
       If (P.State=tsNeutral) then
         begin
@@ -3442,17 +3484,17 @@ begin
   FDirectory:=D;
 end;
 
-procedure TTarget.GetCleanFiles(List: TStrings; APrefix : String; AnOS : TOS);
+procedure TTarget.GetCleanFiles(List: TStrings; APrefixU, APrefixB : String; AnOS : TOS);
 begin
   If (OS=[]) or (AnOS in OS) then
     begin
-    List.Add(APrefix+ObjectFileName);
+    List.Add(APrefixU+ObjectFileName);
     If (TargetType in [ttUnit,ttExampleUnit]) then
-      List.Add(APrefix+UnitFileName)
+      List.Add(APrefixU+UnitFileName)
     else If (TargetType in [ttProgram,ttExampleProgram]) then
-      List.Add(APrefix+GetProgramFileName(AnOS));
+      List.Add(APrefixB+GetProgramFileName(AnOS));
     If ResourceStrings then
-      List.Add(APrefix+RSTFileName);
+      List.Add(APrefixU+RSTFileName);
     // Maybe add later ?  AddStrings(List,CleanFiles);
     end;
 end;
