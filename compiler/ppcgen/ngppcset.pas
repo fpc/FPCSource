@@ -65,7 +65,7 @@ implementation
 
     function tgppccasenode.has_jumptable : boolean;
       begin
-        has_jumptable:=(target_info.system <> system_powerpc64_darwin);
+        has_jumptable:=true;
       end;
 
 
@@ -75,6 +75,7 @@ implementation
         last : TConstExprInt;
         indexreg : tregister;
         href : treference;
+        mulfactor: longint;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -86,13 +87,19 @@ implementation
             i:=last.svalue+1;
             while i<=t^._low-1 do
               begin
-                list.concat(Tai_const.Create_sym(elselabel));
+		if (target_info.system<>system_powerpc64_darwin) then
+                  list.concat(Tai_const.Create_sym(elselabel))
+                else
+                  list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,elselabel));
                 inc(i);
               end;
             i:=t^._low.svalue;
             while i<=t^._high do
               begin
-                list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+		if (target_info.system<>system_powerpc64_darwin) then
+                  list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)))
+                else
+                  list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,blocklabel(t^.blockid)));
                 inc(i);
               end;
             last:=t^._high;
@@ -119,19 +126,44 @@ implementation
           end;
         current_asmdata.getjumplabel(table);
         { create reference, indexreg := indexreg * sizeof(OS_ADDR) }
-        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tcgsize2size[OS_ADDR], indexreg);
+        if (target_info.system<>system_powerpc64_darwin) then
+          mulfactor:=tcgsize2size[OS_ADDR]
+        else
+          mulfactor:=4;
+        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, mulfactor, indexreg);
         reference_reset_symbol(href, table, (-aint(min_)) * tcgsize2size[OS_ADDR]);
-        href.index := indexreg;
 
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, href, indexreg);
+        if (target_info.system<>system_powerpc64_darwin) then
+          begin
+            href.index := indexreg;
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, href, indexreg);
+          end
+        else
+          begin
+            hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+            reference_reset_base(href,hregister,0);
+            href.index:=indexreg;
+            indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,indexreg);
+          end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR, indexreg));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTR));
 
         { generate jump table }
-        new_section(current_procinfo.aktlocaldata,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
-        current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
-        genitem(current_procinfo.aktlocaldata,hp);
+        if (target_info.system<>system_powerpc64_darwin) then
+          begin
+            new_section(current_procinfo.aktlocaldata,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
+            current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
+            genitem(current_procinfo.aktlocaldata,hp);
+          end
+        else
+          begin
+            current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
+            genitem(current_asmdata.CurrAsmList,hp);
+          end;
       end;
 
 
