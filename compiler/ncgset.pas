@@ -765,6 +765,8 @@ implementation
                    if cs_opt_size in current_settings.optimizerswitches  then
                      begin
                        if has_jumptable and
+                          (min_label>=int64(low(aint))) and
+                          (max_label<=high(aint)) and
                           not((labelcnt<=2) or
                               ((max_label-min_label)<0) or
                               ((max_label-min_label)>3*labelcnt)) then
