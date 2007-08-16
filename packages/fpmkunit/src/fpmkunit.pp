@@ -2,7 +2,7 @@
     This file is part of the Free Pascal Makefile Package
 
     Implementation of fpmake classes and functions
-    
+
     Copyright (c) 2007 by the freepascal team
 
     See the file COPYING.FPC, included in this distribution,
@@ -1496,7 +1496,7 @@ begin
   if OS=osNone then
     OS:=StringToOS({$I %FPCTARGETOS%});
   if FCompilerVersion='' then
-    FCompilerVersion:='2.0.4';
+    FCompilerVersion:={$I %FPCVERSION%};
 end;
 
 procedure TCustomDefaults.LoadFromFile(Const AFileName: String);
@@ -1765,8 +1765,6 @@ end;
 
 
 Procedure TPackage.GetManifest(Manifest : TStrings);
-
-
 Var
   S : String;
   Release,Minor,Major : Word;
@@ -1779,6 +1777,7 @@ begin
     Add(Format('<version release="%d" major="%d" minor="%d" suffix="%s"/>',[Release,Minor,Major,QuoteXMl(S)]));
     Add(Format('<filename>%s</filename>',[QuoteXml(FileName)]));
     Add(Format('<author>%s</author>',[QuoteXml(Author)]));
+    Add(Format('<license>%s</license>',[QuoteXml(License)]));
     if ExternalURL<>'' then
       Add(Format('<externalurl>%s</externalurl>',[QuoteXml(ExternalURL)]));
     Add(Format('<email>%s</email>',[QuoteXMl(Email)]));
@@ -1972,7 +1971,10 @@ begin
   If (FFileName<>'') then
     Result:=FFileName
   else
-    Result:=Name+'-'+Version+'.zip';
+    if Version <> '' then
+      Result := Name + '-' + Version + '.zip'
+    else
+      Result := Name + '.zip';
 end;
 
 
@@ -2019,11 +2021,8 @@ begin
 end;
 
 Function TCustomInstaller.GetPackageString(Index : Integer) : String;
-
 Var
   P : TPackage;
-
-
 begin
   CheckDefaultPackage;
   P:=DefaultPackage;
