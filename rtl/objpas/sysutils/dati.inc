@@ -371,9 +371,16 @@ begin
   n := 0;
   for i := 1 to length(s) do
    begin
-     if (s[i] in ['0'..'9']) then
+     if s[i] in ['0'..'9'] then
       s1 := s1 + s[i];
-     if (s[i] in [dateseparator,' ']) or ((i = length(s)) and (s[i] in ['0'..'9'])) then
+
+     { space can be part of the shortdateformat, and is defaultly in slovak
+       windows, therefor it shouldn't be taken as separator (unless so specified)
+       and ignored }
+     if (DateSeparator <> ' ') and (s[i] = ' ') then
+       Continue;
+
+     if (s[i] = dateseparator) or ((i = length(s)) and (s[i] in ['0'..'9'])) then
       begin
         inc(n);
         if n>3 then
