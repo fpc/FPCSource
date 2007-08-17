@@ -131,7 +131,7 @@ function MakeObjectInstance(Method: TWndMethod): Pointer;
         end;
       Trampoline:=TrampolineFreeList;
       TrampolineFreeList:=TrampolineFreeList^.Next;
-      inc(Trampoline^.Block^.UsageCount);
+//      inc(Trampoline^.Block^.UsageCount);
       Trampoline^.Call:=$e8;
       Trampoline^.CallOffset:=pointer(@get_method_offset)-pointer(@Trampoline^.Call)-5;
       Trampoline^.Jmp:=$e9;
