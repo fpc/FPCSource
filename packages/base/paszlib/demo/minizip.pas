@@ -13,113 +13,30 @@ program MiniZip;
   For conditions of distribution and use, see copyright notice in readme.txt
 }
 
-{$ifdef WIN32}
-  {$define Delphi}
-  {$ifndef FPC}
-    {$define Delphi32}
-  {$endif}
-{$endif}
-
 uses
- Sysutils,
- {$ifdef Delphi}
-  Windows,
- {$else}
-   zlib,ctypes,
- {$endif}
-  //zutil,
-  //zlib,
-  ziputils,
-  zip;
+  SysUtils, zlib, ctypes, ziputils, zip;
 
 const
   WRITEBUFFERSIZE = Z_BUFSIZE;
   MAXFILENAME     = Z_MAXFILENAMEINZIP;
 
-{$ifdef Delphi32}
   function filetime(f: PChar;               { name of file to get info on }
-  var tmzip: tm_zip; { return value: access, modific. and creation times }
-  var dt: uLong): uLong;                { dostime }
+    var tmzip: tm_zip): cuLong;             { return value: access, modific. and creation times }
   var
-    ret:     int;
-  var
-    ftLocal: TFileTime; // FILETIME;
-    hFind:   THandle;   // HANDLE;
-    ff32:    TWIN32FindData; //  WIN32_FIND_DATA;
+    dtrec: TDateTime;    { For Pack/UnpackTime}
+    stime: TSystemTime;
   begin
-    ret   := 0;
-    hFind := FindFirstFile(f, ff32);
-    if (hFind <> INVALID_HANDLE_VALUE) then
-    begin
-      FileTimeToLocalFileTime(ff32.ftLastWriteTime, ftLocal);
-      FileTimeToDosDateTime(ftLocal, LongRec(dt).hi, LongRec(dt).lo);
-      FindClose(hFind);
-      ret := 1;
-    end;
-    filetime := ret;
-  end;
-
-{$else}
-{$ifdef delphi)} // fpcwin32
-function filetime(f : PChar;               { name of file to get info on }
-   var tmzip : tm_zip; { return value: access, modific. and creation times }
-   var dt : uLong) : uLong;                { dostime }
-var
-  ret : longint;
-var
-  ftLocal : TFileTime; // FILETIME;
-  hFind : THandle; // HANDLE;
-  ff32 : TWIN32FindData; //  WIN32_FIND_DATA;
-begin
-  ret := 0;
-  hFind := FindFirstFile(f, @ff32);
-  if (hFind <> INVALID_HANDLE_VALUE) then
-  begin
-    FileTimeToLocalFileTime(ff32.ftLastWriteTime,ftLocal);
-    FileTimeToDosDateTime(ftLocal,LongRec(dt).hi,LongRec(dt).lo);
-    FindClose(hFind);
-    ret := 1;
-  end;
-  filetime := ret;
-end;
-{$else}
-function filetime(f : PChar;               { name of file to get info on }
-   var tmzip : tm_zip; { return value: access, modific. and creation times }
-   var dt : cuLong) : cuLong;                { dostime }
-var
-  fl : file;
-  yy, mm, dd, dow : Word;
-  h, m, s, hund : Word; { For GetTime}
-  dtrec : TDateTime; { For Pack/UnpackTime}
-  stime:tsystemtime;
-begin
-  dtrec:=FileDateToDateTime(fileage(f));
-  datetimetosystemtime(dtrec,stime);
-  tmzip.tm_sec  := stime.second;
-  tmzip.tm_min  := stime.minute;
-  tmzip.tm_hour := stime.hour;
-  tmzip.tm_mday := stime.day;
-  tmzip.tm_mon  := stime.month;
-  tmzip.tm_year := stime.year;
-  filetime := 0;
-end;
-{$endif}
-{$endif}
-
-  function check_exist_file(const filename: PChar): longint;
-  var
-    ftestexist: file;
-    ret: longint;
-  begin
-    ret := 1;
-    Assign(ftestexist, filename);
-  {$i-}
-    reset(ftestexist);
-    if IOresult <> 0 then
-      ret := 0
-    else
-      system.Close(ftestexist);
-    check_exist_file := ret;
+    if not FileExists(f) then exit;
+    
+    dtrec := FileDateToDateTime(FileAge(f));
+    DateTimeToSystemTime(dtrec, stime);
+    tmzip.tm_sec  := stime.second;
+    tmzip.tm_min  := stime.minute;
+    tmzip.tm_hour := stime.hour;
+    tmzip.tm_mday := stime.day;
+    tmzip.tm_mon  := stime.month;
+    tmzip.tm_year := stime.year;
+    filetime      := 0;
   end;
 
   procedure do_banner;
@@ -138,33 +55,28 @@ end;
 
   function main: longint;
   var
-    argstr: string;
-    i:      longint;
-    opt_overwrite: longint;
-    opt_compress_level: longint;
-    zipfilenamearg: longint;
-    filename_try: array[0..MAXFILENAME - 1] of char;
-    zipok:  longint;
-    err:    longint;
-    size_buf: longint;
-    buf:    pointer;
-  var
-    p:      PChar;
-    c:      char;
-  var
-    len:    longint;
-    dot_found: longint;
-  var
-    rep:    char;
     answer: string[128];
-  var
-    zf:     zipFile;
+    argstr: string;
+    buf:    pointer;
+    c:      char;
+    dot_found: longint;
+    err:    longint;
     errclose: longint;
-  var
+    filenameinzip: PChar;
+    filename_try: array[0..MAXFILENAME - 1] of char;
     fin:    FILEptr;
+    i:      longint;
+    len:    longint;
+    opt_compress_level: longint;
+    opt_overwrite: longint;
+    p:      PChar;
+    rep:    char;
+    size_buf: longint;
     size_read: longint;
-    filenameinzip: {const} PChar;
+    zf:     zipFile;
     zi:     zip_fileinfo;
+    zipfilenamearg: longint;
+    zipok:  longint;
   begin
     opt_overwrite := 0;
     opt_compress_level := Z_DEFAULT_COMPRESSION;
@@ -229,7 +141,7 @@ end;
         strcat(filename_try, '.zip');
 
       if (opt_overwrite = 0) then
-        if (check_exist_file(filename_try) <> 0) then
+        if FileExists(filename_try) then
         begin
           repeat
             WriteLn('The file ', filename_try,
@@ -272,7 +184,7 @@ end;
           zi.dosDate     := 0;
           zi.internal_fa := 0;
           zi.external_fa := 0;
-          filetime(filenameinzip, zi.tmz_date, zi.dosDate);
+          filetime(filenameinzip, zi.tmz_date);
 
           if (opt_compress_level <> 0) then
             err := zipOpenNewFileInZip(zf, filenameinzip, @zi,
