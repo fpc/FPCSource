@@ -414,13 +414,15 @@ begin
       I.Free;
     end;
     M.Position:=0;
-    With TFileStream.Create('/tmp/query',fmCreate) do
+// joost, aug 20th: I've removed this. It doesn't work with windows and I think
+// it's a debug-only thing...
+{    With TFileStream.Create('/tmp/query',fmCreate) do
       try
         CopyFrom(M,0);
         M.Position:=0;
       Finally
         Free;
-      end;
+      end;}
     CT:=ContentType;
     if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
       ProcessMultiPart(M,CT)
