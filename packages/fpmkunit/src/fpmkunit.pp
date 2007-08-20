@@ -22,7 +22,8 @@ unit fpmkunit;
 
 Interface
 
-uses SysUtils,Classes;
+uses
+  SysUtils, Classes, zipper;
 
 Type
   TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
@@ -85,6 +86,8 @@ Const
   DLLExt  = '.dll';
   ExeExt  = '.exe';
   ZipExt  = '.zip';
+  
+  ManifestFile = 'manifest.xml';
 
   UnitTargets = [ttUnit,ttExampleUnit];
   ProgramTargets = [ttProgram,ttExampleProgram];
@@ -504,6 +507,7 @@ Type
     FDefaults : TCustomDefaults;
     FForceCompile : Boolean;
     FListMode : Boolean;
+    FZipFile: TZipper;
     // Variables used when compiling a package.
     // Only valid during compilation of the package.
     FCurrentOutputDir : String;
@@ -800,6 +804,19 @@ ResourceString
   SWarnFailedToSetTime  = 'Warning: Failed to set timestamp on file : %s';
   SWarnFailedToGetTime  = 'Warning: Failed to get timestamp from file : %s';
   SWarnFileDoesNotExist = 'Warning: File "%s" does not exist';
+  SWarnAttemptingToCompileNonNeutralTarget = 'Attempting to compile non-neutral target: %s';
+  SDebugCheckingDependenciesForTarget = 'Checking dependencies for target: %s';
+  SDebugCheckingSAgainstS  = 'Checking : %s against %s';
+  SDebugCheckingS          = 'Checking : %s';
+  SDebugTargetHasWrongOS   = 'Target has wrong OS: %s';
+  SDebugTargetHasWrongCPU  = 'Target has wrong CPU: %s';
+  SDebugTargetIsNotAUnitOrProgram = 'Target is not a unit or program';
+  SDebugConsideringTarget = 'Considering target: %s';
+  SDebugUnresolvedExternalDependencyS = 'Unresolved external dependency : %s';
+  SDebugBuildEngineArchiving = 'Build engine archiving.';
+  SDebugBuildEngineCleaning = 'Build engine cleaning.';
+  SCmdGenerating         = 'Generating %s';
+  SInfoArchiving         = 'Archiving : %s';
 
   // Log messages
   SLogEnterDir           = 'Entering directory: %s';
@@ -826,6 +843,7 @@ ResourceString
   SHelpArchive        = 'Create archive (zip) with all units in the package(s).';
   SHelpHelp           = 'This message.';
   SHelpManifest       = 'Create a manifest suitable for import in repository.';
+  SHelpListSources    = 'Create a list of sources in the package.';
   SHelpCmdOptions     = 'Where options is one or more of the following:';
   SHelpCPU            = 'Compile for indicated CPU.';
   SHelpOS             = 'Compile for indicated OS';
@@ -1775,7 +1793,7 @@ begin
     Add(Format('<package name="%s">',[QuoteXml(Name)]));
     SplitVersion(Version,Release,Minor,Major,S);
     Add(Format('<version release="%d" major="%d" minor="%d" suffix="%s"/>',[Release,Minor,Major,QuoteXMl(S)]));
-    Add(Format('<filename>%s</filename>',[QuoteXml(FileName)]));
+    Add(Format('<filename>%s</filename>',[QuoteXml(FileName + ZipExt)]));
     Add(Format('<author>%s</author>',[QuoteXml(Author)]));
     Add(Format('<license>%s</license>',[QuoteXml(License)]));
     if ExternalURL<>'' then
@@ -1972,9 +1990,9 @@ begin
     Result:=FFileName
   else
     if Version <> '' then
-      Result := Name + '-' + Version + '.zip'
+      Result := Name + '-' + Version
     else
-      Result := Name + '.zip';
+      Result := Name;
 end;
 
 
@@ -2036,7 +2054,7 @@ begin
     6 : Result:=P.Description;
     7 : Result:=P.DescriptionFile;
     8 : Result:=P.Version;
-    9 : Result:=P.FileName;
+    9 : Result:=P.FileName + ZipExt;
   end;
 end;
 
@@ -2227,10 +2245,19 @@ begin
   I:=0;
   NoDefaults:=False;
   FListMode:=False;
+  FLogLevels := [vlInfo];
   While (I<ParamCount) do
     begin
     Inc(I);
-    if CheckCommand(I,'m','compile') then
+    if CheckOption(I,'v','verbose') then
+      begin
+      Try
+        FLogLevels:=TVerboseLevels(StringToSet(PtypeInfo(TypeInfo(TVerboseLevels)),OptionArg(I)));
+      except
+        FLogLevels:=AllMessages;
+      end;
+      end
+    else if CheckCommand(I,'m','compile') then
       FRunMode:=rmCompile
     else if CheckCommand(I,'b','build') then
       FRunMode:=rmBuild
@@ -2264,14 +2291,6 @@ begin
       Defaults.Compiler:=OptionArg(I)
     else if CheckOption(I,'f','config') then
       DefaultsFileName:=OptionArg(I)
-    else if CheckOption(I,'v','verbose') then
-      begin
-      Try
-        FLogLevels:=TVerboseLevels(StringToSet(PtypeInfo(TypeInfo(TVerboseLevels)),OptionArg(I)));
-      except
-        FLogLevels:=AllMessages;
-      end;
-      end
     else
       begin
       Usage(SErrInValidArgument,[I,ParamStr(I)]);
@@ -2287,48 +2306,46 @@ end;
 
 procedure TCustomInstaller.Usage(FMT: String; Args: array of const);
 
-  Procedure WriteCmd(LC : String; Msg : String);
-
+  Procedure LogCmd(LC : String; Msg : String);
   begin
-    Writeln(stderr,Format(' %-12s %s',[LC,MSG]));
+    Log(vlInfo,Format(' %-12s %s',[LC,MSG]));
   end;
 
-  Procedure WriteOption(C: Char; LC : String; Msg : String);
-
+  Procedure LogOption(C: Char; LC : String; Msg : String);
   begin
-    Writeln(stderr,Format(' -%s --%-16s %s',[C,LC,MSG]));
+    Log(vlInfo,Format(' -%s --%-16s %s',[C,LC,MSG]));
   end;
 
-  Procedure WriteArgOption(C: Char; LC : String; Msg : String);
-
+  Procedure LogArgOption(C: Char; LC : String; Msg : String);
   begin
-    Writeln(stderr,Format(' -%s --%-20s %s',[C,LC+'='+SValue,MSG]));
+    Log(vlInfo,Format(' -%s --%-20s %s',[C,LC+'='+SValue,MSG]));
   end;
 
 begin
   If (FMT<>'') then
-    Writeln(stderr,Format(Fmt,Args));
-  Writeln(stderr,Format(SHelpUsage,[Paramstr(0)]));
-  Writeln(stderr,SHelpCommand);
-  WriteCmd('compile',SHelpCompile);
-  WriteCmd('build',SHelpBuild);
-  WriteCmd('install',SHelpInstall);
-  WriteCmd('clean',SHelpClean);
-  WriteCmd('archive',SHelpArchive);
-  WriteCmd('manifest',SHelpManifest);
-  Writeln(stderr,SHelpCmdOptions);
-  WriteOption('h','help',SHelpHelp);
-  WriteOption('l','list-commands',SHelpList);
-  WriteOption('n','nodefaults',SHelpNoDefaults);
-  WriteOption('v','verbose',SHelpVerbose);
-  WriteArgOption('C','CPU',SHelpCPU);
-  WriteArgOption('O','OS',SHelpOS);
-  WriteArgOption('t','target',SHelpTarget);
-  WriteArgOption('P','prefix',SHelpPrefix);
-  WriteArgOption('B','baseinstalldir',SHelpBaseInstalldir);
-  WriteArgOption('r','compiler',SHelpCompiler);
-  WriteArgOption('f','config',SHelpConfig);
-  Writeln(stderr,'');
+    Log(vlInfo,Format(Fmt,Args));
+  Log(vlInfo,Format(SHelpUsage,[Paramstr(0)]));
+  Log(vlInfo,SHelpCommand);
+  LogCmd('compile',SHelpCompile);
+  LogCmd('build',SHelpBuild);
+  LogCmd('install',SHelpInstall);
+  LogCmd('clean',SHelpClean);
+  LogCmd('archive',SHelpArchive);
+  LogCmd('manifest',SHelpManifest);
+  LogCmd('listsources',SHelpListSources);
+  Log(vlInfo,SHelpCmdOptions);
+  LogOption('h','help',SHelpHelp);
+  LogOption('l','list-commands',SHelpList);
+  LogOption('n','nodefaults',SHelpNoDefaults);
+  LogOption('v','verbose',SHelpVerbose);
+  LogArgOption('C','CPU',SHelpCPU);
+  LogArgOption('O','OS',SHelpOS);
+  LogArgOption('t','target',SHelpTarget);
+  LogArgOption('P','prefix',SHelpPrefix);
+  LogArgOption('B','baseinstalldir',SHelpBaseInstalldir);
+  LogArgOption('r','compiler',SHelpCompiler);
+  LogArgOption('f','config',SHelpConfig);
+  Log(vlInfo,'');
   If (FMT<>'') then
     halt(1)
   else
@@ -2363,10 +2380,10 @@ Var
 begin
   L:=TStringList.Create;
   Try
-    Log(vlCommand,'Generating manifest.xml');
+    Log(vlCommand, Format(SCmdGenerating, [ManifestFile]));
     L.Add('<?xml version="1.0"?>');
     BuildEngine.GetManifest(FPackages,L);
-    L.SaveToFile('manifest.xml');
+    L.SaveToFile(ManifestFile);
   Finally
     L.Free;
   end;
@@ -2421,8 +2438,8 @@ begin
   except
     On E : Exception do
       begin
-      Writeln(StdErr,SErrInstaller);
-      Writeln(StdErr,E.Message);
+      Log(vlError,SErrInstaller);
+      Log(vlError,E.Message);
       Result:=False;
       end;
   end;
@@ -2769,11 +2786,11 @@ begin
           ((Target.OS=[]) or (Defaults.OS in Target.OS));
   If not Result then
     begin
-    log(vldebug,'Target is not a unit or program');
+    log(vldebug, SDebugTargetIsNotAUnitOrProgram);
     If Not ((Target.CPU=[]) or (Defaults.CPU in Target.CPU)) then
-      Log(vldebug,'Target has wrong CPU: '+CPUsToString(Target.CPU));
+      Log(vldebug, Format(SDebugTargetHasWrongCPU, [CPUsToString(Target.CPU)]));
     if not ((Target.OS=[]) or (Defaults.OS in Target.OS)) then
-      Log(vldebug,'Target has wrong OS: '+OSesToString(Target.OS));
+      Log(vldebug, Format(SDebugTargetHasWrongOS, [OSesToString(Target.OS)]));
     end;
 end;
 
@@ -2801,7 +2818,7 @@ begin
       SD:=IncludeTrailingPathDelimiter(SD);
 
   Result:=Not FileExists(OFN);
-  {$ifdef debug} Writeln('Checking : ',OFN); {$endif}
+  Log(vldebug, SDebugCheckingS, [OFN]);
 
   // Check dependencies
   If not Result then
@@ -2830,7 +2847,7 @@ begin
         SFN:=SFN+'.pp'
       else
         SFN:=SFN+'.pas';
-    {$ifdef debug} Writeln('Checking : ',OFN,' against ',SFN); {$endif}
+    Log(vldebug, SDebugCheckingSAgainstS, [OFN, SFN]);
     Result:=FileNewer(SFN,OFN);
     // here we should check file timestamps.
     end;
@@ -2925,7 +2942,8 @@ begin
       ExecuteCommands(Target.Commands,caAfterCompile);
     end
   else if Target.State<>tsCompiled then
-    Log(vlWarning,'Attempting to compile non-neutral target: '+Target.Name);
+    Log(vlWarning, Format(SWarnAttemptingToCompileNonNeutralTarget, [Target.Name])
+      );
 end;
 
 
@@ -2936,7 +2954,7 @@ Var
   T : TTarget;
 
 begin
-  Log(vlDebug,'Checking dependencies for target: '+Target.Name);
+  Log(vlDebug, Format(SDebugCheckingDependenciesForTarget, [Target.Name]));
   ResolveDependencies(Target.Dependencies,Target.Collection as TTargets);
   If Target.HasDependencies then
     For I:=0 to Target.Dependencies.Count-1 do
@@ -3069,7 +3087,7 @@ begin
       For I:=0 to APackage.Targets.Count-1 do
         begin
         T:=APackage.Targets.TargetItems[i];
-        Log(vlDebug,'Considering target: '+T.Name);
+        Log(vlDebug, Format(SDebugConsideringTarget, [T.Name]));
         If TargetOK(T) then
           If (T.State=tsNeutral) then
             begin
@@ -3097,7 +3115,7 @@ procedure TBuildEngine.CheckExternalPackage(Const APackageName : String);
 
 begin
   // A check needs to be implemented here.
-  Log(vldebug,'Unresolved external dependency : %s',[APackageName]);
+  Log(vldebug, SDebugUnresolvedExternalDependencyS, [APackageName]);
 end;
 
 procedure TBuildEngine.FixDependencies(APackage: TPackage);
@@ -3206,15 +3224,22 @@ begin
   DoBeforeArchive(Apackage);
   L:=TStringList.Create;
   Try
-    UnitsDir := GetUnitsOutputDir(APackage);
-    BinDir := GetUnitsOutputDir(APackage);
-    APackage.GetInstallFiles(L,[ttUnit], TargetDir, UnitsDir, BinDir, Defaults.OS);
-    A:=APackage.Name+ZipExt;
-    CmdArchiveFiles(L,A);
+    APackage.GetArchiveFiles(L, TargetDir, Defaults.OS);
+    A:=APackage.FileName + ZipExt;
+
+    if not Assigned(ArchiveFilesProc) then
+    begin
+      FZipFile := TZipper.Create;
+      FZipFile.ZipFiles(A, L);
+    end
+    else
+      CmdArchiveFiles(L,A);
   Finally
     L.Free;
+    if not Assigned(ArchiveFilesProc) then
+      FZipFile.Free;
   end;
-  Writeln('Archiving : ',APackage.Name);
+  Log(vlInfo, Format(SInfoArchiving, [APackage.Name]));
   DoAfterArchive(Apackage);
 end;
 
@@ -3293,9 +3318,10 @@ begin
   try
     L:=TStringList.Create;
     APackage.GetSourceFiles(L);
-    List.Add(Format('<sources packagename=%s>',[APackage.Name]));
+
+    List.Add(Format('<sources packagename="%s">',[QuoteXml(APackage.Name)]));
     for i:=0 to L.Count-1 do
-      List.Add(Format('<source>%s</source>',[L[i]]));
+      List.Add(Format('<source>"%s"</source>',[QuoteXml(L[i])]));
     List.Add('</sources>');
   finally
     L.Free;
@@ -3367,7 +3393,7 @@ Var
 begin
   If Assigned(BeforeArchive) then
     BeforeArchive(Self);
-  Log(vlDebug,'Build engine archiving.');
+  Log(vlDebug, SDebugBuildEngineArchiving);
   For I:=0 to Packages.Count-1 do
     begin
     P:=Packages.PackageItems[i];
@@ -3387,7 +3413,7 @@ Var
 begin
   If Assigned(BeforeClean) then
     BeforeClean(Self);
-  Log(vldebug,'Build engine cleaning.');
+  Log(vldebug, SDebugBuildEngineCleaning);
   For I:=0 to Packages.Count-1 do
     begin
     P:=Packages.PackageItems[i];
