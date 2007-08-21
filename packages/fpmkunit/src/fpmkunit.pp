@@ -18,12 +18,12 @@ unit fpmkunit;
 
 {$Mode objfpc}
 {$H+}
-{ $define debug}
 
 Interface
 
 uses
-  SysUtils, Classes, zipper;
+  {$IFNDEF EXTERNALZIP} zipper, {$ENDIF}
+  SysUtils, Classes;
 
 Type
   TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
@@ -86,7 +86,7 @@ Const
   DLLExt  = '.dll';
   ExeExt  = '.exe';
   ZipExt  = '.zip';
-  
+
   ManifestFile = 'manifest.xml';
 
   UnitTargets = [ttUnit,ttExampleUnit];
@@ -507,7 +507,9 @@ Type
     FDefaults : TCustomDefaults;
     FForceCompile : Boolean;
     FListMode : Boolean;
+    {$IFNDEF EXTERNALZIP}
     FZipFile: TZipper;
+    {$ENDIF}
     // Variables used when compiling a package.
     // Only valid during compilation of the package.
     FCurrentOutputDir : String;
@@ -633,6 +635,7 @@ Type
     procedure SetDefaults(const AValue: TCustomDefaults);
     procedure SetStrings(AIndex : Integer; const AValue: TStrings);
     procedure SetOses(const AValue: TOSes);
+    procedure SearchFiles(FileName: string; Recursive: boolean; var List: TStrings);
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -658,6 +661,11 @@ Type
     Function Run : Boolean;
     Function AddTarget(AName : String) : TTarget;
     Procedure AddDependency(AName : String);
+    //files in package
+    procedure AddDocFiles(AFileMask: string; Recursive: boolean = False);
+    procedure AddSrcFiles(AFileMask: string; Recursive: boolean = False);
+    procedure AddExampleFiles(AFileMask: string; Recursive: boolean = False);
+    procedure AddTestFiles(AFileMask: string; Recursive: boolean = False);
     Property DefaultPackage : TPackage read FDefaultPackage write SetDefaultPackage;
     Property Packages : TPackages Read FPackages;
     Property Dependencies : TStrings Index 0 Read GetStrings Write SetStrings;
@@ -1120,6 +1128,74 @@ begin
   Exe:=Copy(S,1,I-1);
   Delete(S,1,I);
   Options:=Trim(S);
+end;
+
+function MatchesMask(What, Mask: string): boolean;
+
+  procedure FSplit(Path: string; var Dir: string; var Name: string; var Ext: string);
+  begin
+    Dir := ExtractFilePath(Path);
+    Ext := ExtractFileExt(Path);
+    Name := ExtractFileName(Path);
+    Name := Copy(Name, 1, Length(Name) - Length(Ext));
+  end;
+
+  Function CmpStr(const hstr1,hstr2:string):boolean;
+  var
+    found : boolean;
+    i1,i2 : integer;
+  begin
+    i1:=0;
+    i2:=0;
+    found:=true;
+    while found and (i1<length(hstr1)) and (i2<=length(hstr2)) do
+     begin
+       if found then
+        inc(i2);
+       inc(i1);
+       case hstr1[i1] of
+         '?' :
+           found:=true;
+         '*' :
+           begin
+             found:=true;
+             if (i1=length(hstr1)) then
+              i2:=length(hstr2)
+             else
+              if (i1<length(hstr1)) and (hstr1[i1+1]<>hstr2[i2]) then
+               begin
+                 if i2<length(hstr2) then
+                  dec(i1)
+               end
+             else
+              if i2>1 then
+               dec(i2);
+           end;
+         else
+           if (i1 > length(hstr1)) or (i2 > length(hstr2)) then
+             found := false
+           else
+             found:=(hstr1[i1]=hstr2[i2]) or (hstr2[i2]='?');
+       end;
+     end;
+    if found then
+      found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
+    CmpStr:=found;
+  end;
+
+var
+  D1,D2 : string;
+  N1,N2 : string;
+  E1,E2 : string;
+begin
+{$ifdef Unix}
+  FSplit(What,D1,N1,E1);
+  FSplit(Mask,D2,N2,E2);
+{$else}
+  FSplit(UpperCase(What),D1,N1,E1);
+  FSplit(UpperCase(Mask),D2,N2,E2);
+{$endif}
+  MatchesMask:=CmpStr(N2,N1) and CmpStr(E2,E1);
 end;
 
 { TNamedItem }
@@ -2139,6 +2215,38 @@ begin
   DefaultPackage.OS:=AValue;
 end;
 
+procedure TCustomInstaller.SearchFiles(FileName: string; Recursive: boolean;
+  var List: TStrings);
+
+  procedure AddRecursiveFiles(SearchDir, FileMask: string; Recursive: boolean);
+  var
+    Info : TSearchRec;
+  begin
+    if FindFirst(SearchDir+'*',faAnyFile and faDirectory,Info)=0 then
+    begin
+      repeat
+          if ((Info.Attr and faDirectory) = faDirectory) and (Info.Name <> '.') and (Info.Name <> '..') and (Recursive) then
+            AddRecursiveFiles(SearchDir + Info.Name + PathDelim, FileMask, Recursive);
+
+          if ((Info.Attr and faDirectory) <> faDirectory) and MatchesMask(Info.Name, FileMask) then
+            List.Add(SearchDir + Info.Name);
+      until FindNext(Info)<>0;
+    end;
+    FindClose(Info);
+  end;
+
+var
+  BasePath: string;
+  i: integer;
+begin
+  BasePath := ExtractFilePath(ExpandFileName(FileName));
+  AddRecursiveFiles(BasePath, ExtractFileName(FileName), Recursive);
+  
+  for i := 0 to Pred(List.Count) do
+    List[i] := ExtractRelativepath(ExtractFilePath(ParamStr(0)), List[i]);
+  
+end;
+
 procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
 begin
   If Level in FLogLevels then
@@ -2455,6 +2563,62 @@ procedure TCustomInstaller.AddDependency(AName: String);
 begin
   CheckDefaultPackage;
   DefaultPackage.AddDependency(AName);
+end;
+
+procedure TCustomInstaller.AddDocFiles(AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+
+  for i:= 0 to Pred(List.Count) do
+    FDefaultPackage.Sources.AddDocFiles(List[i]);
+
+  List.Free;
+end;
+
+procedure TCustomInstaller.AddSrcFiles(AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+
+  for i:= 0 to Pred(List.Count) do
+    FDefaultPackage.Sources.AddSrcFiles(List[i]);
+
+  List.Free;
+end;
+
+procedure TCustomInstaller.AddExampleFiles(AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+
+  for i:= 0 to Pred(List.Count) do
+    FDefaultPackage.Sources.AddExampleFiles(List[i]);
+
+  List.Free;
+end;
+
+procedure TCustomInstaller.AddTestFiles(AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+
+  for i:= 0 to Pred(List.Count) do
+    FDefaultPackage.Sources.AddTestFiles(List[i]);
+
+  List.Free;
 end;
 
 { TFPCInstaller }
@@ -3215,29 +3379,50 @@ end;
 
 procedure TBuildEngine.Archive(APackage: TPackage);
 Var
-  L : TStrings;
+  L : TStringList;
+  L2: TStringList;
   A : String;
   UnitsDir: string;
   BinDir: string;
+  i: integer;
 begin
   Log(vlInfo,SLogArchivingPackage,[APackage.Name]);
   DoBeforeArchive(Apackage);
   L:=TStringList.Create;
+  L2:=TStringList.Create;
   Try
+    //get all files
+    //from targets
     APackage.GetArchiveFiles(L, TargetDir, Defaults.OS);
+    //from sources
+    for i := 0 to Pred(APackage.Sources.Count) do
+      L.Add(APackage.Sources[i].Name);
+
+    //expand all filenames and ignore duplicates
+    L2.Sorted := True;
+    L2.Duplicates := dupIgnore;
+    for i := 0 to Pred(L.Count) do
+      L2.Add(L[i]);
+
     A:=APackage.FileName + ZipExt;
 
+    {$IFNDEF EXTERNALZIP}
     if not Assigned(ArchiveFilesProc) then
     begin
       FZipFile := TZipper.Create;
-      FZipFile.ZipFiles(A, L);
+      FZipFile.ZipFiles(A, L2);
     end
     else
-      CmdArchiveFiles(L,A);
+    {$ENDIF}
+      CmdArchiveFiles(L2,A);
   Finally
     L.Free;
+    L2.Free;
+
+    {$IFNDEF EXTERNALZIP}
     if not Assigned(ArchiveFilesProc) then
       FZipFile.Free;
+    {$ENDIF}
   end;
   Log(vlInfo, Format(SInfoArchiving, [APackage.Name]));
   DoAfterArchive(Apackage);
