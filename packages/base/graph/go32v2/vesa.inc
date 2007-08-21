@@ -2393,9 +2393,9 @@ Const
     ScanLines := GetMaxScanLines;
   end;
 
- procedure Init640x480x32k; {$ifndef fpc}far;{$endif fpc}
+ procedure Init1024x768x32k; {$ifndef fpc}far;{$endif fpc}
   begin
-    SetVESAMode(m640x480x32k);
+    SetVESAMode(m1024x768x32k);
     { Get maximum number of scanlines for page flipping }
     ScanLines := GetMaxScanLines;
   end;
@@ -2449,6 +2449,12 @@ Const
     ScanLines := GetMaxScanLines;
   end;
 
+ procedure Init640x480x32k; {$ifndef fpc}far;{$endif fpc}
+  begin
+    SetVESAMode(m640x480x32k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
+  end;
 
  procedure Init640x480x256; {$ifndef fpc}far;{$endif fpc}
   begin
