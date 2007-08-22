@@ -73,39 +73,120 @@ begin
 end;
 
 function RegEnumKeyExA(hKey:HKEY; dwIndex:DWORD; lpName:LPSTR; var cbName:DWORD; lpReserved:LPDWORD;lpClass:LPSTR; lpcbClass:LPDWORD; lpftLastWriteTime:PFILETIME):LONG;
-var  lpwsName,
-     lpwsClass: PWideChar;
+var
+  ClassBuf, NameBuf: array[0..255] of WideChar;
+  csz, nsz: DWORD;
 begin
- lpwsName:=PCharToPWideChar(lpName);
- lpwsClass:=PCharToPWideChar(lpClass);
- Result:=RegEnumKeyExW(hKey, dwIndex, lpwsName, cbName, lpReserved, lpwsClass, lpcbClass, lpftLastWriteTime);
- FreeMem(lpwsName); FreeMem(lpwsClass);
+ csz:=SizeOf(ClassBuf) div SizeOf(WideChar);
+ nsz:=SizeOf(NameBuf) div SizeOf(WideChar);
+ Result:=RegEnumKeyExW(hKey, dwIndex, NameBuf, nsz, lpReserved, ClassBuf, @csz, lpftLastWriteTime);
+ if cbName > nsz then
+   WideToAnsiBuf(NameBuf, nsz, lpName, cbName);
+ cbName:=nsz;
+ if (Result = 0) and (lpcbClass <> nil) then begin
+   if (lpClass <> nil) and (lpcbClass^ > csz) then
+     WideToAnsiBuf(ClassBuf, csz, lpClass, lpcbClass^);
+   lpcbClass^:=csz;
+ end;
 end;
 
 function RegEnumValueA(hKey:HKEY; dwIndex:DWORD; lpValueName:LPSTR; var cbValueName: DWORD; lpReserved:LPDWORD;lpType:LPDWORD; lpData:pointer; lpcbData:LPDWORD):LONG;
-var  lpwsValueName: PWideChar;
+var
+  t, sz, nsz: DWORD;
+  DataBuf: pointer;
+  NameBuf: array[0..255] of WideChar;
 begin
- lpwsValueName:=PCharToPWideChar(lpValueName);
- Result:=RegEnumValueW(hKey, dwIndex, lpwsValueName, @cbValueName, lpReserved, lpType, lpData, lpcbData);
- FreeMem(lpwsValueName);
+ if lpcbData <> nil then
+   sz:=lpcbData^
+ else
+   sz:=0;
+ if lpData <> nil then begin
+   sz:=sz*2;
+   GetMem(DataBuf, sz);
+ end
+ else
+   DataBuf:=nil;
+ nsz:=SizeOf(NameBuf) div SizeOf(WideChar);
+ Result:=RegEnumValueW(hKey, dwIndex, NameBuf, @nsz, lpReserved, @t, DataBuf, @sz);
+ if cbValueName > nsz then
+   WideToAnsiBuf(NameBuf, nsz, lpValueName, cbValueName);
+ cbValueName:=nsz;
+ if Result = 0 then begin
+   if lpType <> nil then
+     lpType^:=t;
+   if lpcbData <> nil then begin
+     if (lpData <> nil) and (t in [REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ]) then
+       sz:=WideCharToMultiByte(CP_ACP, 0, DataBuf, sz div SizeOf(WideChar), lpData, lpcbData^, nil, nil)
+     else begin
+       if sz > lpcbData^ then
+         Result:=ERROR_MORE_DATA
+       else
+         if lpData <> nil then
+           Move(DataBuf^, lpData^, sz);
+     end;
+     lpcbData^:=sz;
+   end;
+ end;
+ if DataBuf <> nil then
+   FreeMem(DataBuf);
 end;
 
 function RegQueryValueExA(hKey:HKEY; lpValueName:LPCSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:pointer;lpcbData:LPDWORD):LONG;
-var  lpwsValueName: PWideChar;
+var
+  lpwsValueName: PWideChar;
+  t, sz: DWORD;
+  DataBuf: pointer;
 begin
+ if lpcbData <> nil then
+   sz:=lpcbData^
+ else
+   sz:=0;
+ if lpData <> nil then begin
+   sz:=sz*2;
+   GetMem(DataBuf, sz);
+ end
+ else
+   DataBuf:=nil;
  lpwsValueName:=PCharToPWideChar(lpValueName);
- Result:=RegQueryValueExW(hKey, lpwsValueName, lpReserved, lpType, lpData, lpcbData);
+ Result:=RegQueryValueExW(hKey, lpwsValueName, lpReserved, @t, DataBuf, @sz);
  FreeMem(lpwsValueName);
+ if Result = 0 then begin
+   if lpType <> nil then
+     lpType^:=t;
+   if lpcbData <> nil then begin
+     if t in [REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ] then begin
+       sz:=sz div SizeOf(WideChar);
+       if lpData <> nil then
+         sz:=WideCharToMultiByte(CP_ACP, 0, DataBuf, sz, lpData, lpcbData^, nil, nil);
+     end
+     else begin
+       if sz > lpcbData^ then
+         Result:=ERROR_MORE_DATA
+       else
+         if lpData <> nil then
+           Move(DataBuf^, lpData^, sz);
+     end;
+     lpcbData^:=sz;
+   end;
+ end;
+ if DataBuf <> nil then
+   FreeMem(DataBuf);
 end;
 
 function RegQueryInfoKeyA(hKey:HKEY; lpClass:LPSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD;
   lpcbMaxValueLen:LPDWORD;lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG;
-var  lpwsClass: PWideChar;
+var
+  ClassBuf: array[0..255] of WideChar;
+  csz: DWORD;
 begin
- lpwsClass:=PCharToPWideChar(lpClass);
- Result:=RegQueryInfoKeyW(hKey, lpwsClass, lpcbClass, lpReserved, lpcSubKeys , lpcbMaxSubKeyLen, lpcbMaxClassLen,
-  lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
- FreeMem(lpwsClass);
+ csz:=SizeOf(ClassBuf) div SizeOf(WideChar);
+ Result:=RegQueryInfoKeyW(hKey, ClassBuf, @csz, lpReserved, lpcSubKeys , lpcbMaxSubKeyLen, lpcbMaxClassLen,
+                          lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
+ if (Result = 0) and (lpcbClass <> nil) then begin
+   if (lpClass <> nil) and (lpcbClass^ > csz) then
+     WideToAnsiBuf(ClassBuf, csz, lpClass, lpcbClass^);
+   lpcbClass^:=csz;
+ end;
 end;
 
 function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; var hkResult: HKEY):LONG;
@@ -117,11 +198,24 @@ begin
 end;
 
 function RegSetValueExA(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG;
-var  lpwsValueName: PWideChar;
+var
+  lpwsValueName: PWideChar;
+  DataBuf: pointer;
+  sz: DWORD;
 begin
  lpwsValueName:=PCharToPWideChar(lpValueName);
- Result:=RegSetValueExW(hKey, lpwsValueName, Reserved, dwType, lpData, cbData);
+ if dwType in [REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ] then begin
+   DataBuf:=PCharToPWideChar(lpData, cbData, @sz);
+   if (cbData > 0) and (PChar(lpData)[cbData - 1] <> #0) then
+     Inc(sz, SizeOf(WideChar));
+   cbData:=sz;
+ end
+ else
+   DataBuf:=lpData;
+ Result:=RegSetValueExW(hKey, lpwsValueName, Reserved, dwType, DataBuf, cbData);
  FreeMem(lpwsValueName);
+ if DataBuf <> nil then
+   FreeMem(DataBuf);
 end;
 
 {$endif read_implementation}
