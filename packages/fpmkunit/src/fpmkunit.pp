@@ -23,7 +23,7 @@ Interface
 
 uses
   {$IFNDEF EXTERNALZIP} zipper, {$ENDIF}
-  SysUtils, Classes;
+  SysUtils, Classes, StrUtils;
 
 Type
   TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
@@ -354,7 +354,6 @@ Type
     Procedure GetCleanFiles(List : TStrings; Const APrefixU, APrefixB : String; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix, APrefixU, APrefixB: String; AOS : TOS);
     Procedure GetArchiveFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
-    Procedure GetSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
     Property Version : String Read FVersion Write FVersion;
     Property FileName : String Read GetFileName Write FFileName;
@@ -1128,74 +1127,6 @@ begin
   Exe:=Copy(S,1,I-1);
   Delete(S,1,I);
   Options:=Trim(S);
-end;
-
-function MatchesMask(What, Mask: string): boolean;
-
-  procedure FSplit(Path: string; var Dir: string; var Name: string; var Ext: string);
-  begin
-    Dir := ExtractFilePath(Path);
-    Ext := ExtractFileExt(Path);
-    Name := ExtractFileName(Path);
-    Name := Copy(Name, 1, Length(Name) - Length(Ext));
-  end;
-
-  Function CmpStr(const hstr1,hstr2:string):boolean;
-  var
-    found : boolean;
-    i1,i2 : integer;
-  begin
-    i1:=0;
-    i2:=0;
-    found:=true;
-    while found and (i1<length(hstr1)) and (i2<=length(hstr2)) do
-     begin
-       if found then
-        inc(i2);
-       inc(i1);
-       case hstr1[i1] of
-         '?' :
-           found:=true;
-         '*' :
-           begin
-             found:=true;
-             if (i1=length(hstr1)) then
-              i2:=length(hstr2)
-             else
-              if (i1<length(hstr1)) and (hstr1[i1+1]<>hstr2[i2]) then
-               begin
-                 if i2<length(hstr2) then
-                  dec(i1)
-               end
-             else
-              if i2>1 then
-               dec(i2);
-           end;
-         else
-           if (i1 > length(hstr1)) or (i2 > length(hstr2)) then
-             found := false
-           else
-             found:=(hstr1[i1]=hstr2[i2]) or (hstr2[i2]='?');
-       end;
-     end;
-    if found then
-      found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
-    CmpStr:=found;
-  end;
-
-var
-  D1,D2 : string;
-  N1,N2 : string;
-  E1,E2 : string;
-begin
-{$ifdef Unix}
-  FSplit(What,D1,N1,E1);
-  FSplit(Mask,D2,N2,E2);
-{$else}
-  FSplit(UpperCase(What),D1,N1,E1);
-  FSplit(UpperCase(Mask),D2,N2,E2);
-{$endif}
-  MatchesMask:=CmpStr(N2,N1) and CmpStr(E2,E1);
 end;
 
 { TNamedItem }
@@ -1991,17 +1922,6 @@ begin
     FTargets.TargetItems[I].GetCleanFiles(List, APrefixU, APrefixB, AOS);
 end;
 
-procedure TPackage.GetSourceFiles(List: TStrings);
-
-Var
-  I : Integer;
-
-begin
-  // AddStrings(List,SourceFiles,APrefix);
-  For I:=0 to FSources.Count-1 do
-    FSources.SourceItems[I].GetSourceFiles(List);
-end;
-
 procedure TPackage.GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix, APrefixU, APrefixB: String; AOS : TOS);
 Var
   I : Integer;
@@ -2228,7 +2148,11 @@ procedure TCustomInstaller.SearchFiles(FileName: string; Recursive: boolean;
           if ((Info.Attr and faDirectory) = faDirectory) and (Info.Name <> '.') and (Info.Name <> '..') and (Recursive) then
             AddRecursiveFiles(SearchDir + Info.Name + PathDelim, FileMask, Recursive);
 
-          if ((Info.Attr and faDirectory) <> faDirectory) and MatchesMask(Info.Name, FileMask) then
+          {$IFDEF UNIX}
+          if ((Info.Attr and faDirectory) <> faDirectory) and IsWild(Info.Name, FileMask, False) then
+          {$ELSE}
+          if ((Info.Attr and faDirectory) <> faDirectory) and IsWild(Info.Name, FileMask, True) then
+          {$ENDIF}
             List.Add(SearchDir + Info.Name);
       until FindNext(Info)<>0;
     end;
@@ -3499,14 +3423,28 @@ Procedure TBuildEngine.GetSourceFiles(APackage : TPackage; List : TStrings);
 var
   L : TStrings;
   i : integer;
+  sXMLNode: string;
 begin
   try
     L:=TStringList.Create;
-    APackage.GetSourceFiles(L);
+    //APackage.GetSourceFiles(L);
 
     List.Add(Format('<sources packagename="%s">',[QuoteXml(APackage.Name)]));
-    for i:=0 to L.Count-1 do
-      List.Add(Format('<source>"%s"</source>',[QuoteXml(L[i])]));
+
+    for i := 0 to Pred(APackage.Sources.Count) do
+    begin
+      case APackage.Sources[i].SourceType of
+        stDoc: sXMLNode := '<source type="document">"%s"</source>';
+        stSrc: sXMLNode := '<source type="source">"%s"</source>';
+        stExample: sXMLNode := '<source type="example">"%s"</source>';
+        stTest: sXMLNode := '<source type="test">"%s"</source>';
+      else
+        sXMLNode := '<source type="unknown">"%s"</source>';
+      end;
+      
+      List.Add(Format(sXMLNode,[QuoteXml(APackage.Sources[i].Name)]));
+    end;
+    
     List.Add('</sources>');
   finally
     L.Free;
