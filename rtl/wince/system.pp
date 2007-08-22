@@ -74,7 +74,7 @@ const
 
 { ANSI <-> Wide }
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
-function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
+function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
 function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
 function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
 
@@ -333,10 +333,10 @@ begin
   Result:=Result*SizeOf(WideChar);
 end;
 
-function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
+function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
 begin
-  Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideBufLen, AnsiBuf, AnsiBufLen, nil, nil);
-  if ((WideBufLen <> -1) or (Result = 0)) and (AnsiBuf <> nil) then
+  Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideCharsLen, AnsiBuf, AnsiBufLen, nil, nil);
+  if ((WideCharsLen <> -1) or (Result = 0)) and (AnsiBuf <> nil) then
   begin
     if Result + 1 > AnsiBufLen then
     begin
@@ -345,7 +345,7 @@ begin
         exit;
     end;
     AnsiBuf[Result] := #0;
-    if (Result <> 0) or (WideBufLen = 0) then
+    if (Result <> 0) or (WideCharsLen = 0) then
       Inc(Result);
   end;
 end;
@@ -363,8 +363,10 @@ begin
     begin
       len:=len*SizeOf(WideChar);
       GetMem(Result, len);
-      if (AnsiToWideBuf(str, -1, Result, len) = 0) and (strlen <> -1) then
+      len:=AnsiToWideBuf(str, strlen, Result, len);
+      if (len = 0) and (strlen <> -1) then
       begin
+        FreeMem(Result);
         strlen:=-1;
         continue;
       end;
@@ -377,7 +379,7 @@ begin
     break;
   end;
   if outlen <> nil then
-    outlen^:=(len - 1)*SizeOf(WideChar);
+    outlen^:=len - SizeOf(WideChar);
 end;
 
 function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
