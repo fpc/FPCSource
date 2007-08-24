@@ -248,8 +248,13 @@ implementation
           '.text',
           '.data',
 { why doesn't .rodata work? (FK) }
+{ sometimes we have to create a data.rel.ro instead of .rodata, e.g. for  }
+{ vtables (and anything else containing relocations), otherwise those are }
+{ not relocated properly on e.g. linux/ppc64. g++ generates there for a   }
+{ vtable for a class called Window:                                       }
+{ .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
 {$warning TODO .rodata not yet working}
-{$if defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$if defined(arm) or defined(powerpc)}
           '.rodata',
 {$else arm}
           '.data',
