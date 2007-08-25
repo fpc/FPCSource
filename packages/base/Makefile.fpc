@@ -6,18 +6,18 @@
 dirs=hash paszlib pasjpeg regexpr netdb
 dirs_i386_linux=libc
 dirs_linux=gdbint libasync mysql ibase postgres oracle odbc \
-            pthreads sqlite graph imagemagick dbus httpd
-dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle graph imagemagick httpd winunits
+            pthreads sqlite imagemagick dbus httpd
+dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle imagemagick httpd winunits
 dirs_win64=mysql ibase odbc sqlite postgres oracle winunits
 dirs_wince=ibase sqlite postgres
-dirs_go32v2=gdbint graph
+dirs_go32v2=gdbint
 dirs_netbsd=gdbint libasync \
             mysql ibase postgres oracle odbc imagemagick httpd
 dirs_openbsd=gdbint libasync \
             mysql ibase postgres oracle odbc imagemagick httpd
-dirs_beos=gdbint libasync graph \
+dirs_beos=gdbint libasync \
              mysql ibase postgres odbc sqlite pthreads imagemagick
-dirs_freebsd=gdbint libasync graph \
+dirs_freebsd=gdbint libasync \
              mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 dirs_darwin=libasync \
              mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
