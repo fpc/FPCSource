@@ -349,7 +349,7 @@ scan_w_pic_ignored=02081_W_PIC directive or switch ignored
 % Several targets like windows do not support neither need PIC so the PIC directive and switch are
 % ignored.
 scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by the currently selected target
-% Some compiler switches like $E are not supported by all targets.
+% Some compiler switches like \$E are not supported by all targets.
 scan_w_frameworks_darwin_only=02084_W_Framework-related options are only supported for Darwin/Mac OS X
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
 % \end{description}
@@ -1419,9 +1419,9 @@ type_h_convert_mul_operands_to_prevent_overflow=04081_H_Converting the operands 
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
 type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may result in wrong comparison results and range errors, use an unsigned type instead.
-% The virtual address space on 32-bit machines runs from $00000000 to $ffffffff. Many operating systems allow you to
-% allocate memory above $80000000, for example both Windows and Linux allow pointers in the range $0000000 to $bfffffff.
-% If you convert pointers to signed types, this can cause overflow and range check errors, but also $80000000 < $7fffffff.
+% The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff. Many operating systems allow you to
+% allocate memory above \$80000000, for example both Windows and Linux allow pointers in the range \$0000000 to \$bfffffff.
+% If you convert pointers to signed types, this can cause overflow and range check errors, but also \$80000000 < \$7fffffff.
 % This can cause random errors in code like "if p>q".
 % \end{description}
 #
