@@ -6548,6 +6548,7 @@ tests/test/cg/tcalvar7.pp svneol=native#text/plain
 tests/test/cg/tcalvar8.pp svneol=native#text/plain
 tests/test/cg/tcalvar9.pp svneol=native#text/plain
 tests/test/cg/tcase.pp svneol=native#text/plain
+tests/test/cg/tcase2.pp svneol=native#text/plain
 tests/test/cg/tclacla1.pp svneol=native#text/plain
 tests/test/cg/tclasize.pp svneol=native#text/plain
 tests/test/cg/tclatype.pp svneol=native#text/plain

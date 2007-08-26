@@ -79,28 +79,28 @@ implementation
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
-            i : aint;
+            i : TConstExprInt;
           begin
             if assigned(t^.less) then
               genitem(list,t^.less);
             { fill possible hole }
-            i:=last.svalue+1;
+            i:=last+1;
             while i<=t^._low-1 do
               begin
 		if (target_info.system<>system_powerpc64_darwin) then
                   list.concat(Tai_const.Create_sym(elselabel))
                 else
                   list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,elselabel));
-                inc(i);
+                i:=i+1;
               end;
-            i:=t^._low.svalue;
+            i:=t^._low;
             while i<=t^._high do
               begin
 		if (target_info.system<>system_powerpc64_darwin) then
                   list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)))
                 else
                   list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,blocklabel(t^.blockid)));
-                inc(i);
+                i:=i+1;
               end;
             last:=t^._high;
             if assigned(t^.greater) then
@@ -131,7 +131,7 @@ implementation
         else
           mulfactor:=4;
         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, mulfactor, indexreg);
-        reference_reset_symbol(href, table, (-aint(min_)) * tcgsize2size[OS_ADDR]);
+        reference_reset_symbol(href, table, (-aint(min_)) * mulfactor);
 
         if (target_info.system<>system_powerpc64_darwin) then
           begin
