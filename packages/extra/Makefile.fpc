@@ -3,7 +3,7 @@
 #
 [target]
 dirs=chm
-dirs_linux=unzip zlib fftw graph \
+dirs_linux=unzip zlib fftw \
            x11 opengl gtk gtk2 syslog \
            forms svgalib ggi libpng libgd \
            utmp bfd gdbm ncurses tcl cdrom \
@@ -11,10 +11,13 @@ dirs_linux=unzip zlib fftw graph \
            ldap openal mad oggvorbis a52 \
            modplug dts openssl pcap libcurl cairo \
            unixutil
-dirs_i386_linux=lua sdl
-dirs_x86_64_linux=sdl
-dirs_i386_win32=lua
-dirs_powerpc_linux=sdl
+dirs_i386_linux=lua sdl graph
+dirs_x86_64_linux=sdl graph
+dirs_powerpc_linux=sdl graph
+dirs_powerpc64_linux=graph
+dirs_sparc_linux=graph
+dirs_arm_linux=graph
+dirs_m68k_linux=graph
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \

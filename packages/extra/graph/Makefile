@@ -255,40 +255,49 @@ GRAPHUNIT_DIR=unix
 UNIXINCDEPS=$(UNIXINC)/graph16.inc
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
+override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) sdlgraph
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_UNITS+=graph
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=graph wincrt winmouse
+override TARGET_UNITS+=graph wincrt winmouse sdlgraph
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=graph $(GGIGRAPH_UNIT)
+override TARGET_UNITS+=graph $(GGIGRAPH_UNIT) sdlgraph
+endif
+ifeq ($(FULL_TARGET),i386-darwin)
+override TARGET_UNITS+=sdlgraph
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=graph $(GGIGRAPH_UNIT)
+override TARGET_UNITS+=graph $(GGIGRAPH_UNIT) sdlgraph
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_UNITS+=graph
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
+override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) sdlgraph
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_UNITS+=graph
+endif
+ifeq ($(FULL_TARGET),powerpc-darwin)
+override TARGET_UNITS+=sdlgraph
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
+override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) sdlgraph
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=graph $(GGIGRAPH_UNIT)
+override TARGET_UNITS+=graph $(GGIGRAPH_UNIT) sdlgraph
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+override TARGET_UNITS+=sdlgraph
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
@@ -1704,18 +1713,27 @@ endif
 override REQUIRE_PACKAGES=rtl 
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
@@ -1740,6 +1758,9 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
@@ -1764,6 +1785,9 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1785,6 +1809,9 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1797,6 +1824,9 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
@@ -1818,12 +1848,21 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PTHREADS=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_SDL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1882,6 +1921,84 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_PTHREADS
+PACKAGEDIR_PTHREADS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /pthreads/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_PTHREADS),)
+ifneq ($(wildcard $(PACKAGEDIR_PTHREADS)/units/$(TARGETSUFFIX)),)
+UNITDIR_PTHREADS=$(PACKAGEDIR_PTHREADS)/units/$(TARGETSUFFIX)
+else
+UNITDIR_PTHREADS=$(PACKAGEDIR_PTHREADS)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_PTHREADS)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_PTHREADS) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_PTHREADS)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_PTHREADS=
+UNITDIR_PTHREADS:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /pthreads/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PTHREADS),)
+UNITDIR_PTHREADS:=$(firstword $(UNITDIR_PTHREADS))
+else
+UNITDIR_PTHREADS=
+endif
+endif
+ifdef UNITDIR_PTHREADS
+override COMPILER_UNITDIR+=$(UNITDIR_PTHREADS)
+endif
+endif
+ifdef REQUIRE_PACKAGES_X11
+PACKAGEDIR_X11:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /x11/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_X11),)
+ifneq ($(wildcard $(PACKAGEDIR_X11)/units/$(TARGETSUFFIX)),)
+UNITDIR_X11=$(PACKAGEDIR_X11)/units/$(TARGETSUFFIX)
+else
+UNITDIR_X11=$(PACKAGEDIR_X11)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_X11)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_X11) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_X11)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_X11=
+UNITDIR_X11:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /x11/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_X11),)
+UNITDIR_X11:=$(firstword $(UNITDIR_X11))
+else
+UNITDIR_X11=
+endif
+endif
+ifdef UNITDIR_X11
+override COMPILER_UNITDIR+=$(UNITDIR_X11)
+endif
+endif
+ifdef REQUIRE_PACKAGES_SDL
+PACKAGEDIR_SDL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /sdl/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_SDL),)
+ifneq ($(wildcard $(PACKAGEDIR_SDL)/units/$(TARGETSUFFIX)),)
+UNITDIR_SDL=$(PACKAGEDIR_SDL)/units/$(TARGETSUFFIX)
+else
+UNITDIR_SDL=$(PACKAGEDIR_SDL)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_SDL)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_SDL) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_SDL)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_SDL=
+UNITDIR_SDL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /sdl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_SDL),)
+UNITDIR_SDL:=$(firstword $(UNITDIR_SDL))
+else
+UNITDIR_SDL=
+endif
+endif
+ifdef UNITDIR_SDL
+override COMPILER_UNITDIR+=$(UNITDIR_SDL)
 endif
 endif
 ifndef NOCPUDEF
@@ -2485,4 +2602,6 @@ winmouse$(PPUEXT) : win32/winmouse.pp graph$(PPUEXT)
 	$(COMPILER) win32/winmouse.pp
 wincrt$(PPUEXT) : win32/wincrt.pp graph$(PPUEXT)
 	$(COMPILER) win32/wincrt.pp
+sdlgraph$(PPUEXT) : sdlgraph/sdlgraph.pp $(GRAPHINCDEPS)
+	$(COMPILER) -I$(GRAPHDIR) sdlgraph/sdlgraph.pp
 .NOTPARALLEL:

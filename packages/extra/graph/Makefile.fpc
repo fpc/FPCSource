@@ -8,10 +8,18 @@ version=2.1
 
 [require]
 libc=y
+packages_linux_i386=sdl
+packages_linux_x86_64=sdl
+packages_linux_powerpc=sdl
+packages_freebsd=sdl
+packages_win32=sdl
+packages_win64=sdl
+packages_darwin_powerpc=sdl
+packages_darwin_i386=sdl
 
 # clean package units
 [clean]
-units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT)
+units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT) 
 
 [target]
 dirs=
@@ -21,6 +29,14 @@ units_freebsd=graph $(GGIGRAPH_UNIT)
 units_win32=graph wincrt winmouse
 units_go32v2=graph
 units_amiga=graph
+units_i386_linux=sdlgraph
+units_x86_64_linux=sdlgraph
+units_powerpc_linux=sdlgraph
+units_freebsd=sdlgraph
+units_win32=sdlgraph
+units_win64=sdlgraph
+units_powerpc_darwin=sdlgraph
+units_i386_darwin=sdlgraph
 
 [compiler]
 options=-S2
@@ -87,4 +103,8 @@ winmouse$(PPUEXT) : win32/winmouse.pp graph$(PPUEXT)
 wincrt$(PPUEXT) : win32/wincrt.pp graph$(PPUEXT)
         $(COMPILER) win32/wincrt.pp
 
+sdlgraph$(PPUEXT) : sdlgraph/sdlgraph.pp $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) sdlgraph/sdlgraph.pp
+
 .NOTPARALLEL:
+
