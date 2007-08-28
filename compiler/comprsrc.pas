@@ -255,7 +255,7 @@ type
 
 var
   fs: TCFileStream;
-  i, sz, rsz, IconCount, CursorCount: longint;
+  i, sz, rsz, MaxIconID, MaxCursorID: longint;
   hdr: TResHeader;
   P: pointer;
   PData: PIconHeader;
@@ -289,8 +289,8 @@ begin
       else
         fs.Seek(32, soFromBeginning);
       sz:=fs.Size;
-      IconCount := 0;
-      CursorCount := 0;
+      MaxIconID := 0;
+      MaxCursorID := 0;
       repeat
         fs.ReadBuffer(hdr, SizeOf(hdr));
         FOut.WriteBuffer(hdr, SizeOf(hdr));
@@ -312,13 +312,15 @@ begin
                 if ResNameBuf[0] = $FFFF then   { resource name is ordinal }
                   if hdr.ResTypeID = 1 then
                     begin
+                      if ResNameBuf[1] > MaxCursorID then
+                        MaxCursorID:=ResNameBuf[1];
                       Inc(ResNameBuf[1], FLastCursorID);
-                      Inc(CursorCount);
                     end
                   else
                     begin
+                      if ResNameBuf[1] > MaxIconID then
+                        MaxIconID:=ResNameBuf[1];
                       Inc(ResNameBuf[1], FLastIconID);
-                      Inc(IconCount);
                     end;
                 FOut.WriteBuffer(ResNameBuf, SizeOf(ResNameBuf));
                 Dec(rsz, SizeOf(ResNameBuf));
@@ -355,8 +357,8 @@ begin
           fs.Seek(i, soFromCurrent);
       until fs.Position + SizeOf(hdr) >= sz;
       fs.Free;
-      Inc(FLastCursorID, CursorCount);
-      Inc(FLastIconID, IconCount);
+      Inc(FLastCursorID, MaxCursorID);
+      Inc(FLastIconID, MaxIconID);
     except
       on E:EOSError do begin
         Comment(V_Error,'Error processing resource file: '+fn+': '+E.Message);
