@@ -250,12 +250,10 @@ implementation
                          doconv:=basedefconvertsimplicit[basedeftbl[torddef(def_from).ordtype],basedeftbl[torddef(def_to).ordtype]];
                         if (doconv=tc_not_possible) then
                           eq:=te_incompatible
-                        else
+                        else if (not is_in_limit(def_from,def_to)) then
                           { "punish" bad type conversions :) (JM) }
-                          if (not is_in_limit(def_from,def_to)) and
-                             (def_from.size > def_to.size) then
-                            eq:=te_convert_l3
-                        else
+                          eq:=te_convert_l3
+                         else
                           eq:=te_convert_l1;
                       end;
                    end;
