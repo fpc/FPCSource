@@ -28,6 +28,7 @@ uses
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
+{$DEFINE HAS_TEMPDIR}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -787,6 +788,15 @@ begin
       Result:=Result+'Config\';
     Result:=Result+ApplicationName+ConfigExtension;
     end;
+end;
+
+Function GetTempDir(Global : Boolean) : String;
+var
+  buf: widestring;
+begin
+  SetLength(buf, MAX_PATH);
+  SetLength(buf, GetTempPath(Length(buf) + 1, PWideChar(buf)));
+  Result:=buf;
 end;
 
 {****************************************************************************
