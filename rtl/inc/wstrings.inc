@@ -747,9 +747,7 @@ begin
   else
     i := high(arr)+1;
   SetLength(fpc_WideCharArray_To_WideStr,i);
-  Move(pwidechar(@arr)^, PWideChar(Pointer(@fpc_WideCharArray_To_WideStr[1]))^,i*sizeof(WideChar));
-  { Terminating Zero }
-  PWideChar(Pointer(@fpc_WideCharArray_To_WideStr[1])+i*sizeof(WideChar))^:=#0;
+  Move(arr[0], Pointer(fpc_WideCharArray_To_WideStr)^,i*sizeof(WideChar));
 end;
 
 {$ifndef FPC_STRTOCHARARRAYPROC}
