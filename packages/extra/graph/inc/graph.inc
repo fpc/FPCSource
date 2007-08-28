@@ -2114,7 +2114,7 @@ begin
  { This installs an exit procedure which cleans up the mode list...}
  ExitSave := ExitProc;
  ExitProc := @GraphExitProc;
-{$ifdef win32}
+{$if defined(win32) and not defined(sdlgraph)}
  charmessagehandler:=nil;
-{$endif win32}
+{$endif win32 and not sdlgraph}
 end;

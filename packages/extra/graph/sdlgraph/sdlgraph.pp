@@ -146,6 +146,8 @@ uses {$ifdef unix}cthreads,{$endif}
 const
   InternalDriverName = 'SDL';
 
+{$define sdlgraph}
+
 {$i graph.inc}
 
 var
