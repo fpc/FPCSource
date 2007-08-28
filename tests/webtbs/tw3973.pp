@@ -128,7 +128,7 @@ var
     Writeln(Format('high of int64 is: %d', [Longlong]), ' ', IntToHex(Longlong, 16));
     {$IFDEF FPC}
     Quad := High(Quad);
-    Writeln(Format('high of quadword is: %u', [Quad]), ' ', IntToHex(Quad, 16));
+    Writeln(Format('high of quadword is: %u', [Quad]), ' ', IntToHex(int64(Quad), 16));
     {$ENDIF}
   end;
 
