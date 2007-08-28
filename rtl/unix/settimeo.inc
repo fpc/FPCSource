@@ -28,7 +28,7 @@ end;
 
 function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 begin
-  fpsettimeofday:=do_SysCall(Syscall_nr_settimeofday,TSysParam(@tp),TSysParam(tzp));
+  fpsettimeofday:=do_SysCall(Syscall_nr_settimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
 {$endif}
