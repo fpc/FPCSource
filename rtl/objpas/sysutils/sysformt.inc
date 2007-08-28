@@ -318,7 +318,7 @@ begin
                    index:=31;
                  end;
               If Prec>index then
-                ToAdd:=HexStr(vq,index)
+                ToAdd:=HexStr(int64(vq),index)
               else
                 begin
                 // determine minimum needed number of hex digits.
@@ -327,7 +327,7 @@ begin
                   inc(Index);
                 If Index>Prec then
                   Prec:=Index;
-                ToAdd:=HexStr(vq,Prec);
+                ToAdd:=HexStr(int64(vq),Prec);
                 end;
               end;
         '%': ToAdd:='%';
