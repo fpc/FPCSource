@@ -39,7 +39,10 @@ type
     totalhigh: culong;                 //* Total high memory size */
     freehigh: culong;                  //* Available high memory size */
     mem_unit: cuint;                   //* Memory unit size in bytes */
+{$ifndef cpu64}
+    { the upper bound of the array below is negative for 64 bit cpus }
     _f: array[0..19-2*sizeof(clong)-sizeof(cint)] of cChar;  //* Padding: libc5 uses this.. */
+{$endif cpu64}
   end;
   PSysInfo = ^TSysInfo;
 
