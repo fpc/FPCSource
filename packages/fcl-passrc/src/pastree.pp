@@ -68,7 +68,8 @@ type
     visPublished, visAutomated);
 
   TPasMemberVisibilities = set of TPasMemberVisibility;
-
+  TPasMemberHint = (hDeprecated,hLibrary,hPlatform);
+  TPasMemberHints = set of TPasMemberHint; 
 
   TPTreeElement = class of TPasElement;
 
@@ -77,6 +78,7 @@ type
     FRefCount: LongWord;
     FName: string;
     FParent: TPasElement;
+    FHints : TPasMemberHints;
   public
     SourceFilename: string;
     SourceLinenumber: Integer;
@@ -92,6 +94,7 @@ type
     property RefCount: LongWord read FRefCount;
     property Name: string read FName write FName;
     property Parent: TPasElement read FParent;
+    Property Hints : TPasMemberHints Read FHints Write FHints;
   end;
 
   TPasSection = class(TPasElement)

@@ -108,6 +108,7 @@ type
       AParent: TPasElement): TPasElement;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
+    Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
   public
     Options : set of TPOptions;
     constructor Create(AScanner: TPascalScanner; AFileResolver: TFileResolver;
@@ -296,6 +297,38 @@ function TPasParser.ParseType(Parent: TPasElement): TPasType;
 
 begin
   Result:=ParseType(Parent,'');
+end;
+
+Function TPasParser.CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
+
+Var
+  Found : Boolean;
+
+begin
+  Result:=[];
+  Repeat
+    NextToken;
+    Found:=CompareText(CurTokenString,'deprecated')=0;
+    If Found then
+      Include(Result,hDeprecated)
+    else
+     begin
+     Found:=CompareText(CurTokenString,'library')=0;
+     if Found then
+       Include(Result,hLibrary)
+     else 
+       begin
+       Found:=CompareText(CurTokenString,'platform')=0;
+       If Found then
+         Include(Result,hPlatform);
+       end;
+     end;
+  Until Not Found;
+  UnGetToken;
+  If Assigned(Element) then
+    Element.Hints:=Result;
+  if ExpectSemiColon then
+    ExpectToken(tkSemiColon);  
 end;
 
 function TPasParser.ParseType(Parent: TPasElement; Prefix : String): TPasType;
@@ -858,7 +891,7 @@ begin
 
     ExpectToken(tkEqual);
     Result.Value := ParseExpression;
-    ExpectToken(tkSemicolon);
+    CheckHint(Result,True);
   except
     Result.Free;
     raise;
@@ -872,7 +905,7 @@ begin
   try
     ExpectToken(tkEqual);
     Result.Value := ParseExpression;
-    ExpectToken(tkSemicolon);
+    CheckHint(Result,True);
   except
     Result.Free;
     raise;
@@ -891,7 +924,7 @@ var
       TPasRangeType(Result).RangeStart := ParseExpression;
       ExpectToken(tkDotDot);
       TPasRangeType(Result).RangeEnd := ParseExpression;
-      ExpectToken(tkSemicolon);
+      CheckHint(Result,True);
     except
       Result.Free;
       raise;
@@ -923,7 +956,7 @@ begin
           Parent));
         try
           ParseRecordDecl(TPasRecordType(Result), False);
-	  ExpectToken(tkSemicolon);
+	  CheckHint(Result,True);
           TPasRecordType(Result).IsPacked := HadPackedModifier;
         except
           Result.Free;
@@ -950,7 +983,7 @@ begin
           Parent));
         try
           TPasPointerType(Result).DestType := ParseType(nil);
-          ExpectToken(tkSemicolon);
+          CheckHint(Result,True);
         except
           Result.Free;
           raise;
@@ -975,7 +1008,7 @@ begin
             Parent));
           try
             TPasAliasType(Result).DestType := ParseType(nil,Prefix);
-            ExpectToken(tkSemicolon);
+            CheckHint(Result,True);
           except
             Result.Free;
             raise;
@@ -990,7 +1023,7 @@ begin
               TPasUnresolvedTypeRef.Create(CurTokenString, Parent);
             ParseExpression;
             ExpectToken(tkSquaredBraceClose);
-            ExpectToken(tkSemicolon);
+            CheckHint(Result,True);
           except
             Result.Free;
             raise;
@@ -1007,7 +1040,7 @@ begin
         Result := TPasFileType(CreateElement(TPasFileType, TypeName, Parent));
         Try
           ParseFileType(TPasFileType(Result));
-          ExpectToken(tkSemicolon);
+          CheckHint(Result,True);
         Except
           Result.free;
           Raise;
@@ -1019,7 +1052,7 @@ begin
         try
           ParseArrayType(TPasArrayType(Result));
           TPasArrayType(Result).IsPacked := HadPackedModifier;
-          ExpectToken(tkSemicolon);
+          CheckHint(Result,True);
         except
           Result.Free;
           raise;
@@ -1031,7 +1064,7 @@ begin
         try
           ExpectToken(tkOf);
           TPasSetType(Result).EnumType := ParseType(Result);
-          ExpectToken(tkSemicolon);
+          CheckHint(Result,True);
         except
           Result.Free;
           raise;
@@ -1062,7 +1095,7 @@ begin
             else if not (CurToken=tkComma) then
               ParseExc(SParserExpectedCommaRBracket)
           end;
-          ExpectToken(tkSemicolon);
+          CheckHint(Result,True);
         except
           Result.Free;
           raise;
@@ -1098,7 +1131,7 @@ begin
           Parent));
         try
           TPasTypeAliasType(Result).DestType := ParseType(nil);
-          ExpectToken(tkSemicolon);
+          CheckHint(Result,True);
         except
           Result.Free;
           raise;
@@ -1126,6 +1159,8 @@ var
   i: Integer;
   VarType: TPasType;
   VarEl: TPasVariable;
+  H : TPasMemberHints;
+  
 begin
   VarNames := TStringList.Create;
   try
@@ -1143,16 +1178,19 @@ begin
 
     VarType := ParseComplexType;
 
+    H:=CheckHint(Nil,False);
+    NextToken;
+
     for i := 0 to VarNames.Count - 1 do
     begin
       VarEl := TPasVariable(CreateElement(TPasVariable, VarNames[i], Parent,
         AVisibility));
       VarEl.VarType := VarType;
+      VarEl.Hints:=H;
       if i > 0 then
         VarType.AddRef;
       VarList.Add(VarEl);
     end;
-    NextToken;
     // Records may be terminated with end, no semicolon
     if (CurToken <> tkEnd) and (CurToken <> tkSemicolon) and not
       (ClosingBrace and (CurToken = tkBraceClose)) then
@@ -1169,6 +1207,8 @@ var
   VarType: TPasType;
   Value, S: String;
   M: string;
+  H : TPasMemberHints;
+  
 begin
   while True do
   begin
@@ -1215,7 +1255,10 @@ begin
   end else
     UngetToken;
 
-  ExpectToken(tkSemicolon);
+  H:=CheckHint(Nil,True);
+  If (H<>[]) then
+    for i := 0 to List.Count - 1 do
+      TPasVariable(List[i]).Hints:=H;
   M := '';
   while True do
   begin
@@ -1252,7 +1295,12 @@ begin
             M := M + CurTokenText
           else
             ParseExc(SParserSyntaxError);
-          ExpectToken(tkSemicolon);
+          H:=CheckHint(Nil,True);
+          If (H<>[]) then
+            for i := 0 to List.Count - 1 do
+              TPasVariable(List[i]).Hints:=H;
+          
+          // ExpectToken(tkSemicolon);
           end
         else if CurToken <> tkSemicolon then
           ParseExc(SParserSyntaxError);
@@ -1440,6 +1488,7 @@ begin
 
   while True do
     begin
+    // CheckHint(Element,False);
     NextToken;
     if (CurToken = tkIdentifier) then
       begin
@@ -1487,6 +1536,19 @@ begin
       else if (tok='DEPRECATED') then  
         begin
 {       El['calling-conv'] := 'deprecated';}
+        element.hints:=element.hints+[hDeprecated];
+        ExpectToken(tkSemicolon);
+        end
+      else if (tok='PLATFORM') then  
+        begin
+{       El['calling-conv'] := 'deprecated';}
+        element.hints:=element.hints+[hPlatform];
+        ExpectToken(tkSemicolon);
+        end
+      else if (tok='LIBRARY') then  
+        begin
+{       El['calling-conv'] := 'deprecated';}
+        element.hints:=element.hints+[hLibrary];
         ExpectToken(tkSemicolon);
         end
       else if (tok='OVERLOAD') then
@@ -1547,6 +1609,7 @@ begin
       break;
       end;
     end;
+     
 end;
 
 
@@ -1703,6 +1766,7 @@ begin
     end;
 
 //!!  there may be DEPRECATED token
+    CheckHint(Element,False);
     NextToken;
     
   end;
