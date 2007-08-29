@@ -869,7 +869,7 @@ implementation
     procedure ttempcreatenode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'size = ',size,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'size = ',size,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 
 
@@ -1004,7 +1004,7 @@ implementation
     procedure ttemprefnode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 
 
@@ -1118,7 +1118,7 @@ implementation
     procedure ttempdeletenode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 
 begin
