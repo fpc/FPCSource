@@ -241,7 +241,8 @@ const
   SO_LINGER       = $0080;          { linger on close if data present }
   SO_OOBINLINE    = $0100;          { leave received OOB data in line }
 
-  SO_DONTLINGER  =   $ff7f;
+  SO_DONTLINGER       = Integer(not SO_LINGER)
+  SO_EXCLUSIVEADDRUSE = Integer(not SO_REUSEADDR) { disallow local address reuse }
 
 { Additional options. }
 
@@ -285,14 +286,18 @@ const
         SO_GROUP_ID = $2001; // ID of a socket group
         SO_GROUP_PRIORITY = $2002; // the relative priority within a group
         SO_MAX_MSG_SIZE = $2003; // maximum message size
-        SO_Protocol_InfoA = $2004; // WSAPROTOCOL_INFOA structure
-        SO_Protocol_InfoW = $2005; // WSAPROTOCOL_INFOW structure
+        SO_PROTOCOL_INFOA = $2004; // WSAPROTOCOL_INFOA structure
+        SO_PROTOCOL_INFOW = $2005; // WSAPROTOCOL_INFOW structure
 {$IFDEF UNICODE}
-        SO_Protocol_Info = SO_Protocol_InfoW;
+        SO_PROTOCOL_INFO = SO_PROTOCOL_INFOW;
 {$ELSE}
-        SO_Protocol_Info = SO_Protocol_InfoA;
+        SO_PROTOCOL_INFO = SO_PROTOCOL_INFOA;
 {$ENDIF}
         PVD_CONFIG = $3001; // configuration info for service provider
+        SO_CONDITIONAL_ACCEPT = $3002;   { enable true conditional accept: 
+                                           connection is not ack-ed to the 
+                                           other side until conditional 
+                                           function returns CF_ACCEPT }
 
 { Address families. }
   AF_UNSPEC       = 0;               { unspecified }
@@ -319,10 +324,18 @@ const
   AF_FIREFOX      = 19;              { FireFox }
   AF_UNKNOWN1     = 20;              { Somebody is using this! }
   AF_BAN          = 21;              { Banyan }
-        AF_ATM          = 22; // Native ATM Services
-        AF_INET6        = 23; // Internetwork Version 6
+  AF_ATM          = 22;              { Native ATM Services }
+  AF_INET6        = 23;              { Internetwork Version 6 }
+  AF_CLUSTER      = 24;              { Microsoft Wolfpack }
+  AF_12844        = 25;              { IEEE 1284.4 WG AF }
+  AF_IRDA         = 26;              { IrDA }
+  AF_NETDES       = 28;              { Network Designers OSI & gateway
+                                            enabled protocols }
+  AF_TCNPROCESS   = 29;
+  AF_TCNMESSAGE   = 30;
+  AF_ICLFXBM      = 31;
 
-        AF_MAX = 24;
+  AF_MAX          = 32;
 
 {       Socket I/O Controls }
 {Const
@@ -359,6 +372,13 @@ const
   PF_BAN          = AF_BAN;
   PF_ATM          = AF_ATM;
   PF_INET6        = AF_INET6;
+  PF_CLUSTER      = AF_CLUSTER;
+  PF_12844        = AF_12844;
+  PF_IRDA         = AF_IRDA;
+  PF_NETDES       = AF_NETDES;
+  PF_TCNPROCESS   = AF_TCNPROCESS;
+  PF_TCNMESSAGE   = AF_TCNMESSAGE; 
+  PF_ICLFXBM      = AF_ICLFXBM;
 
   PF_MAX          = AF_MAX;
 
@@ -442,7 +462,7 @@ const
   INADDR_NONE      = $FFFFFFFF;
 
   { options for socket level  }
-  SOL_SOCKET = $ffff;
+  SOL_SOCKET      = $ffff;
 
   MSG_OOB         = $1;             {process out-of-band data }
   MSG_PEEK        = $2;             {peek at incoming message }
