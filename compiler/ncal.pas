@@ -1006,7 +1006,12 @@ implementation
                   begin
                     case parasym.varspez of
                       vs_out :
-                        set_varstate(left,vs_readwritten,[]);
+                        begin
+                          { first set written separately to avoid false }
+                          { uninitialized warnings (tbs/tb0542)         }
+                          set_varstate(left,vs_written,[]);
+                          set_varstate(left,vs_readwritten,[]);
+                        end;
                       vs_var :
                         set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
                       else
