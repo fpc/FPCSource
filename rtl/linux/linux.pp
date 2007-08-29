@@ -25,21 +25,25 @@ uses
   ctypes;
 
 type
-  TSysinfo = packed record
-    uptime    : longint;
-    loads     : array[1..3] of longint;
-    totalram,
-    freeram,
-    sharedram,
-    bufferram,
-    totalswap,
-    freeswap  : longint;
-    procs     : integer;
-    s         : string[18];
+  SysInfo = record
+    uptime: clong;                     //* Seconds since boot */
+    loads: array[0..2] of culong;      //* 1, 5, and 15 minute load averages */
+    totalram: culong;                  //* Total usable main memory size */
+    freeram: culong;                   //* Available memory size */
+    sharedram: culong;                 //* Amount of shared memory */
+    bufferram: culong;                 //* Memory used by buffers */
+    totalswap: culong;                 //* Total swap space size */
+    freeswap: culong;                  //* swap space still available */
+    procs: cushort;                    //* Number of current processes */
+    pad: cushort;                      //* explicit padding for m68k */
+    totalhigh: culong;                 //* Total high memory size */
+    freehigh: culong;                  //* Available high memory size */
+    mem_unit: cuint;                   //* Memory unit size in bytes */
+    _f: array[0..19-2*sizeof(clong)-sizeof(cint)] of cChar;  //* Padding: libc5 uses this.. */
   end;
   PSysInfo = ^TSysInfo;
 
-function Sysinfo(var Info:TSysinfo):Boolean; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
+function Sysinfo(Info: PSysinfo): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
 
 const
   CSIGNAL              = $000000ff; // signal mask to be sent at exit
@@ -294,13 +298,10 @@ implementation
 {$ifndef FPC_USE_LIBC}
 Uses Syscall;
 
-Function Sysinfo(var Info:TSysinfo):Boolean;
-{
-  Get system info
-}
-Begin
-  Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,TSysParam(@info))=0;
-End;
+function Sysinfo(Info: PSysinfo): cInt;
+begin
+  Sysinfo := do_SysCall(SysCall_nr_Sysinfo, TSysParam(info));
+end;
 
 {$ifdef clone_implemented}
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
