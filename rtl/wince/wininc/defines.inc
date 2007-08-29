@@ -2614,6 +2614,7 @@
      TPM_LEFTBUTTON = 0;
      TPM_RIGHTBUTTON = $2;
      TPM_HORIZONTAL = 0;
+     TPM_BOTTOMALIGN = $20;
      TPM_VERTICAL = $40;
   { TranslateCharsetInfo  }
      TCI_SRCCHARSET = 1;
