@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=a52
-override PACKAGE_VERSION=2.2.0
+override PACKAGE_VERSION=2.2.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=a52
 endif

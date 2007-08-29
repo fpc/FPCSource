@@ -5,7 +5,7 @@
 
 [package]
 name=gdbint
-version=2.2.0
+version=2.2.1
 
 [target]
 units=gdbint gdbcon

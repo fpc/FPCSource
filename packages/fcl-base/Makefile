@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl-base
-override PACKAGE_VERSION=2.2.0
+override PACKAGE_VERSION=2.2.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll  process resolve ssockets fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp
 endif

@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=gtk2
-override PACKAGE_VERSION=2.2.0
+override PACKAGE_VERSION=2.2.1
 ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin ),)
 GDK2X=gdk2x
 GTK2X11=gtk2x11
