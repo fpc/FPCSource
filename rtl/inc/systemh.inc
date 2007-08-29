@@ -564,6 +564,9 @@ Function  binStr(Val:Longint;cnt:byte):shortstring;
 Function  hexStr(Val:int64;cnt:byte):shortstring;
 Function  OctStr(Val:int64;cnt:byte):shortstring;
 Function  binStr(Val:int64;cnt:byte):shortstring;
+Function  hexStr(Val:qword;cnt:byte):shortstring;
+Function  OctStr(Val:qword;cnt:byte):shortstring;
+Function  binStr(Val:qword;cnt:byte):shortstring;
 Function  hexStr(Val:Pointer):shortstring;
 
 { Char functions }

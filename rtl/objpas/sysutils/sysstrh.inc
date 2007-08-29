@@ -107,6 +107,7 @@ function IntToStr(Value: Int64): string;
 function IntToStr(Value: QWord): string;
 function IntToHex(Value: integer; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
+function IntToHex(Value: QWord; Digits: integer): string;
 function StrToInt(const s: string): integer;
 function TryStrToInt(const s: string; var i : integer) : boolean;
 function StrToInt64(const s: string): int64;

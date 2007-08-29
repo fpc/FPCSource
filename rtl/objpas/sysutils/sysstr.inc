@@ -752,6 +752,10 @@ begin
  end;
 end ;
 
+function IntToHex(Value: QWord; Digits: integer): string;
+begin
+  result:=IntToHex(Int64(Value),Digits);
+end;
 
 function TryStrToInt(const s: string; var i : integer) : boolean;
 var Error : word;

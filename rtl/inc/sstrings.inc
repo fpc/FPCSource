@@ -314,6 +314,24 @@ begin
 end;
 
 
+Function  hexStr(Val:qword;cnt:byte):shortstring;
+begin
+  hexStr:=hexStr(int64(Val),cnt);
+end;
+
+
+Function  OctStr(Val:qword;cnt:byte):shortstring;
+begin
+  OctStr:=OctStr(int64(Val),cnt);
+end;
+
+
+Function  binStr(Val:qword;cnt:byte):shortstring;
+begin
+  binStr:=binStr(int64(Val),cnt);
+end;
+
+
 function hexstr(val : pointer) : shortstring;
 var
   i : longint;
