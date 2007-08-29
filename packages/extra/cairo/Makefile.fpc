@@ -6,7 +6,7 @@ packages=x11 fcl-image
 
 [package]
 name=cairo
-version=2.1.4
+version=2.2.0
 
 [target]
 units=cairo
