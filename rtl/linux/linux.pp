@@ -25,7 +25,7 @@ uses
   ctypes;
 
 type
-  SysInfo = record
+  TSysInfo = record
     uptime: clong;                     //* Seconds since boot */
     loads: array[0..2] of culong;      //* 1, 5, and 15 minute load averages */
     totalram: culong;                  //* Total usable main memory size */
