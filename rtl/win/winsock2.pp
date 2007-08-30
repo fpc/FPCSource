@@ -241,8 +241,8 @@ const
   SO_LINGER       = $0080;          { linger on close if data present }
   SO_OOBINLINE    = $0100;          { leave received OOB data in line }
 
-  SO_DONTLINGER       = Integer(not SO_LINGER)
-  SO_EXCLUSIVEADDRUSE = Integer(not SO_REUSEADDR) { disallow local address reuse }
+  SO_DONTLINGER       = Integer(not SO_LINGER);
+  SO_EXCLUSIVEADDRUSE = Integer(not SO_REUSEADDR); { disallow local address reuse }
 
 { Additional options. }
 
