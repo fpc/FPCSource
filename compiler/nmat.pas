@@ -120,6 +120,12 @@ implementation
                 end;
                 exit;
               end;
+            if tordconstnode(right).value = 0 then
+              begin
+                Message(parser_e_division_by_zero);
+                { recover }
+                tordconstnode(right).value := 1;
+              end;
           end;
 
         if is_constintnode(right) and is_constintnode(left) then
@@ -183,13 +189,8 @@ implementation
          { check for division by zero }
          if is_constintnode(right) then
            begin
+             { division by zero is already checked in simplify }
              rv:=tordconstnode(right).value;
-             if (rv=0) then
-               begin
-                 Message(parser_e_division_by_zero);
-                 { recover }
-                 rv:=1;
-               end;
             end;
 
          { if one operand is a cardinal and the other is a positive constant, convert the }
