@@ -194,8 +194,8 @@ type
 
     function GetCurColumn: Integer;
   protected
-    procedure Error(const Msg: string);
-    procedure Error(const Msg: string; Args: array of Const);
+    procedure Error(const Msg: string);overload;
+    procedure Error(const Msg: string; Args: array of Const);overload;
     function DoFetchToken: TToken;
   public
     Options : set of TPOptions;
