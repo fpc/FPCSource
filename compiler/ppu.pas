@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=83;
+  CurrentPPUVersion=84;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -125,6 +125,8 @@ const
   ibnodetree       = 80;
   ibasmsymbols     = 81;
   ibresources      = 82;
+  { target-specific things }
+  iblinkotherframeworks = 100;
 
 { unit flags }
   uf_init          = $1;
