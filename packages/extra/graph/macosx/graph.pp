@@ -20,6 +20,7 @@ uses
   { the ones in the universal interfaces                              }
   cthreads, FPCMacOSAll;
 
+{$linkframework Carbon}
 
 type
   TGraphProgram = function(p: pointer): longint;
@@ -273,6 +274,8 @@ begin
       exit;
     end;
     CGColorSpaceRelease( colorSpace );
+    { disable anti-aliasing }
+    CGContextTranslateCTM(CreateBitmapContext,0.5,-0.5);
 end;
 
 
@@ -409,13 +412,13 @@ begin
           end;
         32678:
           begin
-            CGContextSetRGBFillColor(offscreen,((color and $7ffff) shr 10) shl 3,((color shr 5) and 31) shl 3,(color and 31) shl 3,1);
-            CGContextSetRGBStrokeColor(offscreen,((color and $7ffff) shr 10) shl 3,((color shr 5) and 31) shl 3,(color and 31) shl 3,1);
+            CGContextSetRGBFillColor(offscreen,((color and $7ffff) shr 10)/31.0,((color shr 5) and 31)/31.0,(color and 31)/31.0,1);
+            CGContextSetRGBStrokeColor(offscreen,((color and $7ffff) shr 10)/31.0,((color shr 5) and 31)/31.0,(color and 31)/31.0,1);
           end;
         65536:
           begin
-            CGContextSetRGBFillColor(offscreen,(word(color) shr 11) shl 3,((word(color) shr 5) and 63) shl 2,(color and 31) shl 3,1);
-            CGContextSetRGBStrokeColor(offscreen,(word(color) shr 11) shl 3,((word(color) shr 5) and 63) shl 2,(color and 31) shl 3,1);
+            CGContextSetRGBFillColor(offscreen,(word(color) shr 11)/31.0,((word(color) shr 5) and 63)/63.0,(color and 31)/31.0,1);
+            CGContextSetRGBStrokeColor(offscreen,(word(color) shr 11)/31.0,((word(color) shr 5) and 63)/63.0,(color and 31)/31.0,1);
           end;
         else
           runerror(218);
@@ -496,9 +499,12 @@ begin
     Color:=CurrentColor;
   end;
   q_SetColor(Color);
-//  writeln('direct: (',x,',',y,') := ',color);
   EnterCriticalSection(graphdrawing);
-  CGContextStrokeRect(offscreen,CGRectMake(x-0.5,y-0.5,0.5,0.5));
+  CGContextBeginPath(offscreen);
+  CGContextMoveToPoint(offscreen,x,y);
+  CGContextAddLineToPoint(offscreen,x,y);
+  CGContextClosePath(offscreen);
+  CGContextStrokePath(offscreen);
   UpdateScreen;
   LeaveCriticalSection(graphdrawing);
 end;
@@ -508,9 +514,12 @@ begin
   if Not ClipCoords(X,Y) Then
     exit;
   q_setcolor(Color);
-//  writeln('regular: (',x,',',y,') := ',color);
   EnterCriticalSection(graphdrawing);
-  CGContextStrokeRect(offscreen,CGRectMake(x-0.5,y-0.5,0.5,0.5));
+  CGContextBeginPath(offscreen);
+  CGContextMoveToPoint(offscreen,x,y);
+  CGContextAddLineToPoint(offscreen,x,y);
+  CGContextClosePath(offscreen);
+  CGContextStrokePath(offscreen);
   UpdateScreen;
   LeaveCriticalSection(graphdrawing);
 end;
@@ -520,14 +529,14 @@ type
   pbyte = ^byte;
 var
   p: pbyte;
-  rsingle, gsingle, bsingle: single;
+  rsingle, gsingle, bsingle, dist, closest: single;
   count: longint;
   red, green, blue: byte;
 begin
  if not ClipCoords(X,Y) then
    exit;
  p := pbyte(CGBitmapContextGetData(offscreen));
- y:=maxy-y-1;
+ y:=maxy-(y-1);
  inc(p,(y*(maxx+1)+x)*4);
  red:=p^;
  green:=(p+1)^;
@@ -535,23 +544,29 @@ begin
  case maxcolor of
    16, 256:
      begin
-       rsingle:=red/252.0;
-       gsingle:=green/252.0;
-       bsingle:=blue/252.0;
-       for count := 0 to maxcolor-1 do
-         if (abs(colorpalette[count,1]-rsingle) < 1/64.0) and
-            (abs(colorpalette[count,2]-gsingle) < 1/64.0) and
-            (abs(colorpalette[count,3]-bsingle) < 1/64.0) then
-           begin
-             q_getpixelproc:=count;
-             exit;
-           end;
+       { find closest color using least squares }
+       rsingle:=red/255.0;
+       gsingle:=green/255.0;
+       bsingle:=blue/255.0;
+       closest:=255.0;
        q_getpixelproc:=0;
+       for count := 0 to maxcolor-1 do
+         begin
+           dist:=sqr(colorpalette[count,1]-rsingle) +
+                sqr(colorpalette[count,2]-gsingle) +
+                sqr(colorpalette[count,3]-bsingle);
+           if (dist < closest) then
+             begin
+               closest:=dist;
+               q_getpixelproc:=count;
+             end;
+         end;
+       exit;
      end;
    32678:
-     q_getpixelproc:=(red shl 7) or (green shl 2) or (blue shr 3);
+     q_getpixelproc:=((red div 8) shl 7) or ((green div 8) shl 2) or (blue div 8);
    65536:
-     q_getpixelproc:=(red shl 8) or (green shl 3) or (blue shr 3);
+     q_getpixelproc:=((red div 8) shl 8) or ((green div 4) shl 3) or (blue div 8);
  end;
 end;
 
@@ -714,17 +729,16 @@ end;
 procedure q_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: smallint);
 begin
   { vga is only 6 bits per channel, palette values go from 0 to 252 }
-  { the anti-aliasing darkens most stuff though, so pump up brightness a bit }
-  colorpalette[ColorNum,1]:=RedValue * (1.0/249.0);
-  colorpalette[ColorNum,2]:=GreenValue * (1.0/249.0);
-  colorpalette[ColorNum,3]:=BlueValue * (1.0/249.0);
+  colorpalette[ColorNum,1]:=RedValue * (1.0/252.0);
+  colorpalette[ColorNum,2]:=GreenValue * (1.0/252.0);
+  colorpalette[ColorNum,3]:=BlueValue * (1.0/252.0);
 end;
 
 procedure q_getrgbpaletteproc (ColorNum: smallint; var RedValue, GreenValue, BlueValue: smallint);
 begin
-  RedValue:=trunc(colorpalette[ColorNum,1]*249.0);
-  GreenValue:=trunc(colorpalette[ColorNum,2]*249.0);
-  BlueValue:=trunc(colorpalette[ColorNum,3]*249.0);
+  RedValue:=trunc(colorpalette[ColorNum,1]*252.0);
+  GreenValue:=trunc(colorpalette[ColorNum,2]*252.0);
+  BlueValue:=trunc(colorpalette[ColorNum,3]*252.0);
 end;
 
 
@@ -788,7 +802,7 @@ begin
       _GraphResult:=grNoLoadMem;
       exit;
     end;
-//  CGContextSetShouldAntialias(offscreen,0);
+  CGContextSetShouldAntialias(offscreen,0);
 
   if (CreateHIView(myMainWindow,contentRect,graphHIView) <> noErr) then
     begin
