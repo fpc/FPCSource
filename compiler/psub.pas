@@ -156,9 +156,10 @@ implementation
 
     procedure check_finalize_locals(p:TObject;arg:pointer);
       begin
+        { include the result: it needs to be finalized in case an exception }
+        { occurs                                                            }
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
-           not(vo_is_funcret in tlocalvarsym(p).varoptions) and
            not(is_class(tlocalvarsym(p).vardef)) and
            tlocalvarsym(p).vardef.needs_inittable then
           include(current_procinfo.flags,pi_needs_implicit_finally);
