@@ -37,6 +37,7 @@ begin
 end;
 
 begin
+ HaltOnNotReleased := true;
  testproc;
  writeln('refcount b 0: ',pinteger(pchar(pointer(ar2[0].stack)-8))^);
  writeln('refcount b 1: ',pinteger(pchar(pointer(ar2[1].stack)-8))^);

@@ -11,6 +11,7 @@ uses
 var
  CheckThread : TCheckConnThread;
 begin
+  HaltOnNotReleased := true;
   CheckThread := TCheckConnThread.Create(false);
   CheckThread.Terminate;
   CheckThread.Waitfor;

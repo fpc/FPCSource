@@ -51,5 +51,6 @@ begin
 end;
 
 begin
+   HaltOnNotReleased := true;
   TestLeak;
 end.

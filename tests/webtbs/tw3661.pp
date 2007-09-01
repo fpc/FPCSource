@@ -9,5 +9,6 @@ uses
   Classes;
 
 begin
+ HaltOnNotReleased := true;
  writeln('abc');
 end.

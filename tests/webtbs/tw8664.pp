@@ -9,5 +9,6 @@ end;
 
 
 begin
+  HaltOnNotReleased := true;
   TLResourceListAdd(['Value1']);
 end.

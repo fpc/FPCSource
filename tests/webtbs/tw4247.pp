@@ -7,6 +7,7 @@ program project1;
 var
  po1,po2: pointer;
 begin
+ HaltOnNotReleased := true;
  getmem(po1,500);
  getmem(po2,500);
  reallocmem(po1,400);
