@@ -326,6 +326,13 @@ interface
        tprocinfoflags=set of tprocinfoflag;
 
     type
+      { float types }
+      tfloattype = (
+        s32real,s64real,s80real,
+        s64comp,s64currency,s128real
+      );
+
+    type
        TIDString = string[maxidlen];
 
        tnormalset = set of byte; { 256 elements set }
@@ -360,7 +367,7 @@ interface
     const
        { link options }
        link_none    = $0;
-       link_always = $1;
+       link_always  = $1;
        link_static  = $2;
        link_smart   = $4;
        link_shared  = $8;

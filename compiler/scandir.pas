@@ -824,6 +824,15 @@ implementation
          end;
       end;
 
+
+    procedure dir_minfpconstprec;
+      begin
+        current_scanner.skipspace;
+        if not SetMinFPConstPrec(current_scanner.readid,current_settings.minfpconstprec) then
+          Message1(scan_e_illegal_minfpconstprec, pattern);
+      end;
+
+
     procedure dir_packrecords;
       var
         hs : string;
@@ -1321,6 +1330,7 @@ implementation
         AddDirective('MEMORY',directive_all, @dir_memory);
         AddDirective('MESSAGE',directive_all, @dir_message);
         AddDirective('MINENUMSIZE',directive_all, @dir_packenum);
+        AddDirective('MINFPCONSTPREC',directive_all, @dir_minfpconstprec);
         AddDirective('MINSTACKSIZE',directive_all, @dir_minstacksize);
         AddDirective('MMX',directive_all, @dir_mmx);
         AddDirective('MODE',directive_all, @dir_mode);

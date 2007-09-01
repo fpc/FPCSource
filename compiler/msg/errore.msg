@@ -352,6 +352,8 @@ scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by 
 % Some compiler switches like \$E are not supported by all targets.
 scan_w_frameworks_darwin_only=02084_W_Framework-related options are only supported for Darwin/Mac OS X
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
+scan_e_illegal_minfpconstprec=02085_E_Illegal minimal floating point constant precision "$1"
+% Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
 % \end{description}
 #
 # Parser
@@ -2497,6 +2499,7 @@ S*2Aas_Assemble using GNU AS
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
 **2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
+**2CF<x>_Minimal floating point constant precision (default, 32, 64)
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking

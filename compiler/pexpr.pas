@@ -2414,9 +2414,11 @@ implementation
                 end;
                consume(_REALNUMBER);
 {$ifdef FPC_REAL2REAL_FIXED}
-               if (d = single(d)) then
+               if (current_settings.minfpconstprec=s32real) and
+                  (d = single(d)) then
                  p1:=crealconstnode.create(d,s32floattype)
-               else if (d = double(d)) then
+               else if (current_settings.minfpconstprec=s64real) and
+                       (d = double(d)) then
                  p1:=crealconstnode.create(d,s64floattype)
                else
 {$endif FPC_REAL2REAL_FIXED}
