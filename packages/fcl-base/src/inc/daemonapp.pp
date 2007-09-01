@@ -669,7 +669,7 @@ end;
 Function TCustomDaemon.UnInstall : Boolean;
 begin
   Result:=True;
-  Application.SysInstallDaemon(Self);
+  Application.SysUnInstallDaemon(Self);
 end;
 
 function TCustomDaemon.HandleCustomCode(ACode: DWord): Boolean;
