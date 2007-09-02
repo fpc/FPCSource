@@ -22,7 +22,7 @@ unit Linux;
 interface
 
 uses
-  ctypes;
+  BaseUnix;//, ctypes;
 
 type
   TSysInfo = record
@@ -295,6 +295,28 @@ const CAP_CHOWN            = 0;
 
       LINUX_CAPABILITY_VERSION = $19980330;
 
+
+//***********************************************SPLICE from kernel 2.6.17+****************************************
+
+const
+{* Flags for SPLICE and VMSPLICE.  *}
+  SPLICE_F_MOVE		= 1;   { Move pages instead of copying.  }
+  SPLICE_F_NONBLOCK	= 2;   {* Don't block on the pipe splicing
+                            (but we may still block on the fd
+                                        we splice from/to).  *}
+  SPLICE_F_MORE	    = 4;   {* Expect more data.  *}
+  SPLICE_F_GIFT	    = 8;   {* Pages passed in are a gift.  *}
+
+{$ifdef x86}
+{* Splice address range into a pipe.  *}
+function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'vmsplice'; {$ENDIF}
+
+{* Splice two files together.  *}
+// NOTE: offin and offout should be "off64_t" but we don't have that type. It's an "always 64 bit offset" so I use cint64
+function splice (fdin: cInt; offin: cInt64; fdout: cInt; offout: cInt64; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'splice'; {$ENDIF}
+
+{$endif} // x86
+
 implementation
 
 
@@ -416,6 +438,21 @@ begin
   capset:=do_syscall(syscall_nr_capset,Tsysparam(header),Tsysparam(data));
 end;
 
+// TODO: update also on non x86!
+{$ifdef x86} // didn't update syscall_nr on others yet
+
+function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt;
+begin
+  vmsplice := do_syscall(syscall_nr_vmsplice, TSysParam(fdout), TSysParam(iov), TSysParam(count), TSysParam(flags));
+end;
+
+function splice (fdin: cInt; offin: cint64; fdout: cInt; offout: cint64; len: size_t; flags: cuInt): cInt; 
+begin
+  splice := do_syscall(syscall_nr_splice, TSysParam(fdin), TSysParam(offin), TSysParam(fdout), TSysParam(offout), 
+                       TSysParam(len), TSysParam(flags));
+end;
+{$endif} // x86
+
 {$endif}
 
 { FUTEX_OP is a macro, doesn't exist in libC as function}
@@ -423,6 +460,5 @@ function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inli
 begin
   FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
 end;
-
 
 end.
