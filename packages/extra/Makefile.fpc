@@ -9,9 +9,8 @@ dirs_linux=unzip zlib fftw \
            utmp bfd gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
            ldap openal mad oggvorbis a52 \
-           modplug dts openssl pcap libcurl cairo \
-           unixutil
-dirs_i386_linux=lua sdl graph
+           modplug dts openssl pcap libcurl cairo
+dirs_i386_linux=unixutil lua sdl graph
 dirs_x86_64_linux=sdl graph
 dirs_powerpc_linux=sdl graph
 dirs_powerpc64_linux=graph
