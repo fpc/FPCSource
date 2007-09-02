@@ -492,13 +492,19 @@ begin
                            include(init_settings.moduleswitches,cs_fp_emulation);
                        end;
 {$endif cpufpemu}
-                   'f' :
-                     begin
-                       s:=upper(copy(more,j+1,length(more)-j));
-                       if not(SetFpuType(s,init_settings.fputype)) then
-                         IllegalPara(opt);
-                       break;
-                     end;
+                    'f' :
+                      begin
+                        s:=upper(copy(more,j+1,length(more)-j));
+                        if not(SetFpuType(s,init_settings.fputype)) then
+                          IllegalPara(opt);
+                        break;
+                      end;
+                    'F' :
+                       begin
+                         if not SetMinFPConstPrec(copy(more,j+1,length(more)-j),init_settings.minfpconstprec) then
+                           IllegalPara(opt);
+                         break;
+                       end;
                     'g' :
                        if tf_no_pic_supported in target_info.flags then
                          message(scan_w_pic_ignored)
