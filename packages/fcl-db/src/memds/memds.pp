@@ -606,12 +606,12 @@ begin
  end;
  FIsOpen:=False;
  FFileModified:=False;
- BindFields(False);
+ // BindFields(False);
  if DefaultFields then begin
   DestroyFields;
  end;
- FreeAndNil(FFieldOffsets);
- FreeAndNil(FFieldSizes);
+ FreeMem(FFieldOffsets);
+ FreeMem(FFieldSizes);
 end;
 
 procedure TMemDataset.InternalPost;
