@@ -2472,6 +2472,9 @@ implementation
                 addstatement(tempinfo^.createstatement,tempnode);
                 addstatement(tempinfo^.deletestatement,ctempdeletenode.create(tempnode));
               end;
+            { inherit addr_taken flag }
+            if (tabstractvarsym(p).addr_taken) then
+              include(tempnode.tempinfo^.flags,ti_addr_taken);
             inlinelocals[indexnr] := ctemprefnode.create(tempnode);
           end;
       end;
@@ -2629,6 +2632,9 @@ implementation
 
                     tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                     addstatement(createstatement,tempnode);
+                    { inherit addr_taken flag }
+                    if (tabstractvarsym(para.parasym).addr_taken) then
+                      include(tempnode.tempinfo^.flags,ti_addr_taken);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
                     {  only need a temprefnode, so delete the old stuff)                                   }
@@ -2657,6 +2663,9 @@ implementation
                   begin
                     tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
                     addstatement(createstatement,tempnode);
+                    { inherit addr_taken flag }
+                    if (tabstractvarsym(para.parasym).addr_taken) then
+                      include(tempnode.tempinfo^.flags,ti_addr_taken);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create_internal(para.left)));
                     para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resultdef);

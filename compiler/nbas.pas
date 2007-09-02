@@ -94,11 +94,12 @@ interface
 
        ttempcreatenode = class;
 
-       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,ti_is_inlined_result);
+       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,ti_is_inlined_result,
+        ti_addr_taken);
        ttempinfoflags = set of ttempinfoflag;
 
 const
-       tempinfostoreflags = [ti_may_be_in_reg,ti_is_inlined_result];
+       tempinfostoreflags = [ti_may_be_in_reg,ti_is_inlined_result,ti_addr_taken];
 
 type
        { to allow access to the location by temp references even after the temp has }

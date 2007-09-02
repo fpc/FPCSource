@@ -119,10 +119,15 @@ interface
 
        tabstractvarsym = class(tstoredsym)
           varoptions    : tvaroptions;
+          notifications : Tlinkedlist;
           varspez       : tvarspez;  { sets the type of access }
           varregable    : tvarregable;
           varstate      : tvarstate;
-          notifications : Tlinkedlist;
+          { Has the address of this variable potentially escaped the }
+          { block in which is was declared?                          }
+          { could also be part of tabstractnormalvarsym, but there's }
+          { one byte left here till the next 4 byte alignment        }
+          addr_taken     : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -922,6 +927,7 @@ implementation
          varstate:=vs_readwritten;
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
+         addr_taken:=boolean(ppufile.getbyte);
          ppufile.getderef(vardefderef);
          ppufile.getsmallset(varoptions);
       end;
@@ -964,6 +970,7 @@ implementation
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
+         ppufile.putbyte(byte(addr_taken));
          ppufile.do_crc:=oldintfcrc;
          ppufile.putderef(vardefderef);
          ppufile.putsmallset(varoptions);

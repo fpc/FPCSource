@@ -687,19 +687,28 @@ implementation
                else
                  make_not_regable_intern(ttypeconvnode(p).left,how,records_only);
             loadn :
-              if (tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) and
-                 (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
-                 ((not records_only) or
-                  (tabstractvarsym(tloadnode(p).symtableentry).vardef.typ = recorddef)) then
-                if (tloadnode(p).symtableentry.typ = paravarsym) then
-                  tabstractvarsym(tloadnode(p).symtableentry).varregable:=how
-                else
-                  tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
+              if (tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
+                begin
+                  { this is overly conservative (make_not_regable is also called in }
+                  { other situations), but it avoids having to do this all over the }
+                  { the compiler                                                     }
+                  tabstractvarsym(tloadnode(p).symtableentry).addr_taken:=true;
+                  if (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
+                     ((not records_only) or
+                      (tabstractvarsym(tloadnode(p).symtableentry).vardef.typ = recorddef)) then
+                    if (tloadnode(p).symtableentry.typ = paravarsym) then
+                      tabstractvarsym(tloadnode(p).symtableentry).varregable:=how
+                    else
+                      tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
+                end;
             temprefn :
-              if (ti_may_be_in_reg in ttemprefnode(p).tempinfo^.flags) and
-                 ((not records_only) or
-                  (ttemprefnode(p).tempinfo^.typedef.typ = recorddef)) then
-                exclude(ttemprefnode(p).tempinfo^.flags,ti_may_be_in_reg);
+              begin
+                include(ttemprefnode(p).tempinfo^.flags,ti_addr_taken);
+                if (ti_may_be_in_reg in ttemprefnode(p).tempinfo^.flags) and
+                   ((not records_only) or
+                    (ttemprefnode(p).tempinfo^.typedef.typ = recorddef)) then
+                  exclude(ttemprefnode(p).tempinfo^.flags,ti_may_be_in_reg);
+              end;
          end;
       end;
 
