@@ -352,7 +352,7 @@ type TArgSet = set of 0..31;
 
 function MsgToSet(const Msg, FileName: string; var R: TArgSet): Boolean;
   var
-    i, j, num : integer;
+    i, j,l, num : integer;
     code : word;
   begin
     R:=[];
@@ -360,9 +360,9 @@ function MsgToSet(const Msg, FileName: string; var R: TArgSet): Boolean;
     for i:=1 to Length(Msg) do
       if Msg[i]='$' then
       begin
-        j:=i+1;
-        while Msg[j] in ['0'..'9'] do Inc(j);
-        if j > i+1 then
+        j:=i+1; l:=length(msg)+1;
+        while (j<l) and (Msg[j] in ['0'..'9']) do Inc(j);
+        if j = l then
         begin
           val(copy(Msg,i+1,j-i-1),num,code);
           if num > high(TArgSet) then begin
