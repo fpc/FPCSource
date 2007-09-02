@@ -1919,14 +1919,14 @@ end;
 
     procedure TLinkedList.clear;
       var
-        NewNode : TLinkedListItem;
+        NewNode, Next : TLinkedListItem;
       begin
         NewNode:=FFirst;
         while assigned(NewNode) do
          begin
-           FFirst:=NewNode.Next;
+           Next:=NewNode.Next;
            NewNode.Free;
-           NewNode:=FFirst;
+           NewNode:=Next;
           end;
         FLast:=nil;
         FFirst:=nil;
