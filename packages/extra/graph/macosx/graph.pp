@@ -105,7 +105,8 @@ const
   kEventClassFPCGraph = $46504367; // 'FPCg'
   kEventInitGraph     = $496E6974; // 'Init'
   kEventFlush         = $466c7368; // 'Flsh'
-  kEventCloseGraph     = $446f6e65; // 'Done'
+  kEventCloseGraph    = $446f6e65; // 'Done'
+  kEventQuit          = $51756974; // 'Quit'
   
   kEventGraphInited   = $49746564 ; // Ited;
   kEventGraphClosed   = $436c6564 ; // Cled;
@@ -113,9 +114,10 @@ const
 //  initGraphSpec  : EventTypeSpec = (eventClass: kEventClassFPCGraph; eventKind: kEventInitGraph);
 //  flushGraphSpec : EventTypeSpec = (eventClass: kEventClassFPCGraph; eventKind: kEventFlush);
 //  closeGraphSpec  : EventTypeSpec = (eventClass: kEventClassFPCGraph; eventKind: kEventCloseGraph);
-  allGraphSpec: array[0..2] of EventTypeSpec = ((eventClass: kEventClassFPCGraph; eventKind: kEventInitGraph),
+  allGraphSpec: array[0..3] of EventTypeSpec = ((eventClass: kEventClassFPCGraph; eventKind: kEventInitGraph),
                                                 (eventClass: kEventClassFPCGraph; eventKind: kEventFlush),
-                                                (eventClass: kEventClassFPCGraph; eventKind: kEventCloseGraph));
+                                                (eventClass: kEventClassFPCGraph; eventKind: kEventCloseGraph),
+                                                (eventClass: kEventClassFPCGraph; eventKind: kEventQuit));
 
   GraphInitedSpec: array[0..0] of EventTypeSpec = ((eventClass: kEventClassFPCGraph; eventKind: kEventGraphInited));
   GraphClosedSpec: array[0..0] of EventTypeSpec = ((eventClass: kEventClassFPCGraph; eventKind: kEventGraphClosed));
@@ -255,7 +257,7 @@ begin
   bitmapBytesPerRow   := (pixelsWide * 4);// always draw in 24 bit colour (+ 8 bit alpha)
   bitmapByteCount     := (bitmapBytesPerRow * pixelsHigh);
 
-  colorSpace := CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);// 2
+  colorSpace := CGColorSpaceCreateDeviceRGB;// 2
   bitmapData := getmem ( bitmapByteCount );// 3
   if (bitmapData = nil) then
     exit;
@@ -275,7 +277,7 @@ begin
     end;
     CGColorSpaceRelease( colorSpace );
     { disable anti-aliasing }
-    CGContextTranslateCTM(CreateBitmapContext,0.5,-0.5);
+    CGContextTranslateCTM(CreateBitmapContext,0.5,0.5);
 end;
 
 
@@ -361,9 +363,9 @@ function MyDrawEventHandler (myHandler: EventHandlerCallRef;
     CGContextDrawImage(myContext,
                        bounds,
                        img);
-    CGImageRelease(img);
     updatepending:=false;
     LeaveCriticalSection(graphdrawing);
+    CGImageRelease(img);
 end;
 
 
@@ -426,8 +428,6 @@ begin
       LeaveCriticalSection(graphdrawing);
       lastcolor:=color;
     end
-//  else
-//    writeln('color was already set: ',color);
 end;
 
 
@@ -536,7 +536,7 @@ begin
  if not ClipCoords(X,Y) then
    exit;
  p := pbyte(CGBitmapContextGetData(offscreen));
- y:=maxy-(y-1);
+ y:=maxy-y;
  inc(p,(y*(maxx+1)+x)*4);
  red:=p^;
  green:=(p+1)^;
@@ -575,7 +575,7 @@ procedure q_clrviewproc;
 begin
   q_SetColor(CurrentBkColor);
   EnterCriticalSection(graphdrawing);
-  CGContextFillRect(offscreen,CGRectMake(StartXViewPort,StartYViewPort,ViewWidth,ViewHeight));
+  CGContextFillRect(offscreen,CGRectMake(StartXViewPort,StartYViewPort,ViewWidth+1,ViewHeight+1));
   UpdateScreen;
   LeaveCriticalSection(graphdrawing);
   { reset coordinates }
@@ -625,7 +625,7 @@ begin
       y1 := y1 + StartYViewPort;
       y2 := y2 + StartYViewPort;
       if ClipPixels then
-        if LineClipped(x1,y2,x2,y2,StartXViewPort,StartYViewPort,
+        if LineClipped(x1,y1,x2,y2,StartXViewPort,StartYViewPort,
                        StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
            exit;
       if (CurrentWriteMode = NotPut) then
@@ -661,7 +661,7 @@ begin
       y1 := y1 + StartYViewPort;
       y2 := y2 + StartYViewPort;
       if ClipPixels then
-        if LineClipped(x1,y2,x2,y2,StartXViewPort,StartYViewPort,
+        if LineClipped(x1,y1,x2,y2,StartXViewPort,StartYViewPort,
                        StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
            exit;
       if (CurrentWriteMode = NotPut) then
@@ -773,13 +773,13 @@ begin
                         or kWindowNoUpdatesAttribute; 
 
   SetRect (contentRect, 0,  0,
-                         MaxX, MaxY);
+                         MaxX+1, MaxY+1);
   
   CreateNewWindow (kDocumentWindowClass, windowAttrs,// 3
                          contentRect, myMainWindow);
   
   SetRect (contentRect, 0,  50,
-                         MaxX, 50+MaxY);
+                         MaxX+1, 51+MaxY);
   
   SetWindowBounds(myMainWindow,kWindowContentRgn,contentrect);
   titleKey    := CFSTR('Graph Window'); // 4
@@ -792,8 +792,8 @@ begin
     begin
       top:=0;
       left:=0;
-      bottom:=MaxY;
-      right:=MaxX;
+      bottom:=MaxY+1;
+      right:=MaxX+1;
     end;
     
   offscreen:=CreateBitmapContext(MaxX+1,MaxY+1);
@@ -835,19 +835,19 @@ begin
   
   ShowWindow (myMainWindow);  
 
+{
+  write('view is active: ',HIViewIsActive(graphHIView,@b));
+  writeln(', latent: ',b);
+  writeln('compositing enabled: ',HIViewIsCompositingEnabled(graphHIView));
+  writeln('visible before: ',HIViewIsVisible(graphHIView));
+  write('drawing enabled: ',HIViewIsDrawingEnabled(graphHIView));
+  writeln(', latent: ',b);
+  write('view is enabled: ',HIViewIsEnabled(graphHIView,@b));
+  writeln(', latent: ',b);
 
-    write('view is active: ',HIViewIsActive(graphHIView,@b));
-    writeln(', latent: ',b);
-    writeln('compositing enabled: ',HIViewIsCompositingEnabled(graphHIView));
-    writeln('visible before: ',HIViewIsVisible(graphHIView));
-    write('drawing enabled: ',HIViewIsDrawingEnabled(graphHIView));
-    writeln(', latent: ',b);
-    write('view is enabled: ',HIViewIsEnabled(graphHIView,@b));
-    writeln(', latent: ',b);
-
-    err := HIViewGetBounds(graphHIView,hiviewbounds);
-    writeln('err, ',err,' (',hiviewbounds.origin.x:0:2,',',hiviewbounds.origin.y:0:2,'),(',hiviewbounds.size.width:0:2,',',hiviewbounds.size.height:0:2,')');
-
+  err := HIViewGetBounds(graphHIView,hiviewbounds);
+  writeln('err, ',err,' (',hiviewbounds.origin.x:0:2,',',hiviewbounds.origin.y:0:2,'),(',hiviewbounds.size.width:0:2,',',hiviewbounds.size.height:0:2,')');
+}
 end;
 
 
@@ -1011,26 +1011,32 @@ var
 begin
 //  writeln('in GraphEventHandler, event: ',FourCharArray(GetEventKind(event)));
   newEvent := nil;
-  if (GetEventKind(event) = kEventInitGraph) then
-    begin
-      q_initmodeproc;
-      if (GetEventParameter(event,FOUR_CHAR_CODE('Src '), typeVoidPtr, nil, sizeof(EventQueueRef), nil, @source) <> noErr) then
-        runerror(218);
-      if (CreateEvent(nil, kEventClassFPCGraph, kEventGraphInited, GetCurrentEventTime(), 0, newEvent) <> noErr) then
-        runerror(218);
-    end
-  else if (GetEventKind(event) = kEventCloseGraph) then
-    begin
-      q_donegraph;
-      if (GetEventParameter(event,FOUR_CHAR_CODE('Src '), typeVoidPtr, nil, sizeof(EventQueueRef), nil, @source) <> noErr) then
-        runerror(218);
-      if (CreateEvent(nil, kEventClassFPCGraph, kEventGraphClosed, GetCurrentEventTime(), 0, newEvent) <> noErr) then
-        runerror(218);
-    end
-  else if (GetEventKind(event) = kEventFlush) then
-    begin
-      HIViewSetNeedsDisplay(graphHIView, true);
-    end;
+  case GetEventKind(event) of
+    kEventInitGraph:
+      begin
+        q_initmodeproc;
+        if (GetEventParameter(event,FOUR_CHAR_CODE('Src '), typeVoidPtr, nil, sizeof(EventQueueRef), nil, @source) <> noErr) then
+          runerror(218);
+        if (CreateEvent(nil, kEventClassFPCGraph, kEventGraphInited, GetCurrentEventTime(), 0, newEvent) <> noErr) then
+          runerror(218);
+      end;
+    kEventCloseGraph:
+      begin
+        q_donegraph;
+        if (GetEventParameter(event,FOUR_CHAR_CODE('Src '), typeVoidPtr, nil, sizeof(EventQueueRef), nil, @source) <> noErr) then
+          runerror(218);
+        if (CreateEvent(nil, kEventClassFPCGraph, kEventGraphClosed, GetCurrentEventTime(), 0, newEvent) <> noErr) then
+          runerror(218);
+      end;
+    kEventFlush:
+      begin
+        HIViewSetNeedsDisplay(graphHIView, true);
+      end;
+    kEventQuit:
+      begin
+        QuitApplicationEventLoop;
+      end;
+  end;
   if assigned(newEvent) then
     if PostEventToQueue(source,newEvent,kEventPriorityStandard) <> noErr then
       runerror(218);
@@ -1039,40 +1045,56 @@ begin
 end;
 
 
-   var
-     proctorun: TGraphProgram;
+var
+  proctorun: TGraphProgram;
+   
+function wrapper(p: pointer): longint;
+(*
+  var
+    event : EventRef;
+*)
+  begin 
+    wrapper:=proctorun(nil);
+    halt(wrapper);
+(*
+    if (CreateEvent(nil, kEventClassFPCGraph, kEventQuit, GetCurrentEventTime(), 0, event) <> noErr) then
+      exit;
+
+    if (PostEventToQueue(MainEventQueue,event,kEventPriorityLow) <> noErr) then
+      begin
+        ReleaseEvent(event);
+        halt(wrapper);
+      end;
+*)
+  end;
+
+
+procedure StartGraphProgram(p: TGraphProgram);
+  var
+    taskid: mptaskid;
+    eventRec: eventrecord;
+  begin
+    if InstallEventHandler (GetApplicationEventTarget,
+                            NewEventHandlerUPP (@GraphEventHandler), 
+                            length(allGraphSpec),
+                            @allGraphSpec, 
+                            nil,
+                            nil) <> noErr then
+      begin
+        _GraphResult:=grError;
+        exit;
+      end;
+  
+    proctorun:=p;
      
-   function wrapper(p: pointer): longint;
-     begin
-       halt(proctorun(nil));
-     end;
+    { main program has to be the first one to access the event queue, see }
+    { http://lists.apple.com/archives/carbon-dev/2007/Jun/msg00612.html   }
+    eventavail(0,eventRec);
+    maineventqueue:=GetMainEventQueue;
+    BeginThread(@wrapper);
+    RunApplicationEventLoop;
+  end;
 
-
-   procedure StartGraphProgram(p: TGraphProgram);
-     var
-       taskid: mptaskid;
-       eventRec: eventrecord;
-     begin
-      if InstallEventHandler (GetApplicationEventTarget,
-                              NewEventHandlerUPP (@GraphEventHandler), 
-                              length(allGraphSpec),
-                              @allGraphSpec, 
-                              nil,
-                              nil) <> noErr then
-        begin
-          _GraphResult:=grError;
-          exit;
-        end;
-    
-       proctorun:=p;
-       
-       { main program has to be the first one to access the event queue, see }
-       { http://lists.apple.com/archives/carbon-dev/2007/Jun/msg00612.html   }
-       eventavail(0,eventRec);
-       maineventqueue:=GetMainEventQueue;
-       BeginThread(@wrapper);
-       RunApplicationEventLoop;
-     end;
 
 initialization
   initcriticalsection(graphdrawing);
