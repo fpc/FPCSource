@@ -149,7 +149,6 @@ implementation
       var
         hp,t : tnode;
         rd,ld : torddef;
-        rv : tconstexprint;
       begin
          result:=nil;
          typecheckpass(left);
@@ -185,13 +184,6 @@ implementation
 
          rd:=torddef(right.resultdef);
          ld:=torddef(left.resultdef);
-
-         { check for division by zero }
-         if is_constintnode(right) then
-           begin
-             { division by zero is already checked in simplify }
-             rv:=tordconstnode(right).value;
-            end;
 
          { if one operand is a cardinal and the other is a positive constant, convert the }
          { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
