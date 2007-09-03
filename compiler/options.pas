@@ -1890,6 +1890,7 @@ begin
    def_system_macro(target_info.shortname)
   else
    undef_system_macro(target_info.shortname);
+
   s:=target_info.extradefines;
   while (s<>'') do
    begin
@@ -1902,6 +1903,74 @@ begin
       undef_system_macro(Copy(s,1,i-1));
      delete(s,1,i);
    end;
+
+  { endian define }
+  case target_info.endian of
+    endian_little :
+      begin
+         if def then
+           begin
+             def_system_macro('ENDIAN_LITTLE');
+             def_system_macro('FPC_LITTLE_ENDIAN');
+           end
+         else
+           begin
+             undef_system_macro('ENDIAN_LITTLE');
+             undef_system_macro('FPC_LITTLE_ENDIAN');
+           end;
+      end;
+    endian_big :
+      begin
+         if def then
+           begin
+             def_system_macro('ENDIAN_BIG');
+             def_system_macro('FPC_BIG_ENDIAN');
+           end
+         else
+           begin
+             undef_system_macro('ENDIAN_BIG');
+             undef_system_macro('FPC_BIG_ENDIAN');
+           end
+      end;
+  end;
+
+  { abi define }
+  case target_info.abi of
+    abi_powerpc_sysv :
+      if def then
+        def_system_macro('FPC_ABI_SYSV')
+      else
+        undef_system_macro('FPC_ABI_SYSV');
+    abi_powerpc_aix :
+      if def then
+        def_system_macro('FPC_ABI_AIX')
+      else
+        undef_system_macro('FPC_ABI_AIX');
+  end;
+
+  if (tf_winlikewidestring in target_info.flags) then
+    if def then
+      def_system_macro('FPC_WINLIKEWIDESTRING')
+    else
+      undef_system_macro('FPC_WINLIKEWIDESTRING');
+
+  if (tf_requires_proper_alignment in target_info.flags) then
+    if def then
+      def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT')
+    else
+      undef_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+
+  if source_info.system<>target_info.system then
+    if def then
+      def_system_macro('FPC_CROSSCOMPILING')
+    else
+      undef_system_macro('FPC_CROSSCOMPILING');
+
+  if source_info.cpu<>target_info.cpu then
+    if def then
+      def_system_macro('FPC_CPUCROSSCOMPILING')
+    else
+      def_system_macro('FPC_CPUCROSSCOMPILING');
 end;
 
 
@@ -1993,6 +2062,9 @@ var
 begin
   option:=coption.create;
   disable_configfile:=false;
+
+  { Non-core target defines }
+  Option.TargetDefines(true);
 
 { get default messagefile }
   msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
@@ -2168,18 +2240,6 @@ begin
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif arm}
 
-  if source_info.system<>target_info.system then
-    def_system_macro('FPC_CROSSCOMPILING');
-
-  if source_info.cpu<>target_info.cpu then
-    def_system_macro('FPC_CPUCROSSCOMPILING');
-
-  if tf_winlikewidestring in target_info.flags then
-    def_system_macro('FPC_WINLIKEWIDESTRING');
-
-  if (tf_requires_proper_alignment in target_info.flags) then
-    def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
-
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
@@ -2192,17 +2252,6 @@ begin
     end
   else
     read_configfile := false;
-
-  { the config file may have changed the target }
-  if (tf_winlikewidestring in target_info.flags) then
-    def_system_macro('FPC_WINLIKEWIDESTRING')
-  else
-    undef_system_macro('FPC_WINLIKEWIDESTRING');
-
-  if (tf_requires_proper_alignment in target_info.flags) then
-    def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT')
-  else
-    undef_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 
 { Read commandline and configfile }
   param_file:='';
@@ -2231,31 +2280,6 @@ begin
   { Write logo }
   if option.ParaLogo then
     option.writelogo;
-
-  { Non-core target defines }
-  Option.TargetDefines(true);
-
-  { endian define }
-  case target_info.endian of
-    endian_little :
-      begin
-         def_system_macro('ENDIAN_LITTLE');
-         def_system_macro('FPC_LITTLE_ENDIAN');
-      end;
-    endian_big :
-      begin
-         def_system_macro('ENDIAN_BIG');
-         def_system_macro('FPC_BIG_ENDIAN');
-      end;
-  end;
-
-  { abi define }
-  case target_info.abi of
-    abi_powerpc_sysv :
-      def_system_macro('FPC_ABI_SYSV');
-    abi_powerpc_aix :
-      def_system_macro('FPC_ABI_AIX');
-  end;
 
 { Check file to compile }
   if param_file='' then
