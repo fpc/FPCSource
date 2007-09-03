@@ -76,11 +76,12 @@ uses
 
 const fpcres2elf_version=1;
 
+type
+  TSectionKind = (skSymtab, skStrtab, skShstrtab, skText, skData, skBss, skFpcRessym, skFpcResstr,
+                  skFpcReshash, skFpcResdata, skFpcResspare);
+
 // Do not change the following consts, they are dummy tables to generate an .o that makes ld happy
-const shstrtab = #0+'.symtab'+#0+'.strtab'+#0+'.shstrtab'+#0+'.text'+#0+'.data'+#0+
-                 '.bss'+#0+'.fpc.ressym'+#0+'.fpc.resstr'+#0+'.fpc.reshash'+#0+
-                 '.fpc.resdata'+#0+'.fpc.resspare'+#0+#0;
-      symtab =   #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00+
+const symtab =   #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00+
                  #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$03#$00#$01#$00+
                  #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$03#$00#$02#$00+
                  #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$03#$00#$03#$00+
@@ -91,7 +92,6 @@ const shstrtab = #0+'.symtab'+#0+'.strtab'+#0+'.shstrtab'+#0+'.text'+#0+'.data'+
                  #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$03#$00#$08#$00;
       strtab =   #$00#$00; // this actually is just one byte long
       zeros  =   #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00;
-      fake   =   'fakefakefakefakefakefakefakefake';
 
       // header of a windows 32 bit .res file (16 bytes)
       reshdr =   #$00#$00#$00#$00#$20#$00#$00#$00#$FF#$FF#$00#$00#$FF#$FF#$00#$00+
@@ -112,6 +112,8 @@ Type
     FOverwrite: Boolean;
     FVerbose: Boolean;
     FVersion: Integer;
+    FShStrTab: string;
+    FShStrOffsets: array[TSectionKind] of Longint;
   Protected
     FSectionStream: TMemoryStream;
     FDataStream: TMemoryStream;
@@ -146,6 +148,7 @@ Type
   Protected
     Procedure AllocateData; override;
     Procedure FreeData; override;
+    procedure AddSection(aKind: TSectionKind; atype, aflags, aaddr, aoffset, asize, alink, ainfo, aaddralign, aentsize: longint);
   public
     procedure LoadBinaryDFMEntry(const rs:TStream; const DataStream:TMemoryStream; const SymStream:TMemoryStream; var resinfo:TELF32ResourceInfo);
     procedure LoadTextDFMEntry(const rs:TStream; const DataStream:TMemoryStream; const SymStream:TMemoryStream; var resinfo:TELF32ResourceInfo);
@@ -198,12 +201,35 @@ end;
 
 { TElfResCreator }
 
+const
+  sectionNames: array[TSectionKind] of PChar = (
+    '.symtab',
+    '.strtab',
+    '.shstrtab',
+    '.text',
+    '.data',
+    '.bss',
+    '.fpc.ressym',
+    '.fpc.resstr',
+    '.fpc.reshash',
+    '.fpc.resdata',
+    '.fpc.resspare'
+  );
+
 procedure TElfResCreator.AllocateData;
+var
+  i: TSectionKind;
 begin
   FSectionStream:=TMemoryStream.Create;
   FDataStream:=TMemoryStream.Create;
   FSymStream:=TMemoryStream.Create;
   FHashStream:=TMemoryStream.Create;
+  for i := Low(TSectionKind) to High(TSectionKind) do
+  begin
+    FShStrOffsets[i] := Length(FShStrTab) + 1;
+    FShStrTab := FShStrTab + #0 + string(sectionNames[i]);
+  end;
+  FShStrTab := FShStrTab + #0#0;
 end;
 
 procedure TElfResCreator.FreeData;
@@ -412,6 +438,23 @@ begin
   end;
 end;
 
+procedure TElf32ResCreator.AddSection(aKind: TSectionKind; atype, aflags, aaddr, aoffset, asize, alink, ainfo, aaddralign, aentsize: longint);
+var
+  sechdr: TElf32sechdr;
+begin
+  sechdr.sh_name := FShStrOffsets[aKind];
+  sechdr.sh_type := atype;
+  sechdr.sh_flags := aflags;
+  sechdr.sh_addr := aaddr;
+  sechdr.sh_offset := aoffset;
+  sechdr.sh_size := asize;
+  sechdr.sh_link := alink;
+  sechdr.sh_info := ainfo;
+  sechdr.sh_addralign := aaddralign;
+  sechdr.sh_entsize := aentsize;
+  FSectionStream.Write(sechdr, sizeOf(sechdr));
+end;
+
 procedure TElf32ResCreator.DoConvertStreams(Source, Dest: TStream);
 
 Var
@@ -494,7 +537,7 @@ begin
 
   // shstrtab - this is not aligned
   shstrtab_ofs:=FSectionStream.Position+sizeof(TElf32Header);
-  FSectionStream.Write(shstrtab[1],length(shstrtab));
+  FSectionStream.Write(FShStrtab[1], length(FShStrtab));
 
   // Write 12 section headers. The headers itself don't need to be aligned,
   // as their size can be divided by 4. As shstrtab is uneven and not aligned,
@@ -506,149 +549,17 @@ begin
   fillchar(SectionHeader,sizeof(SectionHeader),0);
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
-  // .text
-  SectionHeader.sh_name:=$1B;
-  SectionHeader.sh_type:=1; // PROGBITS
-  SectionHeader.sh_flags:=6; // AX
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=sizeof(TElf32Header); // after header, dummy as size is 0
-  SectionHeader.sh_size:=0; // yep, pretty empty it is
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .data
-  SectionHeader.sh_name:=$21;
-  SectionHeader.sh_type:=1; // PROGBITS
-  SectionHeader.sh_flags:=3; // WA
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=sizeof(TElf32Header); // after header, dummy as size is 0
-  SectionHeader.sh_size:=0; // yep, pretty empty it is
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .bss
-  SectionHeader.sh_name:=$27;
-  SectionHeader.sh_type:=8; // NOBITS
-  SectionHeader.sh_flags:=3; // WA
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=sizeof(TElf32Header); // after header, dummy as size is 0
-  SectionHeader.sh_size:=0; // yep, pretty empty it is
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .fpc.ressym
-  SectionHeader.sh_name:=$2C;
-  SectionHeader.sh_type:=1; // PROGBITS
-  SectionHeader.sh_flags:=2; // A
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=ressym.ptr; // directly after header
-  SectionHeader.sh_size:=FSymStream.Size;
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=1; // DON'T align this, as this section will be merged by ld
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .fpc.resstr
-  SectionHeader.sh_name:=$38;
-  SectionHeader.sh_type:=1; // PROGBITS
-  SectionHeader.sh_flags:=2; // A
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=resstr.ptr;
-  SectionHeader.sh_size:=0; // currently empty
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .fpc.reshash
-  SectionHeader.sh_name:=$44;
-  SectionHeader.sh_type:=1; // PROGBITS
-  SectionHeader.sh_flags:=2; // A
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=reshash.ptr;
-  SectionHeader.sh_size:=length(ResourceEntries)*sizeof(TELF32ResourceInfo);
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .fpc.resdata
-  SectionHeader.sh_name:=$51;
-  SectionHeader.sh_type:=1; // PROGBITS
-  SectionHeader.sh_flags:=2; // A
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=resdata.ptr;
-  SectionHeader.sh_size:=FDataStream.Size;
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .fpc.resspare
-  // Not used in V1
-  SectionHeader.sh_name:=$5f;
-  SectionHeader.sh_type:=8; // NOBITS
-  SectionHeader.sh_flags:=2; // A
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=resspare.ptr; // fake, as it's empty, should be equal to shstrtab's offset
-  SectionHeader.sh_size:=0; //DataStream.Size; // Leave as much room as we currently have in resdata section
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .shstrtab
-  SectionHeader.sh_name:=$11;
-  SectionHeader.sh_type:=3; // STRTAB
-  SectionHeader.sh_flags:=0;
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=shstrtab_ofs;  // $3E
-  SectionHeader.sh_size:=$67;
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=1; // alignment
-  SectionHeader.sh_entsize:=0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .symtab
-  SectionHeader.sh_name:=$01;
-  SectionHeader.sh_type:=2; // SYMTAB
-  SectionHeader.sh_flags:=0;
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=FSectionStream.Position+sizeof(TElf32Header)+sizeOf(SectionHeader)+sizeOf(SectionHeader); // will come directly after this and the next section. $0288;
-  SectionHeader.sh_size:=$90;
-  SectionHeader.sh_link:=$0B;
-  SectionHeader.sh_info:=$09;
-  SectionHeader.sh_addralign:=4; // alignment
-  SectionHeader.sh_entsize:=$10;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
-
-  // .strtab
-  SectionHeader.sh_name:=$09;
-  SectionHeader.sh_type:=3; // STRTAB
-  SectionHeader.sh_flags:=0;
-  SectionHeader.sh_addr:=0;
-  SectionHeader.sh_offset:=FSectionStream.Position+sizeof(TElf32Header)+sizeOf(SectionHeader)+$90; // will come after this sectionheader and the $90 bytes symtab - $0318; end of file
-  SectionHeader.sh_size:=1;
-  SectionHeader.sh_link:=0;
-  SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=1; // alignment
-  SectionHeader.sh_entsize:=$0;
-  FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
+  AddSection(skText,        SHT_PROGBITS, 6 {AX}, 0, sizeof(TElf32Header), 0, 0, 0, 4, 0);
+  AddSection(skData,        SHT_PROGBITS, 3 {WA}, 0, sizeof(TElf32Header), 0, 0, 0, 4, 0);
+  AddSection(skBss,         SHT_NOBITS,   3 {WA}, 0, sizeof(TElf32Header), 0, 0, 0, 4, 0);
+  AddSection(skFpcRessym,   SHT_PROGBITS, 2 {A},  0, ressym.ptr, FSymStream.Size, 0, 0, 1, 0);
+  AddSection(skFpcResstr,   SHT_PROGBITS, 2 {A},  0, resstr.ptr, 0, 0, 0, 4, 0);
+  AddSection(skFpcReshash,  SHT_PROGBITS, 2 {A},  0, reshash.ptr, length(ResourceEntries)*sizeof(TELF32ResourceInfo), 0, 0, 4, 0);
+  AddSection(skFpcResdata,  SHT_PROGBITS, 2 {A},  0, resdata.ptr, FDataStream.Size, 0, 0, 4, 0);
+  AddSection(skFpcResspare, SHT_NOBITS,   2 {A},  0, resspare.ptr, 0, 0, 0, 4, 0);
+  AddSection(skShstrtab,    SHT_STRTAB,   0,      0, shstrtab_ofs, length(FShStrtab), 0, 0, 1, 0);
+  AddSection(skSymtab,      SHT_SYMTAB,   0,      0, FSectionStream.Position+sizeof(TElf32Header) + 2 * sizeof(SectionHeader), length(symtab), $0B, $09, 4, $10);
+  AddSection(skStrtab,      SHT_STRTAB,   0,      0, FSectionStream.Position+sizeof(TElf32Header) + sizeof(SectionHeader) + length(symtab), 1, 0, 0, 1, 0);
 
   // now write the symbol table
   FSectionStream.Write(symtab[1],length(symtab));

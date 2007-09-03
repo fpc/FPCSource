@@ -197,7 +197,8 @@ begin
 
   ResPtrsSection:=-1;
   ResHashSection:=-1;
-  ResourceSectionTable.version:=66;
+  FillChar(ResourceSectionTable, sizeof(ResourceSectionTable), 0);
+  ResourceSectionTable.version:=1;
 
   // Next cycle through all sections to gather pointers to all the resource
   // sections, and note the index of the resptrs section
