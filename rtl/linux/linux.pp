@@ -307,13 +307,16 @@ const
   SPLICE_F_MORE	    = 4;   {* Expect more data.  *}
   SPLICE_F_GIFT	    = 8;   {* Pages passed in are a gift.  *}
 
-{$ifdef x86}
+{$ifdef cpu86}
 {* Splice address range into a pipe.  *}
 function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'vmsplice'; {$ENDIF}
 
 {* Splice two files together.  *}
 // NOTE: offin and offout should be "off64_t" but we don't have that type. It's an "always 64 bit offset" so I use cint64
-function splice (fdin: cInt; offin: cInt64; fdout: cInt; offout: cInt64; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'splice'; {$ENDIF}
+function splice (fdin: cInt; offin: cInt64; fdout: cInt;
+                             offout: cInt64; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'splice'; {$ENDIF}
+                             
+function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'tee'; {$ENDIF}
 
 {$endif} // x86
 
@@ -439,7 +442,7 @@ begin
 end;
 
 // TODO: update also on non x86!
-{$ifdef x86} // didn't update syscall_nr on others yet
+{$ifdef cpu86} // didn't update syscall_nr on others yet
 
 function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt;
 begin
@@ -451,9 +454,16 @@ begin
   splice := do_syscall(syscall_nr_splice, TSysParam(fdin), TSysParam(offin), TSysParam(fdout), TSysParam(offout), 
                        TSysParam(len), TSysParam(flags));
 end;
+
+function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt;
+begin
+  tee := do_syscall(syscall_nr_tee, TSysParam(fd_in), TSysParam(fd_out),
+                    TSysParam(len), TSysParam(flags));
+end;
+
 {$endif} // x86
 
-{$endif}
+{$endif} // non-libc
 
 { FUTEX_OP is a macro, doesn't exist in libC as function}
 function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
