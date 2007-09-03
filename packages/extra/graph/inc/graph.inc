@@ -681,9 +681,6 @@ var
        { restore line thickness }
        LineInfo.Thickness := OldLineWidth;
      End;
-   { Adjust for screen aspect ratio }
-   XRadius:=(longint(XRadius)*10000) div XAspect;
-   YRadius:=(longint(YRadius)*10000) div YAspect;
    If xradius = 0 then inc(xradius);
    if yradius = 0 then inc(yradius);
    { check for an ellipse with negligable x and y radius }
@@ -1398,7 +1395,8 @@ end;
              OldWriteMode := CurrentWriteMode;
              CurrentWriteMode := CopyPut;
        end;
-     InternalEllipse(X,Y,Radius,Radius,0,360,{$ifdef fpc}@{$endif}DummyPatternLine);
+     { Adjust for screen aspect ratio }
+     InternalEllipse(X,Y,Radius,(longint(Radius)*XAspect) div YAspect,0,360,{$ifdef fpc}@{$endif}DummyPatternLine);
      if LineInfo.Thickness = Normwidth then
          CurrentWriteMode := OldWriteMode;
      { restore arc information }
@@ -1818,7 +1816,7 @@ end;
      { normal write mode }
      CurrentWriteMode := CopyPut;
 
-     { Schriftart einstellen }
+     { set font style }
      CurrentTextInfo.font := DefaultFont;
      CurrentTextInfo.direction:=HorizDir;
      CurrentTextInfo.charsize:=1;

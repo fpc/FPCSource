@@ -546,6 +546,15 @@ end;
            MaxX:=ModeInfo.Width-1;
            // same for MaxY
            MaxY:=ModeInfo.Height-1;
+           YAspect:=10000;
+           if ((MaxX+1)*35=(MaxY+1)*64) then
+             XAspect:=7750
+           else if ((MaxX+1)*20=(MaxY+1)*64) then
+             XAspect:=4500
+           else if ((MaxX+1)*40=(MaxY+1)*64) then
+             XAspect:=8333
+           else { assume 4:3 }
+             XAspect:=10000;
            MaxColor := ModeInfo.colors;
            PaletteSize := MaxColor;
            HardwarePages := 0;

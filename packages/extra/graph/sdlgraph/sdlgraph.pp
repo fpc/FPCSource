@@ -583,8 +583,14 @@ mode: TModeInfo;
     mode.SetRGBPalette := {$ifdef fpc}@{$endif}sdlgraph_SetRGBpalette;
     mode.GetRGBPalette := {$ifdef fpc}@{$endif}sdlgraph_GetRGBpalette;
     //mode.InternalEllipse := {$ifdef fpc}@{$endif}sdlgraph_InternalEllipse;
-    mode.XAspect := 10000;
-    mode.YAspect := 10000;
+    if ((mode.MaxX+1)*35=(mode.MaxY+1)*64) then
+      mode.XAspect:=7750
+    else if ((mode.MaxX+1)*20=(mode.MaxY+1)*64) then
+      mode.XAspect:=4500
+    else if ((mode.MaxX+1)*40=(mode.MaxY+1)*64) then
+      mode.XAspect:=8333
+    else { assume 4:3 }
+      mode.XAspect:=10000;
     //mode.HLine:={$ifdef fpc}@{$endif}sdlgraph_HLine;
     //mode.VLine:={$ifdef fpc}@{$endif}sdlgraph_VLine;
     //mode.Line:={$ifdef fpc}@{$endif}sdlgraph_line;
