@@ -2109,8 +2109,11 @@ implementation
                                set_varstate(left,vs_read,[]);
                                result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
                             end
+                           else if not is_ansistring(left.resultdef) and
+                                   not is_widestring(left.resultdef) then
+                             result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true)
                            else
-                             result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true);
+                             CGMessage(type_e_mismatch)
                          end;
                      end;
                     else
