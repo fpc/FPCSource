@@ -1793,13 +1793,19 @@ implementation
 
                       else
                        begin
-                         { only if the same size or formal def }
+                         { only if the same size or formal def, and }
+                         { don't allow type casting of constants to }
+                         { structured types                         }
                          if not(
                                 (left.resultdef.typ=formaldef) or
                                 (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
-                                 (left.resultdef.size=resultdef.size)
+                                 (left.resultdef.size=resultdef.size) and
+                                 (not is_constnode(left) or
+                                  (not(resultdef.typ in [arraydef,recorddef,setdef,stringdef,
+                                                         filedef,variantdef,objectdef]) or
+                                   is_class_or_interface(resultdef)))
                                 ) or
                                 (
                                  is_void(left.resultdef)  and
