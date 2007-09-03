@@ -30,71 +30,35 @@ type
   end;
   PFPCResourceInfo = ^TFPCResourceInfo;
 
-  TFPCRuntimeResourceInfo = packed record
-    reshash: longint;    // always 32bit, contains an ELF hash of the resource entries name
-    restype: longint;    // always 32bit, contains the resource type ID compatible with Windows RES IDs
-    ptr:     pointer;    // Memory pointer to the reosource
-    name:    ansistring; // String containing the name of the resource
-    size:    longint;    // The size of the resource entry - 32/64 Bit, depending on platform
-  end;
-  PFPCRuntimeResourceInfo = ^TFPCRuntimeResourceInfo;
-
 Var
-  InitRes : Boolean = False;
 {$ifdef FPC_HAS_RESOURCES}
   FPCResourceSectionLocation : pFPCResourceSectionTable; external name 'FPC_RESLOCATION';
 {$else}
   FPCResourceSectionLocation : pFPCResourceSectionTable = Nil;
 {$endif}
-  FPCRuntimeResourceInfoArray : PFPCRuntimeResourceInfo;
-  ResInfoCount : Cardinal;
 
-function HashELF(const S : string) : longint;
+const
+  LCase: set of char = ['a'..'z'];
+
+function HashELFUppercase(S: PChar) : longint;
 {Note: this hash function is described in "Practical Algorithms For
        Programmers" by Andrew Binstock and John Rex, Addison Wesley,
        with modifications in Dr Dobbs Journal, April 1996}
 var
-  G : longint;
-  i : longint;
+  G: longint;
+  C: Char;
 begin
   Result := 0;
-  for i := 1 to length(S) do begin
-    Result := (Result shl 4) + ord(S[i]);
+  while S^ <> #0 do begin
+    C := S^;
+    if C in LCase then Dec(ord(C), 32);
+    Result := (Result shl 4) + ord(C);
+    Inc(S);
     G := Result and $F0000000;
     if (G <> 0) then
       Result := Result xor (G shr 24);
     Result := Result and (not G);
   end;
-end;
-
-procedure InitializeResources;
-
-var
-  i:longint;
-  CurrentResource:pFPCResourceInfo;
-
-begin
-  If (FPCResourceSectionLocation=Nil) then
-    ResInfoCount:=0
-  else
-    ResInfoCount:=FPCResourceSectionLocation^.resentries;
-  If (ResInfoCount<>0) then
-    begin
-    FPCRuntimeResourceInfoArray:=GetMem(SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount);
-    { we must zero out this because name is an ansistring }
-    fillchar(FPCRuntimeResourceInfoArray^,SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount,0);
-
-    for i:=0 to ResInfoCount-1 do
-      begin
-        CurrentResource:=pFPCResourceInfo(pointer(FPCResourceSectionLocation^.reshash.ptr+i*sizeof(TFPCResourceInfo)));
-        FPCRuntimeResourceInfoArray[i].reshash:=CurrentResource^.reshash;
-        FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
-        FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+ptruint(FPCResourceSectionLocation^.resdata.ptr);
-        FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+ptruint(FPCResourceSectionLocation^.ressym.ptr);
-        FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
-      end;
-    end;
-  InitRes:=true;
 end;
 
 Function HINSTANCE : HMODULE;
@@ -103,46 +67,98 @@ begin
   Result:=0;
 end;
 
-function FindResource(ModuleHandle: HMODULE; ResourceName: PChar; ResourceType: PChar): TResourceHandle;
+function _StrIComp(S1, S2: PChar): LongInt;
+var
+  C1, C2: Char;
+begin
+  Result := 0;
+  repeat
+    C1 := S1^;
+    C2 := S2^;
+    Result := ord(C1) - ord(C2);
+    if Result <> 0 then
+    begin
+      if C1 in LCase then Dec(ord(C1), 32);
+      if C2 in LCase then Dec(ord(C2), 32);
+      Result := ord(C1) - ord(C2);
+    end;
+    Inc(S1);
+    Inc(S2);
+  until (Result <> 0) or ((S1^ = #0) or (S2^ = #0));
+end;
 
+
+function FindResource(ModuleHandle: HMODULE; ResourceName: PChar; ResourceType: PChar): TResourceHandle;
 var
   i:longint;
   searchhash:longint;
-  n : string;
-
+  ResEntry: PFPCResourceInfo;
+  pResName: PChar;
+  tmp: array[0..7] of char;
 begin
   Result:=0;
-  if (ResourceName=nil) then
+  if (ResourceName=nil) or (FPCResourceSectionLocation = nil) then
     Exit;
-  If Not InitRes then
-    InitializeResources;
+  { support numeric resource IDs }
+  if ResourceName <= PChar($FFFF) then
+  begin
+    { convert number to string inline, this should be faster than messing with strings }
+    i := LongInt(ResourceName);
+    ResourceName := @tmp[7];
+    ResourceName^ := #0;
+    Dec(ResourceName);
+    repeat
+      ResourceName^ := Char((i mod 10) + ord('0'));
+      Dec(ResourceName);
+      i := i div 10;
+    until i = 0;
+    ResourceName^ := '#';
+  end;
   { resources aren't case sensitive }
-  n:=upcase(strpas(resourcename));
-  searchhash:=HashELF(n);
-  for i:=0 to ResInfoCount-1 do
-    if (FPCRuntimeResourceInfoArray[i].reshash=searchhash) and (upcase(FPCRuntimeResourceInfoArray[i].name)=n) then
+  searchhash := HashELFUppercase(ResourceName);
+  ResEntry := FPCResourceSectionLocation^.reshash.ptr;
+  for i:=0 to FPCResourceSectionLocation^.resentries-1 do
+    with ResEntry[I] do
+    begin
+      if (PChar(ResType) = ResourceType) and (reshash = searchhash) then
       begin
-        result:=i+1;
-        break;
+        pResName := PChar(FPCResourceSectionLocation^.ressym.ptr);
+        Inc(pResName, PtrUInt(Name));
+        if _StrIComp(pResName, ResourceName) = 0 then
+        begin
+          result:=i+1;
+          break;
+        end;
       end;
+    end;
 end;
 
 function LoadResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): HGLOBAL;
+var
+  ResEntry: PFPCResourceInfo;
 begin
-  If Not InitRes then
-    InitializeResources;
-  if (ResHandle>0) and (ResHandle-1<=ResInfoCount) then
-    result:=HGLOBAL(FPCRuntimeResourceInfoArray[ResHandle-1].ptr)
+  if FPCResourceSectionLocation = nil then
+    Exit;
+  if (ResHandle>0) and (LongInt(ResHandle)-1<=FPCResourceSectionLocation^.resentries) then
+  begin
+    ResEntry := FPCResourceSectionLocation^.reshash.ptr;
+    result := HGLOBAL(PtrUInt(FPCResourceSectionLocation^.resdata.ptr) + PtrUInt(ResEntry[LongInt(ResHandle)-1].ptr));
+  end
   else
     result:=0;
 end;
 
 function SizeofResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): Integer;
+var
+  ResEntry: PFPCResourceInfo;
 begin
-  If Not InitRes then
-    InitializeResources;
-  if (ResHandle>0) and (ResHandle-1<=ResInfoCount) then
-    result:=FPCRuntimeResourceInfoArray[ResHandle-1].size
+  if FPCResourceSectionLocation = nil then
+    Exit;
+  if (ResHandle>0) and (LongInt(ResHandle)-1<=FPCResourceSectionLocation^.resentries) then
+  begin
+    ResEntry := FPCResourceSectionLocation^.reshash.ptr;
+    result := ResEntry[LongInt(ResHandle)-1].size;
+  end
   else
     result:=0;
 end;
