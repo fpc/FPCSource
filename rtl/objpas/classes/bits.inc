@@ -45,7 +45,10 @@ end;
 
 procedure TBits.setSize(value : longint);
 begin
-   grow(value - 1);
+   if value=0 then
+    grow(0) // truncate
+   else
+    grow(value - 1);
 end;
 
 procedure TBits.SetBit(bit : longint; value : Boolean);
