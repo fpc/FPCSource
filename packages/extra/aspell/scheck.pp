@@ -1,4 +1,4 @@
-unit scheck;
+unit sCheck;
 
 {$mode objfpc}{$H+}
 
@@ -11,6 +11,9 @@ type
   TSuggestionArray = array of string;
   
   function SpellCheck(const Word, Lang: string; out Suggestions: TSuggestionArray): Integer;
+
+var
+  Encoding: string = 'utf-8';
 
 implementation
 
@@ -30,7 +33,7 @@ begin
   cnf := new_aspell_config();
 
   aspell_config_replace(cnf, 'lang', pChar(Lang));
-  aspell_config_replace(cnf, 'encoding', 'utf-8');
+  aspell_config_replace(cnf, 'encoding', pChar(Encoding));
 
   ape := new_aspell_speller(cnf);
 
