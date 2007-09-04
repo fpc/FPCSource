@@ -907,10 +907,8 @@ begin
                else
                  IllegalPara(opt);
              end;
-
            'l' :
-             if not UnSetBool(more,0) then
-               ParaLogo:=true;
+               ParaLogo:=UnSetBool(more,0);
 
            'm' :
              parapreprocess:=not UnSetBool(more,0);
