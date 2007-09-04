@@ -6,4 +6,5 @@
     {$ENDIF}
     OS:=[linux,netbsd,freebsd,openbsd,win32,solaris,darwin];
     T:=Targets.AddUnit('aspell');
+    T:=Targets.AddUnit('scheck');
     EndPackage;
