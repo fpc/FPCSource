@@ -29,9 +29,9 @@ uses
  const aspelllib='/usr/local/lib/libaspell.so';
 {$ENDIF}
 
-{$IFDEF MacOSX}
+{$IFDEF darwin}
  {$DEFINE Static}
- const aspelllib='aspell';
+ const aspelllib='libaspell.dylib';
 {$ENDIF}
 
 {$IFDEF windows}
