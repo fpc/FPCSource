@@ -1904,6 +1904,7 @@ packages/extra/aspell/LICENSE.ADDON -text
 packages/extra/aspell/Makefile svneol=native#text/plain
 packages/extra/aspell/Makefile.fpc svneol=native#text/plain
 packages/extra/aspell/aspell.pp svneol=native#text/plain
+packages/extra/aspell/example.pas svneol=native#text/plain
 packages/extra/aspell/fpmake.inc svneol=native#text/plain
 packages/extra/aspell/fpmake.pp svneol=native#text/plain
 packages/extra/aspell/scheck.pp svneol=native#text/plain
