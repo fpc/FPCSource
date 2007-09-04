@@ -123,37 +123,105 @@ begin
   result.a:='x';
 end;
 
-procedure testrec;
+procedure testrec1;
 var
   t: tr;
 begin
   t.a:='x';
   t:=f1(@t.a[1]);
+end;
+
+
+procedure testrec2;
+var
+  t: tr;
+begin
+  t.a:='x';
   t:=f2(t.a);
+end;
+
+
+procedure testrec3;
+var
+  t: tr;
+begin
+  t.a:='x';
   t:=f3(t.a);
+end;
+
+
+procedure testrec4;
+var
+  t: tr;
+begin
+  t.a:='x';
   t:=f4(t);
+end;
+
+
+procedure testrec5;
+var
+  t: tr;
+begin
+  t.a:='x';
   p:=@t.a;
   t:=f9;
 end;
 
 
-procedure testrecinl; inline;
+procedure testrecinl1; inline;
 var
   t: tr;
 begin
   inlined:=true;
   t.a:='x';
   t:=f1(@t.a[1]);
+end;
+
+
+procedure testrecinl2; inline;
+var
+  t: tr;
+begin
+  inlined:=true;
+  t.a:='x';
   t:=f2(t.a);
+end;
+
+
+procedure testrecinl3; inline;
+var
+  t: tr;
+begin
+  inlined:=true;
+  t.a:='x';
   t:=f3(t.a);
+end;
+
+
+procedure testrecinl4; inline;
+var
+  t: tr;
+begin
+  inlined:=true;
+  t.a:='x';
   t:=f4(t);
+end;
+
+
+procedure testrecinl5; inline;
+var
+  t: tr;
+begin
+  inlined:=true;
+  t.a:='x';
   p:=@t.a;
   t:=f9;
   inlined:=false;
 end;
 
 
-procedure testrec2;
+procedure testrec2a;
 var
   t: tr;
 begin
@@ -163,7 +231,7 @@ begin
 end;
 
 
-procedure testrec2inl; inline;
+procedure testrec2ainl; inline;
 var
   t: tr;
 begin
@@ -184,7 +252,7 @@ begin
   result.a:='x';
 end;
 
-procedure testrec3;
+procedure testrec3a;
 var
   t: tr;
 begin
@@ -222,7 +290,7 @@ begin
 end;
 
 
-procedure testrec3inl; inline;
+procedure testrec3ainl; inline;
 var
   t: tr;
 begin
@@ -265,43 +333,108 @@ end;
 
 
 
-procedure testarr;
+procedure testarr1;
 var
   t: ta;
 begin
   t[3]:='x';
   t:=f5(@t[3][1]);
+end;
+
+
+procedure testarr2;
+var
+  t: ta;
+begin
+  t[3]:='x';
   t:=f6(t[3]);
+end;
+
+
+procedure testarr3;
+var
+  t: ta;
+begin
+  t[3]:='x';
   t:=f7(t[3]);
+end;
+
+
+procedure testarr4;
+var
+  t: ta;
+begin
+  t[3]:='x';
   t:=f8(t);
 end;
 
 
-procedure testarrinl; inline;
+procedure testarrinl1; inline;
 var
   t: ta;
 begin
   inlined:=true;
   t[3]:='x';
   t:=f5(@t[3][1]);
+end;
+
+
+procedure testarrinl2; inline;
+var
+  t: ta;
+begin
+  inlined:=true;
+  t[3]:='x';
   t:=f6(t[3]);
+end;
+
+
+procedure testarrinl3; inline;
+var
+  t: ta;
+begin
+  inlined:=true;
+  t[3]:='x';
   t:=f7(t[3]);
+end;
+
+
+procedure testarrinl4; inline;
+var
+  t: ta;
+begin
+  inlined:=true;
+  t[3]:='x';
   t:=f8(t);
   inlined:=false;
 end;
 
 
 begin
-  testrec;
-  testrecinl;
+  testrec1;
   testrec2;
-  testrec2inl;
-{$if defined(cpupowerpc) or defined(cpui386)}
   testrec3;
-  testrec3inl;
+  testrec4;
+  testrec5;
+  testrecinl1;
+  testrecinl2;
+  testrecinl3;
+  testrecinl4;
+  testrecinl5;
+  testrec2a;
+  testrec2ainl;
+{$if defined(cpupowerpc) or defined(cpui386)}
+  testrec3a;
+  testrec3ainl;
 {$endif}
-  testarr;
-  testarrinl;
+  testarr1;
+  testarr2;
+  testarr3;
+  testarr4;
+  testarrinl1;
+  testarrinl2;
+  testarrinl3;
+  testarrinl4;
   if failed then
     halt(1);
 end.
