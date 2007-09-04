@@ -714,8 +714,8 @@ begin
                      else
                        init_settings.sourcecodepage:=more;
                    end;
-                 'C' : 
-                   RCCompiler := More;  
+                 'C' :
+                   RCCompiler := More;
                  'D' :
                    utilsdirectory:=FixPath(More,true);
                  'e' :
@@ -771,7 +771,7 @@ begin
                  'r' :
                    Msgfilename:=More;
                  'R' :
-                   ResCompiler := More;  
+                   ResCompiler := More;
                  'u' :
                    begin
                      if ispara then
@@ -907,8 +907,9 @@ begin
                else
                  IllegalPara(opt);
              end;
+
            'l' :
-               ParaLogo:=UnSetBool(more,0);
+             ParaLogo:=not UnSetBool(more,0);
 
            'm' :
              parapreprocess:=not UnSetBool(more,0);
