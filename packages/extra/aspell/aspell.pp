@@ -30,7 +30,7 @@ uses
 {$ENDIF}
 
 {$IFDEF darwin}
- {$DEFINE Static}
+ {$DEFINE Dynamic}
  const aspelllib='libaspell.dylib';
 {$ENDIF}
 
