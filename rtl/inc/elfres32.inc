@@ -99,6 +99,12 @@ begin
   Result:=0;
   if (ResourceName=nil) or (FPCResourceSectionLocation = nil) then
     Exit;
+    
+  { This is a temporary fix to stay compatible with fpcres
+    which currently converts all string types to RT_RCDATA. }
+  if ResourceType > PChar($FFFF) then
+    ResourceType := PChar(10);
+    
   { support numeric resource IDs }
   if ResourceName <= PChar($FFFF) then
   begin
