@@ -512,8 +512,10 @@ implementation
         i : longint;
         generictype : ttypesym;
         current_blocktype : tblock_type;
+        oldaktobjectdef : tobjectdef;
       begin
          old_object_option:=current_object_option;
+         oldaktobjectdef:=aktobjectdef;
 
          { objects and class types can't be declared local }
          if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable]) then
@@ -826,7 +828,7 @@ implementation
          result:=aktobjectdef;
 
          { restore old state }
-         aktobjectdef:=nil;
+         aktobjectdef:=oldaktobjectdef;
          testcurobject:=0;
          typecanbeforward:=storetypecanbeforward;
          current_object_option:=old_object_option;
