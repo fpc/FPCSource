@@ -802,6 +802,8 @@ Begin
         inc(tabstractvarsym(sym).refs);
         { variable can't be placed in a register }
         tabstractvarsym(sym).varregable:=vr_none;
+        { and anything may happen with its address }
+        tabstractvarsym(sym).addr_taken:=true;
         case sym.typ of
           staticvarsym :
             begin

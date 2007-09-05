@@ -272,7 +272,7 @@ implementation
                     (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) or
                     (current_procinfo.procdef.proctypeoption=potype_unitfinalize)
                   ) then
-                 make_not_regable(self,vr_none);
+                 make_not_regable(self,[ra_addr_taken]);
                resultdef:=tabstractvarsym(symtableentry).vardef;
              end;
            paravarsym,
@@ -291,7 +291,8 @@ implementation
                    { we can't inline the referenced parent procedure }
                    exclude(tprocdef(symtable.defowner).procoptions,po_inline);
                    { reference in nested procedures, variable needs to be in memory }
-                   make_not_regable(self,vr_none);
+                   { and behaves as if its address escapes its parent block         }
+                   make_not_regable(self,[ra_addr_taken]);
                  end;
                { fix self type which is declared as voidpointer in the
                  definition }

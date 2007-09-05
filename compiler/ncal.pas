@@ -987,20 +987,28 @@ implementation
 
                  { When the address needs to be pushed then the register is
                    not regable. Exception is when the location is also a var
-                   parameter and we can pass the address transparently }
+                   parameter and we can pass the address transparently (but
+                   that is handled by make_not_regable if ra_addr_regable is
+                   passed, and make_not_regable always needs to called for
+                   the ra_addr_taken info for non-invisble parameters }
                  if (
                      not(
                          (vo_is_hidden_para in parasym.varoptions) and
                          (left.resultdef.typ in [pointerdef,classrefdef])
                         ) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                         aktcallnode.procdefinition.proccalloption) and
-                     not(
-                         (left.nodetype=loadn) and
-                         (tloadnode(left).is_addr_param_load)
-                        )
+                         aktcallnode.procdefinition.proccalloption)
                     ) then
-                   make_not_regable(left,vr_addr);
+                   { pushing the address of a variable to take the place of a temp  }
+                   { as the complex function result of a function does not make its }
+                   { address escape the current block, as the "address of the       }
+                   { function result" is not something which can be stored          }
+                   { persistently by the callee (it becomes invalid when the callee }
+                   { returns)                                                       }
+                   if not(vo_is_funcret in parasym.varoptions) then
+                     make_not_regable(left,[ra_addr_regable,ra_addr_taken])
+                   else
+                     make_not_regable(left,[ra_addr_regable]);
 
                  if do_count then
                   begin

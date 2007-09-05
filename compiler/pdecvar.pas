@@ -974,7 +974,7 @@ implementation
                   { we can't take the size of an open array }
                   if is_open_array(pt.resultdef) or
                      (vs.vardef.size <> pt.resultdef.size) then
-                    make_not_regable(pt,vr_addr);
+                    make_not_regable(pt,[ra_addr_regable]);
                 end
               else
                 Message(parser_e_absolute_only_to_var_or_const);
