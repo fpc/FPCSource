@@ -130,6 +130,11 @@ procedure delete_aspell_speller (ths:aspellspeller); cdecl; external aspelllib;
 
 implementation
 
+{$ifdef windows}
+uses
+  SysUtils;
+{$endif}
+
 {$IFDEF Dynamic}
 function loadsymbol (name:pchar;proc:pointer):longbool;
 var addr:pointer;     
@@ -165,7 +170,7 @@ var
  bversion:=RegistryQueryValue (regLocalMachine,'SOFTWARE\Aspell','AspellVersion');
  move (bversion[1],version,4);
  path:=RegistryQueryValue (regLocalMachine,'SOFTWARE\Aspell','Path');
- mylib:=path+slash+replace(aspelllib,num2str(version));
+ mylib:=path + PathDelim + StringReplace(aspelllib, '%s', IntToStr(Version), [rfReplaceAll]);
 {$ENDIF}
 
  alib := LoadLibrary(mylib);
