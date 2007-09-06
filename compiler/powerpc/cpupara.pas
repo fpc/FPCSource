@@ -130,6 +130,7 @@ unit cpupara;
               result:=LOC_REGISTER;
             classrefdef:
               result:=LOC_REGISTER;
+            procvardef,
             recorddef:
               if (target_info.abi<>abi_powerpc_aix) or
                  ((p.size >= 3) and
@@ -144,11 +145,6 @@ unit cpupara;
                 result:=LOC_REGISTER;
             stringdef:
               if is_shortstring(p) or is_longstring(p) then
-                result:=LOC_REFERENCE
-              else
-                result:=LOC_REGISTER;
-            procvardef:
-              if (po_methodpointer in tprocvardef(p).procoptions) then
                 result:=LOC_REFERENCE
               else
                 result:=LOC_REGISTER;
@@ -185,7 +181,8 @@ unit cpupara;
           variantdef,
           formaldef :
             result:=true;
-          recorddef:
+          recorddef,
+          procvardef :
             result :=
               (target_info.abi<>abi_powerpc_aix) or
               ((varspez = vs_const) and
@@ -206,8 +203,6 @@ unit cpupara;
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
-          procvardef :
-            result:=po_methodpointer in tprocvardef(def).procoptions;
         end;
       end;
 
@@ -456,7 +451,7 @@ unit cpupara;
                       { make sure we don't lose whether or not the type is signed }
                       if (paradef.typ <> orddef) then
                         paracgsize := int_cgsize(paralen);
-                      if (paracgsize in [OS_NO,OS_64,OS_S64]) then
+                      if (paracgsize in [OS_NO,OS_64,OS_S64,OS_128,OS_S128]) then
                         paraloc^.size := OS_INT
                       else
                         paraloc^.size := paracgsize;

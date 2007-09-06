@@ -446,7 +446,7 @@ begin
     case location^.loc of
       LOC_REGISTER, LOC_CREGISTER:
         begin
-          if (size <> OS_NO) then
+          if not(size in [OS_NO,OS_128,OS_S128]) then
             a_load_ref_reg(list, size, location^.size, tmpref,
               location^.register)
           else begin
