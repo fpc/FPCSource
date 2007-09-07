@@ -405,32 +405,34 @@ end;
 
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
 
-type  Ptypeinfo=^Ttypeinfo;
-      Ttypeinfo=record
-        kind:byte;
-        name:shortstring;
-       end;
+type
+  Ptypeinfo=^Ttypeinfo;
+  Ttypeinfo=record
+    kind:byte;
+    name:shortstring;
+  end;
 
-      Penuminfo=^Tenuminfo;
-      Tenuminfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-        ordtype:byte;
-        minvalue,maxvalue:longint;
-        basetype:pointer;
-        namelist:shortstring;
-      end;
+  Penuminfo=^Tenuminfo;
+  Tenuminfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+    ordtype:byte;
+    minvalue,maxvalue:longint;
+    basetype:pointer;
+    namelist:shortstring;
+  end;
 
-      Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-        o:longint;
-        s:Pstring;
-      end;
+  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+    o:longint;
+    s:Pstring;
+  end;
 
-var e:Penuminfo;
-    p:Pstring;
-    l,h,m:cardinal;
-    sorted_array:^Tsorted_array;
-    i,spaces:byte;
+var
+  p:Pstring;
+  l,h,m:cardinal;
+  sorted_array:^Tsorted_array;
+  i,spaces:byte;
 
-label error;
+label
+  error;
 
 begin
   if Pcardinal(ord2strindex)^=0 then
