@@ -1149,16 +1149,21 @@ var
   m,m1 : longword;
   pc,pc2 : pchar;
   hs : string[32];
+  b : longint;
 begin
   pc2:=@s[1];
   if (l<0) then
     begin
+      b:=1;
       pc2^:='-';
       inc(pc2);
       m:=longword(-l);
     end
   else
-    m:=longword(l);
+    begin
+      b:=0;
+      m:=longword(l);
+    end;
   pc:=@hs[0];
   repeat
     inc(pc);
@@ -1166,13 +1171,15 @@ begin
     pc^:=char(m-(m1*10)+byte('0'));
     m:=m1;
   until m=0;
-  while (pc>pchar(@hs[0])) do
+  while (pc>pchar(@hs[0])) and
+        (b<high(s)) do
     begin
       pc2^:=pc^;
       dec(pc);
       inc(pc2);
+      inc(b);
     end;
-  s[0]:=char(pc2-pchar(@s[1]));
+  s[0]:=chr(b);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
@@ -1182,6 +1189,7 @@ end;
 procedure int_str(l:longword;out s:string);
 var
   m1 : longword;
+  b: longint;
   pc,pc2 : pchar;
   hs : string[32];
 begin
@@ -1193,13 +1201,16 @@ begin
     pc^:=char(l-(m1*10)+byte('0'));
     l:=m1;
   until l=0;
-  while (pc>pchar(@hs[0])) do
+  b:=0;
+  while (pc>pchar(@hs[0])) and
+        (b<high(s)) do
     begin
       pc2^:=pc^;
       dec(pc);
       inc(pc2);
+      inc(b);
     end;
-  s[0]:=char(pc2-pchar(@s[1]));
+  s[0]:=chr(b);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
@@ -1210,17 +1221,22 @@ procedure int_str(l:int64;out s:string);
 var
   m,m1 : qword;
   pc,pc2 : pchar;
+  b: longint;
   hs : string[64];
 begin
   pc2:=@s[1];
   if (l<0) then
     begin
+      b:=1;
       pc2^:='-';
       inc(pc2);
       m:=qword(-l);
     end
   else
-    m:=qword(l);
+    begin
+      b:=0;
+      m:=qword(l);
+    end;
   pc:=@hs[0];
   repeat
     inc(pc);
@@ -1228,13 +1244,15 @@ begin
     pc^:=char(m-(m1*10)+byte('0'));
     m:=m1;
   until m=0;
-  while (pc>pchar(@hs[0])) do
+  while (pc>pchar(@hs[0])) and
+        (b < high(s)) do
     begin
       pc2^:=pc^;
       dec(pc);
       inc(pc2);
+      inc(b);
     end;
-  s[0]:=char(pc2-pchar(@s[1]));
+  s[0]:=chr(b);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
@@ -1245,6 +1263,7 @@ procedure int_str(l:qword;out s:string);
 var
   m1 : qword;
   pc,pc2 : pchar;
+  b: longint;
   hs : string[64];
 begin
   pc2:=@s[1];
@@ -1255,13 +1274,16 @@ begin
     pc^:=char(l-(m1*10)+byte('0'));
     l:=m1;
   until l=0;
-  while (pc>pchar(@hs[0])) do
+  b:=0;
+  while (pc>pchar(@hs[0])) and
+        (b<high(s)) do
     begin
       pc2^:=pc^;
       dec(pc);
       inc(pc2);
+      inc(b);
     end;
-  s[0]:=char(pc2-pchar(@s[1]));
+  s[0]:=chr(b);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
