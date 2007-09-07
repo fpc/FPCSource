@@ -24,6 +24,11 @@
 uses strings,ctypes;
 {$L ctest.o}
 {$endif USE_PASCAL_OBJECT}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$define test_longdouble}
+{$endif}
+
 { Use C alignment of records }
 {$PACKRECORDS C}
 const
@@ -299,6 +304,7 @@ begin
   if trunc(global_double) <> trunc(RESULT_DOUBLE) then
     failed := true;
 
+{$ifdef test_longdouble}
   clear_values;
   clear_globals;
 
@@ -306,6 +312,7 @@ begin
   test_param_longdouble(value_long_double);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
     failed := true;
+{$endif}
 
   { var parameter testing }
   clear_values;
@@ -397,6 +404,7 @@ begin
   clear_values;
   clear_globals;
 
+{$ifdef test_longdouble}
   array_long_double[1] := RESULT_LONGDOUBLE;
   test_array_param_longdouble(array_long_double);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
@@ -410,6 +418,7 @@ begin
 {$endif cpui386}
         failed := true;
     end;
+{$endif}
 
   If failed then
    fail
@@ -493,7 +502,7 @@ begin
   clear_values;
   clear_globals;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef test_longdouble}}
   value_u8bit := RESULT_U8BIT;
   value_long_double := RESULT_LONGDOUBLE;
   test_param_mixed_long_double(value_long_double, value_u8bit);
@@ -501,7 +510,7 @@ begin
     failed := true;
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-{$endif FPC_HAS_TYPE_EXTENDED}
+{$endif}
 
   If failed then
    fail
@@ -722,12 +731,14 @@ begin
   if trunc(value_double) <> trunc(RESULT_DOUBLE) then
     failed := true;
 
+{$ifdef test_longdouble}
   clear_values;
   clear_globals;
 
   value_long_double := test_function_longdouble;
   if trunc(value_long_double) <> trunc(RESULT_LONGDOUBLE) then
     failed := true;
+{$endif}
 
   clear_values;
   clear_globals;
