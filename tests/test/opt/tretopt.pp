@@ -423,7 +423,7 @@ begin
   testrecinl5;
   testrec2a;
   testrec2ainl;
-{$if defined(cpupowerpc) or defined(cpui386)}
+{$if defined(cpupowerpc) or defined(cpui386) or defined(cpupowerpc64)}
   testrec3a;
   testrec3ainl;
 {$endif}
