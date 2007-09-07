@@ -814,7 +814,7 @@ end;
 
 {$ifdef beos}
 
-{$i osposixh.inc}
+{$i ptypes.inc}
 
 { ------------------------- Images --------------------------- }
 

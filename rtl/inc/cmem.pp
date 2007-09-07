@@ -31,6 +31,8 @@ Const
   LibName = 'libc';
 {$elseif defined(macos)}
   LibName = 'StdCLib';
+{$elseif defined(beos)}
+  LibName = 'root';
 {$else}
   LibName = 'c';
 {$endif}

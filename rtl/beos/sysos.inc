@@ -109,6 +109,7 @@ begin
    ESysENOTEMPTY,
    ESysEACCES : Inoutres:=5;
    ESysEISDIR : InOutRes:=5;
+   ESysEPERM  : InOutRes:=5;
   else
     begin
        InOutRes := Integer(PosixErrno);

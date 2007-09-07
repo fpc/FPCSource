@@ -55,11 +55,9 @@ property errno : cint read fpgeterrno write fpseterrno;
 {$ifdef FPC_USE_LIBC}
 {$ifdef beos}
 function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
-Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
 Function fpFlock (var fd : text; mode : longint) : cint; 
 Function fpFlock (var fd : File; mode : longint) : cint; 
 Function fpFlock (fd, mode : longint) : cint; 
-Function StatFS  (Path:string;Var Info:tstatfs):cint; 
 Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
 {$endif}
 {$endif}
@@ -126,11 +124,6 @@ begin
   fpsettimeofday := settimeofday(tp, tzp);
 end;
 
-Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
-begin
-  {$warning TODO BeOS fStatFS implementation}  
-end;
-
 Function fpFlock (var fd : File; mode : longint) : cint; 
 begin
   {$warning TODO BeOS fpFlock implementation}  
@@ -144,11 +137,6 @@ end;
 Function fpFlock (fd, mode : longint) : cint; 
 begin
   {$warning TODO BeOS fpFlock implementation}  
-end;
-
-Function StatFS  (Path:string;Var Info:tstatfs):cint; 
-begin
-  {$warning TODO BeOS StatFS implementation}  
 end;
 
 Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;

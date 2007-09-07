@@ -73,9 +73,16 @@ const
 {$ifdef solaris}
   CODESET=49;
   LC_ALL = 6;
+{$else solaris}
+{$ifdef beos}
+  {$warning check correct value for BeOS}
+  CODESET=49;
+  LC_ALL = 6; // Checked for BeOS, but 0 under Haiku...
+  ESysEILSEQ = EILSEQ;
 {$else}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
+{$endif beos}
 {$endif solaris}
 {$endif FreeBSD}
 {$endif darwin}
@@ -94,9 +101,11 @@ type
   piconv_t = ^iconv_t;
   iconv_t = pointer;
   nl_item = cint;
-
+{$ifndef beos}
 function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
-{$ifndef bsd}
+{$endif}
+{ $ ifndef bsd}
+{$if not defined(bsd) and not defined(beos)}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
@@ -112,6 +121,14 @@ threadvar
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
  
+{$ifdef beos}
+function nl_langinfo(__item:nl_item):pchar;
+begin
+  {$warning TODO BeOS nl_langinfo or more uptodate port of iconv...}  
+  Result := '';
+end;
+{$endif}
+
 procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   var
     outlength,

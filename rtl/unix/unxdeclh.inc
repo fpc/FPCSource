@@ -23,12 +23,16 @@ Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$endif beos}
 {$endif solaris}
 
-{$ifndef beos}
+{$ifdef beos}
+Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatvfs';
+{$else beos}
 Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatfs';
 {$endif beos}
 
 Function fsync (fd : cint) : cint; cdecl; external clib name 'fsync';
-{$ifndef beos}
+{$ifdef beos}
+Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statvfs';
+{$else beos}
 Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statfs';
 {$endif beos}
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';

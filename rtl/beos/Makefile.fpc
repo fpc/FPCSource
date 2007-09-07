@@ -7,14 +7,15 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system baseunix unixtype objpas strings \
+units=system baseunix unixtype ctypes objpas macpas strings \
 #      beos \
-      errors dos objects \
+      errors dos dl objects \
       sysconst sysutils \
-      types typinfo classes math varutils \
-      cpu mmx getopts heaptrc lineinfo variants \
-      rtlconsts syscall unix unixutil strutils termio initc crt video keyboard \
-      dateutils fmtbcd sockets dynlibs
+      types charset ucomplex typinfo classes math varutils \
+      cpu mmx getopts heaptrc lineinfo lnfodwrf variants \
+      rtlconsts syscall unix unixutil strutils termio initc \
+      cmem crt video mouse keyboard \
+      dateutils fmtbcd sockets dynlibs cwstring
 rsts=math varutils typinfo variants sysconst rtlconsts dateutils
 
 [require]
@@ -30,7 +31,7 @@ cpu=i386
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(OSPROCINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) 
 targetdir=.
 
 [lib]
@@ -108,7 +109,7 @@ system$(PPUEXT) : system.pp $(SYSDEPS) $(UNIXINC)/sysunixh.inc
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
-dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) types$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
@@ -126,7 +127,7 @@ baseunix$(PPUEXT) : $(UNIXINC)/unixtype.pp $(SYSTEMUNIT)$(PPUEXT)
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  sysconst.inc $(UNIXINC)/timezone.inc \
-                 unxsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                 baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -147,7 +148,7 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc termio.pp system$(PPUEXT)
 video$(PPUEXT) : video.pp $(INC)/textrec.inc termio.pp system$(PPUEXT)
         $(COMPILER) -Fu$(UNIXINC) $(UNIXINC)/video.pp $(REDIR)
         
-keyboard$(PPUEXT) : $(UNIXINC)/keyboard.pp $(INC)/textrec.inc termio.pp system$(PPUEXT)
+keyboard$(PPUEXT) : $(UNIXINC)/keyboard.pp mouse$(PPUEXT) $(INC)/textrec.inc termio.pp system$(PPUEXT)
         $(COMPILER) $(UNIXINC)/keyboard.pp $(REDIR) -dNOGPM
 
                        
@@ -162,7 +163,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(UNIXINC) $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) $(OBJPASDIR)/typinfo$(PPUEXT) $(OBJPASDIR)/rtlconsts$(PPUEXT) 
+                   sysutils$(PPUEXT) $(OBJPASDIR)/typinfo$(PPUEXT) types$(PPUEXT) $(OBJPASDIR)/rtlconsts$(PPUEXT) 
 #                   $(UNIXINC)/systhrd$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) -Fi$(OBJPASDIR)/classes classes.pp
 
@@ -194,6 +195,13 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
+
+#
+# Mac Pascal Model
+#
+
+macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
         
 #
 # Other system-independent RTL Units
@@ -210,11 +218,35 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
+
+charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
+
 #
 # Other system-dependent RTL Units
 #
+
+termio$(PPUEXT) : baseunix$(PPUEXT)
+
+mouse$(PPUEXT) : baseunix$(PPUEXT) video$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/mouse.pp $(REDIR) -dNOGPM
+
+dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 
 sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
                    unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
+        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
+
+

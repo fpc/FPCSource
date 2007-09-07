@@ -61,29 +61,32 @@ end;
 
 function wifexited(status : cint): boolean;
 begin
- wifexited:=(status AND 127) =0;
+ wifexited:=(status AND (not $FF)) = 0;
 end;
 
 function wexitstatus(status : cint): cint;
 begin
- wexitstatus:=status shr 8;
+ wexitstatus:=status AND $FF;
+end;
+
+// const wstopped=127;
+
+function wifsignaled(status : cint): boolean;
+begin
+ wifsignaled := ((status shr 8) AND $FF) <> 0;
+end;
+
+function wtermsig(status : cint):cint;
+begin
+ wtermsig:= ((status shr 8) AND $FF);
 end;
 
 function wstopsig(status : cint): cint;
 begin
- wstopsig:=status shr 8;
+ wstopsig:=((status shr 16) AND $FF);
 end;
 
-const wstopped=127;
 
-function wifsignaled(status : cint): boolean;
-begin
- wifsignaled:=((status and 127)<>wstopped) and ((status and 127)<>0);
-end;
 
-function wtermsig(status : cint):cint;
 
-begin
- wtermsig:=cint(status and 127);
-end;
 

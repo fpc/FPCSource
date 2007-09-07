@@ -22,23 +22,19 @@
 {$i ctypes.inc}
 
 type
+  fsblkcnt_t = clonglong;
   TStatfs = packed record
-    spare2,            { place holder}
-    bsize,             { fundamental block size}
-    iosize,            { optimal block size }
-    blocks,            {  total blocks}
-    bfree,             { blocks free}
-    bavail,            { block available for mortal users}
-    files,             { Total file nodes}
-    ffree          : longint;    { file nodes free}
-    fsid           : array[0..1] of longint;
-    fowner         : longint; {mounter uid}
-    ftype          : longint;
-    fflags         : longint; {copy of mount flags}
-    spare          : array [0..1] of longint; { For later use }
-    fstypename     : array[0..15] of char;
-    mountpoint     : array[0..89] of char;
-    mnfromname     : array[0..89] of char;
+    bsize 			: Cardinal;
+    frsize			: Cardinal;
+    blocks			: fsblkcnt_t;
+    bfree			: fsblkcnt_t;
+    bavail			: fsblkcnt_t;
+    files			: fsblkcnt_t;
+    ffree			: fsblkcnt_t;
+    favail			: fsblkcnt_t;
+    fsid			: Cardinal;
+    flag			: Cardinal;
+    namemax			: Cardinal;
   end;
   PStatFS=^TStatFS;
 
@@ -70,9 +66,11 @@ type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
+    wint_t	 = cint32;
     size_t   = cuint32;         { as definied in the C standard}
     TSize    = size_t;
-    pSize    = ^size_t;		
+    pSize    = ^size_t;
+    psize_t   = pSize;		
 
     ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
@@ -91,6 +89,8 @@ type
     pTime    = ^time_t;
     ptime_t =  ^time_t;
     
+    wchar_t   = widechar;
+    pwchar_t  = ^wchar_t;
 
     socklen_t= cuint32;
     TSocklen = socklen_t;
@@ -192,6 +192,9 @@ CONST
     _PTHREAD_MUTEX_ERRORCHECK = _PTHREAD_MUTEX_ERRORCHECK_NP;
     _PTHREAD_MUTEX_DEFAULT    = _PTHREAD_MUTEX_NORMAL;
     _PTHREAD_MUTEX_FAST_NP    = _PTHREAD_MUTEX_ADAPTIVE_NP;
+
+     _PTHREAD_KEYS_MAX              = 256;
+     _PTHREAD_STACK_MIN             = 1024;
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }

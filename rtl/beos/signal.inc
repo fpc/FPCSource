@@ -81,8 +81,144 @@ const
  }
 
 type 
-  // sigset_t = clong; ??? BeOS ? should be this...
-  sigset_t = array[0..3] of Longint;  // here for compiling...
+  packed_fp_stack = packed record
+    st0 : array[0..9] of byte;
+    st1 : array[0..9] of byte;
+    st2 : array[0..9] of byte;
+    st3 : array[0..9] of byte;
+    st4 : array[0..9] of byte;
+    st5 : array[0..9] of byte;
+    st6 : array[0..9] of byte;    
+    st7 : array[0..9] of byte;    
+  end;
+  
+  packed_mmx_regs = packed record
+    mm0 : array[0..9] of byte;
+    mm1 : array[0..9] of byte;
+    mm2 : array[0..9] of byte;
+    mm3 : array[0..9] of byte;
+    mm4 : array[0..9] of byte;
+    mm5 : array[0..9] of byte;
+    mm6 : array[0..9] of byte;    
+    mm7 : array[0..9] of byte;    
+  end;
+  
+  old_extended_regs = packed record
+    fp_control 	: word;
+    _reserved1 	: word;
+    fp_status 	: word;
+    _reserved2 	: word;
+    fp_tag 		: word;
+    _reserved3 	: word;
+    fp_eip 		: cardinal;
+    fp_cs 		: word;
+    fp_opcode	: word;
+    fp_datap	: word;
+    fp_ds		: word;
+    _reserved4	: word;
+    fp_mmx : record
+      case fp_mmx : byte of
+        0 : (fp	: packed_fp_stack);
+        1 : (mmx	: packed_mmx_regs);
+    end;
+  end;
+  
+  fp_stack = record
+    st0 : array[0..9] of byte;
+    _reserved_42_47 : array[0..5] of byte;
+    st1 : array[0..9] of byte;
+    _reserved_58_63 : array[0..5] of byte;
+    st2 : array[0..9] of byte;
+    _reserved_74_79 : array[0..5] of byte;
+    st3 : array[0..9] of byte;
+    _reserved_90_95 : array[0..5] of byte;
+    st4 : array[0..9] of byte;
+    _reserved_106_111 : array[0..5] of byte;
+    st5 : array[0..9] of byte;
+    _reserved_122_127 : array[0..5] of byte;
+    st6 : array[0..9] of byte;    
+    _reserved_138_143 : array[0..5] of byte;
+    st7 : array[0..9] of byte;        
+    _reserved_154_159 : array[0..5] of byte;
+  end;
+  
+  mmx_regs = record
+    mm0 : array[0..9] of byte;
+    _reserved_42_47 : array[0..5] of byte;
+    mm1 : array[0..9] of byte;
+    _reserved_58_63 : array[0..5] of byte;
+    mm2 : array[0..9] of byte;
+    _reserved_74_79 : array[0..5] of byte;
+    mm3 : array[0..9] of byte;
+    _reserved_90_95 : array[0..5] of byte;
+    mm4 : array[0..9] of byte;
+    _reserved_106_111 : array[0..5] of byte;
+    mm5 : array[0..9] of byte;
+    _reserved_122_127 : array[0..5] of byte;
+    mm6 : array[0..9] of byte;    
+    _reserved_138_143 : array[0..5] of byte;
+    mm7 : array[0..9] of byte;    
+    _reserved_154_159 : array[0..5] of byte;
+  end;
+  
+  xmmx_regs = record
+    xmm0 : array [0..15] of byte;
+    xmm1 : array [0..15] of byte;
+    xmm2 : array [0..15] of byte;
+    xmm3 : array [0..15] of byte;
+    xmm4 : array [0..15] of byte;
+    xmm5 : array [0..15] of byte;
+    xmm6 : array [0..15] of byte;
+    xmm7 : array [0..15] of byte;
+  end;
+  
+  new_extended_regs = record
+    fp_control 	: word;
+    fp_status 	: word;
+    fp_tag		: word;
+    fp_opcode	: word;
+    fp_eip		: Cardinal;
+    fp_cs		: word;
+    res_14_15	: word;
+    fp_datap	: Cardinal;
+    fp_ds		: word;
+    _reserved_22_23 : word;
+    mxcsr		: Cardinal;
+    _reserved_28_31 : Cardinal;
+    fp_mmx : record
+      case byte of
+        0 : (fp : fp_stack);
+        1 : (mmx : mmx_regs);
+    end;
+    xmmx : xmmx_regs;
+    _reserved_288_511 : array[0..223] of byte;
+  end;
+  
+  extended_regs = record
+    state : record
+      case byte of
+  	    0 : (old_format : old_extended_regs);
+  	    1 : (new_format : new_extended_regs);  	  
+  	end;
+  	format	: Cardinal;
+  end;
+  
+  vregs = record
+    eip 	: Cardinal;
+    eflags 	: cardinal;
+    eax		: Cardinal;
+    ecx		: Cardinal;
+    edx		: Cardinal;
+    esp		: Cardinal;
+    ebp		: Cardinal;
+    _reserved_1 : Cardinal;
+    xregs	: extended_regs;
+    _reserved_2 : array[0..2] of Cardinal;
+  end;
+  
+  Pvregs = ^vregs;
+
+  sigset_t = array[0..3] of Longint;
 
     PSigContextRec = ^SigContextRec;
     SigContextRec = record
@@ -125,17 +261,18 @@ type
        fpr_ex_sw    : cardinal;
        fpr_pad      : array[0..63] of char;
        end;
-
+       
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
   {$WARNING TODO : check with signal.h}
-  sigActionHandler = procedure(Sig: Longint; SigContext: SigContextRec;someptr:pointer);cdecl;
+  sigActionHandler = procedure(Sig: Longint; SigContext: PSigContextRec; uContext : Pvregs);cdecl;
 
   Sigset=sigset_t;
   TSigset=sigset_t;
   PSigSet = ^SigSet;
+  psigset_t=psigset;
 
   SigActionRec = packed record
 //    Handler  : record
@@ -144,8 +281,9 @@ type
 //        0: (Sh: SignalHandler);
 //        1: (Sa: TSigAction);
 //      end;
-    Sa_Flags    : Longint;
-    Sa_Mask     : SigSet;
+    sa_Mask     : SigSet;
+    sa_Flags    : Longint;
+    sa_userdaa  : pointer
   end;
 
   PSigActionRec = ^SigActionRec;
@@ -156,4 +294,6 @@ type
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
+
+
 
