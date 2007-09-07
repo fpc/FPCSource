@@ -168,6 +168,9 @@ interface
           procedure secondcallparan;virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
+          { returns whether a parameter contains a type conversion from }
+          { a refcounted into a non-refcounted type                     }
+          function contains_unsafe_typeconversion: boolean;
 
           property nextpara : tnode read right write right;
           property parametername : tnode read third write third;
@@ -1066,6 +1069,30 @@ implementation
          if left.registersmmx>registersmmx then
            registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
+      end;
+
+
+    function tcallparanode.contains_unsafe_typeconversion: boolean;
+      var
+        n: tnode;
+      begin
+        n:=left;
+        while assigned(n) and
+              (n.nodetype=typeconvn) do
+          begin
+            { look for type conversion nodes which convert a }
+            { refcounted type into a non-refcounted type     }
+            if (not n.resultdef.needs_inittable or
+                is_class(n.resultdef)) and
+               (ttypeconvnode(n).left.resultdef.needs_inittable and
+                not is_class(ttypeconvnode(n).left.resultdef)) then
+              begin
+                result:=true;
+                exit;
+              end;
+            n:=ttypeconvnode(n).left;
+          end;
+        result:=false;
       end;
 
 
@@ -2843,6 +2870,8 @@ implementation
     function tcallnode.pass_1 : tnode;
       var
         st : TSymtable;
+        n: tcallparanode;
+        do_inline: boolean;
       begin
          result:=nil;
 
@@ -2854,13 +2883,26 @@ implementation
              st:=procdefinition.owner;
              if (st.symtabletype=ObjectSymtable) then
                st:=st.defowner.owner;
+             do_inline:=true;
              if (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
                 (st.symtabletype=globalsymtable) and
                 (not st.iscurrentunit) then
                begin
                  Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references static symtable');
-               end
-             else
+                 do_inline:=false;
+               end;
+             n:=tcallparanode(parameters);
+             while assigned(n) do
+               begin
+                 if n.contains_unsafe_typeconversion then
+                   begin
+                     Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", invocation parameter contains unsafe type conversion');
+                     do_inline:=false;
+                     break;
+                   end;
+                 n:=tcallparanode(n.nextpara);
+               end;
+             if do_inline then
                begin
                  result:=pass1_inline;
                  exit;
