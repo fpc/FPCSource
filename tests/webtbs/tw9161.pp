@@ -1,4 +1,7 @@
 uses
+{$ifdef unix}
+  cwstring,
+{$endif}
   variants,sysutils;
 var a:variant;
 begin
@@ -11,6 +14,7 @@ begin
   a[2,1]:='asdf';
   if VarArrayGet(a,[2,1])<>'asdf' then
     halt(2);
+  a:='';
   writeln('ok');
 end.
 
