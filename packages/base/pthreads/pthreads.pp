@@ -33,7 +33,12 @@ uses initc,BaseUnix, unixtype;
   uses initc,unixtype;
   {$i pthrsnos.inc}
   {$else}
-  {$error operating system not detected}
+   {$ifdef beos}
+   uses initc, baseunix, unixtype;
+   {$i pthrbeos.inc}
+   {$else}
+    {$error operating system not detected}
+   {$endif}
   {$endif}
  {$endif}
 {$endif}

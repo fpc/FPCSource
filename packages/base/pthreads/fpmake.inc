@@ -4,6 +4,6 @@
     {$ELSEIF defined(BASEPACKAGES)}
     Directory:='pthreads';
     {$ENDIF}
-    OS:=[linux,freebsd,darwin];
+    OS:=[linux,freebsd,darwin,beos],;
     T:=Targets.AddUnit('pthreads');
     EndPackage;
