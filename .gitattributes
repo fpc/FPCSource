@@ -6413,6 +6413,10 @@ tests/test/cg/cdecl/taoc4.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc5.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc6.pp svneol=native#text/plain
 tests/test/cg/obj/amiga/m68k/ctest.o -text
+tests/test/cg/obj/beos/i386/ctest.o -text
+tests/test/cg/obj/beos/i386/tcext3.o -text
+tests/test/cg/obj/beos/i386/tcext4.o -text
+tests/test/cg/obj/beos/i386/tcext5.o -text
 tests/test/cg/obj/darwin/i386/ctest.o -text
 tests/test/cg/obj/darwin/i386/tcext3.o -text
 tests/test/cg/obj/darwin/i386/tcext4.o -text

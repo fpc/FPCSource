@@ -11,6 +11,11 @@ uses
 {$define TEST_EXTENDED}
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+{$ifdef beos}
+  {it seems that BeOS doesn't support extended...}
+  {$undef TEST_EXTENDED}
+{$endif beos}
+
 {$ifdef WINDOWS}
   { the msvcrt.dll doesn't support extended because MS-C doesn't }
   {$undef TEST_EXTENDED}

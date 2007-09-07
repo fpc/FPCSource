@@ -42,6 +42,9 @@ Interface
 {$ifdef BSD}
 {$define implemented}
 {$endif}
+{$ifdef BEOS}
+{$define implemented}
+{$endif}
 {$ifdef macos}
 {$define shell_implemented}
 {$endif}
