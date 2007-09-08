@@ -184,7 +184,7 @@
             end;
         end;
 
-      class function TObject.InitInstance(instance : pointer) : tobject;
+      class function TObject.InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$ENDIF}
 
         begin
            { the size is saved at offset 0 }
