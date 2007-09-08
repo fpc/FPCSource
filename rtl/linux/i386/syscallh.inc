@@ -33,10 +33,6 @@ Type
 
   TSysParam  = Longint;
   
-var
-  psysinfo: LongWord;
-  sysenter_supported: LongInt = 0;
-
 function Do_SysCall(sysnr:TSysParam):TSysResult; register; external name 'FPC_SYSCALL0';
 function Do_SysCall(sysnr,param1:TSysParam):TSysResult; register; external name 'FPC_SYSCALL1';
 function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; register; external name 'FPC_SYSCALL2';
