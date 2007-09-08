@@ -1437,11 +1437,20 @@ implementation
                 recst.padalignment:=maxpadalign;
 {$endif powerpc or powerpc64}
               { Align the offset where the union symtable is added }
-              if (recst.usefieldalignment=C_alignment) then
-                usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
-              else
-                usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.recordalignmax);
-
+              case recst.usefieldalignment of
+                { allow the unionsymtable to be aligned however it wants }
+                { (within the global min/max limits)                     }
+                0, { default }
+                C_alignment:
+                  usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+                { 1 byte alignment if we are bitpacked }
+                bit_alignment:
+                  usedalign:=1;
+                { otherwise alignment at the packrecords alignment of the }
+                { current record                                          }
+                else
+                  usedalign:=used_align(recst.fieldalignment,current_settings.alignment.recordalignmin,current_settings.alignment.recordalignmax);
+              end;
               offset:=align(recst.datasize,usedalign);
               recst.datasize:=offset+unionsymtable.datasize;
 

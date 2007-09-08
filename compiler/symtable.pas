@@ -79,7 +79,7 @@ interface
        tabstractrecordsymtable = class(tstoredsymtable)
        public
           usefieldalignment,     { alignment to use for fields (PACKRECORDS value), C_alignment is C style }
-          recordalignment,       { alignment required when inserting this record }
+          recordalignment,       { alignment desired when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
           constructor create(const n:string;usealign:shortint);
@@ -760,6 +760,33 @@ implementation
       end;
 
 
+    function field2recordalignment(fieldoffs, fieldalign: aint): aint;
+      begin
+        { optimal alignment of the record when declaring a variable of this }
+        { type is independent of the packrecords setting                    }
+        if (fieldoffs mod fieldalign) = 0 then
+          result:=fieldalign
+        else if (fieldalign >= 16) and
+                ((fieldoffs mod 16) = 0) and
+                ((fieldalign mod 16) = 0) then
+          result:=16
+        else if (fieldalign >= 8) and
+                ((fieldoffs mod 8) = 0) and
+                ((fieldalign mod 8) = 0) then
+          result:=8
+        else if (fieldalign >= 4) and
+                ((fieldoffs mod 4) = 0) and
+                ((fieldalign mod 4) = 0) then
+          result:=4
+        else if (fieldalign >= 2) and
+                ((fieldoffs mod 2) = 0) and
+                ((fieldalign mod 2) = 0) then
+          result:=2
+        else
+          result:=1;
+      end;
+
+
     procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym);
       var
         l      : aint;
@@ -796,6 +823,9 @@ implementation
                   Message(sym_e_segment_too_large);
                 l:=l*8;
               end;
+            if varalign=0 then
+              varalign:=size_2_align(l);
+            recordalignment:=max(recordalignment,field2recordalignment(databitsize mod 8,varalign));
             { bit packed records are limited to high(aint) bits }
             { instead of bytes to avoid double precision        }
             { arithmetic in offset calculations                 }
@@ -823,27 +853,26 @@ implementation
             if varalign=0 then
               varalign:=l;
             if (fieldalignment<current_settings.alignment.maxCrecordalign) then
-            begin
-              if (varalign>16) and (fieldalignment<32) then
-                fieldalignment:=32
-              else if (varalign>12) and (fieldalignment<16) then
-                fieldalignment:=16
-              { 12 is needed for long double }
-              else if (varalign>8) and (fieldalignment<12) then
-                fieldalignment:=12
-              else if (varalign>4) and (fieldalignment<8) then
-                fieldalignment:=8
-              else if (varalign>2) and (fieldalignment<4) then
-                fieldalignment:=4
-              else if (varalign>1) and (fieldalignment<2) then
-                fieldalignment:=2;
-            end;
+              begin
+                if (varalign>16) and (fieldalignment<32) then
+                  fieldalignment:=32
+                else if (varalign>12) and (fieldalignment<16) then
+                  fieldalignment:=16
+                { 12 is needed for long double }
+                else if (varalign>8) and (fieldalignment<12) then
+                  fieldalignment:=12
+                else if (varalign>4) and (fieldalignment<8) then
+                  fieldalignment:=8
+                else if (varalign>2) and (fieldalignment<4) then
+                  fieldalignment:=4
+                else if (varalign>1) and (fieldalignment<2) then
+                  fieldalignment:=2;
+              end;
             fieldalignment:=min(fieldalignment,current_settings.alignment.maxCrecordalign);
           end;
         if varalign=0 then
           varalign:=size_2_align(l);
-        if (usefieldalignment<> bit_alignment) then
-          varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
+        varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
 
         sym.fieldoffset:=align(_datasize,varalignfield);
         if l>high(aint)-sym.fieldoffset then
@@ -857,13 +886,7 @@ implementation
         if (usefieldalignment=C_alignment) then
           varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
         else
-          if (usefieldalignment=0) then
-            varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.recordalignmax)
-        else
-          begin
-            { packrecords is set explicitly, ignore recordalignmax limit }
-            varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,usefieldalignment);
-          end;
+          varalignrecord:=field2recordalignment(sym.fieldoffset,varalign);
         recordalignment:=max(recordalignment,varalignrecord);
       end;
 
@@ -882,10 +905,19 @@ implementation
           use the fieldalignment, because that is updated with the
           used alignment. }
         if (padalignment = 1) then
-          if usefieldalignment=C_alignment then
-            padalignment:=fieldalignment
-          else
-            padalignment:=recordalignment;
+          case usefieldalignment of
+            C_alignment:
+              padalignment:=fieldalignment;
+            { bitpacked }
+            bit_alignment:
+              padalignment:=1;
+            { default/no packrecords specified }
+            0:
+              padalignment:=recordalignment
+            { specific packrecords setting -> use as upper limit }
+            else
+              padalignment:=min(recordalignment,usefieldalignment);
+          end;
         _datasize:=align(_datasize,padalignment);
       end;
 
@@ -961,6 +993,9 @@ implementation
             { add to this record symtable }
 //            unionst.SymList.List.List^[i].Data:=nil;
             sym.ChangeOwner(self);
+            varalign:=tfieldvarsym(sym).vardef.alignment;
+            if varalign=0 then
+              varalign:=size_2_align(tfieldvarsym(sym).getsize);
             { retrieve size }
             if (usefieldalignment=bit_alignment) then
               begin
@@ -988,6 +1023,7 @@ implementation
                     _datasize:=(databitsize+7) div 8;
                   end;
                 tfieldvarsym(sym).fieldoffset:=databitsize;
+              varalignrecord:=field2recordalignment(tfieldvarsym(sym).fieldoffset div 8,varalign);
               end
             else
               begin
@@ -1000,14 +1036,15 @@ implementation
                   _datasize:=tfieldvarsym(sym).fieldoffset+offset;
                 { update address }
                 tfieldvarsym(sym).fieldoffset:=_datasize;
-                { update alignment of this record }
-                varalign:=tfieldvarsym(sym).vardef.alignment;
-                if varalign=0 then
-                  varalign:=size_2_align(tfieldvarsym(sym).getsize);
-                varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
-                recordalignment:=max(recordalignment,varalignrecord);
+                varalignrecord:=field2recordalignment(tfieldvarsym(sym).fieldoffset,varalign);
               end;
+            { update alignment of this record }
+            if (usefieldalignment<>C_alignment) then
+              recordalignment:=max(recordalignment,varalignrecord);
           end;
+        { update alignment for C records }
+        if (usefieldalignment=C_alignment) then
+          recordalignment:=max(recordalignment,unionst.recordalignment);
         { Register defs in the new record symtable }
         for i:=0 to unionst.DefList.Count-1 do
           begin

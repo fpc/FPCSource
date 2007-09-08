@@ -2191,6 +2191,9 @@ implementation
         storefilepos:=current_filepos;
         current_filepos:=sym.fileinfo;
         l:=sym.getsize;
+        varalign:=sym.vardef.alignment;
+        if (varalign=0) then
+          varalign:=l;
         if tf_section_threadvars in target_info.flags then
           begin
             if (vo_is_thread_var in sym.varoptions) then
@@ -2207,11 +2210,17 @@ implementation
         else
           begin
             if (vo_is_thread_var in sym.varoptions) then
-              inc(l,sizeof(aint));
+              begin
+                inc(l,sizeof(aint));
+                { it doesn't help to set a higher alignment, as  }
+                { the first sizeof(aint) bytes field will offset }
+                { everything anyway                              }
+                varalign:=sizeof(aint);
+              end;
             list:=current_asmdata.asmlists[al_globals];
             sectype:=sec_bss;
           end;
-        varalign:=var_align(size_2_align(l));
+        varalign:=var_align(varalign);
         maybe_new_object_file(list);
         new_section(list,sectype,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
