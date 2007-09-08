@@ -502,7 +502,7 @@ begin
   clear_values;
   clear_globals;
 
-{$ifdef test_longdouble}}
+{$ifdef test_longdouble}
   value_u8bit := RESULT_U8BIT;
   value_long_double := RESULT_LONGDOUBLE;
   test_param_mixed_long_double(value_long_double, value_u8bit);
