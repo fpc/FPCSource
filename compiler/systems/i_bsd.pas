@@ -445,7 +445,7 @@ unit i_bsd;
                 localalignmin   : 0;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 4;
                 maxCrecordalign : 4
               );
             first_parm_offset : 24;
@@ -567,7 +567,7 @@ unit i_bsd;
                 localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 8;
                 maxCrecordalign : 8
               );
             first_parm_offset : 48;
