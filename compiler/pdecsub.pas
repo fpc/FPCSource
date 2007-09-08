@@ -1055,7 +1055,14 @@ implementation
                end
               else
                begin
-                 Message(parser_e_overload_operator_failed);
+                 case token of
+                   _CARET:
+                     Message1(parser_e_overload_operator_failed,'**');
+                   _UNEQUAL:
+                     Message1(parser_e_overload_operator_failed,'=');
+                   else
+                     Message1(parser_e_overload_operator_failed,'');
+                 end;
                  { Use the dummy NOTOKEN that is also declared
                    for the overloaded_operator[] }
                  optoken:=NOTOKEN;

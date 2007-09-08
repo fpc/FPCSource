@@ -638,7 +638,7 @@ parser_e_no_new_or_dispose_for_classes=03086_E_The extended syntax of new or dis
 parser_e_procedure_overloading_is_off=03088_E_Procedure overloading is switched off
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
-parser_e_overload_operator_failed=03089_E_It is not possible to overload this operator (overload = instead)
+parser_e_overload_operator_failed=03089_E_It is not possible to overload this operator. Related overloadable operators (if any) are: $1
 % You are trying to overload an operator which cannot be overloaded.
 % The following operators can be overloaded :
 % \begin{verbatim}
