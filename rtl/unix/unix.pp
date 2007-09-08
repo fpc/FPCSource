@@ -1316,19 +1316,19 @@ End;
 
 Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
 begin
-  fpfstatfs:=fstatfs(fd,info^);
+  fpfstatfs:=do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(info))
 end;
 
 Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
 
 begin
-  fpstatfs:=statfs(Path,info^);
+  fpstatfs:=do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(Info))
 end;
 
 Function  fpfsync (fd : cint) : cint;
 
 begin
-  fpfsync:=fsync(fd);
+  fpfsync:=do_SysCall(syscall_nr_fsync, fd);
 end;
 
 Initialization

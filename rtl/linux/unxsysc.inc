@@ -15,7 +15,7 @@
 
 Function  fsync (fd : cint) : cint;
 begin
-  fsync := do_SysCall(syscall_nr_fsync, fd);
+  fsync := fpFSync(fd);
 end;
 
 Function  fpFlock (fd,mode : cint) : cint;
@@ -31,7 +31,7 @@ Function StatFS(Path:Pchar;Var Info:tstatfs):cint;
   investigate.
 }
 begin
-  StatFS:=(do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(@Info)));
+  StatFS:=fpStatFS(Path, @Info);;
 end;
 
 Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
@@ -41,7 +41,7 @@ Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
   you wish to investigate.
 }
 begin
-  fStatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(@info)));
+  fStatFS:=fpfStatFS(fd, @Info);
 end;
 
 

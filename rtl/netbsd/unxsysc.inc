@@ -65,7 +65,7 @@ end;
 Function  fsync (fd : cint) : cint;
 
 begin
-  fsync:=do_syscall(syscall_nr_fsync,fd);
+  fsync:=fpfsync(fd);
 end;
 
 Function  fpFlock (fd,mode : longint) : cint;
@@ -82,7 +82,7 @@ Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
 }
 
 begin
- fStatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info));
+ fStatFS:=fpfstatFS(fd, @info);
 end;
 
 Function StatFS(path:pchar;Var Info:tstatfs):cint;
@@ -93,7 +93,7 @@ Function StatFS(path:pchar;Var Info:tstatfs):cint;
 }
 
 begin
- StatFS:=do_syscall(syscall_nr_statfs,longint(path),longint(@info));
+ StatFS:=fpStatFS(path, @info);
 end;
 
 // needs oldfpccall;
