@@ -13,37 +13,27 @@
 
  ***********************************************************************}
 
-Function  fsync (fd : cint) : cint;
-begin
-  fsync := fpFSync(fd);
-end;
-
 Function  fpFlock (fd,mode : cint) : cint;
 begin
   fpflock:=do_Syscall(Syscall_nr_flock,fd,mode);
 end;
 
-
-Function StatFS(Path:Pchar;Var Info:tstatfs):cint;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Path is the name of a file/directory on the fileSystem you wish to
-  investigate.
-}
+Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
 begin
-  StatFS:=fpStatFS(Path, @Info);;
+  fpfstatfs:=do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(info))
 end;
 
-Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Fd is the file descriptor of a file/directory on the fileSystem
-  you wish to investigate.
-}
+Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+
 begin
-  fStatFS:=fpfStatFS(fd, @Info);
+  fpstatfs:=do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(Info))
 end;
 
+Function  fpfsync (fd : cint) : cint;
+
+begin
+  fpfsync:=do_SysCall(syscall_nr_fsync, fd);
+end;
 
 {--------------------------------
       Port IO functions

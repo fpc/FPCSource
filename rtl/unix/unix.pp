@@ -96,17 +96,10 @@ Function W_STOPCODE (Signal: Integer): Integer;
 
 {**      File Handling     **}
 
-{$ifndef FPC_USE_LIBC} // defined using cdecl for libc.
 // some of these are formally listed as deprecated, but specially statfs will remain for a while, no rush.
 Function  fsync (fd : cint) : cint; deprecated;	
-Function  fpFlock   (fd,mode : cint)   : cint ;
 Function  fStatFS (Fd: cint;Var Info:tstatfs):cint; deprecated;
 Function  StatFS  (Path:pchar;Var Info:tstatfs):cint; deprecated;
-{$endif}
-
-Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
-Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
-Function  fpfsync (fd : cint) : cint;
 
 Function  fpFlock   (var T : text;mode : cint) : cint;
 Function  fpFlock   (var F : File;mode : cint) : cint;
@@ -1314,21 +1307,29 @@ Begin
  FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
 
-Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
+Function  fsync (fd : cint) : cint;
 begin
-  fpfstatfs:=do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(info))
+  fsync := fpFSync(fd);
 end;
 
-Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
-
+Function StatFS(Path:Pchar;Var Info:tstatfs):cint;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Path is the name of a file/directory on the fileSystem you wish to
+  investigate.
+}
 begin
-  fpstatfs:=do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(Info))
+  StatFS:=fpStatFS(Path, @Info);;
 end;
 
-Function  fpfsync (fd : cint) : cint;
-
+Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Fd is the file descriptor of a file/directory on the fileSystem
+  you wish to investigate.
+}
 begin
-  fpfsync:=do_SysCall(syscall_nr_fsync, fd);
+  fStatFS:=fpfStatFS(fd, @Info);
 end;
 
 Initialization

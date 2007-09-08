@@ -24,16 +24,18 @@ Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$endif solaris}
 
 {$ifdef beos}
-Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatvfs';
+Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatvfs';
 {$else beos}
-Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatfs';
+Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatfs';
 {$endif beos}
 
-Function fsync (fd : cint) : cint; cdecl; external clib name 'fsync';
+Function fpfsync (fd : cint) : cint; cdecl; external clib name 'fsync';
+
 {$ifdef beos}
-Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statvfs';
+Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statvfs';
 {$else beos}
-Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statfs';
+Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statfs';
 {$endif beos}
+
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';

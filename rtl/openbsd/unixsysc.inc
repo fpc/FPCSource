@@ -62,38 +62,28 @@ end;
 }
 
 {$ifndef FPC_USE_LIBC}
-Function  fsync (fd : cint) : cint;
 
-begin
-  fsync:=do_syscall(syscall_nr_fsync,fd);
-end;
-
-Function  Flock (fd,mode : longint) : cint;
+Function  fpFlock (fd,mode : longint) : cint;
 
 begin
  Flock:=do_syscall(syscall_nr_flock,fd,mode);
 end;
 
-Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Fd is the file descriptor of a file/directory on the fileSystem
-  you wish to investigate.
-}
-
+Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
 begin
- fStatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info));
+  fpfstatfs:=do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(info))
 end;
 
-Function StatFS(path:pchar;Var Info:tstatfs):cint;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Fd is the file descriptor of a file/directory on the fileSystem
-  you wish to investigate.
-}
+Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
 
 begin
- StatFS:=do_syscall(syscall_nr_statfs,longint(path),longint(@info));
+  fpstatfs:=do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(Info))
+end;
+
+Function  fpfsync (fd : cint) : cint;
+
+begin
+  fpfsync:=do_SysCall(syscall_nr_fsync, fd);
 end;
 
 // needs oldfpccall;
