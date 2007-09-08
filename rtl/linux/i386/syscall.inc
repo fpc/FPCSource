@@ -44,6 +44,9 @@ type
   TElf32AuxiliaryVector = Elf32_auxv_t;
   PElf32AuxiliaryVector = ^TElf32AuxiliaryVector;
 
+var
+  psysinfo: LongWord = 0;
+
 procedure InitSyscallIntf;
 var
   ep: PPChar;

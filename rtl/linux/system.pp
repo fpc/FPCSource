@@ -52,6 +52,11 @@ property cmdline:Pchar read get_cmdline;
                                  implementation
 {*****************************************************************************}
 
+{$if defined(i386) and not defined(FPC_USE_LIBC)}
+var
+  sysenter_supported: LongInt = 0;
+{$endif}
+
 { Include ELF resources }
 
 {$ifdef ELFRES32}
@@ -293,7 +298,6 @@ begin
   else
     result := stklen;
 end;
-
 
 var
   initialstkptr : Pointer;external name '__stkptr';
