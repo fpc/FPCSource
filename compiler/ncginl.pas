@@ -629,9 +629,9 @@ implementation
 
     procedure Tcginlinenode.second_get_caller_frame;
 
-    var frame_ref:Treference;
-        frame_reg:Tregister;
-        use_frame_pointer:boolean;
+    var 
+      frame_reg:Tregister;
+      use_frame_pointer:boolean;
 
     begin
       if left<>nil then

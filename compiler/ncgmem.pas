@@ -165,8 +165,6 @@ implementation
 *****************************************************************************}
 
     procedure tcgaddrnode.pass_generate_code;
-      var
-        tmpref: treference;
       begin
          secondpass(left);
 
@@ -477,7 +475,7 @@ implementation
        var
          sref: tsubsetreference;
          offsetreg: tregister;
-         byteoffs, bitoffs, alignpower: aint;
+         alignpower: aint;
          temp : longint;
        begin
          { only orddefs are bitpacked. Even then we only need special code in }

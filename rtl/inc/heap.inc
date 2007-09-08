@@ -686,7 +686,6 @@ end;
 function find_free_oschunk(loc_freelists: pfreelists; 
   minsize, maxsize: ptruint; var size: ptruint): poschunk;
 var
-  pmc: pmemchunk_fixed;
   prev_poc, poc: poschunk;
   pocsize: ptruint;
 begin
@@ -730,12 +729,10 @@ var
   pmc_next  : pmemchunk_fixed;
   pmcv      : pmemchunk_var;
   poc       : poschunk;
-  prev_poc  : poschunk;
   minsize,
   maxsize,
   i         : ptruint;
   chunksize : ptruint;
-  pocsize   : ptruint;
   status    : pfpcheapstatus;
 begin
   { increase size by size needed for os block header }
@@ -1251,7 +1248,6 @@ var
   oldsize,
   currsize : ptruint;
   pcurr : pmemchunk_var;
-  pnext : pmemchunk_var;
 begin
   SysTryResizeMem := false;
 
@@ -1452,8 +1448,10 @@ end;
 procedure FinalizeHeap;
 var
   poc, poc_next: poschunk;
-  i : longint;
   loc_freelists: pfreelists;
+{$ifdef DUMP_MEM_USAGE}
+  i : longint;
+{$endif}
 begin
   loc_freelists := @freelists;
   if main_relo_freelists <> nil then
