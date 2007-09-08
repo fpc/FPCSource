@@ -17,264 +17,261 @@
 
 {$ASMMODE ATT}
 
+{*************************SYSENTER CODE********************************}
+
+{ included by system.pp in linux rtl }
+const
+  AT_NULL         = 0;
+{* Pointer to the global system page used for system calls and other
+   nice things.  *}
+  AT_SYSINFO      = 32;
+  AT_SYSINFO_EHDR = 33;
+
+type
+  TAuxiliaryValue = cuInt32;
+
+  TInternalUnion = record
+    a_val: cuint32;           //* Integer value */
+      {* We use to have pointer elements added here.  We cannot do that,
+         though, since it does not work when using 32-bit definitions
+         on 64-bit platforms and vice versa.  *}
+  end;
+
+  Elf32_auxv_t = record
+    a_type: cuint32;              //* Entry type */
+    a_un: TInternalUnion;
+  end;
+  TElf32AuxiliaryVector = Elf32_auxv_t;
+  PElf32AuxiliaryVector = ^TElf32AuxiliaryVector;
+
+procedure InitSyscallIntf;
+var
+  ep: PPChar;
+  auxv: PElf32AuxiliaryVector;
+begin
+
+  psysinfo := 0;
+  ep := envp;
+  while ep^ <> nil do
+    Inc(ep);
+
+  Inc(ep);
+
+  auxv := PElf32AuxiliaryVector(ep);
+
+  repeat
+    if auxv^.a_type = AT_SYSINFO then begin
+      psysinfo := auxv^.a_un.a_val;
+      if psysinfo <> 0 then
+        sysenter_supported := 1; // descision factor in asm syscall routines
+      Break;
+    end;
+    Inc(auxv);
+  until auxv^.a_type = AT_NULL;
+end;
+
+{***********************SYSENTER CODE END******************************}
+
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL0'];
-
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL0'];
+{ Var sysnr located in register eax }
 asm
-{ load the registers... }
-  movl  sysnr,%eax
-  int   $0x80
-  cmpl  $-4095,%eax
-  jb   .LSyscOK
-  negl  %eax
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
-  movl  %eax,4(%edi)
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl  (%edi),%eax
-  call  *%ecx
-  movl  %ebx,(%eax)
-.LNoThread:
-  movl  $-1,%eax
-.LSyscOK:
+//      movl  sysnr,%eax
+        cmp  $0, sysenter_supported
+        jne  .LSysEnter
+        int $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
+        cmpl  $-4095,%eax
+        jb    .LSyscOK
+        negl  %eax
+        call  seterrno
+        movl  $-1,%eax
+  .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL1'];
-
+function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL1'];
+{ Var sysnr located in register eax
+  Var param1 located in register edx }
 asm
-{ load the registers... }
-  movl sysnr,%eax
-  movl param1,%ebx
-  int $0x80
-  cmpl  $-4095,%eax
-  jb   .LSyscOK
-  negl  %eax
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
-  movl  %eax,4(%edi)
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl  (%edi),%eax
-  call  *%ecx
-  movl  %ebx,(%eax)
-.LNoThread:
-  movl  $-1,%eax
-.LSyscOK:
+        movl  %ebx,%ecx
+//      movl  sysnr,%eax
+        movl  %edx,%ebx
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
+        int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
+        movl  %ecx,%ebx
+        cmpl  $-4095,%eax
+        jb    .LSyscOK
+        negl  %eax
+        call  seterrno
+        movl  $-1,%eax
+  .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; oldfpccall; [public,alias:'FPC_SYSCALL2'];
-
+function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL2'];
+{ Var sysnr located in register eax
+  Var param1 located in register edx
+  Var param2 located in register ecx }
 asm
-{ load the registers... }
-  movl sysnr,%eax
-  movl param1,%ebx
-  movl param2,%ecx
-  int $0x80
-  cmpl  $-4095,%eax
-  jb   .LSyscOK
-  negl  %eax
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
-  movl  %eax,4(%edi)
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl (%edi),%eax
-  call  *%ecx
-  movl  %ebx,(%eax)
-.LNoThread:
-  movl  $-1,%eax
-.LSyscOK:
+        push  %ebx
+//      movl  sysnr,%eax
+        movl  %edx,%ebx
+//      movl  param2,%ecx
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
+        int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
+        pop   %ebx
+        cmpl  $-4095,%eax
+        jb    .LSyscOK
+        negl  %eax
+        call  seterrno
+        movl  $-1,%eax
+  .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; oldfpccall; [public,alias:'FPC_SYSCALL3'];
-
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL3'];
+{ Var sysnr located in register eax
+  Var param1 located in register edx
+  Var param2 located in register ecx
+  Var param3 located at ebp+20 }
 asm
-{ load the registers... }
-  movl sysnr,%eax
-  movl param1,%ebx
-  movl param2,%ecx
-  movl param3,%edx
-  int $0x80
-  cmpl  $-4095,%eax
-  jb   .LSyscOK
-  negl  %eax
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
-  movl  %eax,4(%edi)
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl  (%edi),%eax
-  call  *%ecx
-  movl  %ebx,(%eax)
-.LNoThread:
-  movl  $-1,%eax
-.LSyscOK:
+        push  %ebx
+//      movl  sysnr,%eax
+        movl  %edx,%ebx
+//      movl  param2,%ecx
+        movl  param3,%edx
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
+        int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
+        pop   %ebx
+        cmpl  $-4095,%eax
+        jb    .LSyscOK
+        negl  %eax
+        call  seterrno
+        movl  $-1,%eax
+  .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; oldfpccall; [public,alias:'FPC_SYSCALL4'];
-
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL4'];
+{ Var sysnr located in register eax
+  Var param1 located in register edx
+  Var param2 located in register ecx
+  Var param3 located at ebp+20
+  Var param4 located at ebp+16 }
 asm
-{ load the registers... }
-  movl sysnr,%eax
-  movl param1,%ebx
-  movl param2,%ecx
-  movl param3,%edx
-  movl param4,%esi
-  int $0x80
-  cmpl  $-4095,%eax
-  jb   .LSyscOK
-  negl  %eax
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
-  movl  %eax,4(%edi)
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl  (%edi),%eax
-  call  *%ecx
-  movl  %ebx,(%eax)
-.LNoThread:
-  movl  $-1,%eax
-.LSyscOK:
+        push  %ebx
+        push  %esi
+//      movl  sysnr,%eax
+        movl  %edx,%ebx
+//      movl  param2,%ecx
+        movl  param3,%edx
+        movl  param4,%esi
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
+        int   $0x80
+        jmp  .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
+        pop   %esi
+        pop   %ebx
+        cmpl  $-4095,%eax
+        jb    .LSyscOK
+        negl  %eax
+        call  seterrno
+        movl  $-1,%eax
+  .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL5'];
-
+function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL5'];
+{ Var sysnr located in register eax
+  Var param1 located in register edx
+  Var param2 located in register ecx
+  Var param3 located at ebp+20
+  Var param4 located at ebp+16
+  Var param5 located at ebp+12 }
 asm
-{ load the registers... }
-  movl sysnr,%eax
-  movl param1,%ebx
-  movl param2,%ecx
-  movl param3,%edx
-  movl param4,%esi
-  movl param5,%edi
-  int $0x80
-  cmpl  $-4095,%eax
-  jb   .LSyscOK
-  negl  %eax
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
-  movl  %eax,4(%edi)
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl  (%edi),%eax
-  call  *%ecx
-  movl  %ebx,(%eax)
-.LNoThread:
-  movl  $-1,%eax
-.LSyscOK:
+        push  %ebx
+        push  %esi
+        push  %edi
+//      movl  sysnr,%eax
+        movl  %edx,%ebx
+//      movl  param2,%ecx
+        movl  param3,%edx
+        movl  param4,%esi
+        movl  param5,%edi
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
+        int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
+        pop   %edi
+        pop   %esi
+        pop   %ebx
+        cmpl  $-4095,%eax
+        jb    .LSyscOK
+        negl  %eax
+        call  seterrno
+        movl  $-1,%eax
+  .LSyscOK:
 end;
 
-{.$ifdef notsupported}
-{ Only 5 params are pushed, so it'll not work as expected (PFV) }
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL6'];
-
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6: TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL6'];
+{ Var sysnr located in register eax
+  Var param1 located in register edx
+  Var param2 located in register ecx
+  Var param3 located at ebp+20
+  Var param4 located at ebp+16
+  Var param5 located at ebp+12
+  Var param6 located at ebp+8 }
 asm
-{ load the registers... }
-  push %ebp
-  movl sysnr,%eax
-  movl param1,%ebx
-  movl param2,%ecx
-  movl param3,%edx
-  movl param4,%esi
-  movl param5,%edi
-  movl param6,%ebp
-  int $0x80
-  pop  %ebp
-  cmpl  $-4095,%eax
-  jb   .LSyscOK
-  negl  %eax
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
-  movl  %eax,4(%edi)
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl  (%edi),%eax
-  call  *%ecx
-  movl  %ebx,(%eax)
-.LNoThread:
-  movl  $-1,%eax
-.LSyscOK:
+        push  %ebx
+        push  %esi
+        push  %edi
+        push  %ebp
+//      movl  sysnr,%eax
+        movl  %edx,%ebx
+//      movl  param2,%ecx
+        movl  param3,%edx
+        movl  param4,%esi
+        movl  param5,%edi
+        movl  param6,%ebp
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
+        int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
+        pop   %ebp
+        pop   %edi
+        pop   %esi
+        pop   %ebx
+        cmpl  $-4095,%eax
+        jb    .LSyscOK
+        negl  %eax
+        call  seterrno
+        movl  $-1,%eax
+  .LSyscOK:
 end;
-{.$endif notsupported}
 
 {No debugging for syslinux include !}
 {$IFDEF SYS_LINUX}
