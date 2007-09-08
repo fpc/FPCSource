@@ -1243,21 +1243,21 @@ implementation
              }
              if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
                 is_first_field and
-                (symtablestack.top.symtabletype = recordsymtable) and
-                (trecordsymtable(symtablestack.top).usefieldalignment = -1) then
+                (symtablestack.top.symtabletype=recordsymtable) and
+                (trecordsymtable(symtablestack.top).usefieldalignment=C_alignment) then
                begin
-                 tempdef := hdef;
-                 while tempdef.typ = arraydef do
-                   tempdef := tarraydef(tempdef).elementdef;
-                 if tempdef.typ <> recorddef then
-                   maxpadalign := tempdef.alignment
+                 tempdef:=hdef;
+                 while tempdef.typ=arraydef do
+                   tempdef:=tarraydef(tempdef).elementdef;
+                 if tempdef.typ<>recorddef then
+                   maxpadalign:=tempdef.alignment
                  else
-                   maxpadalign := trecorddef(tempdef).padalignment;
+                   maxpadalign:=trecorddef(tempdef).padalignment;
 
-                 if (maxpadalign > 4) and
-                    (maxpadalign > trecordsymtable(symtablestack.top).padalignment) then
-                   trecordsymtable(symtablestack.top).padalignment := maxpadalign;
-                 is_first_field := false;
+                 if (maxpadalign>4) and
+                    (maxpadalign>trecordsymtable(symtablestack.top).padalignment) then
+                   trecordsymtable(symtablestack.top).padalignment:=maxpadalign;
+                 is_first_field:=false;
                end;
 {$endif powerpc or powerpc64}
 
@@ -1432,12 +1432,12 @@ implementation
               { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
               if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
                  is_first_field and
-                 (recst.usefieldalignment = -1) and
-                 (maxpadalign > recst.padalignment) then
+                 (recst.usefieldalignment=C_alignment) and
+                 (maxpadalign>recst.padalignment) then
                 recst.padalignment:=maxpadalign;
 {$endif powerpc or powerpc64}
               { Align the offset where the union symtable is added }
-              if (recst.usefieldalignment=-1) then
+              if (recst.usefieldalignment=C_alignment) then
                 usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
               else
                 usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.recordalignmax);
