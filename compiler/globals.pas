@@ -110,6 +110,7 @@ interface
          localswitches   : tlocalswitches;
          modeswitches    : tmodeswitches;
          optimizerswitches : toptimizerswitches;
+         debugswitches   : tdebugswitches;
          { 0: old behaviour for sets <=256 elements
            >0: round to this size }
          setalloc,
@@ -335,6 +336,7 @@ interface
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
+    function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -971,6 +973,48 @@ implementation
       end;
 
 
+    function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
+      var
+        tok   : string;
+        doset,
+        found : boolean;
+        opt   : tdebugswitch;
+      begin
+        result:=true;
+        uppervar(s);
+        repeat
+          tok:=GetToken(s,',');
+          if tok='' then
+           break;
+          if Copy(tok,1,2)='NO' then
+            begin
+              delete(tok,1,2);
+              doset:=false;
+            end
+          else
+            doset:=true;
+          found:=false;
+          for opt:=low(tdebugswitch) to high(tdebugswitch) do
+            begin
+              if DebugSwitchStr[opt]=tok then
+                begin
+                  found:=true;
+                  break;
+                end;
+            end;
+          if found then
+            begin
+              if doset then
+                include(a,opt)
+              else
+                exclude(a,opt);
+            end
+          else
+            result:=false;
+        until false;
+      end;
+
+
     function IncludeFeature(const s : string) : boolean;
       var
         i : tfeature;
@@ -1170,6 +1214,7 @@ implementation
         init_settings.moduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
         init_settings.globalswitches:=[cs_check_unit_name,cs_link_static];
         init_settings.optimizerswitches:=[];
+        init_settings.debugswitches:=[];
         init_settings.sourcecodepage:='8859-1';
         init_settings.packenum:=4;
         init_settings.setalloc:=0;

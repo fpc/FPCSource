@@ -133,6 +133,16 @@ interface
        );
        tglobalswitches = set of tglobalswitch;
 
+       { global switches specific to debug information }
+       tdebugswitch = (ds_none,
+          { enable set support in dwarf debug info, breaks gdb versions }
+          { without support for that tag (they refuse to parse the rest }
+          { of the debug information)                                   }
+          ds_dwarf_sets
+       );
+       tdebugswitches = set of tdebugswitch;
+       
+
        { adding a new entry here requires also adding the appropriate define in
          systemh.inc (FK)
        }
@@ -160,6 +170,9 @@ interface
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA'
        );
+
+       DebugSwitchStr : array[tdebugswitch] of string[9] = ('',
+         'DWARFSETS');
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];

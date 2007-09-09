@@ -2779,35 +2779,37 @@ implementation
 
     procedure TDebugInfoDwarf2.appenddef_set(def: tsetdef);
       begin
-{$ifdef GDB_SUPPORTS_DWARF_SETS}
-        { current (20070704 -- patch was committed on 20060513) gdb cvs supports set types }
+        if (ds_dwarf_sets in current_settings.debugswitches) then
+          begin
+            { current (20070704 -- patch was committed on 20060513) gdb cvs supports set types }
 
-        if assigned(def.typesym) then
-          append_entry(DW_TAG_set_type,false,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ])
+            if assigned(def.typesym) then
+              append_entry(DW_TAG_set_type,false,[
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                DW_AT_byte_size,DW_FORM_data2,def.size
+                ])
+            else
+              append_entry(DW_TAG_set_type,false,[
+                DW_AT_byte_size,DW_FORM_data2,def.size
+                ]);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
+          end
         else
-          append_entry(DW_TAG_set_type,false,[
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ]);
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
-{$else GDB_SUPPORTS_DWARF_SETS}
-        { at least gdb up to 6.4 doesn't support sets in dwarf, there is a patch available to fix this:
-          http://sources.redhat.com/ml/gdb-patches/2005-05/msg00278.html (FK) }
-
-        if assigned(def.typesym) then
-          append_entry(DW_TAG_base_type,false,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ])
-        else
-          append_entry(DW_TAG_base_type,false,[
-            DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ]);
-{$endif GDB_SUPPORTS_DWARF_SETS}
+          begin
+            { gdb versions which don't support sets refuse to load the debug }
+            { info of modules that contain set tags                          }
+            if assigned(def.typesym) then
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                DW_AT_byte_size,DW_FORM_data2,def.size
+                ])
+            else
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                DW_AT_byte_size,DW_FORM_data2,def.size
+                ]);
+          end;
         finish_entry;
       end;
 
