@@ -815,10 +815,6 @@ begin
                          else
                            include(init_settings.localswitches,cs_checkpointer);
                        end;
-                     'd' :
-                       begin
-                         paratargetdbg:=dbg_dwarf2;
-                       end;
                      'h' :
                        begin
                          if UnsetBool(More, j) then
