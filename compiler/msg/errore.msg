@@ -429,7 +429,7 @@ parser_e_overloaded_have_same_parameters=03028_E_overloaded functions have the s
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
-parser_e_header_dont_match_forward=03029_E_function header doesn't match the forward declaration "$1"
+parser_e_header_dont_match_forward=03029_E_function header doesn't match the previous declaration "$1"
 % You declared a function with same parameters but
 % different result type or function modifiers.
 parser_e_header_different_var_names=03030_E_function header "$1" doesn't match forward : var name changes $2 => $3
@@ -2656,7 +2656,7 @@ S*2Tlinux_Linux
 **2*_a : Show everything             x : Executable info (Win32 only)
 **2*_b : Write file names messages with full path
 **2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    Lots of debugging info
+**2*_    lots of debugging info
 3*1W<x>_Target-specific options (targets)
 A*1W<x>_Target-specific options (targets)
 P*1W<x>_Target-specific options (targets)

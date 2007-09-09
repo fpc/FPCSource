@@ -371,7 +371,11 @@ implementation
                           if (pd._class=procdefcoll^.data._class) then
                             MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
                           else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                            MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                            if not is_object(_class) then
+                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                            else
+                              { objects don't allow starting a new virtual tree }
+                              MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,procdefcoll^.data.fullprocname(false));
                         end;
                      end;
                   end

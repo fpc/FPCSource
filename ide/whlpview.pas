@@ -102,7 +102,7 @@ type
       PLinePosCollection = ^TLinePosCollection;
       TLinePosCollection = object(TNoDisposeCollection)
         function At(Index: sw_Integer): sw_integer;
-        procedure Insert (Item: ptrint);virtual;
+        procedure Insert (Item: pointer);virtual;
       end;
 
       PHelpTopic = ^THelpTopic;
@@ -402,9 +402,9 @@ begin
   at := longint (inherited at(Index));
 end;
 
-procedure TLinePosCollection.Insert (Item: ptrint);
+procedure TLinePosCollection.Insert (Item: pointer);
 begin
-  Inherited Insert(pointer(Item));
+  Inherited Insert(Item);
 end;
 
 constructor THelpTopic.Init(ATopic: PTopic);
@@ -482,7 +482,7 @@ begin
       Bounds.Move(Delta,0);
   if Line='' then Line:=' ';
   Lines^.Insert(NewStr(Line));
-  LinesPos^.Insert(LinePos);
+  LinesPos^.Insert(pointer(LinePos));
   ClearLine;
   LineStart:=NextLineStart;
   CurPos.X:=Margin+LineStart; Line:=CharStr(#255,LineStart); Inc(CurPos.Y);
