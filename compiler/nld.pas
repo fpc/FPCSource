@@ -500,81 +500,6 @@ implementation
         set_unique(left);
 
         typecheckpass(left);
-
-{$ifdef old_append_str}
-        if is_ansistring(left.resultdef) then
-          begin
-            { fold <ansistring>:=<ansistring>+<char|shortstring|ansistring> }
-            if (right.nodetype=addn) and
-               left.isequal(tbinarynode(right).left) and
-               { don't fold multiple concatenations else we could get trouble
-                 with multiple uses of s
-               }
-               (tbinarynode(right).left.nodetype<>addn) and
-               (tbinarynode(right).right.nodetype<>addn) then
-              begin
-                { don't do a typecheckpass(right), since then the addnode }
-                { may insert typeconversions that make this optimization   }
-                { opportunity quite difficult to detect (JM)               }
-                typecheckpass(tbinarynode(right).left);
-                typecheckpass(tbinarynode(right).right);
-                if (tbinarynode(right).right.nodetype=stringconstn) or
-		   is_char(tbinarynode(right).right.resultdef) or
-                   is_shortstring(tbinarynode(right).right.resultdef) or
-                   is_ansistring(tbinarynode(right).right.resultdef) then
-                  begin
-                    { remove property flag so it'll not trigger an error }
-                    exclude(left.flags,nf_isproperty);
-                    { generate call to helper }
-                    hp:=ccallparanode.create(tbinarynode(right).right,
-                      ccallparanode.create(left,nil));
-                    if is_char(tbinarynode(right).right.resultdef) then
-                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resultdef).stringtypname+'_append_char',hp)
-                    else if is_shortstring(tbinarynode(right).right.resultdef) then
-                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resultdef).stringtypname+'_append_shortstring',hp)
-                    else
-                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resultdef).stringtypname+'_append_ansistring',hp);
-                    tbinarynode(right).right:=nil;
-                    left:=nil;
-                    exit;
-                 end;
-              end;
-          end
-        else
-
-         if is_shortstring(left.resultdef) then
-          begin
-            { fold <shortstring>:=<shortstring>+<shortstring>,
-              <shortstring>+<char> is handled by an optimized node }
-            if (right.nodetype=addn) and
-               left.isequal(tbinarynode(right).left) and
-               { don't fold multiple concatenations else we could get trouble
-                 with multiple uses of s }
-               (tbinarynode(right).left.nodetype<>addn) and
-               (tbinarynode(right).right.nodetype<>addn) then
-              begin
-                { don't do a typecheckpass(right), since then the addnode }
-                { may insert typeconversions that make this optimization   }
-                { opportunity quite difficult to detect (JM)               }
-                typecheckpass(tbinarynode(right).left);
-                typecheckpass(tbinarynode(right).right);
-                if is_shortstring(tbinarynode(right).right.resultdef) then
-                  begin
-                    { remove property flag so it'll not trigger an error }
-                    exclude(left.flags,nf_isproperty);
-                    { generate call to helper }
-                    hp:=ccallparanode.create(tbinarynode(right).right,
-                      ccallparanode.create(left,nil));
-                    if is_shortstring(tbinarynode(right).right.resultdef) then
-                      result:=ccallnode.createintern('fpc_shortstr_append_shortstr',hp);
-                    tbinarynode(right).right:=nil;
-                    left:=nil;
-                    exit;
-                 end;
-              end;
-          end;
-{$endif old_append_str}
-
         typecheckpass(right);
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_written,[]);
@@ -849,34 +774,12 @@ implementation
               if (right.nodetype<>stringconstn) or
                  (tstringconstnode(right).len<>0) then
                begin
-{$ifdef old_append_str}
-                 if (cs_opt_level1 in current_settings.optimizerswitches) and
-                    (right.nodetype in [calln,blockn]) and
-                    (left.nodetype = temprefn) and
-                    is_shortstring(right.resultdef) and
-                    not is_open_string(left.resultdef) and
-                    (tstringdef(left.resultdef).len = 255) then
-                   begin
-                     { the blocknode case is handled in pass_generate_code at the temp }
-                     { reference level (mainly for callparatemp)  (JM)     }
-                     if (right.nodetype = calln) then
-                       begin
-                         tcallnode(right).funcretnode := left;
-                         result := right;
-                       end
-                     else
-                       exit;
-                   end
-                 else
-{$endif old_append_str}
-                   begin
-                     hp:=ccallparanode.create
-                           (right,
-                      ccallparanode.create(cinlinenode.create
-                           (in_high_x,false,left.getcopy),nil));
-                     result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp,left);
-                     firstpass(result);
-                   end;
+                 hp:=ccallparanode.create
+                       (right,
+                  ccallparanode.create(cinlinenode.create
+                       (in_high_x,false,left.getcopy),nil));
+                 result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp,left);
+                 firstpass(result);
                  left:=nil;
                  right:=nil;
                  exit;
