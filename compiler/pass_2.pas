@@ -58,6 +58,9 @@ implementation
 *****************************************************************************}
 
 {$ifdef EXTDEBUG}
+     var
+       secondprefix : string;
+
      procedure logsecond(ht:tnodetype; entry: boolean);
        const
          secondnames: array[tnodetype] of string[13] =
@@ -140,9 +143,15 @@ implementation
         p: pchar;
       begin
         if entry then
-          p := strpnew('second '+secondnames[ht]+' (entry)')
+          begin
+            secondprefix:=secondprefix+' ';
+            p := strpnew(secondprefix+'second '+secondnames[ht]+' (entry)')
+          end
         else
-          p := strpnew('second '+secondnames[ht]+' (exit)');
+          begin
+            p := strpnew(secondprefix+'second '+secondnames[ht]+' (exit)');
+            delete(secondprefix,length(secondprefix),1);
+          end;
         current_asmdata.CurrAsmList.concat(tai_comment.create(p));
       end;
 {$endif EXTDEBUG}
