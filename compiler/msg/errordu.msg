@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 8165
+#   Based on errore.msg of SVN revision 8422
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -81,7 +81,7 @@ general_t_objectpath=01007_T_Der Objektdateienpfad: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 Zeilen kompiliert, $2 Sekunden$3
+general_i_abslines_compiled=01008_I_$1 Zeilen übersetzt, $2 Sekunden$3
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -114,7 +114,7 @@ general_i_hint=01016_I_Hinweis:
 % Prefix for Hints
 general_e_path_does_not_exist=01017_E_Der Pfad "$1" existiert nicht
 % The specified path does not exist.
-general_f_compilation_aborted=01018_F_Kompilieren abgebrochen
+general_f_compilation_aborted=01018_F_Übersetzen abgebrochen
 % Compilation was aborted.
 general_text_bytes_code=01019_bytes Code
 general_text_bytes_data=01020_bytes Daten
@@ -352,9 +352,11 @@ scan_w_pic_ignored=02081_W_PIC Direktive oder Schalter wird ignoriert
 % Several targets like windows do not support neither need PIC so the PIC directive and switch are
 % ignored.
 scan_w_unsupported_switch_by_target=02082_W_Der Schalter "$1" wird vom derzeit ausgewählten Zielbetriebssystem nicht unterstützt
-% Some compiler switches like $E are not supported by all targets.
+% Some compiler switches like \$E are not supported by all targets.
 scan_w_frameworks_darwin_only=02084_W_Framework-bezogene Optionen werden nur für Darwin/Mac OS X unterstützt
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
+scan_e_illegal_minfpconstprec=02085_E_"$1" ist eine ungültige minimale Präzision von Fliesskommakonstanten
+% Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
 % \end{description}
 #
 # Parser
@@ -424,17 +426,17 @@ parser_e_illegal_parameter_list=03024_E_Ungültige Parameterliste
 parser_e_wrong_parameter_size=03026_E_Falsche Anzahl an Parameter im Aufruf von "$1" angegeben
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
-parser_e_overloaded_no_procedure=03027_E_Bezeichner $1 ist keine Funktion, overload nicht möglich
+parser_e_overloaded_no_procedure=03027_E_Bezeichner "$1" ist keine Funktion, overload nicht möglich
 % The compiler encountered a symbol with the same name as an overloaded
 % function, but it isn't a function it can overload.
-parser_e_overloaded_have_same_parameters=03028_E_Overload-Funktion darf nicht eine identische Parameterliste aufweisen
+parser_e_overloaded_have_same_parameters=03028_E_Overload-Funktion darf keine identische Parameterliste aufweisen
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
-parser_e_header_dont_match_forward=03029_E_Funktionskopf ist nicht identisch mit Forward-Deklaration $1
+parser_e_header_dont_match_forward=03029_E_Funktionskopf unterscheidet sich von voriger Deklaration "$1"
 % You declared a function with same parameters but
 % different result type or function specifiers.
-parser_e_header_different_var_names=03030_E_Funktionskopf von $1 passt nicht zur Forward-Deklaration, Variablename ändert sich: $2 => $3
+parser_e_header_different_var_names=03030_E_Funktionskopf von "$1" passt nicht zur Forward-Deklaration, Variablename ändert sich: $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but define it with a different parameter list.
 parser_n_duplicate_enum=03031_N_Werte in Aufzählungen müssen aufsteigend sein
@@ -639,7 +641,7 @@ parser_e_no_new_or_dispose_for_classes=03086_E_Die erweiterte Syntax von New ode
 parser_e_procedure_overloading_is_off=03088_E_Das Überladen von Prozeduren ist ausgeschaltet
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
-parser_e_overload_operator_failed=03089_E_Es ist nicht möglich, dieesen Operator zu überladen (benutzen Sie stattdessen '=')
+parser_e_overload_operator_failed=03089_E_Es ist nicht möglich, dieesen Operator zu überladen. Verwandte überladbare Operatoren sind "$1"
 % You are trying to overload an operator which cannot be overloaded.
 % The following operators can be overloaded :
 % \begin{verbatim}
@@ -703,7 +705,7 @@ parser_c_macro_undefined=03102_CL_Makrodefinition gelöscht: $1
 % When \var{-vc} is used, the compiler tells you when it undefines macros.
 parser_c_macro_set_to=03103_CL_Wert des Makros $1 auf $2 gesetzt
 % When \var{-vc} is used, the compiler tells you what values macros get.
-parser_i_compiling=03104_I_Kompiliere $1
+parser_i_compiling=03104_I_Übersetze $1
 % When you turn on information messages (\var{-vi}), the compiler tells you
 % what units it is recompiling.
 parser_u_parsing_interface=03105_UL_Parse Interface von Unit $1
@@ -712,7 +714,7 @@ parser_u_parsing_interface=03105_UL_Parse Interface von Unit $1
 parser_u_parsing_implementation=03106_UL_Parse Implementation von $1
 % This tells you that the code reading of the implementation
 % of the current unit, library or program starts
-parser_d_compiling_second_time=03107_DL_Kompiliere $1 zum zweiten Mal
+parser_d_compiling_second_time=03107_DL_Übersetze $1 zum zweiten Mal
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
 parser_e_no_property_found_to_override=03109_E_Es gibt keine Property diesen Namens, die überschrieben werden könnte
@@ -855,7 +857,7 @@ parser_e_ill_property_storage_sym=03155_E_Dieses Symbol ist als Speichersymbol u
 % You can't use this type of symbol as storage specifier in property
 % declaration. You can use only methods with the result type boolean,
 % boolean class fields or boolean constants
-parser_e_only_publishable_classes_can__be_published=03156_E_Nur Klassen, die im "$M+"-Modus kompiliert wurden, dürfen published sein
+parser_e_only_publishable_classes_can_be_published=03156_E_Nur Klassen, die im "$M+"-Modus übersetzt wurden, dürfen published sein
 % In the published section of a class can be only class as fields used which
 % are compiled in $M+ or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
@@ -879,7 +881,7 @@ parser_e_procname_to_short_for_export=03159_E_Prozedurname zu kurz um exportiert
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
 parser_e_dlltool_unit_var_problem=03160_E_Es kann kein DEFFILE-Eintrag für unit-globale Variablen erzeugt werden
-parser_e_dlltool_unit_var_problem2=03161_E_Kompiliere ohne "-WD"-Option
+parser_e_dlltool_unit_var_problem2=03161_E_Übersetze ohne "-WD"-Option
 % You need to compile this file without the -WD switch on the
 % commandline
 parser_f_need_objfpc_or_delphi_mode=03162_F_Es muss der Modus ObjFPC (-S2) oder Delphi (-Sd) aktiv sein, um dieses Modul zu übersetzen
@@ -1422,9 +1424,9 @@ type_h_convert_mul_operands_to_prevent_overflow=04081_H_Konvertierung des Operan
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
 type_w_pointer_to_signed=04082_W_Die Konvertierung von Pointern in einen Integertyp mit Vorzeichen kann zu falschen Ergebnissen bei Vergleichen und zu Bereichsüberschreitungen führen; verwenden sie statt dessen besser einen Typ ohne Vorzeichen
-% The virtual address space on 32-bit machines runs from $00000000 to $ffffffff. Many operating systems allow you to
-% allocate memory above $80000000, for example both Windows and Linux allow pointers in the range $0000000 to $bfffffff.
-% If you convert pointers to signed types, this can cause overflow and range check errors, but also $80000000 < $7fffffff.
+% The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff. Many operating systems allow you to
+% allocate memory above \$80000000, for example both Windows and Linux allow pointers in the range \$0000000 to \$bfffffff.
+% If you convert pointers to signed types, this can cause overflow and range check errors, but also \$80000000 < \$7fffffff.
 % This can cause random errors in code like "if p>q".
 % \end{description}
 #
@@ -2067,7 +2069,7 @@ exec_i_closing_script=09020_I_Schliesse Skript $1
 exec_e_res_not_found=09021_E_Resourcen Compiler nicht gefunden, schalte um zu externem Modus
 % An external resource compiler was not found, the compiler will produce a script that
 % can be used to assemble, compile resources and link or postprocess the program.
-exec_i_compilingresource=09022_I_Kompiliere Resource $1
+exec_i_compilingresource=09022_I_Übersetze Resource $1
 % An informational message, showing which resource is being compiled.
 exec_t_unit_not_static_linkable_switch_to_smart=09023_T_Unit $1 kann nicht statisch gelinkt werden, schalte um zu smart Linken
 % Statical linking was requested, but a unit which is not statically linkable was used.
@@ -2141,10 +2143,10 @@ unit_u_ppu_invalid_header=10007_U_PPU Ungültiger Header (kein PPU am Anfang)
 unit_u_ppu_invalid_version=10008_U_PPU Ungültige Version $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=10009_U_PPU ist für einen anderen Prozessor kompiliert
+unit_u_ppu_invalid_processor=10009_U_PPU ist für einen anderen Prozessor übersetzt
 % This unit file was compiled for a different processor type, and
 % cannot be read
-unit_u_ppu_invalid_target=10010_U_PPU ist für ein anderes Zielsystem kompiliert
+unit_u_ppu_invalid_target=10010_U_PPU ist für ein anderes Zielsystem übersetzt
 % This unit file was compiled for a different processor type, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU Quelle: $1
@@ -2227,22 +2229,22 @@ unit_u_check_time=10037_U_PPU prüfe Datei $1 Zeit $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
 ### The following two error msgs is currently disabled.
-#unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 wurde beim Start beim letzten Kompilieren von $2 nicht gesetzt
+#unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 wurde beim Start beim letzten Übersetzen von $2 nicht gesetzt
 #% when recompilation of an unit is required the compiler will check that
 #% the same conditionals are set for the recompiliation. The compiler has
 #% found a conditional that currently is defined, but was not used the last
 #% time the unit was compiled.
-#unit_h_cond_set_in_last_compile=10039_H_Conditional $1 wurde beim Start beim letzten Kompilieren von $2 gesetzt
+#unit_h_cond_set_in_last_compile=10039_H_Conditional $1 wurde beim Start beim letzten Übersetzen von $2 gesetzt
 #% when recompilation of an unit is required the compiler will check that
 #% the same conditionals are set for the recompiliation. The compiler has
 #% found a conditional that was used the last time the unit was compiled, but
 #% the conditional is currently not defined.
-unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kann Unit $1 nicht rekompilieren, aber geänderte Include-Datei gefunden
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kann Unit $1 nicht erneut übersetzen, aber geänderte Include-Datei gefunden
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
 unit_u_source_modified=10041_U_Datei $1 ist neuer als die PPU Datei $2
 % A modified source file for a compiler unit was found.
-unit_u_ppu_invalid_fpumode=10042_U_Versuch eine Unit zu verwenden, die in einem anderen FPU Mode kompiliert wurde
+unit_u_ppu_invalid_fpumode=10042_U_Versuch eine Unit zu verwenden, die in einem anderen FPU Mode übersetzt wurde
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
@@ -2260,7 +2262,7 @@ unit_u_implementation_crc_changed=10046_U_Geänderte Implementation CRC für Uni
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated has been changed after the implementation
 % has been parsed.
-unit_u_finished_compiling=10047_U_Kompilieren der Unit $1 beendet
+unit_u_finished_compiling=10047_U_Übersetzen der Unit $1 beendet
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
 unit_u_add_depend_to=10048_U_Füge die Abhängigkeit von $1 von $2 dazu
@@ -2270,7 +2272,7 @@ unit_u_no_reload_is_caller=10049_U_Kein erneutes Laden, Unit $1 ist die Aufrufen
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is the unit that wants
 % to load this unit
-unit_u_no_reload_in_second_compile=10050_U_Kein erneutes Laden der Unit, bereits beim zweiten Kompilieren: $1
+unit_u_no_reload_in_second_compile=10050_U_Kein erneutes Laden der Unit, bereits beim zweiten Übersetzen: $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is already in a second recompile
 unit_u_flag_for_reload=10051_U_Flag für erneutes Laden: $1
@@ -2282,7 +2284,7 @@ unit_u_forced_reload=10052_U_Erzwungenes erneutes Laden
 unit_u_previous_state=10053_U_Vorhergehender Status von $1: $2
 % When you use the \var{-vu} flag, the compiler shows the
 % previous state of the unit
-unit_u_second_compile_unit=10054_U_$1 wird bereits kompiliert, zweites Kompilieren gesetzt
+unit_u_second_compile_unit=10054_U_$1 wird bereits übersetzt, zweites Übersetzen gesetzt
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
@@ -2358,7 +2360,7 @@ option_no_debug_support=11016_W_Erzeugung von Debug-Informationen wird von diese
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_no_debug_support_recompile_fpc=11017_H_Versuchen Sie mit -dGDB erneut zu kompilieren
+option_no_debug_support_recompile_fpc=11017_H_Versuchen Sie mit -dGDB erneut zu übersetzen
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
@@ -2463,154 +2465,155 @@ Fehlerberichte, Vorschläge usw. bitte senden an:
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_nach booleschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
-**1a_lösche die erzeugte Assembler-Datei nicht
-**2al_liste Quellcode-Zeilen in der Assembler-Datei
-**2an_liste "node info" in der Assembler-Datei
-*L2ap_benutze Pipes anstelle temporärer Assembler-Dateien
-**2ar_liste Registerbelegungsinformation in Assembler-Datei
-**2at_liste Temp. Variablenbelegungsinfo in Assembler-Datei
+**0*_Nach booleschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
+**1a_Lösche die erzeugte Assembler-Datei nicht
+**2al_Liste Quellcode-Zeilen in der Assembler-Datei
+**2an_Liste "node info" in der Assembler-Datei
+*L2ap_Benutze Pipes anstelle temporärer Assembler-Dateien
+**2ar_Liste Registerbelegungsinformation in Assembler-Datei
+**2at_Liste Temp. Variablenbelegungsinfo in Assembler-Datei
 **1A<x>_Ausgabe Format:
-**2Adefault_benutze den "default" Assembler
-3*2Aas_assembliere mit Hilfe von GNU AS
-3*2Anasmcoff_coff (Go32v2) Datei mit Hilfe von Nasm
-3*2Anasmelf_elf32 (Linux) Datei mit Hilfe von Nasm
+**2Adefault_Benutze den "default" Assembler
+3*2Aas_Assembliere mit Hilfe von GNU AS
+3*2Anasmcoff_COFF (Go32v2) Datei mit Hilfe von Nasm
+3*2Anasmelf_ELF32 (Linux) Datei mit Hilfe von Nasm
 3*2Anasmwin32_Win32 Object Datei mit Hilfe von Nasm
 3*2Anasmwdosx_Win32/WDOSX Object Datei mit Hilfe von Nasm
-3*2Awasm_obj Datei mit Hilfe von Wasm (Watcom)
-3*2Anasmobj_obj Datei mit Hilfe von Nasm
-3*2Amasm_obj Datei mit Hilfe von Masm (Microsoft)
-3*2Atasm_obj Datei mit Hilfe von Tasm (Borland)
-3*2Aelf_elf32 (Linux) mit Hilfe von internen Schreiber
-3*2Acoff_coff (Go32v2) mit Hilfe von internen Schreiber
-3*2Apecoff_pecoff (Win32) mit Hilfe von internen Schreiber
-4*2Aas_assembliere mit Hilfe von GNU AS
+3*2Awasm_Obj Datei mit Hilfe von Wasm (Watcom)
+3*2Anasmobj_Obj Datei mit Hilfe von Nasm
+3*2Amasm_Obj Datei mit Hilfe von Masm (Microsoft)
+3*2Atasm_Obj Datei mit Hilfe von Tasm (Borland)
+3*2Aelf_ELF32 (Linux) mit Hilfe von internen Schreiber
+3*2Acoff_COFF (Go32v2) mit Hilfe von internen Schreiber
+3*2Apecoff_PE_COFF (Win32) mit Hilfe von internen Schreiber
+4*2Aas_Assembliere mit Hilfe von GNU AS
 6*2Aas_Unix o-file mit Hilfe von GNU AS
 6*2Agas_GNU Motorola Assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola Assembler
-A*2Aas_assembliere mit Hilfe von GNU AS
-P*2Aas_assembliere mit Hilfe von GNU AS
-S*2Aas_assembliere mit Hilfe von GNU AS
-**1b_erzeuge Browser-Info
-**2bl_erzeuge Info zu lokalen Symbolen
-**1B_erzeuge alle Module (Build)
+A*2Aas_Assembliere mit Hilfe von GNU AS
+P*2Aas_Assembliere mit Hilfe von GNU AS
+S*2Aas_Assembliere mit Hilfe von GNU AS
+**1b_Erzeuge Browser-Info
+**2bl_Erzeuge Info zu lokalen Symbolen
+**1B_Erzeuge alle Module (Build)
 **1C<x>_Optionen für Code-Erzeugung:
 **2Cc<x>_Setze "default calling convention" zu <x>
-**2CD_erzeuge auch eine dynamische Bibliothek (nicht unterstützt)
-**2Ce_Kompiliere mit emulierten Fliesskomma opcodes
-**2Cf<x>_wähle den Fliesskomma instruction set aus, siehe fpc -i wegen möglicher Werte
-**2Cg_erzeuge PIC code
+**2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstützt)
+**2Ce_Übersetze mit emulierten Fliesskomma opcodes
+**2Cf<x>_Wähle den Fliesskomma instruction set aus, siehe fpc -i wegen möglicher Werte
+**2CF<x>_Minimale Präzission von Fliesskommakonstanten (default, 32, 64)
+**2Cg_Erzeuge PIC code
 **2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
 **2Ci_I/O-Prüfung
-**2Cn_lasse die Linkstufe aus
-**2Co_prüfe Überlauf von Integer-Operationen
-**2Cp<x>_wähle instruction set aus, siehe fpc -i wegen möglicher Werte
+**2Cn_Lasse die Linkstufe aus
+**2Co_Prüfe Überlauf von Integer-Operationen
+**2Cp<x>_Wähle instruction set aus, siehe fpc -i wegen möglicher Werte
 **2CP<x>=<y>_ Einstellungen für packing
 **3CPPACKSET=<y>_ <y> Belegung von Sets: 0, 1 oder DEFAULT oder NORMAL, 2, 4 und 8
-**2Cr_führe Bereichsprüfung durch
-**2CR_verifiziere die Gültigkiet des Aufrufs der Objektmethoden
-**2Cs<n>_setze Grösse des Stacks auf <n>
-**2Ct_führe Stackprüfung durch
-**2Cx_benutze Smartlinking
-**1d<x>_definiere das Symbol <x>
-**1D_erzeuge eine DEF-Datei
-**2Dd<x>_setze Beschreibung zu <x>
-**2Dv<x>_setze DLL Version zu <x>
-*O2Dw_erzeuge PM-Anwendung
-**1e<x>_setze Pfad zur ausführbaren Datei
-**1E_genau wie -Cn
-**1fPIC_genau wie -Cg
+**2Cr_Führe Bereichsprüfung durch
+**2CR_Verifiziere die Gültigkiet des Aufrufs der Objektmethoden
+**2Cs<n>_Setze Grösse des Stacks auf <n>
+**2Ct_Führe Stackprüfung durch
+**2Cx_Benutze Smartlinking
+**1d<x>_Definiere das Symbol <x>
+**1D_Erzeuge eine DEF-Datei
+**2Dd<x>_Setze Beschreibung zu <x>
+**2Dv<x>_Setze DLL Version zu <x>
+*O2Dw_Erzeuge PM-Anwendung
+**1e<x>_Setze Pfad zur ausführbaren Datei
+**1E_Genau wie -Cn
+**1fPIC_Genau wie -Cg
 **1F<x>_Dateinamen und Pfade:
-**2Fa<x>[,y]_ein Program soll die Units <x> und [y] laden, bevor uses analysiert wird
-**2Fc<x>_setze die Eingabe-Codepage zu <x>
-**2FC<x>_setze den Namen des RC Compiler-Binärprograms auf <x>
-**2FD<x>_setze das Verzeichnis für die Compiler-Hilfsprogramme
-**2Fe<x>_leite die Fehlerausgabe um nach <x>
-**2Ff<x>_ergänze <x> zum Framework-Pfad (nur Darwin)
-**2FE<x>_setze den Pfad für Exe/Unit-Dateien auf <x>
-**2Fi<x>_ergänze <x> zum Include-Pfad
-**2Fl<x>_ergänze <x> zum Bibliotheks-Pfad
-**2FL<x>_benutze <x> als dynamischen Linker
-**2Fm<x>_lade die Unicode-Konversionstabelle aus <x>.txt im Compiler-Verzeichnis
-**2Fo<x>_ergänze <x> zum Objektdatei-Pfad
-**2Fr<x>_lade die Fehler-Meldungs Datei <x>
-**2FR<x>_setze den Resource (.res) Linker auf <x>
-**2Fu<x>_ergänze <x> zum Unit-Pfad
-**2FU<x>_Units werden nach <x> ausgegen, hat Vorrang vor -FE
-*g1g<x>_erzeuge Informationen zur Fehlersuche:
+**2Fa<x>[,y]_Ein Program soll die Units <x> und [y] laden, bevor uses analysiert wird
+**2Fc<x>_Setze die Eingabe-Codepage zu <x>
+**2FC<x>_Setze den Namen des RC Compiler-Binärprograms auf <x>
+**2FD<x>_Setze das Verzeichnis für die Compiler-Hilfsprogramme
+**2Fe<x>_Leite die Fehlerausgabe um nach <x>
+**2Ff<x>_Ergänze <x> zum Framework-Pfad (nur Darwin)
+**2FE<x>_Setze den Pfad für Exe/Unit-Dateien auf <x>
+**2Fi<x>_Ergänze <x> zum Include-Pfad
+**2Fl<x>_Ergänze <x> zum Bibliotheks-Pfad
+**2FL<x>_Benutze <x> als dynamischen Linker
+**2Fm<x>_Lade die Unicode-Konversionstabelle aus <x>.txt im Compiler-Verzeichnis
+**2Fo<x>_Ergänze <x> zum Objektdatei-Pfad
+**2Fr<x>_Lade die Fehler-Meldungs Datei <x>
+**2FR<x>_Setze den Resource (.res) Linker auf <x>
+**2Fu<x>_Ergänze <x> zum Unit-Pfad
+**2FU<x>_Units werden nach <x> ausgegeben, hat Vorrang vor -FE
+*g1g<x>_Erzeuge Informationen zur Fehlersuche:
 *g2gc_Zeigerüberprüfung
-*g2gd_Verwende dbx
-*g2gg_Verwende gsym
 *g2gh_Heaptrace-Unit einbinden
-*g2gl_line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
-*g2gp_erhalte Gross/Kleinschreibung in Stabs-Symbolnamen
-*g2gt_lösche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden)
-*g2gv_erzeuge ein mit valgrind verfolgbares (traceable) Programm
-*g2gw_erzeuge dwarf Informationen
-**1i_zeige alle Information über den Compiler
-**2iD_zeige Compilerdatum
-**2iV_zeige Compilerversion
-**2iW_zeige vollständige Compilerversion
-**2iSO_zeige Compilerbetriebssystem
-**2iSP_zeige Compilerprozessor
-**2iTO_zeige Zielbetriebssystem
-**2iTP_zeige Zielprozessor
-**1I<x>_ergänze <x> zum Include-Pfad
-**1k<x>_übergebe <x> an den Linker
-**1l_zeige Logo
-**1M<x>_setze Sprachmodus zu <x>
+*g2gl_Line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
+*g2go<x>_Setze Optionen für die Debug Informationen
+*g3godwarfsets_Schalte Dwarf Debug Informationen für Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
+*g2gp_Erhalte Gross/Kleinschreibung in Stabs-Symbolnamen
+*g2gt_Lösche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden)
+*g2gv_Erzeuge ein mit valgrind verfolgbares (traceable) Programm
+*g2gw_Erzeuge dwarf Informationen
+**1i_Zeige alle Information über den Compiler
+**2iD_Zeige Compilerdatum
+**2iV_Zeige Compilerversion
+**2iW_Zeige vollständige Compilerversion
+**2iSO_Zeige Compilerbetriebssystem
+**2iSP_Zeige Compilerprozessor
+**2iTO_Zeige Zielbetriebssystem
+**2iTP_Zeige Zielprozessor
+**1I<x>_Ergänze <x> zum Include-Pfad
+**1k<x>_Übergebe <x> an den Linker
+**1l_Zeige Logo
+**1M<x>_Setze Sprachmodus zu <x>
 **2Mfpc_Free Pascal Dialekt (Voreinstellung)
-**2Mobjfpc_schalte einige Delphi 2 Erweiterungen ein
-**2Mdelphi_versuche zu Delphi kompatibel zu sein
-**2Mtp_versuche zu TP/BP 7.0 kompatibel zu sein
-**2Mmacpas_versuche zu den MacIntosh Pascal-Dialekten kompatibel zu sein
+**2Mobjfpc_Schalte einige Delphi 2 Erweiterungen ein
+**2Mdelphi_Versuche zu Delphi kompatibel zu sein
+**2Mtp_Versuche zu TP/BP 7.0 kompatibel zu sein
+**2Mmacpas_Versuche zu den MacIntosh Pascal-Dialekten kompatibel zu sein
 **1n_Standard-Konfigurationsdatei ignorieren
-**1N<x>_node tree Optimierung
-**2Nu_unroll loops
-**1o<x>_die erzeugte, ausführbare Datei bekommt den Namen <x>
+**1N<x>_Node tree Optimierung
+**2Nu_Unroll loops
+**1o<x>_Die erzeugte, ausführbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
 **2O-_Optimierungen ausschalten
-**2O1_level 1 Optimierung (schnell und Debugger freundlich)
-**2O2_level 2 Optimierung (-O1 + schnelle Optimierungen)
-**2O3_level 3 Optimierung (-O2 + langsame Optimierungen)
+**2O1_Level 1 Optimierung (schnell und Debugger freundlich)
+**2O2_Level 2 Optimierung (-O1 + schnelle Optimierungen)
+**2O3_Level 3 Optimierung (-O2 + langsame Optimierungen)
 **2Oa<x>=<y>_Ausrichtung (alignment) von Mengen
 **2Oo[NO]<x>_Optimierungen ein- oder ausschalten, siehe fpc -i für mögliche Werte
-**2Op<x>_setze Zielprozessor für die Optimierung, siehe fpc -i für mögliche Werte
-**2Os_erzeuge kürzeren Code
-**1pg_erzeuge Profiler-Code für gprof
+**2Op<x>_Setze Zielprozessor für die Optimierung, siehe fpc -i für mögliche Werte
+**2Os_Erzeuge kürzeren Code
+**1pg_Erzeuge Profiler-Code für gprof
 **1R<x>_Assembler Code Format:
-**2Rdefault_benutze den default Assembler
-3*2Ratt_lese Assembler Code im AT&T Format
-3*2Rintel_lese Assembler im Intel Format
-6*2RMOT_lese Assembler im Motorola Format
+**2Rdefault_Benutze den default Assembler
+3*2Ratt_Lese Assembler Code im AT&T Format
+3*2Rintel_Lese Assembler im Intel Format
+6*2RMOT_Lese Assembler im Motorola Format
 **1S<x>_Syntax-Optionen:
-**2S2_schalte einige der Delphi 2 Erweiterungen ein (wie -Mobjfpc)
-**2Sc_unterstütze spezielle C Operatoren (*=,+=,/= and -=)
-**2Sa_erlaube assertion code.
-**2Sd_sei Delphi-kompatibel (wie -Mdelphi)
+**2S2_Schalte einige der Delphi 2 Erweiterungen ein (wie -Mobjfpc)
+**2Sc_Unterstütze spezielle C Operatoren (*=,+=,/= and -=)
+**2Sa_Erlaube assertion code.
+**2Sd_Sei Delphi-kompatibel (wie -Mdelphi)
 **2Se<x>_Fehler Optionen. <x> ist eine der folgenden Kombinationen:
 **3*_<n> : Compiler hält nach <n> Fehlern (Voreinstellung ist 1)
 **3*_w : Compiler hält auch nach Warnungen
 **3*_n : Compiler hält auch nach Anmerkungen
 **3*_h : Compiler hält auch nach Hinweisen
-**2Sg_erlaube LABEL und GOTO
-**2Sh_benutze ANSI-Strings
-**2Si_benutze C++ artige INLINE
-**2Sk_lade fpcylix Unit
-**2SI<x>_setze den Stil des Interface zu <x>
+**2Sg_Erlaube LABEL und GOTO
+**2Sh_Benutze ANSI-Strings
+**2Si_Benutze C++ artige INLINE
+**2Sk_Lade fpcylix Unit
+**2SI<x>_Setze den Stil des Interface zu <x>
 **3SIcom_COM kompatibles Interface (Voreinstellung)
 **3SIcorba_CORBA kompatibles Interface
-**2Sm_unterstütze Makros wie in C (global)
-**2So_sei TP/BP 7.0 kompatibel (wie -Mtp)
-**2Sp_sei gpc-kompatibel (wie -Mgpc)
-**2Ss_Kon-und Destruktorname müssen "Init" und "Done" sein
-**2St_erlaube Schlüsselwort static in Objekten
+**2Sm_Unterstütze Makros wie in C (global)
+**2So_Sei TP/BP 7.0 kompatibel (wie -Mtp)
+**2Sp_Sei gpc-kompatibel (wie -Mgpc)
+**2Ss_Konstruktor- und Destruktorname müssen "Init" und "Done" sein
+**2St_Erlaube Schlüsselwort static in Objekten
 **2Sx_Exception Schlüsselwörter einschalten (Voreinstellung in Delphi/ObjFPC Moden)
-**1s_rufe weder Assembler noch Linker auf (nur mit -a)
-**2sh_erzeuge Script um auf dem Host zu linken
-**2st_erzeuge Script um auf dem Zielsystem zu linken
-**2sr_überspringe die Phase der "register allocation" (mit -alr benutzen)
+**1s_Rufe weder Assembler noch Linker auf (nur mit -a)
+**2sh_Erzeuge Script um auf dem Host zu linken
+**2st_Erzeuge Script um auf dem Zielsystem zu linken
+**2sr_Überspringe die Phase der "register allocation" (mit -alr benutzen)
 **1T<x>_Zielbetriebssystem::
 3*2Temx_OS/2 via EMX (einschliesslich EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
@@ -2640,51 +2643,54 @@ P*2Tlinux_Linux auf PowerPC
 P*2Tmacos_Mac OS (classic) auf PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
-**1u<x>_entferne die Definition für das Symbol <x>
+**1u<x>_Entferne die Definition für das Symbol <x>
 **1U<x>_Unit-Optionen:
-**2Un_prüfe den Unitnamen nicht
-**2Ur_erzeuge release unit Dateien
-**2Us_erzeuge eine Systemunit
+**2Un_Prüfe den Unitnamen nicht
+**2Ur_Erzeuge release unit Dateien
+**2Us_Erzeuge eine Systemunit
 **1v<x>_Meldungen, <x> ist eine Kombination der folgenden Zeichen:
-**2*_e : Fehler (Standard)             0 : nichts (ausser Fehlern)
-**2*_w : Warnungen                     u : Unit Info
-**2*_n : Anmerkungen                   t : angesprochene/benutzte Dateien
-**2*_h : Hinweise                      c : Preprozessordirective
-**2*_i : allgemeine Info               d : Debug Info
+**2*_e : Fehler (Standard)             0 : Nichts (ausser Fehlern)
+**2*_w : Warnungen                     u : Unit Informationen
+**2*_n : Anmerkungen                   t : Angesprochene/benutzte Dateien
+**2*_h : Hinweise                      c : Preprozessordirektive
+**2*_i : Allgemeine Informationen      d : Debug Informationen
 **2*_l : Zeilennummern                 r : Rhide/GCC kompatibler Modus
-**2*_a : alles                         x : Exe-Datei Info (nur Win32)
-**2*_b : schreibe bei Meldungen mit Dateinamen den vollständigem Pfad
-**2*_v : schreibe fpcdebug.txt mit     p : schreibe tree.log mit Analysenbaum (parse tree)
-**2*_   ganz viel Informationen
+**2*_a : Alles                         x : Exe-Datei Informationen (nur Win32)
+**2*_b : Schreibe bei Meldungen mit Dateinamen den vollständigem Pfad
+**2*_v : Schreibe fpcdebug.txt mit     p : Schreibe tree.log mit Analysenbaum (parse tree)
+**2*_   ganz viel Information
 3*1W<x>_Win32-ähnliche Ziel-Optionen
-3*2WB_erzeuge ein relozierbares Image
-3*2WB<x>_Setze Image base auf den Hexadecimal Wert <x>
-3*2WC_spezifiziere "console type application"
-3*2WD_benutze DEFFILE um Funtionen der DLL oder EXE zu exportieren
-3*2WF_spezifiziere "full-screen type application" (nur OS/2)
-3*2WG_spezifiziere "graphic type application"
-3*2WN_erzeuge keinen "relocation code" (notwendig für debugging)
-3*2WR_erzeuge "relocation code"
-P*2WC_spezifiziere "console type application" (nur Mac OS)
-P*2WG_spezifiziere "graphic type application" (nur Mac OS)
-P*2WT_spezifiziere "tool type application"    (MPW tool, nur Mac OS)
+3*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
+P*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
+p*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
+3*2WB_Erzeuge ein relozierbares Image
+3*2WB<x>_Setze die Image base auf den Hexadecimal Wert <x>
+3*2WC_Spezifiziere "console type application"
+3*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren
+3*2WF_Spezifiziere "full-screen type application" (nur OS/2)
+3*2WG_Spezifiziere "graphic type application"
+3*2WN_Erzeuge keinen "relocation code" (notwendig für debugging)
+3*2WR_Erzeuge "relocation code"
+P*2WC_Spezifiziere "console type application" (nur Mac OS)
+P*2WG_Spezifiziere "graphic type application" (nur Mac OS)
+P*2WT_Spezifiziere "tool type application"    (MPW tool, nur Mac OS)
 **1X_Programm-Optionen:
-**2Xc_übergebe --shared an den Linker (nur Unix)
-**2Xd_den Standard Bibliotheks-Suchphad NICHT nutzen (benötigt für cross compile)
-**2Xe_verwende den externen Linker
-**2XD_versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
-**2Xi_verwende den internen Linker
-**2Xm_erzeuge die "link map"
-**2XM<x>_setze den Namen der 'main' program Routine   (default ist 'main')
-**2XP<x>_stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
-**2Xr<x>_setze den Bibliotheks-Suchpfad zu <x>       (benötigt für cross compile)
-**2Xs_entferne alle Symbole von ausführbarer Datei
-**2XS_versuche Units statisch zu linken (default)    (definiert FPC_LINK_STATIC)
-**2Xt_linke mit statischen Bibliotheken              (-static wird an den Linker übergeben)
-**2XX_versuche Units smart zu linken                 (definiert FPC_LINK_SMART)
+**2Xc_Übergebe --shared an den Linker (nur Unix)
+**2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile)
+**2Xe_Verwende den externen Linker
+**2XD_Versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
+**2Xi_Verwende den internen Linker
+**2Xm_Erzeuge die "link map"
+**2XM<x>_Setze den Namen der 'main' program Routine   (default ist 'main')
+**2XP<x>_Stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
+**2Xr<x>_Setze den Bibliotheks-Suchpfad zu <x>       (benötigt für cross compile)
+**2Xs_Entferne alle Symbole von ausführbarer Datei
+**2XS_Versuche Units statisch zu linken (default)    (definiert FPC_LINK_STATIC)
+**2Xt_Linke mit statischen Bibliotheken              (-static wird an den Linker übergeben)
+**2XX_Versuche Units smart zu linken                 (definiert FPC_LINK_SMART)
 **1*_
-**1?_zeigt diese Hilfe an
-**1h_zeigt diese Hilfe ohne Warten an
+**1?_Zeigt diese Hilfe an
+**1h_Zeigt diese Hilfe ohne Warten an
 ]
 
 #
