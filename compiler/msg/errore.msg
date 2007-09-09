@@ -18,7 +18,6 @@
 # <part> is the part of the compiler the message is used
 #   asmr_     assembler parsing
 #   asmw_     assembler writing/binary writers
-
 #   unit_     unit handling
 #   scan_     scanner
 #   parser_   parser
@@ -2537,11 +2536,9 @@ S*2Aas_Assemble using GNU AS
 **2Fr<x>_Load error message file <x>
 **2FR<x>_Set resource (.res) linker to <x>
 **2Fu<x>_Add <x> to unit path
-**2FU<x>_Det unit output path to <x>, overrides -FE
+**2FU<x>_Set unit output path to <x>, overrides -FE
 *g1g_Generate debug information (default format for target)
 *g2gc_Generate checks for pointers
-*g2gd_Use dbx
-*g2gg_Use gsym
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
 *g2gl_Use line info unit (show more info with backtraces)
 *g2go<x>_Set debug information options
@@ -2644,8 +2641,8 @@ P*2Tlinux_Linux on PowerPC
 P*2Tmacos_Mac OS (classic) on PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
-**1u<x>_undefines the symbol <x>
-**1U_unit options:
+**1u<x>_Undefines the symbol <x>
+**1U_Unit options:
 **2Un_Do not check where the unit name matches the file name
 **2Ur_Generate release unit files (never automatically recompiled)
 **2Us_Compile a system unit
@@ -2658,8 +2655,8 @@ S*2Tlinux_Linux
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
 **2*_a : Show everything             x : Executable info (Win32 only)
 **2*_b : Write file names messages with full path
-**2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info
+**2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tree
+**2*_    Lots of debugging info
 3*1W<x>_Target-specific options (targets)
 A*1W<x>_Target-specific options (targets)
 P*1W<x>_Target-specific options (targets)
