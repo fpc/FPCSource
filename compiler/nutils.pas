@@ -538,6 +538,18 @@ implementation
                cnilnode.create
                ));
           end
+        else if is_interfacecom(p.resultdef) then
+          begin
+            result:=internalstatements(newstatement);
+            addstatement(newstatement,ccallnode.createintern('fpc_intf_decr_ref',
+                  ccallparanode.create(
+                    ctypeconvnode.create_internal(p,voidpointertype),
+                  nil)));
+            addstatement(newstatement,cassignmentnode.create(
+               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
+               cnilnode.create
+               ));
+          end
         else
           result:=ccallnode.createintern('fpc_finalize',
                 ccallparanode.create(
