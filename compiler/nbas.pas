@@ -378,9 +378,8 @@ implementation
          if (not (cs_extsyntax in current_settings.moduleswitches)) and
             assigned(left.resultdef) and
             not((left.nodetype=calln) and
-                { don't complain when funcretrefnode is set, because then the
-                  value is already used. And also not for constructors }
-                (assigned(tcallnode(left).funcretnode) or
+                { don't complain when the value is used. And also not for constructors }
+                ((cnf_return_value_used in tcallnode(left).callnodeflags) or
                  (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
             not(is_void(left.resultdef)) then
            CGMessage(parser_e_illegal_expression);
