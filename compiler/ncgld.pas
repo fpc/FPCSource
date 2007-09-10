@@ -530,9 +530,9 @@ implementation
          begin
            secondpass(right);
            { increment source reference counter, this is
-             useless for string constants}
+             useless for constants }
            if (right.resultdef.needs_inittable) and
-              (right.nodetype<>stringconstn) then
+              not is_constnode(right) then
             begin
               location_force_mem(current_asmdata.CurrAsmList,right.location);
               location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false);
