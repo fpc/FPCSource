@@ -570,29 +570,20 @@ implementation
          end
         else
           begin
-           { check if the assignment may cause a range check error }
-           check_ranges(fileinfo,right,left.resultdef);
-           inserttypeconv(right,left.resultdef);
+            { check if the assignment may cause a range check error }
+            check_ranges(fileinfo,right,left.resultdef);
+            inserttypeconv(right,left.resultdef);
           end;
 
         { call helpers for interface }
         if is_interfacecom(left.resultdef) then
          begin
-           { remove property flag to avoid errors, see comments for }
-           { tf_winlikewidestring assignments below                 }
-           exclude(left.flags,nf_isproperty);
-           if right.resultdef.is_related(left.resultdef) then
+	   { Normal interface assignments are handled by the generic refcount incr/decr }
+           if not right.resultdef.is_related(left.resultdef) then
              begin
-               hp:=
-                 ccallparanode.create(
-                   ctypeconvnode.create_internal(right,voidpointertype),
-                 ccallparanode.create(
-                   ctypeconvnode.create_internal(left,voidpointertype),
-                   nil));
-               result:=ccallnode.createintern('fpc_intf_assign',hp)
-             end
-           else
-             begin
+               { remove property flag to avoid errors, see comments for }
+               { tf_winlikewidestring assignments below                 }
+               exclude(left.flags,nf_isproperty);
                hp:=
                  ccallparanode.create(
                    cguidconstnode.create(tobjectdef(left.resultdef).iidguid^),
@@ -602,16 +593,14 @@ implementation
                    ctypeconvnode.create_internal(left,voidpointertype),
                    nil)));
                result:=ccallnode.createintern('fpc_intf_assign_by_iid',hp);
+               left:=nil;
+               right:=nil;
+               exit;
              end;
-
-           left:=nil;
-           right:=nil;
-           exit;
-         end;
-
+         end
         { call helpers for variant, they can contain non ref. counted types like
           vararrays which must be really copied }
-        if left.resultdef.typ=variantdef then
+        else if left.resultdef.typ=variantdef then
          begin
            hp:=ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right),voidpointertype),
@@ -622,11 +611,10 @@ implementation
            left:=nil;
            right:=nil;
            exit;
-         end;
-
+         end
         { call helpers for composite types containing automated types }
-        if (left.resultdef.needs_inittable) and
-           (left.resultdef.typ in [arraydef,objectdef,recorddef]) then
+        else if (left.resultdef.needs_inittable) and
+            (left.resultdef.typ in [arraydef,objectdef,recorddef]) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(
                   crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
@@ -639,10 +627,9 @@ implementation
            left:=nil;
            right:=nil;
            exit;
-         end;
-
+         end
         { call helpers for windows widestrings, they aren't ref. counted }
-        if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resultdef) then
+        else if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resultdef) then
          begin
            { The first argument of fpc_widestr_assign is a var parameter. Properties cannot   }
            { be passed to var or out parameters, because in that case setters/getters are not }
