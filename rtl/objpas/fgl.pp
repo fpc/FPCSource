@@ -261,8 +261,8 @@ begin
     Error(SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
     exit;
-  ReallocMem(FList, (NewCapacity+1) * FItemSize);
-  FillChar(InternalItems[FCapacity]^, (NewCapacity+1-FCapacity) * FItemSize, #0);
+  ReallocMem(FList, NewCapacity * FItemSize);
+  FillChar(InternalItems[FCapacity]^, (NewCapacity-FCapacity) * FItemSize, #0);
   FCapacity := NewCapacity;
 end;
 
