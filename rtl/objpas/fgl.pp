@@ -215,6 +215,9 @@ end;
 destructor TFPSList.Destroy;
 begin
   Clear;
+  // Clear() does not clear the whole list; there is always a single temp entry
+  // at the end which is never freed. Take care of that one here.
+  FreeMem(FList);
   inherited Destroy;
 end;
 
@@ -261,8 +264,8 @@ begin
     Error(SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
     exit;
-  ReallocMem(FList, NewCapacity * FItemSize);
-  FillChar(InternalItems[FCapacity]^, (NewCapacity-FCapacity) * FItemSize, #0);
+  ReallocMem(FList, (NewCapacity+1) * FItemSize);
+  FillChar(InternalItems[FCapacity]^, (NewCapacity+1-FCapacity) * FItemSize, #0);
   FCapacity := NewCapacity;
 end;
 
@@ -315,7 +318,6 @@ begin
   begin
     SetCount(0);
     SetCapacity(0);
-    FList := nil;
   end;
 end;
 
