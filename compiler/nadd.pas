@@ -32,6 +32,9 @@ interface
 
     type
        taddnode = class(tbinopnode)
+       private
+          function pass_typecheck_internal:tnode;
+       public
           resultrealdef : tdef;
           constructor create(tt : tnodetype;l,r : tnode);override;
           function pass_1 : tnode;override;
@@ -721,15 +724,25 @@ implementation
 
 
     function taddnode.pass_typecheck:tnode;
+      begin
+        { This function is small to keep the stack small for recursive of
+          large + operations }
+        typecheckpass(left);
+        typecheckpass(right);
+        result:=pass_typecheck_internal;
+      end;
+
+
+    function taddnode.pass_typecheck_internal:tnode;
       var
         hp      : tnode;
-        lt,rt   : tnodetype;
         rd,ld   : tdef;
-        ot      : tnodetype;
         hsym    : tfieldvarsym;
         i       : longint;
         strtype : tstringtype;
         b       : boolean;
+        lt,rt   : tnodetype;
+        ot      : tnodetype;
 {$ifdef state_tracking}
         factval : Tnode;
         change  : boolean;
@@ -737,9 +750,6 @@ implementation
 
       begin
          result:=nil;
-         { first do the two subtrees }
-         typecheckpass(left);
-         typecheckpass(right);
          { both left and right need to be valid }
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
