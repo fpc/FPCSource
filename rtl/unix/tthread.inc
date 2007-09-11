@@ -121,9 +121,11 @@ begin
       WRITE_DEBUG('Thread ',ptrint(lthread),' should be freed');
       LThread.Free;
       WRITE_DEBUG('Thread freed');
-//    tthread.destroy already frees all things and terminates the thread
-//    WRITE_DEBUG('thread func calling EndThread');
-//    EndThread(Result);
+      WRITE_DEBUG('thread func calling EndThread');
+      // we can never come here if the thread has already been joined, because
+      // this function is the thread's main function (so it would have terminated
+      // already in case it was joined)
+      EndThread(Result);
     end
   else
     begin
@@ -144,6 +146,7 @@ begin
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
   FSuspended := CreateSuspended;
   FSuspendedExternal := false;
+  FThreadReaped := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
   WRITE_DEBUG('creating thread, self = ',longint(self));
@@ -169,22 +172,35 @@ begin
       inherited destroy;
       exit;
     end;
-  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) and not FFinished then
-    raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
-  // if someone calls .Free on a thread with
-  // FreeOnTerminate, then don't crash!
-  FFreeOnTerminate := false;
-  if not FFinished then
+  if (FThreadID = GetCurrentThreadID) then
     begin
-      Terminate;
-      if (FInitialSuspended) then
-        Resume;
-      WaitFor;
+      if not(FFreeOnTerminate) and not FFinished then
+        raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
+      FFreeOnTerminate := false;
+    end
+  else
+    begin
+      // if someone calls .Free on a thread with not(FreeOnTerminate), there
+      // is no problem. Otherwise, FreeOnTerminate must be set to false so
+      // when ThreadFunc exits the main runloop, it does not try to Free
+      // itself again
+      FFreeOnTerminate := false;
+      { you can't join yourself, so only for FThreadID<>GetCurrentThreadID }
+      { and you can't join twice -> make sure we didn't join already       }
+      if not FThreadReaped then
+        begin
+          Terminate;
+          if (FInitialSuspended) then
+            Resume;
+          WaitFor;
+        end;
     end;
   CurrentTM.SemaphoreDestroy(FSem);
   FFatalException.Free;
   FFatalException := nil;
-  { threadvars have been released by cthreads.ThreadMain -> DoneThread }
+  { threadvars have been released by cthreads.ThreadMain -> DoneThread, or  }
+  { or will be released (in case of FFreeOnTerminate) after this destructor }
+  { has exited by ThreadFunc->EndThread->cthreads.CEndThread->DoneThread)   }
   inherited Destroy;
 end;
 
@@ -199,34 +215,38 @@ end;
 
 procedure TThread.Suspend;
 begin
-  if not FSuspended and
-     (InterLockedExchange(longint(FSuspended),ord(true)) = ord(false)) then
+  if FThreadID = GetCurrentThreadID then
     begin
-      if FThreadID = GetCurrentThreadID then
+      if not FSuspended and
+         (InterLockedExchange(longint(FSuspended),ord(true)) = ord(false)) then
         CurrentTM.SemaphoreWait(FSem)
-      else
-        begin
-          FSuspendedExternal := true;
-          SuspendThread(FHandle);
-        end;
+    end
+  else
+    begin
+      Raise EThread.create('Suspending one thread from inside another one is unsupported (because it is unsafe and deadlock prone) by *nix and posix operating systems');
+//      FSuspendedExternal := true;
+//      SuspendThread(FHandle);
     end;
 end;
 
 
 procedure TThread.Resume;
 begin
-  if FSuspended and
-     (InterLockedExchange(longint(FSuspended),ord(false)) = ord(true)) then
-    if (not FSuspendedExternal) then
-      begin
-        WRITE_DEBUG('resuming ',ptrint(self));
-        CurrentTM.SemaphorePost(FSem);
-      end
-    else
-      begin
-        FSuspendedExternal := false;
-        ResumeThread(FHandle);
-      end;
+  if (not FSuspendedExternal) then
+    begin
+      if FSuspended and
+         (InterLockedExchange(longint(FSuspended),ord(false)) = ord(true)) then
+        begin
+          WRITE_DEBUG('resuming ',ptrint(self));
+          CurrentTM.SemaphorePost(FSem);
+        end
+    end
+  else
+    begin
+      raise EThread.create('External suspending is not supported under *nix/posix, so trying to resume from from an external suspension should never happen');
+//      FSuspendedExternal := false;
+//      ResumeThread(FHandle);
+    end;
 end;
 
 
@@ -239,6 +259,9 @@ function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',ptrint(FHandle));
   WaitFor := WaitForThreadTerminate(FHandle, 0);
+  { should actually check for errors in WaitForThreadTerminate, but no }
+  { error api is defined for that function                             }
+  FThreadReaped:=true;
   WRITE_DEBUG('thread terminated');
 end;
 

@@ -216,7 +216,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
-        pthread_exit(nil);
+        pthread_exit(ThreadMain);
       end;
 
 
@@ -282,20 +282,33 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function  CSuspendThread (threadHandle : TThreadID) : dword;
     begin
-      result := pthread_kill(threadHandle,SIGSTOP);
+    {  pthread_kill(SIGSTOP) cannot be used, because posix-compliant
+       implementations then freeze the entire process instead of only
+       the target thread. Suspending a particular thread is not
+       supported by posix nor by most *nix implementations, presumably
+       because of concerns mentioned in E.4 at
+       http://pauillac.inria.fr/~xleroy/linuxthreads/faq.html#E and in
+       http://java.sun.com/j2se/1.4.2/docs/guide/misc/threadPrimitiveDeprecation.html
+    }
+//      result := pthread_kill(threadHandle,SIGSTOP);
     end;
 
 
   function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
-      result := pthread_kill(threadHandle,SIGCONT);
+//      result := pthread_kill(threadHandle,SIGCONT);
     end;
 
 
+  procedure sched_yield; cdecl; external 'c' name 'sched_yield';
+
   procedure CThreadSwitch;  {give time to other threads}
     begin
-      {extern int pthread_yield (void) __THROW;}
-      {$Warning ThreadSwitch needs to be implemented}
+      { At least on Mac OS X, the pthread_yield_np calls through to this. }
+      { Further, sched_yield is in POSIX and supported on FreeBSD 4+,     }
+      { Linux, Mac OS X and Solaris, while the thread-specific yield      }
+      { routines are called differently everywhere and non-standard.      }
+      sched_yield;
     end;
 
 
@@ -309,12 +322,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
   function  CWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
     var
       LResultP: Pointer;
-      LResult: DWord;
     begin
-      LResult := 0;
-      LResultP := @LResult;
       pthread_join(pthread_t(threadHandle), @LResultP);
-      CWaitForThreadTerminate := LResult;
+      CWaitForThreadTerminate := dword(LResultP);
     end;
 
 {$warning threadhandle can be larger than a dword}

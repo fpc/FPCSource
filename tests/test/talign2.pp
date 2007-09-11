@@ -11,13 +11,18 @@ program talign2;
 
 {$ifdef fpc}
 {$mode objfpc}
-  {$ifndef ver1_0}
-    {$define haswidestring}
-  {$endif}
+{$define haswidestring}
 {$else}
   {$ifndef ver70}
     {$define haswidestring}
   {$endif}
+{$endif}
+
+{$ifdef fpc}
+{$ifdef unix}
+uses
+  cwstring;
+{$endif}
 {$endif}
 
 
