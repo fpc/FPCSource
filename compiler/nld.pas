@@ -560,7 +560,8 @@ implementation
                      (tstringconstnode(right).len > tstringdef(left.resultdef).len) then
                      cgmessage(type_w_string_too_long);
                   inserttypeconv(right,left.resultdef);
-                  if (tstringconstnode(right).len=0) then
+                  if (right.nodetype=stringconstn) and
+                     (tstringconstnode(right).len=0) then
                     useshelper:=false;
                 end;
              { rest is done in pass 1 (JM) }
