@@ -313,184 +313,30 @@ Const
         syscall_nr_inotify_init          = 291;
         syscall_nr_inotify_add_watch     = 292;
         syscall_nr_inotify_rm_watch      = 293;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        syscall_nr_migrate_pages         = 294;
+        syscall_nr_openat                = 295;
+        syscall_nr_mkdirat               = 296;
+        syscall_nr_mknodat               = 297;
+        syscall_nr_fchownat              = 298;
+        syscall_nr_futimesat             = 299;
+        syscall_nr_fstatat64             = 300;
+        syscall_nr_unlinkat              = 301;
+        syscall_nr_renameat              = 302;
+        syscall_nr_linkat                = 303;
+        syscall_nr_symlinkat             = 304;
+        syscall_nr_readlinkat            = 305;
+        syscall_nr_fchmodat              = 306;
+        syscall_nr_faccessat             = 307;
+        syscall_nr_pselect6              = 308;
+        syscall_nr_ppoll                 = 309;
+        syscall_nr_unshare               = 310;
+        syscall_nr_set_robust_list       = 311;
+        syscall_nr_get_robust_list       = 312;
+        syscall_nr_splice                = 313;
+        syscall_nr_sync_file_range       = 314;
+        syscall_nr_tee                   = 315;
+        syscall_nr_vmsplice              = 316;
+        syscall_nr_move_pages            = 317;
+        syscall_nr_getcpu                = 318;
+        syscall_nr_epoll_pwait           = 319;
 

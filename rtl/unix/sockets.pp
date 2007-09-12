@@ -18,11 +18,11 @@ Uses baseunix,UnixType;
 {$endif}
 
 {$ifdef FreeBSD}
-{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of scoketaddr
+{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
 
 {$ifdef Darwin}
-{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of scoketaddr
+{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
 
 {$i unxsockh.inc}

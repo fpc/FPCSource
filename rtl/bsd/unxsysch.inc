@@ -14,3 +14,9 @@
 
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 
+function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
+function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+function  fpfsync (fd : cint) : cint;
+Function  fpFlock   (fd,mode : cint)   : cint ;
+
+

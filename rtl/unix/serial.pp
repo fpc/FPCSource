@@ -80,7 +80,7 @@ end;
 
 procedure SerFlush(Handle: TSerialHandle);
 begin
-  fsync(Handle);
+  fpfsync(Handle);
 end;
 
 function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;

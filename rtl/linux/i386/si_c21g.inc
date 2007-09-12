@@ -54,6 +54,7 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
 {******************************************************************************
                        glibc 2.1 lib + profiling start/halt
  ******************************************************************************}
+{$asmmode ATT}
 
 procedure _FPC_libc21_gprof_gmon_start; assembler; nostackframe;
 asm

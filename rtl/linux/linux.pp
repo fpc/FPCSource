@@ -22,26 +22,33 @@ unit Linux;
 interface
 
 uses
-  ctypes;
+  BaseUnix;//, ctypes;
 
-Type
-  TSysinfo = packed record
-    uptime    : longint;
-    loads     : array[1..3] of longint;
-    totalram,
-    freeram,
-    sharedram,
-    bufferram,
-    totalswap,
-    freeswap  : longint;
-    procs     : integer;
-    s         : string[18];
+type
+  TSysInfo = record
+    uptime: clong;                     //* Seconds since boot */
+    loads: array[0..2] of culong;      //* 1, 5, and 15 minute load averages */
+    totalram: culong;                  //* Total usable main memory size */
+    freeram: culong;                   //* Available memory size */
+    sharedram: culong;                 //* Amount of shared memory */
+    bufferram: culong;                 //* Memory used by buffers */
+    totalswap: culong;                 //* Total swap space size */
+    freeswap: culong;                  //* swap space still available */
+    procs: cushort;                    //* Number of current processes */
+    pad: cushort;                      //* explicit padding for m68k */
+    totalhigh: culong;                 //* Total high memory size */
+    freehigh: culong;                  //* Available high memory size */
+    mem_unit: cuint;                   //* Memory unit size in bytes */
+{$ifndef cpu64}
+    { the upper bound of the array below is negative for 64 bit cpus }
+    _f: array[0..19-2*sizeof(clong)-sizeof(cint)] of cChar;  //* Padding: libc5 uses this.. */
+{$endif cpu64}
   end;
   PSysInfo = ^TSysInfo;
 
-Function Sysinfo(var Info:TSysinfo):Boolean; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
+function Sysinfo(Info: PSysinfo): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
 
-Const
+const
   CSIGNAL              = $000000ff; // signal mask to be sent at exit
   CLONE_VM             = $00000100; // set if VM shared between processes
   CLONE_FS             = $00000200; // set if fs info shared between processes
@@ -94,7 +101,9 @@ Const
    if (oldval CMP CMPARG)
      wake UADDR2; }
 
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {inline;}
+{$ifndef FPC_USE_LIBC}
+function futex_op(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif}
 
 const
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
@@ -153,7 +162,7 @@ const
   LED_SCR         = 1;    {scroll lock led}
   LED_NUM         = 2;    {num lock led}
   LED_CAP         = 4;    {caps lock led}
-
+    
   {Tty modes. (for KDSETMODE)}
   KD_TEXT         = 0;
   KD_GRAPHICS     = 1;
@@ -169,6 +178,46 @@ const
 type
   TCloneFunc = function(args:pointer):longint;cdecl;
 
+{$ifdef cpui386}
+  {$define clone_implemented}
+{$endif}
+{$ifdef cpum68k}
+  {$define clone_implemented}
+{$endif}
+
+{$ifdef clone_implemented}
+function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
+{$endif}
+
+const
+  MODIFY_LDT_CONTENTS_DATA       = 0;
+  MODIFY_LDT_CONTENTS_STACK      = 1;
+  MODIFY_LDT_CONTENTS_CODE       = 2;
+
+{ Flags for user_desc.flags }
+  UD_SEG_32BIT            = $01;
+  UD_CONTENTS_DATA        = MODIFY_LDT_CONTENTS_DATA  shl 1;
+  UD_CONTENTS_STACK       = MODIFY_LDT_CONTENTS_STACK shl 1;
+  UD_CONTENTS_CODE        = MODIFY_LDT_CONTENTS_CODE  shl 1;
+  UD_READ_EXEC_ONLY       = $08;
+  UD_LIMIT_IN_PAGES       = $10;
+  UD_SEG_NOT_PRESENT      = $20;
+  UD_USEABLE              = $40;
+  UD_LM                   = $80;
+
+type
+  user_desc = packed record
+    entry_number  : cint;
+    base_addr     : cuint;
+    limit         : cuint;
+    flags         : cuint;
+  end;
+
+  TUser_Desc = user_desc;
+  PUser_Desc = ^user_desc;
+
+
+type
   EPoll_Data = record
     case integer of
       0: (ptr: pointer);
@@ -183,10 +232,10 @@ type
     Events: cuint32;
     Data  : TEpoll_Data;
   end;
+
   TEPoll_Event =  Epoll_Event;
   PEpoll_Event = ^Epoll_Event;
 
-function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 
 { open an epoll file descriptor }
 function epoll_create(size: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_create'; {$endif}
@@ -195,20 +244,95 @@ function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint; {$ifdef FPC_U
 { wait for an I/O event on an epoll file descriptor }
 function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_wait'; {$endif}
 
+type Puser_cap_header=^user_cap_header;
+     user_cap_header=packed record
+       version,pid:cardinal;
+     end;
+     
+     Puser_cap_data=^user_cap_data;
+     user_cap_data=packed record
+        effective,permitted,inheritable:cardinal;
+     end;
+
+{Get a capability.}
+function capget(header:Puser_cap_header;data:Puser_cap_data):cint;{$ifdef FPC_USE_LIBC} cdecl; external name 'capget'; {$endif}
+{Set a capability.}
+function capset(header:Puser_cap_header;data:Puser_cap_data):cint;{$ifdef FPC_USE_LIBC} cdecl; external name 'capset'; {$endif}
+
+     
+const CAP_CHOWN            = 0;
+      CAP_DAC_OVERRIDE     = 1;
+      CAP_DAC_READ_SEARCH  = 2;
+      CAP_FOWNER           = 3;
+      CAP_FSETID           = 4;
+      CAP_FS_MASK          = $1f;
+      CAP_KILL             = 5;
+      CAP_SETGID           = 6;
+      CAP_SETUID           = 7;
+      CAP_SETPCAP          = 8;
+      CAP_LINUX_IMMUTABLE  = 9;
+      CAP_NET_BIND_SERVICE = 10;
+      CAP_NET_BROADCAST    = 11;
+      CAP_NET_ADMIN        = 12;
+      CAP_NET_RAW          = 13;
+      CAP_IPC_LOCK         = 14;
+      CAP_IPC_OWNER        = 15;
+      CAP_SYS_MODULE       = 16;
+      CAP_SYS_RAWIO        = 17;
+      CAP_SYS_CHROOT       = 18;
+      CAP_SYS_PTRACE       = 19;
+      CAP_SYS_PACCT        = 20;
+      CAP_SYS_ADMIN        = 21;
+      CAP_SYS_BOOT         = 22;
+      CAP_SYS_NICE         = 23;
+      CAP_SYS_RESOURCE     = 24;
+      CAP_SYS_TIME         = 25;
+      CAP_SYS_TTY_CONFIG   = 26;
+      CAP_MKNOD            = 27;
+      CAP_LEASE            = 28;
+      CAP_AUDIT_WRITE      = 29;
+      CAP_AUDIT_CONTROL    = 30;
+
+      LINUX_CAPABILITY_VERSION = $19980330;
+
+
+//***********************************************SPLICE from kernel 2.6.17+****************************************
+
+const
+{* Flags for SPLICE and VMSPLICE.  *}
+  SPLICE_F_MOVE		= 1;   { Move pages instead of copying.  }
+  SPLICE_F_NONBLOCK	= 2;   {* Don't block on the pipe splicing
+                            (but we may still block on the fd
+                                        we splice from/to).  *}
+  SPLICE_F_MORE	    = 4;   {* Expect more data.  *}
+  SPLICE_F_GIFT	    = 8;   {* Pages passed in are a gift.  *}
+
+{$ifdef cpu86}
+{* Splice address range into a pipe.  *}
+function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'vmsplice'; {$ENDIF}
+
+{* Splice two files together.  *}
+// NOTE: offin and offout should be "off64_t" but we don't have that type. It's an "always 64 bit offset" so I use cint64
+function splice (fdin: cInt; offin: cInt64; fdout: cInt;
+                             offout: cInt64; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'splice'; {$ENDIF}
+                             
+function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'tee'; {$ENDIF}
+
+{$endif} // x86
+
 implementation
+
 
 {$ifndef FPC_USE_LIBC}
 Uses Syscall;
 
-Function Sysinfo(var Info:TSysinfo):Boolean;
-{
-  Get system info
-}
-Begin
-  Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,TSysParam(@info))=0;
-End;
+function Sysinfo(Info: PSysinfo): cInt;
+begin
+  Sysinfo := do_SysCall(SysCall_nr_Sysinfo, TSysParam(info));
+end;
 
-function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+{$ifdef clone_implemented}
+function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 
 begin
   if (pointer(func)=nil) or (sp=nil) then
@@ -286,6 +410,7 @@ begin
   *)
 {$endif cpum68k}
 end;
+{$endif}
 
 function epoll_create(size: cint): cint;
 begin
@@ -294,7 +419,7 @@ end;
 
 function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint;
 begin
-  epoll_ctl := do_syscall(syscall_nr_epoll_ctl, tsysparam(epfd), 
+  epoll_ctl := do_syscall(syscall_nr_epoll_ctl, tsysparam(epfd),
     tsysparam(op), tsysparam(fd), tsysparam(event));
 end;
 
@@ -303,13 +428,47 @@ begin
   epoll_wait := do_syscall(syscall_nr_epoll_wait, tsysparam(epfd),
     tsysparam(events), tsysparam(maxevents), tsysparam(timeout));
 end;
-{$endif}
 
-// FUTEX_OP is a macro, doesn't exist in libC as function
+function capget(header:Puser_cap_header;data:Puser_cap_data):cint;
+
+begin
+  capget:=do_syscall(syscall_nr_capget,Tsysparam(header),Tsysparam(data));
+end;
+
+function capset(header:Puser_cap_header;data:Puser_cap_data):cint;
+
+begin
+  capset:=do_syscall(syscall_nr_capset,Tsysparam(header),Tsysparam(data));
+end;
+
+// TODO: update also on non x86!
+{$ifdef cpu86} // didn't update syscall_nr on others yet
+
+function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt;
+begin
+  vmsplice := do_syscall(syscall_nr_vmsplice, TSysParam(fdout), TSysParam(iov), TSysParam(count), TSysParam(flags));
+end;
+
+function splice (fdin: cInt; offin: cint64; fdout: cInt; offout: cint64; len: size_t; flags: cuInt): cInt; 
+begin
+  splice := do_syscall(syscall_nr_splice, TSysParam(fdin), TSysParam(offin), TSysParam(fdout), TSysParam(offout), 
+                       TSysParam(len), TSysParam(flags));
+end;
+
+function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt;
+begin
+  tee := do_syscall(syscall_nr_tee, TSysParam(fd_in), TSysParam(fd_out),
+                    TSysParam(len), TSysParam(flags));
+end;
+
+{$endif} // x86
+
+{$endif} // non-libc
+
+{ FUTEX_OP is a macro, doesn't exist in libC as function}
 function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
 end;
-
 
 end.
