@@ -154,7 +154,7 @@ begin
   *)
 end;
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 
 begin
   (* TODO fix

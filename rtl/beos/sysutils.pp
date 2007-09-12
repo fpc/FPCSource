@@ -81,7 +81,7 @@ begin
 end;
 
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle: longint;Size: Int64) : boolean;
 begin
 end;
 

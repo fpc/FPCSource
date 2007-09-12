@@ -238,10 +238,14 @@ begin
   fpclose(Handle);
 end;
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 
 begin
-  FileTruncate:=fpftruncate(Handle,Size)>=0;
+  if (SizeOf (TOff) < 8)   (* fpFTruncate only supporting signed 32-bit size *)
+                         and (Size > high (longint)) then
+    FileTruncate := false
+  else
+    FileTruncate:=fpftruncate(Handle,Size)>=0;
 end;
 
 Function UnixToWinAge(UnixAge : time_t): Longint;

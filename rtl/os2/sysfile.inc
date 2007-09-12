@@ -84,7 +84,7 @@ function Do_FilePos (Handle: THandle): int64;
 var
   PosActual: int64;
 begin
-  InOutRes := DosSetFilePtrL (Handle, 0, 1, PosActual);
+  InOutRes := Sys_DosSetFilePtrL (Handle, 0, 1, PosActual);
   Do_FilePos := PosActual;
 {$ifdef IODEBUG}
   writeln('do_filepos: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
@@ -95,7 +95,7 @@ procedure Do_Seek (Handle: THandle; Pos: int64);
 var
   PosActual: int64;
 begin
-  InOutRes:=DosSetFilePtrL(Handle, Pos, 0 {ZeroBased}, PosActual);
+  InOutRes:=Sys_DosSetFilePtrL(Handle, Pos, 0 {ZeroBased}, PosActual);
 {$ifdef IODEBUG}
   writeln('do_seek: handle=', Handle, ', pos=', pos, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
 {$endif}
@@ -105,7 +105,7 @@ function Do_SeekEnd (Handle: THandle): int64;
 var
   PosActual: int64;
 begin
-  InOutRes := DosSetFilePtrL (Handle, 0, 2 {EndBased}, PosActual);
+  InOutRes := Sys_DosSetFilePtrL (Handle, 0, 2 {EndBased}, PosActual);
   Do_SeekEnd := PosActual;
 {$ifdef IODEBUG}
   writeln('do_seekend: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
@@ -123,7 +123,7 @@ end;
 
 procedure Do_Truncate (Handle: THandle; Pos: int64);
 begin
-  InOutRes := DosSetFileSizeL (Handle, Pos);
+  InOutRes := Sys_DosSetFileSizeL (Handle, Pos);
   Do_SeekEnd (Handle);
 end;
 
@@ -221,12 +221,12 @@ begin
 
   Attrib:=32 {faArchive};
 
-  InOutRes:=DosOpenL(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
+  InOutRes:=Sys_DosOpenL(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
 
   // If too many open files try to set more file handles and open again
   if (InOutRes = 4) then
     if Increase_File_Handle_Count then
-      InOutRes:=DosOpenL(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
+      InOutRes:=Sys_DosOpenL(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
 
   If InOutRes<>0 then FileRec(F).Handle:=UnusedHandle;
 
