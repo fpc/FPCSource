@@ -527,7 +527,7 @@ Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt);[Public,Alias 
 }
 Var
   Temp : Pointer;
-  lens,
+  lens, lena,
   movelen : SizeInt;
 begin
   if (l>0) then
@@ -541,7 +541,10 @@ begin
       else if PAnsiRec(Pointer(S)-FirstOff)^.Ref=1 then
         begin
           Dec(Pointer(S),FirstOff);
-          if AnsiRecLen+L>MemSize(Pointer(s)) then
+          lens:=MemSize(Pointer(s));
+          lena:=AnsiRecLen+L;
+          { allow shrinking string if that saves at least half of current size }
+          if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
             reallocmem(pointer(S),AnsiRecLen+L);
           Inc(Pointer(S),FirstOff);
         end

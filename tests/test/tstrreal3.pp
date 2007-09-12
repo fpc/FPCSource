@@ -45,6 +45,12 @@ begin
  writeln(result);
  if (result <> '8.502') then
    halt(1);
+
+ e:=0.005;
+ str(e:0:2,result);
+ writeln(result);
+ if (result<>'0.01') then
+   halt(1);
 end;
 
 begin

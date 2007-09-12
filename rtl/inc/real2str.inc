@@ -378,9 +378,9 @@ begin
           for fracCount := 1 to currPrec do
             factor := factor * 10.0;
           corrval := corrval / factor;
-          if d >= corrVal then
+          if d >= corrVal-roundCorr then
             d := d + corrVal;
-          if int(d) = 1 then
+          if int(d+roundCorr) = 1 then
             begin
               roundStr(temp,spos);
               d := frac(d);

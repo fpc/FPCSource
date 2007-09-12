@@ -65,9 +65,9 @@ begin
    index:=length(s)+1;
   indexlen:=Length(s)-Index+1;
   srclen:=length(Source);
-  if SizeInt(length(source)+length(s))>=sizeof(s) then
+  if sizeInt(length(source))+sizeint(length(s))>=sizeof(s) then
    begin
-     cut:=SizeInt(length(source)+length(s))-sizeof(s)+1;
+     cut:=sizeInt(length(source))+sizeint(length(s))-sizeof(s)+1;
      if cut>indexlen then
       begin
         dec(srclen,cut-indexlen);
@@ -91,7 +91,7 @@ begin
   if index>length(s) then
    index:=length(s)+1;
   indexlen:=Length(s)-Index+1;
-  if (length(s)+1=sizeof(s)) and (indexlen>0) then
+  if (sizeint(length(s))+1=sizeof(s)) and (indexlen>0) then
    dec(indexlen);
   move(s[Index],s[Index+1],indexlen);
   s[Index]:=Source;
@@ -107,7 +107,7 @@ begin
   Pos:=0;
   if Length(SubStr)>0 then
    begin
-     MaxLen:=Length(s)-Length(SubStr);
+     MaxLen:=sizeint(Length(s))-Length(SubStr);
      i:=0;
      pc:=@s[1];
      while (i<=MaxLen) do
@@ -314,12 +314,30 @@ begin
 end;
 
 
+Function  hexStr(Val:qword;cnt:byte):shortstring;
+begin
+  hexStr:=hexStr(int64(Val),cnt);
+end;
+
+
+Function  OctStr(Val:qword;cnt:byte):shortstring;
+begin
+  OctStr:=OctStr(int64(Val),cnt);
+end;
+
+
+Function  binStr(Val:qword;cnt:byte):shortstring;
+begin
+  binStr:=binStr(int64(Val),cnt);
+end;
+
+
 function hexstr(val : pointer) : shortstring;
 var
   i : longint;
-  v : ptrint;
+  v : ptruint;
 begin
-  v:=ptrint(val);
+  v:=ptruint(val);
   hexstr[0]:=chr(sizeof(pointer)*2);
   for i:=sizeof(pointer)*2 downto 1 do
    begin
@@ -356,20 +374,20 @@ end;
 
 {$ifndef CPU64}
 
-  procedure fpc_shortstr_qword(v : qword;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
-    begin
-       int_str(v,s);
-       if length(s)<len then
-         s:=space(len-length(s))+s;
-    end;
+procedure fpc_shortstr_qword(v : qword;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
 
 
-  procedure fpc_shortstr_int64(v : int64;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  compilerproc;
-    begin
-       int_str(v,s);
-       if length(s)<len then
-         s:=space(len-length(s))+s;
-    end;
+procedure fpc_shortstr_int64(v : int64;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
 
 {$endif CPU64}
 
@@ -380,12 +398,13 @@ end;
 
 {$I real2str.inc}
 
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; compilerproc;
+procedure fpc_shortstr_float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; compilerproc;
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
 
-procedure fpc_ShortStr_Currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
+
+procedure fpc_shortstr_currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
 const
   MinLen = 8; { Minimal string length in scientific format }
 
@@ -678,14 +697,14 @@ begin
             end;
       '%' : begin
               base:=2;
-              inc(code);              
+              inc(code);
             end;
       '&' : begin
               Base:=8;
-              inc(code);              
+              inc(code);
             end;
       '0' : begin
-              if (code < length(s)) and (s[code+1] in ['x', 'X']) then 
+              if (code < length(s)) and (s[code+1] in ['x', 'X']) then
               begin
                 inc(code, 2);
                 base := 16;
@@ -703,8 +722,8 @@ end;
 
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; compilerproc;
 var
-  u, temp, prev, maxPrevValue, maxNewValue: ValUInt;
-  base : byte;
+  temp, prev, maxPrevValue, maxNewValue: ValUInt;
+  base,u : byte;
   negative : boolean;
 begin
   fpc_Val_SInt_ShortStr := 0;
@@ -712,6 +731,12 @@ begin
   Code:=InitVal(s,negative,base);
   if Code>length(s) then
    exit;
+  if (s[Code]=#0) then
+    begin
+      if (Code>1) and (s[Code-1]='0') then
+        Code:=0;
+      exit;
+    end;
   maxPrevValue := ValUInt(MaxUIntValue) div ValUInt(Base);
   if (base = 10) then
     maxNewValue := MaxSIntValue + ord(negative)
@@ -761,14 +786,20 @@ Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code
 
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; compilerproc;
 var
-  u, prev : ValUInt;
-  base : byte;
+  prev : ValUInt;
+  base,u : byte;
   negative : boolean;
 begin
   fpc_Val_UInt_Shortstr:=0;
   Code:=InitVal(s,negative,base);
   If Negative or (Code>length(s)) Then
     Exit;
+  if (s[Code]=#0) then
+    begin
+      if (Code>1) and (s[Code-1]='0') then
+        Code:=0;
+      exit;
+    end;
   while Code<=Length(s) do
    begin
      case s[Code] of
@@ -780,13 +811,13 @@ begin
       u:=16;
      end;
      prev := fpc_Val_UInt_Shortstr;
+     fpc_Val_UInt_Shortstr:=fpc_Val_UInt_Shortstr*ValUInt(base) + u;
      If (u>=base) or
-        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<prev) then
+        (prev>fpc_Val_UInt_Shortstr) then
       begin
         fpc_Val_UInt_Shortstr:=0;
         exit;
       end;
-     fpc_Val_UInt_Shortstr:=fpc_Val_UInt_Shortstr*ValUInt(base) + u;
      inc(code);
    end;
   code := 0;
@@ -810,6 +841,12 @@ end;
     Code:=InitVal(s,negative,base);
     if Code>length(s) then
      exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
     maxprevvalue := maxqword div base;
     if (base = 10) then
       maxnewvalue := maxint64 + ord(negative)
@@ -846,22 +883,23 @@ end;
 
 
   Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; compilerproc;
-    type qwordrec = packed record
-      l1,l2: longint;
-    end;
-    var
-       u, prev, maxqword: QWord;
+
+  var  u, prev: QWord;
        base : byte;
        negative : boolean;
+
+  const maxqword=qword($ffffffffffffffff);
+
   begin
     fpc_val_qword_shortstr:=0;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
       Exit;
-    with qwordrec(maxqword) do
+    if (s[Code]=#0) then
       begin
-        l1 := longint($ffffffff);
-        l2 := longint($ffffffff);
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
       end;
     while Code<=Length(s) do
      begin
@@ -874,13 +912,13 @@ end;
         u:=16;
        end;
        prev := fpc_val_qword_shortstr;
+       fpc_val_qword_shortstr:=fpc_val_qword_shortstr*QWord(base) + u;
        If (u>=base) or
-         ((QWord(maxqword-u) div QWord(base))<prev) then
+          (prev>fpc_val_qword_shortstr) then
          Begin
            fpc_val_qword_shortstr := 0;
            Exit
          End;
-       fpc_val_qword_shortstr:=fpc_val_qword_shortstr*QWord(base) + u;
        inc(code);
      end;
     code := 0;
@@ -1018,7 +1056,7 @@ begin
 end;
 
 
-Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
+function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
 const
   MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
   Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;
