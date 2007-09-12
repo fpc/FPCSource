@@ -36,7 +36,7 @@ unit optunrol;
       globtype,globals,constexp,
       cpuinfo,
       nutils,
-      nbas,nflw,ncon,ninl,ncal;
+      nbas,nflw,ncon,ninl,ncal,nld;
 
     var
       nodecount : aword;
@@ -76,7 +76,7 @@ unit optunrol;
       var
         unrolls,i : cardinal;
         counts : qword;
-        unrollstatement : tstatementnode;
+        unrollstatement,newforstatement : tstatementnode;
         unrollblock : tblocknode;
       begin
         result:=nil;
@@ -126,7 +126,14 @@ unit optunrol;
                   end;
                 { can we get rid of the for statement? }
                 if unrolls=counts then
-                  result:=unrollblock;
+                  begin
+                    { create block statement }
+                    result:=internalstatements(newforstatement);
+                    { initial assignment }
+                    addstatement(newforstatement,cassignmentnode.create(
+                      tfornode(node).left.getcopy,tfornode(node).right.getcopy));
+                    addstatement(newforstatement,unrollblock);
+                  end;
               end
             else
               begin
