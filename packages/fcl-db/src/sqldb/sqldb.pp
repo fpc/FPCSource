@@ -546,7 +546,7 @@ begin
     List.Clear;
     while not eof do
       begin
-      List.Append(fieldbyname(ReturnField).asstring);
+      List.Append(trim(fieldbyname(ReturnField).asstring));
       Next;
       end;
     end;
