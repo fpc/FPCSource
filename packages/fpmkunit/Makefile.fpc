@@ -12,6 +12,9 @@ units=fpmkunit
 [install]
 fpcpackage=y
 
+[require]
+packages=fcl-base
+
 [compiler]
 sourcedir=src
 includedir=src
