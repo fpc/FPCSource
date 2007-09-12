@@ -29,7 +29,7 @@ type
   TFieldCellEvent = procedure (Sender:THTMLDatasetFormProducer; FieldDef:TFormFieldItem;
                       IsLabel:boolean; Cell : THTMLCustomelement) of object;
   TButtonEvent = procedure (Sender:THTMLDatasetFormProducer; ButtonDef:TFormButtonItem;
-                      Button : THTML_button) of object;
+                      Button : THTMLAttrsElement) of object;
   TProducerEvent = procedure (Sender:THTMLDatasetFormProducer;  FieldDef:TFormFieldItem;
                       Producer:THTMLContentProducer) of object;
   THTMLElementEvent = procedure (Sender:THTMLDatasetFormProducer; element : THTMLCustomElement) of object;
@@ -115,7 +115,7 @@ type
     property Items [index : integer] : TFormFieldItem read GetItem write SetItem;
   end;
 
-  TFormButtonType = (fbtSubmit, fbtReset, fbtPushbutton);
+  TFormButtonType = (fbtSubmit, fbtReset, fbtPushbutton, fbtInputSubmit,fbtInputReset,fbtInputPushButton);
   TImagePlace = (ipOnly, ipBefore, ipAfter, ipUnder, ipAbove);
 
   { TFormButtonItem }
@@ -559,10 +559,25 @@ end;
 procedure THTMLDatasetFormProducer.WriteButtons(aWriter: THTMLWriter);
 
   procedure WriteButton (aButton : TFormButtonItem);
-  const ButtonTypes : array[TFormButtontype] of THTMLbuttontype = (btsubmit,btreset,btbutton);
+  const ButtonTypes : array[TFormButtontype] of THTMLbuttontype = (btsubmit,btreset,btbutton,btreset,btreset,btreset);
+  const InputTypes : array[TFormButtontype] of THTMLinputtype = (itreset,itreset,itreset,itsubmit,itreset,itbutton);
   var b : THTML_Button;
+      ib: THTML_input;
   begin
     with aWriter do
+     if aButton.ButtonType in [fbtInputPushButton,fbtInputReset,fbtInputSubmit] then
+      begin
+      ib := input;
+      with ib do
+        begin
+        Name := aButton.name;
+        Value := aButton.value;
+        TheType := InputTypes[aButton.ButtonType];
+        if assigned (FAfterButtonCreate) then
+          FAfterButtonCreate (self, aButton, ib);
+        end;
+      end
+     else
       begin
       b := Startbutton;
       with b do
@@ -871,8 +886,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
           if aControlDef.inputType in [fitcheckbox,fitradio] then
             begin
             with aControlDef.Field do
-              Checked := not isnull and (asstring <> '0') and (asstring <> '-')
-                         and (comparetext(asstring,'false') <> 0);
+              Checked := asBoolean;
             if assigned (FOnFieldChecked) then
               FOnFieldChecked (aControlDef.Field, check);
             Checked := check;
