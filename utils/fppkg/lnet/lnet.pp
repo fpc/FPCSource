@@ -1,4 +1,4 @@
-{ lNet v0.5.1
+{ lNet v0.5.6
 
   CopyRight (C) 2004-2006 Ales Katona
 
@@ -345,6 +345,7 @@ type
 
     function GetConnected: Boolean; override;
     function GetConnecting: Boolean;
+    function GetCount: Integer; override;
 
     procedure ConnectAction(aSocket: TLHandle); override;
     procedure AcceptAction(aSocket: TLHandle); override;
@@ -408,8 +409,9 @@ destructor TLSocket.Destroy;
 begin
   if Assigned(FOnFree) then
     FOnFree(Self);
+
+  inherited Destroy; // important! must be called before disconnect
   Disconnect;
-  inherited Destroy;
 end;
 
 procedure TLSocket.Disconnect;
@@ -437,14 +439,14 @@ procedure TLSocket.LogError(const msg: string; const ernum: Integer);
 begin
   if Assigned(FOnError) then
     if ernum > 0 then
-      FOnError(Self, msg + '[' + IntToStr(ernum) + ']: ' + LStrError(ernum))
+      FOnError(Self, msg + LStrError(ernum))
     else
       FOnError(Self, msg);
 end;
 
 function TLSocket.Bail(const msg: string; const ernum: Integer): Boolean;
 begin
-  Result  :=  False; // return the result for the caller
+  Result := False; // return the result for the caller
 
   Disconnect;
   LogError(msg, ernum);
@@ -464,9 +466,10 @@ var
   a: TSockAddr;
   l: Integer;
 begin
+  Result := '';
   l := SizeOf(a);
-  fpGetSockName(FHandle, @a, @l);
-  Result := HostAddrToStr(LongWord(a.sin_addr));
+  if fpGetSockName(FHandle, @a, @l) = 0 then
+    Result := NetAddrToStr(LongWord(a.sin_addr));
 end;
 
 function TLSocket.CanSend: Boolean;
@@ -502,7 +505,8 @@ end;
 
 function TLSocket.Get(var aData; const aSize: Integer): Integer;
 var
-  AddressLength: Integer = SizeOf(FAddress);
+  AddressLength: Integer = SizeOf(FPeerAddress);
+  LastError: Longint;
 begin
   Result := 0;
   if CanReceive then begin
@@ -513,10 +517,12 @@ begin
     if Result = 0 then
       Disconnect;
     if Result = SOCKET_ERROR then begin
-      if IsBlockError(LSocketError) then begin
+      LastError := LSocketError;
+      if IsBlockError(LastError) then begin
         FCanReceive  :=  False;
         IgnoreRead  :=  False;
-      end else Bail('Receive Error', LSocketError);
+      end else
+        Bail('Receive Error', LastError);
       Result := 0;
     end;
   end;
@@ -543,16 +549,15 @@ begin
     Done := true;
     FHandle := fpSocket(AF_INET, FSocketType, FProtocol);
     if FHandle = INVALID_SOCKET then
-      Bail('Socket error', LSocketError);
+      Exit(Bail('Socket error', LSocketError));
     SetOptions;
     if FSocketType = SOCK_DGRAM then begin
       Arg := 1;
       if fpsetsockopt(FHandle, SOL_SOCKET, SO_BROADCAST, @Arg, Sizeof(Arg)) = SOCKET_ERROR then
-        Bail('SetSockOpt error', LSocketError);
+        Exit(Bail('SetSockOpt error', LSocketError));
     end;
     
     FillAddressInfo(FAddress, AF_INET, Address, aPort);
-
     FillAddressInfo(FPeerAddress, AF_INET, LADDR_BR, aPort);
 
     Result  :=  Done;
@@ -561,7 +566,7 @@ end;
 
 function TLSocket.GetLocalPort: Word;
 begin
-  Result := FAddress.sin_port;
+  Result := ntohs(FAddress.sin_port);
 end;
 
 function TLSocket.GetPeerPort: Word;
@@ -580,7 +585,7 @@ begin
       Result := true;
     if (FSocketType = SOCK_STREAM) and Result then
       if fpListen(FHandle, FListenBacklog) = SOCKET_ERROR then
-        Result  :=  Bail('Error on Listen', LSocketError)
+        Result := Bail('Error on Listen', LSocketError)
       else
         Result := true;
   end;
@@ -620,20 +625,25 @@ begin
 end;
 
 function TLSocket.Send(const aData; const aSize: Integer): Integer;
+var
+  LastError: Longint;
 begin
   Result := 0;
   if not FServerSocket then begin
-    if aSize <= 0 then
+    if aSize <= 0 then begin
       Bail('Send error: wrong size (Size <= 0)', -1);
+      Exit(0);
+    end;
 
     if CanSend then begin
       Result := DoSend(aData, aSize);
       if Result = SOCKET_ERROR then begin
-        if IsBlockError(LSocketError) then begin
+        LastError := LSocketError;
+        if IsBlockError(LastError) then begin
           FCanSend := False;
           IgnoreWrite := False;
         end else
-          Bail('Send error', LSocketError);
+          Bail('Send error', LastError);
         Result := 0;
       end;
     end;
@@ -845,7 +855,7 @@ procedure TLUdp.Disconnect;
 begin
   if Assigned(FRootSock) then begin
     FRootSock.Disconnect;
-    FreeAndNil(FRootSock);
+    FRootSock := nil; // even if the old one exists, eventer takes care of it
   end;
 end;
 
@@ -861,11 +871,11 @@ begin
 
   Result := FRootSock.SetupSocket(APort, LADDR_ANY);
   
-  FillAddressInfo(FRootSock.FPeerAddress, AF_INET, Address, aPort);
-
-  FRootSock.FConnected := true;
-  if Result then
+  if Result then begin
+    FillAddressInfo(FRootSock.FPeerAddress, AF_INET, Address, aPort);
+    FRootSock.FConnected := true;
     RegisterWithEventer;
+  end;
 end;
 
 function TLUdp.Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean;
@@ -883,8 +893,8 @@ begin
   
     FRootSock.FConnected := True;
     RegisterWithEventer;
+    Result := True;
   end;
-  Result := FRootSock.Connected;
 end;
 
 function TLUdp.Bail(const msg: string): Boolean;
@@ -1038,7 +1048,7 @@ begin
     FIterator := FRootSock;
     RegisterWithEventer;
   end else begin
-    FreeAndNil(FRootSock);
+    FreeAndNil(FRootSock); // one possible use, since we're not in eventer yet
     FIterator := nil;
   end;
 end;
@@ -1055,6 +1065,7 @@ begin
   if FRootSock.Listen(APort, AIntf) then begin
     FRootSock.FConnected := True;
     FRootSock.FServerSocket := True;
+    FIterator := FRootSock;
     RegisterWithEventer;
     Result := true;
   end;
@@ -1111,10 +1122,7 @@ end;
 
 procedure TLTcp.IterReset;
 begin
-  if Assigned(FRootSock) and FRootSock.FServerSocket then
-    FIterator := FRootSock.NextSock
-  else
-    FIterator := FRootSock;
+  FIterator := FRootSock;
 end;
 
 procedure TLTcp.Disconnect;
@@ -1160,8 +1168,9 @@ begin
     end;
     FRootSock.FNextSock := Tmp;
     Tmp.FPrevSock := FRootSock;
-    if not Assigned(FIterator) then
-      FIterator := Tmp;
+    if not Assigned(FIterator)      // if we don't have (bug?) an iterator yet
+    or FIterator.FServerSocket then // or if it's the first socket accepted
+      FIterator := Tmp;  // assign it as iterator (don't assign later acceptees)
     Inc(FCount);
     FEventer.AddHandle(Tmp);
     AcceptEvent(Tmp);
@@ -1224,6 +1233,11 @@ begin
   Result := False;
   if Assigned(FRootSock) then
     Result := FRootSock.Connecting;
+end;
+
+function TLTcp.GetCount: Integer;
+begin
+  Result := FCount;
 end;
 
 function TLTcp.Get(var aData; const aSize: Integer; aSocket: TLSocket): Integer;

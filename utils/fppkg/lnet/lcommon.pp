@@ -53,10 +53,14 @@ const
   {$IFDEF UNIX}
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;
-    {$IFDEF LINUX} // TODO: fix this crap, some don't even have MSD_NOSIGNAL
+    {$IFDEF LINUX} // TODO: fix this crap, some don't even have MSG_NOSIGNAL
     LMSG = MSG_NOSIGNAL;
     {$ELSE}
-    LMSG = $20000; // FPC BUG in 2.0.4-
+      {$IFDEF FREEBSD}
+        LMSG = $20000; // FPC BUG in 2.0.4-, freeBSD value
+      {$ELSE}
+        LMSG = 0;
+      {$ENDIF}
     {$ENDIF}
   {$ENDIF}
   { Default Values }
@@ -101,31 +105,58 @@ uses
 
 {$IFDEF WINDOWS}
   , Windows;
+  
+{$IFDEF WINCE}
 
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
+const
+  MAX_ERROR = 1024;
 var
   Tmp: string;
   TmpW: widestring;
 begin
   Result := '[' + IntToStr(Ernum) + '] ';
-  if USEUtf8 then begin
-    SetLength(TmpW, 256);
+    SetLength(TmpW, MAX_ERROR);
     SetLength(TmpW, FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM or
                                    FORMAT_MESSAGE_IGNORE_INSERTS or
                                    FORMAT_MESSAGE_ARGUMENT_ARRAY,
-                                   nil, Ernum, 0, @TmpW[1], 256, nil));
+                                   nil, Ernum, 0, @TmpW[1], MAX_ERROR, nil));
     Tmp := UTF8Encode(TmpW);
-  end else begin
-    SetLength(Tmp, 256);
-    SetLength(Tmp, FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM or
-                                 FORMAT_MESSAGE_IGNORE_INSERTS or
-                                 FORMAT_MESSAGE_ARGUMENT_ARRAY,
-                                 nil, Ernum, 0, @Tmp[1], 256, nil));
-  end;
   if Length(Tmp) > 2 then
     Delete(Tmp, Length(Tmp)-1, 2);
   Result := Tmp;
 end;
+
+{$ELSE} // any other windows
+
+function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
+const
+  MAX_ERROR = 1024;
+var
+  Tmp: string;
+  TmpW: widestring;
+begin
+  Result := ' [' + IntToStr(Ernum) + ']: ';
+  if USEUtf8 then begin
+    SetLength(TmpW, MAX_ERROR);
+    SetLength(TmpW, FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM or
+                                   FORMAT_MESSAGE_IGNORE_INSERTS or
+                                   FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                                   nil, Ernum, 0, @TmpW[1], MAX_ERROR, nil));
+    Tmp := UTF8Encode(TmpW);
+  end else begin
+    SetLength(Tmp, MAX_ERROR);
+    SetLength(Tmp, FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM or
+                                 FORMAT_MESSAGE_IGNORE_INSERTS or
+                                 FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                                 nil, Ernum, 0, @Tmp[1], MAX_ERROR, nil));
+  end;
+  if Length(Tmp) > 2 then
+    Delete(Tmp, Length(Tmp)-1, 2);
+  Result := Result + Tmp;
+end;
+
+{$ENDIF}
 
 function TZSeconds: integer; inline;
 var
@@ -238,7 +269,7 @@ end;
 
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
 begin
-  Result := '[' + IntToStr(Ernum) + '] ' + Errors.StrError(Ernum);
+  Result := ' [' + IntToStr(Ernum) + ']: ' + Errors.StrError(Ernum);
 end;
 
 function LSocketError: Longint;

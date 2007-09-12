@@ -49,14 +49,17 @@ begin
   inherited Destroy;
 end;
 
-function TLEpollEventer.GetTimeout: DWord;
+function TLEpollEventer.GetTimeout: Integer;
 begin
-  Result := DWord(FTimeout);
+  Result := FTimeout;
 end;
 
-procedure TLEpollEventer.SetTimeout(const Value: DWord);
+procedure TLEpollEventer.SetTimeout(const Value: Integer);
 begin
-  FTimeout := cInt(Value);
+  if Value >= 0 then
+    FTimeout := Value
+  else
+    FTimeout := -1;
 end;
 
 procedure TLEpollEventer.HandleIgnoreRead(aHandle: TLHandle);
@@ -129,19 +132,19 @@ begin
   MasterChanges := epoll_wait(FEpollMasterFD, @MasterEvents[0], 2, FTimeout);
 
   if MasterChanges > 0 then begin
-    for i := 0 to MasterChanges-1 do
+    for i := 0 to MasterChanges - 1 do
       if MasterEvents[i].Data.fd = FEpollFD then
         Changes := epoll_wait(FEpollFD, @FEvents[0], FCount, 0)
       else
         ReadChanges := epoll_wait(FEpollReadFD, @FEventsRead[0], FCount, 0);
     if (Changes < 0) or (ReadChanges < 0) then
-      Bail('Error on epoll: ', LSocketError)
+      Bail('Error on epoll', LSocketError)
     else
       Result := Changes + ReadChanges > 0;
       
     if Result then begin
       FInLoop := True;
-      for i := 0 to Max(Changes, ReadChanges)-1 do begin
+      for i := 0 to Max(Changes, ReadChanges) - 1 do begin
         Temp := nil;
         if i < Changes then begin
           Temp := TLHandle(FEvents[i].data.ptr);
@@ -176,7 +179,7 @@ begin
           if  (not Temp.FDispose)
           and (FEvents[i].events and EPOLLERR = EPOLLERR) then
             if Assigned(Temp.FOnError) and not Temp.IgnoreError then
-              Temp.FOnError(Temp, 'Handle error: ' + LStrError(LSocketError));
+              Temp.FOnError(Temp, 'Handle error' + LStrError(LSocketError));
 
           if Temp.FDispose then
             AddForFree(Temp);
@@ -187,38 +190,27 @@ begin
         FreeHandles;
     end;
   end else if MasterChanges < 0 then
-    Bail('Error on epoll: ', LSocketError);
+    Bail('Error on epoll', LSocketError);
 end;
 
 function BestEventerClass: TLEventerClass;
-
-  function GetVersion(s: string): Integer;
-  const
-    Numbers = ['0'..'9'];
-  var
-    i: Integer;
-  begin
-    s := StringReplace(s, '.', '', [rfReplaceAll]);
-    i := 1;
-    while (i <= Length(s)) and (s[i] in Numbers) do
-      Inc(i);
-    s := Copy(s, 1, i - 1);
-    if Length(s) < 4 then // varies OS to OS
-      Insert('0', s, 3); // in linux, last part can be > 10
-    Result := StrToInt(s);
-  end;
-
-{$ifndef DISABLE_EPOLL}
 var
-  u: TUTSName;
-{$endif}
+  tmp: THandle;
 begin
-  Result := TLSelectEventer;
-{$ifndef DISABLE_EPOLL}
-  if fpUname(u) = 0 then   // check for 2.6+
-    if GetVersion(u.release) >= 2600 then
+  {$IFNDEF FORCE_SELECT}
+  try
+    tmp := epoll_create(1);
+    if tmp >= 0 then begin
+      FpClose(tmp);
       Result := TLEpollEventer;
-{$endif}
+    end else
+      Result := TLSelectEventer;
+  except
+    Result := TLSelectEventer;
+  end;
+  {$ELSE}
+  Result := TLSelectEventer;
+  {$ENDIF}
 end;
 
 {$endif} // Linux
