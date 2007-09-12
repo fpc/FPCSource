@@ -7166,6 +7166,7 @@ tests/test/units/system/tval1.pp -text
 tests/test/units/system/tval2.pp -text
 tests/test/units/system/tval3.pp -text
 tests/test/units/system/tval4.pp -text
+tests/test/units/system/tval5.pp svneol=native#text/plain
 tests/test/units/system/tvalc.pp -text
 tests/test/units/sysutils/execansi.pp svneol=native#text/plain
 tests/test/units/sysutils/execedbya.pp svneol=native#text/plain
