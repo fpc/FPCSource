@@ -3161,8 +3161,6 @@ packages/extra/ptc/Makefile -text
 packages/extra/ptc/Makefile.fpc -text
 packages/extra/ptc/aread.inc svneol=native#text/x-pascal
 packages/extra/ptc/areai.inc svneol=native#text/x-pascal
-packages/extra/ptc/basecond.inc -text
-packages/extra/ptc/baseconi.inc -text
 packages/extra/ptc/baseconsoled.inc svneol=native#text/x-pascal
 packages/extra/ptc/baseconsolei.inc svneol=native#text/x-pascal
 packages/extra/ptc/basesurfaced.inc svneol=native#text/x-pascal
@@ -3340,10 +3338,6 @@ packages/extra/ptc/wince/includes.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/check.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/extensions.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/includes.inc svneol=native#text/x-pascal
-packages/extra/ptc/x11/modesd.inc svneol=native#text/x-pascal
-packages/extra/ptc/x11/modesi.inc svneol=native#text/x-pascal
-packages/extra/ptc/x11/svnimaged.inc svneol=native#text/x-pascal
-packages/extra/ptc/x11/svnimagei.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11consoled.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11consolei.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11dga1displayd.inc svneol=native#text/x-pascal
@@ -3358,10 +3352,8 @@ packages/extra/ptc/x11/x11imaged.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11imagei.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11modesd.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11modesi.inc svneol=native#text/x-pascal
-packages/extra/ptc/x11/x11windowd.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11windowdisplayd.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11windowdisplayi.inc svneol=native#text/x-pascal
-packages/extra/ptc/x11/x11windowi.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/xunikey.inc svneol=native#text/x-pascal
 packages/extra/rexx/Makefile svneol=native#text/plain
 packages/extra/rexx/Makefile.fpc svneol=native#text/plain

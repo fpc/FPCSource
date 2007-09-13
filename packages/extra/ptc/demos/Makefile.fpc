@@ -4,7 +4,7 @@
 
 [package]
 name=ptc-demos
-version=2.2.1
+version=0.99.5
 
 [target]
 programs=fire flower land lights mojo texwarp tunnel tunnel3d
