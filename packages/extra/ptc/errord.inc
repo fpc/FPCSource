@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -21,16 +21,15 @@
 Type
   TPTCError=Class(TObject)
   Private
-    Procedure defaults;
-    Fmessage : String;
+    FMessage : String;
   Public
     Constructor Create;
-    Constructor Create(Const _message : String);
-    Constructor Create(Const _message : String; Const error : TPTCError);
-    Constructor Create(Const error : TPTCError);
+    Constructor Create(Const AMessage : String);
+    Constructor Create(Const AMessage : String; Const AError : TPTCError);
+    Constructor Create(Const AError : TPTCError);
     Destructor Destroy; Override;
-    Procedure Assign(Const error : TPTCError);
-    Function Equals(Const error : TPTCError) : Boolean;
-    Procedure report;
-    Function message : String;
+    Procedure Assign(Const AError : TPTCError);
+    Function Equals(Const AError : TPTCError) : Boolean;
+    Procedure Report;
+    Property Message : String read FMessage;
   End;

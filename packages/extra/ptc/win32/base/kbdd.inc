@@ -25,15 +25,16 @@ Type
     Function WndProc(hWnd : HWND; message : DWord; wParam : WPARAM; lParam : LPARAM) : LRESULT; Override;
 
     { internal key functions }
-    Procedure insert(_key : TPTCKey);
-    Function remove : TPTCKey;
-    Function ready : Boolean;
+{    Procedure insert(_key : TPTCKeyEvent);
+    Function remove : TPTCKeyEvent;
+    Function ready : Boolean;}
 
     { data }
-    m_key : Boolean;
+{    m_key : Boolean;}
     m_multithreaded : Boolean;
     m_event : TWin32Event;
     m_monitor : TWin32Monitor;
+    FEventQueue : TEventQueue;
 
     { flag data }
     m_enabled : Boolean;
@@ -44,17 +45,17 @@ Type
     m_control : Boolean;
 
     { key buffer }
-    m_head : Integer;
+{    m_head : Integer;
     m_tail : Integer;
-    m_buffer : Array[0..1023] Of TPTCKey;
+    m_buffer : Array[0..1023] Of TPTCKeyEvent;}
   Public
     { setup }
-    Constructor Create(window : HWND; thread : DWord; multithreaded : Boolean);
+    Constructor Create(window : HWND; thread : DWord; multithreaded : Boolean; EventQueue : TEventQueue);
     Destructor Destroy; Override;
 
     { input }
-    Function internal_PeekKey(window : TWin32Window; k : TPTCKey) : Boolean;
-    Procedure internal_ReadKey(window : TWin32Window; k : TPTCKey);
+{    Function internal_PeekKey(window : TWin32Window; k : TPTCKeyEvent) : Boolean;
+    Procedure internal_ReadKey(window : TWin32Window; k : TPTCKeyEvent);}
 
     { control }
     Procedure enable;

@@ -19,7 +19,7 @@
 }
 
 Type
-  TPTCKey=Class(TObject)
+  TPTCKeyEvent=Class(TPTCEvent)
   Private
     m_code : Integer;
     m_unicode : Integer;
@@ -29,6 +29,8 @@ Type
     m_press : Boolean;
     
     Function GetRelease : Boolean;
+  Protected
+    Function GetType : TPTCEventType; Override;
   Public
     Constructor Create;
     Constructor Create(_code : Integer);
@@ -40,10 +42,10 @@ Type
                        _alt, _shift, _control : Boolean);
     Constructor Create(_code, _unicode : Integer;
                        _alt, _shift, _control, _press : Boolean);
-    Constructor Create(Const key : TPTCKey);
+    Constructor Create(Const key : TPTCKeyEvent);
     Destructor Destroy; Override;
-    Procedure Assign(Const key : TPTCKey);
-    Function Equals(Const key : TPTCKey) : Boolean;
+    Procedure Assign(Const key : TPTCKeyEvent);
+    Function Equals(Const key : TPTCKeyEvent) : Boolean;
     Property code : Integer read m_code;
     Property unicode : Integer read m_unicode;
     Property alt : Boolean read m_alt;

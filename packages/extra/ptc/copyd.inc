@@ -21,17 +21,17 @@
 Type
   TPTCCopy=Class(TObject)
   Private
-    Procedure update;
-    m_handle : THermesHandle;
-    m_flags : LongInt;
+    Procedure Update;
+    FHandle : THermesHandle;
+    FFlags : LongInt;
   Public
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure request(Const source, destination : TPTCFormat);
-    Procedure palette(Const source, destination : TPTCPalette);
-    Procedure copy(Const source_pixels : Pointer; source_x, source_y,
-                   source_width, source_height, source_pitch : Integer;
-                   destination_pixels : Pointer; destination_x, destination_y,
-                   destination_width, destination_height, destination_pitch : Integer);
-    Function option(Const _option : String) : Boolean;
+    Procedure Request(Const ASource, ADestination : TPTCFormat);
+    Procedure Palette(Const ASource, ADestination : TPTCPalette);
+    Procedure Copy(Const ASourcePixels : Pointer; ASourceX, ASourceY,
+                   ASourceWidth, ASourceHeight, ASourcePitch : Integer;
+                   ADestinationPixels : Pointer; ADestinationX, ADestinationY,
+                   ADestinationWidth, ADestinationHeight, ADestinationPitch : Integer);
+    Function Option(Const AOption : String) : Boolean;
   End;

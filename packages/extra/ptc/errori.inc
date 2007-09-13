@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -18,37 +18,30 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Procedure TPTCError.defaults;
-
-Begin
-  Fmessage := '';
-End;
-
 Constructor TPTCError.Create;
 
 Begin
-  defaults;
+  FMessage := '';
 End;
 
-Constructor TPTCError.Create(Const _message : String);
+Constructor TPTCError.Create(Const AMessage : String);
 
 Begin
-  Fmessage := _message;
+  FMessage := AMessage;
   LOG('error', Self);
 End;
 
-Constructor TPTCError.Create(Const _message : String; Const error : TPTCError);
+Constructor TPTCError.Create(Const AMessage : String; Const AError : TPTCError);
 
 Begin
-  Fmessage := _message + #13 + #10 + error.Fmessage;
+  FMessage := AMessage + #10 + AError.FMessage;
   LOG('composite error', Self);
 End;
 
-Constructor TPTCError.Create(Const error : TPTCError);
+Constructor TPTCError.Create(Const AError : TPTCError);
 
 Begin
-  defaults;
-  ASSign(error);
+  FMessage := AError.FMessage;
 End;
 
 Destructor TPTCError.Destroy;
@@ -57,49 +50,51 @@ Begin
   Inherited Destroy;
 End;
 
-Procedure TPTCError.Assign(Const error : TPTCError);
+Procedure TPTCError.Assign(Const AError : TPTCError);
 
 Begin
-  If Self = error Then
-    Raise TPTCError.Create('self assignment is not allowed');
-  Fmessage := error.Fmessage;
+  FMessage := AError.FMessage;
 End;
 
-Function TPTCError.Equals(Const error : TPTCError) : Boolean;
+Function TPTCError.Equals(Const AError : TPTCError) : Boolean;
 
 Begin
-  Equals := (Fmessage = error.Fmessage);
+  Equals := (FMessage = AError.FMessage);
 End;
 
-Procedure TPTCError.report;
+Procedure TPTCError.Report;
 
-{$IFDEF WIN32}
+{$IFDEF Win32}
 Var
-  txt : ShortString;
-{$ENDIF WIN32}
+  txt : AnsiString;
+{$ENDIF Win32}
+
+{$IFDEF WinCE}
+Var
+  txt : WideString;
+{$ENDIF WinCE}
 
 Begin
   LOG('error report', Self);
   {$IFDEF GO32V2}
   RestoreTextMode;
-  Writeln(stderr, Fmessage);
+  Writeln(stderr, 'error: ', FMessage);
   {$ENDIF GO32V2}
 
-  {$IFDEF WIN32}
+  {$IFDEF Win32}
   Win32Cursor_resurrect;
-  txt := Fmessage + #0;
-  MessageBox(0, @txt[1], 'Error', MB_OK Or MB_ICONERROR Or MB_SETFOREGROUND Or MB_TOPMOST);
-  {$ENDIF WIN32}
+  txt := FMessage;
+  MessageBox(0, PChar(txt), 'Error', MB_OK Or MB_ICONERROR Or MB_SETFOREGROUND Or MB_TOPMOST);
+  {$ENDIF Win32}
+
+  {$IFDEF WinCE}
+  txt := FMessage;
+  MessageBox(0, PWideChar(txt), 'Error', MB_OK Or MB_ICONERROR Or MB_SETFOREGROUND Or MB_TOPMOST);
+  {$ENDIF WinCE}
 
   {$IFDEF UNIX}
-  Writeln(stderr, 'error: ', Fmessage);
+  Writeln(stderr, 'error: ', FMessage);
   {$ENDIF UNIX}
 
   Halt(1);
-End;
-
-Function TPTCError.message : String;
-
-Begin
-  message := Fmessage;
 End;

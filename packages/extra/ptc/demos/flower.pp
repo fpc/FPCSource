@@ -15,7 +15,7 @@ Program Flower;
 Uses
   ptc, Math;
 
-Function pack(r, g, b : int32) : int32;
+Function pack(r, g, b : Uint32) : Uint32;
 
 Begin
   { pack color integer }
@@ -25,7 +25,7 @@ End;
 Procedure generate_flower(flower : TPTCSurface);
 
 Var
-  data : Pchar8;
+  data : PUint8;
   x, y, fx, fy, fx2, fy2 : Integer;
   TWO_PI : Single;
 
@@ -62,7 +62,7 @@ End;
 Procedure generate(palette : TPTCPalette);
 
 Var
-  data : Pint32;
+  data : PUint32;
   i, c : Integer;
 
 Begin
@@ -120,7 +120,7 @@ Var
   palette : TPTCPalette;
   area : TPTCArea;
   time, delta : Single;
-  scr, map : Pchar8;
+  scr, map : PUint8;
   width, height, mapWidth : Integer;
   xo, yo, xo2, yo2, xo3, yo3 : Single;
   offset1, offset2, offset3 : Integer;

@@ -18,24 +18,53 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$IFDEF PTC_LOGGING}
-
+{$IFNDEF WinCE}
 Const
-  LOG_create : Boolean = True;
-  LOG_enabled : Boolean =
-{$IFDEF DEBUG}
-  True;
-{$ELSE DEBUG}
-  False;
-{$ENDIF DEBUG}
+  LOG_filename = 'ptcpas.log';
+{$ELSE WinCE}
+Function LOG_filename : WideString;
 
 Var
+  RequiredBufferLength : DWord;
+  ReturnedPathLength : DWord;
+  TempPathBuf : PWideChar;
+  dummy : Byte;
+
+Begin
+  RequiredBufferLength := GetTempPathW(0, @dummy);
+  TempPathBuf := GetMem(RequiredBufferLength * SizeOf(WideChar));
+  Try
+    ReturnedPathLength := GetTempPathW(RequiredBufferLength, TempPathBuf);
+
+    If ReturnedPathLength > RequiredBufferLength Then
+    Begin
+      { The temp path length increased between 2 consecutive calls to GetTempPath?! }
+      Result := '';
+      Exit;
+    End;
+
+    Result := TempPathBuf;
+    Result := Result + 'ptcpas.log';
+  Finally
+    FreeMem(TempPathBuf);
+  End;
+End;
+{$ENDIF WinCE}
+
+Var
+  LOG_create : Boolean = True;
+  LOG_enabled : Boolean =
+  {$IFDEF DEBUG}
+    True;
+  {$ELSE DEBUG}
+    False;
+  {$ENDIF DEBUG}
   LOG_file : Text;
 
 Procedure LOG_open;
 
 Begin
-  ASSignFile(LOG_file, 'ptc.log');
+  AssignFile(LOG_file, LOG_filename);
   If LOG_create Then
   Begin
     Rewrite(LOG_file);
@@ -52,7 +81,7 @@ Begin
   CloseFile(LOG_file);
 End;
 
-Procedure LOG(message : String);
+Procedure LOG(Const message : String);
 
 Begin
   If Not LOG_enabled Then
@@ -62,7 +91,7 @@ Begin
   LOG_close;
 End;
 
-Procedure LOG(message : String; data : Boolean);
+Procedure LOG(Const message : String; data : Boolean);
 
 Begin
   If Not LOG_enabled Then
@@ -76,7 +105,7 @@ Begin
   LOG_close;
 End;
 
-Procedure LOG(message : String; data : Integer);
+Procedure LOG(Const message : String; data : Integer);
 
 Begin
   If Not LOG_enabled Then
@@ -86,7 +115,7 @@ Begin
   LOG_close;
 End;
 
-Procedure LOG(message : String; data : Double);
+Procedure LOG(Const message : String; data : DWord);
 
 Begin
   If Not LOG_enabled Then
@@ -96,7 +125,7 @@ Begin
   LOG_close;
 End;
 
-Procedure LOG(message : String; data : String);
+Procedure LOG(Const message : String; data : Int64);
 
 Begin
   If Not LOG_enabled Then
@@ -106,7 +135,47 @@ Begin
   LOG_close;
 End;
 
-Procedure LOG(message : String; data : TPTCFormat);
+Procedure LOG(Const message : String; data : QWord);
+
+Begin
+  If Not LOG_enabled Then
+    Exit;
+  LOG_open;
+  Writeln(LOG_file, message, ' = ', data);
+  LOG_close;
+End;
+
+Procedure LOG(Const message : String; data : Single);
+
+Begin
+  If Not LOG_enabled Then
+    Exit;
+  LOG_open;
+  Writeln(LOG_file, message, ' = ', data);
+  LOG_close;
+End;
+
+Procedure LOG(Const message : String; data : Double);
+
+Begin
+  If Not LOG_enabled Then
+    Exit;
+  LOG_open;
+  Writeln(LOG_file, message, ' = ', data);
+  LOG_close;
+End;
+
+Procedure LOG(Const message : String; Const data : String);
+
+Begin
+  If Not LOG_enabled Then
+    Exit;
+  LOG_open;
+  Writeln(LOG_file, message, ' = ', data);
+  LOG_close;
+End;
+
+Procedure LOG(Const message : String; data : TPTCFormat);
 
 Begin
   If Not LOG_enabled Then
@@ -129,7 +198,7 @@ Begin
   LOG_close;
 End;
 
-Procedure LOG(message : String; data : TPTCError);
+Procedure LOG(Const message : String; data : TPTCError);
 
 Begin
   If Not LOG_enabled Then
@@ -138,7 +207,3 @@ Begin
   Writeln(LOG_file, message, ': ', data.message);
   LOG_close;
 End;
-
-{$ELSE PTC_LOGGING}
-{$DEFINE LOG:=//}
-{$ENDIF PTC_LOGGING}

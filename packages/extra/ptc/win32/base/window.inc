@@ -57,12 +57,10 @@ Begin
   If flag Then
   Begin
     SetClassLong(m_window, GCL_HCURSOR, LoadCursor(0, IDC_ARROW));
-    Win32Cursor_resurrect;
   End
   Else
   Begin
     SetClassLong(m_window, GCL_HCURSOR, 0);
-    Win32Cursor_kill;
   End;
   SendMessage(m_window, WM_SETCURSOR, 0, 0);
 End;
@@ -203,9 +201,9 @@ Begin
     wc.cbWndExtra := 0;
     wc.hbrBackground := 0;{(HBRUSH) GetStockObject(BLACK_BRUSH)}
     If multithreaded Then
-      Pointer(wc.lpfnWndProc) := Pointer(@WndProcMultiThreaded)
+      wc.lpfnWndProc := @WndProcMultiThreaded
     Else
-      Pointer(wc.lpfnWndProc) := Pointer(@WndProcSingleThreaded);
+      wc.lpfnWndProc := @WndProcSingleThreaded;
     wc.hCursor := LoadCursor(0, IDC_ARROW);
     RegisterClassEx(wc);
     With rectangle Do
@@ -224,8 +222,8 @@ Begin
       x := (display_width - (rectangle.right - rectangle.left)) Div 2;
       y := (display_height - (rectangle.bottom - rectangle.top)) Div 2;
     End;
-    Move(wndclass[1], m_name, Length(wndclass));
-    Move(title[1], m_title, Length(title));
+    m_name := wndclass;
+    m_title := title;
     m_extra := extra;
     m_style := style;
     m_show := show;
@@ -240,7 +238,7 @@ Begin
     End
     Else
     Begin
-      m_window := CreateWindowEx(m_extra, m_name, m_title, m_style, m_x, m_y, m_width, m_height, 0, 0, 0, m_data);
+      m_window := CreateWindowEx(m_extra, PChar(m_name), PChar(m_title), m_style, m_x, m_y, m_width, m_height, 0, 0, 0, m_data);
       If Not IsWindow(m_window) Then
         Raise TPTCError.Create('could not create window');
       ShowWindow(m_window, m_show);
@@ -261,8 +259,8 @@ Begin
   m_event := 0;
   m_thread := 0;
   m_id := 0;
-  m_name[0] := #0;
-  m_title[0] := #0;
+  m_name := '';
+  m_title := '';
   m_extra := 0;
   m_style := 0;
   m_show := 0;
@@ -306,7 +304,7 @@ Begin
     m_event := 0;
     m_thread := 0;
     m_id := 0;
-    UnregisterClass(@m_name, GetModuleHandle(Nil));
+    UnregisterClass(PChar(m_name), GetModuleHandle(Nil));
   End;
 End;
 
@@ -318,7 +316,7 @@ Var
 Begin
   With owner Do
   Begin
-    m_window := CreateWindowEx(m_extra, @m_name, @m_title, m_style, m_x, m_y, m_width, m_height, 0, 0, 0, m_data);
+    m_window := CreateWindowEx(m_extra, PChar(m_name), PChar(m_title), m_style, m_x, m_y, m_width, m_height, 0, 0, 0, m_data);
     If IsWindow(m_window) Then
     Begin
       ShowWindow(m_window, m_show);

@@ -19,7 +19,6 @@
 }
 
 Type
-{  PWin32Window = ^TWin32Window;}
   TWin32Window = Class(TObject)
   Private
     Procedure internal_create(wndclass, title : String; extra, style : DWord; show, x, y, width, height : Integer; center, _multithreaded : Boolean; data : Pointer);
@@ -33,8 +32,8 @@ Type
     m_event : THANDLE;
     m_thread : THANDLE;
     m_id : DWord;
-    m_name : Array[0..1023] Of Char;
-    m_title : Array[0..1023] Of Char;
+    m_name : AnsiString;
+    m_title : AnsiString;
     m_extra : DWord;
     m_style : DWord;
     m_show : Integer;

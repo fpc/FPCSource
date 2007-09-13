@@ -34,8 +34,8 @@ Var
   palette : TPTCPalette;
   dx, dy : Integer;
   divisor : Single;
-  data : Pint32;
-  pixels, line : Pchar8;
+  data : PUint32;
+  pixels, line : PUint8;
   width : Integer;
   i : Integer;
   x, y, x1, y1, x2, y2, x3, y3, x4, y4 : Integer;

@@ -21,17 +21,17 @@
 Constructor TPTCClear.Create;
 
 Begin
-  Fformat := Nil;
+  FFormat := Nil;
   { initialize hermes }
   If Not Hermes_Init Then
     Raise TPTCError.Create('could not initialize hermes');
 
   { default current format }
-  Fformat := TPTCFormat.Create;
+  FFormat := TPTCFormat.Create;
   { create hermes clearer instance }
-  Fhandle := Hermes_ClearerInstance;
+  FHandle := Hermes_ClearerInstance;
   { check hermes clearer instance }
-  If Fhandle = 0 Then
+  If FHandle = 0 Then
     Raise TPTCError.Create('could not create hermes clearer instance');
 End;
 
@@ -39,64 +39,52 @@ Destructor TPTCClear.Destroy;
 
 Begin
   { return the clearer instance }
-  Hermes_ClearerReturn(Fhandle);
-  Fformat.Free;
+  Hermes_ClearerReturn(FHandle);
+  FFormat.Free;
+
   { free hermes }
   Hermes_Done;
-  
+
   Inherited Destroy;
 End;
 
-Procedure TPTCClear.request(Const format : TPTCFormat);
+Procedure TPTCClear.Request(Const AFormat : TPTCFormat);
 
 Var
   hermes_format : PHermesFormat;
 
 Begin
-  hermes_format := @format.Fformat;
+  hermes_format := @AFormat.FFormat;
   { request surface clear for this format }
-  If Not Hermes_ClearerRequest(Fhandle, hermes_format) Then
+  If Not Hermes_ClearerRequest(FHandle, hermes_format) Then
     Raise TPTCError.Create('unsupported clear format');
 
   { update current format }
-  Fformat.Assign(format);
+  FFormat.Assign(AFormat);
 End;
 
-Procedure TPTCClear.clear(pixels : Pointer; x, y, width, height, pitch : Integer; Const color : TPTCColor);
+Procedure TPTCClear.Clear(APixels : Pointer; AX, AY, AWidth, AHeight, APitch : Integer; Const AColor : TPTCColor);
 
 Var
   r, g, b, a : LongInt;
   index : LongInt;
 
 Begin
-{$IFDEF DEBUG}
-  {
-  This checking is performed only when DEBUG is defined,
-  and can be used to track down errors early caused by passing
-  nil pointers to the clear function.
-
-  Even though technically clear should never receive a nil
-  pointer, we provide a check here to assist in debugging
-  just in case it ever does!
-  }
-  If pixels = Nil Then
+  If APixels = Nil Then
     Raise TPTCError.Create('nil pixels pointer in clear');
-{$ELSE}
-  { In release build no checking is performed for the sake of efficiency. }
-{$ENDIF}
 
   { check format type }
-  If Fformat.direct Then
+  If FFormat.direct Then
   Begin
     { check color type }
-    If Not color.direct Then
+    If Not AColor.direct Then
       Raise TPTCError.Create('direct pixel formats can only be cleared with direct color');
 
     { setup clear color }
-    r := Trunc(color.r * 255);
-    g := Trunc(color.g * 255);
-    b := Trunc(color.b * 255);
-    a := Trunc(color.a * 255);
+    r := Trunc(AColor.R * 255);
+    g := Trunc(AColor.G * 255);
+    b := Trunc(AColor.B * 255);
+    a := Trunc(AColor.A * 255);
 
     { clamp red }
     If r > 255 Then
@@ -127,16 +115,17 @@ Begin
         a := 0;
 
     { perform the clearing }
-    Hermes_ClearerClear(Fhandle,pixels,x,y,width,height,pitch,r,g,b,a);
+    Hermes_ClearerClear(FHandle, APixels, AX, AY, AWidth, AHeight, APitch,
+                        r, g, b, a);
   End
   Else
   Begin
     { check color type }
-    If Not color.indexed Then
+    If Not AColor.indexed Then
       Raise TPTCError.Create('indexed pixel formats can only be cleared with indexed color');
 
     { setup clear index }
-    index := color.index;
+    index := AColor.index;
 
     { clamp color index }
     If index > 255 Then
@@ -146,6 +135,7 @@ Begin
         index := 0;
 
     { perform the clearing }
-    Hermes_ClearerClear(Fhandle,pixels,x,y,width,height,pitch,0,0,0,index);
+    Hermes_ClearerClear(FHandle, APixels, AX, AY, AWidth, AHeight, APitch,
+                        0, 0, 0, index);
   End;
 End;

@@ -23,48 +23,45 @@ Constructor TPTCCopy.Create;
 Begin
   If Not Hermes_Init Then
     Raise TPTCError.Create('could not initialize hermes');
-  m_flags := HERMES_CONVERT_NORMAL;
-  m_handle := Hermes_ConverterInstance(m_flags);
-  If m_handle = 0 Then
+  FFlags := HERMES_CONVERT_NORMAL;
+  FHandle := Hermes_ConverterInstance(FFlags);
+  If FHandle = 0 Then
     Raise TPTCError.Create('could not create hermes converter instance');
 End;
 
 Destructor TPTCCopy.Destroy;
 
 Begin
-  Hermes_ConverterReturn(m_handle);
+  Hermes_ConverterReturn(FHandle);
   Hermes_Done;
   Inherited Destroy;
 End;
 
-Procedure TPTCCopy.request(Const source, destination : TPTCFormat);
+Procedure TPTCCopy.Request(Const ASource, ADestination : TPTCFormat);
 
 Var
   hermes_source_format, hermes_destination_format : PHermesFormat;
 
 Begin
-  hermes_source_format := @source.Fformat;
-  hermes_destination_format := @destination.Fformat;
-  If Not Hermes_ConverterRequest(m_handle, hermes_source_format,
+  hermes_source_format := @ASource.FFormat;
+  hermes_destination_format := @ADestination.FFormat;
+  If Not Hermes_ConverterRequest(FHandle, hermes_source_format,
      hermes_destination_format) Then
     Raise TPTCError.Create('unsupported hermes pixel format conversion');
 End;
 
-Procedure TPTCCopy.palette(Const source, destination : TPTCPalette);
+Procedure TPTCCopy.Palette(Const ASource, ADestination : TPTCPalette);
 
 Begin
-  If Not Hermes_ConverterPalette(m_handle, source.m_handle,
-	 destination.m_handle) Then
+  If Not Hermes_ConverterPalette(FHandle, ASource.m_handle,
+         ADestination.m_handle) Then
     Raise TPTCError.Create('could not set hermes conversion palettes');
 End;
 
-Procedure TPTCCopy.copy(Const source_pixels : Pointer; source_x, source_y,
-		   source_width, source_height, source_pitch : Integer;
-		   destination_pixels : Pointer; destination_x, destination_y,
-		   destination_width, destination_height, destination_pitch : Integer);
-
-Var
-  source : Pointer;
+Procedure TPTCCopy.copy(Const ASourcePixels : Pointer; ASourceX, ASourceY,
+                   ASourceWidth, ASourceHeight, ASourcePitch : Integer;
+                   ADestinationPixels : Pointer; ADestinationX, ADestinationY,
+                   ADestinationWidth, ADestinationHeight, ADestinationPitch : Integer);
 
 Begin
 {$IFDEF DEBUG}
@@ -84,48 +81,47 @@ Begin
   this operation is undefined if the source and destination memory
   areas overlap.
 }
-  If source_pixels = Nil Then
+  If ASourcePixels = Nil Then
     Raise TPTCError.Create('nil source pointer in copy');
-  If destination_pixels = Nil Then
+  If ADestinationPixels = Nil Then
     Raise TPTCError.Create('nil destination pointer in copy');
-  If source_pixels = destination_pixels Then
+  If ASourcePixels = ADestinationPixels Then
     Raise TPTCError.Create('identical source and destination pointers in copy');
 {$ELSE DEBUG}
     { in release build no checking is performed for the sake of efficiency. }
 {$ENDIF DEBUG}
-  source := source_pixels;
-  If Not Hermes_ConverterCopy(m_handle, source, source_x, source_y,
-	  source_width, source_height, source_pitch, destination_pixels,
-	  destination_x, destination_y, destination_width, destination_height,
-	  destination_pitch) Then
+  If Not Hermes_ConverterCopy(FHandle, ASourcePixels, ASourceX, ASourceY,
+          ASourceWidth, ASourceHeight, ASourcePitch, ADestinationPixels,
+          ADestinationX, ADestinationY, ADestinationWidth, ADestinationHeight,
+          ADestinationPitch) Then
     Raise TPTCError.Create('hermes conversion failure');
 End;
 
-Function TPTCCopy.option(Const _option : String) : Boolean;
+Function TPTCCopy.Option(Const AOption : String) : Boolean;
 
 Begin
-  If (_option = 'attempt dithering') And ((m_flags And HERMES_CONVERT_DITHER) = 0) Then
+  If (AOption = 'attempt dithering') And ((FFlags And HERMES_CONVERT_DITHER) = 0) Then
   Begin
-    m_flags := m_flags Or HERMES_CONVERT_DITHER;
-    update;
-    option := True;
+    FFlags := FFlags Or HERMES_CONVERT_DITHER;
+    Update;
+    Result := True;
     Exit;
   End;
-  If (_option = 'disable dithering') And ((m_flags And HERMES_CONVERT_DITHER) <> 0) Then
+  If (AOption = 'disable dithering') And ((FFlags And HERMES_CONVERT_DITHER) <> 0) Then
   Begin
-    m_flags := m_flags And (Not HERMES_CONVERT_DITHER);
-    update;
-    option := True;
+    FFlags := FFlags And (Not HERMES_CONVERT_DITHER);
+    Update;
+    Result := True;
     Exit;
   End;
-  option := False;
+  Result := False;
 End;
 
-Procedure TPTCCopy.update;
+Procedure TPTCCopy.Update;
 
 Begin
-  Hermes_ConverterReturn(m_handle);
-  m_handle := Hermes_ConverterInstance(m_flags);
-  If m_handle = 0 Then
+  Hermes_ConverterReturn(FHandle);
+  FHandle := Hermes_ConverterInstance(FFlags);
+  If FHandle = 0 Then
     Raise TPTCError.Create('could not update hermes converter instance');
 End;

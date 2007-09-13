@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -18,80 +18,75 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Constructor TPTCArea.Create(_left, _top, _right, _bottom : Integer);
+Constructor TPTCArea.Create(ALeft, ATop, ARight, ABottom : Integer);
 
 Begin
-  If _left < _right Then
+  If ALeft < ARight Then
   Begin
-    Fleft := _left;
-    Fright := _right;
+    FLeft := ALeft;
+    FRight := ARight;
   End
   Else
   Begin
-    Fleft := _right;
-    Fright := _left;
+    FLeft := ARight;
+    FRight := ALeft;
   End;
-  If _top < _bottom Then
+  If ATop < ABottom Then
   Begin
-    Ftop := _top;
-    Fbottom := _bottom;
+    FTop := ATop;
+    FBottom := ABottom;
   End
   Else
   Begin
-    Ftop := _bottom;
-    Fbottom := _top;
+    FTop := ABottom;
+    FBottom := ATop;
   End;
 End;
 
 Constructor TPTCArea.Create;
 
 Begin
-  Fleft := 0;
-  Fright := 0;
-  Ftop := 0;
-  Fbottom := 0;
+  FLeft   := 0;
+  FRight  := 0;
+  FTop    := 0;
+  FBottom := 0;
 End;
 
-Constructor TPTCArea.Create(Const area : TPTCArea);
+Constructor TPTCArea.Create(Const AArea : TPTCArea);
 
 Begin
-  ASSign(area);
+  FLeft   := AArea.FLeft;
+  FTop    := AArea.FTop;
+  FRight  := AArea.FRight;
+  FBottom := AArea.FBottom;
 End;
 
-Destructor TPTCArea.Destroy;
+Procedure TPTCArea.Assign(Const AArea : TPTCArea);
 
 Begin
-  Inherited Destroy;
+  FLeft   := AArea.FLeft;
+  FTop    := AArea.FTop;
+  FRight  := AArea.FRight;
+  FBottom := AArea.FBottom;
 End;
 
-Procedure TPTCArea.Assign(Const area : TPTCArea);
+Function TPTCArea.Equals(Const AArea : TPTCArea) : Boolean;
 
 Begin
-  If Self = area Then
-    Raise TPTCError.Create('self assignment is not allowed');
-  Fleft := area.Fleft;
-  Ftop := area.Ftop;
-  Fright := area.Fright;
-  Fbottom := area.Fbottom;
+  Result := (FLeft   = AArea.FLeft) And
+            (FTop    = AArea.FTop) And
+            (FRight  = AArea.FRight) And
+            (FBottom = AArea.FBottom);
 End;
 
-Function TPTCArea.Equals(Const area : TPTCArea) : Boolean;
+Function TPTCArea.GetWidth : Integer;
 
 Begin
-  Equals := (Fleft = area.Fleft) And
-	    (Ftop = area.Ftop) And
-	    (Fright = area.Fright) And
-	    (Fbottom = area.Fbottom);
+  Result := FRight - FLeft;
 End;
 
-Function TPTCArea.width : Integer;
+Function TPTCArea.GetHeight : Integer;
 
 Begin
-  width := Fright - Fleft;
-End;
-
-Function TPTCArea.height : Integer;
-
-Begin
-  height := Fbottom - Ftop;
+  Result := FBottom - FTop;
 End;

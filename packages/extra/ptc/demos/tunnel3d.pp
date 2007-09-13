@@ -19,13 +19,6 @@ Program Tunnel3D;
 Uses
   ptc, Math;
 
-{ for fpc 1.0.10 compatibility... }
-{$IFDEF VER1_0}
-Type
-  PtrUInt = Cardinal;
-  PtrInt = LongInt;
-{$ENDIF VER1_0}
-
 Type
   PVector = ^TVector;
   TVector = Array[0..2] Of Single;      { X,Y,Z }
@@ -40,9 +33,9 @@ Type
 
   TRayTunnel = Class(TObject)
   Private
-    tunneltex : Pchar8;                      { Texture }
-    pal : Pchar8;                            { Original palette }
-    lookup : Pint32;                         { Lookup table for lighting }
+    tunneltex : PUint8;                      { Texture }
+    pal : PUint8;                            { Original palette }
+    lookup : PUint32;                         { Lookup table for lighting }
 
     sintab, costab : PSingle;                { Take a guess }
 
@@ -64,19 +57,19 @@ Type
     Procedure load_texture;
 
     Procedure tilt(x, y, z : Integer);              { Rotate relative }
-    Procedure tilt(x, y, z : Integer; abs : char8); { Absolute }
+    Procedure tilt(x, y, z : Integer; abs : Uint8); { Absolute }
 
     Procedure move(dx, dy, dz : Single);            { Relative move }
-    Procedure move(x, y, z : Single; abs : char8);  { Absolute }
+    Procedure move(x, y, z : Single; abs : Uint8);  { Absolute }
 
     Procedure movelight(dx, dy, dz : Single);
-    Procedure movelight(x, y, z : Single; abs : char8);
+    Procedure movelight(x, y, z : Single; abs : Uint8);
 
     Procedure locklight(lock : Boolean);    { Make the light follow the viewer }
 
     Procedure interpolate;                  { Raytracing }
 
-    Procedure draw(dest : Pint32);          { Draw the finished tunnel }
+    Procedure draw(dest : PUint32);          { Draw the finished tunnel }
   End;
 
 { VECTOR ROUTINES }
@@ -214,8 +207,8 @@ Begin
   l_array := GetMem(64 * 26 * SizeOf(Integer));
   norms := GetMem(64 * 26 * 3 * SizeOf(Single));
 
-  lookup := GetMem(65 * 256 * SizeOf(int32));
-  pal := GetMem(768 * SizeOf(char8));
+  lookup := GetMem(65 * 256 * SizeOf(Uint32));
+  pal := GetMem(768 * SizeOf(Uint8));
 
   For i := 0 To 1023 Do
   Begin
@@ -279,9 +272,9 @@ Procedure TRayTunnel.load_texture;
 
 Var
   texfile : File;
-  tmp : Pchar8;
-  i, j : int32;
-  r, g, b : int32;
+  tmp : PUint8;
+  i, j : Uint32;
+  r, g, b : Uint32;
   newoffs : Integer;
 
 Begin
@@ -420,13 +413,13 @@ Begin
   End;
 End;
 
-Procedure TRayTunnel.draw(dest : Pint32);
+Procedure TRayTunnel.draw(dest : PUint32);
 
 Var
   x, y, lu, lv, ru, rv, liu, liv, riu, riv : Integer;
   iu, iv, i, j, ll, rl, lil, ril, l, il : Integer;
   iadr, adr, til_u, til_v, til_iu, til_iv : DWord;
-  bla : char8;
+  bla : Uint8;
 
 Begin
   For j := 0 To 24 Do
@@ -499,7 +492,7 @@ Begin
   za := (za + z) And $3FF;
 End;
 
-Procedure TRayTunnel.tilt(x, y, z : Integer; abs : char8);
+Procedure TRayTunnel.tilt(x, y, z : Integer; abs : Uint8);
 
 Begin
   xa := x And $3FF;
@@ -516,7 +509,7 @@ Begin
   pos[2] := pos[2] + dz;
 End;
 
-Procedure TRayTunnel.move(x, y, z : Single; abs : char8);
+Procedure TRayTunnel.move(x, y, z : Single; abs : Uint8);
 
 Begin
   pos[0] := x;
@@ -533,7 +526,7 @@ Begin
   light[2] := light[2] + dz;
 End;
 
-Procedure TRayTunnel.movelight(x, y, z : Single; abs : char8);
+Procedure TRayTunnel.movelight(x, y, z : Single; abs : Uint8);
 
 Begin
   light[0] := x;
@@ -555,7 +548,7 @@ Var
   tunnel : TRayTunnel;
   posz, phase_x, phase_y : Single;
   angle_x, angle_y : Integer;
-  buffer : Pint32;
+  buffer : PUint32;
 
 Begin
   format := Nil;

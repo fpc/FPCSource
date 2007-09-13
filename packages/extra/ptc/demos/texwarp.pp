@@ -18,67 +18,75 @@ Uses
 Const
 { colour balance values.  change these if you don't like the colouring }
 { of the texture. }
-  red_balance : int32 = 2;
-  green_balance : int32 = 3;
-  blue_balance : int32 = 1;
+  red_balance : Uint32 = 2;
+  green_balance : Uint32 = 3;
+  blue_balance : Uint32 = 1;
 
 Procedure blur(s : TPTCSurface);
 
 Var
-  d : Pchar8;
+  d : PUint8;
   pitch : Integer;
   spack, r : Integer;
 
 Begin
   { lock surface }
   d := s.lock;
-  pitch := s.pitch;
-  spack := (s.height - 1) * pitch;
+  
+  Try
+    pitch := s.pitch;
+    spack := (s.height - 1) * pitch;
 
-  { first pixel }
-  For r := 0 To 3 Do
-    d[r] := (d[pitch + r] + d[r + 4] + d[spack + r] + d[pitch - 4 + r]) Div 4;
+    { first pixel }
+    For r := 0 To 3 Do
+      d[r] := (d[pitch + r] + d[r + 4] + d[spack + r] + d[pitch - 4 + r]) Div 4;
 
-  { rest of first line }
-  For r := 4 To pitch - 1 Do
-    d[r] := (d[r + pitch] + d[r + 4] + d[r - 4] + d[spack + r]) Div 4;
+    { rest of first line }
+    For r := 4 To pitch - 1 Do
+      d[r] := (d[r + pitch] + d[r + 4] + d[r - 4] + d[spack + r]) Div 4;
 
-  { rest of surface except last line }
-  For r := pitch To ((s.height - 1) * pitch) - 1 Do
-    d[r] := (d[r - pitch] + d[r + pitch] + d[r + 4] + d[r - 4]) Div 4;
+    { rest of surface except last line }
+    For r := pitch To ((s.height - 1) * pitch) - 1 Do
+      d[r] := (d[r - pitch] + d[r + pitch] + d[r + 4] + d[r - 4]) Div 4;
 
-  { last line except last pixel }
-  For r := (s.height - 1) * pitch To (s.height * s.pitch) - 5 Do
-    d[r] := (d[r - pitch] + d[r + 4] + d[r - 4] + d[r - spack]) Div 4;
+    { last line except last pixel }
+    For r := (s.height - 1) * pitch To (s.height * s.pitch) - 5 Do
+      d[r] := (d[r - pitch] + d[r + 4] + d[r - 4] + d[r - spack]) Div 4;
 
-  { last pixel }
-  For r := (s.height * s.pitch) - 4 To s.height * s.pitch Do
-    d[r] := (d[r - pitch] + d[r - 4] + d[r - spack] + d[r + 4 - pitch]) Div 4;
-  s.unlock;
+    { last pixel }
+    For r := (s.height * s.pitch) - 4 To s.height * s.pitch Do
+      d[r] := (d[r - pitch] + d[r - 4] + d[r - spack] + d[r + 4 - pitch]) Div 4;
+
+  Finally
+    s.unlock;
+  End;
 End;
 
 Procedure generate(surface : TPTCSurface);
 
 Var
-  dest : Pint32;
+  dest : PUint32;
   i : Integer;
   x, y : Integer;
-  d : Pint32;
-  cv : int32;
-  r, g, b : char8;
+  d : PUint32;
+  cv : Uint32;
+  r, g, b : Uint8;
 
 Begin
   { draw random dots all over the surface }
   dest := surface.lock;
-  For i := 0 To surface.width * surface.height - 1 Do
-  Begin
-    x := Random(surface.width);
-    y := Random(surface.height);
-    d := dest + (y * surface.width) + x;
-    cv := (Random(100) Shl 16) Or (Random(100) Shl 8) Or Random(100);
-    d^ := cv;
+  Try
+    For i := 0 To surface.width * surface.height - 1 Do
+    Begin
+      x := Random(surface.width);
+      y := Random(surface.height);
+      d := dest + (y * surface.width) + x;
+      cv := (Random(100) Shl 16) Or (Random(100) Shl 8) Or Random(100);
+      d^ := cv;
+    End;
+  Finally
+    surface.unlock;
   End;
-  surface.unlock;
   
   { blur the surface }
   For i := 1 To 5 Do
@@ -86,28 +94,31 @@ Begin
   
   { multiply the color values }
   dest := surface.lock;
-  For i := 0 To surface.width * surface.height - 1 Do
-  Begin
-    cv := dest^;
-    r := (cv Shr 16) And 255;
-    g := (cv Shr 8) And 255;
-    b := cv And 255;
-    r *= red_balance;
-    g *= green_balance;
-    b *= blue_balance;
-    If r > 255 Then
-      r := 255;
-    If g > 255 Then
-      g := 255;
-    If b > 255 Then
-      b := 255;
-    dest^ := (r Shl 16) Or (g Shl 8) Or b;
-    Inc(dest);
+  Try
+    For i := 0 To surface.width * surface.height - 1 Do
+    Begin
+      cv := dest^;
+      r := (cv Shr 16) And 255;
+      g := (cv Shr 8) And 255;
+      b := cv And 255;
+      r *= red_balance;
+      g *= green_balance;
+      b *= blue_balance;
+      If r > 255 Then
+        r := 255;
+      If g > 255 Then
+        g := 255;
+      If b > 255 Then
+        b := 255;
+      dest^ := (r Shl 16) Or (g Shl 8) Or b;
+      Inc(dest);
+    End;
+  Finally
+    surface.unlock;
   End;
-  surface.unlock;
 End;
 
-Procedure grid_map(grid : Pint32; xbase, ybase, xmove, ymove, amp : Single);
+Procedure grid_map(grid : PUint32; xbase, ybase, xmove, ymove, amp : Single);
 
 Var
   x, y : Integer;
@@ -122,8 +133,8 @@ Begin
     Begin
       { it should be noted that there is no scientific basis for }
       { the following three lines :) }
-      grid[0] := int32(Trunc((xbase * 14 + x*4 + xmove*sin(b)+sin(cos(a)*sin(amp))*15) * 65536));
-      grid[1] := int32(Trunc((ybase * 31 + y*3 + ymove*cos(b)*sin(sin(a)*cos(amp))*30) * 65536));
+      grid[0] := Uint32(Trunc((xbase * 14 + x*4 + xmove*sin(b)+sin(cos(a)*sin(amp))*15) * 65536));
+      grid[1] := Uint32(Trunc((ybase * 31 + y*3 + ymove*cos(b)*sin(sin(a)*cos(amp))*30) * 65536));
       id := (cos(xbase) + sin(ybase) + cos(a*xmove*0.17) + sin(b*ymove*0.11)) * amp * 23;
       If id < -127 Then
         grid[2] := 0
@@ -139,7 +150,7 @@ Begin
   End;
 End;
 
-Procedure make_light_table(lighttable : Pchar8);
+Procedure make_light_table(lighttable : PUint8);
 
 Var
   i, j : Integer;
@@ -159,7 +170,7 @@ End;
 
 { if you want to see how to do this properly, look at the tunnel3d demo. }
 { (not included in this distribution :) }
-Procedure texture_warp(dest, grid, texture : Pint32; lighttable : Pchar8);
+Procedure texture_warp(dest, grid, texture : PUint32; lighttable : PUint8);
 
 Var
   utl, utr, ubl, ubr : Integer;
@@ -170,13 +181,13 @@ Var
   bx, by, px, py : Integer;
   uc, vc, ic, ucx, vcx, icx : Integer;
   
-  edi : int32;
-  texel : int32;
+  edi : Uint32;
+  texel : Uint32;
   
-  cbp, dp : Pint32;
-  dpix : int32;
+  cbp, dp : PUint32;
+  dpix : Uint32;
   
-  ltp : Pchar8;
+  ltp : PUint8;
 
 Begin
   cbp := grid;
@@ -259,12 +270,12 @@ Var
   texture : TPTCSurface;
   surface : TPTCSurface;
   console : TPTCConsole;
-  lighttable : Pchar8;
+  lighttable : PUint8;
   { texture grid }
-  grid : Array[0..41*26*3-1] Of int32;
+  grid : Array[0..41*26*3-1] Of Uint32;
   xbase, ybase, xmove, ymove, amp, dct, dxb, dyb, dxm, dym, sa : Single;
   
-  p1, p2 : Pint32;
+  p1, p2 : PUint32;
 
 Begin
   format := Nil;

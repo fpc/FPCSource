@@ -22,36 +22,24 @@ Type
   TPTCConsole=Class(TPTCBaseConsole)
   Private
     Function ConsoleCreate(index : Integer) : TPTCBaseConsole;
-    Function ConsoleCreate(Const _name : String) : TPTCBaseConsole;
+    Function ConsoleCreate(Const AName : String) : TPTCBaseConsole;
     Procedure check;
     console : TPTCBaseConsole;
     m_modes : Array[0..1023] Of TPTCMode;
     hacky_option_console_flag : Boolean;
-  Protected
-    Procedure internal_ReadKey(k : TPTCKey); Override;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Override;
   Public
-    Constructor Create;
+    Constructor Create; Override;
     Destructor Destroy; Override;
     Procedure configure(Const _file : String); Override;
     Function option(Const _option : String) : Boolean; Override;
     Function modes : PPTCMode; Override;
-    Procedure open(Const _title : String; _pages : Integer); Overload; Override;
+    Procedure open(Const _title : String; _pages : Integer = 0); Overload; Override;
     Procedure open(Const _title : String; Const _format : TPTCFormat;
-                   _pages : Integer); Overload; Override;
+                   _pages : Integer = 0); Overload; Override;
     Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat; _pages : Integer); Overload; Override;
+                   Const _format : TPTCFormat; _pages : Integer = 0); Overload; Override;
     Procedure open(Const _title : String; Const _mode : TPTCMode;
-                   _pages : Integer); Overload; Override;
-
-    {$WARNING this should be removed for fpc 1.1}
-    {pages=0}
-    Procedure open(Const _title : String); Overload; Override;
-    Procedure open(Const _title : String; Const _format : TPTCFormat); Overload; Override;
-    Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat); Overload; Override;
-    Procedure open(Const _title : String; Const _mode : TPTCMode); Overload; Override;
-    {/pages=0}
+                   _pages : Integer = 0); Overload; Override;
 
     Procedure close; Override;
     Procedure flush; Override;
@@ -86,16 +74,18 @@ Type
     Procedure clear(Const color : TPTCColor;
                     Const _area : TPTCArea); Override;
     Procedure palette(Const _palette : TPTCPalette); Override;
-    Function palette : TPTCPalette; Override;
-    Procedure clip(Const _area : TPTCArea); Override;
-    Function width : Integer; Override;
-    Function height : Integer; Override;
-    Function pitch : Integer; Override;
-    Function pages : Integer; Override;
-    Function area : TPTCArea; Override;
-    Function clip : TPTCArea; Override;
-    Function format : TPTCFormat; Override;
-    Function name : String; Override;
-    Function title : String; Override;
-    Function information : String; Override;
+    Function Palette : TPTCPalette; Override;
+    Procedure Clip(Const _area : TPTCArea); Override;
+    Function GetWidth : Integer; Override;
+    Function GetHeight : Integer; Override;
+    Function GetPitch : Integer; Override;
+    Function GetPages : Integer; Override;
+    Function GetArea : TPTCArea; Override;
+    Function Clip : TPTCArea; Override;
+    Function GetFormat : TPTCFormat; Override;
+    Function GetName : String; Override;
+    Function GetTitle : String; Override;
+    Function GetInformation : String; Override;
+    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Override;
+    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Override;
   End;

@@ -1,0 +1,17 @@
+{$INCLUDE aread.inc}
+{$INCLUDE colord.inc}
+{$INCLUDE formatd.inc}
+{$INCLUDE eventd.inc}
+{$INCLUDE keyeventd.inc}
+{$INCLUDE mouseeventd.inc}
+{$INCLUDE moded.inc}
+{$INCLUDE paletted.inc}
+{$INCLUDE cleard.inc}
+{$INCLUDE copyd.inc}
+{$INCLUDE clipperd.inc}
+{$INCLUDE basesurfaced.inc}
+{$INCLUDE surfaced.inc}
+{$INCLUDE baseconsoled.inc}
+{$INCLUDE consoled.inc}
+{$INCLUDE errord.inc}
+{$INCLUDE timerd.inc}

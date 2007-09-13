@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -21,22 +21,25 @@
 Type
   TPTCFormat=Class(TObject)
   Private
-    Fformat : THermesFormat;
+    FFormat : THermesFormat;
+    Function GetDirect : Boolean;
+    Function GetBytes : Integer;
   Public
     Constructor Create;
-    Constructor Create(_bits : Integer);
-    Constructor Create(_bits : Integer; _r, _g, _b : int32);
-    Constructor Create(_bits : Integer; _r, _g, _b, _a : int32);
+    Constructor Create(ABits : Integer);
+    Constructor Create(ABits : Integer;
+                       ARedMask, AGreenMask, ABlueMask : Uint32;
+                       AAlphaMask : Uint32 = 0);
     Constructor Create(Const format : TPTCFormat);
     Destructor Destroy; Override;
     Procedure Assign(Const format : TPTCFormat);
     Function Equals(Const format : TPTCFormat) : Boolean;
-    Property r : int32 read Fformat.r;
-    Property g : int32 read Fformat.g;
-    Property b : int32 read Fformat.b;
-    Property a : int32 read Fformat.a;
-    Property bits : Integer read Fformat.bits;
-    Property indexed : Boolean read Fformat.indexed;
-    Function direct : Boolean;
-    Function bytes : Integer;
+    Property R : Uint32 read FFormat.r;
+    Property G : Uint32 read FFormat.g;
+    Property B : Uint32 read FFormat.b;
+    Property A : Uint32 read FFormat.a;
+    Property Bits : Integer read FFormat.bits;
+    Property Indexed : Boolean read FFormat.indexed;
+    Property Direct : Boolean read GetDirect;
+    Property Bytes : Integer read GetBytes;
   End;

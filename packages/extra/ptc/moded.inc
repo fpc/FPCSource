@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -22,19 +22,19 @@ Type
   PPTCMode=^TPTCMode;
   TPTCMode=Class(TObject)
   Private
-    m_valid : Boolean;
-    m_width : Integer;
-    m_height : Integer;
-    m_format : TPTCFormat;
+    FValid : Boolean;
+    FWidth : Integer;
+    FHeight : Integer;
+    FFormat : TPTCFormat;
   Public
     Constructor Create;
-    Constructor Create(_width, _height : Integer; Const _format : TPTCFormat);
+    Constructor Create(AWidth, AHeight : Integer; Const AFormat : TPTCFormat);
     Constructor Create(Const mode : TPTCMode);
     Destructor Destroy; Override;
     Procedure Assign(Const mode : TPTCMode);
     Function Equals(Const mode : TPTCMode) : Boolean;
-    Property valid : Boolean read m_valid;
-    Property width : Integer read m_width;
-    Property height : Integer read m_height;
-    Property format : TPTCFormat read m_format;
+    Property Valid : Boolean read FValid;
+    Property Width : Integer read FWidth;
+    Property Height : Integer read FHeight;
+    Property Format : TPTCFormat read FFormat;
   End;

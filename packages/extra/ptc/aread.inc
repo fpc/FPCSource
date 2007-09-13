@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -21,18 +21,19 @@
 Type
   TPTCArea=Class(TObject)
   Private
-    Fleft, Ftop, Fright, Fbottom : Integer;
+    FLeft, FTop, FRight, FBottom : Integer;
+    Function GetWidth : Integer;
+    Function GetHeight : Integer;
   Public
     Constructor Create;
-    Constructor Create(_left, _top, _right, _bottom : Integer);
-    Constructor Create(Const Area : TPTCArea);
-    Destructor Destroy; Override;
-    Function width : Integer;
-    Function height : Integer;
-    Procedure Assign(Const area : TPTCArea);
-    Function Equals(Const area : TPTCArea) : Boolean;
-    Property left : Integer read Fleft;
-    Property top : Integer read Ftop;
-    Property right : Integer read Fright;
-    Property bottom : Integer read Fbottom;
+    Constructor Create(ALeft, ATop, ARight, ABottom : Integer);
+    Constructor Create(Const AArea : TPTCArea);
+    Procedure Assign(Const AArea : TPTCArea);
+    Function Equals(Const AArea : TPTCArea) : Boolean;
+    Property Left : Integer Read FLeft;
+    Property Top : Integer Read FTop;
+    Property Right : Integer Read FRight;
+    Property Bottom : Integer Read FBottom;
+    Property Width : Integer Read GetWidth;
+    Property Height : Integer Read GetHeight;
   End;

@@ -20,8 +20,8 @@
 
 Procedure X11Check(result : TStatus);
 
-Var
-  ErrStr : String;
+{Var
+  ErrStr : String;}
 
 Begin
   {todo: fix X11 error handling}

@@ -34,11 +34,11 @@ Const
   SC = 12;
   MINSEGSIZE = 2.5;
   NSEG = 5;
-  frandtab_seed : short16 = 54;
+  frandtab_seed : Uint16 = 54;
 
 Var
-  MaskMap : Pchar8;
-  frandtab : Array[0..65535] Of short16;
+  MaskMap : PUint8;
+  frandtab : Array[0..65535] Of Uint16;
 
 Type
   FVector = Object
@@ -596,15 +596,15 @@ Var
   camposn : FVector;
   camaxis : FMatrix;
   c1, c2, c3, ti, xx, yy, zz, i, a, x, y : Integer;
-  idx : Array[0..(200 Div 16) - 1, 0..(320 Div 16) - 1] Of char8;
+  idx : Array[0..(200 Div 16) - 1, 0..(320 Div 16) - 1] Of Uint8;
   order : Array[0..10*19 - 1, 0..1] Of Integer;
   vlightt, t, cz, camf : Single;
   col : FVector;
   ray : TRay;
-  oc, c, c2_ : int32;
+  oc, c, c2_ : Uint32;
   time, delta : Single;
   pitch : Integer;
-  screenbuf, pd : Pchar8;
+  screenbuf, pd : PUint8;
   tmp : FVector;
   F : File;
 
@@ -721,21 +721,21 @@ Begin
 	  oc := c;
 
 	  c2_ := (c Shr 1) And $7F7F7F;
-	  Pint32(pd)[1] := ((Pint32(pd)[1]) Shr 1) And $7F7F7F+ c2_;
-	  Pint32(pd)[2] := ((Pint32(pd)[2]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[1] := ((PUint32(pd)[1]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[2] := ((PUint32(pd)[2]) Shr 1) And $7F7F7F+ c2_;
 	  Inc(pd, pitch);
-	  Pint32(pd)[0] := ((Pint32(pd)[0]) Shr 1) And $7F7F7F+ c2_;
-	  Pint32(pd)[1] := c;
-	  Pint32(pd)[2] := c;
-	  Pint32(pd)[3] := ((Pint32(pd)[3]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[0] := ((PUint32(pd)[0]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[1] := c;
+	  PUint32(pd)[2] := c;
+	  PUint32(pd)[3] := ((PUint32(pd)[3]) Shr 1) And $7F7F7F+ c2_;
 	  Inc(pd, pitch);
-	  Pint32(pd)[0] := ((Pint32(pd)[0]) Shr 1) And $7F7F7F+ c2_;
-	  Pint32(pd)[1] := c;
-	  Pint32(pd)[2] := c;
-	  Pint32(pd)[3] := ((Pint32(pd)[3]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[0] := ((PUint32(pd)[0]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[1] := c;
+	  PUint32(pd)[2] := c;
+	  PUint32(pd)[3] := ((PUint32(pd)[3]) Shr 1) And $7F7F7F+ c2_;
 	  Inc(pd, pitch);
-	  Pint32(pd)[1] := ((Pint32(pd)[1]) Shr 1) And $7F7F7F+ c2_;
-	  Pint32(pd)[2] := ((Pint32(pd)[2]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[1] := ((PUint32(pd)[1]) Shr 1) And $7F7F7F+ c2_;
+	  PUint32(pd)[2] := ((PUint32(pd)[2]) Shr 1) And $7F7F7F+ c2_;
         End;
         i *= 5;
         i := i Div (3*idx[yy, xx]);

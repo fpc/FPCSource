@@ -1,0 +1,16 @@
+{$INCLUDE errori.inc}
+{$INCLUDE areai.inc}
+{$INCLUDE colori.inc}
+{$INCLUDE formati.inc}
+{$INCLUDE eventi.inc}
+{$INCLUDE keyeventi.inc}
+{$INCLUDE mouseeventi.inc}
+{$INCLUDE modei.inc}
+{$INCLUDE palettei.inc}
+{$INCLUDE cleari.inc}
+{$INCLUDE copyi.inc}
+{$INCLUDE clipperi.inc}
+{$INCLUDE basesurfacei.inc}
+{$INCLUDE baseconsolei.inc}
+{$INCLUDE surfacei.inc}
+{$INCLUDE timeri.inc}
