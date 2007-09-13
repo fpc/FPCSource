@@ -266,7 +266,7 @@ implementation
         hregister,resultreg,hregister1,
         hreg64hi,hreg64lo : tregister;
         op : topcg;
-        shiftval: aword;
+        shiftval: aint;
       begin
         secondpass(left);
         secondpass(right);
@@ -279,7 +279,8 @@ implementation
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
-            shiftval := tordconstnode(right).value and 63;
+            shiftval := tordconstnode(right).value.svalue;
+	    shiftval := shiftval and 63;
             if shiftval > 31 then
               begin
                 if nodetype = shln then
@@ -339,8 +340,8 @@ implementation
             { shifting by a constant directly coded: }
             if (right.nodetype=ordconstn) then
               begin
-                if tordconstnode(right).value and 31<>0 then
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,OS_32,tordconstnode(right).value and 31,hregister1,resultreg)
+                if tordconstnode(right).value.svalue and 31<>0 then
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,OS_32,tordconstnode(right).value.svalue and 31,hregister1,resultreg)
               end
             else
               begin
