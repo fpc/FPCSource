@@ -37,8 +37,8 @@ type
     constructor Create(AStream: TStream);
     destructor Destroy; override;
     procedure wrt(const s: string);
-    procedure wrtln(const s: string);
-    procedure wrtln;
+    procedure wrtln(const s: string);overload;
+    procedure wrtln;overload;
 
     procedure WriteElement(AElement: TPasElement);
     procedure WriteType(AType: TPasType);
@@ -60,8 +60,8 @@ type
   end;
 
 
-procedure WritePasFile(AElement: TPasElement; const AFilename: string);
-procedure WritePasFile(AElement: TPasElement; AStream: TStream);
+procedure WritePasFile(AElement: TPasElement; const AFilename: string);overload;
+procedure WritePasFile(AElement: TPasElement; AStream: TStream);overload;
 
 
 

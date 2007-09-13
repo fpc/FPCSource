@@ -29,14 +29,14 @@ type
   TFieldCellEvent = procedure (Sender:THTMLDatasetFormProducer; FieldDef:TFormFieldItem;
                       IsLabel:boolean; Cell : THTMLCustomelement) of object;
   TButtonEvent = procedure (Sender:THTMLDatasetFormProducer; ButtonDef:TFormButtonItem;
-                      Button : THTML_button) of object;
+                      Button : THTMLAttrsElement) of object;
   TProducerEvent = procedure (Sender:THTMLDatasetFormProducer;  FieldDef:TFormFieldItem;
                       Producer:THTMLContentProducer) of object;
   THTMLElementEvent = procedure (Sender:THTMLDatasetFormProducer; element : THTMLCustomElement) of object;
   TFieldCheckEvent = procedure (aField:TField; var check:boolean) of object;
   
   TFormInputType = (fittext,fitpassword,fitcheckbox,fitradio,fitfile,fithidden,
-                    fitproducer,fittextarea,fitrecordselection);
+                    fitproducer,fittextarea,fitrecordselection,fitlabel);
 
   { TTablePosition }
 
@@ -115,7 +115,7 @@ type
     property Items [index : integer] : TFormFieldItem read GetItem write SetItem;
   end;
 
-  TFormButtonType = (fbtSubmit, fbtReset, fbtPushbutton);
+  TFormButtonType = (fbtSubmit, fbtReset, fbtPushbutton, fbtInputSubmit,fbtInputReset,fbtInputPushButton);
   TImagePlace = (ipOnly, ipBefore, ipAfter, ipUnder, ipAbove);
 
   { TFormButtonItem }
@@ -185,6 +185,7 @@ type
     FSize: integer;
     FSpanned: boolean;
     FValue: string;
+    procedure WriteLabel(aWriter: THTMLWriter);
   public
     function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement;
     function WriteHeader (aWriter : THTMLWriter) : THTMLCustomElement;
@@ -243,7 +244,7 @@ type
   TButtonVerPosition = (bvpTop, bvpBottom);
   TButtonVerPositionSet = set of TButtonVerPosition;
   TButtonHorPosition = (bhpLeft, bhpCenter, bhpJustify, bhpRight);
-  TFormMethod = (fmGet, fmPost);
+  TFormMethod = (fmNone, fmGet, fmPost);
 
   { THTMLDatasetFormProducer }
 
@@ -558,10 +559,25 @@ end;
 procedure THTMLDatasetFormProducer.WriteButtons(aWriter: THTMLWriter);
 
   procedure WriteButton (aButton : TFormButtonItem);
-  const ButtonTypes : array[TFormButtontype] of THTMLbuttontype = (btsubmit,btreset,btbutton);
+  const ButtonTypes : array[TFormButtontype] of THTMLbuttontype = (btsubmit,btreset,btbutton,btreset,btreset,btreset);
+  const InputTypes : array[TFormButtontype] of THTMLinputtype = (itreset,itreset,itreset,itsubmit,itreset,itbutton);
   var b : THTML_Button;
+      ib: THTML_input;
   begin
     with aWriter do
+     if aButton.ButtonType in [fbtInputPushButton,fbtInputReset,fbtInputSubmit] then
+      begin
+      ib := input;
+      with ib do
+        begin
+        Name := aButton.name;
+        Value := aButton.value;
+        TheType := InputTypes[aButton.ButtonType];
+        if assigned (FAfterButtonCreate) then
+          FAfterButtonCreate (self, aButton, ib);
+        end;
+      end
+     else
       begin
       b := Startbutton;
       with b do
@@ -647,7 +663,7 @@ begin
   aWriter.StartTableRow;
   with tabledef do
     begin
-    for r := 0 to count-2 do
+    for r := 0 to count-1 do
       with TTableCell (Items[r]) do
         begin
         if CellType <> ctSpanned then
@@ -664,7 +680,6 @@ begin
           aWriter.StartTableRow;
           end;
         end;
-    TTableCell(Items[Count-1]).WriteContent(aWriter);
     end;
   aWriter.EndTableRow;
   aWriter.Endtablebody;
@@ -678,7 +693,7 @@ begin
   aWriter.StartTableRow;
   with tabledef do
     begin
-    for r := 0 to count-2 do
+    for r := 0 to count-1 do
       with TTableCell (Items[r]) do
         begin
         c := WriteHeader(aWriter);
@@ -690,7 +705,6 @@ begin
           aWriter.StartTableRow;
           end;
         end;
-    TTableCell(Items[Count-1]).WriteContent(aWriter);
     end;
   aWriter.EndTableRow;
   aWriter.Endtablehead;
@@ -735,10 +749,10 @@ begin
 end;
 
 function THTMLDatasetFormProducer.StartForm(aWriter: THTMLWriter) : THTMLCustomElement;
-const MethodAttribute : array[TFormMethod] of string = ('GET','POST');
+const MethodAttribute : array[TFormMethod] of string = ('','GET','POST');
 var t : THTMLCustomElement;
 begin
-  if FormAction <> '' then
+  if Self.FormMethod <> fmNone then
     begin
     result := aWriter.Startform;
     with THTML_Form(result) do
@@ -762,7 +776,7 @@ begin
   with aWriter do
     begin
     EndTable;
-    if FormAction <> '' then
+    if self.FormMethod <> fmNone then
       Endform;
     end;
 end;
@@ -855,6 +869,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
     with TableDef.CopyTablePosition(aControlDef.ValuePos) do
       begin
       case aControlDef.inputtype of
+        fitlabel,
         fittext,
         fitpassword,
         fitcheckbox,
@@ -871,8 +886,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
           if aControlDef.inputType in [fitcheckbox,fitradio] then
             begin
             with aControlDef.Field do
-              Checked := not isnull and (asstring <> '0') and (asstring <> '-')
-                         and (comparetext(asstring,'false') <> 0);
+              Checked := asBoolean;
             if assigned (FOnFieldChecked) then
               FOnFieldChecked (aControlDef.Field, check);
             Checked := check;
@@ -1007,6 +1021,8 @@ procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFie
       CellType := ctLabel;
       IsLabel := false;
       Value := aControlDef.FField.asstring;
+      if aControldef.Action <> '' then
+        Link := Format(aControldef.Action,[value]);
       if not FSeparateLabel and not FIncludeHeader then
         begin
         Caption := aControldef.LabelCaption;
@@ -1026,9 +1042,9 @@ procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFie
   end;
 
 begin
-  if assigned (aControlDef.FField) then
+  if assigned (aControlDef.FField) and not IsHeader then
     PlaceFieldValue;
-  if FSeparateLabel and (aControlDef.LabelCaption <> '') then
+  if (IsHeader or FSeparateLabel) and (aControlDef.LabelCaption <> '') then
     PlaceLabel;
 end;
 
@@ -1046,17 +1062,18 @@ end;
 
 { TTableCell }
 
-function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
+procedure TTableCell.WriteLabel(aWriter: THTMLWriter);
+var HasLink : boolean;
+begin
+  HasLink := (Link <> '');
+  if HasLink then
+    aWriter.Anchor(Value).href := Link
+  else
+    aWriter.Text (Value);
+end;
 
-  procedure WriteLabel;
-  var HasLink : boolean;
-  begin
-    HasLink := (Link <> '');
-    if HasLink then
-      aWriter.Anchor(Value).href := Link
-    else
-      aWriter.Text (Value);
-  end;
+
+function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
 
   procedure WriteTextArea;
   begin
@@ -1097,6 +1114,8 @@ function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
         aWriter.FormFile(Name, Value);
       fithidden :
         aWriter.FormHidden (Name, Value);
+      fitlabel :
+        aWriter.Text (Value);
     end;
   end;
 
@@ -1139,7 +1158,7 @@ begin
             WriteTextArea
           else
             WriteInput;
-        ctLabel : WriteLabel;
+        ctLabel : WriteLabel(aWriter);
         ctProducer : WriteProducer;
       end;
       Endtablecell;
@@ -1165,17 +1184,12 @@ begin
         align := AlignHorizontal;
         valign := AlignVertical;
         end;
-      if CellType <> ctLabel then
-        begin
-        s := FormField.LabelCaption;
-        if self.Link <> '' then
-          aWriter.Anchor(s).href := self.Link
-        else
-          aWriter.Text (s);
-        end
-      else
-        aWriter.Text ('');
-      Endtablecell;
+      case CellType of
+        ctEmpty : ;
+        ctLabel : WriteLabel(aWriter);
+//        ctProducer : WriteProducer;
+      end;
+      Endtableheadcell;
       result := c;
       end;
 end;

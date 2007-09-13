@@ -46,6 +46,27 @@ type
   TWriterEvent = procedure (Sender:THTMLContentProducer; aWriter : THTMLWriter) of object;
   TBooleanEvent = procedure (Sender:THTMLContentProducer; var flag : boolean) of object;
 
+  { THTMLCustomPagContentProducer }
+
+  { THTMLCustomPageContentProducer }
+
+  THTMLCustomPageContentProducer = class (THTMLContentProducer)
+  private
+    FOnWritePage: TWriterEvent;
+  protected
+    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
+    procedure DoWritePage (aWriter : THTMLWriter); virtual;
+  public
+    Property OnWritePage : TWriterEvent read FOnWritePage write FOnWritePage;
+  end;
+
+  { THTMLCustomPagContentProducer }
+
+  THTMLPageContentProducer = class (THTMLCustomPageContentProducer)
+  published
+    Property OnWritePage;
+  end;
+
   { THTMLCustomDatasetContentProducer }
 
   THTMLCustomDatasetContentProducer = class (THTMLContentProducer)
@@ -469,6 +490,22 @@ procedure THTMLContentAction.HandleRequest(ARequest: TRequest;
 begin
   If Assigned(FOngetContent) then
     FOnGetContent(Self,ARequest,HTMLPage,Handled);
+end;
+
+{ THTMLCustomPageContentProducer }
+
+function THTMLCustomPageContentProducer.WriteContent(aWriter: THTMLWriter
+  ): THTMLCustomElement;
+begin
+  result := aWriter.Starthtml;
+  DoWritePage(aWriter);
+  aWriter.Endhtml;
+end;
+
+procedure THTMLCustomPageContentProducer.DoWritePage(aWriter: THTMLWriter);
+begin
+  if assigned (FOnWritePage) then
+    FOnWritePage (self, aWriter);
 end;
 
 end.

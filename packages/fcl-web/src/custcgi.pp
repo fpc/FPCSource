@@ -115,12 +115,14 @@ Type
     FEmail : String;
     FAdministrator : String;
     FOutput : TStream;
+    FHandleGetOnPost : Boolean;
     Procedure InitRequestVars;
     Function GetEmail : String;
     Function GetAdministrator : String;
     Function GetRequestVariable(Const VarName : String) : String;
     Function GetRequestVariableCount : Integer;
   Public
+    constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
     Property Request : TCGIRequest read FRequest;
     Property Response: TCGIResponse Read FResponse;
@@ -139,6 +141,7 @@ Type
     Function UploadedFileName(Const VarName : String) : String;
     Property Email : String Read GetEmail Write FEmail;
     Property Administrator : String Read GetAdministrator Write FAdministrator;
+    Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RequestVariables[VarName : String] : String Read GetRequestVariable;
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
   end;
@@ -354,7 +357,11 @@ begin
     Raise Exception.Create(SErrNoRequestMethod);
   FRequest.InitFromEnvironment;
   if CompareText(R,'POST')=0 then
-    Request.InitPostVars
+    begin
+    Request.InitPostVars;
+    if FHandleGetOnPost then
+      Request.InitGetVars;
+    end
   else if CompareText(R,'GET')=0 then
     Request.InitGetVars
   else
@@ -407,13 +414,15 @@ begin
       I.Free;
     end;
     M.Position:=0;
-    With TFileStream.Create('/tmp/query',fmCreate) do
+// joost, aug 20th: I've removed this. It doesn't work with windows and I think
+// it's a debug-only thing...
+{    With TFileStream.Create('/tmp/query',fmCreate) do
       try
         CopyFrom(M,0);
         M.Position:=0;
       Finally
         Free;
-      end;
+      end;}
     CT:=ContentType;
     if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
       ProcessMultiPart(M,CT)
@@ -468,6 +477,12 @@ begin
     Result:=FRequest.QueryFields.Count
   else
     Result:=0;
+end;
+
+constructor TCustomCGIApplication.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FHandleGetOnPost := True;
 end;
 
 Procedure TCustomCGIApplication.AddResponse(Const S : String);

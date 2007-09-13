@@ -82,6 +82,8 @@ type
   public
     SourceFilename: string;
     SourceLinenumber: Integer;
+    Visibility: TPasMemberVisibility;
+  public
     constructor Create(const AName: string; AParent: TPasElement); virtual;
     procedure AddRef;
     procedure Release;
@@ -90,7 +92,6 @@ type
     function GetModule: TPasModule;
     function ElementTypeName: string; virtual;
     function GetDeclaration(full : Boolean) : string; virtual;
-    Visibility: TPasMemberVisibility;
     property RefCount: LongWord read FRefCount;
     property Name: string read FName write FName;
     property Parent: TPasElement read FParent;
@@ -103,6 +104,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     procedure AddUnitToUsesList(const AUnitName: string);
+  public
     UsesList: TList;            // TPasUnresolvedTypeRef or TPasModule elements
     Declarations, ResStrings, Types, Consts, Classes,
       Functions, Variables: TList;
@@ -113,6 +115,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     InterfaceSection, ImplementationSection: TPasSection;
     PackageName: string;
   end;
@@ -122,6 +125,7 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     function ElementTypeName: string; override;
+  public
     Modules: TList;     // List of TPasModule objects
   end;
 
@@ -129,6 +133,7 @@ type
   public
     function ElementTypeName: string; override;
     function GetDeclaration(full : Boolean) : string; Override;
+  public
     Value: string;
   end;
 
@@ -142,6 +147,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : Boolean): string; override;
+  public
     DestType: TPasType;
   end;
 
@@ -150,6 +156,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : Boolean): string; override;
+  public
     DestType: TPasType;
   end;
 
@@ -169,6 +176,7 @@ type
   public
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     RangeStart, RangeEnd: string;
   end;
 
@@ -177,6 +185,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     IndexRange : string;
     IsPacked : Boolean;          // 12/04/04 - Dave - Added
     ElType: TPasType;
@@ -187,12 +196,14 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     ElType: TPasType;
   end;
 
   TPasEnumValue = class(TPasElement)
   public
     function ElementTypeName: string; override;
+  public
     IsValueUsed: Boolean;
     Value: Integer;
     AssignedValue : string;
@@ -205,6 +216,7 @@ type
      function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
     Procedure GetEnumNames(Names : TStrings);
+  public
     Values: TList;      // List of TPasEnumValue objects
   end;
 
@@ -213,6 +225,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     EnumType: TPasType;
   end;
 
@@ -222,6 +235,7 @@ type
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
+  public
     Values: TStringList;
     Members: TPasRecordType;
   end;
@@ -232,6 +246,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     IsPacked: Boolean;
     Members: TList;     // array of TPasVariable elements
     VariantName: string;
@@ -247,6 +262,7 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     function ElementTypeName: string; override;
+  public
     ObjKind: TPasObjKind;
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsPacked: Boolean;        // 12/04/04 - Dave - Added
@@ -261,6 +277,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     Access: TArgumentAccess;
     ArgType: TPasType;
     Value: string;
@@ -272,11 +289,11 @@ type
     destructor Destroy; override;
     class function TypeName: string; virtual;
     function ElementTypeName: string; override;
-    IsOfObject: Boolean;
     function GetDeclaration(full : boolean) : string; override;
     procedure GetArguments(List : TStrings);
-    function CreateArgument(const AName, AUnresolvedTypeName: string):
-      TPasArgument;
+    function CreateArgument(const AName, AUnresolvedTypeName: string):TPasArgument;
+  public
+    IsOfObject: Boolean;
     Args: TList;        // List of TPasArgument objects
   end;
 
@@ -284,6 +301,7 @@ type
   public
     destructor Destroy; override;
     function ElementTypeName : string; override;
+  public
     ResultType: TPasType;
   end;
 
@@ -293,6 +311,7 @@ type
     class function TypeName: string; override;
     function ElementTypeName: string; override;
     function GetDeclaration(Full : boolean) : string; override;
+  public
     ResultEl: TPasResultElement;
   end;
 
@@ -314,6 +333,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     VarType: TPasType;
     Value: string;
     Modifiers : string;
@@ -331,6 +351,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
+  public
     Args: TList;        // List of TPasArgument objects
     IndexValue, ReadAccessorName, WriteAccessorName,
       StoredAccessorName, DefaultValue: string;
@@ -348,6 +369,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function TypeName: string; override;
+  public
     Overloads: TList;           // List of TPasProcedure nodes
   end;
 
@@ -356,9 +378,10 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function TypeName: string; override;
-    ProcType: TPasProcedureType;
     function GetDeclaration(full: Boolean): string; override;
     procedure GetModifiers(List: TStrings);
+  public
+    ProcType: TPasProcedureType;
     IsVirtual, IsDynamic, IsAbstract, IsOverride,
       IsOverload, IsMessage, isReintroduced, isStatic: Boolean;
   end;
@@ -396,6 +419,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function TypeName: string; virtual;
+  public
     ProcType: TPasProcedureType;
     Locals: TList;
     Body: TPasImplBlock;
@@ -425,12 +449,14 @@ type
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
+  public
     Commands: TStrings;
   end;
 
   TPasImplIfElse = class(TPasImplElement)
   public
     destructor Destroy; override;
+  public
     Condition: string;
     IfBranch, ElseBranch: TPasImplElement;
   end;
@@ -438,6 +464,7 @@ type
   TPasImplForLoop = class(TPasImplElement)
   public
     destructor Destroy; override;
+  public
     Variable: TPasVariable;
     StartValue, EndValue: string;
     Body: TPasImplElement;
@@ -452,6 +479,7 @@ type
     function AddIfElse(const ACondition: string): TPasImplIfElse;
     function AddForLoop(AVar: TPasVariable;
       const AStartValue, AEndValue: string): TPasImplForLoop;
+  public
     Elements: TList;    // TPasImplElement objects
   end;
 
@@ -473,6 +501,10 @@ implementation
 
 uses SysUtils;
 
+{$IFNDEF FPC}
+  const
+    LineEnding = sLineBreak;
+{$ENDIF}
 
 { Parse tree element type name functions }
 

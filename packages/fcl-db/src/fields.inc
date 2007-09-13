@@ -28,6 +28,13 @@ end;}
     TFieldDef
   ---------------------------------------------------------------------}
 
+Constructor TFieldDef.Create(ACollection : TCollection);
+
+begin
+  Inherited create(ACollection);
+  FFieldNo:=Index+1;
+end;
+
 Constructor TFieldDef.Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
 
@@ -236,7 +243,8 @@ procedure TFieldDefs.Update;
 begin
   if not Updated then
     begin
-    DataSet.InitFieldDefs;
+    If Assigned(Dataset) then
+      DataSet.InitFieldDefs;
     Updated := True;
     end;
 end;

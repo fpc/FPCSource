@@ -678,7 +678,7 @@ begin
       if TXMLReader(FReader).FXML11 then
         Result := #10;
   end;
-  if (Result < #256) and (char(Result) in TXMLReader(FReader).FForbiddenAscii) or
+  if (Result < #256) and (char(ord(Result)) in TXMLReader(FReader).FForbiddenAscii) or
     (Result >= #$FFFE) then
     DecodingError('Invalid character');
 end;
@@ -812,7 +812,7 @@ function TISO8859_1Decoder.DecodeNext: WideChar;
 begin
   with FSource do
   begin
-    Result := WideChar(FBuf[0]);
+    Result := WideChar(ord(FBuf[0]));
     Inc(FBuf);
   end;
 end;
@@ -862,7 +862,7 @@ var
 begin
   with FSource do
   begin
-    Result := WideChar(FBuf[0]);
+    Result := WideChar(byte(FBuf[0]));
     Inc(FBuf);
     if Result < #$80 then
       Exit;
@@ -1099,7 +1099,7 @@ var
 begin
   for I := 1 to Length(s) do
   begin
-    if FCurChar <> WideChar(s[i]) then
+    if FCurChar <> WideChar(ord(s[i])) then
       FatalError('Expected "%s"', [s]);
     GetChar;
   end;
@@ -1115,7 +1115,7 @@ end;
 procedure TXMLReader.SkipString(const ValidChars: TSetOfChar);
 begin
   FValue.Length := 0;
-  while (ord(FCurChar) < 256) and (char(FCurChar) in ValidChars) do
+  while (ord(FCurChar) < 256) and (char(ord(FCurChar)) in ValidChars) do
   begin
     BufAppend(FValue, FCurChar);
     GetChar;
@@ -1647,7 +1647,7 @@ begin
     for I := 0 to FValue.Length-1 do
     begin
       wc := FValue.Buffer[I];
-      if (wc > #255) or not (Char(wc) in PubidChars) then
+      if (wc > #255) or not (Char(ord(wc)) in PubidChars) then
         FatalError('Illegal Public ID literal', True);
       if (wc = #10) or (wc = #13) then
         FValue.Buffer[I] := #32;

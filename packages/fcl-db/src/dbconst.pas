@@ -95,7 +95,8 @@ Resourcestring
   SNoFieldIndexes          = 'No index currently active';
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
   SErrUnknownConnectorType = 'Unknown connector type';
-
+  SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
+  
 
 Implementation
 

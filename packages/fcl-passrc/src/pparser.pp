@@ -50,10 +50,10 @@ type
   public
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; const ASourceFilename: String;
-      ASourceLinenumber: Integer): TPasElement;
+      ASourceLinenumber: Integer): TPasElement;overload;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
-      const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
+      const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;overload;
       virtual; abstract;
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
       UseParentAsResultParent: Boolean; const ASourceFilename: String;
@@ -105,9 +105,9 @@ type
     procedure ParseExc(const Msg: String);
   protected
     function CreateElement(AClass: TPTreeElement; const AName: String;
-      AParent: TPasElement): TPasElement;
+      AParent: TPasElement): TPasElement;overload;
     function CreateElement(AClass: TPTreeElement; const AName: String;
-      AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
+      AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;overload;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
   public
     Options : set of TPOptions;
@@ -120,8 +120,8 @@ type
     procedure ExpectToken(tk: TToken);
     function ExpectIdentifier: String;
 
-    function ParseType(Parent: TPasElement; Prefix : String): TPasType;
-    function ParseType(Parent: TPasElement): TPasType;
+    function ParseType(Parent: TPasElement; Prefix : String): TPasType;overload;
+    function ParseType(Parent: TPasElement): TPasType;overload;
     function ParseComplexType: TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
     procedure ParseFileType(Element: TPasFileType);
@@ -136,9 +136,9 @@ type
     function ParseConstDecl(Parent: TPasElement): TPasConst;
     function ParseResourcestringDecl(Parent: TPasElement): TPasResString;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
-    procedure ParseInlineVarDecl(Parent: TPasElement; VarList: TList);
+    procedure ParseInlineVarDecl(Parent: TPasElement; VarList: TList);overload;
     procedure ParseInlineVarDecl(Parent: TPasElement; VarList: TList;
-      AVisibility : TPasMemberVisibility; ClosingBrace: Boolean);
+      AVisibility : TPasMemberVisibility; ClosingBrace: Boolean);overload;
     procedure ParseVarDecl(Parent: TPasElement; List: TList);
     procedure ParseArgList(Parent: TPasElement; Args: TList; EndToken: TToken);
     procedure ParseProcedureOrFunctionHeader(Parent: TPasElement;

@@ -995,7 +995,8 @@ begin
               'ind.rdb$relation_name, '+
               'ind.rdb$unique_flag, '+
               'ind_seg.rdb$field_name, '+
-              'rel_con.rdb$constraint_type '+
+              'rel_con.rdb$constraint_type, '+
+              'ind.rdb$index_type '+
             'from '+
               'rdb$index_segments ind_seg, '+
               'rdb$indices ind '+
@@ -1017,6 +1018,7 @@ begin
     Fields := trim(qry.Fields[3].asstring);
     If qry.fields[4].asstring = 'PRIMARY KEY' then options := options + [ixPrimary];
     If qry.fields[2].asinteger = 1 then options := options + [ixUnique];
+    If qry.fields[5].asInteger = 1 then options:=options+[ixDescending];
     qry.next;
     while (name = trim(qry.fields[0].asstring)) and (not qry.eof) do
       begin
