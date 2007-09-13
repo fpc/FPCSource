@@ -15,7 +15,7 @@ connectors are available in the '*toolsunit.pas' files.
 
 Which connector is currently used is dependent on the 'database.ini'
 configuration file. Also some settings which are connector-dependent can be set
-in that file. See 'database.ini' for more information.
+in that file. See 'database.ini.txt' for an example.
 
 I hope this is enough information to get you started,
 
