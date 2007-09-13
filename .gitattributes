@@ -4169,7 +4169,7 @@ packages/fcl-db/src/sqlite/testds.pas svneol=native#text/plain
 packages/fcl-db/tests/Makefile -text
 packages/fcl-db/tests/Makefile.fpc -text
 packages/fcl-db/tests/README.txt svneol=native#text/plain
-packages/fcl-db/tests/database.ini -text
+packages/fcl-db/tests/database.ini.txt svneol=native#text/plain
 packages/fcl-db/tests/dbftoolsunit.pas -text
 packages/fcl-db/tests/dbtestframework.pas -text
 packages/fcl-db/tests/memdstoolsunit.pas svneol=native#text/plain
