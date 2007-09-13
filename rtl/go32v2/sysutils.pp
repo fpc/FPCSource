@@ -503,7 +503,7 @@ VAR S    : String;
     Rec  : ExtendedFat32FreeSpaceRec;
     regs : registers;
 BEGIN
- if (swap(dosversion)>=$070A) AND LFNSupport then
+ if {(swap(dosversion)>=$070A) AND} LFNSupport then
   begin
    DosError:=0;
    S:='C:\'#0;
