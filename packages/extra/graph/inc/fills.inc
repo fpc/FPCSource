@@ -135,7 +135,7 @@ begin
     while (i < nActive) do begin
       if (AET^[i]^.yMax = y) then begin
         dec(nActive);
-        move(AET^[i+1], AET^[i], (nActive-i)*sizeof(pedge));
+        System.move(AET^[i+1], AET^[i], (nActive-i)*sizeof(pedge));
       end else
         inc(i);
     end;
@@ -207,9 +207,9 @@ begin
     inc(y);
     if (y >= ViewHeight) then break;
   end;
-  freemem(et, sizeof(tedge) * numpoints);
-  freemem(get, sizeof(pedge) * numpoints);
-  freemem(aet, sizeof(pedge) * numpoints);
+  System.freemem(et, sizeof(tedge) * numpoints);
+  System.freemem(get, sizeof(pedge) * numpoints);
+  System.freemem(aet, sizeof(pedge) * numpoints);
 end;
 
 
@@ -474,9 +474,9 @@ var
        PatternLine (x1,x2,y);
      End; { end while }
 
-    FreeMem (s1,(ViewWidth+1)*2);
-    FreeMem (s2,(ViewWidth+1)*2);
-    FreeMem (s3,(ViewWidth+1)*2);
+    System.FreeMem (s1,(ViewWidth+1)*2);
+    System.FreeMem (s2,(ViewWidth+1)*2);
+    System.FreeMem (s3,(ViewWidth+1)*2);
     CleanUpDrawnList;
     CurrentColor := BackUpColor;
   End;

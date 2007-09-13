@@ -681,9 +681,6 @@ var
        { restore line thickness }
        LineInfo.Thickness := OldLineWidth;
      End;
-   { Adjust for screen aspect ratio }
-   XRadius:=(longint(XRadius)*10000) div XAspect;
-   YRadius:=(longint(YRadius)*10000) div YAspect;
    If xradius = 0 then inc(xradius);
    if yradius = 0 then inc(yradius);
    { check for an ellipse with negligable x and y radius }
@@ -1392,17 +1389,18 @@ end;
      { save state of arc information }
      { because it is not needed for  }
      { a circle call.                }
-     move(ArcCall,OriginalArcInfo, sizeof(ArcCall));
+     System.move(ArcCall,OriginalArcInfo, sizeof(ArcCall));
      if LineInfo.Thickness = Normwidth then
        begin
              OldWriteMode := CurrentWriteMode;
              CurrentWriteMode := CopyPut;
        end;
-     InternalEllipse(X,Y,Radius,Radius,0,360,{$ifdef fpc}@{$endif}DummyPatternLine);
+     { Adjust for screen aspect ratio }
+     InternalEllipse(X,Y,Radius,(longint(Radius)*XAspect) div YAspect,0,360,{$ifdef fpc}@{$endif}DummyPatternLine);
      if LineInfo.Thickness = Normwidth then
          CurrentWriteMode := OldWriteMode;
      { restore arc information }
-     move(OriginalArcInfo, ArcCall,sizeof(ArcCall));
+     System.move(OriginalArcInfo, ArcCall,sizeof(ArcCall));
  end;
 
  procedure SectorPL(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
@@ -1818,7 +1816,7 @@ end;
      { normal write mode }
      CurrentWriteMode := CopyPut;
 
-     { Schriftart einstellen }
+     { set font style }
      CurrentTextInfo.font := DefaultFont;
      CurrentTextInfo.direction:=HorizDir;
      CurrentTextInfo.charsize:=1;
@@ -2114,7 +2112,7 @@ begin
  { This installs an exit procedure which cleans up the mode list...}
  ExitSave := ExitProc;
  ExitProc := @GraphExitProc;
-{$ifdef win32}
+{$if defined(win32) and not defined(sdlgraph)}
  charmessagehandler:=nil;
-{$endif win32}
+{$endif win32 and not sdlgraph}
 end;

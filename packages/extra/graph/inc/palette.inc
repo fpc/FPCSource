@@ -373,7 +373,7 @@ CONST
 
     procedure GetDefaultPalette(var Palette: PaletteType);
       begin
-        move(DefaultColors, Palette.Colors, sizeof(DefaultColors));
+        System.move(DefaultColors, Palette.Colors, sizeof(DefaultColors));
         { The default palette always has 256 entries, but in reality }
         { it depends on the number of colors possible.               }
         Palette.Size := PaletteSize;
