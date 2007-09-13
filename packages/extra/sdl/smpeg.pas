@@ -126,10 +126,7 @@ unit smpeg;
 }
 {******************************************************************************}
 
-//{$I jedi-sdl.inc}
-
-{$mode delphi}
-{$packrecords C}
+{$I jedi-sdl.inc}
 
 interface
 
@@ -141,7 +138,7 @@ uses
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SmpegLibName = 'smpeg.dll';
 {$ENDIF}
 

@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for SDL bindings
+#
+
+[package]
+name=sdl
+version=1.0.0
+
+[require]
+libc=y
+packages=pthreads x11
+
+[target]
+units=sdl sdl_image sdl_mixer sdl_mixer_nosmpeg sdl_ttf sdl_gfx sdl_net smpeg logger
+units_i386_linux=sdlutils
+units_powerpc_linux=sdlutils
+units_freebsd_i386=sdlutils
+units_win32=sdlutils
+units_powerpc_darwin=sdlutils
+units_i386_darwin=sdlutils
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:
