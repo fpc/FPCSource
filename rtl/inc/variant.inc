@@ -613,6 +613,24 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
     variantmanager.vararrayredim(a,highbound);
   end;
 
+procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of SizeInt);
+  begin
+    if Length(Indices)>0 then 
+      variantmanager.vararrayput(A, Value, Length(Indices), @Indices[0])
+    else
+      variantmanager.vararrayput(A, Value, 0, nil);
+  end;
+
+
+function VarArrayGet(const A: Variant; const Indices: array of SizeInt): Variant;
+  begin
+    if Length(Indices)>0 then 
+      Result:=variantmanager.vararrayget(A, Length(Indices), @Indices[0])
+    else 
+      Result:=variantmanager.vararrayget(A, 0, nil);
+  end;
+  
+ 
 procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 
   begin

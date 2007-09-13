@@ -70,6 +70,8 @@ resourcestring
   SInvalidVarCast        = 'Invalid variant type cast';
   SInvalidVarNullOp      = 'Invalid NULL variant operation';
   SInvalidVarOp          = 'Invalid variant operation';
+  SInvalidBinaryVarOp    = 'Invalid variant operation %s %s %s';
+  SInvalidUnaryVarOp     = 'Invalid variant operation %s %s';
   SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
   SNoError               = 'No error.';
   SNoThreadSupport       = 'Threads not supported. Recompile program with thread driver.';
