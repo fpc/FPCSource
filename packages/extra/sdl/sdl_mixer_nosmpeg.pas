@@ -46,7 +46,7 @@ const
   MIX_MAJOR_VERSION = SDL_MIXER_MAJOR_VERSION;
   MIX_MINOR_VERSION = SDL_MIXER_MINOR_VERSION;
   MIX_PATCHLEVEL    = SDL_MIXER_PATCHLEVEL;
-  
+
   // SDL_Mixer.h constants
   { The default mixer has 8 simultaneous mixing channels }
 {$IFNDEF MIX_CHANNELS}
@@ -230,8 +230,8 @@ type
     //BOOL        extspd;      (* extended speed flag (default enabled) *)
     //BOOL        panflag;     (* panning flag (default enabled) *)
     //BOOL        wrap;        (* wrap module ? (default disabled) *)
-    //BOOL        loop;		 (* allow module to loop ? (default enabled) *)
-    //BOOL        fadeout;	 (* volume fade out during last pattern *)
+    //BOOL        loop;          (* allow module to loop ? (default enabled) *)
+    //BOOL        fadeout;       (* volume fade out during last pattern *)
     //UWORD       patpos;      (* current row number *)
     //SWORD       sngpos;      (* current song position *)
     //ULONG       sngtime;     (* current song time in 2^-10 seconds *)
@@ -579,7 +579,7 @@ const
   function Mix_SetPanning( channel : integer; left : Uint8; right : Uint8  ) : integer;
   cdecl; external {$IFDEF __GPC__}name 'Mix_SetPanning'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
   {$EXTERNALSYM Mix_SetPanning}
-  
+
   { * set the position ofa channel.( angle ) is an integer from 0 to 360, that
     * specifies the location of the sound in relation to the listener.( angle )
     * will be reduced as neccesary( 540 becomes 180 degrees, -100 becomes 260 ).
