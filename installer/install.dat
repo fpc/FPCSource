@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.1.2
-version=2.1.2
+title=Free Pascal Compiler 2.2.0
+version=2.2.0
 
 #
 # General
@@ -58,25 +58,25 @@ package=ufvdos.zip,Free ~V~ision (FV)
 # Dos 15
 package=ugraphdos.zip[ugrphdos.zip],Unit Graph
 # Dos 16
-package=ufclbdos.zip,Free Component Libary (FCL) - base part
+package=ufclbdos.zip,Free Component Libary (FCL)-base part
 # Dos 17
-package=ufclddos.zip,Free Component Libary (FCL) - datasets
+package=ufclddos.zip,Free Component Libary (FCL)-datasets
 # Dos 18
-package=ufcludos.zip,Free Component Libary (FCL) - FPCUnit
+package=ufcludos.zip,Free Component Libary (FCL)-FPCUnit
 # Dos 19
-package=ufclidos.zip,Free Component Libary (FCL) - images
+package=ufclidos.zip,Free Component Libary (FCL)-images
 # Dos 20
-package=ufclndos.zip,Free Component Libary (FCL) - network
+package=ufclndos.zip,Free Component Libary (FCL)-network
 # Dos 21
-package=ufclpdos.zip,Free Component Libary (FCL) - Pascal source processing
+package=ufclpdos.zip,Free Component Libary (FCL)-Pascal source processing
 # Dos 22
-package=ufclrdos.zip,Free Component Libary (FCL) - registry
+package=ufclrdos.zip,Free Component Libary (FCL)-registry
 # Dos 23
-package=ufclxdos.zip,Free Component Libary (FCL) - XML
+package=ufclxdos.zip,Free Component Libary (FCL)-XML
 # Dos 24
-package=ufclwdos.zip,Free Component Libary (FCL) - Web
+package=ufclwdos.zip,Free Component Libary (FCL)-Web
 # Dos 25
-package=ufpmkdos.zip,Units required for building fpmake.exe
+package=ufpmkunitdos.zip[ufpmkdos.zip],Units required for building fpmake.exe
 
 #
 # Win32 packages
@@ -167,23 +167,23 @@ package=units-hash.i386-win32.zip,Hash calculation units
 # Win32-2 13
 package=units-oracle.i386-win32.zip,Oracle interface units
 # Win32-2 14
-package=units-fcl-base.i386-win32.zip,Free Component Libary (FCL) - base part
+package=units-fcl-base.i386-win32.zip,Free Component Libary (FCL)-base part
 # Win32-2 15
-package=units-fcl-db.i386-win32.zip,Free Component Libary (FCL) - datasets
+package=units-fcl-db.i386-win32.zip,Free Component Libary (FCL)-datasets
 # Win32-2 16
-package=units-fcl-fpcunit.i386-win32.zip,Free Component Libary (FCL) - FPCUnit
+package=units-fcl-fpcunit.i386-win32.zip,Free Component Libary (FCL)-FPCUnit
 # Win32-2 17
-package=units-fcl-image.i386-win32.zip,Free Component Libary (FCL) - images
+package=units-fcl-image.i386-win32.zip,Free Component Libary (FCL)-images
 # Win32-2 18
-package=units-fcl-net.i386-win32.zip,Free Component Libary (FCL) - network
+package=units-fcl-net.i386-win32.zip,Free Component Libary (FCL)-network
 # Win32-2 19
-package=units-fcl-passrc.i386-win32.zip,Free Component Libary (FCL) - Pascal sources processing
+package=units-fcl-passrc.i386-win32.zip,Free Component Libary (FCL)-Pascal sources processing
 # Win32-2 20
-package=units-fcl-registry.i386-win32.zip,Free Component Libary (FCL) - registry
+package=units-fcl-registry.i386-win32.zip,Free Component Libary (FCL)-registry
 # Win32-2 21
-package=units-fcl-web.i386-win32.zip,Free Component Libary (FCL) - Web
+package=units-fcl-web.i386-win32.zip,Free Component Libary (FCL)-Web
 # Win32-2 22
-package=units-fcl-xml.i386-win32.zip,Free Component Libary (FCL) - XML
+package=units-fcl-xml.i386-win32.zip,Free Component Libary (FCL)-XML
 
 #
 # OS/2 packages
@@ -219,23 +219,23 @@ package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
 # OS/2 11
 package=uhashos2.zip,Hash calculation units
 # OS/2 12
-package=ufclbos2.zip,Free Component Library (FCL) - base part
+package=ufclbos2.zip,Free Component Library (FCL)-base part
 # OS/2 13
-package=ufcldos2.zip,Free Component Library (FCL) - datasets
+package=ufcldos2.zip,Free Component Library (FCL)-datasets
 # OS/2 14
-package=ufcluos2.zip,Free Component Library (FCL) - FPCUnit
+package=ufcluos2.zip,Free Component Library (FCL)-FPCUnit
 # OS/2 15
-package=ufclios2.zip,Free Component Library (FCL) - images
+package=ufclios2.zip,Free Component Library (FCL)-images
 # OS/2 16
-package=ufclnos2.zip,Free Component Library (FCL) - network
+package=ufclnos2.zip,Free Component Library (FCL)-network
 # OS/2 17
-package=ufclpos2.zip,Free Component Library (FCL) - Pascal sources processing
+package=ufclpos2.zip,Free Component Library (FCL)-Pascal sources processing
 # OS/2 18
-package=ufclros2.zip,Free Component Library (FCL) - registry
+package=ufclros2.zip,Free Component Library (FCL)-registry
 # OS/2 19
-package=ufclxos2.zip,Free Component Library (FCL) - XML
+package=ufclxos2.zip,Free Component Library (FCL)-XML
 # OS/2 20
-#package=ufclwos2.zip,Free Component Library (FCL) - Web
+#package=ufclwos2.zip,Free Component Library (FCL)-Web
 
 
 #
@@ -276,7 +276,7 @@ package=uzlibos2.zip,ZLib interface units
 # OS/2-2 16
 package=unetdbos2.zip[undbos2.zip],NetDB units
 # OS/2-2 17
-package=ufpmkos2.zip,Units required for building fpmake.exe
+package=ufpmkunitos2.zip[ufpmkos2.zip],Units required for building fpmake.exe
 
 
 #
@@ -313,25 +313,23 @@ package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
 # EMX 11
 package=uhashemx.zip,Hash calculation units
 # EMX 12
-package=ufclbos2.zip,Free Component Library (FCL) - base part
+package=ufclbemx.zip,Free Component Library (FCL)-base part
 # EMX 13
-package=ufcldos2.zip,Free Component Library (FCL) - datasets
+package=ufcldemx.zip,Free Component Library (FCL)-datasets
 # EMX 14
-package=ufcluos2.zip,Free Component Library (FCL) - FPCUnit
+package=ufcluemx.zip,Free Component Library (FCL)-FPCUnit
 # EMX 15
-package=ufclios2.zip,Free Component Library (FCL) - images
+package=ufcliemx.zip,Free Component Library (FCL)-images
 # EMX 16
-package=ufclnos2.zip,Free Component Library (FCL) - network
+package=ufclnemx.zip,Free Component Library (FCL)-network
 # EMX 17
-package=ufclpos2.zip,Free Component Library (FCL) - Pascal sources processing
+package=ufclpemx.zip,Free Component Library (FCL)-Pascal sources processing
 # EMX 18
-package=ufclros2.zip,Free Component Library (FCL) - registry
+package=ufclremx.zip,Free Component Library (FCL)-registry
 # EMX 19
-package=ufclxos2.zip,Free Component Library (FCL) - XML
+package=ufclxemx.zip,Free Component Library (FCL)-XML
 # EMX 20
-#package=ufclwos2.zip,Free Component Library (FCL) - Web
-# EMX 21
-package=ufpmkos2.zip,Units required for building fpmake.exe
+#package=ufclwemx.zip,Free Component Library (FCL)-Web
 
 
 #
@@ -371,6 +369,8 @@ package=utclemx.zip,TCL interface units
 package=uzlibemx.zip,ZLib interface units
 # EMX-2 16
 package=unetdbemx.zip[undbemx.zip],NetDB units
+# EMX-2 17
+package=ufpmkunitemx.zip[ufpmkemx.zip],Units required for building fpmake.exe
 
 
 #
@@ -462,6 +462,8 @@ package=units-imlib.source.zip[uimlbsrc.zip],ImLib interface units
 package=units-fpgtk.source.zip[ufpgtsrc.zip],fpGTK units
 # Source-2 16
 package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
+# Source-2 17
+package=units-fpmkunit.source.zip[ufpmksrc.zip],Units required for building fpmake.exe
 
 #
 # Source packages 3rd part
