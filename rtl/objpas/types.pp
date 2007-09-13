@@ -37,6 +37,12 @@ type
   PSmallInt = System.PSmallInt;
   PDouble = System.PDouble;
   PByte = System.PByte;
+  Largeint = int64;
+  LARGE_INT = LargeInt;
+  PLargeInt = ^LargeInt;
+  LargeUint = qword;
+  LARGE_UINT= LargeUInt;
+  PLargeuInt = ^LargeuInt;
 
   TIntegerDynArray = array of Integer;
   TCardinalDynArray = array of Cardinal;
@@ -187,8 +193,6 @@ type
   PCLSID = PGUID;
   TCLSID = TGUID;
 
-  LARGE_INT = Int64;
-  Largeint = LARGE_INT;
   PDWord = ^DWord;
 
   PDisplay = Pointer;
@@ -216,6 +220,9 @@ type
   FILETIME = _FILETIME;
   PFileTime = ^TFileTime;
 
+{$endif Windows}
+
+type
   tagSTATSTG =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
@@ -236,17 +243,19 @@ type
   TStatStg = tagSTATSTG;
   STATSTG = TStatStg;
   PStatStg = ^TStatStg;
-
+  
+  { classes depends on these interfaces, we can't use the activex unit in classes though }  
   IClassFactory = Interface(IUnknown) ['{00000001-0000-0000-C000-000000000046}']
      Function CreateInstance(Const unkOuter : IUnknown;Const riid : TGUID;Out vObject) : HResult;StdCall;
      Function LockServer(fLock : LongBool) : HResult;StdCall;
   End;
 
-  ISequentialStream = interface(IUnknown) ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
-     function Read(pv : Pointer;cb : DWord;pcbRead : PDWord) : HRESULT;stdcall;
-     function Write(pv : Pointer;cb : DWord;pcbWritten : PDWord) : HRESULT;stdcall;
+  ISequentialStream = interface(IUnknown)
+     ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
+     function Read(pv : Pointer;cb : DWORD;pcbRead : PDWORD) : HRESULT;stdcall;
+     function Write(pv : Pointer;cb : DWORD;pcbWritten : PDWORD): HRESULT;stdcall;
   end;
-
+  
   IStream = interface(ISequentialStream) ['{0000000C-0000-0000-C000-000000000046}']
      function Seek(dlibMove : LargeInt; dwOrigin : Longint;
        out libNewPosition : LargeInt) : HResult;stdcall;
@@ -262,7 +271,6 @@ type
      Function Stat(out statstg : TStatStg;grfStatFlag : Longint) : HRESULT;stdcall;
      function Clone(out stm : IStream) : HRESULT;stdcall;
   end;
-{$endif Windows}
 
 function EqualRect(const r1,r2 : TRect) : Boolean;
 function Rect(Left,Top,Right,Bottom : Integer) : TRect;

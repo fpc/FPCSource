@@ -257,6 +257,7 @@ Type
   PQWord              = ^QWord;
   PInt64              = ^Int64;
   PPtrInt             = ^PtrInt;
+  PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
 
   PPointer            = ^Pointer;

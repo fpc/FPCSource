@@ -18,7 +18,6 @@ program example;
 
 uses
   strings,
-  zutil,
   zbase,
   gzio,
   zinflate,
@@ -390,7 +389,7 @@ begin
   err := deflate(c_stream, Z_FULL_FLUSH);
   CHECK_ERR(err, 'deflate');
 
-  Inc(pzByteArray(compr)^[3]); { force an error in first compressed block }
+  Inc(pchar(compr)[3]); { force an error in first compressed block }
   c_stream.avail_in := len - 3;
 
   err := deflate(c_stream, Z_FINISH);

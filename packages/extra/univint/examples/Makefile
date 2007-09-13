@@ -231,316 +231,316 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_PROGRAMS+=mod_example  mod_hello  mod_spelling  testmodule
+override TARGET_PROGRAMS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=minimain
+override CLEAN_UNITS+=controldemo
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -738,37 +738,6 @@ endif
 endif
 else
 CROSSBINDIR=
-endif
-ifeq ($(OS_SOURCE),linux)
-ifndef GCCLIBDIR
-ifeq ($(CPU_TARGET),i386)
-ifneq ($(findstring x86_64,$(shell uname -a)),)
-ifeq ($(BINUTILSPREFIX),)
-GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
-endif
-endif
-endif
-ifeq ($(CPU_TARGET),powerpc64)
-ifeq ($(BINUTILSPREFIX),)
-GCCLIBDIR:=$(shell dirname `gcc -m64 -print-libgcc-file-name`)
-endif
-endif
-endif
-ifndef GCCLIBDIR
-CROSSGCC=$(strip $(wildcard $(addsuffix /$(BINUTILSPREFIX)gcc$(SRCEXEEXT),$(SEARCHPATH))))
-ifneq ($(CROSSGCC),)
-GCCLIBDIR:=$(shell dirname `$(CROSSGCC) -print-libgcc-file-name`)
-endif
-endif
-ifndef OTHERLIBDIR
-OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
-endif
-endif
-ifdef inUnix
-ifeq ($(OS_SOURCE),netbsd)
-OTHERLIBDIR+=/usr/pkg/lib
-endif
-export GCCLIBDIR OTHERLIB
 endif
 BATCHEXT=.bat
 LOADEREXT=.as
@@ -1321,214 +1290,214 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl httpd/httpd-2.2
+override REQUIRE_PACKAGES=rtl univint
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_HTTPD/HTTPD-2.2=1
+REQUIRE_PACKAGES_UNIVINT=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -1556,30 +1525,30 @@ ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
 endif
 endif
-ifdef REQUIRE_PACKAGES_HTTPD/HTTPD-2.2
-PACKAGEDIR_HTTPD/HTTPD-2.2:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /httpd/httpd-2.2/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_HTTPD/HTTPD-2.2),)
-ifneq ($(wildcard $(PACKAGEDIR_HTTPD/HTTPD-2.2)/units/$(TARGETSUFFIX)),)
-UNITDIR_HTTPD/HTTPD-2.2=$(PACKAGEDIR_HTTPD/HTTPD-2.2)/units/$(TARGETSUFFIX)
+ifdef REQUIRE_PACKAGES_UNIVINT
+PACKAGEDIR_UNIVINT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /univint/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_UNIVINT),)
+ifneq ($(wildcard $(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)),)
+UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)
 else
-UNITDIR_HTTPD/HTTPD-2.2=$(PACKAGEDIR_HTTPD/HTTPD-2.2)
+UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)
 endif
 ifdef CHECKDEPEND
-$(PACKAGEDIR_HTTPD/HTTPD-2.2)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_HTTPD/HTTPD-2.2) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_HTTPD/HTTPD-2.2)/$(FPCMADE)
+$(PACKAGEDIR_UNIVINT)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_UNIVINT) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_UNIVINT)/$(FPCMADE)
 endif
 else
-PACKAGEDIR_HTTPD/HTTPD-2.2=
-UNITDIR_HTTPD/HTTPD-2.2:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /httpd/httpd-2.2/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_HTTPD/HTTPD-2.2),)
-UNITDIR_HTTPD/HTTPD-2.2:=$(firstword $(UNITDIR_HTTPD/HTTPD-2.2))
+PACKAGEDIR_UNIVINT=
+UNITDIR_UNIVINT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /univint/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_UNIVINT),)
+UNITDIR_UNIVINT:=$(firstword $(UNITDIR_UNIVINT))
 else
-UNITDIR_HTTPD/HTTPD-2.2=
+UNITDIR_UNIVINT=
 endif
 endif
-ifdef UNITDIR_HTTPD/HTTPD-2.2
-override COMPILER_UNITDIR+=$(UNITDIR_HTTPD/HTTPD-2.2)
+ifdef UNITDIR_UNIVINT
+override COMPILER_UNITDIR+=$(UNITDIR_UNIVINT)
 endif
 endif
 ifndef NOCPUDEF
@@ -1701,12 +1670,6 @@ endif
 endif
 ifdef LINKSHARED
 endif
-ifdef GCCLIBDIR
-override FPCOPT+=-Fl$(GCCLIBDIR)
-endif
-ifdef OTHERLIBDIR
-override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
-endif
 ifdef OPT
 override FPCOPT+=$(OPT)
 endif
@@ -1737,15 +1700,6 @@ ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
-.PHONY: fpc_units
-ifneq ($(TARGET_UNITS),)
-override ALLTARGET+=fpc_units
-override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
-override IMPLICITUNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_IMPLICITUNITS))
-override INSTALLPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-override CLEANPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-endif
-fpc_units: $(COMPILER_UNITTARGETDIR) $(UNITPPUFILES)
 .PHONY: fpc_exes
 ifndef CROSSINSTALL
 ifneq ($(TARGET_PROGRAMS),)

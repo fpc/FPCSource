@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for Free Pascal Universal Interfaces Examples
+#
+
+[target]
+dirs=
+programs=controldemo
+
+[require]
+packages=univint
+
+[clean]
+units=controldemo
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:

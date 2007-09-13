@@ -21,23 +21,26 @@ interface
 {$PACKRECORDS C}
 
 {$ifdef BSD}
-Uses BaseUnix, unixtype;
+uses initc,BaseUnix, unixtype;
 {$i pthrbsd.inc}
 {$else}
+ {$ifdef linux}
+ uses initc,unixtype;
+ {$i pthrlinux.inc}
+ {$else}
 
-{$ifdef linux}
-uses unixtype;
-{$i pthrlinux.inc}
-{$else}
-
-{$ifdef sunos}
-uses
-  unixtype;
-{$i pthrsnos.inc}
-{$else}
-
-{$endif}
-{$endif}
+  {$ifdef sunos}
+  uses initc,unixtype;
+  {$i pthrsnos.inc}
+  {$else}
+   {$ifdef beos}
+   uses initc, baseunix, unixtype;
+   {$i pthrbeos.inc}
+   {$else}
+    {$error operating system not detected}
+   {$endif}
+  {$endif}
+ {$endif}
 {$endif}
 
 implementation
