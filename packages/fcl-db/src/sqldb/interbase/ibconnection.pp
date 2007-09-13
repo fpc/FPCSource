@@ -531,6 +531,16 @@ begin
       {$R-}
       for x := 0 to in_SQLDA^.SQLD - 1 do with in_SQLDA^.SQLVar[x] do
         begin
+
+        if (AParams[ParamBinding[x]].DataType = ftString) and (
+          ((SQLType and not 1) = SQL_LONG)
+          or ((SQLType and not 1) = SQL_DATE)
+          or ((SQLType and not 1) = SQL_TIMESTAMP)
+          or ((SQLType and not 1) = SQL_TYPE_DATE)
+          ) then
+          SQLType := SQL_VARYING;
+
+
         if ((SQLType and not 1) = SQL_VARYING) then
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen+2)
         else
@@ -752,7 +762,7 @@ begin
           end;
         ftDate, ftTime, ftDateTime:
           SetDateTime(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsDateTime, in_SQLDA^.SQLVar[SQLVarNr].SQLType);
-        ftLargeInt:
+        ftLargeInt, ftSmallint:
           begin
           li := AParams[ParNr].AsLargeInt;
           Move(li, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
