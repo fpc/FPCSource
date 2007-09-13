@@ -75,6 +75,8 @@ package=ufclrdos.zip,Free Component Libary (FCL) - registry
 package=ufclxdos.zip,Free Component Libary (FCL) - XML
 # Dos 24
 package=ufclwdos.zip,Free Component Libary (FCL) - Web
+# Dos 25
+package=ufpmkdos.zip,Units required for building fpmake.exe
 
 #
 # Win32 packages
@@ -273,6 +275,8 @@ package=utclos2.zip,TCL interface units
 package=uzlibos2.zip,ZLib interface units
 # OS/2-2 16
 package=unetdbos2.zip[undbos2.zip],NetDB units
+# OS/2-2 17
+package=ufpmkos2.zip,Units required for building fpmake.exe
 
 
 #
@@ -326,6 +330,8 @@ package=ufclros2.zip,Free Component Library (FCL) - registry
 package=ufclxos2.zip,Free Component Library (FCL) - XML
 # EMX 20
 #package=ufclwos2.zip,Free Component Library (FCL) - Web
+# EMX 21
+package=ufpmkos2.zip,Units required for building fpmake.exe
 
 
 #
