@@ -50,11 +50,14 @@ interface
       TCachedDirectory = class(TFPHashObject)
       private
         FDirectoryEntries : TFPHashList;
+        procedure FreeDirectoryEntries;
+        function GetItemAttr(const AName: TCmdStr): byte;
       public
         constructor Create(AList:TFPHashObjectList;const AName:TCmdStr);
         destructor  destroy;override;
         procedure Reload;
         function FileExists(const AName:TCmdStr):boolean;
+        function FileExistsCaseAware(const AName:TCmdStr; out FoundName: TCmdStr):boolean;
         function DirectoryExists(const AName:TCmdStr):boolean;
         property DirectoryEntries:TFPHashList read FDirectoryEntries;
       end;
@@ -67,6 +70,12 @@ interface
         EntryIndex : longint;
       end;
 
+      PCachedDirectoryEntry =  ^TCachedDirectoryEntry;
+      TCachedDirectoryEntry = record
+        RealName: TCmdStr;
+        Attr    : byte;
+      end;
+
       TDirectoryCache = class
       private
         FDirectories : TFPHashObjectList;
@@ -75,6 +84,7 @@ interface
         constructor Create;
         destructor  destroy;override;
         function FileExists(const AName:TCmdStr):boolean;
+        function FileExistsCaseAware(const AName:TCmdStr; out FoundName: TCmdStr):boolean;
         function DirectoryExists(const AName:TCmdStr):boolean;
         function FindFirst(const APattern:TCmdStr;var Res:TCachedSearchRec):boolean;
         function FindNext(var Res:TCachedSearchRec):boolean;
@@ -136,29 +146,67 @@ implementation
 
     destructor TCachedDirectory.destroy;
       begin
+        FreeDirectoryEntries;
         FDirectoryEntries.Free;
         inherited destroy;
       end;
 
 
+    procedure TCachedDirectory.FreeDirectoryEntries;
+      var
+        i: Integer;
+      begin
+        if not(tf_files_case_aware in source_info.flags) then
+          exit;
+        for i := 0 to DirectoryEntries.Count-1 do
+          dispose(PCachedDirectoryEntry(DirectoryEntries[i]));
+      end;
+
+
+    function TCachedDirectory.GetItemAttr(const AName: TCmdStr): byte;
+      var
+        entry: PCachedDirectoryEntry;
+      begin
+        if not(tf_files_case_sensitive in source_info.flags) then
+          if (tf_files_case_aware in source_info.flags) then
+            begin
+              entry:=PCachedDirectoryEntry(DirectoryEntries.Find(Lower(AName)));
+              if assigned(entry) then
+                Result:=entry^.Attr
+              else 
+                Result:=0;
+            end
+          else
+            Result:=PtrUInt(DirectoryEntries.Find(Lower(AName)))
+        else
+          Result:=PtrUInt(DirectoryEntries.Find(AName));
+      end;
+
+
     procedure TCachedDirectory.Reload;
       var
-        dir  : TSearchRec;
+        dir   : TSearchRec;
+        entry : PCachedDirectoryEntry;
       begin
+        FreeDirectoryEntries;
         DirectoryEntries.Clear;
         if findfirst(IncludeTrailingPathDelimiter(Name)+'*',faAnyFile or faDirectory,dir) = 0 then
           begin
             repeat
               if ((dir.attr and faDirectory)<>faDirectory) or
-                 (dir.Name<>'.') or
-                 (dir.Name<>'..') then
+                 ((dir.Name<>'.') and
+                  (dir.Name<>'..')) then
                 begin
-                  { Force Archive bit so the attribute always has a value. This is needed
-                    to be able to see the difference in the directoryentries lookup if a file
-                    exists or not }
-                  Dir.Attr:=Dir.Attr or faArchive;
                   if not(tf_files_case_sensitive in source_info.flags) then
-                    DirectoryEntries.Add(Lower(Dir.Name),Pointer(Ptrint(Dir.Attr)))
+                    if (tf_files_case_aware in source_info.flags) then
+                      begin
+                        new(entry);
+                        entry^.RealName:=Dir.Name;
+                        entry^.Attr:=Dir.Attr;
+                        DirectoryEntries.Add(Lower(Dir.Name),entry)
+                      end
+                    else
+                      DirectoryEntries.Add(Lower(Dir.Name),Pointer(Ptrint(Dir.Attr)))
                   else
                     DirectoryEntries.Add(Dir.Name,Pointer(Ptrint(Dir.Attr)));
                 end;
@@ -172,10 +220,7 @@ implementation
       var
         Attr : Longint;
       begin
-        if not(tf_files_case_sensitive in source_info.flags) then
-          Attr:=PtrInt(DirectoryEntries.Find(Lower(AName)))
-        else
-          Attr:=PtrInt(DirectoryEntries.Find(AName));
+        Attr:=GetItemAttr(AName);
         if Attr<>0 then
           Result:=((Attr and faDirectory)=0)
         else
@@ -183,14 +228,37 @@ implementation
       end;
 
 
+    function TCachedDirectory.FileExistsCaseAware(const AName:TCmdStr; out FoundName: TCmdStr):boolean;
+      var
+        entry : PCachedDirectoryEntry;
+        Attr  : Longint;
+      begin
+        if (tf_files_case_aware in source_info.flags) then
+          begin
+            entry:=PCachedDirectoryEntry(DirectoryEntries.Find(Lower(AName)));
+            if assigned(entry) then
+              begin
+                Attr:=entry^.Attr;
+                FoundName:=entry^.RealName
+              end
+            else 
+              Attr:=0;
+            if Attr<>0 then
+              Result:=((Attr and faDirectory)=0)
+            else
+              Result:=false
+          end
+        else
+          { should not be called in this case, use plain FileExists }
+          Result:=False;
+      end;
+
+
     function TCachedDirectory.DirectoryExists(const AName:TCmdStr):boolean;
       var
         Attr : Longint;
       begin
-        if not(tf_files_case_sensitive in source_info.flags) then
-          Attr:=PtrInt(DirectoryEntries.Find(Lower(AName)))
-        else
-          Attr:=PtrInt(DirectoryEntries.Find(AName));
+        Attr:=GetItemAttr(AName);
         if Attr<>0 then
           Result:=((Attr and faDirectory)=faDirectory)
         else
@@ -246,6 +314,21 @@ implementation
       end;
 
 
+    function TDirectoryCache.FileExistsCaseAware(const AName:TCmdStr; out FoundName:TCmdStr):boolean;
+      var
+        CachedDir : TCachedDirectory;
+      begin
+        Result:=false;
+        CachedDir:=GetDirectory(ExtractFileDir(AName));
+        if assigned(CachedDir) then
+          begin
+            Result:=CachedDir.FileExistsCaseAware(ExtractFileName(AName),FoundName);
+            if Result then
+              FoundName:=ExtractFilePath(AName)+FoundName;
+          end;
+      end;
+
+
     function TDirectoryCache.DirectoryExists(const AName:TCmdStr):boolean;
       var
         CachedDir : TCachedDirectory;
@@ -270,11 +353,22 @@ implementation
 
 
     function TDirectoryCache.FindNext(var Res:TCachedSearchRec):boolean;
+      var
+        entry: PCachedDirectoryEntry;
       begin
         if Res.EntryIndex<Res.CachedDir.DirectoryEntries.Count then
           begin
-            Res.Name:=Res.CachedDir.DirectoryEntries.NameOfIndex(Res.EntryIndex);
-            Res.Attr:=PtrInt(Res.CachedDir.DirectoryEntries[Res.EntryIndex]);
+            if (tf_files_case_aware in source_info.flags) then
+              begin
+                entry:=Res.CachedDir.DirectoryEntries[Res.EntryIndex];
+                Res.Name:=entry^.RealName;
+                Res.Attr:=entry^.Attr;
+              end
+            else
+              begin
+                Res.Name:=Res.CachedDir.DirectoryEntries.NameOfIndex(Res.EntryIndex);
+                Res.Attr:=PtrUInt(Res.CachedDir.DirectoryEntries[Res.EntryIndex]);
+              end;
             inc(Res.EntryIndex);
             Result:=true;
           end
@@ -422,11 +516,24 @@ implementation
                  1. NormalCase
               }
               FoundFile:=path+fn;
-              If FileExists(FoundFile,allowcache) then
-               begin
-                 result:=true;
-                 exit;
-               end;
+{$ifdef usedircache}
+              if allowcache then
+                begin
+                  result:=DirCache.FileExistsCaseAware(FoundFile,fn2);
+                  if result then
+                    begin
+                      FoundFile:=fn2;
+                      exit;
+                    end;
+                end
+              else
+{$endif usedircache}
+                If FileExists(FoundFile,allowcache) then
+                  begin
+                    { don't know the real name in this case }
+                    result:=true;
+                    exit;
+                 end;
            end
         else
           begin
@@ -1007,7 +1114,7 @@ implementation
              while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
               inc(pc);
              SetLength(singlepathstring, pc-startpc);
-             move(startpc^,singlepathstring[1],pc-startpc);
+             move(startpc^,singlepathstring[1],pc-startpc);            
              singlepathstring:=FixPath(ExpandFileName(singlepathstring),false);
              result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
              if result then
