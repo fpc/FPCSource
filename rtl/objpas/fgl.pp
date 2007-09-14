@@ -685,10 +685,11 @@ function TFPSMap.GetKeyData(AKey: Pointer): Pointer;
 var
   I: Integer;
 begin
-  if Find(AKey, I) then
+  I := IndexOf(AKey);
+  if I >= 0 then
     Result := InternalItems[I]
   else
-    Result := nil;
+    Error(SMapKeyError, PtrInt(AKey));
 end;
 
 procedure TFPSMap.InitOnPtrCompare;
@@ -712,7 +713,8 @@ procedure TFPSMap.PutKeyData(AKey: Pointer; NewData: Pointer);
 var
   I: Integer;
 begin
-  if Find(AKey, I) then
+  I := IndexOf(AKey);
+  if I >= 0 then
     Data[I] := NewData
   else
     Add(AKey, NewData);
@@ -736,7 +738,7 @@ begin
       end;
   end else
     Result := Count;
-  CopyKey(AKey, Insert(Result));
+  CopyKey(AKey, inherited Insert(Result));
 end;
 
 function TFPSMap.Add(AKey, AData: Pointer): Integer;
@@ -841,10 +843,9 @@ end;
 
 function TFPSMap.Remove(AKey: Pointer): Integer;
 begin
-  if Find(AKey, Result) then
-    Delete(Result)
-  else
-    Result := -1;
+  Result := IndexOf(AKey);
+  if Result >= 0 then
+    Delete(Result);
 end;
 
 procedure TFPSMap.Sort;
