@@ -51,29 +51,31 @@ package=uunzipdos.zip[uzipdos.zip],Unzip units
 package=unetdbdos.zip[undbdos.zip],NetDB units
 # Dos 12
 package=upasjpegdos.zip[upjpdos.zip],Pas~J~PEG units
-# Dos 13
+
+pack=Dos/Go32v2 ~2~
+# Dos 2-1
 package=uhashdos.zip,Hash calculation units
-# Dos 14
+# Dos 2-2
 package=ufvdos.zip,Free ~V~ision (FV)
-# Dos 15
+# Dos 2-3
 package=ugraphdos.zip[ugrphdos.zip],Unit Graph
-# Dos 16
+# Dos 2-4
 package=ufclbdos.zip,Free Component Libary (FCL) - base part
-# Dos 17
+# Dos 2-5
 package=ufclddos.zip,Free Component Libary (FCL) - datasets
-# Dos 18
+# Dos 2-6
 package=ufcludos.zip,Free Component Libary (FCL) - FPCUnit
-# Dos 19
+# Dos 2-7
 package=ufclidos.zip,Free Component Libary (FCL) - images
-# Dos 20
+# Dos 2-8
 package=ufclndos.zip,Free Component Libary (FCL) - network
-# Dos 21
+# Dos 2-9
 package=ufclpdos.zip,Free Component Libary (FCL) - Pascal source processing
-# Dos 22
+# Dos 2-10
 package=ufclrdos.zip,Free Component Libary (FCL) - registry
-# Dos 23
+# Dos 2-11
 package=ufclxdos.zip,Free Component Libary (FCL) - XML
-# Dos 24
+# Dos 2-12
 package=ufclwdos.zip,Free Component Libary (FCL) - Web
 
 #
