@@ -1244,9 +1244,8 @@ function GlobalLockPtr(lp:pointer):Pointer;
 function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
 function GlobalPtrHandle(lp:pointer):Pointer;
 function SetLayeredWindowAttributes(HWND:hwnd;crKey :COLORREF;bAlpha : byte;dwFlags : DWORD):WINBOOL; external 'user32' name 'SetLayeredWindowAttributes';
-
-
-
+function SignalObjectAndWait( hObjectToSignal:THANDLE;  hObjectToWaitOn:THANDLE ;dwMilliseconds:  DWORD ;bAlertable:BOOL):DWORD; external 'kernel32' name 'SignalObjectAndWait';
+function CancelWaitableTimer(hTimer:THandle):BOOL; external 'kernel32' name 'CancelWaitableTimer';
 {$endif read_interface}
 
 

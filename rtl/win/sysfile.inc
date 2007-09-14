@@ -53,7 +53,7 @@ begin
       errno:=GetLastError;
       if errno=5 then
        begin
-         if (GetFileAttributes(p)=FILE_ATTRIBUTE_DIRECTORY) then
+         if ((GetFileAttributes(p) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
           errno:=2;
        end;
       Errno2InoutRes;

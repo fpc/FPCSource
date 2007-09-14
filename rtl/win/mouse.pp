@@ -106,8 +106,8 @@ begin
   mode:=mode or ENABLE_MOUSE_INPUT;
   SetConsoleMode(StdInputHandle,mode);
 
-  PendingMouseHead:=@PendingMouseEvent;
-  PendingMouseTail:=@PendingMouseEvent;
+  PendingMouseHead:=@PendingMouseEvent[0];
+  PendingMouseTail:=@PendingMouseEvent[0];
   PendingMouseEvents:=0;
   FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
   InitializeCriticalSection(ChangeMouseEvents);
@@ -159,7 +159,7 @@ begin
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
   if ptrint(PendingMouseHead)=ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-   PendingMouseHead:=@PendingMouseEvent;
+   PendingMouseHead:=@PendingMouseEvent[0];
   dec(PendingMouseEvents);
 
   { LastMouseEvent is already set at the end of the mouse event handler,
@@ -205,7 +205,7 @@ begin
      PendingMouseTail^:=MouseEvent;
      inc(PendingMouseTail);
      if ptrint(PendingMouseTail)=ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-      PendingMouseTail:=@PendingMouseEvent;
+      PendingMouseTail:=@PendingMouseEvent[0];
       { why isn't this done here ?
         so the win32 version do this by hand:}
        inc(PendingMouseEvents);

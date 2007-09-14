@@ -5992,23 +5992,21 @@
      PSYSTEMAUDITACE = ^SYSTEM_AUDIT_ACE;
 
      SYSTEM_INFO = record
-          u : record
               case longint of
-                 0 : ( dwOemId : DWORD );
-                 1 : ( s : record
+                 0 : ( dwOemId : DWORD;
+		       dwPageSize : DWORD;
+          	       lpMinimumApplicationAddress : LPVOID;
+          	       lpMaximumApplicationAddress : LPVOID;
+          	       dwActiveProcessorMask : DWORD;
+          	       dwNumberOfProcessors : DWORD;
+                       dwProcessorType : DWORD;
+                       dwAllocationGranularity : DWORD;
+                       wProcessorLevel : WORD;
+                       wProcessorRevision : WORD;	
+			 );
+                 1 : ( 
                       wProcessorArchitecture : WORD;
-                      wReserved : WORD;
-                   end );
-              end;
-          dwPageSize : DWORD;
-          lpMinimumApplicationAddress : LPVOID;
-          lpMaximumApplicationAddress : LPVOID;
-          dwActiveProcessorMask : DWORD;
-          dwNumberOfProcessors : DWORD;
-          dwProcessorType : DWORD;
-          dwAllocationGranularity : DWORD;
-          wProcessorLevel : WORD;
-          wProcessorRevision : WORD;
+                    );
        end;
      LPSYSTEM_INFO = ^SYSTEM_INFO;
      _SYSTEM_INFO = SYSTEM_INFO;
@@ -6992,6 +6990,220 @@ type
     dwHoverTime : DWORD;
   end;
   PTrackMouseEvent = ^TTrackMouseEvent;
+
+
+// File header format.
+//
+
+  PIMAGE_FILE_HEADER = ^IMAGE_FILE_HEADER;
+  _IMAGE_FILE_HEADER = record
+    Machine: WORD;
+    NumberOfSections: WORD;
+    TimeDateStamp: DWORD;
+    PointerToSymbolTable: DWORD;
+    NumberOfSymbols: DWORD;
+    SizeOfOptionalHeader: WORD;
+    Characteristics: WORD;
+  end;
+  IMAGE_FILE_HEADER = _IMAGE_FILE_HEADER;
+  TImageFileHeader = IMAGE_FILE_HEADER;
+  PImageFileHeader = PIMAGE_FILE_HEADER;
+
+
+//
+// Debug Format
+//
+
+type
+  PIMAGE_DEBUG_DIRECTORY = ^IMAGE_DEBUG_DIRECTORY;
+  _IMAGE_DEBUG_DIRECTORY = record
+    Characteristics: DWORD;
+    TimeDateStamp: DWORD;
+    MajorVersion: Word;
+    MinorVersion: Word;
+    Type_: DWORD;
+    SizeOfData: DWORD;
+    AddressOfRawData: DWORD;
+    PointerToRawData: DWORD;
+  end;
+  IMAGE_DEBUG_DIRECTORY = _IMAGE_DEBUG_DIRECTORY;
+  TImageDebugDirectory = IMAGE_DEBUG_DIRECTORY;
+  PImageDebugDirectory = PIMAGE_DEBUG_DIRECTORY;
+
+//
+// Optional header format.
+//
+
+type
+  PIMAGE_DATA_DIRECTORY = ^IMAGE_DATA_DIRECTORY;
+  _IMAGE_DATA_DIRECTORY = record
+    VirtualAddress: DWORD;
+    Size: DWORD;
+  end;
+  IMAGE_DATA_DIRECTORY = _IMAGE_DATA_DIRECTORY;
+  TImageDataDirectory = IMAGE_DATA_DIRECTORY;
+  PImageDataDirectory = PIMAGE_DATA_DIRECTORY;
+
+const
+  IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16;
+
+type
+  PIMAGE_OPTIONAL_HEADER32 = ^IMAGE_OPTIONAL_HEADER32;
+  _IMAGE_OPTIONAL_HEADER = record
+    //
+    // Standard fields.
+    //
+    Magic: Word;
+    MajorLinkerVersion: Byte;
+    MinorLinkerVersion: Byte;
+    SizeOfCode: DWORD;
+    SizeOfInitializedData: DWORD;
+    SizeOfUninitializedData: DWORD;
+    AddressOfEntryPoint: DWORD;
+    BaseOfCode: DWORD;
+    BaseOfData: DWORD;
+    //
+    // NT additional fields.
+    //
+    ImageBase: DWORD;
+    SectionAlignment: DWORD;
+    FileAlignment: DWORD;
+    MajorOperatingSystemVersion: Word;
+    MinorOperatingSystemVersion: Word;
+    MajorImageVersion: Word;
+    MinorImageVersion: Word;
+    MajorSubsystemVersion: Word;
+    MinorSubsystemVersion: Word;
+    Win32VersionValue: DWORD;
+    SizeOfImage: DWORD;
+    SizeOfHeaders: DWORD;
+    CheckSum: DWORD;
+    Subsystem: Word;
+    DllCharacteristics: Word;
+    SizeOfStackReserve: DWORD;
+    SizeOfStackCommit: DWORD;
+    SizeOfHeapReserve: DWORD;
+    SizeOfHeapCommit: DWORD;
+    LoaderFlags: DWORD;
+    NumberOfRvaAndSizes: DWORD;
+    DataDirectory: array [0..IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1] of IMAGE_DATA_DIRECTORY;
+  end;
+  IMAGE_OPTIONAL_HEADER32 = _IMAGE_OPTIONAL_HEADER;
+  TImageOptionalHeader32 = IMAGE_OPTIONAL_HEADER32;
+  PImageOptionalHeader32 = PIMAGE_OPTIONAL_HEADER32;
+
+  PIMAGE_ROM_OPTIONAL_HEADER = ^IMAGE_ROM_OPTIONAL_HEADER;
+  _IMAGE_ROM_OPTIONAL_HEADER = record
+    Magic: Word;
+    MajorLinkerVersion: Byte;
+    MinorLinkerVersion: Byte;
+    SizeOfCode: DWORD;
+    SizeOfInitializedData: DWORD;
+    SizeOfUninitializedData: DWORD;
+    AddressOfEntryPoint: DWORD;
+    BaseOfCode: DWORD;
+    BaseOfData: DWORD;
+    BaseOfBss: DWORD;
+    GprMask: DWORD;
+    CprMask: array [0..3] of DWORD;
+    GpValue: DWORD;
+  end;
+  IMAGE_ROM_OPTIONAL_HEADER = _IMAGE_ROM_OPTIONAL_HEADER;
+  TImageRomOptionalHeader = IMAGE_ROM_OPTIONAL_HEADER;
+  PImageRomOptionalHeader = PIMAGE_ROM_OPTIONAL_HEADER;
+
+  PIMAGE_OPTIONAL_HEADER64 = ^IMAGE_OPTIONAL_HEADER64;
+  _IMAGE_OPTIONAL_HEADER64 = record
+    Magic: Word;
+    MajorLinkerVersion: Byte;
+    MinorLinkerVersion: Byte;
+    SizeOfCode: DWORD;
+    SizeOfInitializedData: DWORD;
+    SizeOfUninitializedData: DWORD;
+    AddressOfEntryPoint: DWORD;
+    BaseOfCode: DWORD;
+    ImageBase: Int64;
+    SectionAlignment: DWORD;
+    FileAlignment: DWORD;
+    MajorOperatingSystemVersion: Word;
+    MinorOperatingSystemVersion: Word;
+    MajorImageVersion: Word;
+    MinorImageVersion: Word;
+    MajorSubsystemVersion: Word;
+    MinorSubsystemVersion: Word;
+    Win32VersionValue: DWORD;
+    SizeOfImage: DWORD;
+    SizeOfHeaders: DWORD;
+    CheckSum: DWORD;
+    Subsystem: Word;
+    DllCharacteristics: Word;
+    SizeOfStackReserve: Int64;
+    SizeOfStackCommit: Int64;
+    SizeOfHeapReserve: Int64;
+    SizeOfHeapCommit: Int64;
+    LoaderFlags: DWORD;
+    NumberOfRvaAndSizes: DWORD;
+    DataDirectory: array [0..IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1] of IMAGE_DATA_DIRECTORY;
+  end;
+  IMAGE_OPTIONAL_HEADER64 = _IMAGE_OPTIONAL_HEADER64;
+  TImageOptionalHeader64 = IMAGE_OPTIONAL_HEADER64;
+  PImageOptionalHeader64 = PIMAGE_OPTIONAL_HEADER64;
+
+const
+  IMAGE_SIZEOF_ROM_OPTIONAL_HEADER  = 56;
+  IMAGE_SIZEOF_STD_OPTIONAL_HEADER  = 28;
+  IMAGE_SIZEOF_NT_OPTIONAL32_HEADER = 224;
+  IMAGE_SIZEOF_NT_OPTIONAL64_HEADER = 240;
+
+  IMAGE_NT_OPTIONAL_HDR32_MAGIC = $10b;
+  IMAGE_NT_OPTIONAL_HDR64_MAGIC = $20b;
+  IMAGE_ROM_OPTIONAL_HDR_MAGIC  = $107;
+
+type
+  IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER32;
+  PIMAGE_OPTIONAL_HEADER = PIMAGE_OPTIONAL_HEADER32;
+  TImageOptionalHeader = IMAGE_OPTIONAL_HEADER;
+  PImageOptionalHeader = PIMAGE_OPTIONAL_HEADER;
+
+const
+  IMAGE_SIZEOF_NT_OPTIONAL_HEADER = IMAGE_SIZEOF_NT_OPTIONAL32_HEADER;
+  IMAGE_NT_OPTIONAL_HDR_MAGIC     = IMAGE_NT_OPTIONAL_HDR32_MAGIC;
+
+type
+  PIMAGE_NT_HEADERS64 = ^IMAGE_NT_HEADERS64;
+  _IMAGE_NT_HEADERS64 = record
+    Signature: DWORD;
+    FileHeader: IMAGE_FILE_HEADER;
+    OptionalHeader: IMAGE_OPTIONAL_HEADER64;
+  end;
+  IMAGE_NT_HEADERS64 = _IMAGE_NT_HEADERS64;
+  TImageNtHeaders64 = IMAGE_NT_HEADERS64;
+  PImageNtHeaders64 = PIMAGE_NT_HEADERS64;
+
+  PIMAGE_NT_HEADERS32 = ^IMAGE_NT_HEADERS32;
+  _IMAGE_NT_HEADERS = record
+    Signature: DWORD;
+    FileHeader: IMAGE_FILE_HEADER;
+    OptionalHeader: IMAGE_OPTIONAL_HEADER32;
+  end;
+  IMAGE_NT_HEADERS32 = _IMAGE_NT_HEADERS;
+  TImageNtHeaders32 = IMAGE_NT_HEADERS32;
+  PImageNtHeaders32 = PIMAGE_NT_HEADERS32;
+
+  PIMAGE_ROM_HEADERS = ^IMAGE_ROM_HEADERS;
+  _IMAGE_ROM_HEADERS = record
+    FileHeader: IMAGE_FILE_HEADER;
+    OptionalHeader: IMAGE_ROM_OPTIONAL_HEADER;
+  end;
+  IMAGE_ROM_HEADERS = _IMAGE_ROM_HEADERS;
+  TImageRomHeaders = IMAGE_ROM_HEADERS;
+  PImageRomHeaders = PIMAGE_ROM_HEADERS;
+
+  IMAGE_NT_HEADERS = IMAGE_NT_HEADERS32;
+  PIMAGE_NT_HEADERS = PIMAGE_NT_HEADERS32;
+
+  TImageNtHeaders = IMAGE_NT_HEADERS32;
+  PImageNtHeaders = PIMAGE_NT_HEADERS;
 
   _GET_FILEEX_INFO_LEVELS = (GetFileExInfoStandard, GetFileExMaxInfoLevel);
   GET_FILEEX_INFO_LEVELS = _GET_FILEEX_INFO_LEVELS;

@@ -54,7 +54,7 @@ const
   StdErrorHandle  : THandle = 0;
 
   FileNameCaseSensitive : boolean = true;
-  CtrlZMarksEOF: boolean = true; (* #26 not considered as end of file *)
+  CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;

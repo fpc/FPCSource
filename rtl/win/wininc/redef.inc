@@ -68,11 +68,20 @@ type
      palPalEntry   : array[Byte] of TPaletteEntry;
   end;
   PMaxLogPalette = ^TMaxLogPalette;
-  
+
   POSVersionInfoA = POSVERSIONINFO;
-  
+
   TBitmapFileHeader = BITMAPFILEHEADER;
   PBitmapFileHeader = ^TBitmapFileHeader;
+
+  TOwnerDrawState = set of (
+    odSelected,odGrayed,odDisabled,odChecked,
+    odFocused,odDefault,odHotLight,odInactive,odNoAccel,odNoFocusRect,
+    odReserved1,odReserved2,odComboBoxEdit);
+
+type
+  PKeyboardState = ^TKeyboardState;
+  TKeyboardState = array[0..255] of Byte;
 
 const
   { dll names }
@@ -98,11 +107,10 @@ const
 
   { Some missing consts }
   SIF_TRACKPOS = $10;
-  HTBORDER = 18;
   CP_UTF7 = 65000;
   CP_UTF8 = 65001;
   CREATE_NO_WINDOW = $08000000;
-  
+
   VK_ATTN = 246;
   VK_CRSEL = 247;
   VK_EXSEL = 248;
@@ -112,6 +120,18 @@ const
   VK_NONAME = 252;
   VK_PA1 = 253;
   VK_OEM_CLEAR = 254;
+
+  WHEEL_DELTA = 120;
+  WHEEL_PAGESCROLL = MAXDWORD;
+
+  MSH_MOUSEWHEEL   = 'MSWHEEL_ROLLMSG';
+  MOUSEZ_CLASSNAME = 'MouseZ';
+  MOUSEZ_TITLE     = 'Magellan MSWHEEL';
+  MSH_WHEELSUPPORT = 'MSH_WHEELSUPPORT_MSG';
+  MSH_SCROLL_LINES = 'MSH_SCROLL_LINES_MSG';
+
+  MSH_WHEELMODULE_CLASS = MOUSEZ_CLASSNAME;
+  MSH_WHEELMODULE_TITLE = MOUSEZ_TITLE;
 
 const
   { Severity values }
@@ -190,6 +210,11 @@ function MakeResult(p1,p2,mask : Longint) : HRESULT;
 function HResultFromWin32(x : Longint) : HRESULT;
 function HResultFromNT(x : Longint) : HRESULT;
 
+function SmallPointToPoint(const P: TSmallPoint): TPoint;
+function PointToSmallPoint(const P: TPoint): TSmallPoint;
+
+function GetCurrentTime: Longint;inline;
+
 procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
 procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
 procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
@@ -197,7 +222,6 @@ procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); exte
 function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD) : BOOL; external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
 function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external 'kernel32' name 'TryEnterCriticalSection';
-
 
 
 function ControlService(hService:SC_HANDLE; dwControl:DWORD; var ServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'ControlService';
@@ -378,9 +402,9 @@ function EnumDisplaySettings(lpszDeviceName: PChar; iModeNum: DWORD; var lpDevMo
 function EnumDisplaySettingsA(lpszDeviceName: LPCSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeA): BOOL; external 'user32' name 'EnumDisplaySettingsA';
 function EnumDisplaySettingsW(lpszDeviceName: LPWSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeW): BOOL; external 'user32' name 'EnumDisplaySettingsW';
 //function EnumEnhMetaFile(DC: HDC; p2: HENHMETAFILE; p3: TFNEnhMFEnumProc; p4: Pointer; const p5: TRect): BOOL; external 'gdi32' name 'EnumEnhMetaFile';
-//function EnumFontFamiliesEx(DC: HDC; var p2: TLogFont; p3: TFNFontEnumProc; p4: LPARAM; p5: DWORD): BOOL;external 'gdi32' name 'EnumFontFamiliesExA';
-//function EnumFontFamiliesExA(DC: HDC; var p2: TLogFontA; p3: TFNFontEnumProcA; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExA';
-//function EnumFontFamiliesExW(DC: HDC; var p2: TLogFontW; p3: TFNFontEnumProcW; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExW';
+function EnumFontFamiliesEx(DC: HDC; var p2: TLogFont; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL;external 'gdi32' name 'EnumFontFamiliesExA';
+function EnumFontFamiliesExA(DC: HDC; var p2: TLogFontA; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExA';
+function EnumFontFamiliesExW(DC: HDC; var p2: TLogFontW; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExW';
 //function EqualRect(const lprc1, lprc2: TRect): BOOL; external 'user32' name 'EqualRect';
 function ExtCreatePen(PenStyle, Width: DWORD; const Brush: TLogBrush; StyleCount: DWORD; Style: Pointer): HPEN; external 'gdi32' name 'ExtCreatePen';
 function ExtCreateRegion(p1: PXForm; p2: DWORD; const p3: TRgnData): HRGN; external 'gdi32' name 'ExtCreateRegion';
@@ -888,6 +912,7 @@ function VerInstallFileW(uFlags: DWORD; szSrcFileName, szDestFileName, szSrcDir,
 function VerQueryValue(pBlock: Pointer; lpSubBlock: PChar; var lplpBuffer: Pointer; var puLen: UINT): BOOL;external 'version' name 'VerQueryValueA';
 function VerQueryValueA(pBlock: Pointer; lpSubBlock: LPCSTR; var lplpBuffer: Pointer; var puLen: UINT): BOOL; external 'version' name 'VerQueryValueA';
 function VerQueryValueW(pBlock: Pointer; lpSubBlock: LPWSTR; var lplpBuffer: Pointer; var puLen: UINT): BOOL; external 'version' name 'VerQueryValueW';
+function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; var lpflOldProtect:DWORD):WINBOOL; external 'kernel32' name 'VirtualProtect';
 function VirtualQuery(lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external 'kernel32' name 'VirtualQuery';
 function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external 'kernel32' name 'VirtualQueryEx';
 function WaitCommEvent(hFile: THandle; var lpEvtMask: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'WaitCommEvent';
@@ -972,6 +997,15 @@ function AnsiUpper(lpsz:LPSTR):LPSTR; external 'user32' name 'CharUpperA';
 function AnsiUpperBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharUpperBuffA';
 function AnsiLower(lpsz:LPSTR):LPSTR; external 'user32' name 'CharLowerA';
 function AnsiLowerBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharLowerBuffA';
+function CreateIcon(hInstance:HINST; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE;lpbANDbits:pointer; lpbXORbits:pointer):HICON; external 'user32' name 'CreateIcon';
+function GetKeyboardState(var KeyState:TKeyboardState):WINBOOL; external 'user32' name 'GetKeyboardState';
+function SetKeyboardState(var KeyState:TKeyboardState):WINBOOL; external 'user32' name 'SetKeyboardState';
+function GetWindowThreadProcessId(hWnd:HWND;var lpdwProcessId:DWORD):DWORD; external 'user32' name 'GetWindowThreadProcessId';
+function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScrollLines: UINT;
+  var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
+function CreateWaitableTimer(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
+function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA'; 
+function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
 
 {$endif read_interface}
 
@@ -1086,5 +1120,39 @@ begin
   LOCALE_INVARIANT := MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT);
 end;
 
+function SmallPointToPoint(const P: TSmallPoint): TPoint;
+begin
+  Result.X:=P.X;
+  Result.Y:=P.Y;
+end;
+
+function PointToSmallPoint(const P: TPoint): TSmallPoint;
+begin
+  Result.X:=P.X;
+  Result.Y:=P.Y;
+end;
+
+function GetCurrentTime: Longint;inline;
+begin
+  Result:=GetTickCount;
+end;
+
+function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScrollLines: UINT;
+  var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
+begin
+  Result:=FindWindow(MSH_WHEELMODULE_CLASS, MSH_WHEELMODULE_TITLE);
+  puiMsh_MsgMouseWheel:=RegisterWindowMessage(MSH_MOUSEWHEEL);
+  puiMsh_Msg3DSupport:=RegisterWindowMessage(MSH_WHEELSUPPORT);
+  puiMsh_MsgScrollLines:=RegisterWindowMessage(MSH_SCROLL_LINES);
+  if (puiMsh_Msg3DSupport<>0) and (Result<>0) then
+    pf3DSupport:=BOOL(SendMessage(Result,puiMsh_Msg3DSupport,0,0))
+  else
+    pf3DSupport:=False;
+
+  if (puiMsh_MsgScrollLines<>0)  and (Result<>0) then
+    piScrollLines:=SendMessage(Result,puiMsh_MsgScrollLines,0,0)
+  else
+    piScrollLines:=3;
+end;
 {$endif read_implementation}
 

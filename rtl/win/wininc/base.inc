@@ -556,6 +556,8 @@
 
      TFarProc = FARPROC;
 
+     TFNWndProc = TFarProc;
+
      PROC = FARPROC;
 
      ENUMRESTYPEPROC = function (_para1:HANDLE; _para2:LPTSTR; _para3:LONG):WINBOOL;stdcall;

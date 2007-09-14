@@ -59,20 +59,20 @@
     { UNICODE  }
 
     const
-       ACM_PLAY = 1125;
-       ACM_STOP = 1126;
-       ACN_START = 1;
-       ACN_STOP = 2;
-    { Buttons  }
-       BM_CLICK = 245;
-       BM_GETCHECK = 240;
-       BM_GETIMAGE = 246;
-       BM_GETSTATE = 242;
-       BM_SETCHECK = 241;
-       BM_SETIMAGE = 247;
-       BM_SETSTATE = 243;
-       BM_SETSTYLE = 244;
-       BN_CLICKED = 0;
+     ACM_PLAY = 1125;
+     ACM_STOP = 1126;
+     ACN_START = 1;
+     ACN_STOP = 2;
+  { Buttons  }
+     BM_CLICK = 245;
+     BM_GETCHECK = 240;
+     BM_GETIMAGE = 246;
+     BM_GETSTATE = 242;
+     BM_SETCHECK = 241;
+     BM_SETIMAGE = 247;
+     BM_SETSTATE = 243;
+     BM_SETSTYLE = 244;
+     BN_CLICKED = 0;
      BN_DBLCLK = 5;
      BN_DISABLE = 4;
      BN_DOUBLECLICKED = 5;
@@ -729,10 +729,12 @@
      TCM_GETITEMA = 4869;
      TCM_INSERTITEMA = 4871;
      TCM_SETITEMA = 4870;
+     TCM_SETUNICODEFORMAT = 8197; // = CCM_SETUNICODEFORMAT
+     TCM_GETUNICODEFORMAT = 8198; // = CCM_GETUNICODEFORMAT
 {$ifdef UNICODE}
 
   const
-     TCM_GETITEM = TCM_GETITEM;
+     TCM_GETITEM = TCM_GETITEMW;
      TCM_INSERTITEM = TCM_INSERTITEMW;
      TCM_SETITEM = TCM_SETITEMW;
 {$else}
@@ -1139,6 +1141,7 @@
      WM_SYSKEYDOWN = 260;
      WM_SYSKEYUP = 261;
      WM_TCARD = 82;
+     WM_THEMECHANGED = $031A;
      WM_TIMECHANGE = 30;
      WM_TIMER = 275;
      WM_UNDO = 772;
@@ -1159,7 +1162,11 @@
      WM_XBUTTONUP     = 524;
      WM_XBUTTONDBLCLK = 525;
 
-Type
+     WM_CHANGEUISTATE  = $0127;
+     WM_UPDATEUISTATE  = $0128;
+     WM_QUERYUISTATE   = $0129;
+
+  Type
 {$ifdef MESSAGESUNIT}
 
     MSG                 = Windows.MSG;
@@ -1176,6 +1183,7 @@ Type
     TWMSetFont          = Windows.TWMSetFont;
     TWMShowWindow       = Windows.TWMShowWindow;
     TWMEraseBkgnd       = Windows.TWMEraseBkgnd;
+    TWMIconEraseBkgnd   = TWMEraseBkgnd;
     LPMSG               = Windows.MSG;
     tagMSG              = Windows.tagMSG;
     TMSG                = Windows.TMSG;
@@ -1643,7 +1651,7 @@ Type
     TWMNCPaint = record
       Msg : UINT;
       RGN : HRGN;
-      Unused : Longint;
+      Unused : WPARAM;
       Result : LRESULT;
     end;
 
@@ -1654,93 +1662,109 @@ Type
       Result : LRESULT;
     end;
 
-	  TWMSizeClipboard = record
-	    Msg: UINT;
-	    Viewer: HWND;
-	    RC: THandle;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMSpoolerStatus = record
-            Msg: UINT;
-	    JobStatus: LPARAM;
-	    JobsLeft: WPARAM;
-	    Unused: WPARAM;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMStyleChange = record
-	    Msg: UINT;
-	    StyleType: LPARAM;
-	    StyleStruct: PStyleStruct;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMStyleChanged = TWMStyleChange;
-	  TWMStyleChanging = TWMStyleChange;
-	
-	
-	  TWMSysDeadChar = record
-	    Msg: UINT;
-	    CharCode: WPARAM;
-	    Unused: WPARAM;
-	    KeyData: LPARAM;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMSystemError = record
-	    Msg: UINT;
-	    ErrSpec: WPARAM;
-	    Unused: LPARAM;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMTimeChange = TWMNoParams;
-	
-	  TWMTimer = record
-	    Msg: UINT;
-	    TimerID: LPARAM;
-	    TimerProc: TFarProc;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMUndo = TWMNoParams;
-	
-	  TWMVScrollClipboard = record
-	    Msg: UINT;
-	    Viewer: HWND;
-	    ScollCode: WPARAM;
-	    ThumbPos: WPARAM;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMDisplayChange = record
-	    Msg: UINT;
-	    BitsPerPixel: Integer;
-	    Width: WPARAM;
-	    Height: WPARAM;
-	    Result: LRESULT;
-	  end;
-	
-	  TWMDropFiles = record
-	     Msg: UINT;
-	     Drop: THANDLE;
-	     Unused: LPARAM;
-	     Result: LRESULT;
-	  end;
-	  TWMEnable = packed record
-	     Msg: Cardinal;
-	     Enabled: LongBool;
-	     Unused: Longint;
-	     Result: Longint;
-	  end;
-	  TWMMouseActivate = packed record
-	     Msg: Cardinal;
-	     TopLevel: HWND;
-	     HitTestCode: Word;
-	     MouseMsg: Word;
-	     Result: Longint;
-	  end; 
+    TWMSizeClipboard = record
+      Msg: UINT;
+      Viewer: HWND;
+      RC: THandle;
+      Result: LRESULT;
+    end;
+
+    TWMSpoolerStatus = record
+      Msg: UINT;
+      JobStatus: LPARAM;
+      JobsLeft: WPARAM;
+      Unused: WPARAM;
+      Result: LRESULT;
+    end;
+  
+    TWMStyleChange = record
+      Msg: UINT;
+      StyleType: LPARAM;
+      StyleStruct: PStyleStruct;
+      Result: LRESULT;
+    end;
+  
+    TWMStyleChanged = TWMStyleChange;
+    TWMStyleChanging = TWMStyleChange;
+  
+  
+    TWMSysDeadChar = record
+      Msg: UINT;
+      CharCode: WPARAM;
+      Unused: WPARAM;
+      KeyData: LPARAM;
+      Result: LRESULT;
+    end;
+  
+    TWMSystemError = record
+      Msg: UINT;
+      ErrSpec: WPARAM;
+      Unused: LPARAM;
+      Result: LRESULT;
+    end;
+  
+    TWMTimeChange = TWMNoParams;
+  
+    TWMTimer = record
+      Msg: UINT;
+      TimerID: LPARAM;
+      TimerProc: TFarProc;
+      Result: LRESULT;
+    end;
+  
+    TWMUndo = TWMNoParams;
+  
+    TWMVScrollClipboard = record
+      Msg: UINT;
+      Viewer: HWND;
+      ScollCode: WPARAM;
+      ThumbPos: WPARAM;
+      Result: LRESULT;
+    end;
+  
+    TWMDisplayChange = record
+      Msg: UINT;
+      BitsPerPixel: Integer;
+      Width: WPARAM;
+      Height: WPARAM;
+      Result: LRESULT;
+    end;
+
+    TWMDropFiles = record
+      Msg: UINT;
+      Drop: THANDLE;
+      Unused: LPARAM;
+      Result: LRESULT;
+    end;
+
+    TWMEnable = record
+      Msg: UINT;
+      Enabled: BOOL;
+      Unused: LPARAM;
+      Result: LRESULT;
+    end;
+
+    TWMMouseActivate = record
+      Msg: UINT;
+      TopLevel: HWND;
+      HitTestCode: Word;
+      MouseMsg: Word;
+      Result: LRESULT;
+    end;
+
+    TWMEndSession = record
+      Msg: UINT;
+      EndSession: BOOL;
+      Unused: LPARAM;
+      Result: LRESULT;
+    end;
+    
+    TWMActivateApp = record
+      Msg: UINT;
+      Active: BOOL;
+      ThreadId: WPARAM;
+      Result: LRESULT;
+    end;
 {$endif messagesunit}
 
 {$endif read_interface}

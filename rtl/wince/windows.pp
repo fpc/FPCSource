@@ -17,6 +17,8 @@
 
 unit windows;
 
+{$PACKSET 1}
+
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
 {$endif}
@@ -45,6 +47,8 @@ interface
 {$i ceshell.inc}
 {$i oleaut32.inc}
 {$i iphlpapi.inc}
+{$i simmgr.inc}
+{$i tapi.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
@@ -66,6 +70,8 @@ implementation
 {$i commdlg.inc}
 {$i ceshell.inc}
 {$i oleaut32.inc}
+{$i simmgr.inc}
+{$i tapi.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
