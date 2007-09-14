@@ -23,7 +23,9 @@ unit cfileutils;
 
 {$i fpcdefs.inc}
 
+{$ifndef go32v2}
 {$define usedircache}
+{$endif not go32v2}
 
 interface
 
