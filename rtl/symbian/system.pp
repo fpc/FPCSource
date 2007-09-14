@@ -114,6 +114,11 @@ var
 {$I system.inc}
 
 {*****************************************************************************
+                              Minimum Symbian API declarations
+*****************************************************************************}
+const KErrNone=0;
+
+{*****************************************************************************
                               Parameter Handling
 *****************************************************************************}
 
@@ -152,30 +157,43 @@ begin
 end;
 
 {*****************************************************************************
-                         Exit code and Entry Point
+                         System Dependent Exit code
 *****************************************************************************}
 
-procedure PascalMain; stdcall; external name 'PASCALMAIN';
-procedure fpc_do_exit; stdcall; external name 'FPC_DO_EXIT';
+//procedure PascalMain; stdcall; external name 'PASCALMAIN';
+//procedure fpc_do_exit; stdcall; external name 'FPC_DO_EXIT';
+
+Procedure system_exit;
+begin
+
+end;
+
+var
+  { value of the stack segment
+    to check if the call stack can be written on exceptions }
+  _SS : Cardinal;
+
+procedure pascalmain; external name 'PASCALMAIN';
+
+{ Entry point for the pascal code }
+function Pascal_E32Main: Integer; cdecl; [public, alias: '_Pascal_E32Main'];
+var
+  ST : pointer;
+begin
+  IsLibrary := false;
+
+  PascalMain;
+
+  { if we pass here there was no error }
+  system_exit;
+  
+  Result := KErrNone;
+end;
 
 procedure SysInitStdIO;
 begin
 
 end;
-
-procedure _E32Startup; stdcall; public name '_E32Startup';
-begin
-  IsLibrary:=false;
-  
-  PascalMain;
-
-  { if we pass here there was no error }
-  fpc_do_exit;
-end;
-
-{*****************************************************************************
-                         Process routines
-*****************************************************************************}
 
 (* ProcessID cached to avoid repeated calls to GetCurrentProcess. *)
 
@@ -191,6 +209,12 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
   result := stklen;
 end;
+
+{
+const
+   Exe_entry_code : pointer = @Exe_entry;
+   Dll_entry_code : pointer = @Dll_entry;
+}
 
 begin
 end.
