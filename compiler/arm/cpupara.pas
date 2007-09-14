@@ -160,7 +160,8 @@ unit cpupara;
             exit;
           end;
         case def.typ of
-          objectdef,
+          objectdef:
+            result:=is_object(def) and ((varspez=vs_const) or (def.size=0));
           recorddef:
             result:=(varspez=vs_const) or (def.size=0);
           variantdef,
