@@ -182,7 +182,7 @@ Var
 
 type
   TTerminateProc = Function: Boolean;
-  
+
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
 
@@ -237,3 +237,29 @@ Type
 
   function SafeLoadLibrary(const FileName: AnsiString;
     ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
+
+{ some packages and unit related constants for compatibility }
+
+const
+  pfExeModule = $00000000;
+  pfNeverBuild = $00000001;
+  pfDesignOnly = $00000002;
+  pfRunOnly = $00000004;
+  pfIgnoreDupUnits = $00000008;
+  pfPackageModule = $40000000;
+  pfModuleTypeMask = $C0000000;
+  pfV3Produced =  $00000000;
+  pfProducerUndefined = $04000000;
+  pfBCB4Produced = $08000000;
+  pfDelphi4Produced = $0C000000;
+  pfLibraryModule = $80000000;
+  pfProducerMask = $0C000000;
+
+const
+  ufMainUnit     = $01;
+  ufPackageUnit  = $02;
+  ufWeakUnit     = $04;
+  ufOrgWeakUnit  = $08;
+  ufImplicitUnit = $10;
+
+  ufWeakPackageUnit = ufPackageUnit or ufWeakUnit;

@@ -942,7 +942,7 @@ begin
   Result:=StrFmt(Buffer,Fmt,Args,DefaultFormatSettings);
 end;
 
-Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar; 
+Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar;
 
 begin
   Buffer[FormatBuf(Buffer^,Maxint,Fmt^,strlen(fmt),args,FormatSettings)]:=#0;
@@ -1108,7 +1108,7 @@ Var
   P: Integer;
   Negative, TooSmall, TooLarge: Boolean;
   DS: Char;
-  
+
 Begin
   DS:=FormatSettings.DecimalSeparator;
   Case format Of
@@ -1612,7 +1612,7 @@ begin
   Result:=FloatToStrF(Value,ffGeneral,-1,0);
 end;
 
-function AnsiDequotedStr(const S: string; AQuote: Char): string; 
+function AnsiDequotedStr(const S: string; AQuote: Char): string;
 
 var p : pchar;
 
@@ -1670,7 +1670,7 @@ begin
   begin
     CheckStrs;
     if B then
-      Result:=TrueBoolStrs[0] 
+      Result:=TrueBoolStrs[0]
     else
       Result:=FalseBoolStrs[0];
   end
@@ -1686,7 +1686,7 @@ begin
   if not(TryStrToBool(S,Result)) then
     Result:=Default;
 end;
-  
+
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 Var
   Temp : String;
@@ -1906,7 +1906,7 @@ Var
           End; { Case }
           End  { Begin }
         Else
-          Inc(Fmt); 
+          Inc(Fmt);
       End; { Case }
       End; { While .. Begin }
   End;
@@ -2211,7 +2211,7 @@ begin
     fvComp:
       Str(Currency(Value):23, Buffer);
   end;
-    
+
   N := 1;
   L := Byte(Buffer[0]);
   while Buffer[N]=' ' do
@@ -2466,8 +2466,8 @@ begin
   Result:=mbSingleByte;
 end;
 
-Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
 
+Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
 begin
   Result:=mbSingleByte;
 end;
@@ -2476,6 +2476,12 @@ end;
 Function StrCharLength(const Str: PChar): Integer;
 begin
   result:=widestringmanager.CharLengthPCharProc(Str);
+end;
+
+
+function StrNextChar(const Str: PChar): PChar;
+begin
+  result:=Str+StrCharLength(Str);
 end;
 
 
