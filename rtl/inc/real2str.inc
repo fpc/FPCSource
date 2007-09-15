@@ -383,7 +383,7 @@ begin
           if int(d+roundCorr) = 1 then
             begin
               roundStr(temp,spos);
-              d := frac(d);
+              d := frac(d+roundCorr);
               if (f < 0) then
                 dec(currprec);
             end;
