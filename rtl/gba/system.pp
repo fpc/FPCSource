@@ -39,6 +39,7 @@ const
  FileNameCaseSensitive = false;
  maxExitCode = 255;
  MaxPathLen = 255;
+ AllFilesMask = '*';
 
 
  sLineBreak : string[1] = LineEnding;

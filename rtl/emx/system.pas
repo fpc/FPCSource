@@ -33,6 +33,7 @@ const
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
+ AllFilesMask = '*';
 
 type    Tos=(osDOS,osOS2,osDPMI);
 

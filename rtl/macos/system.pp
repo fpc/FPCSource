@@ -30,6 +30,7 @@ const
   
  maxExitCode = 65535;
  MaxPathLen = 256;
+ AllFilesMask = '*';
   
 const
 { Default filehandles }

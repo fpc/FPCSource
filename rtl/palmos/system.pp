@@ -32,6 +32,7 @@ const
  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
  maxExitCode = 255; {$ERROR TODO: CONFIRM THIS}
  MaxPathLen = 256;
+ AllFilesMask = '*';
 
     Type
        { type and constant declartions doesn't hurt }

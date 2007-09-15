@@ -74,6 +74,8 @@ var
   envp  : ppchar;
   dos_argv0 : pchar;
 
+  AllFilesMask: string [3];
+
 {$ifndef RTLLITE}
 { System info }
   LFNSupport : boolean;
@@ -646,7 +648,12 @@ Begin
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
   if LFNSupport then
-   FileNameCaseSensitive:=true;
+   begin
+    FileNameCaseSensitive:=true;
+    AllFilesMask := '*';
+   end
+  else
+   AllFilesMask := '*.*';
 { Reset IO Error }
   InOutRes:=0;
 {$ifdef FPC_HAS_FEATURE_THREADING}
