@@ -521,11 +521,12 @@ implementation
           if elepara.location.loc=LOC_CONSTANT then
             begin
               cg.a_bit_set_const_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
-                elepara.location.value,setpara.location);
+                elepara.location.value-tsetdef(setpara.resultdef).setbase,setpara.location);
             end
           else
             begin
               location_force_reg(current_asmdata.CurrAsmList,elepara.location,OS_INT,true);
+              register_maybe_adjust_setbase(current_asmdata.CurrAsmList,elepara.location,tsetdef(setpara.resultdef).setbase);
               cg.a_bit_set_reg_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
                 elepara.location.size,elepara.location.register,setpara.location);
             end;

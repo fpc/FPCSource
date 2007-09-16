@@ -81,17 +81,18 @@ implementation
            start,stop : byte;    {Start/stop when range; Stop=element when an element.}
          end;
        var
-         genjumps,
-         use_small,
-         ranges     : boolean;
          hreg,hreg2,
          pleftreg   : tregister;
          opsize     : tcgsize;
          orgopsize  : tcgsize;
          setparts   : array[1..8] of Tsetpart;
-         i,numparts : byte;
+         setbase    : aint;
          adjustment : longint;
          l,l2       : tasmlabel;
+         i,numparts : byte;
+         genjumps,
+         use_small,
+         ranges     : boolean;
 {$ifdef CORRECT_SET_IN_FPC}
          AM         : tasmop;
 {$endif CORRECT_SET_IN_FPC}
@@ -282,6 +283,7 @@ implementation
          else
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
+            setbase:=tsetdef(right.resultdef).setbase;
 
             { We will now generated code to check the set itself, no jmps,
               handle smallsets separate, because it allows faster checks }
@@ -295,12 +297,12 @@ implementation
                     LOC_CREGISTER:
                       begin
                          emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],
-                           1 shl (left.location.value and 31),right.location.register);
+                           1 shl ((left.location.value-setbase) and 31),right.location.register);
                       end;
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-                        emit_const_ref(A_TEST,TCGSize2OpSize[right.location.size],1 shl (left.location.value and 31),
+                        emit_const_ref(A_TEST,TCGSize2OpSize[right.location.size],1 shl ((left.location.value-setbase) and 31),
                            right.location.reference);
                       end;
                     else
@@ -310,6 +312,7 @@ implementation
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (tcgsize2size[right.location.size] < 4) or
                      (right.location.loc = LOC_CONSTANT) then
                     location_force_reg(current_asmdata.CurrAsmList,right.location,OS_32,true);
@@ -341,8 +344,12 @@ implementation
                   current_asmdata.getjumplabel(l2);
 
                   { load constants to a register }
-                  if left.location.loc=LOC_CONSTANT then
-                    location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+                  if (left.location.loc=LOC_CONSTANT) or
+                     (setbase<>0) then
+                    begin
+                      location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                    end;
 
                   case left.location.loc of
                      LOC_REGISTER,
@@ -384,7 +391,7 @@ implementation
                  but also used if the left side contains values > 32 or < 0 }
                else if left.location.loc=LOC_CONSTANT then
                 begin
-                  if (left.location.value<0) or ((left.location.value shr 3) >= right.resultdef.size) then
+                  if (left.location.value<setbase) or (((left.location.value-setbase) shr 3) >= right.resultdef.size) then
                     {should be caught earlier }
                     internalerror(2007020201);
 
@@ -392,12 +399,12 @@ implementation
                   case right.location.loc of
                     LOC_REFERENCE,LOC_CREFERENCE:
                       begin
-                        inc(right.location.reference.offset,left.location.value shr 3);
+                        inc(right.location.reference.offset,(left.location.value-setbase) shr 3);
                         emit_const_ref(A_TEST,S_B,1 shl (left.location.value and 7),right.location.reference);
                       end;
                     LOC_REGISTER,LOC_CREGISTER:
                       begin
-                        emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],1 shl (left.location.value),right.location.register);
+                        emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],1 shl (left.location.value-setbase),right.location.register);
                       end;
                     else
                       internalerror(2007051901);
@@ -426,6 +433,8 @@ implementation
 
                     cg.a_label(current_asmdata.CurrAsmList,l);
 
+                    register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                    pleftreg:=left.location.register;
                     case right.location.loc of
                       LOC_REGISTER, LOC_CREGISTER :
                         emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);
@@ -442,6 +451,8 @@ implementation
                    end
                   else
                    begin
+                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                      pleftreg:=left.location.register;
                       case right.location.loc of
                         LOC_REGISTER, LOC_CREGISTER :
                           emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);

@@ -336,6 +336,7 @@ unit nx86add;
 
     procedure tx86addnode.second_addsmallset;
       var
+        setbase : aint;
         opsize : TCGSize;
         op     : TAsmOp;
         extra_not,
@@ -349,6 +350,7 @@ unit nx86add;
         extra_not:=false;
         all_member_optimization:=false;
         opsize:=int_cgsize(resultdef.size);
+        setbase:=tsetdef(left.resultdef).setbase;
         case nodetype of
           addn :
             begin
@@ -367,6 +369,7 @@ unit nx86add;
                  { bts requires both elements to be registers }
                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
                  location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
+                 register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
                  op:=A_BTS;
                  noswap:=true;
                end

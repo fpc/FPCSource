@@ -434,7 +434,11 @@ function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean; compilerpr
 function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
 {$endif ndef FPC_NEW_BIGENDIAN_SETS}
 
+{$ifdef FPC_SETBASE_USED}
+procedure fpc_varset_load(const l;sourcesize : longint;var dest;size,srcminusdstbase : ptrint); compilerproc;
+{$else}
 procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
+{$endif}
 procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
 procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
 procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc;

@@ -2129,6 +2129,7 @@ begin
   def_system_macro('FPC_HAS_LWSYNC');
 {$endif}
   def_system_macro('FPC_HAS_MEMBAR');
+  def_system_macro('FPC_SETBASE_USED');
 
 {$if defined(x86) or defined(arm)}
   def_system_macro('INTERNAL_BACKTRACE');

@@ -547,7 +547,7 @@ interface
           settype  : tsettype;
           setbase,
           setmax   : aword;
-          constructor create(def:tdef;high : aint);
+          constructor create(def:tdef;low, high : aint);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -2002,33 +2002,45 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-    constructor tsetdef.create(def:tdef;high : aint);
+    constructor tsetdef.create(def:tdef;low, high : aint);
+      var
+        setallocbits: aint;
+        packedsavesize: aint;
       begin
          inherited create(setdef);
          elementdef:=def;
-         setbase:=0;
          setmax:=high;
-         if high<32 then
+         if (current_settings.setalloc=0) then
            begin
-             settype:=smallset;
-             if current_settings.setalloc=0 then      { $PACKSET Fixed?}
-               savesize:=Sizeof(longint)
+             setbase:=0;
+             if (high<32) then
+               begin
+                 settype:=smallset;
+                 savesize:=Sizeof(longint)
+               end
+             else if (high<256) then
+               begin
+                 settype:=normset;
+                 savesize:=32
+               end
              else
-               savesize:=current_settings.setalloc*(((high+1)+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
-             if savesize=3 then
-               savesize:=4;
+               savesize:=(high+7) div 8
            end
          else
-          if high<256 then
-            begin
-              settype:=normset;
-              if current_settings.setalloc=0 then      { $PACKSET Fixed?}
-                savesize:=32
-              else                       {No, use $PACKSET VALUE for rounding}
-                savesize:=current_settings.setalloc*(((high+1)+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
-            end
-          else
-            savesize:=current_settings.setalloc*(((high+1)+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
+           begin
+             setallocbits:=current_settings.setalloc*8;
+             setbase:=low and not(setallocbits-1);
+             packedsavesize:=current_settings.setalloc*((((high+setallocbits)-setbase)) DIV setallocbits);
+             savesize:=packedsavesize;
+             if (packedsavesize<=4) then
+               begin
+                 settype:=smallset;
+                 if savesize=3 then
+                   savesize:=4;
+               end
+             else if (packedsavesize<=32) then
+               settype:=normset;
+           end;
       end;
 
 
@@ -2045,7 +2057,7 @@ implementation
 
     function tsetdef.getcopy : tstoreddef;
       begin
-        result:=tsetdef.create(elementdef,setmax);
+        result:=tsetdef.create(elementdef,setbase,setmax);
         { the copy might have been created with a different setalloc setting }
         tsetdef(result).settype:=settype;
         tsetdef(result).savesize:=savesize;

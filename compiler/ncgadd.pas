@@ -245,10 +245,12 @@ interface
 
     procedure tcgaddnode.second_addsmallset;
       var
-        cgop   : TOpCg;
         tmpreg : tregister;
-        mask   : aint;
-        opdone : boolean;
+        mask,
+        setbase : aint;
+        
+        cgop    : TOpCg;
+        opdone  : boolean;
       begin
         opdone := false;
 
@@ -267,6 +269,7 @@ interface
           location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
 
         set_result_location_reg;
+        setbase:=tsetdef(left.resultdef).setbase;
 
         case nodetype of
           addn :
@@ -280,9 +283,9 @@ interface
                   if (right.location.loc = LOC_CONSTANT) then
                     begin
                       if (target_info.endian=endian_big) then
-                        mask:=aint((aword(1) shl (resultdef.size*8-1)) shr aword(right.location.value))
+                        mask:=aint((aword(1) shl (resultdef.size*8-1)) shr aword(right.location.value-setbase))
                       else
-                        mask:=aint(1 shl right.location.value);
+                        mask:=aint(1 shl (right.location.value-setbase));
                       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,
                         mask,left.location.register,location.register);
                     end
@@ -301,6 +304,7 @@ interface
                       tmpreg := cg.getintregister(current_asmdata.CurrAsmList,location.size);
                       cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,mask,tmpreg);
                       location_force_reg(current_asmdata.CurrAsmList,right.location,location.size,true);
+                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
                       cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
                         right.location.register,tmpreg);
                       if left.location.loc <> LOC_CONSTANT then

@@ -450,13 +450,23 @@ implementation
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
       begin
-         if (def_from.typ <> orddef) or (def_to.typ <> orddef) then
+         if (def_from.typ<>def_to.typ) or
+            not(def_from.typ in [orddef,enumdef,setdef]) then
            begin
              is_in_limit := false;
              exit;
            end;
-         is_in_limit:=(torddef(def_from).low>=torddef(def_to).low) and
-                      (torddef(def_from).high<=torddef(def_to).high);
+         case def_from.typ of
+           orddef:
+             is_in_limit:=(torddef(def_from).low>=torddef(def_to).low) and
+                          (torddef(def_from).high<=torddef(def_to).high);
+           enumdef:
+             is_in_limit:=(tenumdef(def_from).min>=tenumdef(def_to).min) and
+                          (tenumdef(def_from).max<=tenumdef(def_to).max);
+           setdef:
+             is_in_limit:=(tsetdef(def_from).setbase>=tsetdef(def_to).setbase) and
+                          (tsetdef(def_from).setmax<=tsetdef(def_to).setmax);
+         end;
       end;
 
     { true, if p points to an open array def }

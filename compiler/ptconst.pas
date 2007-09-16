@@ -574,6 +574,7 @@ implementation
                 Message(parser_e_illegal_expression)
               else
                 begin
+                  tsetconstnode(p).adjustforsetbase;
                   { this writing is endian independant   }
                   { untrue - because they are considered }
                   { arrays of 32-bit values CEC          }

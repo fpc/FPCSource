@@ -296,18 +296,23 @@ implementation
 
         procedure update_constsethi(def:tdef);
           begin
-            if ((def.typ=orddef) and
-                (torddef(def).high>=constsethi)) then
+            if (def.typ=orddef) and
+               ((torddef(def).high>=constsethi) or
+                (torddef(def).low <=constsetlo)) then
               begin
                 if torddef(def).ordtype=uwidechar then
                   begin
                     constsethi:=255;
+                    constsetlo:=0;
                     if hdef=nil then
                       hdef:=def;
                   end
                 else
                   begin
-                    constsethi:=torddef(def).high;
+                    if (torddef(def).high>=constsethi) then
+                      constsethi:=torddef(def).high;
+                    if (torddef(def).low<=constsetlo) then
+                      constsetlo:=torddef(def).low;
                     if hdef=nil then
                       begin
                          if (constsethi>255) or
@@ -318,14 +323,20 @@ implementation
                       end;
                     if constsethi>255 then
                       constsethi:=255;
+                    if constsetlo<0 then
+                      constsetlo:=0;
                   end;
               end
-            else if ((def.typ=enumdef) and
-                    (tenumdef(def).max>=constsethi)) then
+            else if (def.typ=enumdef) and
+                    ((tenumdef(def).max>=constsethi) or
+                     (tenumdef(def).min<=constsetlo)) then
               begin
                  if hdef=nil then
                    hdef:=def;
-                 constsethi:=tenumdef(def).max;
+                 if (tenumdef(def).max>=constsethi) then
+                   constsethi:=tenumdef(def).max;
+                 if (tenumdef(def).min<=constsetlo) then
+                   constsetlo:=tenumdef(def).min;
               end;
           end;
 
@@ -352,7 +363,11 @@ implementation
         new(constset);
         constset^:=[];
         hdef:=nil;
-        constsetlo:=0;
+        { make sure to set constsetlo correctly for empty sets }
+        if assigned(tarrayconstructornode(p).left) then
+          constsetlo:=high(aint)
+        else
+          constsetlo:=0;
         constsethi:=0;
         constp:=csetconstnode.create(nil,hdef);
         constp.value_set:=constset;
@@ -536,7 +551,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=tsetdef.create(hdef,constsethi.svalue);
+        constp.resultdef:=tsetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }
@@ -2361,9 +2376,8 @@ implementation
 
     function ttypeconvnode.first_set_to_set : tnode;
       var
-        srsym: ttypesym;
         newstatement : tstatementnode;
-        temp    : ttempcreatenode;
+        temp         : ttempcreatenode;
       begin
         { in theory, we should do range checking here,
           but Delphi doesn't do it either (FK) }
@@ -2376,21 +2390,53 @@ implementation
         { equal sets for the code generator? }
         else if (left.resultdef.size=resultdef.size) and
           (tsetdef(left.resultdef).setbase=tsetdef(resultdef).setbase) then
+          {$warning This causes wrong (but Delphi-compatible) results for disjoint subsets}
+          { e.g., this prints true because of this:
+              var
+                sa: set of 1..2;
+                sb: set of 5..6;
+                b: byte;
+              begin
+                b:=1;
+                sa:=[1..2];
+                sb:=sa;
+                writeln(b in sb);
+              end.
+          }
           result:=left
         else
         // if is_varset(resultdef) then
           begin
             result:=internalstatements(newstatement);
 
+            { in case left is a smallset expression, it can be an addn or so. }
+            { fpc_varset_load expects a formal const parameter, which doesn't }
+            { accept set addn's -> assign to a temp first and pass the temp   }
+            if not(left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              begin
+                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false);
+                addstatement(newstatement,temp);
+                { temp := left }
+                addstatement(newstatement,cassignmentnode.create(
+                  ctemprefnode.create(temp),left));
+                addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                addstatement(newstatement,ctemprefnode.create(temp));
+                left:=result;
+                firstpass(left);
+                { recreate the result's internalstatements list }
+                result:=internalstatements(newstatement);
+              end;
+
             { create temp for result }
             temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
-                          addstatement(newstatement,temp);
+            addstatement(newstatement,temp);
 
             addstatement(newstatement,ccallnode.createintern('fpc_varset_load',
+              ccallparanode.create(cordconstnode.create(tsetdef(left.resultdef).setbase div 8 - tsetdef(resultdef).setbase div 8,sinttype,false),
               ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
               ccallparanode.create(ctemprefnode.create(temp),
               ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false),
-              ccallparanode.create(left,nil)))))
+              ccallparanode.create(left,nil))))))
             );
             addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
             addstatement(newstatement,ctemprefnode.create(temp));

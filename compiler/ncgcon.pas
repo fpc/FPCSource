@@ -508,12 +508,14 @@ implementation
       var
          hp1         : tai;
          lastlabel   : tasmlabel;
-         i           : longint;
+         i, diff     : longint;
          neededtyp   : taiconst_type;
       type
          setbytes=array[0..31] of byte;
          Psetbytes=^setbytes;
       begin
+        adjustforsetbase;
+
         { small sets are loaded as constants }
         if not(is_varset(resultdef)) then
          begin

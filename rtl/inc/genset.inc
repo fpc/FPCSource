@@ -232,6 +232,41 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
 {
   convert sets
 }
+{$ifdef FPC_SETBASE_USED}
+procedure fpc_varset_load(const l;sourcesize : longint;var dest;size,srcminusdstbase : ptrint); compilerproc;
+  var
+    srcptr, dstptr: pointer;
+  begin
+    srcptr:=@l;
+    dstptr:=@dest;
+    { going from a higher base to a lower base, e.g.
+      src: 001f0000, base=2,size=4 -> 0000001f0000 in base 0
+      dstr in base = 1 (-> srcminusdstbase = 1) -> to
+      00001f0000, base=1 -> need to prepend "srcminusdstbase" zero bytes
+    }
+    if (srcminusdstbase>0) then
+      begin
+        { fill the skipped part with 0 }
+        fillchar(dstptr^,srcminusdstbase,0);
+        inc(dstptr,srcminusdstbase);
+        dec(size,srcminusdstbase);
+      end
+    else if (srcminusdstbase<0) then
+      begin
+        { inc/dec switched since srcminusdstbase < 0 }
+        dec(srcptr,srcminusdstbase);
+        inc(sourcesize,srcminusdstbase);
+      end;
+
+    if sourcesize>size then
+      sourcesize:=size;
+    move(srcptr^,dstptr^,sourcesize);
+    { fill the  leftover (if any) with 0 }
+    FillChar((dstptr+sourcesize)^,size-sourcesize,0);
+  end;
+
+{$else FPC_SETBASE_USED}
+
 procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
   begin
     if sourcesize>size then
@@ -239,6 +274,8 @@ procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); 
     move(l,plongint(@dest)^,sourcesize);
     FillChar((@dest+sourcesize)^,size-sourcesize,0);
   end;
+{$endif FPC_SETBASE_USED}
+
 {$endif ndef FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 
 

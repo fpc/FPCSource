@@ -464,9 +464,10 @@ implementation
       procedure tx86inlinenode.second_IncludeExclude;
         var
          hregister : tregister;
-         asmop : tasmop;
+         setbase   : aint;
          bitsperop,l : longint;
          cgop : topcg;
+         asmop : tasmop;
          opsize : tcgsize;
         begin
           if not(is_varset(tcallparanode(left).resultdef)) then
@@ -476,10 +477,11 @@ implementation
           bitsperop:=(8*tcgsize2size[opsize]);
           secondpass(tcallparanode(left).left);
           secondpass(tcallparanode(tcallparanode(left).right).left);
+          setbase:=tsetdef(tcallparanode(left).left.resultdef).setbase;
           if tcallparanode(tcallparanode(left).right).left.location.loc=LOC_CONSTANT then
             begin
               { calculate bit position }
-              l:=1 shl (tcallparanode(tcallparanode(left).right).left.location.value mod bitsperop);
+              l:=1 shl ((tcallparanode(tcallparanode(left).right).left.location.value-setbase) mod bitsperop);
 
               { determine operator }
               if inlinenumber=in_include_x_y then
@@ -493,7 +495,7 @@ implementation
                 LOC_REFERENCE :
                   begin
                     inc(tcallparanode(left).left.location.reference.offset,
-                      (tcallparanode(tcallparanode(left).right).left.location.value div bitsperop)*tcgsize2size[opsize]);
+                      ((tcallparanode(tcallparanode(left).right).left.location.value-setbase) div bitsperop)*tcgsize2size[opsize]);
                     cg.a_op_const_ref(current_asmdata.CurrAsmList,cgop,opsize,l,tcallparanode(left).left.location.reference);
                   end;
                 LOC_CREGISTER :
@@ -513,6 +515,7 @@ implementation
                  asmop:=A_BTR;
 
               location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,opsize,true);
+              register_maybe_adjust_setbase(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,setbase);
               hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
