@@ -67,7 +67,7 @@ dirs_solaris= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
-             openssl pcap libcurl cairo aspell
+             openssl pcap libcurl cairo
 dirs_beos=graph
 
 [install]
