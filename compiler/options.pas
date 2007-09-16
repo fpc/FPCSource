@@ -2146,9 +2146,6 @@ begin
   def_system_macro('CPU87');
   def_system_macro('CPU386');
 {$endif}
-{$ifdef m68k}
-  def_system_macro('CPU68');
-{$endif}
 
 { new processor stuff }
 {$ifdef i386}
@@ -2160,6 +2157,7 @@ begin
   def_system_macro('FPC_HAS_RESOURCES');
 {$endif}
 {$ifdef m68k}
+  def_system_macro('CPU68');
   def_system_macro('CPU68K');
   def_system_macro('CPUM68K');
   def_system_macro('CPU32');
