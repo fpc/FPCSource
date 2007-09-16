@@ -12,6 +12,8 @@ type  Tconstexprint=record
 
 operator := (const u:qword):Tconstexprint;
 begin
+  if (u<>high(int64)+100) then
+    halt(1);
   result.overflow:=false;
   result.signed:=false;
   result.uvalue:=u;
@@ -19,6 +21,8 @@ end;
 
 operator := (const s:int64):Tconstexprint;
 begin
+  if (s<>-128) then
+    halt(2);
   result.overflow:=false;
   result.signed:=true;
   result.svalue:=s;
