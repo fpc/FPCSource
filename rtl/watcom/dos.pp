@@ -332,44 +332,13 @@ TYPE  ExtendedFat32FreeSpaceRec=packed Record
          Dummy,Dummy2    : DWORD;  {8 bytes reserved}
          END;
 
+
 function do_diskdata(drive : byte; Free : BOOLEAN) : Int64;
 VAR
   S    : String;
   Rec  : ExtendedFat32FreeSpaceRec;
-BEGIN
- if {(swap(dosversion)>=$070A)} AND LFNSupport then
-  begin
-   S:='C:\'#0;
-   if Drive=0 then
-    begin
-     GetDir(Drive,S);
-     Setlength(S,4);
-     S[4]:=#0;
-    end
-   else
-    S[1]:=chr(Drive+64);
-   Rec.Strucversion:=0;
-   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
-   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
-   dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
-   dosregs.ds:=tb_segment;
-   dosregs.di:=tb_offset;
-   dosregs.es:=tb_segment;
-   dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
-   dosregs.ax:=$7303;
-   msdos(dosregs);
-   if (dosregs.flags and fcarry) = 0 then {No error clausule in int except cf}
-    begin
-      copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-      if Free then
-       Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
-      else
-       Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
-    end
-   else
-    Do_DiskData:=-1;
-  end
- else
+
+  procedure OldDosDiskData; inline;
   begin
    dosregs.dl:=drive;
    dosregs.ah:=$36;
@@ -384,7 +353,48 @@ BEGIN
    else
     do_diskdata:=-1;
   end;
+
+BEGIN
+ if LFNSupport then
+  begin
+   S:='C:\'#0;
+   if Drive=0 then
+    begin
+     GetDir(Drive,S);
+     Setlength(S,4);
+     S[4]:=#0;
+    end
+   else
+    S[1]:=chr(Drive+64);
+   Rec.Strucversion:=0;
+   Rec.RetSize := 0;
+   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
+   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
+   dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
+   dosregs.ds:=tb_segment;
+   dosregs.di:=tb_offset;
+   dosregs.es:=tb_segment;
+   dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
+   dosregs.ax:=$7303;
+   msdos(dosregs);
+   if (dosregs.flags and fcarry) = 0 then {No error clausule in int except cf}
+    begin
+     copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
+     if Rec.RetSize = 0 then (* Error - "FAT32" function not supported! *)
+      OldDosDiskData
+     else
+      if Free then
+       Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
+      else
+       Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
+    end
+   else
+    Do_DiskData:=-1;
+  end
+ else
+  OldDosDiskData;
 end;
+
 
 function diskfree(drive : byte) : int64;
 begin
