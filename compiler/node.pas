@@ -457,6 +457,7 @@ interface
     procedure printnodeindent;
     procedure printnodeunindent;
     procedure printnode(var t:text;n:tnode);
+    procedure printnode(n:tnode);
 
     function is_constnode(p : tnode) : boolean;
     function is_constintnode(p : tnode) : boolean;
@@ -625,6 +626,12 @@ implementation
          n.printnodetree(t)
         else
          writeln(t,printnodeindention,'nil');
+      end;
+
+
+    procedure printnode(n:tnode);
+      begin
+        printnode(output,n);
       end;
 
 
