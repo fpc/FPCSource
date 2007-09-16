@@ -75,7 +75,6 @@ Type
 
   TConnectionName = class (TSQLConnection)
   private
-    FDialect: integer;
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
@@ -126,7 +125,6 @@ Type
     property ClientInfo: string read GetClientInfo;
     property ServerStatus : String read GetServerStatus;
   published
-    property Dialect  : integer read FDialect write FDialect;
     property DatabaseName;
     property HostName;
     property KeepConnection;
