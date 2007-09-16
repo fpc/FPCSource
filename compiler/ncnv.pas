@@ -1802,10 +1802,15 @@ implementation
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
                                  (left.resultdef.size=resultdef.size) and
+                                 { disallow casts of const nodes }
                                  (not is_constnode(left) or
-                                  (not(resultdef.typ in [arraydef,recorddef,setdef,stringdef,
-                                                         filedef,variantdef,objectdef]) or
-                                   is_class_or_interface(resultdef)))
+                                   { however, there are some exceptions }
+                                   (not(resultdef.typ in [arraydef,recorddef,setdef,stringdef,
+                                                          filedef,variantdef,objectdef]) or
+                                   is_class_or_interface(resultdef) or
+                                   { the softfloat code generates casts <const. float> to record }
+                                   (nf_internal in flags)
+                                 ))
                                 ) or
                                 (
                                  is_void(left.resultdef)  and
