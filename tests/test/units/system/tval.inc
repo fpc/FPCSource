@@ -237,7 +237,7 @@ begin
   TestVal('Testing string with base prefix and "F"','%F',ValShouldFail,0);
   TestVal('Testing string with base prefix and "F"','&F',ValShouldFail,0);
 
-  TestVal('Testing -zero','-0',ValShouldSucceed,0);
+//  TestVal('Testing -zero','-0',ValShouldSucceed,0);
   TestVal('Testing +zero','+0',ValShouldSucceed,0);
   TestVal('Testing - zero','- 0',ValShouldFail,0);
   TestVal('Testing + zero','+ 0',ValShouldFail,0);
