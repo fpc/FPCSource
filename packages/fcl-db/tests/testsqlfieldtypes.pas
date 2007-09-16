@@ -1,4 +1,4 @@
- unit TestSQLFieldTypes;
+unit TestSQLFieldTypes;
 
 {$mode objfpc}{$H+}
 
@@ -26,6 +26,7 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestGetFieldNames;
     procedure TestUpdateIndexDefs;
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsStringParam;
@@ -58,7 +59,6 @@ type
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
     procedure TestFloatParamQuery;
-  published
     procedure TestAggregates;
   end;
 
@@ -862,6 +862,23 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestGetFieldNames;
+var FieldNames : TStringList;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    FieldNames := TStringList.Create;
+    try
+      Connection.GetFieldNames('FpDEv',FieldNames);
+      AssertEquals(2,FieldNames.Count);
+      AssertEquals('ID',UpperCase(FieldNames[0]));
+      AssertEquals('NAME',UpperCase(FieldNames[1]));
+    finally
+      FieldNames.Free;
+      end;
+    end;
 end;
 
 procedure TTestFieldTypes.TestUpdateIndexDefs;
