@@ -287,8 +287,8 @@ begin
   if isc_dsql_execute_immediate(@FStatus[0],@ASQLDatabaseHandle,@ASQLTransactionHandle,length(CreateSQL),@CreateSQL[1],Dialect,nil) <> 0 then
     CheckError('CreateDB', FStatus);
 
-  isc_detach_database(@FStatus[0], @ASQLDatabaseHandle);
-  CheckError('CreateDB', FStatus);
+  if isc_detach_database(@FStatus[0], @ASQLDatabaseHandle) <> 0 then
+    CheckError('CreateDB', FStatus);
 {$IfDef LinkDynamically}
   ReleaseIBase60;
 {$EndIf}
@@ -314,8 +314,8 @@ begin
     Exit;
   end;
 
-  isc_detach_database(@FStatus[0], @FSQLDatabaseHandle);
-  CheckError('Close', FStatus);
+  if isc_detach_database(@FStatus[0], @FSQLDatabaseHandle) <> 0 then
+    CheckError('Close', FStatus);
 {$IfDef LinkDynamically}
   ReleaseIBase60;
 {$EndIf}
