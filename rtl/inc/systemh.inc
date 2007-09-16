@@ -130,10 +130,12 @@ Type
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
-  ValReal = Real;
+  {$define DEFAULT_DOUBLE}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
+
+  ValReal = Real;
 
   { Comp type does not exist on fpu }
   Comp    = int64;
@@ -903,4 +905,3 @@ const
 {$ifdef fpdocsystem}
 {$i system.fpd}
 {$endif}
-
