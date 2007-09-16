@@ -4,6 +4,7 @@ program SetTests;
 
 {$IFDEF FPC}
   {$mode delphi}
+  {$packset 1}
 {$ENDIF}
 
 {$R+}

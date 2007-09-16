@@ -404,7 +404,10 @@ implementation
         if not(cmpop) then
           location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
-        setbase:=tsetdef(left.resultdef).setbase;
+        if (left.resultdef.typ=setdef) then
+          setbase:=tsetdef(left.resultdef).setbase
+        else
+          setbase:=tsetdef(right.resultdef).setbase;
         case nodetype of
           addn :
             begin

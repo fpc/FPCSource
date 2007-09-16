@@ -350,7 +350,10 @@ unit nx86add;
         extra_not:=false;
         all_member_optimization:=false;
         opsize:=int_cgsize(resultdef.size);
-        setbase:=tsetdef(left.resultdef).setbase;
+        if (left.resultdef.typ=setdef) then
+          setbase:=tsetdef(left.resultdef).setbase
+        else
+          setbase:=tsetdef(right.resultdef).setbase;
         case nodetype of
           addn :
             begin

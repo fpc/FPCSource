@@ -313,8 +313,8 @@ implementation
                end
              else
                begin
-                 if (Tordconstnode(left).value.signed and (Tordconstnode(left).value<0)) or
-                    (Tordconstnode(left).value.uvalue>Tsetdef(right.resultdef).setmax) then
+                 if (Tordconstnode(left).value<int64(tsetdef(right.resultdef).setbase)) or
+                    (Tordconstnode(left).value>int64(Tsetdef(right.resultdef).setmax)) then
                    begin
                      t:=cordconstnode.create(0, booltype, true);
                      typecheckpass(t);

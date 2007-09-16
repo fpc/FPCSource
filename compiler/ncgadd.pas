@@ -269,7 +269,10 @@ interface
           location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
 
         set_result_location_reg;
-        setbase:=tsetdef(left.resultdef).setbase;
+        if (left.resultdef.typ=setdef) then
+          setbase:=tsetdef(left.resultdef).setbase
+        else
+          setbase:=tsetdef(right.resultdef).setbase;
 
         case nodetype of
           addn :

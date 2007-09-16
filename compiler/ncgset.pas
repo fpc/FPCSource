@@ -418,17 +418,22 @@ implementation
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, true);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   pleftreg := left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }
-                     ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high > tsetdef(right.resultdef).setmax)) or
-                     ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax)) then
+                     ((left.resultdef.typ=orddef) and 
+                      ((torddef(left.resultdef).low < int64(tsetdef(right.resultdef).setbase)) or
+                       (torddef(left.resultdef).high > int64(tsetdef(right.resultdef).setmax)))) or
+                     ((left.resultdef.typ=enumdef) and
+                      ((tenumdef(left.resultdef).min < tsetdef(right.resultdef).setbase) or
+                       (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax))) then
                     begin
                       current_asmdata.getjumplabel(l);
                       current_asmdata.getjumplabel(l2);
                       needslabel := True;
 
-                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.location.size, OC_BE, tsetdef(right.resultdef).setmax, pleftreg, l);
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.location.size, OC_BE, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg, l);
 
                       cg.a_load_const_reg(current_asmdata.CurrAsmList, location.size, 0, location.register);
                       cg.a_jmp_always(current_asmdata.CurrAsmList, l2);
@@ -436,8 +441,6 @@ implementation
                       cg.a_label(current_asmdata.CurrAsmList, l);
                     end;
 
-                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
-                  pleftreg:=left.location.register;
                   cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,
                     pleftreg,right.location,location.register);
 

@@ -39,7 +39,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,constexp,
       verbose,globals,
       symconst,symdef,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -413,11 +413,16 @@ implementation
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+                    register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   pleftreg:=left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }
-                    ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high.svalue > tsetdef(right.resultdef).setmax)) or
-                    ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax)) then
+                     ((left.resultdef.typ=orddef) and 
+                      ((torddef(left.resultdef).low < int64(tsetdef(right.resultdef).setbase)) or
+                       (torddef(left.resultdef).high > int64(tsetdef(right.resultdef).setmax)))) or
+                     ((left.resultdef.typ=enumdef) and
+                      ((tenumdef(left.resultdef).min < tsetdef(right.resultdef).setbase) or
+                       (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax))) then
                    begin
 
                     { we have to check if the value is < 0 or > setmax }
@@ -426,14 +431,13 @@ implementation
                     current_asmdata.getjumplabel(l2);
 
                     { BE will be false for negative values }
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax,pleftreg,l);
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
                     { reset carry flag }
                     current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
                     cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
 
                     cg.a_label(current_asmdata.CurrAsmList,l);
 
-                    register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                     pleftreg:=left.location.register;
                     case right.location.loc of
                       LOC_REGISTER, LOC_CREGISTER :
@@ -451,8 +455,6 @@ implementation
                    end
                   else
                    begin
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
-                      pleftreg:=left.location.register;
                       case right.location.loc of
                         LOC_REGISTER, LOC_CREGISTER :
                           emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);
