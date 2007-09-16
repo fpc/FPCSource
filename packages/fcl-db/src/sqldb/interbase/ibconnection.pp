@@ -50,6 +50,7 @@ type
     FBLobSegmentSize     : word;
 
     procedure ConnectFB;
+    function GetDialect: integer;
     procedure SetDBDialect;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
     procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
@@ -94,7 +95,7 @@ type
     procedure DropDB; override;
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
   published
-    property Dialect  : integer read FDialect write FDialect;
+    property Dialect  : integer read GetDialect write FDialect;
     property DatabaseName;
     property KeepConnection;
     property LoginPrompt;
@@ -154,6 +155,7 @@ begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FBLobSegmentSize := 80;
+  FDialect := -1;
 end;
 
 
@@ -305,6 +307,7 @@ end;
 
 procedure TIBConnection.DoInternalDisconnect;
 begin
+  FDialect := -1;
   if not Connected then
   begin
     FSQLDatabaseHandle := nil;
@@ -316,7 +319,6 @@ begin
 {$IfDef LinkDynamically}
   ReleaseIBase60;
 {$EndIf}
-
 end;
 
 
@@ -337,13 +339,15 @@ begin
     case ResBuf[x] of
       isc_info_db_sql_dialect :
         begin
-          Inc(x);
-          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
-          Inc(x, 2);
-          FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
-          Inc(x, Len);
+        Inc(x);
+        Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+        Inc(x, 2);
+        FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
+        Inc(x, Len);
         end;
       isc_info_end : Break;
+    else
+      inc(x);
     end;
 end;
 
@@ -371,7 +375,13 @@ begin
     @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
     CheckError('DoInternalConnect', FStatus);
-  SetDBDialect;
+end;
+
+function TIBConnection.GetDialect: integer;
+begin
+  if FDialect = -1 then
+    SetDBDialect;
+  Result := FDialect;
 end;
 
 procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
