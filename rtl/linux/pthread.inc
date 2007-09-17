@@ -236,7 +236,7 @@ Var
 {    sigwait : Function(__set:plibc_sigset; __sig:plongint):longint;cdecl;}
     pthread_atfork : Function(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;
     pthread_kill_other_threads_np : procedure;cdecl;
-    pthread_sigmask: Function(how: cint; nset: plibc_sigset; oset: plibc_sigset): cint;
+    pthread_sigmask: Function(how: cint; nset: plibc_sigset; oset: plibc_sigset): cint;cdecl;
 
     sem_init     :   function (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;
     sem_destroy  :   function (__sem:Psem_t):longint;cdecl;
