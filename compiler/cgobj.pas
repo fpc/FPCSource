@@ -3618,11 +3618,13 @@ implementation
 
     procedure tcg.g_restore_standard_registers(list:TAsmList);
       var
-        href : treference;
-        r : integer;
-        hreg : tregister;
+        href     : treference;
+        r        : integer;
+        hreg     : tregister;
+        freetemp : boolean;
       begin
         { Copy registers from temp }
+        freetemp:=false;
         href:=current_procinfo.save_regs_ref;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
@@ -3632,8 +3634,10 @@ implementation
               a_reg_alloc(list,hreg);
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
               inc(href.offset,sizeof(aint));
+              freetemp:=true;
             end;
-        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+        if freetemp then
+          tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;
 
 
