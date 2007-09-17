@@ -106,7 +106,7 @@ unit optunrol;
                 for i:=1 to unrolls do
                   begin
                     { create and insert copy of the statement block }
-                    addstatement(unrollstatement,tfornode(tfornode(node).t2).getcopy);
+                    addstatement(unrollstatement,tfornode(node).t2.getcopy);
 
                     { set and insert entry label? }
                     if (counts mod unrolls<>0) and
