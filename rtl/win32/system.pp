@@ -38,6 +38,7 @@ const
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 65535;
  MaxPathLen = 260;
+ AllFilesMask = '*';
 
 type
    PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;

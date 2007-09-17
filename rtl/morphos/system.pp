@@ -35,6 +35,7 @@ const
   PathSeparator = ';';
   maxExitCode = 255;
   MaxPathLen = 256;
+  AllFilesMask = '*';
   
 const
   UnusedHandle    : LongInt = -1;

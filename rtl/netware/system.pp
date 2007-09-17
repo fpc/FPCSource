@@ -42,6 +42,7 @@ const
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
+ AllFilesMask = '*';
 
 CONST
   { Default filehandles }

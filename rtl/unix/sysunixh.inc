@@ -37,6 +37,7 @@ const
  {$else}
  MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
  {$endif}
+ AllFilesMask = '*';
  
 const
   UnusedHandle    = -1;
