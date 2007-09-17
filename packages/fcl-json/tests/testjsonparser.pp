@@ -31,7 +31,7 @@ type
     procedure DoTestError(S: String);
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
-    procedure DoTestObject(S: String; const ElNames: array of String);
+    procedure DoTestObject(S: String; const ElNames: array of String; DoJSONTest : Boolean = True);
     procedure DoTestString(S : String);
     procedure DoTestArray(S: String; ACount: Integer);
   published
@@ -204,12 +204,28 @@ end;
 
 procedure TTestParser.TestMixed;
 
+Const
+
+  SAddr ='{ "addressbook": { "name": "Mary Lebow", '+
+         '  "address": {'+
+         '      "street": "5 Main Street",'+LineEnding+
+         '        "city": "San Diego, CA",'+LineEnding+
+         '        "zip": 91912,'+LineEnding+
+         '    },'+LineEnding+
+         '    "phoneNumbers": [  '+LineEnding+
+         '        "619 332-3452",'+LineEnding+
+         '        "664 223-4667"'+LineEnding+
+         '    ]'+LineEnding+
+         ' }'+LineEnding+
+         '}';
+
 begin
   DoTestArray('[1, {}]',2);
   DoTestArray('[1, { "a" : 1 }]',2);
   DoTestArray('[1, { "a" : 1 }, 1]',3);
   DoTestObject('{ "a" : [1, 2] }',['a']);
   DoTestObject('{ "a" : [1, 2], "B" : { "c" : "d" } }',['a','B']);
+  DoTestObject(SAddr,['addressbook'],False);
 end;
 
 procedure TTestParser.TestObject;
@@ -222,7 +238,7 @@ begin
 end;
 
 
-procedure TTestParser.DoTestObject(S : String; Const ElNames : Array of String);
+procedure TTestParser.DoTestObject(S : String; Const ElNames : Array of String; DoJSONTest : Boolean = True);
 
 Var
   P : TJSONParser;
@@ -242,7 +258,8 @@ begin
     For I:=Low(ElNames) to High(ElNames) do
       AssertEquals(Format('Element %d name',[I-Low(Elnames)])
                    ,ElNames[i], O.Names[I-Low(ElNames)]);
-    TestJSON(J,S);
+    If DoJSONTest then
+      self.TestJSON(J,S);
   Finally
     FreeAndNil(J);
     FreeAndNil(P);
