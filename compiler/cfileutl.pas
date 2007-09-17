@@ -117,7 +117,7 @@ interface
     function  TargetFixFileName(const s:TCmdStr):TCmdStr;
     procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
     function  FindFile(const f : TCmdStr;path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;
+{    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  GetShortName(const n:TCmdStr):TCmdStr;
 
@@ -597,7 +597,7 @@ implementation
           s[i]:=source_info.DirSep;
         { Fix ending / }
         if (length(s)>0) and (s[length(s)]<>source_info.DirSep) and
-           (s[length(s)]<>':') then
+           (s[length(s)]<>DriveSeparator) then
          s:=s+source_info.DirSep;
         { Remove ./ }
         if (not allowdot) and (s='.'+source_info.DirSep) then
@@ -1072,16 +1072,15 @@ implementation
         singlepathstring : TCmdStr;
         i : longint;
      begin
-{$ifdef Unix}
-       for i:=1 to length(path) do
-        if path[i]=':' then
-         path[i]:=';';
-{$endif Unix}
+       if PathSeparator <> ';' then
+        for i:=1 to length(path) do
+         if path[i]=PathSeparator then
+          path[i]:=';';
        FindFile:=false;
        repeat
           i:=pos(';',path);
           if i=0 then
-           i:=256;
+           i:=Succ (Length (Path));
           singlepathstring:=FixPath(copy(path,1,i-1),false);
           delete(path,1,i);
           result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
@@ -1091,29 +1090,19 @@ implementation
        FoundFile:=f;
      end;
 
-
+{
    function FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;
       Var
         singlepathstring : TCmdStr;
         startpc,pc : pchar;
-        sepch : char;
      begin
        FindFilePchar:=false;
        if Assigned (Path) then
         begin
-{$ifdef Unix}
-          sepch:=':';
-{$else}
-{$ifdef macos}
-          sepch:=',';
-{$else}
-          sepch:=';';
-{$endif macos}
-{$endif Unix}
           pc:=path;
           repeat
              startpc:=pc;
-             while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
+             while (pc^<>PathSeparator) and (pc^<>';') and (pc^<>#0) do
               inc(pc);
              SetLength(singlepathstring, pc-startpc);
              move(startpc^,singlepathstring[1],pc-startpc);            
@@ -1128,23 +1117,22 @@ implementation
         end;
        foundfile:=f;
      end;
-
+}
 
    function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
      var
-       p : pchar;
+       Path : TCmdStr;
        found : boolean;
      begin
        found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),'.;'+exepath,allowcache,foundfile);
        if not found then
         begin
 {$ifdef macos}
-          p:=GetEnvPchar('Commands');
+          Path:=GetEnvironmentVariable('Commands');
 {$else}
-          p:=GetEnvPchar('PATH');
+          Path:=GetEnvironmentVariable('PATH');
 {$endif}
-          found:=FindFilePChar(FixFileName(ChangeFileExt(bin,source_info.exeext)),p,allowcache,foundfile);
-          FreeEnvPChar(p);
+          found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),Path,allowcache,foundfile);
         end;
        FindExe:=found;
      end;

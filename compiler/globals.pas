@@ -1101,7 +1101,6 @@ implementation
        exeName:TCmdStr;
 {$ifdef need_path_search}
        hs1 : TPathStr;
-       p   : pchar;
 {$endif need_path_search}
      begin
        localexepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
@@ -1116,12 +1115,10 @@ implementation
           hs1 := ExtractFileName(exeName);
           ChangeFileExt(hs1,source_info.exeext);
 {$ifdef macos}
-          p:=GetEnvPchar('Commands');
+          FindFile(hs1,GetEnvironmentVariable('Commands'),false,localExepath);
 {$else macos}
-          p:=GetEnvPchar('PATH');
+          FindFile(hs1,GetEnvironmentVariable('PATH'),false,localExepath);
 {$endif macos}
-          FindFilePChar(hs1,p,false,localExepath);
-          FreeEnvPChar(p);
           localExepath:=ExtractFilePath(localExepath);
         end;
 {$endif need_path_search}
