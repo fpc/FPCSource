@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=base fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
+dirs=base fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra
 dirs_freebsd=fcl-web
 dirs_darwin=fcl-web
 dirs_solaris=fcl-web
