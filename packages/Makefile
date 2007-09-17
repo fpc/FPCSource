@@ -2878,8 +2878,8 @@ fcl-db_debug: fcl-base_debug
 fcl-db_smart: fcl-base_smart
 fcl-db_release: fcl-base_release
 fcl-db_shared: fcl-base_shared
-fcl_all: fcl-base_all fcl-xml_all fcl-fpcunit_all fcl-db_all fcl-web_all fcl-registry_all fcl-passrc_all fcl-image_all fcl-net_all
-fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_debug fcl-registry_debug fcl-passrc_debug fcl-image_debug fcl-net_debug
-fcl_smart: fcl-base_smart fcl-xml_smart fcl-fpcunit_smart fcl-db_smart fcl-web_smart fcl-registry_smart fcl-passrc_smart fcl-image_smart fcl-net_smart
-fcl_release: fcl-base_release fcl-xml_release fcl-fpcunit_release fcl-db_release fcl-web_release fcl-registry_release fcl-passrc_release fcl-image_release fcl-net_release
-fcl_shared: fcl-base_shared fcl-xml_shared fcl-fpcunit_shared fcl-db_shared fcl-web_shared fcl-registry_shared fcl-passrc_shared fcl-image_shared fcl-net_shared
+fcl_all: fcl-base_all fcl-xml_all fcl-fpcunit_all fcl-db_all fcl-web_all fcl-registry_all fcl-passrc_all fcl-image_all fcl-net_all fcl-json_all
+fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_debug fcl-registry_debug fcl-passrc_debug fcl-image_debug fcl-net_debug fcl-json_debug
+fcl_smart: fcl-base_smart fcl-xml_smart fcl-fpcunit_smart fcl-db_smart fcl-web_smart fcl-registry_smart fcl-passrc_smart fcl-image_smart fcl-net_smart fcl-json_smart
+fcl_release: fcl-base_release fcl-xml_release fcl-fpcunit_release fcl-db_release fcl-web_release fcl-registry_release fcl-passrc_release fcl-image_release fcl-net_release fcl-json_release
+fcl_shared: fcl-base_shared fcl-xml_shared fcl-fpcunit_shared fcl-db_shared fcl-web_shared fcl-registry_shared fcl-passrc_shared fcl-image_shared fcl-net_shared fcl-json_shared
