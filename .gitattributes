@@ -649,6 +649,7 @@ ide/fakegdb/gdbcon.pas svneol=native#text/plain
 ide/fakegdb/gdbint.pas svneol=native#text/plain
 ide/fp.ans -text
 ide/fp.pas svneol=native#text/plain
+ide/fp.term -text svneol=unset#application/octet-stream
 ide/fp32.ico -text
 ide/fp32.rc -text
 ide/fpcalc.pas svneol=native#text/plain

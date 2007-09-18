@@ -535,7 +535,8 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_compiler_mode = 'Compiler ~m~ode';
                 label_compiler_runtimechecks = 'Run-time checks';
                 label_compiler_optimizations = 'Optimizations';
-                label_compiler_targetprocessor = 'Target processor';
+                label_compiler_opt_targetprocessor = 'Optimization target processor';
+                label_compiler_codegen_targetprocessor = 'Code generation target processor';
                 label_compiler_linkafter = 'Linking stage';
                 label_compiler_verboseswitches = 'Verbose Switches';
                 label_compiler_browser = 'Browser';
@@ -767,7 +768,7 @@ end;
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
 begin
-  IDEUseSyntaxHighlight:=(Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts);
+  IDEUseSyntaxHighlight:=(Editor^.IsFlagSet(efSyntaxHighlight)) and ((Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts));
 end;
 
 function IDEUseTabsPattern(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}

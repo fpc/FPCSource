@@ -35,7 +35,7 @@ type
        idStackSize,idHeapSize,idStrictVarStrings,idExtendedSyntax,
        idMMXOps,idTypedAddress,idPackRecords,idPackEnum,idStackFrames,
        idReferenceInfo,idDebugInfo,idBoolEval,
-       idLongString,idTypeInfo);
+       idAnsiString,idTypeInfo);
 
     TSwitchMode = (om_Normal,om_Debug,om_Release);
 
@@ -170,7 +170,8 @@ var
     CodegenSwitches,
     OptimizationSwitches,
     OptimizingGoalSwitches,
-    ProcessorSwitches,
+    ProcessorCodeGenerationSwitches,
+    ProcessorOptimizationSwitches,
     AsmReaderSwitches,
     AsmInfoSwitches,
     AsmOutputSwitches,
@@ -222,6 +223,7 @@ const
       opt_allowstaticinobjects = 'Allow STATIC in objects';
       opt_assertions = 'Include assertion code';
       opt_kylix = 'Load Kylix compat. unit';
+      opt_ansistring = 'Use Ansi Strings';
       opt_strictvarstrings = 'Strict var-strings';
       opt_extendedsyntax = 'Extended syntax';
       opt_allowmmxoperations = 'Allow MMX operations';
@@ -247,15 +249,17 @@ const
       opt_overflowchecking = 'Integer ~o~verflow checking';
       opt_objmethcallvalid = 'Object ~m~ethod call checking';
       { Code generation }
-      opt_pic = '~P~osition independend code';
+      opt_pic = '~P~osition independent code';
       opt_smart = '~C~reate smartlinkable units';
       { Code options }
-      opt_generatefastercode = 'Generate ~f~aster code';
+      //opt_generatefastercode = 'Generate ~f~aster code';
       opt_generatesmallercode = 'Generate s~m~aller code';
       opt_useregistervariables = 'Use regis~t~er-variables';
       opt_uncertainoptimizations = '~U~ncertain optimizations';
       opt_level1optimizations = 'Level ~1~ optimizations';
       opt_level2optimizations = 'Level ~2~ optimizations';
+      opt_level3optimizations = 'Level ~3~ optimizations';
+      { optimization processor target }
       opt_i386486 = 'i~3~86/i486';
       opt_pentium = 'Pentium (tm)';
       opt_pentiummmx = 'PentiumMM~X~ (tm)';
@@ -265,6 +269,7 @@ const
       opt_m68020 = 'm680~2~0';
       { Assembler options }
       opt_directassembler = '~D~irect assembler';
+      opt_defaultassembler = '~D~efault style assembler';
       opt_attassembler = '~A~T&T style assembler';
       opt_intelassembler = '~I~ntel style assembler';
       opt_motassembler = '~M~otorola style assembler';
@@ -274,8 +279,10 @@ const
       opt_listtempallocation = 'list ~t~emp allocation';
       opt_listnodeallocation = 'list ~n~ode allocation';
       opt_useasmpipe = 'use ~p~ipe with assembler';
+      { Assembler output selection }
       opt_usedefaultas = 'Use ~d~efault output';
       opt_usegnuas = 'Use ~G~NU as';
+      { I386 assembler output selection }
       opt_usenasmcoff = 'Use ~N~ASM coff';
       opt_usenasmwin32 = 'Use NASM ~w~in32';
       opt_usenasmwdosx= 'Use ~N~ASM w~d~osx';
@@ -289,6 +296,7 @@ const
       opt_usepecoff = 'Use internal ~p~ecoff';
       opt_usepecoffwdosx = 'Use internal pewdos~x~';
       opt_useelf= 'Use internal ~e~lf';
+
       { Browser options }
       opt_nobrowser = 'N~o~ browser';
       opt_globalonlybrowser = 'Only Glob~a~l browser';
@@ -887,8 +895,11 @@ function TSwitches.ReadItemsCfg(const s:string):boolean;
   begin
     { empty items are not equivalent to others !! }
     { but -dGDB didn't work because of this PM }
-    CheckItem:=((P^.Param='') and ((S='') or (P^.typ=ot_String))) or
-               ((Length(P^.Param)>0) and (P^.Param=Copy(s,1,length(P^.Param))));
+    CheckItem:=((P^.Param='') and ((S='') or (P^.typ in [ot_Boolean,ot_String]))) or
+               ((Length(P^.Param)>0) and (P^.Param=S) and
+                not (P^.typ in [ot_Boolean,ot_String])) or
+               ((Length(P^.Param)>0) and (P^.typ<>ot_Select) and
+                (P^.Param=Copy(s,1,length(P^.Param))));
   end;
 
 var
@@ -941,13 +952,14 @@ begin
      SwitchesMode := SWM;
      Writeln(CfgFile,'#IFDEF '+SwitchesModeStr[SwitchesMode]);
      TargetSwitches^.WriteItemsCfg;
+     CompilerModeSwitches^.WriteItemsCfg;
      VerboseSwitches^.WriteItemsCfg;
      SyntaxSwitches^.WriteItemsCfg;
-     CompilerModeSwitches^.WriteItemsCfg;
      CodegenSwitches^.WriteItemsCfg;
      OptimizationSwitches^.WriteItemsCfg;
      OptimizingGoalSwitches^.WriteItemsCfg;
-     ProcessorSwitches^.WriteItemsCfg;
+     ProcessorCodeGenerationSwitches^.WriteItemsCfg;
+     ProcessorOptimizationSwitches^.WriteItemsCfg;
      AsmReaderSwitches^.WriteItemsCfg;
      AsmInfoSwitches^.WriteItemsCfg;
      AsmOutputSwitches^.WriteItemsCfg;
@@ -1005,6 +1017,8 @@ begin
                res:=CodegenSwitches^.ReadItemsCfg(s);
                if not res then
                  res:=MemorySwitches^.ReadItemsCfg(s);
+               if not res then
+                 res:=ProcessorCodeGenerationSwitches^.ReadItemsCfg(s);
              end;
        'd' : res:=ConditionalSwitches^.ReadItemsCfg(s);
        'F' : res:=DirectorySwitches^.ReadItemsCfg(s);
@@ -1012,7 +1026,7 @@ begin
        'O' : begin
                res:=true;
                if not OptimizationSwitches^.ReadItemsCfg(s) then
-                 if not ProcessorSwitches^.ReadItemsCfg(s) then
+                 if not ProcessorOptimizationSwitches^.ReadItemsCfg(s) then
                    res:=OptimizingGoalSwitches^.ReadItemsCfg(s);
              end;
        'M' : res:=CompilerModeSwitches^.ReadItemsCfg(s);
@@ -1154,6 +1168,7 @@ begin
 //     AddBooleanItem(opt_tp7compatibility,'o',idNone);
 //     AddBooleanItem(opt_delphicompatibility,'d',idNone);
      AddBooleanItem(opt_assertions,'a',idNone);
+     AddBooleanItem(opt_ansistring,'h',idAnsiString);
      AddBooleanItem(opt_kylix,'k',idNone);
      AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
      AddBooleanItem(opt_clikeoperators,'c',idNone);
@@ -1198,17 +1213,18 @@ begin
   New(OptimizingGoalSwitches,InitSelect('O'));
   with OptimizingGoalSwitches^ do
     begin
-       AddSelectItem(opt_generatefastercode,'G',idNone);
-       AddSelectItem(opt_generatesmallercode,'g',idNone);
+       //AddSelectItem(opt_generatefastercode,'G',idNone);
+       AddSelectItem(opt_generatesmallercode,'s',idNone);
     end;
   New(OptimizationSwitches,Init('O'));
   with OptimizationSwitches^ do
    begin
 {$ifdef I386}
-     AddBooleanItem(opt_useregistervariables,'r',idNone);
-     AddBooleanItem(opt_uncertainoptimizations,'u',idNone);
+     AddBooleanItem(opt_useregistervariables,'oregvar',idNone);
+     AddBooleanItem(opt_uncertainoptimizations,'ouncertain',idNone);
      AddBooleanItem(opt_level1optimizations,'1',idNone);
      AddBooleanItem(opt_level2optimizations,'2',idNone);
+     AddBooleanItem(opt_level3optimizations,'3',idNone);
 {$else not I386}
  {$ifdef m68k}
      AddBooleanItem(opt_level1optimizations,'a',idNone);
@@ -1216,8 +1232,36 @@ begin
  {$endif m68k}
 {$endif I386}
    end;
-  New(ProcessorSwitches,InitSelect('O'));
-  with ProcessorSwitches^ do
+  New(ProcessorOptimizationSwitches,InitSelect('O'));
+  with ProcessorOptimizationSwitches^ do
+   begin
+     for cpu:=low(tcputype) to high(tcputype) do
+       begin
+         st:=cputypestr[cpu];
+{$ifdef I386}
+         if st='386' then
+           st:=opt_i386486;
+         if st='PENTIUM' then
+           st:=opt_pentium;
+         if st='PENTIUM2' then
+           st:=opt_pentiummmx;
+         if st='PENTIUM3' then
+           st:=opt_pentiumpro;
+         if st='PENTIUM4' then
+           st:=opt_pentiumiv;
+{$endif not I386}
+{$ifdef m68k}
+         if st='68000' then
+           st:=opt_m68000;
+         if st='68020' then
+           st:=opt_m68020;
+{$endif m68k}
+         if st<>'' then
+           AddSelectItem(st,'p'+cputypestr[cpu],idNone);
+       end;
+   end;
+  New(ProcessorCodeGenerationSwitches,InitSelect('C'));
+  with ProcessorCodeGenerationSwitches^ do
    begin
      for cpu:=low(tcputype) to high(tcputype) do
        begin
@@ -1256,12 +1300,14 @@ begin
   with AsmReaderSwitches^ do
    begin
 {$ifdef I386}
+     AddSelectItem(opt_defaultassembler,'default',idNone);
 {     AddSelectItem(opt_directassembler,'direct',idAsmDirect);}
      AddSelectItem(opt_attassembler,'att',idAsmATT);
      AddSelectItem(opt_intelassembler,'intel',idAsmIntel);
 {$endif I386}
 {$ifdef M68K}
-     AddSelectItem(opt_standardassembler,'standard',idAsmStandard);
+     AddSelectItem(opt_defaultassembler,'default',idNone);
+     //AddSelectItem(opt_standardassembler,'standard',idAsmStandard);
      AddSelectItem(opt_motassembler,'motorola',idAsmMot);
 {$endif M68K}
    end;
@@ -1362,7 +1408,7 @@ begin
        SwitchesMode:=i;
 {$ifdef i386}
        { default is Pentium }
-       ProcessorSwitches^.SetCurrSel(1);
+       ProcessorOptimizationSwitches^.SetCurrSel(1);
        { AT&T reader }
        AsmReaderSwitches^.SetCurrSel(1);
 {$endif i386}
@@ -1432,7 +1478,8 @@ begin
   dispose(CodegenSwitches,Done);
   dispose(OptimizationSwitches,Done);
   dispose(OptimizingGoalSwitches,Done);
-  dispose(ProcessorSwitches,Done);
+  dispose(ProcessorOptimizationSwitches,Done);
+  dispose(ProcessorCodeGenerationSwitches,Done);
   dispose(BrowserSwitches,Done);
   dispose(TargetSwitches,Done);
   dispose(AsmReaderSwitches,Done);
@@ -1497,7 +1544,7 @@ begin
     idReferenceInfo   : AddSwitch('Y'+P^.GetSwitchStr(SM));
     idDebugInfo       : AddSwitch('D'+P^.GetSwitchStr(SM));
     idBoolEval        : AddSwitch('B'+P^.GetSwitchStr(SM));
-    idLongString      : AddSwitch('H'+P^.GetSwitchStr(SM));
+    idAnsiString      : AddSwitch('H'+P^.GetSwitchStr(SM));
     idTypeInfo        : AddSwitch('M'+P^.GetSwitchStr(SM));
    end;
 end;
@@ -1520,7 +1567,8 @@ begin
   EnumSwitches(CodegenSwitches);
   EnumSwitches(OptimizationSwitches);
   EnumSwitches(OptimizingGoalSwitches);
-  EnumSwitches(ProcessorSwitches);
+  EnumSwitches(ProcessorOptimizationSwitches);
+  EnumSwitches(ProcessorCodeGenerationSwitches);
   EnumSwitches(AsmReaderSwitches);
   EnumSwitches(AsmInfoSwitches);
   EnumSwitches(AsmOutputSwitches);
