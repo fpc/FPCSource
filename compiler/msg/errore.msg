@@ -348,6 +348,8 @@ scan_e_only_packset=02080_E_Illegal set packing value
 scan_w_pic_ignored=02081_W_PIC directive ignored
 % Several targets like windows do not support the PIC directive and need it to be
 % ignored.
+scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by the currently selected target
+% Some compiler switches like $E are not supported by all targets.
 % \end{description}
 #
 # Parser
@@ -2502,6 +2504,7 @@ S*2Aas_assemble using GNU AS
 **2Fi<x>_adds <x> to include path
 **2Fl<x>_adds <x> to library path
 **2FL<x>_uses <x> as dynamic linker
+**2Fm<x>_load unicode conversion table from <x>.txt in the compiler dir
 **2Fo<x>_adds <x> to object path
 **2Fr<x>_load error message file <x>
 **2Fu<x>_adds <x> to unit path
@@ -2532,7 +2535,6 @@ S*2Aas_assemble using GNU AS
 **2Mobjfpc_switch some Delphi 2 extensions on
 **2Mdelphi_tries to be Delphi compatible
 **2Mtp_tries to be TP/BP 7.0 compatible
-**2Mgpc_tries to be gpc compatible
 **2Mmacpas_tries to be compatible to the macintosh pascal dialects
 **1n_don't read the default config file
 **1N<x>_node tree optimizations

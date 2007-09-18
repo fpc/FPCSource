@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 7250
+#   Based on errore.msg of SVN revision 7501
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -2152,7 +2152,7 @@ unit_f_circular_unit_reference=10020_F_Gegenseitige Abhängigkeit von Units zwis
 unit_f_cant_compile_unit=10021_F_Kann Unit "$1" nicht übersetzen, keine Quellen vorhanden
 % A unit was found that needs to be recompiled, but no sources are
 % available.
-unit_f_cant_find_ppu=10022_F_Kann Unit "$1" nicht finden
+unit_f_cant_find_ppu=10022_F_Kann Unit "$1", die von "$2" benutzt wird, nicht finden
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your config files for the unit pathes
 unit_w_unit_name_error=10023_W_Unit "$1" wurde nicht gefunden, aber "$2" existiert
@@ -2216,7 +2216,7 @@ unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kann Unit $1 nicht rekompi
 % some source files were not found, so recompilation is impossible.
 unit_u_source_modified=10041_U_Datei $1 ist neuer als die PPU Datei $2
 % A modified source file for a compiler unit was found.
-unit_u_ppu_invalid_fpumode=10042_U_Eine Unit wurde nicht mit der korrekten FPU Mode kompiliert
+unit_u_ppu_invalid_fpumode=10042_U_Versuch eine Unit zu verwenden, die in einem anderen FPU Mode kompiliert wurde
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
@@ -2503,7 +2503,8 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2FE<x>_setze den Pfad für Exe/Unit-Dateien auf <x>
 **2Fi<x>_ergänze <x> zum Include-Pfad
 **2Fl<x>_ergänze <x> zum Bibliotheks-Pfad
-*L2FL<x>_benutze <x> als dynamischen Linker
+**2FL<x>_benutze <x> als dynamischen Linker
+**2Fm<x>_lade die Unicode-Konversionstabelle aus <x>.txt im Compiler-Verzeichnis
 **2Fo<x>_ergänze <x> zum Objektdatei-Pfad
 **2Fr<x>_lade die Fehler-Meldungs Datei <x>
 **2Fu<x>_ergänze <x> zum Unit-Pfad

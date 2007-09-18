@@ -217,7 +217,6 @@ implementation
                end;
           end;
 
-
         { both are int constants }
         if (
             (
@@ -426,7 +425,100 @@ implementation
              end;
              result:=t;
              exit;
-          end;
+          end
+        {Match against the ranges, i.e.:
+         var a:1..10;
+         begin
+           if a>0 then
+         ... always evaluates to true. (DM)}
+        else if is_constintnode(left) and (right.resultdef.typ=orddef) and
+            { all type limits are stored using tconstexprint = int64   }
+            { currently, so u64bit support would need extra type casts }
+            (Torddef(right.resultdef).ordtype<>u64bit) and
+            { don't ignore type checks }
+            is_subequal(left.resultdef,right.resultdef) then
+            begin
+              t:=nil;
+              lv:=Tordconstnode(left).value;
+              with Torddef(right.resultdef) do
+                case nodetype of
+                 ltn:
+                   if lv<low then
+                     t:=Cordconstnode.create(1,booltype,true)
+                   else if lv>=high then
+                     t:=Cordconstnode.create(0,booltype,true);
+                 lten:
+                   if lv<=low then
+                     t:=Cordconstnode.create(1,booltype,true)
+                   else if lv>high then
+                     t:=Cordconstnode.create(0,booltype,true);
+                 gtn:
+                   if lv<=low then
+                     t:=Cordconstnode.create(0,booltype,true)
+                   else if lv>high then
+                     t:=Cordconstnode.create(1,booltype,true);
+                 gten :
+                   if lv<low then
+                     t:=Cordconstnode.create(0,booltype,true)
+                   else if lv>=high then
+                     t:=Cordconstnode.create(1,booltype,true);
+                 equaln:
+                   if (lv<low) or (lv>high) then
+                     t:=Cordconstnode.create(0,booltype,true);
+                 unequaln:
+                   if (lv<low) or (lv>high) then
+                     t:=Cordconstnode.create(1,booltype,true);
+                end;
+              if t<>nil then
+                begin
+                  result:=t;
+                  exit;
+                end
+            end
+          else if (left.resultdef.typ=orddef) and is_constintnode(right) and
+              { all type limits are stored using tconstexprint = int64   }
+              { currently, so u64bit support would need extra type casts }
+              (Torddef(left.resultdef).ordtype<>u64bit) and
+              { don't ignore type checks }
+              is_subequal(left.resultdef,right.resultdef) then
+            begin
+              t:=nil;
+              rv:=Tordconstnode(right).value;
+              with Torddef(left.resultdef) do
+                case nodetype of
+                 ltn:
+                   if high<rv then
+                     t:=Cordconstnode.create(1,booltype,true)
+                   else if low>=rv then
+                     t:=Cordconstnode.create(0,booltype,true);
+                 lten:
+                   if high<=rv then
+                     t:=Cordconstnode.create(1,booltype,true)
+                   else if low>rv then
+                     t:=Cordconstnode.create(0,booltype,true);
+                 gtn:
+                   if high<=rv then
+                     t:=Cordconstnode.create(0,booltype,true)
+                   else if low>rv then
+                     t:=Cordconstnode.create(1,booltype,true);
+                 gten:
+                   if high<rv then
+                     t:=Cordconstnode.create(0,booltype,true)
+                   else if low>=rv then
+                     t:=Cordconstnode.create(1,booltype,true);
+                 equaln:
+                   if (rv<low) or (rv>high) then
+                     t:=Cordconstnode.create(0,booltype,true);
+                 unequaln:
+                   if (rv<low) or (rv>high) then
+                     t:=Cordconstnode.create(1,booltype,true);
+                end;
+              if t<>nil then
+                begin
+                  result:=t;
+                  exit;
+                end
+            end;
 
         { Add,Sub,Mul with constant 0 or 1?  }
         if is_constintnode(right) and is_integer(left.resultdef) then
@@ -822,10 +914,7 @@ implementation
                 begin
                   left.resultdef := s64inttype;
                   right.resultdef := s64inttype;
-                end
-            else if (left.resultdef.typ <> floatdef) and
-               (right.resultdef.typ <> floatdef) then
-              CGMessage(type_h_use_div_for_int);
+                end;
             inserttypeconv(right,resultrealdef);
             inserttypeconv(left,resultrealdef);
           end

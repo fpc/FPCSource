@@ -61,8 +61,10 @@ unit widestr;
   implementation
 
     uses
-       cp8859_1,cp850,cp437,
-       globals;
+      cp8859_1,cp850,cp437,
+      { cyrillic code pages }
+      cp1251,cp866,cp8859_5,
+      globals;
 
 
     procedure initwidestring(out r : pcompilerwidestring);

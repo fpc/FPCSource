@@ -454,7 +454,7 @@ unit cgx86;
                  s:=S_IQ;
               end;
             else
-              internalerror(200204041);
+              internalerror(200204043);
          end;
       end;
 
