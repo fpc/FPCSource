@@ -23,9 +23,6 @@ unit cfileutl;
 
 {$i fpcdefs.inc}
 
-{$ifndef go32v2}
-{$define usedircache}
-{$endif not go32v2}
 
 interface
 
@@ -131,6 +128,29 @@ implementation
       Comphook,
       Globals;
 
+{$undef AllFilesMaskIsInRTL}
+
+{$if (FPC_VERSION > 2)}
+  {$define AllFilesMaskIsInRTL}
+{$endif FPC_VERSION}
+
+{$if (FPC_VERSION = 2) and (FPC_RELEASE > 2)}
+  {$define AllFilesMaskIsInRTL}
+{$endif}
+
+{$if (FPC_VERSION = 2) and (FPC_RELEASE = 2) and (FPC_PATCH > 0)}
+  {$define AllFilesMaskIsInRTL}
+{$endif}
+
+{$ifndef AllFilesMaskIsInRTL}
+  {$if defined(go32v2) or defined(watcom)}
+  const
+    AllFilesMask = '*.*';
+  {$else}
+  const
+    AllFilesMask = '*';
+  {$endif not (go32v2 or watcom)}
+{$endif not AllFilesMaskIsInRTL}
     var
       DirCache : TDirectoryCache;
 
@@ -175,7 +195,7 @@ implementation
               entry:=PCachedDirectoryEntry(DirectoryEntries.Find(Lower(AName)));
               if assigned(entry) then
                 Result:=entry^.Attr
-              else 
+              else
                 Result:=0;
             end
           else
@@ -192,7 +212,7 @@ implementation
       begin
         FreeDirectoryEntries;
         DirectoryEntries.Clear;
-        if findfirst(IncludeTrailingPathDelimiter(Name)+'*',faAnyFile or faDirectory,dir) = 0 then
+        if findfirst(IncludeTrailingPathDelimiter(Name)+AllFilesMask,faAnyFile or faDirectory,dir) = 0 then
           begin
             repeat
               if ((dir.attr and faDirectory)<>faDirectory) or
@@ -243,7 +263,7 @@ implementation
                 Attr:=entry^.Attr;
                 FoundName:=entry^.RealName
               end
-            else 
+            else
               Attr:=0;
             if Attr<>0 then
               Result:=((Attr and faDirectory)=0)
@@ -956,7 +976,7 @@ implementation
             suffix:=Copy(currpath,staridx+1,length(currpath));
             subdirfound:=false;
 {$ifdef usedircache}
-            if DirCache.FindFirst(Prefix+'*',dir) then
+            if DirCache.FindFirst(Prefix+AllFilesMask,dir) then
               begin
                 repeat
                   if (dir.attr and faDirectory)<>0 then
@@ -974,7 +994,7 @@ implementation
               end;
             DirCache.FindClose(dir);
 {$else usedircache}
-            if findfirst(prefix+'*',faDirectory,dir) = 0 then
+            if findfirst(prefix+AllFilesMask,faDirectory,dir) = 0 then
               begin
                 repeat
                   if (dir.name<>'.') and
@@ -1105,7 +1125,7 @@ implementation
              while (pc^<>PathSeparator) and (pc^<>';') and (pc^<>#0) do
               inc(pc);
              SetLength(singlepathstring, pc-startpc);
-             move(startpc^,singlepathstring[1],pc-startpc);            
+             move(startpc^,singlepathstring[1],pc-startpc);
              singlepathstring:=FixPath(ExpandFileName(singlepathstring),false);
              result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
              if result then
