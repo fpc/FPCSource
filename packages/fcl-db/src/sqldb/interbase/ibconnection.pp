@@ -737,13 +737,20 @@ begin
       begin
       if assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := 0;
 
-      case AParams[ParNr].DataType of
-        ftInteger :
+      case (in_sqlda^.SQLvar[SQLVarNr].sqltype and not 1) of
+        SQL_LONG :
           begin
           i := AParams[ParNr].AsInteger;
           Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           end;
-        ftString,ftFixedChar  : if ((in_sqlda^.SQLvar[SQLVarNr].SQLType and not 1) = SQL_BLOB) then SetBlobParam else
+        SQL_SHORT :
+          begin
+          i := AParams[ParNr].AsSmallInt;
+          Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+          end;
+        SQL_BLOB :
+          SetBlobParam;
+        SQL_VARYING, SQL_TEXT :
           begin
           s := AParams[ParNr].AsString;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
@@ -757,22 +764,17 @@ begin
             end
           else
             CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
-
           Move(s[1], CurrBuff^, w);
           end;
-        ftDate, ftTime, ftDateTime:
+        SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
           SetDateTime(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsDateTime, in_SQLDA^.SQLVar[SQLVarNr].SQLType);
-        ftLargeInt:
+        SQL_INT64:
           begin
           li := AParams[ParNr].AsLargeInt;
           Move(li, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           end;
-        ftFloat:
+        SQL_DOUBLE, SQL_FLOAT:
           SetFloat(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsFloat, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
-        ftBlob, ftMemo:
-          begin
-          SetBlobParam;
-          end;
       else
         DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}

@@ -20,12 +20,13 @@ type
   private
     procedure CreateTableWithFieldType(ADatatype : TFieldType; ASQLTypeDecl : string);
     procedure TestFieldDeclaration(ADatatype: TFieldType; ADataSize: integer);
-    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer);
+    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
   protected
     procedure SetUp; override; 
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;
     procedure TestUpdateIndexDefs;
     procedure TestSetBlobAsMemoParam;
@@ -729,7 +730,7 @@ begin
 end;
 
 
-procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer);
+procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
 
 var i : integer;
 
@@ -753,13 +754,16 @@ begin
         ftInteger: Params.ParamByName('field1').asinteger := testIntValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
         ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
-        ftDate   : Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i]);
+        ftDate   : if cross then
+                     Params.ParamByName('field1').AsString:= testDateValues[i]
+                   else
+                     Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i]);
       else
         AssertTrue('no test for paramtype available',False);
       end;
       ExecSQL;
       end;
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
     sql.clear;
     sql.append('select * from FPDEV2 order by ID');
@@ -862,6 +866,11 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestCrossStringDateParam;
+begin
+  TestXXParamQuery(ftDate,'DATE',testDateValuesCount,True);
 end;
 
 procedure TTestFieldTypes.TestGetFieldNames;
