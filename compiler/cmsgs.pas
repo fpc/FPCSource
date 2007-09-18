@@ -91,7 +91,7 @@ begin
           last:=i;
         end;
     end;
-  MsgReplace:=hs+copy(s,last+1,length(s)-last);;
+  MsgReplace:=hs+copy(s,last+1,length(s)-last);
 end;
 
 

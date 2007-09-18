@@ -1,10 +1,10 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2006 by the Free Pascal Development team
+#   Copyright (c) 1999-2007 by the Free Pascal Development team
 #
 #   Hebrew (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 6685
+#   Based on errore.msg of SVN revision 7423
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -348,8 +348,8 @@ scanner_e_illegal_warn_state=02079_E_שימוש לא חוקי בהנחית $WARN
 scan_e_only_packset=02080_E_ערך של אריזה לא חוקי
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
 scan_w_pic_ignored=02081_W_מתעלם מהוראת PIC
-% Several targets like windows doesn't support and need the PIC directive so
-% it is ignored.
+% Several targets like windows do not support the PIC directive and need it to be
+% ignored.
 % \end{description}
 #
 # Parser
@@ -1023,7 +1023,7 @@ parser_e_goto_outside_proc=03201_E_לא ניתן להשמש בgoto בין שני
 % ...
 %
 % \end{verbatim}
-parser_f_too_complex_proc=03202_F_השיגרה מסובכת מידי ודרשת שימוש של יותר מידי אוגרים
+parser_f_too_complex_proc=03202_F_השיגרה מסובכת מידי ודורשת שימוש של אוגרים רבים מידי
 % Your procedure body is too long for the compiler. You should split the
 % procedure into multiple smaller procedures.
 parser_e_illegal_expression=03203_E_ביטוי לא חוקי
@@ -1131,6 +1131,8 @@ parser_f_no_anonymous_specializations=03232_F_פירוט של generic אנוני
 %   MyLinkedList: TMyLinkedList
 parser_e_initialized_not_for_external=03233_E_לא ניתן לאתחל ערך ברירת מחדל למשתנים המוגדרים כexternal
 % Variables declared as external can not be initialized with a default value.
+parser_e_illegal_function_result=03234_E_טיפוס החזרה של הפונקציה אינו חוקי
+% Some types like file types can not be used as function result
 % \end{description}
 #
 # Type Checking
@@ -1251,8 +1253,9 @@ type_e_wrong_math_argument=04027_E_ביטוי קבוע לא חוקי הוזן ל
 % The constant argument passed to a ln or sqrt function is out of
 % the definition range of these functions.
 type_e_no_addr_of_constant=04028_E_לא ניתן לקבל את הכתובת של הקבוע
-% It is not possible to get the address of a constant, because they
-% aren't stored in memory, you can try making it a typed constant.
+% It is not possible to get the address of a constant expression, because they
+% aren't stored in memory. You can try making it a typed constant. This error
+% can also be displayed if you try to pass a property to a var parameter.
 type_e_argument_cant_be_assigned=04029_E_לא ניתן להשים את הארגומנט
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
@@ -2348,9 +2351,6 @@ option_asm_forced=11022_W_התוכן של המאסף "$1" לא מסוגל ליצ
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-option_confict_asm_debug=11041_W_סוג הפלט של המאסף שנבחר "$1" אינו יכול ליצור מידע עבור ניפוי שגיאות. מבטל ניפוי שגיאות
-% The assembler output selected can not generate
-% debugging information, debugging option is therefore disabled.
 option_using_file=11026_T_קורא אפשרויות מהקובץ $1
 % Options are also read from this file
 option_using_env=11027_T_קורא אפשרויות מהסביבה $1
@@ -2372,6 +2372,9 @@ option_found_file=11035_D_נמצא קובץ מקור בשם "$1"
 option_code_page_not_available=11039_E_קוד דף לא ידוע
 option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההגדרות $1
 % Directories can not be used as configuration files.
+option_confict_asm_debug=11041_W_סוג הפלט של המאסף שנבחר "$1" אינו יכול ליצור מידע עבור ניפוי שגיאות. מבטל ניפוי שגיאות
+% The assembler output selected can not generate
+% debugging information, debugging option is therefore disabled.
 %\end{description}
 # EndOfTeX
 
@@ -2499,6 +2502,7 @@ S*2Aas_אסוף עם GNU AS
 **2Fi<x>_מוסיף את <x> לרשימת הנתיבים
 **2Fl<x>_מוסיף את <x> לרשימת הנתיבים של הספריה
 **2FL<x>_משתמש ב<x> כמקשר דינאמי
+**2Fm<x>_טוען טבלת המרה של יוניקוד מהקובץ x>.txt> מספריית המהדר
 **2Fo<x>_מוסיף את <x> לרשינת הנתיבים של אובייקט
 **2Fr<x>_טוען קובץ הודעות שגיאה <x>
 **2Fu<x>_מוסיף את <x> לרשימת הנתיבים של יחידה
@@ -2601,9 +2605,9 @@ S*2Aas_אסוף עם GNU AS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
 P*2Tamiga_AmigaOS על PowerPC
-P*2Tdarwin_Darwin ו MacOS X על PowerPC
+P*2Tdarwin_Darwin ו Mac OS X על PowerPC
 P*2Tlinux_Linux על PowerPC
-P*2Tmacos_MacOS (קלאסי) על PowerPC
+P*2Tmacos_Mac OS (קלאסי) על PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
 **1u<x>_מסיר את ההגדרה של הסמל <x>
@@ -2638,9 +2642,9 @@ S*2Tlinux_Linux
 3*2WG_מציין יישום גרפי
 3*2WN_אל תיצור קוד משנה מיקום (חיוני לניפוי שגיאות)
 3*2WR_צור קוד משנה מיקום
-P*2WC_מציין יישום מסוף (MacOS בלבד)
-P*2WG_מציין יישום גרפי (MacOS בלבד)
-P*2WT_מציין יישום מסוג כלי (כלי MPW, MacOS בלבד)
+P*2WC_מציין יישום מסוף (Mac OS בלבד)
+P*2WG_מציין יישום גרפי (Mac OS בלבד)
+P*2WT_מציין יישום מסוג כלי (כלי MPW, Mac OS בלבד)
 **1X_הגדרות קבצי ריצה:
 **2Xc_העבר --shared למקשר (Unix בלבד)
 **2Xd_אל תשתמש בנתיבי חיפוש ספריות תיקניים (נדרש בזמן הידור צולב )

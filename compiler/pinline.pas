@@ -96,7 +96,7 @@ implementation
             if is_new then
               begin
                 sym:=search_class_member(classh,'CREATE');
-                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resultdef));;
+                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resultdef));
               end
             else
               begin

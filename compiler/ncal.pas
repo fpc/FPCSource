@@ -246,6 +246,7 @@ implementation
         currargpos,
         namedparacount,
         paracount : longint;
+        assignmenttype,
         vardatadef,
         pvardatadef : tdef;
         dispatchbyref : boolean;
@@ -319,6 +320,12 @@ implementation
               begin
                 para.value:=ctypeconvnode.create_internal(para.value,bool16type);
                 typecheckpass(para.value);
+              end
+            { force automatable float type }
+            else if is_extended(para.value.resultdef) then
+              begin
+                para.value:=ctypeconvnode.create_internal(para.value,s64floattype);
+                typecheckpass(para.value);
               end;
 
             if assigned(para.parametername) then
@@ -376,12 +383,22 @@ implementation
                   )),voidpointertype),
                   ctypeconvnode.create_internal(caddrnode.create_internal(para.value),voidpointertype)))
               else
-                addstatement(statements,cassignmentnode.create(
-                  ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
-                    caddrnode.create(ctemprefnode.create(params)),
-                    cordconstnode.create(paramssize,ptruinttype,false)
-                  )),voidpointertype),
-                  ctypeconvnode.create_internal(para.value,voidpointertype)));
+                begin
+                  case para.value.resultdef.size of
+                    1..4:
+                      assignmenttype:=u32inttype;
+                    8:
+                      assignmenttype:=u64inttype;
+                    else
+                      internalerror(2007042801);
+                  end;
+                  addstatement(statements,cassignmentnode.create(
+                    ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
+                      caddrnode.create(ctemprefnode.create(params)),
+                      cordconstnode.create(paramssize,ptruinttype,false)
+                    )),assignmenttype),
+                    ctypeconvnode.create_internal(para.value,assignmenttype)));
+                end;
 
             if is_ansistring(para.value.resultdef) then
               calldesc.argtypes[currargpos]:=varStrArg
@@ -616,7 +633,7 @@ implementation
                       temp:=Tvecnode(p).right;
                       Tvecnode(p).right:=l.getcopy;
 
-					  {Typecheckpass can only be performed *after* the l.getcopy since it
+                      {Typecheckpass can only be performed *after* the l.getcopy since it
                        can modify the tree, and l is in the hightree.}
                       typecheckpass(hightree);
 

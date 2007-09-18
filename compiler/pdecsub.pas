@@ -2124,27 +2124,31 @@ const
             if assigned(pd.import_dll) then
               begin
                 { If we are not using direct dll linking under win32 then imports
-                  need to use the normal name since to functions can refer to the
+                  need to use the normal name since two functions can refer to the
                   same DLL function. This is also needed for compatability
                   with Delphi and TP7 }
+(*
                 case target_info.system of
                   system_i386_emx,
                   system_i386_os2 :
                     begin
                       { keep normal mangledname }
+                      if not (Assigned (PD.Import_Name)) then
+                       Result := PD.MangledName;
                     end;
                   else
-                    if assigned(pd.import_name) then
-                      begin
-                        if target_info.system in system_all_windows then
-                          { cprefix is not used in DLL imports under Windows }
-                          result:=pd.import_name^
-                        else
-                          result:=maybe_cprefix(pd.import_name^);
-                      end
+*)
+                if assigned(pd.import_name) then
+                  begin
+                    if target_info.system in (system_all_windows +
+                                       [system_i386_emx, system_i386_os2]) then
+                   { cprefix is not used in DLL imports under Windows or OS/2 }
+                      result:=pd.import_name^
                     else
-                      result:=ExtractFileName(pd.import_dll^)+'_index_'+tostr(pd.import_nr);
-                end;
+                      result:=maybe_cprefix(pd.import_name^);
+                  end
+                else
+                  result:=ExtractFileName(pd.import_dll^)+'_index_'+tostr(pd.import_nr);
               end
             else
               result:=maybe_cprefix(pd.import_name^);

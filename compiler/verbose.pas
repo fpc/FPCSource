@@ -482,10 +482,20 @@ var
       begin
         dostop:=((l and V_Fatal)<>0);
         if ((l and V_Error)<>0) or
+           ((l and V_Fatal)<>0) or
            (status.errorwarning and ((l and V_Warning)<>0)) or
            (status.errornote and ((l and V_Note)<>0)) or
            (status.errorhint and ((l and V_Hint)<>0)) then
-         inc(status.errorcount);
+         inc(status.errorcount)
+        else
+         if l and V_Warning <> 0 then
+          inc(status.countWarnings)
+         else
+          if l and V_Note <> 0 then
+           inc(status.countNotes)
+          else
+           if l and V_Hint <> 0 then
+            inc(status.countHints);
       { check verbosity level }
         if not CheckVerbosity(l) then
           exit;

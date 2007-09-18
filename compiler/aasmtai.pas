@@ -2345,7 +2345,7 @@ implementation
 {$endif x86}
               ppufile.getdata(o.ref^.base,sizeof(Tregister));
               ppufile.getdata(o.ref^.index,sizeof(Tregister));
-              ppufile.getdata(o.ref^.refaddr,sizeof(o.ref^.refaddr));;
+              ppufile.getdata(o.ref^.refaddr,sizeof(o.ref^.refaddr));
               o.ref^.scalefactor:=ppufile.getbyte;
               o.ref^.offset:=ppufile.getaint;
               o.ref^.symbol:=ppufile.getasmsymbol;

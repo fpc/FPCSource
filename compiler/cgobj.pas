@@ -749,7 +749,7 @@ implementation
         for rt:=low(rg) to high(rg) do
           begin
             if assigned(rg[rt]) then
-              rg[rt].extend_live_range_backwards := b;;
+              rg[rt].extend_live_range_backwards := b;
           end;
       end;
 
@@ -1154,9 +1154,11 @@ implementation
 
 {$if defined(cpurequiresproperalignment) and not defined(arm) and not(defined(sparc))}
         { may need to be split into several smaller loads/stores }
-        if intloadsize <> sref.ref.alignment then
-           internalerror(2006082011);
-{$endif cpurequiresproperalignment}
+        if (tf_requires_proper_alignment in target_info.flags) and
+           (intloadsize <> 1) and
+           (intloadsize <> sref.ref.alignment) then
+          internalerror(2006082011);
+{$endif not(defined(arm)) and not(defined(sparc))}
 
         if (intloadsize = 0) then
           internalerror(2006081310);

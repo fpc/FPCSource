@@ -41,6 +41,10 @@ interface
         constructor create(smart: boolean); override;
       end;
 
+      Tx86AoutGNUAssembler=class(TAoutGNUassembler)
+        constructor create(smart: boolean); override;
+      end;
+
 
      Tx86InstrWriter=class(TCPUInstrWriter)
        private
@@ -78,6 +82,16 @@ interface
  ****************************************************************************}
 
     constructor Tx86AppleGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := Tx86InstrWriter.create(self);
+      end;
+
+{****************************************************************************
+                          Tx86AoutGNUAssembler
+ ****************************************************************************}
+
+    constructor Tx86AoutGNUAssembler.create(smart: boolean);
       begin
         inherited create(smart);
         InstrWriter := Tx86InstrWriter.create(self);
@@ -339,6 +353,6 @@ initialization
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_darwin_info,Tx86AppleGNUAssembler);
-  RegisterAssembler(as_i386_as_aout_info,Tx86ATTAssembler);
+  RegisterAssembler(as_i386_as_aout_info,Tx86AoutGNUAssembler);
 {$endif x86_64}
 end.
