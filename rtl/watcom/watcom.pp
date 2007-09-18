@@ -209,7 +209,7 @@ interface
       end;
 
 
-    procedure test_int31(flag : longint);
+    procedure test_int31(flag : longint); stdcall; { flag is pushed on stack }
       begin
          asm
             pushl %ebx
