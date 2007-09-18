@@ -140,12 +140,12 @@ printer$(PPUEXT) : printer.pp system$(PPUEXT)
 # Graph
 #
 
-include $(GRAPHDIR)/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+#include $(GRAPHDIR)/makefile.inc
+#GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
-graph$(PPUEXT) : graph.pp watcom$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
-                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
-        $(COMPILER) -I$(GRAPHDIR) graph.pp
+#graph$(PPUEXT) : graph.pp watcom$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
+#                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
+#        $(COMPILER) -I$(GRAPHDIR) graph.pp
 
 #
 # Delphi Compatible Units
