@@ -5559,7 +5559,9 @@ rtl/x86_64/x86_64.inc svneol=native#text/plain
 tests/MPWMake -text
 tests/Makefile svneol=native#text/plain
 tests/Makefile.fpc svneol=native#text/plain
+tests/bench/bansi1.inc svneol=native#text/plain
 tests/bench/bansi1.pp -text
+tests/bench/bansi1mt.pp svneol=native#text/plain
 tests/bench/blists1.inc svneol=native#text/plain
 tests/bench/blists1.pp svneol=native#text/plain
 tests/bench/dmisc.pas svneol=native#text/plain
@@ -5631,6 +5633,7 @@ tests/bench/shootout/src/simple_hash.pp svneol=native#text/plain
 tests/bench/shootout/src/spectralnorm.pp svneol=native#text/plain
 tests/bench/shootout/src/sumcol.pp svneol=native#text/plain
 tests/bench/shortbench.pp svneol=native#text/plain
+tests/bench/stream.pp svneol=native#text/x-pascal
 tests/bench/timer.pas svneol=native#text/plain
 tests/bench/whet.pas svneol=native#text/plain
 tests/dbdigest.cfg.example -text
