@@ -60,11 +60,10 @@ implementation
          testcurobject:=0;
 
          { Current compiled module/proc }
+         set_current_module(nil);
          current_module:=nil;
-         compiled_module:=nil;
          current_asmdata:=nil;
          current_procinfo:=nil;
-         SetCompileModule(nil);
 
          loaded_units:=TLinkedList.Create;
 
@@ -134,11 +133,10 @@ implementation
       begin
          { Reset current compiling info, so destroy routines can't
            reference the data that might already be destroyed }
+         set_current_module(nil);
          current_module:=nil;
-         compiled_module:=nil;
          current_procinfo:=nil;
          current_asmdata:=nil;
-         SetCompileModule(nil);
 
          { unload units }
          if assigned(loaded_units) then
@@ -183,7 +181,7 @@ implementation
       begin
          new(preprocfile,init('pre'));
        { initialize a module }
-         current_module:=new(pmodule,init(filename,false));
+         set_current_module(new(pmodule,init(filename,false)));
 
          macrosymtablestack:= initialmacrosymtable;
          current_module.localmacrosymtable:= tmacrosymtable.create(false);
@@ -275,7 +273,7 @@ implementation
           oldparse_only  : boolean;
         { akt.. things }
           oldcurrent_filepos      : tfileposinfo;
-          old_compiled_module : tmodule;
+          old_current_module : tmodule;
           oldcurrent_procinfo : tprocinfo;
           old_settings : tsettings;
           oldsourcecodepage : tcodepagestring;
@@ -293,7 +291,7 @@ implementation
          new(olddata);
          with olddata^ do
           begin
-            old_compiled_module:=compiled_module;
+            old_current_module:=current_module;
           { save symtable state }
             oldsymtablestack:=symtablestack;
             oldmacrosymtablestack:=macrosymtablestack;
@@ -343,7 +341,7 @@ implementation
            begin
              if assigned(current_module) then
                internalerror(200501158);
-             current_module:=tppumodule.create(nil,filename,'',false);
+             set_current_module(tppumodule.create(nil,filename,'',false));
              addloadedunit(current_module);
              main_module:=current_module;
              current_module.state:=ms_compile;
@@ -351,11 +349,6 @@ implementation
          if not(assigned(current_module) and
                 (current_module.state in [ms_compile,ms_second_compile])) then
            internalerror(200212281);
-
-         { Set the module to use for verbose }
-         compiled_module:=current_module;
-         SetCompileModule(current_module);
-         Fillchar(current_filepos,0,sizeof(current_filepos));
 
          { Load current state from the init values }
          current_settings:=init_settings;
@@ -457,18 +450,6 @@ implementation
                 block_type:=old_block_type;
                 { restore cg }
                 parse_only:=oldparse_only;
-                { asm data }
-                if assigned(old_compiled_module) then
-                  current_asmdata:=tasmdata(old_compiled_module.asmdata)
-                else
-                  current_asmdata:=nil;
-                { restore previous scanner }
-                if assigned(old_compiled_module) then
-                  current_scanner:=tscannerfile(old_compiled_module.scanner)
-                else
-                  current_scanner:=nil;
-                if assigned(current_scanner) then
-                  parser_current_file:=current_scanner.inputfile.name^;
                 { restore symtable state }
                 symtablestack:=oldsymtablestack;
                 macrosymtablestack:=oldmacrosymtablestack;
@@ -508,8 +489,7 @@ implementation
                end;
              end;
            dec(compile_level);
-           compiled_module:=olddata^.old_compiled_module;
-           SetCompileModule(compiled_module);
+           set_current_module(olddata^.old_current_module);
 
            dispose(olddata);
          end;

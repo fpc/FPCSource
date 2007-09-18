@@ -587,7 +587,7 @@ begin
     cpCompiling :
       begin
         ClearFormatParams;
-        if Status.Compiling_current then
+        if Upcase(Status.currentmodulestate)='COMPILE' then
           begin
             AddFormatParamStr(ShrinkPath(SmartPath(Status.Currentsourcepath+Status.CurrentSource),
               MaxFileNameSize - Length(msg_compilingfile)));
@@ -753,7 +753,7 @@ begin
   CompilerOpenInputFile:=f;
 end;
 
-function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
+function CompilerComment(Level:Longint; const s:ansistring):boolean; {$ifndef FPC}far;{$endif}
 begin
   CompilerComment:=false;
   if (status.verbosity and Level)<>0 then

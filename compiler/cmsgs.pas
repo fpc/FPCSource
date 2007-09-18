@@ -52,7 +52,7 @@ type
     procedure ClearIdx;
     procedure CreateIdx;
     function  GetPChar(nr:longint):pchar;
-    function  Get(nr:longint;const args:array of string):string;
+    function  Get(nr:longint;const args:array of string):ansistring;
   end;
 
 { this will read a line until #10 or #0 and also increase p }
@@ -66,11 +66,11 @@ uses
   cutils;
 
 
-function MsgReplace(const s:string;const args:array of string):string;
+function MsgReplace(const s:string;const args:array of string):ansistring;
 var
   last,
   i  : longint;
-  hs : string;
+  hs : ansistring;
 
 begin
   if s='' then
@@ -375,7 +375,7 @@ begin
 end;
 
 
-function TMessage.Get(nr:longint;const args:array of string):string;
+function TMessage.Get(nr:longint;const args:array of string):ansistring;
 var
   hp : pchar;
 begin

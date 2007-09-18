@@ -76,6 +76,7 @@ type
     currentsource : string;   { filename }
     currentline,
     currentcolumn : longint;  { current line and column }
+		currentmodulestate : string[20];
   { Total Status }
     compiledlines : longint;  { the number of lines which are compiled }
     errorcount,
@@ -98,8 +99,7 @@ type
     use_redir,
     use_bugreport,
     use_gccoutput,
-    print_source_path,
-    compiling_current : boolean;
+    print_source_path : boolean;
   { Redirection support }
     redirfile : text;
   { Special file for bug report }
@@ -121,7 +121,7 @@ var
 
 { Default Functions }
 Function  def_status:boolean;
-Function  def_comment(Level:Longint;const s:string):boolean;
+Function  def_comment(Level:Longint;const s:ansistring):boolean;
 function  def_internalerror(i:longint):boolean;
 procedure def_initsymbolinfo;
 procedure def_donesymbolinfo;
@@ -132,7 +132,7 @@ Function  def_getnamedfiletime(Const F : String) : Longint;
 type
   tstopprocedure         = procedure(err:longint);
   tstatusfunction        = function:boolean;
-  tcommentfunction       = function(Level:Longint;const s:string):boolean;
+  tcommentfunction       = function(Level:Longint;const s:ansistring):boolean;
   tinternalerrorfunction = function(i:longint):boolean;
 
   tinitsymbolinfoproc = procedure;
@@ -198,22 +198,22 @@ end;
                           Stopping the compiler
 ****************************************************************************}
 
-     constructor EControlCAbort.Create;
-       begin
-         inherited Create('Ctrl-C Signaled!');
-       end;
+constructor EControlCAbort.Create;
+  begin
+    inherited Create('Ctrl-C Signaled!');
+  end;
 
 
-     constructor ECompilerAbort.Create;
-       begin
-         inherited Create('Compilation Aborted');
-       end;
+constructor ECompilerAbort.Create;
+  begin
+    inherited Create('Compilation Aborted');
+  end;
 
 
-     constructor ECompilerAbortSilent.Create;
-       begin
-         inherited Create('Compilation Aborted');
-       end;
+constructor ECompilerAbortSilent.Create;
+  begin
+    inherited Create('Compilation Aborted');
+  end;
 
 
 {****************************************************************************
@@ -243,13 +243,13 @@ begin
 end;
 
 
-Function def_comment(Level:Longint;const s:string):boolean;
+Function def_comment(Level:Longint;const s:ansistring):boolean;
 const
   rh_errorstr   = 'error:';
   rh_warningstr = 'warning:';
 var
-  hs : string;
-  hs2 : string;
+  hs : ansistring;
+  hs2 : ansistring;
 begin
   def_comment:=false; { never stop }
   hs:='';
