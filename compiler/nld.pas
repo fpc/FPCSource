@@ -679,10 +679,7 @@ implementation
            is pushed as a parameter. Using the final destination of left directly
            save a temp allocation and copy of data (PFV) }
          oldassignmentnode:=aktassignmentnode;
-         if right.nodetype=addn then
-           aktassignmentnode:=self
-         else
-           aktassignmentnode:=nil;
+         aktassignmentnode:=self;
          firstpass(right);
          aktassignmentnode:=oldassignmentnode;
          if nf_assign_done_in_right in flags then
@@ -695,65 +692,10 @@ implementation
          if codegenerror then
            exit;
 
-         { if right is a function call for which the address of the result  }
-         { is allocated by the caller and passed to the function via an     }
-         { invisible function result, try to pass the x in "x:=f(...)" as   }
-         { that function result instead. Condition: x cannot be accessible  }
-         { from within f. This is the case if x is a temp, or x is a local  }
-         { variable or value parameter of the current block and its address }
-         { is not passed to f. One problem: what if someone takes the       }
-         { address of x, puts it in a pointer variable/field and then       }
-         { accesses it that way from within the function? This is solved    }
-         { (in a conservative way) using the ti_addr_taken/addr_taken flags }
-         if (cs_opt_level1 in current_settings.optimizerswitches) and
-            (right.nodetype = calln) and
-            (right.resultdef=left.resultdef) and
-            { left must be a temp, since otherwise as soon as you modify the }
-            { result, the current left node is modified and that one may     }
-            { still be an argument to the function or even accessed in the   }
-            { function                                                       }
-            (
-             (
-              (((left.nodetype = temprefn) and
-                not(ti_addr_taken in ttemprefnode(left).tempinfo^.flags) and
-                not(ti_may_be_in_reg in ttemprefnode(left).tempinfo^.flags)) or
-               ((left.nodetype = loadn) and
-                { nested procedures may access the current procedure's locals }
-                (tcallnode(right).procdefinition.parast.symtablelevel=normal_function_level) and
-                { must be a local variable or a value para }
-                ((tloadnode(left).symtableentry.typ = localvarsym) or
-                 ((tloadnode(left).symtableentry.typ = paravarsym) and
-                  (tparavarsym(tloadnode(left).symtableentry).varspez = vs_value)
-                 )
-                ) and
-                { the address may not have been taken of the variable/parameter, because }
-                { otherwise it's possible that the called function can access it via a   }
-                { global variable or other stored state                                  }
-                not(tabstractvarsym(tloadnode(left).symtableentry).addr_taken) and
-                (tabstractvarsym(tloadnode(left).symtableentry).varregable in [vr_none,vr_addr])
-               )
-              ) and
-              paramanager.ret_in_param(right.resultdef,tcallnode(right).procdefinition.proccalloption)
-             ) or
-             { there's special support for ansi/widestrings in the callnode }
-             is_ansistring(right.resultdef) or
-             is_widestring(right.resultdef)
-            )  then
-           begin
-             if assigned(tcallnode(right).funcretnode) then
-               internalerror(2007080201);
-             tcallnode(right).funcretnode := left;
-             result := right;
-             left := nil;
-             right := nil;
-             exit;
-           end;
-
          { assignment to refcounted variable -> inc/decref }
          if (not is_class(left.resultdef) and
             left.resultdef.needs_inittable) then
            include(current_procinfo.flags,pi_do_call);
-
 
         if (is_shortstring(left.resultdef)) then
           begin

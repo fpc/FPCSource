@@ -144,10 +144,10 @@ unit opttail;
                     oldnodetree:=n;
                     n:=internalstatements(nodes);
 
-                    if assigned(usedcallnode.methodpointerinit) then
+                    if assigned(usedcallnode.callinitblock) then
                       begin
-                        addstatement(nodes,usedcallnode.methodpointerinit);
-                        usedcallnode.methodpointerinit:=nil;
+                        addstatement(nodes,usedcallnode.callinitblock);
+                        usedcallnode.callinitblock:=nil;
                       end;
 
                     addstatement(nodes,calcnodes);
@@ -156,13 +156,13 @@ unit opttail;
                     { create goto }
                     addstatement(nodes,cgotonode.create(labelnode));
 
-                    if assigned(usedcallnode.methodpointerdone) then
+                    if assigned(usedcallnode.callcleanupblock) then
                       begin
-                        { methodpointerdone should contain only temp. node clean up }
-                        checktreenodetypes(usedcallnode.methodpointerdone,
+                        { callcleanupblock should contain only temp. node clean up }
+                        checktreenodetypes(usedcallnode.callcleanupblock,
                           [tempdeleten,blockn,statementn,temprefn,nothingn]);
-                        addstatement(nodes,usedcallnode.methodpointerdone);
-                        usedcallnode.methodpointerdone:=nil;
+                        addstatement(nodes,usedcallnode.callcleanupblock);
+                        usedcallnode.callcleanupblock:=nil;
                       end;
 
                     oldnodetree.free;

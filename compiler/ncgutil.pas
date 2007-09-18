@@ -2542,7 +2542,7 @@ implementation
               if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
                  (ttemprefnode(n).tempinfo^.location.register = rr^.old) and
-                 (not(ti_is_inlined_result in ttemprefnode(n).tempinfo^.flags) or
+                 (not(ti_is_funcret in ttemprefnode(n).tempinfo^.flags) or
                   not(fc_exit in flowcontrol)) then
                 begin
 {$ifndef cpu64bit}

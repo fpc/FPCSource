@@ -1696,7 +1696,7 @@ implementation
                         if (tcallnode(left).symtableprocentry.owner.symtabletype=ObjectSymtable) then
                          begin
                            if assigned(tcallnode(left).methodpointer) then
-                             tloadnode(hp).set_mp(tcallnode(left).get_load_methodpointer)
+                             tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy)
                            else
                              tloadnode(hp).set_mp(load_self_node);
                          end;

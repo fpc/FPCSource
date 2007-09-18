@@ -94,12 +94,12 @@ interface
 
        ttempcreatenode = class;
 
-       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,ti_is_inlined_result,
+       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,ti_is_funcret,
         ti_addr_taken);
        ttempinfoflags = set of ttempinfoflag;
 
 const
-       tempinfostoreflags = [ti_may_be_in_reg,ti_is_inlined_result,ti_addr_taken];
+       tempinfostoreflags = [ti_may_be_in_reg,ti_is_funcret,ti_addr_taken];
 
 type
        { to allow access to the location by temp references even after the temp has }
@@ -133,7 +133,7 @@ type
           { to it and *not* generate a ttempdeletenode                          }
           constructor create(_typedef: tdef; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
-          constructor create_inlined_result(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean); virtual;
+          constructor create_funcret(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -742,10 +742,10 @@ implementation
       end;
 
 
-    constructor ttempcreatenode.create_inlined_result(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean);
+    constructor ttempcreatenode.create_funcret(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean);
       begin
         self.create(_typedef,_size,_temptype,allowreg);
-        include(tempinfo^.flags,ti_is_inlined_result);
+        include(tempinfo^.flags,ti_is_funcret);
       end;
 
 

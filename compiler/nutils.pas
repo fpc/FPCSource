@@ -121,9 +121,9 @@ implementation
         calln:
           begin
             { not in one statement, won't work because of b- }
-            result := foreachnode(tcallnode(n).methodpointerinit,f,arg) or result;
+            result := foreachnode(tcallnode(n).callinitblock,f,arg) or result;
             result := foreachnode(tcallnode(n).methodpointer,f,arg) or result;
-            result := foreachnode(tcallnode(n).methodpointerdone,f,arg) or result;
+            result := foreachnode(tcallnode(n).callcleanupblock,f,arg) or result;
           end;
         ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
           begin
@@ -169,9 +169,9 @@ implementation
             end;
           calln:
             begin
-              result := foreachnodestatic(procmethod,tcallnode(n).methodpointerinit,f,arg) or result;
+              result := foreachnodestatic(procmethod,tcallnode(n).callinitblock,f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointer,f,arg) or result;
-              result := foreachnodestatic(procmethod,tcallnode(n).methodpointerdone,f,arg) or result;
+              result := foreachnodestatic(procmethod,tcallnode(n).callcleanupblock,f,arg) or result;
             end;
           ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
             begin
@@ -267,7 +267,7 @@ implementation
               method without a self pointer }
             if assigned(tcallnode(p1).methodpointer) and
                (tcallnode(p1).methodpointer.nodetype<>typen) then
-              tloadnode(p2).set_mp(tcallnode(p1).get_load_methodpointer);
+              tloadnode(p2).set_mp(tcallnode(p1).methodpointer.getcopy);
           end;
         typecheckpass(p2);
         p1.free;
