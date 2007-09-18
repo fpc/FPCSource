@@ -164,7 +164,6 @@ begin
       T:=GetNextToken;
       If (T<>tkColon) then
         DoError(SErrExpectedColon);
-      Writeln('Getting element');
       E:=DoParse(False,False);
       Result.Add(N,E);
       T:=GetNextToken;
@@ -221,7 +220,6 @@ begin
   Repeat
     Result:=FScanner.FetchToken;
   Until (Result<>tkWhiteSpace);
-  Writeln('GetNextToken : ',CurrentTokenString);
 end;
 
 Procedure TJSONParser.DoError(Msg : String);
