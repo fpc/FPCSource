@@ -509,6 +509,9 @@ implementation
       var
         cgsize    : tcgsize;
         retloc    : tlocation;
+{$ifndef x86}
+        hregister : tregister;
+{$endif not x86}
       begin
         { Check that the return location is set when the result is passed in
           a parameter }
