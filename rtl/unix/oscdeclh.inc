@@ -75,7 +75,11 @@ const
     function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
     function  FpIOCtl   (Handle:cint;Ndx: culong;Data: Pointer):cint; cdecl; external clib name 'ioctl';
+{$ifdef beos}
+    Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
+{$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
+{$endif}
     function  fpgetenv  (name : pchar):pchar; cdecl; external clib name 'getenv';
     Function  FpKill       (pid : TPid; sig: cInt): cInt; cdecl; external clib name 'kill';
     Function  FpGetpid  : TPid; cdecl;external clib name 'getpid';
@@ -99,7 +103,10 @@ const
 {$linklib aio}
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external 'rt' name 'nanosleep';
 {$else solaris}
+{$ifndef beos}
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
+{$else}
+{$endif}
 {$endif solaris}
     function  fpNice       (N:cint):cint; cdecl; external clib name 'nice';
     Function  fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
@@ -107,7 +114,11 @@ const
     Function  fpSymlink    (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
     Function  fpReadLink           (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
     Function  FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
+{$ifndef beos}    
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
+{$else}
+//    function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
+{$endif}
     function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
     {$ifdef HAS_UGETRLIMIT}
     { there is no ugetrlimit libc call, just map it to the getrlimit call in these cases }

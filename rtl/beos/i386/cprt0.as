@@ -41,9 +41,9 @@ _start:
         call _init_c_library_
         call _call_init_routines_
         movl 8(%ebp),%eax
-        movl %eax,U_SYSTEM_ARGC
-        movl %edi,U_SYSTEM_ARGV
-        movl %esi,U_SYSTEM_ENVP
+        movl %eax,operatingsystem_parameter_argc
+        movl %edi,operatingsystem_parameter_argv
+        movl %esi,operatingsystem_parameter_envp        
         xorl %ebp,%ebp
         call PASCALMAIN
 
@@ -52,7 +52,7 @@ _start:
 _haltproc:
         call _thread_do_exit_notification
         xorl %ebx,%ebx
-    movw U_SYSTEM_EXITCODE,%bx
+    movw operatingsystem_result,%bx
         pushl %ebx
         call exit
 
@@ -215,3 +215,9 @@ ret
 sys_call:
 int $0x25
 ret
+
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
+	

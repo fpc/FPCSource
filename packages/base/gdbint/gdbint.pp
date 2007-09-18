@@ -219,6 +219,30 @@ interface
   {$LINKLIB user32}
 {$endif win32}
 
+{$ifdef beos}
+  { still need some work... stollen from netbsd}
+  {$undef NotImplemented}
+  {$LINKLIB gdb}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB ncurses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  { does not seem to exist on netbsd LINKLIB dl}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
+{$endif beos}
+
 {$ifdef go32v2}
   {$define supportexceptions}
 {$endif go32v2}

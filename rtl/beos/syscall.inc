@@ -1,4 +1,5 @@
 {
+    $Id: syscall.inc,v 1.1 2003/01/08 22:32:28 marco Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This include implements the actual system call for the
@@ -20,20 +21,12 @@
 
  ****************************************************************************
 }
-
-type
-     SysCallArgs = packed record
-       param: array[1..8] of cint;
-     End;
-
-
-procedure sys_call; external name 'sys_call';
-
-
-
-function Do_SysCall( callnr:longint;var regs : SysCallArgs ): longint;assembler;
+// Under BeOS, we use stdcall for this line because the default calling convention in 1.9 
+// is register instead of stdcall. But assembler is already written, so i used the stdcall
+// calling convention !
+function Do_SysCall( callnr : longint; var regs : SysCallArgs ): longint; stdcall; assembler; [public, alias : 'FPC_SYSCALL'];
 {
-  This routine sets up the parameters on the stack, all the parameters
+  This routine sets up the parameters on the stack, all the parameters 
   are in reverse order on the stack (like C parameter passing).
 }
 asm
@@ -42,7 +35,7 @@ asm
   movl  24(%eax),%ebx
   pushl %ebx
   movl  20(%eax),%ebx
-  pushl %ebx
+  pushl %ebx 
   movl  16(%eax),%ebx
   pushl %ebx
   movl  12(%eax),%ebx
@@ -59,8 +52,10 @@ asm
   addl  $28,%esp
 end;
 
-
-Function SysCall( callnr:longint;var args : SysCallArgs ):longint;
+// Under BeOS, we use stdcall for this line because the default calling convention in 1.9 
+// is register instead of stdcall. But assembler is already written, so i used the stdcall
+// calling convention ! Maybe don't needed here. But to be sure...
+Function SysCall( callnr:longint;var args : SysCallArgs ):longint; stdcall;
 {
   This function serves as an interface to do_SysCall.
   If the SysCall returned a negative number, it returns -1, and puts the
@@ -69,17 +64,30 @@ Function SysCall( callnr:longint;var args : SysCallArgs ):longint;
 var
  funcresult : longint;
 begin
-  funcresult:=do_SysCall(callnr,args);
-  if funcresult<0 then
+  funcresult := do_SysCall(callnr, args);
+  if funcresult < 0 then
    begin
-     ErrNo:=funcresult;
-     SysCall:=-1;
+     errno := funcresult;
+     SysCall := - 1;
    end
   else
    begin
-     SysCall:=funcresult;
-     errno:=0
+     SysCall := funcresult;
+     errno := 0;
    end;
 end;
 
 
+{
+  $Log: syscall.inc,v $
+  Revision 1.1  2003/01/08 22:32:28  marco
+   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
+      but it could crash hard, since there are lots of unimplemented funcs.
+
+  Revision 1.1.2.2  2001/08/15 01:08:25  carl
+  * added SysCall(0 routine here as well as argument declarations
+
+  Revision 1.1.2.1  2001/07/13 03:16:03  carl
+  + static kernel call interface (CPU specific)
+
+}

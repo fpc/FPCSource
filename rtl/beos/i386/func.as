@@ -5,7 +5,7 @@
 .type   _haltproc,@function
 _haltproc:
         xorl %ebx,%ebx
-    movw U_SYSBEOS_EXITCODE,%bx
+    movw operatingsystem_result,%bx
         pushl %ebx
         call sys_exit
 

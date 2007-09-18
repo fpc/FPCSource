@@ -55,6 +55,7 @@ var
                 exit;
               end;
            end
+{$ifndef beos}	 
           else if (ino_t(d^.d_fileno)=myino) and (st.st_dev=mydev) then
            begin
              fpclosedir(dirstream^);
@@ -62,6 +63,7 @@ var
              mysearch:=true;
              exit;
            end;
+{$endif}
         end;
        d:=fpReaddir(dirstream^);
      end;
@@ -73,8 +75,10 @@ begin
   TTYName:='';
   if (fpfstat(handle,st)=-1) or (isatty (handle)<>1) then
    exit;
+{$ifndef beos}	 
   mydev:=st.st_dev;
   myino:=st.st_ino;
+{$endif}
   mysearch('/dev');
 end;
 

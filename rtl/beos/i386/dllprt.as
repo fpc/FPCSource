@@ -72,14 +72,14 @@ __7FPC_DLL:
 .L11:
         popl %ebx
         addl $_GLOBAL_OFFSET_TABLE_+[.-.L11],%ebx
-        movl U_SYSBEOS_ARGC@GOT(%ebx),%eax
+        movl operatingsystem_parameter_argc@GOT(%ebx),%eax
         movl $0,(%eax)
-        movl U_SYSBEOS_ARGV@GOT(%ebx),%eax
+        movl operatingsystem_parameter_argv@GOT(%ebx),%eax
         movl %ebx,%ecx
         addl $_argv@GOTOFF,%ecx
         movl %ecx,%edx
         movl %edx,(%eax)
-        movl U_SYSBEOS_ENVP@GOT(%ebx),%eax
+        movl operatingsystem_parameter_envp@GOT(%ebx),%eax
         movl %ebx,%ecx
         addl $_envp@GOTOFF,%ecx
         movl %ecx,%edx
