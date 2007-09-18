@@ -8436,6 +8436,7 @@ utils/fpdoc/dglobals.pp svneol=native#text/plain
 utils/fpdoc/dw_html.pp svneol=native#text/plain
 utils/fpdoc/dw_ipf.pp svneol=native#text/plain
 utils/fpdoc/dw_latex.pp svneol=native#text/plain
+utils/fpdoc/dw_linrtf.pp svneol=native#text/plain
 utils/fpdoc/dw_lintmpl.pp svneol=native#text/plain
 utils/fpdoc/dw_man.pp svneol=native#text/plain
 utils/fpdoc/dw_template.pp svneol=native#text/plain

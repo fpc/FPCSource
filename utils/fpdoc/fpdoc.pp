@@ -17,15 +17,16 @@ program FPDoc;
 
 uses
   SysUtils, Classes, Gettext, DOM, XMLWrite, PasTree, PParser,
-  dGlobals, // GLobal definitions, constants.
-  dwriter,  // TFPDocWriter definition.
-  dwlinear, // Linear (abstract) writer
-  dw_LaTeX, // TLaTex writer
-  dw_XML,   // XML writer
-  dw_HTML,  // HTML writer
-  dw_ipf,   // IPF writer
-  dw_man,   // Man page writer
-  dw_txt;   // TXT writer
+  dGlobals,  // GLobal definitions, constants.
+  dwriter,   // TFPDocWriter definition.
+  dwlinear,  // Linear (abstract) writer
+  dw_LaTeX,  // TLaTex writer
+  dw_XML,    // XML writer
+  dw_HTML,   // HTML writer
+  dw_ipf,    // IPF writer
+  dw_man,    // Man page writer
+  dw_linrtf, // lineair RTF writer
+  dw_txt;    // TXT writer
 
 const
   OSTarget: String = {$I %FPCTARGETOS%};
@@ -39,6 +40,7 @@ var
   InputFiles, DescrFiles: TStringList;
   PackageName, DocLang, ContentFile : String;
   Engine: TFPDocEngine;
+  StopOnParserError : Boolean;
 
 Procedure Usage(AnExitCode : Byte);
 
@@ -107,6 +109,7 @@ begin
   DescrFiles := TStringList.Create;
   BackendOptions := TStringList.Create;
   Engine := TFPDocEngine.Create;
+  StopOnParserError:=False;
 end;
 
 procedure FreeOptions;
@@ -160,6 +163,8 @@ begin
     Engine.WarnNoNode := True
   else if s = '--show-private' then
     Engine.HidePrivate := False
+  else if s = '--stop-on-parser-error' then
+    StopOnParserError := True
   else
     begin
     i := Pos('=', s);
@@ -242,8 +247,11 @@ begin
       ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
     except
       on e: EParserError do
-        WriteLn(StdErr, Format('%s(%d,%d): %s',
-          [e.Filename, e.Row, e.Column, e.Message]));
+        If StopOnParserError then
+          Raise
+        else 
+          WriteLn(StdErr, Format('%s(%d,%d): %s',
+                  [e.Filename, e.Row, e.Column, e.Message]));
     end;
   WriterClass:=GetWriterClass(Backend);
   Writer:=WriterClass.Create(Engine.Package,Engine);
