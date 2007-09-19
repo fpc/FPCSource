@@ -2303,6 +2303,10 @@ implementation
        begin
           inherited Create;
           typ:=ait_align;
+{$ifdef EXTDEBUG}
+          if upper(classname)='TAI_ALIGN_ABSTRACT' then
+            internalerror(200709191);
+{$endif EXTDEBUG}
           if b in [1,2,4,8,16,32] then
             aligntype := b
           else
@@ -2371,5 +2375,8 @@ implementation
 
 begin
   cai_cpu:=tai_cpu_abstract;
-  cai_align:=tai_align_abstract;
+  { aasmcpu is earlier in the unit order and can
+    already set the cai_align }
+  if not assigned(cai_align) then
+    cai_align:=tai_align_abstract;
 end.
