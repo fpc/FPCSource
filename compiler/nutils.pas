@@ -330,6 +330,31 @@ implementation
       end;
 
 
+    function get_local_or_para_sym(const aname:string):tsym;
+      var
+        pd : tprocdef;
+      begin
+        { we can't use searchsym here, because the
+          symtablestack is not fully setup when pass1
+          is run for nested procedures }
+        pd:=current_procinfo.procdef;
+        repeat
+          result := tsym(pd.localst.Find(aname));
+          if assigned(result) then
+            break;
+          result := tsym(pd.parast.Find(aname));
+          if assigned(result) then
+            break;
+          { try the parent of a nested function }
+          if assigned(pd.owner.defowner) and
+             (pd.owner.defowner.typ=procdef) then
+            pd:=tprocdef(pd.owner.defowner)
+          else
+            break;
+        until false;
+      end;
+
+
     function load_high_value_node(vs:tparavarsym):tnode;
       var
         srsym : tsym;
@@ -349,13 +374,13 @@ implementation
     function load_self_node:tnode;
       var
         srsym : tsym;
-        srsymtable : TSymtable;
       begin
         result:=nil;
-        searchsym('self',srsym,srsymtable);
+
+        srsym:=get_local_or_para_sym('self');
         if assigned(srsym) then
           begin
-            result:=cloadnode.create(srsym,srsymtable);
+            result:=cloadnode.create(srsym,srsym.owner);
             include(result.flags,nf_is_self);
           end
         else
@@ -370,12 +395,11 @@ implementation
     function load_result_node:tnode;
       var
         srsym : tsym;
-        srsymtable : TSymtable;
       begin
         result:=nil;
-        searchsym('result',srsym,srsymtable);
+        srsym:=get_local_or_para_sym('result');
         if assigned(srsym) then
-          result:=cloadnode.create(srsym,srsymtable)
+          result:=cloadnode.create(srsym,srsym.owner)
         else
           begin
             result:=cerrornode.create;
@@ -388,13 +412,12 @@ implementation
     function load_self_pointer_node:tnode;
       var
         srsym : tsym;
-        srsymtable : TSymtable;
       begin
         result:=nil;
-        searchsym('self',srsym,srsymtable);
+        srsym:=get_local_or_para_sym('self');
         if assigned(srsym) then
           begin
-            result:=cloadnode.create(srsym,srsymtable);
+            result:=cloadnode.create(srsym,srsym.owner);
             include(result.flags,nf_load_self_pointer);
           end
         else
@@ -409,12 +432,11 @@ implementation
     function load_vmt_pointer_node:tnode;
       var
         srsym : tsym;
-        srsymtable : TSymtable;
       begin
         result:=nil;
-        searchsym('vmt',srsym,srsymtable);
+        srsym:=get_local_or_para_sym('vmt');
         if assigned(srsym) then
-          result:=cloadnode.create(srsym,srsymtable)
+          result:=cloadnode.create(srsym,srsym.owner)
         else
           begin
             result:=cerrornode.create;
