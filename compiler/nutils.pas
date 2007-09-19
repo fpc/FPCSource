@@ -51,8 +51,9 @@ interface
     staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
 
     function foreachnode(var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
+    function foreachnode(procmethod : tforeachprocmethod; var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
     function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
-    function foreachnodestatic(procmethod : tforeachprocmethod;var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
+    function foreachnodestatic(procmethod : tforeachprocmethod; var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
 
     { checks if the given node tree contains only nodes of the given type,
       if this isn't the case, an ie is thrown
@@ -90,13 +91,59 @@ implementation
       cgbase,procinfo,
       pass_1;
 
-  function foreachnode(var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
-    var
-      i: longint;
+  function foreachnode(procmethod : tforeachprocmethod;var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
+
+    function process_children(res : boolean) : boolean;
+      var
+        i: longint;
+      begin
+        result:=res;
+        case n.nodetype of
+        asn:
+          if assigned(tasnode(n).call) then
+            begin
+              result := foreachnode(procmethod,tasnode(n).call,f,arg);
+              exit
+            end;
+          calln:
+            begin
+              result := foreachnode(procmethod,tcallnode(n).callinitblock,f,arg) or result;
+              result := foreachnode(procmethod,tcallnode(n).methodpointer,f,arg) or result;
+              result := foreachnode(procmethod,tcallnode(n).callcleanupblock,f,arg) or result;
+            end;
+          ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
+            begin
+              { not in one statement, won't work because of b- }
+              result := foreachnode(procmethod,tloopnode(n).t1,f,arg) or result;
+              result := foreachnode(procmethod,tloopnode(n).t2,f,arg) or result;
+            end;
+          raisen:
+            { frame tree }
+            result := foreachnode(traisenode(n).third,f,arg) or result;
+          casen:
+            begin
+              for i := 0 to tcasenode(n).blocks.count-1 do
+                if assigned(tcasenode(n).blocks[i]) then
+                  result := foreachnode(procmethod,pcaseblock(tcasenode(n).blocks[i])^.statement,f,arg) or result;
+              result := foreachnode(procmethod,tcasenode(n).elseblock,f,arg) or result;
+            end;
+        end;
+        if n.inheritsfrom(tbinarynode) then
+          begin
+            { first process the "payload" of statementnodes }
+            result := foreachnode(procmethod,tbinarynode(n).left,f,arg) or result;
+            result := foreachnode(procmethod,tbinarynode(n).right,f,arg) or result;
+          end
+        else if n.inheritsfrom(tunarynode) then
+          result := foreachnode(procmethod,tunarynode(n).left,f,arg) or result;
+      end;
+
     begin
       result := false;
       if not assigned(n) then
         exit;
+      if procmethod=pm_preprocess then
+        result:=process_children(result);
       case f(n,arg) of
         fen_norecurse_false:
           exit;
@@ -111,46 +158,15 @@ implementation
         fen_false:
           result := false; }
       end;
-      case n.nodetype of
-        asn:
-          if assigned(tasnode(n).call) then
-            begin
-              result := foreachnode(tasnode(n).call,f,arg);
-              exit
-            end;
-        calln:
-          begin
-            { not in one statement, won't work because of b- }
-            result := foreachnode(tcallnode(n).callinitblock,f,arg) or result;
-            result := foreachnode(tcallnode(n).methodpointer,f,arg) or result;
-            result := foreachnode(tcallnode(n).callcleanupblock,f,arg) or result;
-          end;
-        ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
-          begin
-            { not in one statement, won't work because of b- }
-            result := foreachnode(tloopnode(n).t1,f,arg) or result;
-            result := foreachnode(tloopnode(n).t2,f,arg) or result;
-          end;
-        raisen:
-          { frame tree }
-          result := foreachnode(traisenode(n).third,f,arg) or result;
-        casen:
-          begin
-            for i := 0 to tcasenode(n).blocks.count-1 do
-              if assigned(tcasenode(n).blocks[i]) then
-                result := foreachnode(pcaseblock(tcasenode(n).blocks[i])^.statement,f,arg) or result;
-            result := foreachnode(tcasenode(n).elseblock,f,arg) or result;
-          end;
-      end;
-      if n.inheritsfrom(tbinarynode) then
-        begin
-          { first process the "payload" of statementnodes }
-          result := foreachnode(tbinarynode(n).left,f,arg) or result;
-          result := foreachnode(tbinarynode(n).right,f,arg) or result;
-        end
-      else if n.inheritsfrom(tunarynode) then
-        result := foreachnode(tunarynode(n).left,f,arg) or result;
+      if procmethod=pm_postprocess then
+        result:=process_children(result);
     end;
+
+
+    function foreachnode(var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
+      begin
+        result:=foreachnode(pm_postprocess,n,f,arg);
+      end;
 
 
   function foreachnodestatic(procmethod : tforeachprocmethod;var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;

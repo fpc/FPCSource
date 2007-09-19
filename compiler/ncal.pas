@@ -3135,7 +3135,7 @@ implementation
 
         { create a copy of the body and replace parameter loads with the parameter values }
         body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
-        foreachnode(body,@replaceparaload,@fileinfo);
+        foreachnode(pm_preprocess,body,@replaceparaload,@fileinfo);
 
         { Concat the body and finalization parts }
         addstatement(inlineinitstatement,body);
