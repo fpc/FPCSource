@@ -32,7 +32,7 @@ unit cgx86;
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,rgobj,rgx86,rgcpu,
-       symconst,symtype;
+       symconst,symtype,symdef;
 
     type
       tcgx86 = class(tcg)
@@ -108,6 +108,8 @@ unit cgx86;
 
         procedure g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);override;
 
+        procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
+
         procedure make_simple_ref(list:TAsmList;var ref: treference);
       protected
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
@@ -150,8 +152,8 @@ unit cgx86;
 
     uses
        globals,verbose,systems,cutils,
-       symdef,defutil,paramgr,procinfo,
-       tgobj,
+       defutil,paramgr,procinfo,
+       tgobj,ncgutil,
        fmodule;
 
     const
@@ -1951,5 +1953,26 @@ unit cgx86;
          a_label(list,hl);
       end;
 
+    procedure tcgx86.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+      var
+        ref : treference;
+        sym : tasmsymbol;
+      begin
+        sym:=current_asmdata.RefAsmSymbol(externalname);
+        reference_reset_symbol(ref,sym,0);
+
+        { create pic'ed? }
+        if cs_create_pic in current_settings.moduleswitches then
+          begin
+            { it could be that we're called from a procedure not having the
+              got loaded
+            }
+            gen_got_load(list);
+            ref.refaddr:=addr_pic;
+          end
+        else
+          ref.refaddr:=addr_full;
+        list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
+      end;
 
 end.

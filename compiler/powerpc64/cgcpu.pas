@@ -99,6 +99,8 @@ type
     procedure g_concatcopy(list: TAsmList; const source, dest: treference;
       len: aint); override;
 
+    procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
+
   private
 
     procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
@@ -1866,6 +1868,52 @@ begin
     a_reg_dealloc(list, NR_R0);
   end;
 
+end;
+
+procedure tcgppc.g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string);
+var
+  href : treference;
+begin
+  if (target_info.system <> system_powerpc64_linux) then begin
+    inherited;
+    exit;
+  end;
+
+  { for ppc64/linux emit correct code which sets up a stack frame and then calls the
+  external method normally to ensure that the GOT/TOC will be loaded correctly if 
+  required.
+
+  It's not really advantageous to use cg methods here because they are too specialized.
+
+  I.e. the resulting code sequence looks as follows:
+
+  mflr r0
+  std r0, 16(r1)
+  stdu r1, -112(r1)
+  bl <external_method>
+  nop
+  addi r1, r1, 112
+  ld r0, 16(r1)
+  mtlr r0
+  blr
+
+  TODO: put "112" magic constant (minimum stack frame size on ppc64)  into constant
+  }
+  list.concat(taicpu.op_reg(A_MFLR, NR_R0));
+  reference_reset_base(href, NR_STACK_POINTER_REG, 16);
+  list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
+  reference_reset_base(href, NR_STACK_POINTER_REG, -112);
+  list.concat(taicpu.op_reg_ref(A_STDU, NR_STACK_POINTER_REG, href));
+
+  list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(externalname)));
+  list.concat(taicpu.op_none(A_NOP));
+
+  list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, 112));
+
+  reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
+  list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
+  list.concat(taicpu.op_reg(A_MTLR, NR_R0));
+  list.concat(taicpu.op_none(A_BLR));
 end;
 
 {***************** This is private property, keep out! :) *****************}

@@ -474,6 +474,11 @@ unit cgobj;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual;
 
           function g_indirect_sym_load(list:TAsmList;const symname: string): tregister;virtual;
+          { generate a stub which only purpose is to pass control the given external method, 
+          setting up any additional environment before doing so (if required).
+
+          The default implementation issues a jump instruction to the external name. }
+          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
         protected
           procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: tcgsize; out extra_load: boolean);
           procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
@@ -3701,6 +3706,11 @@ implementation
             end;
       end;
 
+
+    procedure tcg.g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);
+      begin
+        a_jmp_name(list,externalname);
+      end;
 
     procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
