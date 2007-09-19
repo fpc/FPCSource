@@ -463,7 +463,8 @@ type
     dbg_state_unused,
     dbg_state_used,
     dbg_state_writing,
-    dbg_state_written
+    dbg_state_written,
+    dbg_state_queued
   );
 
 
