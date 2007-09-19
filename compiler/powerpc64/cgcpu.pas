@@ -1897,18 +1897,17 @@ begin
   mtlr r0
   blr
 
-  TODO: put "112" magic constant (minimum stack frame size on ppc64)  into constant
   }
   list.concat(taicpu.op_reg(A_MFLR, NR_R0));
   reference_reset_base(href, NR_STACK_POINTER_REG, 16);
   list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
-  reference_reset_base(href, NR_STACK_POINTER_REG, -112);
+  reference_reset_base(href, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE);
   list.concat(taicpu.op_reg_ref(A_STDU, NR_STACK_POINTER_REG, href));
 
   list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(externalname)));
   list.concat(taicpu.op_none(A_NOP));
 
-  list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, 112));
+  list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, MINIMUM_STACKFRAME_SIZE));
 
   reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
   list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
