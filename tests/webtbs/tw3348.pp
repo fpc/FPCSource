@@ -19,6 +19,7 @@ end;
 var
  ar1: integerarty;
 begin
+ HaltOnNotReleased := true;
  ar1:= nil;
  proc(ar1); // checkpointer error (nil!)
 end.

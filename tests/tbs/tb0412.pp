@@ -6,6 +6,7 @@ uses
 
 var
    a : array of longint;
+   b : longint;
 
 begin
    try
@@ -19,7 +20,8 @@ begin
        a[3]:=1;
      except
        try
-         a[-1]:=1;
+         b:=-1;
+         a[b]:=1;
        except
          halt(0);
        end;

@@ -1,3 +1,5 @@
+{ %opt=-ghl }
+
 { Source provided for Free Pascal Bug Report 3411 }
 { Submitted by "Dean Zobec" on  2004-11-28 }
 { e-mail: dezobec@tin.it }
@@ -51,5 +53,6 @@ begin
 end;
 
 begin
+   HaltOnNotReleased := true;
   TestLeak;
 end.

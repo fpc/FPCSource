@@ -732,7 +732,7 @@ procedure teststringqword;
   var
      q1,q2 : qword;
      s : string;
-     l : longint;
+     l : cardinal;
      a : ansistring;
      code : integer;
 

@@ -17,6 +17,6 @@ var
 begin
   e := b;
   p := Pointer(e);
-  if Integer(p)<>1 then
+  if PtrUInt(p)<>1 then
     halt(1); // produces "1" in Delphi
 end.

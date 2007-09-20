@@ -1,5 +1,5 @@
 { %NORUN }
-{ %SKIPTARGET=macos }
+{ %SKIPTARGET=macos, win64 }
 
 {$ifdef CPUX86_64}
 {$ifndef WINDOWS}
