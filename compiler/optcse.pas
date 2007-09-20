@@ -24,6 +24,7 @@ unit optcse;
 {$i fpcdefs.inc}
 
 { $define csedebug}
+{$define csestats}
 
   interface
 
@@ -37,6 +38,7 @@ unit optcse;
     uses
       globtype,
       cclasses,
+      verbose,
       nutils,
       nbas,nld,
       pass_1,
@@ -70,7 +72,9 @@ unit optcse;
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
         { node worth to add? }
-        if (node_complexity(n)>1) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) then
+        if (node_complexity(n)>1) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+          { adding tempref nodes is worthless but there complexity is probably <= 1 anyways }
+          not(n.nodetype in [temprefn]) then
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
@@ -119,53 +123,59 @@ unit optcse;
                 for i:=0 to lists.nodelist.count-1 do
                   for j:=i+1 to lists.nodelist.count-1 do
                     begin
-                      if tnode(lists.nodelist[i]).isequal(tnode(lists.nodelist[j])) then
+                      if not(tnode(lists.nodelist[i]).nodetype in [tempcreaten,temprefn]) and
+                        tnode(lists.nodelist[i]).isequal(tnode(lists.nodelist[j])) then
                         begin
                           if not(assigned(statements)) then
                             begin
                               nodes:=internalstatements(statements);
                               addstatement(statements,internalstatements(creates));
                             end;
-{$ifdef csedebug}
+{$if defined(csedebug) or defined(csestats)}
                           writeln('    ====     ');
                           printnode(output,tnode(lists.nodelist[i]));
                           writeln('    equals   ');
                           printnode(output,tnode(lists.nodelist[j]));
                           writeln('    ====     ');
-{$endif csedebug}
+{$endif defined(csedebug) or defined(csestats)}
 
                           def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
-                          if assigned(templist[i])  then
+                          if assigned(def) then
                             begin
-                              templist[j]:=templist[i];
-                              pnode(lists.locationlist[j])^.free;
-                              pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
-                              do_firstpass(pnode(lists.locationlist[j])^);
-                            end
-                          else
-                            begin
-                              templist[i]:=ctempcreatenode.create(def,def.size,tt_persistent,
-                                def.is_intregable or def.is_fpuregable);
-                              addstatement(creates,tnode(templist[i]));
+                              if assigned(templist[i])  then
+                                begin
+                                  templist[j]:=templist[i];
+                                  pnode(lists.locationlist[j])^.free;
+                                  pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
+                                  do_firstpass(pnode(lists.locationlist[j])^);
+                                end
+                              else
+                                begin
+                                  templist[i]:=ctempcreatenode.create(def,def.size,tt_persistent,
+                                    def.is_intregable or def.is_fpuregable);
+                                  addstatement(creates,tnode(templist[i]));
 
-                              { properties can't be passed by var }
-                              hp:=ttempcreatenode(templist[i]);
-                              do_firstpass(tnode(hp));
+                                  { properties can't be passed by var }
+                                  hp:=ttempcreatenode(templist[i]);
+                                  do_firstpass(tnode(hp));
 
-                              addstatement(statements,cassignmentnode.create(ctemprefnode.create(ttempcreatenode(templist[i])),
-                                tnode(lists.nodelist[i])));
-                              pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
-                              do_firstpass(pnode(lists.locationlist[i])^);
+                                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(ttempcreatenode(templist[i])),
+                                    tnode(lists.nodelist[i])));
+                                  pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                                  do_firstpass(pnode(lists.locationlist[i])^);
 
-                              templist[j]:=templist[i];
+                                  templist[j]:=templist[i];
 
-                              pnode(lists.locationlist[j])^.free;
-                              pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
-                              do_firstpass(pnode(lists.locationlist[j])^);
+                                  pnode(lists.locationlist[j])^.free;
+                                  pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
+                                  do_firstpass(pnode(lists.locationlist[j])^);
 {$ifdef csedebug}
-                              printnode(output,statements);
+                                  printnode(output,statements);
 {$endif csedebug}
-                            end;
+                                end;
+                              end
+                            else
+                              internalerror(2007091701);
                         end;
                     end;
                 if assigned(statements) then
