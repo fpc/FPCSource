@@ -921,7 +921,7 @@ implementation
          { generate the instruction blocks }
          for i:=0 to blocks.count-1 do
            begin
-              current_asmdata.CurrAsmList.concat(Tai_align_abstract.create(current_settings.alignment.jumpalign));
+              current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
               cg.a_label(current_asmdata.CurrAsmList,pcaseblock(blocks[i])^.blocklabel);
               secondpass(pcaseblock(blocks[i])^.statement);
               { don't come back to case line }
@@ -931,7 +931,7 @@ implementation
 {$endif OLDREGVARS}
               cg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
            end;
-         current_asmdata.CurrAsmList.concat(Tai_align_abstract.create(current_settings.alignment.jumpalign));
+         current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
          { ...and the else block }
          cg.a_label(current_asmdata.CurrAsmList,elselabel);
          if assigned(elseblock) then
@@ -941,7 +941,7 @@ implementation
               load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
            end;
-         current_asmdata.CurrAsmList.concat(Tai_align_abstract.create(current_settings.alignment.jumpalign));
+         current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
          cg.a_label(current_asmdata.CurrAsmList,endlabel);
 
          { Reset labels }

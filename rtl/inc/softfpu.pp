@@ -131,7 +131,6 @@ TYPE
     high: bits32;
   end;
 
-
   int64rec = packed record
     low: bits32;
     high: bits32;
@@ -147,13 +146,13 @@ TYPE
     high : qword;
   end;
 {$else}
- float64 = packed record
-   high,low : bits32;
- end;
+  float64 = packed record
+    high,low : bits32;
+  end;
 
- int64rec = packed record
-   high,low : bits32;
- end;
+  int64rec = packed record
+    high,low : bits32;
+  end;
 
   floatx80 = packed record
     high : word;

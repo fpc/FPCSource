@@ -280,6 +280,7 @@ compiler/ogcoff.pas svneol=native#text/plain
 compiler/ogelf.pas svneol=native#text/plain
 compiler/oglx.pas svneol=native#text/plain
 compiler/ogmap.pas svneol=native#text/plain
+compiler/optbase.pas svneol=native#text/plain
 compiler/optcse.pas svneol=native#text/plain
 compiler/options.pas svneol=native#text/plain
 compiler/opttail.pas svneol=native#text/plain
@@ -7143,7 +7144,7 @@ tests/test/units/system/tslice2.pp svneol=native#text/plain
 tests/test/units/system/tstring.pp svneol=native#text/plain
 tests/test/units/system/ttrig.pas svneol=native#text/plain
 tests/test/units/system/ttrunc.pp svneol=native#text/plain
-tests/test/units/system/tval.inc -text
+tests/test/units/system/tval.inc svneol=native#text/plain
 tests/test/units/system/tval.pp -text
 tests/test/units/system/tval1.pp -text
 tests/test/units/system/tval2.pp -text

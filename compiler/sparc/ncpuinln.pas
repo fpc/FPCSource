@@ -44,7 +44,7 @@ interface
 implementation
 
     uses
-      systems,
+      systems,globtype,
       cutils,verbose,
       symconst,symdef,
       aasmtai,aasmdata,aasmcpu,

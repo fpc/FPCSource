@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by the Free Pascal development team
 
-    Basic Processor information for the PowerPC
+    Basic Processor information for the m68k
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -20,7 +20,7 @@ Interface
     globtype;
 
 Type
-   bestreal = real;
+   bestreal = double;
    ts32real = single;
    ts64real = double;
    ts80real = extended;

@@ -271,7 +271,7 @@ implementation
 
         { Stab must already be written, or we must be busy writing it }
         if writing_def_stabs and
-           not(def.dbg_state in [dbg_state_writing,dbg_state_written]) then
+           not(def.dbg_state in [dbg_state_writing,dbg_state_written,dbg_state_queued]) then
           internalerror(200403091);
 
         { Keep track of used stabs, this info is only usefull for stabs
@@ -904,6 +904,29 @@ implementation
               insertdef(list,tenumdef(def).basedef);
           objectdef :
             begin
+              { make sure we don't write child classdefs before their parent }
+              { classdefs, because this crashes gdb                          }
+              anc:=tobjectdef(def);
+              while assigned(anc.childof) do
+                begin
+                  anc:=anc.childof;
+                  if (anc.dbg_state=dbg_state_writing) then
+                    { happens in case a field of a parent is of the (forward }
+                    { defined) child type                                    }
+                    begin
+                      { We don't explicitly requeue it, but the fact that  }
+                      { a child type was used in a parent before the child }
+                      { type was fully defined means that it was forward   }
+                      { declared, and will still be encountered later (it  }
+                      { cannot have been declared in another unit, because }
+                      { then this and that other unit would depend on      }
+                      { eachother's interface)                             }
+                      { Setting the state to queued however allows us to   }
+                      { get the def number already without an IE           }
+                      def.dbg_state:=dbg_state_queued;
+                      exit;
+                    end;
+                end;
               insertdef(list,vmtarraytype);
               if assigned(tobjectdef(def).ImplementedInterfaces) then
                 for i:=0 to tobjectdef(def).ImplementedInterfaces.Count-1 do
@@ -970,7 +993,7 @@ implementation
            for i:=0 to st.DefList.Count-1 do
              begin
                def:=tdef(st.DefList[i]);
-               if (def.dbg_state=dbg_state_used) then
+               if (def.dbg_state in [dbg_state_used,dbg_state_queued]) then
                  insertdef(list,def);
              end;
          end;

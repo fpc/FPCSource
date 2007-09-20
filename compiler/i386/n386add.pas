@@ -278,6 +278,7 @@ interface
                  hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                  hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                  cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
+                 location_freetemp(current_asmdata.CurrAsmList,left.location);
                  location_reset(left.location,LOC_REGISTER,OS_64);
                  left.location.register64.reglo:=hregister;
                  left.location.register64.reghi:=hregister2;
@@ -331,8 +332,6 @@ interface
                internalerror(200203282);
            end;
          end;
-
-        location_freetemp(current_asmdata.CurrAsmList,left.location);
 
         { we have LOC_JUMP as result }
         location_reset(location,LOC_JUMP,OS_NO)
