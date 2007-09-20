@@ -159,7 +159,7 @@ implementation
         varvaluedata:array[0..maxdata+256] of char;
         varptr:Pchar;
         varidx : byte;
-        len:cardinal;
+        len:longint;
         r:Pchar;
 
     begin
@@ -374,7 +374,10 @@ implementation
             inc(state^.stabsize,strlen(newrec));
             freemem(newrec);
             {This should be used for case !!}
-            inc(state^.recoffset,Tfieldvarsym(p).vardef.size);
+            if int64(state^.recoffset)+Tfieldvarsym(p).vardef.size>high(longint) then
+              state^.recoffset:=high(longint)
+            else
+              inc(state^.recoffset,Tfieldvarsym(p).vardef.size);
           end;
       end;
 

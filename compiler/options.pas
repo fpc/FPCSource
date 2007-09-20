@@ -815,10 +815,6 @@ begin
                          else
                            include(init_settings.localswitches,cs_checkpointer);
                        end;
-                     'd' :
-                       begin
-                         paratargetdbg:=dbg_dwarf2;
-                       end;
                      'h' :
                        begin
                          if UnsetBool(More, j) then
@@ -832,6 +828,12 @@ begin
                            exclude(init_settings.globalswitches,cs_use_lineinfo)
                          else
                            include(init_settings.globalswitches,cs_use_lineinfo);
+                       end;
+                     'o' :
+                       begin
+                         if not UpdateDebugStr(copy(more,j+1,length(more)),init_settings.debugswitches) then
+                           IllegalPara(opt);
+                         break;
                        end;
                      'p' :
                        begin
