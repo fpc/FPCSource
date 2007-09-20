@@ -1741,12 +1741,8 @@ type
 
   function isc_event_block(_para1:PPchar; _para2:PPchar; _para3:word; args:array of const):ISC_LONG; cdecl; external gdslib;
 
-  {!!MVC
-  void         isc_event_counts (unsigned ISC_LONG   ,
-                                         short,
-                                         char   ,
-                                         char   ); extdecl; external gdslib;
-  !!MVC }
+  procedure isc_event_counts(_para1: PISC_STATUS; _para2: short; _para3: pchar; _para4: pchar); extdecl;  external gdslib;
+
   procedure isc_expand_dpb(_para1:PPchar; _para2:Psmallint; args:array of const); cdecl; external gdslib;
 
   function isc_modify_dpb(_para1:PPchar; _para2:Psmallint; _para3:word; _para4:Pchar; _para5:smallint):longint; extdecl; external gdslib;
@@ -2278,12 +2274,7 @@ var
   isc_encode_sql_time : procedure (_para1:pointer; _para2:PISC_TIME); extdecl;
   isc_encode_timestamp : procedure (_para1:pointer; _para2:PISC_TIMESTAMP); extdecl;
   isc_event_block : function (_para1:PPchar; _para2:PPchar; _para3:word; args:array of const):ISC_LONG; cdecl;
-{!!MVC
-  void         isc_event_counts (unsigned ISC_LONG   ,
-  short,
-  char   ,
-  char   ); extdecl; external gdslib;
-!!MVC }
+  isc_event_counts: procedure (_para1: PISC_STATUS; _para2: short; _para3: pchar; _para4: pchar); extdecl;
   isc_expand_dpb : procedure (_para1:PPchar; _para2:Psmallint; args:array of const); cdecl;
   isc_modify_dpb : function (_para1:PPchar; _para2:Psmallint; _para3:word; _para4:Pchar; _para5:smallint):longint; extdecl;
   isc_free : function (_para1:Pchar):ISC_LONG; extdecl;
@@ -2517,6 +2508,7 @@ begin
     pointer(isc_encode_sql_time) := GetProcedureAddress(IBaseLibraryHandle,'isc_encode_sql_time');
     pointer(isc_encode_timestamp) := GetProcedureAddress(IBaseLibraryHandle,'isc_encode_timestamp');
     pointer(isc_event_block) := GetProcedureAddress(IBaseLibraryHandle,'isc_event_block');
+    pointer(isc_event_counts) := GetProcedureAddress(IBaseLibraryHandle,'isc_event_counts');
     pointer(isc_expand_dpb) := GetProcedureAddress(IBaseLibraryHandle,'isc_expand_dpb');
     pointer(isc_modify_dpb) := GetProcedureAddress(IBaseLibraryHandle,'isc_modify_dpb');
     pointer(isc_free) := GetProcedureAddress(IBaseLibraryHandle,'isc_free');
