@@ -21,6 +21,13 @@ uses
   Classes, SysUtils, htmlelements, htmlwriter, httpdefs, fphttp, db;
 
 type
+  THtmlEntities = (heHtml,heBody,heHead,heDiv,heParagraph);
+
+const
+  THtmlEntitiesClasses : array[THtmlEntities] of THTMLElementClass =
+    (THTML_html, THTML_body, THTML_head, THTML_div, THTML_p);
+
+type
 
   { THTMLContentProducer }
 
@@ -46,25 +53,27 @@ type
   TWriterEvent = procedure (Sender:THTMLContentProducer; aWriter : THTMLWriter) of object;
   TBooleanEvent = procedure (Sender:THTMLContentProducer; var flag : boolean) of object;
 
-  { THTMLCustomPagContentProducer }
+  { THTMLCustomEntityProducer }
 
-  { THTMLCustomPageContentProducer }
-
-  THTMLCustomPageContentProducer = class (THTMLContentProducer)
+  THTMLCustomEntityProducer = class (THTMLContentProducer)
   private
     FOnWritePage: TWriterEvent;
+    FEntity: THtmlEntities;
   protected
     function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
     procedure DoWritePage (aWriter : THTMLWriter); virtual;
   public
+    constructor Create(AOwner: TComponent); override;
     Property OnWritePage : TWriterEvent read FOnWritePage write FOnWritePage;
+    Property Entity : THtmlEntities read FEntity write FEntity default heHtml;
   end;
 
   { THTMLCustomPagContentProducer }
 
-  THTMLPageContentProducer = class (THTMLCustomPageContentProducer)
+  THTMLEntityProducer = class (THTMLCustomEntityProducer)
   published
     Property OnWritePage;
+    Property Entity;
   end;
 
   { THTMLCustomDatasetContentProducer }
@@ -130,9 +139,11 @@ type
     FControlName: string;
     FIsPreSelected: TBooleanEvent;
     FItemField: string;
-    FSize: string;
+    FSize: integer;
     FValueField: string;
     FValue, FItem : TField;
+    FPreSelected: string;
+    FUseValues: boolean;
   protected
     procedure DoWriteHeader (aWriter : THTMLWriter; var el : THTMLCustomElement); override;
     procedure DoWriteFooter (aWriter : THTMLWriter); override;
@@ -140,10 +151,12 @@ type
   public
     constructor create (aOwner : TComponent); override;
   published
+    property UseValues : boolean read FUseValues write FUseValues default false;
+    property PreSelected : string read FPreSelected write FPreSelected;
     property ItemField : string read FItemField write FItemField;
     property ValueField : string read FValueField write FValueField;
     property OnIsPreSelected : TBooleanEvent read FIsPreSelected write FIsPreSelected;
-    property Size : string read FSize write FSize;
+    property Size : integer read FSize write FSize;
     property ControlName : string read FControlName write FControlName;
     property OnWriteHeader;
   end;
@@ -348,6 +361,7 @@ end;
 constructor THTMLSelectProducer.create(aOwner: TComponent);
 begin
   inherited create (aOwner);
+  FUseValues := False;
   FItems := TStringlist.Create;
   size := 1;
 end;
@@ -364,7 +378,7 @@ procedure THTMLDatasetSelectProducer.DoWriteHeader (aWriter : THTMLWriter; var e
 var s : THTML_Select;
 begin
   s := aWriter.StartSelect;
-  s.size := FSize;
+  s.size := IntToStr(FSize);
   s.name := FControlName;
   el := s;
   if FValueField <> '' then
@@ -386,12 +400,13 @@ begin
   if assigned (FItem) then
     with aWriter.Option(FItem.asstring) do
       begin
+      if FUseValues then
+        sel := (FValue.AsString = FPreSelected)
+      else
+        sel := (FItem.AsString = FPreSelected);
       if assigned (FIsPreSelected) then
-        begin
-        sel := false;
         FIsPreSelected (self, sel);
-        selected := sel;
-        end;
+      selected := sel;
       if assigned (FValue) then
         Value := FValue.Asstring;
       end;
@@ -400,7 +415,8 @@ end;
 constructor THTMLDatasetSelectProducer.create(aOwner: TComponent);
 begin
   inherited create(aOwner);
-  Size := '1';
+  Size := 1;
+  FUseValues := False;
 end;
 
 { TCustomHTMLDataModule }
@@ -492,20 +508,26 @@ begin
     FOnGetContent(Self,ARequest,HTMLPage,Handled);
 end;
 
-{ THTMLCustomPageContentProducer }
+{ THTMLCustomEntityProducer }
 
-function THTMLCustomPageContentProducer.WriteContent(aWriter: THTMLWriter
+function THTMLCustomEntityProducer.WriteContent(aWriter: THTMLWriter
   ): THTMLCustomElement;
 begin
-  result := aWriter.Starthtml;
+  result := aWriter.StartElement(THtmlEntitiesClasses[FEntity]);
   DoWritePage(aWriter);
-  aWriter.Endhtml;
+  aWriter.EndElement(THtmlEntitiesClasses[FEntity]);
 end;
 
-procedure THTMLCustomPageContentProducer.DoWritePage(aWriter: THTMLWriter);
+procedure THTMLCustomEntityProducer.DoWritePage(aWriter: THTMLWriter);
 begin
   if assigned (FOnWritePage) then
     FOnWritePage (self, aWriter);
+end;
+
+constructor THTMLCustomEntityProducer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FEntity := heHtml;
 end;
 
 end.
