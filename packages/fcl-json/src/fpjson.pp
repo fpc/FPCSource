@@ -50,7 +50,9 @@ type
     procedure SetItem(Index : Integer; const AValue: TJSONData); virtual;
     function GetCount: Integer; virtual;
   public
+    Constructor Create; virtual;
     Class function JSONType: TJSONType; virtual;
+    Procedure Clear;  virtual; Abstract;
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TJSONData read GetItem write SetItem;
     property Value: variant read GetValue write SetValue;
@@ -62,6 +64,7 @@ type
     Property AsJSON : String Read GetAsJSON;
   end;
 
+  TJSONDataClass = Class of TJSONData;
   TJSONNumberType = (ntFloat,ntInteger);
 
   TJSONNumber = class(TJSONData)
@@ -91,6 +94,7 @@ type
   public
     Constructor Create(AValue : TJSONFloat);
     class function NumberType : TJSONNumberType; override;
+    Procedure Clear;  override;
   end;
   
   { TJSONIntegerNumber }
@@ -113,6 +117,7 @@ type
   public
     Constructor Create(AValue : Integer);
     class function NumberType : TJSONNumberType; override;
+    Procedure Clear;  override;
   end;
 
   { TJSONString }
@@ -135,6 +140,7 @@ type
   public
     Constructor Create(AValue : TJSONStringType);
     class function JSONType: TJSONType; override;
+    Procedure Clear;  override;
   end;
 
   { TJSONboolean }
@@ -157,6 +163,7 @@ type
   public
     Constructor Create(AValue : Boolean);
     class function JSONType: TJSONType; override;
+    Procedure Clear;  override;
   end;
 
   { TJSONnull }
@@ -178,6 +185,7 @@ type
     procedure SetValue(const AValue: variant); override;
   public
     class function JSONType: TJSONType; override;
+    Procedure Clear;  override;
   end;
 
   TJSONArrayIterator = procedure(Item: TJSONData; Data: TObject; var Continue: Boolean) of object;
@@ -227,6 +235,7 @@ type
     procedure Iterate(Iterator : TJSONArrayIterator; Data: TObject);
     function IndexOf(obj: TJSONData): Integer;
     // Manipulate
+    Procedure Clear;  override;
     function Add(Item : TJSONData): Integer;
     function Add(I : Integer): Integer;
     function Add(S : String): Integer;
@@ -300,6 +309,7 @@ type
     function IndexOf(Item: TJSONData): Integer;
     Function IndexOfName(const AName: TJSONStringType): Integer;
     // Manipulate
+    Procedure Clear;  override;
     function Add(const AName: TJSONStringType; AValue: TJSONData): Integer; overload;
     function Add(const AName: TJSONStringType; AValue: Boolean): Integer; overload;
     function Add(const AName: TJSONStringType; AValue: TJSONFloat): Integer; overload;
@@ -448,6 +458,11 @@ begin
   Result:=0;
 end;
 
+constructor TJSONData.Create;
+begin
+  Clear;
+end;
+
 function TJSONData.GetIsNull: Boolean;
 begin
   Result:=False;
@@ -477,6 +492,11 @@ end;
 class function TJSONstring.JSONType: TJSONType;
 begin
   Result:=jtString;
+end;
+
+procedure TJSONString.Clear;
+begin
+  FValue:='';
 end;
 
 function TJSONstring.GetValue: Variant;
@@ -558,6 +578,11 @@ end;
 class function TJSONboolean.JSONType: TJSONType;
 begin
   Result:=jtBoolean;
+end;
+
+procedure TJSONBoolean.Clear;
+begin
+  FValue:=False;
 end;
 
 
@@ -695,6 +720,11 @@ begin
   Result:=jtNull;
 end;
 
+procedure TJSONNull.Clear;
+begin
+  // Do nothing
+end;
+
 
 
 { TJSONFloatNumber }
@@ -770,6 +800,11 @@ begin
   Result:=ntFloat;
 end;
 
+procedure TJSONFloatNumber.Clear;
+begin
+  FValue:=0;
+end;
+
 { TJSONIntegerNumber }
 
 function TJSONIntegerNumber.GetAsBoolean: Boolean;
@@ -835,6 +870,11 @@ end;
 class function TJSONIntegerNumber.NumberType: TJSONNumberType;
 begin
   Result:=ntInteger;
+end;
+
+procedure TJSONIntegerNumber.Clear;
+begin
+  FValue:=0;
 end;
 
 
@@ -1082,6 +1122,11 @@ end;
 function TJSONArray.IndexOf(obj: TJSONData): Integer;
 begin
   Result:=FList.IndexOf(Obj);
+end;
+
+procedure TJSONArray.Clear;
+begin
+  FList.Clear;
 end;
 
 function TJSONArray.Add(Item: TJSONData): Integer;
@@ -1402,12 +1447,17 @@ end;
 
 function TJSONObject.IndexOf(Item: TJSONData): Integer;
 begin
-
+  Result:=FHash.IndexOf(Item);
 end;
 
 function TJSONObject.IndexOfName(const AName: TJSONStringType): Integer;
 begin
+  Result:=FHash.FindIndexOf(AName);
+end;
 
+procedure TJSONObject.Clear;
+begin
+  FHash.Clear;
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType; AValue: TJSONData
