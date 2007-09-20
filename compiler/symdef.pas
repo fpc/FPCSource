@@ -288,7 +288,7 @@ interface
        public
           function elesize : aint;
           function elepackedbitsize : aint;
-          function elecount : aint;
+          function elecount : aword;
           constructor create_from_pointer(def:tdef);
           constructor create(l,h : aint;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -1534,7 +1534,7 @@ implementation
           varUndefined,
           varbyte,varqword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
-          varboolean,varUndefined,varUndefined,varUndefined,
+          varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
         result:=basetype2vardef[ordtype];
@@ -2157,7 +2157,7 @@ implementation
     constructor tarraydef.create_from_pointer(def:tdef);
       begin
          { use -1 so that the elecount will not overflow }
-         self.create(0,$7fffffff-1,s32inttype);
+         self.create(0,high(aint-1),s32inttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def);
       end;
@@ -2215,10 +2215,10 @@ implementation
       begin
         if (ado_IsBitPacked in arrayoptions) then
           internalerror(2006080101);
-	if assigned(_elementdef) then
+        if assigned(_elementdef) then
           result:=_elementdef.size
-	else
-	  result:=0;
+        else
+          result:=0;
       end;
 
 
@@ -2233,7 +2233,7 @@ implementation
       end;
 
 
-    function tarraydef.elecount : aint;
+    function tarraydef.elecount : aword;
       var
         qhigh,qlow : qword;
       begin
@@ -2246,9 +2246,9 @@ implementation
           begin
             qhigh:=highrange;
             qlow:=qword(-lowrange);
-            { prevent overflow, return -1 to indicate overflow }
+            { prevent overflow, return 0 to indicate overflow }
             if qhigh+qlow>qword(high(aint)-1) then
-              result:=-1
+              result:=0
             else
               result:=qhigh+qlow+1;
           end
@@ -2259,7 +2259,7 @@ implementation
 
     function tarraydef.size : aint;
       var
-        cachedelecount,
+        cachedelecount : aword;
         cachedelesize : aint;
       begin
         if ado_IsDynamicArray in arrayoptions then
@@ -2283,7 +2283,7 @@ implementation
             exit;
           end;
 
-        if (cachedelecount = -1) then
+        if (cachedelecount = 0) then
           begin
             size := -1;
             exit;

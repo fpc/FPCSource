@@ -242,7 +242,6 @@ implementation
                       else
                         tclist:=current_asmdata.asmlists[al_typedconsts];
                       read_typed_const(tclist,tstaticvarsym(sym));
-                      consume(_SEMICOLON);
                     end;
                 end;
 

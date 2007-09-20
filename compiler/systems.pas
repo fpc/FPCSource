@@ -139,7 +139,8 @@ interface
              system_arm_embedded,       { 57 }
              system_powerpc64_embedded, { 58 }
              system_i386_symbian,       { 59 }
-             system_arm_symbian         { 60 }
+             system_arm_symbian,        { 60 }
+             system_x86_64_darwin       { 61 }
        );
 
        tasm = (as_none
@@ -375,6 +376,9 @@ interface
        system_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
                              system_arm_wince,system_i386_wince];
 
+       systems_darwin = [system_powerpc_darwin,system_i386_darwin,
+                         system_powerpc64_darwin,system_x86_64_darwin];
+				     
        { all systems supporting exports from programs or units }
        system_unit_program_exports = [system_i386_win32,
                                          system_i386_wdosx,

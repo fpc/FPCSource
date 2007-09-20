@@ -243,7 +243,7 @@ const
   parser_e_exit_with_argument_not__possible=03153;
   parser_e_stored_property_must_be_boolean=03154;
   parser_e_ill_property_storage_sym=03155;
-  parser_e_only_publishable_classes_can__be_published=03156;
+  parser_e_only_publishable_classes_can_be_published=03156;
   parser_e_proc_directive_expected=03157;
   parser_e_invalid_property_index_value=03158;
   parser_e_procname_to_short_for_export=03159;
@@ -320,6 +320,7 @@ const
   parser_f_no_anonymous_specializations=03232;
   parser_e_initialized_not_for_external=03233;
   parser_e_illegal_function_result=03234;
+  parser_e_no_common_type=03235;
   parser_e_no_generics_as_types=03236;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
@@ -390,6 +391,10 @@ const
   type_e_cant_take_address_of_local_subroutine=04076;
   type_e_cant_export_local=04077;
   type_e_not_automatable=04078;
+  type_h_convert_add_operands_to_prevent_overflow=04079;
+  type_h_convert_sub_operands_to_prevent_overflow=04080;
+  type_h_convert_mul_operands_to_prevent_overflow=04081;
+  type_w_pointer_to_signed=04082;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -724,9 +729,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 43240;
+  MsgTxtSize = 43716;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,83,237,79,63,49,107,22,135,60,
+    24,83,237,83,63,49,107,22,135,60,
     42,1,1,1,1,1,1,1,1,1
   );

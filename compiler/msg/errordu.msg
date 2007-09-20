@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 7501
+#   Based on errore.msg of SVN revision 7907
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -351,11 +351,13 @@ scan_e_only_packset=02080_E_Ungültiger Wert für das set packing
 scan_w_pic_ignored=02081_W_PIC Direktive wird ignoriert
 % Several targets like windows do not support the PIC directive and need it to be
 % ignored.
+scan_w_unsupported_switch_by_target=02082_W_Der Schalter "$1" wird vom derzeit ausgewählten Zielbetriebssystem nicht unterstützt
+% Some compiler switches like $E are not supported by all targets.
 % \end{description}
 #
 # Parser
 #
-# 03192 is the last used one
+# 03235 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1064,7 +1066,7 @@ parser_w_implicit_uses_of_variants_unit=03211_W_Implizite Verwendung einer Varia
 parser_e_no_static_method_in_interfaces=03212_E_Class und statische Methoden können nicht in INTERFACES verwendet werden
 % The specifier \var{class} and directive \var{static} can't be used in interfaces
 % because all methods of an interfaces must be public.
-parser_e_arithmetic_operation_overflow=03213_E_Overflow in arithmetischer Operation
+parser_e_arithmetic_operation_overflow=03213_E_Überlauf in arithmetischer Operation
 % An operation on two integers values produced an overflow
 parser_e_protected_or_private_expected=03214_E_Protected oder private erwartet
 % \var{strict} can be only used together with \var{protected} or \var{private}.
@@ -1135,11 +1137,17 @@ parser_e_initialized_not_for_external=03233_E_Extern deklarierte Variablen könn
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Ungültiger Funktionsergebnistyp
 % Some types like file types can not be used as function result.
+parser_e_no_common_type=03235_E_"$1" und "$2" haben keinen gemeinsamen Typ
+% To perform an operation beween integers, the compiler converts both operands
+% to their common type, which appears to be an invalid type. To determine the
+% common type of the operands, the compiler takes the minimum of the minimal values
+% of both types, and the maximum of the maximal values of both types. The common
+% type is then minimum..maximum.
 % \end{description}
 #
 # Type Checking
 #
-# 04049 is the last used one
+# 04082 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1400,6 +1408,20 @@ type_e_cant_export_local=04077_E_Eine Subroutine, die aus einer Unit als local m
 type_e_not_automatable=04078_E_Typ "$1" ist nicht "automatable"
 % Only byte, integer, longint, smallint, currency, single, double, ansistring,
 % widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
+type_h_convert_add_operands_to_prevent_overflow=04079_H_Konvertierung des Operanden "$1" vor der Addition könnte Überlauf Fehler verhindern
+% Adding two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the addition.
+type_h_convert_sub_operands_to_prevent_overflow=04080_H_Konvertierung des Operanden "$1" vor der Subtraktion könnte Überlauf Fehler verhindern
+% Subtracting two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the subtraction.
+type_h_convert_mul_operands_to_prevent_overflow=04081_H_Konvertierung des Operanden "$1" vor der Multiplikation könnte Überlauf Fehler verhindern
+% Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
+% could prevent such errors by converting the operands to this type before doing the multiplication.
+type_w_pointer_to_signed=04082_W_Die Konvertierung von Pointern in einen Integertyp mit Vorzeichen kann zu falschen Ergebnissen bei Vergleichen und zu Bereichsüberschreitungen führen; verwenden sie statt dessen besser einen Typ ohne Vorzeichen
+% The virtual address space on 32-bit machines runs from $00000000 to $ffffffff. Many operating systems allow you to
+% allocate memory above $80000000, for example both Windows and Linux allow pointers in the range $0000000 to $bfffffff.
+% If you convert pointers to signed types, this can cause overflow and range check errors, but also $80000000 < $7fffffff.
+% This can cause random errors in code like "if p>q".
 % \end{description}
 #
 # Symtable
@@ -2535,7 +2557,6 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2Mobjfpc_schalte einige Delphi 2 Erweiterungen ein
 **2Mdelphi_versuche zu Delphi kompatibel zu sein
 **2Mtp_versuche zu TP/BP 7.0 kompatibel zu sein
-**2Mgpc_versuche zu gpc kompatibel zu sein
 **2Mmacpas_versuche zu den MacIntosh Pascal-Dialekten kompatibel zu sein
 **1n_Standard-Konfigurationsdatei ignorieren
 **1N<x>_node tree Optimierung

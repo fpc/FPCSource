@@ -226,8 +226,8 @@ implementation
                           u8bit,u16bit,u32bit,u64bit,
                           s8bit,s16bit,s32bit,s64bit:
                             begin
-                              if (torddef(def_from).low=torddef(def_to).low) and
-                                 (torddef(def_from).high=torddef(def_to).high) then
+                              if (torddef(def_from).low>=torddef(def_to).low) and
+                                 (torddef(def_from).high<=torddef(def_to).high) then
                                 eq:=te_equal
                               else
                                 begin
@@ -274,6 +274,20 @@ implementation
                       begin
                         doconv:=tc_real_2_currency;
                         eq:=te_convert_l2;
+                      end;
+                   end;
+                 objectdef:
+                   begin
+                     if is_class_or_interface_or_dispinterface(def_from) and (cdo_explicit in cdoptions) then
+                      begin
+                        eq:=te_convert_l1;
+                        if (fromtreetype=niln) then
+                         begin
+                           { will be handled by the constant folding }
+                           doconv:=tc_equal;
+                         end
+                        else
+                         doconv:=tc_int_2_int;
                       end;
                    end;
                  classrefdef,
@@ -920,7 +934,6 @@ implementation
                          eq:=te_convert_l1;
                        end;
                    end;
-{
                  enumdef :
                    begin
                      { allow explicit typecasts from enums to pointer.
@@ -937,7 +950,6 @@ implementation
                          eq:=te_convert_l1;
                        end;
                    end;
-}
                  arraydef :
                    begin
                      { string constant (which can be part of array constructor)
@@ -1266,6 +1278,14 @@ implementation
                     end;
                  end
                else
+                 if (m_delphi in current_settings.modeswitches) and
+                    is_voidpointer(def_from) then
+                  begin
+                    doconv:=tc_equal;
+                    { prefer pointer-pointer assignments }
+                    eq:=te_convert_l2;
+                  end
+                 else
                 { nil is compatible with class references }
                 if (fromtreetype=niln) then
                  begin

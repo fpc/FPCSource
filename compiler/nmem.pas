@@ -719,15 +719,37 @@ implementation
          { maybe type conversion for the index value, but
            do not convert enums,booleans,char
            and do not convert range nodes }
-         if (right.nodetype<>rangen) and (
-             ((right.resultdef.typ<>enumdef) and
-               not(is_char(right.resultdef) or is_widechar(right.resultdef)) and
-               not(is_boolean(right.resultdef))
-             ) or
-             (left.resultdef.typ <> arraydef) 
-            ) then
-           begin
-             inserttypeconv(right,sinttype);
+         if (right.nodetype<>rangen) and (is_integer(right.resultdef) or (left.resultdef.typ<>arraydef)) then
+           case left.resultdef.typ of
+             arraydef:
+               if ado_isvariant in Tarraydef(left.resultdef).arrayoptions then
+                 {Variant arrays are a special array, can have negative indexes and would therefore
+                  need s32bit. However, they should not appear in a vecn, as they are handled in
+                  handle_variantarray in pexpr.pas. Therefore, encountering a variant array is an
+                  internal error... }
+                 internalerror(200707031)
+               else if is_special_array(left.resultdef) then
+                 {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
+                  convert indexes into these arrays to aword.}
+                 inserttypeconv(right,uinttype)
+               else
+                 {Convert array indexes to low_bound..high_bound.}
+                 inserttypeconv(right,Torddef.create(Torddef(sinttype).ordtype,
+                                                     int64(Tarraydef(left.resultdef).lowrange),
+                                                     int64(Tarraydef(left.resultdef).highrange)
+                                                    ));
+             stringdef:
+               if is_open_string(left.resultdef) then
+                 inserttypeconv(right,u8inttype)
+               else if is_shortstring(left.resultdef) then
+                 {Convert shortstring indexes to 0..length.}
+                 inserttypeconv(right,Torddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
+               else
+                 {Convert indexes into dynamically allocated strings to aword.}
+                 inserttypeconv(right,uinttype);
+             else
+               {Others, i.e. pointer indexes to aint.}
+               inserttypeconv(right,sinttype);
            end;
 
          case left.resultdef.typ of

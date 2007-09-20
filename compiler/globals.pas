@@ -682,7 +682,7 @@ implementation
         expansion under linux }
 {$ifdef hasunix}
       begin
-        result := Unix.Shell(command);
+        result := Unix.fpsystem(command);
       end;
 {$else hasunix}
   {$ifdef amigashell}

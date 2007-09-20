@@ -119,7 +119,7 @@ begin
      exit;
    end;
 {$ifdef unix}
-  Shell:=unix.shell(s);
+  Shell:=unix.fpsystem(s);
 {$else}
   exec(getenv('COMSPEC'),'/C '+s);
   Shell:=DosExitCode;

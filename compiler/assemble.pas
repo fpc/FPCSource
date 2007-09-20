@@ -1173,7 +1173,7 @@ Implementation
                        else
                          v:=Tai_const(hp).value;
                        if tai_const(hp).consttype=aitconst_uleb128bit then
-                         leblen:=EncodeUleb128(v,lebbuf)
+                         leblen:=EncodeUleb128(qword(v),lebbuf)
                        else
                          leblen:=EncodeSleb128(v,lebbuf);
                        ObjData.writebytes(lebbuf,leblen);
