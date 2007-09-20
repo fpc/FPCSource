@@ -143,10 +143,6 @@ interface
              system_x86_64_darwin       { 61 }
        );
 
-     const
-       systems_darwin = [system_powerpc_darwin,system_i386_darwin,
-                         system_powerpc64_darwin,system_x86_64_darwin];
-
      type
        tasm = (as_none
              ,as_gas                   { standard gnu assembler }
@@ -382,6 +378,10 @@ interface
        { all windows systems }
        system_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
                              system_arm_wince,system_i386_wince];
+
+       { all darwin systems }
+       systems_darwin = [system_powerpc_darwin,system_i386_darwin,
+                         system_powerpc64_darwin,system_x86_64_darwin];
 
        { all systems supporting exports from programs or units }
        system_unit_program_exports = [system_i386_win32,
