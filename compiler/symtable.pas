@@ -1658,7 +1658,7 @@ implementation
       begin
         result:=false;
         hashedid.id:=s;
-        if assigned(current_procinfo.procdef) then
+        if assigned(current_procinfo) and assigned(current_procinfo.procdef) then
           currentclassh:=current_procinfo.procdef._class
         else
           currentclassh:=nil;
