@@ -35,6 +35,8 @@ type
   THTMLElementEvent = procedure (Sender:THTMLDatasetFormProducer; element : THTMLCustomElement) of object;
   TFieldCheckEvent = procedure (aField:TField; var check:boolean) of object;
   
+  TFieldItemEvent = procedure (Sender:TFormFieldItem; var aValue : string) of object;
+  
   TFormInputType = (fittext,fitpassword,fitcheckbox,fitradio,fitfile,fithidden,
                     fitproducer,fittextarea,fitrecordselection,fitlabel);
 
@@ -74,6 +76,10 @@ type
     FLabelPos: TTablePosition;
     FProducer: THTMLContentProducer;
     FValuePos: TTablePosition;
+    
+    FOnGetValue: TFieldItemEvent;
+    FOnGetLabel: TFieldItemEvent;
+    FOnGetAction: TFieldItemEvent;
     procedure SetLabelPos(const AValue: TTablePosition);
     procedure SetValuePos(const AValue: TTablePosition);
   protected
@@ -81,6 +87,9 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+    function getValue : String; virtual;
+    function getLabel : String; virtual;
+    function getAction : String; virtual;
     property Field : TField read FField;
   published
     property Fieldname : string read FFieldName write FFieldname;
@@ -101,6 +110,9 @@ type
     { only when showing: }
     property Action : string read FAction write FAction;
       // the link to include in the value
+    property OnGetValue : TFieldItemEvent read FOnGetValue write FOnGetValue;
+    property OnGetLabel : TFieldItemEvent read FOnGetLabel write FOnGetLabel;
+    property OnGetAction : TFieldItemEvent read FOnGetAction write FOnGetAction;
   end;
 
   { TFormFieldCollection }
@@ -465,6 +477,27 @@ begin
   FLabelPos.Free;
   FValuePos.Free;
   inherited Destroy;
+end;
+
+function TFormFieldItem.getValue: String;
+begin
+  Result := FField.asstring;
+  if assigned (FOnGetValue) then
+    onGetValue(self,Result);
+end;
+
+function TFormFieldItem.getLabel: String;
+begin
+  Result := LabelCaption;
+  if assigned(FOnGetLabel) then
+    onGetLabel(Self,Result);
+end;
+
+function TFormFieldItem.getAction: String;
+begin
+  Result := Format(Action,[FField.asstring]);
+  if assigned(FOnGetAction) then
+    onGetAction(Self,Result);
 end;
 
 { TFormFieldCollection }
@@ -900,10 +933,10 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
         fitrecordselection : ;
       end;
       IsLabel := false;
-      Value := aControlDef.FField.asstring;
+      Value := aControlDef.getValue;
       if not FSeparateLabel and not FIncludeHeader then
         begin
-        Caption := aControldef.LabelCaption;
+        Caption := aControldef.getLabel;
         IncludeBreak := aControldef.LabelAbove;
         end;
       end;
@@ -915,14 +948,14 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
       begin
       CellType := ctLabel;
       IsLabel := true;
-      Value := aControldef.labelcaption;
+      Value := aControldef.getLabel;
       end;
   end;
 
 begin
   if assigned (aControlDef.FField) then
     PlaceFieldValue;
-  if FSeparateLabel and (aControlDef.LabelCaption <> '') then
+  if FSeparateLabel and (aControlDef.getLabel <> '') then
     PlaceLabel;
 end;
 
@@ -984,10 +1017,10 @@ procedure THTMLDatasetFormShowProducer.ControlToTableDef (aControldef : TFormFie
       begin
       CellType := ctLabel;
       IsLabel := false;
-      Value := aControlDef.FField.asstring;
+      Value := aControlDef.getValue;
       if not FSeparateLabel and not FIncludeHeader then
         begin
-        Caption := aControldef.LabelCaption;
+        Caption := aControldef.getLabel;
         IncludeBreak := aControldef.LabelAbove;
         end;
       end;
@@ -999,14 +1032,14 @@ procedure THTMLDatasetFormShowProducer.ControlToTableDef (aControldef : TFormFie
       begin
       CellType := ctLabel;
       IsLabel := true;
-      Value := aControldef.labelcaption;
+      Value := aControldef.getLabel;
       end;
   end;
 
 begin
   if assigned (aControlDef.FField) then
     PlaceFieldValue;
-  if FSeparateLabel and (aControlDef.LabelCaption <> '') then
+  if FSeparateLabel and (aControlDef.getLabel <> '') then
     PlaceLabel;
 end;
 
@@ -1020,12 +1053,11 @@ procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFie
       begin
       CellType := ctLabel;
       IsLabel := false;
-      Value := aControlDef.FField.asstring;
-      if aControldef.Action <> '' then
-        Link := Format(aControldef.Action,[value]);
+      Value := aControlDef.getValue;
+      Link := aControldef.getAction;
       if not FSeparateLabel and not FIncludeHeader then
         begin
-        Caption := aControldef.LabelCaption;
+        Caption := aControldef.getLabel;
         IncludeBreak := aControldef.LabelAbove;
         end;
       end;
@@ -1037,14 +1069,14 @@ procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFie
       begin
       CellType := ctLabel;
       IsLabel := true;
-      Value := aControldef.labelcaption;
+      Value := aControldef.getLabel;
       end;
   end;
 
 begin
   if assigned (aControlDef.FField) and not IsHeader then
     PlaceFieldValue;
-  if (IsHeader or FSeparateLabel) and (aControlDef.LabelCaption <> '') then
+  if (IsHeader or FSeparateLabel) and (aControlDef.getLabel <> '') then
     PlaceLabel;
 end;
 
