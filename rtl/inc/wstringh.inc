@@ -71,6 +71,8 @@ Type
     StrLICompAnsiStringProc : function(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
     StrLowerAnsiStringProc : function(Str: PChar): PChar;
     StrUpperAnsiStringProc : function(Str: PChar): PChar;
+    ThreadInitProc : procedure;
+    ThreadFiniProc : procedure;
   end;
 
 

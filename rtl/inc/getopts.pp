@@ -47,20 +47,20 @@ Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Longin
 
 
 Implementation
-
-{$ifdef TP}
-uses
-  strings;
-{$endif}
-
+{$IFNDEF FPC}
+  {$ifdef TP}
+    uses strings;
+  {$else }
+    uses SysUtils;
+    type PtrInt = Integer;
+  {$endif}
+{$ENDIF FPC}
 
 {***************************************************************************
                                Create an ArgV
 ***************************************************************************}
 
-{$ifdef TP}
-
-
+{$IF not Declared(argv)} //{$ifdef TP}
 
 type
   ppchar = ^pchar;
@@ -134,7 +134,7 @@ begin
   move(argsbuf,argv,count shl 2);
 end;
 
-{$endif TP}
+{$IFEND} //{$endif TP}
 
 {***************************************************************************
                                Real Getopts
@@ -336,7 +336,7 @@ begin
               else
                ambig:=true;
            end;
-          inc(pointer(p),sizeof(toption));
+          inc(PByte(p),sizeof(toption)); //inc(pointer(p),sizeof(toption)); // for Delphi compatibility
           inc(option_index);
         end;
        if ambig and not exact then
@@ -490,10 +490,18 @@ begin
   getlongopts:=internal_getopt(shortopts,longopts,@longind,true);
 end;
 
-
-begin
+{$ifdef FPC}
+    initialization
+{$endif}
+{$ifndef FPC}
+  {$ifdef TP}
+    begin
+  {$else}
+    initialization
+  {$endif}
+{$endif}
 { create argv if running under TP }
-{$ifdef TP}
+{$ifndef FPC}
   setup_arguments;
 {$endif}
 { Needed to detect startup }

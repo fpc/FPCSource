@@ -33,6 +33,7 @@ interface
   ---------------------------------------------------------------------}
 
 
+Function SafeLoadLibrary(Name : AnsiString) : TLibHandle;
 Function LoadLibrary(Name : AnsiString) : TLibHandle;
 Function GetProcedureAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
@@ -64,5 +65,23 @@ Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
 begin
   Result:=GetProcedureAddress(Lib,Procname);
 end;
+
+Function SafeLoadLibrary(Name : AnsiString) : TLibHandle;
+
+{$ifdef i386}
+ var w : word;
+{$endif}
+
+
+Begin
+{$ifdef i386}
+  w:=get8087cw;
+{$endif}
+ result:=loadlibrary(name);
+
+{$ifdef i386}
+  set8087cw(w);
+{$endif}
+End;
 
 end.

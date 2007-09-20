@@ -262,20 +262,20 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt;
 type
-  longintarray = array [0..high(sizeint) div 4-1] of longint;
+  cardinalarray = array [0..high(sizeint) div 4-1] of cardinal;
 var
-  I : longint;
+  I : int64;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
    begin
-     while (longintarray(Buf1)[I]=longintarray(Buf2)[I]) and (I<Len) do
+     while (cardinalarray(Buf1)[I]=cardinalarray(Buf2)[I]) and (I<Len) do
       inc(I);
      if I=Len then  {No difference}
       I:=0
      else
       begin
-        I:=longintarray(Buf1)[I]-longintarray(Buf2)[I];
+        I:=int64(cardinalarray(Buf1)[I])-int64(cardinalarray(Buf2)[I]);
         if I>0 then
          I:=1
         else

@@ -7058,6 +7058,7 @@ tests/test/tw6727.pp svneol=native#text/plain
 tests/test/twide1.pp svneol=native#text/plain
 tests/test/twide2.pp svneol=native#text/plain
 tests/test/twide3.pp svneol=native#text/plain
+tests/test/twide4.pp svneol=native#text/plain
 tests/test/uabstrcl.pp svneol=native#text/plain
 tests/test/uenum2a.pp svneol=native#text/plain
 tests/test/uenum2b.pp svneol=native#text/plain

@@ -357,6 +357,10 @@ const
   { Indicates if there was an error }
   StackError : boolean = FALSE;
   InitProc : Pointer = nil;
+  { compatibility }
+  ModuleIsLib : Boolean = FALSE;
+  ModuleIsPackage : Boolean = FALSE;
+  ModuleIsCpp : Boolean = FALSE;
 
 var
   ExitCode    : Longint; public name 'operatingsystem_result';

@@ -24,6 +24,10 @@ Var
     procedure InitThread(stklen:SizeUInt);
       begin
         SysResetFPU;
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+        if assigned(widestringmanager.ThreadInitProc) then
+          widestringmanager.ThreadInitProc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
         { so every thread has its on exception handling capabilities }
         SysInitExceptions;
@@ -35,6 +39,18 @@ Var
         StackLength:= CheckInitialStkLen(stkLen);
         StackBottom:=Sptr - StackLength;
         ThreadID := CurrentTM.GetCurrentThreadID();
+      end;
+
+    procedure DoneThread;
+      begin
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+        if assigned(widestringmanager.ThreadFiniProc) then
+          widestringmanager.ThreadFiniProc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef HAS_MEMORYMANAGER}
+        FinalizeHeap;
+{$endif HAS_MEMORYMANAGER}
+        CurrentTM.ReleaseThreadVars;
       end;
 
 {*****************************************************************************
