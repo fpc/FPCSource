@@ -20,31 +20,29 @@ interface
 {$define FPC_IS_SYSTEM}
 
 {$i ndsbiosh.inc}
-
-{$I systemh.inc}
+{$i systemh.inc}
 
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
+function IsARM9(): boolean; 
 
 const
- LineEnding = #10;
- LFNSupport = true;
- CtrlZMarksEOF: boolean = false;
- DirectorySeparator = '/';
- DriveSeparator = ':';
- PathSeparator = ';';
- FileNameCaseSensitive = false;
- maxExitCode = 255;
- MaxPathLen = 255;
+  LineEnding = #10;
+  LFNSupport = true;
+  CtrlZMarksEOF: boolean = false;
+  DirectorySeparator = '/';
+  DriveSeparator = ':';
+  PathSeparator = ';';
+  FileNameCaseSensitive = false;
+  maxExitCode = 255;
+  MaxPathLen = 255;
   AllFilesMask = '*';
 
+  sLineBreak: string[1] = LineEnding;
+  DefaultTextLineBreakStyle: TTextLineBreakStyle = tlbsCRLF;
 
- sLineBreak : string[1] = LineEnding;
- DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
-
-const
   UnusedHandle    = $ffff;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
@@ -56,8 +54,7 @@ var
   argv: PPChar;
   envp: PPChar;
   errno: integer;
-  fake_heap_start: pchar; cvar;
-  fake_heap_end: pchar; cvar;
+  fake_heap_end: ^byte; cvar; 
 
 implementation
 
@@ -77,13 +74,37 @@ implementation
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
-{$I system.inc}
-
+{$i system.inc}
 {$i ndsbios.inc}
+
+
+{ 
+  NDS CPU detecting function (thanks to 21o6): 
+  --------------------------------------------
+   "You see, the ARM7 can't write to bank A of VRAM, but it doesn't give any 
+    error ... it just doesn't write there... so it's easily determinable what 
+    CPU is running the code"
+   
+   ARM946E-S processor can handle dsp extensions extensions, but ARM7TDMI does 
+   not. FPC can't retrieve the CPU target at compiling time, so this small
+   function takes care to check if the code is running on an ARM9 or on an ARM7
+   CPU. It works on Nintendo DS only, I guess :)
+}
+function IsARM9(): boolean; 
+var
+  Dummy : pword absolute $06800000;
+  tmp: word;
+begin
+  tmp := Dummy^;
+  Dummy^ := $C0DE;
+  IsARM9 := Dummy^ = $C0DE;
+  Dummy^ := tmp;
+end;
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: SizeUInt;
 begin
+  GetProcessID := 0;
 end;
 {$endif}
 
@@ -93,6 +114,7 @@ end;
 *****************************************************************************}
 procedure System_exit;
 begin
+  // Boo!
 end;
 
 
@@ -104,18 +126,19 @@ end;
 { number of args }
 function paramcount : longint;
 begin
-  paramcount:=0;
+  paramcount := 0;
 end;
 
 { argument number l }
 function paramstr(l : longint) : string;
 begin
-  paramstr:='';
+  paramstr := '';
 end;
 
 { set randseed to a new pseudo random value }
 procedure randomize;
 begin
+  // Boo!
 end;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
@@ -134,41 +157,23 @@ begin
 end;
 
 
-procedure InitHeap;
-begin
-{
-  FillChar(freelists_fixed,sizeof(tfreelists),0);
-  FillChar(freelists_free_chunk,sizeof(freelists_free_chunk),0);
-
-  freelist_var:=nil;
-  freeoslistcount:=1;
-  freeoslist:=pointer($2040000);
-  fillchar(freeoslist^,sizeof(freeoslist^),0);
-  freeoslist^.size:=$40000;
-  fillchar(internal_status,sizeof(internal_status),0);
-}
-end;
-
-
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  ///StackBottom := Sptr - StackLength;
   StackBottom := StackTop - StackLength;
 { OS specific startup }
-  fake_heap_start := pchar(0);
-  fake_heap_end := pchar(0);
-{ Set up signals handlers }
 
+{ Set up signals handlers }
+  if IsARM9 then 
+    fpc_cpucodeinit;
+    
 { Setup heap }
   InitHeap;
-  //SysInitExceptions;
+  SysInitExceptions;
 { Setup stdin, stdout and stderr }
-  //SysInitStdIO;
+  SysInitStdIO;
 { Reset IO Error }
-  InOutRes := 0;
+  InOutRes:=0;
 { Arguments }
-
-  //InitSystemThreads;
-  //initvariantmanager;
-  //initwidestringmanager;
+  InitSystemThreads;
+  initvariantmanager;
 end.

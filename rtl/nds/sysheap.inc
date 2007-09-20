@@ -20,15 +20,17 @@
       OS Memory allocation / deallocation
  ****************************************************************************}
 
-
-function SysOSAlloc(size: ptrint): pointer;
+var
+  heap_start: longint; external name '_end';
+  
+function SysOSAlloc(size: ptruint): pointer;
 begin
-  result := nil;//pointer($02000000);
+  result := @heap_start;
 end;
 
 { $define HAS_SYSOSFREE}
 
-procedure SysOSFree(p: pointer; size: ptrint);
+procedure SysOSFree(p: pointer; size: ptruint);
 begin
   
 end;

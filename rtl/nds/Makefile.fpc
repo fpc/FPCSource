@@ -91,7 +91,7 @@ cprt09$(OEXT) : cprt09.as
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)

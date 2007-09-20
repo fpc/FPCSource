@@ -724,7 +724,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName+'.elf')))));
+    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName+'.nef')))));
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -733,7 +733,7 @@ begin
    end
   else
    begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName+'.elf'))));
+    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName+'.nef'))));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -750,7 +750,7 @@ begin
   if success then
     begin
       success:=DoExec(FindUtil(utilsprefix + 'objcopy'), '-O binary '+ 
-        ChangeFileExt(current_module.exefilename^, preName+'.elf') + ' ' + 
+        ChangeFileExt(current_module.exefilename^, preName+'.nef') + ' ' + 
         ChangeFileExt(current_module.exefilename^, preName+target_info.exeext),
         true,false);
     end;
