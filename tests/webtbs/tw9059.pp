@@ -1,3 +1,4 @@
+{ %version=2.3 }
 { %opt=-Oodfa -vw -Sew}
 program DoesNotSeemToBeInited;
 
