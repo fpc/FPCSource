@@ -121,6 +121,12 @@ implementation
                 end;
                 exit;
               end;
+            if tordconstnode(right).value = 0 then
+              begin
+                Message(parser_e_division_by_zero);
+                { recover }
+                tordconstnode(right).value := 1;
+              end;
           end;
 
         if is_constintnode(right) and is_constintnode(left) then
@@ -155,7 +161,6 @@ implementation
       var
         hp,t : tnode;
         rd,ld : torddef;
-        rv : tconstexprint;
       begin
          result:=nil;
          typecheckpass(left);
@@ -191,18 +196,6 @@ implementation
 
          rd:=torddef(right.resultdef);
          ld:=torddef(left.resultdef);
-
-         { check for division by zero }
-         if is_constintnode(right) then
-           begin
-             rv:=tordconstnode(right).value;
-             if (rv=0) then
-               begin
-                 Message(parser_e_division_by_zero);
-                 { recover }
-                 rv:=1;
-               end;
-            end;
 
          { if one operand is a cardinal and the other is a positive constant, convert the }
          { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
@@ -528,7 +521,13 @@ implementation
            the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
          if (not is_64bit(left.resultdef)) and
             (torddef(left.resultdef).ordtype<>u32bit) then
-           inserttypeconv(left,s32inttype);
+           begin
+             { keep singness of orignal type }
+             if is_signed(left.resultdef) then
+               inserttypeconv(left,s32inttype)
+             else
+               inserttypeconv(left,u32inttype);
+           end;
 
          inserttypeconv(right,sinttype);
 

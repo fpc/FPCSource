@@ -864,6 +864,13 @@ implementation
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
          cg.a_label(current_asmdata.CurrAsmList,getasmlabel);
+
+         { Write also extra label if this label was referenced from
+           assembler block }
+         if assigned(labsym) and
+            assigned(labsym.asmblocklabel) then
+           cg.a_label(current_asmdata.CurrAsmList,labsym.asmblocklabel);
+
          secondpass(left);
       end;
 

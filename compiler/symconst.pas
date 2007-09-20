@@ -181,12 +181,6 @@ type
     uchar,uwidechar,scurrency
   );
 
-  { float types }
-  tfloattype = (
-    s32real,s64real,s80real,
-    s64comp,s64currency,s128real
-  );
-
   { string types }
   tstringtype = (
     st_shortstring,

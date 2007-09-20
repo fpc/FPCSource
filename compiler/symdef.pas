@@ -767,7 +767,7 @@ implementation
            newlen:=length(s);
            { Replace with CRC if the parameter line is very long }
            if (newlen-oldlen>12) and
-              ((newlen>128) or (newlen-oldlen>64)) then
+              ((newlen+length(prefix)>128) or (newlen-oldlen>32)) then
              begin
                crc:=$ffffffff;
                for i:=0 to tprocdef(st.defowner).paras.count-1 do
@@ -2157,7 +2157,7 @@ implementation
     constructor tarraydef.create_from_pointer(def:tdef);
       begin
          { use -1 so that the elecount will not overflow }
-         self.create(0,high(aint-1),s32inttype);
+         self.create(0,high(aint)-1,s32inttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def);
       end;

@@ -774,6 +774,8 @@ implementation
             begin
               result:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit'),potype_unitfinalize,st);
               result.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+              if (not current_module.is_unit) then
+                result.procdef.aliasnames.insert('PASCALFINALIZE');
             end;
           else
             internalerror(200304253);
@@ -1354,6 +1356,7 @@ implementation
               { Parse the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+              finalize_procinfo.procdef.aliasnames.insert('PASCALFINALIZE');
               finalize_procinfo.parse_body;
            end
          else

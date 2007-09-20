@@ -424,7 +424,10 @@ implementation
          typecheckpass(hto);
          set_varstate(hto,vs_read,[vsf_must_be_valid]);
          typecheckpass(hloopvar);
-         set_varstate(hloopvar,vs_readwritten,[]);
+         { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
+         { for some subnodes                                                  }
+         set_varstate(hloopvar,vs_written,[]);
+         set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
 
          { ... now the instruction block }
          hblock:=statement;
@@ -1039,7 +1042,7 @@ implementation
                    if tlabelsym(srsym).defined then
                     Message(sym_e_label_already_defined);
                    tlabelsym(srsym).defined:=true;
-                   p:=clabelnode.create(nil);
+                   p:=clabelnode.create(nil,tlabelsym(srsym));
                    tlabelsym(srsym).code:=p;
                  end
                 else

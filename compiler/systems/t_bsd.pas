@@ -234,7 +234,10 @@ begin
          else
            begin
              ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
-             DllCmd[1]:='libtool $OPT -dynamic -multiply_defined suppress  -L. -o $EXE `cat $RES`'
+             if (apptype<>app_bundle) then
+               DllCmd[1]:='libtool $OPT -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
+             else
+               DllCmd[1]:='ld $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
        end
      else
@@ -354,7 +357,15 @@ begin
           end
       else
         begin
-          prtobj:='';
+          if (apptype=app_bundle) then
+            begin
+              if librarysearchpath.FindFile('bundle1.o',false,s) then
+                prtobj:=s
+              else
+                prtobj:='/usr/lib/bundle1.o'
+            end
+          else
+            prtobj:=''
         end;
     end;
 
@@ -364,13 +375,22 @@ begin
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
-  if (not isdll) then
+  if (not isdll) or
+     (apptype=app_bundle) then
     begin
-      case target_info.system of
-        system_powerpc_darwin:
-           LinkRes.Add('-arch ppc');
-        system_i386_darwin:
-           LinkRes.Add('-arch i386');
+      if (target_info.system in systems_darwin) then
+        begin
+          LinkRes.Add('-arch');
+          case target_info.system of
+            system_powerpc_darwin:
+              LinkRes.Add('ppc');
+            system_i386_darwin:
+              LinkRes.Add('i386');
+            system_powerpc64_darwin:
+              LinkRes.Add('ppc64');
+            system_x86_64_darwin:
+              LinkRes.Add('x86_64');
+          end;
       end;
   end;
   { Write path to search libraries }
@@ -378,7 +398,7 @@ begin
   while assigned(HPath) do
    begin
      if LdSupportsNoResponseFile then
-       LinkRes.Add(maybequoted('-L'+HPath.Str))
+       LinkRes.Add('-L'+HPath.Str)
      else
        LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
      HPath:=TCmdStrListItem(HPath.Next);
@@ -387,11 +407,27 @@ begin
   while assigned(HPath) do
    begin
      if LdSupportsNoResponseFile then
-       LinkRes.Add(maybequoted('-L'+HPath.Str))
+       LinkRes.Add('-L'+HPath.Str)
      else
        LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
+
+  if (target_info.system in systems_darwin) then
+    begin
+      HPath:=TCmdStrListItem(current_module.localframeworksearchpath.First);
+      while assigned(HPath) do
+       begin
+         LinkRes.Add('-F'+HPath.Str);
+         HPath:=TCmdStrListItem(HPath.Next);
+       end;
+      HPath:=TCmdStrListItem(FrameworkSearchPath.First);
+      while assigned(HPath) do
+       begin
+         LinkRes.Add('-F'+HPath.Str);
+         HPath:=TCmdStrListItem(HPath.Next);
+       end;
+    end;
 
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
@@ -412,7 +448,10 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(maybequoted(s));
+      if LdSupportsNoResponseFile then
+        LinkRes.AddFileName(s)
+      else
+        LinkRes.AddFileName(maybequoted(s));
    end;
   if not LdSupportsNoResponseFile then
    LinkRes.Add(')');
@@ -425,7 +464,10 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(s))
+        if LdSupportsNoResponseFile then
+          LinkRes.AddFileName(s)
+        else
+          LinkRes.AddFileName(maybequoted(s))
       end;
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
@@ -471,6 +513,15 @@ begin
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
    end;
+   
+  { frameworks for Darwin }
+  if IsDarwin then
+    while not FrameworkFiles.empty do
+      begin
+        LinkRes.Add('-framework');
+        LinkRes.Add(FrameworkFiles.GetFirst);
+      end;
+     
   { objects which must be at the end }
   if linklibc and
      not IsDarwin Then
@@ -490,7 +541,10 @@ begin
   { ignore the fact that our relocations are in non-writable sections, }
   { will be fixed once we have pic support                             }
   if isdll and IsDarwin Then
-    LinkRes.Add('-read_only_relocs suppress');
+    begin
+      LinkRes.Add('-read_only_relocs');
+      LinkRes.Add('suppress');
+    end;
 { Write and Close response }
   linkres.writetodisk;
   linkres.Free;

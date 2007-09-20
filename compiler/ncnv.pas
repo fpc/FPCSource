@@ -386,13 +386,31 @@ implementation
                 end;
               if codegenerror then
                break;
+              current_filepos:=p2.fileinfo;
               case p2.resultdef.typ of
                  enumdef,
                  orddef:
                    begin
+                      { widechars are not yet supported }
+                      if is_widechar(p2.resultdef) then
+                        begin
+                          inserttypeconv(p2,cchartype);
+                          if (p2.nodetype<>ordconstn) then
+                            incompatibletypes(cwidechartype,cchartype);
+                        end;
+
                       getrange(p2.resultdef,lr,hr);
                       if assigned(p3) then
                        begin
+                         if is_widechar(p3.resultdef) then
+                           begin
+                             inserttypeconv(p3,cchartype);
+                             if (p3.nodetype<>ordconstn) then
+                               begin
+                                 current_filepos:=p3.fileinfo;
+                                 incompatibletypes(cwidechartype,cchartype);
+                               end;
+                           end;
                          { this isn't good, you'll get problems with
                            type t010 = 0..10;
                                 ts = set of t010;
@@ -405,8 +423,7 @@ implementation
                          }
                          if assigned(hdef) and not(equal_defs(hdef,p3.resultdef)) then
                            begin
-                              current_filepos:=p3.fileinfo;
-                              CGMessage(type_e_typeconflict_in_set);
+                              CGMessagePos(p3.fileinfo,type_e_typeconflict_in_set);
                            end
                          else
                            begin
@@ -875,8 +892,13 @@ implementation
 
       begin
          result:=nil;
-         if left.nodetype=stringconstn then
-          begin
+         if (left.nodetype=stringconstn) and
+            ((not is_widechararray(left.resultdef) and
+              not is_widestring(left.resultdef)) or
+             (tstringdef(resultdef).stringtype=st_widestring) or
+             { non-ascii chars would be replaced with '?' -> loses info }
+             not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str))) then
+           begin
              tstringconstnode(left).changestringtype(resultdef);
              result:=left;
              left:=nil;
@@ -1161,7 +1183,17 @@ implementation
          else
            if is_pchar(resultdef) and
               is_widestring(left.resultdef) then
-             inserttypeconv(left,cansistringtype);
+             begin
+               inserttypeconv(left,cansistringtype);
+               { the second pass of second_cstring_to_pchar expects a  }
+               { strinconstn, but this may become a call to the        }
+               { widestring manager in case left contains "high ascii" }
+               if (left.nodetype<>stringconstn) then
+                 begin
+                   result:=left;
+                   left:=nil;
+                 end;
+             end;
       end;
 
 

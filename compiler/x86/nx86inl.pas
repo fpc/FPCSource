@@ -62,7 +62,7 @@ implementation
 
     uses
       systems,
-      globals,
+      globtype,globals,
       cutils,verbose,
       symconst,
       defutil,

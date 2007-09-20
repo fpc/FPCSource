@@ -27,7 +27,7 @@ interface
 
 uses
   CClasses,CFileUtils,
-  globtype,globals,verbose,systems,cpuinfo;
+  globtype,globals,verbose,systems,cpuinfo, comprsrc;
 
 Type
   TOption=class
@@ -40,7 +40,8 @@ Type
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
-    ParaLibraryPath : TSearchPathList;
+    ParaLibraryPath,
+    ParaFrameworkPath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
     Constructor Create;
     Destructor Destroy;override;
@@ -261,6 +262,9 @@ begin
 {$endif}
 {$ifdef powerpc}
       'P',
+{$endif}
+{$ifdef powerpc64}
+      'p',
 {$endif}
 {$ifdef sparc}
       'S',
@@ -488,15 +492,24 @@ begin
                            include(init_settings.moduleswitches,cs_fp_emulation);
                        end;
 {$endif cpufpemu}
-                   'f' :
-                     begin
-                       s:=upper(copy(more,j+1,length(more)-j));
-                       if not(SetFpuType(s,init_settings.fputype)) then
-                         IllegalPara(opt);
-                       break;
-                     end;
+                    'f' :
+                      begin
+                        s:=upper(copy(more,j+1,length(more)-j));
+                        if not(SetFpuType(s,init_settings.fputype)) then
+                          IllegalPara(opt);
+                        break;
+                      end;
+                    'F' :
+                       begin
+                         if not SetMinFPConstPrec(copy(more,j+1,length(more)-j),init_settings.minfpconstprec) then
+                           IllegalPara(opt);
+                         break;
+                       end;
                     'g' :
-                      include(init_settings.moduleswitches,cs_create_pic);
+                       if tf_no_pic_supported in target_info.flags then
+                         message(scan_w_pic_ignored)
+                       else
+                         include(init_settings.moduleswitches,cs_create_pic);
                     'h' :
                       begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -672,7 +685,12 @@ begin
            'f' :
              begin
                if more='PIC' then
-                 include(init_settings.moduleswitches,cs_create_pic)
+                 begin
+                   if tf_no_pic_supported in target_info.flags then
+                     message(scan_w_pic_ignored)
+                   else
+                     include(init_settings.moduleswitches,cs_create_pic)
+                 end
                else
                  IllegalPara(opt);
              end;
@@ -696,12 +714,22 @@ begin
                      else
                        init_settings.sourcecodepage:=more;
                    end;
+                 'C' :
+                   RCCompiler := More;
                  'D' :
                    utilsdirectory:=FixPath(More,true);
                  'e' :
                    SetRedirectFile(More);
                  'E' :
                    OutputExeDir:=FixPath(More,true);
+                 'f' :
+                     if (target_info.system in systems_darwin) then
+                       if ispara then
+                         ParaFrameworkPath.AddPath(More,false)
+                       else
+                         frameworksearchpath.AddPath(More,true)
+                     else
+                       IllegalPara(opt);
                  'i' :
                    begin
                      if ispara then
@@ -742,6 +770,8 @@ begin
                    end;
                  'r' :
                    Msgfilename:=More;
+                 'R' :
+                   ResCompiler := More;
                  'u' :
                    begin
                      if ispara then
@@ -879,8 +909,7 @@ begin
              end;
 
            'l' :
-             if not UnSetBool(more,0) then
-               ParaLogo:=true;
+             ParaLogo:=not UnSetBool(more,0);
 
            'm' :
              parapreprocess:=not UnSetBool(more,0);
@@ -1231,6 +1260,18 @@ begin
                           apptype:=app_native
                         else
                           apptype:=app_cui;
+                      end;
+                    'b':
+                      begin
+                        if (target_info.system in systems_darwin) then
+                          begin
+                            if not UnsetBool(More, j) then
+                              apptype:=app_bundle
+                            else
+                              apptype:=app_cui
+                          end
+                        else
+                          IllegalPara(opt);
                       end;
                     'B':
                       begin
@@ -1848,6 +1889,7 @@ begin
    def_system_macro(target_info.shortname)
   else
    undef_system_macro(target_info.shortname);
+
   s:=target_info.extradefines;
   while (s<>'') do
    begin
@@ -1860,6 +1902,74 @@ begin
       undef_system_macro(Copy(s,1,i-1));
      delete(s,1,i);
    end;
+
+  { endian define }
+  case target_info.endian of
+    endian_little :
+      begin
+         if def then
+           begin
+             def_system_macro('ENDIAN_LITTLE');
+             def_system_macro('FPC_LITTLE_ENDIAN');
+           end
+         else
+           begin
+             undef_system_macro('ENDIAN_LITTLE');
+             undef_system_macro('FPC_LITTLE_ENDIAN');
+           end;
+      end;
+    endian_big :
+      begin
+         if def then
+           begin
+             def_system_macro('ENDIAN_BIG');
+             def_system_macro('FPC_BIG_ENDIAN');
+           end
+         else
+           begin
+             undef_system_macro('ENDIAN_BIG');
+             undef_system_macro('FPC_BIG_ENDIAN');
+           end
+      end;
+  end;
+
+  { abi define }
+  case target_info.abi of
+    abi_powerpc_sysv :
+      if def then
+        def_system_macro('FPC_ABI_SYSV')
+      else
+        undef_system_macro('FPC_ABI_SYSV');
+    abi_powerpc_aix :
+      if def then
+        def_system_macro('FPC_ABI_AIX')
+      else
+        undef_system_macro('FPC_ABI_AIX');
+  end;
+
+  if (tf_winlikewidestring in target_info.flags) then
+    if def then
+      def_system_macro('FPC_WINLIKEWIDESTRING')
+    else
+      undef_system_macro('FPC_WINLIKEWIDESTRING');
+
+  if (tf_requires_proper_alignment in target_info.flags) then
+    if def then
+      def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT')
+    else
+      undef_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+
+  if source_info.system<>target_info.system then
+    if def then
+      def_system_macro('FPC_CROSSCOMPILING')
+    else
+      undef_system_macro('FPC_CROSSCOMPILING');
+
+  if source_info.cpu<>target_info.cpu then
+    if def then
+      def_system_macro('FPC_CPUCROSSCOMPILING')
+    else
+      def_system_macro('FPC_CPUCROSSCOMPILING');
 end;
 
 
@@ -1874,6 +1984,7 @@ begin
   ParaObjectPath:=TSearchPathList.Create;
   ParaUnitPath:=TSearchPathList.Create;
   ParaLibraryPath:=TSearchPathList.Create;
+  ParaFrameworkPath:=TSearchPathList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
 end;
 
@@ -1884,6 +1995,7 @@ begin
   ParaObjectPath.Free;
   ParaUnitPath.Free;
   ParaLibraryPath.Free;
+  ParaFrameworkPath.Free;
 end;
 
 
@@ -1949,6 +2061,9 @@ var
 begin
   option:=coption.create;
   disable_configfile:=false;
+
+  { Non-core target defines }
+  Option.TargetDefines(true);
 
 { get default messagefile }
   msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
@@ -2122,16 +2237,6 @@ begin
   def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif arm}
 
-  if source_info.system<>target_info.system then
-    def_system_macro('FPC_CROSSCOMPILING');
-
-  if source_info.cpu<>target_info.cpu then
-    def_system_macro('FPC_CPUCROSSCOMPILING');
-
-  if tf_winlikewidestring in target_info.flags then
-    def_system_macro('FPC_WINLIKEWIDESTRING');
-
-  { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
     begin
@@ -2172,31 +2277,6 @@ begin
   if option.ParaLogo then
     option.writelogo;
 
-  { Non-core target defines }
-  Option.TargetDefines(true);
-
-  { endian define }
-  case target_info.endian of
-    endian_little :
-      begin
-         def_system_macro('ENDIAN_LITTLE');
-         def_system_macro('FPC_LITTLE_ENDIAN');
-      end;
-    endian_big :
-      begin
-         def_system_macro('ENDIAN_BIG');
-         def_system_macro('FPC_BIG_ENDIAN');
-      end;
-  end;
-
-  { abi define }
-  case target_info.abi of
-    abi_powerpc_sysv :
-      def_system_macro('FPC_ABI_SYSV');
-    abi_powerpc_aix :
-      def_system_macro('FPC_ABI_AIX');
-  end;
-
 { Check file to compile }
   if param_file='' then
    begin
@@ -2233,6 +2313,7 @@ begin
   ObjectSearchPath.AddList(option.ParaObjectPath,true);
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   LibrarySearchPath.AddList(option.ParaLibraryPath,true);
+  FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then

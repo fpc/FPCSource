@@ -317,9 +317,8 @@ implementation
          if (not (cs_extsyntax in current_settings.moduleswitches)) and
             assigned(left.resultdef) and
             not((left.nodetype=calln) and
-                { don't complain when funcretrefnode is set, because then the
-                  value is already used. And also not for constructors }
-                (assigned(tcallnode(left).funcretnode) or
+                { don't complain when the value is used. And also not for constructors }
+                ((cnf_return_value_used in tcallnode(left).callnodeflags) or
                  (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
             not(is_void(left.resultdef)) then
            CGMessage(parser_e_illegal_expression);
@@ -778,7 +777,7 @@ implementation
     procedure ttempcreatenode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'size = ',size,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'size = ',size,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 
 
@@ -913,7 +912,7 @@ implementation
     procedure ttemprefnode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 
 
@@ -1026,7 +1025,7 @@ implementation
     procedure ttempdeletenode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 
 begin

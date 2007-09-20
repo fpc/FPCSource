@@ -5456,9 +5456,9 @@
   (
     opcode  : A_RCL;
     ops     : 2;
-    optypes : (ot_regmem or ot_bits16 or ot_bits32 or ot_bits64,ot_immediate or ot_bits8,ot_none);
+    optypes : (ot_regmem or ot_bits16 or ot_bits32 or ot_bits64,ot_immediate,ot_none);
     code    : #192#208#1#193#130#21;
-    flags   : if_8086
+    flags   : if_8086 or if_sb
   ),
   (
     opcode  : A_RCL;
@@ -5498,9 +5498,9 @@
   (
     opcode  : A_RCR;
     ops     : 2;
-    optypes : (ot_regmem or ot_bits16 or ot_bits32 or ot_bits64,ot_immediate or ot_bits8,ot_none);
+    optypes : (ot_regmem or ot_bits16 or ot_bits32 or ot_bits64,ot_immediate,ot_none);
     code    : #192#208#1#193#131#21;
-    flags   : if_8086
+    flags   : if_8086 or if_sb
   ),
   (
     opcode  : A_RCR;

@@ -812,7 +812,8 @@ implementation
           'debug_frame','debug_info','debug_line','debug_abbrev',
           'fpc',
           'toc',
-          'init'
+          'init',
+          'fini'
         );
       var
         sep : string[3];
@@ -860,7 +861,8 @@ implementation
           {debug_abbrev} [oso_Data,oso_noload,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write,oso_keep],
           {toc} [oso_Data,oso_load,oso_readonly],
-          {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep]
+          {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep]
         );
       begin
         result:=secoptions[atype];
@@ -1639,8 +1641,8 @@ implementation
     procedure TExeOutput.Order_ObjSectionList(ObjSectionList : TFPObjectList);
       begin
       end;
-      
-      
+
+
     procedure TExeOutput.Order_Symbol(const aname:string);
       var
         ObjSection : TObjSection;

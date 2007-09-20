@@ -414,7 +414,8 @@ interface
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '',
-          '.init'
+          '.init',
+          '.fini'
         );
       begin
         AsmLn;

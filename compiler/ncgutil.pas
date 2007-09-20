@@ -1044,7 +1044,7 @@ implementation
                  nil);
              LOC_CFPUREGISTER :
                begin
-                 { initialize fpu regvar by loading from memory }              
+                 { initialize fpu regvar by loading from memory }
                  reference_reset_symbol(href,
                    current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname), 0);
                  cg.a_loadfpu_ref_reg(TAsmList(arg), tstaticvarsym(p).initialloc.size,
@@ -1066,7 +1066,10 @@ implementation
         hp : tnode;
       begin
         if (tsym(p).typ in [staticvarsym,localvarsym]) and
-           (tabstractvarsym(p).refs>0) and
+           ((tabstractvarsym(p).refs>0) or
+            { managed return symbols must be inited }
+            ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions))
+           ) and
            not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
            not(vo_is_external in tabstractvarsym(p).varoptions) and
            not(is_class(tabstractvarsym(p).vardef)) and
@@ -1311,7 +1314,7 @@ implementation
           ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'))
         else
           ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
-        if (ressym.refs>0) then
+        if (ressym.refs>0) or (ressym.vardef.needs_inittable) then
           begin
 {$ifdef OLDREGVARS}
             case ressym.localloc.loc of
@@ -2631,8 +2634,8 @@ implementation
                       in the parent procedures }
                     case localloc.loc of
                       LOC_CREGISTER :
-{$ifndef cpu64bit}
                         if (pi_has_goto in current_procinfo.flags) then
+{$ifndef cpu64bit}
                           if def_cgsize(vardef) in [OS_64,OS_S64] then
                             begin
                               cg.a_reg_sync(list,localloc.register64.reglo);

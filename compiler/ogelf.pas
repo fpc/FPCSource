@@ -583,7 +583,8 @@ implementation
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '.toc',
-          '.init'
+          '.init',
+          '.fini'
         );
         secnames_pic : array[TAsmSectiontype] of string[17] = ('',
           '.text',
@@ -600,7 +601,8 @@ implementation
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '.toc',
-          '.init'
+          '.init',
+          '.fini'
         );
       var
         sep : string[3];

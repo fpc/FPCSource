@@ -378,7 +378,11 @@ Procedure TAsmScriptUnix.AddLinkCommand (Const Command, Options, FileName : TCmd
 begin
   if FileName<>'' then
    Add('echo Linking '+ScriptFixFileName(FileName));
+  Add('OFS=$IFS');
+  Add('IFS="');
+  Add('"');
   Add(maybequoted(command)+' '+Options);
+  Add('IFS=$OFS');
   Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(FileName)+'; fi');
 end;
 

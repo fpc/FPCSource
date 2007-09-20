@@ -217,7 +217,8 @@ interface
          app_fs,        { full-screen type application (OS/2 and EMX only) }
          app_tool,      { tool application, (MPW tool for MacOS, MacOS only)}
          app_arm7,
-         app_arm9
+         app_arm9,
+         app_bundle     { dynamically loadable bundle, Darwin only }
        );
 
        { interface types }
@@ -328,6 +329,13 @@ interface
        tprocinfoflags=set of tprocinfoflag;
 
     type
+      { float types }
+      tfloattype = (
+        s32real,s64real,s80real,
+        s64comp,s64currency,s128real
+      );
+
+    type
        TIDString = string[maxidlen];
 
        tnormalset = set of byte; { 256 elements set }
@@ -362,7 +370,7 @@ interface
     const
        { link options }
        link_none    = $0;
-       link_always = $1;
+       link_always  = $1;
        link_static  = $2;
        link_smart   = $4;
        link_shared  = $8;

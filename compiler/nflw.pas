@@ -150,7 +150,9 @@ interface
           copiedto : tlabelnode;
           { contains all goto nodesrefering to this label }
           referinggotonodes : TFPObjectList;
-          constructor create(l:tnode);virtual;
+          { original labelsym, used for writing label referenced from assembler block }
+          labsym : tlabelsym;
+          constructor create(l:tnode;alabsym:tlabelsym);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -1138,10 +1140,11 @@ implementation
                              TLABELNODE
 *****************************************************************************}
 
-    constructor tlabelnode.create(l:tnode);
+    constructor tlabelnode.create(l:tnode;alabsym:tlabelsym);
       begin
         inherited create(labeln,l);
         exceptionblock:=aktexceptblock;
+        labsym:=alabsym;
       end;
 
 
@@ -1426,7 +1429,10 @@ implementation
          n : tonnode;
       begin
          n:=tonnode(inherited dogetcopy);
-         n.excepTSymtable:=excepTSymtable.getcopy;
+         if assigned(exceptsymtable) then
+           n.exceptsymtable:=exceptsymtable.getcopy
+         else
+           n.exceptsymtable:=nil;
          n.excepttype:=excepttype;
          result:=n;
       end;

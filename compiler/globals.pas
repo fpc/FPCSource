@@ -133,6 +133,8 @@ interface
 
          packrecords     : shortint;
          maxfpuregisters : shortint;
+
+         minfpconstprec  : tfloattype;
        end;
 
     const
@@ -207,7 +209,8 @@ interface
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
-       includesearchpath  : TSearchPathList;
+       includesearchpath,
+       frameworksearchpath  : TSearchPathList;
        autoloadunits      : string;
 
        { linking }
@@ -341,6 +344,7 @@ interface
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function IncludeFeature(const s : string) : boolean;
+    function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
@@ -1003,6 +1007,32 @@ implementation
       end;
 
 
+    function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
+      var
+        value, error: longint;
+      begin
+        if (upper(s)='DEFAULT') then
+          begin
+            a:=s32real;
+            result:=true;
+            exit;
+          end;
+        result:=false;
+        val(s,value,error);
+        if (error<>0) then
+          exit;
+        case value of
+          32: a:=s32real;
+          64: a:=s64real;
+          { adding support for 80 bit here is tricky, since we can't really }
+          { check whether the target cpu+OS actually supports it            }
+          else
+            exit;
+        end;
+        result:=true;
+      end;
+
+
     function var_align(siz: longint): shortint;
       begin
         siz := size_2_align(siz);
@@ -1085,6 +1115,7 @@ implementation
        unitsearchpath.Free;
        objectsearchpath.Free;
        includesearchpath.Free;
+       frameworksearchpath.Free;
        LinkLibraryAliases.Free;
        LinkLibraryOrder.Free;
      end;
@@ -1125,6 +1156,7 @@ implementation
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
+        frameworksearchpath:=TSearchPathList.Create;
 
         { Def file }
         usewindowapi:=false;
@@ -1165,6 +1197,7 @@ implementation
         init_settings.packenum:=4;
         init_settings.setalloc:=0;
         fillchar(init_settings.alignment,sizeof(talignmentinfo),0);
+        init_settings.minfpconstprec:=s32real;
         { might be overridden later }
         init_settings.asmmode:=asmmode_standard;
         init_settings.cputype:=cpu_none;

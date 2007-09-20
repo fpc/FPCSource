@@ -720,22 +720,22 @@ implementation
               (ttypesym(srsym).typedef.typ=objectdef) then
             begin
               aclass:=tobjectdef(ttypesym(srsym).typedef);
-              aprocsym:=tprocsym(aclass.symtable.Find(sp));
-              { we solve this below }
-              if assigned(aprocsym) then
+              srsym:=tsym(aclass.symtable.Find(sp));
+              if assigned(srsym) then
                begin
-                 if aprocsym.typ<>procsym then
-                  begin
-                    {  we use a different error message for tp7 so it looks more compatible }
-                    if (m_fpc in current_settings.modeswitches) then
-                      Message1(parser_e_overloaded_no_procedure,aprocsym.realname)
-                    else
-                      Message(parser_e_methode_id_expected);
-                    { rename the name to an unique name to avoid an
-                      error when inserting the symbol in the symtable }
-                    orgsp:=orgsp+'$'+tostr(current_filepos.line);
-                    aprocsym:=nil;
-                  end;
+                 if srsym.typ=procsym then
+                   aprocsym:=tprocsym(srsym)
+                 else
+                   begin
+                     {  we use a different error message for tp7 so it looks more compatible }
+                     if (m_fpc in current_settings.modeswitches) then
+                       Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                     else
+                       Message(parser_e_methode_id_expected);
+                     { rename the name to an unique name to avoid an
+                       error when inserting the symbol in the symtable }
+                     orgsp:=orgsp+'$'+tostr(current_filepos.line);
+                   end;
                end
               else
                begin
@@ -777,8 +777,9 @@ implementation
                  else
                    begin
                      { when the other symbol is a unit symbol then hide the unit
-                       symbol }
-                     if (srsym.typ=unitsym) then
+                       symbol, this is not supported in tp7 }
+                     if not(m_tp7 in current_settings.modeswitches) and
+                        (srsym.typ=unitsym) then
                       begin
                         HideSym(srsym);
                         searchagain:=true;
@@ -1044,7 +1045,14 @@ implementation
                end
               else
                begin
-                 Message(parser_e_overload_operator_failed);
+                 case token of
+                   _CARET:
+                     Message1(parser_e_overload_operator_failed,'**');
+                   _UNEQUAL:
+                     Message1(parser_e_overload_operator_failed,'=');
+                   else
+                     Message1(parser_e_overload_operator_failed,'');
+                 end;
                  { Use the dummy NOTOKEN that is also declared
                    for the overloaded_operator[] }
                  optoken:=NOTOKEN;

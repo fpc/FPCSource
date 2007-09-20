@@ -486,7 +486,8 @@ implementation
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '',
-          '.init'
+          '.init',
+          '.fini'
         );
 
 const go32v2stub : array[0..2047] of byte=(

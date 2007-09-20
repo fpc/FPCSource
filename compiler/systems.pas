@@ -6,7 +6,7 @@
 
     This program is free software; you can redistribute it and/or modify
     iu under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -307,7 +307,9 @@ interface
             tf_use_function_relative_addresses,
             tf_winlikewidestring,
             tf_dwarf_relative_addresses,         // use offsets where the Dwarf spec requires this instead of absolute addresses (the latter is needed by Linux binutils)
-            tf_dwarf_only_local_labels           // only use local labels inside the Dwarf debug_info section (needed for e.g. Darwin)
+            tf_dwarf_only_local_labels,          // only use local labels inside the Dwarf debug_info section (needed for e.g. Darwin)
+            tf_requires_proper_alignment,
+            tf_no_pic_supported
        );
 
        psysteminfo = ^tsysteminfo;

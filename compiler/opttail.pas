@@ -194,7 +194,7 @@ unit opttail;
                vardef.needs_inittable) then
                exit;
 
-        labelnode:=clabelnode.create(cnothingnode.create);
+        labelnode:=clabelnode.create(cnothingnode.create,nil);
         if find_and_replace_tailcalls(n) then
           begin
             oldnodes:=n;

@@ -573,23 +573,26 @@ Implementation
                         end;
                      end;
                   end;
-                  if actasmtoken=AS_DOT then
-                    MaybeRecordOffset;
-                  { add a constant expression? }
-                  if (actasmtoken=AS_PLUS) then
-                   begin
-                     l:=BuildConstExpression(true,false);
-                     case oper.opr.typ of
-                       OPR_CONSTANT :
-                         inc(oper.opr.val,l);
-                       OPR_LOCAL :
-                         inc(oper.opr.localsymofs,l);
-                       OPR_REFERENCE :
-                         inc(oper.opr.ref.offset,l);
-                       else
-                         internalerror(200309202);
-                     end;
-                   end
+                  if oper.opr.typ<>OPR_NONE Then
+                    begin
+                      if (actasmtoken=AS_DOT) then
+                        MaybeRecordOffset;
+                      { add a constant expression? }
+                      if (actasmtoken=AS_PLUS) then
+                        begin
+                          l:=BuildConstExpression(true,false);
+                          case oper.opr.typ of
+                            OPR_CONSTANT :
+                              inc(oper.opr.val,l);
+                            OPR_LOCAL :
+                              inc(oper.opr.localsymofs,l);
+                            OPR_REFERENCE :
+                              inc(oper.opr.ref.offset,l);
+                            else
+                              internalerror(200309202);
+                          end;
+                        end;
+                    end;
                end;
               { Do we have a indexing reference, then parse it also }
               if actasmtoken=AS_LPAREN then

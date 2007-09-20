@@ -55,6 +55,7 @@ unit widestr;
     function unicode2asciichar(c : tcompilerwidechar) : char;
     procedure ascii2unicode(p : pchar;l : SizeInt;r : pcompilerwidestring);
     procedure unicode2ascii(r : pcompilerwidestring;p : pchar);
+    function hasnonasciichars(const p: pcompilerwidestring): boolean;
     function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
     function cpavailable(const s : string) : boolean;
 
@@ -166,10 +167,11 @@ unit widestr;
       end;
 
     function unicode2asciichar(c : tcompilerwidechar) : char;
-
       begin
-{$warning TODO unicode2asciichar}
-        unicode2asciichar:=#0;
+        if word(c)<128 then
+          unicode2asciichar:=char(word(c))
+         else
+          unicode2asciichar:='?';
       end;
 
     procedure ascii2unicode(p : pchar;l : SizeInt;r : pcompilerwidestring);
@@ -239,6 +241,23 @@ unit widestr;
            inc(dest);
            inc(source);
          end;
+      end;
+
+
+    function hasnonasciichars(const p: pcompilerwidestring): boolean;
+      var
+        source : tcompilerwidecharptr;
+        i      : longint;
+      begin
+        source:=tcompilerwidecharptr(p^.data);
+        result:=true;
+        for i:=1 to p^.len do
+          begin
+            if word(source^)>=128 then
+              exit;
+            inc(source);
+          end;
+        result:=false;
       end;
 
 

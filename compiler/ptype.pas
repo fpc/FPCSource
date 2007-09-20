@@ -446,6 +446,7 @@ implementation
                orddef :
                  begin
                    if (torddef(tt2).ordtype<>uvoid) and
+                      (torddef(tt2).ordtype<>uwidechar) and
                       (torddef(tt2).low>=0) then
                      // !! def:=tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
                      def:=tsetdef.create(tt2,torddef(tt2).high)
