@@ -873,9 +873,10 @@ unit cgx86;
             (tosize<fromsize) then
            begin
              { can't round down to lower precision in x87 :/ }
-             tg.gettemp(list,tcgsize2size[tosize],tt_persistent,href);
+             tg.gettemp(list,tcgsize2size[tosize],tt_normal,href);
              a_loadfpu_reg_ref(list,fromsize,tosize,NR_ST,href);
              a_loadfpu_ref_reg(list,tosize,tosize,href,NR_ST);
+             tg.ungettemp(list,href);
            end;
        end;
 

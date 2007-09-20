@@ -3365,19 +3365,19 @@ implementation
             begin
               case loc of
                 LOC_REGISTER:
-                  cg.a_op_const_reg(list,OP_SUB,size,ioffset,register);
+                  a_op_const_reg(list,OP_SUB,size,ioffset,register);
                 LOC_REFERENCE:
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
                     reference_reset_base(href,reference.index,reference.offset+sizeof(aint));
-                    cg.a_op_const_ref(list,OP_SUB,size,ioffset,href);
+                    a_op_const_ref(list,OP_SUB,size,ioffset,href);
                   end
                 else
                   internalerror(200309189);
               end;
               paraloc:=next;
-           end;
+            end;
       end;
 
 

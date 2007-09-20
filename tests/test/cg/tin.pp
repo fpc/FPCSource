@@ -298,6 +298,7 @@ var
    var
      op1 : tnormalset;
      op2 : tnormalset;
+     bs  : set of boolean;
      op  : tbigenum;
      passed : boolean;
    begin
@@ -345,6 +346,23 @@ var
      op:=A_MOVE;
      if not (op in [A_ABCD..A_NONE]) then
        passed:=false;
+
+     checkpassed(passed);
+
+
+     { LEFT : LOC_JUMP                            }
+     { RIGHT : LOC_REGISTER,LOC_CREGISTER         }
+     bs:=[false,true];
+     op:=A_MOVE;
+     passed:=true;
+     if not(not(op in [A_BFSET,A_MOVE,A_ASL..A_BCC]) in bs) then
+       passed := false;
+     if not((op in [A_BFSET,A_MOVE,A_ASL..A_BCC]) in bs) then
+       passed := false;
+
+     bs:=[false];
+     if ((op in [A_BFSET,A_MOVE,A_ASL..A_BCC]) in bs) then
+       passed := false;
 
      checkpassed(passed);
    end;

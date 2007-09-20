@@ -170,7 +170,11 @@ implementation
                    analizeset(tsetconstnode(right).value_set,use_small);
          { calculate both operators }
          { the complex one first }
-         firstcomplex(self);
+         { not in case of genjumps, because then we don't secondpass    }
+         { right at all (so we have to make sure that "right" really is }
+         { "right" and not "swapped left" in that case)                 }
+         if not(genjumps) then
+           firstcomplex(self);
          secondpass(left);
          { Only process the right if we are not generating jumps }
          if not genjumps then
@@ -189,7 +193,7 @@ implementation
          if is_signed(left.resultdef) then
            opsize := tcgsize(ord(opsize)+(ord(OS_S8)-ord(OS_8)));
 
-         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
+         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) then
            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
 
          if genjumps then
@@ -281,20 +285,20 @@ implementation
               handle smallsets separate, because it allows faster checks }
             if use_small then
              begin
-               if left.nodetype=ordconstn then
+               if left.location.loc=LOC_CONSTANT then
                 begin
                   location.resflags:=F_NE;
                   case right.location.loc of
                     LOC_REGISTER,
                     LOC_CREGISTER:
                       begin
-                         emit_const_reg(A_TEST,S_L,
-                           1 shl (tordconstnode(left).value and 31),right.location.register);
+                         emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],
+                           1 shl (left.location.value and 31),right.location.register);
                       end;
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-                        emit_const_ref(A_TEST,S_L,1 shl (tordconstnode(left).value and 31),
+                        emit_const_ref(A_TEST,TCGSize2OpSize[right.location.size],1 shl (left.location.value and 31),
                            right.location.reference);
                       end;
                     else
@@ -304,6 +308,9 @@ implementation
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
+                  if (tcgsize2size[right.location.size] < 4) or
+                     (right.location.loc = LOC_CONSTANT) then
+                    location_force_reg(current_asmdata.CurrAsmList,right.location,OS_32,true);
                   hreg:=left.location.register;
 
                   case right.location.loc of
@@ -312,14 +319,6 @@ implementation
                       begin
                         emit_reg_reg(A_BT,S_L,hreg,right.location.register);
                       end;
-                     LOC_CONSTANT :
-                       begin
-                         { We have to load the value into a register because
-                            btl does not accept values only refs or regs (PFV) }
-                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                         cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,right.location.value,hreg2);
-                         emit_reg_reg(A_BT,S_L,hreg,hreg2);
-                       end;
                      LOC_CREFERENCE,
                      LOC_REFERENCE :
                        begin
@@ -340,7 +339,7 @@ implementation
                   current_asmdata.getjumplabel(l2);
 
                   { load constants to a register }
-                  if left.nodetype=ordconstn then
+                  if left.location.loc=LOC_CONSTANT then
                     location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
 
                   case left.location.loc of
@@ -381,15 +380,26 @@ implementation
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains values > 32 or < 0 }
-               else if left.nodetype=ordconstn then
+               else if left.location.loc=LOC_CONSTANT then
                 begin
-                  if (tordconstnode(left).value < 0) or ((tordconstnode(left).value shr 3) >= right.resultdef.size) then
+                  if (left.location.value<0) or ((left.location.value shr 3) >= right.resultdef.size) then
                     {should be caught earlier }
                     internalerror(2007020201);
 
                   location.resflags:=F_NE;
-                  inc(right.location.reference.offset,tordconstnode(left).value shr 3);
-                  emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);
+                  case right.location.loc of
+                    LOC_REFERENCE,LOC_CREFERENCE:
+                      begin
+                        inc(right.location.reference.offset,left.location.value shr 3);
+                        emit_const_ref(A_TEST,S_B,1 shl (left.location.value and 7),right.location.reference);
+                      end;
+                    LOC_REGISTER,LOC_CREGISTER:
+                      begin
+                        emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],1 shl (left.location.value),right.location.register);
+                      end;
+                    else
+                      internalerror(2007051901);
+                  end;
                 end
                else
                 begin
