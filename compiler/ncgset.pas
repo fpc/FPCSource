@@ -126,6 +126,7 @@ implementation
       i:byte;
     begin
       analizeset:=false;
+      fillchar(setparts,sizeof(setparts),0);
       numparts:=0;
       compares:=0;
       { Lots of comparisions take a lot of time, so do not allow
@@ -663,6 +664,7 @@ implementation
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
+         distv,
          lv,hv,
          max_label: tconstexprint;
          labelcnt : aint;
@@ -761,14 +763,10 @@ implementation
                    { than the positive range of a aint            }
 
                    if (min_label<0) and (max_label>0) then
-                     begin
-                        if min_label=TConstExprInt(int64(low(aint))) then
-                          dist:=aword(max_label.uvalue)+aword(low(aint))
-                        else
-                          dist:=aword(max_label.uvalue)+aword(-min_label.svalue)
-                     end
+                     distv:=max_label+min_label
                    else
-                     dist:=max_label.uvalue-min_label.uvalue;
+                     distv:=max_label-min_label;
+                   dist:=distv.uvalue;
 
                    { optimize for size ? }
                    if cs_opt_size in current_settings.optimizerswitches  then
