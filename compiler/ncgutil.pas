@@ -2488,14 +2488,14 @@ implementation
         rr: preplaceregrec absolute para;
       begin
         result := fen_false;
+        if (nf_is_funcret in n.flags) and (fc_exit in flowcontrol) then
+          exit;
         case n.nodetype of
           loadn:
             begin
               if (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
                  not assigned(tloadnode(n).left) and
-                 (((tloadnode(n).symtableentry <> rr^.ressym) and
-                   not(vo_is_funcret in tabstractvarsym(tloadnode(n).symtableentry).varoptions)) or
-                  not(fc_exit in flowcontrol)) and
+                 (tloadnode(n).symtableentry <> rr^.ressym) and
                  (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
                  (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register = rr^.old) then
                 begin
@@ -2516,9 +2516,7 @@ implementation
             begin
               if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
-                 (ttemprefnode(n).tempinfo^.location.register = rr^.old) and
-                 (not(ti_is_funcret in ttemprefnode(n).tempinfo^.flags) or
-                  not(fc_exit in flowcontrol)) then
+                 (ttemprefnode(n).tempinfo^.location.register = rr^.old) then
                 begin
 {$ifndef cpu64bit}
                   { it's possible a 64 bit location was shifted and/xor typecasted }

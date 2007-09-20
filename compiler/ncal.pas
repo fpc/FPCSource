@@ -1696,11 +1696,14 @@ implementation
                ) then
               begin
                 funcretnode:=aktassignmentnode.left.getcopy;
+                include(funcretnode.flags,nf_is_funcret);
+                { notify the assignment node that the assignment can be removed }
                 include(aktassignmentnode.flags,nf_assign_done_in_right);
               end
             else
               begin
-                temp:=ctempcreatenode.create_funcret(resultdef,resultdef.size,tt_persistent,false);
+                temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+                include(temp.flags,nf_is_funcret);
                 add_init_statement(temp);
                 { When the function result is not used in an inlined function
                   we need to delete the temp. This can currently only be done by
@@ -1711,6 +1714,7 @@ implementation
                 else
                   add_done_statement(ctempdeletenode.create_normal_temp(temp));
                 funcretnode:=ctemprefnode.create(temp);
+                include(funcretnode.flags,nf_is_funcret);
               end;
           end;
       end;
@@ -3056,7 +3060,6 @@ implementation
         hp  : tstatementnode;
         hp2 : tnode;
         resassign : tassignmentnode;
-        funcrettemp : ttempcreatenode;
       begin
         result:=nil;
         if not assigned(funcretnode) or
@@ -3067,9 +3070,8 @@ implementation
         hp:=tstatementnode(inlineblock.left);
         if not(assigned(hp)) or
            (hp.left.nodetype <> tempcreaten) or
-           not(ti_is_funcret in ttempcreatenode(hp.left).tempinfo^.flags) then
+           not(nf_is_funcret in hp.left.flags) then
           exit;
-        funcrettemp:=ttempcreatenode(hp.left);
 
         { constant assignment? right must be a constant (mainly to avoid trying
           to reuse local temps which may already be freed afterwards once these
@@ -3088,7 +3090,7 @@ implementation
         if (hp2.nodetype=typeconvn) and (ttypeconvnode(hp2).convtype=tc_equal) then
           hp2:=ttypeconvnode(hp2).left;
         if (hp2.nodetype<>temprefn) or
-           (ttemprefnode(hp2).tempinfo^.owner<>funcrettemp) then
+           not(nf_is_funcret in hp2.flags) then
           exit;
 
         { tempdelete to normal of the function result }
@@ -3101,7 +3103,7 @@ implementation
         hp:=tstatementnode(hp.right);
         if not(assigned(hp)) or
            (hp.left.nodetype<>temprefn) or
-           (ttemprefnode(hp.left).tempinfo^.owner<>funcrettemp) then
+           not(nf_is_funcret in hp.left.flags) then
           exit;
 
         { should be the end }
