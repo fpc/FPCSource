@@ -2973,8 +2973,17 @@ implementation
                      foreachnodestatic(para.left,@nonlocalvars,pointer(symtableproc))) or
                     { value parameters of which we know they are modified by }
                     { definition have to be copied to a temp                 }
+                    { the same goes for cases of "x:=f(x)" where x is passed }
+                    { as value parameter to f(), at least if we optimized    }
+                    { invocation by setting the funcretnode to x to avoid    }
+                    { assignment afterwards (since x may be read inside the  }
+                    { function after it modified result==x)                  }
                     ((para.parasym.varspez = vs_value) and
-                     not(para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
+                     (not(para.parasym.varstate in [vs_initialised,vs_declared,vs_read]) or
+                      (assigned(aktassignmentnode) and
+                       (aktassignmentnode.right=self) and
+                       (nf_assign_done_in_right in aktassignmentnode.flags) and
+                       aktassignmentnode.left.isequal(para.left)))) or
                     { the compiler expects that it can take the address of parameters passed by reference in
                       the case of const so we can't replace the node simply by a constant node
                       When playing with this code, ensure that
