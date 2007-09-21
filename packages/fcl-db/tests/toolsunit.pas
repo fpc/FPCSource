@@ -147,10 +147,12 @@ var dbtype,
     dbname,
     dbuser,
     dbhostname,
-    dbpassword        : string;
-    DataEvents        : string;
-    DBConnector       : TDBConnector;
-    
+    dbpassword     : string;
+    DataEvents     : string;
+    DBConnector    : TDBConnector;
+    testValues     : Array [TFieldType,0..testvaluescount -1] of string;
+
+
 procedure InitialiseDBConnector;
 
 implementation
@@ -217,7 +219,17 @@ end;
 
 procedure InitialiseDBConnector;
 var DBConnectorClass : TPersistentClass;
+    i                : integer;
 begin
+  testValues[ftString] := testStringValues;
+  testValues[ftDate] := testDateValues;
+  for i := 0 to testValuesCount-1 do
+    begin
+    testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
+    testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
+    testValues[ftInteger,i] := IntToStr(testIntValues[i]);
+    end;
+
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');
   DBConnectorClass := GetClass('T'+dbconnectorname+'DBConnector');
   if assigned(DBConnectorClass) then

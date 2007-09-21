@@ -396,8 +396,7 @@ procedure TTestFieldTypes.TestChangeBlob;
 var s : string;
 
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT blob)');
-//  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT text)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT '+FieldtypeDefinitions[ftblob]+')');
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For interbase
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test deze blob'')');
@@ -438,8 +437,7 @@ end;
 
 procedure TTestFieldTypes.TestBlobGetText;
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
-//  CreateTableWithFieldType(ftBlob,'TEXT');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
@@ -468,7 +466,7 @@ var
   ASQL          : TSQLQuery;
 
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
 //  CreateTableWithFieldType(ftBlob,'TEXT');
   TestFieldDeclaration(ftBlob,0);
 
@@ -496,8 +494,7 @@ var
   i             : byte;
 
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
-//  CreateTableWithFieldType(ftBlob,'TEXT');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
@@ -555,7 +552,7 @@ var
   i, corrTestValueCount : byte;
 
 begin
-  CreateTableWithFieldType(ftDateTime,'TIMESTAMP');
+  CreateTableWithFieldType(ftDateTime,FieldtypeDefinitions[ftDateTime]);
   TestFieldDeclaration(ftDateTime,8);
   
   if SQLDbType=mysql40 then corrTestValueCount := testValuesCount-21
@@ -742,6 +739,7 @@ begin
 
   with TSQLDBConnector(DBConnector).Query do
     begin
+    PacketRecords := -1;
     sql.clear;
     sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
 
@@ -911,8 +909,7 @@ var
   ASQL          : TSQLQuery;
 
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
-//  CreateTableWithFieldType(ftBlob,'TEXT');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
   ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
@@ -987,6 +984,7 @@ begin
 end;
 
 procedure TTestFieldTypes.TestParametersAndDates;
+// See bug 7205
 begin
   with TSQLDBConnector(DBConnector).Query do
     begin

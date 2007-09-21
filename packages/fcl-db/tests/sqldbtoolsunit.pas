@@ -7,13 +7,58 @@ interface
 uses
   Classes, SysUtils, toolsunit,
   db,
-  sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, pqconnection,odbcconn,oracleconnection;
+  sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, pqconnection,odbcconn,oracleconnection,sqlite3conn;
 
-type TSQLDBTypes = (mysql40,mysql41,mysql50,postgresql,interbase,odbc,oracle);
+type TSQLDBTypes = (mysql40,mysql41,mysql50,postgresql,interbase,odbc,oracle,sqlite3);
 
 const MySQLdbTypes = [mysql40,mysql41,mysql50];
       DBTypesNames : Array [TSQLDBTypes] of String[19] =
-             ('MYSQL40','MYSQL41','MYSQL50','POSTGRESQL','INTERBASE','ODBC','ORACLE');
+             ('MYSQL40','MYSQL41','MYSQL50','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
+             
+      FieldtypeDefinitionsConst : Array [TFieldType] of String[15] =
+        (
+          '',
+          'VARCHAR(10)',
+          'SMALLINT',
+          'INTEGER',
+          '',
+          '',
+          'FLOAT',
+          'DECIMAL(18,4)',
+          '',
+          'DATE',
+          'TIMESTAMP',
+          'TIMESTAMP',
+          '',
+          '',
+          '',
+          'BLOB',
+          'BLOB',
+          'BLOB',
+          '',
+          '',
+          '',
+          '',
+          '',
+          'CHAR(10)',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          'TIMESTAMP',
+          '',
+          '',
+          ''
+        );
+             
 
 type
 { TSQLDBConnector }
@@ -41,7 +86,8 @@ type
   end;
 
 var SQLDbType : TSQLDBTypes;
-
+    FieldtypeDefinitions : Array [TFieldType] of String[15];
+    
 implementation
 
 { TSQLDBConnector }
@@ -51,11 +97,25 @@ var i : TSQLDBTypes;
 begin
   for i := low(DBTypesNames) to high(DBTypesNames) do
     if UpperCase(dbconnectorparams) = DBTypesNames[i] then sqldbtype := i;
+
+  FieldtypeDefinitions := FieldtypeDefinitionsConst;
     
   if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
   if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
-  if SQLDbType = POSTGRESQL then Fconnection := tpqConnection.Create(nil);
+  if SQLDbType = sqlite3 then
+    begin
+    Fconnection := TSQLite3Connection.Create(nil);
+    FieldtypeDefinitions[ftCurrency] := '';
+    FieldtypeDefinitions[ftFixedChar] := '';
+    end;
+  if SQLDbType = POSTGRESQL then
+    begin
+    Fconnection := tpqConnection.Create(nil);
+    FieldtypeDefinitions[ftBlob] := 'TEXT';
+    FieldtypeDefinitions[ftMemo] := 'TEXT';
+    FieldtypeDefinitions[ftGraphic] := '';
+    end;
   if SQLDbType = INTERBASE then Fconnection := tIBConnection.Create(nil);
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
@@ -116,23 +176,41 @@ end;
 
 procedure TSQLDBConnector.CreateFieldDataset;
 var CountID : Integer;
+    FType   : TFieldType;
+    Sql,sql1: String;
 begin
   try
     Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('create table FPDEV_FIELD (   ' +
-                              '  ID INT NOT NULL,           ' +
-                              '  FSTRING VARCHAR(10),        ' +
-                              '  FINTEGER INT,               ' +
-                              '  FDATE DATE,         ' +
-                              '  FDATETIME TIMESTAMP,        ' +
-                              '  PRIMARY KEY (ID)           ' +
-                              ')                            ');
+
+    Sql := 'create table FPDEV_FIELD (ID INT NOT NULL,';
+    for FType := low(TFieldType)to high(TFieldType) do
+      if FieldtypeDefinitions[FType]<>'' then
+        sql := sql + 'F' + Fieldtypenames[FType] + ' ' +FieldtypeDefinitions[FType]+ ',';
+    Sql := Sql + 'PRIMARY KEY (ID))';
+
+    FConnection.ExecuteDirect(Sql);
 
     FTransaction.CommitRetaining;
 
     for countID := 0 to testValuesCount-1 do
-      Fconnection.ExecuteDirect('insert into FPDEV_FIELD (ID,FSTRING,FINTEGER,FDATE,FDATETIME)' +
-                                'values ('+inttostr(countID)+','''+testStringValues[CountID]+''','''+inttostr(testIntValues[CountID])+''','''+testDateValues[CountID]+''','''+testDateValues[CountID]+''')');
+      begin
+      
+      Sql :=  'insert into FPDEV_FIELD (ID';
+      Sql1 := 'values ('+IntToStr(countID);
+      for FType := low(TFieldType)to high(TFieldType) do
+        if FieldtypeDefinitions[FType]<>'' then
+          begin
+          sql := sql + ',F' + Fieldtypenames[FType];
+          if testValues[FType,CountID] <> '' then
+            sql1 := sql1 + ',''' + testValues[FType,CountID] + ''''
+          else
+            sql1 := sql1 + ',NULL';
+          end;
+      Sql := sql + ')';
+      Sql1 := sql1+ ')';
+
+      Fconnection.ExecuteDirect(sql + ' ' + sql1);
+      end;
 
     Ftransaction.Commit;
   except
