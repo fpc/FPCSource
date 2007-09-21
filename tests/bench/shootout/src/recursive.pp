@@ -7,7 +7,7 @@
 
 program recursive;
 
-{$I-}
+{$I-}{$OPTIMIZATION TAILREC}
 
 var
    n : integer;
@@ -28,7 +28,7 @@ begin
    else Fib := Fib(n - 2) + Fib(n - 1)
 end; { Fib }
 
-function FibFP(n : double): double;
+function FibFP(n : double): double; inline;
 begin
    if n < 2 then
       FibFP := 1
