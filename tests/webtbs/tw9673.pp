@@ -4,7 +4,7 @@ interface
 {$mode objfpc}
 
 type
-  Testclass = class
+  generic Testclass<T> = class
   
   type
     TList = array of byte;
