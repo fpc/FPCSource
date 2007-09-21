@@ -610,8 +610,8 @@ begin
        the same address within the page on the next page up.}
       add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1));');
       add('  .dynamic        : { *(.dynamic) }');
-      add('  .got            : { *(.got) }');
-      add('  .got.plt        : { *(.got.plt) }');
+      add('  .got            : { *(.got .toc) }');
+      add('  .got.plt        : { *(.got.plt .toc.plt) }');
       add('  .data           :');
       add('  {');
       add('    *(.data .data.* .gnu.linkonce.d.*)');
