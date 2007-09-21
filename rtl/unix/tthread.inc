@@ -85,7 +85,9 @@ end;
 function ThreadFunc(parameter: Pointer): ptrint;
 var
   LThread: TThread;
+{$ifdef DEBUG_MT}
   lErrorAddr, lErrorBase: Pointer;
+{$endif}
 begin
   WRITE_DEBUG('ThreadFunc is here...');
   LThread := TThread(parameter);
@@ -123,6 +125,7 @@ begin
   except
     on e: exception do begin
       LThread.FFatalException := TObject(AcquireExceptionObject);
+{$ifdef DEBUG_MT}
       lErrorAddr:=ExceptAddr;
       lErrorBase:=ExceptFrames^;
       writeln(stderr,'Exception caught in thread $',hexstr(LThread),
@@ -130,6 +133,7 @@ begin
       writeln(stderr,BackTraceStrFunc(lErrorAddr));
       dump_stack(stderr,lErrorBase);
       writeln(stderr);
+{$endif}
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?
       if e is EThreadDestroyCalled then LThread.FFreeOnTerminate := true;
