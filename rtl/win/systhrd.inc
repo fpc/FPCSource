@@ -134,13 +134,6 @@ CONST
         stklen : cardinal;
       end;
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        SysReleaseThreadVars;
-      end;
-
-
     function ThreadMain(param : pointer) : Longint; {$ifdef wince}cdecl{$else}stdcall{$endif};
       var
         ti : tthreadinfo;
@@ -335,7 +328,7 @@ end;
       begin
         SetMemoryMutexManager(Win32MemoryMutexManager);
       end;
-      
+
 {$endif HAS_MT_MEMORYMANAGER}
 
 Const
