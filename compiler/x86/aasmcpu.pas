@@ -472,19 +472,23 @@ implementation
       var
         bufptr : pchar;
         j : longint;
+        localsize: byte;
       begin
         inherited calculatefillbuf(buf);
         if not use_op then
          begin
            bufptr:=pchar(@buf);
-           while (fillsize>0) do
+           { fillsize may still be used afterwards, so don't modify }
+           { e.g. writebytes(hp.calculatefillbuf(buf)^,hp.fillsize) }
+           localsize:=fillsize;
+           while (localsize>0) do
             begin
               for j:=low(alignarray) to high(alignarray) do
-               if (fillsize>=length(alignarray[j])) then
+               if (localsize>=length(alignarray[j])) then
                 break;
               move(alignarray[j][1],bufptr^,length(alignarray[j]));
               inc(bufptr,length(alignarray[j]));
-              dec(fillsize,length(alignarray[j]));
+              dec(localsize,length(alignarray[j]));
             end;
          end;
         calculatefillbuf:=pchar(@buf);
