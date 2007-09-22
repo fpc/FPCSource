@@ -2470,11 +2470,27 @@ implementation
             hpnext:=tcallparanode(hpcurr.right);
             { pull in at the correct place.
               Used order:
-                1. LOC_REFERENCE with smallest offset (x86 only)
-                2. LOC_REFERENCE with most registers
-                3. LOC_REGISTER with most registers
+                1. LOC_REFERENCE with smallest offset (i386 only)
+                2. LOC_REFERENCE with most registers and least complexity (non-i386 only)
+                3. LOC_REFERENCE with least registers and most complexity (non-i386 only)
+                4. LOC_REGISTER with most registers and most complexity
+                5. LOC_REGISTER with least registers and least complexity
               For the moment we only look at the first parameter field. Combining it
-              with multiple parameter fields will make things a lot complexer (PFV) }
+              with multiple parameter fields will make things a lot complexer (PFV)
+
+              The reason for the difference regarding complexity ordering
+              between LOC_REFERENCE and LOC_REGISTER is mainly for calls:
+              we first want to treat the LOC_REFERENCE destinations whose
+              calculation does not require a call, because their location
+              may contain registers which might otherwise have to be saved
+              if a call has to be evaluated first. The calculated value is
+              stored on the stack and will thus no longer occupy any
+              register.
+
+              Similarly, for the register parameters we first want to
+              evaluate the calls, because otherwise the already loaded
+              register parameters will have to be saved so the intermediate
+              call can be evaluated (JM) }
             if not assigned(hpcurr.parasym.paraloc[callerside].location) then
               internalerror(200412152);
             currloc:=hpcurr.parasym.paraloc[callerside].location^.loc;
@@ -2497,23 +2513,29 @@ implementation
                               That means the for pushes the para with the
                               highest offset (see para3) needs to be pushed first
                             }
-                            if (hpcurr.registersint>hp.registersint)
-{$ifdef x86}
-                               or (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset)
-{$endif x86}
-                               then
+{$ifdef i386}
+                            { the i386 code generator expects all reference }
+                            { parameter to be in this order so it can use   }
+                            { pushes                                        }
+                            if (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset) then
+{$else i386}
+                            if (hpcurr.registersint>hp.registersint) or
+                               (node_complexity(hpcurr)<node_complexity(hp))
+{$endif i386}
                               break;
                           end;
+                        LOC_MMREGISTER,
                         LOC_REGISTER,
                         LOC_FPUREGISTER :
                           break;
                       end;
                     end;
+                  LOC_MMREGISTER,
                   LOC_FPUREGISTER,
                   LOC_REGISTER :
                     begin
-                      if (hp.parasym.paraloc[callerside].location^.loc=currloc) and
-                         (hpcurr.registersint>hp.registersint) then
+                      if (hp.parasym.paraloc[callerside].location^.loc<>LOC_REFERENCE) and
+                         (node_complexity(hpcurr)>node_complexity(hp)) then
                         break;
                     end;
                 end;
