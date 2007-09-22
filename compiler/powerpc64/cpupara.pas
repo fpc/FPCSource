@@ -121,6 +121,7 @@ begin
       result := LOC_REGISTER;
     classrefdef:
       result := LOC_REGISTER;
+    procvardef,
     recorddef:
       result := LOC_REGISTER;
     objectdef:
@@ -130,11 +131,6 @@ begin
         result := LOC_REGISTER;
     stringdef:
       if is_shortstring(p) or is_longstring(p) then
-        result := LOC_REFERENCE
-      else
-        result := LOC_REGISTER;
-    procvardef:
-      if (po_methodpointer in tprocvardef(p).procoptions) then
         result := LOC_REFERENCE
       else
         result := LOC_REGISTER;
@@ -171,6 +167,7 @@ begin
     variantdef,
     formaldef:
       result := true;
+    procvardef,
     recorddef:
       result :=
         ((varspez = vs_const) and
@@ -190,8 +187,6 @@ begin
       result := (tsetdef(def).settype <> smallset);
     stringdef:
       result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
-    procvardef:
-      result := po_methodpointer in tprocvardef(def).procoptions;
   end;
 end;
 
@@ -386,7 +381,7 @@ begin
         { make sure we don't lose whether or not the type is signed }
         if (paracgsize <> OS_NO) and (paradef.typ <> orddef) then
           paracgsize := int_cgsize(paralen);
-        if (paracgsize = OS_NO) then
+        if (paracgsize in [OS_NO,OS_128,OS_S128]) then
           paraloc^.size := OS_INT
         else 
           paraloc^.size := paracgsize;
