@@ -65,7 +65,7 @@ unit widestr;
       cp8859_1,cp850,cp437,
       { cyrillic code pages }
       cp1251,cp866,cp8859_5,
-      globals;
+      globals,cutils;
 
 
     procedure initwidestring(out r : pcompilerwidestring);
@@ -263,7 +263,7 @@ unit widestr;
 
     function cpavailable(const s : string) : boolean;
       begin
-          cpavailable:=mappingavailable(s);
+          cpavailable:=mappingavailable(lower(s));
       end;
 
 end.
