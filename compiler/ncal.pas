@@ -2520,7 +2520,7 @@ implementation
                             if (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset) then
 {$else i386}
                             if (hpcurr.registersint>hp.registersint) or
-                               (node_complexity(hpcurr)<node_complexity(hp))
+                               (node_complexity(hpcurr)<node_complexity(hp)) then
 {$endif i386}
                               break;
                           end;
