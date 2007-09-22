@@ -642,7 +642,8 @@ implementation
                     exit;
                   p := tunarynode(p).left;
                 end;
-              blockn:
+              blockn,
+              callparan:
                 p := tunarynode(p).left;
               notn,
               derefn :
