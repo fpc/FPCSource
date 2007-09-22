@@ -1582,6 +1582,9 @@ unit cgx86;
       if (cs_opt_size in current_settings.optimizerswitches) and
          not((len<=16) and (cm=copy_mmx)) then
         cm:=copy_string;
+      if (source.segment<>NR_NO) or
+         (dest.segment<>NR_NO) then
+        cm:=copy_string;
       case cm of
         copy_move:
           begin
@@ -1666,15 +1669,36 @@ unit cgx86;
         else {copy_string, should be a good fallback in case of unhandled}
           begin
             getcpuregister(list,REGDI);
-            a_loadaddr_ref_reg(list,dest,REGDI);
+            if (dest.segment=NR_NO) then
+              a_loadaddr_ref_reg(list,dest,REGDI)
+            else
+              begin
+                dstref:=dest;
+                dstref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,dstref,REGDI);
+                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_ES));
+                list.concat(taicpu.op_reg(A_PUSH,S_L,dest.segment));
+                list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
+              end;
             getcpuregister(list,REGSI);
-            a_loadaddr_ref_reg(list,source,REGSI);
+            if (source.segment=NR_NO) then
+              a_loadaddr_ref_reg(list,source,REGSI)
+            else
+              begin
+                srcref:=source;
+                srcref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,srcref,REGSI);
+                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_DS));
+                list.concat(taicpu.op_reg(A_PUSH,S_L,source.segment));
+                list.concat(taicpu.op_reg(A_POP,S_L,NR_DS));
+              end;
 
             getcpuregister(list,REGCX);
 {$ifdef i386}
-            list.concat(Taicpu.op_none(A_CLD,S_NO));
+           list.concat(Taicpu.op_none(A_CLD,S_NO));
 {$endif i386}
-            if cs_opt_size in current_settings.optimizerswitches  then
+            if (cs_opt_size in current_settings.optimizerswitches) and
+               (len>sizeof(aint)+(sizeof(aint) div 2)) then
               begin
                 a_load_const_reg(list,OS_INT,len,REGCX);
                 list.concat(Taicpu.op_none(A_REP,S_NO));
@@ -1714,6 +1738,10 @@ unit cgx86;
             ungetcpuregister(list,REGCX);
             ungetcpuregister(list,REGSI);
             ungetcpuregister(list,REGDI);
+            if (source.segment<>NR_NO) then
+              list.concat(taicpu.op_reg(A_POP,S_L,NR_DS));
+            if (dest.segment<>NR_NO) then
+              list.concat(taicpu.op_reg(A_POP,S_L,NR_ES));
           end;
         end;
     end;
