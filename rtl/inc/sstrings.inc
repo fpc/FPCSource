@@ -562,7 +562,6 @@ begin
         end;
       Dec(reslen,r);
     end;
-
   { rounding string if r > 0 }
   if r > 0 then
     begin
@@ -570,17 +569,23 @@ begin
       k:=0;
       for j:=0 to r do
         begin
-          buf[i]:=chr(ord(buf[i]) + k);
-          if buf[i] >= '5' then
-            k:=1
+          if (k=1) and (buf[i]='9') then
+            buf[i]:='0'
           else
-            k:=0;
+            begin
+            buf[i]:=chr(ord(buf[i]) + k);
+            if buf[i] >= '5' then
+              k:=1
+            else
+              k:=0;
+            end; 
           Inc(i);
-          if i>tlen then
+          if i>tlen  then
             break;
         end;
+      If (k=1) and (buf[i-1]='0') then
+        buf[i]:=chr(Ord(buf[i])+1);
     end;
-
   { preparing result string }
   if reslen<len then
     reslen:=len;
