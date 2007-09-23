@@ -11,6 +11,6 @@ begin
         ps:=ps+' '+paramstr(i);
       sticks:=GetMicroSTicks;
       ExecuteProcess(paramstr(1),ps);
-      writeln((GetMicroSTicks-sticks)/1000:0:3,' ms');
+      writeln(stderr,(GetMicroSTicks-sticks)/1000:0:3,' ms');
     end;
 end.
