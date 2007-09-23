@@ -1110,6 +1110,10 @@ implementation
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
               write_symtable_syms(templist,pd.localst);
+            { add a "size" stab as described in the last paragraph of 2.5 at  }
+            { http://sourceware.org/gdb/current/onlinedocs/stabs_2.html#SEC12 }
+//            templist.concat(Tai_stab.create(stab_stabs,
+//              strpnew('"",'+tostr(N_FUNCTION)+',0,0,'+stabsendlabel.name+'-'+pd.mangledname)));
 
             { after the endtai, because the ".size" must come before it }
             current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
@@ -1482,8 +1486,13 @@ implementation
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
         current_module.flags:=current_module.flags or uf_has_debuginfo;
-        new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),0);
-        current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+        if not(target_info.system in systems_darwin) then
+          begin
+            new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),0);
+            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+          end
+        else
+          new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(current_module.localsymtable),0);
 
         { first write all global/local symbols. This will flag all required tdefs  }
         if assigned(current_module.globalsymtable) then
@@ -1604,22 +1613,24 @@ implementation
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         infile:=current_module.sourcefiles.get_file(1);
         new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0,secorder_begin);
-        current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
+        if not(target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
         if (infile.path^<>'') then
           current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_sourcefile)+
                       ',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_sourcefile)+
                     ',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_start].concat(tai_label.create(hlabel));
+        { for darwin, you need a "module marker" too to work around      }
+        { either some assembler or gdb bug (radar 4386531 according to a }
+        { comment in dbxout.c of Apple's gcc)                            }
+        if (target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(N_OSO)+',0,0,0'));
         { emit empty n_sourcefile for end of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0,secorder_end);
-        current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
-        { for darwin, you need an "end of module marker too" to work around }
-        { either some assembler or gdb bug (radar 4386531 according to a    }
-        { comment in dbxout.c of Apple's gcc)                               }
-        if (target_info.system in systems_darwin) then
-          current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(N_OSO)+',0,0,'+hlabel.name));
+        if not(target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
       end;
@@ -1631,7 +1642,7 @@ implementation
         dbgtable : tai_symbol;
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
-        if (target_info.system=system_powerpc_macos) then
+        if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
           exit;
         list.concat(Tai_section.create(sec_fpc,'links',0));
         { make sure the debuginfo doesn't get stripped out }
