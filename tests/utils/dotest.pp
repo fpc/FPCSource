@@ -22,7 +22,8 @@ uses
 {$endif}
   teststr,
   testu,
-  redir;
+  redir,
+  bench;
 
 {$ifdef go32v2}
   {$define LIMIT83FS}
@@ -75,6 +76,7 @@ const
   DoAll : boolean = false;
   DoUsual : boolean = true;
   TargetDir : string = '';
+  BenchmarkInfo : boolean = false;
   ExtraCompilerOpts : string = '';
   DelExecutable : boolean = false;
   RemoteAddr : string = '';
@@ -692,17 +694,22 @@ var
   TestRemoteExe,
   TestExe  : string;
   execres  : boolean;
-
+  EndTicks,
+  StartTicks : int64;
   function ExecuteRemote(const prog,args:string):boolean;
     begin
       Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
+      StartTicks:=GetMicroSTicks;
       ExecuteRemote:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
+      EndTicks:=GetMicroSTicks;
     end;
 
   function ExecuteEmulated(const prog,args:string):boolean;
     begin
       Verbose(V_Debug,'EmulatorExecuting '+Prog+' '+args);
+      StartTicks:=GetMicroSTicks;
       ExecuteEmulated:=ExecuteRedir(prog,args,'',FullExeLogFile,'stdout');
+      EndTicks:=GetMicroSTicks;
    end;
 
 begin
@@ -756,10 +763,12 @@ begin
       {$I+}
       ioresult;
       { don't redirect interactive and graph programs }
+      StartTicks:=GetMicroSTicks;
       if Config.IsInteractive or Config.UsesGraph then
         execres:=ExecuteRedir(CurrDir+SplitFileName(TestExe),'','','','')
       else
         execres:=ExecuteRedir(CurrDir+SplitFileName(TestExe),'','',FullExeLogFile,'stdout');
+      EndTicks:=GetMicroSTicks;
       {$I-}
        ChDir(OldDir);
       {$I+}
@@ -768,6 +777,10 @@ begin
 
   { Error during execution? }
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
+  if BenchmarkInfo then
+    begin
+      Verbose(V_Normal,'Execution took '+ToStr(EndTicks-StartTicks)+' us');
+    end;
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
@@ -833,6 +846,7 @@ var
     writeln('dotest [Options] <File>');
     writeln;
     writeln('Options can be:');
+    writeln('  -B            output benchmark information');
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -V            verbose');
     writeln('  -E            execute test also');
