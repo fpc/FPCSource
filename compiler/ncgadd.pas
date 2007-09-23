@@ -136,14 +136,26 @@ interface
           end;
         if pushedfpu then
           begin
-            tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
-            cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
-            location_reset(left.location,LOC_FPUREGISTER,left.location.size);
-            left.location.register := tmpreg;
 {$ifdef x86}
-            { left operand is now on top of the stack, instead of the right one! }
-            toggleflag(nf_swapped);
+            if use_sse(left.resultdef) then
+              begin
+                tmpreg := cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
+                cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg,mms_movescalar);
+                location_reset(left.location,LOC_MMREGISTER,left.location.size);
+                left.location.register := tmpreg;
+              end
 {$endif x86}
+            else
+              begin
+                tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
+                cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
+                location_reset(left.location,LOC_FPUREGISTER,left.location.size);
+                left.location.register := tmpreg;
+{$ifdef x86}
+                { left operand is now on top of the stack, instead of the right one! }
+                toggleflag(nf_swapped);
+{$endif x86}
+              end;
           end;
       end;
 
@@ -248,7 +260,7 @@ interface
         tmpreg : tregister;
         mask,
         setbase : aint;
-        
+
         cgop    : TOpCg;
         opdone  : boolean;
       begin
