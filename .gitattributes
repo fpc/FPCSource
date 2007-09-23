@@ -7235,6 +7235,7 @@ tests/utils/dbtests.pp svneol=native#text/plain
 tests/utils/digest.pp svneol=native#text/plain
 tests/utils/dotest.pp svneol=native#text/plain
 tests/utils/fail.pp svneol=native#text/plain
+tests/utils/fptime.pp svneol=native#text/plain
 tests/utils/libtar.pas svneol=native#text/plain
 tests/utils/macos/LinkRunDir -text
 tests/utils/macos/LinkRunTests -text
