@@ -43,7 +43,7 @@ resourcestring
   SErrInvalidTimeStamp   = 'Invalid date/timestamp : "%s"';
   SExceptionErrorMessage = 'exception at %p';
   SExceptionStack        = 'Exception stack error';
-  SExecuteProcessFailed  = 'Failed to execute %s : %d';
+  SExecuteProcessFailed  = 'Failed to execute "%s", error code: %d';
   SExternalException     = 'External exception %x';
   SFileNotAssigned       = 'File not assigned';
   SFileNotFound          = 'File not found';
