@@ -29,6 +29,8 @@ const
   {$endif windows}
 {$endif}
 
+{$linklib libz}
+
 type
   { Compatible with paszlib }
   Uint    = Longint;
