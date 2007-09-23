@@ -114,6 +114,12 @@ resourcestring
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
 
+  SNoArrayMatch                 = 'Can''t match any allowed value at pattern position %d, string position %d.';
+  SNoCharMatch                  = 'Mismatch char "%s" <> "%s" at pattern position %d, string position %d.';
+  SHHMMError                    = 'mm in a sequence hh:mm is interpreted as minutes. No longer versions allowed! (Position : %d).' ;
+  SFullpattern                  = 'Couldn''t match entire pattern string. Input too short at pattern position %d.';
+  SPatternCharMismatch          = 'Pattern mismatch char "%s" at position %d.';
+
   SShortMonthNameJan = 'Jan';
   SShortMonthNameFeb = 'Feb';
   SShortMonthNameMar = 'Mar';
