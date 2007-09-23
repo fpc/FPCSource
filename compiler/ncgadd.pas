@@ -144,8 +144,8 @@ interface
                 location_reset(left.location,LOC_MMREGISTER,left.location.size);
                 left.location.register := tmpreg;
               end
-{$endif x86}
             else
+{$endif x86}
               begin
                 tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
                 cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
