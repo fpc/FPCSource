@@ -23,6 +23,7 @@ unit cfileutl;
 
 {$i fpcdefs.inc}
 
+{$define usedircache}
 
 interface
 
