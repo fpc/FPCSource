@@ -78,7 +78,6 @@ Type
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
-    FDidConnect : Boolean;
     function GetClientInfo: string;
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
@@ -190,19 +189,13 @@ end;
 
 function TConnectionName.GetClientInfo: string;
 
-Var
-  B : Boolean;
-
 begin
   // To make it possible to call this if there's no connection yet
-  B:=(MysqlLibraryHandle=Nilhandle);
-  If B then
-    InitialiseMysql;
+  InitialiseMysql;
   Try  
     Result:=strpas(mysql_get_client_info());
   Finally  
-    if B then
-      ReleaseMysql;
+    ReleaseMysql;
   end;  
 end;
 
@@ -293,16 +286,13 @@ end;
 
 procedure TConnectionName.ExecuteDirectMySQL(const query : string);
 
-var ADidConnect : boolean;
-    H,U,P       : String;
+var H,U,P       : String;
     AMySQL      : PMySQL;
 
 begin
   CheckDisConnected;
 
-  ADidConnect:=(MySQLLibraryHandle=NilHandle);
-  if ADidConnect then
-    InitialiseMysql;
+  InitialiseMysql;
 
   H:=HostName;
   U:=UserName;
@@ -315,15 +305,12 @@ begin
 
   mysql_close(AMySQL);
 
-  if ADidConnect then
-    ReleaseMysql;
+  ReleaseMysql;
 end;
 
 procedure TConnectionName.DoInternalConnect;
 begin
-  FDidConnect:=(MySQLLibraryHandle=NilHandle);
-  if FDidConnect then
-    InitialiseMysql;
+  InitialiseMysql;
 {$IFDEF mysql50}
   if copy(strpas(mysql_get_client_info()),1,3)<>'5.0' then
     Raise EInOutError.CreateFmt(SErrNotversion50,[strpas(mysql_get_client_info())]);
@@ -346,8 +333,7 @@ begin
   inherited DoInternalDisconnect;
   mysql_close(FMySQL);
   FMySQL:=Nil;
-  if FDidConnect then
-    ReleaseMysql;
+  ReleaseMysql;
 end;
 
 function TConnectionName.GetHandle: pointer;
