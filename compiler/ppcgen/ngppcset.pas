@@ -87,7 +87,7 @@ implementation
             i:=last+1;
             while i<=t^._low-1 do
               begin
-		if (target_info.system<>system_powerpc64_darwin) then
+		if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
                   list.concat(Tai_const.Create_sym(elselabel))
                 else
                   list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,elselabel));
@@ -96,7 +96,7 @@ implementation
             i:=t^._low;
             while i<=t^._high do
               begin
-		if (target_info.system<>system_powerpc64_darwin) then
+		if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
                   list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)))
                 else
                   list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,blocklabel(t^.blockid)));
@@ -126,14 +126,14 @@ implementation
           end;
         current_asmdata.getjumplabel(table);
         { create reference, indexreg := indexreg * sizeof(OS_ADDR) }
-        if (target_info.system<>system_powerpc64_darwin) then
+        if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
           mulfactor:=tcgsize2size[OS_ADDR]
         else
           mulfactor:=4;
         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, mulfactor, indexreg);
         reference_reset_symbol(href, table, (-aint(min_)) * mulfactor);
 
-        if (target_info.system<>system_powerpc64_darwin) then
+        if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
           begin
             href.index := indexreg;
             cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, href, indexreg);
@@ -153,7 +153,7 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTR));
 
         { generate jump table }
-        if (target_info.system<>system_powerpc64_darwin) then
+        if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
           begin
             new_section(current_procinfo.aktlocaldata,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
             current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
