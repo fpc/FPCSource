@@ -210,7 +210,6 @@ interface
       var
         hp,hp2 : tai;
         i : longint;
-        skipnode : boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -231,7 +230,6 @@ interface
              while assigned(hp) do
               begin
                 hp2:=tai(hp.getcopy);
-                skipnode:=false;
                 case hp2.typ of
                   ait_label :
                      ReLabel(tasmsymbol(tai_label(hp2).labsym));
@@ -274,17 +272,8 @@ interface
                         taicpu(hp2).CheckIfValid;
 {$endif x86}
                      end;
-                  ait_marker :
-                     begin
-                     { it's not an assembler block anymore }
-                       if (tai_marker(hp2).kind in [mark_AsmBlockStart, mark_AsmBlockEnd]) then
-                        skipnode:=true;
-                     end;
                 end;
-                if not skipnode then
-                  current_asmdata.CurrAsmList.concat(hp2)
-                else
-                  hp2.free;
+                current_asmdata.CurrAsmList.concat(hp2);
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
