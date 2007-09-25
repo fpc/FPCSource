@@ -31,11 +31,21 @@ uses
   {$DEFINE extdecl:=cdecl}
   const
     mysqllib = 'libmysqlclient.so';
+
+  {$IF DEFINED(mysql50)}
+    mysqlvlib = 'libmysqlclient.so.15';
+  {$ELSEIF DEFINED(mysql41)}
+    mysqlvlib = 'libmysqlclient.so.14';
+  {$ELSE}
+    mysqlvlib = 'libmysqlclient.so.12';
+  {$ENDIF}
+
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     mysqllib = 'libmysql.dll';
+    mysqlvlib = 'libmysql.dll';
 {$ENDIF}
 
 {$IFDEF mysql50}
@@ -1488,33 +1498,25 @@ implementation
 {$IFDEF LinkDynamically}
 
 ResourceString
-  SErrAlreadyLoaded = 'MySQL interface already initialized from library %s.';
-  SLoadFailed       = 'Can not load MySQL library "%s". Please check your installation.';
-  
+  SErrAlreadyLoaded  = 'MySQL interface already initialized from library %s.';
+  SErrLoadFailed     = 'Can not load MySQL library "%s". Please check your installation.';
+  SErrDefaultsFailed = 'Can not load default MySQL library ("%s" or "%s"). Check your installation.';
+
 var 
   RefCount : integer;
   LoadedLibrary : String;
 
-Function InitialiseMysql : Integer;
-
-begin
-  // Use Default library
-  Result:=InitialiseMySQL(Mysqllib);
-end;
-
-
-Function InitialiseMysql(Const LibraryName : String) : Integer;
+Function TryInitialiseMysql(Const LibraryName : String) : Integer;
 
 
 begin
+  Result := 0;
   if (RefCount=0) then
     begin
     MysqlLibraryHandle := loadlibrary(LibraryName);
     if (MysqlLibraryHandle=nilhandle) then
-      begin
-      Raise EInOutError.CreateFmt(SLoadFailed,[LibraryName]);
-      end;
-    Inc(RefCount);  
+      Exit;
+    Inc(RefCount);
     LoadedLibrary:=LibraryName;
 // Only the procedure that are given in the c-library documentation are loaded, to
 // avoid problems with 'incomplete' libraries
@@ -1619,9 +1621,32 @@ begin
     pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
     end
   else
-    If (LibraryName<>LoadedLibrary) then
-      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
-  Result:=RefCount;  
+    inc(RefCount);
+  Result:=RefCount;
+end;
+
+Function InitialiseMysql : Integer;
+
+begin
+  Result := 0;
+  If (TryInitialiseMysql(mysqlvlib) = 0) and
+     (TryInitialiseMysql(mysqllib) = 0) then
+      Raise EInOutError.CreateFmt(SErrDefaultsFailed,[mysqlvlib,mysqllib]);
+  Result := RefCount;
+end;
+
+Function InitialiseMysql(Const LibraryName : String) : Integer;
+
+begin
+  Result := TryInitialiseMysql(LibraryName);
+  If Result = 0 then
+    Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
+  else If (LibraryName<>LoadedLibrary) then
+    begin
+    Dec(RefCount);
+    Result := RefCount;
+    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    end;
 end;
 
 Procedure ReleaseMysql;
