@@ -481,7 +481,10 @@ end;
 
 function TFormFieldItem.getValue: String;
 begin
-  Result := FField.asstring;
+  if inputType in [fitcheckbox,fitradio] then
+    Result := 'T'
+  else
+    Result := FField.asstring;
   if assigned (FOnGetValue) then
     onGetValue(self,Result);
 end;
@@ -919,7 +922,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
           if aControlDef.inputType in [fitcheckbox,fitradio] then
             begin
             with aControlDef.Field do
-              Checked := asBoolean;
+              Check := asBoolean;
             if assigned (FOnFieldChecked) then
               FOnFieldChecked (aControlDef.Field, check);
             Checked := check;
