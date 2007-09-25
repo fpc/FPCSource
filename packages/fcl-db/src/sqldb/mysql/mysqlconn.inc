@@ -146,7 +146,7 @@ Type
 
 implementation
 
-uses dbconst;
+uses dbconst,ctypes;
 
 { TConnectionName }
 
@@ -574,7 +574,7 @@ var
   row : MYSQL_ROW;
   C : TCursorName;
   li : longint;
-  Lengths : PDWord;
+  Lengths : pculong;
 begin
   C:=Cursor as TCursorName;
   if C.Row=nil then
@@ -847,6 +847,7 @@ constructor TConnectionName.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FMySQL := Nil;
 end;
 
 function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;
