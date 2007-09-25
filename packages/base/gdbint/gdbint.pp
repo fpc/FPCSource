@@ -71,6 +71,7 @@ interface
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
 {$endif def GDB_V605}
 
 {$ifdef GDB_V6}
@@ -2175,6 +2176,7 @@ end;
 procedure tgdbinterface.gdb_command(const s:string);
 var
   command          : array[0..256] of char;
+  prev_stop_breakpoint_number,
   mask : longint;
   s2 : string;
   old_quit_return,
@@ -2190,6 +2192,11 @@ begin
   old_error_return:=error_return;
   gdb_error:=0;
   got_error:=false;
+  if command_level=1 then
+    prev_stop_breakpoint_number:=0
+  else
+    prev_stop_breakpoint_number:=stop_breakpoint_number;
+
   stop_breakpoint_number:=0;
   { Trap quit commands }
   s2:=s;
@@ -2237,6 +2244,7 @@ begin
   quit_return:=old_quit_return;
   error_return:=old_error_return;
   dec(command_level);
+  stop_breakpoint_number:=prev_stop_breakpoint_number;
   SetFPUState(control);
 end;
 
@@ -2562,12 +2570,19 @@ var gdb_sysroot  : pchar; cvar;public;
     return_child_result_value : longint;cvar;public;
     batch_silent : longbool;cvar;public;
 {$endif}
+{$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
+var
+  debug_file_directory : pchar; cvar; external;
+{$endif GDB_HAS_DEBUG_FILE_DIRECTORY}
 
 begin
 {$ifdef GDB_HAS_SYSROOT}
   gdb_sysrootc := #0;
   gdb_sysroot := @gdb_sysrootc;
 {$endif}
+{$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
+  debug_file_directory := '/usr/local/lib';
+{$endif GDB_HAS_DEBUG_FILE_DIRECTORY}
   gdb_stderr:=nil;
   gdb_stdout:=nil;
   InitLibGDB;
