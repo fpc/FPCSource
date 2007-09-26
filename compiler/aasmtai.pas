@@ -1981,6 +1981,8 @@ implementation
             { mark symbol as used }
             if assigned(ref^.symbol) then
               ref^.symbol.increfs;
+            if assigned(ref^.relsymbol) then
+              ref^.relsymbol.increfs;
           end;
       end;
 
