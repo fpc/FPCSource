@@ -486,7 +486,7 @@ unit cgcpu;
       end;
 
 
-    procedure g_maybe_got_init(list: TAsmList);
+    procedure tcg386.g_maybe_got_init(list: TAsmList);
       begin
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and

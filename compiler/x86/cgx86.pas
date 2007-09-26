@@ -1995,7 +1995,7 @@ unit cgx86;
             { it could be that we're called from a procedure not having the
               got loaded
             }
-            gen_got_load(list);
+            g_maybe_got_init(list);
             ref.refaddr:=addr_pic;
           end
         else
