@@ -198,11 +198,11 @@ var
   function SslMethodTLSV1:PSSL_METHOD;
   function SslMethodV23:PSSL_METHOD;
   function SslCtxUsePrivateKey(ctx: PSSL_CTX; pkey: SslPtr):cInt;
-  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cInt):cInt;
+  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
 //  function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: PChar; _type: cInt):cInt;
   function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
   function SslCtxUseCertificate(ctx: PSSL_CTX; x: SslPtr):cInt;
-  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cInt; d: String):cInt;
+  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
   function SslCtxUseCertificateFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
 //  function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: PChar):cInt;
   function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: String):cInt;
@@ -226,7 +226,7 @@ var
   function SSLGetCurrentCipher(s: PSSL):SslPtr;
   function SSLCipherGetName(c: SslPtr): String;
   function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
-  function SSLGetVerifyResult(ssl: PSSL):cInt;
+  function SSLGetVerifyResult(ssl: PSSL):cLong;
 
 // libeay.dll
   function X509New: PX509;
