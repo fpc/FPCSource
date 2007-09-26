@@ -295,10 +295,6 @@ interface
          fileinfo      : tfileposinfo;
          localswitches : tlocalswitches;
          optinfo : poptinfo;
-{$ifdef extdebug}
-         maxfirstpasscount,
-         firstpasscount : longint;
-{$endif extdebug}
          constructor create(t:tnodetype);
          { this constructor is only for creating copies of class }
          { the fields are copied by getcopy                      }
@@ -688,10 +684,6 @@ implementation
          fileinfo:=current_filepos;
          localswitches:=current_settings.localswitches;
          resultdef:=nil;
-{$ifdef EXTDEBUG}
-         maxfirstpasscount:=0;
-         firstpasscount:=0;
-{$endif EXTDEBUG}
          flags:=[];
          ppuidx:=-1;
       end;
@@ -715,10 +707,6 @@ implementation
         expectloc:=LOC_INVALID;
         { updated by secondpass }
         location.loc:=LOC_INVALID;
-{$ifdef EXTDEBUG}
-        maxfirstpasscount:=0;
-        firstpasscount:=0;
-{$endif EXTDEBUG}
         ppuidx:=-1;
       end;
 
@@ -767,10 +755,6 @@ implementation
 
     destructor tnode.destroy;
       begin
-{$ifdef EXTDEBUG}
-         if firstpasscount>maxfirstpasscount then
-            maxfirstpasscount:=firstpasscount;
-{$endif EXTDEBUG}
          if assigned(optinfo) then
            dispose(optinfo);
       end;
@@ -882,9 +866,6 @@ implementation
          p.resultdef:=resultdef;
          p.fileinfo:=fileinfo;
          p.localswitches:=localswitches;
-{$ifdef extdebug}
-         p.firstpasscount:=firstpasscount;
-{$endif extdebug}
 {         p.list:=list; }
          result:=p;
       end;
