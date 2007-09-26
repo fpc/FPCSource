@@ -113,6 +113,8 @@ interface
              owner.AsmWrite(gas_regname(segment)+':');
            if assigned(symbol) then
              owner.AsmWrite(symbol.name);
+           if assigned(relsymbol) then
+             owner.AsmWrite('-'+relsymbol.name);
            if ref.refaddr=addr_pic then
 {$ifdef x86_64}
              owner.AsmWrite('@GOTPCREL');

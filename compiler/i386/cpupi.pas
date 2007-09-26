@@ -28,7 +28,7 @@ unit cpupi;
   interface
 
     uses
-       psub,procinfo;
+       psub,procinfo,aasmdata;
 
     type
        ti386procinfo = class(tcgprocinfo)
@@ -36,6 +36,7 @@ unit cpupi;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
+         procedure allocate_got_register(list: tasmlist);override;
        end;
 
 
@@ -43,8 +44,8 @@ unit cpupi;
 
     uses
       cutils,
-      systems,globals,
-      tgobj,
+      systems,globals,globtype,
+      cgobj,tgobj,
       cpubase,
       cgutils,
       symconst;
@@ -88,6 +89,14 @@ unit cpupi;
           para_stack_size := 0;
       end;
 
+    procedure ti386procinfo.allocate_got_register(list: tasmlist);
+      begin
+        if (target_info.system = system_i386_darwin) and
+           (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            got := cg.getaddressregister(list);
+          end;
+      end;
 
 begin
    cprocinfo:=ti386procinfo;

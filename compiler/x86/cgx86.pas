@@ -347,6 +347,9 @@ unit cgx86;
       var
         hreg : tregister;
         href : treference;
+{$ifndef x86_64}
+        add_hreg: boolean;
+{$endif not  x86_64}
       begin
 {$ifdef x86_64}
         { Only 32bit is allowed }
@@ -403,18 +406,45 @@ unit cgx86;
               end;
           end;
 {$else x86_64}
-        if (cs_create_pic in current_settings.moduleswitches) and
-          assigned(ref.symbol) and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
+        add_hreg:=false;
+        if (target_info.system=system_i386_darwin) then
           begin
-            reference_reset_symbol(href,ref.symbol,0);
-            hreg:=getaddressregister(list);
+            if assigned(ref.symbol) and
+               not(assigned(ref.relsymbol)) and
+               ((ref.symbol.bind = AB_EXTERNAL) or
+                (cs_create_pic in current_settings.moduleswitches)) then
+             begin
+               if (ref.symbol.bind = AB_EXTERNAL) or
+                  ((cs_create_pic in current_settings.moduleswitches) and
+                   (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
+                 begin
+                   hreg:=g_indirect_sym_load(list,ref.symbol.name);
+                   ref.symbol:=nil;
+                 end
+               else
+                 begin
+                   include(current_procinfo.flags,pi_needs_got);
+                   hreg:=current_procinfo.got;
+                   ref.relsymbol:=current_procinfo.CurrGOTLabel;
+                 end;
+               add_hreg:=true
+             end
+          end
+        else if (cs_create_pic in current_settings.moduleswitches) and
+           assigned(ref.symbol) and
+           not((ref.symbol.bind=AB_LOCAL) and
+               (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
+          begin
             href.refaddr:=addr_pic;
             href.base:=current_procinfo.got;
             include(current_procinfo.flags,pi_needs_got);
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,hreg));
-
             ref.symbol:=nil;
+            add_hreg:=true;
+          end;
 
+        if add_hreg then
+          begin
             if ref.base=NR_NO then
               ref.base:=hreg
             else if ref.index=NR_NO then
@@ -770,7 +800,29 @@ unit cgx86;
               begin
                 if assigned(ref.symbol) then
                   begin
-                    if (cs_create_pic in current_settings.moduleswitches) then
+                    if (target_info.system=system_i386_darwin) and
+                       ((ref.symbol.bind = AB_EXTERNAL) or
+                        (cs_create_pic in current_settings.moduleswitches)) then
+                      begin
+                        if (ref.symbol.bind = AB_EXTERNAL) or
+                           ((cs_create_pic in current_settings.moduleswitches) and
+                            (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
+                          begin
+                             reference_reset_base(tmpref,
+                               g_indirect_sym_load(list,ref.symbol.name),
+                               offset);
+                             a_loadaddr_ref_reg(list,tmpref,r);
+                          end
+                       else
+                         begin
+                           include(current_procinfo.flags,pi_needs_got);
+                           reference_reset_base(tmpref,current_procinfo.got,offset);
+                           tmpref.symbol:=symbol;
+                           tmpref.relsymbol:=current_procinfo.CurrGOTLabel;
+                           list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
+                         end;
+                      end
+                    else if (cs_create_pic in current_settings.moduleswitches) then
                       begin
 {$ifdef x86_64}
                         reference_reset_symbol(tmpref,ref.symbol,0);
@@ -1996,7 +2048,13 @@ unit cgx86;
               got loaded
             }
             g_maybe_got_init(list);
-            ref.refaddr:=addr_pic;
+            if (target_info.system<>system_i386_darwin) then
+              ref.refaddr:=addr_pic
+            else
+              begin
+                ref.refaddr:=addr_no;
+                ref.relsymbol:=current_procinfo.CurrGOTLabel;
+              end
           end
         else
           ref.refaddr:=addr_full;

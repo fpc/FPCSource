@@ -460,7 +460,7 @@ unit i_bsd;
             system       : system_i386_darwin;
             name         : 'Darwin for i386';
             shortname    : 'Darwin';
-            flags        : [tf_p_ext_support,tf_files_case_aware,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels];
+            flags        : [tf_p_ext_support,tf_files_case_aware,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_pic_uses_got];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';

@@ -1135,6 +1135,16 @@ implementation
                 result := '.section __TEXT, .fpc, regular, no_dead_strip';
                 exit;
               end;
+            sec_code:
+              begin
+                if (aname='fpc_geteipasebx') or
+                   (aname='fpc_geteipasecx') then
+                  begin
+                    result:='.section __TEXT,__textcoal_nt,coalesced,pure_instructions'#10'.weak_definition '+aname+
+                      #10'.private_extern '+aname;
+                    exit;
+                  end;
+              end;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;

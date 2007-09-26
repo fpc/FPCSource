@@ -83,7 +83,8 @@ unit cgcpu;
     procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if cs_create_pic in current_settings.moduleswitches then
+        if (target_info.system<>system_i386_darwin) and
+           (cs_create_pic in current_settings.moduleswitches) then
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
@@ -494,12 +495,26 @@ unit cgcpu;
            (pi_needs_got in current_procinfo.flags) and
            not(po_kylixlocal in current_procinfo.procdef.procoptions) then
           begin
-            current_module.requires_ebx_pic_helper:=true;
-            cg.a_call_name_static(list,'fpc_geteipasebx');
-            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-            list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-            { ecx could be used in leave procedures }
-            current_procinfo.got:=NR_EBX;
+            if (target_info.system<>system_i386_darwin) then
+              begin
+                current_module.requires_ebx_pic_helper:=true;
+                cg.a_call_name_static(list,'fpc_geteipasebx');
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
+                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
+                { ecx could be used in leaf procedures }
+                current_procinfo.got:=NR_EBX;
+              end
+            else
+              begin
+                { can't use ecx, since that one may overwrite a parameter }
+                current_module.requires_ebx_pic_helper:=true;
+                cg.a_call_name_static(list,'fpc_geteipasebx');
+                list.concat(tai_regalloc.alloc(NR_EBX,nil));
+                a_label(list,current_procinfo.CurrGotLabel);
+                { got is already set by ti386procinfo.allocate_got_register }
+                list.concat(tai_regalloc.dealloc(NR_EBX,nil));
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_EBX,current_procinfo.got);
+              end;
           end;
       end;
 
