@@ -799,6 +799,7 @@ implementation
         secnames : array[TAsmSectiontype] of string[16] = ('',
           'code',
           'Data',
+          'Data',
           'roData',
           'bss',
           'threadvar',
@@ -838,8 +839,10 @@ implementation
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
-{$warning TODO Fix roData be read-only}
+{$warning TODO Fix sec_rodata be read-only-with-relocs}
           {roData} [oso_Data,oso_load,oso_write,oso_keep],
+{$warning TODO Fix sec_rodata_norel be read-only/constant}
+          {roData_norel} [oso_Data,oso_load,oso_write,oso_keep],
           {bss} [oso_load,oso_write,oso_keep],
           {threadvar} [oso_load,oso_write],
           {pdata} [oso_load,oso_readonly,oso_keep],

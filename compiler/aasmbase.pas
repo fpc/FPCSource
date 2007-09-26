@@ -60,7 +60,10 @@ interface
        TAsmSectiontype=(sec_none,
          sec_code,
          sec_data,
+         { read-only, but may contain relocations }
          sec_rodata,
+         { read-only and cannot contain relocations }
+         sec_rodata_norel,
          sec_bss,
          sec_threadvar,
          { used for wince exception handling }

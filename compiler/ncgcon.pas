@@ -167,7 +167,7 @@ implementation
                   current_asmdata.getdatalabel(lastlabel);
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(resultdef.size));
+                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(resultdef.size));
                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
@@ -413,7 +413,11 @@ implementation
                    current_asmdata.getdatalabel(lastlabel);
                    lab_str:=lastlabel;
                    maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
+                   if (len=0) or
+                      not(cst_type in [cst_ansistring,cst_widestring]) then
+                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(aint)))
+                   else
+                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case cst_type of
@@ -617,7 +621,7 @@ implementation
                  current_asmdata.getdatalabel(lastlabel);
                  lab_set:=lastlabel;
                  maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
+                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(aint)));
                  current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                  { already handled at the start of this method?? (JM)
                  if tsetdef(resultdef).settype=smallset then

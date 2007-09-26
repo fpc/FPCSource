@@ -253,12 +253,13 @@ implementation
 { not relocated properly on e.g. linux/ppc64. g++ generates there for a   }
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
-{$warning TODO .rodata not yet working}
+{$warning TODO .data.ro not yet working}
 {$if defined(arm) or defined(powerpc)}
           '.rodata',
 {$else arm}
           '.data',
 {$endif arm}
+          '.rodata',
           '.bss',
           '.threadvar',
           '.pdata',
@@ -275,6 +276,7 @@ implementation
         );
         secnames_pic : array[TAsmSectiontype] of string[17] = ('',
           '.text',
+          '.data.rel',
           '.data.rel',
           '.data.rel',
           '.bss',
@@ -600,12 +602,12 @@ implementation
              begin
                if (target_info.system in systems_darwin) then
                  begin
-                   {On Mac OS X you can't have common symbols in a shared
-                    library, since those are in the TEXT section and the text section is
-                    read-only in shared libraries (so it can be shared among different
-                    processes). The alternate code creates some kind of common symbols in
-                    the data segment. The generic code no longer uses common symbols, but
-                    this doesn't work on Mac OS X as well.}
+                   { On Mac OS X you can't have common symbols in a shared library
+                     since those are in the TEXT section and the text section is
+                     read-only in shared libraries (so it can be shared among different
+                     processes). The alternate code creates some kind of common symbols
+                     in the data segment.
+                   }
                    if tai_datablock(hp).is_global then
                      begin
                        asmwrite('.globl ');
@@ -733,7 +735,7 @@ implementation
                            { Values with symbols are written on a single line to improve
                              reading of the .s file (PFV) }
                            if assigned(tai_const(hp).sym) or
-                              not(CurrSecType in [sec_data,sec_rodata]) or
+                              not(CurrSecType in [sec_data,sec_rodata,sec_rodata_norel]) or
                               (l>line_length) or
                               (hp.next=nil) or
                               (tai(hp.next).typ<>ait_const) or
@@ -1117,6 +1119,11 @@ implementation
                end;
             sec_rodata:
               begin
+                result := '.const_data';
+                exit;
+              end;
+            sec_rodata_norel:
+              begin
                 result := '.const';
                 exit;
               end;
@@ -1142,6 +1149,7 @@ implementation
          sec_code,
          sec_data,
          sec_data (* sec_rodata *),
+         sec_data (* sec_rodata_norel *),
          sec_bss,
          sec_data (* sec_threadvar *),
          { used for wince exception handling }
