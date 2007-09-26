@@ -52,6 +52,7 @@ unit cgcpu;
         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);override;
         procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_maybe_got_init(list: TAsmList); override;
      end;
 
       tcg64f386 = class(tcg64f32)
@@ -484,6 +485,23 @@ unit cgcpu;
           inherited g_exception_reason_load(list,href);
       end;
 
+
+    procedure g_maybe_got_init(list: TAsmList);
+      begin
+        { allocate PIC register }
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (tf_pic_uses_got in target_info.flags) and
+           (pi_needs_got in current_procinfo.flags) and
+           not(po_kylixlocal in current_procinfo.procdef.procoptions) then
+          begin
+            current_module.requires_ebx_pic_helper:=true;
+            cg.a_call_name_static(list,'fpc_geteipasebx');
+            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
+            list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
+            { ecx could be used in leave procedures }
+            current_procinfo.got:=NR_EBX;
+          end;
+      end;
 
 
     procedure tcg386.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);

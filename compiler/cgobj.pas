@@ -70,7 +70,7 @@ unit cgobj;
           {# Clean up the register allocators needed for the codegenerator.}
           procedure done_register_allocators;virtual;
           {# Set whether live_start or live_end should be updated when allocating registers, needed when e.g. generating initcode after the rest of the code. }
-          procedure set_regalloc_extend_backwards(b: boolean);
+          procedure set_regalloc_live_range_direction(dir: TRADirection);
 
        {$ifdef flowgraph}
           procedure init_flowgraph;
@@ -479,6 +479,9 @@ unit cgobj;
 
           The default implementation issues a jump instruction to the external name. }
           procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
+          
+          { initialize the pic/got register }
+          procedure g_maybe_got_init(list: TAsmList); virtual;
         protected
           procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: tcgsize; out extra_load: boolean);
           procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
@@ -769,14 +772,14 @@ implementation
       end;
 
 
-    procedure tcg.set_regalloc_extend_backwards(b: boolean);
+    procedure tcg.set_regalloc_live_range_direction(dir: TRADirection);
       var
         rt : tregistertype;
       begin
         for rt:=low(rg) to high(rg) do
           begin
             if assigned(rg[rt]) then
-              rg[rt].extend_live_range_backwards := b;
+              rg[rt].live_range_direction:=dir;
           end;
       end;
 
@@ -3733,7 +3736,7 @@ implementation
               l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
               if not(assigned(l)) then
                 begin
-                  l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+                  l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_LOCAL,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
 {$ifdef cpu64bit}
@@ -3751,6 +3754,10 @@ implementation
           end;
         end;
 
+
+    procedure tcg.g_maybe_got_init(list: TAsmList);
+      begin
+      end;
 
 {*****************************************************************************
                                     TCG64

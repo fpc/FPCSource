@@ -376,7 +376,10 @@ implementation
                 { they don't work and gcc doesn't use them either...     }
                 system_powerpc_darwin,
                 system_powerpc64_darwin:
-                  AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
+                  if (cs_create_pic in current_settings.moduleswitches) then
+                    AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
+                  else
+                    AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
                 system_i386_darwin:
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
                 { darwin/x86-64 uses RIP-based GOT addressing }

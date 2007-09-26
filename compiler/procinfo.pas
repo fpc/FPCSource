@@ -116,6 +116,9 @@ unit procinfo;
 
           { Generate parameter information }
           procedure generate_parameter_info;virtual;
+
+          { Allocate got register }
+          procedure allocate_got_register(list: TAsmList);virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -191,6 +194,12 @@ implementation
         { generate callee paraloc register info, it returns the size that
           is allocated on the stack }
         para_stack_size:=paramanager.create_paraloc_info(procdef,calleeside);
+      end;
+
+
+    procedure tprocinfo.allocate_got_register(list: TAsmList);
+      begin
+        { most os/cpu combo's don't use this yet, so not yet abstract }
       end;
 
 

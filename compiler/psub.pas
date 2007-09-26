@@ -872,6 +872,9 @@ implementation
             set_first_temp_offset;
             generate_parameter_info;
 
+            { allocate got register if needed }
+            current_procinfo.allocate_got_register(aktproccode);
+
             { Allocate space in temp/registers for parast and localst }
             current_filepos:=entrypos;
             gen_alloc_symtable(aktproccode,procdef.parast);
@@ -891,9 +894,10 @@ implementation
             current_filepos:=entrypos;
             { record which registers are allocated here, since all code }
             { allocating registers comes after it                       }
-            cg.set_regalloc_extend_backwards(true);
+            cg.set_regalloc_live_range_direction(rad_backwards);
+
             gen_load_para_value(templist);
-            cg.set_regalloc_extend_backwards(false);
+            cg.set_regalloc_live_range_direction(rad_forward);
 
             { caller paraloc info is also necessary in the stackframe_entry
               code of the ppc (and possibly other processors)               }
@@ -918,7 +922,7 @@ implementation
             current_filepos:=entrypos;
             current_settings.localswitches:=entryswitches;
 
-            cg.set_regalloc_extend_backwards(true);
+            cg.set_regalloc_live_range_direction(rad_backwards);
 
             gen_entry_code(templist);
             aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
@@ -930,7 +934,7 @@ implementation
             current_filepos:=exitpos;
             current_settings.localswitches:=exitswitches;
 
-            cg.set_regalloc_extend_backwards(false);
+            cg.set_regalloc_live_range_direction(rad_forward);
 
             gen_finalize_code(templist);
             { the finalcode must be concated if there was no position available,
@@ -973,6 +977,14 @@ implementation
             { Free space in temp/registers for parast and localst, must be
               done after gen_entry_code }
             current_filepos:=exitpos;
+
+            { make sure the got/pic register doesn't get freed in the }
+            { middle of a loop                                        }
+            if (cs_create_pic in current_settings.moduleswitches) and
+               (pi_needs_got in current_procinfo.flags) and
+               (current_procinfo.got<>NR_NO) then
+              cg.a_reg_sync(aktproccode,current_procinfo.got);
+
             gen_free_symtable(aktproccode,procdef.localst);
             gen_free_symtable(aktproccode,procdef.parast);
 
@@ -993,13 +1005,27 @@ implementation
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
 
-            { load got if necessary }
-            cg.set_regalloc_extend_backwards(true);
+            { this code (got loading) comes before everything which has }
+            { already been generated, so reset the info about already   }
+            { backwards extended registers (so their live range can be  }
+            { extended backwards even further if needed)                }
+            { This code must be                                         }
+            {  a) generated after do_secondpass has been called         }
+            {     (because pi_needs_got may be set there)               }
+            {  b) generated before register allocation, because the     }
+            {     got/pic register can be a virtual one                 }
+            {  c) inserted before the entry code, because the entry     }
+            {     code may need global symbols such as init rtti        }
+            {  d) inserted after the stackframe allocation, because     }
+            {     this register may have to be spilled                  }
+            cg.set_regalloc_live_range_direction(rad_backwards_reinit);
             current_filepos:=entrypos;
-            gen_got_load(templist);
+            { load got if necessary }
+            cg.g_maybe_got_init(templist);
+
             aktproccode.insertlistafter(headertai,templist);
 
-            cg.set_regalloc_extend_backwards(false);
+            cg.set_regalloc_live_range_direction(rad_forward);
 
             { The procedure body is finished, we can now
               allocate the registers }
@@ -1011,6 +1037,10 @@ implementation
               maintain location lists }
             current_procinfo.procdef.parast.SymList.ForEachCall(@translate_registers,templist);
             current_procinfo.procdef.localst.SymList.ForEachCall(@translate_registers,templist);
+            if (cs_create_pic in current_settings.moduleswitches) and
+               (pi_needs_got in current_procinfo.flags) and
+               not(cs_no_regalloc in current_settings.globalswitches) then
+              cg.translate_register(current_procinfo.got);
 
             { Add save and restore of used registers }
             current_filepos:=entrypos;

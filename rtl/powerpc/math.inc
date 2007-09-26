@@ -75,12 +75,26 @@ const
         fabs    f1,f1
         // load 2^32 in f2
         {$ifndef macos}
+        {$ifdef FPC_PIC}
+        {$ifdef darwin}
+        mflr   r0
+        bcl    20,31,.Lpiclab
+.Lpiclab:
+        mflr   r5
+        mtlr   r0
+        addis  r4,r5,(factor-.Lpiclab)@ha
+        lfd    f2,(factor-.Lpiclab)@l(r4)
+        {$else darwin}
+        {$error Add pic code for linux/ppc32}
+        {$endif darwin}
+        {$else FPC_PIC}
         lis    r4,factor@ha
         lfd    f2,factor@l(r4)
-        {$else}
+        {$endif FPC_PIC}
+        {$else not macos}
         lwz    r4,factor(r2)
         lfd    f2,0(r4)
-        {$endif}
+        {$endif not macos}
         // check if value is < 0
         // f3 := d / 2^32;
         fdiv     f3,f1,f2
@@ -96,12 +110,21 @@ const
         xoris    r0,r3,0x8000
         stw      r0,temp+4
         {$ifndef macos}
+        {$ifdef FPC_PIC}
+        {$ifdef darwin}
+        addis  r4,r5,(longint_to_real_helper-.Lpiclab)@ha
+        lfd    f0,(longint_to_real_helper-.Lpiclab)@l(r4)
+        {$else darwin}
+        {$error Add pic code for linux/ppc32}
+        {$endif darwin}
+        {$else FPC_PIC}
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
-        {$else}
+        {$endif FPC_PIC}
+        {$else not macos}
         lwz    r4,longint_to_real_helper(r2)
         lfd    f0,0(r4)
-        {$endif}
+        {$endif not macos}
         lfd    f3,temp
         fsub   f3,f3,f0
 
@@ -113,12 +136,21 @@ const
 
         // load 2^31 in f2
         {$ifndef macos}
+        {$ifdef FPC_PIC}
+        {$ifdef darwin}
+        addis  r4,r5,(factor2-.Lpiclab)@ha
+        lfd    f2,(factor2-.Lpiclab)@l(r4)
+        {$else darwin}
+        {$error Add pic code for linux/ppc32}
+        {$endif darwin}
+        {$else FPC_PIC}
         lis    r4,factor2@ha
         lfd    f2,factor2@l(r4)
-        {$else}
+        {$endif FPC_PIC}
+        {$else not macos}
         lwz    r4,factor2(r2)
         lfd    f2,0(r4)
-        {$endif}
+        {$endif not macos}
 
         // subtract 2^31
         fsub   f3,f4,f2
@@ -261,28 +293,54 @@ asm
            xoris  r3,r3,0x8000
            stw    r3,temp+4
            {$ifndef macos}
+           {$ifdef FPC_PIC}
+           {$ifdef darwin}
+           mflr   r0
+           bcl    20,31,.Lpiclab
+ .Lpiclab:
+           mflr   r5
+           mtlr   r0
+           addis  r3,r5,(longint_to_real_helper-.Lpiclab)@ha
+           lfd    f1,(longint_to_real_helper-.Lpiclab)@l(r3)
+           {$else darwin}
+           {$error Add pic code for linux/ppc32}
+           {$endif darwin}
+           {$else FPC_PIC}
            lis    r3,longint_to_real_helper@ha
            lfd    f1,longint_to_real_helper@l(r3)
-           {$else}
+           {$endif FPC_PIC}
+           {$else not macos}
            lwz    r3,longint_to_real_helper(r2)
            lfd    f1,0(r3)
-           {$endif}
+           {$endif not mac os}
            lfd    f0,temp
            stw    r4,temp+4
            fsub   f0,f0,f1
            {$ifndef macos}
+           {$ifdef FPC_PIC}
+           {$ifdef darwin}
+           addis  r4,r5,(cardinal_to_real_helper-.Lpiclab)@ha
+           lfd    f1,(cardinal_to_real_helper-.Lpiclab)@l(r4)
+           addis  r4,r5,(int_to_real_factor-.Lpiclab)@ha
+           lfd    f3,temp
+           lfd    f2,(int_to_real_factor-.Lpiclab)@l(r4)
+           {$else darwin}
+           {$error Add pic code for linux/ppc32}
+           {$endif darwin}
+           {$else FPC_PIC}
            lis    r4,cardinal_to_real_helper@ha
            lfd    f1,cardinal_to_real_helper@l(r4)
            lis    r4,int_to_real_factor@ha
            lfd    f3,temp
            lfd    f2,int_to_real_factor@l(r4)
-           {$else}
+           {$endif FPC_PIC}
+           {$else not macos}
            lwz    r4,cardinal_to_real_helper(r2)
            lwz    r3,int_to_real_factor(r2)
            lfd    f3,temp
            lfd    f1,0(r4)
            lfd    f2,0(r3)
-           {$endif}
+           {$endif not macos}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
 end;
@@ -305,22 +363,45 @@ asm
            stw    r3,temp+4
            lfd    f0,temp
            {$ifndef macos}
+           {$ifdef FPC_PIC}
+           {$ifdef darwin}
+           mflr   r0
+           bcl    20,31,.Lpiclab
+ .Lpiclab:
+           mflr   r5
+           mtlr   r0
+           addis  r3,r5,(cardinal_to_real_helper-.Lpiclab)@ha
+           lfd    f1,(cardinal_to_real_helper-.Lpiclab)@l(r3)
+           {$else darwin}
+           {$error Add pic code for linux/ppc32}
+           {$endif darwin}
+           {$else FPC_PIC}
            lis    r3,cardinal_to_real_helper@ha
            lfd    f1,cardinal_to_real_helper@l(r3)
-           {$else}
+           {$endif FPC_PIC}
+           {$else not macos}
            lwz    r3,longint_to_real_helper(r2)
            lfd    f1,0(r3)
-           {$endif}
+           {$endif not macos}
            stw    r4,temp+4
            fsub   f0,f0,f1
            lfd    f3,temp
            {$ifndef macos}
+           {$ifdef FPC_PIC}
+           {$ifdef darwin}
+           addis  r4,r5,(int_to_real_factor-.Lpiclab)@ha
+           lfd    f2,(int_to_real_factor-.Lpiclab)@l(r4)
+           {$else darwin}
+           {$error Add pic code for linux/ppc32}
+           {$endif darwin}
+           {$else FPC_PIC}
            lis    r4,int_to_real_factor@ha
            lfd    f2,int_to_real_factor@l(r4)
-           {$else}
+           {$endif FPC_PIC}
+           {$else not macos}
            lwz    r4,int_to_real_factor(r2)
            lfd    f2,0(r4)
-           {$endif}
+           {$endif not macos}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
 end;

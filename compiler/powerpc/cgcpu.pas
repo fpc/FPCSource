@@ -889,9 +889,7 @@ const
 
      var regcounter,firstregfpu,firstregint: TSuperRegister;
          href : treference;
-         usesfpr,usesgpr,gotgot : boolean;
-{         cond : tasmcond;
-         instr : taicpu; }
+         usesfpr,usesgpr : boolean;
 
       begin
         { CR and LR only have to be saved in case they are modified by the current }
@@ -905,8 +903,7 @@ const
         if not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             { save link register? }
-            if (pi_do_call in current_procinfo.flags) or
-               ([cs_lineinfo,cs_debuginfo,cs_profile] * current_settings.moduleswitches <> []) then
+            if save_lr_in_prologue then
               begin
                 a_reg_alloc(list,NR_R0);
                 { save return address... }
@@ -950,20 +947,8 @@ const
               end;
           end;
 
-        { no GOT pointer loaded yet }
-        gotgot:=false;
         if usesfpr then
           begin
-{            save floating-point registers
-             if (cs_create_pic in current_settings.moduleswitches) and not(usesgpr) then
-               begin
-                  a_call_name(current_asmdata.RefAsmSymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'));
-                  gotgot:=true;
-               end
-             else
-               a_call_name(current_asmdata.RefAsmSymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)));
-}
-
              reference_reset_base(href,NR_R1,-8);
              for regcounter:=firstregfpu to RS_F31 do
                begin
@@ -980,15 +965,6 @@ const
         { save gprs and fetch GOT pointer }
         if usesgpr then
           begin
-             {
-             if cs_create_pic in current_settings.moduleswitches then
-               begin
-                  a_call_name(current_asmdata.RefAsmSymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g'));
-                  gotgot:=true;
-               end
-             else
-               a_call_name(current_asmdata.RefAsmSymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)))
-             }
             if (firstregint <= RS_R22) or
                ((cs_opt_size in current_settings.optimizerswitches) and
                { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
@@ -1010,34 +986,6 @@ const
 {        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then }
 {          a_reg_dealloc(list,NR_R12); }
 
-
-        { if we didn't get the GOT pointer till now, we've to calculate it now }
-(*
-        if not(gotgot) and (pi_needs_got in current_procinfo.flags) then
-          case target_info.system of
-            system_powerpc_darwin:
-              begin
-                list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R0,NR_LR));
-                fillchar(cond,sizeof(cond),0);
-                cond.simple:=false;
-                cond.bo:=20;
-                cond.bi:=31;
-                instr:=taicpu.op_sym(A_BCL,current_procinfo.CurrGOTLabel);
-                instr.setcondition(cond);
-                list.concat(instr);
-                a_label(list,current_procinfo.CurrGOTLabel);
-                list.concat(taicpu.op_reg_reg(A_MFSPR,current_procinfo.got,NR_LR));
-                list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
-              end;
-            else
-              begin
-                a_reg_alloc(list,NR_R31);
-                { place GOT ptr in r31 }
-                list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R31,NR_LR));
-              end;
-          end;
-*)
-
         if (not nostackframe) and
            tppcprocinfo(current_procinfo).needstackframe and
            (localsize <> 0) then
@@ -1052,9 +1000,17 @@ const
                 reference_reset_base(href,NR_STACK_POINTER_REG,0);
                 { can't use getregisterint here, the register colouring }
                 { is already done when we get here                      }
-                href.index := NR_R11;
+                { R12 may hold previous stack pointer, R11  may be in   }
+                { use as got => use R0 (but then we can't use           }
+                { a_load_const_reg)                                     }
+                href.index := NR_R0;
                 a_reg_alloc(list,href.index);
-                a_load_const_reg(list,OS_S32,-localsize,href.index);
+                list.concat(taicpu.op_reg_const(A_LI,NR_R0,smallint((-localsize) and $ffff)));
+                if (smallint((-localsize) and $ffff) < 0) then
+                  { upper 16 bits are now $ffff -> xor with inverse }
+                  list.concat(taicpu.op_reg_reg_const(A_XORIS,NR_R0,NR_R0,word(not(((-localsize) shr 16) and $ffff))))
+                else
+                  list.concat(taicpu.op_reg_reg_const(A_ORIS,NR_R0,NR_R0,word(((-localsize) shr 16) and $ffff)));
                 a_load_store(list,A_STWUX,NR_STACK_POINTER_REG,href);
                 a_reg_dealloc(list,href.index);
               end;
@@ -1709,9 +1665,25 @@ const
 
          if (target_info.system = system_powerpc_darwin) and
             assigned(ref.symbol) and
-            (ref.symbol.bind = AB_EXTERNAL) then
+            not assigned(ref.relsymbol) and
+            ((ref.symbol.bind = AB_EXTERNAL) or
+             (cs_create_pic in current_settings.moduleswitches))then
            begin
-             tmpreg := g_indirect_sym_load(list,ref.symbol.name);
+             if (ref.symbol.bind = AB_EXTERNAL) or
+                ((cs_create_pic in current_settings.moduleswitches) and
+                 (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
+               begin
+                 tmpreg := g_indirect_sym_load(list,ref.symbol.name);
+                 ref.symbol:=nil;
+               end
+             else
+               begin
+                 include(current_procinfo.flags,pi_needs_got);
+                 tmpreg := current_procinfo.got;
+                 if assigned(ref.relsymbol) then
+                   internalerror(2007093501);
+                 ref.relsymbol := current_procinfo.CurrGOTLabel;
+               end;
              if (ref.base = NR_NO) then
                ref.base := tmpreg
              else if (ref.index = NR_NO) then
@@ -1721,7 +1693,6 @@ const
                  list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
                  ref.base := tmpreg;
                end;
-             ref.symbol := nil;
            end;
 
          if (ref.base = NR_NO) then

@@ -61,6 +61,8 @@ unit cgppc;
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+
+        procedure g_maybe_got_init(list: TAsmList); override;
        protected
         function  get_darwin_call_stub(const s: string): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -77,6 +79,8 @@ unit cgppc;
         { represented by a 16 bit immediate as required by some PowerPC }
         { instructions                                                  }
         function hasLargeOffset(const ref : TReference) : Boolean; inline;
+
+        function save_lr_in_prologue: boolean;
      end;
 
   const
@@ -95,6 +99,14 @@ unit cgppc;
     function tcgppcgen.hasLargeOffset(const ref : TReference) : Boolean;
       begin
         result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
+      end;
+
+
+    function tcgppcgen.save_lr_in_prologue: boolean;
+      begin
+        result:=
+          ((pi_do_call in current_procinfo.flags) or
+           ([cs_lineinfo,cs_debuginfo,cs_profile] * current_settings.moduleswitches <> []));   
       end;
 
 
@@ -145,11 +157,49 @@ unit cgppc;
       end;
 
 
+    procedure tcgppcgen.g_maybe_got_init(list: TAsmList);
+      var
+         instr: taicpu;
+         cond: tasmcond;
+        savedlr: boolean;
+      begin
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            if (cs_create_pic in current_settings.moduleswitches) and
+               (pi_needs_got in current_procinfo.flags) then
+              case target_info.system of
+                system_powerpc_darwin:
+                  begin
+                    savedlr:=save_lr_in_prologue;
+                    if not savedlr then
+                      list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R0,NR_LR));
+                    fillchar(cond,sizeof(cond),0);
+                    cond.simple:=false;
+                    cond.bo:=20;
+                    cond.bi:=31;
+                    instr:=taicpu.op_sym(A_BCL,current_procinfo.CurrGOTLabel);
+                    instr.setcondition(cond);
+                    list.concat(instr);
+                    a_label(list,current_procinfo.CurrGOTLabel);
+                    a_reg_alloc(list,current_procinfo.got);
+                    list.concat(taicpu.op_reg_reg(A_MFSPR,current_procinfo.got,NR_LR));
+                    if not savedlr then
+                      list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
+                  end;
+              end;
+          end;
+      end;
+
+
     function tcgppcgen.get_darwin_call_stub(const s: string): tasmsymbol;
       var
         stubname: string;
+        instr: taicpu;
         href: treference;
         l1: tasmsymbol;
+        localgotlab: tasmlabel;
+        cond: tasmcond;
+        stubalign: byte;
       begin
         { function declared in the current unit? }
         { doesn't work correctly, because this will also return a hit if we }
@@ -164,14 +214,36 @@ unit cgppc;
           current_asmdata.asmlists[al_imports]:=TAsmList.create;
 
         current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
-        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(16));
+        if (cs_create_pic in current_settings.moduleswitches) then
+          stubalign:=32
+        else
+          stubalign:=16;
+        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(stubalign));
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
         reference_reset_symbol(href,l1,0);
         href.refaddr := addr_higha;
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
+        if (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            current_asmdata.getjumplabel(localgotlab);
+            href.relsymbol:=localgotlab;
+            fillchar(cond,sizeof(cond),0);
+            cond.simple:=false;
+            cond.bo:=20;
+            cond.bi:=31;
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R0));
+            instr:=taicpu.op_sym(A_BCL,localgotlab);
+            instr.setcondition(cond);
+            current_asmdata.asmlists[al_imports].concat(instr);
+            a_label(current_asmdata.asmlists[al_imports],localgotlab);
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R11));
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_reg_ref(A_ADDIS,NR_R11,NR_R11,href));
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MTLR,NR_R0));
+          end
+        else
+          current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
         href.refaddr := addr_low;
         href.base := NR_R11;
 {$ifndef cpu64bit}

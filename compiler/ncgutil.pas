@@ -150,7 +150,6 @@ interface
     function getprocalign : shortint;
 
     procedure gen_pic_helpers(list : TAsmList);
-    procedure gen_got_load(list : TAsmList);
 
 implementation
 
@@ -2142,27 +2141,6 @@ implementation
       end;
 
 
-    procedure gen_got_load(list : TAsmList);
-      begin
-        { if loading got is necessary for more cpus, it can be moved
-          to the cg }
-{$ifdef i386}
-        { allocate PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) and
-           not(po_kylixlocal in current_procinfo.procdef.procoptions) then
-          begin
-            current_module.requires_ebx_pic_helper:=true;
-            cg.a_call_name_static(list,'fpc_geteipasebx');
-            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-            list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-            { ecx could be used in leave procedures }
-            current_procinfo.got:=NR_EBX;
-          end;
-{$endif i386}
-      end;
-
 {****************************************************************************
                            External handling
 ****************************************************************************}
@@ -2786,7 +2764,7 @@ implementation
         href : treference;
 {$endif i386}
       begin
-        { if other cpus require such helpers as well, it can be solved more cleaner }
+        { if other cpus require such helpers as well, it can be solved more cleanly }
 {$ifdef i386}
         if current_module.requires_ebx_pic_helper then
           begin

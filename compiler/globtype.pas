@@ -346,6 +346,10 @@ interface
       );
 
     type
+      { register allocator live range extension direction }
+      TRADirection = (rad_forward, rad_backwards, rad_backwards_reinit);
+
+    type
        TIDString = string[maxidlen];
 
        tnormalset = set of byte; { 256 elements set }
