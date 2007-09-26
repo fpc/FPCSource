@@ -3747,8 +3747,7 @@ implementation
                 end;
               result := getaddressregister(list);
               reference_reset_symbol(ref,l,0);
-{              ref.base:=current_procinfo.got;
-              ref.relsymbol:=current_procinfo.CurrGOTLabel;}
+              { a_load_ref_reg will turn this into a pic-load if needed }
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;
           end;
