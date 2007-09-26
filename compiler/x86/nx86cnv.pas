@@ -77,17 +77,9 @@ implementation
             not (nf_explicit in flags) then
            CGMessage(type_w_convert_real_2_comp);
          if use_sse(resultdef) then
-           begin
-             if registersmm<1 then
-               registersmm:=1;
-             expectloc:=LOC_MMREGISTER;
-           end
+           expectloc:=LOC_MMREGISTER
          else
-           begin
-             if registersfpu<1 then
-               registersfpu:=1;
-             expectloc:=LOC_FPUREGISTER;
-           end;
+           expectloc:=LOC_FPUREGISTER;
       end;
 
 
@@ -189,8 +181,6 @@ implementation
 
       begin
         first_int_to_real:=nil;
-         if registersfpu<1 then
-          registersfpu:=1;
         expectloc:=LOC_FPUREGISTER;
       end;
 
@@ -244,7 +234,7 @@ implementation
                      begin
                        emit_const_reg(A_BT,S_Q,63,left.location.register);
                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
-                     end                       
+                     end
                    else
                      begin
                        inc(left.location.reference.offset,4);

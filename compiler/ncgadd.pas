@@ -73,8 +73,8 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,defutil,
-      cgbase,procinfo,pass_2,
-      ncon,nset,ncgutil,cgobj,cgutils
+      cgbase,procinfo,pass_2,tgobj,
+      nutils,ncon,nset,ncgutil,cgobj,cgutils
       ;
 
 
@@ -114,10 +114,16 @@ interface
           end;
 
         { are too few registers free? }
-        if left.location.loc=LOC_FPUREGISTER then
-          pushedfpu:=maybe_pushfpu(current_asmdata.CurrAsmList,right.registersfpu,left.location)
-        else
-          pushedfpu:=false;
+        pushedfpu:=false;
+{$ifdef i386}
+        if (left.location.loc=LOC_FPUREGISTER) and
+           (node_resources_fpu(right)>=maxfpuregs) then
+          begin
+            location_force_mem(current_asmdata.CurrAsmList,left.location);
+            pushedfpu:=true;
+          end;
+{$endif i386}
+
         isjump:=(right.expectloc=LOC_JUMP);
         if isjump then
           begin
@@ -141,6 +147,7 @@ interface
               begin
                 tmpreg := cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
                 cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg,mms_movescalar);
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_MMREGISTER,left.location.size);
                 left.location.register := tmpreg;
               end
@@ -149,6 +156,7 @@ interface
               begin
                 tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
                 cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_FPUREGISTER,left.location.size);
                 left.location.register := tmpreg;
 {$ifdef x86}

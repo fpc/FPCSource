@@ -75,6 +75,7 @@ interface
     function finalize_data_node(p:tnode):tnode;
 
     function node_complexity(p: tnode): cardinal;
+    function node_resources_fpu(p: tnode): cardinal;
     procedure node_tree_set_filepos(var n:tnode;const filepos:tfileposinfo);
 
     { tries to simplify the given node }
@@ -84,11 +85,11 @@ interface
 implementation
 
     uses
-      verbose,constexp,globals,
+      cutils,verbose,constexp,globals,
       symconst,symbase,symdef,symtable,
       defutil,defcmp,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
-      cgbase,procinfo,
+      cpubase,cgbase,procinfo,
       pass_1;
 
   function foreachnode(procmethod : tforeachprocmethod;var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
@@ -700,6 +701,59 @@ implementation
                   result := NODE_COMPLEXITY_INF;
                   exit;
                 end;
+            end;
+        end;
+      end;
+
+
+    { this function returns an indication how much fpu registers
+      will be required.
+      Note: The algorithms need to be pessimistic to prevent a
+      fpu stack overflow on i386 }
+    function node_resources_fpu(p: tnode): cardinal;
+      var
+        res1,res2,res3 : cardinal;
+      begin
+        result:=0;
+        res1:=0;
+        res2:=0;
+        res3:=0;
+        if p.inheritsfrom(ttertiarynode) and assigned(ttertiarynode(p).third) then
+          res3:=node_resources_fpu(ttertiarynode(p).third)
+        else if p.inheritsfrom(tbinarynode) and assigned(tbinarynode(p).right) then
+          res2:=node_resources_fpu(tbinarynode(p).right)
+        else
+          if p.inheritsfrom(tunarynode) and assigned(tunarynode(p).left) then
+            res1:=node_resources_fpu(tunarynode(p).left);
+        result:=max(max(res1,res2),res3);
+        case p.nodetype of
+          calln:
+            begin
+{$ifdef i386}
+              if tcallnode(p).procdefinition.typ=procdef then
+                result:=max(result,tprocdef(tcallnode(p).procdefinition).fpu_used)
+              else
+                result:=maxfpuregs;
+{$else i386}
+              result:=maxfpuregs;
+{$endif i386}
+            end;
+          realconstn,
+          typeconvn,
+          loadn :
+            begin
+              if p.expectloc in [LOC_CFPUREGISTER,LOC_FPUREGISTER] then
+                result:=max(result,1);
+            end;
+          assignn,
+          addn,subn,muln,slashn,
+          equaln,unequaln,gtn,gten,ltn,lten :
+            begin
+              if (tbinarynode(p).left.expectloc in [LOC_CFPUREGISTER,LOC_FPUREGISTER]) or
+                 (tbinarynode(p).right.expectloc in [LOC_CFPUREGISTER,LOC_FPUREGISTER])then
+                result:=max(result,2);
+              if(p.expectloc in [LOC_CFPUREGISTER,LOC_FPUREGISTER]) then
+                inc(result);
             end;
         end;
       end;

@@ -518,15 +518,13 @@ implementation
               right then decreasing the refcnt on left can possibly release
               the memory before right increased the refcnt, result is that an
               empty value is assigned
-            - calln, call destroys most registers and is therefor 'complex'
 
            But not when the result is in the flags, then
           loading the left node afterwards can destroy the flags.
         }
         if not(right.expectloc in [LOC_FLAGS,LOC_JUMP]) and
-           ((right.nodetype=calln) or
-            (right.resultdef.needs_inittable) or
-            (right.registersint>=left.registersint)) then
+           ((right.resultdef.needs_inittable) or
+            (node_complexity(right)>node_complexity(left))) then
          begin
            secondpass(right);
            { increment source reference counter, this is

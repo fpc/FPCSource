@@ -168,12 +168,7 @@ implementation
          result:=nil;
          expectloc:=LOC_REGISTER;
          if left.nodetype<>typen then
-           begin
-             firstpass(left);
-             registersint:=left.registersint;
-           end;
-         if registersint<1 then
-           registersint:=1;
+           firstpass(left);
       end;
 
 
@@ -241,7 +236,6 @@ implementation
         resultdef:=voidpointertype;
 {$ifdef dummy}
         { currently parentfps are never loaded in registers (FK) }
-
         if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then
           begin
             currpi:=current_procinfo;
@@ -265,7 +259,6 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_REGISTER;
-        registersint:=1;
       end;
 
 
@@ -458,9 +451,6 @@ implementation
 
         if (mark_read_written) then
           begin
-            { this is like the function addr }
-            inc(parsing_para_level);
-
             { This is actually only "read", but treat it nevertheless as  }
             { modified due to the possible use of pointers                }
             { To avoid false positives regarding "uninitialised"          }
@@ -469,7 +459,6 @@ implementation
             { vsf_must_be_valid so it doesn't get changed into }
             { vsf_referred_not_inited                          }
             set_varstate(left,vs_read,[vsf_must_be_valid]);
-            dec(parsing_para_level);
           end;
       end;
 
@@ -481,13 +470,6 @@ implementation
          if codegenerror then
           exit;
 
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-         if registersint<1 then
-           registersint:=1;
          { is this right for object of methods ?? }
          expectloc:=LOC_REGISTER;
       end;
@@ -533,12 +515,6 @@ implementation
          firstpass(left);
          if codegenerror then
           exit;
-
-         registersint:=max(left.registersint,1);
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
 
          expectloc:=LOC_REFERENCE;
       end;
@@ -623,18 +599,9 @@ implementation
          if codegenerror then
           exit;
 
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
          { classes must be dereferenced implicit }
          if is_class_or_interface(left.resultdef) then
-           begin
-              if registersint=0 then
-                registersint:=1;
-              expectloc:=LOC_REFERENCE;
-           end
+           expectloc:=LOC_REFERENCE
          else
            begin
              case left.expectloc of
@@ -875,58 +842,6 @@ implementation
          else if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
            exclude(flags,nf_callunique);
 
-         { the register calculation is easy if a const index is used }
-         if right.nodetype=ordconstn then
-           begin
-              registersint:=left.registersint;
-
-              { for ansi/wide strings, we need at least one register }
-              if is_ansistring(left.resultdef) or
-                is_widestring(left.resultdef) or
-              { ... as well as for dynamic arrays }
-                is_dynamic_array(left.resultdef) then
-                registersint:=max(registersint,1);
-           end
-         else
-           begin
-              { this rules are suboptimal, but they should give }
-              { good results                                }
-              registersint:=max(left.registersint,right.registersint);
-
-              { for ansi/wide strings, we need at least one register }
-              if is_ansistring(left.resultdef) or
-                is_widestring(left.resultdef) or
-              { ... as well as for dynamic arrays }
-                is_dynamic_array(left.resultdef) then
-                registersint:=max(registersint,1);
-
-              { need we an extra register when doing the restore ? }
-              if (left.registersint<=right.registersint) and
-              { only if the node needs less than 3 registers }
-              { two for the right node and one for the       }
-              { left address                             }
-                (registersint<3) then
-                inc(registersint);
-
-              { need we an extra register for the index ? }
-              if (right.expectloc<>LOC_REGISTER)
-              { only if the right node doesn't need a register }
-                and (right.registersint<1) then
-                inc(registersint);
-
-              { not correct, but what works better ?
-              if left.registersint>0 then
-                registersint:=max(registersint,2)
-              else
-                 min. one register
-                registersint:=max(registersint,1);
-              }
-           end;
-
-         registersfpu:=max(left.registersfpu,right.registersfpu);
-{$ifdef SUPPORT_MMX}
-         registersmmx:=max(left.registersmmx,right.registersmmx);
-{$endif SUPPORT_MMX}
          if (not is_packed_array(left.resultdef)) or
             ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
            if left.expectloc=LOC_CREFERENCE then
@@ -992,11 +907,6 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_VOID;
-        registersint:=left.registersint;
-        registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
       end;
 
 

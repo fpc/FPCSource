@@ -63,13 +63,6 @@ implementation
          firstpass(left);
          if codegenerror then
            exit;
-
-         left_right_max;
-         { a smallset needs maybe an misc. register }
-         if (left.nodetype<>ordconstn) and
-            not(right.expectloc in [LOC_CREGISTER,LOC_REGISTER]) and
-            (right.registersint<1) then
-           inc(registersint);
       end;
 
 
@@ -417,7 +410,7 @@ implementation
                   pleftreg:=left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }
-                     ((left.resultdef.typ=orddef) and 
+                     ((left.resultdef.typ=orddef) and
                       ((torddef(left.resultdef).low < int64(tsetdef(right.resultdef).setbase)) or
                        (torddef(left.resultdef).high > int64(tsetdef(right.resultdef).setmax)))) or
                      ((left.resultdef.typ=enumdef) and

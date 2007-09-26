@@ -92,8 +92,6 @@ implementation
         else
           begin
             expectloc:=LOC_FPUREGISTER;
-            registersint:=left.registersint;
-            registersfpu:=max(left.registersfpu,1);
             first_abs_real:=nil;
           end;
       end;
@@ -106,8 +104,6 @@ implementation
         else
           begin
             expectloc:=LOC_FPUREGISTER;
-            registersint:=left.registersint;
-            registersfpu:=max(left.registersfpu,1);
             first_sqr_real:=nil;
           end;
       end;
@@ -120,8 +116,6 @@ implementation
         else
           begin
             expectloc:=LOC_FPUREGISTER;
-            registersint:=left.registersint;
-                    registersfpu:=max(left.registersfpu,1);
             first_sqrt_real := nil;
           end;
       end;
@@ -131,8 +125,6 @@ implementation
     function tarminlinenode.first_arctan_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
 
@@ -140,16 +132,12 @@ implementation
     function tarminlinenode.first_ln_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
 
     function tarminlinenode.first_cos_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
 
@@ -157,8 +145,6 @@ implementation
     function tarminlinenode.first_sin_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
     }

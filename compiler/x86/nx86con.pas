@@ -51,10 +51,7 @@ implementation
       begin
          result:=nil;
          if is_number_float(value_real) and not(use_sse(resultdef)) and (value_real=1.0) or (value_real=0.0) then
-           begin
-              expectloc:=LOC_FPUREGISTER;
-              registersfpu:=1;
-           end
+           expectloc:=LOC_FPUREGISTER
          else
            expectloc:=LOC_CREFERENCE;
       end;

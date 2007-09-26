@@ -1483,7 +1483,6 @@ implementation
              else
                typecheckpass(left);
            end;
-         inc(parsing_para_level);
 
          { handle intern constant functions in separate case }
          if nf_inlineconst in flags then
@@ -2379,7 +2378,6 @@ implementation
               (left.nodetype=callparan) then
             tcallparanode(left).get_paratype;
          end;
-        dec(parsing_para_level);
       end;
 
 
@@ -2400,10 +2398,8 @@ implementation
                 tcallparanode(left).firstcallparan
               else
                 firstpass(left);
-              left_max;
            end;
 
-         inc(parsing_para_level);
          { intern const should already be handled }
          if nf_inlineconst in flags then
           internalerror(200104044);
@@ -2435,15 +2431,11 @@ implementation
 
           in_sizeof_x:
             begin
-              if registersint<1 then
-                 registersint:=1;
               expectloc:=LOC_REGISTER;
             end;
 
           in_typeof_x:
             begin
-               if registersint<1 then
-                 registersint:=1;
                expectloc:=LOC_REGISTER;
             end;
 
@@ -2454,8 +2446,6 @@ implementation
                else
                 begin
                   { ansi/wide string }
-                  if registersint<1 then
-                   registersint:=1;
                   expectloc:=LOC_REGISTER;
                 end;
             end;
@@ -2463,28 +2453,16 @@ implementation
           in_typeinfo_x:
             begin
                expectloc:=LOC_REGISTER;
-               registersint:=1;
             end;
 
           in_assigned_x:
             begin
               expectloc := LOC_JUMP;
-              registersint:=1;
             end;
 
           in_pred_x,
           in_succ_x:
             begin
-              if is_64bit(resultdef) then
-               begin
-                 if (registersint<2) then
-                  registersint:=2
-               end
-              else
-               begin
-                 if (registersint<1) then
-                  registersint:=1;
-               end;
               expectloc:=LOC_REGISTER;
             end;
 
@@ -2586,23 +2564,6 @@ implementation
                    firstpass(newblock);
                    { return new node }
                    result := newblock;
-                 end
-               else if (left.resultdef.typ in [enumdef,pointerdef]) or
-                       is_ordinal(left.resultdef) then
-                 begin
-                    { two paras ? }
-                    if assigned(tcallparanode(left).right) then
-                      begin
-                         { need we an additional register ? }
-                         if not(is_constintnode(tcallparanode(tcallparanode(left).right).left)) and
-                           (tcallparanode(tcallparanode(left).right).left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) and
-                           (tcallparanode(tcallparanode(left).right).left.registersint<=1) then
-                           inc(registersint);
-
-                         { do we need an additional register to restore the first parameter? }
-                         if tcallparanode(tcallparanode(left).right).left.registersint>=registersint then
-                           inc(registersint);
-                      end;
                  end;
             end;
 
@@ -2610,12 +2571,6 @@ implementation
          in_exclude_x_y:
            begin
               expectloc:=LOC_VOID;
-
-              registersint:=left.registersint;
-              registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
            end;
 
          in_pack_x_y_z,
@@ -2698,11 +2653,6 @@ implementation
          in_assert_x_y :
             begin
               expectloc:=LOC_VOID;
-              registersint:=left.registersint;
-              registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
             end;
 
           in_low_x,
@@ -2746,12 +2696,10 @@ implementation
          in_get_caller_frame:
             begin
               expectloc:=LOC_REGISTER;
-              registersint:=1;
             end;
          in_get_caller_addr:
             begin
               expectloc:=LOC_REGISTER;
-              registersint:=1;
             end;
 
          in_prefetch_var:
@@ -2767,7 +2715,6 @@ implementation
           else
             internalerror(89);
           end;
-         dec(parsing_para_level);
        end;
 {$maxfpuregisters default}
 

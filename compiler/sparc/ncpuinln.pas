@@ -73,8 +73,6 @@ implementation
     function tsparcinlinenode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
         first_abs_real := nil;
       end;
 
@@ -82,8 +80,6 @@ implementation
     function tsparcinlinenode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
         first_sqr_real:=nil;
       end;
 
@@ -91,8 +87,6 @@ implementation
     function tsparcinlinenode.first_sqrt_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
         first_sqrt_real := nil;
       end;
 

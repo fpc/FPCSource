@@ -118,11 +118,7 @@ interface
         (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)   { binary overloading NOT supported  overload = instead }
       );
     const
-    { firstcallparan without varspez we don't count the ref }
-{$ifdef extdebug}
-       count_ref : boolean = true;
-{$endif def extdebug}
-       allow_array_constructor : boolean = false;
+      allow_array_constructor : boolean = false;
 
     function node2opstr(nt:tnodetype):string;
 
@@ -134,7 +130,6 @@ interface
 
     { Register Allocation }
     procedure make_not_regable(p : tnode; how: tregableinfoflags);
-    procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
     { procvar handling }
     function  is_procvar_load(p:tnode):boolean;
@@ -702,7 +697,7 @@ implementation
               begin
                 { arrays are currently never regable and pointers indexed like }
                 { arrays do not have be made unregable, but we do need to      }
-                { propagate the ra_addr_taken info                             }                                          
+                { propagate the ra_addr_taken info                             }
                 update_regable:=false;
                 p:=tvecnode(p).left;
               end;
@@ -750,63 +745,6 @@ implementation
     procedure make_not_regable(p : tnode; how: tregableinfoflags);
       begin
         make_not_regable_intern(p,how,false);
-      end;
-
-    { calculates the needed registers for a binary operator }
-    procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
-
-      begin
-         p.left_right_max;
-
-      { Only when the difference between the left and right registers < the
-        wanted registers allocate the amount of registers }
-
-        if assigned(p.left) then
-         begin
-           if assigned(p.right) then
-            begin
-              { the location must be already filled in because we need it to }
-              { calculate the necessary number of registers (JM)             }
-              if p.expectloc = LOC_INVALID then
-                internalerror(200110101);
-
-              if (abs(p.left.registersint-p.right.registersint)<r32) or
-                 ((p.expectloc = LOC_FPUREGISTER) and
-                  (p.right.registersfpu <= p.left.registersfpu) and
-                  ((p.right.registersfpu <> 0) or (p.left.registersfpu <> 0)) and
-                  (p.left.registersint   < p.right.registersint)) then
-                inc(p.registersint,r32);
-              if (abs(p.left.registersfpu-p.right.registersfpu)<fpu) then
-               inc(p.registersfpu,fpu);
-{$ifdef SUPPORT_MMX}
-              if (abs(p.left.registersmmx-p.right.registersmmx)<mmx) then
-               inc(p.registersmmx,mmx);
-{$endif SUPPORT_MMX}
-              { the following is a little bit guessing but I think }
-              { it's the only way to solve same internalerrors:    }
-              { if the left and right node both uses registers     }
-              { and return a mem location, but the current node    }
-              { doesn't use an integer register we get probably    }
-              { trouble when restoring a node                      }
-              if (p.left.registersint=p.right.registersint) and
-                 (p.registersint=p.left.registersint) and
-                 (p.registersint>0) and
-                (p.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-                (p.right.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                inc(p.registersint);
-            end
-           else
-            begin
-              if (p.left.registersint<r32) then
-               inc(p.registersint,r32);
-              if (p.left.registersfpu<fpu) then
-               inc(p.registersfpu,fpu);
-{$ifdef SUPPORT_MMX}
-              if (p.left.registersmmx<mmx) then
-               inc(p.registersmmx,mmx);
-{$endif SUPPORT_MMX}
-            end;
-         end;
       end;
 
 

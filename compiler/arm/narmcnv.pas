@@ -108,8 +108,6 @@ implementation
                 firstpass(left);
               end;
             result := nil;
-            if registersfpu<1 then
-              registersfpu:=1;
             expectloc:=LOC_FPUREGISTER;
           end;
       end;

@@ -351,11 +351,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REFERENCE;
-         registersint:=0;
-         registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=0;
-{$endif SUPPORT_MMX}
          if (cs_create_pic in current_settings.moduleswitches) and
            not(symtableentry.typ in [paravarsym,localvarsym]) then
            include(current_procinfo.flags,pi_needs_got);
@@ -380,11 +375,6 @@ implementation
                 else
                   if (tabstractvarsym(symtableentry).varspez=vs_const) then
                     expectloc:=LOC_CREFERENCE;
-                { we need a register for call by reference parameters }
-                if paramanager.push_addr_param(tabstractvarsym(symtableentry).varspez,tabstractvarsym(symtableentry).vardef,pocall_default) then
-                  registersint:=1;
-                if ([vo_is_thread_var,vo_is_dll_var]*tabstractvarsym(symtableentry).varoptions)<>[] then
-                  registersint:=1;
                 if (target_info.system=system_powerpc_darwin) and
                    ([vo_is_dll_var,vo_is_external] * tabstractvarsym(symtableentry).varoptions <> []) then
                   include(current_procinfo.flags,pi_needs_got);
@@ -406,11 +396,6 @@ implementation
                      begin
                         expectloc:=LOC_CREFERENCE;
                         firstpass(left);
-                        registersint:=max(registersint,left.registersint);
-                        registersfpu:=max(registersfpu,left.registersfpu);
- {$ifdef SUPPORT_MMX}
-                        registersmmx:=max(registersmmx,left.registersmmx);
- {$endif SUPPORT_MMX}
                      end;
                 end;
            labelsym :
@@ -716,12 +701,6 @@ implementation
                end;
             end;
            end;
-
-         registersint:=left.registersint+right.registersint;
-         registersfpu:=max(left.registersfpu,right.registersfpu);
-{$ifdef SUPPORT_MMX}
-         registersmmx:=max(left.registersmmx,right.registersmmx);
-{$endif SUPPORT_MMX}
       end;
 
 
@@ -782,7 +761,6 @@ implementation
         firstpass(left);
         firstpass(right);
         expectloc:=LOC_CREFERENCE;
-        calcregisters(self,0,0,0);
         result:=nil;
       end;
 
@@ -968,15 +946,13 @@ implementation
               end;
           end;
         expectloc:=LOC_CREFERENCE;
-        calcregisters(self,0,0,0);
       end;
 
 
     function tarrayconstructornode.docompare(p: tnode): boolean;
-
-    begin
-      docompare:=inherited docompare(p);
-    end;
+      begin
+        docompare:=inherited docompare(p);
+      end;
 
 
 {*****************************************************************************

@@ -141,7 +141,7 @@ interface
           ds_dwarf_sets
        );
        tdebugswitches = set of tdebugswitch;
-       
+
 
        { adding a new entry here requires also adding the appropriate define in
          systemh.inc (FK)

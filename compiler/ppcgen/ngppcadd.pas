@@ -76,7 +76,6 @@ implementation
             firstpass(left);
             firstpass(right);
             expectloc := LOC_FLAGS;
-            calcregisters(self,2,0,0);
             exit;
           end;
         result := inherited pass_1;

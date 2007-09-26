@@ -290,11 +290,6 @@ interface
          { there are some properties about the node stored }
          flags  : tnodeflags;
          ppuidx : longint;
-         { the number of registers needed to evalute the node }
-         registersint,registersfpu,registersmm : longint;  { must be longint !!!! }
-{$ifdef SUPPORT_MMX}
-         registersmmx  : longint;
-{$endif SUPPORT_MMX}
          resultdef     : tdef;
          resultdefderef : tderef;
          fileinfo      : tfileposinfo;
@@ -389,7 +384,6 @@ interface
          function docompare(p : tnode) : boolean;override;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
-         procedure left_max;
          procedure printnodedata(var t:text);override;
       end;
 
@@ -409,7 +403,6 @@ interface
          procedure swapleftright;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
-         procedure left_right_max;
          procedure printnodedata(var t:text);override;
          procedure printnodelist(var t:text);
       end;
@@ -695,11 +688,6 @@ implementation
          fileinfo:=current_filepos;
          localswitches:=current_settings.localswitches;
          resultdef:=nil;
-         registersint:=0;
-         registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=0;
-{$endif SUPPORT_MMX}
 {$ifdef EXTDEBUG}
          maxfirstpasscount:=0;
          firstpasscount:=0;
@@ -727,11 +715,6 @@ implementation
         expectloc:=LOC_INVALID;
         { updated by secondpass }
         location.loc:=LOC_INVALID;
-        registersint:=0;
-        registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-        registersmmx:=0;
-{$endif SUPPORT_MMX}
 {$ifdef EXTDEBUG}
         maxfirstpasscount:=0;
         firstpasscount:=0;
@@ -821,9 +804,7 @@ implementation
           write(t,', resultdef = <nil>');
         write(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   ', loc = ',tcgloc2str[location.loc],
-                  ', expectloc = ',tcgloc2str[expectloc],
-                  ', intregs = ',registersint,
-                  ', fpuregs = ',registersfpu);
+                  ', expectloc = ',tcgloc2str[expectloc]);
       end;
 
 
@@ -898,12 +879,6 @@ implementation
          p.location:=location;
          p.parent:=parent;
          p.flags:=flags;
-         p.registersint:=registersint;
-         p.registersfpu:=registersfpu;
-{$ifdef SUPPORT_MMX}
-         p.registersmmx:=registersmmx;
-         p.registersmm:=registersmm;
-{$endif SUPPORT_MMX}
          p.resultdef:=resultdef;
          p.fileinfo:=fileinfo;
          p.localswitches:=localswitches;
@@ -1014,16 +989,6 @@ implementation
       begin
          inherited printnodedata(t);
          printnode(t,left);
-      end;
-
-
-    procedure tunarynode.left_max;
-      begin
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
       end;
 
 
@@ -1152,30 +1117,6 @@ implementation
            exclude(flags,nf_swapped)
          else
            include(flags,nf_swapped);
-      end;
-
-
-    procedure tbinarynode.left_right_max;
-      begin
-        if assigned(left) then
-         begin
-           if assigned(right) then
-            begin
-              registersint:=max(left.registersint,right.registersint);
-              registersfpu:=max(left.registersfpu,right.registersfpu);
-{$ifdef SUPPORT_MMX}
-              registersmmx:=max(left.registersmmx,right.registersmmx);
-{$endif SUPPORT_MMX}
-            end
-           else
-            begin
-              registersint:=left.registersint;
-              registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-            end;
-         end;
       end;
 
 

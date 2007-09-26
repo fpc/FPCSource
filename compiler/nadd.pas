@@ -1214,7 +1214,7 @@ implementation
                   { note: ld cannot be an empty set with elementdef=nil in }
                   { case right is not a set, arrayconstructor_to_set takes }
                   { care of that                                           }
-                  
+
                   { 1: rd is a set with an assigned elementdef, and ld is    }
                   {    either an empty set without elementdef or a set whose }
                   {    elementdef fits in rd's elementdef -> convert to rd   }
@@ -2003,7 +2003,7 @@ implementation
                           tsetelementnode(right).left:=caddnode.create(subn,
                             ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
                             cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false));
-                           
+
                           { add a range or a single element? }
                           if assigned(tsetelementnode(right).right) then
                             begin
@@ -2353,23 +2353,6 @@ implementation
                end;
 {$endif cpufpemu}
              expectloc:=LOC_FPUREGISTER;
-             { maybe we need an integer register to save }
-             { a reference                               }
-             if ((left.expectloc<>LOC_FPUREGISTER) or
-                 (right.expectloc<>LOC_FPUREGISTER)) and
-                (left.registersint=right.registersint) then
-               calcregisters(self,1,1,0)
-             else
-               calcregisters(self,0,1,0);
-              { an add node always first loads both the left and the    }
-              { right in the fpu before doing the calculation. However, }
-              { calcregisters(0,2,0) will overestimate the number of    }
-              { necessary registers (it will make it 3 in case one of   }
-              { the operands is already in the fpu) (JM)                }
-              if ((left.expectloc<>LOC_FPUREGISTER) or
-                  (right.expectloc<>LOC_FPUREGISTER)) and
-                 (registersfpu < 2) then
-                inc(registersfpu);
            end
 
          { if both are orddefs then check sub types }
@@ -2381,26 +2364,13 @@ implementation
                 if (not(cs_full_boolean_eval in current_settings.localswitches) or
                     (nf_short_bool in flags)) and
                    (nodetype in [andn,orn]) then
-                 begin
-                   expectloc:=LOC_JUMP;
-                   calcregisters(self,0,0,0);
-                 end
+                  expectloc:=LOC_JUMP
                 else
                  begin
                    if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-                     begin
-                       expectloc:=LOC_FLAGS;
-                       if (left.expectloc in [LOC_JUMP,LOC_FLAGS]) and
-                          (left.expectloc in [LOC_JUMP,LOC_FLAGS]) then
-                         calcregisters(self,2,0,0)
-                       else
-                         calcregisters(self,1,0,0);
-                     end
+                     expectloc:=LOC_FLAGS
                    else
-                     begin
-                       expectloc:=LOC_REGISTER;
-                       calcregisters(self,0,0,0);
-                     end;
+                     expectloc:=LOC_REGISTER;
                  end;
               end
              else
@@ -2410,7 +2380,6 @@ implementation
                  if nodetype=addn then
                   internalerror(200103291);
                  expectloc:=LOC_FLAGS;
-                 calcregisters(self,1,0,0);
                end
 {$ifndef cpu64bit}
               { is there a 64 bit type ? }
@@ -2423,7 +2392,6 @@ implementation
                     expectloc:=LOC_REGISTER
                   else
                     expectloc:=LOC_JUMP;
-                  calcregisters(self,2,0,0)
                end
 {$endif cpu64bit}
              { is there a cardinal? }
@@ -2433,10 +2401,6 @@ implementation
                     expectloc:=LOC_REGISTER
                   else
                     expectloc:=LOC_FLAGS;
-                 calcregisters(self,1,0,0);
-                 { for unsigned mul we need an extra register }
-                 if nodetype=muln then
-                  inc(registersint);
                end
              { generic s32bit conversion }
              else
@@ -2445,7 +2409,6 @@ implementation
                     expectloc:=LOC_REGISTER
                   else
                     expectloc:=LOC_FLAGS;
-                 calcregisters(self,1,0,0);
                end;
            end
 
@@ -2510,21 +2473,14 @@ implementation
                            normal temp }
                          addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
                          addstatement(newstatement,ctemprefnode.create(temp));
-                       end
-                     else
-                       calcregisters(self,2,0,0)
-                   end
-                 else
-                   calcregisters(self,1,0,0);
+                       end;
+                   end;
                end
              else
 {$ifdef MMXSET}
 {$ifdef i386}
                if cs_mmx in current_settings.localswitches then
-                 begin
-                   expectloc:=LOC_MMXREGISTER;
-                   calcregisters(self,0,0,4);
-                 end
+                 expectloc:=LOC_MMXREGISTER
                else
 {$endif}
 {$endif MMXSET}
@@ -2533,7 +2489,6 @@ implementation
                    if assigned(result) then
                      exit;
                    expectloc:=LOC_CREFERENCE;
-                   calcregisters(self,0,0,0);
                    { here we call SET... }
                    include(current_procinfo.flags,pi_do_call);
                  end;
@@ -2546,7 +2501,6 @@ implementation
                expectloc:=LOC_REGISTER
              else
                expectloc:=LOC_FLAGS;
-             calcregisters(self,1,0,0);
            end
 
          { is one of the operands a string }
@@ -2617,16 +2571,6 @@ implementation
                 expectloc:=LOC_FPUREGISTER
               else
                 expectloc:=LOC_FLAGS;
-              calcregisters(self,0,1,0);
-              { an add node always first loads both the left and the    }
-              { right in the fpu before doing the calculation. However, }
-              { calcregisters(0,2,0) will overestimate the number of    }
-              { necessary registers (it will make it 3 in case one of   }
-              { the operands is already in the fpu) (JM)                }
-              if ((left.expectloc<>LOC_FPUREGISTER) or
-                  (right.expectloc<>LOC_FPUREGISTER)) and
-                 (registersfpu < 2) then
-                inc(registersfpu);
             end
 
          { pointer comperation and subtraction }
@@ -2636,19 +2580,16 @@ implementation
                 expectloc:=LOC_REGISTER
               else
                 expectloc:=LOC_FLAGS;
-              calcregisters(self,1,0,0);
            end
 
          else if is_class_or_interface(ld) then
             begin
               expectloc:=LOC_FLAGS;
-              calcregisters(self,1,0,0);
             end
 
          else if (ld.typ=classrefdef) then
             begin
               expectloc:=LOC_FLAGS;
-              calcregisters(self,1,0,0);
             end
 
          { support procvar=nil,procvar<>nil }
@@ -2656,7 +2597,6 @@ implementation
                  ((rd.typ=procvardef) and (lt=niln)) then
             begin
               expectloc:=LOC_FLAGS;
-              calcregisters(self,1,0,0);
             end
 
 {$ifdef SUPPORT_MMX}
@@ -2666,14 +2606,12 @@ implementation
                  is_mmx_able_array(rd) then
             begin
               expectloc:=LOC_MMXREGISTER;
-              calcregisters(self,0,0,1);
             end
 {$endif SUPPORT_MMX}
 
          else if (rd.typ=pointerdef) or (ld.typ=pointerdef) then
             begin
               expectloc:=LOC_REGISTER;
-              calcregisters(self,1,0,0);
             end
 
          else  if (rd.typ=procvardef) and
@@ -2681,13 +2619,11 @@ implementation
                   equal_defs(rd,ld) then
            begin
              expectloc:=LOC_FLAGS;
-             calcregisters(self,1,0,0);
            end
 
          else if (ld.typ=enumdef) then
            begin
               expectloc:=LOC_FLAGS;
-              calcregisters(self,1,0,0);
            end
 
 {$ifdef SUPPORT_MMX}
@@ -2696,7 +2632,6 @@ implementation
                  is_mmx_able_array(rd) then
             begin
               expectloc:=LOC_MMXREGISTER;
-              calcregisters(self,0,0,1);
             end
 {$endif SUPPORT_MMX}
 
@@ -2704,7 +2639,6 @@ implementation
          else
            begin
              expectloc:=LOC_REGISTER;
-             calcregisters(self,1,0,0);
            end;
       end;
 

@@ -2022,12 +2022,6 @@ implementation
                  (resultdef.size<left.resultdef.size) then
                 expectloc:=LOC_REGISTER;
           end;
-{$ifndef cpu64bit}
-        if is_64bit(resultdef) then
-          registersint:=max(registersint,2)
-        else
-{$endif cpu64bit}
-          registersint:=max(registersint,1);
       end;
 
 
@@ -2035,7 +2029,6 @@ implementation
 
       begin
          result:=nil;
-         registersint:=1;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -2074,8 +2067,6 @@ implementation
 
       begin
          first_array_to_pointer:=nil;
-         if registersint<1 then
-           registersint:=1;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -2237,8 +2228,6 @@ implementation
 {$endif cpufpemu}
           begin
             first_real_to_real:=nil;
-            if registersfpu<1 then
-              registersfpu:=1;
             expectloc:=LOC_FPUREGISTER;
           end;
       end;
@@ -2248,8 +2237,6 @@ implementation
 
       begin
          first_pointer_to_array:=nil;
-         if registersint<1 then
-           registersint:=1;
          expectloc:=LOC_REFERENCE;
       end;
 
@@ -2283,8 +2270,6 @@ implementation
              exit;
            end;
          expectloc:=LOC_REGISTER;
-         if registersint<1 then
-           registersint:=1;
       end;
 
 
@@ -2293,19 +2278,12 @@ implementation
       begin
          first_int_to_bool:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
+           be accepted for var parameters }
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
          expectloc:=LOC_REGISTER;
-         { need if bool to bool !!
-           not very nice !!
-         insertypeconv(left,s32inttype);
-         left.explizit:=true;
-         firstpass(left);  }
-         if registersint<1 then
-           registersint:=1;
       end;
 
 
@@ -2315,11 +2293,7 @@ implementation
          if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
            expectloc := left.expectloc
          else
-           begin
-             expectloc:=LOC_REGISTER;
-             if registersint<1 then
-               registersint:=1;
-           end;
+           expectloc:=LOC_REGISTER;
       end;
 
 
@@ -2351,28 +2325,22 @@ implementation
          if (tprocdef(left.resultdef).parast.symtablelevel>=normal_function_level) then
            include(current_procinfo.flags,pi_needs_stackframe);
          if tabstractprocdef(resultdef).is_addressonly then
-          begin
-            registersint:=left.registersint;
-            if registersint<1 then
-              registersint:=1;
-            expectloc:=LOC_REGISTER;
-          end
+           expectloc:=LOC_REGISTER
          else
-          begin
-            if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-              CGMessage(parser_e_illegal_expression);
-            registersint:=left.registersint;
-            expectloc:=left.expectloc
-          end
+           begin
+             if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+               CGMessage(parser_e_illegal_expression);
+             expectloc:=left.expectloc;
+           end;
       end;
 
-    function ttypeconvnode.first_nil_to_methodprocvar : tnode;
 
-    begin
-      first_nil_to_methodprocvar:=nil;
-      registersint:=0;
-      expectloc:=LOC_REFERENCE;
-    end;
+    function ttypeconvnode.first_nil_to_methodprocvar : tnode;
+      begin
+        first_nil_to_methodprocvar:=nil;
+        expectloc:=LOC_REFERENCE;
+      end;
+
 
     function ttypeconvnode.first_set_to_set : tnode;
       var
@@ -2459,8 +2427,6 @@ implementation
       begin
          first_ansistring_to_pchar:=nil;
          expectloc:=LOC_REGISTER;
-         if registersint<1 then
-           registersint:=1;
       end;
 
 
@@ -2475,8 +2441,6 @@ implementation
       begin
          first_class_to_intf:=nil;
          expectloc:=LOC_REGISTER;
-         if registersint<1 then
-           registersint:=1;
       end;
 
     function ttypeconvnode._first_int_to_int : tnode;
@@ -2658,15 +2622,7 @@ implementation
         firstpass(left);
         if codegenerror then
          exit;
-
-        { load the value_str from the left part }
-        registersint:=left.registersint;
-        registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif}
         expectloc:=left.expectloc;
-
         result:=first_call_helper(convtype);
       end;
 
@@ -3119,11 +3075,6 @@ implementation
             if codegenerror then
               exit;
            expectloc:=call.expectloc;
-           registersint:=call.registersint;
-           registersfpu:=call.registersfpu;
-{$ifdef SUPPORT_MMX}
-           registersmmx:=call.registersmmx;
-{$endif SUPPORT_MMX}
          end;
       end;
 

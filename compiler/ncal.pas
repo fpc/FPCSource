@@ -168,11 +168,11 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
-          function  pass_1 : tnode;override;
+          function pass_typecheck : tnode;override;
+          function pass_1 : tnode;override;
           procedure get_paratype;
-          procedure insert_typeconv(do_count : boolean);
-          procedure det_registers;
           procedure firstcallparan;
+          procedure insert_typeconv(do_count : boolean);
           procedure secondcallparan;virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
@@ -536,11 +536,18 @@ implementation
       end;
 
 
+    function tcallparanode.pass_typecheck : tnode;
+      begin
+        { need to use get_paratype }
+        internalerror(200709251);
+        result:=nil;
+      end;
+
+
     function tcallparanode.pass_1 : tnode;
       begin
-        firstpass(left);
-        if assigned(right) then
-          firstpass(right);
+        { need to use firstcallparan }
+        internalerror(200709252);
         result:=nil;
       end;
 
@@ -549,7 +556,6 @@ implementation
       var
         old_array_constructor : boolean;
       begin
-         inc(parsing_para_level);
          if assigned(right) then
           tcallparanode(right).get_paratype;
          old_array_constructor:=allow_array_constructor;
@@ -560,7 +566,17 @@ implementation
           resultdef:=generrordef
          else
           resultdef:=left.resultdef;
-         dec(parsing_para_level);
+      end;
+
+
+    procedure tcallparanode.firstcallparan;
+      begin
+        if assigned(right) then
+          tcallparanode(right).firstcallparan;
+        if not assigned(left.resultdef) then
+          get_paratype;
+        firstpass(left);
+        expectloc:=left.expectloc;
       end;
 
 
@@ -568,19 +584,7 @@ implementation
       var
         olddef  : tdef;
         hp       : tnode;
-{$ifdef extdebug}
-        store_count_ref : boolean;
-{$endif def extdebug}
       begin
-         inc(parsing_para_level);
-
-{$ifdef extdebug}
-         if do_count then
-           begin
-             store_count_ref:=count_ref;
-             count_ref:=true;
-           end;
-{$endif def extdebug}
          { Be sure to have the resultdef }
          if not assigned(left.resultdef) then
            typecheckpass(left);
@@ -685,10 +689,7 @@ implementation
                          inserttypeconv(left,parasym.vardef);
                        end;
                       if codegenerror then
-                        begin
-                           dec(parsing_para_level);
-                           exit;
-                        end;
+                        exit;
                    end;
 
                  { check var strings }
@@ -786,38 +787,6 @@ implementation
          { process next node }
          if assigned(right) then
            tcallparanode(right).insert_typeconv(do_count);
-
-         dec(parsing_para_level);
-{$ifdef extdebug}
-         if do_count then
-           count_ref:=store_count_ref;
-{$endif def extdebug}
-      end;
-
-
-    procedure tcallparanode.det_registers;
-      begin
-         if assigned(right) then
-           begin
-              tcallparanode(right).det_registers;
-
-              registersint:=right.registersint;
-              registersfpu:=right.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=right.registersmmx;
-{$endif}
-           end;
-
-         firstpass(left);
-
-         if left.registersint>registersint then
-           registersint:=left.registersint;
-         if left.registersfpu>registersfpu then
-           registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         if left.registersmmx>registersmmx then
-           registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
       end;
 
 
@@ -842,14 +811,6 @@ implementation
             n:=ttypeconvnode(n).left;
           end;
         result:=false;
-      end;
-
-
-    procedure tcallparanode.firstcallparan;
-      begin
-        if not assigned(left.resultdef) then
-          get_paratype;
-        det_registers;
       end;
 
 
@@ -2471,10 +2432,10 @@ implementation
             { pull in at the correct place.
               Used order:
                 1. LOC_REFERENCE with smallest offset (i386 only)
-                2. LOC_REFERENCE with most registers and least complexity (non-i386 only)
-                3. LOC_REFERENCE with least registers and most complexity (non-i386 only)
-                4. LOC_REGISTER with most registers and most complexity
-                5. LOC_REGISTER with least registers and least complexity
+                2. LOC_REFERENCE with least complexity (non-i386 only)
+                3. LOC_REFERENCE with most complexity (non-i386 only)
+                4. LOC_REGISTER with most complexity
+                5. LOC_REGISTER with least complexity
               For the moment we only look at the first parameter field. Combining it
               with multiple parameter fields will make things a lot complexer (PFV)
 
@@ -2519,8 +2480,7 @@ implementation
                             { pushes                                        }
                             if (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset) then
 {$else i386}
-                            if (hpcurr.registersint>hp.registersint) or
-                               (node_complexity(hpcurr)<node_complexity(hp)) then
+                            if (node_complexity(hpcurr)<node_complexity(hp)) then
 {$endif i386}
                               break;
                           end;
@@ -2660,18 +2620,10 @@ implementation
          { record maximum parameter size used in this proc }
          current_procinfo.allocate_push_parasize(pushedparasize);
 
-         { work trough all parameters to get the register requirements }
-         if assigned(left) then
-           begin
-             tcallparanode(left).det_registers;
-
-             { check for stacked parameters }
-             if (current_settings.optimizerswitches*[cs_opt_stackframe,cs_opt_level1]<>[]) then
-               check_stack_parameters;
-           end;
-
-         { order parameters }
-         order_parameters;
+         { check for stacked parameters }
+         if assigned(left) and
+            (current_settings.optimizerswitches*[cs_opt_stackframe,cs_opt_level1]<>[]) then
+           check_stack_parameters;
 
          if assigned(callinitblock) then
            firstpass(callinitblock);
@@ -2680,15 +2632,26 @@ implementation
          if assigned(funcretnode) then
            firstpass(funcretnode);
 
+         { parameters }
+         if assigned(left) then
+           tcallparanode(left).firstcallparan;
+
          { procedure variable ? }
          if assigned(right) then
            firstpass(right);
+
+         if assigned(methodpointer) and
+            (methodpointer.nodetype<>typen) then
+           firstpass(methodpointer);
 
          if assigned(callcleanupblock) then
            firstpass(callcleanupblock);
 
          if not (block_type in [bt_const,bt_type]) then
            include(current_procinfo.flags,pi_do_call);
+
+         { order parameters }
+         order_parameters;
 
          { get a register for the return value }
          if (not is_void(resultdef)) then
@@ -2703,7 +2666,6 @@ implementation
                  is_widestring(resultdef) then
                begin
                  expectloc:=LOC_REFERENCE;
-                 registersint:=1;
                end
              else
              { we have only to handle the result if it is used }
@@ -2713,47 +2675,15 @@ implementation
                    enumdef,
                    orddef :
                      begin
-                       if (procdefinition.proctypeoption=potype_constructor) then
-                        begin
-                          expectloc:=LOC_REGISTER;
-                          registersint:=1;
-                        end
-                       else
-                        begin
-                          expectloc:=LOC_REGISTER;
-                          if is_64bit(resultdef) then
-                            registersint:=2
-                          else
-                            registersint:=1;
-                        end;
+                       expectloc:=LOC_REGISTER;
                      end;
                    floatdef :
                      begin
                        expectloc:=LOC_FPUREGISTER;
-{$ifdef cpufpemu}
-                       if (cs_fp_emulation in current_settings.moduleswitches) then
-                         registersint:=1
-                       else
-{$endif cpufpemu}
-{$ifdef m68k}
-                        if (tfloatdef(resultdef).floattype=s32real) then
-                         registersint:=1
-                       else
-{$endif m68k}
-                         registersfpu:=1;
                      end;
                    else
                      begin
                        expectloc:=procdefinition.funcretloc[callerside].loc;
-                       if (expectloc = LOC_REGISTER) then
-{$ifndef cpu64bit}
-                         if (resultdef.size > sizeof(aint)) then
-                           registersint:=2
-                         else
-{$endif cpu64bit}
-                          registersint:=1
-                       else
-                         registersint:=0;
                      end;
                  end;
                end
@@ -2762,49 +2692,6 @@ implementation
            end
          else
            expectloc:=LOC_VOID;
-
-{$ifdef m68k}
-         { we need one more address register for virtual calls on m68k }
-         if (po_virtualmethod in procdefinition.procoptions) then
-           inc(registersint);
-{$endif m68k}
-         { a fpu can be used in any procedure !! }
-{$ifdef i386}
-         registersfpu:=procdefinition.fpu_used;
-{$endif i386}
-         { if this is a call to a method calc the registers }
-         if (methodpointer<>nil) then
-           begin
-              if methodpointer.nodetype<>typen then
-               begin
-                 firstpass(methodpointer);
-                 registersfpu:=max(methodpointer.registersfpu,registersfpu);
-                 registersint:=max(methodpointer.registersint,registersint);
-{$ifdef SUPPORT_MMX }
-                 registersmmx:=max(methodpointer.registersmmx,registersmmx);
-{$endif SUPPORT_MMX}
-               end;
-           end;
-
-         { determine the registers of the procedure variable }
-         { is this OK for inlined procs also ?? (PM)     }
-         if assigned(right) then
-           begin
-              registersfpu:=max(right.registersfpu,registersfpu);
-              registersint:=max(right.registersint,registersint);
-{$ifdef SUPPORT_MMX}
-              registersmmx:=max(right.registersmmx,registersmmx);
-{$endif SUPPORT_MMX}
-           end;
-         { determine the registers of the procedure }
-         if assigned(left) then
-           begin
-              registersfpu:=max(left.registersfpu,registersfpu);
-              registersint:=max(left.registersint,registersint);
-{$ifdef SUPPORT_MMX}
-              registersmmx:=max(left.registersmmx,registersmmx);
-{$endif SUPPORT_MMX}
-           end;
       end;
 
 {$ifdef state_tracking}

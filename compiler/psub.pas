@@ -756,8 +756,11 @@ implementation
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
-        if code.registersfpu>0 then
+{$ifdef i386}
+        procdef.fpu_used:=node_resources_fpu(code);
+        if procdef.fpu_used>0 then
           include(flags,pi_uses_fpu);
+{$endif i386}
 
         { do this before adding the entry code else the tail recursion recognition won't work,
           if this causes troubles, it must be if'ed
@@ -910,9 +913,6 @@ implementation
             { generate code for the node tree }
             do_secondpass(code);
             aktproccode.concatlist(current_asmdata.CurrAsmList);
-{$ifdef i386}
-            procdef.fpu_used:=code.registersfpu;
-{$endif i386}
 
             { The position of the loadpara_asmnode is now known }
             aktproccode.insertlistafter(loadpara_asmnode.currenttai,templist);

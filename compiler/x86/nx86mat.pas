@@ -72,29 +72,16 @@ interface
          if (left.resultdef.typ=floatdef) then
            begin
              if use_sse(left.resultdef) then
-               begin
-                 if (registersmm < 1) then
-                   registersmm := 1;
-                 expectloc:=LOC_MMREGISTER;
-               end
+               expectloc:=LOC_MMREGISTER
              else
-               begin
-                 if (registersfpu < 1) then
-                   registersfpu := 1;
-                 expectloc:=LOC_FPUREGISTER;
-               end;
+               expectloc:=LOC_FPUREGISTER;
            end
 {$ifdef SUPPORT_MMX}
          else
            if (cs_mmx in current_settings.localswitches) and
               is_mmx_able_array(left.resultdef) then
              begin
-               registersint:=left.registersint;
-               registersfpu:=left.registersfpu;
-               registersmmx:=left.registersmmx;
-               if (left.location.loc<>LOC_MMXREGISTER) and
-                  (registersmmx<1) then
-                 registersmmx:=1;
+               expectloc:=LOC_MMXREGISTER;
              end
 {$endif SUPPORT_MMX}
          else

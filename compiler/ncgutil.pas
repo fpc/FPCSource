@@ -71,8 +71,6 @@ interface
       a register it is expected to contain the address of the data }
     procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean);
 
-    function  maybe_pushfpu(list:TAsmList;needed : byte;var l:tlocation) : boolean;
-
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
     procedure gen_proc_symbol(list:TAsmList);
@@ -214,43 +212,18 @@ implementation
       end;
 
 
-
-   { DO NOT RELY on the fact that the tnode is not yet swaped
-     because of inlining code PM }
     procedure firstcomplex(p : tbinarynode);
-      var
-         hp : tnode;
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
             is_boolean(p.left.resultdef) then
            begin
              if nf_swapped in p.flags then
-               internalerror(234234);
+               internalerror(200709253);
            end
          else
-           if (
-               (p.expectloc=LOC_FPUREGISTER) and
-               (p.right.registersfpu > p.left.registersfpu)
-              ) or
-              (
-               (
-                (
-                 ((p.left.registersfpu = 0) and (p.right.registersfpu = 0)) or
-                 (p.expectloc<>LOC_FPUREGISTER)
-                ) and
-                (p.left.registersint<p.right.registersint)
-               )
-              ) then
-            begin
-              hp:=p.left;
-              p.left:=p.right;
-              p.right:=hp;
-              if nf_swapped in p.flags then
-                exclude(p.flags,nf_swapped)
-              else
-                include(p.flags,nf_swapped);
-            end;
+           if node_resources_fpu(p.right)>node_resources_fpu(p.left) then
+             p.swapleftright;
       end;
 
 
@@ -844,27 +817,6 @@ implementation
           else
             internalerror(200309181);
         end;
-      end;
-
-
-{*****************************************************************************
-                                  Maybe_Save
-*****************************************************************************}
-
-    function maybe_pushfpu(list:TAsmList;needed : byte;var l:tlocation) : boolean;
-      begin
-{$ifdef i386}
-        if (needed>=maxfpuregs) and
-           (l.loc = LOC_FPUREGISTER) then
-          begin
-            location_force_mem(list,l);
-            maybe_pushfpu:=true;
-          end
-        else
-          maybe_pushfpu:=false;
-{$else i386}
-        maybe_pushfpu:=false;
-{$endif i386}
       end;
 
 

@@ -434,7 +434,6 @@ implementation
              if assigned(result) then
                exit;
              expectloc:=LOC_REGISTER;
-             calcregisters(self,2,0,0);
            end
          else
 {$endif cpu64bit}
@@ -442,9 +441,6 @@ implementation
              result := first_moddivint;
              if assigned(result) then
                exit;
-             left_right_max;
-             if left.registersint<=right.registersint then
-              inc(registersint);
            end;
          expectloc:=LOC_REGISTER;
       end;
@@ -573,7 +569,6 @@ implementation
          if (right.nodetype<>ordconstn) then
            inc(regs);
          expectloc:=LOC_REGISTER;
-         calcregisters(self,regs,0,0);
       end;
 
 
@@ -722,44 +717,15 @@ implementation
           end
         else
           begin
-            registersint:=left.registersint;
-            registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-            registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-
             if (left.resultdef.typ=floatdef) then
-              begin
-                if (left.expectloc<>LOC_REGISTER) and
-                  (registersfpu<1) then
-                  registersfpu:=1;
-                expectloc:=LOC_FPUREGISTER;
-              end
+              expectloc:=LOC_FPUREGISTER
 {$ifdef SUPPORT_MMX}
              else if (cs_mmx in current_settings.localswitches) and
                is_mmx_able_array(left.resultdef) then
-                 begin
-                   if (left.expectloc<>LOC_MMXREGISTER) and
-                      (registersmmx<1) then
-                     registersmmx:=1;
-                 end
+              expectloc:=LOC_MMXREGISTER
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bit}
-             else if is_64bit(left.resultdef) then
-               begin
-                  if (left.expectloc<>LOC_REGISTER) and
-                     (registersint<2) then
-                    registersint:=2;
-                  expectloc:=LOC_REGISTER;
-               end
-{$endif cpu64bit}
              else if (left.resultdef.typ=orddef) then
-               begin
-                  if (left.expectloc<>LOC_REGISTER) and
-                     (registersint<1) then
-                    registersint:=1;
-                  expectloc:=LOC_REGISTER;
-               end;
+               expectloc:=LOC_REGISTER;
           end;
       end;
 
@@ -909,18 +875,10 @@ implementation
            exit;
 
          expectloc:=left.expectloc;
-         registersint:=left.registersint;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
          if is_boolean(resultdef) then
            begin
              if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-              begin
-                expectloc:=LOC_REGISTER;
-                if (registersint<1) then
-                 registersint:=1;
-              end;
+               expectloc:=LOC_REGISTER;
             { before loading it into flags we need to load it into
               a register thus 1 register is need PM }
 {$ifdef cpuflags}
@@ -932,32 +890,19 @@ implementation
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in current_settings.localswitches) and
              is_mmx_able_array(left.resultdef) then
-             begin
-               if (left.expectloc<>LOC_MMXREGISTER) and
-                 (registersmmx<1) then
-                 registersmmx:=1;
-             end
+             expectloc:=LOC_MMXREGISTER
          else
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
            if is_64bit(left.resultdef) then
              begin
                 if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-                 begin
-                   expectloc:=LOC_REGISTER;
-                   if (registersint<2) then
-                    registersint:=2;
-                 end;
+                  expectloc:=LOC_REGISTER;
              end
          else
 {$endif cpu64bit}
            if is_integer(left.resultdef) then
-             begin
-               if (left.expectloc<>LOC_REGISTER) and
-                  (registersint<1) then
-                 registersint:=1;
-               expectloc:=LOC_REGISTER;
-             end;
+             expectloc:=LOC_REGISTER;
       end;
 
 {$ifdef state_tracking}

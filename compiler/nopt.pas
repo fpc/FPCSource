@@ -140,7 +140,6 @@ function taddsstringoptnode.pass_1: tnode;
 begin
   pass_1 := nil;
   expectloc:= LOC_REFERENCE;
-  calcregisters(self,0,0,0);
   { here we call STRCONCAT or STRCMP or STRCOPY }
   include(current_procinfo.flags,pi_do_call);
 end;

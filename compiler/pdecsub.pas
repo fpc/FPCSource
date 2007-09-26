@@ -952,7 +952,6 @@ implementation
                          single_type(pd.returndef,false);
                          if popclass then
                            symtablestack.pop(pd._class.symtable);
-                         pd.test_if_fpu_result;
                          dec(testcurobject);
 
                          if (target_info.system in [system_m68k_amiga]) then
@@ -1092,7 +1091,6 @@ implementation
                   else
                    begin
                      single_type(pd.returndef,false);
-                     pd.test_if_fpu_result;
                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>bool8bit)) then

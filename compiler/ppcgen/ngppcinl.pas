@@ -66,23 +66,16 @@ implementation
         if (current_settings.cputype >= cpu_PPC970) then
           begin
             expectloc:=LOC_FPUREGISTER;
-            registersint:=left.registersint;
-            registersfpu:=max(left.registersfpu,1);
             first_sqrt_real := nil;
           end
         else
           result:=inherited first_sqrt_real;
       end;
 
-    
+
     function tgppcinlinenode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_abs_real := nil;
       end;
 
@@ -90,11 +83,6 @@ implementation
      function tgppcinlinenode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_sqr_real := nil;
       end;
 

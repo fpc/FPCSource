@@ -242,8 +242,6 @@ interface
 
        block_type : tblock_type;         { type of currently parsed block }
 
-       parsing_para_level : integer;     { parameter level, used to convert
-                                           proc calls to proc loads in firstcalln }
        compile_level : word;
        resolving_forward : boolean;      { used to add forward reference as second ref }
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }

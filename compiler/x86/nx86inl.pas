@@ -86,7 +86,6 @@ implementation
      function tx86inlinenode.first_pi : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersfpu:=1;
         first_pi := nil;
       end;
 
@@ -94,85 +93,45 @@ implementation
      function tx86inlinenode.first_arctan_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,2);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_arctan_real := nil;
       end;
 
      function tx86inlinenode.first_abs_real : tnode;
        begin
          if use_sse(resultdef) then
-           begin
-             expectloc:=LOC_MMREGISTER;
-             registersmm:=max(left.registersmm,1);
-           end
+           expectloc:=LOC_MMREGISTER
          else
-           begin
-             expectloc:=LOC_FPUREGISTER;
-             registersfpu:=max(left.registersfpu,1);
-          end;
-        registersint:=left.registersint;
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+           expectloc:=LOC_FPUREGISTER;
         first_abs_real := nil;
       end;
 
      function tx86inlinenode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_sqr_real := nil;
       end;
 
      function tx86inlinenode.first_sqrt_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_sqrt_real := nil;
       end;
 
      function tx86inlinenode.first_ln_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,2);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_ln_real := nil;
       end;
 
      function tx86inlinenode.first_cos_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_cos_real := nil;
       end;
 
      function tx86inlinenode.first_sin_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         first_sin_real := nil;
       end;
 
@@ -186,11 +145,6 @@ implementation
 {$else x86_64}
           expectloc:=LOC_REFERENCE;
 {$endif x86_64}
-        registersint:=left.registersint;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
         result:=nil;
       end;
 
@@ -212,11 +166,6 @@ implementation
 {$else x86_64}
                expectloc:=LOC_REFERENCE;
 {$endif x86_64}
-             registersint:=left.registersint;
-             registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
              result:=nil;
            end;
        end;

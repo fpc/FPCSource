@@ -831,10 +831,6 @@ implementation
                           begin
                              extraoffset:=tordconstnode(taddnode(right).right).value.svalue;
                              t:=taddnode(right).left;
-                             { First pass processed this with the assumption   }
-                             { that there was an add node which may require an }
-                             { extra register. Fake it or die with IE10 (JM)   }
-                             t.registersint := taddnode(right).registersint;
                              taddnode(right).left:=nil;
                              right.free;
                              right:=t;
@@ -843,7 +839,6 @@ implementation
                           begin
                              extraoffset:=tordconstnode(taddnode(right).left).value.svalue;
                              t:=taddnode(right).right;
-                             t.registersint :=  right.registersint;
                              taddnode(right).right:=nil;
                              right.free;
                              right:=t;
@@ -855,22 +850,10 @@ implementation
                           begin
                              extraoffset:=-tordconstnode(taddnode(right).right).value.svalue;
                              t:=taddnode(right).left;
-                             t.registersint :=  right.registersint;
                              taddnode(right).left:=nil;
                              right.free;
                              right:=t;
-                          end
-{ You also have to negate right.right in this case! I can't add an
-  unaryminusn without causing a crash, so I've disabled it (JM)
-                        else if right.left.nodetype=ordconstn then
-                          begin
-                             extraoffset:=right.left.value;
-                             t:=right.right;
-                             t^.registersint :=  right.registersint;
-                             putnode(right);
-                             putnode(right.left);
-                             right:=t;
-                         end;}
+                          end;
                      end;
                    inc(location.reference.offset,
                        mulsize*extraoffset);

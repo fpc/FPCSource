@@ -73,11 +73,6 @@ begin
   if codegenerror then
     exit;
   expectloc:=LOC_REFERENCE;
-  if not is_constcharnode(right) then
-    { it's not sure we need the register, but we can't know it here yet }
-    calcregisters(self,2,0,0)
-  else
-    calcregisters(self,1,0,0);
 end;
 
 

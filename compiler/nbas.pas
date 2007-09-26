@@ -400,11 +400,6 @@ implementation
          if codegenerror then
            exit;
          expectloc:=left.expectloc;
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
          { right is the next in the list }
          if assigned(right) then
            firstpass(right);
@@ -517,25 +512,8 @@ implementation
                 begin
                    codegenerror:=false;
                    firstpass(hp.left);
-
                    hp.expectloc:=hp.left.expectloc;
-                   hp.registersint:=hp.left.registersint;
-                   hp.registersfpu:=hp.left.registersfpu;
-{$ifdef SUPPORT_MMX}
-                   hp.registersmmx:=hp.left.registersmmx;
-{$endif SUPPORT_MMX}
-                end
-              else
-                hp.registersint:=0;
-
-              if hp.registersint>registersint then
-                registersint:=hp.registersint;
-              if hp.registersfpu>registersfpu then
-                registersfpu:=hp.registersfpu;
-{$ifdef SUPPORT_MMX}
-              if hp.registersmmx>registersmmx then
-                registersmmx:=hp.registersmmx;
-{$endif}
+                end;
               expectloc:=hp.expectloc;
               inc(count);
               hp:=tstatementnode(hp.right);

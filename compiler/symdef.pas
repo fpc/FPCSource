@@ -347,9 +347,6 @@ interface
           { number of user visibile parameters }
           maxparacount,
           minparacount    : byte;
-{$ifdef i386}
-          fpu_used        : longint;    { how many stack fpu must be empty }
-{$endif i386}
 {$ifdef m68k}
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
@@ -363,7 +360,6 @@ interface
           procedure deref;override;
           procedure calcparas;
           function  typename_paras(showhidden:boolean): string;
-          procedure test_if_fpu_result;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
        private
@@ -463,6 +459,9 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
+{$ifdef i386}
+          fpu_used     : byte;
+{$endif i386}
           { position in aasmoutput list }
           procstarttai,
           procendtai   : tai;
@@ -2542,13 +2541,9 @@ implementation
          proccalloption:=pocall_none;
          procoptions:=[];
          returndef:=voidtype;
-{$ifdef i386}
-         fpu_used:=0;
-{$endif i386}
          savesize:=sizeof(aint);
          requiredargarea:=0;
          has_paraloc_info:=false;
-
          location_reset(funcretloc[callerside],LOC_INVALID,OS_NO);
          location_reset(funcretloc[calleeside],LOC_INVALID,OS_NO);
       end;
@@ -2625,20 +2620,6 @@ implementation
       end;
 
 
-    { all functions returning in FPU are
-      assume to use 2 FPU registers
-      until the function implementation
-      is processed   PM }
-    procedure tabstractprocdef.test_if_fpu_result;
-      begin
-{$ifdef i386}
-         if assigned(returndef) and
-            (returndef.typ=floatdef) then
-           fpu_used:=maxfpuregs;
-{$endif i386}
-      end;
-
-
     procedure tabstractprocdef.buildderef;
       begin
          { released procdef? }
@@ -2672,11 +2653,8 @@ implementation
          minparacount:=0;
          maxparacount:=0;
          ppufile.getderef(returndefderef);
-{$ifdef i386}
-         fpu_used:=ppufile.getbyte;
-{$else}
+{$warning TODO remove fpu_used loading}
          ppufile.getbyte;
-{$endif i386}
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getnormalset(procoptions);
@@ -2707,13 +2685,7 @@ implementation
          ppufile.putderef(returndefderef);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
-{$ifdef i386}
-         if simplify_ppu then
-          fpu_used:=0;
-         ppufile.putbyte(fpu_used);
-{$else}
          ppufile.putbyte(0);
-{$endif}
          ppufile.putbyte(ord(proctypeoption));
          ppufile.putbyte(ord(proccalloption));
          ppufile.putnormalset(procoptions);
@@ -2851,6 +2823,9 @@ implementation
          import_name:=nil;
          import_nr:=0;
          inlininginfo:=nil;
+{$ifdef i386}
+          fpu_used:=maxfpuregs;
+{$endif i386}
       end;
 
 
@@ -2926,6 +2901,9 @@ implementation
          hasforward:=false;
          { Disable po_has_inlining until the derefimpl is done }
          exclude(procoptions,po_has_inlininginfo);
+{$ifdef i386}
+         fpu_used:=maxfpuregs;
+{$endif i386}
       end;
 
 
@@ -3501,9 +3479,6 @@ implementation
         for i:=low(tcallercallee) to high(tcallercallee) do
           location_copy(tprocvardef(result).funcretloc[i],funcretloc[i]);
         tprocvardef(result).has_paraloc_info:=has_paraloc_info;
-{$ifdef i386}
-        tprocvardef(result).fpu_used:=fpu_used;
-{$endif i386}
 {$ifdef m68k}
         tprocvardef(result).exp_funcretloc:=exp_funcretloc;
 {$endif}
@@ -3512,16 +3487,6 @@ implementation
 
     procedure tprocvardef.ppuwrite(ppufile:tcompilerppufile);
       begin
-        { here we cannot get a real good value so just give something }
-        { plausible (PM) }
-        { a more secure way would be
-          to allways store in a temp }
-{$ifdef i386}
-        if is_fpu(returndef) then
-          fpu_used:={2}maxfpuregs
-        else
-          fpu_used:=0;
-{$endif i386}
         inherited ppuwrite(ppufile);
 
         { Write this entry }

@@ -500,11 +500,6 @@ implementation
          firstpass(left);
          if codegenerror then
            exit;
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
 
          { loop instruction }
          if assigned(right) then
@@ -512,15 +507,6 @@ implementation
               firstpass(right);
               if codegenerror then
                 exit;
-
-              if registersint<right.registersint then
-                registersint:=right.registersint;
-              if registersfpu<right.registersfpu then
-                registersfpu:=right.registersfpu;
-{$ifdef SUPPORT_MMX}
-              if registersmmx<right.registersmmx then
-                registersmmx:=right.registersmmx;
-{$endif SUPPORT_MMX}
            end;
 
          cg.t_times:=old_t_times;
@@ -736,11 +722,6 @@ implementation
          expectloc:=LOC_VOID;
          old_t_times:=cg.t_times;
          firstpass(left);
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
 
          { determines registers weigths }
          if not(cs_opt_size in current_settings.optimizerswitches) then
@@ -750,33 +731,11 @@ implementation
 
          { if path }
          if assigned(right) then
-           begin
-              firstpass(right);
-
-              if registersint<right.registersint then
-                registersint:=right.registersint;
-              if registersfpu<right.registersfpu then
-                registersfpu:=right.registersfpu;
-{$ifdef SUPPORT_MMX}
-              if registersmmx<right.registersmmx then
-                registersmmx:=right.registersmmx;
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(right);
 
          { else path }
          if assigned(t1) then
-           begin
-              firstpass(t1);
-
-              if registersint<t1.registersint then
-                registersint:=t1.registersint;
-              if registersfpu<t1.registersfpu then
-                registersfpu:=t1.registersfpu;
-{$ifdef SUPPORT_MMX}
-              if registersmmx<t1.registersmmx then
-                registersmmx:=t1.registersmmx;
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(t1);
 
          { leave if we've got an error in one of the paths }
 
@@ -879,34 +838,8 @@ implementation
          expectloc:=LOC_VOID;
 
          firstpass(left);
-         if left.registersint>registersint then
-           registersint:=left.registersint;
-         if left.registersfpu>registersfpu then
-           registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         if left.registersmmx>registersmmx then
-           registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-
          firstpass(right);
-         if right.registersint>registersint then
-           registersint:=right.registersint;
-         if right.registersfpu>registersfpu then
-           registersfpu:=right.registersfpu;
-{$ifdef SUPPORT_MMX}
-         if right.registersmmx>registersmmx then
-           registersmmx:=right.registersmmx;
-{$endif SUPPORT_MMX}
-
          firstpass(t1);
-         if t1.registersint>registersint then
-           registersint:=t1.registersint;
-         if t1.registersfpu>registersfpu then
-           registersfpu:=t1.registersfpu;
-{$ifdef SUPPORT_MMX}
-         if t1.registersmmx>registersmmx then
-           registersmmx:=t1.registersmmx;
-{$endif SUPPORT_MMX}
 
          if assigned(t2) then
           begin
@@ -917,20 +850,8 @@ implementation
             firstpass(t2);
             if codegenerror then
              exit;
-            if t2.registersint>registersint then
-              registersint:=t2.registersint;
-            if t2.registersfpu>registersfpu then
-              registersfpu:=t2.registersfpu;
-{$ifdef SUPPORT_MMX}
-            if t2.registersmmx>registersmmx then
-              registersmmx:=t2.registersmmx;
-{$endif SUPPORT_MMX}
             cg.t_times:=old_t_times;
           end;
-
-         { we need at least one register for comparisons PM }
-         if registersint=0 then
-           inc(registersint);
       end;
 
 
@@ -982,11 +903,6 @@ implementation
               firstpass(left);
               if codegenerror then
                exit;
-              registersint:=left.registersint;
-              registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
            end;
       end;
 
@@ -1202,14 +1118,7 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          if assigned(left) then
-          begin
-            firstpass(left);
-            registersint:=left.registersint;
-            registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-            registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-          end;
+           firstpass(left);
       end;
 
 
@@ -1287,7 +1196,6 @@ implementation
                  if assigned(third) then
                   firstpass(third);
                end;
-              left_right_max;
            end;
       end;
 
@@ -1324,24 +1232,10 @@ implementation
          firstpass(left);
          { on statements }
          if assigned(right) then
-           begin
-              firstpass(right);
-              registersint:=max(registersint,right.registersint);
-              registersfpu:=max(registersfpu,right.registersfpu);
-{$ifdef SUPPORT_MMX}
-              registersmmx:=max(registersmmx,right.registersmmx);
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(right);
          { else block }
          if assigned(t1) then
-           begin
-              firstpass(t1);
-              registersint:=max(registersint,t1.registersint);
-              registersfpu:=max(registersfpu,t1.registersfpu);
-{$ifdef SUPPORT_MMX}
-              registersmmx:=max(registersmmx,t1.registersmmx);
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(t1);
       end;
 
 
@@ -1394,17 +1288,9 @@ implementation
          firstpass(left);
 
          firstpass(right);
-         left_right_max;
 
          if assigned(t1) then
-           begin
-             firstpass(t1);
-             registersint:=max(registersint,t1.registersint);
-             registersfpu:=max(registersfpu,t1.registersfpu);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=max(registersmmx,t1.registersmmx);
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(t1);
       end;
 
 
@@ -1469,30 +1355,11 @@ implementation
          result:=nil;
          include(current_procinfo.flags,pi_do_call);
          expectloc:=LOC_VOID;
-         registersint:=0;
-         registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=0;
-{$endif SUPPORT_MMX}
          if assigned(left) then
-           begin
-              firstpass(left);
-              registersint:=left.registersint;
-              registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(left);
 
          if assigned(right) then
-           begin
-              firstpass(right);
-              registersint:=max(registersint,right.registersint);
-              registersfpu:=max(registersfpu,right.registersfpu);
-{$ifdef SUPPORT_MMX}
-              registersmmx:=max(registersmmx,right.registersmmx);
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(right);
       end;
 
 

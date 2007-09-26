@@ -258,7 +258,6 @@ implementation
          { set para parsing values }
          in_args:=true;
          named_args_allowed:=false;
-         inc(parsing_para_level);
          allow_array_constructor:=true;
          p2:=nil;
          repeat
@@ -307,7 +306,6 @@ implementation
              end;
          until not try_to_consume(_COMMA);
          allow_array_constructor:=old_allow_array_constructor;
-         dec(parsing_para_level);
          in_args:=prev_in_args;
          named_args_allowed:=old_named_args_allowed;
          parse_paras:=p2;

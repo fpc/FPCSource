@@ -101,8 +101,6 @@ implementation
             firstpass(left);
           end;
         result := nil;
-        if registersfpu<1 then
-          registersfpu:=1;
         location.loc:=LOC_FPUREGISTER;
       end;
 

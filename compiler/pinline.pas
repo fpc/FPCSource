@@ -498,10 +498,8 @@ implementation
          end;
         { last param must be var }
         destppn:=ppn.left;
-        inc(parsing_para_level);
         valid_for_var(destppn,true);
         set_varstate(destppn,vs_written,[]);
-        dec(parsing_para_level);
         { first param must be a string or dynamic array ...}
         isarray:=is_dynamic_array(destppn.resultdef);
         if not((destppn.resultdef.typ=stringdef) or

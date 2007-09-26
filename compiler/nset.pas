@@ -153,7 +153,6 @@ implementation
           exit;
 
          expectloc:=left.expectloc;
-         calcregisters(self,0,0,0);
       end;
 
 
@@ -335,22 +334,6 @@ implementation
          firstpass(left);
          if codegenerror then
            exit;
-
-         left_right_max;
-
-         if tsetdef(right.resultdef).settype<>smallset then
-           begin
-             if registersint < 3 then
-               registersint := 3;
-           end
-         else
-           begin
-              { a smallset needs maybe an misc. register }
-              if (left.nodetype<>ordconstn) and
-                 not(right.expectloc in [LOC_CREGISTER,LOC_REGISTER]) and
-                 (right.registersint<1) then
-                inc(registersint);
-           end;
       end;
 
 
@@ -396,7 +379,6 @@ implementation
          firstpass(right);
          if codegenerror then
            exit;
-        left_right_max;
         expectloc:=left.expectloc;
       end;
 
@@ -607,7 +589,6 @@ implementation
     function tcasenode.pass_1 : tnode;
       var
          old_t_times : longint;
-         hp : tnode;
          i  : integer;
       begin
          result:=nil;
@@ -617,12 +598,6 @@ implementation
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
-         registersint:=left.registersint;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-
          { walk through all instructions }
 
          { estimates the repeat of each instruction }
@@ -635,42 +610,12 @@ implementation
            end;
          { first case }
          for i:=0 to blocks.count-1 do
-           begin
-
-              firstpass(pcaseblock(blocks[i])^.statement);
-
-              { searchs max registers }
-              hp:=pcaseblock(blocks[i])^.statement;
-              if hp.registersint>registersint then
-                registersint:=hp.registersint;
-              if hp.registersfpu>registersfpu then
-                registersfpu:=hp.registersfpu;
-{$ifdef SUPPORT_MMX}
-              if hp.registersmmx>registersmmx then
-                registersmmx:=hp.registersmmx;
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(pcaseblock(blocks[i])^.statement);
 
          { may be handle else tree }
          if assigned(elseblock) then
-           begin
-              firstpass(elseblock);
-              if registersint<elseblock.registersint then
-                registersint:=elseblock.registersint;
-              if registersfpu<elseblock.registersfpu then
-                registersfpu:=elseblock.registersfpu;
-{$ifdef SUPPORT_MMX}
-              if registersmmx<elseblock.registersmmx then
-                registersmmx:=elseblock.registersmmx;
-{$endif SUPPORT_MMX}
-           end;
+           firstpass(elseblock);
          cg.t_times:=old_t_times;
-
-         { there is one register required for the case expression    }
-         { for 64 bit ints we cheat: the high dword is stored in EDI }
-         { so we don't need an extra register                        }
-         if registersint<1 then
-           registersint:=1;
       end;
 
 

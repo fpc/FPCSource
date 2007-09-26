@@ -536,8 +536,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
-         { needs to be loaded into an FPU register }
-         registersfpu:=1;
       end;
 
     function trealconstnode.docompare(p: tnode): boolean;
@@ -1029,7 +1027,7 @@ implementation
           end;
       end;
 
-    
+
 
     function tsetconstnode.dogetcopy : tnode;
 
