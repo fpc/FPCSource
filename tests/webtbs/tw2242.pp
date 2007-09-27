@@ -7255,6 +7255,7 @@ s += chr(84);
 s += chr(85);
 s += chr(86);
 s += chr(87);
+{$ifndef fpc_pic}
 s += chr(88);
 s += chr(89);
 s += chr(90);
@@ -13077,5 +13078,6 @@ s += chr(81);
 s += chr(82);
 s += chr(83);
 {$endif cpuarm or cpusparc}
+{$endif not fpc_pic}
 writeln(s)
 END.
