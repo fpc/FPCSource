@@ -2124,6 +2124,10 @@ begin
 {$ifdef SUPPORT_UNALIGNED}
   def_system_macro('FPC_SUPPORTS_UNALIGNED');
 {$endif SUPPORT_UNALIGNED}
+{$ifdef powerpc64}
+  def_system_macro('FPC_HAS_LWSYNC');
+{$endif}
+  def_system_macro('FPC_HAS_MEMBAR');
 
 {$if defined(x86) or defined(arm)}
   def_system_macro('INTERNAL_BACKTRACE');

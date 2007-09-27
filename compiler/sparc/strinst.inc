@@ -66,4 +66,7 @@
           'tst',
           { internal instructions }
           'fmovd',
-          'fabsd','fabsq'
+          'fabsd','fabsq',
+          { memory barrier instructions }
+          'stbar',
+          'membar'
