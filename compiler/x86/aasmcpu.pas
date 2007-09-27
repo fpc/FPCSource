@@ -953,7 +953,11 @@ implementation
                     end
                   else
                     begin
-                      if assigned(objdata) then
+                      { Jumps use a relative offset which can be 8bit,
+                        for other opcodes we always need to generate the full
+                        32bit address }
+                      if assigned(objdata) and
+                         is_jmp then
                         begin
                           currsym:=objdata.symbolref(ref^.symbol);
                           l:=ref^.offset;
