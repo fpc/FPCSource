@@ -914,6 +914,9 @@ Implementation
 
 
     function TInternalAssembler.TreePass0(hp:Tai):Tai;
+      var
+        objsym,
+        objsymend : TObjSymbol;
       begin
         while assigned(hp) do
          begin
@@ -945,7 +948,22 @@ Implementation
              ait_comp_64bit :
                ObjData.alloc(8);
              ait_const:
-               ObjData.alloc(tai_const(hp).size);
+               begin
+                 { if symbols are provided we can calculate the value for relative symbols.
+                   This is required for length calculation of leb128 constants }
+                 if assigned(tai_const(hp).sym) then
+                   begin
+                     objsym:=Objdata.SymbolRef(tai_const(hp).sym);
+                     if assigned(tai_const(hp).endsym) then
+                       begin
+                         objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
+                         if objsymend.objsection<>objsym.objsection then
+                           internalerror(200404124);
+                         Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                       end;
+                   end;
+                 ObjData.alloc(tai_const(hp).size);
+               end;
              ait_section:
                begin
                  ObjData.CreateSection(Tai_section(hp).sectype,Tai_section(hp).name^,Tai_section(hp).secorder);
@@ -975,10 +993,9 @@ Implementation
 
     function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
-        InlineLevel : longint;
-        objsym : TObjSymbol;
+        objsym,
+        objsymend : TObjSymbol;
       begin
-        inlinelevel:=0;
         while assigned(hp) do
          begin
            case hp.typ of
@@ -1017,11 +1034,15 @@ Implementation
                ObjData.alloc(8);
              ait_const:
                begin
+                 { Recalculate relative symbols, all checks are done in treepass0 }
+                 if assigned(tai_const(hp).sym) and
+                    assigned(tai_const(hp).endsym) then
+                   begin
+                     objsym:=Objdata.SymbolRef(tai_const(hp).sym);
+                     objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
+                     Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                   end;
                  ObjData.alloc(tai_const(hp).size);
-                 if assigned(Tai_const(hp).sym) then
-                   ObjData.SymbolRef(Tai_const(hp).sym);
-                 if assigned(Tai_const(hp).endsym) then
-                   ObjData.SymbolRef(Tai_const(hp).endsym);
                end;
              ait_section:
                begin
@@ -1049,11 +1070,6 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
-             ait_marker :
-               if tai_marker(hp).kind=mark_InlineStart then
-                 inc(InlineLevel)
-               else if tai_marker(hp).kind=mark_InlineEnd then
-                 dec(InlineLevel);
            end;
            hp:=Tai(hp.next);
          end;
@@ -1064,17 +1080,12 @@ Implementation
     function TInternalAssembler.TreePass2(hp:Tai):Tai;
       var
         fillbuffer : tfillbuffer;
-        InlineLevel,
-        v  : int64;
 {$ifdef x86}
         co : comp;
 {$endif x86}
-        objsym,
-        objsymend : TObjSymbol;
         leblen : byte;
         lebbuf : array[0..63] of byte;
       begin
-        inlinelevel:=0;
         { main loop }
         while assigned(hp) do
          begin
@@ -1127,20 +1138,9 @@ Implementation
                    aitconst_16bit,
                    aitconst_8bit :
                      begin
-                       if assigned(tai_const(hp).sym) then
-                         begin
-                           objsym:=Objdata.SymbolRef(tai_const(hp).sym);
-                           if assigned(tai_const(hp).endsym) then
-                             begin
-                               objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
-                               if objsymend.objsection<>objsym.objsection then
-                                 internalerror(200404124);
-                               v:=objsymend.address-objsym.address+Tai_const(hp).value;
-                               ObjData.writebytes(v,tai_const(hp).size);
-                             end
-                           else
-                             ObjData.writereloc(Tai_const(hp).value,Tai_const(hp).size,objsym,RELOC_ABSOLUTE);
-                         end
+                       if assigned(tai_const(hp).sym) and
+                          not assigned(tai_const(hp).endsym) then
+                         ObjData.writereloc(Tai_const(hp).symofs,tai_const(hp).size,Objdata.SymbolRef(tai_const(hp).sym),RELOC_ABSOLUTE)
                        else
                          ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
                      end;
@@ -1148,34 +1148,24 @@ Implementation
                      begin
                        { PE32+? }
                        if target_info.system=system_x86_64_win64 then
-                         ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
+                         ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
                        else
-                         ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
+                         ObjData.writereloc(Tai_const(hp).symofs,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
                      end;
                    aitconst_secrel32_symbol :
                      begin
                        { Required for DWARF2 support under Windows }
-                       ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_SECREL32);
+                       ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_SECREL32);
                      end;
                    aitconst_uleb128bit,
                    aitconst_sleb128bit :
                      begin
-                       if assigned(tai_const(hp).sym) then
-                         begin
-                           if not assigned(tai_const(hp).endsym) then
-                             internalerror(200703291);
-                           objsym:=Objdata.SymbolRef(tai_const(hp).sym);
-                           objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
-                           if objsymend.objsection<>objsym.objsection then
-                             internalerror(200703292);
-                           v:=objsymend.address-objsym.address+Tai_const(hp).value;
-                         end
-                       else
-                         v:=Tai_const(hp).value;
                        if tai_const(hp).consttype=aitconst_uleb128bit then
-                         leblen:=EncodeUleb128(qword(v),lebbuf)
+                         leblen:=EncodeUleb128(qword(Tai_const(hp).value),lebbuf)
                        else
-                         leblen:=EncodeSleb128(v,lebbuf);
+                         leblen:=EncodeSleb128(Tai_const(hp).value,lebbuf);
+                       if leblen<>tai_const(hp).size then
+                         internalerror(200709271);
                        ObjData.writebytes(lebbuf,leblen);
                      end;
                    else
@@ -1197,11 +1187,6 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
-             ait_marker :
-               if tai_marker(hp).kind=mark_InlineStart then
-                 inc(InlineLevel)
-               else if tai_marker(hp).kind=mark_InlineEnd then
-                 dec(InlineLevel);
            end;
            hp:=Tai(hp.next);
          end;
