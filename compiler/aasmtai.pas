@@ -376,6 +376,9 @@ interface
        tai_const = class(tai)
           sym,
           endsym  : tasmsymbol;
+          { if symbols and offset are provided the symofs is used,
+            the value is calculated during assembling }
+          symofs,
           value   : int64;
           consttype : taiconst_type;
           { we use for the 128bit int64/qword for now because I can't imagine a
@@ -396,7 +399,6 @@ interface
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Create_indirect_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:aint);
-          constructor Createname_rva(const name:string);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1141,16 +1143,7 @@ implementation
 
     constructor tai_const.Create_sym(_sym:tasmsymbol);
       begin
-         inherited Create;
-         typ:=ait_const;
-         consttype:=aitconst_ptr;
-         { sym is allowed to be nil, this is used to write nil pointers }
-         sym:=_sym;
-         endsym:=nil;
-         value:=0;
-         { update sym info }
-         if assigned(sym) then
-           sym.increfs;
+         self.create_sym_offset(_sym,0);
       end;
 
 
@@ -1159,79 +1152,45 @@ implementation
          inherited Create;
          typ:=ait_const;
          consttype:=aitconst_ptr;
-         if not assigned(_sym) then
-           internalerror(200404121);
+         { sym is allowed to be nil, this is used to write nil pointers }
          sym:=_sym;
          endsym:=nil;
+         { store the original offset in symofs so that we can recalculate the
+           value field in the assembler }
+         symofs:=ofs;
          value:=ofs;
          { update sym info }
-         sym.increfs;
+         if assigned(sym) then
+           sym.increfs;
       end;
 
 
     constructor tai_const.Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
       begin
-         inherited Create;
-         typ:=ait_const;
+         self.create_sym_offset(_sym,0);
          consttype:=_typ;
-         sym:=_sym;
          endsym:=_endsym;
-         value:=0;
-         { update sym info }
-         sym.increfs;
          endsym.increfs;
       end;
 
 
     constructor tai_const.Create_rva_sym(_sym:tasmsymbol);
       begin
-         inherited Create;
-         typ:=ait_const;
+         self.create_sym_offset(_sym,0);
          consttype:=aitconst_rva_symbol;
-         sym:=_sym;
-         endsym:=nil;
-         value:=0;
-         { update sym info }
-         sym.increfs;
       end;
 
 
     constructor tai_const.Create_indirect_sym(_sym:tasmsymbol);
       begin
-         inherited Create;
-         typ:=ait_const;
+         self.create_sym_offset(_sym,0);
          consttype:=aitconst_indirect_symbol;
-         sym:=_sym;
-         endsym:=nil;
-         value:=0;
-         { update sym info }
-         sym.increfs;
       end;
 
 
     constructor tai_const.Createname(const name:string;ofs:aint);
       begin
-         inherited Create;
-         typ:=ait_const;
-         consttype:=aitconst_ptr;
-         sym:=current_asmdata.RefAsmSymbol(name);
-         endsym:=nil;
-         value:=ofs;
-         { update sym info }
-         sym.increfs;
-      end;
-
-
-    constructor tai_const.Createname_rva(const name:string);
-      begin
-         inherited Create;
-         typ:=ait_const;
-         consttype:=aitconst_rva_symbol;
-         sym:=current_asmdata.RefAsmSymbol(name);
-         endsym:=nil;
-         value:=0;
-         { update sym info }
-         sym.increfs;
+         self.create_sym_offset(current_asmdata.RefAsmSymbol(name),ofs);
       end;
 
 

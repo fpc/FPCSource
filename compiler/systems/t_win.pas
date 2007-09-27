@@ -689,7 +689,7 @@ implementation
          name_table,ordinal_table : TAsmList;
          i,autoindex,ni_high : longint;
          hole : boolean;
-
+         asmsym : TAsmSymbol;
       begin
          Gl_DoubleIndex:=false;
          ELIst_indexed.Sort(@IdxCompare);
@@ -858,10 +858,13 @@ implementation
                 end;
               case hp.sym.typ of
                 staticvarsym :
-                  address_table.concat(Tai_const.Createname_rva(tstaticvarsym(hp.sym).mangledname));
+                  asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);
                 procsym :
-                  address_table.concat(Tai_const.Createname_rva(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname));
+                  asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname);
+                else
+                  internalerror(200709272);
               end;
+              address_table.concat(Tai_const.Create_rva_sym(asmsym));
               inc(current_index);
               hp:=texported_item(hp.next);
            end;

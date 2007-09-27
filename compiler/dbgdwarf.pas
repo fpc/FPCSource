@@ -29,7 +29,7 @@
   The easiest way to debug dwarf debug info generation is the usage of
   readelf --debug-dump <executable>
   This works only with elf targets though.
-  
+
   There is a similar utility called dwarfdump which is not elf-specific and
   which has been ported to most systems.
 }
@@ -2568,15 +2568,9 @@ implementation
                        (target_info.system in systems_darwin) then
                       begin
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
-{$ifdef cpu64bit}
-                        asmline.concat(tai_const.create_uleb128bit(9)); { 1 + 8 }
+                        asmline.concat(tai_const.create_uleb128bit(1+sizeof(aint)));
                         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-                        asmline.concat(tai_const.create_type_sym(aitconst_64bit, currlabel));
-{$else cpu64bit}
-                        asmline.concat(tai_const.create_uleb128bit(5)); { 1 + 4 }
-                        asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-                        asmline.concat(tai_const.create_type_sym(aitconst_32bit, currlabel));
-{$endif cpu64bit}
+                        asmline.concat(tai_const.create_sym(currlabel));
                       end
                     else
                       begin
@@ -2648,15 +2642,9 @@ implementation
         asmline.concat(tai_const.create_uleb128bit(get_file_index(infile)));
 
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
-{$ifdef cpu64bit}
-        asmline.concat(tai_const.create_uleb128bit(9)); { 1 + 8 }
+        asmline.concat(tai_const.create_uleb128bit(1+sizeof(aint)));
         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-        asmline.concat(tai_const.create_64bit(0));
-{$else cpu64bit}
-        asmline.concat(tai_const.create_uleb128bit(5)); { 1 + 4 }
-        asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-        asmline.concat(tai_const.create_32bit(0));
-{$endif cpu64bit}
+        asmline.concat(tai_const.create_sym(nil));
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
         asmline.concat(tai_const.Create_8bit(1));
         asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
