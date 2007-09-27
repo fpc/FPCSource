@@ -581,7 +581,7 @@ begin
     Result := 0;
 end;
 
-function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cInt):cInt;
+function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
 begin
   if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
     Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(d), len)
@@ -605,7 +605,7 @@ begin
     Result := 0;
 end;
 
-function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cInt; d: String):cInt;
+function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
 begin
   if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
     Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(d))
@@ -777,7 +777,7 @@ begin
     Result := 0;
 end;
 
-function SSLGetVerifyResult(ssl: PSSL):cInt;
+function SSLGetVerifyResult(ssl: PSSL):cLong;
 begin
   if InitSSLInterface and Assigned(_SSLGetVerifyResult) then
     Result := _SSLGetVerifyResult(ssl)
