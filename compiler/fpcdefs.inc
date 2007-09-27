@@ -106,3 +106,7 @@
 {$ENDIF MACOS}
 
 {$define SUPPORT_UNALIGNED}
+
+{$if not defined(cpui386) and defined(i386)}
+{$error Cross-compiling from non-i386 to i386 is not yet supported at this time }
+{$endif}
