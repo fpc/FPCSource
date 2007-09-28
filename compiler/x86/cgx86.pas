@@ -567,8 +567,17 @@ unit cgx86;
 ****************************************************************************}
 
     procedure tcgx86.a_jmp_name(list : TAsmList;const s : string);
+      var
+        r: treference;
       begin
-        list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)));
+        if (target_info.system<>system_i386_darwin) then
+          list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)))
+        else
+          begin 
+            reference_reset_symbol(r,get_darwin_call_stub(s),0);
+            r.refaddr:=addr_full;
+            list.concat(taicpu.op_ref(A_JMP,S_NO,r));
+          end;
       end;
 
 
@@ -2038,6 +2047,13 @@ unit cgx86;
         ref : treference;
         sym : tasmsymbol;
       begin
+       if (target_info.system=system_i386_darwin) then
+         begin
+           { a_jmp_name jumps to a stub which is always pic-safe on darwin }
+           inherited g_external_wrapper(list,procdef,externalname);
+           exit;
+         end;
+
         sym:=current_asmdata.RefAsmSymbol(externalname);
         reference_reset_symbol(ref,sym,0);
 
@@ -2048,13 +2064,7 @@ unit cgx86;
               got loaded
             }
             g_maybe_got_init(list);
-            if (target_info.system<>system_i386_darwin) then
-              ref.refaddr:=addr_pic
-            else
-              begin
-                ref.refaddr:=addr_no;
-                ref.relsymbol:=current_procinfo.CurrGOTLabel;
-              end
+            ref.refaddr:=addr_pic
           end
         else
           ref.refaddr:=addr_full;
