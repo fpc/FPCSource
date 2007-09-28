@@ -183,7 +183,11 @@ unit cgppc;
                     a_label(list,current_procinfo.CurrGOTLabel);
                     a_reg_alloc(list,current_procinfo.got);
                     list.concat(taicpu.op_reg_reg(A_MFSPR,current_procinfo.got,NR_LR));
-                    if not savedlr then
+                    if not savedlr or
+                       { in the following case lr is saved, but not restored }
+                       { (happens e.g. when generating debug info  for leaf  }
+                       { procedures)                                         }
+                       not(pi_do_call in current_procinfo.flags) then
                       list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
                   end;
               end;
