@@ -611,7 +611,7 @@ begin
   if i=nil then
     PosEx:=0
   else
-    PosEx:=succ(i-pchar(s));
+    PosEx:=succ(i-pchar(pointer(s)));
 end;
 
 
@@ -994,7 +994,7 @@ var
 
 begin
   Result:=AnsiLowerCase(S);
-  P:=PChar(Result);
+  P:=PChar(pointer(Result));
   PE:=P+Length(Result);
   while (P<PE) do
     begin
@@ -1014,7 +1014,7 @@ var
 
 begin
   Result:=0;
-  P:=Pchar(S);
+  P:=Pchar(pointer(S));
   PE:=P+Length(S);
   while (P<PE) do
     begin
@@ -1036,7 +1036,7 @@ var
 begin
   Result:=0;
   Count:=0;
-  PS:=PChar(S);
+  PS:=PChar(pointer(S));
   PE:=PS+Length(S);
   P:=PS;
   while (P<PE) and (Count<>N) do
@@ -1644,7 +1644,7 @@ function possetex (const c:TSysCharSet;const s : ansistring;count:Integer ):Inte
 var i,j:Integer;
 
 begin
- if pchar(s)=nil then
+ if pchar(pointer(s))=nil then
   j:=0
  else
   begin
