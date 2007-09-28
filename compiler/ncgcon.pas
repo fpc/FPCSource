@@ -267,7 +267,7 @@ implementation
     procedure tcgstringconstnode.pass_generate_code;
       var
          hp1,hp2 : tai;
-         l1,l2,
+         l1,
          lastlabel   : tasmlabel;
          lastlabelhp : tai;
          pc       : pchar;
@@ -429,19 +429,21 @@ implementation
                            else
                              begin
                                 current_asmdata.getdatalabel(l1);
-                                current_asmdata.getdatalabel(l2);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l2));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(l1));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len));
+                                { make sure the string doesn't get dead stripped if the header is referenced }
+                                if (target_info.system in systems_darwin) then
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                                { ... and vice versa }
+                                if (target_info.system in systems_darwin) then
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lab_str.name));
                                 { include also terminating zero }
                                 getmem(pc,len+1);
                                 move(value_str^,pc^,len);
                                 pc[len]:=#0;
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
-                                { return the offset of the real string }
-                                lab_str:=l2;
                              end;
                         end;
                       cst_widestring:
@@ -452,8 +454,6 @@ implementation
                            else
                              begin
                                 current_asmdata.getdatalabel(l1);
-                                current_asmdata.getdatalabel(l2);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l2));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(l1));
 
                                 { we use always UTF-16 coding for constants }
@@ -466,13 +466,17 @@ implementation
                                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
                                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.size));
                                   end;
+                                { make sure the string doesn't get dead stripped if the header is referenced }
+                                if (target_info.system in systems_darwin) then
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                                { ... and vice versa }
+                                if (target_info.system in systems_darwin) then
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lab_str.name));
                                 for i:=0 to len-1 do
                                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
                                 { terminating zero }
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(0));
-                                { return the offset of the real string }
-                                lab_str:=l2;
                              end;
                         end;
                       cst_shortstring:

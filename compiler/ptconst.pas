@@ -631,7 +631,7 @@ implementation
           strlength : aint;
           strval    : pchar;
           strch     : char;
-          ll        : tasmlabel;
+          ll,ll2    : tasmlabel;
           ca        : pchar;
         begin
           n:=comp_expr(true);
@@ -699,10 +699,18 @@ implementation
                        begin
                          current_asmdata.getdatalabel(ll);
                          list.concat(Tai_const.Create_sym(ll));
+                         current_asmdata.getdatalabel(ll2);
                          current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+                         current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll2));
                          current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
                          current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength));
+                         { make sure the string doesn't get dead stripped if the header is referenced }
+                         if (target_info.system in systems_darwin) then
+                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll.name));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
+                         { ... and vice versa }
+                         if (target_info.system in systems_darwin) then
+                           list.concat(tai_directive.create(asd_reference,ll2.name));
                          getmem(ca,strlength+1);
                          move(strval^,ca^,strlength);
                          { The terminating #0 to be stored in the .data section (JM) }
@@ -719,7 +727,9 @@ implementation
                        begin
                          current_asmdata.getdatalabel(ll);
                          list.concat(Tai_const.Create_sym(ll));
+                         current_asmdata.getdatalabel(ll2);
                          current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+                         current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll2));
                          if tf_winlikewidestring in target_info.flags then
                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
                          else
@@ -727,7 +737,13 @@ implementation
                              current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
                              current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.size));
                            end;
+                         { make sure the string doesn't get dead stripped if the header is referenced }
+                         if (target_info.system in systems_darwin) then
+                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll.name));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
+                         { ... and vice versa }
+                         if (target_info.system in systems_darwin) then
+                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll2.name));
                          for i:=0 to strlength-1 do
                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
                          { ending #0 }
