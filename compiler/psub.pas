@@ -1039,7 +1039,8 @@ implementation
             current_procinfo.procdef.localst.SymList.ForEachCall(@translate_registers,templist);
             if (cs_create_pic in current_settings.moduleswitches) and
                (pi_needs_got in current_procinfo.flags) and
-               not(cs_no_regalloc in current_settings.globalswitches) then
+               not(cs_no_regalloc in current_settings.globalswitches) and
+               (current_procinfo.got<>NR_NO) then
               cg.translate_register(current_procinfo.got);
 
             { Add save and restore of used registers }
