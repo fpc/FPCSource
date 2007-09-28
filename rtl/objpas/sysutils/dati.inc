@@ -534,7 +534,7 @@ var
    var Len: integer;
    begin
    Len := Length(Str);
-   if ResultLen + Len < SizeOf(ResultBuffer) then begin
+   if ResultLen + Len < SizeOf(ResultBuffer) then begin // strmove not safe
       StrMove(ResultCurrent, pchar(Str), Len);
       ResultCurrent := ResultCurrent + Len;
       ResultLen := ResultLen + Len;
@@ -578,7 +578,7 @@ var
       tmp:integer;
 
    begin
-   FormatCurrent := Pchar(FormatStr);
+   FormatCurrent := Pchar(pointer(FormatStr));
    FormatEnd := FormatCurrent + Length(FormatStr);
    Clock12 := false;
    P := FormatCurrent;
