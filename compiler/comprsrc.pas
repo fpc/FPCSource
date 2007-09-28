@@ -114,6 +114,7 @@ procedure tresourcefile.compile(output: tresoutput; const OutName: ansistring);
 var
   respath,
   srcfilepath,
+  preprocessorbin,
   s,
   bin,
   resbin   : TCmdStr;
@@ -157,9 +158,15 @@ begin
   if respath='' then
     respath:='.';
   Replace(s,'$INC',maybequoted(respath));
-  if (target_res.resbin='windres') and
-     (srcfilepath<>'') then
-    s:=s+' --include '+maybequoted(srcfilepath);
+  if (target_res.resbin='windres') then
+   begin
+     if (srcfilepath<>'') then
+       s:=s+' --include '+maybequoted(srcfilepath);
+     { try to find a preprocessor }
+     preprocessorbin := respath+'cpp'+source_info.exeext;
+     if FileExists(preprocessorbin,true) then
+       s:=s+' --preprocessor='+preprocessorbin;
+   end;
 { Execute the command }
   if not (cs_link_nolink in current_settings.globalswitches) then
    begin
