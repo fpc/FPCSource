@@ -2387,7 +2387,7 @@ option_using_env=11027_T_Optionen werden aus dem environment $1 gelesen
 % Options are also read from this environment string
 option_handling_option=11028_D_Handling der Option "$1"
 % Debug info that an option is found and will be handled
-option_help_press_enter=11029__*** DrÅcken sie die ENTER Taste ***
+option_help_press_enter=11029__*** DrÅcken Sie die ENTER-Taste ***
 option_start_reading_configfile=11030_H_Beginn des Lesens der Konfigurationsdatei $1
 % Starting of config file parsing.
 option_end_reading_configfile=11031_H_Ende des Lesens der Konfigurationsdatei $1
