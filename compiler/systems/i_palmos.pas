@@ -98,7 +98,7 @@ unit i_palmos;
             system       : system_arm_PalmOS;
             name         : 'PalmOS';
             shortname    : 'PalmOS';
-            flags        : [tf_code_small,tf_static_reg_based,tf_smartlink_sections];
+            flags        : [tf_code_small,tf_static_reg_based,tf_smartlink_sections,tf_requires_proper_alignment];
             cpu          : cpu_arm;
             unit_env     : 'PALMUNITS';
             extradefines : '';

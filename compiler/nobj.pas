@@ -1106,9 +1106,8 @@ implementation
         { write fields }
         current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(fieldtable));
         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(fieldcount));
-{$ifdef cpurequiresproperalignment}
-        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+        if (tf_requires_proper_alignment in target_info.flags) then
+          current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(classtable));
         for i:=0 to _class.symtable.SymList.Count-1 do
           begin
@@ -1116,9 +1115,8 @@ implementation
             if (tsym(sym).typ=fieldvarsym) and
                (sp_published in tsym(sym).symoptions) then
               begin
-{$ifdef cpurequiresproperalignment}
-                current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(AInt)));
-{$endif cpurequiresproperalignment}
+                if (tf_requires_proper_alignment in target_info.flags) then
+                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(AInt)));
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
                 classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                 if classindex=-1 then
@@ -1133,9 +1131,8 @@ implementation
         current_asmdata.asmlists[al_rtti].concat(cai_align.create(const_align(sizeof(aint))));
         current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(classtable));
         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classtablelist.count));
-{$ifdef cpurequiresproperalignment}
-        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+        if (tf_requires_proper_alignment in target_info.flags) then
+          current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
         for i:=0 to classtablelist.Count-1 do
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,0));
 

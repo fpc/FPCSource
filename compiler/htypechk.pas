@@ -79,6 +79,16 @@ interface
         property  VisibleCount:integer read FProcVisibleCnt;
       end;
 
+    type
+      tregableinfoflag = (
+         // can be put in a register if it's the address of a var/out/const parameter
+         ra_addr_regable,
+         // orthogonal to above flag: the address of the node is taken and may
+         // possibly escape the block in which this node is declared (e.g. a
+         // local variable is passed as var parameter to another procedure)
+         ra_addr_taken);
+      tregableinfoflags = set of tregableinfoflag;
+
     const
       tok2nodes=24;
       tok2node:array[1..tok2nodes] of ttok2noderec=(
@@ -123,7 +133,7 @@ interface
     function isbinaryoverloaded(var t : tnode) : boolean;
 
     { Register Allocation }
-    procedure make_not_regable(p : tnode; how: tvarregable);
+    procedure make_not_regable(p : tnode; how: tregableinfoflags);
     procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
     { procvar handling }
@@ -643,34 +653,68 @@ implementation
 ****************************************************************************}
 
     { marks an lvalue as "unregable" }
-    procedure make_not_regable_intern(p : tnode; how: tvarregable; records_only: boolean);
+    procedure make_not_regable_intern(p : tnode; how: tregableinfoflags; records_only: boolean);
+      var
+        update_regable: boolean;
       begin
-         case p.nodetype of
-             subscriptn:
-               make_not_regable_intern(tsubscriptnode(p).left,how,true);
+        update_regable:=true;
+        repeat
+          case p.nodetype of
+            subscriptn:
+              begin
+                records_only:=true;
+                p:=tsubscriptnode(p).left;
+              end;
+            vecn:
+              begin
+                { arrays are currently never regable and pointers indexed like }
+                { arrays do not have be made unregable, but we do need to      }
+                { propagate the ra_addr_taken info                             }                                          
+                update_regable:=false;
+                p:=tvecnode(p).left;
+              end;
             typeconvn :
-               if (ttypeconvnode(p).resultdef.typ = recorddef) then
-                 make_not_regable_intern(ttypeconvnode(p).left,how,false)
-               else
-                 make_not_regable_intern(ttypeconvnode(p).left,how,records_only);
+               begin
+                 if (ttypeconvnode(p).resultdef.typ = recorddef) then
+                   records_only:=false;
+                 p:=ttypeconvnode(p).left;
+               end;
             loadn :
-              if (tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) and
-                 (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
-                 ((not records_only) or
-                  (tabstractvarsym(tloadnode(p).symtableentry).vardef.typ = recorddef)) then
-                if (tloadnode(p).symtableentry.typ = paravarsym) then
-                  tabstractvarsym(tloadnode(p).symtableentry).varregable:=how
-                else
-                  tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
+              begin
+                if (tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
+                  begin
+                    if (ra_addr_taken in how) then
+                      tabstractvarsym(tloadnode(p).symtableentry).addr_taken:=true;
+                    if update_regable and
+                       (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
+                       ((not records_only) or
+                        (tabstractvarsym(tloadnode(p).symtableentry).vardef.typ = recorddef)) then
+                      if (tloadnode(p).symtableentry.typ = paravarsym) and
+                         (ra_addr_regable in how) then
+                        tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_addr
+                      else
+                        tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
+                  end;
+                break;
+              end;
             temprefn :
-              if (ttemprefnode(p).tempinfo^.may_be_in_reg) and
-                 ((not records_only) or
-                  (ttemprefnode(p).tempinfo^.typedef.typ = recorddef)) then
-                ttemprefnode(p).tempinfo^.may_be_in_reg:=false;
-         end;
+              begin
+                if (ra_addr_taken in how) then
+                  include(ttemprefnode(p).tempinfo^.flags,ti_addr_taken);
+                if update_regable and
+                   (ti_may_be_in_reg in ttemprefnode(p).tempinfo^.flags) and
+                   ((not records_only) or
+                    (ttemprefnode(p).tempinfo^.typedef.typ = recorddef)) then
+                  exclude(ttemprefnode(p).tempinfo^.flags,ti_may_be_in_reg);
+                break;
+              end;
+            else
+              break;
+          end;
+        until false;
       end;
 
-    procedure make_not_regable(p : tnode; how: tvarregable);
+    procedure make_not_regable(p : tnode; how: tregableinfoflags);
       begin
         make_not_regable_intern(p,how,false);
       end;
@@ -1048,7 +1092,7 @@ implementation
                       be in a register }
                     if (m_tp7 in current_settings.modeswitches) or
                        (todef.size<fromdef.size) then
-                      make_not_regable(hp,vr_addr)
+                      make_not_regable(hp,[ra_addr_regable])
                     else
                       if report_errors then
                         CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));

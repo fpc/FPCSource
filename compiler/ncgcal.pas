@@ -408,6 +408,9 @@ implementation
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
                  if (vo_is_funcret in parasym.varoptions) or
+                   { pass "this" in C++ classes explicitly as pointer
+                     because push_addr_param might not be true for them }
+                   (is_cppclass(parasym.vardef) and (vo_is_self in parasym.varoptions)) or
                     (not(left.resultdef.typ in [pointerdef,classrefdef]) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
                          aktcallnode.procdefinition.proccalloption)) then

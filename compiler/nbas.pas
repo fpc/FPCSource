@@ -70,6 +70,7 @@ interface
 
        tstatementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
+          function simplify : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           procedure printnodetree(var t:text);override;
@@ -81,6 +82,7 @@ interface
        tblocknode = class(tunarynode)
           constructor create(l : tnode);virtual;
           destructor destroy; override;
+          function simplify : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
 {$ifdef state_tracking}
@@ -92,6 +94,14 @@ interface
 
        ttempcreatenode = class;
 
+       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,ti_is_inlined_result,
+        ti_addr_taken);
+       ttempinfoflags = set of ttempinfoflag;
+
+const
+       tempinfostoreflags = [ti_may_be_in_reg,ti_is_inlined_result,ti_addr_taken];
+
+type
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }
@@ -106,9 +116,7 @@ interface
          owner                      : ttempcreatenode;
          withnode                   : tnode;
          location                   : tlocation;
-         may_be_in_reg              : boolean;
-         valid                      : boolean;
-         nextref_set_hookoncopy_nil : boolean;
+         flags                      : ttempinfoflags;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -125,6 +133,7 @@ interface
           { to it and *not* generate a ttempdeletenode                          }
           constructor create(_typedef: tdef; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
+          constructor create_inlined_result(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -307,6 +316,58 @@ implementation
          inherited create(statementn,l,r);
       end;
 
+
+    function tstatementnode.simplify : tnode;
+      begin
+        result:=nil;
+        { these "optimizations" are only to make it more easy to recognise    }
+        { blocknodes which at the end of inlining only contain one single     }
+        { statement. Simplifying inside blocknode.simplify could be dangerous }
+        { because if the main blocknode which makes up a procedure/function   }
+        { body were replaced with a statementn/nothingn, this could cause     }
+        { problems elsewhere in the compiler which expects a blocknode        }
+
+        { remove next statement if it's a nothing-statement (since if it's }
+        { the last, it won't remove itself -- see next simplification)     }
+        while assigned(right) and
+              (tstatementnode(right).left.nodetype = nothingn) do
+          begin
+            result:=tstatementnode(right).right;
+            tstatementnode(right).right:=nil;
+            right.free;
+            right:=result;
+            result:=nil;
+          end;
+
+        { Remove initial nothingn if there are other statements. If there }
+        { are no other statements, returning nil doesn't help (will be    }
+        { interpreted as "can't be simplified") and replacing the         }
+        { statementnode with a nothingnode cannot be done (because it's   }
+        { possible this statementnode is a child of a blocknode, and      }
+        { blocknodes are expected to only contain statementnodes)         }
+        if (left.nodetype = nothingn) and
+           assigned(right) then
+          begin
+            result:=right;
+            right:=nil;
+            exit;
+          end;
+
+        { if the current statement contains a block with one statement, }
+        { replace the current statement with that block's statement     }
+        if (left.nodetype = blockn) and
+           assigned(tblocknode(left).left) and
+           not assigned(tstatementnode(tblocknode(left).left).right) then
+          begin
+            result:=tblocknode(left).left;
+            tstatementnode(result).right:=right;
+            right:=nil;
+            tblocknode(left).left:=nil;
+            exit;
+          end;
+      end;
+
+
     function tstatementnode.pass_typecheck:tnode;
       begin
          result:=nil;
@@ -385,6 +446,31 @@ implementation
           end;
         inherited destroy;
       end;
+
+
+    function tblocknode.simplify: tnode;
+      var
+        hp, next: tstatementnode;
+      begin
+        result := nil;
+        { Warning: never replace a blocknode with another node type,      }
+        {  since the block may be the main block of a procedure/function/ }
+        {  main program body, and those nodes should always be blocknodes }
+        {  since that's what the compiler expects elsewhere.              }
+
+        { if the current block contains only one statement, and   }
+        { this one statement only contains another block, replace }
+        { this block with that other block.                       }
+        if assigned(left) and
+           not assigned(tstatementnode(left).right) and
+           (tstatementnode(left).left.nodetype = blockn) then
+          begin
+            result:=tstatementnode(left).left;
+            tstatementnode(left).left:=nil;
+            exit;
+          end;
+      end;
+
 
     function tblocknode.pass_typecheck:tnode;
       var
@@ -636,25 +722,32 @@ implementation
         tempinfo^.temptype := _temptype;
         tempinfo^.owner := self;
         tempinfo^.withnode := nil;
-        tempinfo^.may_be_in_reg:=
-          allowreg and
-          { temp must fit a single register }
-          (tstoreddef(_typedef).is_fpuregable or
-           (tstoreddef(_typedef).is_intregable and
-            (_size<=TCGSize2Size[OS_64]))) and
-          { size of register operations must be known }
-          (def_cgsize(_typedef)<>OS_NO) and
-          { no init/final needed }
-          not (_typedef.needs_inittable) and
-          ((_typedef.typ <> pointerdef) or
-           (is_object(tpointerdef(_typedef).pointeddef) or
-            not tpointerdef(_typedef).pointeddef.needs_inittable));
+        if allowreg and
+           { temp must fit a single register }
+           (tstoreddef(_typedef).is_fpuregable or
+            (tstoreddef(_typedef).is_intregable and
+             (_size<=TCGSize2Size[OS_64]))) and
+           { size of register operations must be known }
+           (def_cgsize(_typedef)<>OS_NO) and
+           { no init/final needed }
+           not (_typedef.needs_inittable) and
+           ((_typedef.typ <> pointerdef) or
+            (is_object(tpointerdef(_typedef).pointeddef) or
+             not tpointerdef(_typedef).pointeddef.needs_inittable)) then
+          include(tempinfo^.flags,ti_may_be_in_reg);
       end;
 
     constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode);
       begin
         self.create(_typedef,_size,_temptype,allowreg);
         tempinfo^.withnode:=withnode.getcopy;
+      end;
+
+
+    constructor ttempcreatenode.create_inlined_result(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean);
+      begin
+        self.create(_typedef,_size,_temptype,allowreg);
+        include(tempinfo^.flags,ti_is_inlined_result);
       end;
 
 
@@ -670,6 +763,7 @@ implementation
         n.tempinfo^.owner:=n;
         n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
+        n.tempinfo^.flags := tempinfo^.flags * tempinfostoreflags;
         if assigned(tempinfo^.withnode) then
           n.tempinfo^.withnode := tempinfo^.withnode.getcopy
         else
@@ -684,7 +778,7 @@ implementation
         { so that if the refs get copied as well, they can hook themselves }
         { to the copy of the temp                                          }
         tempinfo^.hookoncopy := n.tempinfo;
-        tempinfo^.nextref_set_hookoncopy_nil := false;
+        exclude(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
 
         result := n;
       end;
@@ -697,7 +791,7 @@ implementation
         size:=ppufile.getlongint;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
-        tempinfo^.may_be_in_reg:=boolean(ppufile.getbyte);
+        ppufile.getsmallset(tempinfo^.flags);
         ppufile.getderef(tempinfo^.typedefderef);
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
@@ -709,7 +803,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putlongint(size);
-        ppufile.putbyte(byte(tempinfo^.may_be_in_reg));
+        ppufile.putsmallset(tempinfo^.flags);
         ppufile.putderef(tempinfo^.typedefderef);
         ppufile.putbyte(byte(tempinfo^.temptype));
         ppuwritenode(ppufile,tempinfo^.withnode);
@@ -768,7 +862,7 @@ implementation
         result :=
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
-          (ttempcreatenode(p).tempinfo^.may_be_in_reg = tempinfo^.may_be_in_reg) and
+          (ttempcreatenode(p).tempinfo^.flags*tempinfostoreflags=tempinfo^.flags*tempinfostoreflags) and
           (ttempcreatenode(p).tempinfo^.withnode.isequal(tempinfo^.withnode)) and
           equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef);
       end;
@@ -817,7 +911,7 @@ implementation
             { from a persistent one into a normal one, we must be  }
             { the last reference (since our parent should free the }
             { temp (JM)                                            }
-            if (tempinfo^.nextref_set_hookoncopy_nil) then
+            if (ti_nextref_set_hookoncopy_nil in tempinfo^.flags) then
               tempinfo^.hookoncopy := nil;
           end
         else
@@ -866,7 +960,7 @@ implementation
       begin
         expectloc := LOC_REFERENCE;
         if not tempinfo^.typedef.needs_inittable and
-           tempinfo^.may_be_in_reg then
+           (ti_may_be_in_reg in tempinfo^.flags) then
           begin
             if tempinfo^.typedef.typ=floatdef then
               begin
@@ -942,30 +1036,31 @@ implementation
       var
         n: ttempdeletenode;
       begin
-        n := ttempdeletenode(inherited dogetcopy);
-        n.release_to_normal := release_to_normal;
+        n:=ttempdeletenode(inherited dogetcopy);
+        n.release_to_normal:=release_to_normal;
 
         if assigned(tempinfo^.hookoncopy) then
           { if the temp has been copied, assume it becomes a new }
           { temp which has to be hooked by the copied deletenode }
           begin
             { hook the tempdeletenode to the copied temp }
-            n.tempinfo := tempinfo^.hookoncopy;
+            n.tempinfo:=tempinfo^.hookoncopy;
             { the temp shall not be used, reset hookoncopy    }
             { Only if release_to_normal is false, otherwise   }
             { the temp can still be referenced once more (JM) }
             if (not release_to_normal) then
               tempinfo^.hookoncopy:=nil
             else
-              tempinfo^.nextref_set_hookoncopy_nil := true;
+              include(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
           end
         else
           { if the temp we refer to hasn't been copied, we have a }
           { problem since that means we now have two delete nodes }
           { for one temp                                          }
           internalerror(200108234);
-        result := n;
+        result:=n;
       end;
+
 
     constructor ttempdeletenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin

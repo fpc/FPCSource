@@ -32,8 +32,15 @@ type
   fpc_big_chararray = array[0..0] of char;
   fpc_big_widechararray = array[0..0] of widechar;
 {$endif ndef FPC_STRTOCHARARRAYPROC}
+{$ifdef FPC_NEW_BIGENDIAN_SETS}
+  fpc_small_set = bitpacked array[0..31] of 0..1;
+  fpc_normal_set = bitpacked array[0..255] of 0..1;
+{$else}
   fpc_small_set = longint;
   fpc_normal_set = array[0..7] of longint;
+{$endif}
+  fpc_normal_set_byte = array[0..31] of byte;
+  fpc_normal_set_long = array[0..7] of longint;
 
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
@@ -393,25 +400,26 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); comp
 Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt; compilerproc;
 {$endif FPC_HAS_FEATURE_RTTI}
 
+
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; compilerproc;
 function fpc_set_create_element(b : byte): fpc_normal_set; compilerproc;
 function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
 function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
 function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set; compilerproc;
-function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; compilerproc;
 function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
 function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
 function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
 function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
 function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
 function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
+{$endif ndef FPC_NEW_BIGENDIAN_SETS}
 
 procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
 procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
 procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
 procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc;
 procedure fpc_varset_set_range(const orgset; var dest;l,h,size : ptrint); compilerproc;
-function fpc_varset_in(const p; b : ptrint): boolean; compilerproc;
 procedure fpc_varset_add_sets(const set1,set2; var dest;size : ptrint); compilerproc;
 procedure fpc_varset_mul_sets(const set1,set2; var dest;size : ptrint); compilerproc;
 procedure fpc_varset_sub_sets(const set1,set2; var dest;size : ptrint); compilerproc;

@@ -13,6 +13,7 @@
 
  **********************************************************************}
 
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
 
 {$define FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_LOAD_SMALL']; compilerproc;
@@ -542,3 +543,4 @@ end;
 
 {$endif LARGESET}
 
+{$endif ndef FPC_NEW_BIGENDIAN_SETS}

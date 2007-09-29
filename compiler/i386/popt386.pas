@@ -937,9 +937,9 @@ begin
                          (taicpu(hp1).oper[0]^.typ = top_reg) and
                          (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
                         begin
-                    {we have "mov x, %treg; mov %treg, y}
+                          {we have "mov x, %treg; mov %treg, y}
                           if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
-                    {we've got "mov x, %treg; mov %treg, y; with %treg is not used after }
+                            {we've got "mov x, %treg; mov %treg, y; with %treg is not used after }
                             case taicpu(p).oper[0]^.typ Of
                               top_reg:
                                 begin
@@ -1041,7 +1041,7 @@ begin
                                   (taicpu(hp1).opcode = A_CMP) and
                                   (taicpu(hp1).oper[1]^.typ = top_ref) and
                                   RefsEqual(taicpu(p).oper[1]^.ref^, taicpu(hp1).oper[1]^.ref^) then
-          {change "mov reg1, mem1; cmp x, mem1" to "mov reg, mem1; cmp x, reg1"}
+                                {change "mov reg1, mem1; cmp x, mem1" to "mov reg, mem1; cmp x, reg1"}
                                 begin
                                   taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
                                   allocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1,usedregs);
@@ -1058,13 +1058,13 @@ begin
                               mov mem2, reg2            mov reg2, mem2}
                             begin
                               if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) then
-                            {mov reg1, mem1     or     mov mem1, reg1
-                            mov mem2, reg1            mov reg2, mem1}
+                                {mov reg1, mem1     or     mov mem1, reg1
+                                 mov mem2, reg1            mov reg2, mem1}
                                 begin
                                   if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
-                        { Removes the second statement from
-                            mov reg1, mem1/reg2
-                            mov mem1/reg2, reg1 }
+                                    { Removes the second statement from
+                                      mov reg1, mem1/reg2
+                                      mov mem1/reg2, reg1 }
                                     begin
                                       if (taicpu(p).oper[0]^.typ = top_reg) then
                                         AllocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1,usedregs);
@@ -1088,10 +1088,10 @@ begin
                                          RefsEqual(taicpu(hp2).oper[0]^.ref^, taicpu(p).oper[1]^.ref^) and
                                          (taicpu(hp2).oper[1]^.reg= taicpu(p).oper[0]^.reg) and
                                          not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, hp2, TmpUsedRegs)) then
-                          { change                   to
-                              mov reg1, mem1           mov reg1, mem1
-                              mov mem2, reg1           cmp reg1, mem2
-                              cmp mem1, reg1                          }
+                                         { change                   to
+                                           mov reg1, mem1           mov reg1, mem1
+                                           mov mem2, reg1           cmp reg1, mem2
+                                           cmp mem1, reg1                          }
                                         begin
                                           asml.remove(hp2);
                                           hp2.free;
@@ -1118,12 +1118,12 @@ begin
                                      RefsEqual(taicpu(hp2).oper[0]^.ref^, taicpu(hp1).oper[1]^.ref^)  then
                                     if not regInRef(getsupreg(taicpu(hp2).oper[1]^.reg),taicpu(hp2).oper[0]^.ref^) and
                                        not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,tmpUsedRegs)) then
-                            {   mov mem1, %reg1
-                                mov %reg1, mem2
-                                mov mem2, reg2
-                              to:
-                                mov mem1, reg2
-                                mov reg2, mem2}
+                                    {   mov mem1, %reg1
+                                        mov %reg1, mem2
+                                        mov mem2, reg2
+                                     to:
+                                        mov mem1, reg2
+                                        mov reg2, mem2}
                                       begin
                                         AllocRegBetween(asmL,taicpu(hp2).oper[1]^.reg,p,hp2,usedregs);
                                         taicpu(p).loadoper(1,taicpu(hp2).oper[1]^);
@@ -1135,21 +1135,21 @@ begin
                                       if (taicpu(p).oper[1]^.reg <> taicpu(hp2).oper[1]^.reg) and
                                          not(RegInRef(getsupreg(taicpu(p).oper[1]^.reg),taicpu(p).oper[0]^.ref^)) and
                                          not(RegInRef(getsupreg(taicpu(hp2).oper[1]^.reg),taicpu(hp2).oper[0]^.ref^)) then
-                          {   mov mem1, reg1         mov mem1, reg1
-                              mov reg1, mem2         mov reg1, mem2
-                              mov mem2, reg2         mov mem2, reg1
-                            to:                    to:
-                              mov mem1, reg1         mov mem1, reg1
-                              mov mem1, reg2         mov reg1, mem2
-                              mov reg1, mem2
+                                         {   mov mem1, reg1         mov mem1, reg1
+                                             mov reg1, mem2         mov reg1, mem2
+                                             mov mem2, reg2         mov mem2, reg1
+                                          to:                    to:
+                                             mov mem1, reg1         mov mem1, reg1
+                                             mov mem1, reg2         mov reg1, mem2
+                                             mov reg1, mem2
 
-                        or (if mem1 depends on reg1
-                            and/or if mem2 depends on reg2)
-                            to:
-                              mov mem1, reg1
-                              mov reg1, mem2
-                              mov reg1, reg2
-                        }
+                                          or (if mem1 depends on reg1
+                                       and/or if mem2 depends on reg2)
+                                          to:
+                                              mov mem1, reg1
+                                              mov reg1, mem2
+                                              mov reg1, reg2
+                                         }
                                         begin
                                           taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^);
                                           taicpu(hp1).loadReg(1,taicpu(hp2).oper[1]^.reg);
@@ -1210,6 +1210,31 @@ begin
                                   taicpu(hp1).loadRef(1,taicpu(p).oper[1]^.ref^);
                                   taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
                                 end
+                        end;
+                      if GetNextInstruction(p, hp1) and
+                         (Tai(hp1).typ = ait_instruction) and
+                         ((Taicpu(hp1).opcode = A_BTS) or (Taicpu(hp1).opcode = A_BTR)) and
+                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and
+                         GetNextInstruction(hp1, hp2) and
+                         (Tai(hp2).typ = ait_instruction) and
+                         (Taicpu(hp2).opcode = A_OR) and
+                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and 
+                         (Taicpu(hp2).opsize = Taicpu(p).opsize) and 
+                         (Taicpu(p).oper[0]^.typ = top_const) and (Taicpu(p).oper[0]^.val=0) and
+                         (Taicpu(p).oper[1]^.typ = top_reg) and
+                         (Taicpu(hp1).oper[1]^.typ = top_reg) and
+                         (Taicpu(p).oper[1]^.reg=Taicpu(hp1).oper[1]^.reg) and
+                         (Taicpu(hp2).oper[1]^.typ = top_reg) and
+                         (Taicpu(p).oper[1]^.reg=Taicpu(hp2).oper[1]^.reg) then
+                         {mov reg1,0
+                          bts reg1,operand1             -->      mov reg1,operand2
+                          or  reg1,operand2                      bts reg1,operand1}
+                        begin
+                          Taicpu(hp2).opcode:=A_MOV;
+                          asml.remove(hp1);
+                          insertllitem(asml,hp2,hp2.next,hp1);
+                          asml.remove(p);
+                          p.free;
                         end;
                     end;
                   A_MOVZX:

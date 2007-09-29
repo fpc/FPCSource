@@ -237,6 +237,24 @@ unit cgobj;
           procedure a_load_subsetref_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize : tcgsize; const fromsref: tsubsetreference; const tosreg: tsubsetregister); virtual;
           procedure a_load_subsetreg_subsetref(list: TAsmlist; fromsubsetsize, tosubsetsize : tcgsize; const fromsreg: tsubsetregister; const tosref: tsubsetreference); virtual;
 
+          { bit test instructions }
+          procedure a_bit_test_reg_reg_reg(list : TAsmList; bitnumbersize,valuesize,destsize: tcgsize;bitnumber,value,destreg: tregister); virtual;
+          procedure a_bit_test_const_ref_reg(list: TAsmList; destsize: tcgsize; bitnumber: aint; const ref: treference; destreg: tregister); virtual;
+          procedure a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tcgsize; bitnumber: aint; setreg, destreg: tregister); virtual;
+          procedure a_bit_test_const_subsetreg_reg(list: TAsmList; setregsize, destsize: tcgsize; bitnumber: aint; const setreg: tsubsetregister; destreg: tregister); virtual;
+          procedure a_bit_test_reg_ref_reg(list: TAsmList; bitnumbersize, destsize: tcgsize; bitnumber: tregister; const ref: treference; destreg: tregister); virtual;
+          procedure a_bit_test_reg_loc_reg(list: TAsmList; bitnumbersize, destsize: tcgsize; bitnumber: tregister; const loc: tlocation; destreg: tregister);
+          procedure a_bit_test_const_loc_reg(list: TAsmList; destsize: tcgsize; bitnumber: aint; const loc: tlocation; destreg: tregister);
+
+          { bit set/clear instructions }
+          procedure a_bit_set_reg_reg(list : TAsmList; doset: boolean; bitnumbersize, destsize: tcgsize; bitnumber,dest: tregister); virtual;
+          procedure a_bit_set_const_ref(list: TAsmList; doset: boolean;destsize: tcgsize; bitnumber: aint; const ref: treference); virtual;
+          procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tcgsize; bitnumber: aint; destreg: tregister); virtual;
+          procedure a_bit_set_const_subsetreg(list: TAsmList; doset: boolean; destsize: tcgsize; bitnumber: aint; const destreg: tsubsetregister); virtual;
+          procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; bitnumbersize: tcgsize; bitnumber: tregister; const ref: treference); virtual;
+          procedure a_bit_set_reg_loc(list: TAsmList; doset: boolean; bitnumbersize: tcgsize; bitnumber: tregister; const loc: tlocation);
+          procedure a_bit_set_const_loc(list: TAsmList; doset: boolean; bitnumber: aint; const loc: tlocation);
+
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize:tcgsize; reg1, reg2: tregister); virtual; abstract;
           procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
@@ -463,6 +481,10 @@ unit cgobj;
 
           procedure a_load_regconst_subsetref_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sref: tsubsetreference; slopt: tsubsetloadopt); virtual;
           procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); virtual;
+
+          function get_bit_const_ref_sref(bitnumber: aint; const ref: treference): tsubsetreference;
+          function get_bit_const_reg_sreg(setregsize: tcgsize; bitnumber: aint; setreg: tregister): tsubsetregister;
+          function get_bit_reg_ref_sref(list: TAsmList; bitnumbersize: tcgsize; bitnumber: tregister; const ref: treference): tsubsetreference;
        end;
 
 {$ifndef cpu64bit}
@@ -1152,9 +1174,9 @@ implementation
       begin
         intloadsize := packedbitsloadsize(sref.bitlen);
 
-{$if defined(cpurequiresproperalignment) and not defined(arm) and not(defined(sparc))}
+{$if not(defined(arm)) and not(defined(sparc))}
         { may need to be split into several smaller loads/stores }
-        if {(tf_requires_proper_alignment in target_info.flags) and }
+        if (tf_requires_proper_alignment in target_info.flags) and
            (intloadsize <> 1) and
            (intloadsize <> sref.ref.alignment) then
           internalerror(2006082011);
@@ -1325,7 +1347,7 @@ implementation
         loadbitsize := tcgsize2size[loadsize]*8;
 
         { load the (first part) of the bit sequence }
-        valuereg := cg.getintregister(list,OS_INT);
+        valuereg := getintregister(list,OS_INT);
         a_load_ref_reg(list,loadsize,OS_INT,sref.ref,valuereg);
 
         if not extra_load then
@@ -1414,6 +1436,7 @@ implementation
         tmpreg, tmpindexreg, valuereg, extra_value_reg, maskreg: tregister;
         tosreg, fromsreg: tsubsetregister;
         tmpref: treference;
+        bitmask: aword;
         loadsize: tcgsize;
         loadbitsize: byte;
         extra_load: boolean;
@@ -1426,7 +1449,7 @@ implementation
         loadbitsize := tcgsize2size[loadsize]*8;
 
         { load the (first part) of the bit sequence }
-        valuereg := cg.getintregister(list,OS_INT);
+        valuereg := getintregister(list,OS_INT);
         a_load_ref_reg(list,loadsize,OS_INT,sref.ref,valuereg);
 
         { constant offset of bit sequence? }
@@ -1454,21 +1477,20 @@ implementation
                 if (sref.bitlen = AIntBits) then
                   internalerror(2006081711);
 
-                { calculated correct shiftcount for big endian }
-                tmpindexreg := getintregister(list,OS_INT);
-                a_load_reg_reg(list,OS_INT,OS_INT,sref.bitindexreg,tmpindexreg);
-                if (target_info.endian = endian_big) then
-                  begin
-                    a_op_const_reg(list,OP_SUB,OS_INT,loadbitsize-sref.bitlen,tmpindexreg);
-                    a_op_reg_reg(list,OP_NEG,OS_INT,tmpindexreg,tmpindexreg);
-                  end;
-
                 { zero the bits we have to insert }
                 if (slopt <> SL_SETMAX) then
                   begin
                     maskreg := getintregister(list,OS_INT);
-                    a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1),maskreg);
-                    a_op_reg_reg(list,OP_SHL,OS_INT,tmpindexreg,maskreg);
+                    if (target_info.endian = endian_big) then
+                      begin
+                        a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
+                        a_op_reg_reg(list,OP_SHR,OS_INT,sref.bitindexreg,maskreg);
+                      end
+                    else
+                      begin
+                        a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1),maskreg);
+                        a_op_reg_reg(list,OP_SHL,OS_INT,sref.bitindexreg,maskreg);
+                      end;
                     a_op_reg_reg(list,OP_NOT,OS_INT,maskreg,maskreg);
                     a_op_reg_reg(list,OP_AND,OS_INT,maskreg,valuereg);
                   end;
@@ -1483,9 +1505,25 @@ implementation
                       a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen) - 1), tmpreg)
                     else
                       a_load_const_reg(list,OS_INT,-1,tmpreg);
-                    if (slopt <> SL_REGNOSRCMASK) then
-                      a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),tmpreg);
-                    a_op_reg_reg(list,OP_SHL,OS_INT,tmpindexreg,tmpreg);
+                    if (target_info.endian = endian_big) then
+                      begin
+                        a_op_const_reg(list,OP_SHL,OS_INT,loadbitsize-sref.bitlen,tmpreg);
+                        if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
+                          begin
+                            if (loadbitsize <> AIntBits) then
+                              bitmask := (((aword(1) shl loadbitsize)-1) xor ((aword(1) shl (loadbitsize-sref.bitlen))-1))
+                            else
+                              bitmask := (high(aword) xor ((aword(1) shl (loadbitsize-sref.bitlen))-1));
+                            a_op_const_reg(list,OP_AND,OS_INT,bitmask,tmpreg);
+                          end;
+                        a_op_reg_reg(list,OP_SHR,OS_INT,sref.bitindexreg,tmpreg);
+                      end
+                    else
+                      begin
+                        if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
+                          a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),tmpreg);
+                        a_op_reg_reg(list,OP_SHL,OS_INT,sref.bitindexreg,tmpreg);
+                      end;
                     a_op_reg_reg(list,OP_OR,OS_INT,tmpreg,valuereg);
                   end;
               end;
@@ -1812,6 +1850,279 @@ implementation
 {$q+}
 {$undef overflowon}
 {$endif}
+
+    { generic bit address calculation routines }
+
+    function tcg.get_bit_const_ref_sref(bitnumber: aint; const ref: treference): tsubsetreference;
+      begin
+        result.ref:=ref;
+        inc(result.ref.offset,bitnumber div 8);
+        result.bitindexreg:=NR_NO;
+        result.startbit:=bitnumber mod 8;
+        result.bitlen:=1;
+      end;
+
+
+    function tcg.get_bit_const_reg_sreg(setregsize: tcgsize; bitnumber: aint; setreg: tregister): tsubsetregister;
+      begin
+        result.subsetreg:=setreg;
+        result.subsetregsize:=setregsize;
+        { subsetregs always count from the least significant to the most significant bit }
+        if (target_info.endian=endian_big) then
+          result.startbit:=(tcgsize2size[setregsize]*8)-bitnumber-1
+        else
+          result.startbit:=bitnumber;
+        result.bitlen:=1;
+      end;
+
+
+    function tcg.get_bit_reg_ref_sref(list: TAsmList; bitnumbersize: tcgsize; bitnumber: tregister; const ref: treference): tsubsetreference;
+      var
+        tmpreg,
+        tmpaddrreg: tregister;
+      begin
+        result.ref:=ref;
+        result.startbit:=0;
+        result.bitlen:=1;
+
+        tmpreg:=getintregister(list,bitnumbersize);
+        a_op_const_reg_reg(list,OP_SHR,bitnumbersize,3,bitnumber,tmpreg);
+        tmpaddrreg:=cg.getaddressregister(list);
+        a_load_reg_reg(list,bitnumbersize,OS_ADDR,tmpreg,tmpaddrreg);
+        if (result.ref.base=NR_NO) then
+          result.ref.base:=tmpaddrreg
+        else if (result.ref.index=NR_NO) then
+          result.ref.index:=tmpaddrreg
+        else
+          begin
+            a_op_reg_reg(list,OP_ADD,OS_ADDR,result.ref.index,tmpaddrreg);
+            result.ref.index:=tmpaddrreg;
+          end;
+        tmpreg:=getintregister(list,OS_INT);
+        a_op_const_reg_reg(list,OP_AND,OS_INT,7,bitnumber,tmpreg);
+        result.bitindexreg:=tmpreg;
+      end;
+
+
+    { bit testing routines }
+
+    procedure tcg.a_bit_test_reg_reg_reg(list : TAsmList; bitnumbersize,valuesize,destsize: tcgsize;bitnumber,value,destreg: tregister);
+      var
+        tmpvalue: tregister;
+      begin
+        tmpvalue:=cg.getintregister(list,valuesize);
+
+        if (target_info.endian=endian_little) then
+          begin
+            { rotate value register "bitnumber" bits to the right }
+            a_op_reg_reg_reg(list,OP_SHR,valuesize,bitnumber,value,tmpvalue);
+            { extract the bit we want }
+            a_op_const_reg(list,OP_AND,valuesize,1,tmpvalue);
+          end
+        else
+          begin
+            { highest (leftmost) bit = bit 0 -> shl bitnumber results in wanted }
+            { bit in uppermost position, then move it to the lowest position    }
+            { "and" is not necessary since combination of shl/shr will clear    }
+            { all other bits                                                    }
+            a_op_reg_reg_reg(list,OP_SHL,valuesize,bitnumber,value,tmpvalue);
+            a_op_const_reg(list,OP_SHR,valuesize,tcgsize2size[valuesize]*8-1,tmpvalue);
+          end;
+        a_load_reg_reg(list,valuesize,destsize,tmpvalue,destreg);
+      end;
+
+
+    procedure tcg.a_bit_test_const_ref_reg(list: TAsmList; destsize: tcgsize; bitnumber: aint; const ref: treference; destreg: tregister);
+      begin
+        a_load_subsetref_reg(list,OS_8,destsize,get_bit_const_ref_sref(bitnumber,ref),destreg);
+      end;
+
+
+    procedure tcg.a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tcgsize; bitnumber: aint; setreg, destreg: tregister);
+      begin
+        a_load_subsetreg_reg(list,setregsize,destsize,get_bit_const_reg_sreg(setregsize,bitnumber,setreg),destreg);
+      end;
+
+
+    procedure tcg.a_bit_test_const_subsetreg_reg(list: TAsmList; setregsize, destsize: tcgsize; bitnumber: aint; const setreg: tsubsetregister; destreg: tregister);
+      var
+        tmpsreg: tsubsetregister;
+      begin
+        { the first parameter is used to calculate the bit offset in }
+        { case of big endian, and therefore must be the size of the  }
+        { set and not of the whole subsetreg                         }
+        tmpsreg:=get_bit_const_reg_sreg(setregsize,bitnumber,setreg.subsetreg);
+        { now fix the size of the subsetreg }
+        tmpsreg.subsetregsize:=setreg.subsetregsize;
+        { correct offset of the set in the subsetreg }
+        inc(tmpsreg.startbit,setreg.startbit);
+        a_load_subsetreg_reg(list,setregsize,destsize,tmpsreg,destreg);
+      end;
+
+
+    procedure tcg.a_bit_test_reg_ref_reg(list: TAsmList; bitnumbersize, destsize: tcgsize; bitnumber: tregister; const ref: treference; destreg: tregister);
+      begin
+        a_load_subsetref_reg(list,OS_8,destsize,get_bit_reg_ref_sref(list,bitnumbersize,bitnumber,ref),destreg);
+      end;
+
+
+    procedure tcg.a_bit_test_reg_loc_reg(list: TAsmList; bitnumbersize, destsize: tcgsize; bitnumber: tregister; const loc: tlocation; destreg: tregister);
+      var
+        tmpreg: tregister;
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_bit_test_reg_ref_reg(list,bitnumbersize,destsize,bitnumber,loc.reference,destreg);
+          LOC_REGISTER,LOC_CREGISTER,
+          LOC_SUBSETREG,LOC_CSUBSETREG,
+          LOC_CONSTANT:
+            begin
+              case loc.loc of
+                LOC_REGISTER,LOC_CREGISTER:
+                  tmpreg:=loc.register;
+                LOC_SUBSETREG,LOC_CSUBSETREG:
+                  begin
+                    tmpreg:=getintregister(list,loc.size);
+                    a_load_subsetreg_reg(list,loc.size,loc.size,loc.sreg,tmpreg);
+                  end;
+                LOC_CONSTANT:
+                  begin
+                    tmpreg:=getintregister(list,loc.size);
+                    a_load_const_reg(list,loc.size,loc.value,tmpreg);
+                  end;
+              end;
+              a_bit_test_reg_reg_reg(list,bitnumbersize,loc.size,destsize,bitnumber,tmpreg,destreg);
+            end;
+          { LOC_SUBSETREF is not possible, because sets are not (yet) bitpacked }
+          else
+            internalerror(2007051701);
+        end;
+      end;
+
+
+    procedure tcg.a_bit_test_const_loc_reg(list: TAsmList; destsize: tcgsize; bitnumber: aint; const loc: tlocation; destreg: tregister);
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_bit_test_const_ref_reg(list,destsize,bitnumber,loc.reference,destreg);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_bit_test_const_reg_reg(list,loc.size,destsize,bitnumber,loc.register,destreg);
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            a_bit_test_const_subsetreg_reg(list,loc.size,destsize,bitnumber,loc.sreg,destreg);
+          { LOC_SUBSETREF is not possible, because sets are not (yet) bitpacked }
+          else
+            internalerror(2007051702);
+        end;
+      end;
+
+    { bit setting/clearing routines }
+
+    procedure tcg.a_bit_set_reg_reg(list : TAsmList; doset: boolean; bitnumbersize, destsize: tcgsize; bitnumber,dest: tregister);
+      var
+        tmpvalue: tregister;
+      begin
+        tmpvalue:=cg.getintregister(list,destsize);
+
+        if (target_info.endian=endian_little) then
+          begin
+            a_load_const_reg(list,destsize,1,tmpvalue);
+            { rotate bit "bitnumber" bits to the left }
+            a_op_reg_reg(list,OP_SHL,destsize,bitnumber,tmpvalue);
+          end
+        else
+          begin
+            { highest (leftmost) bit = bit 0 -> "$80/$8000/$80000000/ ... }
+            { shr bitnumber" results in correct mask                      }
+            a_load_const_reg(list,destsize,1 shl (tcgsize2size[destsize]*8-1),tmpvalue);
+            a_op_reg_reg(list,OP_SHR,destsize,bitnumber,tmpvalue);
+          end;
+        { set/clear the bit we want }
+        if (doset) then
+          a_op_reg_reg(list,OP_OR,destsize,tmpvalue,dest)
+        else
+          begin
+            a_op_reg_reg(list,OP_NOT,destsize,tmpvalue,tmpvalue);
+            a_op_reg_reg(list,OP_AND,destsize,tmpvalue,dest)
+          end;
+      end;
+
+
+    procedure tcg.a_bit_set_const_ref(list: TAsmList; doset: boolean;destsize: tcgsize; bitnumber: aint; const ref: treference);
+      begin
+        a_load_const_subsetref(list,OS_8,ord(doset),get_bit_const_ref_sref(bitnumber,ref));
+      end;
+
+
+    procedure tcg.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tcgsize; bitnumber: aint; destreg: tregister);
+      begin
+        a_load_const_subsetreg(list,OS_8,ord(doset),get_bit_const_reg_sreg(destsize,bitnumber,destreg));
+      end;
+
+
+    procedure tcg.a_bit_set_const_subsetreg(list: TAsmList; doset: boolean; destsize: tcgsize; bitnumber: aint; const destreg: tsubsetregister);
+      var
+        tmpsreg: tsubsetregister;
+      begin
+        { the first parameter is used to calculate the bit offset in }
+        { case of big endian, and therefore must be the size of the  }
+        { set and not of the whole subsetreg                         }
+        tmpsreg:=get_bit_const_reg_sreg(destsize,bitnumber,destreg.subsetreg);
+        { now fix the size of the subsetreg }
+        tmpsreg.subsetregsize:=destreg.subsetregsize;
+        { correct offset of the set in the subsetreg }
+        inc(tmpsreg.startbit,destreg.startbit);
+        a_load_const_subsetreg(list,OS_8,ord(doset),tmpsreg);
+      end;
+
+
+    procedure tcg.a_bit_set_reg_ref(list: TAsmList; doset: boolean; bitnumbersize: tcgsize; bitnumber: tregister; const ref: treference);
+      begin
+        a_load_const_subsetref(list,OS_8,ord(doset),get_bit_reg_ref_sref(list,bitnumbersize,bitnumber,ref));
+      end;
+
+
+    procedure tcg.a_bit_set_reg_loc(list: TAsmList; doset: boolean; bitnumbersize: tcgsize; bitnumber: tregister; const loc: tlocation);
+      var
+        tmpreg: tregister;
+      begin
+        case loc.loc of
+          LOC_REFERENCE:
+            a_bit_set_reg_ref(list,doset,bitnumbersize,bitnumber,loc.reference);
+          LOC_CREGISTER:
+            a_bit_set_reg_reg(list,doset,bitnumbersize,loc.size,bitnumber,loc.register);
+          { e.g. a 2-byte set in a record regvar }
+          LOC_CSUBSETREG:
+            begin
+              { hard to do in-place in a generic way, so operate on a copy }
+              tmpreg:=cg.getintregister(list,loc.size);
+              a_load_subsetreg_reg(list,loc.size,loc.size,loc.sreg,tmpreg);
+              a_bit_set_reg_reg(list,doset,bitnumbersize,loc.size,bitnumber,tmpreg);
+              a_load_reg_subsetreg(list,loc.size,loc.size,tmpreg,loc.sreg);
+            end;
+          { LOC_SUBSETREF is not possible, because sets are not (yet) bitpacked }
+          else
+            internalerror(2007051703)
+        end;
+      end;
+
+
+    procedure tcg.a_bit_set_const_loc(list: TAsmList; doset: boolean; bitnumber: aint; const loc: tlocation);
+      begin
+        case loc.loc of
+          LOC_REFERENCE:
+            a_bit_set_const_ref(list,doset,loc.size,bitnumber,loc.reference);
+          LOC_CREGISTER:
+            a_bit_set_const_reg(list,doset,loc.size,bitnumber,loc.register);
+          LOC_CSUBSETREG:
+            a_bit_set_const_subsetreg(list,doset,loc.size,bitnumber,loc.sreg);
+          { LOC_SUBSETREF is not possible, because sets are not (yet) bitpacked }
+          else
+            internalerror(2007051704)
+        end;
+      end;
+
+
+    { memory/register loading }
 
     procedure tcg.a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
@@ -2220,7 +2531,7 @@ implementation
       var
         tmpreg: tregister;
       begin
-        tmpreg := cg.getintregister(list, size);
+        tmpreg := getintregister(list, size);
         a_load_subsetreg_reg(list,subsetsize,size,sreg,tmpreg);
         a_op_const_reg(list,op,size,a,tmpreg);
         a_load_reg_subsetreg(list,size,subsetsize,tmpreg,sreg);
@@ -2231,7 +2542,7 @@ implementation
       var
         tmpreg: tregister;
       begin
-        tmpreg := cg.getintregister(list, size);
+        tmpreg := getintregister(list, size);
         a_load_subsetref_reg(list,subsetsize,size,sref,tmpreg);
         a_op_const_reg(list,op,size,a,tmpreg);
         a_load_reg_subsetref(list,size,subsetsize,tmpreg,sref);
@@ -2293,7 +2604,7 @@ implementation
       var
         tmpreg: tregister;
       begin
-        tmpreg := cg.getintregister(list, opsize);
+        tmpreg := getintregister(list, opsize);
         a_load_subsetreg_reg(list,subsetsize,opsize,sreg,tmpreg);
         a_op_reg_reg(list,op,opsize,reg,tmpreg);
         a_load_reg_subsetreg(list,opsize,subsetsize,tmpreg,sreg);
@@ -2304,7 +2615,7 @@ implementation
       var
         tmpreg: tregister;
       begin
-        tmpreg := cg.getintregister(list, opsize);
+        tmpreg := getintregister(list, opsize);
         a_load_subsetref_reg(list,subsetsize,opsize,sref,tmpreg);
         a_op_reg_reg(list,op,opsize,reg,tmpreg);
         a_load_reg_subsetref(list,opsize,subsetsize,tmpreg,sref);
@@ -2384,10 +2695,16 @@ implementation
           end
         else
           begin
-            tmpreg:=getintregister(list,size);
-            a_load_reg_reg(list,size,size,src2,tmpreg);
-            a_op_reg_reg(list,op,size,src1,tmpreg);
-            a_load_reg_reg(list,size,size,tmpreg,dst);
+            { can we do a direct operation on the target register ? }
+            if op in [OP_ADD,OP_MUL,OP_AND,OP_MOVE,OP_XOR,OP_IMUL,OP_OR] then
+              a_op_reg_reg(list,op,size,src2,dst)
+            else
+              begin
+                tmpreg:=getintregister(list,size);
+                a_load_reg_reg(list,size,size,src2,tmpreg);
+                a_op_reg_reg(list,op,size,src1,tmpreg);
+                a_load_reg_reg(list,size,size,tmpreg,dst);
+              end;
           end;
       end;
 
@@ -2983,8 +3300,8 @@ implementation
         if (fromdef = todef) and
            (fromdef.typ=orddef) and
            (((((torddef(fromdef).ordtype = s32bit) and
-               (lfrom = low(longint)) and
-               (hfrom = high(longint))) or
+               (lfrom = int64(low(longint))) and
+               (hfrom = int64(high(longint)))) or
               ((torddef(fromdef).ordtype = u32bit) and
                (lfrom = low(cardinal)) and
                (hfrom = high(cardinal)))))) then
@@ -3085,7 +3402,7 @@ implementation
           end;
         hreg:=getintregister(list,OS_INT);
         a_load_loc_reg(list,OS_INT,l,hreg);
-        a_op_const_reg(list,OP_SUB,OS_INT,aint(lto),hreg);
+        a_op_const_reg(list,OP_SUB,OS_INT,aint(int64(lto)),hreg);
         current_asmdata.getjumplabel(neglabel);
         {
         if from_signed then
@@ -3097,7 +3414,7 @@ implementation
           a_cmp_const_reg_label(list,OS_INT,OC_BE,aintmax,hreg,neglabel)
         else
 {$endif cpu64bit}
-          a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(hto-lto),hreg,neglabel);
+          a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(int64(hto-lto)),hreg,neglabel);
         a_call_name(list,'FPC_RANGEERROR');
         a_label(list,neglabel);
       end;
@@ -3399,21 +3716,26 @@ implementation
         result := NR_NO;
         case target_info.system of
           system_powerpc_darwin,
-          system_i386_darwin:
+          system_i386_darwin,
+          system_powerpc64_darwin,
+          system_x86_64_darwin:
             begin
               l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
               if not(assigned(l)) then
                 begin
-                  l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+                  l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_LOCAL,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
+{$ifdef cpu64bit}
+                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
+{$else cpu64bit}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_32bit(0));
+{$endif cpu64bit}
                 end;
-              result := cg.getaddressregister(list);
+              result := getaddressregister(list);
               reference_reset_symbol(ref,l,0);
-{              ref.base:=current_procinfo.got;
-              ref.relsymbol:=current_procinfo.CurrGOTLabel;}
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
+              { a_load_ref_reg will turn this into a pic-load if needed }
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;
           end;
         end;

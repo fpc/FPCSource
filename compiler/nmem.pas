@@ -353,7 +353,7 @@ implementation
         if codegenerror then
          exit;
 
-        make_not_regable(left,vr_addr);
+        make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
 
         { don't allow constants, for internal use we also
           allow taking the address of strings }
@@ -607,7 +607,7 @@ implementation
         // don't put records from which we load fields which aren't regable in integer registers
         if (left.resultdef.typ = recorddef) and
            not(tstoreddef(resultdef).is_intregable) then
-          make_not_regable(left,vr_addr);
+          make_not_regable(left,[ra_addr_regable]);
       end;
 
     procedure Tsubscriptnode.mark_write;

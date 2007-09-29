@@ -1560,7 +1560,7 @@ implementation
             convtype:=tc_equal;
             if not(tstoreddef(resultdef).is_intregable) and
                not(tstoreddef(resultdef).is_fpuregable) then
-              make_not_regable(left,vr_addr);
+              make_not_regable(left,[ra_addr_regable]);
             exit;
           end;
 
@@ -1713,7 +1713,7 @@ implementation
                          not(tstoreddef(resultdef).is_fpuregable)) or
                         ((left.resultdef.typ = floatdef) and
                          (resultdef.typ <> floatdef))  then
-                       make_not_regable(left,vr_addr);
+                       make_not_regable(left,[ra_addr_regable]);
 
                      { class/interface to class/interface, with checkobject support }
                      if is_class_or_interface(resultdef) and
@@ -1775,13 +1775,19 @@ implementation
 
                       else
                        begin
-                         { only if the same size or formal def }
+                         { only if the same size or formal def, and }
+                         { don't allow type casting of constants to }
+                         { structured types                         }
                          if not(
                                 (left.resultdef.typ=formaldef) or
                                 (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
-                                 (left.resultdef.size=resultdef.size)
+                                 (left.resultdef.size=resultdef.size) and
+                                 (not is_constnode(left) or
+                                  (not(resultdef.typ in [arraydef,recorddef,setdef,stringdef,
+                                                         filedef,variantdef,objectdef]) or
+                                   is_class_or_interface(resultdef)))
                                 ) or
                                 (
                                  is_void(left.resultdef)  and
@@ -2608,7 +2614,7 @@ implementation
         { When using only a part of the value it can't be in a register since
           that will load the value in a new register first }
         if (resultdef.size<left.resultdef.size) then
-          make_not_regable(left,vr_addr);
+          make_not_regable(left,[ra_addr_regable]);
       end;
 
 

@@ -2128,7 +2128,7 @@ begin
   def_system_macro('FPC_HAS_LWSYNC');
 {$endif}
   def_system_macro('FPC_HAS_MEMBAR');
-
+  def_system_macro('FPC_NEW_BIGENDIAN_SETS');
 {$if defined(x86) or defined(arm)}
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}
@@ -2189,7 +2189,6 @@ begin
   def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif}
 {$ifdef iA64}
   def_system_macro('CPUIA64');
@@ -2224,7 +2223,6 @@ begin
   def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif}
 {$ifdef vis}
   def_system_macro('CPUVIS');
@@ -2238,7 +2236,6 @@ begin
   def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif arm}
 
   if (not disable_configfile) and

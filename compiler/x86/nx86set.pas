@@ -162,8 +162,8 @@ implementation
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values or be signed !! }
          use_small:=(tsetdef(right.resultdef).settype=smallset) and not is_signed(left.resultdef) and
-                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<=32) or
-                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<=32));
+                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<32) or
+                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<32));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
@@ -195,6 +195,8 @@ implementation
 
          if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) then
            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+         if (right.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
+           location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
 
          if genjumps then
           begin

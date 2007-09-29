@@ -233,9 +233,7 @@ interface
       begin
         { when a setdef is passed, it has to be a smallset }
         if is_varset(left.resultdef) or
-          is_normalset(left.resultdef) or
-          is_varset(right.resultdef) or
-          is_normalset(right.resultdef) then
+          is_varset(right.resultdef) then
           internalerror(200203302);
 
         if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
@@ -249,6 +247,7 @@ interface
       var
         cgop   : TOpCg;
         tmpreg : tregister;
+        mask   : aint;
         opdone : boolean;
       begin
         opdone := false;
@@ -279,14 +278,30 @@ interface
                   if assigned(tsetelementnode(right).right) then
                    internalerror(43244);
                   if (right.location.loc = LOC_CONSTANT) then
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,
-                      aint(1 shl right.location.value),
-                      left.location.register,location.register)
+                    begin
+                      if (target_info.endian=endian_big) then
+                        mask:=aint((aword(1) shl (resultdef.size*8-1)) shr aword(right.location.value))
+                      else
+                        mask:=aint(1 shl right.location.value);
+                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,
+                        mask,left.location.register,location.register);
+                    end
                   else
                     begin
+                      if (target_info.endian=endian_big) then
+                        begin
+                          mask:=aint((aword(1) shl (resultdef.size*8-1)));
+                          cgop:=OP_SHR
+                        end
+                      else
+                        begin
+                          mask:=1;
+                          cgop:=OP_SHL
+                        end;
                       tmpreg := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,1,tmpreg);
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHL,location.size,
+                      cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,mask,tmpreg);
+                      location_force_reg(current_asmdata.CurrAsmList,right.location,location.size,true);
+                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
                         right.location.register,tmpreg);
                       if left.location.loc <> LOC_CONSTANT then
                         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,tmpreg,
@@ -769,8 +784,7 @@ interface
             begin
               {Normalsets are already handled in pass1 if mmx
                should not be used.}
-              if is_varset(tsetdef(left.resultdef)) or
-                is_normalset(tsetdef(left.resultdef)) then
+              if is_varset(tsetdef(left.resultdef)) then
                 begin
 {$ifdef SUPPORT_MMX}
                 {$ifdef i386}

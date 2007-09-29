@@ -973,7 +973,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(typedefderef);
         new(value_set);
-        ppufile.getdata(value_set^,sizeof(tconstset));
+        ppufile.getnormalset(value_set^);
       end;
 
 
@@ -981,7 +981,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(typedefderef);
-        ppufile.putdata(value_set^,sizeof(tconstset));
+        ppufile.putnormalset(value_set^);
       end;
 
 

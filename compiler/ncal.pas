@@ -71,6 +71,7 @@ interface
           function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
           procedure createlocaltemps(p:TObject;arg:pointer);
           function  pass1_inline:tnode;
+          function  getfuncretassignment(inlineblock: tblocknode): tnode;
        protected
           pushedparasize : longint;
        public
@@ -980,20 +981,28 @@ implementation
 
                  { When the address needs to be pushed then the register is
                    not regable. Exception is when the location is also a var
-                   parameter and we can pass the address transparently }
+                   parameter and we can pass the address transparently (but
+                   that is handled by make_not_regable if ra_addr_regable is
+                   passed, and make_not_regable always needs to called for
+                   the ra_addr_taken info for non-invisble parameters }
                  if (
                      not(
                          (vo_is_hidden_para in parasym.varoptions) and
                          (left.resultdef.typ in [pointerdef,classrefdef])
                         ) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                         aktcallnode.procdefinition.proccalloption) and
-                     not(
-                         (left.nodetype=loadn) and
-                         (tloadnode(left).is_addr_param_load)
-                        )
+                         aktcallnode.procdefinition.proccalloption)
                     ) then
-                   make_not_regable(left,vr_addr);
+                   { pushing the address of a variable to take the place of a temp  }
+                   { as the complex function result of a function does not make its }
+                   { address escape the current block, as the "address of the       }
+                   { function result" is not something which can be stored          }
+                   { persistently by the callee (it becomes invalid when the callee }
+                   { returns)                                                       }
+                   if not(vo_is_funcret in parasym.varoptions) then
+                     make_not_regable(left,[ra_addr_regable,ra_addr_taken])
+                   else
+                     make_not_regable(left,[ra_addr_regable]);
 
                  if do_count then
                   begin
@@ -2459,15 +2468,22 @@ implementation
           end
         else
           begin
-            tempnode := ctempcreatenode.create(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
-            addstatement(tempinfo^.createstatement,tempnode);
             if (vo_is_funcret in tlocalvarsym(p).varoptions) then
               begin
+                tempnode := ctempcreatenode.create_inlined_result(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
+                addstatement(tempinfo^.createstatement,tempnode);
                 funcretnode := ctemprefnode.create(tempnode);
                 addstatement(tempinfo^.deletestatement,ctempdeletenode.create_normal_temp(tempnode));
               end
             else
-              addstatement(tempinfo^.deletestatement,ctempdeletenode.create(tempnode));
+              begin
+                tempnode := ctempcreatenode.create(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
+                addstatement(tempinfo^.createstatement,tempnode);
+                addstatement(tempinfo^.deletestatement,ctempdeletenode.create(tempnode));
+              end;
+            { inherit addr_taken flag }
+            if (tabstractvarsym(p).addr_taken) then
+              include(tempnode.tempinfo^.flags,ti_addr_taken);
             inlinelocals[indexnr] := ctemprefnode.create(tempnode);
           end;
       end;
@@ -2625,6 +2641,9 @@ implementation
 
                     tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                     addstatement(createstatement,tempnode);
+                    { inherit addr_taken flag }
+                    if (tabstractvarsym(para.parasym).addr_taken) then
+                      include(tempnode.tempinfo^.flags,ti_addr_taken);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
                     {  only need a temprefnode, so delete the old stuff)                                   }
@@ -2653,6 +2672,9 @@ implementation
                   begin
                     tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
                     addstatement(createstatement,tempnode);
+                    { inherit addr_taken flag }
+                    if (tabstractvarsym(para.parasym).addr_taken) then
+                      include(tempnode.tempinfo^.flags,ti_addr_taken);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create_internal(para.left)));
                     para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resultdef);
@@ -2673,6 +2695,62 @@ implementation
         deletestatement := tempnodes.deletestatement;
       end;
 
+
+    function tcallnode.getfuncretassignment(inlineblock: tblocknode): tnode;
+      var
+        hp: tstatementnode;
+        resassign: tnode;
+      begin
+        result:=nil;
+        if not assigned(funcretnode) or
+           not(cnf_return_value_used in callnodeflags) then
+        exit;
+
+        { tempcreatenode for the function result }
+        hp:=tstatementnode(inlineblock.left);
+        if not(assigned(hp)) or
+           (hp.left.nodetype <> tempcreaten) then
+          exit;
+
+        { assignment to the result }
+        hp:=tstatementnode(hp.right);
+        if not(assigned(hp)) or
+           (hp.left.nodetype<>assignn) or
+           { left must be function result }
+           (not(tassignmentnode(hp.left).left.isequal(funcretnode)) and
+            { can have extra type conversion due to absolute mapping }
+            { of <fucntionname> on function result var               }
+            not((tassignmentnode(hp.left).left.nodetype = typeconvn) and
+                (ttypeconvnode(tassignmentnode(hp.left).left).convtype = tc_equal) and
+                (ttypeconvnode(tassignmentnode(hp.left).left).left.isequal(funcretnode)))) or
+           { right must be a constant (mainly to avoid trying to reuse    }
+           { local temps which may already be freed afterwards once these }
+           { checks are made looser)                                      }
+           not is_constnode(tassignmentnode(hp.left).right) then
+          exit
+        else
+          resassign:=hp.left;
+
+        { tempdelete to normal of the function result }
+        hp:=tstatementnode(hp.right);
+        if not(assigned(hp)) or
+           (hp.left.nodetype <> tempdeleten) then
+          exit;
+        
+        { the function result once more }
+        hp:=tstatementnode(hp.right);
+        if not(assigned(hp)) or
+           not(hp.left.isequal(funcretnode)) then
+          exit;
+
+        { should be the end }
+        if assigned(hp.right) then
+          exit;
+
+        { we made it! }
+        result:=tassignmentnode(resassign).right.getcopy;
+        firstpass(result);
+      end;
 
 
     function tcallnode.pass1_inline:tnode;
@@ -2722,11 +2800,22 @@ implementation
         exclude(procdefinition.procoptions,po_inline);
 
         dosimplify(createblock);
-
         firstpass(createblock);
         include(procdefinition.procoptions,po_inline);
-        { return inlined block }
-        result := createblock;
+
+        { if all that's left of the inlined function is an constant       }
+        { assignment to the result, replace the whole block with what's   }
+        { assigned to the result. There will also be a tempcreatenode for }
+        { the function result itself though, so ignore it. The statement/ }
+        { blocknode simplification code will have removed all nothingn-   }
+        { statements empty nested blocks, so we don't have to care about  }
+        { those                                                           }
+        result := getfuncretassignment(createblock);
+        if assigned(result) then
+          createblock.free
+        else
+          { return inlined block }
+          result := createblock;
 
 {$ifdef DEBUGINLINE}
         writeln;

@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
+
 {$define FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_LOAD_SMALL']; compilerproc;
 {
@@ -62,7 +64,6 @@ asm
         // (((b div 8) div 4)*4= (b div 8) and not(3))
         // r5 := (r4 rotl(32-3)) and (0x01ffffff8)
         rlwinm  r4,r4,31-3+1,3,31-2
-
         // store the result
         stwx    r0,r3,r4
 end;
@@ -196,29 +197,6 @@ asm
   stw    r5,0(r3)             // store to set
 .Lset_range_exit:
 end;
-
-
-{$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
-function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;compilerproc;assembler;[public,alias:'FPC_SET_IN_BYTE'];
-{
-  tests if the element b is in the set p, the **zero** flag is cleared if it's present
-
-  on entry: p in r3, b in r4
-}
-asm
-       // get the index of the correct *dword* in the set
-       // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
-       rlwinm   r0,r4,31-3+1,3,31-2
-
-       // load dword in which the bit has to be tested
-       lwzx     r3,r3,r0
-
-       // r4 := 32 - r4 (no problem if r4 > 32, the rlwnm next does a mod 32)
-       subfic   r4,r4,32
-       // r3 := (r3 shr (r4 mod 32)) and 1
-       rlwnm    r3,r3,r4,31,31
-end;
-
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
@@ -355,168 +333,4 @@ asm
        srwi.    r3,r3,5
 end;
 
-
-
-{$ifdef LARGESETS}
-
-procedure do_set(p : pointer;b : word);assembler;[public,alias:'FPC_SET_SET_WORD'];
-{
-  sets the element b in set p works for sets larger than 256 elements
-  not yet use by the compiler so
-}
-asm
-       pushl %eax
-       movl p,%edi
-       movw b,%ax
-       andl $0xfff8,%eax
-       shrl $3,%eax
-       addl %eax,%edi
-       movb 12(%ebp),%al
-       andl $7,%eax
-       btsl %eax,(%edi)
-       popl %eax
-end;
-
-
-procedure do_in(p : pointer;b : word);assembler;[public,alias:'FPC_SET_IN_WORD'];
-{
-  tests if the element b is in the set p the carryflag is set if it present
-  works for sets larger than 256 elements
-}
-asm
-        pushl %eax
-        movl p,%edi
-        movw b,%ax
-        andl $0xfff8,%eax
-        shrl $3,%eax
-        addl %eax,%edi
-        movb 12(%ebp),%al
-        andl $7,%eax
-        btl %eax,(%edi)
-        popl %eax
-end;
-
-
-procedure add_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_ADD_SETS_SIZE'];
-{
-  adds set1 and set2 into set dest size is the number of bytes in the set
-}
-asm
-      movl set1,%esi
-      movl set2,%ebx
-      movl dest,%edi
-      movl size,%ecx
-  .LMADDSETSIZES1:
-      lodsl
-      orl (%ebx),%eax
-      stosl
-      addl $4,%ebx
-      decl %ecx
-      jnz .LMADDSETSIZES1
-end;
-
-
-procedure mul_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_MUL_SETS_SIZE'];
-{
-  multiplies (i.E. takes common elements of) set1 and set2 result put in
-  dest size is the number of bytes in the set
-}
-asm
-         movl set1,%esi
-         movl set2,%ebx
-         movl dest,%edi
-         movl size,%ecx
-     .LMMULSETSIZES1:
-         lodsl
-         andl (%ebx),%eax
-         stosl
-         addl $4,%ebx
-         decl %ecx
-         jnz .LMMULSETSIZES1
-end;
-
-
-procedure sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_SUB_SETS_SIZE'];
-asm
-         movl set1,%esi
-         movl set2,%ebx
-         movl dest,%edi
-         movl size,%ecx
-     .LMSUBSETSIZES1:
-         lodsl
-         movl (%ebx),%edx
-         notl %edx
-         andl %edx,%eax
-         stosl
-         addl $4,%ebx
-         decl %ecx
-         jnz .LMSUBSETSIZES1
-end;
-
-
-procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_SYMDIF_SETS_SIZE'];
-{
-   computes the symetric diff from set1 to set2 result in dest
-}
-asm
-      movl set1,%esi
-      movl set2,%ebx
-      movl dest,%edi
-      movl size,%ecx
-  .LMSYMDIFSETSIZE1:
-      lodsl
-      movl (%ebx),%edx
-      xorl %edx,%eax
-      stosl
-      addl $4,%ebx
-      decl %ecx
-      jnz LMSYMDIFSETSIZE1
-end;
-
-
-procedure comp_sets(set1,set2 : pointer;size : longint);assembler;[public,alias:'FPC_SET_COMP_SETS_SIZE'];
-asm
-      movl set1,%esi
-      movl set2,%edi
-      movl size,%ecx
-  LMCOMPSETSIZES1:
-      lodsl
-      movl (%edi),%edx
-      cmpl %edx,%eax
-      jne  LMCOMPSETSIZEEND
-      addl $4,%edi
-      decl %ecx
-      jnz LMCOMPSETSIZES1
-      { we are here only if the two sets are equal
-        we have zero flag set, and that what is expected }
-  LMCOMPSETSIZEEND:
-end;
-
-{$IfNDef NoSetInclusion}
-procedure contains_sets(set1,set2 : pointer; size: longint);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
-{
-  on exit, zero flag is set if set1 <= set2 (set2 contains set1)
-}
-asm
-        movl set1,%esi
-        movl set2,%edi
-        movl size,%ecx
-    LMCONTAINSSETS2:
-        movl (%esi),%eax
-        movl (%edi),%edx
-        andl %eax,%edx
-        cmpl %edx,%eax  {set1 and set2 = set1?}
-        jne  LMCONTAINSSETEND2
-        addl $4,%esi
-        addl $4,%edi
-        decl %ecx
-        jnz LMCONTAINSSETS2
-        { we are here only if set2 contains set1
-          we have zero flag set, and that what is expected }
-    LMCONTAINSSETEND2:
-end;
-{$EndIf NoSetInclusion}
-
-
-{$endif LARGESET}
-
+{$endif ndef FPC_NEW_BIGENDIAN_SETS}

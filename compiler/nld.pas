@@ -269,7 +269,7 @@ implementation
                     (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) or
                     (current_procinfo.procdef.proctypeoption=potype_unitfinalize)
                   ) then
-                 make_not_regable(self,vr_none);
+                 make_not_regable(self,[ra_addr_taken]);
                resultdef:=tabstractvarsym(symtableentry).vardef;
              end;
            paravarsym,
@@ -288,7 +288,8 @@ implementation
                    { we can't inline the referenced parent procedure }
                    exclude(tprocdef(symtable.defowner).procoptions,po_inline);
                    { reference in nested procedures, variable needs to be in memory }
-                   make_not_regable(self,vr_none);
+                   { and behaves as if its address escapes its parent block         }
+                   make_not_regable(self,[ra_addr_taken]);
                  end;
                { fix self type which is declared as voidpointer in the
                  definition }
@@ -672,6 +673,16 @@ implementation
          if codegenerror then
            exit;
 
+         { if right is a function call for which the address of the result  }
+         { is allocated by the caller and passed to the function via an     }
+         { invisible function result, try to pass the x in "x:=f(...)" as   }
+         { that function result instead. Condition: x cannot be accessible  }
+         { from within f. This is the case if x is a temp, or x is a local  }
+         { variable or value parameter of the current block and its address }
+         { is not passed to f. One problem: what if someone takes the       }
+         { address of x, puts it in a pointer variable/field and then       }
+         { accesses it that way from within the function? This is solved    }
+         { (in a conservative way) using the ti_addr_taken/addr_taken flags }
          if (cs_opt_level1 in current_settings.optimizerswitches) and
             (right.nodetype = calln) and
             (right.resultdef=left.resultdef) and
@@ -681,7 +692,25 @@ implementation
             { function                                                       }
             (
              (
-              (left.nodetype = temprefn) and
+              (((left.nodetype = temprefn) and
+                not(ti_addr_taken in ttemprefnode(left).tempinfo^.flags) and
+                not(ti_may_be_in_reg in ttemprefnode(left).tempinfo^.flags)) or
+               ((left.nodetype = loadn) and
+                { nested procedures may access the current procedure's locals }
+                (tcallnode(right).procdefinition.parast.symtablelevel=normal_function_level) and
+                { must be a local variable or a value para }
+                ((tloadnode(left).symtableentry.typ = localvarsym) or
+                 ((tloadnode(left).symtableentry.typ = paravarsym) and
+                  (tparavarsym(tloadnode(left).symtableentry).varspez = vs_value)
+                 )
+                ) and
+                { the address may not have been taken of the variable/parameter, because }
+                { otherwise it's possible that the called function can access it via a   }
+                { global variable or other stored state                                  }
+                not(tabstractvarsym(tloadnode(left).symtableentry).addr_taken) and
+                (tabstractvarsym(tloadnode(left).symtableentry).varregable in [vr_none,vr_addr])
+               )
+              ) and
               paramanager.ret_in_param(right.resultdef,tcallnode(right).procdefinition.proccalloption)
              ) or
              { there's special support for ansi/widestrings in the callnode }
@@ -689,7 +718,8 @@ implementation
              is_widestring(right.resultdef)
             )  then
            begin
-             make_not_regable(left,vr_addr);
+             if assigned(tcallnode(right).funcretnode) then
+               internalerror(2007080201);
              tcallnode(right).funcretnode := left;
              result := right;
              left := nil;

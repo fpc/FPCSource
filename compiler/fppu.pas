@@ -939,6 +939,8 @@ uses
                readlinkcontainer(LinkotherStaticLibs);
              iblinkothersharedlibs :
                readlinkcontainer(LinkotherSharedLibs);
+             iblinkotherframeworks :
+               readlinkcontainer(LinkOtherFrameworks);
              ibImportSymbols :
                readImportSymbols;
              ibderefmap :
@@ -1029,6 +1031,7 @@ uses
          writelinkcontainer(linkotherofiles,iblinkotherofiles,false);
          writelinkcontainer(linkotherstaticlibs,iblinkotherstaticlibs,true);
          writelinkcontainer(linkothersharedlibs,iblinkothersharedlibs,true);
+         writelinkcontainer(linkotherframeworks,iblinkotherframeworks,true);
          writeImportSymbols;
          writeResources;
          ppufile.do_crc:=true;
