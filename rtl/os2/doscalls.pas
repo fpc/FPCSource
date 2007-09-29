@@ -502,7 +502,9 @@ const   MaxPathLength=260;
         MaxPathComponent=256;
 
 type    TFileLock=record
-            Offset,Range:longint;
+         case boolean of
+          false: (Offset, Range: longint);
+          true:  (lOffset, lRange: longint);
         end;
         PFileLock=^TFileLock;
         FileLock=TFileLock;
@@ -2394,10 +2396,11 @@ type        PExceptionRegistrationRecord=^TExceptionRegistrationRecord;
             PExceptionReportRecord=^TExceptionReportRecord;
             PContextRecord=^TContextRecord;
 
-            TExceptionHandler=procedure(Report:PExceptionReportRecord;
-                                        RegRec:PExceptionRegistrationRecord;
-                                        Context:PContextRecord;
-                                        DispContext:pointer); cdecl;
+            TExceptionHandler = function (Report: PExceptionReportRecord;
+                                          RegRec: PExceptionRegistrationRecord;
+                                          Context: PContextRecord;
+                                          DispContext: pointer): cardinal;
+                                                                         cdecl;
 
             TExceptionRegistrationRecord=record
                 Prev_Structure:PExceptionRegistrationRecord;
