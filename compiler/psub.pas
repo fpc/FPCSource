@@ -1499,22 +1499,6 @@ implementation
         generates the code for it
       }
 
-      procedure do_generate_code(pi:tcgprocinfo);
-        var
-          hpi : tcgprocinfo;
-        begin
-          { generate code for this procedure }
-          pi.generate_code;
-          { process nested procs }
-          hpi:=tcgprocinfo(pi.nestedprocs.first);
-          while assigned(hpi) do
-           begin
-             do_generate_code(hpi);
-             hpi:=tcgprocinfo(hpi.next);
-           end;
-          pi.resetprocdef;
-        end;
-
       var
         old_current_procinfo : tprocinfo;
         pdflags    : tpdflags;
