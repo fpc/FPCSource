@@ -441,7 +441,7 @@ end ;
 
 function StrToTime(const s: string): TDateTime;
 var
-   Len, Current: integer; PM: boolean;
+   Len, Current: integer; PM: integer;
 
    function GetElement: integer;
    var
@@ -449,21 +449,26 @@ var
    begin
    result := -1;
    Inc(Current);
-   while (result = -1) and (Current < Len) do begin
-      if S[Current] in ['0'..'9'] then begin
-         j := Current;
-         while (Current < Len) and (s[Current + 1] in ['0'..'9']) do
-            Inc(Current);
-         val(copy(S, j, 1 + Current - j), result, c);
+   while (result = -1) and (Current < Len) do 
+     begin
+       if S[Current] in ['0'..'9'] then 
+          begin
+            j := Current;
+            while (Current < Len) and (s[Current + 1] in ['0'..'9']) do
+              Inc(Current);
+            val(copy(S, j, 1 + Current - j), result, c);
+          end
+       else if ((TimeAMString<>'') and (S[Current] = TimeAMString[1])) or (S[Current] in ['a', 'A']) then 
+          begin
+            pm:=1;
+            Current := 1 + Len;
+          end
+       else if ((TimePMString<>'') and (S[Current] = TimePMString[1])) or (S[Current] in ['p', 'P']) then 
+         begin
+           Current := 1 + Len;
+           PM := 2;
          end
-      else if ((TimeAMString<>'') and (S[Current] = TimeAMString[1])) or (S[Current] in ['a', 'A']) then begin
-         Current := 1 + Len;
-         end
-      else if ((TimePMString<>'') and (S[Current] = TimePMString[1])) or (S[Current] in ['p', 'P']) then begin
-         Current := 1 + Len;
-         PM := True;
-         end
-      else if (S[Current] = TimeSeparator) or (S[Current] = ' ') then
+       else if (S[Current] = TimeSeparator) or (S[Current] = ' ') then
          Inc(Current)
       else
         raise EConvertError.Create('Invalid Time format');
@@ -475,30 +480,31 @@ var
    TimeValues: array[0..4] of integer;
 
 begin
-Current := 0;
-Len := length(s);
-PM := False;
-for i:=0 to 4 do
-  timevalues[i]:=0;
-i := 0;
-TimeValues[i] := GetElement;
-while (i < 5) and (TimeValues[i] <> -1) do begin
-   i := i + 1;
-   TimeValues[i] := GetElement;
+  Current := 0;
+  Len := length(s);
+  PM := 0;
+  for i:=0 to 4 do
+    timevalues[i]:=0;
+  i := 0;
+  TimeValues[i] := GetElement;
+  while (i < 5) and (TimeValues[i] <> -1) do 
+    begin
+     i := i + 1;
+     TimeValues[i] := GetElement;
    end ;
-If (i<5) and (TimeValues[I]=-1) then
-  TimeValues[I]:=0;
-if PM then
-  begin
-  if (TimeValues[0] <> 12) then
-    Inc(TimeValues[0], 12);
-  end
-else
-  begin
-  if (TimeValues[0]=12) then
-    TimeValues[0]:=0;
-  end;
-result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
+  If (i<5) and (TimeValues[I]=-1) then
+    TimeValues[I]:=0;
+  if PM=2 then
+    begin
+     if (TimeValues[0] <> 12) then
+       Inc(TimeValues[0], 12);
+    end
+  else
+    begin
+      if (pm=1) and ((TimeValues[0]=12)) then
+        TimeValues[0]:=0;
+    end;
+  result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
 end ;
 
 {   StrToDateTime converts the string S to a TDateTime value
