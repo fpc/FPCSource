@@ -95,8 +95,13 @@ unit cgcpu;
 
     procedure tcg386.do_register_allocation(list:TAsmList;headertai:tai);
       begin
-        if pi_needs_got in current_procinfo.flags then
-          include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
+        if (pi_needs_got in current_procinfo.flags) then
+          begin
+            if getsupreg(current_procinfo.got) < first_int_imreg then
+              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
+            { ebx is currently always used (do to getiepasebx call) }
+            include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
+          end;
         inherited do_register_allocation(list,headertai);
       end;
 
@@ -248,10 +253,6 @@ unit cgcpu;
       var
         stacksize : longint;
       begin
-        { Release PIC register }
-        if cs_create_pic in current_settings.moduleswitches then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
-
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
            (rg[R_MMXREGISTER].uses_registers) then
