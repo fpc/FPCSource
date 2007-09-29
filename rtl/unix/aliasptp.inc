@@ -23,6 +23,7 @@ type
     pDev     = UnixType.pDev;
     gid_t    = UnixType.gid_t;
     TGid     = UnixType.TGid;
+    TIOCtlRequest = UnixType.TIOCtlRequest;
     pGid     = UnixType.pGid;
     ino_t    = UnixType.ino_t;
     TIno     = UnixType.TIno;

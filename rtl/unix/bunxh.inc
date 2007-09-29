@@ -90,11 +90,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpFtruncate  (fd : cInt; flength : TOff): cInt;  external name 'FPC_SYSC_FTRUNCATE';
     Function  FPSigaction  (sig: cInt; act : pSigActionRec; oact : pSigActionRec): cint;  external name 'FPC_SYSC_SIGACTION';
     Function  FPSelect     (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
-{$ifdef BSD}
-    Function  FpIOCtl      (Handle:cint;Ndx: culong; Data: Pointer):cint; external name  'FPC_SYSC_IOCTL';
-{$else}
-    Function  FpIOCtl      (Handle:cint;Ndx: cInt; Data: Pointer):cint; external name  'FPC_SYSC_IOCTL';
-{$endif}
+    Function  FpIOCtl      (Handle:cint;Ndx: TIOCtlRequest; Data: Pointer):cint; external name  'FPC_SYSC_IOCTL';
     Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint; external name 'FPC_SYSC_NANOSLEEP';
     Function  fpLstat(path:pchar;Info:pstat):cint;
     Function  fpLstat(Filename: ansistring;Info:pstat):cint;

@@ -443,7 +443,7 @@ end;
   data is function-dependent.
 }
 
-Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint; [public, alias : 'FPC_SYSC_IOCTL'];
+Function FpIOCtl(Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; [public, alias : 'FPC_SYSC_IOCTL'];
 // This was missing here, instead hardcoded in Do_IsDevice
 begin
   FpIOCtl:=do_SysCall(syscall_nr_ioctl,handle,Ndx,TSysParam(data));

@@ -510,7 +510,7 @@ end;
 // prototype is cint __P(cint,culong,....)
 // actual meaning of return value depends on request.
 
-Function FpIOCtl(fd:cint;request:cint;Data: Pointer):cint;  [public, alias : 'FPC_SYSC_IOCTL'];
+Function FpIOCtl(fd:cint;request:TIOCtlRequest;Data: Pointer):cint;  [public, alias : 'FPC_SYSC_IOCTL'];
 // This was missing here, instead hardcoded in Do_IsDevice
 begin
   FpIOCtl:=do_SysCall(syscall_nr_ioctl,tsysparam(fd),tsysparam(Request),TSysParam(data));

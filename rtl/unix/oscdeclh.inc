@@ -74,11 +74,7 @@ const
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
     function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
-{$ifdef BSD}
-    function  FpIOCtl   (Handle:cint;Ndx: culong;Data: Pointer):cint; cdecl; external clib name 'ioctl';
-{$else}
-    function  FpIOCtl   (Handle:cint;Ndx: cint;Data: Pointer):cint; cdecl; external clib name 'ioctl';
-{$endif}
+    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; cdecl; external clib name 'ioctl';
 {$ifdef beos}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
 {$else}
