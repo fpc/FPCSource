@@ -14,8 +14,8 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       sysutils fgl classes math typinfo varutils winsock \
       charset ucomplex cpu mmx getopts heaptrc lineinfo lnfodwrf dynlibs \
       video mouse keyboard variants types rtlconst sysconst dateutil \
-      strutils convutil so32dll sockets
-rsts=math varutils typinfo variants pmhelp classes sysconst dateutil
+      strutils convutil stdconvs fmtbcd so32dll sockets
+rsts=math varutils typinfo variants pmhelp classes sysconst dateutil stdconvs
 
 [require]
 nortl=y
@@ -205,6 +205,13 @@ convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp sysutils$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
 
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
+
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
+
 #
 # Mac Pascal Model
 #
@@ -227,7 +234,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
- lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
