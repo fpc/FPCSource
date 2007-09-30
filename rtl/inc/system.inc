@@ -1203,3 +1203,18 @@ Function FindResource(ModuleHandle: HMODULE; ResourceName, ResourceType: AnsiStr
 begin
   Result:=FindResource(ModuleHandle,PChar(ResourceName),PChar(ResourceType));
 end;
+
+const
+  CtrlBreakHandler: TCtrlBreakHandler = nil;
+
+{$IFNDEF FPC_HAS_SETCTRLBREAKHANDLER}
+(* It is possible to provide platform specific implementation performing   *)
+(* special initialization; default implementation just sets the procedural *)
+(* variable to make it available for use from the exception handler.       *)
+function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
+begin
+  (* Return either nil or previous handler *)
+  SysSetCtrlBreakHandler := CtrlBreakHandler;
+  CtrlBreakHandler := Handler;
+end;
+{$ENDIF FPC_HAS_SETCTRLBREAKHANDLER}

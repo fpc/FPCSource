@@ -318,6 +318,11 @@ type
   TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
   PPCharArray = ^TPCharArray;
 
+(* CtrlBreak set to true signalizes Ctrl-Break signal, otherwise Ctrl-C. *)
+(* Return value of true means that the signal has been processed, false  *)
+(* means that default handling should be used. *)
+  TCtrlBreakHandler = function (CtrlBreak: boolean): boolean;
+
 const
 {$ifdef cpui386}
   { Always i386 or newer }
@@ -822,6 +827,10 @@ Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
 Function  SysBackTraceStr(Addr:Pointer): ShortString;
 Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
+(* Supposed to return address of previous CtrlBreakHandler *)
+(* (may be nil), returned value of pointer (-1) means that *)
+(* attempt to setup CtrlBreakHandler wasn't successful.    *)
+function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
 
 { Error handlers }
 Type
