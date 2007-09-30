@@ -264,7 +264,7 @@ begin
 {$endif}
 
 {$ifdef x86_64}
-     defdynlinker:='/lib/ld-linux-x86-64.so.2';
+     defdynlinker:='/lib64/ld-linux-x86-64.so.2';
 {$endif x86_64}
 
 {$ifdef sparc}
@@ -276,7 +276,7 @@ begin
 {$endif powerpc}
 
 {$ifdef powerpc64}
-     defdynlinker:='/lib/ld64.so.1';
+     defdynlinker:='/lib64/ld64.so.1';
 {$endif powerpc64}
 
 {$ifdef arm}
