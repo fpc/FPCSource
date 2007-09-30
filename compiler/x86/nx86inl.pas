@@ -142,9 +142,8 @@ implementation
         if use_sse(left.resultdef) then
           expectloc:=LOC_REGISTER
         else
-{$else x86_64}
-          expectloc:=LOC_REFERENCE;
 {$endif x86_64}
+          expectloc:=LOC_REFERENCE;
         result:=nil;
       end;
 
@@ -163,9 +162,8 @@ implementation
              if use_sse(left.resultdef) then
                expectloc:=LOC_REGISTER
              else
-{$else x86_64}
-               expectloc:=LOC_REFERENCE;
 {$endif x86_64}
+               expectloc:=LOC_REFERENCE;
              result:=nil;
            end;
        end;
