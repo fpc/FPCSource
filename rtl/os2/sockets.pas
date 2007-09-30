@@ -29,6 +29,7 @@ Const
   AF_LOCAL       = so32dll.AF_LOCAL;
   AF_UNIX        = so32dll.AF_UNIX;
   AF_OS2         = so32dll.AF_OS2;
+  AF_INET        = so32dll.AF_INET;
   AF_IMPLINK     = so32dll.AF_IMPLINK;     // arpanet imp addresses
   AF_PUP         = so32dll.AF_PUP;         // pup protocols: e.g. BSP
   AF_CHAOS       = so32dll.AF_CHAOS;       // mit CHAOS protocols
