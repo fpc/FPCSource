@@ -264,7 +264,7 @@ begin
 {$endif}
 
 {$ifdef x86_64}
-     defdynlinker:='/lib/ld-linux-x86-64.so.2'
+     defdynlinker:='/lib/ld-linux-x86-64.so.2';
 {$endif x86_64}
 
 {$ifdef sparc}
