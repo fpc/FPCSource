@@ -63,8 +63,8 @@ var
  K: TKbdKeyInfo;
 begin
   KbdGetFocus (IO_Wait, Handle);
-  while (KbdCharIn (K, IO_Wait, Handle) <> No_Error)
-        or (K.fbStatus and $40 = 0) do
+  while (KbdCharIn (K, IO_NoWait, Handle) <> No_Error)
+        or (K.fbStatus and $41 <> $40) do
     DosSleep (5);
   with K do
     begin
