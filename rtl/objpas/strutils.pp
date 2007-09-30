@@ -350,16 +350,21 @@ end;
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 
 var i,j : SizeUInt;
+    k   : SizeInt;
 
 begin
   j:=length(ASubText);
   i:=length(AText);
+  if AStart>i then 
+    aStart:=i+1;
+  k:=i-AStart+1;
+  if ALength> k then
+    ALength:=k;
   SetLength(Result,i+j-ALength);
   move (AText[1],result[1],AStart-1);
   move (ASubText[1],result[AStart],j);
   move (AText[AStart+ALength], Result[AStart+j],i+1-AStart-ALength);
 end;
-
 
 Function RandomFrom(const AValues: array of string): string; overload;
 
