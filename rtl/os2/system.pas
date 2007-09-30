@@ -279,8 +279,10 @@ var
  Res: cardinal;
  Err: byte;
  Must_Reset_FPU: boolean;
+{$IFDEF SYSTEMEXCEPTIONDEBUG}
  CurSS: cardinal;
  B: byte;
+{$ENDIF SYSTEMEXCEPTIONDEBUG}
 begin
 {$ifdef SYSTEMEXCEPTIONDEBUG}
  if IsConsole then
@@ -411,7 +413,6 @@ begin
       end;
 {$endif SYSTEMEXCEPTIONDEBUG}
     end;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
   end
  else
   if (Report^.Exception_Num = Xcpt_Signal) and
@@ -432,10 +433,9 @@ begin
      DosAcknowledgeSignalException (Report^.Parameters [0]);
     end
    else
-    Err := 217
+    Err := 217;
 {$IFDEF SYSTEMEXCEPTIONDEBUG}
    end
-{$ENDIF SYSTEMEXCEPTIONDEBUG}
   else
    if IsConsole then
     begin
