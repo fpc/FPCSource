@@ -125,4 +125,5 @@ Const
 
 begin
   SetKeyBoardDriver(SysKeyBoardDriver);
+  SetKbdCtrlBreakHandler;
 end.
