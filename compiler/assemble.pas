@@ -923,10 +923,15 @@ Implementation
            case hp.typ of
              ait_align :
                begin
-                 { always use the maximum fillsize in this pass to avoid possible
-                   short jumps to become out of range }
-                 Tai_align_abstract(hp).fillsize:=Tai_align_abstract(hp).aligntype;
-                 ObjData.alloc(Tai_align_abstract(hp).fillsize);
+                 if tai_align_abstract(hp).aligntype>1 then
+                   begin
+                     { always use the maximum fillsize in this pass to avoid possible
+                       short jumps to become out of range }
+                     Tai_align_abstract(hp).fillsize:=Tai_align_abstract(hp).aligntype;
+                     ObjData.alloc(Tai_align_abstract(hp).fillsize);
+                   end
+                 else
+                   Tai_align_abstract(hp).fillsize:=0;
                end;
              ait_datablock :
                begin
@@ -1001,10 +1006,13 @@ Implementation
            case hp.typ of
              ait_align :
                begin
-                 { here we must determine the fillsize which is used in pass2 }
-                 Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Tai_align_abstract(hp).aligntype)-
-                   ObjData.CurrObjSec.Size;
-                 ObjData.alloc(Tai_align_abstract(hp).fillsize);
+                 if tai_align_abstract(hp).aligntype>1 then
+                   begin
+                     { here we must determine the fillsize which is used in pass2 }
+                     Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Tai_align_abstract(hp).aligntype)-
+                       ObjData.CurrObjSec.Size;
+                     ObjData.alloc(Tai_align_abstract(hp).fillsize);
+                   end;
                end;
              ait_datablock :
                begin
@@ -1085,6 +1093,8 @@ Implementation
 {$endif x86}
         leblen : byte;
         lebbuf : array[0..63] of byte;
+        objsym,
+        objsymend : TObjSymbol;
       begin
         { main loop }
         while assigned(hp) do
@@ -1132,6 +1142,15 @@ Implementation
                ObjData.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
              ait_const :
                begin
+                 { Recalculate relative symbols, addresses of forward references
+                   can be changed in treepass1 }
+                 if assigned(tai_const(hp).sym) and
+                    assigned(tai_const(hp).endsym) then
+                   begin
+                     objsym:=Objdata.SymbolRef(tai_const(hp).sym);
+                     objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
+                     Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                   end;
                  case tai_const(hp).consttype of
                    aitconst_64bit,
                    aitconst_32bit,
