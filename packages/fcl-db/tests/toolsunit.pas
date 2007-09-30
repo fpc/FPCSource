@@ -70,7 +70,7 @@ type
      end;
 
 const
-  DataEventnames : Array [TDataEvent] of String[19] =
+  DataEventnames : Array [TDataEvent] of String[21] =
     ('deFieldChange', 'deRecordChange', 'deDataSetChange', 'deDataSetScroll',
      'deLayoutChange', 'deUpdateRecord', 'deUpdateState', 'deCheckBrowseMode',
      'dePropertyChange', 'deFieldListChange', 'deFocusControl' ,'deParentScroll',

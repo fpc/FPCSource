@@ -26,6 +26,7 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestBug9744;
     procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;
     procedure TestUpdateIndexDefs;
@@ -864,6 +865,41 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestBug9744;
+var i : integer;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    try
+      Connection.ExecuteDirect('create table TTTOBJ (         ' +
+                                '  ID INT NOT NULL,           ' +
+                                '  NAME VARCHAR(250),         ' +
+                                '  PRIMARY KEY (ID)           ' +
+                                ')                            ');
+      Connection.ExecuteDirect('create table TTTXY (          ' +
+                                '  ID INT NOT NULL,           ' +
+                                '  NP INT NOT NULL,           ' +
+                                '  X DOUBLE,                  ' +
+                                '  Y DOUBLE,                  ' +
+                                '  PRIMARY KEY (ID,NP)        ' +
+                                ')                            ');
+      for i := 0 to 7 do
+        begin
+        connection.ExecuteDirect('insert into TTTOBJ(ID,NAME) values ('+inttostr(i)+',''A'+inttostr(i)+''')');
+        connection.ExecuteDirect('insert into TTTXY(ID,NP,X,Y) values ('+inttostr(i)+',1,1,1)');
+        connection.ExecuteDirect('insert into TTTXY(ID,NP,X,Y) values ('+inttostr(i)+',2,2,2)');
+        end;
+      Query.SQL.Text := 'select OBJ.ID, OBJ.NAME, count(XY.NP) as NPF from TTTOBJ as OBJ, TTTXY as XY where (OBJ.ID=XY.ID) group by OBJ.ID';
+      query.Prepare;
+      query.open;
+      query.close;
+    finally
+      Connection.ExecuteDirect('drop table TTTXY');
+      Connection.ExecuteDirect('drop table TTTOBJ');
+      end
+    end;
 end;
 
 procedure TTestFieldTypes.TestCrossStringDateParam;

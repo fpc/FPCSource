@@ -427,7 +427,12 @@ function TConnectionName.MySQLDataType(AType: enum_field_types; ASize, ADecimals
 begin
   Result := True;
   case AType of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG, FIELD_TYPE_LONGLONG,
+    FIELD_TYPE_LONGLONG:
+      begin
+      NewType := ftLargeint;
+      NewSize := 0;
+      end;
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG,
     FIELD_TYPE_INT24:
       begin
       NewType := ftInteger;
