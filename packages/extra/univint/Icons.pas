@@ -467,7 +467,7 @@ type
 	end;
 
 	CIconHandle							= ^CIconPtr;
-	CIconHandle_GAP_Private_field_type_fix = CIconHandle; { used as field type when a record declaration contains a CIconHandle field identifier }
+	CIconHandle_fix                     = CIconHandle; { used as field type when a record declaration contains a CIconHandle field identifier }
 	{
 	 *  GetCIcon()
 	 *  
@@ -523,9 +523,9 @@ type
 	IconSuiteRef						= Handle;
 	IconCacheRef						= Handle;
 	{  IconRefs are 32-bit values identifying cached icon data. IconRef 0 is invalid. }
-	IconRef    = ^SInt32; { an opaque 32-bit type }
-	IconRef_GAP_Private_field_type_fix = IconRef; { used as field type when a record declaration contains a IconRef field identifier }
-	IconRefPtr = ^IconRef;  { when a var xx:IconRef parameter can be nil, it is changed to xx: IconRefPtr }
+	IconRef     = ^SInt32;  { an opaque 32-bit type }
+	IconRef_fix = IconRef;  { used as field type when a record declaration contains a IconRef field identifier }
+	IconRefPtr  = ^IconRef; { when a var xx:IconRef parameter can be nil, it is changed to xx: IconRefPtr }
 	{
 	 *  PlotIconID()
 	 *  

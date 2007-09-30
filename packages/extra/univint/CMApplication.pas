@@ -1,12 +1,11 @@
 {
-     File:       CMApplication.p
+     File:       ColorSync/CMApplication.h
  
      Contains:   Color Matching Interfaces
  
-     Version:    Technology: ColorSync 3.0
-                 Release:    Universal Interfaces 3.4.2
+     Version:    ColorSync-174.1~229
  
-     Copyright:  © 1992-2002 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1992-2006 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,7 +13,7 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2007 }
 
 {
     Modified for use with Free Pascal
@@ -104,10 +103,10 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,Files,CMICCProfile,MacErrors,CMTypes,CFString,CFDictionary,Quickdraw,Printing;
+uses MacTypes,CFBase,CFData,Files,CMICCProfile,MacErrors,CMTypes,CFString,CFDictionary,Quickdraw,Printing;
 
 
-{$setc _DECLARE_CS_QD_API_ := 1}
+{$setc _DECLARE_CS_QD_API_ := 0} { Mac OS X ColorSync QuickDraw API are located in QuickDraw.p[.pas] }
 {$ifc TARGET_API_MAC_OS8}
 {$endc}  {TARGET_API_MAC_OS8}
 
@@ -195,7 +194,7 @@ const
 	cmProofUse					= $70727566 (* 'pruf' *);
 
 
-	{	 Union of 1.0 and 2.0 profile header variants 	}
+	{	 Union of 1.0, 2.0, and 4.0 profile header variants 	}
 
 type
 	CMAppleProfileHeaderPtr = ^CMAppleProfileHeader;
@@ -206,6 +205,9 @@ type
 			);
 		1: (
 			cm2:				CM2Header;
+			);
+		2: (
+			cm4:				CM4Header;
 			);
 	end;
 
@@ -584,16 +586,7 @@ type
 		user2:					SInt32;
 	end;
 
-	{	 CMConvertXYZToXYZ() definitions 	}
-	CMChromaticAdaptation				= UInt32;
-
 const
-	cmUseDefaultChromaticAdaptation = 0;
-	cmLinearChromaticAdaptation	= 1;
-	cmVonKriesChromaticAdaptation = 2;
-	cmBradfordChromaticAdaptation = 3;
-
-
 	{	 Profile Locations 	}
 	CS_MAX_PATH					= 256;
 
@@ -682,11 +675,6 @@ const
 
 {$endc}  {TARGET_OS_MAC}
 
-	{	 Typedef for Profile MD5 message digest 	}
-
-type
-	CMProfileMD5						= packed array [0..15] of UInt8;
-	CMProfileMD5Ptr						= ^CMProfileMD5;
 	{	 Struct and enums used for Profile iteration 	}
 
 const
@@ -737,142 +725,309 @@ type
 const
 	uppCMProfileIterateProcInfo = $000003E0;
 	uppCMMIterateProcInfo = $000003E0;
-	{
-	 *  NewCMProfileIterateUPP()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   available as macro/inline
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in 3.0 and later
-	 	}
-function NewCMProfileIterateUPP(userRoutine: CMProfileIterateProcPtr): CMProfileIterateUPP; external name '_NewCMProfileIterateUPP'; { old name was NewCMProfileIterateProc }
+{
+ *  NewCMProfileIterateUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+function NewCMProfileIterateUPP(userRoutine: CMProfileIterateProcPtr): CMProfileIterateUPP; external name '_NewCMProfileIterateUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NewCMMIterateUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function NewCMMIterateUPP(userRoutine: CMMIterateProcPtr): CMMIterateUPP; external name '_NewCMMIterateUPP'; { old name was NewCMMIterateProc }
+function NewCMMIterateUPP(userRoutine: CMMIterateProcPtr): CMMIterateUPP; external name '_NewCMMIterateUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeCMProfileIterateUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeCMProfileIterateUPP(userUPP: CMProfileIterateUPP); external name '_DisposeCMProfileIterateUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeCMMIterateUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeCMMIterateUPP(userUPP: CMMIterateUPP); external name '_DisposeCMMIterateUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeCMProfileIterateUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeCMProfileIterateUPP(var iterateData: CMProfileIterateData; refCon: UnivPtr; userRoutine: CMProfileIterateUPP): OSErr; external name '_InvokeCMProfileIterateUPP'; { old name was CallCMProfileIterateProc }
+function InvokeCMProfileIterateUPP(var iterateData: CMProfileIterateData; refCon: UnivPtr; userRoutine: CMProfileIterateUPP): OSErr; external name '_InvokeCMProfileIterateUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeCMMIterateUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeCMMIterateUPP(var iterateData: CMMInfo; refCon: UnivPtr; userRoutine: CMMIterateUPP): OSErr; external name '_InvokeCMMIterateUPP'; { old name was CallCMMIterateProc }
+function InvokeCMMIterateUPP(var iterateData: CMMInfo; refCon: UnivPtr; userRoutine: CMMIterateUPP): OSErr; external name '_InvokeCMMIterateUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{ CMLabToLabProcPtr isn't used in any official Apple headers and no documentation exists on it. }
+//type
+//	CMLabToLabProcPtr = procedure( var L: Float32; var a: Float32; var b: Float32; refcon: UnivPtr );
+
+{ Creating Profiles }
 { Profile file and element access }
 {
  *  CMNewProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMNewProfile(var prof: CMProfileRef; const (*var*) theProfile: CMProfileLocation): CMError; external name '_CMNewProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CWNewLinkProfile()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CWNewLinkProfile( var prof: CMProfileRef; const (*var*) targetLocation: CMProfileLocation; var profileSet: CMConcatProfileSet ): CMError; external name '_CWNewLinkProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  NCWNewLinkProfile()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ }
+function NCWNewLinkProfile( var prof: CMProfileRef; const (*var*) targetLocation: CMProfileLocation; var profileSet: NCMConcatProfileSet; proc: CMConcatCallBackUPP; refCon: UnivPtr ): CMError; external name '_NCWNewLinkProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMMakeProfile()
+ *  
+ *  Summary:
+ *    Make a display or abstract profile.
+ *  
+ *  Discussion:
+ *    Adds appropriate tags to a profile to make display or abstract
+ *    profile based on an specification dictionary. 
+ *    
+ *    One key in the specification dictionary must be "profileType" 
+ *    which must have a CFString value of "abstractLab", "displayRGB" 
+ *    or "displayID".  It can also contain the keys/values: 
+ *      "description"  CFString (optional) 
+ *      "copyright"    CFString (optional) 
+ *    
+ *    For profileType of "abstractLab", the dictionary 
+ *    should also contain the keys/values: 
+ *      "gridPoints"   CFNumber(SInt32) (should be odd) 
+ *      "proc"         CFNumber(SInt64) 
+ *                     (coerced from a LabToLabProcPtr) 
+ *      "refcon"       CFNumber(SInt64) (optional) 
+ *                     (coerced from a void*) 
+ *    
+ *    For profileType of "displayRGB", the dictionary 
+ *    should also contain the keys/values: 
+ *      "targetGamma"  CFNumber(Float)  (e.g. 1.8)  (optional) 
+ *      "targetWhite"  CFNumber(SInt32) (e.g. 6500) (optional) 
+ *      "gammaR"       CFNumber(Float)  (e.g. 2.5) 
+ *      "gammaG"       CFNumber(Float)  (e.g. 2.5) 
+ *      "gammaB"       CFNumber(Float)  (e.g. 2.5) 
+ *      "tableChans"   CFNumber(SInt32) (1 or 3) (optional) 
+ *      "tableEntries" CFNumber(SInt32) (e.g 16 or 255) (optional) 
+ *      "tableEntrySize" CFNumber(SInt32) (1 or 2) (optional) 
+ *      "tableData"    CFData (lut in RRRGGGBBB order) (optional) 
+ *     either 
+ *      "phosphorRx"   CFNumber(Float) 
+ *      "phosphorRy"   CFNumber(Float) 
+ *      "phosphorGx"   CFNumber(Float) 
+ *      "phosphorGy"   CFNumber(Float) 
+ *      "phosphorBx"   CFNumber(Float) 
+ *      "phosphorBy"   CFNumber(Float) 
+ *      or 
+ *      "phosphorSet"  CFString ("WideRGB", "700/525/450nm", 
+ *                      "P22-EBU", "HDTV", "CCIR709", "sRGB", 
+ *                      "AdobeRGB98" or "Trinitron") 
+ *     either 
+ *      "whitePointx"  CFNumber(Float) 
+ *      "whitePointy"  CFNumber(Float) 
+ *      or 
+ *      "whiteTemp"    CFNumber(SInt32)  (e.g. 5000, 6500, 9300) 
+ *    
+ *    For profileType of "displayID", the dictionary 
+ *    should also contain the keys/values: 
+ *      "targetGamma"  CFNumber(Float)  (e.g. 1.8)  (optional) 
+ *      "targetWhite"  CFNumber(SInt32) (e.g. 6500) (optional) 
+ *      "displayID     CFNumber(SInt32) 
+ *    Optionally, the keys/values for "displayRGB" can be 
+ *    provided to override the valuses from the display.
+ *  
+ *  Parameters:
+ *    
+ *    prof:
+ *      (in) the profile to modify
+ *    
+ *    spec:
+ *      (in) specification dictionary
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CMMakeProfile( prof: CMProfileRef; spec: CFDictionaryRef ): CMError; external name '_CMMakeProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
+{ Accessing Profiles }
 {
  *  CMOpenProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMOpenProfile(var prof: CMProfileRef; const (*var*) theProfile: CMProfileLocation): CMError; external name '_CMOpenProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMCloseProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMCloseProfile(prof: CMProfileRef): CMError; external name '_CMCloseProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMUpdateProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMUpdateProfile(prof: CMProfileRef): CMError; external name '_CMUpdateProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMCopyProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMCopyProfile(var targetProf: CMProfileRef; const (*var*) targetLocation: CMProfileLocation; srcProf: CMProfileRef): CMError; external name '_CMCopyProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMValidateProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMValidateProfile(prof: CMProfileRef; var valid: boolean; var preferredCMMnotfound: boolean): CMError; external name '_CMValidateProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetProfileLocation()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetProfileLocation(prof: CMProfileRef; var theProfile: CMProfileLocation): CMError; external name '_CMGetProfileLocation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NCMGetProfileLocation()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
  }
 function NCMGetProfileLocation(prof: CMProfileRef; var theProfile: CMProfileLocation; var locationSize: UInt32): CMError; external name '_NCMGetProfileLocation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMProfileCopyICCData()
+ *  
+ *  Summary:
+ *    Return a copy of the icc data specified by `prof'.
+ *  
+ *  Parameters:
+ *    
+ *    allocator:
+ *      (in) The object to be used to allocate memory for the data
+ *    
+ *    prof:
+ *      (in) The profile to query
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CMProfileCopyICCData( allocator: CFAllocatorRef; prof: CMProfileRef ): CFDataRef; external name '_CMProfileCopyICCData';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
 {
  *  CMFlattenProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMFlattenProfile(prof: CMProfileRef; flags: UInt32; proc: CMFlattenUPP; refCon: UnivPtr; var preferredCMMnotfound: boolean): CMError; external name '_CMFlattenProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  NCMUnflattenProfile()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ }
+function NCMUnflattenProfile( var targetLocation: CMProfileLocation; proc: CMFlattenUPP; refCon: UnivPtr; var preferredCMMnotfound: Boolean ): CMError; external name '_NCMUnflattenProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {$ifc TARGET_OS_MAC}
 {$ifc CALL_NOT_IN_CARBON}
 {
@@ -891,353 +1046,485 @@ function CMUnflattenProfile(var resultFileSpec: FSSpec; proc: CMFlattenUPP; refC
  *  CMGetProfileHeader()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetProfileHeader(prof: CMProfileRef; var header: CMAppleProfileHeader): CMError; external name '_CMGetProfileHeader';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMSetProfileHeader()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMSetProfileHeader(prof: CMProfileRef; const (*var*) header: CMAppleProfileHeader): CMError; external name '_CMSetProfileHeader';
-{
- *  CMProfileElementExists()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMProfileElementExists(prof: CMProfileRef; tag: OSType; var found: boolean): CMError; external name '_CMProfileElementExists';
-{
- *  CMCountProfileElements()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMCountProfileElements(prof: CMProfileRef; var elementCount: UInt32): CMError; external name '_CMCountProfileElements';
-{
- *  CMGetProfileElement()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetProfileElement(prof: CMProfileRef; tag: OSType; var elementSize: UInt32; elementData: UnivPtr): CMError; external name '_CMGetProfileElement';
-{
- *  CMSetProfileElement()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSetProfileElement(prof: CMProfileRef; tag: OSType; elementSize: UInt32; elementData: UnivPtr): CMError; external name '_CMSetProfileElement';
-{
- *  CMSetProfileElementSize()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSetProfileElementSize(prof: CMProfileRef; tag: OSType; elementSize: UInt32): CMError; external name '_CMSetProfileElementSize';
-{
- *  CMSetProfileElementReference()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSetProfileElementReference(prof: CMProfileRef; elementTag: OSType; referenceTag: OSType): CMError; external name '_CMSetProfileElementReference';
-{
- *  CMGetPartialProfileElement()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetPartialProfileElement(prof: CMProfileRef; tag: OSType; offset: UInt32; var byteCount: UInt32; elementData: UnivPtr): CMError; external name '_CMGetPartialProfileElement';
-{
- *  CMSetPartialProfileElement()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSetPartialProfileElement(prof: CMProfileRef; tag: OSType; offset: UInt32; byteCount: UInt32; elementData: UnivPtr): CMError; external name '_CMSetPartialProfileElement';
-{
- *  CMGetIndProfileElementInfo()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetIndProfileElementInfo(prof: CMProfileRef; index: UInt32; var tag: OSType; var elementSize: UInt32; var refs: boolean): CMError; external name '_CMGetIndProfileElementInfo';
-{
- *  CMGetIndProfileElement()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetIndProfileElement(prof: CMProfileRef; index: UInt32; var elementSize: UInt32; elementData: UnivPtr): CMError; external name '_CMGetIndProfileElement';
-{
- *  CMRemoveProfileElement()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMRemoveProfileElement(prof: CMProfileRef; tag: OSType): CMError; external name '_CMRemoveProfileElement';
-{
- *  CMGetScriptProfileDescription()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetScriptProfileDescription(prof: CMProfileRef; var name: Str255; var code: ScriptCode): CMError; external name '_CMGetScriptProfileDescription';
-{
- *  CMGetProfileDescriptions()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetProfileDescriptions(prof: CMProfileRef; aName: CStringPtr; var aCount: UInt32; var mName: Str255; var mCode: ScriptCode; var uName: UniChar; var uCount: UniCharCount): CMError; external name '_CMGetProfileDescriptions';
-{
- *  CMSetProfileDescriptions()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSetProfileDescriptions(prof: CMProfileRef; aName: ConstCStringPtr; aCount: UInt32; const (*var*) mName: Str255; mCode: ScriptCode; uName: ConstUniCharPtr; uCount: UniCharCount): CMError; external name '_CMSetProfileDescriptions';
-{
- *  CMCopyProfileLocalizedStringDictionary()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         in 3.1 and later
- }
-function CMCopyProfileLocalizedStringDictionary(prof: CMProfileRef; tag: OSType; var theDict: CFDictionaryRef): CMError; external name '_CMCopyProfileLocalizedStringDictionary';
-
-{
- *  CMSetProfileLocalizedStringDictionary()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         in 3.1 and later
- }
-function CMSetProfileLocalizedStringDictionary(prof: CMProfileRef; tag: OSType; theDict: CFDictionaryRef): CMError; external name '_CMSetProfileLocalizedStringDictionary';
-
-{
- *  CMCopyProfileLocalizedString()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         in 3.1 and later
- }
-function CMCopyProfileLocalizedString(prof: CMProfileRef; tag: OSType; reqLocale: CFStringRef; var locale: CFStringRef; var str: CFStringRef): CMError; external name '_CMCopyProfileLocalizedString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
  *  CMCloneProfileRef()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
-function CMCloneProfileRef(prof: CMProfileRef): CMError; external name '_CMCloneProfileRef';
+function CMCloneProfileRef( prof: CMProfileRef ): CMError; external name '_CMCloneProfileRef';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetProfileRefCount()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
-function CMGetProfileRefCount(prof: CMProfileRef; var count: SInt32): CMError; external name '_CMGetProfileRefCount';
+function CMGetProfileRefCount( prof: CMProfileRef; var count: SInt32 ): CMError; external name '_CMGetProfileRefCount';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMProfileModified()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
-function CMProfileModified(prof: CMProfileRef; var modified: boolean): CMError; external name '_CMProfileModified';
+function CMProfileModified( prof: CMProfileRef; var modified: Boolean ): CMError; external name '_CMProfileModified';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetProfileMD5()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
  *    CarbonLib:        not available
- *    Mac OS X:         in 3.1 and later
+ *    Non-Carbon CFM:   not available
  }
-function CMGetProfileMD5(prof: CMProfileRef; var digest: CMProfileMD5): CMError; external name '_CMGetProfileMD5';
+function CMGetProfileMD5( prof: CMProfileRef; digest: CMProfileMD5 ): CMError; external name '_CMGetProfileMD5';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
+{ Accessing Profile Elements }
+{
+ *  CMCountProfileElements()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMCountProfileElements( prof: CMProfileRef; var elementCount: UInt32 ): CMError; external name '_CMCountProfileElements';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMProfileElementExists()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMProfileElementExists(prof: CMProfileRef; tag: OSType; var found: boolean): CMError; external name '_CMProfileElementExists';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMGetProfileElement()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMGetProfileElement(prof: CMProfileRef; tag: OSType; var elementSize: UInt32; elementData: UnivPtr): CMError; external name '_CMGetProfileElement';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSetProfileElement()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMSetProfileElement(prof: CMProfileRef; tag: OSType; elementSize: UInt32; elementData: UnivPtr): CMError; external name '_CMSetProfileElement';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSetProfileElementSize()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMSetProfileElementSize(prof: CMProfileRef; tag: OSType; elementSize: UInt32): CMError; external name '_CMSetProfileElementSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSetProfileElementReference()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMSetProfileElementReference(prof: CMProfileRef; elementTag: OSType; referenceTag: OSType): CMError; external name '_CMSetProfileElementReference';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMGetPartialProfileElement()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMGetPartialProfileElement(prof: CMProfileRef; tag: OSType; offset: UInt32; var byteCount: UInt32; elementData: UnivPtr): CMError; external name '_CMGetPartialProfileElement';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSetPartialProfileElement()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMSetPartialProfileElement(prof: CMProfileRef; tag: OSType; offset: UInt32; byteCount: UInt32; elementData: {const} UnivPtr): CMError; external name '_CMSetPartialProfileElement';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMGetIndProfileElementInfo()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMGetIndProfileElementInfo(prof: CMProfileRef; index: UInt32; var tag: OSType; var elementSize: UInt32; var refs: boolean): CMError; external name '_CMGetIndProfileElementInfo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMGetIndProfileElement()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMGetIndProfileElement(prof: CMProfileRef; index: UInt32; var elementSize: UInt32; elementData: UnivPtr): CMError; external name '_CMGetIndProfileElement';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMRemoveProfileElement()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMRemoveProfileElement(prof: CMProfileRef; tag: OSType): CMError; external name '_CMRemoveProfileElement';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{ Accessing Profile Descriptions }
+{
+ *  CMGetScriptProfileDescription()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMGetScriptProfileDescription(prof: CMProfileRef; var name: Str255; var code: ScriptCode): CMError; external name '_CMGetScriptProfileDescription';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMGetProfileDescriptions()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ }
+function CMGetProfileDescriptions(prof: CMProfileRef; aName: CStringPtr; var aCount: UInt32; var mName: Str255; var mCode: ScriptCode; var uName: UniChar; var uCount: UniCharCount): CMError; external name '_CMGetProfileDescriptions';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSetProfileDescriptions()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ }
+function CMSetProfileDescriptions(prof: CMProfileRef; aName: ConstCStringPtr; aCount: UInt32; const (*var*) mName: Str255; mCode: ScriptCode; uName: ConstUniCharPtr; uCount: UniCharCount): CMError; external name '_CMSetProfileDescriptions';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMCopyProfileLocalizedStringDictionary()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in ColorSyncLib 3.1 and later
+ }
+function CMCopyProfileLocalizedStringDictionary(prof: CMProfileRef; tag: OSType; var theDict: CFDictionaryRef): CMError; external name '_CMCopyProfileLocalizedStringDictionary';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
+{
+ *  CMSetProfileLocalizedStringDictionary()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in ColorSyncLib 3.1 and later
+ }
+function CMSetProfileLocalizedStringDictionary(prof: CMProfileRef; tag: OSType; theDict: CFDictionaryRef): CMError; external name '_CMSetProfileLocalizedStringDictionary';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
+{
+ *  CMCopyProfileLocalizedString()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in ColorSyncLib 3.1 and later
+ }
+function CMCopyProfileLocalizedString(prof: CMProfileRef; tag: OSType; reqLocale: CFStringRef; var locale: CFStringRef; var str: CFStringRef): CMError; external name '_CMCopyProfileLocalizedString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
+{
+ *  CMCopyProfileDescriptionString()
+ *  
+ *  Summary:
+ *    Returns the name of a profile as a CFString.
+ *  
+ *  Discussion:
+ *    If the profile is multi-localized, the best localized name for
+ *    the current process is returned.
+ *  
+ *  Parameters:
+ *    
+ *    prof:
+ *      (in) the profile to query
+ *    
+ *    str:
+ *      (out) returns the name
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CMCopyProfileDescriptionString( prof: CMProfileRef; var str: CFStringRef ): CMError; external name '_CMCopyProfileDescriptionString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
-{ named Color access functions }
+{ Accessing Name-Class Profiles }
 {
  *  CMGetNamedColorInfo()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMGetNamedColorInfo(prof: CMProfileRef; var deviceChannels: UInt32; var deviceColorSpace: OSType; var PCSColorSpace: OSType; var count: UInt32; prefix: StringPtr; suffix: StringPtr): CMError; external name '_CMGetNamedColorInfo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetNamedColorValue()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMGetNamedColorValue(prof: CMProfileRef; name: StringPtr; var deviceColor: CMColor; var PCSColor: CMColor): CMError; external name '_CMGetNamedColorValue';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetIndNamedColorValue()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMGetIndNamedColorValue(prof: CMProfileRef; index: UInt32; var deviceColor: CMColor; var PCSColor: CMColor): CMError; external name '_CMGetIndNamedColorValue';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetNamedColorIndex()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMGetNamedColorIndex(prof: CMProfileRef; name: StringPtr; var index: UInt32): CMError; external name '_CMGetNamedColorIndex';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetNamedColorName()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMGetNamedColorName(prof: CMProfileRef; index: UInt32; name: StringPtr): CMError; external name '_CMGetNamedColorName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 { General-purpose matching functions }
+{ Working with ColorWorlds }
 {
  *  NCWNewColorWorld()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function NCWNewColorWorld(var cw: CMWorldRef; src: CMProfileRef; dst: CMProfileRef): CMError; external name '_NCWNewColorWorld';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CWConcatColorWorld()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CWConcatColorWorld(var cw: CMWorldRef; var profileSet: CMConcatProfileSet): CMError; external name '_CWConcatColorWorld';
-{
- *  CWNewLinkProfile()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CWNewLinkProfile(var prof: CMProfileRef; const (*var*) targetLocation: CMProfileLocation; var profileSet: CMConcatProfileSet): CMError; external name '_CWNewLinkProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NCWConcatColorWorld()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
  }
 function NCWConcatColorWorld(var cw: CMWorldRef; var profileSet: NCMConcatProfileSet; proc: CMConcatCallBackUPP; refCon: UnivPtr): CMError; external name '_NCWConcatColorWorld';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
- *  NCWNewLinkProfile()
+ *  CMGetCWInfo()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
  }
-function NCWNewLinkProfile(var prof: CMProfileRef; const (*var*) targetLocation: CMProfileLocation; var profileSet: NCMConcatProfileSet; proc: CMConcatCallBackUPP; refCon: UnivPtr): CMError; external name '_NCWNewLinkProfile';
+function CMGetCWInfo( cw: CMWorldRef; var info: CMCWInfoRecord ): CMError; external name '_CMGetCWInfo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CWDisposeColorWorld()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
  }
 procedure CWDisposeColorWorld(cw: CMWorldRef); external name '_CWDisposeColorWorld';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CWMatchColors()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
  }
 function CWMatchColors(cw: CMWorldRef; var myColors: CMColor; count: UInt32): CMError; external name '_CWMatchColors';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CWCheckColors()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
  }
-function CWCheckColors(cw: CMWorldRef; var myColors: CMColor; count: UInt32; var result: UInt32): CMError; external name '_CWCheckColors';
+function CWCheckColors(cw: CMWorldRef; var myColors: CMColor; count: UInt32; var result: SInt8): CMError; external name '_CWCheckColors';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CWMatchBitmap()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CWMatchBitmap(cw: CMWorldRef; var bitmap: CMBitmap; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr; var matchedBitmap: CMBitmap): CMError; external name '_CWMatchBitmap';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CWCheckBitmap()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CWCheckBitmap(cw: CMWorldRef; const (*var*) bitmap: CMBitmap; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr; var resultBitmap: CMBitmap): CMError; external name '_CWCheckBitmap';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{ OpenGL support }
+const
+	cmTextureRGBtoRGBX8 = 0;     { RGB to 8-bit RGBx texture}
+
+{
+ *  CWFillLookupTexture()
+ *  
+ *  Summary:
+ *    Fills a 3d lookup texture from a colorworld.
+ *  
+ *  Discussion:
+ *    The resulting table is suitable for use in OpenGL to accelerate
+ *    color management in hardware.
+ *  
+ *  Parameters:
+ *    
+ *    cw:
+ *      (in) the colorworld to use
+ *    
+ *    gridPoints:
+ *      (in) number of grid points per channel in the texture
+ *    
+ *    format:
+ *      (in) format of pixels in texture (e.g. cmTextureRGBtoRGBX8)
+ *    
+ *    dataSize:
+ *      (in) size in bytes of texture data to fill
+ *    
+ *    data:
+ *      (in/out) pointer to texture data to fill
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CWFillLookupTexture( cw: CMWorldRef; gridPoints: UInt32; format: UInt32; dataSize: UInt32; data: UnivPtr ): CMError; external name '_CWFillLookupTexture';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
 { Quickdraw-specific matching }
+{ Mac OS X active declarations are in QuickDraw.p[.pas] }
+
 {$ifc TARGET_OS_MAC AND _DECLARE_CS_QD_API_}
+
 {
  *  CWMatchPixMap()
  *  
@@ -1318,240 +1605,243 @@ function CWMatchHBITMAP(cw: CMWorldRef; hBitmap_: HBITMAP; progressProc: CMBitma
 {$endc}  {CALL_NOT_IN_CARBON}
 {$endc}  {TARGET_OS_WIN32}
 
-{
- *  CMCreateProfileIdentifier()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMCreateProfileIdentifier(prof: CMProfileRef; ident: CMProfileIdentifierPtr; var size: UInt32): CMError; external name '_CMCreateProfileIdentifier';
+{ Accessing Special Profiles }
 { System Profile access }
 {
  *  CMGetSystemProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetSystemProfile(var prof: CMProfileRef): CMError; external name '_CMGetSystemProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMSetSystemProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMSetSystemProfile(const (*var*) profileFileSpec: FSSpec): CMError; external name '_CMSetSystemProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NCMSetSystemProfile()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
  }
 function NCMSetSystemProfile(const (*var*) profLoc: CMProfileLocation): CMError; external name '_NCMSetSystemProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetDefaultProfileBySpace()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
  }
 function CMGetDefaultProfileBySpace(dataColorSpace: OSType; var prof: CMProfileRef): CMError; external name '_CMGetDefaultProfileBySpace';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMSetDefaultProfileBySpace()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
  }
 function CMSetDefaultProfileBySpace(dataColorSpace: OSType; prof: CMProfileRef): CMError; external name '_CMSetDefaultProfileBySpace';
-{$ifc TARGET_OS_MAC}
-{
- *  CMGetProfileByAVID()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetProfileByAVID(theID: CMDisplayIDType; var prof: CMProfileRef): CMError; external name '_CMGetProfileByAVID';
-{
- *  CMSetProfileByAVID()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSetProfileByAVID(theID: CMDisplayIDType; prof: CMProfileRef): CMError; external name '_CMSetProfileByAVID';
-{
- *  CMGetGammaByAVID()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMGetGammaByAVID(theID: CMDisplayIDType; var gamma: CMVideoCardGamma; var size: UInt32): CMError; external name '_CMGetGammaByAVID';
-
-{
- *  CMSetGammaByAVID()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSetGammaByAVID(theID: CMDisplayIDType; var gamma: CMVideoCardGamma): CMError; external name '_CMSetGammaByAVID';
-
-{$endc}  {TARGET_OS_MAC}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 { Profile access by Use }
 {
  *  CMGetDefaultProfileByUse()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
  }
 function CMGetDefaultProfileByUse(use: OSType; var prof: CMProfileRef): CMError; external name '_CMGetDefaultProfileByUse';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMSetDefaultProfileByUse()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
  }
 function CMSetDefaultProfileByUse(use: OSType; prof: CMProfileRef): CMError; external name '_CMSetDefaultProfileByUse';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMGetProfileByAVID()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
+ }
+function CMGetProfileByAVID(theID: CMDisplayIDType; var prof: CMProfileRef): CMError; external name '_CMGetProfileByAVID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSetProfileByAVID()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
+ }
+function CMSetProfileByAVID(theID: CMDisplayIDType; prof: CMProfileRef): CMError; external name '_CMSetProfileByAVID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMGetGammaByAVID()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
+ }
+function CMGetGammaByAVID(theID: CMDisplayIDType; var gamma: CMVideoCardGamma; var size: UInt32): CMError; external name '_CMGetGammaByAVID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSetGammaByAVID()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
+ }
+function CMSetGammaByAVID(theID: CMDisplayIDType; var gamma: CMVideoCardGamma): CMError; external name '_CMSetGammaByAVID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 { Profile Management }
-{
- *  CMNewProfileSearch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMNewProfileSearch(var searchSpec: CMSearchRecord; refCon: UnivPtr; var count: UInt32; var searchResult: CMProfileSearchRef): CMError; external name '_CMNewProfileSearch';
-{
- *  CMUpdateProfileSearch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMUpdateProfileSearch(search: CMProfileSearchRef; refCon: UnivPtr; var count: UInt32): CMError; external name '_CMUpdateProfileSearch';
-{
- *  CMDisposeProfileSearch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-procedure CMDisposeProfileSearch(search: CMProfileSearchRef); external name '_CMDisposeProfileSearch';
-{
- *  CMSearchGetIndProfile()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSearchGetIndProfile(search: CMProfileSearchRef; index: UInt32; var prof: CMProfileRef): CMError; external name '_CMSearchGetIndProfile';
-{
- *  CMSearchGetIndProfileFileSpec()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMSearchGetIndProfileFileSpec(search: CMProfileSearchRef; index: UInt32; var profileFile: FSSpec): CMError; external name '_CMSearchGetIndProfileFileSpec';
-{
- *  CMProfileIdentifierFolderSearch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMProfileIdentifierFolderSearch(ident: CMProfileIdentifierPtr; var matchedCount: UInt32; var searchResult: CMProfileSearchRef): CMError; external name '_CMProfileIdentifierFolderSearch';
-{
- *  CMProfileIdentifierListSearch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function CMProfileIdentifierListSearch(ident: CMProfileIdentifierPtr; var profileList: CMProfileRef; listSize: UInt32; var matchedCount: UInt32; var matchedList: CMProfileRef): CMError; external name '_CMProfileIdentifierListSearch';
+{ Searching for Profiles }
 {
  *  CMIterateColorSyncFolder()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
  }
 function CMIterateColorSyncFolder(proc: CMProfileIterateUPP; var seed: UInt32; var count: UInt32; refCon: UnivPtr): CMError; external name '_CMIterateColorSyncFolder';
-{
- *  NCMUnflattenProfile()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
- }
-function NCMUnflattenProfile(var targetLocation: CMProfileLocation; proc: CMFlattenUPP; refCon: UnivPtr; var preferredCMMnotfound: boolean): CMError; external name '_NCMUnflattenProfile';
-{ Utilities }
-{$ifc TARGET_OS_MAC}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetColorSyncFolderSpec()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetColorSyncFolderSpec(vRefNum: SInt16; createFolder: boolean; var foundVRefNum: SInt16; var foundDirID: SInt32): CMError; external name '_CMGetColorSyncFolderSpec';
-{$endc}  {TARGET_OS_MAC}
-
-{$ifc TARGET_OS_WIN32 OR TARGET_OS_UNIX}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  CMGetColorSyncFolderPath()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function CMGetColorSyncFolderPath(createFolder: boolean; lpBuffer: CStringPtr; uSize: UInt32): CMError; external name '_CMGetColorSyncFolderPath';
-
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
- *  CMGetCWInfo()
+ *  CMNewProfileSearch()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 1.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
-function CMGetCWInfo(cw: CMWorldRef; var info: CMCWInfoRecord): CMError; external name '_CMGetCWInfo';
+function CMNewProfileSearch(var searchSpec: CMSearchRecord; refCon: UnivPtr; var count: UInt32; var searchResult: CMProfileSearchRef): CMError; external name '_CMNewProfileSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMUpdateProfileSearch()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMUpdateProfileSearch(search: CMProfileSearchRef; refCon: UnivPtr; var count: UInt32): CMError; external name '_CMUpdateProfileSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMDisposeProfileSearch()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+procedure CMDisposeProfileSearch(search: CMProfileSearchRef); external name '_CMDisposeProfileSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSearchGetIndProfile()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMSearchGetIndProfile(search: CMProfileSearchRef; index: UInt32; var prof: CMProfileRef): CMError; external name '_CMSearchGetIndProfile';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMSearchGetIndProfileFileSpec()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ }
+function CMSearchGetIndProfileFileSpec(search: CMProfileSearchRef; index: UInt32; var profileFile: FSSpec): CMError; external name '_CMSearchGetIndProfileFileSpec';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMCreateProfileIdentifier()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ }
+function CMCreateProfileIdentifier(prof: CMProfileRef; ident: CMProfileIdentifierPtr; var size: UInt32): CMError; external name '_CMCreateProfileIdentifier';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMProfileIdentifierFolderSearch()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ }
+function CMProfileIdentifierFolderSearch(ident: CMProfileIdentifierPtr; var matchedCount: UInt32; var searchResult: CMProfileSearchRef): CMError; external name '_CMProfileIdentifierFolderSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+ *  CMProfileIdentifierListSearch()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ }
+function CMProfileIdentifierListSearch(ident: CMProfileIdentifierPtr; var profileList: CMProfileRef; listSize: UInt32; var matchedCount: UInt32; var matchedList: CMProfileRef): CMError; external name '_CMProfileIdentifierListSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {$ifc TARGET_API_MAC_OS8}
 {$ifc CALL_NOT_IN_CARBON}
 {
@@ -1566,209 +1856,269 @@ function CMConvertProfile2to1(profv2: CMProfileRef; var profv1: CMProfileHandle)
 {$endc}  {CALL_NOT_IN_CARBON}
 {$endc}  {TARGET_API_MAC_OS8}
 
+{ Utilities }
 {
  *  CMGetPreferredCMM()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.5 and later
  }
 function CMGetPreferredCMM(var cmmType: OSType; var preferredCMMnotfound: boolean): CMError; external name '_CMGetPreferredCMM';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMIterateCMMInfo()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
  }
 function CMIterateCMMInfo(proc: CMMIterateUPP; var count: UInt32; refCon: UnivPtr): CMError; external name '_CMIterateCMMInfo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetColorSyncVersion()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.6 and later
  }
 function CMGetColorSyncVersion(var version: UInt32): CMError; external name '_CMGetColorSyncVersion';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMLaunchControlPanel()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 3.0 and later
  }
 function CMLaunchControlPanel(flags: UInt32): CMError; external name '_CMLaunchControlPanel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 { ColorSpace conversion functions }
+{ Converting Colors }
 {
  *  CMConvertXYZToLab()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertXYZToLab(const (*var*) src: CMColor; const (*var*) white: CMXYZColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertXYZToLab';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertLabToXYZ()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertLabToXYZ(const (*var*) src: CMColor; const (*var*) white: CMXYZColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertLabToXYZ';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertXYZToLuv()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertXYZToLuv(const (*var*) src: CMColor; const (*var*) white: CMXYZColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertXYZToLuv';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertLuvToXYZ()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertLuvToXYZ(const (*var*) src: CMColor; const (*var*) white: CMXYZColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertLuvToXYZ';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertXYZToYxy()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertXYZToYxy(const (*var*) src: CMColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertXYZToYxy';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertYxyToXYZ()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertYxyToXYZ(const (*var*) src: CMColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertYxyToXYZ';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertRGBToHLS()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertRGBToHLS(const (*var*) src: CMColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertRGBToHLS';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertHLSToRGB()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertHLSToRGB(const (*var*) src: CMColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertHLSToRGB';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertRGBToHSV()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertRGBToHSV(const (*var*) src: CMColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertRGBToHSV';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertHSVToRGB()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertHSVToRGB(const (*var*) src: CMColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertHSVToRGB';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertRGBToGray()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertRGBToGray(const (*var*) src: CMColor; var dst: CMColor; count: UInt32): CMError; external name '_CMConvertRGBToGray';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertXYZToFixedXYZ()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertXYZToFixedXYZ(const (*var*) src: CMXYZColor; var dst: CMFixedXYZColor; count: UInt32): CMError; external name '_CMConvertXYZToFixedXYZ';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertFixedXYZToXYZ()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.1 and later
  }
 function CMConvertFixedXYZToXYZ(const (*var*) src: CMFixedXYZColor; var dst: CMXYZColor; count: UInt32): CMError; external name '_CMConvertFixedXYZToXYZ';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMConvertXYZToXYZ()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
  *    CarbonLib:        not available
- *    Mac OS X:         in 3.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function CMConvertXYZToXYZ(const (*var*) src: CMColor; const (*var*) srcIlluminant: CMXYZColor; var dst: CMColor; const (*var*) dstIlluminant: CMXYZColor; method: CMChromaticAdaptation; count: UInt32): CMError; external name '_CMConvertXYZToXYZ';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
 
 { PS-related }
+{ Working with PostScript }
 {
  *  CMGetPS2ColorSpace()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetPS2ColorSpace(srcProf: CMProfileRef; flags: UInt32; proc: CMFlattenUPP; refCon: UnivPtr; var preferredCMMnotfound: boolean): CMError; external name '_CMGetPS2ColorSpace';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetPS2ColorRenderingIntent()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetPS2ColorRenderingIntent(srcProf: CMProfileRef; flags: UInt32; proc: CMFlattenUPP; refCon: UnivPtr; var preferredCMMnotfound: boolean): CMError; external name '_CMGetPS2ColorRenderingIntent';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetPS2ColorRendering()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetPS2ColorRendering(srcProf: CMProfileRef; dstProf: CMProfileRef; flags: UInt32; proc: CMFlattenUPP; refCon: UnivPtr; var preferredCMMnotfound: boolean): CMError; external name '_CMGetPS2ColorRendering';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  CMGetPS2ColorRenderingVMSize()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   in ColorSyncLib 2.0 and later
  }
 function CMGetPS2ColorRenderingVMSize(srcProf: CMProfileRef; dstProf: CMProfileRef; var vmSize: UInt32; var preferredCMMnotfound: boolean): CMError; external name '_CMGetPS2ColorRenderingVMSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{ Notifications }
+
+{
+ *  Clients can register for notifications of ColorSync preference changes by
+ *  using the kCMPrefsChangedNotification key. This notification will be sent
+ *  if the user changes ColorSync preferences such as:
+ *      the default profile by colors space, (CMSetDefaultProfileBySpace)
+ *      the default profile by device useage, (CMSetDefaultProfileByUse)
+ *      or the preferred CMM.
+ *  See <CMDeviceIntegration.h> for more notifications that can be sent.
+ }
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kCMPrefsChangedNotification CFSTRP('AppleColorSyncPreferencesChangedNotification')}
+{$endc}
+
 { ColorSync 1.0 functions which have parallel 2.0 counterparts }
 {$ifc TARGET_API_MAC_OS8}
 {$ifc CALL_NOT_IN_CARBON}

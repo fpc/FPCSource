@@ -4,6 +4,7 @@
  }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2007 }
 {
     Modified for use with Free Pascal
     Version 200
@@ -117,10 +118,10 @@ const
 	kCGBitmapFloatComponents = 1 shl 8;
     
 	kCGBitmapByteOrderMask = $7000;
-	kCGBitmapByteOrder16Big = 0 shl 12;
-	kCGBitmapByteOrder32Big = kCGBitmapByteOrder16Big;
 	kCGBitmapByteOrder16Little = 1 shl 12;
 	kCGBitmapByteOrder32Little = 2 shl 12;
+	kCGBitmapByteOrder16Big = 3 shl 12;
+	kCGBitmapByteOrder32Big = 4 shl 12;
 type
 	CGBitmapInfo = UInt32; { Available in MAC OS X 10.4 & later. }
 

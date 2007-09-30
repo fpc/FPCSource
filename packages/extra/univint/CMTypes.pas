@@ -1,12 +1,11 @@
 {
-     File:       CMTypes.p
+     File:       ColorSync/CMTypes.h
  
-     Contains:   xxx put contents here xxx
+     Contains:   ColorSync types
  
-     Version:    Technology: ColorSync 3
-                 Release:    Universal Interfaces 3.4.2
+     Version:    ColorSync-174.1~229
  
-     Copyright:  © 2000-2002 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2000-2006 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,7 +13,7 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2007 }
 
 {
     Modified for use with Free Pascal
@@ -130,7 +129,15 @@ type
 	{	 On 8 & 9 this is a AVIDType 	}
 	{	 On X this is a CGSDisplayID 	}
 	CMDisplayIDType						= UInt32;
+	CMChromaticAdaptation = UInt32;
 
+const
+	cmUseDefaultChromaticAdaptation = 0;
+	cmLinearChromaticAdaptation     = 1;
+	cmVonKriesChromaticAdaptation   = 2;
+	cmBradfordChromaticAdaptation   = 3;
+
+type
 	{	 Caller-supplied flatten function 	}
 {$ifc TYPED_FUNCTION_POINTERS}
 	CMFlattenProcPtr = function(command: SInt32; var size: SInt32; data: UnivPtr; refCon: UnivPtr): OSErr;
@@ -198,141 +205,171 @@ const
 	uppCMConcatCallBackProcInfo = $000003D0;
 	uppCMProfileFilterProcInfo = $000003D0;
 	uppCMProfileAccessProcInfo = $0000FFE0;
-	{
-	 *  NewCMFlattenUPP()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   available as macro/inline
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in 3.0 and later
-	 	}
-function NewCMFlattenUPP(userRoutine: CMFlattenProcPtr): CMFlattenUPP; external name '_NewCMFlattenUPP'; { old name was NewCMFlattenProc }
+{
+ *  NewCMFlattenUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+function NewCMFlattenUPP(userRoutine: CMFlattenProcPtr): CMFlattenUPP; external name '_NewCMFlattenUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NewCMBitmapCallBackUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function NewCMBitmapCallBackUPP(userRoutine: CMBitmapCallBackProcPtr): CMBitmapCallBackUPP; external name '_NewCMBitmapCallBackUPP'; { old name was NewCMBitmapCallBackProc }
+function NewCMBitmapCallBackUPP(userRoutine: CMBitmapCallBackProcPtr): CMBitmapCallBackUPP; external name '_NewCMBitmapCallBackUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NewCMConcatCallBackUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function NewCMConcatCallBackUPP(userRoutine: CMConcatCallBackProcPtr): CMConcatCallBackUPP; external name '_NewCMConcatCallBackUPP'; { old name was NewCMConcatCallBackProc }
+function NewCMConcatCallBackUPP(userRoutine: CMConcatCallBackProcPtr): CMConcatCallBackUPP; external name '_NewCMConcatCallBackUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NewCMProfileFilterUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function NewCMProfileFilterUPP(userRoutine: CMProfileFilterProcPtr): CMProfileFilterUPP; external name '_NewCMProfileFilterUPP'; { old name was NewCMProfileFilterProc }
+function NewCMProfileFilterUPP(userRoutine: CMProfileFilterProcPtr): CMProfileFilterUPP; external name '_NewCMProfileFilterUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  NewCMProfileAccessUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function NewCMProfileAccessUPP(userRoutine: CMProfileAccessProcPtr): CMProfileAccessUPP; external name '_NewCMProfileAccessUPP'; { old name was NewCMProfileAccessProc }
+function NewCMProfileAccessUPP(userRoutine: CMProfileAccessProcPtr): CMProfileAccessUPP; external name '_NewCMProfileAccessUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeCMFlattenUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeCMFlattenUPP(userUPP: CMFlattenUPP); external name '_DisposeCMFlattenUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeCMBitmapCallBackUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeCMBitmapCallBackUPP(userUPP: CMBitmapCallBackUPP); external name '_DisposeCMBitmapCallBackUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeCMConcatCallBackUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeCMConcatCallBackUPP(userUPP: CMConcatCallBackUPP); external name '_DisposeCMConcatCallBackUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeCMProfileFilterUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeCMProfileFilterUPP(userUPP: CMProfileFilterUPP); external name '_DisposeCMProfileFilterUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeCMProfileAccessUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeCMProfileAccessUPP(userUPP: CMProfileAccessUPP); external name '_DisposeCMProfileAccessUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeCMFlattenUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeCMFlattenUPP(command: SInt32; var size: SInt32; data: UnivPtr; refCon: UnivPtr; userRoutine: CMFlattenUPP): OSErr; external name '_InvokeCMFlattenUPP'; { old name was CallCMFlattenProc }
+function InvokeCMFlattenUPP(command: SInt32; var size: SInt32; data: UnivPtr; refCon: UnivPtr; userRoutine: CMFlattenUPP): OSErr; external name '_InvokeCMFlattenUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeCMBitmapCallBackUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeCMBitmapCallBackUPP(progress: SInt32; refCon: UnivPtr; userRoutine: CMBitmapCallBackUPP): boolean; external name '_InvokeCMBitmapCallBackUPP'; { old name was CallCMBitmapCallBackProc }
+function InvokeCMBitmapCallBackUPP(progress: SInt32; refCon: UnivPtr; userRoutine: CMBitmapCallBackUPP): boolean; external name '_InvokeCMBitmapCallBackUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeCMConcatCallBackUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeCMConcatCallBackUPP(progress: SInt32; refCon: UnivPtr; userRoutine: CMConcatCallBackUPP): boolean; external name '_InvokeCMConcatCallBackUPP'; { old name was CallCMConcatCallBackProc }
+function InvokeCMConcatCallBackUPP(progress: SInt32; refCon: UnivPtr; userRoutine: CMConcatCallBackUPP): boolean; external name '_InvokeCMConcatCallBackUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeCMProfileFilterUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeCMProfileFilterUPP(prof: CMProfileRef; refCon: UnivPtr; userRoutine: CMProfileFilterUPP): boolean; external name '_InvokeCMProfileFilterUPP'; { old name was CallCMProfileFilterProc }
+function InvokeCMProfileFilterUPP(prof: CMProfileRef; refCon: UnivPtr; userRoutine: CMProfileFilterUPP): boolean; external name '_InvokeCMProfileFilterUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeCMProfileAccessUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in 3.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeCMProfileAccessUPP(command: SInt32; offset: SInt32; var size: SInt32; data: UnivPtr; refCon: UnivPtr; userRoutine: CMProfileAccessUPP): OSErr; external name '_InvokeCMProfileAccessUPP'; { old name was CallCMProfileAccessProc }
+function InvokeCMProfileAccessUPP(command: SInt32; offset: SInt32; var size: SInt32; data: UnivPtr; refCon: UnivPtr; userRoutine: CMProfileAccessUPP): OSErr; external name '_InvokeCMProfileAccessUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {$ALIGN MAC68K}
 
 

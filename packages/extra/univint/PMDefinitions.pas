@@ -454,7 +454,7 @@ const
 	kPMInvalidPreset			= -30882;						{  the preset is invalid }
 
 
-	kPMPrintAllPages			= -1;
+	kPMPrintAllPages			= $FFFFFFFF;
 
 	kPMUnlocked					= false;
 	kPMLocked					= true;
