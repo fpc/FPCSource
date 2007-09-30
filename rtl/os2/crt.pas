@@ -131,49 +131,6 @@ external 'DOSCALLS' index 286;
 
 
 
-threadvar
-  ExtKeyCode: char;
-
-
-
-function KeyPressed: boolean;
-{Checks if a key is pressed.}
-var
- AKeyRec: TKbdKeyinfo;
-begin
- if ExtKeyCode <> #0 then
-  KeyPressed := true
- else
-  KeyPressed := (KbdPeek (AKeyRec, 0) = 0)
-                                         and ((AKeyRec.fbStatus and $40) <> 0);
-end;
-
-
-function ReadKey: char;
-{Reads the next character from the keyboard.}
-var
- AKeyRec: TKbdKeyInfo;
- C, S: char;
-begin
- if ExtKeyCode <> #0 then
-  begin
-   ReadKey := ExtKeyCode;
-   ExtKeyCode := #0
-  end
- else
-  begin
-   KbdCharIn (AKeyRec, 0, 0);
-   C := AKeyRec.CharCode;
-   S := AKeyRec.ScanCode;
-   if (C = #224) and (S <> #0) then
-    C := #0;
-   if C = #0 then
-    ExtKeyCode := S;
-   ReadKey := C;
-  end;
-end;
-
-
 procedure GetScreenCursor (var X, Y: dword);inline;
 (* Return current cursor postion - 0-based. *)
 var
@@ -327,6 +284,64 @@ end;
 
 (* Include common, platform independent part. *)
 {$I crt.inc}
+
+
+function KeyPressed: boolean;
+{Checks if a key is pressed.}
+var
+ AKeyRec: TKbdKeyinfo;
+begin
+ if SpecialKey or (ScanCode <> 0) then
+  KeyPressed := true
+ else
+  KeyPressed := (KbdPeek (AKeyRec, 0) = 0)
+                                         and ((AKeyRec.fbStatus and $40) <> 0);
+end;
+
+
+function ReadKey: char;
+{Reads the next character from the keyboard.}
+var
+ AKeyRec: TKbdKeyInfo;
+ C, S: char;
+begin
+ if SpecialKey then
+  begin
+   SpecialKey := false;
+   ReadKey := char (ScanCode);
+   ScanCode := 0;
+  end
+ else
+  if ScanCode <> 0 then
+   begin
+    ReadKey := char (ScanCode);
+    ScanCode := 0;
+   end
+  else
+   begin
+    while ((KbdCharIn (AKeyRec, 1, 0) <> 0)
+                    or (AKeyRec.fbStatus and $41 <> $40)) and (ScanCode = 0) do
+     DosSleep (5);
+    if ScanCode = 0 then
+     begin
+      C := AKeyRec.CharCode;
+      S := AKeyRec.ScanCode;
+      if (C = #224) and (S <> #0) then
+       C := #0;
+      if C = #0 then
+       begin
+        SpecialKey := true;
+        ScanCode := byte (S);
+       end;
+      ReadKey := C;
+     end
+    else
+     begin
+      ReadKey := char (ScanCode);
+      ScanCode := 0;
+     end;
+   end;
+end;
 
 
 {Initialization.}

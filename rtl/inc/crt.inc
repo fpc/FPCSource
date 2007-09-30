@@ -15,6 +15,10 @@
 
  **********************************************************************}
 
+var
+  ScanCode: byte;
+  SpecialKey: boolean;
+
 procedure GotoXY (X: byte; Y: byte);
 begin
  GotoXY32 (X, Y);
@@ -381,6 +385,31 @@ end;
 {$ENDIF HAS_NOSOUND}
 
 
+var
+  PrevCtrlBreakHandler: TCtrlBreakHandler;
+
+
+function CrtCtrlBreakHandler (CtrlBreak: boolean): boolean;
+begin
+(* Earlier registered handlers (e.g. FreeVision) have priority. *)
+  if Assigned (PrevCtrlBreakHandler) then
+    if PrevCtrlBreakHandler (CtrlBreak) then
+      begin
+        CrtCtrlBreakHandler := true;
+        Exit;
+      end;
+(* If Ctrl-Break was pressed, either ignore it or allow default processing. *)
+  if CtrlBreak then
+    CrtCtrlBreakHandler := not (CheckBreak)
+  else (* Ctrl-C pressed *)
+    begin
+      if not (SpecialKey) and (ScanCode = 0) then
+        ScanCode := 3;
+      CrtCtrlBreakHandler := true;
+    end;
+end;
+
+
 procedure CrtInit;
 (* Common part of unit initialization. *)
 begin
@@ -396,9 +425,14 @@ begin
   WindMax := WindMax or $FF00
  else
   WindMax := WindMax or (WindMaxY shl 8);
- ExtKeyCode := #0;
+ ScanCode := 0;
+ SpecialKey := false;
  AssignCrt (Input);
  Reset (Input);
  AssignCrt (Output);
  Rewrite (Output);
+ PrevCtrlBreakHandler := SysSetCtrlBreakHandler (@CrtCtrlBreakHandler);
+ if PrevCtrlBreakHandler = TCtrlBreakHandler (pointer (-1)) then
+   PrevCtrlBreakHandler := nil;
+ CheckBreak := true;
 end;
