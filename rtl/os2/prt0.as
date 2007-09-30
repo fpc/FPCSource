@@ -12,6 +12,7 @@
         .globl  __init
         .globl  __dos_init
         .globl  __dos_syscall
+        .comm _excptregptr, 4
 
         .text
 
@@ -27,8 +28,16 @@ ___SYSCALL:
         .space  6, 0x90
 
 __init: cld
+        pushl %eax
+        pushl %eax
+        pushl %eax
+        movl %esp,%eax
+        addl $4,%eax
+        movl %eax, _excptregptr
+        popl %eax
 
         call    _main
+
         movb    $0x4c,%ah
         call    ___SYSCALL
 2:      jmp     2b
