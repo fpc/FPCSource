@@ -936,8 +936,6 @@ implementation
             while (j>0) and (s[j]<>';') do
              dec(j);
             currPath:= TrimSpace(Copy(s,j+1,length(s)-j));
-            DePascalQuote(currPath);
-            currPath:=FixPath(currPath,false);
             if j=0 then
              s:=''
             else
@@ -949,12 +947,12 @@ implementation
             if j=0 then
              j:=255;
             currPath:= TrimSpace(Copy(s,1,j-1));
-            DePascalQuote(currPath);
-            currPath:=SrcPath+FixPath(currPath,false);
             System.Delete(s,1,j);
           end;
 
          { fix pathname }
+         DePascalQuote(currPath);
+         currPath:=SrcPath+FixPath(currPath,false);
          if currPath='' then
            currPath:= CurDirRelPath(source_info)
          else

@@ -191,7 +191,8 @@ interface
        utilsprefix    : TCmdStr;
        cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
-       rlinkpath      : TCmdStr;         { rpath-link linkdir override}
+       rlinkpath      : TCmdStr;        { rpath-link linkdir override}
+       sysrootpath    : TCmdStr;        { target system root to search dyn linker }
 
        { some flags for global compiler switches }
        do_build,
@@ -1166,6 +1167,7 @@ implementation
         utilsprefix:='';
         cshared:=false;
         rlinkpath:='';
+        sysrootpath:='';
 
         { Search Paths }
         librarysearchpath:=TSearchPathList.Create;

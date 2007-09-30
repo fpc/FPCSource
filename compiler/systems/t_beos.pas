@@ -183,7 +183,7 @@ begin
   { since that is what the compiler expects.              }
   if pos(';',s) = 0 then
     s:=s+';';
-  LibrarySearchPath.AddPath(s,true); {format:'path1;path2;...'}
+  LibrarySearchPath.AddPath(sysrootpath,s,true); {format:'path1;path2;...'}
 end;
 
 

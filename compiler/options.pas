@@ -750,9 +750,9 @@ begin
                  'l' :
                    begin
                      if ispara then
-                       ParaLibraryPath.AddPath(More,false)
+                       ParaLibraryPath.AddPath(sysrootpath,More,false)
                      else
-                       LibrarySearchPath.AddPath(More,true);
+                       LibrarySearchPath.AddPath(sysrootpath,More,true);
                    end;
                  'L' :
                    begin
@@ -1393,6 +1393,12 @@ begin
                         rlinkpath:=Copy(more,2,length(More)-1);
                         DefaultReplacements(rlinkpath);
                         More:='';
+                      end;
+                    'R' :
+                      begin
+                        sysrootpath:=copy(more,2,length(more)-1);
+                        defaultreplacements(sysrootpath);
+                        more:='';
                       end;
                     's' :
                       begin

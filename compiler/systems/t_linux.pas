@@ -205,12 +205,12 @@ begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
 {$ifdef x86_64}
-   LibrarySearchPath.AddPath('/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+   LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
 {$else}
 {$ifdef powerpc64}
-   LibrarySearchPath.AddPath('/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+   LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
 {$else powerpc64}
-   LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
+   LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 {$endif powerpc64}
 {$endif x86_64}
 end;
@@ -230,19 +230,21 @@ const
 {$ifdef arm}    platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}    platform_select='';{$endif} {unknown :( }
 
-{$ifdef m68k}
 var
+{$ifdef m68k}
   St : TSearchRec;
+{$else}
+  defdynlinker: string;
 {$endif m68k}
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $RES';
+     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE -T $RES';
      DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
      libctype:=glibc2;
-     if FindFirst('/lib/ld*',faAnyFile+faSymLink,st)<>0 then
+     if FindFirst(sysrootpath+'/lib/ld*',faAnyFile+faSymLink,st)<>0 then
        begin
          repeat
             if copy(st.name,1,5)='ld-2.' then
@@ -258,6 +260,29 @@ begin
 {$endif m68k}
 
 {$ifdef i386}
+     defdynlinker:='/lib/ld-linux.so.1';
+{$endif}
+
+{$ifdef x86_64}
+     defdynlinker:='/lib/ld-linux-x86-64.so.2'
+{$endif x86_64}
+
+{$ifdef sparc}
+     defdynlinker:='/lib/ld-linux.so.2';
+{$endif sparc}
+
+{$ifdef powerpc}
+     defdynlinker:='/lib/ld.so.1';
+{$endif powerpc}
+
+{$ifdef powerpc64}
+     defdynlinker:='/lib/ld64.so.1';
+{$endif powerpc64}
+
+{$ifdef arm}
+     defdynlinker:='/lib/ld-linux.so.2';
+{$endif arm}
+
      {
        Search order:
          glibc 2.1+
@@ -265,19 +290,22 @@ begin
          glibc 2.0
        If none is found (e.g. when cross compiling) glibc21 is assumed
      }
-     if FileExists('/lib/ld-linux.so.2',false) then
+{$ifdef i386}
+     if FileExists(sysrootpath+'/lib/ld-linux.so.2',false) then
        begin
          DynamicLinker:='/lib/ld-linux.so.2';
          libctype:=glibc21;
        end
-     else if fileexists('/lib/ld-uClibc.so.0',false) then
+     else 
+{$endif i386}
+     if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
        begin
          dynamiclinker:='/lib/ld-uClibc.so.0';
          libctype:=uclibc;
        end
-     else if fileexists('/lib/ld-linux.so.1',false) then
+     else if fileexists(sysrootpath+defdynlinker,false) then
        begin
-         DynamicLinker:='/lib/ld-linux.so.1';
+         DynamicLinker:=defdynlinker;
          libctype:=glibc2;
        end
      else
@@ -286,32 +314,6 @@ begin
          DynamicLinker:='/lib/ld-linux.so.2';
          libctype:=glibc21;
        end;
-{$endif i386}
-
-{$ifdef x86_64}
-     DynamicLinker:='/lib64/ld-linux-x86-64.so.2';
-     libctype:=glibc2;
-{$endif x86_64}
-
-{$ifdef sparc}
-     DynamicLinker:='/lib/ld-linux.so.2';
-     libctype:=glibc2;
-{$endif sparc}
-
-{$ifdef powerpc}
-     DynamicLinker:='/lib/ld.so.1';
-     libctype:=glibc2;
-{$endif powerpc}
-
-{$ifdef powerpc64}
-     DynamicLinker:='/lib64/ld64.so.1';
-     libctype:=glibc2;
-{$endif powerpc64}
-
-{$ifdef arm}
-     DynamicLinker:='/lib/ld-linux.so.2';
-     libctype:=glibc2;
-{$endif arm}
    end;
 end;
 
@@ -437,7 +439,7 @@ begin
       if not (target_info.system in system_internal_sysinit) and (prtobj<>'') then
        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
       { try to add crti and crtbegin if linking to C }
-      if linklibc then
+      if linklibc and (libctype<>uclibc) then
        begin
          { x86_64 requires this to use entry/exit code with pic,
            see also issue #8210 regarding a discussion
@@ -791,7 +793,7 @@ var
   binstr,
   cmdstr  : TCmdStr;
   success : boolean;
-  DynLinkStr : string[60];
+  DynLinkStr : string;
   GCSectionsStr,
   StaticStr,
   StripStr   : string[40];
@@ -815,11 +817,11 @@ begin
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
-     DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
-     if cshared Then
-       DynLinkStr:='--shared ' + DynLinkStr;
-     if rlinkpath<>'' Then
-       DynLinkStr:='--rpath-link '+rlinkpath + ' '+ DynLinkStr;
+     DynLinkStr:='--dynamic-linker='+Info.DynamicLinker;
+     if cshared then
+       DynLinkStr:=DynLinkStr+' --shared ';
+     if rlinkpath<>'' then
+       DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;
    End;
 
 { Write used files and libraries }
