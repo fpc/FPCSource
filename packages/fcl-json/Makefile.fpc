@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for XML for FCL
+#
+
+[package]
+name=fcl-json
+version=2.2.0
+
+[target]
+units=fpjson jsonscanner jsonparser jsonconf
+rsts=fpjson jsonscanner jsonparser jsonconf
+
+[require]
+packages=fcl-base
+
+[compiler]
+options=-S2h
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+
+jsonparser$(PPUEXT): jsonparser.pp fpjson$(PPUEXT) jsonscanner$(PPUEXT)
+
+jsonconf$(PPUEXT): jsonparser$(PPUEXT) fpjson$(PPUEXT)
