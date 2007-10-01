@@ -85,7 +85,7 @@ unit cgppc;
 
   const
     TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
-                         C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);  
+                         C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
 
 
   implementation
@@ -106,7 +106,7 @@ unit cgppc;
       begin
         result:=
           ((pi_do_call in current_procinfo.flags) or
-           ([cs_lineinfo,cs_debuginfo,cs_profile] * current_settings.moduleswitches <> []));   
+           ([cs_lineinfo,cs_debuginfo,cs_profile] * current_settings.moduleswitches <> []));
       end;
 
 
@@ -370,7 +370,7 @@ unit cgppc;
 
     procedure tcgppcgen.a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize;
       reg: tregister; const ref: treference);
-    
+
     const
       StoreInstr: array[OS_8..OS_INT, boolean, boolean] of TAsmOp =
       { indexed? updating?}
@@ -390,7 +390,7 @@ unit cgppc;
         internalerror(2002090903);
       if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
         internalerror(2002090905);
-    
+
       ref2 := ref;
       fixref(list, ref2);
       if tosize in [OS_S8..OS_SINT] then
@@ -507,12 +507,12 @@ unit cgppc;
       { subsetregs always count bits from right to left }
       fromsreg.startbit := loadbitsize-restbits;
       fromsreg.bitlen := restbits;
-  
+
       tosreg.subsetreg := valuereg;
       tosreg.subsetregsize := OS_INT;
       tosreg.startbit := 0;
       tosreg.bitlen := restbits;
-  
+
       a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
     end;
 
@@ -653,7 +653,7 @@ unit cgppc;
 
         make_global:=false;
         if (not current_module.is_unit) or
-           (cs_create_smart in current_settings.moduleswitches) or
+            create_smartlink or
            (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
           make_global:=true;
 

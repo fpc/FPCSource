@@ -321,7 +321,7 @@ implementation
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
         if not(target_info.system in systems_darwin) and
-           use_smartlink_section and
+           create_smartlink_sections and
            (aname<>'') and
            (atype <> sec_toc) and
            (atype<>sec_bss) then
@@ -1070,7 +1070,7 @@ implementation
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
 
-      if (cs_create_smart in current_settings.moduleswitches) and
+      if create_smartlink_sections and
          (target_info.system in systems_darwin) then
         AsmWriteLn(#9'.subsections_via_symbols');
 

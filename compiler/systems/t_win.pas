@@ -1326,7 +1326,7 @@ implementation
         AsBinStr:=FindUtil(utilsprefix+'as');
         if RelocSection then
           RelocStr:='--base-file base.$$$';
-        if use_smartlink_section then
+        if create_smartlink_sections then
           GCSectionsStr:='--gc-sections';
         if target_info.system in [system_arm_wince,system_i386_wince] then
           AppTypeStr:='--subsystem wince'
@@ -1432,7 +1432,7 @@ implementation
         AsBinStr:=FindUtil(utilsprefix+'as');
         if RelocSection then
          RelocStr:='--base-file base.$$$';
-        if use_smartlink_section then
+        if create_smartlink_sections then
          GCSectionsStr:='--gc-sections';
         if apptype=app_gui then
           begin

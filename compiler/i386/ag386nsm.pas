@@ -478,7 +478,7 @@ interface
         AsmLn;
         AsmWrite('SECTION ');
         AsmWrite(secnames[atype]);
-        if use_smartlink_section and
+        if create_smartlink_sections and
            (atype<>sec_bss) and
            (aname<>'') then
           begin

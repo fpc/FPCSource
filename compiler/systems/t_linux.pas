@@ -296,7 +296,7 @@ begin
          DynamicLinker:='/lib/ld-linux.so.2';
          libctype:=glibc21;
        end
-     else 
+     else
 {$endif i386}
      if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
        begin
@@ -812,7 +812,7 @@ begin
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
    StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
-  if use_smartlink_section then
+  if create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then

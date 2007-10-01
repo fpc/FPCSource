@@ -1373,7 +1373,7 @@ implementation
         { have been modified by the directives parsed above          }
         new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
         if (sym.owner.symtabletype=globalsymtable) or
-           maybe_smartlink_symbol or
+           create_smartlink or
            (assigned(current_procinfo) and
             (po_inline in current_procinfo.procdef.procoptions)) or
            DLLSource then

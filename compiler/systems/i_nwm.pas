@@ -32,7 +32,7 @@ unit i_nwm;
             system       : system_i386_netware;
             name         : 'Netware for i386(clib)';
             shortname    : 'Netware';
-            flags        : [tf_use_function_relative_addresses];
+            flags        : [tf_use_function_relative_addresses,tf_smartlink_library];
             cpu          : cpu_i386;
             unit_env     : 'NETWAREUNITS';
             extradefines : 'NETWARE_CLIB';
@@ -83,6 +83,7 @@ unit i_nwm;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
+            abi : abi_default
           );
 
   implementation

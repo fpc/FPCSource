@@ -32,7 +32,8 @@ unit i_beos;
             system       : system_i386_BeOS;
             name         : 'Beos for i386';
             shortname    : 'Beos';
-            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses,
+                            tf_smartlink_library];
             cpu          : cpu_i386;
             unit_env     : 'BEOSUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -83,6 +84,7 @@ unit i_beos;
               );
             first_parm_offset : 8;
             stacksize    : 8192;
+            abi : abi_default
           );
 
   implementation

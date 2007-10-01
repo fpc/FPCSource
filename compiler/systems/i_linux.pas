@@ -35,6 +35,7 @@ unit i_linux;
              { cross compiled windres can be used to compile .rc files on linux }
              rcbin  : 'windres';
              rccmd  : '--include $INC -O res -o $RES $RC';
+             resourcefileclass : nil;
           );
 
        res_elf64_info : tresinfo =
@@ -45,6 +46,7 @@ unit i_linux;
              { cross compiled windres can be used to compile .rc files on linux }
              rcbin  : 'windres';
              rccmd  : '--include $INC -O res -o $RES $RC';
+             resourcefileclass : nil;
           );
 
        system_i386_linux_info : tsysteminfo =
@@ -57,7 +59,7 @@ unit i_linux;
                             tf_section_threadvars,
 {$endif segment_threadvars}
                             tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_needs_dwarf_cfi];
+                            tf_smartlink_library,tf_needs_dwarf_cfi];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -116,7 +118,7 @@ unit i_linux;
             system       : system_x86_6432_LINUX;
             name         : 'Linux for x64_6432';
             shortname    : 'Linux6432';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_pic_uses_got{,tf_smartlink_sections}];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_pic_uses_got{,tf_smartlink_sections},tf_smartlink_library];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -175,7 +177,8 @@ unit i_linux;
             system       : system_m68k_linux;
             name         : 'Linux for m68k';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
+                            tf_smartlink_library];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -234,7 +237,8 @@ unit i_linux;
             system       : system_powerpc_LINUX;
             name         : 'Linux for PowerPC';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
+                            tf_smartlink_library];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -293,7 +297,8 @@ unit i_linux;
             system       : system_powerpc64_LINUX;
             name         : 'Linux for PowerPC64';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_requires_proper_alignment];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
+                            tf_requires_proper_alignment,tf_smartlink_library];
             cpu          : cpu_powerpc64;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -352,7 +357,8 @@ unit i_linux;
             system       : system_alpha_LINUX;
             name         : 'Linux for Alpha';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_smartlink_library];
             cpu          : cpu_alpha;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -411,7 +417,7 @@ unit i_linux;
             system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_smartlink_library,
                             tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
@@ -471,7 +477,8 @@ unit i_linux;
             system       : system_SPARC_Linux;
             name         : 'Linux for SPARC';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_requires_proper_alignment];
+            flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,tf_smartlink_library,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -531,7 +538,7 @@ unit i_linux;
             name         : 'Linux for ARM';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections];
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections,tf_smartlink_library];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';

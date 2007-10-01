@@ -295,6 +295,7 @@ interface
             tf_static_reg_based,
             tf_needs_symbol_size,
             tf_smartlink_sections,
+            tf_smartlink_library,
             tf_needs_dwarf_cfi,
             tf_use_8_3,
             tf_pic_uses_got,

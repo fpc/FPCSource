@@ -1535,7 +1535,7 @@ implementation
             if (not current_module.in_interface) then
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
-              maybe_smartlink_symbol or
+               create_smartlink or
               {
                 taking addresses of static procedures goes wrong
                 if they aren't global when pic is used (FK)

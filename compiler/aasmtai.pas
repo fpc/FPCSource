@@ -639,8 +639,7 @@ implementation
 
     procedure maybe_new_object_file(list:TAsmList);
       begin
-        if (cs_create_smart in current_settings.moduleswitches) and
-           (not use_smartlink_section) then
+        if create_smartlink_library then
           list.concat(tai_cutobject.create);
       end;
 
@@ -659,7 +658,7 @@ implementation
         list.concat(tai_section.create(Asectype,Aname,Aalign));
         list.concat(cai_align.create(Aalign));
         if Aglobal or
-           maybe_smartlink_symbol then
+           create_smartlink then
           list.concat(tai_symbol.createname_global(Aname,Asymtyp,0))
         else
           list.concat(tai_symbol.createname(Aname,Asymtyp,0));

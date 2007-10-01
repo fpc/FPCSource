@@ -2172,7 +2172,7 @@ implementation
         maybe_new_object_file(list);
         new_section(list,sectype,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
-           maybe_smartlink_symbol or
+           create_smartlink or
            DLLSource or
            (assigned(current_procinfo) and
             (po_inline in current_procinfo.procdef.procoptions)) or

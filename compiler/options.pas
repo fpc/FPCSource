@@ -2453,11 +2453,6 @@ begin
      (target_info.system in [system_i386_win32,system_x86_64_win64]) then
     exclude(target_info.flags,tf_smartlink_sections);
 
-{$ifdef x86_64}
-  {$warning HACK: turn off smartlinking}
-  exclude(init_settings.moduleswitches,cs_create_smart);
-{$endif}
-
   if not LinkTypeSetExplicitly then
     set_default_link_type;
 
