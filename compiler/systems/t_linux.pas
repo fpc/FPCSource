@@ -239,7 +239,11 @@ var
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE -T $RES';
+     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
+     { when we want to cross-link we need to override default library paths }
+     if length(sysrootpath) > 0 then
+       ExeCmd[1]:=ExeCmd[1]+' -T';
+     ExeCmd[1]:=ExeCmd[1]+' $RES';
      DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
