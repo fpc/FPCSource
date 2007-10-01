@@ -703,8 +703,12 @@ implementation
                    (taicpu(hp).opcode = A_REPNE)) then
                 Begin
                   prefix:=std_op2str[taicpu(hp).opcode]+#9;
-                  hp:=tai(hp.next);
-                { this is theorically impossible... }
+                  { there can be a stab inbetween when the opcode was on
+                    a different line in the source code }
+                  repeat
+                    hp:=tai(hp.next);
+                  until (hp=nil) or (hp.typ=ait_instruction);
+                  { this is theorically impossible... }
                   if hp=nil then
                    begin
                      AsmWriteLn(#9#9+prefix);
