@@ -253,7 +253,7 @@ begin
     Inherited DoHandleRequest(ARequest,AResponse,Handled);
     If not Handled then
       begin
-      AResponse.Content:=Self.Content;
+      AResponse.Contents.AddStrings(Self.Contents);
       Handled:=(AResponse.Content<>'');
       end;
     end;

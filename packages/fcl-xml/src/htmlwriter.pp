@@ -37,10 +37,10 @@ type
     function CreateElement (tag : THTMLElementClass; sub : THTMLCustomElement) : THTMLCustomElement;
     function CreateElement (tag : THTMLElementClass; subs : Array of THTMLCustomElement) : THTMLCustomElement;
     function CreateElement (tag : THTMLElementClass; subs : TDOMNodelist) : THTMLCustomElement;
-    function StartElement (tag : THTMLElementClass) : THTMLCustomElement;
-    function EndElement (tag : THTMLElementClass) : THTMLCustomElement;
     function AddElement (tag : THTMLElementClass) : THTMLCustomElement;
   public
+    function StartElement (tag : THTMLElementClass) : THTMLCustomElement;
+    function EndElement (tag : THTMLElementClass) : THTMLCustomElement;
     constructor create (aDocument : THTMLDocument);
     procedure AddElement (el : THTMLCustomElement);
     procedure AddElements (subs : TDOMNodelist);

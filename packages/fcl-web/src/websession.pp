@@ -53,6 +53,7 @@ Type
     FCached: Boolean;
     FIniFile : TMemInifile;
     FSessionCookie: String;
+    FSessionCookiePath: String;
     FSessionDir: String;
     FTerminated :Boolean;
     SID : String;
@@ -64,6 +65,7 @@ Type
     Property Cached : Boolean Read FCached Write FCached;
     property SessionCookie : String Read FSessionCookie Write FSessionCookie;
     Property SessionDir : String Read FSessionDir Write FSessionDir;
+    Property SessionCookiePath : String Read FSessionCookiePath write FSessionCookiePath;
   Public
     Destructor Destroy; override;
     Procedure Terminate; override;
@@ -77,6 +79,7 @@ Type
   Public
     Property Cached;
     property SessionCookie;
+    Property SessionCookiePath;
     Property SessionDir;
   end;
 
@@ -263,7 +266,8 @@ begin
     C:=AResponse.Cookies.Add;
     C.Name:=SessionCookie;
     C.Value:=SID;
-     end
+    C.Path:=FSessionCookiePath;
+    end
   else If FTerminated then
     begin
 {$ifdef cgidebug}SendDebug('Session terminated');{$endif}
