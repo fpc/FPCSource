@@ -83,7 +83,7 @@ interface
 implementation
 
     uses
-      globtype,globals,
+      globtype,globals,aasmbase,
       cutils,verbose, systems;
 
     const
