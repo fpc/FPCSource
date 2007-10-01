@@ -50,6 +50,7 @@ type
     FBLobSegmentSize     : word;
 
     procedure ConnectFB;
+    function GetDialect: integer;
     procedure SetDBDialect;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
     procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
@@ -94,7 +95,7 @@ type
     procedure DropDB; override;
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
   published
-    property Dialect  : integer read FDialect write FDialect;
+    property Dialect  : integer read GetDialect write FDialect;
     property DatabaseName;
     property KeepConnection;
     property LoginPrompt;
@@ -154,6 +155,7 @@ begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FBLobSegmentSize := 80;
+  FDialect := -1;
 end;
 
 
@@ -285,8 +287,8 @@ begin
   if isc_dsql_execute_immediate(@FStatus[0],@ASQLDatabaseHandle,@ASQLTransactionHandle,length(CreateSQL),@CreateSQL[1],Dialect,nil) <> 0 then
     CheckError('CreateDB', FStatus);
 
-  isc_detach_database(@FStatus[0], @ASQLDatabaseHandle);
-  CheckError('CreateDB', FStatus);
+  if isc_detach_database(@FStatus[0], @ASQLDatabaseHandle) <> 0 then
+    CheckError('CreateDB', FStatus);
 {$IfDef LinkDynamically}
   ReleaseIBase60;
 {$EndIf}
@@ -305,18 +307,18 @@ end;
 
 procedure TIBConnection.DoInternalDisconnect;
 begin
+  FDialect := -1;
   if not Connected then
   begin
     FSQLDatabaseHandle := nil;
     Exit;
   end;
 
-  isc_detach_database(@FStatus[0], @FSQLDatabaseHandle);
-  CheckError('Close', FStatus);
+  if isc_detach_database(@FStatus[0], @FSQLDatabaseHandle) <> 0 then
+    CheckError('Close', FStatus);
 {$IfDef LinkDynamically}
   ReleaseIBase60;
 {$EndIf}
-
 end;
 
 
@@ -337,13 +339,15 @@ begin
     case ResBuf[x] of
       isc_info_db_sql_dialect :
         begin
-          Inc(x);
-          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
-          Inc(x, 2);
-          FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
-          Inc(x, Len);
+        Inc(x);
+        Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+        Inc(x, 2);
+        FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
+        Inc(x, Len);
         end;
       isc_info_end : Break;
+    else
+      inc(x);
     end;
 end;
 
@@ -371,7 +375,13 @@ begin
     @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
     CheckError('DoInternalConnect', FStatus);
-  SetDBDialect;
+end;
+
+function TIBConnection.GetDialect: integer;
+begin
+  if FDialect = -1 then
+    SetDBDialect;
+  Result := FDialect;
 end;
 
 procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
@@ -727,13 +737,20 @@ begin
       begin
       if assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := 0;
 
-      case AParams[ParNr].DataType of
-        ftInteger :
+      case (in_sqlda^.SQLvar[SQLVarNr].sqltype and not 1) of
+        SQL_LONG :
           begin
           i := AParams[ParNr].AsInteger;
           Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           end;
-        ftString,ftFixedChar  : if ((in_sqlda^.SQLvar[SQLVarNr].SQLType and not 1) = SQL_BLOB) then SetBlobParam else
+        SQL_SHORT :
+          begin
+          i := AParams[ParNr].AsSmallInt;
+          Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+          end;
+        SQL_BLOB :
+          SetBlobParam;
+        SQL_VARYING, SQL_TEXT :
           begin
           s := AParams[ParNr].AsString;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
@@ -747,22 +764,17 @@ begin
             end
           else
             CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
-
           Move(s[1], CurrBuff^, w);
           end;
-        ftDate, ftTime, ftDateTime:
+        SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
           SetDateTime(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsDateTime, in_SQLDA^.SQLVar[SQLVarNr].SQLType);
-        ftLargeInt:
+        SQL_INT64:
           begin
           li := AParams[ParNr].AsLargeInt;
           Move(li, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           end;
-        ftFloat:
+        SQL_DOUBLE, SQL_FLOAT:
           SetFloat(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsFloat, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
-        ftBlob, ftMemo:
-          begin
-          SetBlobParam;
-          end;
       else
         DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}

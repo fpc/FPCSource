@@ -75,11 +75,9 @@ Type
 
   TConnectionName = class (TSQLConnection)
   private
-    FDialect: integer;
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
-    FDidConnect : Boolean;
     function GetClientInfo: string;
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
@@ -126,7 +124,6 @@ Type
     property ClientInfo: string read GetClientInfo;
     property ServerStatus : String read GetServerStatus;
   published
-    property Dialect  : integer read FDialect write FDialect;
     property DatabaseName;
     property HostName;
     property KeepConnection;
@@ -148,7 +145,7 @@ Type
 
 implementation
 
-uses dbconst;
+uses dbconst,ctypes;
 
 { TConnectionName }
 
@@ -192,19 +189,13 @@ end;
 
 function TConnectionName.GetClientInfo: string;
 
-Var
-  B : Boolean;
-
 begin
   // To make it possible to call this if there's no connection yet
-  B:=(MysqlLibraryHandle=Nilhandle);
-  If B then
-    InitialiseMysql;
+  InitialiseMysql;
   Try  
     Result:=strpas(mysql_get_client_info());
   Finally  
-    if B then
-      ReleaseMysql;
+    ReleaseMysql;
   end;  
 end;
 
@@ -295,16 +286,13 @@ end;
 
 procedure TConnectionName.ExecuteDirectMySQL(const query : string);
 
-var ADidConnect : boolean;
-    H,U,P       : String;
+var H,U,P       : String;
     AMySQL      : PMySQL;
 
 begin
   CheckDisConnected;
 
-  ADidConnect:=(MySQLLibraryHandle=NilHandle);
-  if ADidConnect then
-    InitialiseMysql;
+  InitialiseMysql;
 
   H:=HostName;
   U:=UserName;
@@ -317,15 +305,12 @@ begin
 
   mysql_close(AMySQL);
 
-  if ADidConnect then
-    ReleaseMysql;
+  ReleaseMysql;
 end;
 
 procedure TConnectionName.DoInternalConnect;
 begin
-  FDidConnect:=(MySQLLibraryHandle=NilHandle);
-  if FDidConnect then
-    InitialiseMysql;
+  InitialiseMysql;
 {$IFDEF mysql50}
   if copy(strpas(mysql_get_client_info()),1,3)<>'5.0' then
     Raise EInOutError.CreateFmt(SErrNotversion50,[strpas(mysql_get_client_info())]);
@@ -348,8 +333,7 @@ begin
   inherited DoInternalDisconnect;
   mysql_close(FMySQL);
   FMySQL:=Nil;
-  if FDidConnect then
-    ReleaseMysql;
+  ReleaseMysql;
 end;
 
 function TConnectionName.GetHandle: pointer;
@@ -443,7 +427,12 @@ function TConnectionName.MySQLDataType(AType: enum_field_types; ASize, ADecimals
 begin
   Result := True;
   case AType of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG, FIELD_TYPE_LONGLONG,
+    FIELD_TYPE_LONGLONG:
+      begin
+      NewType := ftLargeint;
+      NewSize := 0;
+      end;
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG,
     FIELD_TYPE_INT24:
       begin
       NewType := ftInteger;
@@ -576,7 +565,7 @@ var
   row : MYSQL_ROW;
   C : TCursorName;
   li : longint;
-  Lengths : PDWord;
+  Lengths : pculong;
 begin
   C:=Cursor as TCursorName;
   if C.Row=nil then
@@ -849,6 +838,7 @@ constructor TConnectionName.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FMySQL := Nil;
 end;
 
 function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;

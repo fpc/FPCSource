@@ -1,4 +1,4 @@
- unit TestSQLFieldTypes;
+unit TestSQLFieldTypes;
 
 {$mode objfpc}{$H+}
 
@@ -20,12 +20,15 @@ type
   private
     procedure CreateTableWithFieldType(ADatatype : TFieldType; ASQLTypeDecl : string);
     procedure TestFieldDeclaration(ADatatype: TFieldType; ADataSize: integer);
-    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer);
+    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
   protected
     procedure SetUp; override; 
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestBug9744;
+    procedure TestCrossStringDateParam;
+    procedure TestGetFieldNames;
     procedure TestUpdateIndexDefs;
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsStringParam;
@@ -58,7 +61,6 @@ type
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
     procedure TestFloatParamQuery;
-  published
     procedure TestAggregates;
   end;
 
@@ -395,8 +397,7 @@ procedure TTestFieldTypes.TestChangeBlob;
 var s : string;
 
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT blob)');
-//  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT text)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT '+FieldtypeDefinitions[ftblob]+')');
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For interbase
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test deze blob'')');
@@ -437,8 +438,7 @@ end;
 
 procedure TTestFieldTypes.TestBlobGetText;
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
-//  CreateTableWithFieldType(ftBlob,'TEXT');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
@@ -467,7 +467,7 @@ var
   ASQL          : TSQLQuery;
 
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
 //  CreateTableWithFieldType(ftBlob,'TEXT');
   TestFieldDeclaration(ftBlob,0);
 
@@ -495,8 +495,7 @@ var
   i             : byte;
 
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
-//  CreateTableWithFieldType(ftBlob,'TEXT');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
@@ -554,7 +553,7 @@ var
   i, corrTestValueCount : byte;
 
 begin
-  CreateTableWithFieldType(ftDateTime,'TIMESTAMP');
+  CreateTableWithFieldType(ftDateTime,FieldtypeDefinitions[ftDateTime]);
   TestFieldDeclaration(ftDateTime,8);
   
   if SQLDbType=mysql40 then corrTestValueCount := testValuesCount-21
@@ -729,7 +728,7 @@ begin
 end;
 
 
-procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer);
+procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
 
 var i : integer;
 
@@ -741,6 +740,7 @@ begin
 
   with TSQLDBConnector(DBConnector).Query do
     begin
+    PacketRecords := -1;
     sql.clear;
     sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
 
@@ -753,13 +753,16 @@ begin
         ftInteger: Params.ParamByName('field1').asinteger := testIntValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
         ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
-        ftDate   : Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i]);
+        ftDate   : if cross then
+                     Params.ParamByName('field1').AsString:= testDateValues[i]
+                   else
+                     Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i]);
       else
         AssertTrue('no test for paramtype available',False);
       end;
       ExecSQL;
       end;
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
     sql.clear;
     sql.append('select * from FPDEV2 order by ID');
@@ -864,6 +867,63 @@ begin
     inherited RunTest;
 end;
 
+procedure TTestFieldTypes.TestBug9744;
+var i : integer;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    try
+      Connection.ExecuteDirect('create table TTTOBJ (         ' +
+                                '  ID INT NOT NULL,           ' +
+                                '  NAME VARCHAR(250),         ' +
+                                '  PRIMARY KEY (ID)           ' +
+                                ')                            ');
+      Connection.ExecuteDirect('create table TTTXY (          ' +
+                                '  ID INT NOT NULL,           ' +
+                                '  NP INT NOT NULL,           ' +
+                                '  X DOUBLE,                  ' +
+                                '  Y DOUBLE,                  ' +
+                                '  PRIMARY KEY (ID,NP)        ' +
+                                ')                            ');
+      for i := 0 to 7 do
+        begin
+        connection.ExecuteDirect('insert into TTTOBJ(ID,NAME) values ('+inttostr(i)+',''A'+inttostr(i)+''')');
+        connection.ExecuteDirect('insert into TTTXY(ID,NP,X,Y) values ('+inttostr(i)+',1,1,1)');
+        connection.ExecuteDirect('insert into TTTXY(ID,NP,X,Y) values ('+inttostr(i)+',2,2,2)');
+        end;
+      Query.SQL.Text := 'select OBJ.ID, OBJ.NAME, count(XY.NP) as NPF from TTTOBJ as OBJ, TTTXY as XY where (OBJ.ID=XY.ID) group by OBJ.ID';
+      query.Prepare;
+      query.open;
+      query.close;
+    finally
+      Connection.ExecuteDirect('drop table TTTXY');
+      Connection.ExecuteDirect('drop table TTTOBJ');
+      end
+    end;
+end;
+
+procedure TTestFieldTypes.TestCrossStringDateParam;
+begin
+  TestXXParamQuery(ftDate,'DATE',testDateValuesCount,True);
+end;
+
+procedure TTestFieldTypes.TestGetFieldNames;
+var FieldNames : TStringList;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    FieldNames := TStringList.Create;
+    try
+      Connection.GetFieldNames('FpDEv',FieldNames);
+      AssertEquals(2,FieldNames.Count);
+      AssertEquals('ID',UpperCase(FieldNames[0]));
+      AssertEquals('NAME',UpperCase(FieldNames[1]));
+    finally
+      FieldNames.Free;
+      end;
+    end;
+end;
+
 procedure TTestFieldTypes.TestUpdateIndexDefs;
 var ds : TSQLQuery;
 begin
@@ -885,8 +945,7 @@ var
   ASQL          : TSQLQuery;
 
 begin
-  CreateTableWithFieldType(ftBlob,'BLOB');
-//  CreateTableWithFieldType(ftBlob,'TEXT');
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
   ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
@@ -961,6 +1020,7 @@ begin
 end;
 
 procedure TTestFieldTypes.TestParametersAndDates;
+// See bug 7205
 begin
   with TSQLDBConnector(DBConnector).Query do
     begin
