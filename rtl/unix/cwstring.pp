@@ -139,6 +139,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
+    err: cint;
   begin
     mynil:=nil;
     my0:=0;
@@ -151,7 +152,11 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     outleft:=outlength;
     while iconv(iconv_wide2ansi,ppchar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
       begin
-        case fpgetCerrno of
+        err:=fpgetCerrno;
+        case err of
+          { last character is incomplete sequence }
+          ESysEINVAL,
+          { incomplete sequence in the middle }
           ESysEILSEQ:
             begin
               { skip and set to '?' }
@@ -162,6 +167,8 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
               dec(outleft);
               { reset }
               iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
+              if err=ESysEINVAL then
+                break;
             end;
           ESysE2BIG:
             begin
@@ -191,19 +198,21 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
+    err: cint;
   begin
     mynil:=nil;
     my0:=0;
     // extra space
     outlength:=len+1;
     setlength(dest,outlength);
-    outlength:=len+1;
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*2;
     while iconv(iconv_ansi2wide,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
-        case fpgetCerrno of
+        err:=fpgetCerrno;
+        case err of
+         ESysEINVAL,
          ESysEILSEQ:
             begin
               { skip and set to '?' }
@@ -214,6 +223,8 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
               dec(outleft,2);
               { reset }
               iconv(iconv_ansi2wide,@mynil,@my0,@mynil,@my0);
+              if err=ESysEINVAL then
+                break;
             end;
           ESysE2BIG:
             begin

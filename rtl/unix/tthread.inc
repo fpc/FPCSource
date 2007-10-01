@@ -62,7 +62,19 @@ begin
   { operation having been finished by another thread already, it will  }
   { use an uninitialised thread manager -> leave as it is              }
   if not ThreadsInited then
-    GetThreadManager(CurrentTM);
+    begin
+      GetThreadManager(CurrentTM);
+{$ifdef FPC_HAS_MEMBAR}
+      { however, we have to ensure that a thread never sees ThreadsInited }
+      { as true while CurrentTM hasn't been initialised yet               }
+      WriteBarrier;
+      ThreadsInited := True;
+{$endif}
+    end
+  else
+    { See double checked lock example at                         }
+    { http://ridiculousfish.com/blog/archives/2007/02/17/barrier }
+    ReadDependencyBarrier;
 end;
 
 procedure DoneThreads;

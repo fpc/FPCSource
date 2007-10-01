@@ -15,6 +15,8 @@
 unit heaptrc;
 interface
 
+{$inline on}
+
 {$ifdef FPC_HEAPTRC_EXTRA}
   {$define EXTRA}
 {$endif FPC_HEAPTRC_EXTRA}

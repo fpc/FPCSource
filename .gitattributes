@@ -497,6 +497,7 @@ compiler/tokens.pas svneol=native#text/plain
 compiler/utils/Makefile svneol=native#text/plain
 compiler/utils/Makefile.fpc svneol=native#text/plain
 compiler/utils/README -text
+compiler/utils/dummyas.pp -text
 compiler/utils/fixlog.pp svneol=native#text/plain
 compiler/utils/fixmsg.pp svneol=native#text/plain
 compiler/utils/fixnasm.pp svneol=native#text/plain
@@ -8261,6 +8262,8 @@ tests/webtbs/tw7679.pp svneol=native#text/plain
 tests/webtbs/tw7719.pp svneol=native#text/plain
 tests/webtbs/tw7733.pp svneol=native#text/plain
 tests/webtbs/tw7756.pp svneol=native#text/plain
+tests/webtbs/tw7758.pp svneol=native#text/plain
+tests/webtbs/tw7758a.pp svneol=native#text/plain
 tests/webtbs/tw7803.pp svneol=native#text/plain
 tests/webtbs/tw7806.pp svneol=native#text/plain
 tests/webtbs/tw7808.pp svneol=native#text/plain
