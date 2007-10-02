@@ -1089,6 +1089,8 @@ begin
     // The data is copied into the buffer, since some TDataset descendents copy
     // the whole buffer-length in SetData. (See bug 8477)
     Buf := AValue;
+    // If length(AValue) > Datasize the buffer isn't terminated properly
+    Buf[DataSize] := #0;
     SetData(@Buf);
     end;
 end;
