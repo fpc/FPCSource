@@ -2372,6 +2372,7 @@ const pemagic : array[0..3] of byte = (
           idata4label,
           idata5label,
           idata6label : TObjSymbol;
+          ordint,
           emptyint : longint;
           secname,
           num : string;
@@ -2380,7 +2381,12 @@ const pemagic : array[0..3] of byte = (
           result:=nil;
           emptyint:=0;
           if assigned(exemap) then
-            exemap.Add(' Importing Function '+afuncname);
+            begin
+              if AOrdNr <= 0 then
+                exemap.Add(' Importing Function '+afuncname)
+              else
+                exemap.Add(' Importing Function '+afuncname+' (OrdNr='+tostr(AOrdNr)+')');
+            end;
 
           with internalobjdata do
             begin
@@ -2413,19 +2419,18 @@ const pemagic : array[0..3] of byte = (
             end
           else
             begin
-              emptyint:=AOrdNr;
+              ordint:=AOrdNr;
               if target_info.system=system_x86_64_win64 then
                 begin
-                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
-                  emptyint:=longint($80000000);
-                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
+                  internalobjdata.writebytes(ordint,sizeof(ordint));
+                  ordint:=longint($80000000);
+                  internalobjdata.writebytes(ordint,sizeof(ordint));
                 end
               else
                 begin
-                  emptyint:=emptyint or longint($80000000);
-                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
+                  ordint:=ordint or longint($80000000);
+                  internalobjdata.writebytes(ordint,sizeof(ordint));
                 end;
-              emptyint:=0;
             end;
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
