@@ -205,7 +205,8 @@ implementation
 
     procedure tcginnode.pass_generate_code;
        var
-         adjustment : aint;
+         adjustment,
+         setbase    : aint;
 				 l,l2,
          otl, ofl   : tasmlabel;
          hr,hr2,
@@ -274,6 +275,7 @@ implementation
          if nf_swapped in flags then
           swapleftright;
 
+         setbase:=tsetdef(right.resultdef).setbase;
          if genjumps then
           begin
             { location is always LOC_JUMP }
@@ -362,12 +364,13 @@ implementation
                if left.location.loc=LOC_CONSTANT then
                 begin
                   cg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,location.size,
-                    left.location.value,right.location,
+                    left.location.value-setbase,right.location,
                     location.register);
                 end
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.location.size,
                     location.size,left.location.register,right.location,location.register);
                 end;
@@ -385,11 +388,12 @@ implementation
 
                   { load left in register }
                   location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,true);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
                   { emit bit test operation }
                   cg.a_bit_test_reg_reg_reg(current_asmdata.CurrAsmList,
                     left.location.size,right.location.size,location.size,
-                    left.location.register, right.location.register,location.register);
+                    left.location.register,right.location.register,location.register);
 
                   { now zero the result if left > nr_of_bits_in_right_register }
                   hr := cg.getintregister(current_asmdata.CurrAsmList,location.size);
@@ -401,31 +405,36 @@ implementation
                   { if left > tcgsize2size[opsize]*8-1, then result := 0 else result := result of bit test }
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, location.size, hr, location.register);
                 end { of right.location.loc=LOC_CONSTANT }
-               { do search in a normal set which could have >32 elementsm
+               { do search in a normal set which could have >32 elements
                  but also used if the left side contains higher values > 32 }
                else if (left.location.loc=LOC_CONSTANT) then
                 begin
-                  if (left.location.value < 0) or ((left.location.value shr 3) >= right.resultdef.size) then
+                  if (left.location.value < setbase) or (((left.location.value-setbase) shr 3) >= right.resultdef.size) then
                     {should be caught earlier }
                     internalerror(2007020402);
 
-                  cg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,location.size,left.location.value,
+                  cg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,location.size,left.location.value-setbase,
                     right.location,location.register);
                 end
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, true);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   pleftreg := left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }
-                     ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high > tsetdef(right.resultdef).setmax)) or
-                     ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax)) then
+                     ((left.resultdef.typ=orddef) and 
+                      ((torddef(left.resultdef).low < int64(tsetdef(right.resultdef).setbase)) or
+                       (torddef(left.resultdef).high > int64(tsetdef(right.resultdef).setmax)))) or
+                     ((left.resultdef.typ=enumdef) and
+                      ((tenumdef(left.resultdef).min < tsetdef(right.resultdef).setbase) or
+                       (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax))) then
                     begin
                       current_asmdata.getjumplabel(l);
                       current_asmdata.getjumplabel(l2);
                       needslabel := True;
 
-                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.location.size, OC_BE, tsetdef(right.resultdef).setmax, pleftreg, l);
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.location.size, OC_BE, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg, l);
 
                       cg.a_load_const_reg(current_asmdata.CurrAsmList, location.size, 0, location.register);
                       cg.a_jmp_always(current_asmdata.CurrAsmList, l2);
@@ -434,7 +443,7 @@ implementation
                     end;
 
                   cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,
-                    left.location.register,right.location,location.register);
+                    pleftreg,right.location,location.register);
 
                   if needslabel then
                     cg.a_label(current_asmdata.CurrAsmList, l2);

@@ -438,9 +438,10 @@ implementation
              case tt2.typ of
                { don't forget that min can be negativ  PM }
                enumdef :
-                 if tenumdef(tt2).min>=0 then
+                 if (tenumdef(tt2).min>=0) and
+                    (tenumdef(tt2).max<=255) then
                   // !! def:=tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
-                  def:=tsetdef.create(tt2,tenumdef(tt2).max)
+                  def:=tsetdef.create(tt2,tenumdef(tt2).min,tenumdef(tt2).max)
                  else
                   Message(sym_e_ill_type_decl_set);
                orddef :
@@ -449,7 +450,10 @@ implementation
                       (torddef(tt2).ordtype<>uwidechar) and
                       (torddef(tt2).low>=0) then
                      // !! def:=tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
-                     def:=tsetdef.create(tt2,torddef(tt2).high)
+                     if Torddef(tt2).high>int64(high(byte)) then
+                       message(sym_e_ill_type_decl_set)
+                     else
+                       def:=tsetdef.create(tt2,torddef(tt2).low,torddef(tt2).high)
                    else
                      Message(sym_e_ill_type_decl_set);
                  end;

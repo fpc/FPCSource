@@ -65,6 +65,7 @@ interface
     procedure location_force_mem(list:TAsmList;var l:tlocation);
     procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
+    procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
 
     { Retrieve the location of the data pointed to in location l, when the location is
       a register it is expected to contain the address of the data }
@@ -721,6 +722,32 @@ implementation
             location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,l.size);
             l.register:=reg;
+          end;
+      end;
+
+
+    procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
+      var
+        tmpreg: tregister;
+      begin
+        if (setbase<>0) then
+          begin
+            if not(l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              internalerror(2007091502);
+            { subtract the setbase }
+            case l.loc of
+              LOC_CREGISTER:
+                begin
+                  tmpreg := cg.getintregister(list,l.size);
+                  cg.a_op_const_reg_reg(list,OP_SUB,l.size,setbase,l.register,tmpreg);
+                  l.loc:=LOC_REGISTER;
+                  l.register:=tmpreg;
+                end;
+              LOC_REGISTER:
+                begin
+                  cg.a_op_const_reg(list,OP_SUB,l.size,setbase,l.register);
+                end;
+            end;
           end;
       end;
 

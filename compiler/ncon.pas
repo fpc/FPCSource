@@ -148,6 +148,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure adjustforsetbase;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -998,6 +999,37 @@ implementation
         typedef:=tdef(typedefderef.resolve);
       end;
 
+
+    procedure tsetconstnode.adjustforsetbase;
+      type
+         setbytes = array[0..31] of byte;
+         Psetbytes = ^setbytes;
+      var
+        i, diff: longint;
+      begin
+        { Internally, the compiler stores all sets with setbase 0, so we have }
+        { to convert the set to its actual format in case setbase<>0 when     }
+        { writing it out                                                      }
+        if (tsetdef(resultdef).setbase<>0) then
+          begin
+            if (tsetdef(resultdef).setbase and 7)<>0 then
+              internalerror(2007091501);
+            diff:=tsetdef(resultdef).setbase div 8;
+            { This is endian-neutral in the new set format: in both cases, }
+            { the first byte contains the first elements of the set.       }
+            { Since the compiler/base rtl cannot contain packed sets before }
+            { they work for big endian, it's no problem that the code below }
+            { is wrong for the old big endian set format (setbase cannot be }
+            { <>0 with non-packed sets).                                    }
+            for i:=0 to tsetdef(resultdef).size-1 do
+              begin
+                Psetbytes(value_set)^[i]:=Psetbytes(value_set)^[i+diff];
+                Psetbytes(value_set)^[i+diff]:=0;
+              end;
+          end;
+      end;
+
+    
 
     function tsetconstnode.dogetcopy : tnode;
 

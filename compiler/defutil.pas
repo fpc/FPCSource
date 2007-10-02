@@ -451,18 +451,29 @@ implementation
         fromqword, toqword: boolean;
 
       begin
-         if (def_from.typ <> orddef) or
-            (def_to.typ <> orddef) then
+         if (def_from.typ<>def_to.typ) or
+            not(def_from.typ in [orddef,enumdef,setdef]) then
            begin
              is_in_limit := false;
              exit;
            end;
-         fromqword := torddef(def_from).ordtype = u64bit;
-         toqword := torddef(def_to).ordtype = u64bit;
-         is_in_limit:=(toqword and is_signed(def_from)) or
-                      ((not fromqword) and
-                       (torddef(def_from).low>=torddef(def_to).low) and
-                       (torddef(def_from).high<=torddef(def_to).high));
+         case def_from.typ of
+           orddef:
+             begin
+               fromqword := torddef(def_from).ordtype = u64bit;
+               toqword := torddef(def_to).ordtype = u64bit;
+               is_in_limit:=(toqword and is_signed(def_from)) or
+                            ((not fromqword) and
+                             (torddef(def_from).low>=torddef(def_to).low) and
+                             (torddef(def_from).high<=torddef(def_to).high));
+             end;
+           enumdef:
+             is_in_limit:=(tenumdef(def_from).min>=tenumdef(def_to).min) and
+                          (tenumdef(def_from).max<=tenumdef(def_to).max);
+           setdef:
+             is_in_limit:=(tsetdef(def_from).setbase>=tsetdef(def_to).setbase) and
+                          (tsetdef(def_from).setmax<=tsetdef(def_to).setmax);
+         end;
       end;
 
 
