@@ -47,9 +47,6 @@ Var
         if assigned(widestringmanager.ThreadFiniProc) then
           widestringmanager.ThreadFiniProc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-{$ifndef HAS_MEMORYMANAGER}
-        FinalizeHeap;
-{$endif HAS_MEMORYMANAGER}
         CurrentTM.ReleaseThreadVars;
       end;
 
