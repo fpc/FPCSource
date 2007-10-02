@@ -102,7 +102,7 @@ function gas_regname(r: Tregister): string;
 implementation
 
 uses
-  globtype, globals,
+  globtype, globals,aasmbase,
   cutils, verbose, systems;
 
 const
