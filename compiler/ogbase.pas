@@ -879,6 +879,12 @@ implementation
           sec_bss,
           sec_data:
             result:=16;
+          { For idata (at least idata2) it must be 4 bytes, because
+            an entry is always (also in win64) 20 bytes and aligning
+            on 8 bytes will insert 4 bytes between the entries resulting
+            in a corrupt idata section }
+          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7:
+            result:=4;
           else
             result:=sizeof(aint);
         end;
