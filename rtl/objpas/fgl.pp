@@ -129,7 +129,7 @@ type
     procedure PutKeyData(AKey: Pointer; NewData: Pointer);
     procedure PutData(Index: Integer; AData: Pointer);
   public
-    constructor Create(AKeySize: Integer = sizeof(Pointer); 
+    constructor Create(AKeySize: Integer = sizeof(Pointer);
       ADataSize: integer = sizeof(Pointer));
     function Add(AKey, AData: Pointer): Integer;
     function Add(AKey: Pointer): Integer;
@@ -286,7 +286,7 @@ begin
       SetCapacity(NewCount);
     if NewCount > FCount then
       FillByte(InternalItems[FCount]^, (NewCount-FCount) * FItemSize, 0)
-    else if NewCount < FCount then 
+    else if NewCount < FCount then
       Deref(NewCount, FCount-1);
   end;
   FCount := NewCount;
@@ -597,7 +597,7 @@ begin
   while (Result < FCount) and (PT(FList)[Result] <> Item) do
     Inc(Result);
   {$warning TODO: Result := -1; does not compile }
-  if Result = FCount then 
+  if Result = FCount then
   begin
     Result := 0;
     dec(Result);
@@ -671,7 +671,7 @@ var
   I: Integer;
 begin
   if Find(AKey, I) then
-    Result := InternalItems[I]
+    Result := InternalItems[I]+FKeySize
   else
     Result := nil;
 end;
@@ -733,7 +733,7 @@ end;
 function TFPSMap.Find(AKey: Pointer; var Index: Integer): Boolean;
 { Searches for the first item <= Key, returns True if exact match,
   sets index to the index f the found string. }
-var 
+var
   I,L,R,Dir: Integer;
 begin
   Result := false;
@@ -751,7 +751,7 @@ begin
       if Dir = 0 then
       begin
         Result := true;
-        if Duplicates <> dupAccept then 
+        if Duplicates <> dupAccept then
           L := I;
       end;
     end;
