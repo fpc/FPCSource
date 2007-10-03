@@ -1082,6 +1082,7 @@ begin
   else if FTransliterate then
     begin
     DataSet.Translate(@AValue[1],Buf,True);
+    Buf[DataSize-1] := #0;
     SetData(@buf);
     end
   else
@@ -1090,7 +1091,7 @@ begin
     // the whole buffer-length in SetData. (See bug 8477)
     Buf := AValue;
     // If length(AValue) > Datasize the buffer isn't terminated properly
-    Buf[DataSize] := #0;
+    Buf[DataSize-1] := #0;
     SetData(@Buf);
     end;
 end;
