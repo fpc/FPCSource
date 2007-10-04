@@ -115,7 +115,7 @@ interface
     function  TargetFixFileName(const s:TCmdStr):TCmdStr;
     procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
     function  FindFile(const f : TCmdStr;path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;
+{    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  GetShortName(const n:TCmdStr):TCmdStr;
 
@@ -129,6 +129,29 @@ implementation
       Comphook,
       Globals;
 
+{$undef AllFilesMaskIsInRTL}
+
+{$if (FPC_VERSION > 2)}
+  {$define AllFilesMaskIsInRTL}
+{$endif FPC_VERSION}
+
+{$if (FPC_VERSION = 2) and (FPC_RELEASE > 2)}
+  {$define AllFilesMaskIsInRTL}
+{$endif}
+
+{$if (FPC_VERSION = 2) and (FPC_RELEASE = 2) and (FPC_PATCH > 0)}
+  {$define AllFilesMaskIsInRTL}
+{$endif}
+
+{$ifndef AllFilesMaskIsInRTL}
+  {$if defined(go32v2) or defined(watcom)}
+  const
+    AllFilesMask = '*.*';
+  {$else}
+  const
+    AllFilesMask = '*';
+  {$endif not (go32v2 or watcom)}
+{$endif not AllFilesMaskIsInRTL}
     var
       DirCache : TDirectoryCache;
 
@@ -173,7 +196,7 @@ implementation
               entry:=PCachedDirectoryEntry(DirectoryEntries.Find(Lower(AName)));
               if assigned(entry) then
                 Result:=entry^.Attr
-              else 
+              else
                 Result:=0;
             end
           else
@@ -190,7 +213,7 @@ implementation
       begin
         FreeDirectoryEntries;
         DirectoryEntries.Clear;
-        if findfirst(IncludeTrailingPathDelimiter(Name)+'*',faAnyFile or faDirectory,dir) = 0 then
+        if findfirst(IncludeTrailingPathDelimiter(Name)+AllFilesMask,faAnyFile or faDirectory,dir) = 0 then
           begin
             repeat
               if ((dir.attr and faDirectory)<>faDirectory) or
@@ -241,7 +264,7 @@ implementation
                 Attr:=entry^.Attr;
                 FoundName:=entry^.RealName
               end
-            else 
+            else
               Attr:=0;
             if Attr<>0 then
               Result:=((Attr and faDirectory)=0)
@@ -595,7 +618,7 @@ implementation
           s[i]:=source_info.DirSep;
         { Fix ending / }
         if (length(s)>0) and (s[length(s)]<>source_info.DirSep) and
-           (s[length(s)]<>':') then
+           (s[length(s)]<>DriveSeparator) then
          s:=s+source_info.DirSep;
         { Remove ./ }
         if (not allowdot) and (s='.'+source_info.DirSep) then
@@ -913,8 +936,6 @@ implementation
             while (j>0) and (s[j]<>';') do
              dec(j);
             currPath:= TrimSpace(Copy(s,j+1,length(s)-j));
-            DePascalQuote(currPath);
-            currPath:=FixPath(currPath,false);
             if j=0 then
              s:=''
             else
@@ -926,12 +947,12 @@ implementation
             if j=0 then
              j:=255;
             currPath:= TrimSpace(Copy(s,1,j-1));
-            DePascalQuote(currPath);
-            currPath:=SrcPath+FixPath(currPath,false);
             System.Delete(s,1,j);
           end;
 
          { fix pathname }
+         DePascalQuote(currPath);
+         currPath:=SrcPath+FixPath(currPath,false);
          if currPath='' then
            currPath:= CurDirRelPath(source_info)
          else
@@ -954,7 +975,7 @@ implementation
             suffix:=Copy(currpath,staridx+1,length(currpath));
             subdirfound:=false;
 {$ifdef usedircache}
-            if DirCache.FindFirst(Prefix+'*',dir) then
+            if DirCache.FindFirst(Prefix+AllFilesMask,dir) then
               begin
                 repeat
                   if (dir.attr and faDirectory)<>0 then
@@ -972,7 +993,7 @@ implementation
               end;
             DirCache.FindClose(dir);
 {$else usedircache}
-            if findfirst(prefix+'*',faDirectory,dir) = 0 then
+            if findfirst(prefix+AllFilesMask,faDirectory,dir) = 0 then
               begin
                 repeat
                   if (dir.name<>'.') and
@@ -1070,16 +1091,15 @@ implementation
         singlepathstring : TCmdStr;
         i : longint;
      begin
-{$ifdef Unix}
-       for i:=1 to length(path) do
-        if path[i]=':' then
-         path[i]:=';';
-{$endif Unix}
+       if PathSeparator <> ';' then
+        for i:=1 to length(path) do
+         if path[i]=PathSeparator then
+          path[i]:=';';
        FindFile:=false;
        repeat
           i:=pos(';',path);
           if i=0 then
-           i:=256;
+           i:=Succ (Length (Path));
           singlepathstring:=FixPath(copy(path,1,i-1),false);
           delete(path,1,i);
           result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
@@ -1089,32 +1109,22 @@ implementation
        FoundFile:=f;
      end;
 
-
+{
    function FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;
       Var
         singlepathstring : TCmdStr;
         startpc,pc : pchar;
-        sepch : char;
      begin
        FindFilePchar:=false;
        if Assigned (Path) then
         begin
-{$ifdef Unix}
-          sepch:=':';
-{$else}
-{$ifdef macos}
-          sepch:=',';
-{$else}
-          sepch:=';';
-{$endif macos}
-{$endif Unix}
           pc:=path;
           repeat
              startpc:=pc;
-             while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
+             while (pc^<>PathSeparator) and (pc^<>';') and (pc^<>#0) do
               inc(pc);
              SetLength(singlepathstring, pc-startpc);
-             move(startpc^,singlepathstring[1],pc-startpc);            
+             move(startpc^,singlepathstring[1],pc-startpc);
              singlepathstring:=FixPath(ExpandFileName(singlepathstring),false);
              result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
              if result then
@@ -1126,23 +1136,22 @@ implementation
         end;
        foundfile:=f;
      end;
-
+}
 
    function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
      var
-       p : pchar;
+       Path : TCmdStr;
        found : boolean;
      begin
        found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),'.;'+exepath,allowcache,foundfile);
        if not found then
         begin
 {$ifdef macos}
-          p:=GetEnvPchar('Commands');
+          Path:=GetEnvironmentVariable('Commands');
 {$else}
-          p:=GetEnvPchar('PATH');
+          Path:=GetEnvironmentVariable('PATH');
 {$endif}
-          found:=FindFilePChar(FixFileName(ChangeFileExt(bin,source_info.exeext)),p,allowcache,foundfile);
-          FreeEnvPChar(p);
+          found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),Path,allowcache,foundfile);
         end;
        FindExe:=found;
      end;
