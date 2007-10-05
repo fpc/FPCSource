@@ -1280,7 +1280,7 @@ begin
     PushOutputNode(Parent);
     try
       if not ConvertShort(AContext,TDomElement(DocNode.ShortDescr)) then
-        WriteLn(SErrInvalidShortDescr);
+        Warning(AContext, SErrInvalidShortDescr)
     finally
       PopOutputNode;
     end;
