@@ -261,10 +261,11 @@ const
       opt_level3optimizations = 'Level ~3~ optimizations';
       { optimization processor target }
       opt_i386486 = 'i~3~86/i486';
-      opt_pentium = 'Pentium (tm)';
+      opt_pentium = 'P~e~ntium (tm)';
       opt_pentiummmx = 'PentiumMM~X~ (tm)';
       opt_pentiumpro = '~P~entium2/PentiumM/AMD';
       opt_pentiumiv = 'Pentium~4~';
+      opt_pentiumm = 'Pentium~M~';
       opt_m68000 = 'm~6~8000';
       opt_m68020 = 'm680~2~0';
       { Assembler options }
@@ -1249,6 +1250,8 @@ begin
            st:=opt_pentiumpro;
          if st='PENTIUM4' then
            st:=opt_pentiumiv;
+         if st='PENTIUMM' then
+           st:=opt_pentiumM;
 {$endif not I386}
 {$ifdef m68k}
          if st='68000' then
@@ -1277,6 +1280,8 @@ begin
            st:=opt_pentiumpro;
          if st='PENTIUM4' then
            st:=opt_pentiumiv;
+         if st='PENTIUMM' then
+           st:=opt_pentiumM;
 {$endif not I386}
 {$ifdef m68k}
          if st='68000' then
@@ -1284,6 +1289,10 @@ begin
          if st='68020' then
            st:=opt_m68020;
 {$endif m68k}
+         { we use the string twice so kill duplicate highlights }
+         while pos('~',st)<>0 do
+           delete(st,pos('~',st),1);
+
          if st<>'' then
            AddSelectItem(st,'p'+cputypestr[cpu],idNone);
        end;
