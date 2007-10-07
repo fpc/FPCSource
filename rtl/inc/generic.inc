@@ -23,22 +23,81 @@ type
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
-type
-  bytearray    = array [0..high(sizeint)-1] of byte;
 var
-  i:longint;
+  aligncount : sizeint;
+  pdest,psrc,pend : pbyte;
 begin
-  if count <= 0 then exit;
-  Dec(count);
-  if @source<@dest then
+  if (@dest=@source) or (count<=0) then
+    exit;
+  if @dest<@source then
     begin
-      for i:=count downto 0 do
-        bytearray(dest)[i]:=bytearray(source)[i];
+      { Forward Move }
+      psrc:=@source;
+      pdest:=@dest;
+      if Count>4*sizeof(ptruint)-1 then
+        begin
+          { Align on native pointer size }
+          aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
+          dec(count,aligncount);
+          pend:=psrc+aligncount;
+          while psrc<pend do
+            begin
+              pdest^:=psrc^;
+              inc(pdest);
+              inc(psrc);
+            end;
+          { use sizeuint typecast to force shr optimization }
+          pptruint(pend):=pptruint(psrc)+(sizeuint(count) div sizeof(ptruint));
+          while psrc<pend do
+            begin
+              pptruint(pdest)^:=pptruint(psrc)^;
+              inc(pptruint(pdest));
+              inc(pptruint(psrc));
+            end;
+          count:=count and (sizeof(PtrUInt)-1);
+        end;
+      pend:=psrc+count;
+      while psrc<pend do
+        begin
+          pdest^:=psrc^;
+          inc(pdest);
+          inc(psrc);
+        end;
     end
   else
     begin
-      for i:=0 to count do
-        bytearray(dest)[i]:=bytearray(source)[i];
+      { Backward Move }
+      psrc:=@source+count;
+      pdest:=@dest+count;
+      if Count>4*sizeof(ptruint)-1 then
+        begin
+          { Align on native pointer size }
+          aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
+          dec(count,aligncount);
+          pend:=psrc-aligncount;
+          while psrc>pend do
+            begin
+              dec(pdest);
+              dec(psrc);
+              pdest^:=psrc^;
+            end;
+          { use sizeuint typecast to force shr optimization }
+          pptruint(pend):=pptruint(psrc)-(sizeuint(count) div sizeof(ptruint));
+          while psrc>pend do
+            begin
+              dec(pptruint(pdest));
+              dec(pptruint(psrc));
+              pptruint(pdest)^:=pptruint(psrc)^;
+            end;
+          count:=count and (sizeof(PtrUInt)-1);
+        end;
+      pend:=psrc-count;
+      while psrc>pend do
+        begin
+          dec(pdest);
+          dec(psrc);
+          pdest^:=psrc^;
+        end;
     end;
 end;
 {$endif not FPC_SYSTEM_HAS_MOVE}
@@ -46,244 +105,397 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);
-type
-  longintarray = array [0..high(sizeint) div 4-1] of longint;
-  bytearray    = array [0..high(sizeint)-1] of byte;
 var
-  i,v : longint;
+  aligncount : sizeint;
+  pdest,pend : pbyte;
+  v : ptruint;
 begin
-  if count <= 0 then exit;
-  v := 0;
-  { aligned? }
-  if (PtrUInt(@x) mod sizeof(PtrUInt))<>0 then
+  if count <= 0 then
+    exit;
+  pdest:=@x;
+  if Count>4*sizeof(ptruint)-1 then
     begin
-      for i:=0 to count-1 do
-        bytearray(x)[i]:=value;
-    end
-  else
+      v:=(value shl 8) or value;
+      v:=(v shl 16) or v;
+      if sizeof(ptruint)=8 then
+        v:=(v shl 32) or v;
+      { Align on native pointer size }
+      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
+      dec(count,aligncount);
+      pend:=pdest+aligncount;
+      while pdest<pend do
+        begin
+          pdest^:=value;
+          inc(pdest);
+        end;
+      { use sizeuint typecast to force shr optimization }
+      pptruint(pend):=pptruint(pdest)+(sizeuint(count) div sizeof(ptruint));
+      while pdest<pend do
+        begin
+          pptruint(pdest)^:=v;
+          inc(pptruint(pdest));
+        end;
+      count:=count and (sizeof(ptruint)-1);
+    end;
+  pend:=pdest+count;
+  while pdest<pend do
     begin
-      v:=(value shl 8) or (value and $FF);
-      v:=(v shl 16) or (v and $ffff);
-      for i:=0 to (count div 4)-1 do
-        longintarray(x)[i]:=v;
-      for i:=(count div 4)*4 to count-1 do
-        bytearray(x)[i]:=value;
+      pdest^:=value;
+      inc(pdest);
     end;
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
-{$ifndef INTERNALMOVEFILLCHAR}
-{$ifndef FPC_SYSTEM_HAS_FILLBYTE}
-procedure FillByte (var x;count : SizeInt;value : byte );
-begin
-  FillChar (X,Count,CHR(VALUE));
-end;
-{$endif not FPC_SYSTEM_HAS_FILLBYTE}
-{$endif INTERNALMOVEFILLCHAR}
-
-
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : SizeInt;value : word);
-type
-  longintarray = array [0..high(sizeint) div 4-1] of longint;
-  wordarray    = array [0..high(sizeint) div 2-1] of word;
 var
-  i,v : longint;
+  aligncount : sizeint;
+  pdest,pend : pword;
+  v : ptruint;
 begin
-  if Count <= 0 then exit;
-  { aligned? }
-  if (PtrUInt(@x) mod sizeof(PtrUInt))<>0 then
+  if count <= 0 then
+    exit;
+  pdest:=@x;
+  if Count>4*sizeof(ptruint)-1 then
     begin
-      for i:=0 to count-1 do
-        wordarray(x)[i]:=value;
-    end
-  else
+      v:=(value shl 16) or value;
+      if sizeof(ptruint)=8 then
+        v:=(v shl 32) or v;
+      { Align on native pointer size }
+      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 1;
+      dec(count,aligncount);
+      pend:=pdest+aligncount;
+      while pdest<pend do
+        begin
+          pdest^:=value;
+          inc(pdest);
+        end;
+      { use sizeuint typecast to force shr optimization }
+      pptruint(pend):=pptruint(pdest)+((sizeuint(count)*2) div sizeof(ptruint));
+      while pdest<pend do
+        begin
+          pptruint(pdest)^:=v;
+          inc(pptruint(pdest));
+        end;
+      count:=((count*2) and (sizeof(ptruint)-1)) shr 1;
+    end;
+  pend:=pdest+count;
+  while pdest<pend do
     begin
-      v:=value*$10000+value;
-      for i:=0 to (count div 2) -1 do
-        longintarray(x)[i]:=v;
-      for i:=(count div 2)*2 to count-1 do
-        wordarray(x)[i]:=value;
+      pdest^:=value;
+      inc(pdest);
     end;
 end;
 {$endif not FPC_SYSTEM_HAS_FILLWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
-procedure FillDWord(var x;count : SizeInt;value : DWord);
-type
-  longintarray = array [0..high(sizeint) div 4-1] of longint;
+procedure filldword(var x;count : SizeInt;value : dword);
+var
+  aligncount : sizeint;
+  pdest,pend : pdword;
+  v : ptruint;
 begin
-  if count <= 0 then exit;
-  while Count<>0 do
-   begin
-     { range checking must be disabled here }
-     longintarray(x)[count-1]:=longint(value);
-     Dec(count);
-   end;
+  if count <= 0 then
+    exit;
+  pdest:=@x;
+  if Count>4*sizeof(ptruint)-1 then
+    begin
+      v:=value;
+      if sizeof(ptruint)=8 then
+        v:=(v shl 32) or v;
+      { Align on native pointer size }
+      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 2;
+      dec(count,aligncount);
+      pend:=pdest+aligncount;
+      while pdest<pend do
+        begin
+          pdest^:=value;
+          inc(pdest);
+        end;
+      { use sizeuint typecast to force shr optimization }
+      pptruint(pend):=pptruint(pdest)+((sizeuint(count)*4) div sizeof(ptruint));
+      while pdest<pend do
+        begin
+          pptruint(pdest)^:=v;
+          inc(pptruint(pdest));
+        end;
+      count:=((count*4) and (sizeof(ptruint)-1)) shr 2;
+    end;
+  pend:=pdest+count;
+  while pdest<pend do
+    begin
+      pdest^:=value;
+      inc(pdest);
+    end;
 end;
 {$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
-{$ifndef FPC_SYSTEM_HAS_INDEXCHAR}
-function IndexChar(Const buf;len:SizeInt;b:char):SizeInt;
-begin
-  IndexChar:=IndexByte(Buf,Len,byte(B));
-end;
-{$endif not FPC_SYSTEM_HAS_INDEXCHAR}
-
-
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt;
-type
-  bytearray    = array [0..high(sizeint)-1] of byte;
 var
-  I : longint;
+  psrc,pend : pbyte;
 begin
-  I:=0;
+  psrc:=@buf;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) then
-    len := high(longint);
-  while (I<Len) and (bytearray(buf)[I]<>b) do
-   inc(I);
-  if (i=Len) then
-   i:=-1;                      {Can't use 0, since it is a possible value}
-  IndexByte:=I;
+    pend:=pbyte(high(PtrUInt)-sizeof(byte))
+  else
+    pend:=psrc+len;
+  while (psrc<pend) do
+    begin
+      if psrc^=b then
+        begin
+          result:=psrc-pbyte(@buf);
+          exit;
+        end;
+      inc(psrc);
+    end;
+  result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(Const buf;len:SizeInt;b:word):SizeInt;
-type
-  wordarray    = array [0..high(sizeint) div 2-1] of word;
 var
-  I : longint;
+  psrc,pend : pword;
 begin
-  I:=0;
+  psrc:=@buf;
+  { simulate assembler implementations behaviour, which is expected }
+  { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) then
-    len := high(longint);
-  while (I<Len) and (wordarray(buf)[I]<>b) do
-   inc(I);
-  if (i=Len) then
-   i:=-1;           {Can't use 0, since it is a possible value for index}
-  Indexword:=I;
+    pend:=pword(high(PtrUInt)-sizeof(word))
+  else
+    pend:=psrc+len;
+  while psrc<pend do
+    begin
+      if psrc^=b then
+        begin
+          result:=psrc-pword(@buf);
+          exit;
+        end;
+      inc(psrc);
+    end;
+  result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt;
-type
-  dwordarray = array [0..high(sizeint) div 4-1] of dword;
 var
-  I : longint;
+  psrc,pend : pdword;
 begin
-  I:=0;
+  psrc:=@buf;
+  { simulate assembler implementations behaviour, which is expected }
+  { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) then
-    len := high(longint);
-  while (I<Len) and (dwordarray(buf)[I]<>b) do
-    inc(I);
-  if (i=Len) then
-   i:=-1;           {Can't use 0, since it is a possible value for index}
-  IndexDWord:=I;
+    pend:=pdword(high(PtrUInt)-sizeof(dword))
+  else
+    pend:=psrc+len;
+  while psrc<pend do
+    begin
+      if psrc^=b then
+        begin
+          result:=psrc-pdword(@buf);
+          exit;
+        end;
+      inc(psrc);
+    end;
+  result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXDWORD}
 
 
-{$ifndef FPC_SYSTEM_HAS_COMPARECHAR}
-function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;
-begin
-  CompareChar:=CompareByte(buf1,buf2,len);
-end;
-{$endif not FPC_SYSTEM_HAS_COMPARECHAR}
-
-
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt;
-type
-  bytearray = array [0..high(sizeint)-1] of byte;
 var
-  I : longint;
+  aligncount : sizeint;
+  psrc,pdest,pend : pbyte;
+  b : ptrint;
 begin
-  I:=0;
-  if (Len<>0) and (@Buf1<>@Buf2) then
-   begin
-     while (bytearray(Buf1)[I]=bytearray(Buf2)[I]) and (I<Len) do
-      inc(I);
-     if I=Len then  {No difference}
-      I:=0
-     else
-      begin
-        I:=longint(bytearray(Buf1)[I])-longint(bytearray(Buf2)[I]);
-        if I>0 then
-         I:=1
-        else
-         if I<0 then
-          I:=-1;
-      end;
-   end;
-  CompareByte:=I;
+  b:=0;
+  psrc:=@buf1;
+  pdest:=@buf2;
+  if len>4*sizeof(ptruint)-1 then
+    begin
+      { Align on native pointer size }
+      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
+      dec(len,aligncount);
+      pend:=psrc+aligncount;
+      while psrc<pend do
+        begin
+          b:=(ptrint(psrc^)-ptrint(pdest^));
+          if b<>0 then
+            begin
+              if b<0 then
+                exit(-1)
+              else
+                exit(1);
+            end;
+          inc(pdest);
+          inc(psrc);
+        end;
+      { use sizeuint typecast to force shr optimization }
+      pptruint(pend):=pptruint(psrc)+(sizeuint(len) div sizeof(ptruint));
+      len:=len and (sizeof(PtrUInt)-1) shr 1;
+      while psrc<pend do
+        begin
+          b:=(pptrint(psrc)^-pptrint(pdest)^);
+          if b<>0 then
+            begin
+              len:=sizeof(ptruint);
+              break;
+            end;
+          inc(pptruint(pdest));
+          inc(pptruint(psrc));
+        end;
+    end;
+  pend:=psrc+len;
+  while psrc<pend do
+    begin
+      b:=(ptrint(psrc^)-ptrint(pdest^));
+      if b<>0 then
+        begin
+          if b<0 then
+            exit(-1)
+          else
+            exit(1);
+        end;
+      inc(pdest);
+      inc(psrc);
+    end;
+  result:=0;
 end;
 {$endif not FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt;
-type
-  wordarray = array [0..high(sizeint) div 2-1] of word;
 var
-  I : longint;
+  aligncount : sizeint;
+  psrc,pdest,pend : pword;
+  b : ptrint;
 begin
-  I:=0;
-  if (Len<>0) and (@Buf1<>@Buf2) then
-   begin
-     while (wordarray(Buf1)[I]=wordarray(Buf2)[I]) and (I<Len) do
-      inc(I);
-     if I=Len then  {No difference}
-      I:=0
-     else
-      begin
-        I:=longint(wordarray(Buf1)[I])-longint(wordarray(Buf2)[I]);
-        if I>0 then
-         I:=1
-        else
-         if I<0 then
-          I:=-1;
-      end;
-   end;
-  CompareWord:=I;
+  b:=0;
+  psrc:=@buf1;
+  pdest:=@buf2;
+  if len>4*sizeof(ptruint)-1 then
+    begin
+      { Align on native pointer size }
+      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 1;
+      dec(len,aligncount);
+      pend:=psrc+aligncount;
+      while psrc<pend do
+        begin
+          b:=(ptrint(psrc^)-ptrint(pdest^));
+          if b<>0 then
+            begin
+              if b<0 then
+                exit(-1)
+              else
+                exit(1);
+            end;
+          inc(pdest);
+          inc(psrc);
+        end;
+      { use sizeuint typecast to force shr optimization }
+      pptruint(pend):=pptruint(psrc)+(sizeuint(len)*2 div sizeof(ptruint));
+      len:=len and (sizeof(PtrUInt)-1) shr 1;
+      while psrc<pend do
+        begin
+          b:=(pptrint(psrc)^-pptrint(pdest)^);
+          if b<>0 then
+            begin
+              len:=sizeof(ptruint) shr 1;
+              break;
+            end;
+          inc(pptruint(pdest));
+          inc(pptruint(psrc));
+        end;
+    end;
+  pend:=psrc+len;
+  while psrc<pend do
+    begin
+      b:=(ptrint(psrc^)-ptrint(pdest^));
+      if b<>0 then
+        begin
+          if b<0 then
+            exit(-1)
+          else
+            exit(1);
+        end;
+      inc(pdest);
+      inc(psrc);
+    end;
+  result:=0;
 end;
 {$endif not FPC_SYSTEM_HAS_COMPAREWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt;
-type
-  cardinalarray = array [0..high(sizeint) div 4-1] of cardinal;
 var
-  I : int64;
+  aligncount : sizeint;
+  psrc,pdest,pend : pdword;
+  b : ptrint;
 begin
-  I:=0;
-  if (Len<>0) and (@Buf1<>@Buf2) then
-   begin
-     while (cardinalarray(Buf1)[I]=cardinalarray(Buf2)[I]) and (I<Len) do
-      inc(I);
-     if I=Len then  {No difference}
-      I:=0
-     else
-      begin
-        I:=int64(cardinalarray(Buf1)[I])-int64(cardinalarray(Buf2)[I]);
-        if I>0 then
-         I:=1
-        else
-         if I<0 then
-          I:=-1;
-      end;
-   end;
-  CompareDWord:=I;
+  b:=0;
+  psrc:=@buf1;
+  pdest:=@buf2;
+  if len>4*sizeof(ptruint)-1 then
+    begin
+      { Align on native pointer size }
+      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 2;
+      dec(len,aligncount);
+      pend:=psrc+aligncount;
+      while psrc<pend do
+        begin
+          b:=(ptrint(psrc^)-ptrint(pdest^));
+          if b<>0 then
+            begin
+              if b<0 then
+                exit(-1)
+              else
+                exit(1);
+            end;
+          inc(pdest);
+          inc(psrc);
+        end;
+      { use sizeuint typecast to force shr optimization }
+      pptruint(pend):=pptruint(psrc)+(sizeuint(len)*4 div sizeof(ptruint));
+      len:=len and (sizeof(PtrUInt)-1) shr 2;
+      while psrc<pend do
+        begin
+          b:=(pptrint(psrc)^-pptrint(pdest)^);
+          if b<>0 then
+            begin
+              len:=sizeof(ptruint) shr 2;
+              break;
+            end;
+          inc(pptruint(pdest));
+          inc(pptruint(psrc));
+        end;
+    end;
+  pend:=psrc+len;
+  while psrc<pend do
+    begin
+      b:=(ptrint(psrc^)-ptrint(pdest^));
+      if b<>0 then
+        begin
+          if b<0 then
+            exit(-1)
+          else
+            exit(1);
+        end;
+      inc(pdest);
+      inc(psrc);
+    end;
+  result:=0;
 end;
 {$endif ndef FPC_SYSTEM_HAS_COMPAREDWORD}
 
@@ -291,9 +503,10 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MOVECHAR0}
 procedure MoveChar0(Const buf1;var buf2;len:SizeInt);
 var
-  I : longint;
+  I : SizeInt;
 begin
-  if Len = 0 then exit;
+  if Len = 0 then
+    exit;
   I:=IndexByte(Buf1,Len,0);
   if I<>-1 then
     Move(Buf1,Buf2,I)
@@ -306,50 +519,54 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 function IndexChar0(Const buf;len:SizeInt;b:Char):SizeInt;
 var
-  I : longint;
+  psrc,pend : pbyte;
 begin
-  if Len<>0 then
-   begin
-     I:=IndexByte(Buf,Len,0);
-     If (I=-1) then
-       I:=Len;
-     IndexChar0:=IndexByte(Buf,I,byte(b));
-   end
+  psrc:=@buf;
+  { simulate assembler implementations behaviour, which is expected }
+  { fpc_pchar_to_ansistr in astrings.inc                            }
+  if (len < 0) then
+    pend:=pbyte(high(PtrUInt)-sizeof(byte))
   else
-   IndexChar0:=0;
+    pend:=psrc+len;
+  while (psrc<pend) and (psrc^<>0) do
+    begin
+      if (psrc^=byte(b)) then
+        begin
+          result:=psrc-pbyte(@buf);
+          exit;
+        end;
+      inc(psrc);
+    end;
+  result:=-1;
 end;
 {$endif ndef FPC_SYSTEM_HAS_INDEXCHAR0}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 function CompareChar0(Const buf1,buf2;len:SizeInt):SizeInt;
-type
-  bytearray = array [0..high(sizeint)-1] of byte;
 var
-  i : longint;
+  aligncount : sizeint;
+  psrc,pdest,pend : pbyte;
+  b : ptrint;
 begin
-  I:=0;
-  if (Len<>0) and (@Buf1<>@Buf2) then
-   begin
-     while (I<Len) And
-           ((Pbyte(@Buf1)[i]<>0) and (PByte(@buf2)[i]<>0)) and
-           (pbyte(@Buf1)[I]=pbyte(@Buf2)[I])  do
-      inc(I);
-     if (I=Len) or
-        (PByte(@Buf1)[i]=0) or
-        (PByte(@buf2)[I]=0) then  {No difference or 0 reached }
-      I:=0
-     else
-      begin
-        I:=longint(bytearray(Buf1)[I])-longint(bytearray(Buf2)[I]);
-        if I>0 then
-         I:=1
-        else
-         if I<0 then
-          I:=-1;
-      end;
-   end;
-  CompareChar0:=I;
+  b:=0;
+  psrc:=@buf1;
+  pdest:=@buf2;
+  pend:=psrc+len;
+  while psrc<pend do
+    begin
+      b:=(ptrint(psrc^)-ptrint(pdest^));
+      if (b<>0) or (psrc^=0) or (pdest^=0) then
+        begin
+          if b<0 then
+            exit(-1)
+          else
+            exit(1);
+        end;
+      inc(pdest);
+      inc(psrc);
+    end;
+  result:=0;
 end;
 {$endif not FPC_SYSTEM_HAS_COMPARECHAR0}
 

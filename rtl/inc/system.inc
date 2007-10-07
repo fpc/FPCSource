@@ -141,17 +141,36 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
 
-{$ifndef INTERNALMOVEFILLCHAR}
+
 procedure fillchar(var x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;
 
+
 procedure fillchar(var x;count : SizeInt;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;
-{$endif INTERNALMOVEFILLCHAR}
+
+
+procedure FillByte (var x;count : SizeInt;value : byte ); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  FillChar (X,Count,VALUE);
+end;
+
+
+function IndexChar(Const buf;len:SizeInt;b:char):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  IndexChar:=IndexByte(Buf,Len,byte(B));
+end;
+
+
+function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  CompareChar:=CompareByte(buf1,buf2,len);
+end;
+
 
 { Include generic pascal only routines which are not defined in the processor
   specific include file }

@@ -46,23 +46,12 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
-{$ifndef FPC_SYSTEM_HAS_FILLBYTE}
-{$define FPC_SYSTEM_HAS_FILLBYTE}
-procedure FillByte (var x;count : sizeint;value : byte );{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  if count <= 0 then
-    exit;
-  FillChar (X,Count,value);
-end;
-{$endif not FPC_SYSTEM_HAS_FILLBYTE}
-
-
-{$ifndef FPC_SYSTEM_HAS_INDEXCHAR}
-{$define FPC_SYSTEM_HAS_INDEXCHAR}
+{$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
+{$define FPC_SYSTEM_HAS_INDEXBYTE}
 
 function memchr(const buf; b: sizeuint; len: cardinal): pointer; cdecl; external 'c';
 
-function IndexChar(Const buf;len:sizeint;b:char):sizeint;
+function IndexByte(Const buf;len:sizeint;b:byte):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 var
   res: pointer;
 begin
@@ -73,27 +62,18 @@ begin
   { unsigned)                                                       }
   res := memchr(buf,longint(b),cardinal(len));
   if (res <> nil) then
-    IndexChar := SizeInt(res-@buf)
+    IndexByte := SizeInt(res-@buf)
   else
-    IndexChar := -1;
-end;
-{$endif not FPC_SYSTEM_HAS_INDEXCHAR}
-
-
-{$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
-{$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(Const buf;len:sizeint;b:byte):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  IndexByte:=IndexChar(buf,len,char(b));
+    IndexByte := -1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXBYTE}
 
 
-{$ifndef FPC_SYSTEM_HAS_COMPARECHAR}
-{$define FPC_SYSTEM_HAS_COMPARECHAR}
+{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
+{$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function memcmp_comparechar(Const buf1,buf2;len:sizeuint):longint; cdecl; external 'c' name 'memcmp';
 
-function CompareChar(Const buf1,buf2;len:sizeint):sizeint;
+function CompareByte(Const buf1,buf2;len:sizeint):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 var
   res: longint;
 begin
@@ -101,20 +81,11 @@ begin
     exit(0);
   res := memcmp_comparechar(buf1,buf2,len);
   if res < 0 then
-    CompareChar := -1
+    CompareByte := -1
   else if res > 0 then
-    CompareChar := 1
+    CompareByte := 1
   else
-    CompareChar := 0;
-end;
-{$endif not FPC_SYSTEM_HAS_COMPARECHAR}
-
-
-{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
-{$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(Const buf1,buf2;len:sizeint):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  CompareByte := CompareChar(buf1,buf2,len);
+    CompareByte := 0;
 end;
 {$endif not FPC_SYSTEM_HAS_COMPAREBYTE}
 
