@@ -1673,7 +1673,8 @@ begin
     Found := False;
     for strcount := 0 to sc do
       begin
-      if (OldPattern[strcount][1]=pc^) and
+      if (length(OldPattern[strcount])>0) and
+         (OldPattern[strcount][1]=pc^) and
          (Length(OldPattern[strcount]) <= (lastpc-pc)) and
          (CompareByte(OldPattern[strcount][1],pc^,Length(OldPattern[strcount]))=0) then
         begin
