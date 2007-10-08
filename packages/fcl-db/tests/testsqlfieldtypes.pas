@@ -26,6 +26,9 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestStringsReplace;
+    procedure TestCircularParams;
+    procedure Test11Params;
     procedure TestBug9744;
     procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;
@@ -865,6 +868,75 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestStringsReplace;
+begin
+  AssertEquals('dit is een string',StringsReplace('dit was een string',['was'],['is'],[]));
+  AssertEquals('dit is een string was een string',StringsReplace('dit was een string was een string',['was'],['is'],[]));
+  AssertEquals('dit is een string is een string',StringsReplace('dit was een string was een string',['was'],['is'],[rfReplaceAll]));
+
+  AssertEquals('dit is een char is een char',StringsReplace('dit was een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
+  AssertEquals('dit is een string was een string',StringsReplace('dit was een string was een string',['string','was'],['char','is'],[]));
+
+  AssertEquals('dit is een char is een strin',StringsReplace('dit was een string was een strin',['string','was'],['char','is'],[rfReplaceAll]));
+
+  AssertEquals('dit Was een char is een char',StringsReplace('dit Was een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
+  AssertEquals('dit wAs een char is een char',StringsReplace('dit wAs een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
+  AssertEquals('dit is een char is een char',StringsReplace('dit Was een sTring was een string',['was','string'],['is','char'],[rfReplaceAll,rfIgnoreCase]));
+  AssertEquals('dit is een char is een char',StringsReplace('dit wAs een STRING was een string',['was','string'],['is','char'],[rfReplaceAll,rfIgnoreCase]));
+
+  AssertEquals('dit was een si was een sa',StringsReplace('dit was een string was een straat',['straat','string'],['sa','si'],[rfReplaceAll]));
+  AssertEquals('dit was een si was een sa',StringsReplace('dit was een string was een straat',['string','straat'],['si','sa'],[rfReplaceAll]));
+
+  AssertEquals('dit was een sing was een saat',StringsReplace('dit was een string was een straat',['str','string'],['s','si'],[rfReplaceAll]));
+  AssertEquals('dit was een si was een saat',StringsReplace('dit was een string was een straat',['string','str'],['si','s'],[rfReplaceAll]));
+
+  AssertEquals('dit was een string was een string',StringsReplace('dit was een string was een string',[''],['is'],[rfReplaceAll]));
+  AssertEquals('dit  een string  een string',StringsReplace('dit was een string was een string',['was'],[''],[rfReplaceAll]));
+end;
+
+procedure TTestFieldTypes.TestCircularParams;
+begin
+  with TSQLDBConnector(dbconnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (id1 int, id2 int,vchar varchar(10))');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+    Query.sql.Text := 'insert into FPDEV2 values(:id1,:id2,:vchar)';
+    query.params[0].asinteger := 1;
+    query.params[1].asinteger := 1;
+    query.params[2].asstring := '$1 :id2 $';
+    query.ExecSQL;
+    query.sql.text := 'select * from FPDEV2';
+    query.open;
+    AssertEquals(1,query.fields[0].asinteger);
+    AssertEquals(1,query.fields[1].asinteger);
+    AssertEquals('$1 :id2 $',query.fields[2].AsString);
+    query.close;
+    end;
+end;
+
+procedure TTestFieldTypes.Test11Params;
+var i : integer;
+begin
+  with TSQLDBConnector(dbconnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (id1 int, id2 int, id3 int, id4 int,id5 int,id6 int,id7 int,id8 int, id9 int, id10 int, id11 int)');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+    Query.sql.Text := 'insert into FPDEV2 values(:id1,:id2,:id3,:id4,:id5,:id6,:id7,:id8,:id9,:id10,:id11)';
+    for i := 0 to 10 do
+      query.params[i].asinteger := 1;
+    query.ExecSQL;
+    query.sql.text := 'select * from FPDEV2';
+    query.open;
+    for i := 0 to 10 do
+      AssertEquals(1,query.fields[i].asinteger);
+    query.close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestBug9744;

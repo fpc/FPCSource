@@ -532,6 +532,7 @@ procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;
 var ar  : array of pchar;
     i   : integer;
     s   : string;
+    ParamNames,ParamValues : array of string;
 
 begin
   with cursor as TPQCursor do
@@ -565,10 +566,19 @@ begin
       begin
       tr := TPQTrans(aTransaction.Handle);
 
-      s := statement;
-      //Should be altered, just like in TSQLQuery.ApplyRecUpdate
-      if assigned(AParams) then for i := 0 to AParams.count-1 do
-        s := stringreplace(s,':'+AParams[i].Name,AParams[i].asstring,[rfReplaceAll,rfIgnoreCase]);
+      if Assigned(AParams) and (AParams.count > 0) then
+        begin
+        setlength(ParamNames,AParams.Count);
+        setlength(ParamValues,AParams.Count);
+        for i := 0 to AParams.count -1 do
+          begin
+          ParamNames[AParams.count-i-1] := '$'+inttostr(AParams[i].index+1);
+          ParamValues[AParams.count-i-1] := GetAsSQLText(AParams[i]);
+          end;
+        s := stringsreplace(statement,ParamNames,ParamValues,[rfReplaceAll]);
+        end
+      else
+        s := Statement;
       res := pqexec(tr.PGConn,pchar(s));
       end;
     if not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
