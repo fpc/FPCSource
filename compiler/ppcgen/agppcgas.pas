@@ -1,8 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    This unit implements common helper routines for the asm writers for
-    PowerPC/PowerPC64
+    This unit the GAS asm writers for PowerPC/PowerPC64
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,7 +24,7 @@
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-unit agppcutl;
+unit agppcgas;
 
 {$i fpcdefs.inc}
 
@@ -41,6 +40,16 @@ unit agppcutl;
   type
     TPPCInstrWriter=class(TCPUInstrWriter)
        procedure WriteInstruction(hp : tai);override;
+    end;
+
+    TPPCGNUAssembler=class(TGNUassembler)
+      constructor create(smart: boolean); override;
+      procedure WriteExtraHeader; override;
+    end;
+
+    TPPCAppleGNUAssembler=class(TAppleGNUassembler)
+      constructor create(smart: boolean); override;
+      function MakeCmdLine: TCmdStr; override;
     end;
 
     function getreferencestring(var ref : treference) : string;
@@ -339,4 +348,99 @@ unit agppcutl;
       owner.AsmWriteLn(s);
     end;
 
+
+{****************************************************************************}
+{                         GNU PPC Assembler writer                           }
+{****************************************************************************}
+
+    constructor TPPCGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
+    procedure TPPCGNUAssembler.WriteExtraHeader;
+      var
+         i : longint;
+      begin
+        for i:=0 to 31 do
+          AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+        for i:=0 to 31 do
+          AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+      end;
+
+
+{****************************************************************************}
+{                      GNU/Apple PPC Assembler writer                        }
+{****************************************************************************}
+
+    constructor TPPCAppleGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
+    function TPPCAppleGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := inherited MakeCmdLine;
+{$ifdef cpu64bit}
+        Replace(result,'$ARCH','ppc64')
+{$else cpu64bit}
+        case current_settings.cputype of
+          cpu_PPC7400:
+            Replace(result,'$ARCH','ppc7400');
+          cpu_PPC970:
+            Replace(result,'$ARCH','ppc970');
+          else
+            Replace(result,'$ARCH','ppc')
+        end;
+{$endif cpu64bit}
+      end;
+
+
+
+
+
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+  const
+    as_ppc_gas_info : tasminfo =
+       (
+         id     : as_gas;
+
+         idtxt  : 'AS';
+         asmbin : 'as';
+{$ifdef cpu64bit}
+         asmcmd : '-o $OBJ $ASM';
+{$else cpu64bit}
+         asmcmd: '-a64 -o $OBJ $ASM';
+{$endif cpu64bit}
+         supported_target : system_any;
+         flags : [af_allowdirect,af_needar,af_smartlink_sections];
+         labelprefix : '.L';
+         comment : '# ';
+       );
+
+
+    as_ppc_gas_darwin_powerpc_info : tasminfo =
+       (
+         id     : as_darwin;
+
+         idtxt  : 'AS-Darwin';
+         asmbin : 'as';
+         asmcmd : '-o $OBJ $ASM -arch $ARCH';
+         supported_target : system_any;
+         flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+         labelprefix : 'L';
+         comment : '# ';
+       );
+
+
+begin
+  RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
 end.
