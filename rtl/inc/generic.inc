@@ -241,7 +241,8 @@ begin
   psrc:=@buf;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
-  if (len < 0) then
+  if (len < 0) or
+     (psrc+len < psrc) then
     pend:=pbyte(high(PtrUInt)-sizeof(byte))
   else
     pend:=psrc+len;
@@ -267,7 +268,9 @@ begin
   psrc:=@buf;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
-  if (len < 0) then
+  if (len < 0) or
+     (len > high(PtrUInt) div 2) or
+     (psrc+len < psrc) then
     pend:=pword(high(PtrUInt)-sizeof(word))
   else
     pend:=psrc+len;
@@ -293,7 +296,9 @@ begin
   psrc:=@buf;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
-  if (len < 0) then
+  if (len < 0) or
+     (len > high(PtrUInt) div 4) or
+     (psrc+len < psrc) then
     pend:=pdword(high(PtrUInt)-sizeof(dword))
   else
     pend:=psrc+len;
@@ -355,7 +360,10 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  pend:=psrc+len;
+  if (psrc+len > psrc) then
+    pend:=psrc+len
+  else
+    pend:=pbyte(high(ptruint)-1);
   while psrc<pend do
     begin
       b:=(ptrint(psrc^)-ptrint(pdest^));
@@ -418,7 +426,11 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  pend:=psrc+len;
+  if (len <= high(ptruint) div 2) and
+     (psrc+len > psrc) then
+    pend:=psrc+len
+  else
+    pend:=pword(high(ptruint)-2);
   while psrc<pend do
     begin
       b:=(ptrint(psrc^)-ptrint(pdest^));
@@ -481,7 +493,11 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  pend:=psrc+len;
+  if (len <= high(ptruint) div 4) and
+     (psrc+len > psrc) then
+    pend:=psrc+len
+  else
+    pend:=pdword(high(ptruint)-4);
   while psrc<pend do
     begin
       b:=(ptrint(psrc^)-ptrint(pdest^));
