@@ -987,10 +987,14 @@ implementation
                      temps like calls that return a structure and we
                      are assigning to a member }
                    if (valid_const in opts) or
-                      not(
-                          (gotsubscript and gotrecord) or
-                          (gotstring and gotvec)
-                         ) then
+                      { if we got a deref, we won't modify the property itself }
+                      (gotderef) or
+                      { same when we got a class and subscript (= deref) }
+                      (gotclass and gotsubscript) or
+                      (
+                       not(gotsubscript and gotrecord) and
+                       not(gotstring and gotvec)
+                      ) then
                      result:=true
                    else
                      if report_errors then
