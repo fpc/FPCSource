@@ -5902,7 +5902,6 @@ begin
      InsertFrom(Clipboard);
      if ShowInfo then
        PopInfo;
-     SetModified(true);
    end;
   CloseGroupedAction(eaPaste);
   UnLock;
