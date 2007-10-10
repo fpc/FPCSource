@@ -58,7 +58,6 @@ Type
     FEnvironment : Tstrings;
     FShowWindow : TShowWindowOptions;
     FInherithandles : Boolean;
-    FRunning : Boolean;
     FProcessPriority : TProcessPriority;
     dwXCountchars,
     dwXSize,
