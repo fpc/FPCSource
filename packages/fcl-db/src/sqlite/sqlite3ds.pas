@@ -304,7 +304,7 @@ end;
 
 function TSqlite3Dataset.GetSqliteVersion: String;
 begin
-  Result:=StrPas(sqlite3_version);
+  Result:=StrPas(sqlite3_version());
 end;
 
 function TSqlite3Dataset.QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;
