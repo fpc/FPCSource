@@ -19,6 +19,7 @@ unit vorbis;
 
 {$mode objfpc}
 {$MINENUMSIZE 4}
+{$PACKRECORDS C}
 
 interface
 
