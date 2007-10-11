@@ -360,7 +360,7 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  if (psrc+len > psrc) then
+  if (psrc+len >= psrc) then
     pend:=psrc+len
   else
     pend:=pbyte(high(ptruint)-1);
@@ -427,7 +427,7 @@ begin
         end;
     end;
   if (len <= high(ptruint) div 2) and
-     (psrc+len > psrc) then
+     (psrc+len >= psrc) then
     pend:=psrc+len
   else
     pend:=pword(high(ptruint)-2);
@@ -494,7 +494,7 @@ begin
         end;
     end;
   if (len <= high(ptruint) div 4) and
-     (psrc+len > psrc) then
+     (psrc+len >= psrc) then
     pend:=psrc+len
   else
     pend:=pdword(high(ptruint)-4);
