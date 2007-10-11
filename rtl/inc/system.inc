@@ -40,9 +40,10 @@ const
 { For Error Handling.}
   ErrorBase : Pointer = nil;
 
-{ Used by the ansistrings and maybe also other things in the future }
+{ Used by the ansi/widestrings and maybe also other things in the future }
 var
-  emptychar : char;public name 'FPC_EMPTYCHAR';
+  { widechar, because also used by widestring -> pwidechar conversions }
+  emptychar : widechar;public name 'FPC_EMPTYCHAR';
   initialstklen : SizeUint;external name '__stklen';
 
 { checks whether the given suggested size for the stack of the current
