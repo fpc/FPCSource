@@ -1,12 +1,11 @@
 {
-     File:       CMICCProfile.p
+     File:       ColorSync/CMICCProfile.h
  
      Contains:   ICC Profile Format Definitions
  
-     Version:    Technology: ColorSync 2.5
-                 Release:    Universal Interfaces 3.4.2
+     Version:    ColorSync-174.1~229
  
-     Copyright:  © 1994-2002 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1994-2006 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,7 +13,7 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2007 }
 
 {
     Modified for use with Free Pascal
@@ -112,6 +111,7 @@ uses MacTypes;
 { ICC Profile version constants  }
 
 const
+	cmICCProfileVersion4        = $04000000;
 	cmICCProfileVersion2		= $02000000;
 	cmICCProfileVersion21		= $02100000;
 	cmCS2ProfileVersion			= $02000000;
@@ -132,6 +132,7 @@ const
 	cmICCReservedFlagsMask		= $0000FFFF;					{  these bits of the flags field are defined and reserved by ICC  }
 	cmEmbeddedMask				= $00000001;					{  if bit 0 is 0 then not embedded profile, if 1 then embedded profile  }
 	cmEmbeddedUseMask			= $00000002;					{  if bit 1 is 0 then ok to use anywhere, if 1 then ok to use as embedded profile only  }
+	cmBlackPointCompensationMask = $00000004;                   { if bit 1 is 0 then ok to use anywhere, if 1 then ok to use as embedded profile only }
 	cmCMSReservedFlagsMask		= $FFFF0000;					{  these bits of the flags field are defined and reserved by CMS vendor  }
 	cmQualityMask				= $00030000;					{  if bits 16-17 is 0 then normal, if 1 then draft, if 2 then best  }
 	cmInterpolationMask			= $00040000;					{  if bit 18 is 0 then interpolation, if 1 then lookup only  }
@@ -146,6 +147,8 @@ const
 	cmDraftMode					= 1;							{  it should be evaulated like this: right shift 16 bits first, mask off the  }
 	cmBestMode					= 2;							{  high 14 bits, and then compare with the enum to determine the option value  }
 
+    { black point compensation flag option }
+	cmBlackPointCompensation    = 1;                            { 0 do not apply Black Point Compensation, 1 apply }
 
 	{	*** deviceAttributes fields ***	}
 	{	 deviceAttributes[0] is defined by and reserved for device vendors 	}
@@ -227,8 +230,47 @@ const
 	cmVideoCardGammaTag			= $76636774 (* 'vcgt' *);
 	cmMakeAndModelTag			= $6D6D6F64 (* 'mmod' *);
 	cmProfileDescriptionMLTag	= $6473636D (* 'dscm' *);
+	cmNativeDisplayInfoTag      = $6E64696E (* 'ndin' *);
+
+	{	 public type signatures 	}
+	cmSigCrdInfoType            = $63726469 (* 'crdi' *);
+	cmSigCurveType				= $63757276 (* 'curv' *);
+	cmSigDataType				= $64617461 (* 'data' *);
+	cmSigDateTimeType			= $6474696D (* 'dtim' *);
+	cmSigLut16Type				= $6D667432 (* 'mft2' *);
+	cmSigLut8Type				= $6D667431 (* 'mft1' *);
+	cmSigMeasurementType		= $6D656173 (* 'meas' *);
+	cmSigMultiFunctA2BType      = $6D414220 (* 'mAB ' *);
+	cmSigMultiFunctB2AType      = $6D424120 (* 'mBA ' *);
+	cmSigNamedColorType			= $6E636F6C (* 'ncol' *);
+	cmSigNamedColor2Type		= $6E636C32 (* 'ncl2' *);
+	cmSigParametricCurveType    = $70617261 (* 'para' *);
+	cmSigProfileDescriptionType	= $64657363 (* 'desc' *);
+	cmSigProfileSequenceDescType = $70736571 (* 'pseq' *);
+	cmSigScreeningType			= $7363726E (* 'scrn' *);
+	cmSigS15Fixed16Type			= $73663332 (* 'sf32' *);
+	cmSigSignatureType			= $73696720 (* 'sig ' *);
+	cmSigTextType				= $74657874 (* 'text' *);
+	cmSigU16Fixed16Type			= $75663332 (* 'uf32' *);
+	cmSigU1Fixed15Type			= $75663136 (* 'uf16' *);
+	cmSigUInt8Type				= $75693038 (* 'ui08' *);
+	cmSigUInt16Type				= $75693136 (* 'ui16' *);
+	cmSigUInt32Type				= $75693332 (* 'ui32' *);
+	cmSigUInt64Type				= $75693634 (* 'ui64' *);
+	cmSigUcrBgType				= $62666420 (* 'bfd ' *);
+	cmSigUnicodeTextType		= $75747874 (* 'utxt' *);
+	cmSigViewingConditionsType	= $76696577 (* 'view' *);
+	cmSigXYZType				= $58595A20 (* 'XYZ ' *);
+
+	{	 custom type signatures 	}
+	cmSigPS2CRDVMSizeType		= $7073766D (* 'psvm' *);
+	cmSigVideoCardGammaType		= $76636774 (* 'vcgt' *);
+	cmSigMakeAndModelType		= $6D6D6F64 (* 'mmod' *);
+	cmSigNativeDisplayInfoType  = $6E64696E (* 'ndin' *);
+	cmSigMultiLocalizedUniCodeType = $6D6C7563 (* 'mluc' *);
 
 	{	 technology tag descriptions 	}
+	cmTechnologyDigitalCamera   = $6463616D (* 'dcam' *);
 	cmTechnologyFilmScanner		= $6673636E (* 'fscn' *);
 	cmTechnologyReflectiveScanner = $7273636E (* 'rscn' *);
 	cmTechnologyInkJetPrinter	= $696A6574 (* 'ijet' *);
@@ -250,37 +292,6 @@ const
 	cmTechnologyOffsetLithography = $6F666673 (* 'offs' *);
 	cmTechnologySilkscreen		= $73696C6B (* 'silk' *);
 	cmTechnologyFlexography		= $666C6578 (* 'flex' *);
-
-	{	 public type signatures 	}
-	cmSigCurveType				= $63757276 (* 'curv' *);
-	cmSigDataType				= $64617461 (* 'data' *);
-	cmSigDateTimeType			= $6474696D (* 'dtim' *);
-	cmSigLut16Type				= $6D667432 (* 'mft2' *);
-	cmSigLut8Type				= $6D667431 (* 'mft1' *);
-	cmSigMeasurementType		= $6D656173 (* 'meas' *);
-	cmSigNamedColorType			= $6E636F6C (* 'ncol' *);
-	cmSigNamedColor2Type		= $6E636C32 (* 'ncl2' *);
-	cmSigProfileDescriptionType	= $64657363 (* 'desc' *);
-	cmSigScreeningType			= $7363726E (* 'scrn' *);
-	cmSigS15Fixed16Type			= $73663332 (* 'sf32' *);
-	cmSigSignatureType			= $73696720 (* 'sig ' *);
-	cmSigTextType				= $74657874 (* 'text' *);
-	cmSigU16Fixed16Type			= $75663332 (* 'uf32' *);
-	cmSigU1Fixed15Type			= $75663136 (* 'uf16' *);
-	cmSigUInt8Type				= $75693038 (* 'ui08' *);
-	cmSigUInt16Type				= $75693136 (* 'ui16' *);
-	cmSigUInt32Type				= $75693332 (* 'ui32' *);
-	cmSigUInt64Type				= $75693634 (* 'ui64' *);
-	cmSigUcrBgType				= $62666420 (* 'bfd ' *);
-	cmSigUnicodeTextType		= $75747874 (* 'utxt' *);
-	cmSigViewingConditionsType	= $76696577 (* 'view' *);
-	cmSigXYZType				= $58595A20 (* 'XYZ ' *);
-
-	{	 custom type signatures 	}
-	cmSigPS2CRDVMSizeType		= $7073766D (* 'psvm' *);
-	cmSigVideoCardGammaType		= $76636774 (* 'vcgt' *);
-	cmSigMakeAndModelType		= $6D6D6F64 (* 'mmod' *);
-	cmSigMultiLocalizedUniCodeType = $6D6C7563 (* 'mluc' *);
 
 
 	{	 Measurement type encodings 	}
@@ -323,6 +334,7 @@ const
 	cmXYZData					= $58595A20 (* 'XYZ ' *);
 	cmLabData					= $4C616220 (* 'Lab ' *);
 	cmLuvData					= $4C757620 (* 'Luv ' *);
+	cmYCbCrData                 = $59436272 (* 'YCbr' *);
 	cmYxyData					= $59787920 (* 'Yxy ' *);
 	cmRGBData					= $52474220 (* 'RGB ' *);
 	cmSRGBData					= $73524742 (* 'sRGB' *);
@@ -341,6 +353,13 @@ const
 	cm6CLRData					= $36434C52 (* '6CLR' *);
 	cm7CLRData					= $37434C52 (* '7CLR' *);
 	cm8CLRData					= $38434C52 (* '8CLR' *);
+	cm9CLRData                  = $39434C52 (* '9CLR' *);
+	cm10CLRData                 = $41434C52 (* 'ACLR' *);
+	cm11CLRData                 = $42434C52 (* 'BCLR' *);
+	cm12CLRData                 = $43434C52 (* 'CCLR' *);
+	cm13CLRData                 = $44434C52 (* 'DCLR' *);
+	cm14CLRData                 = $45434C52 (* 'ECLR' *);
+	cm15CLRData                 = $46434C52 (* 'FCLR' *);
 	cmNamedData					= $4E414D45 (* 'NAME' *);
 
 	{	 profileClass enumerations 	}
@@ -359,7 +378,15 @@ const
 	cmSiliconGraphics			= $53474920 (* 'SGI ' *);
 	cmTaligent					= $54474E54 (* 'TGNT' *);
 
-	{	 ColorSync 1.0 elements 	}
+	{ parametric curve type enumerations }
+	cmParametricType0           = 0;    { Y = X^gamma }
+	cmParametricType1           = 1;    { Y = (aX+b)^gamma     [X>=-b/a],  Y = 0    [X<-b/a] }
+	cmParametricType2           = 2;    { Y = (aX+b)^gamma + c [X>=-b/a],  Y = c    [X<-b/a] }
+	cmParametricType3           = 3;    { Y = (aX+b)^gamma     [X>=d],     Y = cX   [X<d]    }
+	cmParametricType4           = 4;     { Y = (aX+b)^gamma + e [X>=d],     Y = cX+f [X<d]    }
+
+
+	{ ColorSync 1.0 elements }
 	cmCS1ChromTag				= $6368726D (* 'chrm' *);
 	cmCS1TRCTag					= $74726320 (* 'trc ' *);
 	cmCS1NameTag				= $6E616D65 (* 'name' *);
@@ -378,6 +405,12 @@ type
 		seconds:				UInt16;
 	end;
 
+	CMFixedXYColorPtr = ^CMFixedXYColor;
+	CMFixedXYColor = record
+		x: Fixed;
+		y: Fixed;
+	end;
+
 	CMFixedXYZColorPtr = ^CMFixedXYZColor;
 	CMFixedXYZColor = record
 		X:						Fixed;
@@ -392,6 +425,22 @@ type
 		Y:						CMXYZComponent;
 		Z:						CMXYZComponent;
 	end;
+
+{ Type for Profile MD5 message digest }
+{ Derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm }
+
+     CMProfileMD5 = packed array[0..15] of UInt8;
+     CMProfileMD5Ptr = ^CMProfileMD5;
+
+{
+ *  CMProfileMD5AreEqual()
+ *  
+ *  Availability:       available as macro/inline
+ }
+//  #define CMProfileMD5AreEqual(a, b) (\
+//    ((long*)a)[0]==((long*)b)[0] && ((long*)a)[1]==((long*)b)[1] && \
+//  ((long*)a)[2]==((long*)b)[2] && ((long*)a)[3]==((long*)b)[3])
+
 
 	CM2HeaderPtr = ^CM2Header;
 	CM2Header = record
@@ -414,6 +463,28 @@ type
 		reserved:				packed array [0..43] of char;			{  reserved for future use  }
 	end;
 
+	CM4HeaderPtr = ^ CM4Header;
+	CM4Header = record
+		size:                   UInt32;                                 { This is the total size of the Profile }
+		CMMType:                OSType;                                 { CMM signature,  Registered with CS2 consortium  }
+		profileVersion:         UInt32;                                 { Version of CMProfile format }
+		profileClass:           OSType;                                 { input, display, output, devicelink, abstract, or color conversion profile type }
+		dataColorSpace:         OSType;                                 { color space of data }
+		profileConnectionSpace: OSType;                                 { profile connection color space }
+		dateTime:               CMDateTime;                             { date and time of profile creation }
+		CS2profileSignature:    OSType;                                 { 'acsp' constant ColorSync 2.0 file ID }
+		platform:               OSType;                                 { primary profile platform, Registered with CS2 consortium }
+		flags:                  UInt32;                                 { profile flags }
+		deviceManufacturer:     OSType;                                 { Registered with ICC consortium }
+		deviceModel:            UInt32;                                 { Registered with ICC consortium }
+		deviceAttributes:       array[0..1] of UInt32;                  { Attributes[0] is for device vendors, [1] is for ICC }
+		renderingIntent:        UInt32;                                 { preferred rendering intent of tagged object }
+		white:                  CMFixedXYZColor;                        { profile illuminant }
+		creator:                OSType;                                 { profile creator }
+		digest:                 CMProfileMD5;                           { Profile message digest }
+		reserved:               packed array[0..27] of char;            { reserved for future use }
+    end;
+    
 	CMTagRecordPtr = ^CMTagRecord;
 	CMTagRecord = record
 		tag:					OSType;									{  Registered with CS2 consortium  }
@@ -492,6 +563,36 @@ type
 		inputTable:				SInt8;									{  variable size, determined by inputChannels*256  }
 	end;
 
+    CMMultiFunctLutTypePtr = ^CMMultiFunctLutType;
+	CMMultiFunctLutType = record
+		typeDescriptor:         OSType;                                 { 'mAB ' = cmSigMultiFunctA2BType or 'mBA ' = cmSigMultiFunctB2AType }
+		reserved:               UInt32;                                 { fill with 0x00 }
+		inputChannels:          SInt8;                                  { Number of input channels }
+		outputChannels:         SInt8;                                  { Number of output channels }
+		reserved2:              UInt16;                                 { fill with 0x00 }
+		offsetBcurves:          UInt32;                                 { offset to first "B" curve }
+		offsetMatrix:           UInt32;                                 { offset to 3x4 matrix }
+		offsetMcurves:          UInt32;                                 { offset to first "M" curve }
+		offsetCLUT:             UInt32;                                 { offset to multi-dimensional LUT of type CMMultiFunctCLUTType }
+		offsetAcurves:          UInt32;                                 { offset to first "A" curve }
+		data:                   SInt8;                                  { variable size }
+	end;
+
+	CMMultiFunctLutA2BType = CMMultiFunctLutType;
+	CMMultiFunctLutA2BTypePtr = ^CMMultiFunctLutA2BType;
+	CMMultiFunctLutB2AType = CMMultiFunctLutType;
+	CMMultiFunctLutB2ATypePtr = ^CMMultiFunctLutB2AType;
+	
+	CMMultiFunctCLUTTypePtr = ^CMMultiFunctCLUTType;
+	CMMultiFunctCLUTType = record
+		gridPoints:             packed array[0..15] of UInt8;           { grigpoints for each input channel dimension (remaining are 0) }
+		entrySize:              SInt8;                                  { bytes per lut enrty (1 or 2) }
+		reserved:               array[0..2] of SInt8;                   { fill with 0x00 }
+		data:                   SInt8;                                  { variable size, determined by above }
+        pad:                    SInt8;                                  { pad byte needed for correct record size. Critical to accessing CMMultiFunctLutType's variable sized data field contents. }
+	end;
+
+
 	CMMeasurementTypePtr = ^CMMeasurementType;
 	CMMeasurementType = record
 		typeDescriptor:			OSType;									{  'meas' = cmSigMeasurementType  }
@@ -529,6 +630,41 @@ type
 		prefixName:				packed array [0..31] of UInt8;			{  Fixed 32 byte size.  7 bit ASCII null terminated  }
 		suffixName:				packed array [0..31] of UInt8;			{  Fixed 32 byte size.  7 bit ASCII null terminated  }
 		data:					SInt8;									{  variable size data for CMNamedColor2EntryType  }
+	end;
+
+	CMNativeDisplayInfoPtr = ^CMNativeDisplayInfo;
+	CMNativeDisplayInfo = record
+		dataSize:               UInt32;                                 { Size of this structure }
+		redPhosphor:            CMFixedXYColor;                         { Phosphors - native cromaticity values of the display  }
+		greenPhosphor:          CMFixedXYColor;
+		bluePhosphor:           CMFixedXYColor;
+		whitePoint:             CMFixedXYColor;
+		redGammaValue:          Fixed;                                  { Gammas - native gamma values of the display }
+		greenGammaValue:        Fixed;
+		blueGammaValue:         Fixed;
+                                                                        {  Gamma tables - if if gammaChannels is not zero, }
+                                                                        {  native gamma tables are preferred over values }
+                                                                        {  redGammaValue, greenGammaValue, blueGammaValue }
+		gammaChannels:          UInt16;                                 { # of gamma channels (1 or 3) }
+		gammaEntryCount:        UInt16;                                 { 1-based number of entries per channel }
+		gammaEntrySize:         UInt16;                                 { size in bytes of each entry }
+		gammaData:              SInt8;                                  { variable size, determined by channels*entryCount*entrySize }
+	end;
+
+	CMNativeDisplayInfoTypePtr = ^CMNativeDisplayInfoType;
+	CMNativeDisplayInfoType = record
+		typeDescriptor:         OSType;                                 { 'ndin' = cmSigNativeDisplayInfoType }
+		reserved:               UInt32;                                 { fill with 0x00 }
+		nativeDisplayInfo:      CMNativeDisplayInfo;                    { data of type CMNativeDisplayInfo }
+	end;
+
+	CMParametricCurveTypePtr = ^CMParametricCurveType;
+	CMParametricCurveType = record
+		typeDescriptor:         OSType;                                 { 'para' = cmSigParametricCurveType }
+		reserved:               UInt32;                                 { fill with 0x00 }
+		functionType:           UInt16;                                 { cmParametricType0, cmParametricType1, etc. }
+		reserved2:              UInt16;                                 { fill with 0x00 }
+		value:                  array[0..0] of Fixed;                   { variable size, determined by functionType }
 	end;
 
 	CMTextDescriptionTypePtr = ^CMTextDescriptionType;

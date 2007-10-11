@@ -208,7 +208,7 @@ type
 	end;
 
 	Movie								= ^MovieRecord;
-	Movie_GAP_Private_field_type_fix	= Movie; { used as field type when a record declaration contains a Movie field identifier }
+	Movie_fix	                        = Movie; { used as field type when a record declaration contains a Movie field identifier }
 	MoviePtr							= ^Movie;
 	TrackRecordPtr = ^TrackRecord;
 	TrackRecord = record
@@ -216,7 +216,7 @@ type
 	end;
 
 	Track								= ^TrackRecord;
-	Track_GAP_Private_field_type_fix	= Track; { used as field type when a record declaration contains a Track field identifier }
+	Track_fix	                        = Track; { used as field type when a record declaration contains a Track field identifier }
 	MediaRecordPtr = ^MediaRecord;
 	MediaRecord = record
 		data:					array [0..0] of SInt32;

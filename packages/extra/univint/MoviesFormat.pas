@@ -367,7 +367,7 @@ type
 		size:					SInt32;
 		atomType:				SInt32;
 	end;
-	MediaInfo_GAP_Private_field_type_fix = MediaInfo; { used as field type when a record declaration contains a MediaInfo field identifier }
+	MediaInfo_fix = MediaInfo; { used as field type when a record declaration contains a MediaInfo field identifier }
 
 	{	**********************
 	* Media Directory Structures
@@ -396,7 +396,7 @@ type
 		atomType:				SInt32;								{  = 'mdia'  }
 		mediaHeader:			MediaHeaderAtom;						{  standard Media information  }
 		mediaHandler:			HandlerAtom;
-		mediaInfo:				MediaInfo_GAP_Private_field_type_fix;
+		mediaInfo:				MediaInfo_fix;
 	end;
 
 	{	**********************
@@ -485,7 +485,7 @@ type
 		media:					MediaDirectory;
 		userData:				UserDataAtom;							{  space for extending with new data types  }
 	end;
-	TrackDirectory_GAP_Private_field_type_fix = TrackDirectory; { used as field type when a record declaration contains a TrackDirectory field identifier }
+	TrackDirectory_fix = TrackDirectory; { used as field type when a record declaration contains a TrackDirectory field identifier }
 
 	{	***************************************
 	*
@@ -526,7 +526,7 @@ type
 
 	TrackDirectoryEntryPtr = ^TrackDirectoryEntry;
 	TrackDirectoryEntry = record
-		trackDirectory:			TrackDirectory_GAP_Private_field_type_fix;							{  Track directory information  }
+		trackDirectory:			TrackDirectory_fix;							{  Track directory information  }
 	end;
 
 	MovieDirectoryPtr = ^MovieDirectory;

@@ -221,7 +221,7 @@ type
 	QTSTrackParams = record
 		version:				SInt32;
 		flags:					SInt32;
-		track:					Track_GAP_Private_field_type_fix;
+		track:					Track_fix;
 		trackStartOffset:		TimeValue64;							{  to start other than at the beginning otherwise set to 0 }
 		duration:				TimeValue64;							{  to limit the duration otherwise set to 0 }
 		loopParams:				QTSLoopParamsPtr;						{  set to NULL if not using; default is no looping  }
@@ -237,7 +237,7 @@ type
 	QTSSourcerTimingParams = record
 		version:				SInt32;
 		flags:					SInt32;
-		timeScale:				TimeScale_GAP_Private_field_type_fix;
+		timeScale:				TimeScale_fix;
 		presentationStartTime:	TimeValue64;
 		presentationEndTime:	TimeValue64;
 		presentationCurrentTime: TimeValue64;
@@ -648,8 +648,8 @@ type
 		reserved1:				SInt8;
 		reserved2:				SInt8;
 		reserved3:				SInt8;
-		timeBase:				TimeBase_GAP_Private_field_type_fix;
-		timeScale:				TimeScale_GAP_Private_field_type_fix;
+		timeBase:				TimeBase_fix;
+		timeScale:				TimeScale_fix;
 	end;
 
 	RTPDescParamsPtr = ^RTPDescParams;

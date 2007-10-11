@@ -701,8 +701,12 @@ procedure PurgeMemSys(cbNeeded: Size); external name '_PurgeMemSys';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
+
+ *  Note:
+      FreeMem has been renamed MacFreeMem, to resolve a naming conflict with
+      FreeMem in the Turbo Pascal/Delphi/FreePascal runtime library
  }
-function FreeMem: SInt32; external name '_FreeMem';
+function MacFreeMem: SInt32; external name '_FreeMem';
 {$ifc CALL_NOT_IN_CARBON}
 {
  *  FreeMemSys()
