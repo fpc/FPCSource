@@ -74,6 +74,16 @@ interface
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
 {$endif def GDB_V605}
 
+{ 6.7.x }
+{$ifdef GDB_V607}
+  {$info using gdb 6.7.x}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+{$endif def GDB_V605}
+
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
   {$define GDB_HAS_DB_COMMANDS}
@@ -208,14 +218,24 @@ interface
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
   {$LINKLIB libintl.a}
-  {$LINKLIB libiconv.a}
-  {$LINKLIB libncurses.a}
-  {$ifdef GDB_USES_EXPAT_LIB}
-    {$LINKLIB expat}
-  {$endif GDB_USES_EXPAT_LIB}
-  {$LINKLIB gcc}
-  {$LINKLIB cygwin} { alias of libm.a and libc.a }
+  {$ifdef USE_MINGW_GDB}
+    {$LINKLIB libm.a}
+    {$LINKLIB libmoldname.a}
+    {$LINKLIB libgcc.a}
+    {$LINKLIB libws2_32.a}
+    {$LINKLIB libmingwex.a}
+    {$LINKLIB libmingw32.a}
+    {$LINKLIB libmsvcrt.a}
+  {$else not USE_MINGW_GDB}
+    {$LINKLIB libiconv.a}
+    {$LINKLIB libncurses.a}
+    {$ifdef GDB_USES_EXPAT_LIB}
+      {$LINKLIB expat}
+    {$endif GDB_USES_EXPAT_LIB}
+    {$LINKLIB gcc}
+    {$LINKLIB cygwin} { alias of libm.a and libc.a }
   {$LINKLIB imagehlp}
+  {$endif not USE_MINGW_GDB}	
   {$LINKLIB kernel32}
   {$LINKLIB user32}
 {$endif win32}
@@ -505,7 +525,10 @@ implementation
 
 uses
 {$ifdef win32}
-  initc,
+  {$ifdef USE_MINGW_GDB}
+  {$else not USE_MINGW_GDB}
+    initc,
+  {$endif not USE_MINGW_GDB}
 {$endif win32}
 {$ifdef unix}
   baseunix,
@@ -550,10 +573,19 @@ type
   end;
 
   pjmp_buf = ^jmp_buf;
-
+{$ifdef USE_MINGW_GDB}
+  { for obscure reasons, longjmp and _setjmp are defined in mingw32 libmsvcrt.a }
+  function _setjmp(var rec : jmp_buf) : longint; cdecl; external;
+  procedure longjmp(var rec : jmp_buf;return_value : longint); cdecl; external;
+  function setjmp(var rec : jmp_buf) : longint;
+    begin
+	  setjmp:=_setjmp(rec);
+	end;
+{$else not USE_MINGW_GDB}
   function setjmp(var rec : jmp_buf) : longint;cdecl;external;
 
   procedure longjmp(var rec : jmp_buf;return_value : longint);cdecl;external;
+{$endif not USE_MINGW_GDB}
 
 {$ifndef supportexceptions}
 type
