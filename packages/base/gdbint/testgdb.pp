@@ -50,5 +50,6 @@ begin
        last:=s;
      end;
   until false;
+  gdb.done;
   Writeln('End of pascal GDB...');
 end.
