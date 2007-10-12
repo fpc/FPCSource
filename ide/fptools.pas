@@ -213,7 +213,7 @@ type
     end;
 
 const
-     HotKeys : array[0..9] of THotKeyDef =
+     HotKeys : array[0..11] of THotKeyDef =
       ( (Name : '~U~nassigned' ; KeyCode : kbNoKey   ),
         (Name : 'Shift+F~2~'   ; KeyCode : kbShiftF2 ),
         (Name : 'Shift+F~3~'   ; KeyCode : kbShiftF3 ),
@@ -223,7 +223,9 @@ const
         (Name : 'Shift+F~7~'   ; KeyCode : kbShiftF7 ),
         (Name : 'Shift+F~8~'   ; KeyCode : kbShiftF8 ),
         (Name : 'Shift+F~9~'   ; KeyCode : kbShiftF9 ),
-        (Name : 'Shift+F~1~0'  ; KeyCode : kbShiftF10));
+        (Name : 'Shift+F1~0~'  ; KeyCode : kbShiftF10),
+        (Name : 'Shift+F1~1~'  ; KeyCode : kbShiftF11),
+        (Name : 'Shift+~F~12'  ; KeyCode : kbShiftF12));
 
      Tools     : PToolCollection = nil;
      AbortTool : boolean         = false;
