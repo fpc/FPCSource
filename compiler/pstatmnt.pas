@@ -1074,7 +1074,9 @@ implementation
              { with a separate statement for each read/write operation (JM)    }
              { the same is true for val() if the third parameter is not 32 bit }
              if not(p.nodetype in [nothingn,calln,ifn,assignn,breakn,inlinen,
-                                   continuen,labeln,blockn,exitn]) then
+                                   continuen,labeln,blockn,exitn]) or
+                ((p.nodetype=inlinen) and
+                 not is_void(p.resultdef)) then
                Message(parser_e_illegal_expression);
 
              { Specify that we don't use the value returned by the call.
