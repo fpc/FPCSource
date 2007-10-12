@@ -45,7 +45,7 @@ ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
 
 fpcsubst$(EXEEXT): fpcsubst.pp usubst.pp
 
-fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc fpcfg.inc
+fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc fpcfg.inc fpini.inc
 
 ifneq ($(DATA2INC),)
 fpccfg.inc: fpc.cft
@@ -53,6 +53,9 @@ fpccfg.inc: fpc.cft
 
 fpcfg.inc : fpinc.cfg
         $(DATA2INC) -b -s fpinc.cfg fpcfg.inc fpcfg
+
+fpini.inc : fpinc.ini
+        $(DATA2INC) -b -s fpinc.ini fpini.inc fpini
 endif
 
 #
