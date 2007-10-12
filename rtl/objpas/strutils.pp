@@ -165,6 +165,8 @@ function Hex2Dec(const S: string): Longint;
 function Dec2Numb(N: Longint; Len, Base: Byte): string;
 function Numb2Dec(S: string; Base: Byte): Longint;
 function IntToBin(Value: Longint; Digits, Spaces: Integer): string;
+function IntToBin(Value: Longint; Digits: Integer): string;
+function intToBin(Value: int64; Digits:integer): string;
 function IntToRoman(Value: Longint): string;
 function RomanToInt(const S: string): Longint;
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
@@ -1315,6 +1317,50 @@ begin
     Result:=Result+intToStr((Value shr Digits) and 1);
     end;
 end;
+
+{$implicitexceptions off}
+function intToBin(Value: Longint; Digits:integer): string;
+var p,p2 : pchar;
+begin
+  result:='';
+  if digits<=0 then exit;
+  setlength(result,digits);
+  p:=pchar(pointer(@result[digits]));
+  p2:=pchar(pointer(@result[1]));
+  // typecasts because we want to keep intto* delphi compat and take an integer
+  while (p>=p2) and (cardinal(value)>0) do     
+    begin
+       p^:=chr(48+(cardinal(value) and 1));
+       value:=cardinal(value) shr 1;
+       dec(p); 
+    end;
+  digits:=p-p2+1;
+  if digits>0 then
+    fillchar(result[1],digits,#48);
+end;
+
+function intToBin(Value: int64; Digits:integer): string;
+var p,p2 : pchar;
+begin
+  result:='';
+  if digits<=0 then exit;
+  setlength(result,digits);
+  p:=pchar(pointer(@result[digits]));
+  p2:=pchar(pointer(@result[1]));
+  // typecasts because we want to keep intto* delphi compat and take a signed val
+  // and avoid warnings
+  while (p>=p2) and (qword(value)>0) do     
+    begin
+       p^:=chr(48+(cardinal(value) and 1));
+       value:=qword(value) shr 1;
+       dec(p); 
+    end;
+  digits:=p-p2+1;
+  if digits>0 then
+    fillchar(result[1],digits,#48);
+end;
+
+{$implicitexceptions on}
 
 function FindPart(const HelpWilds, inputStr: string): Integer;
 var
