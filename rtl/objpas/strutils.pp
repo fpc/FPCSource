@@ -1304,21 +1304,40 @@ begin
       end;
 end;
 
+{$implicitexceptions off}
 function intToBin(Value: Longint; Digits, Spaces: Integer): string;
+var endpos : integer;
+    p,p2:pchar;
+    k: integer;
 begin
   Result:='';
   if (Digits>32) then
     Digits:=32;
-  while (Digits>0) do
+  if (spaces=0) then
+   begin
+     result:=inttobin(value,digits);
+     exit;
+   end;
+  endpos:=digits+ (digits-1) div spaces;
+  setlength(result,endpos);
+  p:=@result[endpos];
+  p2:=@result[1];
+  k:=spaces;
+  while (p>=p2) do
     begin
-    if (Digits mod Spaces)=0 then
-      Result:=Result+' ';
-    Dec(Digits);
-    Result:=Result+intToStr((Value shr Digits) and 1);
-    end;
+      if k=0 then
+       begin
+         p^:=' ';
+         dec(p);
+         k:=spaces;
+       end;
+      p^:=chr(48+(cardinal(value) and 1));
+      value:=cardinal(value) shr 1;
+      dec(p); 
+      dec(k);
+   end;
 end;
 
-{$implicitexceptions off}
 function intToBin(Value: Longint; Digits:integer): string;
 var p,p2 : pchar;
 begin
