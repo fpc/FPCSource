@@ -1558,6 +1558,22 @@ TYPE
       Function LockServer(fLock : Bool):HResult;StdCall;
       End;
 
+    PLicInfo = ^TLicInfo;
+    tagLICINFO = record
+      cbLicInfo : ULONG;
+      fRuntimeKeyAvail : BOOL;
+      fLicVerified : BOOL;
+    end;
+    TLicInfo = tagLICINFO;
+    LICINFO = TLicInfo;
+
+    IClassFactory2 = interface(IClassFactory)
+      ['{B196B28F-BAB4-101A-B69C-00AA00341D07}']
+      function GetLicInfo(var licInfo: TLicInfo): HResult; stdcall;
+      function RequestLicKey(dwResrved: DWORD; out bstrKey: WideString): HResult; stdcall;
+      function CreateInstanceLic(const unkOuter: IUnknown; const unkReserved: IUnknown;
+        const iid: TIID; const bstrKey: WideString; out vObject): HResult; stdcall;
+    end;
 
 // objidl.idl
 
