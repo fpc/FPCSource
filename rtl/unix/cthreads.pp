@@ -616,7 +616,7 @@ begin
   plocaleventstate(result)^.FWaiters:=0;
   plocaleventstate(result)^.FDestroying:=False;
 {$ifdef has_sem_init}
-  plocaleventstate(result)^.FSem:=cIntSemaphoreInit(true);
+  plocaleventstate(result)^.FSem:=cIntSemaphoreInit(initialstate);
   if plocaleventstate(result)^.FSem=nil then
     begin
       FreeMem(result);
