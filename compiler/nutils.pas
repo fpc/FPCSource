@@ -718,26 +718,23 @@ implementation
         res1:=0;
         res2:=0;
         res3:=0;
-        if p.inheritsfrom(ttertiarynode) and assigned(ttertiarynode(p).third) then
-          res3:=node_resources_fpu(ttertiarynode(p).third)
-        else if p.inheritsfrom(tbinarynode) and assigned(tbinarynode(p).right) then
-          res2:=node_resources_fpu(tbinarynode(p).right)
-        else
-          if p.inheritsfrom(tunarynode) and assigned(tunarynode(p).left) then
-            res1:=node_resources_fpu(tunarynode(p).left);
+        if p.inheritsfrom(tunarynode) then
+          begin
+            if assigned(tunarynode(p).left) then
+              res1:=node_resources_fpu(tunarynode(p).left);
+            if p.inheritsfrom(tbinarynode) then
+              begin
+                if assigned(tbinarynode(p).right) then
+                  res2:=node_resources_fpu(tbinarynode(p).right);
+                if p.inheritsfrom(ttertiarynode) and assigned(ttertiarynode(p).third) then
+                  res3:=node_resources_fpu(ttertiarynode(p).third)
+              end;
+          end;
         result:=max(max(res1,res2),res3);
         case p.nodetype of
           calln:
-            begin
-{$ifdef i386}
-              if tcallnode(p).procdefinition.typ=procdef then
-                result:=max(result,tprocdef(tcallnode(p).procdefinition).fpu_used)
-              else
-                result:=maxfpuregs;
-{$else i386}
-              result:=maxfpuregs;
-{$endif i386}
-            end;
+            { it could be a recursive call, so we never really know the number of used fpu registers }
+            result:=maxfpuregs;
           realconstn,
           typeconvn,
           loadn :
