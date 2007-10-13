@@ -29,7 +29,7 @@ var
 begin
   if (@dest=@source) or (count<=0) then
     exit;
-  if @dest<@source then
+  if (@dest<@source) or (@source+count<@dest) then
     begin
       { Forward Move }
       psrc:=@source;
@@ -269,7 +269,8 @@ begin
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) or
-     (len > high(PtrUInt) div 2) or
+     { is this ever true? }
+     (len > high(PtrInt)) or
      (psrc+len < psrc) then
     pend:=pword(high(PtrUInt)-sizeof(word))
   else
@@ -297,7 +298,7 @@ begin
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) or
-     (len > high(PtrUInt) div 4) or
+     (len > high(PtrInt) div 2) or
      (psrc+len < psrc) then
     pend:=pdword(high(PtrUInt)-sizeof(dword))
   else
