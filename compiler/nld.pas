@@ -609,7 +609,7 @@ implementation
                ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right),voidpointertype),
                nil)));
-           result:=ccallnode.createintern('fpc_copy',hp);
+           result:=ccallnode.createintern('fpc_copy_proc',hp);
            left:=nil;
            right:=nil;
            exit;
