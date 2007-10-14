@@ -1,3 +1,5 @@
+{$mode objfpc}
+
 type
   TForm1 = class
     function crash(n:integer):real;
