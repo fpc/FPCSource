@@ -6051,6 +6051,7 @@ var S: string;
     Re: word;
     IFindStr : string;
     BT : BTable;
+    Overwriting : boolean;
 
   function ContainsText(const SubS:string;var S: string; Start: Sw_integer): Sw_integer;
   var
@@ -6302,6 +6303,9 @@ begin
               if CanReplace then
                 begin
                   Lock;
+                  { don't use SetInsertMode here because it changes the cursor shape }
+                  overwriting:=(GetFlags and efInsertMode)=0;
+                  SetFlags(GetFlags or efInsertMode);
                   SetSelection(A,B);
                   DelSelect;
                   InsertText(ReplaceStr);
@@ -6315,6 +6319,8 @@ begin
                       X:=A.X;
                       Y:=A.Y;
                     end;
+                  if overwriting then
+                    SetFlags(GetFlags and (not efInsertMode));
                   UnLock;
                 end
               else
