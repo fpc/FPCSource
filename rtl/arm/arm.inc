@@ -87,6 +87,7 @@ asm
 end ['R0'];
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);assembler;nostackframe;
 asm
@@ -136,7 +137,7 @@ asm
         strb r2,[r3],#1
         mov pc,lr
 end;
-
+{$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}

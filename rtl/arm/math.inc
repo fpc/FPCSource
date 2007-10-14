@@ -29,6 +29,7 @@
       runerror(207);
       result:=0;
     end;
+    {$ifndef FPC_SYSTEM_HAS_SQRT}
     {$define FPC_SYSTEM_HAS_SQRT}
     function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -36,6 +37,7 @@
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_SQRT}
 {$endif}
     (* atn isn't supported by the linux fpe it seems
     {$define FPC_SYSTEM_HAS_ARCTAN}
