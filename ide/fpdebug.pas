@@ -476,7 +476,7 @@ const
 
       { Breakpoints window }
       dialog_breakpointlist = 'Breakpoint list';
-      label_breakpointpropheader = ' Type      | State   | Position          | Ignore | Conditions ';
+      label_breakpointpropheader = ' Type      | State   | Position          | Path                        | Ignore | Conditions ';
 
       dialog_modifynewbreakpoint = 'Modify/New Breakpoint';
       label_breakpoint_name = '~N~ame';
@@ -1978,15 +1978,21 @@ begin
        S:=S+' ';
      S:=S+'|';
      if (typ=bt_file_line) then
-       S:=S+NameAndExtOf(GetStr(FileName))+':'+IntToStr(Line)
-         else
+       begin
+         S:=S+NameAndExtOf(GetStr(FileName))+':'+IntToStr(Line);
+         While Length(S)<40 do
+           S:=S+' ';
+         S:=S+'|';
+         S:=S+copy(DirOf(GetStr(FileName)),1,min(length(DirOf(GetStr(FileName))),29));
+       end
+     else
        S:=S+GetStr(name);
-     While Length(S)<40 do
+     While Length(S)<70 do
        S:=S+' ';
      S:=S+'|';
      if IgnoreCount>0 then
        S:=S+IntToStr(IgnoreCount);
-     While Length(S)<49 do
+     While Length(S)<79 do
        S:=S+' ';
      S:=S+'|';
      if assigned(Conditions) then
