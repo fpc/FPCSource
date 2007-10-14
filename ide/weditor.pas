@@ -6149,8 +6149,16 @@ begin
      AreaEnd:=SelEnd;
    end;
 
-  X:=CurPos.X-DX;
-  Y:=CurPos.Y;;
+  { set a y value being inside the areal }
+  Y:=Min(CurPos.Y,Count-1);
+
+  if sForward then
+    X:=CurPos.X-1
+  else
+    { if you change this, pleas check that repeated backward searching for single chars still works
+      and that data is still found if searching starts outside the current line }
+    X:=Min(CurPos.X,length(GetDisplayText(Y)));
+
   if SearchRunCount=1 then
     if (FindFlags and ffmOrigin)=ffEntireScope then
       if SForward then
@@ -6185,147 +6193,160 @@ begin
   if not DoReplace or (not Confirm and (Owner<>nil)) then
     Owner^.Lock;
   if InArea(X,Y) then
-  repeat
-    CurDY:=DY;
-    S:=GetDisplayText(Y);
+    repeat
+      CurDY:=DY;
+      S:=GetDisplayText(Y);
+      if X>length(S)-1 then
+        X:=length(S)-1;
 {$ifdef TEST_REGEXP}
-    if UseRegExp then
-       begin
-         getmem(findstrpchar,length(Copy(S,X+1,high(S)))+1);
-         strpcopy(findstrpchar,Copy(S,X+1,high(S)));
-         { If start of line is required do check other positions PM }
-         if (FindStr[1]='^') and (X<>0) then
-           Found:=false
-         else
-           Found:=RegExprPos(RegExpEngine,findstrpchar,regexpindex,regexplen);
-         strdispose(findstrpchar);
-         P:=regexpindex+X+1;
-       end
-    else
-{$endif TEST_REGEXP}
-      begin
-        P:=ContainsText(FindStr,S,X+1);
-        Found:=P<>0;
-      end;
-    if Found then
-      begin
-        A.X:=P-1;
-        A.Y:=Y;
-        B.Y:=Y;
-{$ifdef TEST_REGEXP}
-        if UseRegExp then
-          B.X:=A.X+regexplen
-        else
-{$endif TEST_REGEXP}
-          B.X:=A.X+length(FindStr);
-      end;
-    Found:=Found and InArea(A.X,A.Y);
-
-    if Found and ((FindFlags and ffWholeWordsOnly)<>0) then
-     begin
-       LeftOK:=(A.X<=0) or (not( (S[A.X] in AlphaChars) or (S[A.X] in NumberChars) ));
-       RightOK:=(B.X>=length(S)) or (not( (S[B.X+1] in AlphaChars) or (S[B.X+1] in NumberChars) ));
-       Found:=LeftOK and RightOK;
-       if not Found then
+      if UseRegExp then
          begin
-           CurDY:=0;
-           X:=B.X+1;
-         end;
-     end;
+           getmem(findstrpchar,length(Copy(S,X+1,high(S)))+1);
+           strpcopy(findstrpchar,Copy(S,X+1,high(S)));
+           { If start of line is required do check other positions PM }
+           if (FindStr[1]='^') and (X<>0) then
+             Found:=false
+           else
+             Found:=RegExprPos(RegExpEngine,findstrpchar,regexpindex,regexplen);
+           strdispose(findstrpchar);
+           P:=regexpindex+X+1;
+         end
+      else
+{$endif TEST_REGEXP}
+        begin
+          P:=ContainsText(FindStr,S,X+1);
+          Found:=P<>0;
+        end;
+      if Found then
+        begin
+          A.X:=P-1;
+          A.Y:=Y;
+          B.Y:=Y;
+{$ifdef TEST_REGEXP}
+          if UseRegExp then
+            B.X:=A.X+regexplen
+          else
+{$endif TEST_REGEXP}
+            B.X:=A.X+length(FindStr);
+        end;
+      Found:=Found and InArea(A.X,A.Y);
 
-    if Found then
-      begin
-        Inc(FoundCount);
-        Lock;
-        if SForward then
-         SetCurPtr(B.X,B.Y)
-        else
-         SetCurPtr(A.X,A.Y);
-        TrackCursor(do_centre);
-        SetHighlight(A,B);
-        UnLock;
-        CurDY:=0;
-        if not DoReplace then
-          begin
-            CanExit:=true;
-            If SForward then
-              begin
-                X:=B.X;
-                Y:=B.Y;
-              end
-            else
-              begin
-                X:=A.X;
-                Y:=A.Y;
-              end;
-          end
-        else
-          begin
-            if not confirm then
-              CanReplace:=true
-            else
-              begin
-                Re:=EditorDialog(edReplacePrompt,@CurPos);
-                case Re of
-                  cmYes :
-                    CanReplace:=true;
-                  cmNo :
-                    CanReplace:=false;
-                  else {cmCancel}
-                    begin
+      if Found and ((FindFlags and ffWholeWordsOnly)<>0) then
+       begin
+         LeftOK:=(A.X<=0) or (not( (S[A.X] in AlphaChars+NumberChars) ));
+         RightOK:=(B.X>=length(S)) or (not( (S[B.X+1] in AlphaChars+NumberChars) ));
+         Found:=LeftOK and RightOK;
+         if not Found then
+           begin
+             CurDY:=0;
+             If SForward then
+               begin
+                 X:=B.X+1;
+                 if X>length(S) then
+                   CurDY:=DY;
+               end
+             else
+               begin
+                 X:=A.X-1;
+                 if X<0 then
+                   CurDY:=DY;
+               end;
+           end;
+       end;
+
+      if Found then
+        begin
+          Inc(FoundCount);
+          Lock;
+          if SForward then
+           SetCurPtr(B.X,B.Y)
+          else
+           SetCurPtr(A.X,A.Y);
+          TrackCursor(do_centre);
+          SetHighlight(A,B);
+          UnLock;
+          CurDY:=0;
+          if not DoReplace then
+            begin
+              CanExit:=true;
+              If SForward then
+                begin
+                  X:=B.X;
+                  Y:=B.Y;
+                end
+              else
+                begin
+                  X:=A.X;
+                  Y:=A.Y;
+                end;
+            end
+          else
+            begin
+              if not confirm then
+                CanReplace:=true
+              else
+                begin
+                  Re:=EditorDialog(edReplacePrompt,@CurPos);
+                  case Re of
+                    cmYes :
+                      CanReplace:=true;
+                    cmNo :
                       CanReplace:=false;
-                      CanExit:=true;
+                    else {cmCancel}
+                      begin
+                        CanReplace:=false;
+                        CanExit:=true;
+                      end;
+                  end;
+                end;
+              if CanReplace then
+                begin
+                  Lock;
+                  SetSelection(A,B);
+                  DelSelect;
+                  InsertText(ReplaceStr);
+                  if SForward then
+                    begin
+                      X:=CurPos.X;
+                      Y:=CurPos.Y;
+                    end
+                  else
+                    begin
+                      X:=A.X;
+                      Y:=A.Y;
+                    end;
+                  UnLock;
+                end
+              else
+                begin
+                  If SForward then
+                    begin
+                      X:=B.X;
+                      Y:=B.Y;
+                    end
+                  else
+                    begin
+                      X:=A.X;
+                      Y:=A.Y;
                     end;
                 end;
-              end;
-            if CanReplace then
-              begin
-                Lock;
-                SetSelection(A,B);
-                DelSelect;
-                InsertText(ReplaceStr);
-                if SForward then
-                  begin
-                    X:=CurPos.X;
-                    Y:=CurPos.Y;
-                  end
-                else
-                  begin
-                    X:=A.X;
-                    Y:=A.Y;
-                  end;
-                UnLock;
-              end
-            else
-              begin
-                If SForward then
-                  begin
-                    X:=B.X;
-                    Y:=B.Y;
-                  end
-                else
-                  begin
-                    X:=A.X;
-                    Y:=A.Y;
-                  end;
-              end;
-            if (DoReplaceAll=false) then
-              CanExit:=true;
-          end;
-      end;
+              if (DoReplaceAll=false) then
+                CanExit:=true;
+            end;
+        end;
 
-    if (CanExit=false) and (CurDY<>0) then
-      begin
-        inc(Y,CurDY);
-        if SForward then
-          X:=0
-        else
-          X:=254;
-        CanExit:=(Y>=Count) or (Y<0);
-      end;
-    if not CanExit then
-      CanExit:=not InArea(X,Y);
-  until CanExit;
+      if (CanExit=false) and (CurDY<>0) then
+        begin
+          inc(Y,CurDY);
+          if SForward then
+            X:=0
+          else
+            X:=254;
+          CanExit:=((Y>=Count) and sForward) or (Y<0);
+        end;
+      if not CanExit then
+        CanExit:=(not InArea(X,Y)) and sForward;
+    until CanExit;
   if (FoundCount=0) or (DoReplace) then
     SetHighlight(CurPos,CurPos);
   if (DoReplace=false) or ((Confirm=false) and (Owner<>nil)) then
