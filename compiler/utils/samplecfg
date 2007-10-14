@@ -11,7 +11,7 @@ GCCSPEC=`(gcc -v $@ 2>&1)| head -n 1| awk '{ print $4 } '`
 if [ -z "$GCCSPEC" ] ; then
   GCCSPEC=`gcc -print-libgcc-file-name $@ 2>/dev/null`
 fi
-GCCDIR=`dirname $GCCSPEC`
+GCCDIR=`dirname "$GCCSPEC"`
 }
 
 
@@ -22,7 +22,7 @@ if [ -z "$GCCSPEC" ] ; then
   GCCSPEC=`gcc -print-libgcc-file-name -arch $1`
 fi
 
-GCCDIR=`dirname $GCCSPEC`
+GCCDIR=`dirname "$GCCSPEC"`
 
 if [ -z "$GCCDIR" ] ; then
   return
@@ -62,25 +62,25 @@ if [ $# = 0 ]; then
   echo 'confdir = Path to /etc'
   exit 1
 fi
-if [ $2 ]; then
-  sysdir=$2
-  [ -d $sysdir ] || mkdir $sysdir
+if [ "$2" ]; then
+  sysdir="$2"
+  [ -d "$sysdir" ] || mkdir "$sysdir"
 else
   sysdir=/etc
 fi
 FPCBIN=`dirname "$1"`/../../bin/fpc
 
 # Detect if we have write permission in root.
-if [ -w $sysdir ] ; then
+if [ -w "$sysdir" ] ; then
   echo Write permission in $sysdir.
-  thefile=$sysdir/fpc.cfg
+  thefile="$sysdir"/fpc.cfg
 else
   echo No write premission in $sysdir.
-  thefile=$HOME/.fpc.cfg
+  thefile"=$HOME"/.fpc.cfg
 fi
 #
 if [ -f $thefile ] ; then
-  mv $thefile $thefile.orig  >/dev/null 2>&1
+  mv "$thefile" "$thefile.orig"  >/dev/null 2>&1
   if [ $? = 0 ]; then
     echo Saved old config to $thefile.orig
   else
@@ -107,16 +107,16 @@ case $HOSTOS in
      ;;
  darwin)
    setgccdirarch ppc
-   GCCDIR2=$GCCDIR
+   GCCDIR2="$GCCDIR"
    setgccdirarch ppc64
-   GCCDIR3=$GCCDIR
+   GCCDIR3="$GCCDIR"
    setgccdirarch i386
-   GCCDIR4=$GCCDIR
+   GCCDIR4="$GCCDIR"
    setgccdirarch x86_64
      ;;
  *)
-   if [ -d $GCCDIR ]; then	
-      echo Found libgcc.a in $GCCDIR
+   if [ -d "$GCCDIR" ]; then	
+      echo Found libgcc.a in "$GCCDIR"
     GCCDIR=-Fl$GCCDIR
    fi
     ;;
@@ -126,7 +126,7 @@ esac
 CPUCROSSIFDEF1="#DEFINE NEEDCROSSBINUTILS"
 CPUCROSSIFDEF2=""
 
-case `$FPCBIN -PP` in
+case `"$FPCBIN" -PP` in
   i?86|x86_64|amd64)
     # Cross-binutils are not needed to compile for i386 on an x86_64 system
     CPUCROSSIFDEF1="
