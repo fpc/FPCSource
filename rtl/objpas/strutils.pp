@@ -194,14 +194,37 @@ function TrimSet(const S: String;const CSet:TSysCharSet): String;
 implementation
 
 { ---------------------------------------------------------------------
-    Auxiliary functions
+   Possibly Exception raising functions
   ---------------------------------------------------------------------}
+
 
 Procedure NotYetImplemented (FN : String);
 
 begin
   Raise Exception.CreateFmt('Function "%s" (strutils) is not yet implemented',[FN]);
 end;
+
+function Hex2Dec(const S: string): Longint;
+var
+  HexStr: string;
+begin
+  if Pos('$',S)=0 then
+    HexStr:='$'+ S
+  else
+    HexStr:=S;
+  Result:=StrToInt(HexStr);
+end;
+
+{
+  We turn off implicit exceptions, since these routines are tested, and it 
+  saves 20% codesize (and some speed) and don't throw exceptions, except maybe 
+  heap related. If they don't, that is consider a bug.
+
+  In the future, be wary with routines that use strtoint, floating point 
+  and/or format() derivatives. And check every divisor for 0.
+}
+
+{$IMPLICITEXCEPTIONS OFF}
 
 { ---------------------------------------------------------------------
     Case insensitive search/replace
@@ -765,9 +788,9 @@ Var
 begin
   S:=SoundEx(Atext,4);
   Result:=Ord(S[1])-OrdA;
-  Result:=Result*26+StrToInt(S[2]);
-  Result:=Result*7+StrToInt(S[3]);
-  Result:=Result*7+StrToInt(S[4]);
+  Result:=Result*26+ord(S[2])-48;
+  Result:=Result*7+ord(S[3])-48;
+  Result:=Result*7+ord(S[4])-48;
 end;
 
 
@@ -1175,16 +1198,6 @@ begin
     Result:=S;
 end;
 
-function Hex2Dec(const S: string): Longint;
-var
-  HexStr: string;
-begin
-  if Pos('$',S)=0 then
-    HexStr:='$'+ S
-  else
-    HexStr:=S;
-  Result:=StrToInt(HexStr);
-end;
 
 function Dec2Numb(N: Longint; Len, Base: Byte): string;
 
@@ -1304,7 +1317,6 @@ begin
       end;
 end;
 
-{$implicitexceptions off}
 function intToBin(Value: Longint; Digits, Spaces: Integer): string;
 var endpos : integer;
     p,p2:pchar;
@@ -1379,7 +1391,6 @@ begin
     fillchar(result[1],digits,#48);
 end;
 
-{$implicitexceptions on}
 
 function FindPart(const HelpWilds, inputStr: string): Integer;
 var
