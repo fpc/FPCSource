@@ -92,6 +92,17 @@ begin
    MaybeExtension:=Hstr;
 end;
 
+function ExtractFileName(const AFilePath : String): String;
+var i : Integer;
+begin
+  i := Length(AFilePath);
+  while (i>0) and (AFilePath[i]<>DirectorySeparator) and
+    (AFilePath[i]<>DriveSeparator) do
+  begin
+    Dec(i);
+  end;
+  ExtractFileName := Copy(AFilePath,i+1,Length(AFilePath)); 
+end;
 
 {*****************************************************************************
                                 Options
@@ -232,11 +243,10 @@ begin
     Usage;
   if UnitName='' then
    begin
-     i:=pos('.',outputfilename)-1;
-     if i<=0 then
-      UnitName:=outputfilename
-     else
-      UnitName:=Copy(OutputFileName,1,i);
+     UnitName := ExtractFileName(outputfilename);
+     i:=pos('.',UnitName)-1;
+     if i>0 then
+      UnitName:=Copy(UnitName,1,i);
    end;
 end;
 
