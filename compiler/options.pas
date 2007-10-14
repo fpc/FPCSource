@@ -2117,7 +2117,6 @@ begin
   { "main" symbol is generated in the main program, and left out of the system unit }
   def_system_macro('FPC_DARWIN_PASCALMAIN');
   def_system_macro('FPC_DARWIN_JMP_MAIN');
-  def_system_macro('COMPPROCINLINEFIXED');
   def_system_macro('PARAOUTFILE');
   def_system_macro('RESSTRSECTIONS');
   def_system_macro('FPC_HASFIXED64BITVARIANT');
