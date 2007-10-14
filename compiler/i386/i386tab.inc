@@ -8712,7 +8712,7 @@
     opcode  : A_COMISD;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#217#1#102#211#2#15#47#72;
+    code    : #217#1#102#193#211#2#15#47#72;
     flags   : if_willamette or if_sse2
   ),
   (
