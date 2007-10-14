@@ -10,6 +10,7 @@ version=2.0.0
 programs=fppkg
 implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 units_linux=pkgwget  pkglnet $(PKGCURL)
+units_beos=pkgwget pkglnet $(PKGCURL)
 units_freebsd=pkgwget pkglnet $(PKGCURL)
 units_netbsd=pkgwget pkglnet $(PKGCURL)
 units_openbsd=pkgwget pkglnet $(PKGCURL)
