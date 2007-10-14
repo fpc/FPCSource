@@ -33,7 +33,7 @@ unit i_beos;
             name         : 'Beos for i386';
             shortname    : 'Beos';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_smartlink_library];
+                            tf_smartlink_sections, tf_smartlink_library];
             cpu          : cpu_i386;
             unit_env     : 'BEOSUNITS';
             extradefines : 'UNIX;HASUNIX';

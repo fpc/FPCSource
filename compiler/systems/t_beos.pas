@@ -279,8 +279,8 @@ begin
      if prtobj<>'' then
       LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
 
-     if isdll then
-      LinkRes.AddFileName(FindObjectFile('func.o','',false));
+//     if isdll then
+//      LinkRes.AddFileName(FindObjectFile('func.o','',false));
 
      if librarysearchpath.FindFile('init_term_dyn.o',false,s) then
       LinkRes.AddFileName(s);
@@ -361,9 +361,10 @@ end;
 function TLinkerBeOS.MakeExecutable:boolean;
 var
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
+  GCSectionsStr,
   StaticStr,
   StripStr   : string[40];
 begin
@@ -374,10 +375,16 @@ begin
   StaticStr:='';
   StripStr:='';
   DynLinkStr:='';
+  GCSectionsStr:='';
   if (cs_link_staticflag in current_settings.globalswitches) then
    StaticStr:='-static';
   if (cs_link_strip in current_settings.globalswitches) then
    StripStr:='-s';
+
+  if (cs_link_smart in current_settings.globalswitches) and
+     (tf_smartlink_sections in target_info.flags) then
+      GCSectionsStr:='--gc-sections';
+
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
@@ -398,6 +405,7 @@ begin
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,true);
 
@@ -412,7 +420,8 @@ end;
 Function TLinkerBeOS.MakeSharedLibrary:boolean;
 var
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  SoNameStr : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -443,14 +452,18 @@ var
 { Write used files and libraries }
   WriteResponseFile(true,true);
 
+  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
+
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  Replace(cmdstr,'$SONAME',SoNameStr);
+
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
 { Strip the library ? }
