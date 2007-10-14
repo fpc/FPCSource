@@ -68,6 +68,7 @@ if [ $2 ]; then
 else
   sysdir=/etc
 fi
+FPCBIN=`dirname "$1"`/../../bin/fpc
 
 # Detect if we have write permission in root.
 if [ -w $sysdir ] ; then
@@ -125,7 +126,7 @@ esac
 CPUCROSSIFDEF1="#DEFINE NEEDCROSSBINUTILS"
 CPUCROSSIFDEF2=""
 
-case `fpc -PP` in
+case `$FPCBIN -PP` in
   i?86|x86_64|amd64)
     # Cross-binutils are not needed to compile for i386 on an x86_64 system
     CPUCROSSIFDEF1="
