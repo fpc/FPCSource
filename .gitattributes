@@ -5278,7 +5278,7 @@ rtl/palmos/syspalm.pp svneol=native#text/plain
 rtl/palmos/system.pp svneol=native#text/plain
 rtl/palmos/systraps.pp svneol=native#text/plain
 rtl/powerpc/int64p.inc svneol=native#text/plain
-rtl/powerpc/makefile.cpu -text
+rtl/powerpc/makefile.cpu svneol=native#text/plain
 rtl/powerpc/math.inc svneol=native#text/plain
 rtl/powerpc/mathu.inc svneol=native#text/plain
 rtl/powerpc/mathuh.inc svneol=native#text/plain
