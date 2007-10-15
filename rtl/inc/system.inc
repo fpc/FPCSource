@@ -60,6 +60,21 @@ var
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
+{*****************************************************************************
+                       OS dependent Helpers/Syscalls
+*****************************************************************************}
+
+{ for some OSes do_isdevice is defined in sysos.inc, but for others (win32)
+  it isn't, and is used before the actual definition is encountered         }
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+function do_isdevice(handle:thandle):boolean;forward;
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+
+{$i sysos.inc}
+
+
 {****************************************************************************
                     Include processor specific routines
 ****************************************************************************}
@@ -893,11 +908,6 @@ begin
 end;
 
 
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-function do_isdevice(handle:thandle):boolean;forward;
-{$endif FPC_HAS_FEATURE_FILEIO}
-
-
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure dump_stack(var f : text;bp : Pointer);
 var
@@ -1144,13 +1154,6 @@ end;
 {$ifdef OverflowCheckWasOn}
 {$Q+}
 {$endif}
-
-
-{*****************************************************************************
-                       OS dependent Helpers/Syscalls
-*****************************************************************************}
-
-{$i sysos.inc}
 
 
 {*****************************************************************************
