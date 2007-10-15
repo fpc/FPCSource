@@ -282,6 +282,15 @@ asm
   { if chars not equal or at the end, we're ready }
   bdnzt   cr0*4+eq, .LCompDWordLoop
 .LCompDWordDone:
+  cmpld   cr1,r9,r10
+  beq     .Ldone
+  { since these were two dwords, we have to perform an additional }
+  { unsigned comparison and set the result accordingly            }
+  bgt       cr1,.Lpos
+  li r3,-2
+.Lpos:
+  addi r3,r3,1
+.Ldone:
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
