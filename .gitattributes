@@ -6933,6 +6933,7 @@ tests/test/theap.pp svneol=native#text/plain
 tests/test/theapthread.pp svneol=native#text/plain
 tests/test/thintdir.pp svneol=native#text/plain
 tests/test/timplprog.pp svneol=native#text/plain
+tests/test/tindex.pp svneol=native#text/plain
 tests/test/tinivar.pp svneol=native#text/plain
 tests/test/tinlin64.pp svneol=native#text/plain
 tests/test/tinline1.pp svneol=native#text/plain
