@@ -67,6 +67,8 @@ implementation
        { symtable }
        symconst,symsym,symtable,
        defutil,defcmp,
+       { modules }
+       fmodule,
        { pass 1 }
        node,ncgrtti,nobj,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -86,6 +88,9 @@ implementation
         genericdef : tstoreddef;
         generictype : ttypesym;
         generictypelist : TFPObjectList;
+        oldsymtablestack   : tsymtablestack;
+        hmodule : tmodule;
+        pu : tused_unit;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(pt1.resultdef);
@@ -148,6 +153,32 @@ implementation
         { force correct error location if too much type parameters are passed }
         if token<>_RSHARPBRACKET then
           consume(_RSHARPBRACKET);
+
+        { Setup symtablestack a definition time
+          to get types right, however this is not perfect, we should probably record
+          the resolved symbols }
+        oldsymtablestack:=symtablestack;
+        symtablestack:=tsymtablestack.create;
+        if not assigned(genericdef) then
+          internalerror(200705151);
+        hmodule:=find_module_from_symtable(genericdef.owner);
+        if hmodule=nil then
+          internalerror(200705152);
+        pu:=tused_unit(hmodule.used_units.first);
+        while assigned(pu) do
+          begin
+            if not assigned(pu.u.globalsymtable) then
+              internalerror(200705153);
+            symtablestack.push(pu.u.globalsymtable);
+            pu:=tused_unit(pu.next);
+          end;
+
+        if assigned(hmodule.globalsymtable) then
+          symtablestack.push(hmodule.globalsymtable);
+
+        { hacky, but necessary to insert the newly generated class properly }
+        symtablestack.push(oldsymtablestack.top);
+
         { Reparse the original type definition }
         if not err then
           begin
@@ -158,6 +189,11 @@ implementation
             { Consume the semicolon if it is also recorded }
             try_to_consume(_SEMICOLON);
           end;
+
+        { Restore symtablestack }
+        symtablestack.free;
+        symtablestack:=oldsymtablestack;
+
         generictypelist.free;
         consume(_RSHARPBRACKET);
       end;

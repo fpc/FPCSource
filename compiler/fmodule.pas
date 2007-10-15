@@ -202,6 +202,7 @@ interface
     function get_module(moduleindex : longint) : tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
+    function find_module_from_symtable(st:tsymtable):tmodule;
 
 
 implementation
@@ -220,6 +221,24 @@ implementation
 {*****************************************************************************
                              Global Functions
 *****************************************************************************}
+
+    function find_module_from_symtable(st:tsymtable):tmodule;
+      var
+        hp : tmodule;
+      begin
+        result:=nil;
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
+          begin
+            if (hp.globalsymtable=st) or
+               (hp.localsymtable=st) then
+              begin
+                result:=hp;
+                exit;
+              end;
+            hp:=tmodule(hp.next);
+         end;
+      end;
 
     procedure set_current_module(p:tmodule);
       begin

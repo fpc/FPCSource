@@ -1779,25 +1779,6 @@ implementation
 
 
     procedure specialize_objectdefs(p:TObject;arg:pointer);
-
-        function find_module_from_symtable(st:tsymtable):tmodule;
-        var
-          hp : tmodule;
-        begin
-          result:=nil;
-          hp:=tmodule(loaded_units.first);
-          while assigned(hp) do
-            begin
-              if (hp.globalsymtable=st) or
-                 (hp.localsymtable=st) then
-                begin
-                  result:=hp;
-                  exit;
-                end;
-              hp:=tmodule(hp.next);
-           end;
-        end;
-
       var
         i  : longint;
         hp : tdef;

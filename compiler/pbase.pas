@@ -116,13 +116,6 @@ implementation
        end;
 
 
-{ Unused:
-    function tokenstring(i : ttoken):string;
-      begin
-        tokenstring:=tokeninfo^[i].str;
-      end;
-}
-
     { consumes token i, write error if token is different }
     procedure consume(i : ttoken);
       begin
