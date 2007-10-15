@@ -60,7 +60,7 @@ begin
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc (interpret values < 0 as   }
   { unsigned)                                                       }
-  res := memchr(buf,cint(b),size_t(len));
+  res := memchr(buf,cint(b),size_t(sizeuint(len)));
   if (res <> nil) then
     IndexByte := SizeInt(res-@buf)
   else
