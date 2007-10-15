@@ -4500,7 +4500,11 @@ begin
         DontClear:=false;
         case Event.KeyCode of
           kbEsc:
-            Message(Owner,evCommand,cmCancel,nil);
+            begin
+              Event.What:=evCommand;
+              Event.Command:=cmCancel;
+              PutEvent(Event);
+            end;
         else DontClear:=true;
         end;
         if not DontClear then ClearEvent(Event);

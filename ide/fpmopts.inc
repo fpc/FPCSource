@@ -698,7 +698,8 @@ var tab:Ptab;
     IL:array[0..11] of PEditorInputLine;
     misc_items:PTabItem;
     misc_tabfocus:Pview;
-
+    newmisc_items,
+    temp : PTabItem;
 const LW=25;
 
 begin
@@ -776,6 +777,19 @@ begin
           R.move(0,2);
         end;
     end;
+
+  { revert items for correct tab order }
+  newmisc_items:=nil;
+  while assigned(misc_items) do
+    begin
+      { get element }
+      temp:=misc_items;
+      misc_items:=temp^.next;
+      { put element }
+      temp^.next:=newmisc_items;
+      newmisc_items:=temp;
+    end;
+  misc_items:=newmisc_items;
 
   {Create some tabs in the window.}
   tabR.assign(1,1,d^.size.x-2,d^.size.y-1);
