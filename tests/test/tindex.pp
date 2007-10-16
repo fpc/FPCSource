@@ -79,7 +79,7 @@ begin
               halt(6);
             end;
 
-          if (unaligned(pword(@b[k+4])^)=0) then
+          if (unaligned(pword(@b[k+4]))^=0) then
             index:=0
           else if (i=0) then
             index:=-1
@@ -99,7 +99,7 @@ begin
             index:=0
           else
             index:=i shr 1;
-          l:=unaligned(pword(@(b[k+4+(i and not 1)]))^);
+          l:=unaligned(pword(@(b[k+4+(i and not 1)])))^;
           if indexword(b[k+4],i shr 1+1,l)<>index then
             begin
               writeln(indexword(b[k+4],((i and not 1)+1) shr 1+1,l),' <> ',index);
@@ -107,7 +107,7 @@ begin
               halt(8);
             end;
 
-           l:=unaligned(pword(@(b[k+4+((i shr 2) and not 1)-2]))^);
+           l:=unaligned(pword(@(b[k+4+((i shr 2) and not 1)-2])))^;
            if (i>=8) then
              index:=((i shr 2) and not 1) shr 1 - 1
            else
@@ -118,7 +118,7 @@ begin
                writeln('indexword error 9 for (',i,',',j,',',k,')');
                halt(9);
              end;
-           l:=unaligned(pword(@(b[k+4]))^);
+           l:=unaligned(pword(@(b[k+4])))^;
            if (i<2) then
              index:=-1
            else
@@ -130,7 +130,7 @@ begin
              end;
 
 
-           if (unaligned(pdword(@b[k+4])^)=0) then
+           if (unaligned(pdword(@b[k+4]))^=0) then
              index:=0
            else if (i=0) then
              index:=-1
@@ -150,14 +150,14 @@ begin
              index:=0
            else
              index:=i shr 2;
-           l:=unaligned(pdword(@(b[k+4+(i and not 3)]))^);
+           l:=unaligned(pdword(@(b[k+4+(i and not 3)])))^;
            if indexdword(b[k+4],i shr 2+1,l)<>index then
              begin
                writeln('indexdword error 12 for (',i,',',j,',',k,')');
                halt(12);
              end;
 
-           l:=unaligned(pdword(@(b[k+4+((i shr 3) and not 3)-4]))^);
+           l:=unaligned(pdword(@(b[k+4+((i shr 3) and not 3)-4])))^;
            if (i>=32) then
              index:=((i shr 3) and not 3) shr 2 - 1
            else
@@ -168,7 +168,7 @@ begin
                writeln('indexword error 13 for (',i,',',j,',',k,')');
                halt(13);
              end;
-          l:=unaligned(pword(@(b[k+4]))^);
+          l:=unaligned(pword(@(b[k+4])))^;
           if (i<4) then
             index:=-1
           else
