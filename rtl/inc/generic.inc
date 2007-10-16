@@ -34,7 +34,11 @@ begin
       { Forward Move }
       psrc:=@source;
       pdest:=@dest;
-      if Count>4*sizeof(ptruint)-1 then
+      if (Count>4*sizeof(ptruint)-11)
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+        then
         begin
           { Align on native pointer size }
           aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
@@ -69,7 +73,11 @@ begin
       { Backward Move }
       psrc:=@source+count;
       pdest:=@dest+count;
-      if Count>4*sizeof(ptruint)-1 then
+      if (Count>4*sizeof(ptruint)-11)
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+        then
         begin
           { Align on native pointer size }
           aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
@@ -327,10 +335,14 @@ begin
   b:=0;
   psrc:=@buf1;
   pdest:=@buf2;
-  if len>4*sizeof(ptruint)-1 then
+  if (len>4*sizeof(ptruint)-1) 
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    then
     begin
       { Align on native pointer size }
-      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
+      aligncount:=(sizeof(PtrUInt)-(PtrUInt(pdest) and (sizeof(PtrUInt)-1))) and (sizeof(PtrUInt)-1);
       dec(len,aligncount);
       pend:=psrc+aligncount;
       while psrc<pend do
@@ -393,10 +405,15 @@ begin
   b:=0;
   psrc:=@buf1;
   pdest:=@buf2;
-  if len>4*sizeof(ptruint)-1 then
-    begin
+  if (len>4*sizeof(ptruint)-1)
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
+    and (((PtrUInt(pdest) and 1) or (PtrUInt(psrc) and 1))=0)
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    then
+     begin
       { Align on native pointer size }
-      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 1;
+      aligncount:=((sizeof(PtrUInt)-(PtrUInt(pdest) and (sizeof(PtrUInt)-1))) and (sizeof(PtrUInt)-1)) shr 1;
       dec(len,aligncount);
       pend:=psrc+aligncount;
       while psrc<pend do
@@ -432,19 +449,36 @@ begin
     pend:=psrc+len
   else
     pend:=pword(high(ptruint)-2);
-  while psrc<pend do
-    begin
-      b:=(ptrint(psrc^)-ptrint(pdest^));
-      if b<>0 then
-        begin
-          if b<0 then
-            exit(-1)
-          else
-            exit(1);
-        end;
-      inc(pdest);
-      inc(psrc);
-    end;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  if ((PtrUInt(pdest) and 1) or (PtrUInt(psrc) and 1))<>0 then
+    while psrc<pend do
+      begin
+        b:=(ptrint(unaligned(psrc^))-ptrint(unaligned(pdest^)));
+        if b<>0 then
+          begin
+            if b<0 then
+              exit(-1)
+            else
+              exit(1);
+          end;
+        inc(pdest);
+        inc(psrc);
+      end
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  else
+    while psrc<pend do
+      begin
+        b:=(ptrint(psrc^)-ptrint(pdest^));
+        if b<>0 then
+          begin
+            if b<0 then
+              exit(-1)
+            else
+              exit(1);
+          end;
+        inc(pdest);
+        inc(psrc);
+      end;
   result:=0;
 end;
 {$endif not FPC_SYSTEM_HAS_COMPAREWORD}
@@ -455,15 +489,19 @@ function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt;
 var
   aligncount : sizeint;
   psrc,pdest,pend : pdword;
-  b : ptrint;
+  b : ptruint;
 begin
   b:=0;
   psrc:=@buf1;
   pdest:=@buf2;
-  if len>4*sizeof(ptruint)-1 then
+  if (len>4*sizeof(ptruint)-11)
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    and (((PtrUInt(pdest) and 3) or (PtrUInt(psrc) and 3))=0)
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    then
     begin
       { Align on native pointer size }
-      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 2;
+      aligncount:=((sizeof(PtrUInt)-(PtrUInt(pdest) and (sizeof(PtrUInt)-1))) and (sizeof(PtrUInt)-1)) shr 2;
       dec(len,aligncount);
       pend:=psrc+aligncount;
       while psrc<pend do
@@ -499,19 +537,36 @@ begin
     pend:=psrc+len
   else
     pend:=pdword(high(ptruint)-4);
-  while psrc<pend do
-    begin
-      b:=(ptrint(psrc^)-ptrint(pdest^));
-      if b<>0 then
-        begin
-          if b<0 then
-            exit(-1)
-          else
-            exit(1);
-        end;
-      inc(pdest);
-      inc(psrc);
-    end;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  if ((PtrUInt(pdest) and 3) or (PtrUInt(psrc) and 3))<>0 then
+    while psrc<pend do
+      begin
+        b:=(ptruint(unaligned(psrc^))-ptruint(unaligned(pdest^)));
+        if b<>0 then
+          begin
+            if b<0 then
+              exit(-1)
+            else
+              exit(1);
+          end;
+        inc(pdest);
+        inc(psrc);
+      end
+  else
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    while psrc<pend do
+      begin
+        b:=(ptruint(psrc^)-ptruint(pdest^));
+        if b<>0 then
+          begin
+            if b<0 then
+              exit(-1)
+            else
+              exit(1);
+          end;
+        inc(pdest);
+        inc(psrc);
+      end;
   result:=0;
 end;
 {$endif ndef FPC_SYSTEM_HAS_COMPAREDWORD}
