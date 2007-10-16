@@ -335,7 +335,7 @@ begin
   b:=0;
   psrc:=@buf1;
   pdest:=@buf2;
-  if (len>4*sizeof(ptruint)-1) 
+  if (len>4*sizeof(ptruint)-1)
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -464,8 +464,8 @@ begin
         inc(pdest);
         inc(psrc);
       end
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   else
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     while psrc<pend do
       begin
         b:=(ptrint(psrc^)-ptrint(pdest^));
