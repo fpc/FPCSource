@@ -363,18 +363,21 @@ uses
          { try to find unit
             1. look for ppu in cwd
             2. look for ppu in outputpath if set, this is tp7 compatible (PFV)
-            3. look for the specified source file (from the uses line)
-            4. look for source in cwd
-            5. look in same path as local unit
-            6. local unit pathlist
-            7. global unit pathlist }
+            3. look for ppu in maindir
+            4. look for the specified source file (from the uses line)
+            5. look for source in cwd
+            6. look for source in maindir
+            7. local unit pathlist
+            8. global unit pathlist }
          fnd:=false;
          if not onlysource then
           begin
             fnd:=PPUSearchPath('.');
             if (not fnd) and (outputpath^<>'') then
              fnd:=PPUSearchPath(outputpath^);
-           end;
+            if (not fnd) and Assigned(main_module) and (main_module.Path^<>'')  then
+             fnd:=PPUSearchPath(main_module.Path^);
+          end;
          if (not fnd) and (sourcefn^<>'') then
           begin
             { the full filename is specified so we can't use here the
@@ -403,14 +406,10 @@ uses
           end;
          if not fnd then
            fnd:=SourceSearchPath('.');
-         if (not fnd) and Assigned(Loaded_From) then
-           begin
-             fnd:=PPUSearchPath(Loaded_From.Path^);
-             if not fnd then
-               fnd:=SourceSearchPath(Loaded_From.Path^);
-             if not fnd then
-               fnd:=SearchPathList(Loaded_From.LocalUnitSearchPath);
-           end;
+         if (not fnd) and Assigned(main_module) and (main_module.Path^<>'') then
+           fnd:=SourceSearchPath(main_module.Path^);
+         if (not fnd) and Assigned(loaded_from) then
+           fnd:=SearchPathList(loaded_from.LocalUnitSearchPath);
          if not fnd then
            fnd:=SearchPathList(UnitSearchPath);
 
