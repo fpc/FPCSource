@@ -500,9 +500,9 @@ asm
         movl    %edx,%esi
         movl    %ecx,%eax
 {$else}
-        movl    len,%eax
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
+        movl    len,%eax
 {$endif}
         testl   %eax,%eax       {We address -1(%esi), so we have to deal with len=0}
         je      .LCmpbyteExit
@@ -558,9 +558,9 @@ asm
         movl    %edx,%esi
         movl    %ecx,%eax
 {$else}
-        movl    len,%eax
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
+        movl    len,%eax
 {$endif}
         testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
         je      .LCmpwordExit
@@ -623,13 +623,16 @@ asm
 {$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
+        movl    %ecx,%eax
 {$else}
-        movl    len,%ecx
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
+        movl    len,%eax
+        movl    %eax,%ecx
 {$endif}
-        testl   %ecx,%ecx
+        testl   %eax,%eax
         je      .LCmpDwordExit
+        movl    %eax,%ecx
         xorl    %eax,%eax
         rep                     { Compare entire DWords}
         cmpsl

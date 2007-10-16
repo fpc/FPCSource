@@ -1124,10 +1124,13 @@ begin
      (p.oper[1]^.typ = top_reg) and
      (getsupreg(p.oper[1]^.reg) = supreg) and
      (canDependOnPrevValue or
-      (p.oper[0]^.typ <> top_ref) or
-      not regInRef(supreg,p.oper[0]^.ref^)) or
-     ((p.opcode = A_POP) and
-      (getsupreg(p.oper[0]^.reg) = supreg)));
+      (p.oper[0]^.typ = top_const) or
+      ((p.oper[0]^.typ = top_reg) and
+       (getsupreg(p.oper[0]^.reg) <> supreg)) or
+      ((p.oper[0]^.typ = top_ref) and
+       not regInRef(supreg,p.oper[0]^.ref^)))) or
+    ((p.opcode = A_POP) and
+     (getsupreg(p.oper[0]^.reg) = supreg));
 end;
 
 procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);

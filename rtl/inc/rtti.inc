@@ -326,6 +326,15 @@ begin
 end;
 
 
+{ For internal use by the compiler, because otherwise $x- can cause trouble. }
+{ Generally disabling extended syntax checking for all compilerprocs may     }
+{ have unintended side-effects                                               }
+procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer);compilerproc; inline;
+begin
+  fpc_copy_internal(src,dest,typeinfo);
+end;
+
+
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;
   var
      i : longint;
