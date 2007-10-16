@@ -229,22 +229,24 @@ Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer; FrameCount: Lon
 Var
   Message : String;
   i : longint;
+  hstdout : ^text;
 begin
-  Writeln(stdout,'An unhandled exception occurred at $',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
+  hstdout:=@stdout;
+  Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
   if Obj is exception then
    begin
      Message:=Exception(Obj).ClassName+' : '+Exception(Obj).Message;
-     Writeln(stdout,Message);
+     Writeln(hstdout^,Message);
    end
   else
-   Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
-  Writeln(stdout,BackTraceStrFunc(Addr));
+   Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.');
+  Writeln(hstdout^,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin
       for i:=0 to FrameCount-1 do
-        Writeln(stdout,BackTraceStrFunc(Frames[i]));
+        Writeln(hstdout^,BackTraceStrFunc(Frames[i]));
     end;
-  Writeln(stdout,'');
+  Writeln(hstdout^,'');
 end;
 
 
@@ -255,7 +257,7 @@ Var OutOfMemory : EOutOfMemory;
 Procedure RunErrorToExcept (ErrNo : Longint; Address,Frame : Pointer);
 
 Var E : Exception;
-    S : String;
+    HS : PString;
 
 begin
   Case Errno of
@@ -264,21 +266,21 @@ begin
    2,3,4,5,6,100,101,102,103,105,106 : { I/O errors }
      begin
      Case Errno of
-       2 : S:=SFileNotFound;
-       3 : S:=SInvalidFileName;
-       4 : S:=STooManyOpenFiles;
-       5 : S:=SAccessDenied;
-       6 : S:=SInvalidFileHandle;
-       15 : S:=SInvalidDrive;
-       100 : S:=SEndOfFile;
-       101 : S:=SDiskFull;
-       102 : S:=SFileNotAssigned;
-       103 : S:=SFileNotOpen;
-       104 : S:=SFileNotOpenForInput;
-       105 : S:=SFileNotOpenForOutput;
-       106 : S:=SInvalidInput;
+       2 : HS:=@SFileNotFound;
+       3 : HS:=@SInvalidFileName;
+       4 : HS:=@STooManyOpenFiles;
+       5 : HS:=@SAccessDenied;
+       6 : HS:=@SInvalidFileHandle;
+       15 : HS:=@SInvalidDrive;
+       100 : HS:=@SEndOfFile;
+       101 : HS:=@SDiskFull;
+       102 : HS:=@SFileNotAssigned;
+       103 : HS:=@SFileNotOpen;
+       104 : HS:=@SFileNotOpenForInput;
+       105 : HS:=@SFileNotOpenForOutput;
+       106 : HS:=@SInvalidInput;
      end;
-     E:=EinOutError.Create (S);
+     E:=EinOutError.Create (HS^);
      EInoutError(E).ErrorCode:=IOresult; // Clears InOutRes !!
      end;
   // We don't set abstracterrorhandler, but we do it here.
@@ -344,7 +346,7 @@ begin
     S:=SAssertionFailed
   else
     S:=Msg;
-  Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]); // at Pointer(theAddr);
+  Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]) at Pointer(theAddr);
 end;
 
 {$ifdef STACKCHECK_WAS_ON}
