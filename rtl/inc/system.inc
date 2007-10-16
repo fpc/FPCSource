@@ -607,20 +607,25 @@ end;
 procedure fpc_iocheck;[public,alias:'FPC_IOCHECK']; compilerproc;
 var
   l : longint;
+  HInoutRes : PWord;
 begin
-  if InOutRes<>0 then
+  HInOutRes:=@InoutRes;
+  if HInOutRes^<>0 then
    begin
-     l:=InOutRes;
-     InOutRes:=0;
+     l:=HInOutRes^;
+     HInOutRes^:=0;
      HandleErrorFrame(l,get_frame);
    end;
 end;
 
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  HInoutRes : PWord;
 Begin
-  IOResult:=InOutRes;
-  InOutRes:=0;
+  HInoutRes:=@InoutRes;
+  IOResult:=HInOutRes^;
+  HInOutRes^:=0;
 End;
 
 
