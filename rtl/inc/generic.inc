@@ -348,7 +348,7 @@ begin
         end;
       { use sizeuint typecast to force shr optimization }
       pptruint(pend):=pptruint(psrc)+(sizeuint(len) div sizeof(ptruint));
-      len:=len and (sizeof(PtrUInt)-1) shr 1;
+      len:=len and (sizeof(PtrUInt)-1);
       while psrc<pend do
         begin
           b:=(pptrint(psrc)^-pptrint(pdest)^);
@@ -414,7 +414,7 @@ begin
         end;
       { use sizeuint typecast to force shr optimization }
       pptruint(pend):=pptruint(psrc)+(sizeuint(len)*2 div sizeof(ptruint));
-      len:=len and (sizeof(PtrUInt)-1) shr 1;
+      len:=((len*2) and (sizeof(PtrUInt)-1)) shr 1;
       while psrc<pend do
         begin
           b:=(pptrint(psrc)^-pptrint(pdest)^);
@@ -481,7 +481,7 @@ begin
         end;
       { use sizeuint typecast to force shr optimization }
       pptruint(pend):=pptruint(psrc)+(sizeuint(len)*4 div sizeof(ptruint));
-      len:=len and (sizeof(PtrUInt)-1) shr 2;
+      len:=((len*4) and (sizeof(PtrUInt)-1)) shr 2;
       while psrc<pend do
         begin
           b:=(pptrint(psrc)^-pptrint(pdest)^);
