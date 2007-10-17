@@ -36,10 +36,10 @@ var
   opts: TMkSymbianOptions;
 begin
 
+  vProject := TProject.Create;
   vSDKUtil := TSDKUtil.Create;
   vCmdLine := TCmdLine.Create;
   vCompiler := TCompiler.Create;
-  vProject := TProject.Create;
 
   try
     vCmdLine.ParseCmdLineOptions(opts);
@@ -54,22 +54,26 @@ begin
         vProject.ParseFile;
         
         { compilation }
+        
         if CompareText(vProject.Language, STR_OPT_Cpp) = 0 then
          vCompiler.MakeBuildCpp
         else
          vCompiler.MakeBuildPascal;
 
-        { Main resource file }
+        if vSDKUtil.SDKVersion = sdkUIQ3 then
+        begin
+          { Main resource file }
         
-        vCompiler.BuildResource(vProject.MainResource);
+          vCompiler.BuildResource(vProject.MainResource);
 
-        vCompiler.InstallResource(vProject.MainResource);
+          vCompiler.InstallResource(vProject.MainResource);
 
-        { Registration resource file }
+          { Registration resource file }
         
-        vCompiler.BuildResource(vProject.RegResource);
+          vCompiler.BuildResource(vProject.RegResource);
 
-        vCompiler.RegisterInEmulator;
+          vCompiler.RegisterInEmulator;
+        end;
       end;
 
       stBuildBindings:
@@ -78,7 +82,6 @@ begin
 
         vCompiler.MakeBuildBindings;
       end;
-      
     end;
     
   finally
@@ -86,8 +89,6 @@ begin
     vSDKUtil.Free;
     vCompiler.Free;
     vProject.Free;
-
   end;
-  
 end.
 

@@ -42,6 +42,14 @@ type
     ProjectFile: string;
   end;
 
+{ Constants and types for the SDK version }
+type
+  TSDKVersion = (sdkUIQ21, sdkUIQ3);
+
+const
+  Str_UIQ21 = 'UIQ 2.1';
+  Str_UIQ3  = 'UIQ 3';
+
 { Commands }
 
 const
@@ -51,6 +59,11 @@ const
 
 { Paths on the SDK }
 const
+  { UIQ 2 Paths }
+  Str_Path_UIQ2_ARM_BINUTILS = 'epoc32\gcc\bin\';
+  Str_Path_UIQ2_Makmake = 'epoc32\tools\makmake.pl';
+
+  { UIQ 3 Paths }
   Str_Path_CWTools = 'epoc32\tools\nokia_compiler\Symbian_Tools\Command_Line_Tools\';
   Str_Path_RComp = 'epoc32\tools\rcomp.exe';
   Str_Path_Cpp = 'epoc32\tools\scpp.exe';

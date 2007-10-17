@@ -40,7 +40,8 @@ type
   public
     opts: TMkSymbianOptions;
     { Main section }
-    ExeName, Language: string;
+    ExeName, Language, ProjectType, SDK, SDKVersion: string;
+    Emulator: Boolean;
     { FPC section }
     CompilerPath, AssemblerPath, RTLUnitsDir: string;
     { UIDs section }
@@ -94,6 +95,10 @@ begin
   try
     ExeName := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_ExeName, 'default.exe');
     Language := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_Language, 'Pascal');
+    ProjectType := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_ProjectType, 'EXE');
+    SDK := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_SDK, 'UIQ');
+    SDKVersion := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_SDKVersion, '2.1');
+    Emulator := IniFile.ReadBool(STR_PRJ_Files, STR_PRJ_Emulator, False);
 
     CompilerPath := IniFile.ReadString(STR_PRJ_FPC, STR_PRJ_CompilerPath, 'C:\Programas\fpc21\compiler\ppc386.exe');
     AssemblerPath := IniFile.ReadString(STR_PRJ_FPC, STR_PRJ_AssemblerPath, 'C:\Programas\lazarus20\fpc\2.1.5\bin\i386-win32\as.exe');

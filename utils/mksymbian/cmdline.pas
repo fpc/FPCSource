@@ -72,7 +72,7 @@ begin
   WriteLn('');
   WriteLn('Possible commands: ');
   WriteLn('');
-  WriteLn('build    - Builds a application');
+  WriteLn('build    - Builds an application');
   WriteLn('bindings - Builds the c++ bindings for pascal');
   WriteLn('showpath - Show the paths the tool is using');
   WriteLn('');
@@ -92,7 +92,8 @@ procedure TCmdLine.ShowPath;
 begin
   WriteLn('mksymbian - Build tool for Free Pascal for SymbianOS');
   WriteLn('');
-  WriteLn('Location of UIQ 3 SDK: ' + vSDKUtil.SDKFolder);
+  WriteLn('SDK Version: ' + vSDKUtil.StrSDKVersion);
+  WriteLn('Location of SDK: ' + vSDKUtil.SDKFolder);
   WriteLn('Location of Free Pascal Compiler: ' + vProject.CompilerPath);
   WriteLn('');
 end;
