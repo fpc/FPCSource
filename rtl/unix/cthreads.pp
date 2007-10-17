@@ -36,6 +36,10 @@
 {$endif}
 {$endif}
 
+{$ifdef linux}
+{$define has_sem_timedwait}
+{$endif}
+
 unit cthreads;
 interface
 {$S-}
@@ -444,6 +448,22 @@ begin
 {$endif}
 end;
 
+{$if defined(has_sem_timedwait)}
+
+function cSemaphoreTimedWait(const FSem: Pointer; const Timeout: ttimespec): cint;
+var
+  res: cint;
+  err: cint;
+begin
+  repeat
+    res:=sem_timedwait(PSemaphore(FSem), @Timeout);
+    if res=0 then exit(0);
+    err:=fpgetCerrno;
+  until err<>ESysEINTR;
+  result:=err;
+end;
+
+{$endif}
 
 procedure cSemaphorePost(const FSem: Pointer);
 {$if defined(has_sem_init) or defined(has_sem_open)}
@@ -783,7 +803,23 @@ begin
     end
   else
     begin
-      timespec.tv_sec:=0;
+{$ifdef has_sem_timedwait}
+      fpgettimeofday(@timespec,nil);
+      inc(timespec.tv_nsec, (timeout mod 1000) * 1000000);
+      inc(timespec.tv_sec, timeout div 1000);
+      if timespec.tv_nsec > 1000000000 then
+      begin
+        dec(timespec.tv_nsec, 1000000000);
+        inc(timespec.tv_sec);
+      end;
+      nanores := cSemaphoreTimedWait(plocaleventstate(state)^.FSem, timespec);
+      if nanores = 0 then
+        result := wrSignaled
+      else if nanores = ESysETIMEDOUT then
+        result := wrTimeout
+      else
+        result := wrError;
+{$else}
       { 500 miliseconds or less -> wait once for this duration }
       if (timeout <= 500) then
         loopcnt:=1
@@ -853,6 +889,7 @@ begin
           if (result<>wrTimeOut) then
             break;
         end;
+{$endif}
     end;
   
   if (result=wrSignaled) then
