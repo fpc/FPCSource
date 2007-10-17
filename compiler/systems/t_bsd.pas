@@ -375,6 +375,13 @@ begin
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
+  if (target_info.system in systems_darwin) and
+     (sysrootpath<>'') then
+    begin
+      LinkRes.Add('-syslibroot');
+      LinkRes.Add(sysrootpath);
+    end;
+
   if (not isdll) or
      (apptype=app_bundle) then
     begin
