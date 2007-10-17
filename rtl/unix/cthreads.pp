@@ -820,6 +820,7 @@ begin
       else
         result := wrError;
 {$else}
+      timespec.tv_sec:=0;
       { 500 miliseconds or less -> wait once for this duration }
       if (timeout <= 500) then
         loopcnt:=1
