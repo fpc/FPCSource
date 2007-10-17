@@ -154,7 +154,7 @@ unit opttail;
                     addstatement(nodes,copynodes);
 
                     { create goto }
-                    addstatement(nodes,cgotonode.create(labelnode));
+                    addstatement(nodes,cgotonode.create(labelnode.labsym));
 
                     if assigned(usedcallnode.callcleanupblock) then
                       begin
@@ -180,6 +180,7 @@ unit opttail;
         s : tstatementnode;
         oldnodes : tnode;
         i : longint;
+        labelsym : tlabelsym;
       begin
         { check if the parameters actually would support tail recursion elimination }
         for i:=0 to p.paras.count-1 do
@@ -194,7 +195,8 @@ unit opttail;
                vardef.needs_inittable) then
                exit;
 
-        labelnode:=clabelnode.create(cnothingnode.create,nil);
+        labelsym:=tlabelsym.create('$opttail');
+        labelnode:=clabelnode.create(cnothingnode.create,labelsym);
         if find_and_replace_tailcalls(n) then
           begin
             oldnodes:=n;

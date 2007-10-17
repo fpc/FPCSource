@@ -127,15 +127,10 @@ interface
        tcontinuenodeclass = class of tcontinuenode;
 
        tgotonode = class(tnode)
-          { we still need this for resolving forward gotos }
           labelsym : tlabelsym;
           labelnode : tlabelnode;
           exceptionblock : integer;
-{          internlab : tinterngotolabel;}
-          constructor create(p : tlabelnode);virtual;
-          { as long as we don't know the label node we can't resolve it }
-          constructor create_sym(p : tlabelsym);virtual;
-{          constructor createintern(g:tinterngotolabel);}
+          constructor create(p : tlabelsym);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -151,11 +146,9 @@ interface
           exceptionblock : integer;
           { when copying trees, this points to the newly created copy of a label }
           copiedto : tlabelnode;
-          { contains all goto nodesrefering to this label }
-          referinggotonodes : TFPObjectList;
-          { original labelsym, used for writing label referenced from assembler block }
           labsym : tlabelsym;
           constructor create(l:tnode;alabsym:tlabelsym);virtual;
+          destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -651,7 +644,7 @@ implementation
       begin
         result:=nil;
         { optimize constant expressions }
-        if left.nodetype=ordconstn then
+        if (left.nodetype=ordconstn) then
           begin
              if tordconstnode(left).value.uvalue=1 then
                begin
@@ -960,23 +953,11 @@ implementation
                              TGOTONODE
 *****************************************************************************}
 
-    constructor tgotonode.create(p : tlabelnode);
+    constructor tgotonode.create(p : tlabelsym);
       begin
         inherited create(goton);
         exceptionblock:=aktexceptblock;
-        labelnode:=p;
-        labelsym:=nil;
-      end;
-
-
-    constructor tgotonode.create_sym(p : tlabelsym);
-      begin
-        inherited create(goton);
-        exceptionblock:=aktexceptblock;
-        if assigned(p.code) then
-          labelnode:=tlabelnode(p.code)
-        else
-          labelnode:=nil;
+        labelnode:=nil;
         labelsym:=p;
       end;
 
@@ -1024,12 +1005,14 @@ implementation
         expectloc:=LOC_VOID;
         include(current_procinfo.flags,pi_has_goto);
 
-        if not(assigned(labelnode)) then
+        { The labelnode can already be set when
+          this node was copied }
+        if not assigned(labelnode) then
           begin
-            if assigned(labelsym) and assigned(labelsym.code) then
+            if assigned(labelsym.code) then
               labelnode:=tlabelnode(labelsym.code)
             else
-              internalerror(200506183);
+              CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
           end;
 
         { check if we don't mess with exception blocks }
@@ -1054,6 +1037,8 @@ implementation
             else
               internalerror(200610291);
           end;
+
+        p.labelsym:=labelsym;
         p.labelnode:=tlabelnode(labelnode.dogetcopy);
         result:=p;
      end;
@@ -1074,6 +1059,8 @@ implementation
         inherited create(labeln,l);
         exceptionblock:=aktexceptblock;
         labsym:=alabsym;
+        { Register labelnode in labelsym }
+        labsym.code:=self;
       end;
 
 
@@ -1081,6 +1068,16 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         exceptionblock:=ppufile.getbyte;
+      end;
+
+
+    destructor tlabelnode.destroy;
+      begin
+        { Remove reference in labelsym, this is to prevent
+          goto's to this label }
+        if assigned(labsym) and (labsym.code=pointer(self)) then
+          labsym.code:=nil;
+        inherited destroy;
       end;
 
 

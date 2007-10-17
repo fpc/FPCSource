@@ -1717,6 +1717,9 @@ cg_f_unknown_system_type=06047_F_Cannot find system type "$1". Check if you use 
 cg_h_inherited_ignored=06048_H_Inherited call to abstract method ignored
 % This messages appears only in Delphi mode when you call an abstract method
 % of a parent class via \var{inherited;}. The call is then ignored.
+cg_e_goto_label_not_found=06049_E_Goto label "$1" not defined or optimized away
+% The label used in the goto definition is not defined or optimized away by the
+% unreachable code elemination.
 % \end{description}
 # EndOfTeX
 
