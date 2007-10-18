@@ -26,6 +26,8 @@ type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, 
      TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
      TConnOptions= set of TConnOption;
 
+     TRowsCount = LargeInt;
+
 type
   TSQLConnection = class;
   TSQLTransaction = class;
@@ -105,6 +107,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -241,6 +244,7 @@ type
     procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
     property Prepared : boolean read IsPrepared;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    function RowsAffected: TRowsCount; virtual;
   protected
       
     // redeclared data set properties
@@ -394,6 +398,7 @@ type
 
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -554,6 +559,10 @@ begin
   qry.free;
 end;
 
+function TSQLConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  Result := -1;
+end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
 begin
@@ -915,6 +924,14 @@ function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out Cr
 
 begin
   result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer, Createblob)
+end;
+
+function TCustomSQLQuery.RowsAffected: TRowsCount;
+begin
+  Result := -1;
+  if not Assigned(Database) then Exit;
+  //assert(Database is TSQLConnection);
+  Result := (Database as TSQLConnection).RowsAffected(FCursor);
 end;
 
 procedure TCustomSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
@@ -1853,6 +1870,12 @@ function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TfieldDef;
 begin
   CheckProxy;
   Result:=FProxy.LoadField(cursor, FieldDef, buffer, CreateBlob);
+end;
+
+function TSQLConnector.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  CheckProxy;
+  Result := FProxy.RowsAffected(cursor);
 end;
 
 function TSQLConnector.GetTransactionHandle(trans: TSQLHandle): pointer;

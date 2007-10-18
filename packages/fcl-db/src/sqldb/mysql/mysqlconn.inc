@@ -115,6 +115,7 @@ Type
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   Public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -842,6 +843,11 @@ begin
     end;
   qry.close;
   qry.free;
+end;
+
+function TConnectionName.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  Result := (cursor as TCursorName).RowsAffected;
 end;
 
 constructor TConnectionName.Create(AOwner: TComponent);

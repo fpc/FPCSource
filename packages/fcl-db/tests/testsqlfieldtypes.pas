@@ -26,6 +26,7 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestRowsAffected;
     procedure TestStringsReplace;
     procedure TestCircularParams;
     procedure Test11Params;
@@ -868,6 +869,33 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestRowsAffected;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  ID INT NOT NULL            , ' +
+                              '  NAME VARCHAR(250),         ' +
+                              '  PRIMARY KEY (ID)           ' +
+                              ')                            ');
+    Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
+    Query.ExecSQL;
+    AssertEquals(1,query.RowsAffected);
+    Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (2,''test2'')';
+    Query.ExecSQL;
+    AssertEquals(1,query.RowsAffected);
+    Query.SQL.Text := 'update FPDEV2 set NAME=''NewTest''';
+    Query.ExecSQL;
+    AssertEquals(2,query.RowsAffected);
+    Query.SQL.Text := 'delete from FPDEV2';
+    Query.ExecSQL;
+    AssertEquals(2,query.RowsAffected);
+    Query.SQL.Text := 'delete from FPDEV2';
+    Query.ExecSQL;
+    AssertEquals(0,query.RowsAffected);
+    end;
 end;
 
 procedure TTestFieldTypes.TestStringsReplace;
