@@ -534,6 +534,11 @@ begin
                         exclude(init_settings.localswitches,cs_check_overflow)
                       Else
                         include(init_settings.localswitches,cs_check_overflow);
+                    'O' :
+                      If UnsetBool(More, j) then
+                        exclude(init_settings.localswitches,cs_check_ordinal_size)
+                      Else
+                        include(init_settings.localswitches,cs_check_ordinal_size);
                     'p' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));

@@ -1,5 +1,5 @@
 { %fail }
-{ %OPT=-Sewnh -vh}
+{ %OPT=-CO -Sewnh -vh}
 { changed -Seh to -Sewnh because -Cr option
   changes the hint into a warning PM }
 

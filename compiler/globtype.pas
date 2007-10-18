@@ -79,7 +79,7 @@ interface
          { codegen }
          cs_check_overflow,cs_check_range,cs_check_object,
          cs_check_io,cs_check_stack,
-         cs_checkpointer,
+         cs_checkpointer,cs_check_ordinal_size,
          cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,

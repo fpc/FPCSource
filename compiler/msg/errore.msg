@@ -2494,6 +2494,7 @@ S*2Aas_Assemble using GNU AS
 **2Ci_IO-checking
 **2Cn_Omit linking stage
 **2Co_Check overflow of integer operations
+**2CO_Check for possible overflow of integer operations
 **2Cp<x>_Select instruction set, see fpc -i for possible values
 **2CP<x>=<y>_ packing settings
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
