@@ -663,15 +663,17 @@ implementation
                           end;
                         else
                           begin
-                            if is_interface(aktobjectdef) then
-                              Message(parser_e_no_vars_in_interfaces);
-
-                            if (sp_published in current_object_option) and
-                              not(oo_can_have_published in aktobjectdef.objectoptions) then
-                              Message(parser_e_cant_have_published);
-
                             if current_blocktype=bt_general then
-                              read_record_fields([vd_object])
+                              begin
+                                if is_interface(aktobjectdef) then
+                                  Message(parser_e_no_vars_in_interfaces);
+
+                                if (sp_published in current_object_option) and
+                                  not(oo_can_have_published in aktobjectdef.objectoptions) then
+                                  Message(parser_e_cant_have_published);
+
+                                read_record_fields([vd_object])
+                              end
                             else
                               types_dec;
                           end;
