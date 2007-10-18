@@ -40,7 +40,7 @@ unit dbgdwarf;
 interface
 
     uses
-      cclasses,
+      cclasses,globtype,
       aasmbase,aasmtai,aasmdata,
       symbase,symtype,symdef,symsym,
       finput,
@@ -224,6 +224,7 @@ interface
         function def_dwarf_class_struct_lab(def:tobjectdef) : tasmsymbol;
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:TSymtable);
+	function clean_dwarf_path(const s:tcmdstr):tcmdstr;
       protected
         // set if we should use 64bit headers (dwarf3 and up)
         _use_64bit_headers: Boolean;
@@ -334,8 +335,8 @@ interface
 implementation
 
     uses
-      cutils,cfileutl,constexp,
-      version,globtype,globals,verbose,systems,
+      sysutils,cutils,cfileutl,constexp,
+      version,globals,verbose,systems,
       cpubase,cgbase,paramgr,
       fmodule,
       defutil,symconst,symtable
@@ -624,6 +625,14 @@ implementation
 {****************************************************************************
                               TDebugInfoDwarf
 ****************************************************************************}
+
+    function TDebugInfoDwarf.clean_dwarf_path(const s:tcmdstr):tcmdstr;
+      begin
+        { Make a clean path for gdb. Remove trailing / and ./ prefixes and
+	  use always a / }
+        result:=BsToSlash(ExcludeTrailingPathDelimiter(ExtractRelativePath('.',s)));
+      end;
+
 
     procedure TDebugInfoDwarf.set_use_64bit_headers(state: boolean);
       begin
@@ -2271,7 +2280,8 @@ implementation
             ditem := TDirIndexItem(dirlist[n]);
             if ditem.Name = '.' then
               Continue;
-            linelist.concat(tai_string.create(ditem.Name+#0));
+            { Write without trailing path delimiter and also don't prefix with ./ for current dir }
+            linelist.concat(tai_string.create(clean_dwarf_path(ditem.Name)+#0));
           end;
         linelist.concat(tai_const.create_8bit(0));
 
@@ -2394,9 +2404,9 @@ implementation
 
         { first manadatory compilation unit TAG }
         append_entry(DW_TAG_compile_unit,true,[
-          DW_AT_name,DW_FORM_string,FixFileName(current_module.sourcefiles.get_file(1).name^)+#0,
+          DW_AT_name,DW_FORM_string,clean_dwarf_path(FixFileName(current_module.sourcefiles.get_file(1).path^+current_module.sourcefiles.get_file(1).name^))+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
-          DW_AT_comp_dir,DW_FORM_string,BsToSlash(FixPath(GetCurrentDir,false))+#0,
+          DW_AT_comp_dir,DW_FORM_string,clean_dwarf_path(FixPath(GetCurrentDir,false))+#0,
           DW_AT_language,DW_FORM_data1,DW_LANG_Pascal83,
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
