@@ -1905,14 +1905,13 @@ TYPE
        Function GetData(Const formatetcIn : FORMATETC;Out medium : STGMEDIUM):HRESULT; STDCALL;
        Function GetDataHere(CONST pformatetc : FormatETC; Out medium : STGMEDIUM):HRESULT; STDCALL;
        Function QueryGetData(const pformatetc : FORMATETC):HRESULT; STDCALL;
-       Function GetCanonicalFormatTEtc(const pformatetcIn : FORMATETC;Out pformatetcOut : FORMATETC):HResult; STDCALl;
+       Function GetCanonicalFormatEtc(const pformatetcIn : FORMATETC;Out pformatetcOut : FORMATETC):HResult; STDCALl;
        Function SetData (Const pformatetc : FORMATETC;const medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
        Function EnumFormatEtc(dwDirection : DWord; OUT enumformatetcpara : IENUMFORMATETC):HRESULT; StdCall;
        Function DAdvise(const formatetc : FORMATETC;advf :DWORD; CONST AdvSink : IAdviseSink;OUT dwConnection:DWORD):HRESULT;StdCall;
        Function DUnadvise(dwconnection :DWord) :HRESULT;StdCall;
-       Function EnumDAvise(Out enumAdvise : IEnumStatData):HResult;StdCall;
+       Function EnumDAdvise(Out enumAdvise : IEnumStatData):HResult;StdCall;
        End;
-
 
     IDataAdviseHolder = Interface (IUnknown)
        ['{00000110-0000-0000-C000-000000000046}']
