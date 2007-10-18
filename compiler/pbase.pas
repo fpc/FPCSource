@@ -61,6 +61,8 @@ interface
        { true, if we found a name for a named arg }
        found_arg_name : boolean;
 
+       { true, if we are parsing generic declaration }
+       parse_generic : boolean;
 
     procedure identifier_not_found(const s:string);
 

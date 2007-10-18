@@ -2,10 +2,10 @@
 
 type
    generic TList<_T>=class(TObject)
-   var public 
+   var public
      data : _T;
      procedure Add(item: _T);
-     procedure Assign(Source: TList);
+     procedure Assign(Source: specialize TList<_T>);
    end;
 
 procedure TList.Add(item: _T);
@@ -13,7 +13,7 @@ begin
   data:=item;
 end;
 
-procedure TList.Assign(Source: TList);
+procedure TList.Assign(Source: specialize TList<_T>);
 begin
   data:=Source.data;
 end;

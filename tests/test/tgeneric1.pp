@@ -13,10 +13,12 @@ end;
 
 type
   TMyIntList = specialize TList<integer>;
+  TMyIntList2 = specialize TList<integer>;
   TMyStringList = specialize TList<string>;
 
 var
   ilist : TMyIntList;
+  ilist2 : TMyIntList2;
   slist : TMyStringList;
   someInt : integer;
 begin
@@ -25,6 +27,13 @@ begin
   ilist.Add(someInt);
   writeln(ilist.data);
   if ilist.data<>10 then
+    halt(1);
+
+  someInt:=20;
+  ilist2 := TMyIntList2.Create;
+  ilist2.Add(someInt);
+  writeln(ilist2.data);
+  if ilist2.data<>20 then
     halt(1);
 
   slist := TMyStringList.Create;

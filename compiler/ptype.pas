@@ -63,7 +63,7 @@ implementation
        globals,tokens,verbose,constexp,
        systems,
        { target }
-       paramgr,
+       paramgr,procinfo,
        { symtable }
        symconst,symsym,symtable,
        defutil,defcmp,
@@ -77,29 +77,50 @@ implementation
        pbase,pexpr,pdecsub,pdecvar,pdecobj;
 
 
-    procedure generate_specialization(var pt1:tnode;const name:string);
+    procedure generate_specialization(var tt:tdef);
       var
         st  : TSymtable;
+        srsym : tsym;
         pt2 : tnode;
         first,
         err : boolean;
         i   : longint;
         sym : tsym;
+        old_block_type : tblock_type;
         genericdef : tstoreddef;
         generictype : ttypesym;
         generictypelist : TFPObjectList;
         oldsymtablestack   : tsymtablestack;
         hmodule : tmodule;
         pu : tused_unit;
+        uspecializename,
+        specializename : string;
+        vmtbuilder : TVMTBuilder;
+        onlyparsepara : boolean;
       begin
         { retrieve generic def that we are going to replace }
-        genericdef:=tstoreddef(pt1.resultdef);
-        pt1.resultdef:=nil;
+        genericdef:=tstoreddef(tt);
+        tt:=nil;
+        onlyparsepara:=false;
+
         if not(df_generic in genericdef.defoptions) then
           begin
             Message(parser_e_special_onlygenerics);
-            pt1.resultdef:=generrordef;
-            { recover }
+            tt:=generrordef;
+            onlyparsepara:=true;
+          end;
+
+        { Only need to record the tokens, then we don't know the type yet }
+        if parse_generic then
+          begin
+            tt:=cundefinedtype;
+            onlyparsepara:=true;
+          end;
+
+        { Only parse the parameters for recovery or
+          for recording in genericbuf }
+        if onlyparsepara then
+          begin
             consume(_LSHARPBRACKET);
             repeat
               pt2:=factor(false);
@@ -108,7 +129,9 @@ implementation
             consume(_RSHARPBRACKET);
             exit;
           end;
+
         consume(_LSHARPBRACKET);
+        old_block_type:=block_type;
         block_type:=bt_specialize;
         { Parse generic parameters, for each undefineddef in the symtable of
           the genericdef we need to have a new def }
@@ -124,6 +147,11 @@ implementation
         end;
         if not assigned(st) then
           internalerror(200511182);
+
+        { Parse type parameters }
+        if not assigned(genericdef.typesym) then
+          internalerror(200710173);
+        specializename:=genericdef.typesym.realname;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
@@ -141,6 +169,9 @@ implementation
                       Message(parser_e_no_generics_as_params);
                     generictype:=ttypesym.create(sym.realname,pt2.resultdef);
                     generictypelist.add(generictype);
+                    if not assigned(pt2.resultdef.typesym) then
+                      internalerror(200710172);
+                    specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
                   end
                 else
                   begin
@@ -150,52 +181,89 @@ implementation
                 pt2.free;
               end;
           end;
+        uspecializename:=upper(specializename);
         { force correct error location if too much type parameters are passed }
         if token<>_RSHARPBRACKET then
           consume(_RSHARPBRACKET);
 
-        { Setup symtablestack a definition time
-          to get types right, however this is not perfect, we should probably record
-          the resolved symbols }
-        oldsymtablestack:=symtablestack;
-        symtablestack:=tsymtablestack.create;
-        if not assigned(genericdef) then
-          internalerror(200705151);
-        hmodule:=find_module_from_symtable(genericdef.owner);
-        if hmodule=nil then
-          internalerror(200705152);
-        pu:=tused_unit(hmodule.used_units.first);
-        while assigned(pu) do
+        { Special case if we are referencing the current defined object }
+        if assigned(aktobjectdef) and
+           (aktobjectdef.objname^=uspecializename) then
+          tt:=aktobjectdef;
+
+        { Can we reuse an already specialized type? }
+        if not assigned(tt) then
           begin
-            if not assigned(pu.u.globalsymtable) then
-              internalerror(200705153);
-            symtablestack.push(pu.u.globalsymtable);
-            pu:=tused_unit(pu.next);
+            srsym:=tsym(tsymtable(current_module.localsymtable).find(uspecializename));
+            if assigned(srsym) then
+              begin
+                if srsym.typ<>typesym then
+                  internalerror(200710171);
+                tt:=ttypesym(srsym).typedef;
+              end;
           end;
 
-        if assigned(hmodule.globalsymtable) then
-          symtablestack.push(hmodule.globalsymtable);
-
-        { hacky, but necessary to insert the newly generated class properly }
-        symtablestack.push(oldsymtablestack.top);
-
-        { Reparse the original type definition }
-        if not err then
+        if not assigned(tt) then
           begin
-            if not assigned(genericdef.generictokenbuf) then
-              internalerror(200511171);
-            current_scanner.startreplaytokens(genericdef.generictokenbuf);
-            read_named_type(pt1.resultdef,name,genericdef,generictypelist,false);
-            { Consume the semicolon if it is also recorded }
-            try_to_consume(_SEMICOLON);
-          end;
+            { Setup symtablestack at definition time
+              to get types right, however this is not perfect, we should probably record
+              the resolved symbols }
+            oldsymtablestack:=symtablestack;
+            symtablestack:=tsymtablestack.create;
+            if not assigned(genericdef) then
+              internalerror(200705151);
+            hmodule:=find_module_from_symtable(genericdef.owner);
+            if hmodule=nil then
+              internalerror(200705152);
+            pu:=tused_unit(hmodule.used_units.first);
+            while assigned(pu) do
+              begin
+                if not assigned(pu.u.globalsymtable) then
+                  internalerror(200705153);
+                symtablestack.push(pu.u.globalsymtable);
+                pu:=tused_unit(pu.next);
+              end;
 
-        { Restore symtablestack }
-        symtablestack.free;
-        symtablestack:=oldsymtablestack;
+            if assigned(hmodule.globalsymtable) then
+              symtablestack.push(hmodule.globalsymtable);
+
+            { hacky, but necessary to insert the newly generated class properly }
+            symtablestack.push(oldsymtablestack.top);
+
+            { Reparse the original type definition }
+            if not err then
+              begin
+                { Firsta new typesym so we can reuse this specialization and
+                  references to this specialization can be handled }
+                srsym:=ttypesym.create(specializename,generrordef);
+                current_module.localsymtable.insert(srsym);
+
+                if not assigned(genericdef.generictokenbuf) then
+                  internalerror(200511171);
+                current_scanner.startreplaytokens(genericdef.generictokenbuf);
+                read_named_type(tt,specializename,genericdef,generictypelist,false);
+                ttypesym(srsym).typedef:=tt;
+                tt.typesym:=srsym;
+                { Consume the semicolon if it is also recorded }
+                try_to_consume(_SEMICOLON);
+
+                { Build VMT indexes for classes }
+                if (tt.typ=objectdef) then
+                  begin
+                    vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
+                    vmtbuilder.generate_vmt;
+                    vmtbuilder.free;
+                  end;
+              end;
+
+            { Restore symtablestack }
+            symtablestack.free;
+            symtablestack:=oldsymtablestack;
+          end;
 
         generictypelist.free;
         consume(_RSHARPBRACKET);
+        block_type:=old_block_type;
       end;
 
 
@@ -280,8 +348,10 @@ implementation
     procedure single_type(var def:tdef;isforwarddef:boolean);
        var
          t2 : tdef;
+         dospecialize,
          again : boolean;
        begin
+         dospecialize:=false;
          repeat
            again:=false;
              case token of
@@ -304,9 +374,7 @@ implementation
                  begin
                    if try_to_consume(_SPECIALIZE) then
                      begin
-                       if block_type<>bt_type then
-                         Message(parser_f_no_anonymous_specializations);
-                       block_type:=bt_specialize;
+                       dospecialize:=true;
                        again:=true;
                      end
                    else
@@ -320,6 +388,16 @@ implementation
                  end;
             end;
         until not again;
+        if dospecialize then
+          generate_specialization(def)
+        else
+          begin
+            if (df_generic in def.defoptions)  then
+              begin
+                Message(parser_e_no_generics_as_types);
+                def:=generrordef;
+              end;
+          end;
       end;
 
     { reads a record declaration }
@@ -373,8 +451,10 @@ implementation
            pt1,pt2 : tnode;
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
+           dospecialize : boolean;
         begin
            old_block_type:=block_type;
+           dospecialize:=false;
            { use of current parsed object:
               - classes can be used also in classes
               - objects can be parameters }
@@ -392,14 +472,10 @@ implementation
              end;
            { Generate a specialization? }
            if try_to_consume(_SPECIALIZE) then
-             begin
-               if name='' then
-                 Message(parser_f_no_anonymous_specializations);
-               block_type:=bt_specialize;
-             end;
+             dospecialize:=true;
            { we can't accept a equal in type }
            pt1:=comp_expr(false);
-           if (block_type<>bt_specialize) and
+           if not dospecialize and
               try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
@@ -451,13 +527,16 @@ implementation
                { a simple type renaming or generic specialization }
                if (pt1.nodetype=typen) then
                  begin
-                   if (block_type=bt_specialize) then
-                     generate_specialization(pt1,name);
                    def:=ttypenode(pt1).resultdef;
-                   if (block_type<>bt_specialize) and (df_generic in def.defoptions)  then
+                   if dospecialize then
+                     generate_specialization(def)
+                   else
                      begin
-                       Message(parser_e_no_generics_as_types);
-                       def:=generrordef;
+                       if (df_generic in def.defoptions)  then
+                         begin
+                           Message(parser_e_no_generics_as_types);
+                           def:=generrordef;
+                         end;
                      end;
                  end
                else
@@ -847,10 +926,13 @@ implementation
                 write_persistent_type_info(trecorddef(def).symtable);
               objectdef :
                 begin
+                  { Skip generics and forward defs }
+                  if (df_generic in def.defoptions) or
+                     (oo_is_forward in tobjectdef(def).objectoptions) then
+                    continue;
                   write_persistent_type_info(tobjectdef(def).symtable);
-                  { Write also VMT }
-                  if not(ds_vmt_written in def.defstates) and
-                     not(oo_is_forward in tobjectdef(def).objectoptions) then
+                  { Write also VMT if not done yet }
+                  if not(ds_vmt_written in def.defstates) then
                     begin
                       vmtwriter:=TVMTWriter.create(tobjectdef(def));
                       if is_interface(tobjectdef(def)) then

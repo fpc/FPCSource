@@ -319,7 +319,6 @@ const
   parser_e_no_generics_as_params=03229;
   parser_e_type_object_constants=03230;
   parser_e_label_outside_proc=03231;
-  parser_f_no_anonymous_specializations=03232;
   parser_e_initialized_not_for_external=03233;
   parser_e_illegal_function_result=03234;
   parser_e_no_common_type=03235;
@@ -732,7 +731,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 45312;
+  MsgTxtSize = 45254;
 
   MsgIdxMax : array[1..20] of longint=(
     24,86,237,83,63,50,107,22,135,60,

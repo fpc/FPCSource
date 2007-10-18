@@ -391,7 +391,8 @@ implementation
           { reads the parent class }
           if try_to_consume(_LKLAMMER) then
             begin
-              id_type(hdef,false);
+              { use single_type instead of id_type for specialize support }
+              single_type(hdef,false);
               if (not assigned(hdef)) or
                  (hdef.typ<>objectdef) then
                 begin
@@ -513,12 +514,15 @@ implementation
         generictype : ttypesym;
         current_blocktype : tblock_type;
         oldaktobjectdef : tobjectdef;
+        old_parse_generic : boolean;
       begin
          old_object_option:=current_object_option;
          oldaktobjectdef:=aktobjectdef;
+         old_parse_generic:=parse_generic;
 
          { objects and class types can't be declared local }
-         if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable]) then
+         if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable]) and
+            not assigned(genericlist) then
            Message(parser_e_no_local_objects);
 
          storetypecanbeforward:=typecanbeforward;
@@ -563,7 +567,10 @@ implementation
                begin
                  generictype:=ttypesym(genericlist[i]);
                  if generictype.typedef.typ=undefineddef then
-                   include(aktobjectdef.defoptions,df_generic)
+                   begin
+                     include(aktobjectdef.defoptions,df_generic);
+                     parse_generic:=true;
+                   end
                  else
                    include(aktobjectdef.defoptions,df_specialization);
                  symtablestack.top.insert(generictype);
@@ -831,6 +838,7 @@ implementation
          aktobjectdef:=oldaktobjectdef;
          testcurobject:=0;
          typecanbeforward:=storetypecanbeforward;
+         parse_generic:=old_parse_generic;
          current_object_option:=old_object_option;
       end;
 

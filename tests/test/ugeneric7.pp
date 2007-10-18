@@ -1,6 +1,6 @@
 {$mode objfpc}
 
-unit tugeneric7;
+unit ugeneric7;
 
   interface
 

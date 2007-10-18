@@ -5,7 +5,7 @@
 
 {$R-}
 uses
-  tugeneric7;
+  ugeneric7;
 
 type
   tmytype = specialize tgeneric<byte>;

@@ -2018,7 +2018,8 @@ implementation
                               end;
                             else
                               begin
-                                Message(parser_e_invalid_qualifier);
+                                if p1.resultdef.typ<>undefineddef then
+                                  Message(parser_e_invalid_qualifier);
                                 p1.destroy;
                                 p1:=cerrornode.create;
                                 comp_expr(true);
@@ -2138,7 +2139,8 @@ implementation
                          end;
                        else
                          begin
-                           Message(parser_e_invalid_qualifier);
+                           if p1.resultdef.typ<>undefineddef then
+                             Message(parser_e_invalid_qualifier);
                            p1.destroy;
                            p1:=cerrornode.create;
                            { Error }
@@ -2153,13 +2155,14 @@ implementation
                    if assigned(p1.resultdef) and
                       (p1.resultdef.typ=procvardef) then
                      begin
-                       if assigned(getprocvardef) and
-                          equal_defs(p1.resultdef,getprocvardef) then
+                       { Typenode for typecasting or expecting a procvar }
+                       if (p1.nodetype=typen) or
+                          (
+                           assigned(getprocvardef) and
+                           equal_defs(p1.resultdef,getprocvardef)
+                          ) then
                          begin
-                           { classes can define now types so we've to allow
-                             type casts with these nested types as well }
-                           if (p1.nodetype=typen) and
-                              try_to_consume(_LKLAMMER) then
+                           if try_to_consume(_LKLAMMER) then
                              begin
                                p1:=comp_expr(true);
                                consume(_RKLAMMER);

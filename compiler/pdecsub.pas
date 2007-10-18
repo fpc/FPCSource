@@ -403,6 +403,7 @@ implementation
         defaultvalue : tconstsym;
         defaultrequired : boolean;
         old_object_option : tsymoptions;
+        old_block_type : tblock_type;
         currparast : tparasymtable;
         parseprocvar : tppv;
         explicit_paraloc : boolean;
@@ -410,6 +411,8 @@ implementation
         paranr : integer;
         dummytype : ttypesym;
       begin
+        old_object_option:=current_object_option;
+        old_block_type:=block_type;
         explicit_paraloc:=false;
         consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
@@ -424,9 +427,9 @@ implementation
         defaultrequired:=false;
         paranr:=0;
         { the variables are always public }
-        old_object_option:=current_object_option;
         current_object_option:=[sp_public];
         inc(testcurobject);
+        block_type:=bt_type;
         repeat
           parseprocvar:=pv_none;
           if try_to_consume(_VAR) then
@@ -630,6 +633,7 @@ implementation
         { reset object options }
         dec(testcurobject);
         current_object_option:=old_object_option;
+        block_type:=old_block_type;
         consume(_RKLAMMER);
       end;
 
@@ -649,9 +653,11 @@ implementation
         aprocsym : tprocsym;
         popclass : boolean;
         ImplIntf : TImplementedInterface;
+        old_parse_generic : boolean;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
+        old_parse_generic:=parse_generic;
 
         result:=false;
         pd:=nil;
@@ -848,7 +854,10 @@ implementation
            (pd.parast.symtablelevel=normal_function_level) then
           begin
             if (df_generic in pd._class.defoptions) then
-              include(pd.defoptions,df_generic);
+              begin
+                include(pd.defoptions,df_generic);
+                parse_generic:=true;
+              end;
             if (df_specialization in pd._class.defoptions) then
               begin
                 include(pd.defoptions,df_specialization);
@@ -902,6 +911,7 @@ implementation
               symtablestack.pop(pd._class.symtable);
           end;
 
+        parse_generic:=old_parse_generic;
         result:=true;
       end;
 
