@@ -538,12 +538,36 @@ implementation
              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            { size of elements }
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(def.elesize));
+
            if not(ado_IsDynamicArray in def.arrayoptions) then
-             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(aint(def.elecount)));
-           { element type }
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
+             begin
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(aint(def.elecount)));
+               { element type }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
+             end
+           else
+             { write a delphi almost compatible dyn. array entry:
+               there are two types, eltype and eltype2, the latter is nil if the element type needs
+               no finalization, the former is always valid, delphi has this swapped, but for
+               compatibility with older fpc versions we do it different, to be delphi compatible,
+               the names are swapped in typinfo.pp
+             }
+             begin
+               { element type }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
+             end;
            { variant type }
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(def.elementdef).getvardef));
+           if ado_IsDynamicArray in def.arrayoptions then
+             begin
+               { element type }
+               if def.elementdef.needs_inittable then
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)))
+               else
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(0));
+               { dummy DynUnitName }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+             end;
         end;
 
         procedure recorddef_rtti(def:trecorddef);
