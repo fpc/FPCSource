@@ -1818,9 +1818,12 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
           end
         else
           begin
-            Val('$'+P^.Name^,HAddr,code);
-            If (P^.typ=bt_address) and (PDL^.Address=HAddr) then
-              PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
+            if assigned(P^.Name) then
+              begin
+                Val('$'+P^.Name^,HAddr,code);
+                If (P^.typ=bt_address) and (PDL^.Address=HAddr) then
+                  PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
+              end;
           end;
       end;
   end;
