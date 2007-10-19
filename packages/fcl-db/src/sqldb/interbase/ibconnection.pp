@@ -53,12 +53,12 @@ type
     function GetDialect: integer;
     procedure SetDBDialect;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
-    procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
+    procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer;
       var TrType : TFieldType; var TrLen : word);
     // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
-    procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
+    procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
@@ -403,17 +403,15 @@ begin
     reAllocMem(aSQLDA,0);
 end;
 
-procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
-  var TrType : TFieldType; var TrLen : word);
+procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer;
+           var TrType : TFieldType; var TrLen : word);
 begin
-  LensSet := False;
-
+  trlen := 0;
   if SQLScale < 0 then
     begin
     if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
       begin
-      LensSet := True;
-      TrLen := SQLLen;
+      TrLen := abs(SQLScale);
       TrType := ftBCD
       end
     else
@@ -422,13 +420,11 @@ begin
   else case (SQLType and not 1) of
     SQL_VARYING :
       begin
-        LensSet := True;
         TrType := ftString;
         TrLen := SQLLen;
       end;
     SQL_TEXT :
       begin
-        LensSet := True;
         TrType := ftString;
         TrLen := SQLLen;
       end;
@@ -441,43 +437,25 @@ begin
     SQL_ARRAY :
       begin
         TrType := ftArray;
-        LensSet := true;
         TrLen := SQLLen;
       end;
     SQL_BLOB :
       begin
-          TrType := ftBlob;
-          LensSet := True;
-          TrLen := SQLLen;
+        TrType := ftBlob;
+        TrLen := SQLLen;
       end;
     SQL_SHORT :
         TrType := ftSmallint;
     SQL_LONG :
-      begin
-        LensSet := True;
-        TrLen := 0;
         TrType := ftInteger;
-      end;
     SQL_INT64 :
         TrType := ftLargeInt;
     SQL_DOUBLE :
-      begin
-        LensSet := True;
-        TrLen := SQLLen;
         TrType := ftFloat;
-      end;
     SQL_FLOAT :
-      begin
-        LensSet := True;
-        TrLen := SQLLen;
         TrType := ftFloat;
-      end
     else
-      begin
-        LensSet := True;
-        TrLen := 0;
         TrType := ftUnknown;
-      end;
   end;
 end;
 
@@ -633,7 +611,6 @@ end;
 procedure TIBConnection.AddFieldDefs(cursor: TSQLCursor;FieldDefs : TfieldDefs);
 var
   x         : integer;
-  lenset    : boolean;
   TransLen  : word;
   TransType : TFieldType;
   FD        : TFieldDef;
@@ -646,7 +623,7 @@ begin
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
-        lenset, TransType, TransLen);
+        TransType, TransLen);
       FD := TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].AliasName, TransType,
          TransLen, False, (x + 1));
       if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
@@ -854,7 +831,7 @@ begin
             PChar(Buffer + VarCharLen)^ := #0;
           end;
         ftFloat   :
-          GetFloat(CurrBuff, Buffer, FieldDef);
+          GetFloat(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLLen);
         ftBlob : begin  // load the BlobIb in field's buffer
             FillByte(buffer^,sizeof(TBufBlobField),0);
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
@@ -1066,13 +1043,13 @@ begin
   end;
 end;
 
-procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
+procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Size : byte);
 var
   Ext : extended;
   Dbl : double;
   Sin : single;
 begin
-  case Field.Size of
+  case Size of
     4 :
       begin
         Move(CurrBuff^, Sin, 4);

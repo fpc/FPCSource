@@ -950,7 +950,7 @@ begin
   SetDataType(ftString);
   FFixedChar := False;
   FTransliterate := False;
-  Size:=20;
+  FSize:=20;
 end;
 
 class procedure TStringField.CheckTypeSize(AValue: Longint);
