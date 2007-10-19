@@ -368,6 +368,8 @@ BEGIN
   StreamError:=@MyStreamError;
 
   ShowReadme:=ShowReadme or (LocateFile(INIFileName)='');
+  if LocateFile(INIFileName)<>'' then
+    writeln(bullet+' Using configuration files from: ',DirOf(LocateFile(INIFileName)));
 
 {$ifdef VESA}
   InitVESAScreenModes;
