@@ -977,7 +977,7 @@ implementation
                          { goto is only allowed to labels within the current scope }
                          if srsym.owner<>current_procinfo.procdef.localst then
                            CGMessage(parser_e_goto_outside_proc);
-                         code:=cgotonode.create_sym(tlabelsym(srsym));
+                         code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);
                          { set flag that this label is used }
                          tlabelsym(srsym).used:=true;

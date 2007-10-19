@@ -1120,19 +1120,6 @@ parser_e_type_object_constants=03230_E_Constants of objects containing a VMT are
 parser_e_label_outside_proc=03231_E_Taking the address of labels defined outside the current scope isn't allowed
 % It isn't allowed to take the addresss of labels outside the
 % current procedure.
-parser_f_no_anonymous_specializations=03232_F_Anonymous generic specializations are not allowed
-% Something like
-% \begin{verbatim}
-% var
-%   MyLinkedList: specialize TLinkedList<TFixedString15>;
-% \end{verbatim}
-% is not allowed. Declare a specialized type first:
-% \begin{verbatim}
-% type
-%   TMyLinkedList = specialize TLinkedList<TFixedString15>;
-% var
-%   MyLinkedList: TMyLinkedList
-% \end{verbatim}
 parser_e_initialized_not_for_external=03233_E_Cannot initialize variables declared as external
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Illegal function result type
@@ -1716,6 +1703,9 @@ cg_f_unknown_system_type=06047_F_Cannot find system type "$1". Check if you use 
 cg_h_inherited_ignored=06048_H_Inherited call to abstract method ignored
 % This messages appears only in Delphi mode when you call an abstract method
 % of a parent class via \var{inherited;}. The call is then ignored.
+cg_e_goto_label_not_found=06049_E_Goto label "$1" not defined or optimized away
+% The label used in the goto definition is not defined or optimized away by the
+% unreachable code elemination.
 % \end{description}
 # EndOfTeX
 

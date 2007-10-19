@@ -1207,14 +1207,14 @@ implementation
              { stop token recorder for generic template }
              current_scanner.stoprecordtokens;
 
-             { Give a warning for accesses in the static symtable that aren't visible
+             { Give an error for accesses in the static symtable that aren't visible
                outside the current unit }
              st:=procdef.owner;
              while (st.symtabletype=ObjectSymtable) do
                st:=st.defowner.owner;
              if (pi_uses_static_symtable in flags) and
                 (st.symtabletype<>staticsymtable) then
-               Comment(V_Warning,'Global Generic template references static symtable');
+               Comment(V_Error,'Global Generic template references static symtable');
            end;
 
          { save exit info }
@@ -1700,25 +1700,6 @@ implementation
 
 
     procedure specialize_objectdefs(p:TObject;arg:pointer);
-
-        function find_module_from_symtable(st:tsymtable):tmodule;
-        var
-          hp : tmodule;
-        begin
-          result:=nil;
-          hp:=tmodule(loaded_units.first);
-          while assigned(hp) do
-            begin
-              if (hp.globalsymtable=st) or
-                 (hp.localsymtable=st) then
-                begin
-                  result:=hp;
-                  exit;
-                end;
-              hp:=tmodule(hp.next);
-           end;
-        end;
-
       var
         i  : longint;
         hp : tdef;
@@ -1728,6 +1709,7 @@ implementation
         hmodule : tmodule;
       begin
         if not((tsym(p).typ=typesym) and
+               (ttypesym(p).typedef.typesym=tsym(p)) and
                (ttypesym(p).typedef.typ=objectdef) and
                (df_specialization in ttypesym(p).typedef.defoptions)
               ) then

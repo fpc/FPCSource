@@ -1,4 +1,3 @@
-{ %fail }
 program testarray3;
 
 {$mode objfpc}{$H+}

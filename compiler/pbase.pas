@@ -61,6 +61,8 @@ interface
        { true, if we found a name for a named arg }
        found_arg_name : boolean;
 
+       { true, if we are parsing generic declaration }
+       parse_generic : boolean;
 
     procedure identifier_not_found(const s:string);
 
@@ -115,13 +117,6 @@ implementation
            Message(parser_f_need_objfpc_or_delphi_mode);
        end;
 
-
-{ Unused:
-    function tokenstring(i : ttoken):string;
-      begin
-        tokenstring:=tokeninfo^[i].str;
-      end;
-}
 
     { consumes token i, write error if token is different }
     procedure consume(i : ttoken);
