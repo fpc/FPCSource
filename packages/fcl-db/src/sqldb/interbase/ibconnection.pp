@@ -418,15 +418,13 @@ begin
       TrType := ftFMTBcd;
     end
   else case (SQLType and not 1) of
-    SQL_VARYING :
+    SQL_VARYING,SQL_TEXT :
       begin
         TrType := ftString;
-        TrLen := SQLLen;
-      end;
-    SQL_TEXT :
-      begin
-        TrType := ftString;
-        TrLen := SQLLen;
+        if SQLLen > dsMaxStringSize then
+          TrLen := dsMaxStringSize
+        else
+          TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
       TrType := ftDate{Time};
@@ -791,12 +789,14 @@ begin
         if ((SQLType and not 1) = SQL_VARYING) then
           begin
           Move(SQLData^, VarcharLen, 2);
+          if VarcharLen > dsMaxStringSize then
+            VarcharLen:=dsMaxStringSize;
           CurrBuff := SQLData + 2;
           end
         else
           begin
           CurrBuff := SQLData;
-          VarCharLen := SQLDA^.SQLVar[x].SQLLen;
+          VarCharLen := FieldDef.Size;
           end;
 
       Result := true;
@@ -827,7 +827,7 @@ begin
           GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
         ftString  :
           begin
-            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            Move(CurrBuff^, Buffer^, VarCharLen);
             PChar(Buffer + VarCharLen)^ := #0;
           end;
         ftFloat   :

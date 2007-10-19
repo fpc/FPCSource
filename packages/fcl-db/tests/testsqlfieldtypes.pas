@@ -26,7 +26,8 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
-    procedure TestRowsAffected;
+    procedure TestInsertLargeStringFields; // bug 9600
+    procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
     procedure TestCircularParams;
     procedure Test11Params;
@@ -871,6 +872,28 @@ begin
     inherited RunTest;
 end;
 
+procedure TTestFieldTypes.TestInsertLargeStringFields;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  ID INT NOT NULL          , ' +
+                              '  NAME VARCHAR(16000),       ' +
+                              '  PRIMARY KEY (ID)           ' +
+                              ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
+    Query.ExecSQL;
+    query.sql.Text:='select * from FPDEV2';
+    Query.Open;
+    AssertEquals(query.FieldByName('NAME').AsString,'test1');
+    Query.insert;
+    query.fields[1].AsString:='11';
+    query.Close;
+    end;
+end;
+
 procedure TTestFieldTypes.TestRowsAffected;
 begin
   with TSQLDBConnector(DBConnector) do
@@ -880,6 +903,8 @@ begin
                               '  NAME VARCHAR(250),         ' +
                               '  PRIMARY KEY (ID)           ' +
                               ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
     Query.ExecSQL;
     AssertEquals(1,query.RowsAffected);
