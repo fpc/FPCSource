@@ -2676,7 +2676,7 @@ var
   LI : PEditorLineInfo;
 begin
    if AAddress<>0 then
-     inherited AddLine('$'+hexstr(AAddress,8)+S)
+     inherited AddLine('$'+hexstr(AAddress,sizeof(PtrUInt)*2)+S)
    else
      inherited AddLine(S);
    PL:=DisasLines^.At(DisasLines^.count-1);

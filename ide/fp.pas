@@ -460,7 +460,7 @@ BEGIN
             if (application<>nil) and (ideapp.displaymode=dmIDE) then
               begin
                 P.l1:=SeenExitCode;
-                ErrS:=hexstr(longint(SeenErrorAddr),8);
+                ErrS:=hexstr(PtrUInt(SeenErrorAddr),sizeof(PtrUInt)*2);
                 P.s:=@ErrS;
                 if OKCancelBox(error_programexitedwitherror,@P)=cmCancel then
                   UserWantsToGoOn:=true;
