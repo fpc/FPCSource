@@ -39,6 +39,7 @@ Resourcestring
   SErrIndexBasedOnInvField = 'Field "%s" is an invalid field type to base index on.';
   SErrIndexBasedOnUnkField = 'Index based on unknown field "%s".';
   SErrConnTransactionnSet  = 'Transaction of connection not set';
+  SErrNotASQLConnection    = '"%s" is not a TSQLConnection';
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';
