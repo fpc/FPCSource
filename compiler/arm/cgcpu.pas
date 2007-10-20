@@ -773,6 +773,7 @@ unit cgcpu;
          usedtmpref: treference;
          tmpreg : tregister;
          so : tshifterop;
+         dir : integer;
        begin
          case ToSize of
            { signed integer registers }
@@ -790,13 +791,20 @@ unit cgcpu;
          end;
          if ref.alignment<>0 then
            begin
+             if target_info.endian=endian_big then
+               dir:=-1
+             else
+               dir:=1;
              case FromSize of
                OS_16,OS_S16:
                  begin
                    shifterop_reset(so);so.shiftmode:=SM_LSR;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
-                   usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,Ref);
-                   inc(usedtmpref.offset);
+                   usedtmpref:=ref;
+                   if target_info.endian=endian_big then
+                     inc(usedtmpref.offset,1);
+                   usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,usedtmpref);
+                   inc(usedtmpref.offset,dir);
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,reg,so));
                    a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
                  end;
@@ -804,15 +812,18 @@ unit cgcpu;
                  begin
                    shifterop_reset(so);so.shiftmode:=SM_LSR;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
-                   usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,Ref);
+                   usedtmpref:=ref;
+                   if target_info.endian=endian_big then
+                     inc(usedtmpref.offset,3);
+                   usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,usedtmpref);
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,reg,so));
-                   inc(usedtmpref.offset);
+                   inc(usedtmpref.offset,dir);
                    a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,tmpreg,so));
-                   inc(usedtmpref.offset);
+                   inc(usedtmpref.offset,dir);
                    a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,tmpreg,so));
-                   inc(usedtmpref.offset);
+                   inc(usedtmpref.offset,dir);
                    a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
                  end
                else
@@ -830,6 +841,7 @@ unit cgcpu;
          usedtmpref: treference;
          tmpreg,tmpreg2,tmpreg3 : tregister;
          so : tshifterop;
+         dir : integer;
        begin
          case FromSize of
            { signed integer registers }
@@ -849,6 +861,10 @@ unit cgcpu;
          end;
          if Ref.alignment<>0 then
            begin
+             if target_info.endian=endian_big then
+               dir:=-1
+             else
+               dir:=0;
              case FromSize of
                OS_16,OS_S16:
                  begin
@@ -868,10 +884,12 @@ unit cgcpu;
                    else
                      usedtmpref:=ref;
 
+                   if target_info.endian=endian_big then
+                     inc(usedtmpref.offset,1);
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
-                   inc(usedtmpref.offset);
+                   inc(usedtmpref.offset,dir);
                    tmpreg2:=getintregister(list,OS_INT);
                    if FromSize=OS_16 then
                      a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2)
@@ -900,16 +918,18 @@ unit cgcpu;
                    else
                      usedtmpref:=ref;
 
+                   if target_info.endian=endian_big then
+                     inc(usedtmpref.offset,3);
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
-                   inc(usedtmpref.offset);
+                   inc(usedtmpref.offset,dir);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,tmpreg2,reg,tmpreg,so));
-                   inc(usedtmpref.offset);
+                   inc(usedtmpref.offset,dir);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
                    so.shiftimm:=16;
                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,tmpreg,tmpreg2,reg,so));
-                   inc(usedtmpref.offset);
+                   inc(usedtmpref.offset,dir);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2);
                    so.shiftimm:=24;
                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,tmpreg,tmpreg2,so));
