@@ -484,6 +484,14 @@ implementation
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkWChar));
                 dointeger;
               end;
+            scurrency:
+              begin
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkFloat));
+                write_rtti_name(def);
+                if (tf_requires_proper_alignment in target_info.flags) then
+                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ftCurr));
+              end;
             else
               begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkInteger));
