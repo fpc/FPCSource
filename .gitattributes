@@ -935,7 +935,6 @@ packages/base/ibase/README -text
 packages/base/ibase/fpmake.inc svneol=native#text/plain
 packages/base/ibase/fpmake.pp svneol=native#text/plain
 packages/base/ibase/ibase40.pp svneol=native#text/plain
-packages/base/ibase/ibase60.h -text
 packages/base/ibase/ibase60.inc svneol=native#text/plain
 packages/base/ibase/ibase60.pp svneol=native#text/plain
 packages/base/ibase/ibase60dyn.pp svneol=native#text/plain
