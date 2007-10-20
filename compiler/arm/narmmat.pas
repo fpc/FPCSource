@@ -66,7 +66,10 @@ implementation
       begin
         if (right.nodetype=ordconstn) and
           (nodetype=divn) and
-          ispowerof2(tordconstnode(right).value,power) and
+          (ispowerof2(tordconstnode(right).value,power) or
+           (tordconstnode(right).value=1) or
+           (tordconstnode(right).value=-1)
+          ) and
           not(is_64bitint(resultdef)) then
           result:=nil
         else
