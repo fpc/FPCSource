@@ -1,6 +1,10 @@
 { %NORUN }
 { %SKIPTARGET=macos }
 
+{$ifdef darwin}
+{$PIC+}
+{$endif darwin}
+
 {$ifdef CPUX86_64}
 {$ifndef WINDOWS}
 {$PIC+}
@@ -32,7 +36,7 @@ const
 procedure Test;export;
 
  begin
-//   writeln('Hoi');
+   writeln('Hoi');
  end;
 
 exports

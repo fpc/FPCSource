@@ -100,14 +100,6 @@ unit cgcpu;
         { the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
-        { Make sure ref is a valid reference for the PowerPC and sets the }
-        { base to the value of the index if (base = R_NO).                }
-        { Returns true if the reference contained a base, index and an    }
-        { offset or symbol, in which case the base will have been changed }
-        { to a tempreg (which has to be freed by the caller) containing   }
-        { the sum of part of the original reference                       }
-        function fixref(list: TAsmList; var ref: treference): boolean; override;
-
         { returns whether a reference can be used immediately in a powerpc }
         { instruction                                                      }
         function issimpleref(const ref: treference): boolean;
@@ -1654,69 +1646,6 @@ const
            ((ref.index <> NR_NO) and
             (ref.offset = 0)));
       end;
-
-
-    function tcgppc.fixref(list: TAsmList; var ref: treference): boolean;
-
-       var
-         tmpreg: tregister;
-       begin
-         result := false;
-
-         if (target_info.system = system_powerpc_darwin) and
-            assigned(ref.symbol) and
-            not assigned(ref.relsymbol) and
-            ((ref.symbol.bind = AB_EXTERNAL) or
-             (cs_create_pic in current_settings.moduleswitches))then
-           begin
-             if (ref.symbol.bind = AB_EXTERNAL) or
-                ((cs_create_pic in current_settings.moduleswitches) and
-                 (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
-               begin
-                 tmpreg := g_indirect_sym_load(list,ref.symbol.name);
-                 ref.symbol:=nil;
-               end
-             else
-               begin
-                 include(current_procinfo.flags,pi_needs_got);
-                 tmpreg := current_procinfo.got;
-                 if assigned(ref.relsymbol) then
-                   internalerror(2007093501);
-                 ref.relsymbol := current_procinfo.CurrGOTLabel;
-               end;
-             if (ref.base = NR_NO) then
-               ref.base := tmpreg
-             else if (ref.index = NR_NO) then
-               ref.index := tmpreg
-             else
-               begin
-                 list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                 ref.base := tmpreg;
-               end;
-           end;
-
-         if (ref.base = NR_NO) then
-           begin
-             ref.base := ref.index;
-             ref.index := NR_NO;
-           end;
-         if (ref.base <> NR_NO) then
-           begin
-             if (ref.index <> NR_NO) and
-                ((ref.offset <> 0) or assigned(ref.symbol)) then
-               begin
-                 result := true;
-                 tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                 list.concat(taicpu.op_reg_reg_reg(
-                   A_ADD,tmpreg,ref.base,ref.index));
-                 ref.index := NR_NO;
-                 ref.base := tmpreg;
-               end
-           end
-         else
-           if ref.index <> NR_NO then
-             internalerror(200208102);
-       end;
 
 
     { find out whether a is of the form 11..00..11b or 00..11...00. If }

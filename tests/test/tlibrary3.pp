@@ -1,6 +1,10 @@
 { %NORUN }
 { %SKIPTARGET=macos, win64 }
 
+{$ifdef darwin}
+{$PIC+}
+{$endif darwin}
+
 {$ifdef CPUX86_64}
 {$ifndef WINDOWS}
 {$PIC+}

@@ -4,6 +4,10 @@
 
 {$ifdef fpc}{$mode delphi}{$endif}
 
+{$ifdef darwin}
+{$PIC+}
+{$endif darwin}
+
 resourcestring
   wurst = 'jo' deprecated;
 

@@ -107,16 +107,6 @@ type
 
     procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
-    { Make sure ref is a valid reference for the PowerPC and sets the }
-    { base to the value of the index if (base = R_NO).                }
-    { Returns true if the reference contained a base, index and an    }
-    { offset or symbol, in which case the base will have been changed }
-    { to a tempreg (which has to be freed by the caller) containing   }
-    { the sum of part of the original reference                       }
-    function fixref(list: TAsmList; var ref: treference): boolean; override;
-
-    function load_got_symbol(list : TAsmList; symbol : string) : tregister;
-
     { returns whether a reference can be used immediately in a powerpc }
     { instruction                                                      }
     function issimpleref(const ref: treference): boolean;
@@ -1397,7 +1387,8 @@ var
     { there are two ways to do this: manually, by generating a few "std" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
-    if (cs_opt_size in current_settings.optimizerswitches) then begin
+    if (cs_opt_size in current_settings.optimizerswitches) and
+       (target_info.system <> system_powerpc64_darwin) then begin
       mayNeedLRStore := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
@@ -1450,10 +1441,10 @@ begin
   { determine whether we need to save the link register }
   needslinkreg :=
     not(nostackframe) and
-    (((not (po_assembler in current_procinfo.procdef.procoptions)) and
-       ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
-     ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
-     ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []));
+    (save_lr_in_prologue or
+     ((cs_opt_size in current_settings.optimizerswitches) and
+      ((fprcount > 0) or
+       (gprcount > 0))));
 
   a_reg_alloc(list, NR_STACK_POINTER_REG);
   a_reg_alloc(list, NR_R0);
@@ -1942,93 +1933,6 @@ begin
     (ref.offset <= high(smallint))) or
     ((ref.index <> NR_NO) and
     (ref.offset = 0)));
-end;
-
-function tcgppc.load_got_symbol(list: TAsmList; symbol : string) : tregister;
-var
-  l: tasmsymbol;
-  ref: treference;
-  symname : string;
-begin
-  l:=current_asmdata.getasmsymbol(symbol);
-  reference_reset_symbol(ref,l,0);
-  ref.base := NR_R2;
-  ref.refaddr := addr_pic;
-
-  result := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('loading got reference for ' + symbol)));
-  {$ENDIF EXTDEBUG}
-//  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
-  list.concat(taicpu.op_reg_ref(A_LD, result, ref));
-end;
-
-
-function tcgppc.fixref(list: TAsmList; var ref: treference): boolean;
-var
-  tmpreg: tregister;
-  name : string;
-begin
-  result := false;
-  { Avoids recursion. }
-  if (ref.refaddr = addr_pic) then exit;
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('fixref0 ' + ref2string(ref))));
-  {$ENDIF EXTDEBUG}
-
-  if (target_info.system = system_powerpc64_darwin) and
-     assigned(ref.symbol) and
-     (ref.symbol.bind = AB_EXTERNAL) then
-    begin
-      tmpreg := g_indirect_sym_load(list,ref.symbol.name);
-      if (ref.base = NR_NO) then
-        ref.base := tmpreg
-      else if (ref.index = NR_NO) then
-        ref.index := tmpreg
-      else
-        begin
-          list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-          ref.base := tmpreg;
-        end;
-      ref.symbol := nil;
-    end;
-
-  { if we have to create PIC, add the symbol to the TOC/GOT }
-  if (target_info.system <> system_powerpc64_darwin) and
-     (cs_create_pic in current_settings.moduleswitches) and 
-     (assigned(ref.symbol)) then begin
-    tmpreg := load_got_symbol(list, ref.symbol.name);
-    if (ref.base = NR_NO) then
-      ref.base := tmpreg
-    else if (ref.index = NR_NO) then
-      ref.index := tmpreg
-    else begin
-      a_op_reg_reg_reg(list, OP_ADD, OS_ADDR, ref.base, tmpreg, tmpreg);
-      ref.base := tmpreg;
-    end;
-    ref.symbol := nil;
-    {$IFDEF EXTDEBUG}
-    list.concat(tai_comment.create(strpnew('fixref-pic ' + ref2string(ref))));
-    {$ENDIF EXTDEBUG}
-  end;
-
-  if (ref.base = NR_NO) then begin
-    ref.base := ref.index;
-    ref.index := NR_NO;
-  end;
-  if (ref.base <> NR_NO) and (ref.index <> NR_NO) and
-    ((ref.offset <> 0) or assigned(ref.symbol)) then begin
-      result := true;
-      tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-      a_op_reg_reg_reg(list, OP_ADD, OS_ADDR, ref.base, ref.index, tmpreg);
-      ref.base := tmpreg;
-      ref.index := NR_NO;
-  end;
-  if (ref.index <> NR_NO) and (assigned(ref.symbol) or (ref.offset <> 0)) then
-    internalerror(2006010506);
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('fixref1 ' + ref2string(ref))));
-  {$ENDIF EXTDEBUG}
 end;
 
 procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
