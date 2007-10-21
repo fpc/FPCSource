@@ -1066,21 +1066,6 @@ asm
 end ['EAX','EDX'];
 
 
-{$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-{$ifdef SYSTEMINLINE}
-       movl     l,%eax
-{$else}
-{$ifndef REGCALL}
-       movl     l,%eax
-{$endif}
-{$endif}
-       andl     $1,%eax
-       setnz    %al
-end ['EAX'];
-
-
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
 function sqr(l:longint):longint;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
