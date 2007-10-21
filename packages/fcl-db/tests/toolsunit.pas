@@ -229,6 +229,7 @@ begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
+    testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
     DecimalSeparator:=',';
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
     DecimalSeparator:='.';

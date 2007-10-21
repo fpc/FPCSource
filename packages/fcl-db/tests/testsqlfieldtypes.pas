@@ -995,6 +995,8 @@ end;
 procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
+  AssertTrue('This test does not apply to Interbase/Firebird, since it has no double field-type',SQLDbType<>interbase);
+
   with TSQLDBConnector(DBConnector) do
     begin
     try
