@@ -136,15 +136,17 @@ var
   buf : array [0..1024] of char;
   Msg : string;
   E   : EIBDatabaseError;
+  Err : longint;
   
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
+    Err := Status[1];
     msg := '';
     while isc_interprete(Buf, @Status) > 0 do
       Msg := Msg + LineEnding +' -' + StrPas(Buf);
     E := EIBDatabaseError.CreateFmt('%s : %s : %s',[self.Name,ProcName,Msg]);
-    E.GDSErrorCode := Status[1];
+    E.GDSErrorCode := Err;
     Raise E;
   end;
 end;
