@@ -1218,8 +1218,8 @@ begin
                          GetNextInstruction(hp1, hp2) and
                          (Tai(hp2).typ = ait_instruction) and
                          (Taicpu(hp2).opcode = A_OR) and
-                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and 
-                         (Taicpu(hp2).opsize = Taicpu(p).opsize) and 
+                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and
+                         (Taicpu(hp2).opsize = Taicpu(p).opsize) and
                          (Taicpu(p).oper[0]^.typ = top_const) and (Taicpu(p).oper[0]^.val=0) and
                          (Taicpu(p).oper[1]^.typ = top_reg) and
                          (Taicpu(hp1).oper[1]^.typ = top_reg) and
@@ -2053,10 +2053,11 @@ See test/tgadint64 in the test suite.
                    if OpsEqual(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
                     if GetLastInstruction(p, hp1) and
                       (tai(hp1).typ = ait_instruction) and
-                      GetNextInstruction(hp1,hp2) and
+                      GetNextInstruction(p,hp2) and
                       (hp2.typ = ait_instruction) and
                       ((taicpu(hp2).opcode = A_SETcc) or
-                       (taicpu(hp2).opcode = A_Jcc)) then
+                       (taicpu(hp2).opcode = A_Jcc) or
+                       (taicpu(hp2).opcode = A_CMOVcc)) then
                      case taicpu(hp1).opcode Of
                        A_ADD, A_SUB, A_OR, A_XOR, A_AND{, A_SHL, A_SHR}:
                          begin
