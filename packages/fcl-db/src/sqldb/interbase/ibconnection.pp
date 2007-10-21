@@ -89,6 +89,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -1130,6 +1131,52 @@ begin
     end
   else
     CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
+end;
+
+function TIBConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+
+var info_request       : string;
+    resbuf             : array[0..63] of byte;
+    i                  : integer;
+    BlockSize,
+    subBlockSize       : integer;
+    SelectedRows,
+    InsertedRows       : integer;
+    
+begin
+  SelectedRows:=0;
+  InsertedRows:=0;
+
+  with cursor as TIBCursor do
+    begin
+    info_request := chr(isc_info_sql_records);
+    if isc_dsql_sql_info(@Status[0],@Statement,Length(info_request), @info_request[1],sizeof(resbuf),@resbuf) <> 0 then
+      CheckError('RowsAffected', Status);
+
+    i := 0;
+    while not (byte(resbuf[i]) in [isc_info_end,isc_info_truncated]) do
+      begin
+      BlockSize:=isc_vax_integer(@resbuf[i+1],2);
+      if resbuf[i]=isc_info_sql_records then
+        begin
+        inc(i,3);
+        BlockSize:=BlockSize+i;
+        while (resbuf[i] <> isc_info_end) and (i < BlockSize) do
+          begin
+          subBlockSize:=isc_vax_integer(@resbuf[i+1],2);
+          if resbuf[i] = isc_info_req_select_count then
+            SelectedRows := isc_vax_integer(@resbuf[i+3],subBlockSize)
+          else if resbuf[i] = isc_info_req_insert_count then
+            InsertedRows := isc_vax_integer(@resbuf[i+3],subBlockSize);
+          inc(i,subBlockSize+3);
+          end;
+        end
+      else
+        inc(i,BlockSize+3);
+      end;
+    end;
+  if SelectedRows>0 then result:=SelectedRows
+  else Result:=InsertedRows;
 end;
 
 { TIBConnectionDef }
