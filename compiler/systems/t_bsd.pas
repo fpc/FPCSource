@@ -207,7 +207,7 @@ Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
-   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+   if not(target_info.system in systems_darwin) then
      LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true)
    else
      { Mac OS X doesn't have a /lib }
@@ -221,12 +221,12 @@ procedure TLinkerBSD.SetDefaultInfo;
 }
 begin
   LibrarySuffix:=' ';
-  LdSupportsNoResponseFile := (target_info.system in [system_m68k_netbsd,system_powerpc_darwin,system_i386_darwin]);
+  LdSupportsNoResponseFile := (target_info.system in ([system_m68k_netbsd]+systems_darwin));
   with Info do
    begin
      if LdSupportsNoResponseFile then
        begin
-         if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+         if not(target_info.system in systems_darwin) then
            begin
              ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
              DllCmd[1]:='ld $OPT -shared -L. -o $EXE `cat $RES`'
@@ -245,7 +245,7 @@ begin
          ExeCmd[1]:='ld $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
          DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
        end;
-     if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+     if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
      else
        DllCmd[2]:='strip -x $EXE';
@@ -257,7 +257,7 @@ procedure TLinkerBSD.LoadPredefinedLibraryOrder;
 // put your linkorder/linkalias overrides here.
 // Note: assumes only called when reordering/aliasing is used.
 Begin
-  if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+  if not(target_info.system in systems_darwin) then
     begin
       if (target_info.system =system_i386_freebsd) and
          not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
@@ -297,7 +297,7 @@ Var
 begin
   WriteResponseFile:=False;
   ReOrder:=False;
-  IsDarwin:=target_info.system in [system_powerpc_darwin,system_i386_darwin];
+  IsDarwin:=target_info.system in systems_darwin;
 { set special options for some targets }
   if not IsDarwin Then
     begin
@@ -585,20 +585,20 @@ begin
 
   if (cs_link_smart in current_settings.globalswitches) and
      (tf_smartlink_sections in target_info.flags) then
-    if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+    if not(target_info.system in systems_darwin) then
       GCSectionsStr:='--gc-sections'
     else
       // warning: this option only exists for 32 bit under Mac OS X, maybe the default for 64 bit?
       GCSectionsStr:='-dead_strip';
 
-   if(not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+   if(not(target_info.system in systems_darwin) and
       (cs_profile in current_settings.moduleswitches)) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
   if CShared Then
    begin
-   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+   if not(target_info.system in systems_darwin) then
      DynLinKStr:=DynLinkStr+' --shared'
     else
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
@@ -718,9 +718,16 @@ initialization
   RegisterImport(system_powerpc_darwin,timportlibdarwin);
   RegisterExport(system_powerpc_darwin,texportlibbsd);
   RegisterTarget(system_powerpc_darwin_info);
+
   RegisterExternalLinker(system_powerpc_netbsd_info,TLinkerBSD);
   RegisterImport(system_powerpc_netbsd,timportlibbsd);
   RegisterExport(system_powerpc_netbsd,texportlibbsd);
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
+{$ifdef powerpc64}
+  RegisterExternalLinker(system_powerpc64_darwin_info,TLinkerBSD);
+  RegisterImport(system_powerpc64_darwin,timportlibdarwin);
+  RegisterExport(system_powerpc64_darwin,texportlibbsd);
+  RegisterTarget(system_powerpc64_darwin_info);
+{$endif powerpc64}
 end.

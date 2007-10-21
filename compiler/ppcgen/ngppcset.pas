@@ -65,7 +65,7 @@ implementation
 
     function tgppccasenode.has_jumptable : boolean;
       begin
-        has_jumptable:=true;
+        has_jumptable:=(target_info.system <> system_powerpc64_darwin);
       end;
 
 

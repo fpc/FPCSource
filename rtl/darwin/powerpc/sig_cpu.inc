@@ -79,7 +79,7 @@
   { Structure used in sigstack call. }
     tdarwin_stack_t = record
         ss_sp    : pchar;        { signal stack base }
-        ss_size  : cint;         { signal stack length }
+        ss_size  : clong;         { signal stack length }
         ss_flags : cint;         { SA_DISABLE and/or SA_ONSTACK }
     end;
 
@@ -249,8 +249,13 @@
 {$packrecords C}
 
      mcontext_t = record
+{$ifdef cpu64}
+        es: ppc_exception_state64_t;
+        ss: ppc_thread_state64_t;
+{$else cpu64}
         es: ppc_exception_state_t;
         ss: ppc_thread_state_t;
+{$endif cpu64}
         fs: ppc_float_state_t;
         vs: ppc_vector_state_t;
      end;

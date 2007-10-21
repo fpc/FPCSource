@@ -603,12 +603,17 @@ initialization
      set_source_info(system_m68k_NetBSD_info);
   {$endif NetBSD}
 {$endif cpu68}
-{$ifdef cpupowerpc}
+{$ifdef cpupowerpc32}
   {$ifdef Darwin}
      set_source_info(system_powerpc_darwin_info);
   {$endif Darwin}
   {$ifdef NetBSD}
      set_source_info(system_powerpc_netbsd_info);
   {$endif}
-{$endif cpu68}
+{$endif cpupowerpc32}
+{$ifdef cpupowerpc64}
+  {$ifdef Darwin}
+     set_source_info(system_powerpc64_darwin_info);
+  {$endif Darwin}
+{$endif powerpc64}
 end.

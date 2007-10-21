@@ -38,7 +38,11 @@ asm
   lwz r0, retaddr
 {$else}
   std r0, retaddr
+{$ifdef linux}
   bl .TMyObject.Test2
+{$else linux}
+  bl TMyObject.Test2
+{$endif linux}
   ld r0, retaddr
 {$endif}
   mtlr r0

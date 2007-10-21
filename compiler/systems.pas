@@ -827,6 +827,14 @@ begin
     default_target(system_x86_64_freebsd);
     {$define default_target_set}
    {$endif}
+   {$ifdef darwin}
+    default_target(system_x86_64_darwin);
+    {$define source_system_set}
+   {$endif}
+   { default is linux }
+   {$ifndef source_system_set}
+    default_target(system_x86_64_linux);
+   {$endif source_system_set}
   {$endif cpux86_64}
   { default is linux }
   {$ifndef default_target_set}
@@ -874,8 +882,12 @@ begin
     default_target(source_info.system);
     {$define default_target_set}
   {$else cpupowerpc64}
+  {$ifdef darwin}
+    default_target(system_powerpc64_darwin);
+  {$else darwin}
     default_target(system_powerpc64_linux);
     {$define default_target_set}
+  {$endif darwin}
   {$endif cpupowerpc64}
 {$endif POWERPC64}
 

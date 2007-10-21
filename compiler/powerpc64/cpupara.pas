@@ -69,6 +69,8 @@ function tppcparamanager.get_volatile_registers_int(calloption:
   tproccalloption): tcpuregisterset;
 begin
   result := [RS_R3..RS_R12];
+  if (target_info.system = system_powerpc64_darwin) then
+    include(result,RS_R2);
 end;
 
 function tppcparamanager.get_volatile_registers_fpu(calloption:
