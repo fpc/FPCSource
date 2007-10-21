@@ -6,11 +6,8 @@
 main=fcl-db
 
 [target]
-units_i386=dbf
-examples_i386=testdbf
-
-units_x86_64=dbf
-examples_x86_64=testdbf
+units=dbf
+examples=testdbf
 
 [compiler]
 options=-S2 -Sh
@@ -20,12 +17,7 @@ fpcdir=../../../..
 
 [install]
 fpcpackage=y
-units_i386=dbf_collate dbf_common dbf_cursor dbf_dbffile dbf_fields \
-      dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
-      dbf_prscore dbf_prsdef dbf_prssupp dbf_str
-
-
-units_x86_64=dbf_collate dbf_common dbf_cursor dbf_dbffile dbf_fields \
+units=dbf_collate dbf_common dbf_cursor dbf_dbffile dbf_fields \
       dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
       dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 
@@ -39,15 +31,8 @@ units=dbf_collate dbf_common dbf_cursor dbf_dbffile dbf_fields \
 ifneq ($(OS_TARGET),win32)
 ifneq ($(OS_TARGET),win64)
 
-ifeq ($(CPU_TARGET),i386)
 INSTALL_UNITS+=dbf_wtil
 CLEAN_UNITS+=dbf_wtil
-endif
-
-ifeq ($(CPU_TARGET),x86_64)
-INSTALL_UNITS+=dbf_wtil
-CLEAN_UNITS+=dbf_wtil
-endif
 
 endif
 endif
