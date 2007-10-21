@@ -38,7 +38,7 @@ type
     FOnDelete: TAvlTreeEvent;
     FHeightChange: Boolean;
 
-    procedure InternalInsert(X: PNode; var P: PNode);
+    function  InternalInsert(X: PNode; var P: PNode): Boolean;
     procedure InternalDelete(X: TKeyType; var P: PNode);
 
     procedure DeleteNode(X: PNode);
@@ -49,7 +49,7 @@ type
 
     procedure Clear;
     function  Find(Key: TKeyType): TExtraData;
-    procedure Insert(Key: TKeyType; Extra: TExtraData);
+    function  Insert(Key: TKeyType; Extra: TExtraData): Boolean;
     procedure Delete(Key: TKeyType);
 
     function  Lowest: PData;
@@ -271,7 +271,7 @@ begin
     Result := nil;
 end;
 
-procedure TAvlTree.Insert(Key: TKeyType; Extra: TExtraData);
+function TAvlTree.Insert(Key: TKeyType; Extra: TExtraData): boolean;
 var
   H: PNode;
 begin
@@ -286,7 +286,9 @@ begin
     Bal := 0;
   end;
   // insert new node
-  InternalInsert(H, FRoot);
+  Result := InternalInsert(H, FRoot);
+  if not Result then
+    Dispose(H);
   // check tree
 //  assert(CheckTree(FRoot));
 end;
@@ -297,15 +299,19 @@ begin
 //  assert(CheckTree(FRoot));
 end;
 
-procedure TAvlTree.InternalInsert(X: PNode; var P: PNode);
+function TAvlTree.InternalInsert(X: PNode; var P: PNode): boolean;
 begin
-  if P = nil
-  then begin P := X; Inc(FCount); FHeightChange := true end
-  else
+  if P = nil then 
+  begin 
+    P := X; 
+    Inc(FCount); 
+    FHeightChange := true;
+    Result := true;
+  end else begin
     if X^.Data.ID < P^.Data.ID then
     begin
       { less }
-      InternalInsert(X, P^.Left);
+      Result := InternalInsert(X, P^.Left);
       if FHeightChange then {Left branch has grown higher}
         case P^.Bal of
           1: begin P^.Bal := 0; FHeightChange := false end;
@@ -338,7 +344,7 @@ begin
     if X^.Data.ID > P^.Data.ID then
     begin
       { greater }
-      InternalInsert(X, P^.Right);
+      Result := InternalInsert(X, P^.Right);
       if FHeightChange then {Right branch has grown higher}
         case P^.Bal of
           -1: begin P^.Bal := 0; FHeightChange := false end;
@@ -370,8 +376,9 @@ begin
     end {greater} else begin
       {X already present; do not insert again}
       FHeightChange := false;
+      Result := false;
     end;
-
+  end;
 //  assert(CheckTree(P));
 end;{InternalInsert}
 

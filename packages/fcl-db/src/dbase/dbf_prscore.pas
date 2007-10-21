@@ -174,6 +174,8 @@ procedure FuncStrI_LT(Param: PExpressionRec);
 procedure FuncStrI_GT(Param: PExpressionRec);
 procedure FuncStrI_LTE(Param: PExpressionRec);
 procedure FuncStrI_GTE(Param: PExpressionRec);
+procedure FuncStrIP_EQ(Param: PExpressionRec);
+procedure FuncStrP_EQ(Param: PExpressionRec);
 procedure FuncStr_EQ(Param: PExpressionRec);
 procedure FuncStr_NEQ(Param: PExpressionRec);
 procedure FuncStr_LT(Param: PExpressionRec);

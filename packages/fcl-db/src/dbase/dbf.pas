@@ -257,7 +257,7 @@ type
     function  IsCursorOpen: Boolean; override; {virtual abstract}
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override; {virtual abstract}
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override; {virtual abstract}
-    procedure SetFieldData(Field: TField; Buffer: Pointer); 
+    procedure SetFieldData(Field: TField; Buffer: Pointer);
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
 
     { virtual methods (mostly optionnal) }
@@ -300,10 +300,10 @@ type
 {$endif}
 
 {$ifdef SUPPORT_OVERLOAD}
-    function  GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload;
-      {$ifdef SUPPORT_BACKWARD_FIELDDATA} override; {$endif}
-    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload;
-      {$ifdef SUPPORT_BACKWARD_FIELDDATA} override; {$endif}
+    function  GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean;
+      {$ifdef SUPPORT_BACKWARD_FIELDDATA} overload; override; {$else} reintroduce; overload; {$endif}
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean);
+      {$ifdef SUPPORT_BACKWARD_FIELDDATA} overload; override; {$else} reintroduce; overload; {$endif}
 {$endif}
 
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Integer; override;
@@ -440,8 +440,10 @@ type
     property AfterCancel;
     property BeforeDelete;
     property AfterDelete;
+{$ifdef SUPPORT_REFRESHEVENTS}    
     property BeforeRefresh;
     property AfterRefresh;
+{$endif}    
     property BeforeScroll;
     property AfterScroll;
     property OnCalcFields;
@@ -2223,7 +2225,7 @@ begin
     begin
       FParser := TDbfParser.Create(FDbfFile);
       // we need truncated, translated (to ANSI) strings
-      FParser.RawStringFields := false;
+      FParser.StringFieldMode := smAnsiTrim;
     end;
     // have a parser now?
     if FParser <> nil then
