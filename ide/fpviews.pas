@@ -2676,7 +2676,7 @@ var
   LI : PEditorLineInfo;
 begin
    if AAddress<>0 then
-     inherited AddLine('$'+hexstr(AAddress,8)+S)
+     inherited AddLine('$'+hexstr(AAddress,sizeof(PtrUInt)*2)+S)
    else
      inherited AddLine(S);
    PL:=DisasLines^.At(DisasLines^.count-1);
@@ -4500,7 +4500,11 @@ begin
         DontClear:=false;
         case Event.KeyCode of
           kbEsc:
-            Message(Owner,evCommand,cmCancel,nil);
+            begin
+              Event.What:=evCommand;
+              Event.Command:=cmCancel;
+              PutEvent(Event);
+            end;
         else DontClear:=true;
         end;
         if not DontClear then ClearEvent(Event);

@@ -180,6 +180,7 @@ procedure TIDEApp.DoRun;
 var
   RunDirect : boolean;
   oldcurrdir : string;
+  s : shortstring;
 begin
 {$ifndef NODEBUG}
   if not assigned(Debugger) or not Debugger^.HasExe or not Debugger^.IsRunning then
@@ -207,9 +208,10 @@ begin
          ErrorBox(msg_nothingtorun,nil);
          Exit;
        end;
+      s:=EXEFile;
       if not ExistsFile(ExeFile) then
         begin
-          MsgParms[1].Ptr:=@EXEFile;
+          MsgParms[1].Ptr:=@s;
           ErrorBox(msg_invalidfilename,@MsgParms);
           Exit;
         end;
@@ -256,15 +258,17 @@ begin
       { In case we have something that the compiler touched }
       AskToReloadAllModifiedFiles;
       LastExitCode:=ExecuteResult;
+
+      s:=EXEFile;
       If IOStatus<>0 then
         begin
-          MsgParms[1].Ptr:=@EXEFile;
+          MsgParms[1].Ptr:=@s;
           MsgParms[2].long:=IOStatus;
           InformationBox(msg_programnotrundoserroris,@MsgParms);
         end
       else If LastExitCode<>0 then
         begin
-          MsgParms[1].Ptr:=@EXEFile;
+          MsgParms[1].Ptr:=@s;
           MsgParms[2].long:=LastExitCode;
           InformationBox(msg_programfileexitedwithexitcode,@MsgParms);
         end;

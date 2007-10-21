@@ -84,9 +84,11 @@ type
     TCompilerStatusDialog = object(TCenterDialog)
       ST    : PAdvancedStaticText;
       KeyST : PColorStaticText;
+      starttime : real;
       constructor Init;
       destructor Done;virtual;
       procedure   Update;
+      procedure SetStartTime(r : real);
     end;
 
     TFPInputFile = class(tinputfile)
@@ -551,12 +553,30 @@ end;
                           CompilerStatusDialog
 ****************************************************************************}
 
+function getrealtime : real;
+var
+{$IFDEF USE_SYSUTILS}
+  h,m,s,s1000 : word;
+{$ELSE USE_SYSUTILS}
+  h,m,s,s100 : word;
+{$ENDIF USE_SYSUTILS}
+begin
+{$IFDEF USE_SYSUTILS}
+  DecodeTime(Time,h,m,s,s1000);
+  getrealtime:=h*3600.0+m*60.0+s+s1000/1000.0;
+{$ELSE USE_SYSUTILS}
+  gettime(h,m,s,s100);
+  getrealtime:=h*3600.0+m*60.0+s+s100/100.0;
+{$ENDIF USE_SYSUTILS}
+end;
+
 constructor TCompilerStatusDialog.Init;
 var R: TRect;
 begin
   R.Assign(0,0,56,11);
   ClearFormatParams; AddFormatParamStr(KillTilde(SwitchesModeName[SwitchesMode]));
   inherited Init(R, FormatStrF(dialog_compilingwithmode, FormatParams));
+  starttime:=getrealtime;
   GetExtent(R); R.B.Y:=11;
   R.Grow(-3,-2);
   New(ST, Init(R, ''));
@@ -576,10 +596,16 @@ begin
   Inherited Done;
 end;
 
+procedure TCompilerStatusDialog.SetStartTime(r : real);
+  begin
+    starttime:=r;
+  end;
+
 procedure TCompilerStatusDialog.Update;
 var
   StatusS,KeyS: string;
   hstatus : TFPCHeapStatus;
+  r : real;
 const
   MaxFileNameSize = 46;
 begin
@@ -642,6 +668,9 @@ begin
   AddFormatParamInt(hstatus.CurrHeapUsed div 1024);
   AddFormatParamInt(hstatus.CurrHeapSize div 1024);
   AddFormatParamInt(Status.ErrorCount);
+  r:=getrealtime;
+  AddFormatParamInt(trunc(r-starttime));
+  AddFormatParamInt(trunc(frac(r-starttime)*10));
   ST^.SetText(
    FormatStrF(
     'Main file: %s'#13+
@@ -649,7 +678,7 @@ begin
     'Target: %s'#13+
     'Line number: %6d     '+'Total lines:      %6d'+#13+
     'Used memory: %6dK    '+'Allocated memory: %6dK'#13+
-    'Total errors: %5d',
+    'Total errors:%6d     '+'Compile time: %8d.%1ds',
    FormatParams)
   );
   KeyST^.SetText(^C+KeyS);
@@ -659,23 +688,6 @@ end;
 {****************************************************************************
                                Compiler Hooks
 ****************************************************************************}
-
-function getrealtime : real;
-var
-{$IFDEF USE_SYSUTILS}
-  h,m,s,s1000 : word;
-{$ELSE USE_SYSUTILS}
-  h,m,s,s100 : word;
-{$ENDIF USE_SYSUTILS}
-begin
-{$IFDEF USE_SYSUTILS}
-  DecodeTime(Time,h,m,s,s1000);
-  getrealtime:=h*3600.0+m*60.0+s+s1000/1000.0;
-{$ELSE USE_SYSUTILS}
-  gettime(h,m,s,s100);
-  getrealtime:=h*3600.0+m*60.0+s+s100/100.0;
-{$ENDIF USE_SYSUTILS}
-end;
 
 const
   lasttime  : real = 0;
@@ -911,6 +923,7 @@ begin
   if not assigned(CompilingHiddenFile) then
     begin
       New(CompilerStatusDialog, Init);
+      CompilerStatusDialog^.SetStartTime(getrealtime);
       CompilerStatusDialog^.SetState(sfModal,true);
       { disable window closing }
       CompilerStatusDialog^.Flags:=CompilerStatusDialog^.Flags and not wfclose;
