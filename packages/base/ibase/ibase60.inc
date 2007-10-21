@@ -7,11 +7,13 @@
 interface
 
 {$IFDEF LinkDynamically}
-uses Dynlibs, sysutils;
+uses Dynlibs, sysutils,ctypes;
 
 Var
   UseEmbeddedFirebird : Boolean = False;
 
+{$ELSE}
+uses ctypes;
 {$ENDIF}
 
 {$IFDEF Unix}
@@ -66,7 +68,7 @@ type
 
 Type
    ISC_USHORT    = word;
-   ISC_STATUS    = longint;
+   ISC_STATUS    = clong;
    ISC_INT64     = int64;
    ISC_UINT64    = qword;
    ISC_LONG      = Longint;
