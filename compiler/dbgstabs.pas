@@ -1037,8 +1037,6 @@ implementation
 
             { end of procedure }
             current_asmdata.getlabel(stabsendlabel,alt_dbgtype);
-            templist.concat(tai_label.create(stabsendlabel));
-            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procendtai,templist);
 
             if assigned(pd.funcretsym) and
                (tabstractnormalvarsym(pd.funcretsym).refs>0) then
@@ -1085,6 +1083,10 @@ implementation
             templist.concat(Tai_stab.Create(stab_stabn,p1));
             freemem(p,2*mangled_length+50);
 
+            { the stabsendlabel must come after all other stabs for this }
+            { function                                                   }
+            templist.concat(tai_label.create(stabsendlabel));
+
             { Add a "size" stab as described in the last paragraph of 2.5 at  }
             { http://sourceware.org/gdb/current/onlinedocs/stabs_2.html#SEC12 }
             { This works at least on Darwin (and is needed on Darwin to get   }
@@ -1122,6 +1124,8 @@ implementation
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
               write_symtable_syms(templist,pd.localst);
+
+            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procstarttai,templist);
 
             templist.free;
           end;
