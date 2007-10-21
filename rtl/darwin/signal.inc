@@ -176,7 +176,7 @@
     PSigSet = ^TSigSet;
 
 {$if defined(cpupowerpc) or defined(cpupowerpc64)}
-    {$include powerpc/sig_cpu.inc}    { SigContextRec }
+    {$include ppcgen/sig_ppc.inc}    { SigContextRec }
 {$else cpupowerpc or cpupowerpc64}
 {$ifdef cpui386}
     {$include i386/sig_cpu.inc}       { SigContextRec }
