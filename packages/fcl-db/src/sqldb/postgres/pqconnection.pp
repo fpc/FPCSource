@@ -39,7 +39,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    function TranslateFldType(Type_Oid : integer) : TFieldType;
+    function TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
   protected
     procedure DoInternalConnect; override;
@@ -109,6 +109,7 @@ const Oid_Bool     = 16;
       Oid_int2     = 21;
       Oid_Int4     = 23;
       Oid_Float4   = 700;
+      Oid_Money    = 790;
       Oid_Float8   = 701;
       Oid_Unknown  = 705;
       Oid_bpchar   = 1042;
@@ -374,12 +375,21 @@ begin
 
 end;
 
-function TPQConnection.TranslateFldType(Type_Oid : integer) : TFieldType;
+function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
 
 begin
-  case Type_Oid of
+  Size := 0;
+  case PQftype(res,Tuple) of
     Oid_varchar,Oid_bpchar,
-    Oid_name               : Result := ftstring;
+    Oid_name               : begin
+                             Result := ftstring;
+                             size := PQfsize(Res, Tuple);
+                             if (size = -1) then
+                               begin
+                               size := pqfmod(res,Tuple)-4;
+                               if size = -5 then size := dsMaxStringSize;
+                               end
+                             end;
 //    Oid_text               : Result := ftstring;
     Oid_text               : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
@@ -392,7 +402,11 @@ begin
     Oid_Date               : Result := ftDate;
     Oid_Time               : Result := ftTime;
     Oid_Bool               : Result := ftBoolean;
-    Oid_Numeric            : Result := ftBCD;
+    Oid_Numeric            : begin
+                             Result := ftBCD;
+                             size := PQfmod(res,Tuple)-4;
+                             end;
+    Oid_Money              : Result := ftCurrency;
     Oid_Unknown            : Result := ftUnknown;
   else
     Result := ftUnknown;
@@ -610,19 +624,7 @@ begin
     setlength(FieldBinding,nFields);
     for i := 0 to nFields-1 do
       begin
-      size := PQfsize(Res, i);
-      fieldtype := TranslateFldType(PQftype(Res, i));
-
-      if (fieldtype = ftstring) and (size = -1) then
-        begin
-        size := pqfmod(res,i)-4;
-        if size = -5 then size := dsMaxStringSize;
-        end
-      else if fieldtype = ftdate  then
-        size := sizeof(double)
-      else if fieldtype = ftblob then
-        size := 0;
-
+      fieldtype := TranslateFldType(Res, i,size);
       with TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1)) do
         FieldBinding[FieldNo-1] := i;
       end;
@@ -742,6 +744,11 @@ begin
             if BEtoN(NumericRecord^.Sign) <> 0 then cur := -cur;
             Move(Cur, Buffer^, sizeof(currency));
             end;
+          end;
+        ftCurrency  :
+          begin
+          dbl := pointer(buffer);
+          dbl^ := BEtoN(PInteger(CurrBuff)^) / 100;
           end;
         ftBoolean:
           pchar(buffer)[0] := CurrBuff[0]

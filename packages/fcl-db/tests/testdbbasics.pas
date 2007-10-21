@@ -36,7 +36,9 @@ type
     procedure TestSupportFloatFields;
     procedure TestSupportLargeIntFields;
     procedure TestSupportDateFields;
-    
+    procedure TestSupportCurrencyFields;
+    procedure TestSupportBCDFields;
+
     procedure TestIsEmpty;
     procedure TestAppendOnEmptyDataset;
     procedure TestInsertOnEmptyDataset;
@@ -736,6 +738,42 @@ begin
   for i := 0 to testValuesCount-1 do
     begin
     AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',Fld.AsDateTime));
+    ds.Next;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestSupportCurrencyFields;
+
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+
+begin
+  TestfieldDefinition(ftCurrency,8,ds,Fld);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
+    AssertEquals(testCurrencyValues[i],Fld.AsFloat);
+    ds.Next;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestSupportBCDFields;
+
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+
+begin
+  TestfieldDefinition(ftBCD,8,ds,Fld);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
+    AssertEquals(testCurrencyValues[i],Fld.AsFloat);
     ds.Next;
     end;
   ds.close;

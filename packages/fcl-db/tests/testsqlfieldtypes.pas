@@ -26,7 +26,7 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
-    procedure TestInsertLargeStringFields; // bug 9600
+    procedure TestInsertLargeStrFields; // bug 9600
     procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
     procedure TestCircularParams;
@@ -872,7 +872,7 @@ begin
     inherited RunTest;
 end;
 
-procedure TTestFieldTypes.TestInsertLargeStringFields;
+procedure TTestFieldTypes.TestInsertLargeStrFields;
 begin
   with TSQLDBConnector(DBConnector) do
     begin

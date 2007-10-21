@@ -80,6 +80,7 @@ const
 const
   testValuesCount = 25;
   testFloatValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678,2.4,3.2,0.4,23);
+  testCurrencyValues : Array[0..testValuesCount-1] of currency = (-100,-65.5,-54.34,-43.34,-2.50,-0.2,45.40,0.3,45.4,127,128,255,256,45,0.3,45.4,127,128,255,256,45,1234.56,43.23,43.43,99.88);
   testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
   testSmallIntValues : Array[0..testValuesCount-1] of smallint = (-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,100,110,120,130,150,-150,-132,234,231,42);
   testLargeIntValues : Array[0..testValuesCount-1] of smallint = (-MaxSIntValue,MaxSIntValue+1,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,MaxSIntValue-1,MaxSIntValue,235253244);
@@ -228,6 +229,10 @@ begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
+    DecimalSeparator:=',';
+    testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
+    DecimalSeparator:='.';
+    testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i]);
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');
