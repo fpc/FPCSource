@@ -325,17 +325,21 @@ implementation
          hp:=hloopvar;
          while assigned(hp) and
                (
-                { record/object fields are allowed in tp7 mode only }
+                { record/object fields and array elements are allowed }
+                { in tp7 mode only                                    }
                 (
                  (m_tp7 in current_settings.modeswitches) and
-                 (hp.nodetype=subscriptn) and
-                 ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
-                  is_object(tsubscriptnode(hp).left.resultdef))
-                ) or
-                { constant array index }
-                (
-                 (hp.nodetype=vecn) and
-                 is_constintnode(tvecnode(hp).right)
+                 (
+                  ((hp.nodetype=subscriptn) and
+                   ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
+                    is_object(tsubscriptnode(hp).left.resultdef))
+                  ) or
+                  { constant array index }
+                  (
+                   (hp.nodetype=vecn) and
+                   is_constintnode(tvecnode(hp).right)
+                  )
+                 )
                 ) or
                 { equal typeconversions }
                 (
