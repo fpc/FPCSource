@@ -16,40 +16,17 @@ GCCDIR=`dirname "$GCCSPEC"`
 
 
 setgccdirarch() {
-# Find path to libgcc.a
-GCCSPEC=`(gcc -v -arch $1 2>&1)| head -n 1| awk '{ print $4 } '`
-if [ -z "$GCCSPEC" ] ; then
-  GCCSPEC=`gcc -print-libgcc-file-name -arch $1`
-fi
-
-GCCDIR=`dirname "$GCCSPEC"`
+# First argument is fpc define for CPU type; remaining args are passed to gcc to set corresponding architecture
+FPCDEFINE=$1
+shift
+setgccdir $@
 
 if [ -z "$GCCDIR" ] ; then
   return
 fi
-
-case $1 in
- ppc)
-    GCCDIR="#ifdef cpupowerpc
+GCCDIR="#ifdef $FPCDEFINE
 -Fl$GCCDIR
 #endif"
-     ;;
- ppc64)
-    GCCDIR="#ifdef cpupowerpc64
--Fl$GCCDIR
-#endif"
-     ;;
- i386)
-    GCCDIR="#ifdef cpui386
--Fl$GCCDIR
-#endif"
-     ;;
- x86_64)
-    GCCDIR="#ifdef cpux86_64
--Fl$GCCDIR
-#endif"
-     ;;
-esac
 }
 
 HOSTOS=`uname -s | tr A-Z a-z`
@@ -94,6 +71,13 @@ GCCDIR2=""
 GCCDIR3=""
 GCCDIR4=""
 
+singlearch() {
+  if [ -d "$GCCDIR" ]; then	
+    echo Found libgcc.a in "$GCCDIR"
+    GCCDIR=-Fl$GCCDIR
+  fi
+}
+
 # include ports tree dir for FreeBSDers.
 case $HOSTOS in
  freebsd)
@@ -106,19 +90,29 @@ case $HOSTOS in
    GCCDIR=-Fl/usr/pkg/lib
      ;;
  darwin)
-   setgccdirarch ppc
+   setgccdirarch cpupowerpc -arch ppc
    GCCDIR2="$GCCDIR"
-   setgccdirarch ppc64
+   setgccdirarch cpupowerpc64 -arch ppc64
    GCCDIR3="$GCCDIR"
-   setgccdirarch i386
+   setgccdirarch cpui386 -arch i386
    GCCDIR4="$GCCDIR"
-   setgccdirarch x86_64
+   setgccdirarch cpux86_64 -arch x86_64
      ;;
- *)
-   if [ -d "$GCCDIR" ]; then	
-      echo Found libgcc.a in "$GCCDIR"
-    GCCDIR=-Fl$GCCDIR
-   fi
+  linux)
+    case `"$FPCBIN" -PP` in
+      i?86|x86_64|amd64)
+      # Allow for the possibility of both 32 and 64 bit compilation on same system
+        setgccdirarch cpui386 -m32
+        GCCDIR4="$GCCDIR"
+        setgccdirarch cpux86_64 -m64
+        ;;
+      # Add cases for other linux dual architectures here
+      *) singlearch # Default          
+        ;;
+    esac
+    ;;
+
+ *) singlearch
     ;;
    
 esac
