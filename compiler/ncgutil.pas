@@ -2168,11 +2168,6 @@ implementation
 ****************************************************************************}
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-{$ifdef x86}
-      var
-        ref : treference;
-        sym : tasmsymbol;
-{$endif x86}
       begin
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
@@ -2183,27 +2178,7 @@ implementation
         else
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
 
-{$ifdef x86}
-        { fix this for other CPUs as well }
-        sym:=current_asmdata.RefAsmSymbol(externalname);
-        reference_reset_symbol(ref,sym,0);
-
-
-        { create pic'ed? }
-        if cs_create_pic in current_settings.moduleswitches then
-          begin
-            { it could be that we're called from a procedure not having the
-              got loaded
-            }
-            gen_got_load(list);
-            ref.refaddr:=addr_pic;
-          end
-        else
-          ref.refaddr:=addr_full;
-        list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
-{$else x86}
-        cg.a_jmp_name(list,externalname);
-{$endif x86}
+        cg.g_external_wrapper(list,pd,externalname);
       end;
 
 {****************************************************************************
