@@ -229,7 +229,11 @@ implementation
           u32bit,
           scurrency,
           s64bit:
-            current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
+            begin
+              href:=left.location.reference;
+              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,href));
+            end;
           u64bit:
             begin
                { unsigned 64 bit ints are harder to handle:
@@ -268,7 +272,9 @@ implementation
                   cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
                   left.location.reference:=href;
                 end;
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IL,left.location.reference));
+             href:=left.location.reference;
+             tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+             current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IL,href));
             end;
         end;
         location_freetemp(current_asmdata.CurrAsmList,left.location);
