@@ -65,7 +65,7 @@ implementation
 
     function tgppccasenode.has_jumptable : boolean;
       begin
-        has_jumptable:=(target_info.system <> system_powerpc64_darwin);
+        has_jumptable:=true;
       end;
 
 
@@ -75,10 +75,11 @@ implementation
         last : TConstExprInt;
         indexreg : tregister;
         href : treference;
+        mulfactor: longint;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
-            i : aint;
+            i : TConstExprInt;
           begin
             if assigned(t^.less) then
               genitem(list,t^.less);
@@ -86,14 +87,14 @@ implementation
             i:=last+1;
             while i<=t^._low-1 do
               begin
-                list.concat(Tai_const.Create_sym(elselabel));
-                inc(i);
+                list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,elselabel));
+                i:=i+1;
               end;
             i:=t^._low;
             while i<=t^._high do
               begin
-                list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
-                inc(i);
+                list.concat(Tai_const.Create_rel_sym(aitconst_32bit,table,blocklabel(t^.blockid)));
+                i:=i+1;
               end;
             last:=t^._high;
             if assigned(t^.greater) then
@@ -101,34 +102,42 @@ implementation
           end;
 
       begin
-        if not(jumptable_no_range) then
-          begin
-             { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(min_),hregister,elselabel);
-             { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
-          end;
-        current_asmdata.getjumplabel(table);
+        last:=min_;
         { make it a 32bit register }
         // allocate base and index registers register
         indexreg:= cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
         { indexreg := hregister; }
         cg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, OS_INT, hregister, indexreg);
-        { create reference, indexreg := indexreg * sizeof(OS_ADDR) }
-        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tcgsize2size[OS_ADDR], indexreg);
-        reference_reset_symbol(href, table, (-aint(min_)) * tcgsize2size[OS_ADDR]);
-        href.index := indexreg;
+        if not(jumptable_no_range) then
+          begin
+             { use aword(value-min)<aword(max-min) instead of two comparisons }
+             { case expr outside min_ .. max_ => goto elselabel               }
+             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
+             { this trick requires an unsigned comparison in all cases }
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
+             { already taken into account now }
+             min_:=0;
+          end;
+        current_asmdata.getjumplabel(table);
+        { create reference, indexreg := indexreg * sizeof(jtentry) (= 4) }
+        mulfactor:=4;
+        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, mulfactor, indexreg);
+        reference_reset_symbol(href, table, (-aint(min_)) * mulfactor);
 
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, href, indexreg);
+        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+        reference_reset_base(href,hregister,0);
+        href.index:=indexreg;
+        indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);
+        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,indexreg);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR, indexreg));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTR));
 
         { generate jump table }
-        new_section(current_procinfo.aktlocaldata,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
-        current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
-        last:=min_;
-        genitem(current_procinfo.aktlocaldata,hp);
+        current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
+        genitem(current_asmdata.CurrAsmList,hp);
       end;
 
 
