@@ -967,6 +967,9 @@ implementation
          para : tcallparanode;
          hp : tstringconstnode;
          ws : pcompilerwidestring;
+         newblock : tblocknode;
+         newstat  : tstatementnode;
+         restemp  : ttempcreatenode;
 
       begin
          result:=nil;
@@ -1003,19 +1006,33 @@ implementation
            if (tstringdef(resultdef).stringtype <> st_shortstring) or
               (torddef(left.resultdef).ordtype = uwidechar) then
              begin
-               { create the procname }
-               if torddef(left.resultdef).ordtype<>uwidechar then
-                 procname := 'fpc_char_to_'
+               if (tstringdef(resultdef).stringtype <> st_shortstring) then
+                 begin
+                   { create the procname }
+                   if torddef(left.resultdef).ordtype<>uwidechar then
+                     procname := 'fpc_char_to_'
+                   else
+                     procname := 'fpc_wchar_to_';
+                   procname:=procname+tstringdef(resultdef).stringtypname;
+
+                   { and the parameter }
+                   para := ccallparanode.create(left,nil);
+
+                   { and finally the call }
+                   result := ccallnode.createinternres(procname,para,resultdef);
+                 end
                else
-                 procname := 'fpc_wchar_to_';
-               procname:=procname+tstringdef(resultdef).stringtypname;
-
-               { and the parameter }
-               para := ccallparanode.create(left,nil);
+                 begin
+                   newblock:=internalstatements(newstat);
+                   restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+                   addstatement(newstat,restemp);
+                   addstatement(newstat,ccallnode.createintern('fpc_wchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
+                     ctemprefnode.create(restemp),nil))));
+                   addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+                   addstatement(newstat,ctemprefnode.create(restemp));
+                   result:=newblock;
+                 end;
                left := nil;
-
-               { and finally the call }
-               result := ccallnode.createinternres(procname,para,resultdef);
              end
            else
              begin
