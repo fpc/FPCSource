@@ -184,10 +184,10 @@ var
   I: Integer;
 begin
   Result := False;
-  if (Value = '') or (Value[1] > #255) or not (char(Value[1]) in ['A'..'Z', 'a'..'z']) then
+  if (Value = '') or (Value[1] > #255) or not (char(ord(Value[1])) in ['A'..'Z', 'a'..'z']) then
     Exit;
   for I := 2 to Length(Value) do
-    if (Value[I] > #255) or not (char(Value[I]) in ['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']) then
+    if (Value[I] > #255) or not (char(ord(Value[I])) in ['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']) then
       Exit;
   Result := True;
 end;
