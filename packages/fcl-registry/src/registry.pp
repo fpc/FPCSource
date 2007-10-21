@@ -101,6 +101,7 @@ type
     function ValueExists(const Name: string): Boolean;
 
     procedure CloseKey;
+    procedure CloseKey(key:HKEY);
     procedure GetKeyNames(Strings: TStrings);
     procedure GetValueNames(Strings: TStrings);
     procedure MoveKey(const OldName, NewName: string; Delete: Boolean);
@@ -505,7 +506,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
        else
@@ -534,7 +535,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
        else
@@ -563,7 +564,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
        else
@@ -592,7 +593,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
        else
@@ -638,7 +639,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
        else
@@ -667,7 +668,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
        else
@@ -704,7 +705,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
     end;          
@@ -728,7 +729,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
     end;
@@ -752,7 +753,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
     end;          
@@ -776,7 +777,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
     end;          
@@ -800,7 +801,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
     end;
@@ -824,7 +825,7 @@ begin
               SetCurrentKey(CurKey);
               end;
           finally
-            regclosekey(sectkey);
+            closekey(sectkey);
             end;
         end
     end;
