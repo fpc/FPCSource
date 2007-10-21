@@ -1457,7 +1457,6 @@ implementation
         objectdf : tobjectdef;
         parents : tlinkedlist;
         objectinfo : tobjectinfoitem;
-        stritem : TCmdStrListItem;
         pd : tprocdef;
         i  : integer;
         first : boolean;

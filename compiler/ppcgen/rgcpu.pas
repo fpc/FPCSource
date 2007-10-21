@@ -39,6 +39,12 @@ unit rgcpu;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
        end;
 
+       trgintcpu = class(trgcpu)
+{$ifdef user0}
+         procedure add_cpu_interferences(p : tai);override;
+{$endif user0}
+       end;
+
   implementation
 
     uses
@@ -51,8 +57,8 @@ unit rgcpu;
       var
         tmpref : treference;
         helplist : TAsmList;
-        l : tasmlabel;
         hreg : tregister;
+        ins : Taicpu;
       begin
         if (spilltemp.offset<low(smallint)) or
            (spilltemp.offset>high(smallint)) then
@@ -63,18 +69,30 @@ unit rgcpu;
               internalerror(200704201);
 
             if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,R_SUBWHOLE)
+              begin
+                hreg:=getregisterinline(helplist,R_SUBWHOLE);
+                {Done by add_cpu_interferences now.
+                add_edge(getsupreg(hreg),RS_R0);}
+              end
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
+
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_hi;
-            helplist.concat(taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref));
+            tmpref.refaddr := addr_higha;
+            ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
+            add_cpu_interferences(ins);
+            helplist.concat(ins);
             tmpref:=spilltemp;
-            tmpref.refaddr:=addr_lo;
+            tmpref.refaddr := addr_low;
             tmpref.base:=hreg;
-            helplist.concat(spilling_create_load(tmpref,tempreg));
-
+	    
+            ins:=spilling_create_load(tmpref,tempreg);
+            add_cpu_interferences(ins);
+	    
+	    
+            helplist.concat(ins);
+	    
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
 
@@ -90,8 +108,8 @@ unit rgcpu;
       var
         tmpref : treference;
         helplist : TAsmList;
-        l : tasmlabel;
         hreg : tregister;
+        ins : Taicpu;
       begin
         if (spilltemp.offset<low(smallint)) or
            (spilltemp.offset>high(smallint)) then
@@ -102,17 +120,25 @@ unit rgcpu;
               internalerror(200704201);
 
             if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,R_SUBWHOLE)
+              begin
+                hreg:=getregisterinline(helplist,R_SUBWHOLE);
+                {Done by add_cpu_interferences now.
+                add_edge(getsupreg(hreg),RS_R0);}
+              end
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_hi;
-            helplist.concat(taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref));
+            tmpref.refaddr := addr_higha;
+            ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
+            add_cpu_interferences(ins);
+            helplist.concat(ins);
             tmpref:=spilltemp;
-            tmpref.refaddr:=addr_lo;
+            tmpref.refaddr := addr_low;
             tmpref.base:=hreg;
-            helplist.concat(spilling_create_store(tempreg,tmpref));
+            ins:=spilling_create_store(tempreg,tmpref);
+            add_cpu_interferences(ins);
+            helplist.concat(ins);
 
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
@@ -123,5 +149,52 @@ unit rgcpu;
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
       end;
+
+{$ifdef user0}
+    procedure trgintcpu.add_cpu_interferences(p : tai);
+      var
+        r : tregister;
+      begin
+        if p.typ=ait_instruction then
+          begin
+            case taicpu(p).opcode of
+              A_ADDI, A_ADDIS,
+              A_STB, A_LBZ, A_STBX, A_LBZX, A_STH, A_LHZ, A_STHX, A_LHZX, A_LHA, A_LHAX,
+              A_STW, A_LWZ, A_STWX, A_LWZX,
+              A_STFS, A_LFS, A_STFSX, A_LFSX, A_STFD, A_LFD, A_STFDX, A_LFDX, A_STFIWX,
+              A_STHBRX, A_LHBRX, A_STWBRX, A_LWBRX, A_STWCX_, A_LWARX,
+              A_ECIWX, A_ECOWX,
+              A_LMW, A_STMW,A_LSWI,A_LSWX,A_STSWI,A_STSWX
+{$ifdef cpu64bit}
+              , A_STD, A_STDX,
+              A_LD, A_LDX,
+              A_LWA, A_LWAX,
+              A_STDCX_,A_LDARX
+{$endif cpu64bit}
+                :
+                begin
+                  case taicpu(p).oper[1]^.typ of
+                    top_reg:
+                      add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R0);
+                    top_ref:
+                      if (taicpu(p).oper[1]^.ref^.base <> NR_NO) then
+                        add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),RS_R0);
+                  end;
+                end;
+              A_DCBA, A_DCBI, A_DCBST, A_DCBT, A_DCBTST, A_DCBZ, A_DCBF, A_ICBI:
+                begin
+                  case taicpu(p).oper[0]^.typ of
+                    top_reg:
+                      add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R0);
+                    top_ref:
+                      if (taicpu(p).oper[0]^.ref^.base <> NR_NO) then
+                        add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),RS_R0);
+                  end;
+                end;
+            end;
+          end;
+      end;
+{$endif user0}
+
 
 end.

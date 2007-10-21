@@ -104,10 +104,10 @@ implementation
 
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_hi;
+            tmpref.refaddr:=addr_high;
             helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
 
-            tmpref.refaddr:=addr_lo;
+            tmpref.refaddr:=addr_low;
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
             reference_reset_base(tmpref,hreg,0);
@@ -140,10 +140,10 @@ implementation
 
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
-            tmpref.refaddr:=addr_hi;
+            tmpref.refaddr:=addr_high;
             helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
 
-            tmpref.refaddr:=addr_lo;
+            tmpref.refaddr:=addr_low;
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
             reference_reset_base(tmpref,hreg,0);

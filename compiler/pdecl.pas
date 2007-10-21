@@ -393,7 +393,6 @@ implementation
          sym      : tsym;
          srsymtable : TSymtable;
          hdef     : tdef;
-         oldfilepos,
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          isgeneric,

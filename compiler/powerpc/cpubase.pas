@@ -238,9 +238,6 @@ uses
 *****************************************************************************}
 
     const
-      symaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
-
-    const
       { MacOS only. Whether the direct data area (TOC) directly contain
         global variables. Otherwise it contains pointers to global variables. }
       macos_direct_globals = false;

@@ -501,7 +501,7 @@ implementation
     procedure TLinkStrMap.Expand(Src:TCmdStrList;Dest:TLinkStrMap);
       // expands every thing in Src to Dest for linkorder purposes.
       var
-        l,r  : longint;
+        r  : longint;
         LibN    : TCmdStr;
       begin
         while not src.empty do
@@ -1149,8 +1149,6 @@ implementation
      end;
 
    procedure InitGlobals;
-     var
-       i : tfeature;
      begin
         get_exepath;
 

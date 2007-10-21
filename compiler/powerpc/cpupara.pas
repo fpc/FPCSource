@@ -60,9 +60,9 @@ unit cpupara;
     function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         if (target_info.system = system_powerpc_darwin) then
-          result := [RS_R2..RS_R12]
+          result := [RS_R0,RS_R2..RS_R12]
         else
-          result := [RS_R3..RS_R12];
+          result := [RS_R0,RS_R3..RS_R12];
       end;
 
 

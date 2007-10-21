@@ -1273,8 +1273,9 @@ end;
 
 
 procedure pd_dispid(pd:tabstractprocdef);
-var
-  pt : tnode;
+
+var pt:Tnode;
+
 begin
   if pd.typ<>procdef then
     internalerror(200604301);

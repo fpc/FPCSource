@@ -1038,9 +1038,6 @@ procedure tppufile.putsmallset(const b);
 procedure tppufile.putnormalset(const b);
   type
     SetLongintArray = Array [0..7] of longint;
-  var
-    i : longint;
-    tempb : setlongintarray;
   begin
     putdata(b,32);
   end;

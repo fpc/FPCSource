@@ -89,10 +89,10 @@ implementation
 
                   reference_reset(tmpref);
                   tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tprocdef(procdefinition).libsym).mangledname);
-                  tmpref.refaddr:=addr_hi;
+                  tmpref.refaddr:=addr_higha;
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R12,tmpref));
                   tmpref.base:=NR_R12;
-                  tmpref.refaddr:=addr_lo;
+                  tmpref.refaddr:=addr_low;
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R12,tmpref));
 
                   reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber);

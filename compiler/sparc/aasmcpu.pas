@@ -75,8 +75,8 @@ uses
     procedure InitAsm;
     procedure DoneAsm;
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
 implementation
 
@@ -185,7 +185,7 @@ implementation
       begin
          inherited create(op);
          { only allowed to load the address }
-         if not(_op2.refaddr in [addr_lo,addr_hi]) then
+         if not(_op2.refaddr in [addr_low,addr_high]) then
            internalerror(200305311);
          ops:=3;
          loadreg(0,_op1);
@@ -259,7 +259,7 @@ implementation
       end;
 
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -281,7 +281,7 @@ implementation
       end;
 
 
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER :

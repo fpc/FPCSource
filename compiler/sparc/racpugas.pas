@@ -105,9 +105,9 @@ Interface
             if actasmtoken=AS_ID then
               begin
                 if upper(actasmpattern)='LO' then
-                  oper.opr.ref.refaddr:=addr_lo
+                  oper.opr.ref.refaddr:=addr_low
                 else if upper(actasmpattern)='HI' then
-                  oper.opr.ref.refaddr:=addr_hi
+                  oper.opr.ref.refaddr:=addr_high
                 else
                   Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_ID);
@@ -352,9 +352,9 @@ Interface
                   memory location) }
                 oper.InitRef;
                 if actasmtoken=AS_LO then
-                  oper.opr.ref.refaddr:=addr_lo
+                  oper.opr.ref.refaddr:=addr_low
                 else
-                  oper.opr.ref.refaddr:=addr_hi;
+                  oper.opr.ref.refaddr:=addr_high;
                 Consume(actasmtoken);
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);

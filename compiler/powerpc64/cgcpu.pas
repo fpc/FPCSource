@@ -397,15 +397,15 @@ begin
   if (target_info.system <> system_powerpc64_darwin) then
     // r13 is tls, do not use, r2 is not available
     rg[R_INTREGISTER] := trgcpu.create(R_INTREGISTER, R_SUBWHOLE,
-      [RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
+      [{$ifdef user0} RS_R0, {$endif} RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
        RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
        RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
        RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
        RS_R14], first_int_imreg, [])
   else
     { special for darwin/ppc64: r2 available volatile, r13 = tls }
-    rg[R_INTREGISTER] := trgcpu.create(R_INTREGISTER, R_SUBWHOLE,
-      [RS_R2, RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
+    rg[R_INTREGISTER] := trgintcpu.create(R_INTREGISTER, R_SUBWHOLE,
+      [{$ifdef user0} RS_R0, {$endif} RS_R2, RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
         RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
         RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
        RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
@@ -544,7 +544,7 @@ end;
 procedure tcgppc.a_call_name(list: TAsmList; const s: string);
 begin
     if (target_info.system <> system_powerpc64_darwin) then
-      a_call_name_direct(list, s, true, true)
+      a_call_name_direct(list, s, false, true)
     else
       begin
         list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
@@ -714,11 +714,11 @@ begin
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
-   required to load the value is greater than 2, store (and later load) the value from there }
-  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
-    (getInstructionLength(a) > 2)) then
-    loadConstantPIC(list, size, a, reg)
-  else
+   required to load the value is greater than 2, store (and later load) the value from there } 
+//  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
+//    (getInstructionLength(a) > 2)) then
+//    loadConstantPIC(list, size, a, reg)
+//  else
     loadConstantNormal(list, size, a, reg);
 end;
 
@@ -1903,15 +1903,7 @@ var
   ref: treference;
   symname : string;
 begin
-  maybe_new_object_file(current_asmdata.asmlists[al_picdata]);
-  symname := '_$' + current_asmdata.name + '$got$' + symbol;
-  l:=current_asmdata.getasmsymbol(symname);
-  if not(assigned(l)) then begin
-    l:=current_asmdata.DefineAsmSymbol(symname, AB_COMMON, AT_DATA);
-    current_asmdata.asmlists[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
-    current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
-    current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + symbol));
-  end;
+  l:=current_asmdata.getasmsymbol(symbol);
   reference_reset_symbol(ref,l,0);
   ref.base := NR_R2;
   ref.refaddr := addr_pic;
@@ -1926,10 +1918,6 @@ end;
 
 
 function tcgppc.fixref(list: TAsmList; var ref: treference): boolean;
-  { symbol names must not be larger than this to be able to make a GOT reference out of them,
-   otherwise they get truncated by the compiler resulting in failing of the assembling stage }
-const
-  MAX_GOT_SYMBOL_NAME_LENGTH_HACK = 120;
 var
   tmpreg: tregister;
   name : string;
@@ -1958,12 +1946,10 @@ begin
       ref.symbol := nil;
     end;
 
-
   { if we have to create PIC, add the symbol to the TOC/GOT }
-  {$WARNING Hack for avoiding too long manglednames enabled!!}
   if (target_info.system <> system_powerpc64_darwin) and
-     (cs_create_pic in current_settings.moduleswitches) and (assigned(ref.symbol) and
-    (length(ref.symbol.name) < MAX_GOT_SYMBOL_NAME_LENGTH_HACK)) then begin
+     (cs_create_pic in current_settings.moduleswitches) and 
+     (assigned(ref.symbol)) then begin
     tmpreg := load_got_symbol(list, ref.symbol.name);
     if (ref.base = NR_NO) then
       ref.base := tmpreg
@@ -2177,7 +2163,7 @@ begin
   end;
   reference_reset_symbol(ref,l,0);
   ref.base := NR_R2;
-  ref.refaddr := addr_pic;
+  ref.refaddr := addr_no;
 
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('loading value from TOC reference for ' + symname)));
