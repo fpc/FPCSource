@@ -34,6 +34,7 @@ type
     NoRun         : boolean;
     UsesGraph     : boolean;
     ShouldFail    : boolean;
+    Timeout       : longint;
     Category      : string;
     Note          : string;
   end;
@@ -253,6 +254,9 @@ begin
                   R.Note:='Note: '+res;
                   Verbose(V_Normal,r.Note);
                 end
+              else
+               if GetEntry('TIMEOUT') then
+                Val(res,r.Timeout,code)
               else
                Verbose(V_Error,'Unknown entry: '+s);
             end;

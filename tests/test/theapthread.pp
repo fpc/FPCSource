@@ -1,3 +1,4 @@
+{ %TIMEOUT=105 }
 {$mode objfpc}{$h+}
 
 uses

@@ -34,6 +34,8 @@ uses
 
 type
   tcompinfo = (compver,comptarget,compcpu);
+  tdelexecutable = (deBefore, deAfter);
+  tdelexecutables = set of tdelexecutable;
 
 const
   ObjExt='o';
@@ -47,6 +49,7 @@ const
   ExeExt='exe';
 {$endif MACOS}
 {$endif UNIX}
+  DefaultTimeout=3;
 
 var
   Config : TConfig;
@@ -78,13 +81,14 @@ const
   TargetDir : string = '';
   BenchmarkInfo : boolean = false;
   ExtraCompilerOpts : string = '';
-  DelExecutable : boolean = false;
+  DelExecutable : TDelExecutables = [];
   RemoteAddr : string = '';
   RemotePath : string = '/tmp';
   RemotePara : string = '';
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
   rquote : char = '''';
+  UseTimeout : boolean = false;
   emulatorname : string = '';
 
 Function FileExists (Const F : String) : Boolean;
@@ -693,6 +697,7 @@ var
   FullExeLogFile,
   TestRemoteExe,
   TestExe  : string;
+  execcmd  : string;
   execres  : boolean;
   EndTicks,
   StartTicks : int64;
@@ -742,12 +747,26 @@ begin
     begin
       { We don't want to create subdirs, remove paths from the test }
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
-      ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
+      if deBefore in DelExecutable then
+        ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
       ExecuteRemote(rcpprog,RemotePara+' '+TestExe+' '+RemoteAddr+':'+TestRemoteExe);
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
-      execres:=ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+
-        ' ; cd '+RemotePath+' ; '+TestRemoteExe+' ; echo "TestExitCode: $?"'+rquote);
+      execcmd:=RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+
+        ' ; cd '+RemotePath+' ;';
+      if UseTimeout then
+      begin
+        execcmd:=execcmd+'timeout -9 ';
+        if Config.Timeout=0 then
+          Config.Timeout:=DefaultTimeout;
+        str(Config.Timeout,s);
+        execcmd:=execcmd+s;
+      end;
+      execcmd:=execcmd+' '+TestRemoteExe+' ; echo "TestExitCode: $?"';
+      if deAfter in DelExecutable then
+        execcmd:=execcmd+' ; rm -f '+TestRemoteExe;
+      execcmd:=execcmd+rquote;
+      execres:=ExecuteRemote(rshprog,execcmd);
       { Check for TestExitCode error in output, sets ExecuteResult }
       CheckTestExitCode(EXELogFile);
     end
@@ -823,11 +842,9 @@ begin
      RunExecutable:=true;
    end;
 
-  if DelExecutable then
+  if deAfter in DelExecutable then
     begin
       Verbose(V_Debug,'Deleting executable '+TestExe);
-      if RemoteAddr<>'' then
-        ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
       RemoveFile(TestExe);
       RemoveFile(ForceExtension(TestExe,ObjExt));
       RemoveFile(ForceExtension(TestExe,PPUExt));
@@ -846,7 +863,7 @@ var
     writeln('dotest [Options] <File>');
     writeln;
     writeln('Options can be:');
-    writeln('  -B            output benchmark information');
+    writeln('  -B            delete executable before remote upload');
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -V            verbose');
     writeln('  -E            execute test also');
@@ -855,6 +872,7 @@ var
     writeln('  -G            include graph tests');
     writeln('  -K            include known bug tests');
     writeln('  -I            include interactive tests');
+    writeln('  -O            use timeout wrapper for (remote) execution');
     writeln('  -M<emulator>  run the tests using the given emulator');
     writeln('  -R<remote>    run the tests remotely with the given rsh/ssh address');
     writeln('  -S            use ssh instead of rsh');
@@ -891,6 +909,8 @@ begin
              DoAll:=true;
            end;
 
+         'B' : Include(DelExecutable,deBefore);
+
          'C' : CompilerBin:=Para;
 
          'E' : DoExecute:=true;
@@ -914,6 +934,8 @@ begin
                end;
 
          'M' : EmulatorName:=Para;
+
+         'O' : UseTimeout:=true;
 
          'P' : RemotePath:=Para;
 
@@ -953,8 +975,7 @@ begin
 
          'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
 
-         'Z' :
-           DelExecutable:=true;
+         'Z' : Include(DelExecutable,deAfter);
         end;
      end
     else

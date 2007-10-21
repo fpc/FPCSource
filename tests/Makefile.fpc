@@ -194,8 +194,14 @@ endif
 ifdef TEST_REMOTEPATH
 override DOTESTOPT+=-P$(TEST_REMOTEPATH)
 endif
+ifdef TEST_DELBEFORE
+override DOTESTOPT+=-B
+endif
 ifdef TEST_DELTEMP
 override DOTESTOPT+=-Z
+endif
+ifdef TEST_TIMEOUT
+override DOTESTOPT+=-O
 endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V

@@ -39,6 +39,8 @@ SKIPTARGET.........Not for these OS targets (win32,macos,etc).
 VERSION............Compiler with at lest this version number required.
 MAXVERSION.........Compiler with at most this version number required.
 RESULT.............Exit code of execution of test expected
+TIMEOUT............Timeout indication for test in seconds (only used if
+                   enabled by defining TEST_TIMEOUT)
 GRAPH..............Requires graph unit
 FAIL...............Compilation must fail
 RECOMPILE..........After compiling a test, recompile the test for a second
@@ -102,6 +104,7 @@ TEST_CCOMPILER         defaults to installed gcc compiler, but only
                        if driver and test full-targets are the same.
 TEST_VERBOSE           let dotest be more verbose, only usefull for debugging
 TEST_DELTEMP           delete temporary executable/object/ppu file, default is off
+TEST_TIMEOUT           use timeout wrapper for (remote) execution
 
   (Please add more test options if needed)
 
@@ -125,6 +128,7 @@ TEST_SSH             set this to use ssh/scp to execute the test
 TEST_PUTTY           test using putty when remote testing (pscp and plink)
 TEST_REMOTEOPT       extra options to remote program
 TEST_REMOTEPATH      set remote path to use, default is /tmp
+TEST_DELBEFORE       delete remote executable before uploading
 TEST_DELTEMP         delete executable after running, so the remote system
                      doesn't need much free disk space
 TEST_REMOTEPW        pass a password with -pw to remote tools, mainly usefull for putty
