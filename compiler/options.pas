@@ -56,7 +56,7 @@ Type
     procedure Interpret_file(const filename : string);
     procedure Read_Parameters;
     procedure parsecmd(cmd:string);
-    procedure TargetDefines(def:boolean);
+    procedure TargetOptions(def:boolean);
   end;
 
   TOptionClass=class of toption;
@@ -1195,7 +1195,7 @@ begin
                if paratarget=system_none then
                 begin
                   { remove old target define }
-                  TargetDefines(false);
+                  TargetOptions(false);
                   { load new target }
                   paratarget:=find_system_by_string(More);
                   if paratarget<>system_none then
@@ -1203,7 +1203,7 @@ begin
                   else
                     IllegalPara(opt);
                   { set new define }
-                  TargetDefines(true);
+                  TargetOptions(true);
                 end
                else
                 if More<>upper(target_info.shortname) then
@@ -1895,7 +1895,7 @@ begin
 end;
 
 
-procedure TOption.TargetDefines(def:boolean);
+procedure TOption.TargetOptions(def:boolean);
 var
   s : string;
   i : integer;
@@ -1985,6 +1985,13 @@ begin
       def_system_macro('FPC_CPUCROSSCOMPILING')
     else
       def_system_macro('FPC_CPUCROSSCOMPILING');
+
+  { Code generation flags }
+  if def and
+     (tf_pic_default in target_info.flags) then
+    include(init_settings.moduleswitches,cs_create_pic)
+  else
+    exclude(init_settings.moduleswitches,cs_create_pic);
 end;
 
 
@@ -2078,7 +2085,7 @@ begin
   disable_configfile:=false;
 
   { Non-core target defines }
-  Option.TargetDefines(true);
+  Option.TargetOptions(true);
 
 { get default messagefile }
   msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
