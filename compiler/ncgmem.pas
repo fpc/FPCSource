@@ -720,7 +720,8 @@ implementation
                   begin
                      if not(is_open_array(left.resultdef)) and
                         not(is_array_of_const(left.resultdef)) and
-                        not(is_dynamic_array(left.resultdef)) then
+                        not(is_dynamic_array(left.resultdef)) and
+                        not(ado_isconvertedpointer in tarraydef(left.resultdef).arrayoptions) then
                        begin
                           if (tordconstnode(right).value.svalue>tarraydef(left.resultdef).highrange) or
                              (tordconstnode(right).value.svalue<tarraydef(left.resultdef).lowrange) then
