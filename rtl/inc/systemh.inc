@@ -533,7 +533,7 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
                       PChar and String Handling
 ****************************************************************************}
 
-function strpas(p:pchar):shortstring;external name 'FPC_PCHAR_TO_SHORTSTR';
+function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 function strlen(p:pchar):longint;external name 'FPC_PCHAR_LENGTH';
 
 { Shortstring functions }
