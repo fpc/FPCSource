@@ -52,6 +52,7 @@ unit cgcpu;
         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);override;
         procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_maybe_got_init(list: TAsmList); override;
      end;
 
       tcg64f386 = class(tcg64f32)
@@ -82,7 +83,8 @@ unit cgcpu;
     procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if cs_create_pic in current_settings.moduleswitches then
+        if (target_info.system<>system_i386_darwin) and
+           (cs_create_pic in current_settings.moduleswitches) then
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
@@ -93,8 +95,13 @@ unit cgcpu;
 
     procedure tcg386.do_register_allocation(list:TAsmList;headertai:tai);
       begin
-        if pi_needs_got in current_procinfo.flags then
-          include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
+        if (pi_needs_got in current_procinfo.flags) then
+          begin
+            if getsupreg(current_procinfo.got) < first_int_imreg then
+              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
+            { ebx is currently always used (do to getiepasebx call) }
+            include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
+          end;
         inherited do_register_allocation(list,headertai);
       end;
 
@@ -246,10 +253,6 @@ unit cgcpu;
       var
         stacksize : longint;
       begin
-        { Release PIC register }
-        if cs_create_pic in current_settings.moduleswitches then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
-
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
            (rg[R_MMXREGISTER].uses_registers) then
@@ -484,6 +487,37 @@ unit cgcpu;
           inherited g_exception_reason_load(list,href);
       end;
 
+
+    procedure tcg386.g_maybe_got_init(list: TAsmList);
+      begin
+        { allocate PIC register }
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (tf_pic_uses_got in target_info.flags) and
+           (pi_needs_got in current_procinfo.flags) and
+           not(po_kylixlocal in current_procinfo.procdef.procoptions) then
+          begin
+            if (target_info.system<>system_i386_darwin) then
+              begin
+                current_module.requires_ebx_pic_helper:=true;
+                cg.a_call_name_static(list,'fpc_geteipasebx');
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
+                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
+                { ecx could be used in leaf procedures }
+                current_procinfo.got:=NR_EBX;
+              end
+            else
+              begin
+                { can't use ecx, since that one may overwrite a parameter }
+                current_module.requires_ebx_pic_helper:=true;
+                cg.a_call_name_static(list,'fpc_geteipasebx');
+                list.concat(tai_regalloc.alloc(NR_EBX,nil));
+                a_label(list,current_procinfo.CurrGotLabel);
+                { got is already set by ti386procinfo.allocate_got_register }
+                list.concat(tai_regalloc.dealloc(NR_EBX,nil));
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_EBX,current_procinfo.got);
+              end;
+          end;
+      end;
 
 
     procedure tcg386.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);

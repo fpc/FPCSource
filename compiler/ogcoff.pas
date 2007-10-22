@@ -477,7 +477,7 @@ implementation
        StrsMaxGrow   = 8192;
 
        coffsecnames : array[TAsmSectiontype] of string[17] = ('',
-          '.text','.data','.data','.bss','.tls',
+          '.text','.data','.data','.data','.bss','.tls',
           '.text',
           '.pdata',
           '.stab','.stabstr',

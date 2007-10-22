@@ -61,10 +61,18 @@ unit cgppc;
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+
+        procedure g_maybe_got_init(list: TAsmList); override;
        protected
         function  get_darwin_call_stub(const s: string): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
-        function  fixref(list: TAsmList; var ref: treference): boolean; virtual; abstract;
+        { Make sure ref is a valid reference for the PowerPC and sets the }
+        { base to the value of the index if (base = R_NO).                }
+        { Returns true if the reference contained a base, index and an    }
+        { offset or symbol, in which case the base will have been changed }
+        { to a tempreg (which has to be freed by the caller) containing   }
+        { the sum of part of the original reference                       }
+        function  fixref(list: TAsmList; var ref: treference): boolean;
         { contains the common code of a_load_reg_ref and a_load_ref_reg }
         procedure a_load_store(list:TAsmList;op: tasmop;reg:tregister;ref: treference);virtual;
 
@@ -77,6 +85,10 @@ unit cgppc;
         { represented by a 16 bit immediate as required by some PowerPC }
         { instructions                                                  }
         function hasLargeOffset(const ref : TReference) : Boolean; inline;
+
+        function save_lr_in_prologue: boolean;
+
+        function load_got_symbol(list : TAsmList; symbol : string) : tregister;
      end;
 
   const
@@ -95,6 +107,16 @@ unit cgppc;
     function tcgppcgen.hasLargeOffset(const ref : TReference) : Boolean;
       begin
         result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
+      end;
+
+
+    function tcgppcgen.save_lr_in_prologue: boolean;
+      begin
+        result:=
+        (not (po_assembler in current_procinfo.procdef.procoptions) and
+         ((pi_do_call in current_procinfo.flags) or 
+          (cs_profile in init_settings.moduleswitches)))  or
+        ([cs_lineinfo,cs_debuginfo] * current_settings.moduleswitches <> []);
       end;
 
 
@@ -145,11 +167,54 @@ unit cgppc;
       end;
 
 
+    procedure tcgppcgen.g_maybe_got_init(list: TAsmList);
+      var
+         instr: taicpu;
+         cond: tasmcond;
+        savedlr: boolean;
+      begin
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            if (cs_create_pic in current_settings.moduleswitches) and
+               (pi_needs_got in current_procinfo.flags) then
+              case target_info.system of
+                system_powerpc_darwin,
+                system_powerpc64_darwin:
+                  begin
+                    savedlr:=save_lr_in_prologue;
+                    if not savedlr then
+                      list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R0,NR_LR));
+                    fillchar(cond,sizeof(cond),0);
+                    cond.simple:=false;
+                    cond.bo:=20;
+                    cond.bi:=31;
+                    instr:=taicpu.op_sym(A_BCL,current_procinfo.CurrGOTLabel);
+                    instr.setcondition(cond);
+                    list.concat(instr);
+                    a_label(list,current_procinfo.CurrGOTLabel);
+                    a_reg_alloc(list,current_procinfo.got);
+                    list.concat(taicpu.op_reg_reg(A_MFSPR,current_procinfo.got,NR_LR));
+                    if not savedlr or
+                       { in the following case lr is saved, but not restored }
+                       { (happens e.g. when generating debug info for leaf   }
+                       { procedures)                                         }
+                       not(pi_do_call in current_procinfo.flags) then
+                      list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
+                  end;
+              end;
+          end;
+      end;
+
+
     function tcgppcgen.get_darwin_call_stub(const s: string): tasmsymbol;
       var
         stubname: string;
+        instr: taicpu;
         href: treference;
         l1: tasmsymbol;
+        localgotlab: tasmlabel;
+        cond: tasmcond;
+        stubalign: byte;
       begin
         { function declared in the current unit? }
         { doesn't work correctly, because this will also return a hit if we }
@@ -164,14 +229,36 @@ unit cgppc;
           current_asmdata.asmlists[al_imports]:=TAsmList.create;
 
         current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
-        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(16));
+        if (cs_create_pic in current_settings.moduleswitches) then
+          stubalign:=32
+        else
+          stubalign:=16;
+        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(stubalign));
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
         reference_reset_symbol(href,l1,0);
         href.refaddr := addr_higha;
-        current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
+        if (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            current_asmdata.getjumplabel(localgotlab);
+            href.relsymbol:=localgotlab;
+            fillchar(cond,sizeof(cond),0);
+            cond.simple:=false;
+            cond.bo:=20;
+            cond.bi:=31;
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R0));
+            instr:=taicpu.op_sym(A_BCL,localgotlab);
+            instr.setcondition(cond);
+            current_asmdata.asmlists[al_imports].concat(instr);
+            a_label(current_asmdata.asmlists[al_imports],localgotlab);
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MFLR,NR_R11));
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_reg_ref(A_ADDIS,NR_R11,NR_R11,href));
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MTLR,NR_R0));
+          end
+        else
+          current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
         href.refaddr := addr_low;
         href.base := NR_R11;
 {$ifndef cpu64bit}
@@ -609,6 +696,125 @@ unit cgppc;
           end;
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
+
+
+    function tcgppcgen.load_got_symbol(list: TAsmList; symbol : string) : tregister;
+    var
+      l: tasmsymbol;
+      ref: treference;
+    begin
+      if (target_info.system <> system_powerpc64_linux) then
+        internalerror(2007102010);
+      l:=current_asmdata.getasmsymbol(symbol);
+      reference_reset_symbol(ref,l,0);
+      ref.base := NR_R2;
+      ref.refaddr := addr_pic;
+    
+      result := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+      {$IFDEF EXTDEBUG}
+      list.concat(tai_comment.create(strpnew('loading got reference for ' + symbol)));
+      {$ENDIF EXTDEBUG}
+    //  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
+      
+{$ifdef cpu64bit}
+      list.concat(taicpu.op_reg_ref(A_LD, result, ref));
+{$else cpu64bit}
+      list.concat(taicpu.op_reg_ref(A_LWZ, result, ref));
+{$endif cpu64bit}
+    end;
+    
+    
+    function tcgppcgen.fixref(list: TAsmList; var ref: treference): boolean;
+      var
+        tmpreg: tregister;
+      begin
+        result := false;
+
+        { Avoid recursion. }
+        if (ref.refaddr = addr_pic) then
+          exit;
+
+        {$IFDEF EXTDEBUG}
+        list.concat(tai_comment.create(strpnew('fixref0 ' + ref2string(ref))));
+        {$ENDIF EXTDEBUG}
+        if (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) and
+           assigned(ref.symbol) and
+           not assigned(ref.relsymbol) and
+           ((ref.symbol.bind = AB_EXTERNAL) or
+            (cs_create_pic in current_settings.moduleswitches))then
+          begin
+            if (ref.symbol.bind = AB_EXTERNAL) or
+               ((cs_create_pic in current_settings.moduleswitches) and
+                (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
+              begin
+                tmpreg := g_indirect_sym_load(list,ref.symbol.name);
+                ref.symbol:=nil;
+              end
+            else
+              begin
+                include(current_procinfo.flags,pi_needs_got);
+                tmpreg := current_procinfo.got;
+                if assigned(ref.relsymbol) then
+                  internalerror(2007093501);
+                ref.relsymbol := current_procinfo.CurrGOTLabel;
+              end;
+            if (ref.base = NR_NO) then
+              ref.base := tmpreg
+            else if (ref.index = NR_NO) then
+              ref.index := tmpreg
+            else
+              begin
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+                ref.base := tmpreg;
+              end;
+          end;
+
+        { if we have to create PIC, add the symbol to the TOC/GOT }
+        if (target_info.system = system_powerpc64_linux) and
+           (cs_create_pic in current_settings.moduleswitches) and 
+           (assigned(ref.symbol)) then
+          begin
+            tmpreg := load_got_symbol(list, ref.symbol.name);
+            if (ref.base = NR_NO) then
+              ref.base := tmpreg
+            else if (ref.index = NR_NO) then
+              ref.index := tmpreg
+            else begin
+              a_op_reg_reg_reg(list, OP_ADD, OS_ADDR, ref.base, tmpreg, tmpreg);
+              ref.base := tmpreg;
+            end;
+            ref.symbol := nil;
+            {$IFDEF EXTDEBUG}
+            list.concat(tai_comment.create(strpnew('fixref-pic ' + ref2string(ref))));
+            {$ENDIF EXTDEBUG}
+          end;
+
+        if (ref.base = NR_NO) then
+          begin
+            ref.base := ref.index;
+            ref.index := NR_NO;
+          end;
+        if (ref.base <> NR_NO) then
+          begin
+            if (ref.index <> NR_NO) and
+               ((ref.offset <> 0) or assigned(ref.symbol)) then
+              begin
+                result := true;
+                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+                list.concat(taicpu.op_reg_reg_reg(
+                  A_ADD,tmpreg,ref.base,ref.index));
+                ref.index := NR_NO;
+                ref.base := tmpreg;
+              end
+          end;
+        if (ref.index <> NR_NO) and
+           (assigned(ref.symbol) or
+            (ref.offset <> 0)) then
+          internalerror(200208102);
+        {$IFDEF EXTDEBUG}
+        list.concat(tai_comment.create(strpnew('fixref1 ' + ref2string(ref))));
+        {$ENDIF EXTDEBUG}
+       end;
 
 
     procedure tcgppcgen.a_load_store(list:TAsmList;op: tasmop;reg:tregister;

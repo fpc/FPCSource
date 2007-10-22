@@ -60,7 +60,7 @@ implementation
       line_length = 70;
 
       secnames : array[TAsmSectiontype] of string[4] = ('',
-        'CODE','DATA','DATA','BSS','',
+        'CODE','DATA','DATA','DATA','BSS','',
         '','','','','','',
         '','','','',
         '',
@@ -72,7 +72,7 @@ implementation
       );
 
       secnamesml64 : array[TAsmSectiontype] of string[7] = ('',
-        '_TEXT','_DATE','_DATA','_BSS','',
+        '_TEXT','_DATE','_DATA','_DATA','_BSS','',
         '','','','',
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
         '',

@@ -402,6 +402,7 @@ interface
         secnames : array[TAsmSectiontype] of string[17] = ('',
           '.text',
           '.data',
+          '.data',
           '.rodata',
           '.bss',
           '.tbss',

@@ -248,12 +248,13 @@ implementation
           '.text',
           '.data',
 { why doesn't .rodata work? (FK) }
-{$warning TODO .rodata not yet working}
+{$warning TODO .data.ro not yet working}
 {$if defined(arm) or defined(powerpc)}
           '.rodata',
 {$else arm}
           '.data',
 {$endif arm}
+          '.rodata',
           '.bss',
           '.threadvar',
           '.pdata',
@@ -270,6 +271,7 @@ implementation
         );
         secnames_pic : array[TAsmSectiontype] of string[17] = ('',
           '.text',
+          '.data.rel',
           '.data.rel',
           '.data.rel',
           '.bss',
@@ -369,7 +371,10 @@ implementation
                 { they don't work and gcc doesn't use them either...     }
                 system_powerpc_darwin,
                 system_powerpc64_darwin:
-                  AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
+                  if (cs_create_pic in current_settings.moduleswitches) then
+                    AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
+                  else
+                    AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
                 system_i386_darwin:
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
                 { darwin/x86-64 uses RIP-based GOT addressing }
@@ -595,12 +600,12 @@ implementation
              begin
                if (target_info.system in systems_darwin) then
                  begin
-                   {On Mac OS X you can't have common symbols in a shared
-                    library, since those are in the TEXT section and the text section is
-                    read-only in shared libraries (so it can be shared among different
-                    processes). The alternate code creates some kind of common symbols in
-                    the data segment. The generic code no longer uses common symbols, but
-                    this doesn't work on Mac OS X as well.}
+                   { On Mac OS X you can't have common symbols in a shared library
+                     since those are in the TEXT section and the text section is
+                     read-only in shared libraries (so it can be shared among different
+                     processes). The alternate code creates some kind of common symbols
+                     in the data segment.
+                   }
                    if tai_datablock(hp).is_global then
                      begin
                        asmwrite('.globl ');
@@ -728,7 +733,7 @@ implementation
                            { Values with symbols are written on a single line to improve
                              reading of the .s file (PFV) }
                            if assigned(tai_const(hp).sym) or
-                              not(CurrSecType in [sec_data,sec_rodata]) or
+                              not(CurrSecType in [sec_data,sec_rodata,sec_rodata_norel]) or
                               (l>line_length) or
                               (hp.next=nil) or
                               (tai(hp.next).typ<>ait_const) or
@@ -1112,6 +1117,11 @@ implementation
                end;
             sec_rodata:
               begin
+                result := '.const_data';
+                exit;
+              end;
+            sec_rodata_norel:
+              begin
                 result := '.const';
                 exit;
               end;
@@ -1119,6 +1129,16 @@ implementation
               begin
                 result := '.section __TEXT, .fpc, regular, no_dead_strip';
                 exit;
+              end;
+            sec_code:
+              begin
+                if (aname='fpc_geteipasebx') or
+                   (aname='fpc_geteipasecx') then
+                  begin
+                    result:='.section __TEXT,__textcoal_nt,coalesced,pure_instructions'#10'.weak_definition '+aname+
+                      #10'.private_extern '+aname;
+                    exit;
+                  end;
               end;
           end;
         result := inherited sectionname(atype,aname,aorder);
@@ -1137,6 +1157,7 @@ implementation
          sec_code,
          sec_data,
          sec_data (* sec_rodata *),
+         sec_data (* sec_rodata_norel *),
          sec_bss,
          sec_data (* sec_threadvar *),
          { used for wince exception handling }

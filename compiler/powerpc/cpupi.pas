@@ -29,7 +29,7 @@ unit cpupi;
 
     uses
        cutils,globtype,
-       cgbase,
+       cgbase,aasmdata,
        procinfo,cpuinfo,psub;
 
     type
@@ -43,6 +43,7 @@ unit cpupi;
           function calc_stackframe_size:longint;override;
 
           function uses_stack_temps: boolean;
+          procedure allocate_got_register(list: TAsmList);override;
          private
           first_save_int_reg, first_save_fpu_reg: tsuperregister;
          public
@@ -58,7 +59,7 @@ unit cpupi;
     uses
        globals,systems,
        cpubase,
-       aasmtai,aasmdata,
+       aasmtai,
        tgobj,cgobj,
        symconst,symsym,paramgr,symutil,symtable,
        verbose;
@@ -184,7 +185,17 @@ unit cpupi;
         else
           begin
             result := align(tg.lasttemp,16);
-            needstackframe:=result<>0;
+            needstackframe := result<>0;
+          end;
+      end;
+
+
+    procedure tppcprocinfo.allocate_got_register(list: TAsmList);
+      begin
+        if (target_info.system = system_powerpc_darwin) and
+           (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            got := cg.getaddressregister(list);
           end;
       end;
 

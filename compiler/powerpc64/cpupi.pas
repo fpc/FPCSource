@@ -28,7 +28,7 @@ unit cpupi;
 interface
 
 uses
-  cutils,
+  cutils,aasmdata,
   procinfo, cpuinfo, psub;
 
 type
@@ -43,6 +43,8 @@ type
     function calc_stackframe_size(numgpr, numfpr : longint): longint;
 
     needs_frame_pointer : boolean;
+
+    procedure allocate_got_register(list: TAsmList); override;
   end;
 
 implementation
@@ -50,8 +52,8 @@ implementation
 uses
   globtype, globals, systems,
   cpubase, cgbase,
-  aasmtai,aasmdata,
-  tgobj,
+  aasmtai,
+  tgobj,cgobj,
   symconst, symsym, paramgr, symutil, symtable,
   verbose;
 
@@ -110,6 +112,16 @@ begin
     needstackframe:=result<>0;
   end;
 end;
+
+
+procedure tppcprocinfo.allocate_got_register(list: TAsmList);
+  begin
+    if (target_info.system = system_powerpc64_darwin) and
+       (cs_create_pic in current_settings.moduleswitches) then
+      begin
+        got := cg.getaddressregister(list);
+      end;
+  end;
 
 begin
   cprocinfo := tppcprocinfo;

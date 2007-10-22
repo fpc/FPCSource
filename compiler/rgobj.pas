@@ -175,7 +175,7 @@ unit rgobj;
                                       const r:Tsuperregisterset;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
       private
-        do_extend_live_range_backwards: boolean;
+        int_live_range_direction: TRADirection;
         {# First imaginary register.}
         first_imaginary   : Tsuperregister;
         {# Highest register allocated until now.}
@@ -236,9 +236,9 @@ unit rgobj;
         procedure select_spill;
         procedure assign_colours;
         procedure clear_interferences(u:Tsuperregister);
-        procedure set_live_range_backwards(b: boolean);
+        procedure set_live_range_direction(dir: TRADirection);
        public
-        property extend_live_range_backwards: boolean read do_extend_live_range_backwards write set_live_range_backwards;
+        property live_range_direction: TRADirection read int_live_range_direction write set_live_range_direction;
       end;
 
     const
@@ -370,8 +370,9 @@ unit rgobj;
          { empty super register sets can cause very strange problems }
          if high(Ausable)=-1 then
            internalerror(200210181);
-         extend_live_range_backwards := false;
+         live_range_direction:=rad_forward;
          supregset_reset(extended_backwards,false,high(tsuperregister));
+         supregset_reset(backwards_was_first,false,high(tsuperregister));
          first_imaginary:=Afirst_imaginary;
          maxreg:=Afirst_imaginary;
          regtype:=Aregtype;
@@ -678,16 +679,18 @@ unit rgobj;
     end;
 
 
-    procedure trgobj.set_live_range_backwards(b: boolean);
+    procedure trgobj.set_live_range_direction(dir: TRADirection);
       begin
-        if (b) then
+        if (dir in [rad_backwards,rad_backwards_reinit]) then
           begin
+            if (dir=rad_backwards_reinit) then
+              supregset_reset(extended_backwards,false,high(tsuperregister));
+            int_live_range_direction:=rad_backwards;
             { new registers may be allocated }
             supregset_reset(backwards_was_first,false,high(tsuperregister));
-            do_extend_live_range_backwards := true;
           end
         else
-          do_extend_live_range_backwards := false;
+          int_live_range_direction:=rad_forward;
       end;
 
 
@@ -704,7 +707,7 @@ unit rgobj;
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
-              if not(extend_live_range_backwards) then
+              if (live_range_direction=rad_forward) then
                 begin
                   if not assigned(live_start) then
                     live_start:=instr;

@@ -99,11 +99,21 @@ asm
   ori   r4, r4, longint_to_real_helper@highera
   sldi  r4, r4, 32
   oris  r4, r4, longint_to_real_helper@ha
-{$else darwin}
-  lis   r4, longint_to_real_helper@ha
-{$endif darwin}
   lfd   f4, longint_to_real_helper@l(r4)
-
+{$else not darwin}
+{$ifdef FPC_PIC}
+   mflr   r0
+   bcl    20,31,.Lpiclab
+.Lpiclab:
+   mflr   r5
+   mtlr   r0
+   addis  r4,r5,(longint_to_real_helper-.Lpiclab)@ha
+   lfd    f2,(longint_to_real_helper-.Lpiclab)@l(r4)
+{$else FPC_PIC}
+  lis   r4, longint_to_real_helper@ha
+  lfd   f4, longint_to_real_helper@l(r4)
+{$endif FPC_PIC}
+{$endif not darwin}
   rldicl r4,r3,32,32  // isolate high half
   rldicl r0,r3,0,32   // isolate low half
   std r4,temp1        // store dword both
@@ -114,4 +124,4 @@ asm
   fcfid f0,f0         // fpu int (no rnd)
   fmadd f0,f4,f2,f0   // (2**32)*high+low (only add can rnd)
 end;
- 
+

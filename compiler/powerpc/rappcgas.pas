@@ -140,6 +140,8 @@ Unit rappcgas;
 
       var
         l : aint;
+        relsym: string;
+        asmsymtyp: tasmsymtype;
 
       begin
         Consume(AS_LPAREN);
@@ -195,21 +197,51 @@ Unit rappcgas;
           AS_ID:
             Begin
               ReadSym(oper);
-              { add a constant expression? }
-              if (actasmtoken=AS_PLUS) then
-               begin
-                 l:=BuildConstExpression(true,true);
-                 case oper.opr.typ of
-                   OPR_CONSTANT :
-                     inc(oper.opr.val,l);
-                   OPR_LOCAL :
-                     inc(oper.opr.localsymofs,l);
-                   OPR_REFERENCE :
-                     inc(oper.opr.ref.offset,l);
-                   else
-                     internalerror(200309202);
-                 end;
-               end;
+              case actasmtoken of
+                AS_PLUS:
+                  begin
+                    { add a constant expression? }
+                    l:=BuildConstExpression(true,true);
+                    case oper.opr.typ of
+                      OPR_CONSTANT :
+                        inc(oper.opr.val,l);
+                      OPR_LOCAL :
+                        inc(oper.opr.localsymofs,l);
+                      OPR_REFERENCE :
+                        inc(oper.opr.ref.offset,l);
+                      else
+                        internalerror(200309202);
+                    end;
+                  end;
+                AS_MINUS:
+                  begin
+                    Consume(AS_MINUS);
+                    BuildConstSymbolExpression(false,true,false,l,relsym,asmsymtyp);
+                    if (relsym<>'') then
+                      begin
+                        if (oper.opr.typ = OPR_REFERENCE) then
+                          oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym)
+                        else
+                          begin
+                            Message(asmr_e_invalid_reference_syntax);
+                            RecoverConsume(false);
+                          end
+                      end
+                    else
+                      begin
+                        case oper.opr.typ of
+                          OPR_CONSTANT :
+                            dec(oper.opr.val,l);
+                          OPR_LOCAL :
+                            dec(oper.opr.localsymofs,l);
+                          OPR_REFERENCE :
+                            dec(oper.opr.ref.offset,l);
+                          else
+                            internalerror(2007092601);
+                        end;
+                      end;
+                  end;
+              end;
               Consume(AS_RPAREN);
               if actasmtoken=AS_AT then
                 ReadAt(oper);

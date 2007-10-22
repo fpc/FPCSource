@@ -571,9 +571,9 @@ implementation
       const
         secnames : array[TAsmSectiontype] of string[13] = ('',
 {$ifdef userodata}
-          '.text','.data','.rodata','.bss','.threadvar',
+          '.text','.data','.data','.rodata','.bss','.threadvar',
 {$else userodata}
-          '.text','.data','.data','.bss','.threadvar',
+          '.text','.data','.data','.data','.bss','.threadvar',
 {$endif userodata}
           '.pdata',
           '.text', { darwin stubs }
@@ -588,6 +588,7 @@ implementation
         );
         secnames_pic : array[TAsmSectiontype] of string[17] = ('',
           '.text',
+          '.data.rel',
           '.data.rel',
           '.data.rel',
           '.bss',

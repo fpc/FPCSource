@@ -82,6 +82,8 @@ implementation
         last : TConstExprInt;
         indexreg : tregister;
         href : treference;
+        jtlist: tasmlist;
+        sectype: TAsmSectiontype;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -100,12 +102,14 @@ implementation
           end;
 
       begin
+        last:=min_;
         if not(jumptable_no_range) then
           begin
-             { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(min_),hregister,elselabel);
+             { a <= x <= b <-> unsigned(x-a) <= (b-a) }
+             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,aint(min_),hregister);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+             min_:=0;
           end;
         current_asmdata.getjumplabel(table);
         { make it a 32bit register }
@@ -118,10 +122,19 @@ implementation
         href.scalefactor:=4;
         emit_ref(A_JMP,S_NO,href);
         { generate jump table }
-        new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(aint));
-        current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
-        last:=min_;
-        genitem(current_procinfo.aktlocaldata,hp);
+        if (target_info.system = system_i386_darwin) then
+          begin
+            jtlist:=current_asmdata.asmlists[al_const];
+            sectype:=sec_rodata;
+          end
+        else
+          begin
+            jtlist:=current_procinfo.aktlocaldata;
+            sectype:=sec_data;
+          end;
+        new_section(jtlist,sectype,current_procinfo.procdef.mangledname,sizeof(aint));
+        jtlist.concat(Tai_label.Create(table));
+        genitem(jtlist,hp);
       end;
 
 
