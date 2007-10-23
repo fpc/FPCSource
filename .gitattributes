@@ -1506,6 +1506,7 @@ packages/base/winunits/examples/OOTest.pp -text svneol=unset#text/plain
 packages/base/winunits/examples/testcom1.pp svneol=native#text/plain
 packages/base/winunits/examples/testcom2.pp svneol=native#text/plain
 packages/base/winunits/examples/testver.pp svneol=native#text/plain
+packages/base/winunits/flatsb.pp svneol=native#text/plain
 packages/base/winunits/fpmake.inc svneol=native#text/plain
 packages/base/winunits/fpmake.pp svneol=native#text/plain
 packages/base/winunits/jedi.inc svneol=native#text/plain
