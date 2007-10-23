@@ -956,7 +956,10 @@ end;
 class procedure TStringField.CheckTypeSize(AValue: Longint);
 
 begin
-  If (AValue<1) or (AValue>dsMaxStringSize) Then
+// A size of 0 is allowed, since for example Firebird allows
+// a query like: 'select '' as fieldname from table' which
+// results in a string with size 0.
+  If (AValue<0) or (AValue>dsMaxStringSize) Then
     databaseErrorFmt(SInvalidFieldSize,[AValue])
 end;
 
