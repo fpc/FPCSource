@@ -49,7 +49,7 @@ const
   ExeExt='exe';
 {$endif MACOS}
 {$endif UNIX}
-  DefaultTimeout=3;
+  DefaultTimeout=60;
 
 var
   Config : TConfig;
