@@ -95,8 +95,8 @@ type
     procedure CreateDB; override;
     procedure DropDB; override;
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
+    property Dialect : integer read GetDialect;
   published
-    property Dialect  : integer read GetDialect write FDialect;
     property DatabaseName;
     property KeepConnection;
     property LoginPrompt;
@@ -133,7 +133,7 @@ type
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
-  buf : array [0..1024] of char;
+  buf : array [0..1023] of char;
   Msg : string;
   E   : EIBDatabaseError;
   Err : longint;
@@ -332,25 +332,28 @@ var
   Buffer : array [0..1] of byte;
   ResBuf : array [0..39] of byte;
 begin
-  Buffer[0] := isc_info_db_sql_dialect;
-  Buffer[1] := isc_info_end;
-  if isc_database_info(@FStatus[0], @FSQLDatabaseHandle, Length(Buffer),
-    pchar(@Buffer[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
-      CheckError('SetDBDialect', FStatus);
-  x := 0;
-  while x < 40 do
-    case ResBuf[x] of
-      isc_info_db_sql_dialect :
-        begin
-        Inc(x);
-        Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
-        Inc(x, 2);
-        FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
-        Inc(x, Len);
-        end;
-      isc_info_end : Break;
-    else
-      inc(x);
+  if Connected then
+    begin
+    Buffer[0] := isc_info_db_sql_dialect;
+    Buffer[1] := isc_info_end;
+    if isc_database_info(@FStatus[0], @FSQLDatabaseHandle, Length(Buffer),
+      pchar(@Buffer[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
+        CheckError('SetDBDialect', FStatus);
+    x := 0;
+    while x < 40 do
+      case ResBuf[x] of
+        isc_info_db_sql_dialect :
+          begin
+          Inc(x);
+          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+          Inc(x, 2);
+          FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
+          Inc(x, Len);
+          end;
+        isc_info_end : Break;
+      else
+        inc(x);
+      end;
     end;
 end;
 

@@ -60,6 +60,7 @@ begin
   FParams:=TStringlist.Create;
   FDatasets:=TList.Create;
   FTransactions:=TList.Create;
+  FConnected:=False;
 end;
 
 destructor TDatabase.Destroy;

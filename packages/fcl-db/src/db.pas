@@ -1562,6 +1562,7 @@ type
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
+    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
     procedure Close;
     destructor Destroy; override;
@@ -1571,7 +1572,6 @@ type
   published
     property Connected: Boolean read GetConnected write SetConnected;
     property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
-    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
 
     property AfterConnect : TNotifyEvent read FAfterConnect write SetAfterConnect;
     property AfterDisconnect : TNotifyEvent read FAfterDisconnect write SetAfterDisconnect;
