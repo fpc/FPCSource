@@ -692,6 +692,48 @@ begin
 end;
 
 
+{*----------------------------------------------------------------------------
+| Shifts the 128-bit value formed by concatenating `a0' and `a1' right by the
+| number of bits given in `count'.  If any nonzero bits are shifted off, they
+| are ``jammed'' into the least significant bit of the result by setting the
+| least significant bit to 1.  The value of `count' can be arbitrarily large;
+| in particular, if `count' is greater than 128, the result will be either
+| 0 or 1, depending on whether the concatenation of `a0' and `a1' is zero or
+| nonzero.  The result is broken into two 64-bit pieces which are stored at
+| the locations pointed to by `z0Ptr' and `z1Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure shift128RightJamming(a0,a1 : bits64; count : int16; var z0Ptr, z1Ptr : bits64);
+var
+    z0,z1 : bits64;
+    negCount : int8;
+begin
+    negCount := ( - count ) and 63;
+
+    if ( count = 0 ) then begin
+        z1 := a1;
+        z0 := a0;
+    end
+    else if ( count < 64 ) then begin
+        z1 := ( a0 shl negCount ) or ( a1 shr count ) or ord( ( a1 shl negCount ) <> 0 );
+        z0 := a0>>count;
+    end
+    else begin
+        if ( count = 64 ) then begin
+            z1 := a0 or ord( a1 <> 0 );
+        end
+        else if ( count < 128 ) then begin
+            z1 := ( a0 shr ( count and 63 ) ) or ord( ( ( a0 shl negCount ) or a1 ) <> 0 );
+        end
+        else begin
+            z1 := ord( ( a0 or a1 ) <> 0 );
+        end;
+        z0 := 0;
+    end;
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
+
 {*
 -------------------------------------------------------------------------------
 Shifts the 64-bit value formed by concatenating `a0' and `a1' right by the
@@ -963,7 +1005,7 @@ End;
 | pieces which are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
 *----------------------------------------------------------------------------*}
 
-procedure shortShift128Left(a0: bits64; a1: bits64; count: int16; var z0Ptr: bits64; z1Ptr : bits64);inline;
+procedure shortShift128Left(a0: bits64; a1: bits64; count: int16; var z0Ptr: bits64; z1Ptr : bits64);
 begin
     z1Ptr := a1 shl count;
     if count=0 then
@@ -1029,6 +1071,75 @@ Begin
     z0Ptr := z0;
 End;
 
+{*----------------------------------------------------------------------------
+| Shifts the 192-bit value formed by concatenating `a0', `a1', and `a2' left
+| by the number of bits given in `count'.  Any bits shifted off are lost.
+| The value of `count' must be less than 64.  The result is broken into three
+| 64-bit pieces which are stored at the locations pointed to by `z0Ptr',
+| `z1Ptr', and `z2Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure shortShift192Left(a0,a1,a2 : bits64;count : int16;var z0Ptr,z1Ptr,z2Ptr : bits64);
+var
+    z0, z1, z2 : bits64;
+    negCount : int8;
+begin
+    z2 := a2 shl count;
+    z1 := a1 shl count;
+    z0 := a0 shl count;
+    if ( 0 < count ) then
+    begin
+        negCount := ( ( - count ) and 63 );
+        z1 := z1 or (a2 shr negCount);
+        z0 := z0 or (a1 shr negCount);
+    end;
+    z2Ptr := z2;
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
+
+{*----------------------------------------------------------------------------
+| Adds the 128-bit value formed by concatenating `a0' and `a1' to the 128-bit
+| value formed by concatenating `b0' and `b1'.  Addition is modulo 2^128, so
+| any carry out is lost.  The result is broken into two 64-bit pieces which
+| are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure add128( a0, a1, b0, b1 : bits64; var z0Ptr, z1Ptr : bits64);inline;
+var
+    z1 : bits64;
+begin
+    z1 := a1 + b1;
+    z1Ptr := z1;
+    z0Ptr := a0 + b0 + ord( z1 < a1 );
+end;
+
+{*----------------------------------------------------------------------------
+| Adds the 192-bit value formed by concatenating `a0', `a1', and `a2' to the
+| 192-bit value formed by concatenating `b0', `b1', and `b2'.  Addition is
+| modulo 2^192, so any carry out is lost.  The result is broken into three
+| 64-bit pieces which are stored at the locations pointed to by `z0Ptr',
+| `z1Ptr', and `z2Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure add192(a0,a1,a2,b0,b1,b2: bits64; var z0Ptr,z1Ptr,z2Ptr : bits64);
+var
+    z0, z1, z2 : bits64;
+    carry0, carry1 : int8;
+begin
+    z2 := a2 + b2;
+    carry1 := ord( z2 < a2 );
+    z1 := a1 + b1;
+    carry0 := ord( z1 < a1 );
+    z0 := a0 + b0;
+    inc(z1, carry1);
+    inc(z0, ord( z1 < carry1 ));
+    inc(z0, carry0);
+    z2Ptr := z2;
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
+
 {*
 -------------------------------------------------------------------------------
 Subtracts the 64-bit value formed by concatenating `b0' and `b1' from the
@@ -1083,6 +1194,47 @@ Begin
     z1Ptr := z1;
     z0Ptr := z0;
 End;
+
+{*----------------------------------------------------------------------------
+| Subtracts the 128-bit value formed by concatenating `b0' and `b1' from the
+| 128-bit value formed by concatenating `a0' and `a1'.  Subtraction is modulo
+| 2^128, so any borrow out (carry out) is lost.  The result is broken into two
+| 64-bit pieces which are stored at the locations pointed to by `z0Ptr' and
+| `z1Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure sub128( a0, a1, b0, b1 : bits64; var z0Ptr, z1Ptr : bits64);
+begin
+    z1Ptr := a1 - b1;
+    z0Ptr := a0 - b0 - ord( a1 < b1 );
+end;
+
+
+{*----------------------------------------------------------------------------
+| Subtracts the 192-bit value formed by concatenating `b0', `b1', and `b2'
+| from the 192-bit value formed by concatenating `a0', `a1', and `a2'.
+| Subtraction is modulo 2^192, so any borrow out (carry out) is lost.  The
+| result is broken into three 64-bit pieces which are stored at the locations
+| pointed to by `z0Ptr', `z1Ptr', and `z2Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure sub192(a0,a1,a2,b0,b1,b2: bits64; var z0Ptr,z1Ptr,z2Ptr : bits64);
+var
+    z0, z1, z2 : bits64;
+    borrow0, borrow1 : int8;
+begin
+    z2 := a2 - b2;
+    borrow1 := ord( a2 < b2 );
+    z1 := a1 - b1;
+    borrow0 := ord( a1 < b1 );
+    z0 := a0 - b0;
+    dec(z0, ord( z1 < borrow1 ));
+    dec(z1, borrow1);
+    dec(z0, borrow0);
+    z2Ptr := z2;
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
 
 {*
 -------------------------------------------------------------------------------
@@ -1178,8 +1330,118 @@ Begin
     z2Ptr := z2;
     z1Ptr := z1;
     z0Ptr := z0;
-
 End;
+
+{*----------------------------------------------------------------------------
+| Multiplies `a' by `b' to obtain a 128-bit product.  The product is broken
+| into two 64-bit pieces which are stored at the locations pointed to by
+| `z0Ptr' and `z1Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure mul64To128( a, b : bits64; var z0Ptr, z1Ptr : bits64);
+var
+    aHigh, aLow, bHigh, bLow : bits32;
+    z0, zMiddleA, zMiddleB, z1 : bits64;
+begin
+    aLow := a;
+    aHigh := a shr 32;
+    bLow := b;
+    bHigh := b shr 32;
+    z1 := ( bits64(aLow) ) * bLow;
+    zMiddleA := ( bits64( aLow )) * bHigh;
+    zMiddleB := ( bits64( aHigh )) * bLow;
+    z0 := ( bits64(aHigh) ) * bHigh;
+    inc(zMiddleA, zMiddleB);
+    inc(z0 ,( ( bits64( zMiddleA < zMiddleB ) ) shl 32 ) + ( zMiddleA shr 32 ));
+    zMiddleA := zMiddleA shl 32;
+    inc(z1, zMiddleA);
+    inc(z0, ord( z1 < zMiddleA ));
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
+
+{*----------------------------------------------------------------------------
+| Multiplies the 128-bit value formed by concatenating `a0' and `a1' to the
+| 128-bit value formed by concatenating `b0' and `b1' to obtain a 256-bit
+| product.  The product is broken into four 64-bit pieces which are stored at
+| the locations pointed to by `z0Ptr', `z1Ptr', `z2Ptr', and `z3Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure mul128To256(a0,a1,b0,b1 : bits64;var z0Ptr,z1Ptr,z2Ptr,z3Ptr : bits64);
+var
+    z0,z1,z2,z3,more1,more2 : bits64;
+begin
+    mul64To128( a1, b1, z2, z3 );
+    mul64To128( a1, b0, z1, more2 );
+    add128( z1, more2, 0, z2, z1, z2 );
+    mul64To128( a0, b0, z0, more1 );
+    add128( z0, more1, 0, z1, z0, z1 );
+    mul64To128( a0, b1, more1, more2 );
+    add128( more1, more2, 0, z2, more1, z2 );
+    add128( z0, z1, 0, more1, z0, z1 );
+    z3Ptr := z3;
+    z2Ptr := z2;
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
+
+
+{*----------------------------------------------------------------------------
+| Multiplies the 128-bit value formed by concatenating `a0' and `a1' by
+| `b' to obtain a 192-bit product.  The product is broken into three 64-bit
+| pieces which are stored at the locations pointed to by `z0Ptr', `z1Ptr', and
+| `z2Ptr'.
+*----------------------------------------------------------------------------*}
+procedure mul128By64To192(a0,a1,b : bits64;var z0Ptr,z1Ptr,z2Ptr : bits64);
+var
+    z0, z1, z2, more1 : bits64;
+begin
+    mul64To128( a1, b, z1, z2 );
+    mul64To128( a0, b, z0, more1 );
+    add128( z0, more1, 0, z1, z0, z1 );
+    z2Ptr := z2;
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
+
+{*----------------------------------------------------------------------------
+| Returns an approximation to the 64-bit integer quotient obtained by dividing
+| `b' into the 128-bit value formed by concatenating `a0' and `a1'.  The
+| divisor `b' must be at least 2^63.  If q is the exact quotient truncated
+| toward zero, the approximation returned lies between q and q + 2 inclusive.
+| If the exact quotient q is larger than 64 bits, the maximum positive 64-bit
+| unsigned integer is returned.
+*----------------------------------------------------------------------------*}
+
+Function estimateDiv128To64( a0:bits64; a1: bits64; b:bits64): bits64;
+var
+    b0, b1, rem0, rem1, term0, term1, z : bits64;
+begin
+    if ( b <= a0 ) then
+      begin
+        result:=qword( $FFFFFFFFFFFFFFFF );
+        exit;
+      end;
+    b0 := b shr 32;
+    if ( b0 shl 32 <= a0 ) then
+      z:=qword( $FFFFFFFF00000000 )
+    else
+      z:=( a0 div b0 ) shl 32;
+    mul64To128( b, z, term0, term1 );
+    sub128( a0, a1, term0, term1, rem0, rem1 );
+    while ( ( sbits64(rem0) ) < 0 ) do begin
+        dec(z,qword( $100000000 ));
+        b1 := b shl 32;
+        add128( rem0, rem1, b0, b1, rem0, rem1 );
+    end;
+    rem0 := ( rem0 shl 32 ) or ( rem1 shr 32 );
+    if ( b0 shl 32 <= rem0 ) then
+      z:=z or $FFFFFFFF
+    else
+      z:=z or rem0 div b0;
+    result:=z;
+end;
+
 
 {*
 -------------------------------------------------------------------------------
@@ -1388,10 +1650,14 @@ Begin
     ne64:= flag( a0 <> b0 ) or flag( a1 <> b1 );
 End;
 
+const
+  float128_default_nan_high = qword($FFFFFFFFFFFFFFFF);
+  float128_default_nan_low = qword($FFFFFFFFFFFFFFFF);
+
+
 (*****************************************************************************)
 (*                      End Low-Level arithmetic                             *)
 (*****************************************************************************)
-
 
 
 {*
@@ -1994,7 +2260,6 @@ Function ExtractFloat32Frac(a : Float32) : Bits32;
  Begin
     ExtractFloat32Frac := A AND $007FFFFF;
  End;
-
 
 {*
 -------------------------------------------------------------------------------
@@ -5118,21 +5383,15 @@ begin
 end;
 
 {*----------------------------------------------------------------------------
-| Adds the 128-bit value formed by concatenating `a0' and `a1' to the 128-bit
-| value formed by concatenating `b0' and `b1'.  Addition is modulo 2^128, so
-| any carry out is lost.  The result is broken into two 64-bit pieces which
-| are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
+| Returns 1 if the 128-bit value formed by concatenating `a0' and `a1' is less
+| than or equal to the 128-bit value formed by concatenating `b0' and `b1'.
+| Otherwise, returns 0.
 *----------------------------------------------------------------------------*}
 
-procedure add128(a0: bits64; a1: bits64; b0: bits64; b1: bits64; var z0Ptr: bits64; var z1Ptr : bits64);inline;
-var
-    z1: bits64;
+function le128( a0: bits64; a1: bits64; b0: bits64; b1 : bits64): flag;inline;
 begin
-    z1 := a1 + b1;
-    z1Ptr := z1;
-    z0Ptr := a0 + b0 + ord( z1 < a1 );
+    result:=ord(( a0 < b0 ) or ( ( a0 = b0 ) and ( a1 <= b1 ) ));
 end;
-
 
 {*----------------------------------------------------------------------------
 | Shifts the 192-bit value formed by concatenating `a0', `a1', and `a2' right
@@ -5402,7 +5661,7 @@ begin
                    ( float_detect_tininess = float_tininess_before_rounding )
                 or ( zExp < 0 )
                 or ( zSig0 <= zSig0 + roundIncrement );
-            shift64RightJamming( zSig0, 1 - zExp, &zSig0 );
+            shift64RightJamming( zSig0, 1 - zExp, zSig0 );
             zExp := 0;
             roundBits := zSig0 and roundMask;
             if ( isTiny and roundBits ) float_raise( float_flag_underflow );
@@ -5413,7 +5672,7 @@ begin
             if ( roundNearestEven and ( roundBits shl 1 = roundIncrement ) ) begin
                 roundMask |= roundIncrement;
             end;
-            zSig0 &= ~ roundMask;
+            zSig0 = ~ roundMask;
             result:=packFloatx80( zSign, zExp, zSig0 );
         end;
     end;
@@ -5427,7 +5686,7 @@ begin
     if ( roundNearestEven and ( roundBits shl 1 = roundIncrement ) ) begin
         roundMask |= roundIncrement;
     end;
-    zSig0 &= ~ roundMask;
+    zSig0 = ~ roundMask;
     if ( zSig0 = 0 ) zExp := 0;
     result:=packFloatx80( zSign, zExp, zSig0 );
  precision80:
@@ -5469,7 +5728,7 @@ begin
                 or ( zExp < 0 )
                 or ! increment
                 or ( zSig0 < LIT64( $FFFFFFFFFFFFFFFF ) );
-            shift64ExtraRightJamming( zSig0, zSig1, 1 - zExp, &zSig0, &zSig1 );
+            shift64ExtraRightJamming( zSig0, zSig1, 1 - zExp, zSig0, zSig1 );
             zExp := 0;
             if ( isTiny and zSig1 ) float_raise( float_flag_underflow );
             if ( zSig1 ) softfloat_exception_flags |= float_flag_inexact;
@@ -5486,7 +5745,7 @@ begin
             end;
             if ( increment ) begin
                 ++zSig0;
-                zSig0 &=
+                zSig0 =
                     ~ ( ( (bits64) ( zSig1 shl 1 ) = 0 ) and roundNearestEven );
                 if ( (sbits64) zSig0 < 0 ) zExp := 1;
             end;
@@ -5501,7 +5760,7 @@ begin
             zSig0 := LIT64( $8000000000000000 );
         end;
         else begin
-            zSig0 &= ~ ( ( (bits64) ( zSig1 shl 1 ) = 0 ) and roundNearestEven );
+            zSig0 = ~ ( ( (bits64) ( zSig1 shl 1 ) = 0 ) and roundNearestEven );
         end;
     end;
     else begin
@@ -5530,7 +5789,7 @@ begin
         zExp -= 64;
     end;
     shiftCount := countLeadingZeros64( zSig0 );
-    shortShift128Left( zSig0, zSig1, shiftCount, &zSig0, &zSig1 );
+    shortShift128Left( zSig0, zSig1, shiftCount, zSig0, zSig1 );
     zExp := eExp - shiftCount;
     return
         roundAndPackFloatx80( roundingPrecision, zSign, zExp, zSig0, zSig1 );
@@ -5559,7 +5818,7 @@ begin
     if ( ( aExp = $7FFF ) and (bits64) ( aSig shl 1 ) ) aSign := 0;
     shiftCount := $4037 - aExp;
     if ( shiftCount <= 0 ) shiftCount := 1;
-    shift64RightJamming( aSig, shiftCount, &aSig );
+    shift64RightJamming( aSig, shiftCount, aSig );
     result := roundAndPackInt32( aSign, aSig );
 
 end;
@@ -5644,7 +5903,7 @@ begin
         aSigExtra := 0;
     end;
     else begin
-        shift64ExtraRightJamming( aSig, 0, shiftCount, &aSig, &aSigExtra );
+        shift64ExtraRightJamming( aSig, 0, shiftCount, aSig, aSigExtra );
     end;
     result := roundAndPackInt64( aSign, aSig, aSigExtra );
 
@@ -5672,7 +5931,7 @@ begin
     aSign := extractFloatx80Sign( a );
     shiftCount := aExp - $403E;
     if ( 0 <= shiftCount ) begin
-        aSig &= LIT64( $7FFFFFFFFFFFFFFF );
+        aSig = LIT64( $7FFFFFFFFFFFFFFF );
         if ( ( a.high <> $C03E ) or aSig ) begin
             float_raise( float_flag_invalid );
             if ( ! aSign or ( ( aExp = $7FFF ) and aSig ) ) begin
@@ -5716,7 +5975,7 @@ begin
         end;
         result := packFloat32( aSign, $FF, 0 );
     end;
-    shift64RightJamming( aSig, 33, &aSig );
+    shift64RightJamming( aSig, 33, aSig );
     if ( aExp or aSig ) aExp -= $3F81;
     result := roundAndPackFloat32( aSign, aExp, aSig );
 
@@ -5744,7 +6003,7 @@ begin
         end;
         result := packFloat64( aSign, $7FF, 0 );
     end;
-    shift64RightJamming( aSig, 1, &zSig );
+    shift64RightJamming( aSig, 1, zSig );
     if ( aExp or aSig ) aExp -= $3C01;
     result := roundAndPackFloat64( aSign, aExp, zSig );
 
@@ -5770,7 +6029,7 @@ begin
     if ( ( aExp = $7FFF ) and (bits64) ( aSig shl 1 ) ) begin
         result := commonNaNToFloat128( floatx80ToCommonNaN( a ) );
     end;
-    shift128Right( aSig shl 1, 0, 16, &zSig0, &zSig1 );
+    shift128Right( aSig shl 1, 0, 16, zSig0, zSig1 );
     result := packFloat128( aSign, aExp, zSig0, zSig1 );
 
 end;
@@ -5833,14 +6092,14 @@ begin
     roundingMode := float_rounding_mode;
     if ( roundingMode = float_round_nearest_even ) begin
         z.low += lastBitMask>>1;
-        if ( ( z.low and roundBitsMask ) = 0 ) z.low &= ~ lastBitMask;
+        if ( ( z.low and roundBitsMask ) = 0 ) z.low = ~ lastBitMask;
     end;
     else if ( roundingMode <> float_round_to_zero ) begin
         if ( extractFloatx80Sign( z ) xor ( roundingMode = float_round_up ) ) begin
             z.low += roundBitsMask;
         end;
     end;
-    z.low &= ~ roundBitsMask;
+    z.low = ~ roundBitsMask;
     if ( z.low = 0 ) begin
         ++z.high;
         z.low := LIT64( $8000000000000000 );
@@ -5875,7 +6134,7 @@ begin
             result := a;
         end;
         if ( bExp = 0 ) --expDiff;
-        shift64ExtraRightJamming( bSig, 0, expDiff, &bSig, &zSig1 );
+        shift64ExtraRightJamming( bSig, 0, expDiff, bSig, zSig1 );
         zExp := aExp;
     end;
     else if ( expDiff < 0 ) begin
@@ -5884,7 +6143,7 @@ begin
             result := packFloatx80( zSign, $7FFF, LIT64( $8000000000000000 ) );
         end;
         if ( aExp = 0 ) ++expDiff;
-        shift64ExtraRightJamming( aSig, 0, - expDiff, &aSig, &zSig1 );
+        shift64ExtraRightJamming( aSig, 0, - expDiff, aSig, zSig1 );
         zExp := bExp;
     end;
     else begin
@@ -5897,7 +6156,7 @@ begin
         zSig1 := 0;
         zSig0 := aSig + bSig;
         if ( aExp = 0 ) begin
-            normalizeFloatx80Subnormal( zSig0, &zExp, &zSig0 );
+            normalizeFloatx80Subnormal( zSig0, zExp, zSig0 );
             goto roundAndPack;
         end;
         zExp := aExp;
@@ -5906,7 +6165,7 @@ begin
     zSig0 := aSig + bSig;
     if ( (sbits64) zSig0 < 0 ) goto roundAndPack;
  shiftRight1:
-    shift64ExtraRightJamming( zSig0, zSig1, 1, &zSig0, &zSig1 );
+    shift64ExtraRightJamming( zSig0, zSig1, 1, zSig0, zSig1 );
     zSig0 or= LIT64( $8000000000000000 );
     ++zExp;
  roundAndPack:
@@ -5961,9 +6220,9 @@ begin
         result := packFloatx80( zSign xor 1, $7FFF, LIT64( $8000000000000000 ) );
     end;
     if ( aExp = 0 ) ++expDiff;
-    shift128RightJamming( aSig, 0, - expDiff, &aSig, &zSig1 );
+    shift128RightJamming( aSig, 0, - expDiff, aSig, zSig1 );
  bBigger:
-    sub128( bSig, 0, aSig, zSig1, &zSig0, &zSig1 );
+    sub128( bSig, 0, aSig, zSig1, zSig0, zSig1 );
     zExp := bExp;
     zSign  xor = 1;
     goto normalizeRoundAndPack;
@@ -5973,9 +6232,9 @@ begin
         result := a;
     end;
     if ( bExp = 0 ) --expDiff;
-    shift128RightJamming( bSig, 0, expDiff, &bSig, &zSig1 );
+    shift128RightJamming( bSig, 0, expDiff, bSig, zSig1 );
  aBigger:
-    sub128( aSig, 0, bSig, zSig1, &zSig0, &zSig1 );
+    sub128( aSig, 0, bSig, zSig1, zSig0, zSig1 );
     zExp := aExp;
  normalizeRoundAndPack:
     result :=
@@ -6067,16 +6326,16 @@ begin
     end;
     if ( aExp = 0 ) begin
         if ( aSig = 0 ) result := packFloatx80( zSign, 0, 0 );
-        normalizeFloatx80Subnormal( aSig, &aExp, &aSig );
+        normalizeFloatx80Subnormal( aSig, aExp, aSig );
     end;
     if ( bExp = 0 ) begin
         if ( bSig = 0 ) result := packFloatx80( zSign, 0, 0 );
-        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+        normalizeFloatx80Subnormal( bSig, bExp, bSig );
     end;
     zExp := aExp + bExp - $3FFE;
-    mul64To128( aSig, bSig, &zSig0, &zSig1 );
+    mul64To128( aSig, bSig, zSig0, zSig1 );
     if ( 0 < (sbits64) zSig0 ) begin
-        shortShift128Left( zSig0, zSig1, 1, &zSig0, &zSig1 );
+        shortShift128Left( zSig0, zSig1, 1, zSig0, zSig1 );
         --zExp;
     end;
     result :=
@@ -6130,32 +6389,32 @@ begin
             float_raise( float_flag_divbyzero );
             result := packFloatx80( zSign, $7FFF, LIT64( $8000000000000000 ) );
         end;
-        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+        normalizeFloatx80Subnormal( bSig, bExp, bSig );
     end;
     if ( aExp = 0 ) begin
         if ( aSig = 0 ) result := packFloatx80( zSign, 0, 0 );
-        normalizeFloatx80Subnormal( aSig, &aExp, &aSig );
+        normalizeFloatx80Subnormal( aSig, aExp, aSig );
     end;
     zExp := aExp - bExp + $3FFE;
     rem1 := 0;
     if ( bSig <= aSig ) begin
-        shift128Right( aSig, 0, 1, &aSig, &rem1 );
+        shift128Right( aSig, 0, 1, aSig, rem1 );
         ++zExp;
     end;
     zSig0 := estimateDiv128To64( aSig, rem1, bSig );
-    mul64To128( bSig, zSig0, &term0, &term1 );
-    sub128( aSig, rem1, term0, term1, &rem0, &rem1 );
+    mul64To128( bSig, zSig0, term0, term1 );
+    sub128( aSig, rem1, term0, term1, rem0, rem1 );
     while ( (sbits64) rem0 < 0 ) begin
         --zSig0;
-        add128( rem0, rem1, 0, bSig, &rem0, &rem1 );
+        add128( rem0, rem1, 0, bSig, rem0, rem1 );
     end;
     zSig1 := estimateDiv128To64( rem1, 0, bSig );
     if ( (bits64) ( zSig1 shl 1 ) <= 8 ) begin
-        mul64To128( bSig, zSig1, &term1, &term2 );
-        sub128( rem1, 0, term1, term2, &rem1, &rem2 );
+        mul64To128( bSig, zSig1, term1, term2 );
+        sub128( rem1, 0, term1, term2, rem1, rem2 );
         while ( (sbits64) rem1 < 0 ) begin
             --zSig1;
-            add128( rem1, rem2, 0, bSig, &rem1, &rem2 );
+            add128( rem1, rem2, 0, bSig, rem1, rem2 );
         end;
         zSig1 or= ( ( rem1 or rem2 ) <> 0 );
     end;
@@ -6204,11 +6463,11 @@ begin
             z.high := floatx80_default_nan_high;
             result := z;
         end;
-        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+        normalizeFloatx80Subnormal( bSig, bExp, bSig );
     end;
     if ( aExp = 0 ) begin
         if ( (bits64) ( aSig0 shl 1 ) = 0 ) result := a;
-        normalizeFloatx80Subnormal( aSig0, &aExp, &aSig0 );
+        normalizeFloatx80Subnormal( aSig0, aExp, aSig0 );
     end;
     bSig or= LIT64( $8000000000000000 );
     zSign := aSign;
@@ -6216,7 +6475,7 @@ begin
     aSig1 := 0;
     if ( expDiff < 0 ) begin
         if ( expDiff < -1 ) result := a;
-        shift128Right( aSig0, 0, 1, &aSig0, &aSig1 );
+        shift128Right( aSig0, 0, 1, aSig0, aSig1 );
         expDiff := 0;
     end;
     q := ( bSig <= aSig0 );
@@ -6225,9 +6484,9 @@ begin
     while ( 0 < expDiff ) begin
         q := estimateDiv128To64( aSig0, aSig1, bSig );
         q := ( 2 < q ) ? q - 2 : 0;
-        mul64To128( bSig, q, &term0, &term1 );
-        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
-        shortShift128Left( aSig0, aSig1, 62, &aSig0, &aSig1 );
+        mul64To128( bSig, q, term0, term1 );
+        sub128( aSig0, aSig1, term0, term1, aSig0, aSig1 );
+        shortShift128Left( aSig0, aSig1, 62, aSig0, aSig1 );
         expDiff -= 62;
     end;
     expDiff += 64;
@@ -6235,19 +6494,19 @@ begin
         q := estimateDiv128To64( aSig0, aSig1, bSig );
         q := ( 2 < q ) ? q - 2 : 0;
         q >>= 64 - expDiff;
-        mul64To128( bSig, q shl ( 64 - expDiff ), &term0, &term1 );
-        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
-        shortShift128Left( 0, bSig, 64 - expDiff, &term0, &term1 );
+        mul64To128( bSig, q shl ( 64 - expDiff ), term0, term1 );
+        sub128( aSig0, aSig1, term0, term1, aSig0, aSig1 );
+        shortShift128Left( 0, bSig, 64 - expDiff, term0, term1 );
         while ( le128( term0, term1, aSig0, aSig1 ) ) begin
             ++q;
-            sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
+            sub128( aSig0, aSig1, term0, term1, aSig0, aSig1 );
         end;
     end;
     else begin
         term1 := 0;
         term0 := bSig;
     end;
-    sub128( term0, term1, aSig0, aSig1, &alternateASig0, &alternateASig1 );
+    sub128( term0, term1, aSig0, aSig1, alternateASig0, alternateASig1 );
     if (    lt128( alternateASig0, alternateASig1, aSig0, aSig1 )
          or (    eq128( alternateASig0, alternateASig1, aSig0, aSig1 )
               and ( q and 1 ) )
@@ -6296,37 +6555,37 @@ begin
     end;
     if ( aExp = 0 ) begin
         if ( aSig0 = 0 ) result := packFloatx80( 0, 0, 0 );
-        normalizeFloatx80Subnormal( aSig0, &aExp, &aSig0 );
+        normalizeFloatx80Subnormal( aSig0, aExp, aSig0 );
     end;
     zExp := ( ( aExp - $3FFF )>>1 ) + $3FFF;
     zSig0 := estimateSqrt32( aExp, aSig0>>32 );
-    shift128Right( aSig0, 0, 2 + ( aExp and 1 ), &aSig0, &aSig1 );
+    shift128Right( aSig0, 0, 2 + ( aExp and 1 ), aSig0, aSig1 );
     zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
     doubleZSig0 := zSig0 shl 1;
-    mul64To128( zSig0, zSig0, &term0, &term1 );
-    sub128( aSig0, aSig1, term0, term1, &rem0, &rem1 );
+    mul64To128( zSig0, zSig0, term0, term1 );
+    sub128( aSig0, aSig1, term0, term1, rem0, rem1 );
     while ( (sbits64) rem0 < 0 ) begin
         --zSig0;
         doubleZSig0 -= 2;
-        add128( rem0, rem1, zSig0>>63, doubleZSig0 or 1, &rem0, &rem1 );
+        add128( rem0, rem1, zSig0>>63, doubleZSig0 or 1, rem0, rem1 );
     end;
     zSig1 := estimateDiv128To64( rem1, 0, doubleZSig0 );
     if ( ( zSig1 and LIT64( $3FFFFFFFFFFFFFFF ) ) <= 5 ) begin
         if ( zSig1 = 0 ) zSig1 := 1;
-        mul64To128( doubleZSig0, zSig1, &term1, &term2 );
-        sub128( rem1, 0, term1, term2, &rem1, &rem2 );
-        mul64To128( zSig1, zSig1, &term2, &term3 );
-        sub192( rem1, rem2, 0, 0, term2, term3, &rem1, &rem2, &rem3 );
+        mul64To128( doubleZSig0, zSig1, term1, term2 );
+        sub128( rem1, 0, term1, term2, rem1, rem2 );
+        mul64To128( zSig1, zSig1, term2, term3 );
+        sub192( rem1, rem2, 0, 0, term2, term3, rem1, rem2, rem3 );
         while ( (sbits64) rem1 < 0 ) begin
             --zSig1;
-            shortShift128Left( 0, zSig1, 1, &term2, &term3 );
+            shortShift128Left( 0, zSig1, 1, term2, term3 );
             term3 or= 1;
             term2 or= doubleZSig0;
-            add192( rem1, rem2, rem3, 0, term2, term3, &rem1, &rem2, &rem3 );
+            add192( rem1, rem2, rem3, 0, term2, term3, rem1, rem2, rem3 );
         end;
         zSig1 or= ( ( rem1 or rem2 or rem3 ) <> 0 );
     end;
-    shortShift128Left( 0, zSig1, 1, &zSig0, &zSig1 );
+    shortShift128Left( 0, zSig1, 1, zSig0, zSig1 );
     zSig0 or= doubleZSig0;
     result :=
         roundAndPackFloatx80(
@@ -7105,17 +7364,23 @@ begin
     if ( aExp = $7FFF ) begin
         if ( aSig0 or aSig1 ) begin
             result := commonNaNToFloatx80( float128ToCommonNaN( a ) );
+            exit;
         end;
         result := packFloatx80( aSign, $7FFF, int64( $8000000000000000 ) );
+        exit;
     end;
     if ( aExp = 0 ) begin
-        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloatx80( aSign, 0, 0 );
-        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+        if ( ( aSig0 or aSig1 ) = 0 ) then
+          begin
+            result := packFloatx80( aSign, 0, 0 );
+            exit;
+          end;
+        normalizeFloat128Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
     end;
     else begin
         aSig0 or= int64( $0001000000000000 );
     end;
-    shortShift128Left( aSig0, aSig1, 15, &aSig0, &aSig1 );
+    shortShift128Left( aSig0, aSig1, 15, aSig0, aSig1 );
     result := roundAndPackFloatx80( 80, aSign, aExp, aSig0, aSig1 );
 
 end;
@@ -7197,9 +7462,9 @@ begin
             case float_rounding_mode of
             float_round_nearest_even:
                 if (    ( aExp = $3FFE )
-                     and (   extractFloat128Frac0( a )
-                          or extractFloat128Frac1( a ) )
-                   ) begin
+                     and (   (extractFloat128Frac0( a )<>0)
+                          or (extractFloat128Frac1( a )<>0) )
+                   ) then begin
                    begin
                      result := packFloat128( aSign, $3FFF, 0, 0 );
                      exit;
@@ -7207,15 +7472,18 @@ begin
                 end;
              float_round_down:
                begin
-                result :=
-                      aSign ? packFloat128( 1, $3FFF, 0, 0 )
-                    : packFloat128( 0, 0, 0, 0 );
+                 if aSign<>0 then
+                   result:=packFloat128( 1, $3FFF, 0, 0 )
+                 else
+                   result:=packFloat128( 0, 0, 0, 0 );
+                 exit;
                end;
              float_round_up:
                begin
-                result :=
-                      aSign ? packFloat128( 1, 0, 0, 0 )
-                    : packFloat128( 0, $3FFF, 0, 0 );
+                 if aSign<>0 then
+                   result := packFloat128( 1, 0, 0, 0 )
+                 else
+                   result:=packFloat128( 0, $3FFF, 0, 0 );
                 exit;
                end;
             end;
@@ -7223,28 +7491,28 @@ begin
             exit;
         end;
         lastBitMask := 1;
-        lastBitMask  shl = $402F - aExp;
+        lastBitMask  := lastBitMask shl ($402F - aExp);
         roundBitsMask := lastBitMask - 1;
         z.low := 0;
         z.high := a.high;
         roundingMode := float_rounding_mode;
-        if ( roundingMode = float_round_nearest_even ) begin
-            z.high += lastBitMask>>1;
-            if ( ( ( z.high and roundBitsMask ) or a.low ) = 0 ) begin
-                z.high &= ~ lastBitMask;
+        if ( roundingMode = float_round_nearest_even ) then begin
+            inc(z.high,lastBitMask shr 1);
+            if ( ( ( z.high and roundBitsMask ) or a.low ) = 0 ) then begin
+                z.high := z.high and not(lastBitMask);
+            end;
+        end
+        else if ( roundingMode <> float_round_to_zero ) then begin
+            if (   (extractFloat128Sign( z )<>0)
+                 xor ( roundingMode = float_round_up ) ) then begin
+                z.high := z.high or ord( a.low <> 0 );
+                z.high := z.high+roundBitsMask;
             end;
         end;
-        else if ( roundingMode <> float_round_to_zero ) begin
-            if (   extractFloat128Sign( z )
-                 xor ( roundingMode = float_round_up ) ) begin
-                z.high or= ( a.low <> 0 );
-                z.high += roundBitsMask;
-            end;
-        end;
-        z.high &= ~ roundBitsMask;
+        z.high := z.high and not(roundBitsMask);
     end;
-    if ( ( z.low <> a.low ) or ( z.high <> a.high ) ) begin
-        softfloat_exception_flags or= float_flag_inexact;
+    if ( ( z.low <> a.low ) or ( z.high <> a.high ) ) then begin
+        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     end;
     result := z;
 
@@ -7258,11 +7526,13 @@ end;
 | Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
 
-function addFloat128Sigs( float128 a, float128 b, flag zSign ): float128;
+function addFloat128Sigs(a,b : float128; zSign : flag ): float128;
 var
     aExp, bExp, zExp: int32;
     aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2: bits64;
     expDiff: int32;
+label
+    shiftRight1,roundAndPack;
 begin
     aSig1 := extractFloat128Frac1( a );
     aSig0 := extractFloat128Frac0( a );
@@ -7271,58 +7541,74 @@ begin
     bSig0 := extractFloat128Frac0( b );
     bExp := extractFloat128Exp( b );
     expDiff := aExp - bExp;
-    if ( 0 < expDiff ) begin
-        if ( aExp = $7FFF ) begin
-            if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, b );
-            result := a;
-        end;
-        if ( bExp = 0 ) begin
-            --expDiff;
-        end;
-        else begin
-            bSig0 or= int64( $0001000000000000 );
-        end;
-        shift128ExtraRightJamming(
-            bSig0, bSig1, 0, expDiff, &bSig0, &bSig1, &zSig2 );
-        zExp := aExp;
-    end;
-    else if ( expDiff < 0 ) begin
-        if ( bExp = $7FFF ) begin
-            if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
-            result := packFloat128( zSign, $7FFF, 0, 0 );
-        end;
-        if ( aExp = 0 ) begin
-            ++expDiff;
-        end;
-        else begin
-            aSig0 or= int64( $0001000000000000 );
-        end;
-        shift128ExtraRightJamming(
-            aSig0, aSig1, 0, - expDiff, &aSig0, &aSig1, &zSig2 );
-        zExp := bExp;
-    end;
-    else begin
-        if ( aExp = $7FFF ) begin
-            if ( aSig0 or aSig1 or bSig0 or bSig1 ) begin
+    if ( 0 < expDiff ) then begin
+        if ( aExp = $7FFF ) then begin
+            if ( aSig0 or aSig1 )<>0 then
+              begin
                 result := propagateFloat128NaN( a, b );
+                exit;
+              end;
+            result := a;
+            exit;
+        end;
+        if ( bExp = 0 ) then begin
+            dec(expDiff);
+        end
+        else begin
+            bSig0 := bSig0 or int64( $0001000000000000 );
+        end;
+        shift128ExtraRightJamming(
+            bSig0, bSig1, 0, expDiff, bSig0, bSig1, zSig2 );
+        zExp := aExp;
+    end
+    else if ( expDiff < 0 ) then begin
+        if ( bExp = $7FFF ) then begin
+            if ( bSig0 or bSig1 )<>0 then
+              begin
+                result := propagateFloat128NaN( a, b );
+                exit;
+              end;
+            result := packFloat128( zSign, $7FFF, 0, 0 );
+            exit;
+        end;
+        if ( aExp = 0 ) then begin
+            inc(expDiff);
+        end
+        else begin
+            aSig0 := aSig0 or int64( $0001000000000000 );
+        end;
+        shift128ExtraRightJamming(
+            aSig0, aSig1, 0, - expDiff, aSig0, aSig1, zSig2 );
+        zExp := bExp;
+    end
+    else begin
+        if ( aExp = $7FFF ) then begin
+            if ( aSig0 or aSig1 or bSig0 or bSig1 )<>0 then begin
+                result := propagateFloat128NaN( a, b );
+                exit;
             end;
             result := a;
+            exit;
         end;
-        add128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
-        if ( aExp = 0 ) result := packFloat128( zSign, 0, zSig0, zSig1 );
+        add128( aSig0, aSig1, bSig0, bSig1, zSig0, zSig1 );
+        if ( aExp = 0 ) then
+          begin
+            result := packFloat128( zSign, 0, zSig0, zSig1 );
+            exit;
+          end;
         zSig2 := 0;
-        zSig0 or= int64( $0002000000000000 );
+        zSig0 := zSig0 or int64( $0002000000000000 );
         zExp := aExp;
         goto shiftRight1;
     end;
-    aSig0 or= int64( $0001000000000000 );
-    add128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
-    --zExp;
-    if ( zSig0 < int64( $0002000000000000 ) ) goto roundAndPack;
-    ++zExp;
+    aSig0 := aSig0 or int64( $0001000000000000 );
+    add128( aSig0, aSig1, bSig0, bSig1, zSig0, zSig1 );
+    dec(zExp);
+    if ( zSig0 < int64( $0002000000000000 ) ) then goto roundAndPack;
+    inc(zExp);
  shiftRight1:
     shift128ExtraRightJamming(
-        zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2 );
+        zSig0, zSig1, zSig2, 1, zSig0, zSig1, zSig2 );
  roundAndPack:
     result := roundAndPackFloat128( zSign, zExp, zSig0, zSig1, zSig2 );
 
@@ -7336,12 +7622,14 @@ end;
 | Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
 
-function subFloat128Sigs( float128 a, float128 b, flag zSign ): float128;
+function subFloat128Sigs( a, b : float128;  zSign : flag): float128;
 var
     aExp, bExp, zExp: int32;
     aSig0, aSig1, bSig0, bSig1, zSig0, zSig1: bits64;
     expDiff: int32;
     z: float128;
+label
+    aExpBigger,bExpBigger,aBigger,bBigger,normalizeRoundAndPack;
 begin
     aSig1 := extractFloat128Frac1( a );
     aSig0 := extractFloat128Frac0( a );
@@ -7350,64 +7638,78 @@ begin
     bSig0 := extractFloat128Frac0( b );
     bExp := extractFloat128Exp( b );
     expDiff := aExp - bExp;
-    shortShift128Left( aSig0, aSig1, 14, &aSig0, &aSig1 );
-    shortShift128Left( bSig0, bSig1, 14, &bSig0, &bSig1 );
-    if ( 0 < expDiff ) goto aExpBigger;
-    if ( expDiff < 0 ) goto bExpBigger;
-    if ( aExp = $7FFF ) begin
-        if ( aSig0 or aSig1 or bSig0 or bSig1 ) begin
+    shortShift128Left( aSig0, aSig1, 14, aSig0, aSig1 );
+    shortShift128Left( bSig0, bSig1, 14, bSig0, bSig1 );
+    if ( 0 < expDiff ) then goto aExpBigger;
+    if ( expDiff < 0 ) then goto bExpBigger;
+    if ( aExp = $7FFF ) then begin
+        if ( aSig0 or aSig1 or bSig0 or bSig1 )<>0 then begin
             result := propagateFloat128NaN( a, b );
+            exit;
         end;
         float_raise( float_flag_invalid );
         z.low := float128_default_nan_low;
         z.high := float128_default_nan_high;
         result := z;
+        exit;
     end;
-    if ( aExp = 0 ) begin
+    if ( aExp = 0 ) then begin
         aExp := 1;
         bExp := 1;
     end;
-    if ( bSig0 < aSig0 ) goto aBigger;
-    if ( aSig0 < bSig0 ) goto bBigger;
-    if ( bSig1 < aSig1 ) goto aBigger;
-    if ( aSig1 < bSig1 ) goto bBigger;
-    result := packFloat128( float_rounding_mode = float_round_down, 0, 0, 0 );
+    if ( bSig0 < aSig0 ) then goto aBigger;
+    if ( aSig0 < bSig0 ) then goto bBigger;
+    if ( bSig1 < aSig1 ) then goto aBigger;
+    if ( aSig1 < bSig1 ) then goto bBigger;
+    result := packFloat128( ord(float_rounding_mode = float_round_down), 0, 0, 0 );
+    exit;
  bExpBigger:
-    if ( bExp = $7FFF ) begin
-        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+    if ( bExp = $7FFF ) then begin
+        if ( bSig0 or bSig1 )<>0 then
+          begin
+            result := propagateFloat128NaN( a, b );
+            exit;
+          end;
+
         result := packFloat128( zSign xor 1, $7FFF, 0, 0 );
+        exit;
     end;
-    if ( aExp = 0 ) begin
-        ++expDiff;
-    end;
+    if ( aExp = 0 ) then begin
+        inc(expDiff);
+    end
     else begin
-        aSig0 or= int64( $4000000000000000 );
+        aSig0 := aSig0 or int64( $4000000000000000 );
     end;
-    shift128RightJamming( aSig0, aSig1, - expDiff, &aSig0, &aSig1 );
-    bSig0 or= int64( $4000000000000000 );
+    shift128RightJamming( aSig0, aSig1, - expDiff, aSig0, aSig1 );
+    bSig0 := bSig0 or int64( $4000000000000000 );
  bBigger:
-    sub128( bSig0, bSig1, aSig0, aSig1, &zSig0, &zSig1 );
+    sub128( bSig0, bSig1, aSig0, aSig1, zSig0, zSig1 );
     zExp := bExp;
-    zSign  xor = 1;
+    zSign := zSign xor 1;
     goto normalizeRoundAndPack;
  aExpBigger:
-    if ( aExp = $7FFF ) begin
-        if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, b );
+    if ( aExp = $7FFF ) then begin
+        if ( aSig0 or aSig1 )<>0 then
+          begin
+            result := propagateFloat128NaN( a, b );
+            exit;
+          end;
         result := a;
+        exit;
     end;
-    if ( bExp = 0 ) begin
-        --expDiff;
-    end;
+    if ( bExp = 0 ) then begin
+        dec(expDiff);
+    end
     else begin
-        bSig0 or= int64( $4000000000000000 );
+        bSig0 := bSig0 or int64( $4000000000000000 );
     end;
-    shift128RightJamming( bSig0, bSig1, expDiff, &bSig0, &bSig1 );
-    aSig0 or= int64( $4000000000000000 );
+    shift128RightJamming( bSig0, bSig1, expDiff, bSig0, bSig1 );
+    aSig0 := aSig0 or int64( $4000000000000000 );
  aBigger:
-    sub128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
+    sub128( aSig0, aSig1, bSig0, bSig1, zSig0, zSig1 );
     zExp := aExp;
  normalizeRoundAndPack:
-    --zExp;
+    dec(zExp);
     result := normalizeRoundAndPackFloat128( zSign, zExp - 14, zSig0, zSig1 );
 
 end;
@@ -7424,9 +7726,9 @@ var
 begin
     aSign := extractFloat128Sign( a );
     bSign := extractFloat128Sign( b );
-    if ( aSign = bSign ) begin
+    if ( aSign = bSign ) then begin
         result := addFloat128Sigs( a, b, aSign );
-    end;
+    end
     else begin
         result := subFloat128Sigs( a, b, aSign );
     end;
@@ -7445,9 +7747,9 @@ var
 begin
     aSign := extractFloat128Sign( a );
     bSign := extractFloat128Sign( b );
-    if ( aSign = bSign ) begin
+    if ( aSign = bSign ) then begin
         result := subFloat128Sigs( a, b, aSign );
-    end;
+    end
     else begin
         result := addFloat128Sigs( a, b, aSign );
     end;
@@ -7466,6 +7768,8 @@ var
     aExp, bExp, zExp: int32;
     aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2, zSig3: bits64;
     z: float128;
+label
+    invalid;
 begin
     aSig1 := extractFloat128Frac1( a );
     aSig0 := extractFloat128Frac0( a );
@@ -7476,43 +7780,59 @@ begin
     bExp := extractFloat128Exp( b );
     bSign := extractFloat128Sign( b );
     zSign := aSign xor bSign;
-    if ( aExp = $7FFF ) begin
-        if (    ( aSig0 or aSig1 )
-             or ( ( bExp = $7FFF ) and ( bSig0 or bSig1 ) ) ) begin
+    if ( aExp = $7FFF ) then begin
+        if (    (( aSig0 or aSig1 )<>0)
+             or ( ( bExp = $7FFF ) and (( bSig0 or bSig1 )<>0) ) ) then begin
             result := propagateFloat128NaN( a, b );
+            exit;
         end;
-        if ( ( bExp or bSig0 or bSig1 ) = 0 ) goto invalid;
+        if ( ( bExp or bSig0 or bSig1 ) = 0 ) then goto invalid;
         result := packFloat128( zSign, $7FFF, 0, 0 );
+        exit;
     end;
-    if ( bExp = $7FFF ) begin
-        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
-        if ( ( aExp or aSig0 or aSig1 ) = 0 ) begin
+    if ( bExp = $7FFF ) then begin
+        if ( bSig0 or bSig1 )<>0 then
+          begin
+            result := propagateFloat128NaN( a, b );
+            exit;
+          end;
+        if ( ( aExp or aSig0 or aSig1 ) = 0 ) then begin
  invalid:
             float_raise( float_flag_invalid );
             z.low := float128_default_nan_low;
             z.high := float128_default_nan_high;
             result := z;
+            exit;
         end;
         result := packFloat128( zSign, $7FFF, 0, 0 );
+        exit;
     end;
-    if ( aExp = 0 ) begin
-        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloat128( zSign, 0, 0, 0 );
-        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    if ( aExp = 0 ) then begin
+        if ( ( aSig0 or aSig1 ) = 0 ) then
+          begin
+            result := packFloat128( zSign, 0, 0, 0 );
+            exit;
+          end;
+        normalizeFloat128Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
     end;
-    if ( bExp = 0 ) begin
-        if ( ( bSig0 or bSig1 ) = 0 ) result := packFloat128( zSign, 0, 0, 0 );
-        normalizeFloat128Subnormal( bSig0, bSig1, &bExp, &bSig0, &bSig1 );
+    if ( bExp = 0 ) then begin
+        if ( ( bSig0 or bSig1 ) = 0 ) then
+          begin
+            result := packFloat128( zSign, 0, 0, 0 );
+            exit;
+          end;
+        normalizeFloat128Subnormal( bSig0, bSig1, bExp, bSig0, bSig1 );
     end;
     zExp := aExp + bExp - $4000;
-    aSig0 or= int64( $0001000000000000 );
-    shortShift128Left( bSig0, bSig1, 16, &bSig0, &bSig1 );
-    mul128To256( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1, &zSig2, &zSig3 );
-    add128( zSig0, zSig1, aSig0, aSig1, &zSig0, &zSig1 );
-    zSig2 or= ( zSig3 <> 0 );
-    if ( int64( $0002000000000000 ) <= zSig0 ) begin
+    aSig0 := aSig0 or int64( $0001000000000000 );
+    shortShift128Left( bSig0, bSig1, 16, bSig0, bSig1 );
+    mul128To256( aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2, zSig3 );
+    add128( zSig0, zSig1, aSig0, aSig1, zSig0, zSig1 );
+    zSig2 := zSig2 or ord( zSig3 <> 0 );
+    if ( int64( $0002000000000000 ) <= zSig0 ) then begin
         shift128ExtraRightJamming(
-            zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2 );
-        ++zExp;
+            zSig0, zSig1, zSig2, 1, zSig0, zSig1, zSig2 );
+        inc(zExp);
     end;
     result := roundAndPackFloat128( zSign, zExp, zSig0, zSig1, zSig2 );
 
@@ -7531,6 +7851,8 @@ var
     aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2: bits64;
     rem0, rem1, rem2, rem3, term0, term1, term2, term3: bits64;
     z: float128;
+label
+    invalid;
 begin
     aSig1 := extractFloat128Frac1( a );
     aSig0 := extractFloat128Frac0( a );
@@ -7541,63 +7863,83 @@ begin
     bExp := extractFloat128Exp( b );
     bSign := extractFloat128Sign( b );
     zSign := aSign xor bSign;
-    if ( aExp = $7FFF ) begin
-        if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, b );
-        if ( bExp = $7FFF ) begin
-            if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+    if ( aExp = $7FFF ) then begin
+        if ( aSig0 or aSig1 )<>0 then
+        begin
+          result := propagateFloat128NaN( a, b );
+          exit;
+        end;
+        if ( bExp = $7FFF ) then begin
+            if ( bSig0 or bSig1 )<>0 then
+              begin
+                result := propagateFloat128NaN( a, b );
+                exit;
+              end;
             goto invalid;
         end;
         result := packFloat128( zSign, $7FFF, 0, 0 );
+        exit;
     end;
-    if ( bExp = $7FFF ) begin
-        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+    if ( bExp = $7FFF ) then begin
+        if ( bSig0 or bSig1 )<>0 then
+          begin
+            result := propagateFloat128NaN( a, b );
+            exit;
+          end;
         result := packFloat128( zSign, 0, 0, 0 );
+        exit;
     end;
-    if ( bExp = 0 ) begin
-        if ( ( bSig0 or bSig1 ) = 0 ) begin
-            if ( ( aExp or aSig0 or aSig1 ) = 0 ) begin
+    if ( bExp = 0 ) then begin
+        if ( ( bSig0 or bSig1 ) = 0 ) then begin
+            if ( ( aExp or aSig0 or aSig1 ) = 0 ) then begin
  invalid:
                 float_raise( float_flag_invalid );
                 z.low := float128_default_nan_low;
                 z.high := float128_default_nan_high;
                 result := z;
+                exit;
             end;
             float_raise( float_flag_divbyzero );
             result := packFloat128( zSign, $7FFF, 0, 0 );
+            exit;
         end;
-        normalizeFloat128Subnormal( bSig0, bSig1, &bExp, &bSig0, &bSig1 );
+        normalizeFloat128Subnormal( bSig0, bSig1, bExp, bSig0, bSig1 );
     end;
-    if ( aExp = 0 ) begin
-        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloat128( zSign, 0, 0, 0 );
-        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    if ( aExp = 0 ) then begin
+        if ( ( aSig0 or aSig1 ) = 0 ) then
+          begin
+            result := packFloat128( zSign, 0, 0, 0 );
+            exit;
+          end;
+        normalizeFloat128Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
     end;
     zExp := aExp - bExp + $3FFD;
     shortShift128Left(
-        aSig0 or int64( $0001000000000000 ), aSig1, 15, &aSig0, &aSig1 );
+        aSig0 or int64( $0001000000000000 ), aSig1, 15, aSig0, aSig1 );
     shortShift128Left(
-        bSig0 or int64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
-    if ( le128( bSig0, bSig1, aSig0, aSig1 ) ) begin
-        shift128Right( aSig0, aSig1, 1, &aSig0, &aSig1 );
-        ++zExp;
+        bSig0 or int64( $0001000000000000 ), bSig1, 15, bSig0, bSig1 );
+    if ( le128( bSig0, bSig1, aSig0, aSig1 )<>0 ) then begin
+        shift128Right( aSig0, aSig1, 1, aSig0, aSig1 );
+        inc(zExp);
     end;
     zSig0 := estimateDiv128To64( aSig0, aSig1, bSig0 );
-    mul128By64To192( bSig0, bSig1, zSig0, &term0, &term1, &term2 );
-    sub192( aSig0, aSig1, 0, term0, term1, term2, &rem0, &rem1, &rem2 );
-    while ( (sbits64) rem0 < 0 ) begin
-        --zSig0;
-        add192( rem0, rem1, rem2, 0, bSig0, bSig1, &rem0, &rem1, &rem2 );
+    mul128By64To192( bSig0, bSig1, zSig0, term0, term1, term2 );
+    sub192( aSig0, aSig1, 0, term0, term1, term2, rem0, rem1, rem2 );
+    while ( sbits64(rem0) < 0 ) do begin
+        dec(zSig0);
+        add192( rem0, rem1, rem2, 0, bSig0, bSig1, rem0, rem1, rem2 );
     end;
     zSig1 := estimateDiv128To64( rem1, rem2, bSig0 );
-    if ( ( zSig1 and $3FFF ) <= 4 ) begin
-        mul128By64To192( bSig0, bSig1, zSig1, &term1, &term2, &term3 );
-        sub192( rem1, rem2, 0, term1, term2, term3, &rem1, &rem2, &rem3 );
-        while ( (sbits64) rem1 < 0 ) begin
-            --zSig1;
-            add192( rem1, rem2, rem3, 0, bSig0, bSig1, &rem1, &rem2, &rem3 );
+    if ( ( zSig1 and $3FFF ) <= 4 ) then begin
+        mul128By64To192( bSig0, bSig1, zSig1, term1, term2, term3 );
+        sub192( rem1, rem2, 0, term1, term2, term3, rem1, rem2, rem3 );
+        while ( sbits64(rem1) < 0 ) do begin
+            dec(zSig1);
+            add192( rem1, rem2, rem3, 0, bSig0, bSig1, rem1, rem2, rem3 );
         end;
-        zSig1 or= ( ( rem1 or rem2 or rem3 ) <> 0 );
+        zSig1 := zSig1 or ord( ( rem1 or rem2 or rem3 ) <> 0 );
     end;
-    shift128ExtraRightJamming( zSig0, zSig1, 0, 15, &zSig0, &zSig1, &zSig2 );
+    shift128ExtraRightJamming( zSig0, zSig1, 0, 15, zSig0, zSig1, zSig2 );
     result := roundAndPackFloat128( zSign, zExp, zSig0, zSig1, zSig2 );
 
 end;
@@ -7616,6 +7958,8 @@ var
     allZero, alternateASig0, alternateASig1, sigMean1: bits64;
     sigMean0: sbits64;
     z: float128;
+label
+    invalid;
 begin
     aSig1 := extractFloat128Frac1( a );
     aSig0 := extractFloat128Frac0( a );
@@ -7625,88 +7969,109 @@ begin
     bSig0 := extractFloat128Frac0( b );
     bExp := extractFloat128Exp( b );
     bSign := extractFloat128Sign( b );
-    if ( aExp = $7FFF ) begin
-        if (    ( aSig0 or aSig1 )
-             or ( ( bExp = $7FFF ) and ( bSig0 or bSig1 ) ) ) begin
+    if ( aExp = $7FFF ) then begin
+        if (    (( aSig0 or aSig1 )<>0)
+             or ( ( bExp = $7FFF ) and (( bSig0 or bSig1 )<>0) ) ) then begin
             result := propagateFloat128NaN( a, b );
+            exit;
         end;
         goto invalid;
     end;
-    if ( bExp = $7FFF ) begin
-        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+    if ( bExp = $7FFF ) then begin
+        if ( bSig0 or bSig1 )<>0 then
+          begin
+            result := propagateFloat128NaN( a, b );
+            exit;
+          end;
         result := a;
+        exit;
     end;
-    if ( bExp = 0 ) begin
-        if ( ( bSig0 or bSig1 ) = 0 ) begin
+    if ( bExp = 0 ) then begin
+        if ( ( bSig0 or bSig1 ) = 0 ) then begin
  invalid:
             float_raise( float_flag_invalid );
             z.low := float128_default_nan_low;
             z.high := float128_default_nan_high;
             result := z;
+            exit;
         end;
-        normalizeFloat128Subnormal( bSig0, bSig1, &bExp, &bSig0, &bSig1 );
+        normalizeFloat128Subnormal( bSig0, bSig1, bExp, bSig0, bSig1 );
     end;
-    if ( aExp = 0 ) begin
-        if ( ( aSig0 or aSig1 ) = 0 ) result := a;
-        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    if ( aExp = 0 ) then begin
+        if ( ( aSig0 or aSig1 ) = 0 ) then
+          begin
+            result := a;
+            exit;
+          end;
+        normalizeFloat128Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
     end;
     expDiff := aExp - bExp;
-    if ( expDiff < -1 ) result := a;
+    if ( expDiff < -1 ) then
+      begin
+        result := a;
+        exit;
+      end;
     shortShift128Left(
         aSig0 or int64( $0001000000000000 ),
         aSig1,
-        15 - ( expDiff < 0 ),
-        &aSig0,
-        &aSig1
+        15 - ord( expDiff < 0 ),
+        aSig0,
+        aSig1
     );
     shortShift128Left(
-        bSig0 or int64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
+        bSig0 or int64( $0001000000000000 ), bSig1, 15, bSig0, bSig1 );
     q := le128( bSig0, bSig1, aSig0, aSig1 );
-    if ( q ) sub128( aSig0, aSig1, bSig0, bSig1, &aSig0, &aSig1 );
-    expDiff -= 64;
-    while ( 0 < expDiff ) begin
+    if ( q )<>0 then sub128( aSig0, aSig1, bSig0, bSig1, aSig0, aSig1 );
+    dec(expDiff,64);
+    while ( 0 < expDiff ) do begin
         q := estimateDiv128To64( aSig0, aSig1, bSig0 );
-        q := ( 4 < q ) ? q - 4 : 0;
-        mul128By64To192( bSig0, bSig1, q, &term0, &term1, &term2 );
-        shortShift192Left( term0, term1, term2, 61, &term1, &term2, &allZero );
-        shortShift128Left( aSig0, aSig1, 61, &aSig0, &allZero );
-        sub128( aSig0, 0, term1, term2, &aSig0, &aSig1 );
-        expDiff -= 61;
+        if ( 4 < q ) then
+          q := q - 4
+        else
+          q := 0;
+        mul128By64To192( bSig0, bSig1, q, term0, term1, term2 );
+        shortShift192Left( term0, term1, term2, 61, term1, term2, allZero );
+        shortShift128Left( aSig0, aSig1, 61, aSig0, allZero );
+        sub128( aSig0, 0, term1, term2, aSig0, aSig1 );
+        dec(expDiff,61);
     end;
-    if ( -64 < expDiff ) begin
+    if ( -64 < expDiff ) then begin
         q := estimateDiv128To64( aSig0, aSig1, bSig0 );
-        q := ( 4 < q ) ? q - 4 : 0;
-        q >>= - expDiff;
-        shift128Right( bSig0, bSig1, 12, &bSig0, &bSig1 );
-        expDiff += 52;
-        if ( expDiff < 0 ) begin
-            shift128Right( aSig0, aSig1, - expDiff, &aSig0, &aSig1 );
-        end;
+        if ( 4 < q ) then
+          q := q - 4
+        else
+          q := 0;
+        q := q shr (- expDiff);
+        shift128Right( bSig0, bSig1, 12, bSig0, bSig1 );
+        inc(expDiff,52);
+        if ( expDiff < 0 ) then begin
+            shift128Right( aSig0, aSig1, - expDiff, aSig0, aSig1 );
+        end
         else begin
-            shortShift128Left( aSig0, aSig1, expDiff, &aSig0, &aSig1 );
+            shortShift128Left( aSig0, aSig1, expDiff, aSig0, aSig1 );
         end;
-        mul128By64To192( bSig0, bSig1, q, &term0, &term1, &term2 );
-        sub128( aSig0, aSig1, term1, term2, &aSig0, &aSig1 );
-    end;
+        mul128By64To192( bSig0, bSig1, q, term0, term1, term2 );
+        sub128( aSig0, aSig1, term1, term2, aSig0, aSig1 );
+    end
     else begin
-        shift128Right( aSig0, aSig1, 12, &aSig0, &aSig1 );
-        shift128Right( bSig0, bSig1, 12, &bSig0, &bSig1 );
+        shift128Right( aSig0, aSig1, 12, aSig0, aSig1 );
+        shift128Right( bSig0, bSig1, 12, bSig0, bSig1 );
     end;
-    do begin
+    repeat
         alternateASig0 := aSig0;
         alternateASig1 := aSig1;
-        ++q;
-        sub128( aSig0, aSig1, bSig0, bSig1, &aSig0, &aSig1 );
-    end; while ( 0 <= (sbits64) aSig0 );
+        inc(q);
+        sub128( aSig0, aSig1, bSig0, bSig1, aSig0, aSig1 );
+    until not( 0 <= sbits64(aSig0) );
     add128(
-        aSig0, aSig1, alternateASig0, alternateASig1, &sigMean0, &sigMean1 );
+        aSig0, aSig1, alternateASig0, alternateASig1, bits64(sigMean0), sigMean1 );
     if (    ( sigMean0 < 0 )
-         or ( ( ( sigMean0 or sigMean1 ) = 0 ) and ( q and 1 ) ) ) begin
+         or ( ( ( sigMean0 or sigMean1 ) = 0 ) and (( q and 1 )<>0) ) ) then begin
         aSig0 := alternateASig0;
         aSig1 := alternateASig1;
     end;
-    zSign := ( (sbits64) aSig0 < 0 );
-    if ( zSign ) sub128( 0, 0, aSig0, aSig1, &aSig0, &aSig1 );
+    zSign := ord( sbits64(aSig0) < 0 );
+    if ( zSign<>0 ) then sub128( 0, 0, aSig0, aSig1, aSig0, aSig1 );
     result :=
         normalizeRoundAndPackFloat128( aSign xor zSign, bExp - 4, aSig0, aSig1 );
 
@@ -7732,53 +8097,70 @@ begin
     aSig0 := extractFloat128Frac0( a );
     aExp := extractFloat128Exp( a );
     aSign := extractFloat128Sign( a );
-    if ( aExp = $7FFF ) begin
-        if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, a );
-        if ( ! aSign ) result := a;
+    if ( aExp = $7FFF ) then begin
+        if ( aSig0 or aSig1 )<>0 then
+          begin
+            result := propagateFloat128NaN( a, a );
+            exit;
+          end;
+        if ( aSign=0 ) then
+          begin
+            result := a;
+            exit;
+          end;
         goto invalid;
     end;
-    if ( aSign ) begin
-        if ( ( aExp or aSig0 or aSig1 ) = 0 ) result := a;
+    if ( aSign<>0 ) then begin
+        if ( ( aExp or aSig0 or aSig1 ) = 0 ) then
+          begin
+            result := a;
+            exit;
+          end;
  invalid:
         float_raise( float_flag_invalid );
         z.low := float128_default_nan_low;
         z.high := float128_default_nan_high;
         result := z;
+        exit;
     end;
-    if ( aExp = 0 ) begin
-        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloat128( 0, 0, 0, 0 );
-        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    if ( aExp = 0 ) then begin
+        if ( ( aSig0 or aSig1 ) = 0 ) then
+        begin
+          result := packFloat128( 0, 0, 0, 0 );
+          exit;
+        end;
+        normalizeFloat128Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
     end;
     zExp := ( ( aExp - $3FFF )>>1 ) + $3FFE;
     aSig0 := aSig0 or int64( $0001000000000000 );
     zSig0 := estimateSqrt32( aExp, aSig0>>17 );
-    shortShift128Left( aSig0, aSig1, 13 - ( aExp and 1 ), &aSig0, &aSig1 );
+    shortShift128Left( aSig0, aSig1, 13 - ( aExp and 1 ), aSig0, aSig1 );
     zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
     doubleZSig0 := zSig0 shl 1;
-    mul64To128( zSig0, zSig0, &term0, &term1 );
-    sub128( aSig0, aSig1, term0, term1, &rem0, &rem1 );
-    while ( (sbits64) rem0 < 0 ) begin
-        --zSig0;
-        doubleZSig0 -= 2;
-        add128( rem0, rem1, zSig0>>63, doubleZSig0 or 1, &rem0, &rem1 );
+    mul64To128( zSig0, zSig0, term0, term1 );
+    sub128( aSig0, aSig1, term0, term1, rem0, rem1 );
+    while ( sbits64(rem0) < 0 ) do begin
+        dec(zSig0);
+        dec(doubleZSig0,2);
+        add128( rem0, rem1, zSig0 shr 63, doubleZSig0 or 1, rem0, rem1 );
     end;
     zSig1 := estimateDiv128To64( rem1, 0, doubleZSig0 );
-    if ( ( zSig1 and $1FFF ) <= 5 ) begin
-        if ( zSig1 = 0 ) zSig1 := 1;
-        mul64To128( doubleZSig0, zSig1, &term1, &term2 );
-        sub128( rem1, 0, term1, term2, &rem1, &rem2 );
-        mul64To128( zSig1, zSig1, &term2, &term3 );
-        sub192( rem1, rem2, 0, 0, term2, term3, &rem1, &rem2, &rem3 );
-        while ( (sbits64) rem1 < 0 ) begin
-            --zSig1;
-            shortShift128Left( 0, zSig1, 1, &term2, &term3 );
-            term3 or= 1;
-            term2 or= doubleZSig0;
-            add192( rem1, rem2, rem3, 0, term2, term3, &rem1, &rem2, &rem3 );
+    if ( ( zSig1 and $1FFF ) <= 5 ) then begin
+        if ( zSig1 = 0 ) then zSig1 := 1;
+        mul64To128( doubleZSig0, zSig1, term1, term2 );
+        sub128( rem1, 0, term1, term2, rem1, rem2 );
+        mul64To128( zSig1, zSig1, term2, term3 );
+        sub192( rem1, rem2, 0, 0, term2, term3, rem1, rem2, rem3 );
+        while ( sbits64(rem1) < 0 ) do begin
+            dec(zSig1);
+            shortShift128Left( 0, zSig1, 1, term2, term3 );
+            term3 := term3 or 1;
+            term2 := term2 or doubleZSig0;
+            add192( rem1, rem2, rem3, 0, term2, term3, rem1, rem2, rem3 );
         end;
-        zSig1 or= ( ( rem1 or rem2 or rem3 ) <> 0 );
+        zSig1 := zSig1 or ord( ( rem1 or rem2 or rem3 ) <> 0 );
     end;
-    shift128ExtraRightJamming( zSig0, zSig1, 0, 14, &zSig0, &zSig1, &zSig2 );
+    shift128ExtraRightJamming( zSig0, zSig1, 0, 14, zSig0, zSig1, zSig2 );
     result := roundAndPackFloat128( 0, zExp, zSig0, zSig1, zSig2 );
 
 end;
@@ -7792,22 +8174,23 @@ end;
 function float128_eq(a: float128; b: float128): flag;
 begin
     if (    (    ( extractFloat128Exp( a ) = $7FFF )
-              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+              and (( extractFloat128Frac0( a ) or extractFloat128Frac1( a ))<>0 ) )
          or (    ( extractFloat128Exp( b ) = $7FFF )
-              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
-       ) begin
-        if (    float128_is_signaling_nan( a )
-             or float128_is_signaling_nan( b ) ) begin
+              and ( (extractFloat128Frac0( b ) or extractFloat128Frac1( b ))<>0 ) )
+       ) then begin
+        if (    (float128_is_signaling_nan( a )<>0)
+             or (float128_is_signaling_nan( b )<>0) ) then begin
             float_raise( float_flag_invalid );
         end;
         result := 0;
+        exit;
     end;
-    result :=
+    result := ord(
            ( a.low = b.low )
         and (    ( a.high = b.high )
              or (    ( a.low = 0 )
-                  and ( (bits64) ( ( a.high or b.high ) shl 1 ) = 0 ) )
-           );
+                  and ( bits64( ( a.high or b.high ) shl 1 ) = 0 ) )
+           ));
 
 end;
 
@@ -7823,24 +8206,27 @@ var
     aSign, bSign: flag;
 begin
     if (    (    ( extractFloat128Exp( a ) = $7FFF )
-              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+              and (( extractFloat128Frac0( a ) or extractFloat128Frac1( a ))<>0 ) )
          or (    ( extractFloat128Exp( b ) = $7FFF )
-              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
-       ) begin
+              and ( (extractFloat128Frac0( b ) or extractFloat128Frac1( b ))<>0 ) )
+       ) then begin
         float_raise( float_flag_invalid );
         result := 0;
+        exit;
     end;
     aSign := extractFloat128Sign( a );
     bSign := extractFloat128Sign( b );
-    if ( aSign <> bSign ) begin
-        result :=
-               aSign
-            or (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
-                 = 0 );
+    if ( aSign <> bSign ) then begin
+        result := ord(
+               (aSign<>0)
+            or (    ( ( bits64 ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 = 0 ));
+        exit;
     end;
-    result :=
-          aSign ? le128( b.high, b.low, a.high, a.low )
-        : le128( a.high, a.low, b.high, b.low );
+    if aSign<>0 then
+      result := le128( b.high, b.low, a.high, a.low )
+    else
+      result := le128( a.high, a.low, b.high, b.low );
 
 end;
 
@@ -7855,24 +8241,27 @@ var
     aSign, bSign: flag;
 begin
     if (    (    ( extractFloat128Exp( a ) = $7FFF )
-              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+              and (( extractFloat128Frac0( a ) or extractFloat128Frac1( a ))<>0 ) )
          or (    ( extractFloat128Exp( b ) = $7FFF )
-              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
-       ) begin
+              and ( (extractFloat128Frac0( b ) or extractFloat128Frac1( b ))<>0 ) )
+       ) then begin
         float_raise( float_flag_invalid );
         result := 0;
+        exit;
     end;
     aSign := extractFloat128Sign( a );
     bSign := extractFloat128Sign( b );
-    if ( aSign <> bSign ) begin
-        result :=
-               aSign
-            and (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
-                 <> 0 );
+    if ( aSign <> bSign ) then begin
+        result := ord(
+               (aSign<>0)
+            and (    ( ( bits64( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 <> 0 ));
+        exit;
     end;
-    result :=
-          aSign ? lt128( b.high, b.low, a.high, a.low )
-        : lt128( a.high, a.low, b.high, b.low );
+    if aSign<>0 then
+      result := lt128( b.high, b.low, a.high, a.low )
+    else
+      result := lt128( a.high, a.low, b.high, b.low );
 
 end;
 
@@ -7886,19 +8275,20 @@ end;
 function float128_eq_signaling(a: float128; b: float128): flag;
 begin
     if (    (    ( extractFloat128Exp( a ) = $7FFF )
-              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+              and ( ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ))<>0 ) )
          or (    ( extractFloat128Exp( b ) = $7FFF )
-              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
-       ) begin
+              and ( (extractFloat128Frac0( b ) or extractFloat128Frac1( b ))<>0 ) )
+       ) then begin
         float_raise( float_flag_invalid );
         result := 0;
+        exit;
     end;
-    result :=
+    result := ord(
            ( a.low = b.low )
         and (    ( a.high = b.high )
              or (    ( a.low = 0 )
-                  and ( (bits64) ( ( a.high or b.high ) shl 1 ) = 0 ) )
-           );
+                  and ( bits64 ( ( a.high or b.high ) shl 1 ) = 0 ) )
+           ));
 
 end;
 
@@ -7914,27 +8304,30 @@ var
     aSign, bSign: flag;
 begin
     if (    (    ( extractFloat128Exp( a ) = $7FFF )
-              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+              and ( ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ))<>0 ) )
          or (    ( extractFloat128Exp( b ) = $7FFF )
-              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
-       ) begin
-        if (    float128_is_signaling_nan( a )
-             or float128_is_signaling_nan( b ) ) begin
+              and ( (extractFloat128Frac0( b ) or extractFloat128Frac1( b ))<>0 ) )
+       ) then begin
+        if (    (float128_is_signaling_nan( a )<>0)
+             or (float128_is_signaling_nan( b )<>0) ) then begin
             float_raise( float_flag_invalid );
         end;
         result := 0;
+        exit;
     end;
     aSign := extractFloat128Sign( a );
     bSign := extractFloat128Sign( b );
-    if ( aSign <> bSign ) begin
-        result :=
-               aSign
-            or (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
-                 = 0 );
+    if ( aSign <> bSign ) then begin
+        result := ord(
+               (aSign<>0)
+            or (    ( ( bits64( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 = 0 ));
+        exit;
     end;
-    result :=
-          aSign ? le128( b.high, b.low, a.high, a.low )
-        : le128( a.high, a.low, b.high, b.low );
+    if aSign<>0 then
+      result := le128( b.high, b.low, a.high, a.low )
+    else
+      result := le128( a.high, a.low, b.high, b.low );
 
 end;
 
@@ -7950,27 +8343,30 @@ var
     aSign, bSign: flag;
 begin
     if (    (    ( extractFloat128Exp( a ) = $7FFF )
-              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+              and (( extractFloat128Frac0( a ) or extractFloat128Frac1( a ))<>0 ) )
          or (    ( extractFloat128Exp( b ) = $7FFF )
-              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
-       ) begin
-        if (    float128_is_signaling_nan( a )
-             or float128_is_signaling_nan( b ) ) begin
+              and ( (extractFloat128Frac0( b ) or extractFloat128Frac1( b ))<>0 ) )
+       ) then begin
+        if ( (float128_is_signaling_nan( a )<>0)
+             or (float128_is_signaling_nan( b )<>0) ) then begin
             float_raise( float_flag_invalid );
         end;
         result := 0;
+        exit;
     end;
     aSign := extractFloat128Sign( a );
     bSign := extractFloat128Sign( b );
-    if ( aSign <> bSign ) begin
-        result :=
-               aSign
-            and (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
-                 <> 0 );
+    if ( aSign <> bSign ) then begin
+        result := ord(
+               (aSign<>0)
+            and (    ( ( bits64( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 <> 0 ));
+        exit;
     end;
-    result :=
-          aSign ? lt128( b.high, b.low, a.high, a.low )
-        : lt128( a.high, a.low, b.high, b.low );
+    if aSign<>0 then
+      result:=lt128( b.high, b.low, a.high, a.low )
+    else
+      result:=lt128( a.high, a.low, b.high, b.low );
 
 end;
 
