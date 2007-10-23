@@ -154,7 +154,11 @@ implementation
                   case left.location.loc of
                     LOC_CREFERENCE,
                     LOC_REFERENCE :
-                      current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],left.location.reference,location.register));
+                      begin
+                        href:=left.location.reference;
+                        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                        current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
+                      end;
                     LOC_CREGISTER,
                     LOC_REGISTER :
                       current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(op,tcgsize2opsize[left.location.size],left.location.register,location.register));
