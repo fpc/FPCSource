@@ -144,9 +144,7 @@ begin
      DoneParser;
      DoneImport;
      DoneExport;
-     DoneDebuginfo;
      DoneLinker;
-     DoneAssembler;
      DoneAsm;
    end;
 { Free memory for the others }
@@ -186,8 +184,6 @@ begin
   InitImport;
   InitExport;
   InitLinker;
-  InitAssembler;
-  InitDebugInfo;
   InitAsm;
   CompilerInitedAfterArgs:=true;
 end;

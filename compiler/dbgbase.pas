@@ -53,10 +53,10 @@ interface
 
     var
       CDebugInfo : array[tdbg] of TDebugInfoClass;
-      DebugInfo  : TDebugInfo;
+      current_debuginfo : tdebuginfo;
 
-    procedure InitDebugInfo;
-    procedure DoneDebugInfo;
+    procedure InitDebugInfo(hp:tmodule);
+    procedure DoneDebugInfo(hp:tmodule);
     procedure RegisterDebugInfo(const r:tdbginfo;c:TDebugInfoClass);
 
 
@@ -156,23 +156,23 @@ implementation
       end;
 
 
-    procedure InitDebugInfo;
+    procedure InitDebugInfo(hp:tmodule);
       begin
         if not assigned(CDebugInfo[target_dbg.id]) then
           begin
             Comment(V_Fatal,'cg_f_debuginfo_output_not_supported');
             exit;
           end;
-        DebugInfo:=CDebugInfo[target_dbg.id].Create;
+        hp.DebugInfo:=CDebugInfo[target_dbg.id].Create;
       end;
 
 
-    procedure DoneDebugInfo;
+    procedure DoneDebugInfo(hp:tmodule);
       begin
-        if assigned(DebugInfo) then
+        if assigned(hp.DebugInfo) then
           begin
-            DebugInfo.Free;
-            DebugInfo:=nil;
+            hp.DebugInfo.Free;
+            hp.DebugInfo:=nil;
           end;
       end;
 
