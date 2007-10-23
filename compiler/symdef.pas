@@ -889,6 +889,7 @@ implementation
          { load }
          ppufile.getderef(typesymderef);
          ppufile.getsmallset(defoptions);
+         ppufile.getsmallset(defstates);
          if df_generic in defoptions then
            begin
              sizeleft:=ppufile.getlongint;
@@ -952,10 +953,11 @@ implementation
         ppufile.putlongint(DefId);
         ppufile.putderef(typesymderef);
         ppufile.putsmallset(defoptions);
+        oldintfcrc:=ppufile.do_interface_crc;
+        ppufile.do_interface_crc:=false;
+        ppufile.putsmallset(defstates);
         if df_generic in defoptions then
           begin
-            oldintfcrc:=ppufile.do_interface_crc;
-            ppufile.do_interface_crc:=false;
             if assigned(generictokenbuf) then
               begin
                 sizeleft:=generictokenbuf.size;
@@ -974,8 +976,8 @@ implementation
                 ppufile.putdata(buf,i);
                 dec(sizeleft,i);
               end;
-            ppufile.do_interface_crc:=oldintfcrc;
           end;
+        ppufile.do_interface_crc:=oldintfcrc;
         if df_specialization in defoptions then
           ppufile.putderef(genericdefderef);
       end;
