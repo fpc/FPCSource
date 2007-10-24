@@ -910,7 +910,7 @@ begin
     stTables     : s := 'select '+
                           'rdb$relation_id          as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$relation_name        as table_name, '+
                           '0                        as table_type '+
                         'from '+
@@ -922,7 +922,7 @@ begin
     stSysTables  : s := 'select '+
                           'rdb$relation_id          as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$relation_name        as table_name, '+
                           '0                        as table_type '+
                         'from '+
@@ -934,7 +934,7 @@ begin
     stProcedures : s := 'select '+
                            'rdb$procedure_id        as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$procedure_name       as proc_name, '+
                           '0                        as proc_type, '+
                           'rdb$procedure_inputs     as in_params, '+
@@ -946,13 +946,13 @@ begin
     stColumns    : s := 'select '+
                            'rdb$field_id            as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$relation_name        as table_name, '+
                           'rdb$field_name           as column_name, '+
                           'rdb$field_position       as column_position, '+
                           '0                        as column_type, '+
                           '0                        as column_datatype, '+
-                          '''''                     as column_typename, '+
+                          'cast ('''' as varchar(32)) as column_typename, '+
                           '0                        as column_subtype, '+
                           '0                        as column_precision, '+
                           '0                        as column_scale, '+
