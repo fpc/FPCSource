@@ -1072,7 +1072,7 @@ mem,mmxreg            \300\2\x0F\x7F\101              PENT,MMX,SM
 mmxreg,mmxreg         \2\x0F\x7F\101                  PENT,MMX
 xmmreg,xmmreg         \333\2\x0F\x7E\110              WILLAMETTE,SSE2
 xmmreg,xmmreg         \1\x66\323\2\x0F\xD6\110          WILLAMETTE,SSE2
-mem,xmmreg            \300\3\x66\x0F\xD6\101          WILLAMETTE,SSE2
+mem,xmmreg            \300\1\x66\323\2\x0F\xD6\101          WILLAMETTE,SSE2
 xmmreg,mem            \301\333\2\x0F\x7E\110          WILLAMETTE,SSE2
 
 [MOVSB]

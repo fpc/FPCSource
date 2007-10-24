@@ -3182,7 +3182,7 @@
     opcode  : A_MOVQ;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #192#3#102#15#214#65;
+    code    : #192#1#102#211#2#15#214#65;
     flags   : if_willamette or if_sse2
   ),
   (
