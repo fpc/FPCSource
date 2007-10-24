@@ -14,6 +14,9 @@ uses
   ibase60;
 {$EndIf}
 
+const
+  DEFDIALECT = 3;
+
 type
 
   EIBDatabaseError = class(EDatabaseError)
@@ -47,11 +50,11 @@ type
     FSQLDatabaseHandle   : pointer;
     FStatus              : array [0..19] of ISC_STATUS;
     FDialect             : integer;
+    FDBDialect           : integer;
     FBLobSegmentSize     : word;
 
     procedure ConnectFB;
     function GetDialect: integer;
-    procedure SetDBDialect;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
     procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer;
       var TrType : TFieldType; var TrLen : word);
@@ -64,6 +67,7 @@ type
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
     procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
+    function  IsDialectStored: boolean;
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -95,9 +99,10 @@ type
     procedure CreateDB; override;
     procedure DropDB; override;
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
-    property Dialect : integer read GetDialect;
+    function GetDBDialect: integer;
   published
     property DatabaseName;
+    property Dialect : integer read GetDialect write FDialect stored IsDialectStored default DEFDIALECT;
     property KeepConnection;
     property LoginPrompt;
     property Params;
@@ -159,6 +164,7 @@ begin
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FBLobSegmentSize := 80;
   FDialect := -1;
+  FDBDialect := -1;
 end;
 
 
@@ -311,6 +317,7 @@ end;
 procedure TIBConnection.DoInternalDisconnect;
 begin
   FDialect := -1;
+  FDBDialect := -1;
   if not Connected then
   begin
     FSQLDatabaseHandle := nil;
@@ -325,13 +332,14 @@ begin
 end;
 
 
-procedure TIBConnection.SetDBDialect;
+function TIBConnection.GetDBDialect: integer;
 var
   x : integer;
   Len : integer;
   Buffer : array [0..1] of byte;
   ResBuf : array [0..39] of byte;
 begin
+  result := -1;
   if Connected then
     begin
     Buffer[0] := isc_info_db_sql_dialect;
@@ -347,7 +355,7 @@ begin
           Inc(x);
           Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
           Inc(x, 2);
-          FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
+          Result := isc_vax_integer(pchar(@ResBuf[x]), Len);
           Inc(x, Len);
           end;
         isc_info_end : Break;
@@ -381,13 +389,19 @@ begin
     @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
     CheckError('DoInternalConnect', FStatus);
+  FDbDialect := GetDBDialect;
 end;
 
 function TIBConnection.GetDialect: integer;
 begin
   if FDialect = -1 then
-    SetDBDialect;
-  Result := FDialect;
+  begin
+    if FDBDialect = -1 then
+      Result := DEFDIALECT
+    else
+      Result := FDBDialect;
+  end else
+    Result := FDialect;
 end;
 
 procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
@@ -588,6 +602,11 @@ begin
         
       end;
 {$R+}
+end;
+
+function TIBConnection.IsDialectStored: boolean;
+begin
+  result := (FDialect<>-1);
 end;
 
 procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
