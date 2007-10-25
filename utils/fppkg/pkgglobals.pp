@@ -17,6 +17,9 @@ Const
   AllFiles='*.*';
 {$endif unix}
 
+  // Dependencies for compiling the fpmkunit unit
+  FPMKUnitDeps : array[0..3] of string[8] = ('rtl','hash','paszlib','fpmkunit');
+
 Type
   TVerbosity = (vError,vWarning,vInfo,vCommands,vDebug);
   TVerbosities = Set of TVerbosity;
@@ -187,6 +190,7 @@ begin
     finally
       FindClose(Info);
     end;
+  RemoveDir(Adir);
 end;
 
 

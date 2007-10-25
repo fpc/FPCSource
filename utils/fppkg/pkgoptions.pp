@@ -48,6 +48,8 @@ Type
     // Compiler settings for compiling FPMake.pp
     FFPMakeCompiler : String;
     FFPMakeUnitDir : String;
+    // Parameter options
+    FBootStrap : Boolean;
     function GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure SetCompilerCPU(const AValue: TCPU);
@@ -87,10 +89,11 @@ Type
     Property CurrentCompilerConfig : String Index 16 Read GetOptString Write SetOptString;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
+    Property BootStrap : Boolean Read FBootStrap Write FBootStrap;
   end;
 
 var
-  Defaults : TPackagerOptions;
+  Options : TPackagerOptions;
 
 Implementation
 
@@ -259,12 +262,15 @@ begin
   FDefaultCompilerConfig:='default';
   FCurrentCompilerConfig:=FDefaultCompilerConfig;
   FDefaultVerbosity:='error,warning,info,debug,commands';
+  FBootStrap:=False;
 end;
 
 
 Procedure TPackagerOptions.InitCompilerDefaults;
 var
   infoSL : TStringList;
+  DepDir : String;
+  i : Integer;
 begin
   FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
@@ -302,9 +308,13 @@ begin
   Log(vDebug,SLogDetectedFPCDIR,[FInstallDir]);
   // Detect directory where fpmake units are located
   FFPMakeCompiler:=FCompiler;
-  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim+'fpmkunit'+PathDelim;
-  if not DirectoryExists(FFPMakeUnitDir) then
-    Log(vWarning,SWarnFPMKUnitNotFound);
+  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim;
+  for i:=low(FPMKUnitDeps) to high(FPMKUnitDeps) do
+    begin
+      DepDir:=FFPMakeUnitDir+FPMKUnitDeps[i]+PathDelim;
+      if not DirectoryExists(DepDir) then
+        Log(vWarning,SWarnFPMKUnitNotFound,[DepDir]);
+    end;
 end;
 
 
@@ -425,8 +435,9 @@ begin
   end;
 end;
 
+
 initialization
-  Defaults:=TPackagerOptions.Create;
+  Options:=TPackagerOptions.Create;
 finalization
-  FreeAndNil(Defaults);
+  FreeAndNil(Options);
 end.

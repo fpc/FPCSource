@@ -7,6 +7,13 @@ interface
 uses
   Classes, SysUtils,pkghandler;
 
+implementation
+
+uses
+  pkgoptions,
+  pkgglobals,
+  pkgmessages;
+
 type
   { TFPMakeCompiler }
 
@@ -50,22 +57,19 @@ type
   end;
 
 
-implementation
-
-uses
-  pkgoptions,
-  pkgglobals,
-  pkgmessages;
-
 { TFPMakeCompiler }
 
 Procedure TFPMakeCompiler.CompileFPMake;
+const
+  TempBuildDir = 'build-fpmake';
 Var
-  O,C : String;
-  RTLDir,
-  FPPkgDir,
+  i : Integer;
+  OOptions,
+  BaseDir,
+  DepDir,
   FPMakeBin,
   FPMakeSrc : string;
+  DoBootStrap,
   HaveFpmake : boolean;
 begin
   SetCurrentDir(PackageBuildPath);
@@ -85,21 +89,64 @@ begin
     begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
-      { Detect installed units directories }
-      if not DirectoryExists(Defaults.FPMakeUnitDir) then
-        Error(SErrMissingDirectory,[Defaults.FPMakeUnitDir]);
-      RTLDir:=Defaults.FPMakeUnitDir+'..'+PathDelim+'rtl'+PathDelim;
-      if not DirectoryExists(RTLDir) then
-        Error(SErrMissingDirectory,[RTLDir]);
-      FPPkgDir:=Defaults.FPMakeUnitDir+'..'+PathDelim+'fppkg'+PathDelim;
-      if not DirectoryExists(FPPkgDir) then
-        FPPkgDir:='';
-      { Call compiler }
-      C:=Defaults.FPMakeCompiler;
-      O:='-vi -n -Fu'+Defaults.FPMakeUnitDir+' -Fu'+RTLDir;
-      O:=O+' '+FPmakeSrc;
-      If ExecuteProcess(C,O)<>0 then
-        Error(SErrFailedToCompileFPCMake)
+      // Special bootstrapping mode to compile fpmake?
+      DoBootStrap:=False;
+      if Options.BootStrap then
+        begin
+{$ifdef check_bootstrap_names}
+          for i:=low(FPMKUnitDeps) to high(FPMKUnitDeps) do
+            if CurrentPackage.Name=FPMKUnitDeps[i] then
+              begin
+                DoBootStrap:=True;
+                break;
+              end;
+{$else check_bootstrap_names}
+          DoBootStrap:=True;
+{$endif check_bootstrap_names}
+        end;
+      // Compile options
+      //   -- bootstrapping compile with -g
+      //   -- default is to optimize, smartlink and strip to reduce
+      //      the executable size (there can be 100's of fpmake's on a system)
+      OOptions:='-n';
+      if vInfo in Verbosity then
+        OOptions:=OOptions+' -vi';
+      if DoBootStrap then
+        OOptions:=OOptions+' -g'
+      else
+        OOptions:=OOptions+' -O2 -XXs';
+      // Find required units directories
+      if DoBootStrap then
+        BaseDir:='../'
+      else
+        BaseDir:=Options.FPMakeUnitDir;
+      if not DirectoryExists(BaseDir) then
+        Error(SErrMissingDirectory,[BaseDir]);
+      for i:=high(FPMKUnitDeps) downto low(FPMKUnitDeps) do
+        begin
+          // RTL is always take from the installed compiler
+          if FPMKUnitDeps[i]='rtl' then
+            DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+FPMKUnitDeps[i])
+          else
+            begin
+              if DoBootStrap then
+                DepDir:=IncludeTrailingPathDelimiter(BaseDir+FPMKUnitDeps[i]+PathDelim+'src')
+              else
+                DepDir:=IncludeTrailingPathDelimiter(BaseDir+FPMKUnitDeps[i]);
+            end;
+          if not DirectoryExists(DepDir) then
+            Error(SErrMissingDirectory,[DepDir]);
+          OOptions:=OOptions+' -Fu'+DepDir;
+        end;
+      // Units in a directory for easy cleaning
+      DeleteDir(TempBuildDir);
+      ForceDirectories(TempBuildDir);
+      OOptions:=OOptions+' -FU'+TempBuildDir;
+      // Call compiler
+      If ExecuteProcess(Options.FPMakeCompiler,OOptions+' '+FPmakeSrc)<>0 then
+        Error(SErrFailedToCompileFPCMake);
+      // Cleanup units
+      DeleteDir(TempBuildDir);
     end
   else
     Log(vCommands,SLogNotCompilingFPMake);

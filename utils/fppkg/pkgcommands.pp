@@ -7,7 +7,23 @@ interface
 uses
   Classes, SysUtils,pkghandler;
 
+implementation
+
+uses
+  pkgmessages,
+  pkgglobals,
+  pkgoptions,
+  pkgdownload,
+  pkgrepos;
+
 type
+  { TCommandAddConfig }
+
+  TCommandAddConfig = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
   { TCommandUpdate }
 
   TCommandUpdate = Class(TPackagehandler)
@@ -59,25 +75,27 @@ type
   end;
 
 
-implementation
+function TCommandAddConfig.Execute(const Args:TActionArgs):boolean;
+begin
+  Log(vInfo,SLogGeneratingCompilerConfig,[S]);
+  Options.InitCompilerDefaults(Args[2]);
+  Options.SaveCompilerToFile(S);
+  Result:=true;
+end;
 
-uses
-  pkgmessages,
-  pkgglobals,
-  pkgoptions,
-  pkgdownload,
-  pkgrepos;
 
 function TCommandUpdate.Execute(const Args:TActionArgs):boolean;
 begin
-  DownloadFile(Defaults.RemotePackagesFile,Defaults.LocalPackagesFile);
+  DownloadFile(Options.RemotePackagesFile,Options.LocalPackagesFile);
   LoadLocalRepository;
+  Result:=true;
 end;
 
 
 function TCommandAvail.Execute(const Args:TActionArgs):boolean;
 begin
   ListRepository;
+  Result:=true;
 end;
 
 
@@ -86,6 +104,7 @@ begin
   RebuildRepository;
   ListRepository;
   SaveRepository;
+  Result:=true;
 end;
 
 
@@ -95,6 +114,7 @@ begin
     Error(SErrNoPackageSpecified);
   if not FileExists(PackageLocalArchive) then
     ExecuteAction(CurrentPackage,'downloadpackage',Args);
+  Result:=true;
 end;
 
 
@@ -103,6 +123,7 @@ begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
   ExecuteAction(CurrentPackage,'unziparchive',Args);
+  Result:=true;
 end;
 
 
@@ -114,6 +135,7 @@ begin
         ExecuteAction(CurrentPackage,'unziparchive',Args);
     end;
   ExecuteAction(CurrentPackage,'fpmakebuild',Args);
+  Result:=true;
 end;
 
 
@@ -121,6 +143,7 @@ function TCommandInstall.Execute(const Args:TActionArgs):boolean;
 begin
   ExecuteAction(CurrentPackage,'build',Args);
   ExecuteAction(CurrentPackage,'fpmakeinstall',Args);
+  Result:=true;
 end;
 
 

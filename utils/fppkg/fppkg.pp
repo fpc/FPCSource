@@ -75,20 +75,20 @@ begin
   GeneratedConfig:=false;
   // Load file or create new default configuration
   if FileExists(cfgfile) then
-    Defaults.LoadGlobalFromFile(cfgfile)
+    Options.LoadGlobalFromFile(cfgfile)
   else
     begin
       ForceDirectories(ExtractFilePath(cfgfile));
-      Defaults.SaveGlobalToFile(cfgfile);
+      Options.SaveGlobalToFile(cfgfile);
       GeneratedConfig:=true;
     end;
   // Load default verbosity from config
   SL:=TStringList.Create;
-  SL.CommaText:=Defaults.DefaultVerbosity;
+  SL.CommaText:=Options.DefaultVerbosity;
   for i:=0 to SL.Count-1 do
     Include(Verbosity,StringToVerbosity(SL[i]));
   SL.Free;
-  Defaults.CurrentCompilerConfig:=Defaults.DefaultCompilerConfig;
+  Options.CurrentCompilerConfig:=Options.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
     Log(vDebug,SLogGeneratingGlobalConfig,[cfgfile])
@@ -99,9 +99,9 @@ end;
 
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
-  ForceDirectories(Defaults.BuildDir);
-  ForceDirectories(Defaults.PackagesDir);
-  ForceDirectories(Defaults.CompilerConfigDir);
+  ForceDirectories(Options.BuildDir);
+  ForceDirectories(Options.PackagesDir);
+  ForceDirectories(Options.CompilerConfigDir);
 end;
 
 
@@ -109,17 +109,23 @@ procedure TMakeTool.LoadCompilerDefaults;
 var
   S : String;
 begin
-  S:=Defaults.CompilerConfigDir+Defaults.CurrentCompilerConfig;
+  S:=Options.CompilerConfigDir+Options.CurrentCompilerConfig;
   if FileExists(S) then
     begin
       Log(vDebug,SLogLoadingCompilerConfig,[S]);
-      Defaults.LoadCompilerFromFile(S)
+      Options.LoadCompilerFromFile(S)
     end
   else
     begin
-      Log(vDebug,SLogGeneratingCompilerConfig,[S]);
-      Defaults.InitCompilerDefaults;
-      Defaults.SaveCompilerToFile(S);
+      // Generate a default configuration if it doesn't exists
+      if Options.CurrentCompilerConfig='default' then
+        begin
+          Log(vDebug,SLogGeneratingCompilerConfig,[S]);
+          Options.InitCompilerDefaults('');
+          Options.SaveCompilerToFile(S);
+        end
+      else
+        Error(SErrMissingCompilerConfig,[S]);
     end;
 end;
 
@@ -131,6 +137,7 @@ begin
   Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Set verbosity');
+  Writeln('  -b --bootstrap     Special bootstrapping mode');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
   Writeln('  avail              List available packages');
@@ -138,6 +145,7 @@ begin
   Writeln('  install            Install package');
   Writeln('  download           Download package');
   Writeln('  convertmk          Convert Makefile.fpc to fpmake.pp');
+  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
   Halt(0);
 end;
 
@@ -207,9 +215,11 @@ begin
       Inc(I);
       // Check options.
       if CheckOption(I,'c','config') then
-        Defaults.CurrentCompilerConfig:=OptionArg(I)
+        Options.CurrentCompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         Include(Verbosity,StringToVerbosity(OptionArg(I)))
+      else if CheckOption(I,'b','bootstrap') then
+        Options.BootStrap:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;

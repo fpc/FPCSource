@@ -36,19 +36,19 @@ begin
     CurrentRepository.Free;
   CurrentRepository:=TFPRepository.Create(Nil);
   // Repository
-  Log(vDebug,SLogLoadingPackagesFile,[Defaults.LocalPackagesFile]);
-  if FileExists(Defaults.LocalPackagesFile) then
+  Log(vDebug,SLogLoadingPackagesFile,[Options.LocalPackagesFile]);
+  if FileExists(Options.LocalPackagesFile) then
     begin
       X:=TFPXMLRepositoryHandler.Create;
       With X do
         try
-          LoadFromXml(CurrentRepository,Defaults.LocalPackagesFile);
+          LoadFromXml(CurrentRepository,Options.LocalPackagesFile);
         finally
           Free;
         end;
     end;
   // Versions
-  S:=Defaults.LocalVersionsFile(Defaults.CurrentCompilerConfig);
+  S:=Options.LocalVersionsFile(Options.CurrentCompilerConfig);
   Log(vDebug,SLogLoadingVersionsFile,[S]);
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);

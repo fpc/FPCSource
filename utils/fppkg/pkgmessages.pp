@@ -15,6 +15,7 @@ Resourcestring
   SErrMissingFPMake          = 'Missing configuration fpmake.pp';
   SErrMissingMakefilefpc     = 'Missing configuration Makefile.fpc';
   SErrMissingDirectory       = 'Missing directory "%s"';
+  SErrMissingCompilerConfig  = 'Could not found compiler configuration "%s"';
   SErrNoPackageSpecified     = 'No package specified';
   SErrOnlyLocalDir           = 'The speficied command "%s" works only on current dir, not on a (remote) package';
   SErrRunning                = 'The FPC make tool encountered the following error:';
@@ -37,7 +38,7 @@ Resourcestring
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';
   SErrGETFailed              = 'FTP GET "%s" command failed.';
 
-  SWarnFPMKUnitNotFound      = 'Unit directory of fpmkunit is not found, compiling fpmake may file';
+  SWarnFPMKUnitNotFound      = 'Unit directory "%s" needed to compile fpmkunit is not found, compiling fpmake may file';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
