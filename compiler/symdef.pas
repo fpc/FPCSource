@@ -953,8 +953,8 @@ implementation
         ppufile.putlongint(DefId);
         ppufile.putderef(typesymderef);
         ppufile.putsmallset(defoptions);
-        oldintfcrc:=ppufile.do_interface_crc;
-        ppufile.do_interface_crc:=false;
+        oldintfcrc:=ppufile.do_crc;
+        ppufile.do_crc:=false;
         ppufile.putsmallset(defstates);
         if df_generic in defoptions then
           begin
@@ -977,7 +977,7 @@ implementation
                 dec(sizeleft,i);
               end;
           end;
-        ppufile.do_interface_crc:=oldintfcrc;
+        ppufile.do_crc:=oldintfcrc;
         if df_specialization in defoptions then
           ppufile.putderef(genericdefderef);
       end;
