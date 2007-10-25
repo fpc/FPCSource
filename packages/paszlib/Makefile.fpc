@@ -6,18 +6,22 @@
 name=paszlib
 version=2.2.0
 
-[require]
-packages=hash
+#[require]
+#packages=hash
 
 [target]
-units=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zip ziputils unzip
-exampledirs=demo
+units=paszlib zip unzip zipper 
+implicitunits=adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr ziputils zstream
+exampledirs=tests
 
 [install]
 fpcpackage=y
 
+[compiler]
+sourcedir=src
+
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [rules]
 .NOTPARALLEL:

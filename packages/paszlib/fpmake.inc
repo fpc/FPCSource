@@ -6,8 +6,12 @@
     {$ENDIF}
     Version:={$i %FPCVERSION%};
     T:=Targets.AddUnit('paszlib');
+    T:=Targets.AddUnit('zip');
+    T:=Targets.AddUnit('unzip');
+    T:=Targets.AddUnit('ziputils');
+    T:=Targets.AddUnit('zipper');
+    T:=Targets.AddUnit('zstream');
     T:=Targets.AddUnit('adler');
-    T:=Targets.AddUnit('crc');
     T:=Targets.AddUnit('gzio');
     T:=Targets.AddUnit('infblock');
     T:=Targets.AddUnit('infcodes');

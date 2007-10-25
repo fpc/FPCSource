@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=minigzip example minizip  miniunz
+programs=minigzip example minizip miniunz
 
 [require]
 packages=paszlib
@@ -12,5 +12,5 @@ packages=paszlib
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
