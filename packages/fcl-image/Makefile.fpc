@@ -21,7 +21,7 @@ rsts=pscanvas
 examples=imgconv
 
 [require]
-packages=pasjpeg fcl-base
+packages=pasjpeg paszlib fcl-base
 
 [compiler]
 options=-S2h
