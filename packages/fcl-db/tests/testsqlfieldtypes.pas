@@ -1170,6 +1170,9 @@ begin
 end;
 
 procedure TTestFieldTypes.TestExceptOnsecClose;
+
+var passed : boolean;
+
 begin
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -1181,13 +1184,14 @@ begin
     
     SQL.Clear;
     SQL.Add('select blaise from FPDEV');
-{$IFDEF FPC}
-//    AssertException(EIBDatabaseError,@Open);
-{$ELSE}
-//    AssertException(EIBDatabaseError,Open);
-{$ENDIF}
-
-    Open;
+    passed := false;
+    try
+      open;
+    except
+      on E: Exception do
+        passed := (E.ClassType.InheritsFrom(EDatabaseError))
+      end;
+    AssertTrue(passed);
 
     Close;
     end;
