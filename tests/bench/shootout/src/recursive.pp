@@ -7,12 +7,12 @@
 
 program recursive;
 
-{$I-}{$OPTIMIZATION TAILREC}
+{$mode objfpc}{$I-}{$OPTIMIZATION TAILREC}
 
 var
-   n : integer;
+   n : longint;
 
-function Ack(x : integer; y : integer): integer;
+function Ack(x : longint; y : longint): longint;
 begin
    if x = 0 then
       Ack := y + 1
@@ -21,7 +21,7 @@ begin
    else Ack := Ack(x-1, Ack(x, y-1));
 end; { Ack }
 
-function Fib(n : integer): integer;
+function Fib(n : longint): longint;
 begin
    if n < 2 then
       Fib := 1
@@ -35,7 +35,7 @@ begin
    else FibFP := FibFP(n - 2) + FibFP(n - 1)
 end; { FibFP }
 
-function Tak(x : integer; y: integer; z : integer): integer;
+function Tak(x : longint; y: longint; z : longint): longint;
 begin
    if y < x then
       Tak := Tak( Tak(x-1, y, z), Tak(y-1, z, x), Tak(z-1, x, y) )

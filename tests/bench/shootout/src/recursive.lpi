@@ -2,7 +2,7 @@
 <CONFIG>
   <ProjectOptions>
     <PathDelim Value="\"/>
-    <Version Value="5"/>
+    <Version Value="6"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
@@ -11,6 +11,7 @@
       </Flags>
       <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
+      <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
     </General>
     <VersionInfo>
@@ -18,7 +19,6 @@
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
       <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
@@ -43,8 +43,17 @@
   <CompilerOptions>
     <Version Value="5"/>
     <PathDelim Value="\"/>
+    <Parsing>
+      <SyntaxOptions>
+        <D2Extensions Value="False"/>
+        <CStyleOperator Value="False"/>
+        <AllowLabel Value="False"/>
+        <CPPInline Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
     <CodeGeneration>
       <Generate Value="Faster"/>
+      <TargetCPU Value="i386"/>
       <Optimizations>
         <OptimizationLevel Value="3"/>
       </Optimizations>
@@ -56,7 +65,10 @@
       <LinkSmart Value="True"/>
     </Linking>
     <Other>
-      <CustomOptions Value="-Cppentium4"/>
+      <CustomOptions Value="-Cppentium4
+-Oppentium4
+-Cs512000
+"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
