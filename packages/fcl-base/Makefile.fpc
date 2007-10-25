@@ -23,18 +23,11 @@ packages_emx=netdb
 packages_netware=netdb
 packages_netwlibc=netdb
 
-# clean package units
-[clean]
-units=adler gzcrc gzio infblock infcodes inffast inftrees infutil\
-      minigzip paszlib trees zbase zcompres zdeflate zinflate\
-      zuncompr zutil pthreads streamio blowfish testutils fpcunit
-
 [target]
-# Leave xmlreg and registry last, they require xml.
 units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
-      iostream zstream cachecls avl_tree \
+      iostream cachecls avl_tree \
       eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
-      streamex blowfish zipper streamio inicol pooledmm libtar streamcoll
+      streamex blowfish streamio inicol pooledmm libtar streamcoll
 units_beos=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf 
 units_freebsd=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp fptimer
 units_darwin=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp fptimer 
