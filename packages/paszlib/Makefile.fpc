@@ -6,8 +6,8 @@
 name=paszlib
 version=2.2.0
 
-#[require]
-#packages=hash
+[require]
+packages=hash
 
 [target]
 units=paszlib zip unzip zipper 

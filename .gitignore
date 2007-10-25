@@ -214,13 +214,6 @@ packages/base/gdbint/*.ppu
 packages/base/gdbint/*.s
 packages/base/gdbint/fpcmade.*
 packages/base/gdbint/units
-packages/base/hash/*.bak
-packages/base/hash/*.exe
-packages/base/hash/*.o
-packages/base/hash/*.ppu
-packages/base/hash/*.s
-packages/base/hash/fpcmade.*
-packages/base/hash/units
 packages/base/ibase/*.bak
 packages/base/ibase/*.exe
 packages/base/ibase/*.o

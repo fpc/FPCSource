@@ -13,7 +13,7 @@ units=fpmkunit
 fpcpackage=y
 
 [require]
-packages=fcl-base
+packages=paszlib
 
 [compiler]
 sourcedir=src
