@@ -69,6 +69,7 @@ type
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
     function  IsDialectStored: boolean;
   protected
+    procedure DoConnect; override;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
@@ -389,7 +390,6 @@ begin
     @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
     CheckError('DoInternalConnect', FStatus);
-  FDbDialect := GetDBDialect;
 end;
 
 function TIBConnection.GetDialect: integer;
@@ -607,6 +607,12 @@ end;
 function TIBConnection.IsDialectStored: boolean;
 begin
   result := (FDialect<>-1);
+end;
+
+procedure TIBConnection.DoConnect;
+begin
+  inherited DoConnect;
+  FDbDialect := GetDBDialect;
 end;
 
 procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
