@@ -437,7 +437,7 @@ implementation
           end;
         { Variants unit is not loaded yet, load it now }
         Message(parser_w_implicit_uses_of_variants_unit);
-        AddUnit('Variants');
+        AddUnit('variants');
       end;
 
 
@@ -466,7 +466,7 @@ implementation
 
         { insert the system unit, it is allways the first. Load also the
           internal types from the system unit }
-        AddUnit('System');
+        AddUnit('system');
         systemunit:=tglobalsymtable(symtablestack.top);
         load_intern_types;
 
@@ -480,7 +480,7 @@ implementation
          begin
            { Heaptrc unit, load heaptrace before any other units especially objpas }
            if (cs_use_heaptrc in current_settings.globalswitches) then
-             AddUnit('HeapTrc');
+             AddUnit('heaptrc');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
              if (paratargetdbg = dbg_stabs) then
@@ -490,29 +490,29 @@ implementation
            end;
            { Valgrind requires c memory manager }
            if (cs_gdb_valgrind in current_settings.globalswitches) then
-             AddUnit('CMem');
+             AddUnit('cmem');
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)
            if (cs_fp_emulation in current_settings.moduleswitches) and not(target_info.system in system_wince) then
-             AddUnit('SoftFpu');
+             AddUnit('softfpu');
            }
 {$endif cpufpemu}
          end;
         { Objpas unit? }
         if m_objpas in current_settings.modeswitches then
-          AddUnit('ObjPas');
+          AddUnit('objpas');
         { Macpas unit? }
         if m_mac in current_settings.modeswitches then
-          AddUnit('MacPas');
+          AddUnit('macpas');
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in current_settings.moduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
-          AddUnit('Profile');
+          AddUnit('profile');
         if (cs_load_fpcylix_unit in current_settings.globalswitches) then
           begin
-            AddUnit('FPCylix');
-            AddUnit('DynLibs');
+            AddUnit('fpcylix');
+            AddUnit('dynlibs');
           end;
       end;
 
