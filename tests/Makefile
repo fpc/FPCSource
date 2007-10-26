@@ -1463,6 +1463,8 @@ override DOTESTOPT+=-O
 endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
+endif
+ifdef V
 Q=
 QECHO=
 else
