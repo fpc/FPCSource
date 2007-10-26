@@ -1037,8 +1037,6 @@ implementation
 
             { end of procedure }
             current_asmdata.getlabel(stabsendlabel,alt_dbgtype);
-            templist.concat(tai_label.create(stabsendlabel));
-            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procendtai,templist);
 
             if assigned(pd.funcretsym) and
                (tabstractnormalvarsym(pd.funcretsym).refs>0) then
@@ -1084,6 +1082,22 @@ implementation
             move(p^,p1^,strlen(p)+1);
             templist.concat(Tai_stab.Create(stab_stabn,p1));
             freemem(p,2*mangled_length+50);
+
+            { the stabsendlabel must come after all other stabs for this }
+            { function                                                   }
+            templist.concat(tai_label.create(stabsendlabel));
+
+            { Add a "size" stab as described in the last paragraph of 2.5 at  }
+            { http://sourceware.org/gdb/current/onlinedocs/stabs_2.html#SEC12 }
+            { This works at least on Darwin (and is needed on Darwin to get   }
+            { correct smartlinking of stabs), but I don't know which binutils }
+            { version is required on other platforms                          }
+            { This stab must come after all other stabs for the procedure,    }
+            { including the LBRAC/RBRAC ones                                  }
+            if (target_info.system in systems_darwin) then
+              templist.concat(Tai_stab.create(stab_stabs,
+                strpnew('"",'+tostr(N_FUNCTION)+',0,0,'+stabsendlabel.name+'-'+pd.mangledname)));
+
             current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
 
             { "The stab representing a procedure is located immediately
@@ -1110,13 +1124,8 @@ implementation
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
               write_symtable_syms(templist,pd.localst);
-            { add a "size" stab as described in the last paragraph of 2.5 at  }
-            { http://sourceware.org/gdb/current/onlinedocs/stabs_2.html#SEC12 }
-//            templist.concat(Tai_stab.create(stab_stabs,
-//              strpnew('"",'+tostr(N_FUNCTION)+',0,0,'+stabsendlabel.name+'-'+pd.mangledname)));
 
-            { after the endtai, because the ".size" must come before it }
-            current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
+            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procstarttai,templist);
 
             templist.free;
           end;
