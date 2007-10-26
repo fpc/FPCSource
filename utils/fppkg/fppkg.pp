@@ -121,7 +121,7 @@ begin
       if Options.CurrentCompilerConfig='default' then
         begin
           Log(vDebug,SLogGeneratingCompilerConfig,[S]);
-          Options.InitCompilerDefaults('');
+          Options.InitCompilerDefaults;
           Options.SaveCompilerToFile(S);
         end
       else

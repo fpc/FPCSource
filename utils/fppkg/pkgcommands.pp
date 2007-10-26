@@ -77,9 +77,11 @@ type
 
 function TCommandAddConfig.Execute(const Args:TActionArgs):boolean;
 begin
+{
   Log(vInfo,SLogGeneratingCompilerConfig,[S]);
   Options.InitCompilerDefaults(Args[2]);
   Options.SaveCompilerToFile(S);
+}
   Result:=true;
 end;
 
