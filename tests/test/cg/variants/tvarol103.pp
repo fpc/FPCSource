@@ -1,43 +1,56 @@
 { %fail }
+{$ifndef bigfile}
 {$ifdef fpc}
 {$mode delphi}
+{$else fpc}
+{$define FPC_HAS_TYPE_EXTENDED}
 {$endif fpc}
+{$endif bigfile}
 
-{$ifdef FPC_COMP_IS_INT64}
 type 
-  comp = double;
+{$ifdef FPC_COMP_IS_INT64}
+  comp103 = double;
+{$else FPC_COMP_IS_INT64}
+  comp103 = comp;
 {$endif FPC_COMP_IS_INT64}
-procedure test(a: word); overload;
+procedure test103(a: word); overload;
   begin
     writeln('word called instead of boolean');
     writeln('XXX')
   end;
 
-procedure test(a: boolean); overload;
+procedure test103(a: boolean); overload;
   begin
     writeln('boolean called instead of word');
     writeln('YYY')
   end;
 
 var
+  x103: word;
+
+  y103: boolean;
+procedure dotest103;
+var
   v: variant;
-  x: word;
-  y: boolean;
 
 begin
   try
-    v := x;
-    test(v);
+    v := x103;
+    test103(v);
   except
     on E : TObject do
       writeln('QQQ');
   end;
 
   try
-    v := y;
-    test(v);
+    v := y103;
+    test103(v);
   except
     on E : TObject do
       writeln('VVV');
   end;
-end.
+end;
+
+{$ifndef bigfile} begin
+  dotest103;
+end. {$endif not bigfile}

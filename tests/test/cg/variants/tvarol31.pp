@@ -1,46 +1,61 @@
+{ %fail }
+{$ifndef bigfile}
 {$ifdef fpc}
 {$mode delphi}
+{$else fpc}
+{$define FPC_HAS_TYPE_EXTENDED}
 {$endif fpc}
+{$endif bigfile}
 
-{$ifdef FPC_COMP_IS_INT64}
 type 
-  comp = currency;
+{$ifdef FPC_COMP_IS_INT64}
+  comp31 = currency;
+{$else FPC_COMP_IS_INT64}
+  comp31 = comp;
 {$endif FPC_COMP_IS_INT64}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-procedure test(a: comp); overload;
+procedure test31(a: comp31); overload;
   begin
-    writeln('comp called instead of extended');
+    writeln('comp31 called instead of extended');
     writeln('XXX')
   end;
 
-procedure test(a: extended); overload;
+procedure test31(a: extended); overload;
   begin
-    writeln('extended called instead of comp');
+    writeln('extended called instead of comp31');
     writeln('YYY')
   end;
 
 var
+  x31: comp31;
+
+  y31: extended;
+procedure dotest31;
+var
   v: variant;
-  x: comp;
-  y: extended;
 
 begin
   try
-    v := x;
-    test(v);
+    v := x31;
+    test31(v);
   except
     on E : TObject do
-      halt(1);
+      writeln('QQQ');
   end;
 
   try
-    v := y;
-    test(v);
+    v := y31;
+    test31(v);
   except
     on E : TObject do
-      halt(1);
+      writeln('VVV');
   end;
-{$else}
+end;
+
+{$ifndef bigfile} begin
+  dotest31;
+end. {$endif not bigfile}
+{$else FPC_HAS_TYPE_EXTENDED}
 begin
-{$endif}
-end.
+end. {$endif not bigfile}
+{$endif FPC_HAS_TYPE_EXTENDED}

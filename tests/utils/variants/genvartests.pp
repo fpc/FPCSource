@@ -17,7 +17,8 @@ end;
 
 {$i+}
 var
-  i,j,k: byte;
+  k: longint;
+  i,j: byte;
   t: text;
 begin
   k := 1;
@@ -26,33 +27,34 @@ begin
       begin
         assign(t,'tvarol'+tostr(k)+'.pp');
         rewrite(t);
+        writeln(t,'{$ifndef bigfile}');
         writeln(t,'{$ifdef fpc}');
         writeln(t,'{$mode delphi}');
+        writeln(t,'{$else fpc}');
+        writeln(t,'{$define FPC_HAS_TYPE_EXTENDED}');
         writeln(t,'{$endif fpc}');
+        writeln(t,'{$endif bigfile}');
         writeln(t);
 
-        writeln(t,'{$ifdef FPC_COMP_IS_INT64}');
+        types[compidx]:='comp'+tostr(k);
         writeln(t,'type ');
+        writeln(t,'{$ifdef FPC_COMP_IS_INT64}');
         if not(j in [doubleidx,extendedidx]) then
-          writeln(t,'  comp = double;')
+          writeln(t,'  ',types[compidx],' = double;')
         else
-          writeln(t,'  comp = currency;');
+          writeln(t,'  ',types[compidx],' = currency;');
+        writeln(t,'{$else FPC_COMP_IS_INT64}');
+        writeln(t,'  ',types[compidx],' = comp;');
         writeln(t,'{$endif FPC_COMP_IS_INT64}');
 
-{
-        if (i=compidx) and
-           ((j=int64idx) or
-            (j=doubleidx)) then
-          writeln(t,'{$ifndef FPC_COMP_IS_INT64}');
-}
         if (i in [curridx,compidx,doubleidx]) and
            (j=extendedidx) then
           writeln(t,'{$ifdef FPC_HAS_TYPE_EXTENDED}');
 
         if (i <> low(types)) then
-          writeln(t,'procedure test(a: ',types[i],'); overload;')
+          writeln(t,'procedure test',tostr(k),'(a: ',types[i],'); overload;')
         else
-          writeln(t,'procedure test(var a); overload;');
+          writeln(t,'procedure test',tostr(k),'(var a); overload;');
         writeln(t,'  begin');
 { 
        if (i=compidx) then
@@ -66,7 +68,7 @@ begin
         writeln(t,'    writeln(''XXX'')');
         writeln(t,'  end;');
         writeln(t);
-        writeln(t,'procedure test(a: ',types[j],'); overload;');
+        writeln(t,'procedure test',tostr(k),'(a: ',types[j],'); overload;');
         writeln(t,'  begin');
 { 
        if (i=compidx) then
@@ -80,31 +82,56 @@ begin
         writeln(t,'    writeln(''YYY'')');
         writeln(t,'  end;');
         writeln(t);
+        { global to avoid problems with invalid floats }
+        { due to uninitialised variables, and to avoid }
+        { having to generate type-specific init code   }
+        writeln(t,'var');
+        if (i <> low(types)) then
+          writeln(t,'  x',tostr(k),': ',types[i],';')
+        else
+          writeln(t,'  x',tostr(k),': longint;');
+        writeln(t);
+        writeln(t,'  y',tostr(k),': ',types[j],';');
+        writeln(t,'procedure dotest',tostr(k),';');
         writeln(t,'var');
         writeln(t,'  v: variant;');
-        if (i <> low(types)) then
-          writeln(t,'  x: ',types[i],';')
-        else
-          writeln(t,'  x: longint;');
-        writeln(t,'  y: ',types[j],';');
         writeln(t);
         writeln(t,'begin');
         writeln(t,'  try');
-        writeln(t,'    v := x;');
-        writeln(t,'    test(v);');
+        writeln(t,'    v := x',tostr(k),';');
+        writeln(t,'    test',tostr(k),'(v);');
         writeln(t,'  except');
         writeln(t,'    on E : TObject do');
         writeln(t,'      writeln(''QQQ'');');
         writeln(t,'  end;');
         writeln(t);
         writeln(t,'  try');
-        writeln(t,'    v := y;');
-        writeln(t,'    test(v);');
+        writeln(t,'    v := y',tostr(k),';');
+        writeln(t,'    test',tostr(k),'(v);');
         writeln(t,'  except');
         writeln(t,'    on E : TObject do');
         writeln(t,'      writeln(''VVV'');');
         writeln(t,'  end;');
- 
+        writeln(t,'end;');
+        writeln(t);
+
+        writeln(t,'{$ifndef bigfile} begin');
+        writeln(t,'  dotest',tostr(k),';');
+        writeln(t,'end. {$endif not bigfile}');
+       if (((i in [curridx,compidx,doubleidx]) and
+            (j=extendedidx))) then
+          begin
+            writeln(t,'{$else FPC_HAS_TYPE_EXTENDED}');
+            writeln(t,'begin');
+            if (i=doubleidx) and
+               (j=curridx) then
+              { compilation has to fail }
+              writeln(t,'  abc');
+            writeln(t,'end. {$endif not bigfile}');
+            writeln(t,'{$endif FPC_HAS_TYPE_EXTENDED}');
+          end;
+
+(*
        if ({(i=compidx) and
             ((j=int64idx) or
              (j=doubleidx)) or
@@ -125,6 +152,7 @@ begin
           end;
 
         writeln(t,'end.');
+*)
         close(t);
 
         inc(k);

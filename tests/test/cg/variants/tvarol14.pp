@@ -1,43 +1,56 @@
 { %fail }
+{$ifndef bigfile}
 {$ifdef fpc}
 {$mode delphi}
+{$else fpc}
+{$define FPC_HAS_TYPE_EXTENDED}
 {$endif fpc}
+{$endif bigfile}
 
-{$ifdef FPC_COMP_IS_INT64}
 type 
-  comp = currency;
+{$ifdef FPC_COMP_IS_INT64}
+  comp14 = currency;
+{$else FPC_COMP_IS_INT64}
+  comp14 = comp;
 {$endif FPC_COMP_IS_INT64}
-procedure test(var a); overload;
+procedure test14(var a); overload;
   begin
     writeln('formal called instead of extended');
     writeln('XXX')
   end;
 
-procedure test(a: extended); overload;
+procedure test14(a: extended); overload;
   begin
     writeln('extended called instead of formal');
     writeln('YYY')
   end;
 
 var
+  x14: longint;
+
+  y14: extended;
+procedure dotest14;
+var
   v: variant;
-  x: longint;
-  y: extended;
 
 begin
   try
-    v := x;
-    test(v);
+    v := x14;
+    test14(v);
   except
     on E : TObject do
       writeln('QQQ');
   end;
 
   try
-    v := y;
-    test(v);
+    v := y14;
+    test14(v);
   except
     on E : TObject do
       writeln('VVV');
   end;
-end.
+end;
+
+{$ifndef bigfile} begin
+  dotest14;
+end. {$endif not bigfile}
