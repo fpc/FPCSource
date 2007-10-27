@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS) m68k

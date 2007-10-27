@@ -231,11 +231,7 @@ const
 {$ifdef m68k}    platform_select='';{$endif} {unknown :( }
 
 var
-{$ifdef m68k}
-  St : TSearchRec;
-{$else}
   defdynlinker: string;
-{$endif m68k}
 begin
   with Info do
    begin
@@ -246,21 +242,10 @@ begin
      ExeCmd[1]:=ExeCmd[1]+' $RES';
      DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
      DllCmd[2]:='strip --strip-unneeded $EXE';
+
 {$ifdef m68k}
-     libctype:=glibc2;
-     if FindFirst(sysrootpath+'/lib/ld*',faAnyFile+faSymLink,st)<>0 then
-       begin
-         repeat
-            if copy(st.name,1,5)='ld-2.' then
-             begin
-               DynamicLinker:='/lib/'+St.name;
-               if st.name[6]<>'0' then
-                 libctype:=glibc21;
-               break;
-             end;
-         until FindNext(St)<>0;
-       end;
-     FindClose(St);
+     { experimental, is this correct? }
+     defdynlinker:='/lib/ld-linux.so.2';
 {$endif m68k}
 
 {$ifdef i386}
