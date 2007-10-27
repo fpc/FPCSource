@@ -29,14 +29,14 @@ implementation
 { Note to implementors of other OS loaders:
 
   - add a LoadXXX() function which has no parameters and returns a Boolean
-   in the "OS loaders section" enclosing it using the OS specific define. 
+   in the "OS loaders section" enclosing it using the OS specific define.
    This method should set the
 
-     DwarfOpened, 
-     DwarfOffset and 
-     DwarfSize 
+     DwarfOpened,
+     DwarfOffset and
+     DwarfSize
 
-   global variables properly (see comments at variable definition for more 
+   global variables properly (see comments at variable definition for more
    information).
    Additionally this method should return true if DWARF line info information
    could be found.
@@ -44,8 +44,8 @@ implementation
    The file variable which can be used for file I/O is the global "infile"
    variable.
 
-  - in OpenDwarf(), add a call to this initializer function after the 
-   "run OS specific initializer" comment, again enclosed in the system 
+  - in OpenDwarf(), add a call to this initializer function after the
+   "run OS specific initializer" comment, again enclosed in the system
    specific define.
 }
 
@@ -85,11 +85,13 @@ var
 
 {$MACRO ON}
 
-//{$DEFINE DEBUG_DWARF_PARSER} 
+//{$DEFINE DEBUG_DWARF_PARSER}
 {$ifdef DEBUG_DWARF_PARSER}
 {$define DEBUG_WRITELN := WriteLn}
+{$define DEBUG_COMMENT :=  }
 {$else}
 {$define DEBUG_WRITELN := //}
+{$define DEBUG_COMMENT := //}
 {$endif}
 
 {---------------------------------------------------------------------------
@@ -227,7 +229,7 @@ type
     e_shoff : Elf32_Off; { section header file offset }
     e_flags : Elf32_Word; { architecture specific flags }
     e_ehsize : Elf32_Half; { size of ELF header in bytes }
-    e_phentsize : Elf32_Half; { size of program header entry } 
+    e_phentsize : Elf32_Half; { size of program header entry }
     e_phnum : Elf32_Half; { number of program header entries }
     e_shentsize : Elf32_Half; { size of section header entry }
     e_shnum : Elf32_Half; { number of section header entry }
@@ -279,7 +281,7 @@ type
     sh_addralign : Elf64_Xword;
     sh_entsize : Elf64_Xword;
   end;
-  
+
   TElf_Shdr = {$ifdef cpu32}TElf32_Shdr{$endif}{$ifdef cpu64}TElf64_Shdr{$endif};
   TElf_Ehdr = {$ifdef cpu32}TElf32_Ehdr{$endif}{$ifdef cpu64}TElf64_Ehdr{$endif};
 
@@ -304,7 +306,7 @@ begin
     exit;
   end;
 
-  { more paranoia checks }  
+  { more paranoia checks }
   if ((header.e_ident[EI_MAG0] <> ELFMAG0) or (header.e_ident[EI_MAG1] <> ELFMAG1) or
     (header.e_ident[EI_MAG2] <> ELFMAG2) or (header.e_ident[EI_MAG3] <> ELFMAG3)) then begin
     DEBUG_WRITELN('Invalid ELF magic header. Exiting');
@@ -341,7 +343,7 @@ begin
       DEBUG_WRITELN('Could not read section name');
       exit;
     end;
-    buf[sizeof(buf)-1] := #0;    
+    buf[sizeof(buf)-1] := #0;
 
     DEBUG_WRITELN('This section is "', pchar(@buf[0]), '", offset ', cursec_header.sh_offset, ' size ', cursec_header.sh_size);
     if (pchar(@buf[0]) = '.debug_line') then begin
@@ -360,7 +362,7 @@ end;
 
  Generic Dwarf lineinfo reader
 
- The line info reader is based on the information contained in 
+ The line info reader is based on the information contained in
 
    DWARF Debugging Information Format Version 3
    Chapter 6.2 "Line Number Information"
@@ -369,7 +371,7 @@ end;
 
    DWARF Debugging Information Format Workgroup.
 
- For more information on this document see also 
+ For more information on this document see also
 
    http://dwarf.freestandards.org/
 
@@ -490,7 +492,7 @@ begin
     append_row := false;
   end;
 end;
-    
+
 { Reads an unsigned LEB encoded number from the input stream }
 function ReadULEB128() : QWord;
 var
@@ -538,7 +540,7 @@ begin
   ReadLEB128 := result;
 end;
 
-{ Reads an address from the current input stream }      
+{ Reads an address from the current input stream }
 function ReadAddress() : PtrUInt;
 var
   result : PtrUInt;
@@ -547,7 +549,7 @@ begin
   ReadAddress := result;
 end;
 
-{ Reads a zero-terminated string from the current input stream. If the 
+{ Reads a zero-terminated string from the current input stream. If the
   string is larger than 255 chars (maximum allowed number of elements in
   a ShortString, excess characters will be chopped off. }
 function ReadString() : ShortString;
@@ -621,7 +623,7 @@ begin
     SkipLEB128(); { skip length of file }
   end;
 end;
-      
+
 function CalculateAddressIncrement(opcode : Byte; const header : TLineNumberProgramHeader64) : Int64;
 var
   result : Int64;
@@ -647,7 +649,7 @@ begin
     dirindex := ReadLEB128(); { read the directory index for the file }
     SkipLEB128(); { skip last modification time for file }
     SkipLEB128(); { skip length of file }
-    inc(i); 
+    inc(i);
   end;
   { if we could not find the file index, exit }
   if (filename = '') then begin
@@ -665,7 +667,7 @@ begin
 
   GetFullFilename := directory + filename;
 end;
-   
+
 function ParseCompilationUnit(const addr : PtrUInt; const file_offset : QWord;
   var source : String; var line : longint; var found : Boolean) : QWord;
 var
@@ -675,7 +677,7 @@ var
   header32 : TLineNumberProgramHeader32;
 
   adjusted_opcode : Int64;
-  
+
   opcode : Int;
   extended_opcode : Byte;
   extended_opcode_length : Int;
@@ -733,13 +735,13 @@ begin
     header64.line_range := header32.line_range;
     header64.opcode_base := header32.opcode_base;
     header_length :=
-      sizeof(header32.length) + sizeof(header32.version) + 
+      sizeof(header32.length) + sizeof(header32.version) +
       sizeof(header32.unit_length);
   end else begin
     DEBUG_WRITELN('64 bit DWARF detected');
     ReadNext(header64, sizeof(header64));
-    header_length := 
-      sizeof(header64.magic) + sizeof(header64.version) + 
+    header_length :=
+      sizeof(header64.magic) + sizeof(header64.version) +
       sizeof(header64.length) + sizeof(header64.unit_length);
   end;
 
@@ -856,7 +858,7 @@ begin
           adjusted_opcode := opcode - header64.opcode_base;
           addrIncrement := CalculateAddressIncrement(opcode, header64);
           inc(state.address, addrIncrement);
-          lineIncrement := header64.line_base + (adjusted_opcode mod header64.line_range); 
+          lineIncrement := header64.line_base + (adjusted_opcode mod header64.line_range);
           inc(state.line, lineIncrement);
           DEBUG_WRITELN('Special opcode $', hexstr(opcode, 2), ' address increment: ', addrIncrement, ' new line: ', lineIncrement);
           state.basic_block := false;
@@ -868,11 +870,11 @@ begin
     end;
 
     if (state.append_row) then begin
-      DEBUG_WRITELN('Current state : address = ', hexstr(state.address, sizeof(state.address) * 2), 
-        ' file_id = ', state.file_id, ' line = ', state.line, ' column = ', state.column, 
-        ' is_stmt = ', state.is_stmt, ' basic_block = ', state.basic_block, 
-        ' end_sequence = ', state.end_sequence, ' prolouge_end = ', state.prolouge_end, 
-        ' epilouge_begin = ', state.epilouge_begin, ' isa = ', state.isa);
+      DEBUG_WRITELN('Current state : address = ', hexstr(state.address, sizeof(state.address) * 2),
+      DEBUG_COMMENT ' file_id = ', state.file_id, ' line = ', state.line, ' column = ', state.column,
+      DEBUG_COMMENT  ' is_stmt = ', state.is_stmt, ' basic_block = ', state.basic_block,
+      DEBUG_COMMENT  ' end_sequence = ', state.end_sequence, ' prolouge_end = ', state.prolouge_end,
+      DEBUG_COMMENT  ' epilouge_begin = ', state.epilouge_begin, ' isa = ', state.isa);
 
       if (first_row) then begin
         if (state.address > addr) then
@@ -907,13 +909,13 @@ begin
   end;
 end;
 
-procedure GetLineInfo(addr : ptruint; var func, source : string; var line : longint);   
+procedure GetLineInfo(addr : ptruint; var func, source : string; var line : longint);
 var
   current_offset : QWord;
   end_offset : QWord;
 
   found : Boolean;
-  
+
 begin
   func := '';
   source := '';
@@ -927,9 +929,9 @@ begin
 
   while (current_offset < end_offset) and (not found) do begin
     Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnit(addr, current_offset, 
+    current_offset := ParseCompilationUnit(addr, current_offset,
       source, line, found);
-  end; 
+  end;
 end;
 
 
