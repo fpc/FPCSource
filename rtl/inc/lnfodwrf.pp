@@ -868,7 +868,11 @@ begin
     end;
 
     if (state.append_row) then begin
-      DEBUG_WRITELN('Current state : address = ', hexstr(state.address, sizeof(state.address) * 2), ' file_id = ', state.file_id, ' line = ', state.line, ' column = ', state.column, ' is_stmt = ', state.is_stmt, ' basic_block = ', state.basic_block, ' end_sequence = ', state.end_sequence, ' prolouge_end = ', state.prolouge_end, ' epilouge_begin = ', state.epilouge_begin, ' isa = ', state.isa);
+      DEBUG_WRITELN('Current state : address = ', hexstr(state.address, sizeof(state.address) * 2), 
+        ' file_id = ', state.file_id, ' line = ', state.line, ' column = ', state.column, 
+        ' is_stmt = ', state.is_stmt, ' basic_block = ', state.basic_block, 
+        ' end_sequence = ', state.end_sequence, ' prolouge_end = ', state.prolouge_end, 
+        ' epilouge_begin = ', state.epilouge_begin, ' isa = ', state.isa);
 
       if (first_row) then begin
         if (state.address > addr) then
