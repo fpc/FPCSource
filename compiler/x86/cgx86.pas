@@ -573,7 +573,7 @@ unit cgx86;
         if (target_info.system<>system_i386_darwin) then
           list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)))
         else
-          begin 
+          begin
             reference_reset_symbol(r,get_darwin_call_stub(s),0);
             r.refaddr:=addr_full;
             list.concat(taicpu.op_ref(A_JMP,S_NO,r));
@@ -1014,7 +1014,7 @@ unit cgx86;
          tmpref:=ref;
          make_simple_ref(list,tmpref);
          if shuffle=nil then
-           list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,reg))
+           list.concat(taicpu.op_ref_reg(A_MOVDQU,S_NO,tmpref,reg))
          else if shufflescalar(shuffle) then
            list.concat(taicpu.op_ref_reg(get_scalar_mm_op(fromsize,tosize),S_NO,tmpref,reg))
          else
@@ -1030,7 +1030,7 @@ unit cgx86;
          tmpref:=ref;
          make_simple_ref(list,tmpref);
          if shuffle=nil then
-           list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,tmpref))
+           list.concat(taicpu.op_reg_ref(A_MOVDQU,S_NO,reg,tmpref))
          else if shufflescalar(shuffle) then
            begin
              if tosize<>fromsize then

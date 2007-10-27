@@ -1509,21 +1509,21 @@
     opcode  : A_FISTTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#211#1#221#129;
-    flags   : if_prescott or if_fpu
-  ),
-  (
-    opcode  : A_FISTTP;
-    ops     : 1;
-    optypes : (ot_memory or ot_bits16,ot_none,ot_none);
     code    : #192#211#1#219#129;
     flags   : if_prescott or if_fpu
   ),
   (
     opcode  : A_FISTTP;
     ops     : 1;
-    optypes : (ot_memory or ot_bits64,ot_none,ot_none);
+    optypes : (ot_memory or ot_bits16,ot_none,ot_none);
     code    : #192#211#1#223#129;
+    flags   : if_prescott or if_fpu
+  ),
+  (
+    opcode  : A_FISTTP;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits64,ot_none,ot_none);
+    code    : #192#211#1#221#129;
     flags   : if_prescott or if_fpu
   ),
   (

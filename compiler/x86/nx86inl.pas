@@ -282,7 +282,8 @@ implementation
          tempreg : tregister;
        begin
 {$ifdef x86_64}
-         if use_sse(left.resultdef) then
+         if use_sse(left.resultdef) and
+           not((location.left=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
@@ -300,20 +301,30 @@ implementation
          else
 {$endif x86_64}
           begin
-            tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,oldcw);
-            tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,newcw);
-            emit_ref(A_FNSTCW,S_NO,newcw);
-            emit_ref(A_FNSTCW,S_NO,oldcw);
-            emit_const_ref(A_OR,S_W,$0f00,newcw);
-            load_fpu_location;
-            emit_ref(A_FLDCW,S_NO,newcw);
-            location_reset(location,LOC_REFERENCE,OS_S64);
-            tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
-            emit_ref(A_FISTP,S_IQ,location.reference);
-            emit_ref(A_FLDCW,S_NO,oldcw);
-            emit_none(A_FWAIT,S_NO);
-            tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
-            tg.UnGetTemp(current_asmdata.CurrAsmList,newcw);
+            if (current_settings.fputype>=fpu_sse3) then
+              begin
+                load_fpu_location;
+                location_reset(location,LOC_REFERENCE,OS_S64);
+                tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+                emit_ref(A_FISTTP,S_IQ,location.reference);
+              end
+            else
+              begin
+                tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,oldcw);
+                tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,newcw);
+                emit_ref(A_FNSTCW,S_NO,newcw);
+                emit_ref(A_FNSTCW,S_NO,oldcw);
+                emit_const_ref(A_OR,S_W,$0f00,newcw);
+                load_fpu_location;
+                emit_ref(A_FLDCW,S_NO,newcw);
+                location_reset(location,LOC_REFERENCE,OS_S64);
+                tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+                emit_ref(A_FISTP,S_IQ,location.reference);
+                emit_ref(A_FLDCW,S_NO,oldcw);
+                emit_none(A_FWAIT,S_NO);
+                tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
+                tg.UnGetTemp(current_asmdata.CurrAsmList,newcw);
+              end;
            end;
        end;
 
