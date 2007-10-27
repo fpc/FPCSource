@@ -473,7 +473,9 @@ begin
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
    begin
-     pp^.calls[i]:=get_caller_addr(bp);
+     { valid bp? }
+     if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+       pp^.calls[i]:=get_caller_addr(bp);
      oldbp:=bp;
      bp:=get_caller_frame(bp);
      if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
@@ -506,7 +508,7 @@ end;
                                 TraceFreeMem
 *****************************************************************************}
 
-function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info; 
+function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info;
   size, ppsize: ptruint): boolean; inline;
 var
   i: ptruint;
@@ -664,7 +666,7 @@ begin
     if pp^.todolist = @orphaned_info.heap_free_todo then
     begin
       loc_info := @orphaned_info;
-    end else 
+    end else
     if pp^.todolist <> @loc_info^.heap_free_todo then
     begin
       { allocated in different heap, push to that todolist }
