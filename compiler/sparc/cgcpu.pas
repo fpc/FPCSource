@@ -84,8 +84,8 @@ interface
         procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);override;
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
-        procedure g_restore_standard_registers(list:TAsmList);override;
-        procedure g_save_standard_registers(list : TAsmList);override;
+        procedure g_restore_registers(list:TAsmList);override;
+        procedure g_save_registers(list : TAsmList);override;
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : aint);
@@ -1065,7 +1065,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_restore_standard_registers(list:TAsmList);
+    procedure TCgSparc.g_restore_registers(list:TAsmList);
       begin
         { The sparc port uses the sparc standard calling convetions so this function has no used }
       end;
@@ -1114,7 +1114,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_save_standard_registers(list : TAsmList);
+    procedure TCgSparc.g_save_registers(list : TAsmList);
       begin
         { The sparc port uses the sparc standard calling convetions so this function has no used }
       end;

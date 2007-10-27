@@ -78,8 +78,8 @@ unit cgcpu;
 
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
-        procedure g_save_standard_registers(list:TAsmList); override;
-        procedure g_restore_standard_registers(list:TAsmList); override;
+        procedure g_save_registers(list:TAsmList); override;
+        procedure g_restore_registers(list:TAsmList); override;
 
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
 
@@ -857,13 +857,13 @@ const
 
 { *********** entry/exit code and address loading ************ }
 
-    procedure tcgppc.g_save_standard_registers(list:TAsmList);
+    procedure tcgppc.g_save_registers(list:TAsmList);
       begin
         { this work is done in g_proc_entry }
       end;
 
 
-    procedure tcgppc.g_restore_standard_registers(list:TAsmList);
+    procedure tcgppc.g_restore_registers(list:TAsmList);
       begin
         { this work is done in g_proc_exit }
       end;

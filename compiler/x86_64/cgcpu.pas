@@ -65,24 +65,24 @@ unit cgcpu;
         if target_info.system=system_x86_64_win64 then
           begin
             SetLength(saved_standard_registers,Length(win64_saved_std_regs));
-            SetLength(saved_xmm_registers,Length(win64_saved_xmm_regs));
+            SetLength(saved_mm_registers,Length(win64_saved_xmm_regs));
 
             for i:=low(win64_saved_std_regs) to high(win64_saved_std_regs) do
               saved_standard_registers[i]:=win64_saved_std_regs[i];
 
             for i:=low(win64_saved_xmm_regs) to high(win64_saved_xmm_regs) do
-              saved_xmm_registers[i]:=win64_saved_xmm_regs[i];
+              saved_mm_registers[i]:=win64_saved_xmm_regs[i];
           end
         else
           begin
             SetLength(saved_standard_registers,Length(others_saved_std_regs));
-            SetLength(saved_xmm_registers,0);
+            SetLength(saved_mm_registers,0);
 
             for i:=low(others_saved_std_regs) to high(others_saved_std_regs) do
               saved_standard_registers[i]:=others_saved_std_regs[i];
           end;
         if assigned(current_procinfo) then
-          framepointer:=getsupreg(current_procinfo.framepointer) 
+          framepointer:=getsupreg(current_procinfo.framepointer)
         else
           { in intf. wrapper code generation }
           framepointer:=RS_FRAME_POINTER_REG;

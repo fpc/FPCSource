@@ -86,8 +86,8 @@ unit cgcpu;
 
 //        procedure g_restore_frame_pointer(list : TAsmList);override;
 //        procedure g_return_from_proc(list : TAsmList;parasize : aint);override;
-        procedure g_restore_standard_registers(list:TAsmList);override;
-        procedure g_save_standard_registers(list:TAsmList);override;
+        procedure g_restore_registers(list:TAsmList);override;
+        procedure g_save_registers(list:TAsmList);override;
 
 //        procedure g_save_all_registers(list : TAsmList);override;
 //        procedure g_restore_all_registers(list : TAsmList;const funcretparaloc:TCGPara);override;
@@ -1410,7 +1410,7 @@ unit cgcpu;
       end;
 
 
-    procedure Tcg68k.g_save_standard_registers(list:TAsmList);
+    procedure Tcg68k.g_save_registers(list:TAsmList);
       var
         tosave : tcpuregisterset;
         ref : treference;
@@ -1427,7 +1427,7 @@ unit cgcpu;
       end;
 
 
-    procedure Tcg68k.g_restore_standard_registers(list:TAsmList);
+    procedure Tcg68k.g_restore_registers(list:TAsmList);
       var
         torestore : tcpuregisterset;
         r:Tregister;
