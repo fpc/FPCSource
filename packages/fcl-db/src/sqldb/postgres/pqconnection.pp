@@ -65,6 +65,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -866,6 +867,14 @@ begin
     Move(pqgetvalue(res,CurTuple,x)^, ABlobBuf^.BlobBuffer^.Buffer^, li);
     ABlobBuf^.BlobBuffer^.Size := li;
     end;
+end;
+
+function TPQConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  if assigned(cursor) and assigned((cursor as TPQCursor).res) then
+    Result := StrToIntDef(PQcmdTuples((cursor as TPQCursor).res),-1)
+  else
+    Result := -1;
 end;
 
 { TPQConnectionDef }

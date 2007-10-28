@@ -899,6 +899,7 @@ procedure TTestFieldTypes.TestRowsAffected;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
+    AssertEquals(-1,query.RowsAffected);
     Connection.ExecuteDirect('create table FPDEV2 (         ' +
                               '  ID INT NOT NULL            , ' +
                               '  NAME VARCHAR(250),         ' +
@@ -915,6 +916,11 @@ begin
     Query.SQL.Text := 'update FPDEV2 set NAME=''NewTest''';
     Query.ExecSQL;
     AssertEquals(2,query.RowsAffected);
+    Query.SQL.Text := 'select * from FPDEV2';
+    Query.Open;
+    AssertTrue(query.RowsAffected<>0); // It should return -1 or the number of selected rows.
+    query.Close;
+    AssertEquals(-1,query.RowsAffected);
     Query.SQL.Text := 'delete from FPDEV2';
     Query.ExecSQL;
     AssertEquals(2,query.RowsAffected);

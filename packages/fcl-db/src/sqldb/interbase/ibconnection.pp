@@ -1174,10 +1174,11 @@ var info_request       : string;
     InsertedRows       : integer;
     
 begin
-  SelectedRows:=0;
-  InsertedRows:=0;
+  SelectedRows:=-1;
+  InsertedRows:=-1;
 
-  with cursor as TIBCursor do
+  if assigned(cursor) then with cursor as TIBCursor do
+   if assigned(statement) then
     begin
     info_request := chr(isc_info_sql_records);
     if isc_dsql_sql_info(@Status[0],@Statement,Length(info_request), @info_request[1],sizeof(resbuf),@resbuf) <> 0 then
