@@ -1055,7 +1055,7 @@ end;
 
 Procedure fpc_WideStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; compilerproc;
 begin
-  if (index>len) or (Index<1) then
+  if (index>len div 2) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 
