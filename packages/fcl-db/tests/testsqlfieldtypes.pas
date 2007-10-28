@@ -1002,7 +1002,7 @@ end;
 procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
-  if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it has no double field-type');
+  if SQLDbType in [interbase,postgresql] then Ignore('This test does not apply to this db-engine, since it has no double field-type');
 
   with TSQLDBConnector(DBConnector) do
     begin
@@ -1065,11 +1065,11 @@ begin
   ds.Prepare;
   ds.IndexDefs.Update;
   AssertEquals(1,ds.IndexDefs.count);
-  AssertEquals('ID',ds.indexdefs[0].Fields);
+  AssertTrue(CompareText('ID',ds.indexdefs[0].Fields)=0);
   Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
   ds.IndexDefs.Update;
   AssertEquals(1,ds.IndexDefs.count);
-  AssertEquals('ID',ds.indexdefs[0].Fields);
+  AssertTrue(CompareText('ID',ds.indexdefs[0].Fields)=0);
   Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
 end;
 
@@ -1129,13 +1129,13 @@ begin
   AssertEquals(1,ds.IndexDefs.count);
   inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary]);
   AssertEquals(1,inddefs.count);
-  AssertEquals('ID',inddefs[0].Fields);
+  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
   Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
   inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary,ixUnique]);
   AssertEquals(1,inddefs.count);
-  AssertEquals('ID',inddefs[0].Fields);
+  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
   Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
@@ -1157,6 +1157,7 @@ end;
 
 procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
+var ADateStr : String;
 begin
   if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it doesn''t use semicolons for casts');
 
@@ -1166,7 +1167,8 @@ begin
     sql.add('select now()::date as current_date where 1=1');
     open;
     first;
-    writeln(fields[0].asstring); // return the correct date
+    ADateStr:=fields[0].asstring; // return the correct date
+    // writeln(fields[0].asstring);
     close;
 
     sql.clear;
@@ -1174,7 +1176,8 @@ begin
     params.parambyname('PARAM1').asinteger:= 1;
     open;
     first;
-    writeln(fields[0].asstring); // return invalid date
+    AssertEquals(ADateStr,fields[0].asstring); // return invalid date
+    // writeln(fields[0].asstring);
     close;
 
     end
