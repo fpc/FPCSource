@@ -470,7 +470,7 @@ unit cgobj;
              @param(usedinproc Registers which are used in the code of this routine)
           }
           procedure g_restore_registers(list:TAsmList);virtual;
-                    
+
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual;
 
@@ -3609,9 +3609,14 @@ implementation
 
         { mm registers }
         if uses_registers(R_MMREGISTER) then
-          for r:=low(saved_mm_registers) to high(saved_mm_registers) do
-            if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
-              inc(size,tcgsize2size[OS_VECTOR]);
+          begin
+            if (size mod tcgsize2size[OS_VECTOR])<>0 then
+              inc(size,tcgsize2size[OS_VECTOR]-(size mod tcgsize2size[OS_VECTOR]));
+
+            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+              if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                inc(size,tcgsize2size[OS_VECTOR]);
+          end;
 
         tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
 
@@ -3632,15 +3637,20 @@ implementation
               end;
 
             if uses_registers(R_MMREGISTER) then
-              for r:=low(saved_mm_registers) to high(saved_mm_registers) do
-                begin
-                  if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
-                    begin
-                      a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
-                      inc(href.offset,tcgsize2size[OS_VECTOR]);
-                    end;
-                  include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
-                end;
+              begin
+                if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
+                  inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
+
+                for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+                  begin
+                    if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                      begin
+                        a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
+                        inc(href.offset,tcgsize2size[OS_VECTOR]);
+                      end;
+                    include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
+                  end;
+              end;
           end;
       end;
 
@@ -3667,18 +3677,23 @@ implementation
             end;
 
         if uses_registers(R_MMREGISTER) then
-          for r:=low(saved_mm_registers) to high(saved_mm_registers) do
-            begin
-              if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
-                begin
-                  hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE);
-                  { Allocate register so the optimizer does not remove the load }
-                  a_reg_alloc(list,hreg);
-                  a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
-                  inc(href.offset,tcgsize2size[OS_VECTOR]);
-                  freetemp:=true;
-                end;
-            end;
+          begin
+            if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
+              inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
+
+            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+              begin
+                if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                  begin
+                    hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE);
+                    { Allocate register so the optimizer does not remove the load }
+                    a_reg_alloc(list,hreg);
+                    a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
+                    inc(href.offset,tcgsize2size[OS_VECTOR]);
+                    freetemp:=true;
+                  end;
+              end;
+          end;
 
         if freetemp then
           tg.UnGetTemp(list,current_procinfo.save_regs_ref);
