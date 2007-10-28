@@ -3230,11 +3230,19 @@ fcl-registry_debug: fcl-xml_debug
 fcl-registry_smart: fcl-xml_smart
 fcl-registry_release: fcl-xml_release
 fcl-registry_shared: fcl-xml_shared
+ifeq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
+fcl-net_all: fcl-passrc_all fcl-xml_all
+fcl-net_debug: fcl-passrc_debug fcl-xml_debug
+fcl-net_smart: fcl-passrc_smart fcl-xml_smart
+fcl-net_release: fcl-passrc_release fcl-xml_release
+fcl-net_shared: fcl-passrc_shared fcl-xml_shared
+else
 fcl-net_all: fcl-passrc_all fcl-xml_all fcl-async_all
 fcl-net_debug: fcl-passrc_debug fcl-xml_debug fcl-async_debug
 fcl-net_smart: fcl-passrc_smart fcl-xml_smart fcl-async_smart
 fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
+endif
 fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all
 fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
 fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
