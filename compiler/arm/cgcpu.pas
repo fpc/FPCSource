@@ -864,7 +864,7 @@ unit cgcpu;
              if target_info.endian=endian_big then
                dir:=-1
              else
-               dir:=0;
+               dir:=1;
              case FromSize of
                OS_16,OS_S16:
                  begin
