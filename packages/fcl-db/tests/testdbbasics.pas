@@ -618,7 +618,8 @@ begin
 
   AFld := ADS.FindField('F'+FieldTypeNames[AfieldType]);
 
-  AssertNotNull('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset',AFld);
+  if not assigned (AFld) then
+    Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
   AssertTrue(Afld.DataType = AFieldType);
   AssertEquals(ADatasize,Afld.DataSize );
 end;

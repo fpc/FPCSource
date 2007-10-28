@@ -348,7 +348,8 @@ var
   i             : byte;
 
 begin
-//  AssertTrue(SIgnoreAssertion,SQLDbType = postgresql); // Only postgres accept this type-definition
+  if SQLDbType<>postgresql then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
 
@@ -995,7 +996,7 @@ end;
 procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
-  AssertTrue('This test does not apply to Interbase/Firebird, since it has no double field-type',SQLDbType<>interbase);
+  if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it has no double field-type');
 
   with TSQLDBConnector(DBConnector) do
     begin
@@ -1095,6 +1096,8 @@ end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
+  if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it doesn''t support temporary tables');
+
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
@@ -1149,6 +1152,8 @@ end;
 procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 begin
+  if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it doesn''t use semicolons for casts');
+
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
