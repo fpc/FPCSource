@@ -174,7 +174,7 @@ implementation
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
          if (token=_ASM) and (m_delphi in current_settings.modeswitches) then
-          include(current_procinfo.procdef.procoptions,po_assembler);
+           include(current_procinfo.procdef.procoptions,po_assembler);
 
          { Handle assembler block different }
          if (po_assembler in current_procinfo.procdef.procoptions) then

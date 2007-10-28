@@ -897,12 +897,14 @@ implementation
              asmstat.used_regs_fpu:=[0..first_fpu_imreg-1];
              if token<>_RECKKLAMMER then
               begin
+                if po_assembler in current_procinfo.procdef.procoptions then
+                  Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
                   reg:=std_regnum_search(lower(pattern));
                   if reg<>NR_NO then
                     begin
-                      if getregtype(reg)=R_INTREGISTER then
+                      if (getregtype(reg)=R_INTREGISTER) and not(po_assembler in current_procinfo.procdef.procoptions) then
                         include(asmstat.used_regs_int,getsupreg(reg));
                     end
                   else
