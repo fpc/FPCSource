@@ -2686,15 +2686,15 @@ void                    \3\x0F\xAE\xF0                WILLAMETTE,SSE2
 [MOVDQA]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \1\x66\323\2\x0F\x6F\110        WILLAMETTE,SSE2
-mem,xmmreg              \1\x66\300\2\x0F\x7F\101        WILLAMETTE,SSE2,SM
-xmmreg,mem              \1\x66\301\2\x0F\x6F\110        WILLAMETTE,SSE2,SM
+mem,xmmreg              \1\x66\300\323\2\x0F\x7F\101        WILLAMETTE,SSE2,SM
+xmmreg,mem              \1\x66\301\323\2\x0F\x6F\110        WILLAMETTE,SSE2,SM
 xmmreg,xmmreg           \1\x66\323\2\x0F\x7F\110        WILLAMETTE,SSE2
 
 [MOVDQU]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \333\323\2\x0F\x6F\110          WILLAMETTE,SSE2
-mem,xmmreg              \333\300\2\x0F\x7F\101          WILLAMETTE,SSE2,SM
-xmmreg,mem              \333\301\2\x0F\x6F\110          WILLAMETTE,SSE2,SM
+mem,xmmreg              \333\300\323\2\x0F\x7F\101          WILLAMETTE,SSE2,SM
+xmmreg,mem              \333\301\323\2\x0F\x6F\110          WILLAMETTE,SSE2,SM
 xmmreg,xmmreg           \333\323\2\x0F\x7F\110          WILLAMETTE,SSE2
 
 [MOVDQ2Q]
@@ -2710,24 +2710,24 @@ xmmreg,mmxreg           \333\323\2\x0F\xD6\110          WILLAMETTE,SSE2
 mmxreg,mmxreg           \2\x0F\xD4\110                  WILLAMETTE,SSE2
 mmxreg,mem              \301\2\x0F\xD4\110              WILLAMETTE,SSE2,SM
 xmmreg,xmmreg           \1\x66\323\2\x0F\xD4\110          WILLAMETTE,SSE2
-xmmreg,mem              \1\x66\301\2\x0F\xD4\110          WILLAMETTE,SSE2,SM
+xmmreg,mem              \1\x66\301\323\2\x0F\xD4\110          WILLAMETTE,SSE2,SM
 
 [PMULUDQ]
 (Ch_All, Ch_None, Ch_None)
 mmxreg,mmxreg           \2\x0F\xF4\110                  WILLAMETTE,SSE2
 mmxreg,mem              \301\2\x0F\xF4\110              WILLAMETTE,SSE2,SM
 xmmreg,xmmreg           \1\x66\323\2\x0F\xF4\110          WILLAMETTE,SSE2
-xmmreg,mem              \1\x66\301\2\x0F\xF4\110          WILLAMETTE,SSE2,SM
+xmmreg,mem              \1\x66\301\323\2\x0F\xF4\110          WILLAMETTE,SSE2,SM
 
 [PSHUFD]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg,imm       \1\x66\323\2\x0F\x70\110\22       WILLAMETTE,SSE2,SB,AR2
-xmmreg,mem,imm          \1\x66\301\2\x0F\x70\110\22       WILLAMETTE,SSE2,SM2,SB,AR2
+xmmreg,mem,imm          \1\x66\301\323\2\x0F\x70\110\22       WILLAMETTE,SSE2,SM2,SB,AR2
 
 [PSHUFHW]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg,imm       \333\323\2\x0F\x70\110\22       WILLAMETTE,SSE2,SB,AR2
-xmmreg,mem,imm          \333\301\2\x0F\x70\110\22       WILLAMETTE,SSE2,SM2,SB,AR2
+xmmreg,mem,imm          \333\301\323\2\x0F\x70\110\22       WILLAMETTE,SSE2,SM2,SB,AR2
 
 [PSHUFLW]
 (Ch_All, Ch_None, Ch_None)
@@ -2743,17 +2743,17 @@ xmmreg,imm              \1\x66\323\2\x0F\x73\203\25       WILLAMETTE,SSE2,SB,AR1
 mmxreg,mmxreg           \2\x0F\xFB\110                  WILLAMETTE,SSE2
 mmxreg,mem              \301\2\x0F\xFB\110              WILLAMETTE,SSE2,SM
 xmmreg,xmmreg           \1\x66\323\2\x0F\xFB\110          WILLAMETTE,SSE2
-xmmreg,mem              \1\x66\301\2\x0F\xFB\110          WILLAMETTE,SSE2,SM
+xmmreg,mem              \1\x66\301\323\2\x0F\xFB\110          WILLAMETTE,SSE2,SM
 
 [PUNPCKHQDQ]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \1\x66\323\2\x0F\x6D\110          WILLAMETTE,SSE2
-xmmreg,mem              \1\x66\301\2\x0F\x6D\110          WILLAMETTE,SSE2,SM
+xmmreg,mem              \1\x66\301\323\2\x0F\x6D\110          WILLAMETTE,SSE2,SM
 
 [PUNPCKLQDQ]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \1\x66\323\2\x0F\x6C\110          WILLAMETTE,SSE2
-xmmreg,mem              \1\x66\301\2\x0F\x6C\110          WILLAMETTE,SSE2,SM
+xmmreg,mem              \1\x66\301\323\2\x0F\x6C\110          WILLAMETTE,SSE2,SM
 
 ;
 ; Willamette Streaming SIMD instructions (SSE2)
