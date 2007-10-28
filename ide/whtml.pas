@@ -200,12 +200,16 @@ constructor TDOSTextFile.Init(AFileName: string);
 var f: file;
     linecomplete,hasCR: boolean;
     S: string;
+    OldFMode : Integer;
 begin
   inherited Init;
   if AFileName='' then Fail;
 {$I-}
   Assign(f,AFileName);
+  OldFMode:= FileMode;
+  FileMode:= 0;
   Reset(f,1);
+  FileMode:= OldFMode;
   if IOResult<>0 then Fail;
   DosFileName:=AFileName;
   Dispose(Lines,Done);
