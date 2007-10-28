@@ -1,4 +1,4 @@
-(* The Computer Language Shootout
+(* The Computer Language Benchmarks Game
    http://shootout.alioth.debian.org/
 
    contributed by Josh Goldfoot
@@ -62,3 +62,4 @@ begin
    writeLn('Fib(3): ', Fib(3));
    writeLn('Tak(3.0,2.0,1.0): ', TakFP(3.0,2.0,1.0):1:1);
 end.
+
