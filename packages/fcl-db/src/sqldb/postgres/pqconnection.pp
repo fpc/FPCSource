@@ -389,7 +389,8 @@ begin
                                begin
                                size := pqfmod(res,Tuple)-4;
                                if size = -5 then size := dsMaxStringSize;
-                               end
+                               end;
+                             if size > dsMaxStringSize then size := dsMaxStringSize;
                              end;
 //    Oid_text               : Result := ftstring;
     Oid_text               : Result := ftBlob;
@@ -683,7 +684,6 @@ begin
       result := false
     else
       begin
-      i := PQfsize(res, x);
       CurrBuff := pqgetvalue(res,CurTuple,x);
 
       result := true;
@@ -691,6 +691,7 @@ begin
       case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt,ftfloat :
           begin
+          i := PQfsize(res, x);
           case i of               // postgres returns big-endian numbers
             sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
             sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^);
@@ -703,16 +704,15 @@ begin
         ftString  :
           begin
           li := pqgetlength(res,curtuple,x);
+          if li > dsMaxStringSize then li := dsMaxStringSize;
           Move(CurrBuff^, Buffer^, li);
           pchar(Buffer + li)^ := #0;
-          i := pqfmod(res,x)-3;
           end;
         ftBlob : Createblob := True;
         ftdate :
           begin
           dbl := pointer(buffer);
           dbl^ := BEtoN(plongint(CurrBuff)^) + 36526;
-          i := sizeof(double);
           end;
         ftDateTime, fttime :
           begin
