@@ -153,7 +153,7 @@ implementation
                   if first then
                     begin
                        { have we to ajust the first value ? }
-                       if (t^._low>get_min_value(left.resultdef)) then
+                       if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                          begin
                            tcgarm(cg).cgsetflags:=true;
                            cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(int64(t^._low)), hregister);

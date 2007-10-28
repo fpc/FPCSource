@@ -532,7 +532,7 @@ implementation
                 if first then
                   begin
                      { have we to ajust the first value ? }
-                     if (t^._low>get_min_value(left.resultdef)) then
+                     if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                        gensub(aint(t^._low.svalue));
                   end
                 else

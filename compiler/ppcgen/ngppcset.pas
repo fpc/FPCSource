@@ -199,7 +199,7 @@ implementation
                 if first then
                   begin
                      { have we to ajust the first value ? }
-                     if (t^._low>get_min_value(left.resultdef)) then
+                     if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                        gensub(longint(int64(t^._low)));
                   end
                 else
