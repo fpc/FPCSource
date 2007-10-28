@@ -3235,11 +3235,11 @@ fcl-net_debug: fcl-passrc_debug fcl-xml_debug fcl-async_debug
 fcl-net_smart: fcl-passrc_smart fcl-xml_smart fcl-async_smart
 fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
-fcl-web_all: fcl-db_all fcl-xml_all
-fcl-web_debug: fcl-db_debug fcl-xml_debug
-fcl-web_smart: fcl-db_smart fcl-xml_smart
-fcl-web_release: fcl-db_release fcl-xml_release
-fcl-web_shared: fcl-db_shared fcl-xml_shared
+fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all
+fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
+fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
+fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
+fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
 fcl-db_all: fcl-base_all
 fcl-db_debug: fcl-base_debug
 fcl-db_smart: fcl-base_smart
