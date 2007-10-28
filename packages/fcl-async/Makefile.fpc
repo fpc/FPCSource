@@ -1,0 +1,37 @@
+#
+#   Makefile.fpc for libasync
+#
+
+[package]
+name=fcl-async
+version=2.0.0
+
+[target]
+units=libasync fpasync
+
+[install]
+fpcpackage=y
+
+[compiler]
+sourcedir=src
+sourcedir_linux=src/unix
+sourcedir_beos=src/unix
+sourcedir_freebsd=src/unix
+sourcedir_darwin=src/unix
+sourcedir_solaris=src/unix
+sourcedir_netbsd=src/unix
+sourcedir_openbsd=src/unix
+includedir=src
+includedir_linux=src/unix
+includedir_beos=src/unix
+includedir_freebsd=src/unix
+includedir_darwin=src/unix
+includedir_solaris=src/unix
+includedir_netbsd=src/unix
+includedir_openbsd=src/unix
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

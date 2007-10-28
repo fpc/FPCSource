@@ -5,7 +5,6 @@ uses fpmkunit;
 
 var
   T : TTarget;
-  S : TSource;
 begin
   with Installer do
     begin

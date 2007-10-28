@@ -7,7 +7,7 @@ name=fcl-net
 version=2.0.0
 
 [target]
-units=servlets
+units=servlets resolve ssockets
 units_linux=fpsock httpbase httpclient httpsvlt xmlrpc
 units_freebsd=fpsock httpbase httpclient httpsvlt xmlrpc
 units_netbsd=fpsock httpbase httpclient httpsvlt xmlrpc
@@ -23,21 +23,9 @@ rsts_freebsd=fpsock httpsvlt mkxmlrpc
 rsts_darwin=fpsock httpsvlt mkxmlrpc
 rsts_netbsd=fpsock httpsvlt mkxmlrpc
 rsts_openbsd=fpsock httpsvlt mkxmlrpc
-#exampledirs_linux=tests
-#exampledirs_freebsd=tests
-#exampledirs_darwin=tests
-#exampledirs_netbsd=tests
-#exampledirs_openbsd=tests
 
 [require]
-packages=netdb fcl-base fcl-xml fcl-passrc
-
-packages_linux=libasync 
-packages_freebsd=libasync 
-packages_darwin=libasync 
-packages_solaris=libasync 
-packages_netbsd=libasync
-packages_openbsd=libasync
+packages=netdb fcl-base fcl-xml fcl-passrc fcl-async
 
 [compiler]
 options=-S2h

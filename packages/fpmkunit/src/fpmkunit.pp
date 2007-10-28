@@ -21,9 +21,23 @@ unit fpmkunit;
 
 Interface
 
+{$ifndef NO_UNIT_PROCESS}
+  {$define HAS_UNIT_PROCESS}
+{$endif NO_UNIT_PROCESS}
+
+{$ifndef NO_UNIT_ZIPPER}
+  {$define HAS_UNIT_ZIPPER}
+{$endif NO_UNIT_ZIPPER}
+
 uses
-  {$IFNDEF EXTERNALZIP} zipper, {$ENDIF}
-  SysUtils, Classes, StrUtils;
+  SysUtils, Classes, StrUtils
+{$ifdef HAS_UNIT_PROCESS}
+  ,process
+{$endif HAS_UNIT_PROCESS}
+{$ifdef HAS_UNIT_ZIPPER}
+  ,zipper
+{$endif HAS_UNIT_ZIPPER}
+  ;
 
 Type
   TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
@@ -475,7 +489,7 @@ Type
     Property DocInstallDir : String Read GetDocInstallDir Write FDocInstallDir;
     Property ExamplesInstallDir : String Read GetExamplesInstallDir Write FExamplesInstallDir;
     // Command tools. If not set, internal commands  will be used.
-    Property Compiler : String Read GetCompiler Write FCompiler; // Compiler. Defaults to fpc/ppc386
+    Property Compiler : String Read GetCompiler Write FCompiler; // Compiler. Defaults to fpc
     Property Copy : String Read FCopy Write FCopy;             // copy $(FILES) to $(DEST)
     Property Move : String Read FMove Write FMove;             // Move $(FILES) to $(DEST)
     Property Remove : String Read FRemove Write FRemove;       // Delete $(FILES)
@@ -506,9 +520,9 @@ Type
     FDefaults : TCustomDefaults;
     FForceCompile : Boolean;
     FListMode : Boolean;
-    {$IFNDEF EXTERNALZIP}
+{$ifdef HAS_UNIT_ZIPPER}
     FZipFile: TZipper;
-    {$ENDIF}
+{$endif HAS_UNIT_ZIPPER}
     // Variables used when compiling a package.
     // Only valid during compilation of the package.
     FCurrentOutputDir : String;
@@ -807,6 +821,7 @@ ResourceString
   SErrNoDictionaryItem  = 'No item called "%s" in the dictionary';
   SErrNoDictionaryValue = 'The item "%s" in the dictionary is not a value.';
   SErrNoDictionaryFunc  = 'The item "%s" in the dictionary is not a function.';
+  SErrInvalidFPCInfo    = 'Compiler returns invalid information, check if fpc -iV works';
   SWarnCircularDependency = 'Warning: Circular dependency detected when compiling target %s: %s';
   SWarnFailedToSetTime  = 'Warning: Failed to set timestamp on file : %s';
   SWarnFailedToGetTime  = 'Warning: Failed to get timestamp from file : %s';
@@ -1128,6 +1143,28 @@ begin
   Delete(S,1,I);
   Options:=Trim(S);
 end;
+
+
+{$ifdef HAS_UNIT_PROCESS}
+function GetCompilerInfo(const ACompiler,AOptions:string):string;
+const
+  BufSize = 1024;
+var
+  S: TProcess;
+  Buf: array [0..BufSize - 1] of char;
+  Count: longint;
+begin
+  S:=TProcess.Create(Nil);
+  S.Commandline:=ACompiler+' '+AOptions;
+  S.Options:=[poUsePipes];
+  S.execute;
+  Count:=s.output.read(buf,BufSize);
+  S.Free;
+  SetLength(Result,Count);
+  Move(Buf,Result[1],Count);
+end;
+{$endif HAS_UNIT_PROCESS}
+
 
 { TNamedItem }
 
@@ -1513,15 +1550,29 @@ end;
 
 
 procedure TCustomDefaults.CompilerDefaults;
+{$ifdef HAS_UNIT_PROCESS}
+var
+  infoSL : TStringList;
+{$endif HAS_UNIT_PROCESS}
 begin
-  if Compiler<>'' then
-    Compiler:='fpc';
+{$ifdef HAS_UNIT_PROCESS}
+  // Detect compiler version/target from -i option
+  infosl:=TStringList.Create;
+  infosl.Delimiter:=' ';
+  infosl.DelimitedText:=GetCompilerInfo(FCompiler,'-iVTPTO');
+  if infosl.Count<>3 then
+    Raise EInstallerError.Create(SErrInvalidFPCInfo);
+  FCompilerVersion:=infosl[0];
+  CPU:=StringToCPU(infosl[1]);
+  OS:=StringToOS(infosl[2]);
+{$else HAS_UNIT_PROCESS}}
   if CPU=cpuNone then
     CPU:=StringToCPU({$I %FPCTARGETCPU%});
   if OS=osNone then
     OS:=StringToOS({$I %FPCTARGETOS%});
   if FCompilerVersion='' then
     FCompilerVersion:={$I %FPCVERSION%};
+{$endif HAS_UNIT_PROCESS}
 end;
 
 procedure TCustomDefaults.LoadFromFile(Const AFileName: String);
@@ -2165,10 +2216,10 @@ var
 begin
   BasePath := ExtractFilePath(ExpandFileName(FileName));
   AddRecursiveFiles(BasePath, ExtractFileName(FileName), Recursive);
-  
+
   for i := 0 to Pred(List.Count) do
     List[i] := ExtractRelativepath(ExtractFilePath(ParamStr(0)), List[i]);
-  
+
 end;
 
 procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
@@ -3328,27 +3379,30 @@ begin
     for i := 0 to Pred(L.Count) do
       L2.Add(L[i]);
 
+    //show all files
+    for i := 0 to Pred(L2.Count) do
+      Log(vlInfo, Format(SInfoArchiving, [L2[i]]));
+
     A:=APackage.FileName + ZipExt;
 
-    {$IFNDEF EXTERNALZIP}
+{$ifdef HAS_UNIT_ZIPPER}
     if not Assigned(ArchiveFilesProc) then
-    begin
-      FZipFile := TZipper.Create;
-      FZipFile.ZipFiles(A, L2);
-    end
+      begin
+        FZipFile := TZipper.Create;
+        FZipFile.ZipFiles(A, L2);
+      end
     else
-    {$ENDIF}
+{$endif HAS_UNIT_ZIPPER}
       CmdArchiveFiles(L2,A);
   Finally
     L.Free;
     L2.Free;
 
-    {$IFNDEF EXTERNALZIP}
+{$ifdef HAS_UNIT_ZIPPER}
     if not Assigned(ArchiveFilesProc) then
       FZipFile.Free;
-    {$ENDIF}
+{$endif HAS_UNIT_ZIPPER}
   end;
-  Log(vlInfo, Format(SInfoArchiving, [APackage.Name]));
   DoAfterArchive(Apackage);
 end;
 
@@ -3441,10 +3495,10 @@ begin
       else
         sXMLNode := '<source type="unknown">"%s"</source>';
       end;
-      
+
       List.Add(Format(sXMLNode,[QuoteXml(APackage.Sources[i].Name)]));
     end;
-    
+
     List.Add('</sources>');
   finally
     L.Free;

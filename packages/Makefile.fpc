@@ -3,13 +3,13 @@
 #
 
 [target]
-dirs=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra
-dirs_freebsd=fcl-web
-dirs_darwin=fcl-web
-dirs_solaris=fcl-web
-dirs_netbsd=fcl-web
-dirs_openbsd=fcl-web
-dirs_linux=fcl-web
+dirs=base hash paszlib fpmkunit fcl-base fcl-process fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra
+dirs_freebsd=fcl-web fcl-async
+dirs_darwin=fcl-web fcl-async
+dirs_solaris=fcl-web fcl-async
+dirs_netbsd=fcl-web fcl-async
+dirs_openbsd=fcl-web fcl-async
+dirs_linux=fcl-web fcl-async
 dirs_win32=fcl-web
 dirs_win64=fcl-web
 dirs_wince=fcl-web
@@ -22,11 +22,11 @@ fpcsubdir=packages
 fpcdir=..
 
 [rules]
-fpmkunit_all: fcl-base_all
-fpmkunit_debug: fcl-base_debug
-fpmkunit_smart: fcl-base_smart
-fpmkunit_release: fcl-base_release
-fpmkunit_shared: fcl-base_shared
+fpmkunit_all: fcl-base_all fcl-process_all paszlib_all
+fpmkunit_debug: fcl-base_debug fcl-process_debug paszlib_debug
+fpmkunit_smart: fcl-base_smart fcl-process_smart paszlib_smart
+fpmkunit_release: fcl-base_release fcl-process_release paszlib_release
+fpmkunit_shared: fcl-base_shared fcl-process_shared paszlib_shared
 
 extra_all: base_all fcl-xml_all
 extra_debug: base_debug fcl-xml_debug
@@ -70,11 +70,11 @@ fcl-registry_smart: fcl-xml_smart
 fcl-registry_release: fcl-xml_release
 fcl-registry_shared: fcl-xml_shared
 
-fcl-net_all: fcl-passrc_all fcl-xml_all
-fcl-net_debug: fcl-passrc_debug fcl-xml_debug
-fcl-net_smart: fcl-passrc_smart fcl-xml_smart
-fcl-net_release: fcl-passrc_release fcl-xml_release
-fcl-net_shared: fcl-passrc_shared fcl-xml_shared
+fcl-net_all: fcl-passrc_all fcl-xml_all fcl-async_all
+fcl-net_debug: fcl-passrc_debug fcl-xml_debug fcl-async_debug
+fcl-net_smart: fcl-passrc_smart fcl-xml_smart fcl-async_smart
+fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
+fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
 
 fcl-web_all: fcl-db_all fcl-xml_all
 fcl-web_debug: fcl-db_debug fcl-xml_debug

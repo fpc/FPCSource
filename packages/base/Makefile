@@ -237,7 +237,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd libc
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd libc
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint
@@ -249,16 +249,16 @@ ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres odbc sqlite pthreads imagemagick
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres odbc sqlite pthreads imagemagick
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=pasjpeg regexpr netdb  libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -267,13 +267,13 @@ ifeq ($(FULL_TARGET),i386-netware)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=pasjpeg regexpr netdb  libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -294,13 +294,13 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -309,7 +309,7 @@ ifeq ($(FULL_TARGET),m68k-atari)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -318,10 +318,10 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -330,7 +330,7 @@ ifeq ($(FULL_TARGET),powerpc-macos)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=pasjpeg regexpr netdb  libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -339,22 +339,22 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=pasjpeg regexpr netdb  libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=pasjpeg regexpr netdb  mysql ibase odbc sqlite postgres oracle winunits
@@ -363,7 +363,7 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -384,10 +384,10 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=pasjpeg regexpr netdb  libasync mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pasjpeg regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_DIRS+=pasjpeg regexpr netdb
@@ -1476,7 +1476,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1520,7 +1519,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1536,7 +1534,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1550,7 +1547,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1563,7 +1559,6 @@ ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1589,7 +1584,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1607,7 +1601,6 @@ ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1656,7 +1649,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1673,7 +1665,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1689,7 +1680,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1713,7 +1703,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1737,7 +1726,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1754,7 +1742,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1777,7 +1764,6 @@ ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1803,7 +1789,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1820,7 +1805,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1833,7 +1817,6 @@ ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1854,7 +1837,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1871,7 +1853,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1904,7 +1885,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1954,7 +1934,6 @@ TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1970,7 +1949,6 @@ ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -2165,51 +2143,6 @@ gdbint_makefiles:
 gdbint:
 	$(MAKE) -C gdbint all
 .PHONY: gdbint_all gdbint_debug gdbint_smart gdbint_release gdbint_units gdbint_examples gdbint_shared gdbint_install gdbint_sourceinstall gdbint_exampleinstall gdbint_distinstall gdbint_zipinstall gdbint_zipsourceinstall gdbint_zipexampleinstall gdbint_zipdistinstall gdbint_clean gdbint_distclean gdbint_cleanall gdbint_info gdbint_makefiles gdbint
-endif
-ifdef TARGET_DIRS_LIBASYNC
-libasync_all:
-	$(MAKE) -C libasync all
-libasync_debug:
-	$(MAKE) -C libasync debug
-libasync_smart:
-	$(MAKE) -C libasync smart
-libasync_release:
-	$(MAKE) -C libasync release
-libasync_units:
-	$(MAKE) -C libasync units
-libasync_examples:
-	$(MAKE) -C libasync examples
-libasync_shared:
-	$(MAKE) -C libasync shared
-libasync_install:
-	$(MAKE) -C libasync install
-libasync_sourceinstall:
-	$(MAKE) -C libasync sourceinstall
-libasync_exampleinstall:
-	$(MAKE) -C libasync exampleinstall
-libasync_distinstall:
-	$(MAKE) -C libasync distinstall
-libasync_zipinstall:
-	$(MAKE) -C libasync zipinstall
-libasync_zipsourceinstall:
-	$(MAKE) -C libasync zipsourceinstall
-libasync_zipexampleinstall:
-	$(MAKE) -C libasync zipexampleinstall
-libasync_zipdistinstall:
-	$(MAKE) -C libasync zipdistinstall
-libasync_clean:
-	$(MAKE) -C libasync clean
-libasync_distclean:
-	$(MAKE) -C libasync distclean
-libasync_cleanall:
-	$(MAKE) -C libasync cleanall
-libasync_info:
-	$(MAKE) -C libasync info
-libasync_makefiles:
-	$(MAKE) -C libasync makefiles
-libasync:
-	$(MAKE) -C libasync all
-.PHONY: libasync_all libasync_debug libasync_smart libasync_release libasync_units libasync_examples libasync_shared libasync_install libasync_sourceinstall libasync_exampleinstall libasync_distinstall libasync_zipinstall libasync_zipsourceinstall libasync_zipexampleinstall libasync_zipdistinstall libasync_clean libasync_distclean libasync_cleanall libasync_info libasync_makefiles libasync
 endif
 ifdef TARGET_DIRS_MYSQL
 mysql_all:

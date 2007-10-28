@@ -236,788 +236,476 @@ ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override PACKAGE_NAME=fcl-base
+override PACKAGE_NAME=fcl-async
 override PACKAGE_VERSION=2.0.0
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  fileinfo syncobjs daemonapp ServiceManager fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  fileinfo syncobjs fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  fileinfo syncobjs daemonapp ServiceManager fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  fileinfo syncobjs fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll  syncobjs daemonapp fptimer
+override TARGET_UNITS+=libasync fpasync
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
+override TARGET_UNITS+=libasync fpasync
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_OPTIONS+=-S2h
+override COMPILER_INCLUDEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/win
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/os2
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/win
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/win
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/win
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc  src/unix
+override COMPILER_SOURCEDIR+=src  src/unix
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_SOURCEDIR+=src/$(OS_TARGET) src/inc
+override COMPILER_SOURCEDIR+=src
 endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1775,7 +1463,6 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_WINUNITS=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
@@ -1890,7 +1577,6 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_WINUNITS=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -1949,32 +1635,6 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef REQUIRE_PACKAGES_WINUNITS
-PACKAGEDIR_WINUNITS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /winunits/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_WINUNITS),)
-ifneq ($(wildcard $(PACKAGEDIR_WINUNITS)/units/$(TARGETSUFFIX)),)
-UNITDIR_WINUNITS=$(PACKAGEDIR_WINUNITS)/units/$(TARGETSUFFIX)
-else
-UNITDIR_WINUNITS=$(PACKAGEDIR_WINUNITS)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_WINUNITS)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_WINUNITS) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_WINUNITS)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_WINUNITS=
-UNITDIR_WINUNITS:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /winunits/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_WINUNITS),)
-UNITDIR_WINUNITS:=$(firstword $(UNITDIR_WINUNITS))
-else
-UNITDIR_WINUNITS=
-endif
-endif
-ifdef UNITDIR_WINUNITS
-override COMPILER_UNITDIR+=$(UNITDIR_WINUNITS)
 endif
 endif
 ifndef NOCPUDEF

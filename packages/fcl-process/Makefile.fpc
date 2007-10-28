@@ -1,0 +1,37 @@
+#
+#   Makefile.fpc for Free Component Library
+#
+
+[package]
+name=fcl-process
+version=2.0.0
+
+[target]
+units=pipes process simpleipc dbugmsg dbugintf
+rsts=process
+
+[compiler]
+options=-S2h
+includedir=src/$(OS_TARGET) src
+includedir_linux=src/unix
+includedir_freebsd=src/unix
+includedir_darwin=src/unix
+includedir_netbsd=src/unix
+includedir_openbsd=src/unix
+includedir_solaris=src/unix
+includedir_qnx=src/unix
+includedir_beos=src/unix
+includedir_emx=src/os2
+includedir_win32=src/win
+includedir_win64=src/win
+includedir_wince=src/win
+sourcedir=src/$(OS_TARGET) src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
