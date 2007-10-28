@@ -1262,8 +1262,9 @@ const
 
   mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
 
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
     { these locals are so we don't have to hack pic code in the assembler }
     localmxcsr: dword;
@@ -1271,7 +1272,6 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     localfpucw:=Default8087CW;
     asm
-      fninit
       fldcw   localfpucw
       fwait
     end;
@@ -1283,8 +1283,18 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
           ldmxcsr localmxcsr
         end;
       end;
-    softfloat_exception_flags:=0;
     softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+  end;
+
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    asm
+      fnclex
+      fwait
+    end;
+    softfloat_exception_flags:=0;
   end;
 
 
@@ -1307,6 +1317,8 @@ procedure fpc_cpucodeinit;
     has_sse_support:=os_supports_sse;
     has_mmx_support:=mmx_support;
     SysResetFPU;
+    if not(IsLibrary) then
+      SysInitFPU;
 {$ifdef USE_FASTMOVE}
     setup_fastmove;
 {$endif}

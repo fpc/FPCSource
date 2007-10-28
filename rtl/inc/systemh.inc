@@ -795,6 +795,7 @@ Procedure SysInitExceptions;
 procedure SysInitStdIO;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {*****************************************************************************
                          Abstract/Assert/Error Handling

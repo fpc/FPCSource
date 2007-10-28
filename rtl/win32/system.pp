@@ -379,7 +379,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         xorl %eax,%eax
         movw %ss,%ax
         movl %eax,_SS
-        call SysResetFPU
         xorl %ebp,%ebp
         call PASCALMAIN
         popl %ebp
@@ -1110,6 +1109,11 @@ begin
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
+  
+  SysResetFPU;  
+  if not(IsLibrary) then
+    SysInitFPU;
+  
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then

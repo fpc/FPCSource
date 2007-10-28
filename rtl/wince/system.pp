@@ -1789,7 +1789,9 @@ begin
 end;
 
 initialization
-  SysResetFPU;
+  SysResetFPU;    
+  if not(IsLibrary) then
+    SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
   { some misc stuff }

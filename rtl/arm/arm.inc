@@ -21,9 +21,10 @@ const
   cpu_has_edsp : boolean = false;
   in_edsp_test : boolean = false;
 
-procedure fpc_cpuinit;
-begin
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   asm
     rfs r0
@@ -31,7 +32,12 @@ begin
     orr r0,r0,#0x00070000
     wfs r0
   end;
+end;
 {$endif}
+
+procedure fpc_cpuinit;
+begin
+  SysInitFPU;
 end;
 
 {$ifdef wince}
@@ -41,6 +47,11 @@ function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   softfloat_exception_flags:=0;
+end;
+
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
   softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   { FPU precision 64 bit, rounding to nearest, affine infinity }

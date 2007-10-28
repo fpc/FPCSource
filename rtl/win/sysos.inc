@@ -192,6 +192,9 @@ threadvar
    function GetCommandLine : pchar;
      stdcall;external KernelDLL name 'GetCommandLineA';
 
+   function GetCommandLineW : pwidechar;
+     stdcall;external KernelDLL name 'GetCommandLineW';
+
   function GetCurrentProcessId:DWORD;
     stdcall; external KernelDLL name 'GetCurrentProcessId';
 
