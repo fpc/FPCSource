@@ -406,7 +406,11 @@ begin
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : begin
                              Result := ftBCD;
-                             size := PQfmod(res,Tuple)-4;
+                             size := PQfmod(res,Tuple);
+                             if size = -1 then
+                               size := 4
+                             else
+                               size := size -4;
                              end;
     Oid_Money              : Result := ftCurrency;
     Oid_Unknown            : Result := ftUnknown;
