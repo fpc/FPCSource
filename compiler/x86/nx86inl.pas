@@ -283,7 +283,7 @@ implementation
        begin
 {$ifdef x86_64}
          if use_sse(left.resultdef) and
-           not((location.left=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3) then
+           not((left.location.loc=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3)) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
