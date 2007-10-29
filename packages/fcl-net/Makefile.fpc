@@ -29,7 +29,20 @@ packages=netdb fcl-base fcl-xml fcl-passrc fcl-async
 
 [compiler]
 options=-S2h
-sourcedir=src
+includedir=src/$(OS_TARGET)
+includedir_linux=src/unix
+includedir_freebsd=src/unix
+includedir_darwin=src/unix
+includedir_netbsd=src/unix
+includedir_openbsd=src/unix
+includedir_solaris=src/unix
+includedir_qnx=src/unix
+includedir_beos=src/unix
+includedir_emx=src/os2
+includedir_win32=src/win
+includedir_win64=src/win
+includedir_wince=src/win
+sourcedir=src/$(OS_TARGET) src
 
 [install]
 fpcpackage=y
