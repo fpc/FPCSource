@@ -110,7 +110,11 @@ ifndef FPC
 FPCPROG:=$(strip $(wildcard $(addsuffix /fpc$(SRCEXEEXT),$(SEARCHPATH))))
 ifneq ($(FPCPROG),)
 FPCPROG:=$(firstword $(FPCPROG))
+ifneq ($(CPU_TARGET),)
 FPC:=$(shell $(FPCPROG) -P$(CPU_TARGET) -PB)
+else
+FPC:=$(shell $(FPCPROG) -PB)
+endif
 ifneq ($(findstring Error,$(FPC)),)
 override FPC=$(firstword $(strip $(wildcard $(addsuffix /ppc386$(SRCEXEEXT),$(SEARCHPATH)))))
 endif
