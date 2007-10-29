@@ -83,7 +83,17 @@ unit i_beos;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 8192;
+            { Stack size used to be 256 K under BeOS. So, it was the value 
+              used in previous version of FPC for BeOS (but lost in the road 
+              to 2.* ;-).
+              According to buildtools/gcc/gcc/config/i386/beos-elf.h in the 
+              Haiku's repository, this value was increased to 1Mb since r4.1b3.
+              Under R5, this value is even greater. listarea report a default 
+              size of 16 Mb for the user stack of the main thread.
+              People who still use BeOS nowadays should use R5 (or Haiku), 
+              so i use this new value.  
+            }
+            stacksize    : 16 * 1024 * 1024;
             abi : abi_default
           );
 

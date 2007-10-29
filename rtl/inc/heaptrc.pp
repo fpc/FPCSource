@@ -908,6 +908,16 @@ var
    ebss : ptruint; external name '__bss_end__';
 {$endif}
 
+{$ifdef BEOS}
+const
+  B_ERROR = -1;
+
+type
+  area_id   = Longint;
+
+function area_for(addr : Pointer) : area_id;
+            cdecl; external 'root' name 'area_for'; 
+{$endif BEOS}
 
 procedure CheckPointer(p : pointer); [public, alias : 'FPC_CHECKPOINTER'];
 var
@@ -1001,6 +1011,13 @@ begin
   {$warning No checkpointer support yet for Darwin}
   exit;
   {$endif}
+
+{$ifdef BEOS}
+  // if we find the address in a known area in our current process, 
+  // then it is a valid one
+  if area_for(p) <> B_ERROR then
+    goto _exit;  
+{$endif BEOS}
 
   { first try valid list faster }
 

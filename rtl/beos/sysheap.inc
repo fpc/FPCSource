@@ -18,21 +18,19 @@ function sbrk2 (size : longint):pointer; cdecl; external name 'sbrk';
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
+{  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);}
   result := sbrk2(size);
-{  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
   if result=pointer(-1) then
     result:=nil
   else
     seterrno(0);
-}
 end;
 
-{$define HAS_SYSOSFREE}
+{ $ define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-//  fpmunmap(p, size);
-//  WriteLn('TODO : SysOSFree');
+  //  fpmunmap(p, size);
 end;
 
 
@@ -50,4 +48,5 @@ end;
      * win32 thread in systemunit
 
 }
+
 
