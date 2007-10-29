@@ -16,7 +16,7 @@ options=-S2h
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 
 [rules]
