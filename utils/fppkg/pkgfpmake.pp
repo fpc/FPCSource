@@ -56,6 +56,44 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
+   TMyMemoryStream=class(TMemoryStream)
+   public
+     constructor Create(p:pointer;mysize:integer);
+   end;
+
+{$i fpmkunitsrc.inc}
+
+procedure CreateFPMKUnitSource(const AFileName:string);
+var
+  InStream,
+  OutStream : TStream;
+  pend      : pchar;
+begin
+  try
+    // Don't write trailing #0
+    pend:=pchar(@fpmkunitsrc)+sizeof(fpmkunitsrc)-1;
+    while pend^=#0 do
+      dec(pend);
+    InStream:=TMyMemoryStream.Create(@fpmkunitsrc,pend-pchar(@fpmkunitsrc));
+    OutStream:=TFileStream.Create(AFileName,fmCreate);
+    OutStream.CopyFrom(InStream,InStream.Size);
+  finally
+    InStream.Destroy;
+    OutStream.Destroy;
+  end;
+end;
+
+
+{*****************************************************************************
+                               TMyMemoryStream
+*****************************************************************************}
+
+    constructor TMyMemoryStream.Create(p:pointer;mysize:integer);
+      begin
+        inherited Create;
+        SetPointer(p,mysize);
+      end;
+
 
 { TFPMakeCompiler }
 
@@ -63,12 +101,12 @@ Procedure TFPMakeCompiler.CompileFPMake;
 const
   TempBuildDir = 'build-fpmake';
 Var
-  i : Integer;
   OOptions,
-  BaseDir,
   DepDir,
+  DepDir2,
   FPMakeBin,
   FPMakeSrc : string;
+  NeedFPMKUnitSource,
   DoBootStrap,
   HaveFpmake : boolean;
 begin
@@ -91,6 +129,7 @@ begin
         Error(SErrMissingFPMake);
       // Special bootstrapping mode to compile fpmake?
       DoBootStrap:=False;
+      NeedFPMKUnitSource:=False;
       if Options.BootStrap then
         begin
 {$ifdef check_bootstrap_names}
@@ -115,33 +154,67 @@ begin
         OOptions:=OOptions+' -g'
       else
         OOptions:=OOptions+' -O2 -XXs';
-      // Find required units directories
-      if DoBootStrap then
-        BaseDir:='../'
+      // Check overall unit dir, this must exist at least for RTL
+      if not DirectoryExists(Options.FPMakeUnitDir) then
+        Error(SErrMissingDirectory,[Options.FPMakeUnitDir]);
+      // Add FPMKUnit unit dir, if not found we use the internal fpmkunit source
+      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'fpmkunit');
+      if DirectoryExists(DepDir) then
+        OOptions:=OOptions+' -Fu'+DepDir
       else
-        BaseDir:=Options.FPMakeUnitDir;
-      if not DirectoryExists(BaseDir) then
-        Error(SErrMissingDirectory,[BaseDir]);
-      for i:=high(FPMKUnitDeps) downto low(FPMKUnitDeps) do
         begin
-          // RTL is always take from the installed compiler
-          if FPMKUnitDeps[i]='rtl' then
-            DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+FPMKUnitDeps[i])
-          else
+          if DoBootStrap then
             begin
-              if DoBootStrap then
-                DepDir:=IncludeTrailingPathDelimiter(BaseDir+FPMKUnitDeps[i]+PathDelim+'src')
-              else
-                DepDir:=IncludeTrailingPathDelimiter(BaseDir+FPMKUnitDeps[i]);
-            end;
-          if not DirectoryExists(DepDir) then
+              NeedFPMKUnitSource:=true;
+              OOptions:=OOptions+' -Fu'+TempBuildDir;
+            end
+          else
             Error(SErrMissingDirectory,[DepDir]);
-          OOptions:=OOptions+' -Fu'+DepDir;
         end;
+      // Add PaszLib and Hash units dir
+      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'hash');
+      if not DirectoryExists(DepDir) then
+        begin
+          if DoBootStrap then
+            DepDir:=''
+          else
+            Error(SErrMissingDirectory,[DepDir]);
+        end;
+      DepDir2:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'paszlib');
+      if not FileExists(DepDir2+'zipper.ppu') then
+        begin
+          if DoBootStrap then
+            DepDir2:=''
+          else
+            Error(SErrMissingDirectory,[DepDir2]);
+        end;
+      if (DepDir<>'') and (DepDir2<>'') then
+        OOptions:=OOptions+' -Fu'+DepDir+' -Fu'+DepDir2
+      else
+        OOptions:=OOptions+' -dNO_UNIT_ZIPPER';
+      // Add Process unit
+      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'fcl-process');
+      if DirectoryExists(DepDir) then
+        OOptions:=OOptions+' -Fu'+DepDir
+      else
+        begin
+          if DoBootStrap then
+            OOptions:=OOptions+' -dNO_UNIT_PROCESS'
+          else
+            Error(SErrMissingDirectory,[DepDir]);
+        end;
+      // Add RTL unit dir
+      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'rtl');
+      if not DirectoryExists(DepDir) then
+        Error(SErrMissingDirectory,[DepDir]);
+      OOptions:=OOptions+' -Fu'+DepDir;
       // Units in a directory for easy cleaning
       DeleteDir(TempBuildDir);
       ForceDirectories(TempBuildDir);
       OOptions:=OOptions+' -FU'+TempBuildDir;
+      // Create fpmkunit.pp if needed
+      if NeedFPMKUnitSource then
+        CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
       // Call compiler
       If ExecuteProcess(Options.FPMakeCompiler,OOptions+' '+FPmakeSrc)<>0 then
         Error(SErrFailedToCompileFPCMake);

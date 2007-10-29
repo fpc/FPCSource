@@ -37,6 +37,7 @@ fpcdir=../..
 
 [require]
 packages=fcl-base fcl-xml fcl-process paszlib libcurl
+tools=data2inc
 
 [prerules]
 # Compatibility to compile with 2.0.x
@@ -49,3 +50,9 @@ endif
 
 [rules]
 .NOTPARALLEL:
+ifneq ($(DATA2INC),)
+fpmkunitsrc.inc: $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp
+        $(DATA2INC) -b -s $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp fpmkunitsrc.inc fpmkunitsrc
+endif
+
+fppkg$(EXEEXT): $(wildcard pkg*.pp) fpmkunitsrc.inc

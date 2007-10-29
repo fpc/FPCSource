@@ -3564,6 +3564,15 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
+ifndef DATA2INC
+DATA2INC:=$(strip $(wildcard $(addsuffix /data2inc$(SRCEXEEXT),$(SEARCHPATH))))
+ifeq ($(DATA2INC),)
+DATA2INC= __missing_command_DATA2INC
+else
+DATA2INC:=$(firstword $(DATA2INC))
+endif
+endif
+export DATA2INC
 all: fpc_all
 debug: fpc_debug
 smart: fpc_smart
@@ -3589,3 +3598,8 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
+ifneq ($(DATA2INC),)
+fpmkunitsrc.inc: $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp
+	$(DATA2INC) -b -s $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp fpmkunitsrc.inc fpmkunitsrc
+endif
+fppkg$(EXEEXT): $(wildcard pkg*.pp) fpmkunitsrc.inc

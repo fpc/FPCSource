@@ -18,7 +18,7 @@ Const
 {$endif unix}
 
   // Dependencies for compiling the fpmkunit unit
-  FPMKUnitDeps : array[0..3] of string[8] = ('rtl','hash','paszlib','fpmkunit');
+  FPMKUnitDeps : array[0..4] of string[11] = ('rtl','hash','paszlib','fcl-process','fpmkunit');
 
 Type
   TVerbosity = (vError,vWarning,vInfo,vCommands,vDebug);
