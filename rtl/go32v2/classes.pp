@@ -26,6 +26,9 @@ uses
   typinfo,
   rtlconsts,
   types,
+{$ifdef FPC_TESTGENERICS}
+  fgl,
+{$endif}
   sysutils;
 
 {$i classesh.inc}

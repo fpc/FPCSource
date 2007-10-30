@@ -25,6 +25,9 @@ interface
 uses
   sysutils,
   types,
+{$ifdef FPC_TESTGENERICS}
+  fgl,
+{$endif}
   typinfo,
   rtlconsts;
 

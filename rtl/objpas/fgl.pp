@@ -80,15 +80,22 @@ type
 
 {$ifndef VER2_0}
 
+const
+  MaxGListSize = MaxInt div 1024;
+
+type
   generic TFPGList<T> = class(TFPSList)
   type public
     TCompareFunc = function(const Item1, Item2: T): Integer;
+    TTypeList = array[0..MaxGListSize] of T;
+    PTypeList = ^TTypeList;
     PT = ^T;
   var protected
     FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
@@ -104,6 +111,7 @@ type
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
+    property List: PTypeList read GetList;
   end;
 
 {$endif}
@@ -207,6 +215,9 @@ end;
 destructor TFPSList.Destroy;
 begin
   Clear;
+  // Clear() does not clear the whole list; there is always a single temp entry
+  // at the end which is never freed. Take care of that one here.
+  FreeMem(FList);
   inherited Destroy;
 end;
 
@@ -307,7 +318,6 @@ begin
   begin
     SetCount(0);
     SetCapacity(0);
-    FList := nil;
   end;
 end;
 
@@ -559,6 +569,11 @@ begin
   Result := T(inherited Get(Index)^);
 end;
 
+function TFPGList.GetList: PTypeList;
+begin
+  Result := PTypeList(FList);
+end;
+
 function TFPGList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
 begin
   Result := FOnCompare(T(Item1^), T(Item2^));
@@ -670,10 +685,11 @@ function TFPSMap.GetKeyData(AKey: Pointer): Pointer;
 var
   I: Integer;
 begin
-  if Find(AKey, I) then
+  I := IndexOf(AKey);
+  if I >= 0 then
     Result := InternalItems[I]+FKeySize
   else
-    Result := nil;
+    Error(SMapKeyError, PtrInt(AKey));
 end;
 
 procedure TFPSMap.InitOnPtrCompare;
@@ -697,7 +713,8 @@ procedure TFPSMap.PutKeyData(AKey: Pointer; NewData: Pointer);
 var
   I: Integer;
 begin
-  if Find(AKey, I) then
+  I := IndexOf(AKey);
+  if I >= 0 then
     Data[I] := NewData
   else
     Add(AKey, NewData);
@@ -721,7 +738,7 @@ begin
       end;
   end else
     Result := Count;
-  CopyKey(AKey, Insert(Result));
+  CopyKey(AKey, inherited Insert(Result));
 end;
 
 function TFPSMap.Add(AKey, AData: Pointer): Integer;
@@ -826,10 +843,9 @@ end;
 
 function TFPSMap.Remove(AKey: Pointer): Integer;
 begin
-  if Find(AKey, Result) then
-    Delete(Result)
-  else
-    Result := -1;
+  Result := IndexOf(AKey);
+  if Result >= 0 then
+    Delete(Result);
 end;
 
 procedure TFPSMap.Sort;

@@ -179,6 +179,7 @@ ResourceString
   SListCountError               = 'List count (%d) out of bounds.';
   SListIndexError               = 'List index (%d) out of bounds';
   SListItemSizeError            = 'Incompatible item size in source list';
+  SMapKeyError                  = 'Map key (address $%x) does not exist';
   SMaskEditErr                  = 'Invalid mask input value.  Use escape key to abandon changes';
   SMaskErr                      = 'Invalid mask input value';
   SMDIChildNotVisible           = 'A MDI-Child Window can not be hidden.';
