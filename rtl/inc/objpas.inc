@@ -86,7 +86,7 @@
          if assigned(S) then
            begin
              if IUnknown(S).QueryInterface(iid,tmp)<>S_OK then
-               handleerror(219);  
+               handleerror(219);
              if assigned(D) then
                IUnknown(D)._Release;
              D:=tmp;
@@ -184,7 +184,7 @@
             end;
         end;
 
-      class function TObject.InitInstance(instance : pointer) : tobject;
+      class function TObject.InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$ENDIF}
 
         begin
            { the size is saved at offset 0 }
@@ -748,7 +748,7 @@
          if NewInstance<>nil then
            TInterfacedObject(NewInstance).frefcount:=1;
       end;
-      
+
 {****************************************************************************
                                TAGGREGATEDOBJECT
 ****************************************************************************}
@@ -778,13 +778,13 @@
 
       begin
          Result := IUnknown(fcontroller)._Release;
-      end;    
-  
+      end;
+
     function TAggregatedObject.GetController : IUnknown;
 
       begin
          Result := IUnknown(fcontroller);
-      end;    
+      end;
 
 
 {****************************************************************************

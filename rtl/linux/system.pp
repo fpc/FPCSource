@@ -19,7 +19,7 @@
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
-{$ifdef i386}
+{$ifdef CPUI386}
 {$DEFINE ELFRES32}
 {$endif}
 
@@ -52,7 +52,7 @@ property cmdline:Pchar read get_cmdline;
                                  implementation
 {*****************************************************************************}
 
-{$if defined(i386) and not defined(FPC_USE_LIBC)}
+{$if defined(CPUI386) and not defined(FPC_USE_LIBC)}
 var
   sysenter_supported: LongInt = 0;
 {$endif}

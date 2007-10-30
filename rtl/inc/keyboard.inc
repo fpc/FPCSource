@@ -293,3 +293,34 @@ begin
 end;
 
 
+const
+  PrevCtrlBreakHandler: TCtrlBreakHandler = nil;
+
+function KbdCtrlBreakHandler (CtrlBreak: boolean): boolean;
+begin
+(* Earlier registered handlers (user specific) have priority. *)
+  if Assigned (PrevCtrlBreakHandler) then
+    if PrevCtrlBreakHandler (CtrlBreak) then
+      begin
+        KbdCtrlBreakHandler := true;
+        Exit;
+      end;
+(* If Ctrl-Break was pressed, either ignore it or allow default processing. *)
+  if CtrlBreak then
+    KbdCtrlBreakHandler := false
+  else (* Ctrl-C pressed or not possible to distinguish *)
+    begin
+      PutKeyEvent ((kbCtrl shl 16) or 3);
+      KbdCtrlBreakHandler := true;
+    end;
+end;
+
+
+procedure SetKbdCtrlBreakHandler;
+begin
+  PrevCtrlBreakHandler := SysSetCtrlBreakHandler (@KbdCtrlBreakHandler);
+  if PrevCtrlBreakHandler = TCtrlBreakHandler (pointer (-1)) then
+    PrevCtrlBreakHandler := nil;
+end;
+
+

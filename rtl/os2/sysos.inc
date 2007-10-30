@@ -15,6 +15,42 @@
 
  **********************************************************************}
 
+type
+  TByteArray = array [0..$FFFF] of byte;
+  PByteArray = ^TByteArray;
+
+  TSysThreadIB = record
+    TID,
+    Priority,
+    Version: cardinal;
+    MCCount,
+    MCForceFlag: word;
+  end;
+  PSysThreadIB = ^TSysThreadIB;
+
+  TThreadInfoBlock = record
+    PExChain,
+    Stack,
+    StackLimit: pointer;
+    TIB2: PSysThreadIB;
+    Version,
+    Ordinal: cardinal;
+  end;
+  PThreadInfoBlock = ^TThreadInfoBlock;
+  PPThreadInfoBlock = ^PThreadInfoBlock;
+
+  TProcessInfoBlock = record
+    PID,
+    ParentPid,
+    Handle: cardinal;
+    Cmd,
+    Env: PByteArray;
+    Status,
+    ProcType: cardinal;
+  end;
+  PProcessInfoBlock = ^TProcessInfoBlock;
+  PPProcessInfoBlock = ^PProcessInfoBlock;
+
 var
   ProcessID: SizeUInt;
 
@@ -194,166 +230,189 @@ const
    end;
 
 
-{$IFDEF OS2EXCEPTIONS}
-(*
-The operating system defines a class of error conditions called exceptions, and specifies the default actions that are taken when these exceptions occur. The system default action in most cases is to terminate the thread that caused the exception.
+(* Types and constants for exception handler support *)
+const
+  deHardErr           = 1;    {Pop-ups for hard errors are enabled, to disable
+                               do not give this switch.}
+  deDisableExceptions = 2;    {Pop-ups for exceptions are disabled, to enable
+                               do not give this switch.}
+  MaxExceptionParameters = 4; {Enough for all system exceptions.}
 
-Exception values have the following 32-bit format:
+  Xcpt_Continue_Search            = $00000000;
+  Xcpt_Continue_Execution         = $ffffffff;
+  Xcpt_Continue_Stop              = $00716668;
 
- 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
- 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-ÚÄÄÄÂÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³Sev³C³       Facility          ³               Code            ³
-ÀÄÄÄÁÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  Xcpt_Signal_Intr                = 1;
+  Xcpt_Signal_KillProc            = 3;
+  Xcpt_Signal_Break               = 4;
 
+  Xcpt_Fatal_Exception            = $c0000000;
+  Xcpt_Severity_Code              = $c0000000;
+  Xcpt_Customer_Code              = $20000000;
+  Xcpt_Facility_Code              = $1fff0000;
+  Xcpt_Exception_Code             = $0000ffff;
 
-Sev Severity code. Possible values are described in the following list:
+  Xcpt_Unknown_Access             = $00000000;
+  Xcpt_Read_Access                = $00000001;
+  Xcpt_Write_Access               = $00000002;
+  Xcpt_Execute_Access             = $00000004;
+  Xcpt_Space_Access               = $00000008;
+  Xcpt_Limit_Access               = $00000010;
+  Xcpt_Data_Unknown               = $ffffffff;
 
-00 Success
-01 Informational
-10 Warning
-11 Error
+  Xcpt_Guard_Page_Violation       = $80000001;
+  Xcpt_Unable_To_Grow_Stack       = $80010001;
+  Xcpt_Access_Violation           = $c0000005;
+  Xcpt_In_Page_Error              = $c0000006;
+  Xcpt_Illegal_Instruction        = $c000001c;
+  Xcpt_Invalid_Lock_Sequence      = $c000001d;
+  Xcpt_Noncontinuable_Exception   = $c0000024;
+  Xcpt_Invalid_Disposition        = $c0000025;
+  Xcpt_Unwind                     = $c0000026;
+  Xcpt_Bad_Stack                  = $c0000027;
+  Xcpt_Invalid_Unwind_Target      = $c0000028;
+  Xcpt_Array_Bounds_Exceeded      = $c0000093;
+  Xcpt_Float_Denormal_Operand     = $c0000094;
+  Xcpt_Float_Divide_By_Zero       = $c0000095;
+  Xcpt_Float_Inexact_Result       = $c0000096;
+  Xcpt_Float_Invalid_Operation    = $c0000097;
+  Xcpt_Float_Overflow             = $c0000098;
+  Xcpt_Float_Stack_Check          = $c0000099;
+  Xcpt_Float_Underflow            = $c000009a;
+  Xcpt_Integer_Divide_By_Zero     = $c000009b;
+  Xcpt_Integer_Overflow           = $c000009c;
+  Xcpt_Privileged_Instruction     = $c000009d;
+  Xcpt_Datatype_Misalignment      = $c000009e;
+  Xcpt_Breakpoint                 = $c000009f;
+  Xcpt_Single_Step                = $c00000a0;
+  Xcpt_Process_Terminate          = $c0010001;
+  Xcpt_Async_Process_Terminate    = $c0010002;
+  Xcpt_Signal                     = $c0010003;
 
-C Customer code flag.
+  Context_Control        = $00000001; { SS:ESP, CS:EIP, EFLAGS and EBP set }
+  Context_Integer        = $00000002; { EAX, EBX, ECX, EDX, ESI and EDI set }
+  Context_Segments       = $00000004; { DS, ES, FS, and GS set }
+  Context_Floating_Point = $00000008; { numeric coprocessor state set }
+  Context_Full           = Context_Control or
+                           Context_Integer or
+                           Context_Segments or
+                           Context_Floating_Point;
 
-Facility Facility code.
+type
+  PExceptionRegistrationRecord = ^TExceptionRegistrationRecord;
+  PExceptionReportRecord = ^TExceptionReportRecord;
+  PContextRecord = ^TContextRecord;
 
-Code Facility's status code.
+  TExceptionHandler = function (Report: PExceptionReportRecord;
+                                RegRec: PExceptionRegistrationRecord;
+                                Context: PContextRecord;
+                                DispContext: pointer): cardinal; cdecl;
 
-Exceptions that are specific to OS/2 Version 2.X (for example, XCPT_SIGNAL)
-have a facility code of 1.
+  TExceptionRegistrationRecord = record
+    Prev_Structure: PExceptionRegistrationRecord;
+    ExceptionHandler: TExceptionHandler;
+  end;
 
-System exceptions include both synchronous and asynchronous exceptions.
-Synchronous exceptions are caused by events that are internal to a thread's
-execution. For example, synchronous exceptions could be caused by invalid
-parameters, or by a thread's request to end its own execution.
+  TExceptionReportRecord = record
+    Exception_Num,
+    HandlerFlags: cardinal;
+    Nested_RepRec: PExceptionReportRecord;
+    Address: pointer;
+    ParamCount: cardinal;
+    Parameters: array [0..MaxExceptionParameters] of cardinal;
+  end;
 
-Asynchronous exceptions are caused by events that are external to a thread's
-execution. For example, an asynchronous exception can be caused by a user's
-entering a Ctrl+C or Ctrl+Break key sequence, or by a process' issuing
-DosKillProcess to end the execution of another process.
-
-The Ctrl+Break and Ctrl+C exceptions are also known as signals, or as signal
-exceptions.
-
-The following tables show the symbolic names of system exceptions, their
-numerical values, and related information fields.
-
-Portable, Non-Fatal, Software-Generated Exceptions
-
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
-³Exception Name                       ³Value     ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_GUARD_PAGE_VIOLATION            ³0x80000001³
-³  ExceptionInfo[0] - R/W flag        ³          ³
-³  ExceptionInfo[1] - FaultAddr       ³          ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_UNABLE_TO_GROW_STACK            ³0x80010001³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
-
-
-Portable, Fatal, Hardware-Generated Exceptions
-
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³Exception Name                       ³Value     ³Related Trap ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_ACCESS_VIOLATION                ³0xC0000005³0x09, 0x0B,  ³
-³  ExceptionInfo[0] - Flags           ³          ³0x0C, 0x0D,  ³
-³    XCPT_UNKNOWN_ACCESS  0x0         ³          ³0x0E         ³
-³    XCPT_READ_ACCESS     0x1         ³          ³             ³
-³    XCPT_WRITE_ACCESS    0x2         ³          ³             ³
-³    XCPT_EXECUTE_ACCESS  0x4         ³          ³             ³
-³    XCPT_SPACE_ACCESS    0x8         ³          ³             ³
-³    XCPT_LIMIT_ACCESS    0x10        ³          ³             ³
-³  ExceptionInfo[1] - FaultAddr       ³          ³             ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_INTEGER_DIVIDE_BY_ZERO          ³0xC000009B³0            ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_FLOAT_DIVIDE_BY_ZERO            ³0xC0000095³0x10         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_FLOAT_INVALID_OPERATION         ³0xC0000097³0x10         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_ILLEGAL_INSTRUCTION             ³0xC000001C³0x06         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_PRIVILEGED_INSTRUCTION          ³0xC000009D³0x0D         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_INTEGER_OVERFLOW                ³0xC000009C³0x04         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_FLOAT_OVERFLOW                  ³0xC0000098³0x10         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_FLOAT_UNDERFLOW                 ³0xC000009A³0x10         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_FLOAT_DENORMAL_OPERAND          ³0xC0000094³0x10         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_FLOAT_INEXACT_RESULT            ³0xC0000096³0x10         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_FLOAT_STACK_CHECK               ³0xC0000099³0x10         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_DATATYPE_MISALIGNMENT           ³0xC000009E³0x11         ³
-³  ExceptionInfo[0] - R/W flag        ³          ³             ³
-³  ExceptionInfo[1] - Alignment       ³          ³             ³
-³  ExceptionInfo[2] - FaultAddr       ³          ³             ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_BREAKPOINT                      ³0xC000009F³0x03         ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_SINGLE_STEP                     ³0xC00000A0³0x01         ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-
-
-Portable, Fatal, Software-Generated Exceptions
-
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³Exception Name                       ³Value     ³Related Trap ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_IN_PAGE_ERROR                   ³0xC0000006³0x0E         ³
-³  ExceptionInfo[0] - FaultAddr       ³          ³             ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_PROCESS_TERMINATE               ³0xC0010001³             ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_ASYNC_PROCESS_TERMINATE         ³0xC0010002³             ³
-³  ExceptionInfo[0] - TID of          ³          ³             ³
-³      terminating thread             ³          ³             ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_NONCONTINUABLE_EXCEPTION        ³0xC0000024³             ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_INVALID_DISPOSITION             ³0xC0000025³             ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  TContextRecord = packed record
+    ContextFlags: cardinal;
+    Env: array [1..7] of cardinal;
+    FPUStack: array [0..7] of extended;
+    Reg_GS,
+    Reg_FS,
+    Reg_ES,
+    Reg_DS,
+    Reg_EDI,
+    Reg_ESI,
+    Reg_EAX,
+    Reg_EBX,
+    Reg_ECX,
+    Reg_EDX,
+    Reg_EBP,
+    Reg_EIP,
+    Reg_CS,
+    Flags,
+    Reg_ESP,
+    Reg_SS: cardinal;
+  end;
 
 
-Non-Portable, Fatal Exceptions
+function DosSetExceptionHandler (var RegRec: TExceptionRegistrationRecord):
+                                                               cardinal; cdecl;
+external 'DOSCALLS' index 354;
 
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³Exception Name                       ³Value     ³Related Trap ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_INVALID_LOCK_SEQUENCE           ³0xC000001D³             ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_ARRAY_BOUNDS_EXCEEDED           ³0xC0000093³0x05         ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+function DosUnsetExceptionHandler (var RegRec: TExceptionRegistrationRecord):
+                                                               cardinal; cdecl;
+external 'DOSCALLS' index 355;
 
+{Full screen applications can get Ctrl-C and Ctrl-Break focus. For all
+ processes sharing one screen, only one can have Ctrl-C focus.
+ Enable     = 0 = Release focus, 1 = Get focus.
+ Times      = Number of times focus has been get minus number of times it
+              has been released.}
+function DosSetSignalExceptionFocus (Enable: cardinal;
+                                         var Times: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 378;
 
-Unwind Operation Exceptions
+{Tell we want further signal exceptions.
+ SignalNum  = Signal number to acknowlegde.}
+function DosAcknowledgeSignalException (SignalNum: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 418;
 
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
-³Exception Name                       ³Value     ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_UNWIND                          ³0xC0000026³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_BAD_STACK                       ³0xC0000027³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_INVALID_UNWIND_TARGET           ³0xC0000028³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
-
-
-Fatal Signal Exceptions
-
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
-³Exception Name                       ³Value     ³
-ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
-³XCPT_SIGNAL                          ³0xC0010003³
-³  ExceptionInfo[ 0 ] - Signal        ³          ³
-³      Number                         ³          ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
-*)
-{$ENDIF OS2EXCEPTIONS}
+function DosError (Error: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 212;
 
 
+type
+  TWinMessageBox = function (Parent, Owner: cardinal;
+         BoxText, BoxTitle: PChar; Identity, Style: cardinal): cardinal; cdecl;
+  TWinInitialize = function (Options: cardinal): cardinal; cdecl;
+  TWinCreateMsgQueue = function (Handle: cardinal; cmsg: longint): cardinal;
+                                                                         cdecl;
+
+const
+  ErrorBufferLength = 1024;
+  mb_OK = $0000;
+  mb_Error = $0040;
+  mb_Moveable = $4000;
+  MBStyle = mb_OK or mb_Error or mb_Moveable;
+
+  mfPag_Read      = $00001;   {Give read access to memory.}
+  mfPag_Write     = $00002;   {Give write access to memory.}
+  mfPag_Execute   = $00004;   {Allow code execution in memory.}
+  mfPag_Guard     = $00008;   {Used for dynamic memory growing. Create
+                               uncommitted memory and make the first
+                               page guarded. Once it is accessed it
+                               will be made committed, and the next
+                               uncommitted page will be made guarded.}
+  mfPag_Commit    = $00010;   {Make the memory committed.}
+  mfPag_Decommit  = $00020;   {Decommit the page.}
+  mfObj_Tile      = $00040;   {Also allocate 16-bit segments of 64k
+                               which map the memory. (Makes 16<>32 bit
+                               pointer conversion possible.}
+  mfObj_Protected = $00080;
+  mfObj_Gettable  = $00100;
+  mfObj_Giveable  = $00200;
+  mfObj_Any       = $00400;   {Allow using high memory (> 512 MB).}
+  mfPag_Default   = $00400;
+  mfPag_Shared    = $02000;
+  mfPag_Free      = $04000;
+  mfPag_Base      = $10000;
+
+  mfSub_Init      = $00001;   {Use base, if not set, choose a base
+                               address yourself.}
+  mfSub_Grow      = $00002;   {Grow the specified heap, instead of
+                               allocating it. Ignore mfSub_Init.}
+  mfSub_Sparse    = $00004;
+  mfSub_Serialize = $00008;
+
+function DosQueryMem (P: pointer; var Size, Flag: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 306;

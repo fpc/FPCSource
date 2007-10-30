@@ -118,6 +118,8 @@ Type
     pUid     = ^uid_t;
     TGid     = gid_t;
     pGid     = ^gid_t;
+    
+    TIOCtlRequest = cInt;
 
 
     socklen_t= cuint32;

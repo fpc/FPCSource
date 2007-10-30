@@ -670,7 +670,7 @@ var
 begin
   OldConsoleOutputCP:=GetConsoleOutputCP;
   SetConsoleOutputCP(GetACP);
-    
+
   GetScreenCursor(CurrX, CurrY);
   s:='';
   for i:=0 to f.bufpos-1 do
@@ -688,7 +688,7 @@ begin
   if s<>'' then
     WriteStr(s);
   SetScreenCursor(CurrX, CurrY);
-  
+
   SetConsoleOutputCP(OldConsoleOutputCP);
 
   f.bufpos:=0;
@@ -710,11 +710,11 @@ Function CrtRead(Var F: TextRec): Integer;
 
 var
   ch : Char;
-  OldConsoleOutputCP : Word;  
+  OldConsoleOutputCP : Word;
 Begin
   OldConsoleOutputCP:=GetConsoleOutputCP;
   SetConsoleOutputCP(GetACP);
-    
+
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;
   f.bufend:=0;
@@ -791,7 +791,7 @@ Begin
       end;
       end;
   until false;
-  
+
   SetConsoleOutputCP(OldConsoleOutputCP);
 	
   f.bufpos:=0;
@@ -877,4 +877,3 @@ begin
   Reset(Input);
   TextRec(Input).Handle:= GetStdHandle(STD_INPUT_HANDLE);
 end. { unit Crt }
-

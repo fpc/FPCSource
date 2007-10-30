@@ -72,8 +72,9 @@ Var
 
 begin
   Result := S;
+  if not assigned(pointer(result)) then exit;
   UniqueString(Result);
-  P:=Pchar(Result);
+  P:=Pchar(pointer(Result));
   for i := 1 to Length(Result) do
     begin
     if (P^ in ['a'..'z']) then P^ := char(byte(p^) - 32);
@@ -92,8 +93,9 @@ Var
 
 begin
   Result := S;
+  if not assigned(pointer(result)) then exit;
   UniqueString(Result);
-  P:=Pchar(Result);
+  P:=Pchar(pointer(Result));
   for i := 1 to Length(Result) do
     begin
     if (P^ in ['A'..'Z']) then P^ := char(byte(p^) + 32);
@@ -418,7 +420,7 @@ function AnsiLastChar(const S: string): PChar;
 
 begin
   //!! No multibyte yet, so we return the last one.
-  result:=StrEnd(Pchar(S));
+  result:=StrEnd(Pchar(pointer(S)));  // strend checks for nil
   Dec(Result);
 end ;
 
@@ -970,8 +972,8 @@ end;
 
 Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
 
-Begin
-  If Not TextToFloat(Pchar(S),Result,FormatSettings) then
+Begin // texttofloat handles NIL properly
+  If Not TextToFloat(Pchar(pointer(S)),Result,FormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 End;
 
@@ -984,7 +986,7 @@ end;
 Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
 
 begin
-   if not TextToFloat(PChar(S),Result,fvExtended,FormatSettings) then
+   if not TextToFloat(PChar(pointer(S)),Result,fvExtended,FormatSettings) then
      Result:=Default;
 end;
 
@@ -1068,7 +1070,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Var Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(S), Value, fvSingle,FormatSettings);
+  Result := TextToFloat(PChar(pointer(S)), Value, fvSingle,FormatSettings);
 End;
 
 Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
@@ -1079,7 +1081,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Var Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(S), Value, fvDouble,FormatSettings);
+  Result := TextToFloat(PChar(pointer(S)), Value, fvDouble,FormatSettings);
 End;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -1091,7 +1093,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(S), Value,FormatSettings);
+  Result := TextToFloat(PChar(pointer(S)), Value,FormatSettings);
 End;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -1617,7 +1619,7 @@ function AnsiDequotedStr(const S: string; AQuote: Char): string;
 var p : pchar;
 
 begin
-  p:=pchar(s); // work around CONST
+  p:=pchar(pointer(s)); // work around CONST. Ansiextract is safe for nil
   result:=AnsiExtractquotedStr(p,AQuote);
   if result='' Then
     result:=s;
@@ -1625,20 +1627,20 @@ end;
 
 function StrToCurr(const S: string): Currency;
 begin
-  if not TextToFloat(PChar(S), Result, fvCurrency) then
+  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 end;
 
 
 Function TryStrToCurr(Const S : String; Var Value: Currency): Boolean;
 Begin
-  Result := TextToFloat(PChar(S), Value, fvCurrency);
+  Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency);
 End;
 
 
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 begin
-  if not TextToFloat(PChar(S), Result, fvCurrency) then
+  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
     Result:=Default;
 end;
 
@@ -2318,7 +2320,7 @@ Function FormatFloat(Const Format : String; Value : Extended; Const FormatSettin
 Var
   buf : Array[0..1024] of char;
 
-Begin
+Begin // not changed to pchar(pointer(). Possibly not safe
   Buf[FloatToTextFmt(@Buf[0],Value,Pchar(Format),FormatSettings)]:=#0;
   Result:=StrPas(@Buf[0]);
 End;

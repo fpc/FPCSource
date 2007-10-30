@@ -60,6 +60,21 @@ var
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
+{*****************************************************************************
+                       OS dependent Helpers/Syscalls
+*****************************************************************************}
+
+{ for some OSes do_isdevice is defined in sysos.inc, but for others (win32)
+  it isn't, and is used before the actual definition is encountered         }
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+function do_isdevice(handle:thandle):boolean;forward;
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+
+{$i sysos.inc}
+
+
 {****************************************************************************
                     Include processor specific routines
 ****************************************************************************}
@@ -142,17 +157,36 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
 
-{$ifndef INTERNALMOVEFILLCHAR}
+
 procedure fillchar(var x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;
 
+
 procedure fillchar(var x;count : SizeInt;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;
-{$endif INTERNALMOVEFILLCHAR}
+
+
+procedure FillByte (var x;count : SizeInt;value : byte ); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  FillChar (X,Count,VALUE);
+end;
+
+
+function IndexChar(Const buf;len:SizeInt;b:char):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  IndexChar:=IndexByte(Buf,Len,byte(B));
+end;
+
+
+function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  CompareChar:=CompareByte(buf1,buf2,len);
+end;
+
 
 { Include generic pascal only routines which are not defined in the processor
   specific include file }
@@ -573,20 +607,25 @@ end;
 procedure fpc_iocheck;[public,alias:'FPC_IOCHECK']; compilerproc;
 var
   l : longint;
+  HInoutRes : PWord;
 begin
-  if InOutRes<>0 then
+  HInOutRes:=@InoutRes;
+  if HInOutRes^<>0 then
    begin
-     l:=InOutRes;
-     InOutRes:=0;
+     l:=HInOutRes^;
+     HInOutRes^:=0;
      HandleErrorFrame(l,get_frame);
    end;
 end;
 
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  HInoutRes : PWord;
 Begin
-  IOResult:=InOutRes;
-  InOutRes:=0;
+  HInoutRes:=@InoutRes;
+  IOResult:=HInOutRes^;
+  HInOutRes^:=0;
 End;
 
 
@@ -874,11 +913,6 @@ begin
 end;
 
 
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-function do_isdevice(handle:thandle):boolean;forward;
-{$endif FPC_HAS_FEATURE_FILEIO}
-
-
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure dump_stack(var f : text;bp : Pointer);
 var
@@ -1128,13 +1162,6 @@ end;
 
 
 {*****************************************************************************
-                       OS dependent Helpers/Syscalls
-*****************************************************************************}
-
-{$i sysos.inc}
-
-
-{*****************************************************************************
                                Heap
 *****************************************************************************}
 
@@ -1204,3 +1231,18 @@ Function FindResource(ModuleHandle: HMODULE; ResourceName, ResourceType: AnsiStr
 begin
   Result:=FindResource(ModuleHandle,PChar(ResourceName),PChar(ResourceType));
 end;
+
+const
+  CtrlBreakHandler: TCtrlBreakHandler = nil;
+
+{$IFNDEF FPC_HAS_SETCTRLBREAKHANDLER}
+(* It is possible to provide platform specific implementation performing   *)
+(* special initialization; default implementation just sets the procedural *)
+(* variable to make it available for use from the exception handler.       *)
+function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
+begin
+  (* Return either nil or previous handler *)
+  SysSetCtrlBreakHandler := CtrlBreakHandler;
+  CtrlBreakHandler := Handler;
+end;
+{$ENDIF FPC_HAS_SETCTRLBREAKHANDLER}

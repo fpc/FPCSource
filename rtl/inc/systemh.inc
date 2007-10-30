@@ -316,6 +316,11 @@ type
   TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
   PPCharArray = ^TPCharArray;
 
+(* CtrlBreak set to true signalizes Ctrl-Break signal, otherwise Ctrl-C. *)
+(* Return value of true means that the signal has been processed, false  *)
+(* means that default handling should be used. *)
+  TCtrlBreakHandler = function (CtrlBreak: boolean): boolean;
+
 const
 {$ifdef cpui386}
   { Always i386 or newer }
@@ -401,30 +406,23 @@ ThreadVar
 ****************************************************************************}
 
 {$ifdef FPC_USE_LIBC}
-{$ifdef SYSTEMINLINE}
-{$define INLINEGENERICS}
-{$endif}
+  {$ifdef SYSTEMINLINE}
+    {$define INLINEGENERICS}
+  {$endif}
 {$endif}
 
-{$ifdef INTERNALMOVEFILLCHAR}
-Procedure SysMoveForward(const source;var dest;count:SizeInt);
-Procedure SysMoveBackward(const source;var dest;count:SizeInt);
-Procedure SysFillChar(var x;count:SizeInt;Value:Byte);
-procedure FillByte(var x;count:SizeInt;value:byte);[INTERNPROC: fpc_in_fillchar_x];
-{$else INTERNALMOVEFILLCHAR}
 Procedure Move(const source;var dest;count:SizeInt);{$ifdef INLINEGENERICS}inline;{$endif}
+Procedure FillChar(var x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
 Procedure FillChar(var x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure FillChar(var x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(var x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
-procedure FillByte(var x;count:SizeInt;value:byte);{$ifdef INLINEGENERICS}inline;{$endif}
-{$endif INTERNALMOVEFILLCHAR}
+procedure FillByte(var x;count:SizeInt;value:byte);{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
-function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
+function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 function  Indexword(const buf;len:SizeInt;b:word):SizeInt;
 function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
-function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
+function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
@@ -437,12 +435,6 @@ procedure ReadDependencyBarrier;{$ifdef INLINEGENERICS}inline;{$endif}
 procedure ReadWriteBarrier;{$ifdef INLINEGENERICS}inline;{$endif}
 procedure WriteBarrier;{$ifdef INLINEGENERICS}inline;{$endif}
 
-{$ifdef INTERNALMOVEFILLCHAR}
-var
-  fpc_moveforward_proc : pointer = @SysMoveForward public name 'FPC_MOVEFORWARD_PROC';
-  fpc_movebackward_proc : pointer = @SysMoveBackward public name 'FPC_MOVEBACKWARD_PROC';
-  fpc_fillchar_proc : pointer = @SysFillChar public name 'FPC_FILLCHAR_PROC';
-{$endif INTERNALMOVEFILLCHAR}
 
 {****************************************************************************
                           Math Routines
@@ -820,6 +812,10 @@ Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
 Function  SysBackTraceStr(Addr:Pointer): ShortString;
 Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
+(* Supposed to return address of previous CtrlBreakHandler *)
+(* (may be nil), returned value of pointer (-1) means that *)
+(* attempt to setup CtrlBreakHandler wasn't successful.    *)
+function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
 
 { Error handlers }
 Type

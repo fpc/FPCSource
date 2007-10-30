@@ -154,7 +154,7 @@
           procedure DefaultHandler(var message);virtual;
 
           procedure Free;
-          class function InitInstance(instance : pointer) : tobject;
+          class function InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$endif}
           procedure CleanupInstance;
           class function ClassType : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function ClassInfo : pointer;

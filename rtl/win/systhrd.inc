@@ -86,8 +86,6 @@ CONST
       end;
 
 
-
-
     procedure SysAllocateThreadVars;
       var
         dataindex : pointer;

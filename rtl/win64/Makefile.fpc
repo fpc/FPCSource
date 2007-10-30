@@ -15,7 +15,7 @@ implicitunits=ctypes strings \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils \
       varutils variants typinfo fgl classes getopts \
-      convutils stdconvs sockets printer charset ucomplex fmtbcd \
+      stdconvs sockets printer charset ucomplex fmtbcd \
       winevent video mouse keyboard \
       sharemem
 #      fpcmemdll

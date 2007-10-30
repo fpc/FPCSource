@@ -78,7 +78,7 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
            begin
              LastHandlermouseEvent:=e;
 
-             { what till there is again space in the mouse event queue }
+             { wait till there is again space in the mouse event queue }
              while PendingMouseEvents>=MouseEventBufSize do
                begin
                  LeaveCriticalSection(ChangeMouseEvents);
@@ -200,6 +200,7 @@ end;
 
 procedure SysPutMouseEvent(const MouseEvent: TMouseEvent);
 begin
+  EnterCriticalSection(ChangeMouseEvents);
   if PendingMouseEvents<MouseEventBufSize then
    begin
      PendingMouseTail^:=MouseEvent;
@@ -210,6 +211,7 @@ begin
         so the win32 version do this by hand:}
        inc(PendingMouseEvents);
    end;
+  LeaveCriticalSection(ChangeMouseEvents);
 end;
 
 

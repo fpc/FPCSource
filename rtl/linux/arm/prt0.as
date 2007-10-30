@@ -72,8 +72,7 @@ _start:
 	.globl  _haltproc
     .type   _haltproc,#function
 _haltproc:
-	ldr r0,=operatingsystem_result
-	ldrb r0,[r0]
+        /* r0 contains exitcode */
 	swi 0x900001
 	b _haltproc
 

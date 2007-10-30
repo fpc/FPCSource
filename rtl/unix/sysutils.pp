@@ -186,7 +186,7 @@ BEGIN
     1 : LinuxFlags:=LinuxFlags or O_WrOnly;
     2 : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
-  FileOpen:=fpOpen (FileName,LinuxFlags);
+  FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
   //!! We need to set locking based on Mode !!
 end;
 
@@ -194,14 +194,14 @@ end;
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=fpOpen(FileName,O_RdWr or O_Creat or O_Trunc);
+  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc);
 end;
 
 
 Function FileCreate (Const FileName : String;Mode : Longint) : Longint;
 
 BEGIN
-  FileCreate:=fpOpen(FileName,O_RdWr or O_Creat or O_Trunc,Mode);
+  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Mode);
 end;
 
 
@@ -264,7 +264,7 @@ Function FileAge (Const FileName : String): Longint;
 Var Info : Stat;
 
 begin
-  If  fpstat (FileName,Info)<0 then
+  If  fpstat (pointer(FileName),Info)<0 then
     exit(-1)
   else
     Result:=UnixToWinAge(info.st_mtime);
@@ -276,7 +276,7 @@ Function FileExists (Const FileName : String) : Boolean;
 begin
   // Don't use stat. It fails on files >2 GB.
   // Access obeys the same access rules, so the result should be the same.
-  FileExists:=fpAccess(filename,F_OK)=0;
+  FileExists:=fpAccess(pointer(filename),F_OK)=0;
 end;
 
 
@@ -285,7 +285,7 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var Info : Stat;
 
 begin
-  DirectoryExists:=(fpstat(Directory,Info)>=0) and fpS_ISDIR(Info.st_mode);
+  DirectoryExists:=(fpstat(pointer(Directory),Info)>=0) and fpS_ISDIR(Info.st_mode);
 end;
 
 
@@ -423,9 +423,9 @@ var
   WinAttr : longint;
 begin
   FindGetFileInfo:=false;
-  if not fpstat(s,st)>=0 then
+  if not fpstat(pointer(s),st)>=0 then
    exit;
-  WinAttr:=LinuxToWinAttr(PChar(s),st);
+  WinAttr:=LinuxToWinAttr(PChar(pointer(s)),st);
   If (f.FindHandle = nil) or ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
    Begin
      f.Name:=ExtractFileName(s);
@@ -464,7 +464,7 @@ Begin
         DirName:='./'
       Else
         DirName:=Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
-      UnixFindData^.DirPtr := fpopendir(Pchar(DirName));
+      UnixFindData^.DirPtr := fpopendir(Pchar(pointer(DirName)));
     end;
   SName:=Copy(UnixFindData^.SearchSpec,UnixFindData^.NamePos+1,Length(UnixFindData^.SearchSpec));
   Found:=False;
@@ -554,7 +554,7 @@ Function FileGetAttr (Const FileName : String) : Longint;
 Var Info : Stat;
 
 begin
-  If  FpStat (FileName,Info)<0 then
+  If  FpStat (pointer(FileName),Info)<0 then
     Result:=-1
   Else
     Result:=LinuxToWinAttr(Pchar(ExtractFileName(FileName)),Info);
@@ -571,20 +571,20 @@ end;
 Function DeleteFile (Const FileName : String) : Boolean;
 
 begin
-  Result:=fpUnLink (FileName)>=0;
+  Result:=fpUnLink (pointer(FileName))>=0;
 end;
 
 
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 
 begin
-  RenameFile:=BaseUnix.FpRename(OldNAme,NewName)>=0;
+  RenameFile:=BaseUnix.FpRename(pointer(OldNAme),pointer(NewName))>=0;
 end;
 
 Function FileIsReadOnly(const FileName: String): Boolean;
 
 begin
-  Result := fpAccess(PChar(FileName),W_OK)<>0;
+  Result := fpAccess(PChar(pointer(FileName)),W_OK)<>0;
 end;
 
 Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
@@ -596,7 +596,7 @@ begin
   Result := 0;
   t.actime := Age;
   t.modtime := Age;
-  if fputime(PChar(FileName), @t) = -1 then
+  if fputime(PChar(pointer(FileName)), @t) = -1 then
     Result := fpgeterrno;
 end;
 
@@ -830,7 +830,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(BaseUnix.FPGetenv(PChar(EnvVar)));
+  Result:=StrPas(BaseUnix.FPGetenv(PChar(pointer(EnvVar))));
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -868,7 +868,7 @@ Begin
          string }
        UniqueString(CommandLine);
        cmdline2:=StringtoPPChar(CommandLine,1);
-       cmdline2^:=pchar(Path);
+       cmdline2^:=pchar(pointer(Path));
      end
    else
      begin
@@ -893,7 +893,7 @@ Begin
    begin
    {The child does the actual exec, and then exits}
     {$ifdef FPC_USE_FPEXEC}
-      fpexecv(pchar(Path),Cmdline2);
+      fpexecv(pchar(pointer(Path)),Cmdline2);
     {$else}
       Execl(CommandLine);
     {$endif}

@@ -424,7 +424,9 @@ begin
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
    begin
-     pp^.calls[i]:=get_caller_addr(bp);
+     { valid bp? }
+     if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+       pp^.calls[i]:=get_caller_addr(bp);
      oldbp:=bp;
      bp:=get_caller_frame(bp);
      if (bp<oldbp) or (bp>(StackBottom + StackLength)) then

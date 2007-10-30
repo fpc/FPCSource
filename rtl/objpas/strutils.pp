@@ -165,6 +165,8 @@ function Hex2Dec(const S: string): Longint;
 function Dec2Numb(N: Longint; Len, Base: Byte): string;
 function Numb2Dec(S: string; Base: Byte): Longint;
 function IntToBin(Value: Longint; Digits, Spaces: Integer): string;
+function IntToBin(Value: Longint; Digits: Integer): string;
+function intToBin(Value: int64; Digits:integer): string;
 function IntToRoman(Value: Longint): string;
 function RomanToInt(const S: string): Longint;
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
@@ -192,14 +194,37 @@ function TrimSet(const S: String;const CSet:TSysCharSet): String;
 implementation
 
 { ---------------------------------------------------------------------
-    Auxiliary functions
+   Possibly Exception raising functions
   ---------------------------------------------------------------------}
+
 
 Procedure NotYetImplemented (FN : String);
 
 begin
   Raise Exception.CreateFmt('Function "%s" (strutils) is not yet implemented',[FN]);
 end;
+
+function Hex2Dec(const S: string): Longint;
+var
+  HexStr: string;
+begin
+  if Pos('$',S)=0 then
+    HexStr:='$'+ S
+  else
+    HexStr:=S;
+  Result:=StrToInt(HexStr);
+end;
+
+{
+  We turn off implicit exceptions, since these routines are tested, and it 
+  saves 20% codesize (and some speed) and don't throw exceptions, except maybe 
+  heap related. If they don't, that is consider a bug.
+
+  In the future, be wary with routines that use strtoint, floating point 
+  and/or format() derivatives. And check every divisor for 0.
+}
+
+{$IMPLICITEXCEPTIONS OFF}
 
 { ---------------------------------------------------------------------
     Case insensitive search/replace
@@ -350,16 +375,21 @@ end;
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 
 var i,j : SizeUInt;
+    k   : SizeInt;
 
 begin
   j:=length(ASubText);
   i:=length(AText);
+  if AStart>i then 
+    aStart:=i+1;
+  k:=i-AStart+1;
+  if ALength> k then
+    ALength:=k;
   SetLength(Result,i+j-ALength);
   move (AText[1],result[1],AStart-1);
   move (ASubText[1],result[AStart],j);
   move (AText[AStart+ALength], Result[AStart+j],i+1-AStart-ALength);
 end;
-
 
 Function RandomFrom(const AValues: array of string): string; overload;
 
@@ -611,7 +641,7 @@ begin
   if i=nil then
     PosEx:=0
   else
-    PosEx:=succ(i-pchar(s));
+    PosEx:=succ(i-pchar(pointer(s)));
 end;
 
 
@@ -758,9 +788,9 @@ Var
 begin
   S:=SoundEx(Atext,4);
   Result:=Ord(S[1])-OrdA;
-  Result:=Result*26+StrToInt(S[2]);
-  Result:=Result*7+StrToInt(S[3]);
-  Result:=Result*7+StrToInt(S[4]);
+  Result:=Result*26+ord(S[2])-48;
+  Result:=Result*7+ord(S[3])-48;
+  Result:=Result*7+ord(S[4])-48;
 end;
 
 
@@ -994,7 +1024,7 @@ var
 
 begin
   Result:=AnsiLowerCase(S);
-  P:=PChar(Result);
+  P:=PChar(pointer(Result));
   PE:=P+Length(Result);
   while (P<PE) do
     begin
@@ -1014,7 +1044,7 @@ var
 
 begin
   Result:=0;
-  P:=Pchar(S);
+  P:=Pchar(pointer(S));
   PE:=P+Length(S);
   while (P<PE) do
     begin
@@ -1036,7 +1066,7 @@ var
 begin
   Result:=0;
   Count:=0;
-  PS:=PChar(S);
+  PS:=PChar(pointer(S));
   PE:=PS+Length(S);
   P:=PS;
   while (P<PE) and (Count<>N) do
@@ -1168,16 +1198,6 @@ begin
     Result:=S;
 end;
 
-function Hex2Dec(const S: string): Longint;
-var
-  HexStr: string;
-begin
-  if Pos('$',S)=0 then
-    HexStr:='$'+ S
-  else
-    HexStr:=S;
-  Result:=StrToInt(HexStr);
-end;
 
 function Dec2Numb(N: Longint; Len, Base: Byte): string;
 
@@ -1298,18 +1318,79 @@ begin
 end;
 
 function intToBin(Value: Longint; Digits, Spaces: Integer): string;
+var endpos : integer;
+    p,p2:pchar;
+    k: integer;
 begin
   Result:='';
   if (Digits>32) then
     Digits:=32;
-  while (Digits>0) do
+  if (spaces=0) then
+   begin
+     result:=inttobin(value,digits);
+     exit;
+   end;
+  endpos:=digits+ (digits-1) div spaces;
+  setlength(result,endpos);
+  p:=@result[endpos];
+  p2:=@result[1];
+  k:=spaces;
+  while (p>=p2) do
     begin
-    if (Digits mod Spaces)=0 then
-      Result:=Result+' ';
-    Dec(Digits);
-    Result:=Result+intToStr((Value shr Digits) and 1);
-    end;
+      if k=0 then
+       begin
+         p^:=' ';
+         dec(p);
+         k:=spaces;
+       end;
+      p^:=chr(48+(cardinal(value) and 1));
+      value:=cardinal(value) shr 1;
+      dec(p); 
+      dec(k);
+   end;
 end;
+
+function intToBin(Value: Longint; Digits:integer): string;
+var p,p2 : pchar;
+begin
+  result:='';
+  if digits<=0 then exit;
+  setlength(result,digits);
+  p:=pchar(pointer(@result[digits]));
+  p2:=pchar(pointer(@result[1]));
+  // typecasts because we want to keep intto* delphi compat and take an integer
+  while (p>=p2) and (cardinal(value)>0) do     
+    begin
+       p^:=chr(48+(cardinal(value) and 1));
+       value:=cardinal(value) shr 1;
+       dec(p); 
+    end;
+  digits:=p-p2+1;
+  if digits>0 then
+    fillchar(result[1],digits,#48);
+end;
+
+function intToBin(Value: int64; Digits:integer): string;
+var p,p2 : pchar;
+begin
+  result:='';
+  if digits<=0 then exit;
+  setlength(result,digits);
+  p:=pchar(pointer(@result[digits]));
+  p2:=pchar(pointer(@result[1]));
+  // typecasts because we want to keep intto* delphi compat and take a signed val
+  // and avoid warnings
+  while (p>=p2) and (qword(value)>0) do     
+    begin
+       p^:=chr(48+(cardinal(value) and 1));
+       value:=qword(value) shr 1;
+       dec(p); 
+    end;
+  digits:=p-p2+1;
+  if digits>0 then
+    fillchar(result[1],digits,#48);
+end;
+
 
 function FindPart(const HelpWilds, inputStr: string): Integer;
 var
@@ -1644,7 +1725,7 @@ function possetex (const c:TSysCharSet;const s : ansistring;count:Integer ):Inte
 var i,j:Integer;
 
 begin
- if pchar(s)=nil then
+ if pchar(pointer(s))=nil then
   j:=0
  else
   begin

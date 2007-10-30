@@ -31,6 +31,7 @@ type
     gid_t    = cuint32;         { used for group IDs           }
     TGid     = gid_t;
     pGid     = ^gid_t;
+    TIOCtlRequest = cuLong;
 
     {$ifdef CPU64}
      ino_t    = cuint32;           { used for file serial numbers }

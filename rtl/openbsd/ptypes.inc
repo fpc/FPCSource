@@ -31,6 +31,7 @@ type
     gid_t    = cuint32;         { used for group IDs           }
     TGid     = gid_t;
     pGid     = ^gid_t;
+    TIOCtlRequest = cuLong;
 
     ino_t    = clong;           { used for file serial numbers }
     TIno     = ino_t;

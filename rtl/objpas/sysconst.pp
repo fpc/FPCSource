@@ -43,7 +43,7 @@ resourcestring
   SErrInvalidTimeStamp   = 'Invalid date/timestamp : "%s"';
   SExceptionErrorMessage = 'exception at %p';
   SExceptionStack        = 'Exception stack error';
-  SExecuteProcessFailed  = 'Failed to execute %s : %d';
+  SExecuteProcessFailed  = 'Failed to execute "%s", error code: %d';
   SExternalException     = 'External exception %x';
   SFileNotAssigned       = 'File not assigned';
   SFileNotFound          = 'File not found';
@@ -113,6 +113,12 @@ resourcestring
   SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
+
+  SNoArrayMatch                 = 'Can''t match any allowed value at pattern position %d, string position %d.';
+  SNoCharMatch                  = 'Mismatch char "%s" <> "%s" at pattern position %d, string position %d.';
+  SHHMMError                    = 'mm in a sequence hh:mm is interpreted as minutes. No longer versions allowed! (Position : %d).' ;
+  SFullpattern                  = 'Couldn''t match entire pattern string. Input too short at pattern position %d.';
+  SPatternCharMismatch          = 'Pattern mismatch char "%s" at position %d.';
 
   SShortMonthNameJan = 'Jan';
   SShortMonthNameFeb = 'Feb';

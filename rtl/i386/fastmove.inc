@@ -831,7 +831,6 @@ const
    fastmoveproc_forward : pointer = @Forwards_IA32_3;
    fastmoveproc_backward : pointer = @Backwards_IA32_3;
 
-{$ifndef INTERNALMOVEFILLCHAR}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 asm
   cmp     ecx,SMALLMOVESIZE
@@ -862,7 +861,6 @@ asm
   jmp     dword ptr fastmoveproc_backward {Source/Dest Overlap}
 @Done:
 end;
-{$endif INTERNALMOVEFILLCHAR}
 
 {$asmmode att}
 {$ifdef FPC_HAS_VALGRINDBOOL}

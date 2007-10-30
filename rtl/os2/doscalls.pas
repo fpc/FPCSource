@@ -2338,56 +2338,66 @@ function DosSetProcessCP (CP: cardinal): cardinal; cdecl;
 
 
 {Exception constants.}
-const       XCPT_Continue_Search            = $00000000;
-            XCPT_Continue_Execution         = $ffffffff;
-            XCPT_Continue_Stop              = $00716668;
+const
+  Xcpt_Continue_Search            = $00000000;
+  Xcpt_Continue_Execution         = $ffffffff;
+  Xcpt_Continue_Stop              = $00716668;
 
-            XCPT_Signal_Intr                = $1;
-            XCPT_Signal_KillProc            = $3;
-            XCPT_Signal_Break               = $4;
+  Xcpt_Signal_Intr                = $1;
+  Xcpt_Signal_KillProc            = $3;
+  Xcpt_Signal_Break               = $4;
 
-            XCPT_Fatal_Exception            = $c0000000;
-            XCPT_Severity_Code              = $c0000000;
-            XCPT_Customer_Code              = $20000000;
-            XCPT_Facility_Code              = $1fff0000;
-            XCPT_Exception_Code             = $0000ffff;
+  Xcpt_Fatal_Exception            = $c0000000;
+  Xcpt_Severity_Code              = $c0000000;
+  Xcpt_Customer_Code              = $20000000;
+  Xcpt_Facility_Code              = $1fff0000;
+  Xcpt_Exception_Code             = $0000ffff;
 
-            XCPT_Unknown_Access             = $00000000;
-            XCPT_Read_Access                = $00000001;
-            XCPT_Write_Access               = $00000002;
-            XCPT_Execute_Access             = $00000004;
-            XCPT_Space_Access               = $00000008;
-            XCPT_Limit_Access               = $00000010;
-            XCPT_Data_Unknown               = $ffffffff;
+  Xcpt_Unknown_Access             = $00000000;
+  Xcpt_Read_Access                = $00000001;
+  Xcpt_Write_Access               = $00000002;
+  Xcpt_Execute_Access             = $00000004;
+  Xcpt_Space_Access               = $00000008;
+  Xcpt_Limit_Access               = $00000010;
+  Xcpt_Data_Unknown               = $ffffffff;
 
-            XCPT_Guard_Page_Violation       = $80000001;
-            XCPT_Unable_To_Grow_Stack       = $80010001;
-            XCPT_Access_Violation           = $c0000005;
-            XCPT_In_Page_Error              = $c0000006;
-            XCPT_Illegal_Instruction        = $c000001c;
-            XCPT_Invalid_Lock_Sequence      = $c000001d;
-            XCPT_Noncontinuable_Exception   = $c0000024;
-            XCPT_Invalid_Disposition        = $c0000025;
-            XCPT_Unwind                     = $c0000026;
-            XCPT_Bad_Stack                  = $c0000027;
-            XCPT_Invalid_Unwind_Target      = $c0000028;
-            XCPT_Array_Bounds_Exceeded      = $c0000093;
-            XCPT_Float_Denormal_Operand     = $c0000094;
-            XCPT_Float_Divide_By_Zero       = $c0000095;
-            XCPT_Float_Inexact_Result       = $c0000096;
-            XCPT_Float_Invalid_Operation    = $c0000097;
-            XCPT_Float_Overflow             = $c0000098;
-            XCPT_Float_Stack_Check          = $c0000099;
-            XCPT_Float_Underflow            = $c000009a;
-            XCPT_Integer_Divide_By_Zero     = $c000009b;
-            XCPT_Integer_Overflow           = $c000009c;
-            XCPT_Privileged_Instruction     = $c000009d;
-            XCPT_Datatype_Misalignment      = $c000009e;
-            XCPT_Breakpoint                 = $c000009f;
-            XCPT_Single_Step                = $c00000a0;
-            XCPT_Process_Terminate          = $c0010001;
-            XCPT_Async_Process_Terminate    = $c0010002;
-            XCPT_Signal                     = $c0010003;
+  Xcpt_Guard_Page_Violation       = $80000001;
+  Xcpt_Unable_To_Grow_Stack       = $80010001;
+  Xcpt_Access_Violation           = $c0000005;
+  Xcpt_In_Page_Error              = $c0000006;
+  Xcpt_Illegal_Instruction        = $c000001c;
+  Xcpt_Invalid_Lock_Sequence      = $c000001d;
+  Xcpt_Noncontinuable_Exception   = $c0000024;
+  Xcpt_Invalid_Disposition        = $c0000025;
+  Xcpt_Unwind                     = $c0000026;
+  Xcpt_Bad_Stack                  = $c0000027;
+  Xcpt_Invalid_Unwind_Target      = $c0000028;
+  Xcpt_Array_Bounds_Exceeded      = $c0000093;
+  Xcpt_Float_Denormal_Operand     = $c0000094;
+  Xcpt_Float_Divide_By_Zero       = $c0000095;
+  Xcpt_Float_Inexact_Result       = $c0000096;
+  Xcpt_Float_Invalid_Operation    = $c0000097;
+  Xcpt_Float_Overflow             = $c0000098;
+  Xcpt_Float_Stack_Check          = $c0000099;
+  Xcpt_Float_Underflow            = $c000009a;
+  Xcpt_Integer_Divide_By_Zero     = $c000009b;
+  Xcpt_Integer_Overflow           = $c000009c;
+  Xcpt_Privileged_Instruction     = $c000009d;
+  Xcpt_Datatype_Misalignment      = $c000009e;
+  Xcpt_Breakpoint                 = $c000009f;
+  Xcpt_Single_Step                = $c00000a0;
+  Xcpt_Process_Terminate          = $c0010001;
+  Xcpt_Async_Process_Terminate    = $c0010002;
+  Xcpt_Signal                     = $c0010003;
+
+  Context_Control        = $00000001; { SS:ESP, CS:EIP, EFLAGS and EBP set }
+  Context_Integer        = $00000002; { EAX, EBX, ECX, EDX, ESI and EDI set }
+  Context_Segments       = $00000004; { DS, ES, FS, and GS set }
+  Context_Floating_Point = $00000008; { numeric coprocessor state set }
+  Context_Full           = Context_Control or
+                           Context_Integer or
+                           Context_Segments or
+                           Context_Floating_Point;
 
 const
     MaxExceptionParameters = 4;  { Enough for all system exceptions. }
