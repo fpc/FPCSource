@@ -348,11 +348,14 @@ end;
 var
   s : string;
 begin
-  SysResetFPU;
   IsConsole := TRUE;
   IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
+
+  SysResetFPU;
+  if not(IsLibrary) then
+    SysInitFPU;
 
   { Set up signals handlers }
   InstallSignals;
