@@ -35,7 +35,7 @@ unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k
 
 # All supported targets used for clean
-ALLTARGETS=$(CYCLETARGETS) m68k
+ALLTARGETS=$(CYCLETARGETS)
 
 # Allow ALPHA, POWERPC, POWERPC64, M68K, I386 defines for target cpu
 ifdef ALPHA
