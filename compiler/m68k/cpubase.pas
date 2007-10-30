@@ -127,6 +127,8 @@ unit cpubase;
       first_mm_supreg    = 0;
       first_mm_imreg     = 0;
 
+      maxfpuregs = 8;
+
 {$WARNING TODO FIX BSSTART}
       regnumber_count_bsstart = 16;
 

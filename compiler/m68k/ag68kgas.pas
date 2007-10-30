@@ -299,9 +299,12 @@ interface
          s:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
         else
          s:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
-        if op = A_FMOVE then begin
-          writeln('fmove! opsize:',dword(taicpu(hp).opsize));
-        end;
+        if op = A_FMOVE then
+          begin
+{$ifdef DEBUG_CHARLIE}
+            writeln('fmove! opsize:',dword(taicpu(hp).opsize));
+{$endif DEBUG_CHARLIE}
+          end;
         getopcodestring:=s;
       end;
 
@@ -330,7 +333,7 @@ interface
                   owner.AsmWrite(s+#9);
                   s:=getopstr_jmp(taicpu(hp).oper[0]^);
                   { dbcc dx,<sym> has two operands! (KB) }
-                  if (taicpu(hp).ops>1) then 
+                  if (taicpu(hp).ops>1) then
                     s:=s+','+getopstr_jmp(taicpu(hp).oper[1]^);
                   if (taicpu(hp).ops>2) then
                     internalerror(2006120501);
