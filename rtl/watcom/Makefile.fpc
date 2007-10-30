@@ -9,9 +9,9 @@ main=rtl
 loaders=prt0
 #exceptn fpu
 units=system objpas macpas strings watcom dos crt objects \
-      cpu charset types getopts heaptrc lnfodwrf lineinfo ctypes fgl
-#      math typinfo mmx ucomplex \
-#      varutils variants sysutils
+      cpu charset types getopts heaptrc lnfodwrf lineinfo ctypes fgl \
+      math typinfo mmx ucomplex \
+      varutils variants sysutils
 
 # dpmiexcp initc ports profile dxeload emu387 \
 # printer graph classes \
@@ -86,8 +86,9 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-prt0$(OEXT) : prt0.asm
-        wasm prt0.asm -bt=dos -5s -fp5 -ms -zq
+prt0$(OEXT) : prt0.as
+        wasm prt0.as -bt=dos -5s -fp5 -ms -zq
+        $(COPY) prt0$(OEXT) $(UNITTARGETDIRPREFIX)prt0$(OEXT)
 
 #
 # System Units (System, Objpas, Strings)
@@ -140,12 +141,12 @@ printer$(PPUEXT) : printer.pp system$(PPUEXT)
 # Graph
 #
 
-include $(GRAPHDIR)/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+#include $(GRAPHDIR)/makefile.inc
+#GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
-graph$(PPUEXT) : graph.pp watcom$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
-                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
-        $(COMPILER) -I$(GRAPHDIR) graph.pp
+#graph$(PPUEXT) : graph.pp watcom$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
+#                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
+#        $(COMPILER) -I$(GRAPHDIR) graph.pp
 
 #
 # Delphi Compatible Units
@@ -175,6 +176,16 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
+convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model

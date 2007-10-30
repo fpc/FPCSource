@@ -5469,8 +5469,14 @@ rtl/watcom/Makefile.fpc svneol=native#text/plain
 rtl/watcom/classes.pp svneol=native#text/plain
 rtl/watcom/crt.pp svneol=native#text/plain
 rtl/watcom/dos.pp svneol=native#text/plain
-rtl/watcom/prt0.asm -text
+rtl/watcom/prt0.as -text
+rtl/watcom/sysdir.inc -text
+rtl/watcom/sysfile.inc -text
+rtl/watcom/sysheap.inc -text
+rtl/watcom/sysos.inc -text
+rtl/watcom/sysosh.inc -text
 rtl/watcom/system.pp svneol=native#text/plain
+rtl/watcom/systhrd.inc -text
 rtl/watcom/sysutils.pp svneol=native#text/plain
 rtl/watcom/varutils.pp svneol=native#text/plain
 rtl/watcom/watcom.pp svneol=native#text/plain
