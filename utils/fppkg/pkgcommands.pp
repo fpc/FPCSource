@@ -66,10 +66,16 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
-
   { TCommandInstall }
 
   TCommandInstall = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
+  { TCommandArchive }
+
+  TCommandArchive = Class(TPackagehandler)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
@@ -149,6 +155,13 @@ begin
 end;
 
 
+function TCommandArchive.Execute(const Args:TActionArgs):boolean;
+begin
+  ExecuteAction(CurrentPackage,'fpmakearchive',Args);
+  Result:=true;
+end;
+
+
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
   RegisterPkgHandler('avail',TCommandAvail);
@@ -157,4 +170,5 @@ initialization
   RegisterPkgHandler('unzip',TCommandUnzip);
   RegisterPkgHandler('build',TCommandBuild);
   RegisterPkgHandler('install',TCommandInstall);
+  RegisterPkgHandler('archive',TCommandArchive);
 end.

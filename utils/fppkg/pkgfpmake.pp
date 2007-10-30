@@ -10,6 +10,7 @@ uses
 implementation
 
 uses
+  fprepos,
   pkgoptions,
   pkgglobals,
   pkgmessages;
@@ -56,6 +57,13 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
+  { TFPMakeRunnerArchive }
+
+  TFPMakeRunnerArchive = Class(TFPMakeRunner)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
    TMyMemoryStream=class(TMemoryStream)
    public
      constructor Create(p:pointer;mysize:integer);
@@ -98,6 +106,28 @@ end;
 { TFPMakeCompiler }
 
 Procedure TFPMakeCompiler.CompileFPMake;
+
+  function CheckUnitDir(const AUnitName:string;Out AUnitDir:string):boolean;
+  begin
+    Result:=false;
+    if Options.FPMakeLocalUnitDir<>'' then
+      begin
+        AUnitDir:=IncludeTrailingPathDelimiter(Options.FPMakeLocalUnitDir+AUnitName);
+        if DirectoryExists(AUnitDir) then
+          begin
+            Result:=true;
+            exit;
+          end;
+      end;
+    AUnitDir:=IncludeTrailingPathDelimiter(Options.FPMakeGlobalUnitDir+AUnitName);
+    if DirectoryExists(AUnitDir) then
+      begin
+        Result:=true;
+        exit;
+      end;
+    AUnitDir:='';
+  end;
+
 const
   TempBuildDir = 'build-fpmake';
 Var
@@ -130,88 +160,67 @@ begin
       // Special bootstrapping mode to compile fpmake?
       DoBootStrap:=False;
       NeedFPMKUnitSource:=False;
-      if Options.BootStrap then
-        begin
-{$ifdef check_bootstrap_names}
-          for i:=low(FPMKUnitDeps) to high(FPMKUnitDeps) do
-            if CurrentPackage.Name=FPMKUnitDeps[i] then
-              begin
-                DoBootStrap:=True;
-                break;
-              end;
-{$else check_bootstrap_names}
-          DoBootStrap:=True;
-{$endif check_bootstrap_names}
-        end;
-      // Compile options
-      //   -- bootstrapping compile with -g
-      //   -- default is to optimize, smartlink and strip to reduce
-      //      the executable size (there can be 100's of fpmake's on a system)
       OOptions:='-n';
-      if vInfo in Verbosity then
-        OOptions:=OOptions+' -vi';
-      if DoBootStrap then
-        OOptions:=OOptions+' -g'
-      else
-        OOptions:=OOptions+' -O2 -XXs';
-      // Check overall unit dir, this must exist at least for RTL
-      if not DirectoryExists(Options.FPMakeUnitDir) then
-        Error(SErrMissingDirectory,[Options.FPMakeUnitDir]);
       // Add FPMKUnit unit dir, if not found we use the internal fpmkunit source
-      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'fpmkunit');
-      if DirectoryExists(DepDir) then
+      if CheckUnitDir('fpmkunit',DepDir) then
         OOptions:=OOptions+' -Fu'+DepDir
       else
         begin
-          if DoBootStrap then
-            begin
-              NeedFPMKUnitSource:=true;
-              OOptions:=OOptions+' -Fu'+TempBuildDir;
-            end
-          else
-            Error(SErrMissingDirectory,[DepDir]);
+          Log(vWarning,SWarnFPMKUnitNotFound);
+          DoBootStrap:=true;
+          NeedFPMKUnitSource:=true;
+          OOptions:=OOptions+' -Fu'+TempBuildDir;
         end;
       // Add PaszLib and Hash units dir
-      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'hash');
-      if not DirectoryExists(DepDir) then
+      // we need to check for the zipper.ppu that is not
+      // delivered with fpc 2.0.4
+      if not CheckUnitDir('hash',DepDir) then
         begin
           if DoBootStrap then
             DepDir:=''
           else
-            Error(SErrMissingDirectory,[DepDir]);
+            Error(SErrMissingInstallPackage,['hash']);
         end;
-      DepDir2:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'paszlib');
-      if not FileExists(DepDir2+'zipper.ppu') then
+      if not CheckUnitDir('paszlib',DepDir2) or
+         not FileExists(DepDir2+'zipper.ppu') then
         begin
           if DoBootStrap then
             DepDir2:=''
           else
-            Error(SErrMissingDirectory,[DepDir2]);
+            Error(SErrMissingInstallPackage,['paszlib']);
         end;
       if (DepDir<>'') and (DepDir2<>'') then
         OOptions:=OOptions+' -Fu'+DepDir+' -Fu'+DepDir2
       else
         OOptions:=OOptions+' -dNO_UNIT_ZIPPER';
       // Add Process unit
-      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'fcl-process');
-      if DirectoryExists(DepDir) then
+      if CheckUnitDir('fcl-process',DepDir) then
         OOptions:=OOptions+' -Fu'+DepDir
       else
         begin
           if DoBootStrap then
             OOptions:=OOptions+' -dNO_UNIT_PROCESS'
           else
-            Error(SErrMissingDirectory,[DepDir]);
+            Error(SErrMissingInstallPackage,['fcl-process']);
         end;
       // Add RTL unit dir
-      DepDir:=IncludeTrailingPathDelimiter(Options.FPMakeUnitDir+'rtl');
-      if not DirectoryExists(DepDir) then
-        Error(SErrMissingDirectory,[DepDir]);
+      if not CheckUnitDir('rtl',DepDir) then
+        Error(SErrMissingInstallPackage,['rtl']);
       OOptions:=OOptions+' -Fu'+DepDir;
       // Units in a directory for easy cleaning
       DeleteDir(TempBuildDir);
       ForceDirectories(TempBuildDir);
       OOptions:=OOptions+' -FU'+TempBuildDir;
+      // Compile options
+      //   -- bootstrapping compile with -g
+      //   -- default is to optimize, smartlink and strip to reduce
+      //      the executable size (there can be 100's of fpmake's on a system)
+      if vInfo in Verbosity then
+        OOptions:=OOptions+' -vi';
+      if DoBootStrap then
+        OOptions:=OOptions+' -g'
+      else
+        OOptions:=OOptions+' -O2 -XXs';
       // Create fpmkunit.pp if needed
       if NeedFPMKUnitSource then
         CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
@@ -238,14 +247,27 @@ end;
 
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
-  FPMakeBin : string;
+  FPMakeBin,
+  OOptions : string;
 begin
   { Maybe compile fpmake executable? }
   ExecuteAction(CurrentPackage,'compilefpmake');
+  { Create options }
+  OOptions:=' --nodefaults';
+  if vInfo in Verbosity then
+    OOptions:=OOptions+' --verbose';
+  OOptions:=OOptions+' --compiler='+Options.Compiler;
+  OOptions:=OOptions+' --CPU='+CPUToString(Options.CompilerCPU);
+  OOptions:=OOptions+' --OS='+OSToString(Options.CompilerOS);
+  if IsSuperUser or Options.InstallGlobal then
+    OOptions:=OOptions+' --baseinstalldir='+Options.GlobalInstallDir
+  else
+    OOptions:=OOptions+' --baseinstalldir='+Options.LocalInstallDir;
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath);
-  Result:=ExecuteProcess(FPMakeBin,Command);
+  Result:=ExecuteProcess(FPMakeBin,Command+OOptions);
+
 end;
 
 
@@ -268,6 +290,12 @@ begin
 end;
 
 
+function TFPMakeRunnerArchive.Execute(const Args:TActionArgs):boolean;
+begin
+  result:=(RunFPMake('archive')=0);
+end;
+
+
 
 
 initialization
@@ -275,4 +303,5 @@ initialization
   RegisterPkgHandler('fpmakebuild',TFPMakeRunnerBuild);
   RegisterPkgHandler('fpmakeinstall',TFPMakeRunnerInstall);
   RegisterPkgHandler('fpmakemanifest',TFPMakeRunnerManifest);
+  RegisterPkgHandler('fpmakearchive',TFPMakeRunnerArchive);
 end.

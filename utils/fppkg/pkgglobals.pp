@@ -40,6 +40,7 @@ Function FixPath(const S : String) : string;
 Procedure DeleteDir(const ADir:string);
 Procedure SearchFiles(SL:TStringList;const APattern:string);
 Function GetCompilerInfo(const ACompiler,AOptions:string):string;
+function IsSuperUser:boolean;
 
 var
   Verbosity : TVerbosities;
@@ -49,26 +50,23 @@ Implementation
 
 // define use_shell to use sysutils.executeprocess
 //  as alternate to using 'process' in getcompilerinfo
-{$IFDEF GO32v2}
+{$IF defined(GO32v2) or defined(WATCOM) or defined(OS2)}
  {$DEFINE USE_SHELL}
-{$ENDIF GO32v2}
+{$ENDIF GO32v2 or WATCOM or OS2}
 
-{$IFDEF WATCOM}
- {$DEFINE USE_SHELL}
-{$ENDIF WATCOM}
-
-{$IFDEF OS2}
- {$DEFINE USE_SHELL}
-{$ENDIF OS2}
 
 uses
   typinfo,
+{$ifdef unix}
+  baseunix,
+{$endif}
 {$IFNDEF USE_SHELL}
   process,
 {$ENDIF USE_SHELL}
   contnrs,
   uriparser,
   pkgmessages;
+
 
 function StringToVerbosity(S: String): TVerbosity;
 Var
@@ -80,6 +78,7 @@ begin
   else
     Raise EPackagerError.CreateFmt(SErrInvalidVerbosity,[S]);
 end;
+
 
 Function VerbosityToString (V : TVerbosity): String;
 begin
@@ -257,5 +256,16 @@ begin
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
 end;
+
+
+function IsSuperUser:boolean;
+begin
+{$ifdef unix}
+  result:=(fpGetUID=0);
+{$else unix}
+  result:=true;
+{$endif unix}
+end;
+
 
 end.

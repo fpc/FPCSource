@@ -18,6 +18,7 @@ type
   end;
 
 
+{$ifdef OLDCREATEARCHIVE}
   { TCreateArchive }
 
   TCreateArchive = Class(TPackagehandler)
@@ -26,6 +27,7 @@ type
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
+{$endif OLDCREATEARCHIVE}
 
 
 implementation
@@ -75,6 +77,7 @@ begin
 end;
 
 
+{$ifdef OLDCREATEARCHIVE}
 { TCreateArchive }
 
 procedure TCreateArchive.CreateArchive;
@@ -123,15 +126,17 @@ begin
   P.Free;
 end;
 
-
 function TCreateArchive.Execute(const Args: TActionArgs): boolean;
 begin
   CreateArchive;
   Result:=true;
 end;
+{$endif OLDCREATEARCHIVE}
 
 
 initialization
   RegisterPkgHandler('unziparchive',TUnzipArchive);
+{$ifdef OLDCREATEARCHIVE}
   RegisterPkgHandler('createarchive',TCreateArchive);
+{$endif OLDCREATEARCHIVE}
 end.

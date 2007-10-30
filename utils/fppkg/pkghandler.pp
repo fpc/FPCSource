@@ -64,7 +64,7 @@ type
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
+function ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil):Boolean;
 
 
 Implementation
@@ -97,12 +97,13 @@ begin
 end;
 
 
-procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
+function ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil):Boolean;
 var
   pkghandlerclass : TPackageHandlerClass;
   i : integer;
   logargs : string;
 begin
+  result:=false;
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackage) do
     try
@@ -115,7 +116,7 @@ begin
             logargs:=logargs+','+Args[i];
         end;
       Log(vDebug,SLogRunAction,[AAction,logargs]);
-      Execute(Args);
+      result:=Execute(Args);
     finally
       Free;
     end;

@@ -44,12 +44,15 @@ Type
     FCompilerCPU: TCPU;
     FCompilerOS: TOS;
     FCompilerVersion : String;
-    FInstallDir : String;
+    FLocalInstallDir,
+    FGlobalInstallDir : String;
     // Compiler settings for compiling FPMake.pp
-    FFPMakeCompiler : String;
-    FFPMakeUnitDir : String;
+    FFPMakeCompiler,
+    FFPMakeLocalUnitDir,
+    FFPMakeGlobalUnitDir : String;
     // Parameter options
     FBootStrap : Boolean;
+    FInstallGlobal : Boolean;
     function GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure SetCompilerCPU(const AValue: TCPU);
@@ -80,16 +83,19 @@ Type
     Property CompilerTarget : String Index 7 Read GetOptString Write SetOptString;
     Property DefaultCompilerConfig : String Index 8 Read GetOptString Write SetOptString;
     Property CompilerVersion : String Index 9 Read GetOptString Write SetOptString;
-    Property InstallDir : String Index 10 Read GetOptString Write SetOptString;
-    Property DefaultVerbosity : String Index 11 Read GetOptString Write SetOptString;
-    Property PackagesDir : String Index 12 Read GetOptString Write SetOptString;
-    Property CompilerConfigDir : String Index 13 Read GetOptString Write SetOptString;
-    Property FPMakeCompiler : String Index 14 Read GetOptString Write SetOptString;
-    Property FPMakeUnitDir : String Index 15 Read GetOptString Write SetOptString;
-    Property CurrentCompilerConfig : String Index 16 Read GetOptString Write SetOptString;
+    Property GlobalInstallDir : String Index 10 Read GetOptString Write SetOptString;
+    Property LocalInstallDir : String Index 11 Read GetOptString Write SetOptString;
+    Property DefaultVerbosity : String Index 12 Read GetOptString Write SetOptString;
+    Property PackagesDir : String Index 13 Read GetOptString Write SetOptString;
+    Property CompilerConfigDir : String Index 14 Read GetOptString Write SetOptString;
+    Property FPMakeCompiler : String Index 15 Read GetOptString Write SetOptString;
+    Property FPMakeGlobalUnitDir : String Index 16 Read GetOptString Write SetOptString;
+    Property FPMakeLocalUnitDir : String Index 17 Read GetOptString Write SetOptString;
+    Property CurrentCompilerConfig : String Index 18 Read GetOptString Write SetOptString;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
     Property BootStrap : Boolean Read FBootStrap Write FBootStrap;
+    Property InstallGlobal : Boolean Read FInstallGlobal Write FInstallGlobal;
   end;
 
 var
@@ -98,9 +104,6 @@ var
 Implementation
 
 uses
-{$ifdef unix}
-  baseunix,
-{$endif}
   pkgglobals,
   pkgmessages;
 
@@ -130,13 +133,15 @@ Const
   KeyCompilerConfig        = 'CompilerConfig';
   KeyVerbosity             = 'Verbosity';
   // Compiler dependent config
-  KeyInstallDir            = 'InstallDir';
+  KeyGlobalInstallDir      = 'GlobalInstallDir';
+  KeyLocalInstallDir       = 'LocalInstallDir';
   KeyCompiler              = 'Compiler' ;
   KeyCompilerOS            = 'OS';
   KeyCompilerCPU           = 'CPU';
   KeyCompilerVersion       = 'Version';
   KeyFPMakeCompiler        = 'FPMakeCompiler';
-  KeyFPMakeUnitDir         = 'FPMakeUnitDir';
+  KeyFPMakeGlobalUnitDir   = 'FPMakeGlobalUnitDir';
+  KeyFPMakeLocalUnitDir    = 'FPMakeLocalUnitDir';
 
 
 { TPackagerOptions }
@@ -159,13 +164,15 @@ begin
     7 : Result:=MakeTargetString(CompilerCPU,CompilerOS);
     8 : Result:=FDefaultCompilerConfig;
     9 : Result:=FCompilerVersion;
-   10 : Result:=FInstallDir;
-   11 : Result:=FDefaultVerbosity;
-   12 : Result:=FPackagesDir;
-   13 : Result:=FCompilerConfigDir;
-   14 : Result:=FFPMakeCompiler;
-   15 : Result:=FFPMakeUnitDir;
-   16 : Result:=FCurrentCompilerConfig;
+   10 : Result:=FGlobalInstallDir;
+   11 : Result:=FLocalInstallDir;
+   12 : Result:=FDefaultVerbosity;
+   13 : Result:=FPackagesDir;
+   14 : Result:=FCompilerConfigDir;
+   15 : Result:=FFPMakeCompiler;
+   16 : Result:=FFPMakeGlobalUnitDir;
+   17 : Result:=FFPMakeLocalUnitDir;
+   18 : Result:=FCurrentCompilerConfig;
   end;
 end;
 
@@ -183,13 +190,15 @@ begin
     7 : StringToCPUOS(AValue,FCompilerCPU,FCompilerOS);
     8 : FDefaultCompilerConfig:=AValue;
     9 : FCompilerVersion:=AValue;
-   10 : FInstallDir:=FixPath(AValue);
-   11 : FDefaultVerbosity:=AValue;
-   12 : FPackagesDir:=FixPath(AValue);
-   13 : FCompilerConfigDir:=FixPath(AValue);
-   14 : FFPMakeCompiler:=AValue;
-   15 : FFPMakeUnitDir:=FixPath(AValue);
-   16 : FCurrentCompilerConfig:=AValue;
+   10 : FGlobalInstallDir:=FixPath(AValue);
+   11 : FLocalInstallDir:=FixPath(AValue);
+   12 : FDefaultVerbosity:=AValue;
+   13 : FPackagesDir:=FixPath(AValue);
+   14 : FCompilerConfigDir:=FixPath(AValue);
+   15 : FFPMakeCompiler:=AValue;
+   16 : FFPMakeGlobalUnitDir:=FixPath(AValue);
+   17 : FFPMakeLocalUnitDir:=FixPath(AValue);
+   18 : FCurrentCompilerConfig:=AValue;
   end;
   FDirty:=True;
 end;
@@ -236,7 +245,7 @@ var
 begin
   // Retrieve Local fppkg directory
 {$ifdef unix}
-  if (fpGetUID=0) then
+  if IsSuperUser then
     begin
       if DirectoryExists('/usr/local/lib/fpc') then
         LocalDir:='/usr/local/lib/fpc/fppkg/'
@@ -263,13 +272,13 @@ begin
   FCurrentCompilerConfig:=FDefaultCompilerConfig;
   FDefaultVerbosity:='error,warning,info,debug,commands';
   FBootStrap:=False;
+  FInstallGlobal:=False;
 end;
 
 
 Procedure TPackagerOptions.InitCompilerDefaults;
 var
   infoSL : TStringList;
-  DepDir : String;
   i : Integer;
 begin
   FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
@@ -287,33 +296,40 @@ begin
   Log(vDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
   // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
-  FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-  if FInstallDir='' then
+  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  if FGlobalInstallDir='' then
     begin
-      FInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion+'/';
-      if not DirectoryExists(FInstallDir) and
+      FGlobalInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion+'/';
+      if not DirectoryExists(FGlobalInstallDir) and
          DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
-        FInstallDir:='/usr/lib/fpc/'+FCompilerVersion+'/';
+        FGlobalInstallDir:='/usr/lib/fpc/'+FCompilerVersion+'/';
     end;
 {$else unix}
-  FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-  if FInstallDir='' then
+  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  if FGlobalInstallDir='' then
     begin
-      FInstallDir:=ExtractFilePath(FCompiler)+'../';
-      if not(DirectoryExists(FInstallDir+'/units')) and
-         not(DirectoryExists(FInstallDir+'/rtl')) then
-        FInstallDir:=FInstallDir+'../';
+      FGlobalInstallDir:=ExtractFilePath(FCompiler)+'../';
+      if not(DirectoryExists(FGlobalInstallDir+'/units')) and
+         not(DirectoryExists(FGlobalInstallDir+'/rtl')) then
+        FGlobalInstallDir:=FGlobalInstallDir+'../';
     end;
 {$endif unix}
-  Log(vDebug,SLogDetectedFPCDIR,[FInstallDir]);
+  Log(vDebug,SLogDetectedFPCDIR,['global',FGlobalInstallDir]);
+  // User writable install directory
+  if not IsSuperUser then
+    begin
+      FLocalInstallDir:=FLocalRepository+'lib'+PathDelim+FCompilerVersion+PathDelim;
+      Log(vDebug,SLogDetectedFPCDIR,['local',FLocalInstallDir]);
+    end;
   // Detect directory where fpmake units are located
   FFPMakeCompiler:=FCompiler;
-  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim;
+  FFPMakeGlobalUnitDir:=FGlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim;
+  FFPMakeLocalUnitDir:=FLocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim;
   for i:=low(FPMKUnitDeps) to high(FPMKUnitDeps) do
     begin
-      DepDir:=FFPMakeUnitDir+FPMKUnitDeps[i]+PathDelim;
-      if not DirectoryExists(DepDir) then
-        Log(vWarning,SWarnFPMKUnitNotFound,[DepDir]);
+      if not DirectoryExists(FFPMakeGlobalUnitDir+FPMKUnitDeps[i]+PathDelim) and
+         not DirectoryExists(FFPMakeLocalUnitDir+FPMKUnitDeps[i]+PathDelim) then
+        Log(vWarning,SWarnFPMKUnitNotFound,[FPMKUnitDeps[i]]);
     end;
 end;
 
@@ -383,13 +399,15 @@ procedure TPackagerOptions.LoadCompilerFromIni(Ini: TCustomIniFile);
 begin
  With Ini do
    begin
-     FInstallDir:=FixPath(ReadString(SDefaults,KeyInstallDir,FInstallDir));
+     FGlobalInstallDir:=FixPath(ReadString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir));
+     FLocalInstallDir:=FixPath(ReadString(SDefaults,KeyLocalInstallDir,FLocalInstallDir));
      FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
      FCompilerOS:=StringToOS(ReadString(SDefaults,KeyCompilerOS,OSToString(CompilerOS)));
      FCompilerCPU:=StringToCPU(ReadString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU)));
      FCompilerVersion:=ReadString(SDefaults,KeyCompilerVersion,FCompilerVersion);
      FFPMakeCompiler:=ReadString(SDefaults,KeyFPMakeCompiler,FFPMakeCompiler);
-     FFPMakeUnitDir:=FixPath(ReadString(SDefaults,KeyFPMakeUnitDir,FFPMakeUnitDir));
+     FFPMakeGlobalUnitDir:=FixPath(ReadString(SDefaults,KeyFPMakeGlobalUnitDir,FFPMakeGlobalUnitDir));
+     FFPMakeLocalUnitDir:=FixPath(ReadString(SDefaults,KeyFPMakeLocalUnitDir,FFPMakeLocalUnitDir));
    end;
 end;
 
@@ -398,13 +416,15 @@ procedure TPackagerOptions.SaveCompilerToIni(Ini: TCustomIniFile);
 begin
  With Ini do
    begin
-     WriteString(SDefaults,KeyInstallDir,FInstallDir);
+     WriteString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir);
+     WriteString(SDefaults,KeyLocalInstallDir,FLocalInstallDir);
      WriteString(SDefaults,KeyCompiler,FCompiler);
      WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
      WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
      WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
      WriteString(SDefaults,KeyFPMakeCompiler,FFPMakeCompiler);
-     WriteString(SDefaults,KeyFPMakeUnitDir,FFPMakeUnitDir);
+     WriteString(SDefaults,KeyFPMakeGlobalUnitDir,FFPMakeGlobalUnitDir);
+     WriteString(SDefaults,KeyFPMakeLocalUnitDir,FFPMakeLocalUnitDir);
    end;
 end;
 

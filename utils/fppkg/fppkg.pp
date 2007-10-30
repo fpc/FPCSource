@@ -138,11 +138,13 @@ begin
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Set verbosity');
   Writeln('  -b --bootstrap     Special bootstrapping mode');
+  Writeln('  -g --global        Force installation to global (system-wide) directory');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
   Writeln('  avail              List available packages');
   Writeln('  build              Build package');
   Writeln('  install            Install package');
+  Writeln('  archive            Create archive of package');
   Writeln('  download           Download package');
   Writeln('  convertmk          Convert Makefile.fpc to fpmake.pp');
   Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
@@ -220,6 +222,8 @@ begin
         Include(Verbosity,StringToVerbosity(OptionArg(I)))
       else if CheckOption(I,'b','bootstrap') then
         Options.BootStrap:=true
+      else if CheckOption(I,'g','global') then
+        Options.InstallGlobal:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
@@ -277,6 +281,7 @@ var
   ActionPackage : TFPPackage;
   Args   : TActionArgs;
   OldCurrDir : String;
+  Res    : Boolean;
 begin
   OldCurrDir:=GetCurrentDir;
   LoadGlobalDefaults;
@@ -290,8 +295,8 @@ begin
     repeat
       if not ActionStack.Pop(ActionPackage,Action,Args) then
         break;
-      pkghandler.ExecuteAction(ActionPackage,Action,Args);
-    until false;
+      res:=pkghandler.ExecuteAction(ActionPackage,Action,Args);
+    until not res;
     Terminate;
 
   except

@@ -15,7 +15,8 @@ Resourcestring
   SErrMissingFPMake          = 'Missing configuration fpmake.pp';
   SErrMissingMakefilefpc     = 'Missing configuration Makefile.fpc';
   SErrMissingDirectory       = 'Missing directory "%s"';
-  SErrMissingCompilerConfig  = 'Could not found compiler configuration "%s"';
+  SErrMissingCompilerConfig  = 'Could not find compiler configuration "%s"';
+  SErrMissingInstallPackage  = 'Could not find package "%s"';
   SErrNoPackageSpecified     = 'No package specified';
   SErrOnlyLocalDir           = 'The speficied command "%s" works only on current dir, not on a (remote) package';
   SErrRunning                = 'The FPC make tool encountered the following error:';
@@ -38,7 +39,8 @@ Resourcestring
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';
   SErrGETFailed              = 'FTP GET "%s" command failed.';
 
-  SWarnFPMKUnitNotFound      = 'Unit directory "%s" needed to compile fpmkunit is not found, compiling fpmake may file';
+  SWarnFPMKUnitDirNotFound   = 'Unit directory for package "%s" is not found, compiling fpmake may file';
+  SWarnFPMKUnitNotFound      = 'Package "fpmkunit" is not found, using internal bootstrap procedure';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
@@ -53,7 +55,7 @@ Resourcestring
   SLogLoadingCompilerConfig  = 'Loading compiler configuration from "%s"';
   SLogGeneratingGlobalConfig = 'Generating default global configuration in "%s"';
   SLogDetectedCompiler       = 'Detected compiler "%s" (version %s for %s)';
-  SLogDetectedFPCDIR         = 'Detected FPCDIR "%s" will be used installation';
+  SLogDetectedFPCDIR         = 'Detected %s FPCDIR "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingPackagesFile    = 'Loading packages information from "%s"';
   SLogLoadingVersionsFile    = 'Loading local versions information from "%s"';
