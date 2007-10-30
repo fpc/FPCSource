@@ -9,6 +9,8 @@
     T:=Targets.AddUnit('uuid');
       T.Directory:='src';
     T:=Targets.AddUnit('unixcrypt');
+      T.Directory:='src';
+      T.OS:=[Linux];
     T:=Targets.AddExampleunit('mdtest');
       T.Directory:='tests';
     EndPackage;
