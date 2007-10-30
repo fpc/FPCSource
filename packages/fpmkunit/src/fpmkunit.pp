@@ -1565,7 +1565,7 @@ begin
   FCompilerVersion:=infosl[0];
   CPU:=StringToCPU(infosl[1]);
   OS:=StringToOS(infosl[2]);
-{$else HAS_UNIT_PROCESS}}
+{$else HAS_UNIT_PROCESS}
   if CPU=cpuNone then
     CPU:=StringToCPU({$I %FPCTARGETCPU%});
   if OS=osNone then
