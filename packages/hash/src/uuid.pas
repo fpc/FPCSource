@@ -30,7 +30,33 @@ uses
  ******************************************************************************)
 
 type
+{$ifdef VER2_0}
+       uuid_t = packed record
+          case integer of
+             1 : (
+                  Data1 : DWord;
+                  Data2 : word;
+                  Data3 : word;
+                  Data4 : array[0..7] of byte;
+                 );
+             2 : (
+                  D1 : DWord;
+                  D2 : word;
+                  D3 : word;
+                  D4 : array[0..7] of byte;
+                 );
+             3 : ( { uuid fields according to RFC4122 }
+                  time_low : dword;     // The low field of the timestamp
+                  time_mid : word;                      // The middle field of the timestamp
+                  time_hi_and_version : word;           // The high field of the timestamp multiplexed with the version
+                  clock_seq_hi_and_reserved : byte;     // The high field of the clock sequence multiplexed with the var
+                  clock_seq_low : byte;                 // The low field of the clock sequence
+                  node : array[0..5] of byte;           // The spatially unique node identifier
+                 );
+       end;
+{$else VER2_0}
   uuid_t          = TGuid;
+{$endif VER2_0}
   uuid_time_t     = qword;
   uuid_node_t     = array[0..5] of byte;
   unsigned16      = word;
@@ -140,7 +166,7 @@ end;
 
 { uuid_create }
 
-function uuid_create(var uuid: TGuid): boolean;
+function uuid_create(var uuid: uuid_t): boolean;
 var
   timestamp: uuid_time_t;
   last_time: uuid_time_t;
