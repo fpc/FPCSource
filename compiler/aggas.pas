@@ -254,12 +254,16 @@ implementation
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
 {$warning TODO .data.ro not yet working}
-{$if defined(arm) or defined(powerpc)}
+{$if defined(arm) or defined(powerpc)} 
           '.rodata',
 {$else arm}
           '.data',
 {$endif arm}
-          '.rodata',
+{$if defined(m68k)} { Amiga/m68k GNU AS doesn't seem to like .rodata (KB) }
+          '.data',
+{$else}
+	  '.rodata',
+{$endif}
           '.bss',
           '.threadvar',
           '.pdata',
