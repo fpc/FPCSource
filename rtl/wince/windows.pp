@@ -50,6 +50,7 @@ interface
 {$i simmgr.inc}
 {$i tapi.inc}
 {$i notify.inc}
+{$i power.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
