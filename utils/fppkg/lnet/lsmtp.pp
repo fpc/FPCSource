@@ -1,6 +1,6 @@
 { lNet SMTP unit
 
-  CopyRight (C) 2005-2006 Ales Katona
+  CopyRight (C) 2005-2007 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -29,7 +29,7 @@ unit lsmtp;
 interface
 
 uses
-  Classes, Contnrs, lNet, lEvents, lCommon;
+  Classes, SysUtils, Contnrs, lNet, lEvents, lCommon, lMimeWrapper, lMimeStreams;
   
 type
   TLSMTP = class;
@@ -53,69 +53,41 @@ type
   TLSMTPClientStatusEvent = procedure (aSocket: TLSocket;
                                        const aStatus: TLSMTPStatus) of object;
                                        
-  { TAttachment }
-
-  TAttachment = class
-   protected
-    FData: TStringList;
-    function GetAsText: string; virtual;
-   public
-    constructor Create;
-    destructor Destroy; override;
-    function LoadFromFile(const aFileName: string): Boolean;
-   public
-    property AsText: string read GetAsText;
-  end;
-  
-  { TAttachmentList }
-
-  TAttachmentList = class
-   protected
-    FItems: TFPObjectList;
-    function GetCount: Integer;
-    function GetItem(i: Integer): TAttachment;
-    procedure SetItem(i: Integer; const AValue: TAttachment);
-   public
-    constructor Create;
-    destructor Destroy; override;
-    function Add(anAttachment: TAttachment): Integer;
-    function AddFromFile(const aFileName: string): Integer;
-    function Remove(anAttachment: TAttachment): Integer;
-    procedure Delete(const i: Integer);
-    procedure Clear;
-   public
-    property Count: Integer read GetCount;
-    property Items[i: Integer]: TAttachment read GetItem write SetItem; default;
-  end;
-
   { TMail }
 
   TMail = class
    protected
     FMailText: string;
-    FMailStream: TStream;
+    FMailStream: TMimeStream;
     FRecipients: string;
     FSender: string;
     FSubject: string;
-    FAttachments: TAttachmentList;
+    function GetCount: Integer;
+    function GetSection(i: Integer): TMimeSection;
+    procedure SetSection(i: Integer; const AValue: TMimeSection);
    public
     constructor Create;
     destructor Destroy; override;
+    procedure AddTextSection(const aText: string; const aCharSet: string = 'UTF-8');
+    procedure AddFileSection(const aFileName: string);
+    procedure AddStreamSection(aStream: TStream; const FreeStream: Boolean = False);
+    procedure DeleteSection(const i: Integer);
+    procedure RemoveSection(aSection: TMimeSection);
    public
-    property Attachments: TAttachmentList read FAttachments;
-    property MailText: string read FMailText write FMailText;
-    property MailStream: TStream read FMailStream write FMailStream;
+    property MailText: string read FMailText write FMailText; deprecated; // use sections!
     property Sender: string read FSender write FSender;
     property Recipients: string read FRecipients write FRecipients;
     property Subject: string read FSubject write FSubject;
+    property Sections[i: Integer]: TMimeSection read GetSection write SetSection; default;
+    property SectionCount: Integer read GetCount;
   end;
 
   TLSMTP = class(TLComponent)
    protected
     FConnection: TLTcp;
    protected
-    function GetTimeout: DWord;
-    procedure SetTimeout(const AValue: DWord);
+    function GetTimeout: Integer;
+    procedure SetTimeout(const AValue: Integer);
     
     function GetConnected: Boolean;
 
@@ -133,7 +105,7 @@ type
 
     property SocketClass: TLSocketClass read GetSocketClass write SetSocketClass;
     property Eventer: TLEventer read GetEventer write SetEventer;
-    property Timeout: DWord read GetTimeout write SetTimeout;
+    property Timeout: Integer read GetTimeout write SetTimeout;
   end;
 
   { TLSMTPClient }
@@ -155,6 +127,8 @@ type
     FSL: TStringList;
     FStatusSet: TLSMTPStatusSet;
     FBuffer: string;
+    FDataBuffer: string; // intermediate wait buffer on DATA command
+    FCharCount: Integer; // count of chars from last CRLF
     FStream: TStream;
    protected
     procedure OnEr(const msg: string; aSocket: TLSocket);
@@ -171,7 +145,7 @@ type
     
     procedure ExecuteFrontCommand;
     
-    procedure InsertCRLFs;
+    procedure ClearCR_LF;
     procedure SendData(const FromStream: Boolean = False);
    public
     constructor Create(aOwner: TComponent); override;
@@ -212,9 +186,6 @@ type
 
 implementation
 
-uses
-  SysUtils, lMimeStreams;
-
 const
   EMPTY_REC: TLSMTPStatusRec = (Status: ssNone; Args: ('', ''));
 
@@ -237,12 +208,12 @@ end;
 
 { TLSMTP }
 
-function TLSMTP.GetTimeout: DWord;
+function TLSMTP.GetTimeout: Integer;
 begin
   Result := FConnection.Timeout;
 end;
 
-procedure TLSMTP.SetTimeout(const AValue: DWord);
+procedure TLSMTP.SetTimeout(const AValue: Integer);
 begin
   FConnection.Timeout := aValue;
 end;
@@ -431,8 +402,13 @@ begin
                             Eventize(FStatus.First.Status, True);
                             FStatus.Remove;
                           end;
-                300..399: SendData(True);
+                300..399: begin
+                            FBuffer := FDataBuffer;
+                            FDataBuffer := '';
+                            SendData(True);
+                          end;
               else        begin
+                            FDataBuffer := '';
                             Eventize(FStatus.First.Status, False);
                             FStatus.Remove;
                           end;
@@ -471,26 +447,39 @@ begin
   FCommandFront.Remove;
 end;
 
-procedure TLSMTPClient.InsertCRLFs;
+procedure TLSMTPClient.ClearCR_LF;
 var
-  i, c: Integer;
+  i: Integer;
+  Skip: Boolean = False;
 begin
-  c := 0;
-  i := 2;
-  while i <= Length(FBuffer) do begin
-    if (FBuffer[i - 1] = #13) and (FBuffer[i] = #10) then begin
-      c := 0;
-      Inc(i);
-    end else
-      Inc(c);
-      
-    if c >= 74 then begin
-      Insert(CRLF, FBuffer, i);
-      c := 0;
-      Inc(i, 2);
+  for i := 1 to Length(FBuffer) do begin
+    if Skip then begin
+      Skip := False;
+      Continue;
     end;
-
-    Inc(i);
+    
+    if (FBuffer[i] = #13) or (FBuffer[i] = #10) then begin
+      if FBuffer[i] = #13 then
+        if (i < Length(FBuffer)) and (FBuffer[i + 1] = #10) then begin
+          FCharCount := 0;
+          Skip := True; // skip the crlf
+        end else begin // insert LF to a standalone CR
+          System.Insert(#10, FBuffer, i + 1);
+          FCharCount := 0;
+          Skip := True; // skip the new crlf
+        end;
+        
+      if FBuffer[i] = #10 then begin
+        System.Insert(#13, FBuffer, i);
+        FCharCount := 0;
+        Skip := True; // skip the new crlf
+      end;
+    end else if FCharCount >= 1000 then begin // line too long
+      System.Insert(CRLF, FBuffer, i);
+      FCharCount := 0;
+      Skip := True;
+    end else
+      Inc(FCharCount);
   end;
 end;
 
@@ -523,7 +512,7 @@ begin
   n := 1;
   Sent := 0;
   while (Length(FBuffer) > 0) and (n > 0) do begin
-    InsertCRLFs;
+    ClearCR_LF;
   
     n := FConnection.SendMessage(FBuffer);
     Sent := Sent + n;
@@ -615,10 +604,10 @@ end;
 
 procedure TLSMTPClient.SendMail(aMail: TMail);
 begin
-  if Length(aMail.MailText) > 0 then
-    SendMail(aMail.Sender, aMail.Recipients, aMail.Subject, aMail.MailText)
-  else if Assigned(aMail.MailStream) then
-    SendMail(aMail.Sender, aMail.Recipients, aMail.Subject, aMail.MailStream);
+  if Length(aMail.FMailText) > 0 then
+    SendMail(aMail.Sender, aMail.Recipients, aMail.Subject, aMail.FMailText)
+  else if Assigned(aMail.FMailStream) then
+    SendMail(aMail.Sender, aMail.Recipients, aMail.Subject, aMail.FMailStream);
 end;
 
 procedure TLSMTPClient.Helo(aHost: string = '');
@@ -664,16 +653,17 @@ end;
 procedure TLSMTPClient.Data(const Msg: string);
 begin
   if CanContinue(ssData, Msg, '') then begin
+    FBuffer := 'DATA ' + CRLF;
+    FDataBuffer := '';
+
     if Assigned(FStream) then begin
       if Length(Msg) > 0 then
-        FBuffer := 'DATA ' + Msg
-      else
-        FBuffer := 'DATA ';
+        FDataBuffer := Msg;
     end else
-      FBuffer := 'DATA ' + Msg + CRLF + '.' + CRLF;
-      
+      FDataBuffer := Msg + CRLF + '.' + CRLF;
+
     FStatus.Insert(MakeStatusRec(ssData, '', ''));
-    SendData(True);
+    SendData(False);
   end;
 end;
 
@@ -709,98 +699,56 @@ end;
 
 { TMail }
 
+function TMail.GetCount: Integer;
+begin
+  Result := FMailStream.Count;
+end;
+
+function TMail.GetSection(i: Integer): TMimeSection;
+begin
+  Result := FMailStream.Sections[i];
+end;
+
+procedure TMail.SetSection(i: Integer; const AValue: TMimeSection);
+begin
+  FMailStream.Sections[i] := aValue;
+end;
+
 constructor TMail.Create;
 begin
-
+  FMailStream := TMimeStream.Create;
 end;
 
 destructor TMail.Destroy;
 begin
-
+  FMailStream.Free;
 end;
 
-{ TAttachment }
-
-function TAttachment.GetAsText: string;
+procedure TMail.AddTextSection(const aText: string; const aCharSet: string);
 begin
-  Result := '';
-  raise Exception.Create('Not yet implemented');
+  FMailStream.AddTextSection(aText, aCharSet);
 end;
 
-constructor TAttachment.Create;
+procedure TMail.AddFileSection(const aFileName: string);
 begin
-  FData := TStringList.Create;
+  FMailStream.AddFileSection(aFileName);
 end;
 
-destructor TAttachment.Destroy;
+procedure TMail.AddStreamSection(aStream: TStream; const FreeStream: Boolean);
 begin
-  FData.Free;
-  inherited Destroy;
+  FMailStream.AddStreamSection(aStream, FreeStream);
 end;
 
-function TAttachment.LoadFromFile(const aFileName: string): Boolean;
+procedure TMail.DeleteSection(const i: Integer);
 begin
-  Result := False;
-  raise Exception.Create('Not yet implemented');
+  FMailStream.Delete(i);
 end;
 
-{ TAttachmentList }
-
-function TAttachmentList.GetCount: Integer;
+procedure TMail.RemoveSection(aSection: TMimeSection);
 begin
-  Result := FItems.Count;
+  FMailStream.Remove(aSection);
 end;
 
-function TAttachmentList.GetItem(i: Integer): TAttachment;
-begin
-  Result := TAttachment(FItems[i]);
-end;
-
-procedure TAttachmentList.SetItem(i: Integer; const AValue: TAttachment);
-begin
-  FItems[i] := aValue;
-end;
-
-constructor TAttachmentList.Create;
-begin
-  FItems := TFPObjectList.Create(True);
-end;
-
-destructor TAttachmentList.Destroy;
-begin
-  FItems.Free;
-  inherited Destroy;
-end;
-
-function TAttachmentList.Add(anAttachment: TAttachment): Integer;
-begin
-  Result := FItems.Add(anAttachment);
-end;
-
-function TAttachmentList.AddFromFile(const aFileName: string): Integer;
-var
-  Tmp: TAttachment;
-begin
-  Tmp := TAttachment.Create;
-  
-  if Tmp.LoadFromFile(aFileName) then
-    Result := FItems.Add(Tmp);
-end;
-
-function TAttachmentList.Remove(anAttachment: TAttachment): Integer;
-begin
-  Result := FItems.Remove(anAttachment);
-end;
-
-procedure TAttachmentList.Delete(const i: Integer);
-begin
-  FItems.Delete(i);
-end;
-
-procedure TAttachmentList.Clear;
-begin
-  FItems.Clear;
-end;
 
 end.
 

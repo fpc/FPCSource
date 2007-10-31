@@ -1,4 +1,4 @@
-{ lFTP CopyRight (C) 2005-2006 Ales Katona
+{ lFTP CopyRight (C) 2005-2007 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -70,8 +70,8 @@ type
 
     function GetConnected: Boolean; virtual;
     
-    function GetTimeout: DWord;
-    procedure SetTimeout(const Value: DWord);
+    function GetTimeout: Integer;
+    procedure SetTimeout(const Value: Integer);
     
     function GetSocketClass: TLSocketClass;
     procedure SetSocketClass(Value: TLSocketClass);
@@ -87,7 +87,7 @@ type
     
    public
     property Connected: Boolean read GetConnected;
-    property Timeout: DWord read GetTimeout write SetTimeout;
+    property Timeout: Integer read GetTimeout write SetTimeout;
     property SocketClass: TLSocketClass read GetSocketClass write SetSocketClass;
     property ControlConnection: TLTelnetClient read FControl;
     property DataConnection: TLTCP read FData;
@@ -280,12 +280,12 @@ begin
   Result := FControl.Connected;
 end;
 
-function TLFTP.GetTimeout: DWord;
+function TLFTP.GetTimeout: Integer;
 begin
   Result := FControl.Timeout;
 end;
 
-procedure TLFTP.SetTimeout(const Value: DWord);
+procedure TLFTP.SetTimeout(const Value: Integer);
 begin
   FControl.Timeout := Value;
   FData.Timeout := Value;

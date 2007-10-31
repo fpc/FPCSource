@@ -1,3 +1,26 @@
+{ lNet MIME Wrapper
+
+  CopyRight (C) 2007 Ales Katona
+
+  This library is Free software; you can rediStribute it and/or modify it
+  under the terms of the GNU Library General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or (at your
+  option) any later version.
+
+  This program is diStributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; withOut even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License
+  for more details.
+
+  You should have received a Copy of the GNU Library General Public License
+  along with This library; if not, Write to the Free Software Foundation,
+  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+  This license has been modified. See File LICENSE.ADDON for more inFormation.
+  Should you find these sources without a LICENSE File, please contact
+  me at ales@chello.sk
+}
+
 unit lMimeWrapper;
 
 {$mode objfpc}{$H+}
@@ -115,9 +138,9 @@ type
     function GetSize: Int64; override;
     function GetCount: Integer;
     function GetBoundary: string;
-    function GetSections(i: Integer): TMimeSection;
+    function GetSection(i: Integer): TMimeSection;
     function GetMimeHeader: string;
-    procedure SetSections(i: Integer; const AValue: TMimeSection);
+    procedure SetSection(i: Integer; const AValue: TMimeSection);
     procedure ActivateFirstSection;
     procedure ActivateNextSection;
     procedure DoRead(const aSize: Integer);
@@ -135,7 +158,7 @@ type
     procedure Remove(aSection: TMimeSection);
     procedure Reset;
    public
-    property Sections[i: Integer]: TMimeSection read GetSections write SetSections; default;
+    property Sections[i: Integer]: TMimeSection read GetSection write SetSection; default;
     property Count: Integer read GetCount;
     property Boundary: string read FBoundary;
   end;
@@ -529,7 +552,7 @@ begin
     Result := Result + Char(Random(Ord('9') - Ord('0') + 1) + Ord('0'));
 end;
 
-function TMimeStream.GetSections(i: Integer): TMimeSection;
+function TMimeStream.GetSection(i: Integer): TMimeSection;
 begin
   Result := nil;
   
@@ -550,7 +573,7 @@ begin
          '--' + FBoundary + CRLF;
 end;
 
-procedure TMimeStream.SetSections(i: Integer; const AValue: TMimeSection);
+procedure TMimeStream.SetSection(i: Integer; const AValue: TMimeSection);
 begin
   if  (i >= 0)
   and (i < FSections.Count) then
@@ -740,9 +763,17 @@ begin
   or (s = 'cpp')
   or (s = 'cc')
   or (s = 'h')
+  or (s = 'hh')
+  or (s = 'rb')
+  or (s = 'pod')
+  or (s = 'php')
+  or (s = 'php3')
+  or (s = 'php4')
+  or (s = 'php5')
   or (s = 'c++') then FContentType := 'text/plain';
   
-  if s = 'html' then FContentType := 'text/html';
+  if (s = 'html')
+  or (s = 'shtml') then FContentType := 'text/html';
   if s = 'css' then FContentType := 'text/css';
   
   if s = 'png' then FContentType := 'image/x-png';

@@ -1,4 +1,4 @@
-{ lTelnet CopyRight (C) 2004-2006 Ales Katona
+{ lTelnet CopyRight (C) 2004-2007 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -91,8 +91,8 @@ type
 
     function Question(const Command: Char; const Value: Boolean): Char;
     
-    function GetTimeout: DWord;
-    procedure SetTimeout(const Value: DWord);
+    function GetTimeout: Integer;
+    procedure SetTimeout(const Value: Integer);
 
     function GetSocketClass: TLSocketClass;
     procedure SetSocketClass(Value: TLSocketClass);
@@ -129,7 +129,7 @@ type
    public
     property Output: TMemoryStream read FOutput;
     property Connected: Boolean read FConnected;
-    property Timeout: DWord read GetTimeout write SetTimeout;
+    property Timeout: Integer read GetTimeout write SetTimeout;
     property OnReceive: TLSocketEvent read FOnReceive write FOnReceive;
     property OnDisconnect: TLSocketEvent read FOnDisconnect write FOnDisconnect;
     property OnConnect: TLSocketEvent read FOnConnect write FOnConnect;
@@ -222,7 +222,7 @@ begin
   Result := FConnection.SocketClass;
 end;
 
-function TLTelnet.GetTimeout: DWord;
+function TLTelnet.GetTimeout: Integer;
 begin
   Result := FConnection.Timeout;
 end;
@@ -232,7 +232,7 @@ begin
   FConnection.SocketClass := Value;
 end;
 
-procedure TLTelnet.SetTimeout(const Value: DWord);
+procedure TLTelnet.SetTimeout(const Value: Integer);
 begin
   FConnection.Timeout := Value;
 end;
