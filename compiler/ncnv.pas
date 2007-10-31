@@ -1714,7 +1714,8 @@ implementation
 
               te_convert_l1,
               te_convert_l2,
-              te_convert_l3 :
+              te_convert_l3,
+              te_convert_l4:
                 begin
                   result := simplify;
                   if assigned(result) then
