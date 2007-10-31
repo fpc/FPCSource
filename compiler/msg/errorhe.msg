@@ -4,7 +4,7 @@
 #
 #   Hebrew (CP1255) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 8090
+#   Based on errore.msg of SVN revision 8988
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -20,7 +20,6 @@
 # <part> is the part of the compiler the message is used
 #   asmr_     assembler parsing
 #   asmw_     assembler writing/binary writers
-
 #   unit_     unit handling
 #   scan_     scanner
 #   parser_   parser
@@ -127,7 +126,7 @@ general_i_number_of_notes=01023_I_הונפקו $1 הערות
 #
 # Scanner
 #
-# 02063 is the last used one
+# 02084 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -348,10 +347,14 @@ scanner_e_illegal_warn_state=02079_E_שימוש לא חוקי בהנחית $WARN
 scan_e_only_packset=02080_E_ערך של אריזה לא חוקי
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
 scan_w_pic_ignored=02081_W_מתעלם מהוראת PIC
-% Several targets like windows do not support the PIC directive and need it to be
+% Several targets like windows do not support neither need PIC so the PIC directive and switch are
 % ignored.
 scan_w_unsupported_switch_by_target=02082_W_המתג "$1" אינו נתמך בסוג תוצאה שנבחר
-% Some compiler switches like $E are not supported by all targets.
+% Some compiler switches like \$E are not supported by all targets.
+scan_w_frameworks_darwin_only=02084_W_אפשרויות מבוססות מסגרת נתמכות רק עבור Darwin/Mac OS X
+% Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
+scan_e_illegal_minfpconstprec=02085_E_דיוק הערך הקבוע של הנקודה העשרונית המינימלית "$1" אינו חוקי
+% Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
 % \end{description}
 #
 # Parser
@@ -428,7 +431,7 @@ parser_e_overloaded_have_same_parameters=03028_E_פונקציות מרובות שימוש מכילות את
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
-parser_e_header_dont_match_forward=03029_E_הגדרת הפונקציה אינה תואמת את ההגדרה המקדימה "$1"
+parser_e_header_dont_match_forward=03029_E_הגדרת הפונקציה אינה תואמת את ההגדרה הקודמת "$1"
 % You declared a function with same parameters but
 % different result type or function modifiers.
 parser_e_header_different_var_names=03030_E_הגדרת הפונקציה "$1" אינה תואמת את המימוש: שם משתנה השתנה $2 => $3
@@ -636,7 +639,7 @@ parser_e_no_new_or_dispose_for_classes=03086_E_התחביר המורחב של NEW או DISPOSE ל
 parser_e_procedure_overloading_is_off=03088_E_האפשרות לפרוצדורות מרובות שימוש כבוי
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
-parser_e_overload_operator_failed=03089_E_לא ניתן להעמיס על סוג האופרטור הנוכחי
+parser_e_overload_operator_failed=03089_E_לא ניתן להעמיס על סוג האופרטור הנוכחי. העמסת האופרטורים הקשורים לפעולה (אם בכלל) הם: $1
 % You are trying to overload an operator which cannot be overloaded.
 % The following operators can be overloaded :
 % \begin{verbatim}
@@ -1119,18 +1122,6 @@ parser_e_type_object_constants=03230_E_השימוש בקבועים של אובייקטים המכילים VMT א
 parser_e_label_outside_proc=03231_E_שימוש בכתובת של תוויות המוכרזות מחוץ למתחם הנוכחי אינו מורשה
 % It isn't allowed to take the addresss of labels outside the
 % current procedure.
-parser_f_no_anonymous_specializations=03232_F_פירוט של generic אנונימי אינו מורשה
-% Something like
-% \begin{verbatim}
-% var
-%   MyLinkedList: specialize TLinkedList<TFixedString15>;
-% \end{verbatim}
-% is not allowed. Declare a specialized type first:
-% \begin{verbatim}
-% type
-%   TMyLinkedList = specialize TLinkedList<TFixedString15>;
-% var
-%   MyLinkedList: TMyLinkedList
 parser_e_initialized_not_for_external=03233_E_לא ניתן לאתחל ערך ברירת מחדל למשתנים המוגדרים כexternal
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_טיפוס החזרה של הפונקציה אינו חוקי
@@ -1141,6 +1132,11 @@ parser_e_no_common_type=03235_E_אין טיפוס משותף ל "$1" ו "$2"
 % common type of the operands, the compiler takes the minimum of the minimal values
 % of both types, and the maximum of the maximal values of both types. The common
 % type is then minimum..maximum.
+parser_e_no_generics_as_types=03236_E_Generics ללא specialization אינו יכול להיות בשימוש בתור טיפוס למשתנה
+% Generics must be always specialized before being used as variable type
+parser_w_register_list_ignored=03237_W_מתעלם מרשימת האוגרים עבור שגרות assemblter טהורות
+% When using pure assembler routines, the list with modified registers is ignored.
+
 % \end{description}
 #
 # Type Checking
@@ -1416,9 +1412,9 @@ type_h_convert_mul_operands_to_prevent_overflow=04081_H_המרת האופרנד "$1" לפני פ
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
 type_w_pointer_to_signed=04082_W_המרת מצביעים למספרים שלמים עם סימן עלולה לגרום לשגיאות בתוצאות השוואה ובטווחים. יש להשתמש במקום זאת בטיפוס ללא סימן.
-% The virtual address space on 32-bit machines runs from $00000000 to $ffffffff. Many operating systems allow you to
-% allocate memory above $80000000, for example both Windows and Linux allow pointers in the range $0000000 to $bfffffff.
-% If you convert pointers to signed types, this can cause overflow and range check errors, but also $80000000 < $7fffffff.
+% The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff. Many operating systems allow you to
+% allocate memory above \$80000000, for example both Windows and Linux allow pointers in the range \$0000000 to \$bfffffff.
+% If you convert pointers to signed types, this can cause overflow and range check errors, but also \$80000000 < \$7fffffff.
 % This can cause random errors in code like "if p>q".
 % \end{description}
 #
@@ -1713,6 +1709,9 @@ cg_f_unknown_system_type=06047_F_לא ניתן למצוא טיפוס מערכת "$1". בדוק האם אתה מש
 cg_h_inherited_ignored=06048_H_מתעלם מהשימוש בinherited במתודה מסוג abstract
 % This messages appears only in Delphi mode when you call an abstract method
 % of a parent class via \var{inherited;}. The call is then ignored.
+cg_e_goto_label_not_found=06049_E_תווית ה Goto "$1" לא הוגדרה או לא עברה אופטימיזציה
+% The label used in the goto definition is not defined or optimized away by the
+% unreachable code elemination.
 % \end{description}
 # EndOfTeX
 
@@ -2467,16 +2466,16 @@ option_help_pages=11025_[
 **1A<x>_תסדירי פלט:
 **2Adefault_השתמש במאסף ברירת מחדל
 3*2Aas_אסוף עם GNU AS
-3*2Anasmcoff_קובץ coff (Go32v2) בשימוש עם Nasm
-3*2Anasmelf_קובץ elf32 (Linux) בשימוש עם Nasm
+3*2Anasmcoff_קובץ COFF (Go32v2) בשימוש עם Nasm
+3*2Anasmelf_קובץ ELF32 (Linux) בשימוש עם Nasm
 3*2Anasmwin32_קובץ אובייקט Win32 בשימוש עם Nasm
 3*2Anasmwdosx_קובץ אובייקט Win32/WDOSX בשימוש עם Nasm
 3*2Awasm_קובץ obj בשימוש עם Wasm (Watcom)
 3*2Anasmobj_קובץ obj בשימוש עם Nasm
 3*2Amasm_קובץ obj בשימוש עם Masm (Microsoft)
 3*2Atasm_קובץ obj בשימוש Tasm (Borland)
-3*2Aelf_קובץ elf32 (Linux) בשימוש כותב פנימי
-3*2Acoff_קובץ coff (Go32v2) בשימוש כותב פנימי
+3*2Aelf_קובץ ELF32 (Linux) בשימוש כותב פנימי
+3*2Acoff_קובץ OFF (Go32v2) בשימוש כותב פנימי
 3*2Apecoff_קובץ pecoff (Win32) בשימוש כותב פנימי
 4*2Aas_אסוף עם GNU AS
 6*2Aas_קובץ-o Unix בשימוש GNU AS
@@ -2494,11 +2493,13 @@ S*2Aas_אסוף עם GNU AS
 **2CD_צור גם ספרייה דינאמית (לא נתמך)
 **2Ce_מהדר עם הדמייה של opcodes השייכים לנקודה צפה
 **2Cf<x>_בחר הוראות FPU לשימוש, ראה fpc -i לערכים אפשריים
+**2CF<x>_דיוק נקודה עשרונית קבועה מינימלית (default, 32, 64)
 **2Cg_צור קוד PIC
 **2Ch<n>_כמות של <n> בתים ל מצבור (בין 1023 ו67107840)
 **2Ci_בדיקת IO
 **2Cn_השמט מצב קישור
 **2Co_בדוק גלישה של פעולות מספר שלם
+**2CO_בדוק עבור פעולות גלישה אפשרויות של מספר שלם
 **2Cp<x>_בחר קבוצת הוראות, ראה fpc -i לערכים אפשריים
 **2CP<x>=<y>_הגדרות אריזה
 **3CPPACKSET=<y>_ <y> מסדר הקצאה: 0, 1 או DEFAULT או NORMAL, 2, 4 ו 8
@@ -2518,8 +2519,10 @@ S*2Aas_אסוף עם GNU AS
 **1F<x>_קובע שם קבצים ומיקומים:
 **2Fa<x>[,y]_קודם טוען את היחידות <x> ו [y] ראשונות, לפני ניתוח שורת ה uses
 **2Fc<x>_קובע קוד דף של קלט ל<x>
+**2FC<x>_קבע שם מהדר RC בינארי ל <x>
 **2FD<x>_קובע את הספרייה בה אפשר לחפש את כלי העזר של המהדר
 **2Fe<x>_הפנה הודעות שגיאה ל<x>
+**2Ff<x>_הוסף את <x> לנתיב המסגרת (רק ב Darwin)
 **2FE<x>_הפנה פלט של exe/unit לנתיב <x>
 **2Fi<x>_מוסיף את <x> לרשימת הנתיבים
 **2Fl<x>_מוסיף את <x> לרשימת הנתיבים של הספריה
@@ -2527,18 +2530,22 @@ S*2Aas_אסוף עם GNU AS
 **2Fm<x>_טוען טבלת המרה של יוניקוד מהקובץ x>.txt> מספריית המהדר
 **2Fo<x>_מוסיף את <x> לרשינת הנתיבים של אובייקט
 **2Fr<x>_טוען קובץ הודעות שגיאה <x>
+**2FR<x>_קבע מקשר לקובץ res ל <x>
 **2Fu<x>_מוסיף את <x> לרשימת הנתיבים של יחידה
 **2FU<x>_קובע את המיקום הפלט של היחידות ל <x> ומשכתב את -FE
 *g1g_יוצר מידע לניפוי שגיאות
 *g2gc_יוצר בדיקות למצביעים
-*g2gd_משתמש ב dbx
-*g2gg_משתמש ב gsym
-*g2gh_משתמש ביחידה לזיהוי מצבורים (לניפוי שגיאות של דליפות זכרון)
+*g2gh_השתמש ביחידה heaptrace (עבור דליפות זכרון/בעיות בניפוי שגיאות)
 *g2gl_השתמש ביחידת מידע של שורה להציג מידע נוסף לbacktraces
+*g2go<x>_צור אפשרויות לניפוי שגיאות
+*g3godwarfsets_אפשר מידע לניהול מידע עבור ניפוי שגיאות של Dwarf (שובר את gdb < 6.5)
 *g2gp_משמר גודל שמות סמלי הstabs
+*g2gs_מייצר מידע לניפוי שגיאות stub
 *g2gt_לכלך משתנים מקומיים (לזיהוי מידע לא מאותחל)
 *g2gv_מייצר תוכנות עם יכולת מעקב של valgrind
 *g2gw_מייצר מידע לניפוי שגיאות לdwarf
+*g2gw2_מיצר מידע לניפוי שגיאות dwarf-2
+*g2gw3_מיצר מידע לניפוי שגיאות dwarf-3
 **1i_מידע
 **2iD_הצג תאריך המהדר
 **2iV_הצג גרסת המהדר
@@ -2551,7 +2558,7 @@ S*2Aas_אסוף עם GNU AS
 **1k<x>_העבר את <x> למקשר
 **1l_כתוב סמליל
 **1M<x>_הגדר מצב שפה ל <x>
-**2Mfpc_להג של Free Pascal (ברירת מחדל)
+**2Mfpc_דיאלקט של Free Pascal (ברירת מחדל)
 **2Mobjfpc_אפשר כמה תוספות של Delphi 2
 **2Mdelphi_מנסה להיות תואם Delphi
 **2Mtp_מנסה להיות תואם ל TP/BP 7.0
@@ -2594,7 +2601,6 @@ S*2Aas_אסוף עם GNU AS
 **3SIcorba_תואם ממשקי CORBA
 **2Sm_תמוך במקרו דומים לC (גלובליים)
 **2So_זהה ל -Mtp
-**2Sp_זהה ל -Mgpc
 **2Ss_שם יוצר חייב להיות init (שם הורס חייב להיות done)
 **2St_אפשר מילות מפתח באובייקטים
 **2Sx_אפשר מילות מפתח לexception (ברירת מחדל במצבי Delphi/ObjFPC)
@@ -2654,35 +2660,47 @@ S*2Tlinux_Linux
 **2*_b : כתוב הודעות עם שמות קבצים ונתיבים מלאים
 **2*_v : כתוב את הקובץ fpcdebug.txt עם הרבה מידע על ניפוי שגיאות
 **2*_p : כתוב את הקובץ tree.log עם ניתוח עץ
-3*1W<x>_אופציות מטרה לWin32
-3*2WB_צור תמונה שניתן למקם אותה מחדש
-3*2WB<x>_צור תמונה מבוססת על מספר הקסה-דצימלי עם ערך של <x>
-3*2WC_מציין יישום למסוף
-3*2WD_השתמש ב DEFFILE לייצא פנקציות של DLL או EXE
-3*2WF_מציין יישום מסך מלא (OS/2 בלבד)
-3*2WG_מציין יישום גרפי
-3*2WN_אל תיצור קוד משנה מיקום (חיוני לניפוי שגיאות)
-3*2WR_צור קוד משנה מיקום
-P*2WC_מציין יישום מסוף (Mac OS בלבד)
-P*2WG_מציין יישום גרפי (Mac OS בלבד)
-P*2WT_מציין יישום מסוג כלי (כלי MPW, Mac OS בלבד)
-**1X_הגדרות קבצי ריצה:
-**2Xc_העבר --shared למקשר (Unix בלבד)
-**2Xd_אל תשתמש בנתיבי חיפוש ספריות תיקניים (נדרש בזמן הידור צולב )
+3*1W<x>_אפשרות מבוססת מטרה (מטרות)
+A*1W<x>_אפשרות מבוססת מטרה (מטרות)
+P*1W<x>_אפשרות מבוססת מטרה (מטרות)
+3*2Wb_צור חבילה במקום ספרייה (Darwin)
+P*2Wb_צור חבילה במקום ספרייה (Darwin)
+p*2Wb_צור חבילה במקום ספרייה (Darwin)
+3*2WB_צור תמונה הניתנת למיקום מחודש (Windows)
+A*2WB_צור תמונה הניתנת למיקום מחודש (Windows, Symbian)
+3*2WC_מציין אפליקציה מסוג מסוף (EMX, OS/2, Windows)
+A*2WC_מציין אפליקציה מסוג מסוף (Windows)
+P*2WC_מציין אפליקציה מסוג מסוף (Classic Mac OS)
+3*2WD_השתמש ב DEFFILE לייצא פנקציות של DLL או EXE (Windows)
+A*2WD_השתמש ב DEFFILE לייצא פנקציות של DLL או EXE (Windows)
+3*2WF_מציין אפליקציה מסוג מסך מלא (EMX, OS/2)
+3*2WG_מציין אפליקציה מסוג גרפי (EMX, OS/2, Windows)
+A*2WG_מציין אפליקציה מסוג גרפי (Windows)
+P*2WG_מציין אפליקציה מסוג גרפי (Classic Mac OS)
+3*2WN_אל תצור קוד משנה מיקום, נדרש עבור ניפוי שגיאות (Windows)
+A*2WN_אל תצור קוד משנה מיקום, נדרש עבור ניפוי שגיאות (Windows)
+3*2WR_תיצור קוד משנה מיקום (Windows)
+A*2WR_תיצור קוד משנה מיקום (Windows)
+P*2WT_ציין אפליקציה מסוג כלי MPW (Classic Mac OS)
+**1X_הגדרות ריצה:
+**2Xc_העבר --shared/-dynamic למקשר (BeOS, Darwin, FreeBSD, Linux)
+**2Xd_אל תשתמש בנתיב חיפוש הספריות הסטנדרטיות (נדרש עבור הידור לארכיטקטורות אחרות)
 **2Xe_השתמש במקשר חיצוני
-**2XD_נסה לקשר יחידות בצורה דינמית (מגדיר FPC_LINK_DYNAMIC)
+**2XD_נסה לקשר יחידות בצורה דינאמית (מגדיר FPC_LINK_DYNAMIC)
 **2Xi_השתמש במקשר פנימי
 **2Xm_צור מפת קישורים
-**2XM<x>_הצב את השם של השגרה 'main' בתוכנה (ברירת המחדל הינה 'main')
-**2XP<x>_הוסף תחילית של שמות binutils עם המקדם <x>
-**2Xr<x>_הצב נתיב חיפוש ספריות ל <x> (נדרש בזמן הידור צולב)
-**2Xs_נקה את כל הסמלים מקובץ הריצה
-**2XS_נסה לקשר יחידות בצורה סטטית (ברירת מחדל) (מגדיר את FPC_LINK_STATIC)
-**2Xt_קשר עם ספריות סטטיות (המתג -static מועבר למקשר)
-**2XX_נסה לקשר יחידות בצורה חכמה (מגדיר את FPC_LINK_SMART)
+**2XM<x>_הגדר את השם של רוטינה ה'עיקרית' של התוכנה (ברירת מחדל הוא 'main')
+**2XP<x>_צרף את השמות המגיעים עם התחילית <x> מbinutils
+**2Xr<x>_הגדר את נתיב חיפוש הספריות ל <x> (נדרש עבור הידור לארכיטקטורות אחרות) (BeOS, Linux)
+**2XR<x>_צרף את <x> לכל נתיבי החיפוש של המקשר (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
+**2Xs_נקה את כל הסמלים מקבצי ההרצה
+**2XS_נסה לקשר יחידות בצורה סטטית (ברירת מחדל, מגדיר FPC_LINK_STATIC)
+**2Xt_קשר עם ספריות סטטיות (מעביר -static למקשר)
+**2XX_תנסה לבצע smartlink ליחידות (מגדיר FPC_LINK_SMART)
 **1*_
-**1?_הצג את העזרה הנוכחית
-**1h_הצג את העזרה הנוכחית ללא עצירה
+**1?_הצג את עזרה זו
+**1h_הצג עזרה זו ללא לחכות
+
 ]
 
 #
