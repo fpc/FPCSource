@@ -1109,11 +1109,11 @@ begin
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
-  
-  SysResetFPU;  
+
+  SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
-  
+
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then

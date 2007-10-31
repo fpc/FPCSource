@@ -653,6 +653,11 @@ end;
                          Stack check code
 *****************************************************************************}
 
+{ be compatible with old code }
+{$ifdef FPC_NO_GENERIC_STACK_CHECK}
+{$define NO_GENERIC_STACK_CHECK}
+{$endif FPC_NO_GENERIC_STACK_CHECK}
+
 {$IFNDEF NO_GENERIC_STACK_CHECK}
 
 {$IFOPT S+}
