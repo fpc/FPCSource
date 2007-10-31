@@ -867,6 +867,8 @@ implementation
         elesize : longint;
         tmpreg  : tregister;
         paraloc : tcgparalocation;
+        otlabel,
+        oflabel : tasmlabel;
       begin
         if is_packed_array(resultdef) then
           internalerror(200608042);
@@ -891,12 +893,26 @@ implementation
            if assigned(hp.left) then
             begin
               freetemp:=true;
+              if (hp.left.expectloc=LOC_JUMP) then
+                begin
+                  otlabel:=current_procinfo.CurrTrueLabel;
+                  oflabel:=current_procinfo.CurrFalseLabel;
+                  current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+                  current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+                end;
               secondpass(hp.left);
-              if codegenerror then
-               exit;
               { Move flags and jump in register }
               if hp.left.location.loc in [LOC_FLAGS,LOC_JUMP] then
                 location_force_reg(current_asmdata.CurrAsmList,hp.left.location,def_cgsize(hp.left.resultdef),false);
+
+              if (hp.left.location.loc=LOC_JUMP) then
+                begin
+                  if (hp.left.expectloc<>LOC_JUMP) then
+                    internalerror(2007103101);
+                  current_procinfo.CurrTrueLabel:=otlabel;
+                  current_procinfo.CurrFalseLabel:=oflabel;
+                end;
+
               if dovariant then
                begin
                  { find the correct vtype value }
