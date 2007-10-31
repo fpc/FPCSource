@@ -14,8 +14,9 @@
  **********************************************************************}
 
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
-function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;assembler;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
+function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;assembler;nostackframe;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
 asm
+  stmfd sp!,{r4,r5,r6,r14}
   mov r6,#0
   // lo(f1)*lo(f2)
   umull r4,r5,r0,r2
@@ -32,8 +33,8 @@ asm
   mov r1,r5
   // no overflow?
   beq .Lexit
-
-  ldr r2,checkoverflow
+  // checkoverflow?
+  ldr r2,[sp,#24]
   cmp r2,#0
   beq .Lexit
 
@@ -41,6 +42,7 @@ asm
   mov r1,fp
   bl HandleErrorFrame
 .Lexit:
-end ['r4','r5','r6'];
+  ldmfd sp!,{r4,r5,r6,r15}
+end;
 
 
