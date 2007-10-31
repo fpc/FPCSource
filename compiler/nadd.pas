@@ -868,6 +868,33 @@ implementation
         rt:=right.nodetype;
         lt:=left.nodetype;
 
+         { 4 character constant strings are compatible with orddef }
+         { in macpas mode (become cardinals)                       }
+         if (m_mac in current_settings.modeswitches) and
+            { only allow for comparisons, additions etc are }
+            { normally program errors                       }
+            (nodetype in [ltn,lten,gtn,gten,unequaln,equaln]) and
+            (((lt=stringconstn) and
+              (tstringconstnode(left).len=4) and
+              (rd.typ=orddef)) or
+             ((rt=stringconstn) and
+              (tstringconstnode(right).len=4) and
+              (ld.typ=orddef))) then
+           begin
+             if (rt=stringconstn) then
+               begin
+                 inserttypeconv(right,u32inttype);
+                 rt:=right.nodetype;
+                 rd:=right.resultdef;
+               end
+             else
+               begin
+                 inserttypeconv(left,u32inttype);
+                 lt:=left.nodetype;
+                 ld:=left.resultdef;
+               end;
+           end;
+
          { but an int/int gives real/real! }
          if (nodetype=slashn) and not(is_vector(left.resultdef)) and not(is_vector(right.resultdef)) then
           begin
@@ -1338,7 +1365,7 @@ implementation
                             CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                           inserttypeconv(right,left.resultdef)
                         end
-			else if is_voidpointer(left.resultdef) then
+                        else if is_voidpointer(left.resultdef) then
                           inserttypeconv(left,right.resultdef)
                         else if not(equal_defs(ld,rd)) then
                           IncompatibleTypes(ld,rd);

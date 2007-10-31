@@ -6970,6 +6970,7 @@ tests/test/tmacpas1.pp svneol=native#text/plain
 tests/test/tmacpas2.pp svneol=native#text/plain
 tests/test/tmacpas3.pp svneol=native#text/plain
 tests/test/tmacpas4.pp svneol=native#text/plain
+tests/test/tmacpas5.pp svneol=native#text/plain
 tests/test/tmacprocvar.pp svneol=native#text/plain
 tests/test/tmath1.pp svneol=native#text/plain
 tests/test/tmcbool2.pp svneol=native#text/plain
