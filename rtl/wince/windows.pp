@@ -49,6 +49,7 @@ interface
 {$i iphlpapi.inc}
 {$i simmgr.inc}
 {$i tapi.inc}
+{$i notify.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
