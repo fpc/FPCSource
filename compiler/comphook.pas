@@ -87,6 +87,7 @@ type
     datasize      : aint;
   { program info }
     isexe,
+    ispackage,
     islibrary     : boolean;
   { Settings for the output }
     verbosity     : longint;

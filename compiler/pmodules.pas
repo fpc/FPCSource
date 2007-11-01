@@ -26,6 +26,7 @@ unit pmodules;
 interface
 
     procedure proc_unit;
+    procedure proc_package;
     procedure proc_program(islibrary : boolean);
 
 
@@ -1187,6 +1188,306 @@ implementation
       end;
 
 
+    procedure insert_export(sym : TObject;arg:pointer);
+      var
+        hp : texported_item;
+        i : longint;
+      begin
+        case TSym(sym).typ of
+          { ignore: }
+          unitsym,
+          syssym,
+          constsym,
+          enumsym,
+          typesym:
+            ;
+          procsym:
+            begin
+              for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
+                begin
+                  if not(tprocdef(tprocsym(sym).ProcdefList[i]).proccalloption in [pocall_internproc]) then
+                    begin
+                      hp:=texported_item.create;
+                      // hp.sym:=tsym(sym);
+                      hp.name:=stringdup(tprocdef(tprocsym(sym).ProcdefList[i]).mangledname);
+                      hp.options:=hp.options or eo_name;
+                      exportlib.exportprocedure(hp)
+                    end;
+                end;
+            end;
+          staticvarsym:
+            begin
+              hp:=texported_item.create;
+              // hp.sym:=tsym(sym);
+              hp.name:=stringdup(tsym(sym).mangledname);
+              hp.options:=hp.options or eo_name;
+              exportlib.exportvar(hp);
+            end;
+          else
+            begin
+              writeln('unknown: ',ord(TSym(sym).typ));
+            end;
+        end;
+      end;
+
+
+    procedure proc_package;
+      var
+        main_file : tinputfile;
+        hp,hp2    : tmodule;
+        finalize_procinfo,
+        init_procinfo,
+        main_procinfo : tcgprocinfo;
+        force_init_final : boolean;
+        uu : tused_unit;
+      begin
+         Status.IsPackage:=true;
+         Status.IsExe:=true;
+         parse_only:=false;
+         main_procinfo:=nil;
+         init_procinfo:=nil;
+         finalize_procinfo:=nil;
+
+         if not RelocSectionSetExplicitly then
+           RelocSection:=true;
+
+         { Relocation works only without stabs under Windows when }
+         { external linker (LD) is used.  LD generates relocs for }
+         { stab sections which is not loaded in memory. It causes }
+         { AV error when DLL is loaded and relocation is needed.  }
+         { Internal linker does not have this problem.            }
+         if RelocSection and
+            (target_info.system in system_all_windows+[system_i386_wdosx]) and
+            (cs_link_extern in current_settings.globalswitches) then
+           begin
+              include(current_settings.globalswitches,cs_link_strip);
+              { Warning stabs info does not work with reloc section !! }
+              if cs_debuginfo in current_settings.moduleswitches then
+                begin
+                  Message1(parser_w_parser_reloc_no_debug,current_module.mainsource^);
+                  Message(parser_w_parser_win32_debug_needs_WN);
+                  exclude(current_settings.moduleswitches,cs_debuginfo);
+                end;
+           end;
+         { get correct output names }
+         main_file := current_scanner.inputfile;
+         while assigned(main_file.next) do
+           main_file := main_file.next;
+
+         current_module.SetFileName(main_file.path^+main_file.name^,true);
+
+         consume(_ID);
+         current_module.setmodulename(orgpattern);
+         current_module.ispackage:=true;
+         exportlib.preparelib(orgpattern);
+
+         if tf_library_needs_pic in target_info.flags then
+           include(current_settings.moduleswitches,cs_create_pic);
+
+         consume(_ID);
+         consume(_SEMICOLON);
+
+         { global switches are read, so further changes aren't allowed }
+         current_module.in_global:=false;
+
+         { setup things using the switches }
+         setupglobalswitches;
+
+         { set implementation flag }
+         current_module.in_interface:=false;
+         current_module.interface_compiled:=true;
+
+         { insert after the unit symbol tables the static symbol table }
+         { of the program                                             }
+         current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
+
+         {Load the units used by the program we compile.}
+         if token=_REQUIRES then
+           begin
+           end;
+
+         {Load the units used by the program we compile.}
+         if (token=_ID) and (idtoken=_CONTAINS) then
+           begin
+             consume(_ID);
+             while true do
+               begin
+                 if token=_ID then
+                   AddUnit(pattern);
+                 consume(_ID);
+                 if token=_COMMA then
+                   consume(_COMMA)
+                 else break;
+               end;
+             consume(_SEMICOLON);
+           end;
+
+         { reset ranges/stabs in exported definitions }
+         reset_all_defs;
+
+         { All units are read, now give them a number }
+         current_module.updatemaps;
+
+         {Insert the name of the main program into the symbol table.}
+         if current_module.realmodulename^<>'' then
+           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+
+         Message1(parser_u_parsing_implementation,current_module.mainsource^);
+
+         symtablestack.push(current_module.localsymtable);
+
+         { should we force unit initialization? }
+         force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
+         if force_init_final then
+           init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
+
+         { Add symbol to the exports section for win32 so smartlinking a
+           DLL will include the edata section }
+         if assigned(exportlib) and
+            (target_info.system in [system_i386_win32,system_i386_wdosx]) and
+            ((current_module.flags and uf_has_exports)<>0) then
+           current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',current_module.localsymtable,''),0));
+
+         { all labels must be defined before generating code }
+         if Errorcount=0 then
+           tstoredsymtable(current_module.localsymtable).checklabels;
+
+         symtablestack.pop(current_module.localsymtable);
+
+         { consume the last point }
+         consume(_END);
+         consume(_POINT);
+
+         if (Errorcount=0) then
+           begin
+             { test static symtable }
+             tstoredsymtable(current_module.localsymtable).allsymbolsused;
+             tstoredsymtable(current_module.localsymtable).allprivatesused;
+             tstoredsymtable(current_module.localsymtable).check_forwards;
+             tstoredsymtable(current_module.localsymtable).unchain_overloaded;
+
+             current_module.allunitsused;
+           end;
+
+         new_section(current_asmdata.asmlists[al_globals],sec_data,'_FPCDummy',4);
+         current_asmdata.asmlists[al_globals].concat(tai_symbol.createname_global('_FPCDummy',AT_DATA,0));
+         current_asmdata.asmlists[al_globals].concat(tai_const.create_32bit(0));
+
+         new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
+         current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
+         current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
+
+         { leave when we got an error }
+         if (Errorcount>0) and not status.skip_error then
+           begin
+             Message1(unit_f_errors_in_unit,tostr(Errorcount));
+             status.skip_error:=true;
+             exit;
+           end;
+
+         { remove all unused units, this happends when units are removed
+           from the uses clause in the source and the ppu was already being loaded }
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) do
+          begin
+            hp2:=hp;
+            hp:=tmodule(hp.next);
+            if hp2.is_unit and
+               not assigned(hp2.globalsymtable) then
+              loaded_units.remove(hp2);
+          end;
+
+         { force exports }
+         uu:=tused_unit(usedunits.first);
+         while assigned(uu) do
+           begin
+             uu.u.globalsymtable.symlist.ForEachCall(@insert_export,nil);
+             uu:=tused_unit(uu.next);
+           end;
+
+{$ifdef arm}
+         { Insert .pdata section for arm-wince.
+           It is needed for exception handling. }
+         if target_info.system in [system_arm_wince] then
+           InsertPData;
+{$endif arm}
+
+         { generate imports }
+         if current_module.ImportLibraryList.Count>0 then
+           importlib.generatelib;
+
+         { generate debuginfo }
+         if (cs_debuginfo in current_settings.moduleswitches) then
+           current_debuginfo.inserttypeinfo;
+
+         exportlib.generatelib;
+
+         { Reference all DEBUGINFO sections from the main .fpc section }
+         if (cs_debuginfo in current_settings.moduleswitches) then
+           current_debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
+
+         { insert own objectfile }
+         insertobjectfile;
+
+         { assemble and link }
+         create_objectfile;
+
+         { We might need the symbols info if not using
+           the default do_extractsymbolinfo
+           which is a dummy function PM }
+         needsymbolinfo:=do_extractsymbolinfo<>@def_extractsymbolinfo;
+         { release all local symtables that are not needed anymore }
+         if (not needsymbolinfo) then
+           free_localsymtables(current_module.localsymtable);
+
+         { leave when we got an error }
+         if (Errorcount>0) and not status.skip_error then
+          begin
+            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            status.skip_error:=true;
+            exit;
+          end;
+
+         if (not current_module.is_unit) then
+           begin
+             { create the executable when we are at level 1 }
+             if (compile_level=1) then
+               begin
+                 { create global resource file by collecting all resource files }
+                 CollectResourceFiles;
+                 { write .def file }
+                 if (cs_link_deffile in current_settings.globalswitches) then
+                   deffile.writefile;
+                 { insert all .o files from all loaded units and
+                   unload the units, we don't need them anymore.
+                   Keep the current_module because that is still needed }
+                 hp:=tmodule(loaded_units.first);
+                 while assigned(hp) do
+                  begin
+                    { the package itself contains no code so far }
+                    linker.AddModuleFiles(hp);
+                    hp2:=tmodule(hp.next);
+                    if (hp<>current_module) and
+                       (not needsymbolinfo) then
+                      begin
+                        loaded_units.remove(hp);
+                        hp.free;
+                      end;
+                    hp:=hp2;
+                  end;
+                 linker.MakeSharedLibrary
+               end;
+
+             { Give Fatal with error count for linker errors }
+             if (Errorcount>0) and not status.skip_error then
+              begin
+                Message1(unit_f_errors_in_unit,tostr(Errorcount));
+                status.skip_error:=true;
+              end;
+          end;
+      end;
+
+
     procedure proc_program(islibrary : boolean);
       var
          main_file : tinputfile;
@@ -1198,6 +1499,7 @@ implementation
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
+         Status.IsPackage:=false;
          Status.IsExe:=true;
          parse_only:=false;
          main_procinfo:=nil;

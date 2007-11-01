@@ -638,7 +638,7 @@ implementation
 
     procedure TExportLibWin.exportprocedure(hp : texported_item);
       begin
-        if ((hp.options and eo_index)<>0)and((hp.index<=0) or (hp.index>$ffff)) then
+        if ((hp.options and eo_index)<>0) and ((hp.index<=0) or (hp.index>$ffff)) then
           begin
            message1(parser_e_export_invalid_index,tostr(hp.index));
            exit;
@@ -705,9 +705,9 @@ implementation
          autoindex:=1;
          while EList_nonindexed.Count>0 do
           begin
-           hole:=(EList_indexed.Count>0)and(texported_item(EList_indexed.Items[0]).index>1);
+           hole:=(EList_indexed.Count>0) and (texported_item(EList_indexed.Items[0]).index>1);
            if not hole then
-            for i:=autoindex to pred(EList_indexed.Count)do
+            for i:=autoindex to pred(EList_indexed.Count) do
              if texported_item(EList_indexed.Items[i]).index-texported_item(EList_indexed.Items[pred(i)]).index>1 then
               begin
                autoindex:=succ(texported_item(EList_indexed.Items[pred(i)]).index);
@@ -726,8 +726,8 @@ implementation
            texported_item(EList_indexed.Items[pred(AutoIndex)]).index:=autoindex;
           end;
          FreeAndNil(EList_nonindexed);
-         for i:=0 to pred(EList_indexed.Count)do
-          exportfromlist(texported_item(EList_indexed.Items[i]));
+         for i:=0 to pred(EList_indexed.Count) do
+           exportfromlist(texported_item(EList_indexed.Items[i]));
          FreeAndNil(EList_indexed);
 
          if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
@@ -856,14 +856,19 @@ implementation
                    address_table.concat(Tai_const.Create_32bit(0));
                    inc(current_index);
                 end;
-              case hp.sym.typ of
-                staticvarsym :
-                  asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);
-                procsym :
-                  asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname);
-                else
-                  internalerror(200709272);
-              end;
+
+              { symbol known? then get a new name }
+              if assigned(hp.sym) then
+                case hp.sym.typ of
+                  staticvarsym :
+                    asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);
+                  procsym :
+                    asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname)
+                  else
+                    internalerror(200709272);
+                end
+              else
+                asmsym:=current_asmdata.RefAsmSymbol(hp.name^);
               address_table.concat(Tai_const.Create_rva_sym(asmsym));
               inc(current_index);
               hp:=texported_item(hp.next);

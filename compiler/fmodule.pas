@@ -115,6 +115,7 @@ interface
         interface_crc : cardinal;
         flags         : cardinal;  { the PPU flags }
         islibrary     : boolean;  { if it is a library (win32 dll) }
+        IsPackage     : boolean;
         moduleid      : longint;
         unitmap       : punitmap; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
@@ -498,6 +499,7 @@ implementation
         in_global:=true;
         is_unit:=_is_unit;
         islibrary:=false;
+        ispackage:=false;
         is_dbginfo_written:=false;
         is_reset:=false;
         mode_switch_allowed:= true;

@@ -378,6 +378,11 @@ implementation
                  current_module.is_unit:=true;
                  proc_unit;
                end
+             else if (token=_ID) and (idtoken=_PACKAGE) then
+               begin
+                 current_module.IsPackage:=true;
+                 proc_package;
+               end
              else
                proc_program(token=_LIBRARY);
            except
