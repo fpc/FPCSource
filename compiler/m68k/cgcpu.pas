@@ -1339,12 +1339,15 @@ unit cgcpu;
       begin
         if not nostackframe then
           begin
-	    writeln(current_procinfo.maxpushedparasize);
             localsize := current_procinfo.calc_stackframe_size;
 {$ifdef DEBUG_CHARLIE}
             writeln('proc exit with stackframe, size:',localsize,' parasize:',parasize);
 {$endif DEBUG_CHARLIE}
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
+	    parasize := parasize - 8; { FIXME: ugly hack to correct the value...
+	                                but the real fun is, that works for now. 
+					i wonder where the extra 8 size comes from.
+					... maybe return address + framepointer size? (KB) }
             if (parasize<>0) then
               begin
                 { only 68020+ supports RTD, so this needs another code path
