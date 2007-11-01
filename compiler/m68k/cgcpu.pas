@@ -1280,37 +1280,45 @@ unit cgcpu;
 {$ifdef DEBUG_CHARLIE}
         writeln('proc entry, localsize:',localsize);
 {$endif DEBUG_CHARLIE}
-
+	
         if not nostackframe then
           begin
-            if (localsize<>0) then localsize:=-localsize;
-            // size can't be negative
-            if (localsize>0) then internalerror(2006122601);
-            list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,localsize));
+	    if localsize<>0 then
+	      begin
+	        { size can't be negative }
+		if (localsize < 0) then
+		  internalerror(2006122601);
+	      
+                { Not to complicate the code generator too much, and since some }
+                { of the systems only support this format, the localsize cannot }
+                { exceed 32K in size.                                           }
+                if (localsize > high(smallint)) then
+                  CGMessage(cg_e_localsize_too_big);
+                
+                list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
+	      end
+	    else
+	      begin
+	        list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
+(*		
+		{ FIXME! - Carl's original code uses this method. However,
+		  according to the 68060 users manual, a LINK is faster than
+		  two moves. So, use a link in #0 case too, for now. I'm not
+		  really sure tho', that LINK supports #0 disposition, but i
+		  see no reason why it shouldn't support it. (KB) }
+		  
+	        { when localsize = 0, use two moves, instead of link }
+		r:=NR_FRAME_POINTER_REG;
+		rsp:=NR_STACK_POINTER_REG;
+		
+	        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
+		ref.direction:=dir_dec;
+                list.concat(taicpu.op_reg_ref(A_MOVE,S_L,r,ref));
+                list.concat(taicpu.op_reg_reg(A_MOVE,S_L,rsp,r));
+		*)
+	      end;
           end;
       end;
-(*
-        r:=NR_FRAME_POINTER_REG;
-        rsp:=NR_STACK_POINTER_REG;
-        if localsize<>0 then
-           begin
-             { Not to complicate the code generator too much, and since some  }
-             { of the systems only support this format, the localsize cannot }
-             { exceed 32K in size.                                            }
-             if (localsize < low(smallint)) or (localsize > high(smallint)) then
-                CGMessage(cg_e_localsize_too_big);
-             list.concat(taicpu.op_reg_const(A_LINK,S_W,r,-localsize));
-           end { endif localsize <> 0 }
-          else
-           begin
-             reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-             ref.direction:=dir_dec;
-             list.concat(taicpu.op_reg_ref(A_MOVE,S_L,r,ref));
-             list.concat(taicpu.op_reg_reg(A_MOVE,S_L,rsp,r));
-           end;
-           *)
-    //  end;
-
 
 {    procedure tcg68k.g_restore_frame_pointer(list : TAsmList);
       var
@@ -1331,18 +1339,18 @@ unit cgcpu;
       begin
         if not nostackframe then
           begin
+	    writeln(current_procinfo.maxpushedparasize);
             localsize := current_procinfo.calc_stackframe_size;
 {$ifdef DEBUG_CHARLIE}
-            writeln('proc exit with stackframe, size:',localsize);
+            writeln('proc exit with stackframe, size:',localsize,' parasize:',parasize);
 {$endif DEBUG_CHARLIE}
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
-            if (localsize<>0) then
+            if (parasize<>0) then
               begin
                 { only 68020+ supports RTD, so this needs another code path
                   for 68000 and Coldfire (KB) }
 {$WARNING 68020+ only code generation, without fallback}
-                inc(localsize,4);
-                list.concat(taicpu.op_const(A_RTD,S_NO,localsize));
+                list.concat(taicpu.op_const(A_RTD,S_NO,parasize));
               end
             else
               list.concat(taicpu.op_none(A_RTS,S_NO));
