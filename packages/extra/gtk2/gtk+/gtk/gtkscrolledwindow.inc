@@ -12,7 +12,7 @@
         container : TGtkBin;
         hscrollbar : PGtkWidget;
         vscrollbar : PGtkWidget;
-        flag0 : word;
+        flag0 : {$ifdef win32}longint{$else}word{$endif};
         shadow_type : guint16;
      end;
 
@@ -185,4 +185,5 @@ end;
 
 {$ENDIF read_implementation}
 // included by gtk2.pas
+
 
