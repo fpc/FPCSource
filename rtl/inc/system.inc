@@ -700,14 +700,19 @@ type
     InitProc,
     FinalProc : TProcedure;
   end;
-  TInitFinalTable=record
+  TInitFinalTable = record
     TableCount,
     InitCount  : longint;
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
+  PInitFinalTable = ^TInitFinalTable;
 
+
+{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
 var
   InitFinalTable : TInitFinalTable;external name 'INITFINAL';
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
@@ -715,7 +720,9 @@ var
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
-  with InitFinalTable do
+  with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+    InitFinalTable
+    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} do
    begin
      for i:=1 to TableCount do
       begin
@@ -731,7 +738,9 @@ end;
 
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
-  with InitFinalTable do
+  with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+    InitFinalTable
+    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} do
    begin
      while (InitCount>0) do
       begin

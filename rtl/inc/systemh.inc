@@ -293,6 +293,15 @@ Type
 { platform dependent types }
 {$i sysosh.inc}
 
+type
+  TEntryInformation = record
+    InitFinalTable : Pointer;
+    ThreadvarTablesTable : Pointer;
+    asm_exit : Procedure;stdcall;
+    PascalMain : Procedure;stdcall;
+    valgrind_used : boolean;
+  end;
+
 
 const
 { Maximum value of the biggest signed and unsigned integer type available}

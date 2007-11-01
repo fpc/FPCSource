@@ -20,6 +20,8 @@ interface
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
+{$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 {$ifdef cpui386}
   {$define Set_i386_Exception_handler}
 {$endif cpui386}
@@ -111,6 +113,7 @@ const
 implementation
 
 var
+  EntryInformation : TEntryInformation;
   SysInstance : Longint;public name '_FPC_SysInstance';
 
 {$ifdef CPUI386}
@@ -311,7 +314,9 @@ end;
 
 procedure install_exception_handlers;forward;
 procedure remove_exception_handlers;forward;
+{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
 procedure asm_exit;stdcall;external name 'asm_exit';
@@ -338,7 +343,11 @@ begin
   { in 2.0 asm_exit does an exitprocess }
 {$ifndef ver2_0}
   { do cleanup required by the startup code }
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  EntryInformation.asm_exit();
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
   asm_exit;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 {$endif ver2_0}
 
   { call exitprocess, with cleanup as required }
@@ -350,10 +359,11 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
+procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
   var
     ST : pointer;
   begin
+     EntryInformation:=info;
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
@@ -380,7 +390,13 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         movw %ss,%ax
         movl %eax,_SS
         xorl %ebp,%ebp
-        call PASCALMAIN
+     end;
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+     EntryInformation.PascalMain();
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+     PascalMain;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+     asm
         popl %ebp
      end;
      { if we pass here there was no error ! }
@@ -399,11 +415,11 @@ Var
 Const
      DLLExitOK : boolean = true;
 
-function Dll_entry : longbool; [public,alias:'_FPC_DLL_Entry'];
-var
-  res : longbool;
-
+function Dll_entry(const info : TEntryInformation) : longbool; [public,alias:'_FPC_DLL_Entry'];
+  var
+    res : longbool;
   begin
+     EntryInformation:=info;
      IsLibrary:=true;
      Dll_entry:=false;
      case DLLreason of
@@ -417,7 +433,11 @@ var
                    if not res then
                      exit(false);
                  end;
-               PASCALMAIN;
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               EntryInformation.PascalMain();
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               PascalMain;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
                Dll_entry:=true;
              end
            else

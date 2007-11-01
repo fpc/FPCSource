@@ -21,9 +21,28 @@ unit sysinitpas;
 
     var
       SysInstance : Longint;external name '_FPC_SysInstance';
+      EntryInformation : TEntryInformation;
 
-    procedure EXE_Entry; external name '_FPC_EXE_Entry';
-    function DLL_entry : longbool; external name '_FPC_DLL_Entry';
+      InitFinalTable : record end; external name 'INITFINAL';
+      ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
+      valgrind_used : boolean;external name '__fpc_valgrind';
+
+    procedure asm_exit;stdcall;public name 'asm_exit';
+      begin
+      end;
+
+    procedure EXE_Entry(const info : TEntryInformation); external name '_FPC_EXE_Entry';
+    function DLL_entry(const info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
+    procedure PascalMain;stdcall;external name 'PASCALMAIN';
+
+    procedure SetupEntryInformation;
+      begin
+        EntryInformation.InitFinalTable:=@InitFinalTable;
+        EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
+        EntryInformation.asm_exit:=@asm_exit;
+        EntryInformation.PascalMain:=@PascalMain;
+        EntryInformation.valgrind_used:=valgrind_used;
+      end;
 
     const
       STD_INPUT_HANDLE = dword(-10);
@@ -36,14 +55,16 @@ unit sysinitpas;
       IsConsole:=true;
       { do it like it is necessary for the startup code linking against cygwin }
       GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
-      Exe_entry;
+      SetupEntryInformation;
+      Exe_entry(EntryInformation);
     end;
 
 
     procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
     begin
       IsConsole:=false;
-      Exe_entry;
+      SetupEntryInformation;
+      Exe_entry(EntryInformation);
     end;
 
 
@@ -53,7 +74,8 @@ unit sysinitpas;
       sysinstance:=_hinstance;
       dllreason:=_dllreason;
       dllparam:=_dllparam;
-      DLL_Entry;
+      SetupEntryInformation;
+      DLL_Entry(EntryInformation);
     end;
 
 
@@ -63,11 +85,8 @@ unit sysinitpas;
       sysinstance:=_hinstance;
       dllreason:=_dllreason;
       dllparam:=_dllparam;
-      DLL_Entry;
+      SetupEntryInformation;
+      DLL_Entry(EntryInformation);
     end;
-
-    procedure asm_exit;stdcall;public name 'asm_exit';
-      begin
-      end;
 
 end.
