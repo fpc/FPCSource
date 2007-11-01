@@ -55,10 +55,12 @@ type
   end;
 
 var
+{$ifndef FPC_NOGENERICANSIROUTINES}
    { Tables with upper and lowercase forms of character sets.
      MUST be initialized with the correct code-pages }
    UpperCaseTable: TCaseTranslationTable;
    LowerCaseTable: TCaseTranslationTable;
+{$endif FPC_NOGENERICANSIROUTINES}
 
   DefaultFormatSettings : TFormatSettings = (
     CurrencyFormat: 1;
