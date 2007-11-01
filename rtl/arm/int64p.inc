@@ -34,7 +34,7 @@ asm
   // no overflow?
   beq .Lexit
   // checkoverflow?
-  ldr r2,[sp,#24]
+  ldr r2,[sp,#16]
   cmp r2,#0
   beq .Lexit
 
