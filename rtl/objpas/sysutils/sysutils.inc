@@ -232,7 +232,7 @@ Var
   hstdout : ^text;
 begin
   hstdout:=@stdout;
-  Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Ptrint(Addr),sizeof(PtrInt)*2),' :');
+  Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(PtrUInt(Addr),sizeof(PtrUInt)*2),' :');
   if Obj is exception then
    begin
      Message:=Exception(Obj).ClassName+' : '+Exception(Obj).Message;

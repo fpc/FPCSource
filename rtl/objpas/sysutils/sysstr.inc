@@ -2166,7 +2166,7 @@ Var
           End;
       End; { Case }
     End; { While .. Begin }
-    Result:=PtrInt(Buf)-PtrInt(Buffer);
+    Result:=PtrUInt(Buf)-PtrUInt(Buffer);
   End;
 
 Begin
