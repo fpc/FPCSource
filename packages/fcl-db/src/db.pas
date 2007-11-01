@@ -397,7 +397,7 @@ type
     property IsNull: Boolean read GetIsNull;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
-    property Size: Word read FSize write FSize;
+    property Size: Word read FSize write SetSize;
     property Text: string read GetEditText write SetEditText;
     property ValidChars : TFieldChars Read FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
@@ -1562,6 +1562,7 @@ type
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
+    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
     procedure Close;
     destructor Destroy; override;
@@ -1571,7 +1572,6 @@ type
   published
     property Connected: Boolean read GetConnected write SetConnected;
     property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
-    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
 
     property AfterConnect : TNotifyEvent read FAfterConnect write SetAfterConnect;
     property AfterDisconnect : TNotifyEvent read FAfterDisconnect write SetAfterDisconnect;

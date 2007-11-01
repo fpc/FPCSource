@@ -24,8 +24,8 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50];
           '',
           '',
           'FLOAT',
-          'DECIMAL(18,4)',
           '',
+          'DECIMAL(18,4)',
           'DATE',
           'TIMESTAMP',
           'TIMESTAMP',
@@ -115,8 +115,13 @@ begin
     FieldtypeDefinitions[ftBlob] := 'TEXT';
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     FieldtypeDefinitions[ftGraphic] := '';
+    FieldtypeDefinitions[ftCurrency] := 'MONEY';
     end;
-  if SQLDbType = INTERBASE then Fconnection := tIBConnection.Create(nil);
+  if SQLDbType = INTERBASE then
+    begin
+    Fconnection := tIBConnection.Create(nil);
+    FieldtypeDefinitions[ftLargeint] := 'BIGINT';
+    end;
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
 

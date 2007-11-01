@@ -231,7 +231,8 @@ type
 
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; virtual;
     function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode; virtual;
-    function RemoveChild(OldChild: TDOMNode): TDOMNode; virtual;
+    function DetachChild(OldChild: TDOMNode): TDOMNode; virtual;
+    function RemoveChild(OldChild: TDOMNode): TDOMNode;
     function AppendChild(NewChild: TDOMNode): TDOMNode; virtual;
     function HasChildNodes: Boolean; virtual;
     function CloneNode(deep: Boolean): TDOMNode; overload;
@@ -276,12 +277,11 @@ type
     procedure FreeChildren;
     function GetTextContent: DOMString; override;
     procedure SetTextContent(const AValue: DOMString); override;
-    function DoRemoveChild(OldChild: TDOMNode): TDOMNode;
   public
     destructor Destroy; override;
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
     function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode; override;
-    function RemoveChild(OldChild: TDOMNode): TDOMNode; override;
+    function DetachChild(OldChild: TDOMNode): TDOMNode; override;
     function AppendChild(NewChild: TDOMNode): TDOMNode; override;
     function HasChildNodes: Boolean; override;
     function FindNode(const ANodeName: DOMString): TDOMNode; override;
@@ -419,6 +419,7 @@ type
     function IndexOfNS(const nsURI: DOMString): Integer;
     function FindID(const aID: DOMString; out Index: LongWord): Boolean;
     procedure ClearIDList;
+    procedure RemoveID(Elem: TDOMElement);
   public
     property DocType: TDOMDocumentType read GetDocType;
     property Impl: TDOMImplementation read FImplementation;
@@ -453,7 +454,6 @@ type
     constructor Create;
     destructor Destroy; override;
     function AddID(Attr: TDOMAttr): Boolean;
-    procedure RemoveID(Attr: TDOMAttr);
   end;
 
   TXMLDocument = class(TDOMDocument)
@@ -815,8 +815,8 @@ end;
 
 destructor TDOMNode.Destroy;
 begin
-  if Assigned(FParentNode) and FParentNode.InheritsFrom(TDOMNode_WithChildren) then
-    TDOMNode_WithChildren(FParentNode).DoRemoveChild(Self);
+  if Assigned(FParentNode) then
+    FParentNode.DetachChild(Self);
   inherited Destroy;
 end;
 
@@ -867,10 +867,17 @@ begin
   Result:=nil;
 end;
 
-function TDOMNode.RemoveChild(OldChild: TDOMNode): TDOMNode;
+function TDOMNode.DetachChild(OldChild: TDOMNode): TDOMNode;
 begin
   // OldChild isn't in our child list
   raise EDOMNotFound.Create('Node.RemoveChild');
+  Result:=nil;
+end;
+
+function TDOMNode.RemoveChild(OldChild: TDOMNode): TDOMNode;
+begin
+  DetachChild(OldChild);
+  OldChild.Free;
   Result:=nil;
 end;
 
@@ -1040,10 +1047,8 @@ begin
 
   Inc(FOwnerDocument.FRevision); // invalidate nodelists
 
-  // ugly workaround for RemoveChild issue... 
   if Assigned(NewChild.FParentNode) then
-    if NewChild.FParentNode.InheritsFrom(TDOMNode_WithChildren) then
-      TDOMNode_WithChildren(NewChild.FParentNode).DoRemoveChild(NewChild);
+    NewChild.FParentNode.DetachChild(NewChild);
 
   // DONE: Implemented InsertBefore for DocumentFragments (except ChildNodeTree)
   if NewChild.NodeType = DOCUMENT_FRAGMENT_NODE then
@@ -1109,7 +1114,7 @@ begin
   Result := NewChild;
 end;
 
-function TDOMNode_WithChildren.DoRemoveChild(OldChild: TDOMNode): TDOMNode;
+function TDOMNode_WithChildren.DetachChild(OldChild: TDOMNode): TDOMNode;
 begin
   if OldChild.ParentNode <> Self then
     raise EDOMNotFound.Create('NodeWC.RemoveChild');
@@ -1134,15 +1139,6 @@ begin
   Result := OldChild;
 end;
 
-function TDOMNode_WithChildren.RemoveChild(OldChild: TDOMNode):
-  TDOMNode;
-begin
-  DoRemoveChild(OldChild);
-  // DOM level 2: Must return removed node
-  OldChild.Free;
-  Result:=nil;
-end;
-
 function TDOMNode_WithChildren.AppendChild(NewChild: TDOMNode): TDOMNode;
 var
   Tmp: TDOMNode;
@@ -1160,11 +1156,8 @@ begin
 
   Inc(FOwnerDocument.FRevision); // invalidate nodelists
 
-  // TODO: RemoveChild destroys removed node -> CRASH
-  // this is a very ugly workaround...
   if Assigned(NewChild.FParentNode) then
-    if NewChild.FParentNode.InheritsFrom(TDOMNode_WithChildren) then
-      TDOMNode_WithChildren(NewChild.FParentNode).DoRemoveChild(NewChild);
+    NewChild.FParentNode.DetachChild(NewChild);
 
   // DONE: supported AppendChild for DocumentFragments (except ChildNodeTree)
   if NewChild.NodeType = DOCUMENT_FRAGMENT_NODE then
@@ -1671,13 +1664,12 @@ begin
   inherited Create(nil);
   // TODO: DOM lvl 2 states that Document should be unowned. Any dependencies?
   FOwnerDocument := Self;
-  FIDList := TList.Create;
 end;
 
 destructor TDOMDocument.Destroy;
 begin
   ClearIDList;
-  FIDList.Free;
+  FreeAndNil(FIDList);   // set to nil before starting destroying chidlren
   inherited Destroy;
 end;
 
@@ -1686,6 +1678,8 @@ var
   I: Cardinal;
   Item: PIDItem;
 begin
+  if FIDList = nil then
+    FIDList := TList.Create;
   New(Item);
   Item^.ID := Attr.Value;
   Item^.Element := Attr.OwnerElement;
@@ -1701,9 +1695,21 @@ begin
   end;
 end;
 
-procedure TDOMDocument.RemoveID(Attr: TDOMAttr);
+// This shouldn't be called if document has no IDs,
+// or when it is being destroyed
+procedure TDOMDocument.RemoveID(Elem: TDOMElement);
+var
+  I: Integer;
 begin
-  // TODO: Implement this
+  for I := 0 to FIDList.Count-1 do
+  begin
+    if PIDItem(FIDList.List^[I])^.Element = Elem then
+    begin
+      Dispose(PIDItem(FIDList.List^[I]));
+      FIDList.Delete(I);
+      Exit;
+    end;
+  end;
 end;
 
 function TDOMDocument.FindID(const aID: DOMString; out Index: LongWord): Boolean;
@@ -1886,8 +1892,7 @@ function TDOMDocument.GetElementById(const ElementID: DOMString): TDOMElement;
 var
   I: Cardinal;
 begin
-  // TODO: Implement TDOMDocument.GetElementById
-  if FindID(ElementID, I) then
+  if Assigned(FIDList) and FindID(ElementID, I) then
     Result := PIDItem(FIDList.List^[I])^.Element
   else
     Result := nil;
@@ -1998,6 +2003,8 @@ end;
 
 destructor TDOMElement.Destroy;
 begin
+  if Assigned(FOwnerDocument.FIDList) then
+    FOwnerDocument.RemoveID(Self);
   // FIX: Attribute nodes are now freed by TDOMNamedNodeMap.Destroy
   FreeAndNil(FAttributes);
   inherited Destroy;

@@ -18,7 +18,7 @@ unit zipper;
 Interface
 
 Uses
-   SysUtils,Classes,Contnrs,ZStream;
+   SysUtils,Classes,ZStream;
 
 
 Const
@@ -320,7 +320,7 @@ Type
     FFileName   :  String;         { Name of resulting Zip file                 }
     FOutputPath : String;
     FFiles      : TStrings;
-    FZipEntries : TFPObjectList;
+    FZipEntries : TFPList;  { don't use TFPObjectList, becuase of Contnrs dependency }
     FOutFile    : TFileStream;
     FZipFile     : TFileStream;     { I/O file variables                         }
     LocalHdr    : Local_File_Header_Type;
@@ -1309,8 +1309,6 @@ Begin
 end;
 
 Function TUnZipper.CreateDeCompressor(Item : TZipItem; AMethod : Word;AZipFile,AOutFile : TStream) : TDeCompressor;
-var
-  Count : Int64;
 begin
   case AMethod of
     8 :
@@ -1369,7 +1367,7 @@ Begin
       ReadZipDirectory;
       For I:=0 to FZipEntries.Count-1 do
         begin
-          Item:=FZipEntries[i] as TZipItem;
+          Item:=TZipItem(FZipEntries[i]);
 	  if (FFiles=nil) or
 	     (FFiles.IndexOf(Item.Name)<>-1) then
             UnZipOneFile(Item);
@@ -1441,7 +1439,7 @@ Constructor TUnZipper.Create;
 begin
   FBufSize:=DefaultBufSize;
   FFiles:=TStringList.Create;
-  FZipEntries:=TFPObjectList.Create(true);
+  FZipEntries:=TFPList.Create;
   TStringlist(FFiles).Sorted:=True;
   FOnPercent:=1;
 end;
@@ -1455,6 +1453,8 @@ begin
   For I:=0 to FFiles.Count-1 do
     FFiles.Objects[i].Free;
   FFiles.Clear;
+  For I:=0 to FZipEntries.Count-1 do
+    TZipItem(FZipEntries[i]).Free;
   FZipEntries.Clear;
 end;
 

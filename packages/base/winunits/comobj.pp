@@ -64,17 +64,43 @@ unit comobj;
         property StartSuspended: Boolean read GetStartSuspended;
       end;
 
-    {
+      TComObjectFactory = class;
+
+      TFactoryProc = procedure(Factory: TComObjectFactory) of object;
+
+      TComClassManager = class(TObject)
+        constructor Create;
+        destructor Destroy; override;
+        procedure ForEachFactory(ComServer: TComServerObject; FactoryProc: TFactoryProc);
+        function GetFactoryFromClass(ComClass: TClass): TComObjectFactory;
+        function GetFactoryFromClassID(const ClassID: TGUID): TComObjectFactory;
+      end;
+
+      IServerExceptionHandler = interface
+        ['{6A8D432B-EB81-11D1-AAB1-00C04FB16FBC}']
+        procedure OnException(const ServerClass, ExceptionClass, ErrorMessage: WideString;
+          ExceptAddr: PtrInt; const ErrorIID, ProgID: WideString; var Handled: Integer; var Result: HResult); dispid 2;
+      end;
+
       TComObject = class(TObject, IUnknown, ISupportErrorInfo)
+      private
+        FController : Pointer;
+        FFactory : TComObjectFactory;
+        FRefCount : Integer;
+        FServerExceptionHandler : IServerExceptionHandler;
+        FCounted : Boolean;
+        function GetController : IUnknown;
       protected
         { IUnknown }
         function IUnknown.QueryInterface = ObjQueryInterface;
         function IUnknown._AddRef = ObjAddRef;
         function IUnknown._Release = ObjRelease;
+
         { IUnknown methods for other interfaces }
         function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
         function _AddRef: Integer; stdcall;
         function _Release: Integer; stdcall;
+
         { ISupportErrorInfo }
         function InterfaceSupportsErrorInfo(const iid: TIID): HResult; stdcall;
       public
@@ -87,12 +113,67 @@ unit comobj;
         function ObjQueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
         function ObjRelease: Integer; virtual; stdcall;
         function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult; override;
-        property Controller: IUnknown;
-        property Factory: TComObjectFactory;
-        property RefCount: Integer;
-        property ServerExceptionHandler: IServerExceptionHandler;
+        property Controller: IUnknown read GetController;
+        property Factory: TComObjectFactory read FFactory;
+        property RefCount: Integer read FRefCount;
+        property ServerExceptionHandler: IServerExceptionHandler read FServerExceptionHandler write FServerExceptionHandler;
       end;
-    }
+      TComClass = class of TComObject;
+
+      TClassInstancing = (ciInternal, ciSingleInstance, ciMultiInstance);
+      TThreadingModel = (tmSingle, tmApartment, tmFree, tmBoth, tmNeutral);
+
+      TComObjectFactory = class(TObject, IUnknown, IClassFactory, IClassFactory2)
+      private
+        Next: TComObjectFactory;
+        FComServer: TComServerObject;
+        FComClass: TClass;
+        FClassID: TGUID;
+        FClassName: string;
+        FDescription: string;
+        FErrorIID: TGUID;
+        FInstancing: TClassInstancing;
+        FLicString: WideString;
+        FRegister: Longint;
+        FShowErrors: Boolean;
+        FSupportsLicensing: Boolean;
+        FThreadingModel: TThreadingModel;
+        function GetProgID: string;
+      protected
+        { IUnknown }
+        function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+        function _AddRef: Integer; stdcall;
+        function _Release: Integer; stdcall;
+        { IClassFactory }
+        function CreateInstance(const UnkOuter: IUnknown; const IID: TGUID;
+          out Obj): HResult; stdcall;
+        function LockServer(fLock: BOOL): HResult; stdcall;
+        { IClassFactory2 }
+        function GetLicInfo(var licInfo: TLicInfo): HResult; stdcall;
+        function RequestLicKey(dwResrved: DWORD; out bstrKey: WideString): HResult; stdcall;
+        function CreateInstanceLic(const unkOuter: IUnknown; const unkReserved: IUnknown;
+          const iid: TIID; const bstrKey: WideString; out vObject): HResult; stdcall;
+      public
+        constructor Create(ComServer: TComServerObject; ComClass: TComClass;
+          const ClassID: TGUID; const Name, Description: string;
+          Instancing: TClassInstancing; ThreadingModel: TThreadingModel = tmSingle);
+        destructor Destroy; override;
+        function CreateComObject(const Controller: IUnknown): TComObject; virtual;
+        procedure RegisterClassObject;
+        procedure UpdateRegistry(Register: Boolean); virtual;
+        property ClassID: TGUID read FClassID;
+        property ClassName: string read FClassName;
+        property ComClass: TClass read FComClass;
+        property ComServer: TComServerObject read FComServer;
+        property Description: string read FDescription;
+        property ErrorIID: TGUID read FErrorIID write FErrorIID;
+        property LicString: WideString read FLicString write FLicString;
+        property ProgID: string read GetProgID;
+        property Instancing: TClassInstancing read FInstancing;
+        property ShowErrors: Boolean read FShowErrors write FShowErrors;
+        property SupportsLicensing: Boolean read FSupportsLicensing write FSupportsLicensing;
+        property ThreadingModel: TThreadingModel read FThreadingModel;
+      end;
 
     function CreateClassID : ansistring;
 
@@ -109,6 +190,11 @@ unit comobj;
     procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
        DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
     procedure DispatchInvokeError(Status: HRESULT; const ExceptInfo: TExcepInfo);
+
+    function HandleSafeCallException(ExceptObject: TObject; ExceptAddr: Pointer; const ErrorIID: TGUID; const ProgID,
+      HelpFileName: WideString): HResult;
+
+    function ComClassManager : TComClassManager;
 
     type
       TCoCreateInstanceExProc = function(const clsid: TCLSID; unkOuter: IUnknown; dwClsCtx: DWORD; ServerInfo: PCoServerInfo;
@@ -132,6 +218,36 @@ implementation
 
     uses
       ComConst,Ole2;
+
+    var
+      Uninitializing : boolean;
+
+    function HandleSafeCallException(ExceptObject: TObject; ExceptAddr: Pointer; const ErrorIID: TGUID; const ProgID,
+      HelpFileName: WideString): HResult;
+      var
+        _CreateErrorInfo : ICreateErrorInfo;
+        ErrorInfo : IErrorInfo;
+      begin
+        Result:=E_UNEXPECTED;
+        if Succeeded(CreateErrorInfo(_CreateErrorInfo)) then
+          begin
+            _CreateErrorInfo.SetGUID(ErrorIID);
+            if ProgID<>'' then
+              _CreateErrorInfo.SetSource(PWidechar(ProgID));
+            if HelpFileName<>'' then
+              _CreateErrorInfo.SetHelpFile(PWidechar(HelpFileName));
+            if ExceptObject is Exception then
+              begin
+                _CreateErrorInfo.SetDescription(PWidechar(Widestring(Exception(ExceptObject).Message)));
+                _CreateErrorInfo.SetHelpContext(Exception(ExceptObject).HelpContext);
+                if (ExceptObject is EOleSyserror) and (EOleSysError(ExceptObject).ErrorCode<0) then
+                  Result:=EOleSysError(ExceptObject).ErrorCode
+              end;
+            if _CreateErrorInfo.QueryInterface(IErrorInfo,ErrorInfo)=S_OK then
+              SetErrorInfo(0,ErrorInfo);
+          end;
+      end;
+
 
     constructor EOleSysError.Create(const Msg: string; aErrorCode: HRESULT; aHelpContext: Integer);
       var
@@ -273,6 +389,270 @@ implementation
         else
           raise EOleSysError.Create('',Status,0);
       end;
+
+    var
+      _ComClassManager : TComClassManager;
+
+    function ComClassManager: TComClassManager;
+      begin
+        if not(assigned(_ComClassManager)) then
+          _ComClassManager:=TComClassManager.Create;
+        Result:=_ComClassManager;
+      end;
+
+
+    constructor TComClassManager.Create;
+      begin
+        RunError(217);
+      end;
+
+
+    destructor TComClassManager.Destroy;
+      begin
+        RunError(217);
+      end;
+
+
+    procedure TComClassManager.ForEachFactory(ComServer: TComServerObject;
+      FactoryProc: TFactoryProc);
+      begin
+        RunError(217);
+      end;
+
+
+    function TComClassManager.GetFactoryFromClass(ComClass: TClass
+      ): TComObjectFactory;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComClassManager.GetFactoryFromClassID(const ClassID: TGUID
+      ): TComObjectFactory;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObject.GetController: IUnknown;
+      begin
+        Result:=IUnknown(Controller);
+      end;
+
+
+    function TComObject.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+      begin
+        if assigned(FController) then
+          Result:=IUnknown(FController).QueryInterface(IID,Obj)
+        else
+          Result:=ObjQueryInterface(IID,Obj);
+      end;
+
+
+    function TComObject._AddRef: Integer; stdcall;
+      begin
+        if assigned(FController) then
+          Result:=IUnknown(FController)._AddRef
+        else
+          Result:=ObjAddRef;
+      end;
+
+
+    function TComObject._Release: Integer; stdcall;
+      begin
+        if assigned(FController) then
+          Result:=IUnknown(FController)._Release
+        else
+          Result:=ObjRelease;
+      end;
+
+
+    function TComObject.InterfaceSupportsErrorInfo(const iid: TIID): HResult; stdcall;
+      begin
+        if assigned(GetInterfaceEntry(iid)) then
+          Result:=S_OK
+        else
+          Result:=S_FALSE;
+      end;
+
+
+    constructor TComObject.Create;
+      begin
+         CreateFromFactory(ComClassManager.GetFactoryFromClass(ClassType),nil);
+      end;
+
+
+    constructor TComObject.CreateAggregated(const Controller: IUnknown);
+      begin
+        CreateFromFactory(ComClassManager.GetFactoryFromClass(ClassType),Controller);
+      end;
+
+
+    constructor TComObject.CreateFromFactory(Factory: TComObjectFactory;
+      const Controller: IUnknown);
+      begin
+        FFactory:=Factory;
+        FRefCount:=1;
+        FController:=Pointer(Controller);
+        FFactory.Comserver.CountObject(True);
+        FCounted:=true;
+        Initialize;
+        Dec(FRefCount);
+      end;
+
+
+    destructor TComObject.Destroy;
+      begin
+        if not(Uninitializing) then
+          begin
+            if assigned(FFactory) and FCounted then
+              FFactory.Comserver.CountObject(false);
+            if FRefCount>0 then
+              CoDisconnectObject(Self,0);
+          end;
+      end;
+
+
+    procedure TComObject.Initialize;
+      begin
+      end;
+
+
+    function TComObject.ObjAddRef: Integer; stdcall;
+      begin
+        Result:=InterlockedIncrement(FRefCount);
+      end;
+
+
+    function TComObject.ObjQueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+      begin
+        if GetInterface(IID,Obj) then
+          Result:=S_OK
+        else
+          Result:=E_NOINTERFACE;
+      end;
+
+
+    function TComObject.ObjRelease: Integer; stdcall;
+      begin
+        Result:=InterlockedDecrement(FRefCount);
+        if Result=0 then
+          Self.Destroy;
+      end;
+
+
+    function TComObject.SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult;
+      var
+        Message: string;
+        Handled: Integer;
+      begin
+        Handled:=0;
+        Result:=0;
+        if assigned(ServerExceptionHandler) then
+          begin
+            if ExceptObject is Exception then
+              Message:=Exception(ExceptObject).Message;
+
+            ServerExceptionHandler.OnException(ClassName,ExceptObject.ClassName,
+              Message,PtrInt(ExceptAddr),WideString(GUIDToString(FFactory.ErrorIID)),
+              FFactory.ProgID,Handled,Result);
+          end;
+        if Handled=0 then
+          Result:=HandleSafeCallException(ExceptObject,ExceptAddr,FFactory.ErrorIID,
+            FFactory.ProgID,FFactory.ComServer.HelpFileName);
+      end;
+
+
+    function TComObjectFactory.GetProgID: string;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory._AddRef: Integer; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory._Release: Integer; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory.CreateInstance(const UnkOuter: IUnknown;
+      const IID: TGUID; out Obj): HResult; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory.LockServer(fLock: BOOL): HResult; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory.GetLicInfo(var licInfo: TLicInfo): HResult; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory.RequestLicKey(dwResrved: DWORD; out bstrKey: WideString): HResult; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory.CreateInstanceLic(const unkOuter: IUnknown;
+      const unkReserved: IUnknown; const iid: TIID; const bstrKey: WideString; out
+      vObject): HResult; stdcall;
+      begin
+        RunError(217);
+      end;
+
+
+    constructor TComObjectFactory.Create(ComServer: TComServerObject;
+      ComClass: TComClass; const ClassID: TGUID; const Name,
+      Description: string; Instancing: TClassInstancing;
+      ThreadingModel: TThreadingModel);
+      begin
+        RunError(217);
+      end;
+
+
+    destructor TComObjectFactory.Destroy;
+      begin
+        RunError(217);
+      end;
+
+
+    function TComObjectFactory.CreateComObject(const Controller: IUnknown
+      ): TComObject;
+      begin
+        RunError(217);
+      end;
+
+
+    procedure TComObjectFactory.RegisterClassObject;
+      begin
+        RunError(217);
+      end;
+
+
+    procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
+      begin
+        RunError(217);
+      end;
+
 
 { $define DEBUG_COMDISPATCH}
     procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
@@ -634,7 +1014,10 @@ const
   Initialized : boolean = false;
 var
   Ole32Dll : HModule;
+
 initialization
+  Uninitializing:=false;
+  _ComClassManager:=nil;
   Ole32Dll:=GetModuleHandle('ole32.dll');
   if Ole32Dll<>0 then
     begin
@@ -652,6 +1035,8 @@ initialization
   VarDispProc:=@ComObjDispatchInvoke;
   DispCallByIDProc:=@DoDispCallByID;
 finalization
+  Uninitializing:=true;
+  _ComClassManager.Free;
   VarDispProc:=nil;
   SafeCallErrorProc:=nil;
   if Initialized then

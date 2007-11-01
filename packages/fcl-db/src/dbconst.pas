@@ -39,6 +39,7 @@ Resourcestring
   SErrIndexBasedOnInvField = 'Field "%s" is an invalid field type to base index on.';
   SErrIndexBasedOnUnkField = 'Index based on unknown field "%s".';
   SErrConnTransactionnSet  = 'Transaction of connection not set';
+  SErrNotASQLConnection    = '"%s" is not a TSQLConnection';
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';
@@ -95,6 +96,7 @@ Resourcestring
   SNoFieldIndexes          = 'No index currently active';
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
   SErrUnknownConnectorType = 'Unknown connector type';
+  SErrAmountStrings        = 'Amount of search and replace strings don''t match';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
   
 

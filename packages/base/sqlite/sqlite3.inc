@@ -25,7 +25,7 @@ uses
 {$PACKRECORDS C}
 
 const
-{$IFDEF MSWINDOWS}
+{$IFDEF WINDOWS}
   Sqlite3Lib = 'sqlite3.dll';
 {$else}
   Sqlite3Lib = 'libsqlite3.so';
@@ -505,7 +505,7 @@ begin
   pointer(sqlite3_collation_needed16) := GetProcedureAddress(LibHandle,'sqlite3_collation_needed16');
   pointer(sqlite3_libversion):=GetProcedureAddress(LibHandle,'sqlite3_libversion');
 //Alias for allowing better code portability (win32 is not working with external variables) 
-  pointer(sqlite3_version):=GetProcedureAddress(LibHandle,'sqlite3_version');
+  pointer(sqlite3_version):=GetProcedureAddress(LibHandle,'sqlite3_libversion');
 
 // Not published functions
   pointer(sqlite3_libversion_number):=GetProcedureAddress(LibHandle,'sqlite3_libversion_number');

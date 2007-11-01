@@ -39,7 +39,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    function TranslateFldType(Type_Oid : integer) : TFieldType;
+    function TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
   protected
     procedure DoInternalConnect; override;
@@ -65,6 +65,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -109,6 +110,7 @@ const Oid_Bool     = 16;
       Oid_int2     = 21;
       Oid_Int4     = 23;
       Oid_Float4   = 700;
+      Oid_Money    = 790;
       Oid_Float8   = 701;
       Oid_Unknown  = 705;
       Oid_bpchar   = 1042;
@@ -374,12 +376,22 @@ begin
 
 end;
 
-function TPQConnection.TranslateFldType(Type_Oid : integer) : TFieldType;
+function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
 
 begin
-  case Type_Oid of
+  Size := 0;
+  case PQftype(res,Tuple) of
     Oid_varchar,Oid_bpchar,
-    Oid_name               : Result := ftstring;
+    Oid_name               : begin
+                             Result := ftstring;
+                             size := PQfsize(Res, Tuple);
+                             if (size = -1) then
+                               begin
+                               size := pqfmod(res,Tuple)-4;
+                               if size = -5 then size := dsMaxStringSize;
+                               end;
+                             if size > dsMaxStringSize then size := dsMaxStringSize;
+                             end;
 //    Oid_text               : Result := ftstring;
     Oid_text               : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
@@ -392,7 +404,15 @@ begin
     Oid_Date               : Result := ftDate;
     Oid_Time               : Result := ftTime;
     Oid_Bool               : Result := ftBoolean;
-    Oid_Numeric            : Result := ftBCD;
+    Oid_Numeric            : begin
+                             Result := ftBCD;
+                             size := PQfmod(res,Tuple);
+                             if size = -1 then
+                               size := 4
+                             else
+                               size := size -4;
+                             end;
+    Oid_Money              : Result := ftCurrency;
     Oid_Unknown            : Result := ftUnknown;
   else
     Result := ftUnknown;
@@ -532,6 +552,7 @@ procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;
 var ar  : array of pchar;
     i   : integer;
     s   : string;
+    ParamNames,ParamValues : array of string;
 
 begin
   with cursor as TPQCursor do
@@ -565,10 +586,19 @@ begin
       begin
       tr := TPQTrans(aTransaction.Handle);
 
-      s := statement;
-      //Should be altered, just like in TSQLQuery.ApplyRecUpdate
-      if assigned(AParams) then for i := 0 to AParams.count-1 do
-        s := stringreplace(s,':'+AParams[i].Name,AParams[i].asstring,[rfReplaceAll,rfIgnoreCase]);
+      if Assigned(AParams) and (AParams.count > 0) then
+        begin
+        setlength(ParamNames,AParams.Count);
+        setlength(ParamValues,AParams.Count);
+        for i := 0 to AParams.count -1 do
+          begin
+          ParamNames[AParams.count-i-1] := '$'+inttostr(AParams[i].index+1);
+          ParamValues[AParams.count-i-1] := GetAsSQLText(AParams[i]);
+          end;
+        s := stringsreplace(statement,ParamNames,ParamValues,[rfReplaceAll]);
+        end
+      else
+        s := Statement;
       res := pqexec(tr.PGConn,pchar(s));
       end;
     if not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
@@ -600,19 +630,7 @@ begin
     setlength(FieldBinding,nFields);
     for i := 0 to nFields-1 do
       begin
-      size := PQfsize(Res, i);
-      fieldtype := TranslateFldType(PQftype(Res, i));
-
-      if (fieldtype = ftstring) and (size = -1) then
-        begin
-        size := pqfmod(res,i)-4;
-        if size = -5 then size := dsMaxStringSize;
-        end
-      else if fieldtype = ftdate  then
-        size := sizeof(double)
-      else if fieldtype = ftblob then
-        size := 0;
-
+      fieldtype := TranslateFldType(Res, i,size);
       with TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1)) do
         FieldBinding[FieldNo-1] := i;
       end;
@@ -670,7 +688,6 @@ begin
       result := false
     else
       begin
-      i := PQfsize(res, x);
       CurrBuff := pqgetvalue(res,CurTuple,x);
 
       result := true;
@@ -678,6 +695,7 @@ begin
       case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt,ftfloat :
           begin
+          i := PQfsize(res, x);
           case i of               // postgres returns big-endian numbers
             sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
             sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^);
@@ -690,16 +708,15 @@ begin
         ftString  :
           begin
           li := pqgetlength(res,curtuple,x);
+          if li > dsMaxStringSize then li := dsMaxStringSize;
           Move(CurrBuff^, Buffer^, li);
           pchar(Buffer + li)^ := #0;
-          i := pqfmod(res,x)-3;
           end;
         ftBlob : Createblob := True;
         ftdate :
           begin
           dbl := pointer(buffer);
           dbl^ := BEtoN(plongint(CurrBuff)^) + 36526;
-          i := sizeof(double);
           end;
         ftDateTime, fttime :
           begin
@@ -732,6 +749,11 @@ begin
             if BEtoN(NumericRecord^.Sign) <> 0 then cur := -cur;
             Move(Cur, Buffer^, sizeof(currency));
             end;
+          end;
+        ftCurrency  :
+          begin
+          dbl := pointer(buffer);
+          dbl^ := BEtoN(PInteger(CurrBuff)^) / 100;
           end;
         ftBoolean:
           pchar(buffer)[0] := CurrBuff[0]
@@ -849,6 +871,14 @@ begin
     Move(pqgetvalue(res,CurTuple,x)^, ABlobBuf^.BlobBuffer^.Buffer^, li);
     ABlobBuf^.BlobBuffer^.Size := li;
     end;
+end;
+
+function TPQConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  if assigned(cursor) and assigned((cursor as TPQCursor).res) then
+    Result := StrToIntDef(PQcmdTuples((cursor as TPQCursor).res),-1)
+  else
+    Result := -1;
 end;
 
 { TPQConnectionDef }

@@ -123,6 +123,7 @@ type
     FSectionList: TIniFileSectionList;
     FEscapeLineFeeds: boolean;
     FCaseSensitive : Boolean; 
+    FStripQuotes : Boolean;
   public
     constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); virtual;
     destructor Destroy; override;
@@ -153,6 +154,7 @@ type
     property FileName: string read FFileName;
     property EscapeLineFeeds: boolean read FEscapeLineFeeds;
     Property CaseSensitive : Boolean Read FCaseSensitive Write FCaseSensitive;
+    Property StripQuotes : Boolean Read FStripQuotes Write FStripQuotes;
   end;
 
   { TIniFile }
@@ -722,12 +724,15 @@ begin
            begin
              sIdent:=Trim(Copy(sLine, 1,  j - 1));
              sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
-             J:=Length(sValue);
-             // Joost, 2-jan-2007: The check (J>1) is there for the case that
-             // the value consist of a single double-quote character. (see
-             // mantis bug 6555)
-             If (J>1) and (sValue[1]='"') and (sValue[J]='"') then
-               sValue:=Copy(sValue,2,J-2);
+             If StripQuotes then
+               begin
+               J:=Length(sValue);
+               // Joost, 2-jan-2007: The check (J>1) is there for the case that
+               // the value consist of a single double-quote character. (see
+               // mantis bug 6555)
+               If (J>1) and (sValue[1]='"') and (sValue[J]='"') then
+                 sValue:=Copy(sValue,2,J-2);
+               end;  
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));

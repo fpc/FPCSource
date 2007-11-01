@@ -106,7 +106,7 @@ CONST CommCtrlDLL = 'comctl32.dll';
 
 // include <prsht.h>
 
-Procedure InitCommonControls; external commctrldll name 'InitCommonControls';
+Procedure InitCommonControls; stdcall; external commctrldll name 'InitCommonControls';
 
 {$ifdef ie3plus}
 TYPE
@@ -143,7 +143,7 @@ CONST
          ICC_LINK_CLASS                 = $00008000;
 {$ENDIF}
 
-function InitCommonControlsEx(var rec : TINITCOMMONCONTROLSEX):BOOL; external commctrldll name 'InitCommonControlsEx';
+function InitCommonControlsEx(var rec : TINITCOMMONCONTROLSEX):BOOL; stdcall; external commctrldll name 'InitCommonControlsEx';
 {$ENDIF}      // _WIN32_IE >= 0x0300
 
 CONST
@@ -560,20 +560,20 @@ CONST
          ILC_PERITEMMIRROR              = $00008000;          // Causes the mirroring code to mirror each item when inserting a set of images, verses the whole strip
 {$ENDIF}
 
-function ImageList_Create(cx:cint;cy:cint;flags:UINT;cInitial:cint;cGrow:cint):HIMAGELIST; external commctrldll name 'ImageList_Create';
-function ImageList_Destroy(himl:HIMAGELIST):BOOL; external commctrldll name 'ImageList_Destroy';
+function ImageList_Create(cx:cint;cy:cint;flags:UINT;cInitial:cint;cGrow:cint):HIMAGELIST; stdcall; external commctrldll name 'ImageList_Create';
+function ImageList_Destroy(himl:HIMAGELIST):BOOL; stdcall; external commctrldll name 'ImageList_Destroy';
 
-function ImageList_GetImageCount(himl:HIMAGELIST):cint; external commctrldll name 'ImageList_GetImageCount';
+function ImageList_GetImageCount(himl:HIMAGELIST):cint; stdcall; external commctrldll name 'ImageList_GetImageCount';
 {$ifdef ie3plus}
-function ImageList_SetImageCount(himl:HIMAGELIST;uNewCount:UINT):BOOL; external commctrldll name 'ImageList_SetImageCount';
+function ImageList_SetImageCount(himl:HIMAGELIST;uNewCount:UINT):BOOL; stdcall; external commctrldll name 'ImageList_SetImageCount';
 {$ENDIF}
 
-function ImageList_Add(himl:HIMAGELIST;hbmImage:HBITMAP;hbmMask:HBITMAP):cint; external commctrldll name 'ImageList_Add';
+function ImageList_Add(himl:HIMAGELIST;hbmImage:HBITMAP;hbmMask:HBITMAP):cint; stdcall; external commctrldll name 'ImageList_Add';
 
-function ImageList_ReplaceIcon(himl:HIMAGELIST;i:cint;hicon:HICON):cint; external commctrldll name 'ImageList_ReplaceIcon';
-function ImageList_SetBkColor(himl:HIMAGELIST;clrBk:COLORREF):COLORREF; external commctrldll name 'ImageList_SetBkColor';
-function ImageList_GetBkColor(himl:HIMAGELIST):COLORREF; external commctrldll name 'ImageList_GetBkColor';
-function ImageList_SetOverlayImage(himl:HIMAGELIST;iImage:cint;iOverlay:cint):BOOL; external commctrldll name 'ImageList_SetOverlayImage';
+function ImageList_ReplaceIcon(himl:HIMAGELIST;i:cint;hicon:HICON):cint; stdcall; external commctrldll name 'ImageList_ReplaceIcon';
+function ImageList_SetBkColor(himl:HIMAGELIST;clrBk:COLORREF):COLORREF; stdcall; external commctrldll name 'ImageList_SetBkColor';
+function ImageList_GetBkColor(himl:HIMAGELIST):COLORREF; stdcall; external commctrldll name 'ImageList_GetBkColor';
+function ImageList_SetOverlayImage(himl:HIMAGELIST;iImage:cint;iOverlay:cint):BOOL; stdcall; external commctrldll name 'ImageList_SetOverlayImage';
 
 // Macro 11
 Function ImageList_AddIcon(Himl:HIMAGELIST;hicon:HICON):cint;
@@ -609,24 +609,24 @@ CONST
          ILS_SATURATE                   = $00000004;
          ILS_ALPHA                      = $00000008;
 
-function ImageList_Draw(himl:HIMAGELIST;i:cint;hdcDst:HDC;x:cint;y:cint;fStyle:UINT):BOOL; external commctrldll name 'ImageList_Draw';
+function ImageList_Draw(himl:HIMAGELIST;i:cint;hdcDst:HDC;x:cint;y:cint;fStyle:UINT):BOOL; stdcall; external commctrldll name 'ImageList_Draw';
 
 
 {$IFDEF _WIN32}
 
-function ImageList_Replace(himl:HIMAGELIST;i:cint;hbmImage:HBITMAP;hbmMask:HBITMAP):BOOL; external commctrldll name 'ImageList_Replace';
+function ImageList_Replace(himl:HIMAGELIST;i:cint;hbmImage:HBITMAP;hbmMask:HBITMAP):BOOL; stdcall; external commctrldll name 'ImageList_Replace';
 
-function ImageList_AddMasked(himl:HIMAGELIST;hbmImage:HBITMAP;crMask:COLORREF):cint; external commctrldll name 'ImageList_AddMasked';
-function ImageList_DrawEx(himl:HIMAGELIST;i:cint;hdcDst:HDC;x:cint;y:cint;dx:cint;dy:cint;rgbBk:COLORREF;rgbFg:COLORREF;fStyle:UINT):BOOL; external commctrldll name 'ImageList_DrawEx';
+function ImageList_AddMasked(himl:HIMAGELIST;hbmImage:HBITMAP;crMask:COLORREF):cint; stdcall; external commctrldll name 'ImageList_AddMasked';
+function ImageList_DrawEx(himl:HIMAGELIST;i:cint;hdcDst:HDC;x:cint;y:cint;dx:cint;dy:cint;rgbBk:COLORREF;rgbFg:COLORREF;fStyle:UINT):BOOL; stdcall; external commctrldll name 'ImageList_DrawEx';
 {$ifdef ie3plus}
-function ImageList_DrawIndirect(pimldp:PIMAGELISTDRAWPARAMS):BOOL; external commctrldll name 'ImageList_DrawIndirect';
+function ImageList_DrawIndirect(pimldp:PIMAGELISTDRAWPARAMS):BOOL; stdcall; external commctrldll name 'ImageList_DrawIndirect';
 {$ENDIF}
-function ImageList_Remove(himl:HIMAGELIST;i:cint):BOOL; external commctrldll name 'ImageList_Remove';
-function ImageList_GetIcon(himl:HIMAGELIST;i:cint;flags:UINT):HICON; external commctrldll name 'ImageList_GetIcon';
-function ImageList_LoadImageA(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
-function ImageList_LoadImageW(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
-function ImageList_LoadImage(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
-function ImageList_LoadImage(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
+function ImageList_Remove(himl:HIMAGELIST;i:cint):BOOL; stdcall; external commctrldll name 'ImageList_Remove';
+function ImageList_GetIcon(himl:HIMAGELIST;i:cint;flags:UINT):HICON; stdcall; external commctrldll name 'ImageList_GetIcon';
+function ImageList_LoadImageA(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; stdcall; external commctrldll name 'ImageList_LoadImageA';
+function ImageList_LoadImageW(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; stdcall; external commctrldll name 'ImageList_LoadImageW';
+function ImageList_LoadImage(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; stdcall; external commctrldll name 'ImageList_LoadImageA';
+function ImageList_LoadImage(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; stdcall; external commctrldll name 'ImageList_LoadImageW';
 
 {$IFDEF UNICODE}
 // function ImageList_LoadImageW(hi:HINSTANCE;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
@@ -640,18 +640,18 @@ CONST
          ILCF_MOVE                      = ($00000000);
          ILCF_SWAP                      = ($00000001);
 
-function ImageList_Copy(himlDst:HIMAGELIST;iDst:cint;himlSrc:HIMAGELIST;iSrc:cint;uFlags:UINT):BOOL; external commctrldll name 'ImageList_Copy';
+function ImageList_Copy(himlDst:HIMAGELIST;iDst:cint;himlSrc:HIMAGELIST;iSrc:cint;uFlags:UINT):BOOL; stdcall; external commctrldll name 'ImageList_Copy';
 {$ENDIF}
 
-function ImageList_BeginDrag(himlTrack:HIMAGELIST;iTrack:cint;dxHotspot:cint;dyHotspot:cint):BOOL; external commctrldll name 'ImageList_BeginDrag';
-function ImageList_EndDrag:BOOL; external commctrldll name 'ImageList_EndDrag';
-function ImageList_DragEnter(hwndLock:HWND;x:cint;y:cint):BOOL; external commctrldll name 'ImageList_DragEnter';
-function ImageList_DragLeave(hwndLock:HWND):BOOL; external commctrldll name 'ImageList_DragLeave';
-function ImageList_DragMove(x:cint;y:cint):BOOL; external commctrldll name 'ImageList_DragMove';
-function ImageList_SetDragCursorImage(himlDrag:HIMAGELIST;iDrag:cint;dxHotspot:cint;dyHotspot:cint):BOOL; external commctrldll name 'ImageList_SetDragCursorImage';
+function ImageList_BeginDrag(himlTrack:HIMAGELIST;iTrack:cint;dxHotspot:cint;dyHotspot:cint):BOOL; stdcall; external commctrldll name 'ImageList_BeginDrag';
+function ImageList_EndDrag:BOOL; stdcall; external commctrldll name 'ImageList_EndDrag';
+function ImageList_DragEnter(hwndLock:HWND;x:cint;y:cint):BOOL; stdcall; external commctrldll name 'ImageList_DragEnter';
+function ImageList_DragLeave(hwndLock:HWND):BOOL; stdcall; external commctrldll name 'ImageList_DragLeave';
+function ImageList_DragMove(x:cint;y:cint):BOOL; stdcall; external commctrldll name 'ImageList_DragMove';
+function ImageList_SetDragCursorImage(himlDrag:HIMAGELIST;iDrag:cint;dxHotspot:cint;dyHotspot:cint):BOOL; stdcall; external commctrldll name 'ImageList_SetDragCursorImage';
 
-function ImageList_DragShowNolock(fShow:BOOL):BOOL; external commctrldll name 'ImageList_DragShowNolock';
-function ImageList_GetDragImage(ppt:PPOINT;pptHotspot:PPOINT):HIMAGELIST; external commctrldll name 'ImageList_GetDragImage';
+function ImageList_DragShowNolock(fShow:BOOL):BOOL; stdcall; external commctrldll name 'ImageList_DragShowNolock';
+function ImageList_GetDragImage(ppt:PPOINT;pptHotspot:PPOINT):HIMAGELIST; stdcall; external commctrldll name 'ImageList_GetDragImage';
 
 // Macro 13
 Procedure ImageList_RemoveAll(himl:HIMAGELIST);
@@ -665,8 +665,8 @@ Procedure ImageList_LoadBitmap(hi:HInst;bmp:LPCTSTR;cx:cint;cGrow:cint;crMask:CO
 
 {$IFDEF __IStream_INTERFACE_DEFINED__}
 
-function ImageList_Read(pstm:ISTREAM):HIMAGELIST; external commctrldll name 'ImageList_Read';
-function ImageList_Write(himl:HIMAGELIST;pstm:ISTREAM):BOOL; external commctrldll name 'ImageList_Write';
+function ImageList_Read(pstm:ISTREAM):HIMAGELIST; stdcall; external commctrldll name 'ImageList_Read';
+function ImageList_Write(himl:HIMAGELIST;pstm:ISTREAM):BOOL; stdcall; external commctrldll name 'ImageList_Write';
 
 {$ifdef Win32XP}
 
@@ -675,8 +675,8 @@ CONST
          ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel sematics.
 
 
-function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;riid:REFIID;ppv:PPointer):HRESULT; external commctrldll name 'ImageList_ReadEx';
-function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:ISTREAM):HRESULT; external commctrldll name 'ImageList_WriteEx';
+function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;riid:REFIID;ppv:PPointer):HRESULT; stdcall; external commctrldll name 'ImageList_ReadEx';
+function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:ISTREAM):HRESULT; stdcall; external commctrldll name 'ImageList_WriteEx';
 {$ENDIF}
 
 {$ENDIF}
@@ -698,14 +698,14 @@ TYPE
 
 {$ENDIF}
 
-function ImageList_GetIconSize(himl:HIMAGELIST;cx:Pint;cy:Pint):BOOL; external commctrldll name 'ImageList_GetIconSize';
-function ImageList_GetIconSize(himl:HIMAGELIST;var cx:cint;var cy:cint):BOOL; external commctrldll name 'ImageList_GetIconSize';
-function ImageList_SetIconSize(himl:HIMAGELIST;cx:cint;cy:cint):BOOL; external commctrldll name 'ImageList_SetIconSize';
-function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;pImageInfo:PIMAGEINFO):BOOL; external commctrldll name 'ImageList_GetImageInfo';
-function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;var pImageInfo:_IMAGEINFO):BOOL; external commctrldll name 'ImageList_GetImageInfo';
-function ImageList_Merge(himl1:HIMAGELIST;i1:cint;himl2:HIMAGELIST;i2:cint;dx:cint;dy:cint):HIMAGELIST; external commctrldll name 'ImageList_Merge';
+function ImageList_GetIconSize(himl:HIMAGELIST;cx:Pint;cy:Pint):BOOL; stdcall; external commctrldll name 'ImageList_GetIconSize';
+function ImageList_GetIconSize(himl:HIMAGELIST;var cx:cint;var cy:cint):BOOL; stdcall; external commctrldll name 'ImageList_GetIconSize';
+function ImageList_SetIconSize(himl:HIMAGELIST;cx:cint;cy:cint):BOOL; stdcall; external commctrldll name 'ImageList_SetIconSize';
+function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;pImageInfo:PIMAGEINFO):BOOL; stdcall; external commctrldll name 'ImageList_GetImageInfo';
+function ImageList_GetImageInfo(himl:HIMAGELIST;i:cint;var pImageInfo:_IMAGEINFO):BOOL; stdcall; external commctrldll name 'ImageList_GetImageInfo';
+function ImageList_Merge(himl1:HIMAGELIST;i1:cint;himl2:HIMAGELIST;i2:cint;dx:cint;dy:cint):HIMAGELIST; stdcall; external commctrldll name 'ImageList_Merge';
 {$ifdef ie4plus}
-function ImageList_Duplicate(himl:HIMAGELIST):HIMAGELIST; external commctrldll name 'ImageList_Duplicate';
+function ImageList_Duplicate(himl:HIMAGELIST):HIMAGELIST; stdcall; external commctrldll name 'ImageList_Duplicate';
 {$ENDIF}
 
 
@@ -1362,9 +1362,9 @@ TYPE
 function CreateToolbarEx(hwnd:HWND;ws:DWORD;wID:UINT;nBitmaps:cint;
                          hBMInst:HINST;
                          wBMID:UINT_PTR;lpButtons:LPCTBBUTTON;iNumButtons:cint;dxButton:cint;
-                         dyButton:cint;dxBitmap:cint;dyBitmap:cint;uStructSize:UINT):HWND; external commctrldll name 'CreateToolbarEx';
+                         dyButton:cint;dxBitmap:cint;dyBitmap:cint;uStructSize:UINT):HWND; stdcall; external commctrldll name 'CreateToolbarEx';
 
-function CreateMappedBitmap(hInstance:HINST;idBitmap:INT_PTR;wFlags:UINT;lpColorMap:LPCOLORMAP;iNumMaps:cint):HBITMAP; external commctrldll name 'CreateMappedBitmap';
+function CreateMappedBitmap(hInstance:HINST;idBitmap:INT_PTR;wFlags:UINT;lpColorMap:LPCOLORMAP;iNumMaps:cint):HBITMAP; stdcall; external commctrldll name 'CreateMappedBitmap';
 
 CONST
          CMB_MASKED                     = $02;
@@ -3006,19 +3006,19 @@ CONST
 
 // end_r_commctrl
 
-procedure DrawStatusTextA(hDC:HDC;lprc:LPRECT;pszText:LPCSTR;uFlags:UINT); external commctrldll name 'DrawStatusTextA';
-Procedure DrawStatusTextW(hDC:HDC;lprc:LPRECT;pszText:LPCWSTR;uFlags:UINT); external commctrldll name 'DrawStatusTextW';
+procedure DrawStatusTextA(hDC:HDC;lprc:LPRECT;pszText:LPCSTR;uFlags:UINT); stdcall; external commctrldll name 'DrawStatusTextA';
+Procedure DrawStatusTextW(hDC:HDC;lprc:LPRECT;pszText:LPCWSTR;uFlags:UINT); stdcall; external commctrldll name 'DrawStatusTextW';
 
-function CreateStatusWindowA(style:LONG;lpszText:LPCSTR;hwndParent:HWND;wID:UINT):HWND; external commctrldll name 'CreateStatusWindowA';
-function CreateStatusWindowW(style:LONG;lpszText:LPCWSTR;hwndParent:HWND;wID:UINT):HWND; external commctrldll name 'CreateStatusWindowW';
+function CreateStatusWindowA(style:LONG;lpszText:LPCSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowA';
+function CreateStatusWindowW(style:LONG;lpszText:LPCWSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowW';
 
 
 {$IFDEF UNICODE}
-function CreateStatusWindow(style:LONG;lpszText:LPCSTR;hwndParent:HWND;wID:UINT):HWND; external commctrldll name 'CreateStatusWindowA';
-procedure DrawStatusText(hDC:HDC;lprc:LPRECT;pszText:LPCSTR;uFlags:UINT); external commctrldll name 'DrawStatusTextA';
+function CreateStatusWindow(style:LONG;lpszText:LPCSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowA';
+procedure DrawStatusText(hDC:HDC;lprc:LPRECT;pszText:LPCSTR;uFlags:UINT); stdcall; external commctrldll name 'DrawStatusTextA';
 {$ELSE}
-function CreateStatusWindow(style:LONG;lpszText:LPCWSTR;hwndParent:HWND;wID:UINT):HWND; external commctrldll name 'CreateStatusWindowW';
-Procedure DrawStatusText(hDC:HDC;lprc:LPRECT;pszText:LPCWSTR;uFlags:UINT); external commctrldll name 'DrawStatusTextW';
+function CreateStatusWindow(style:LONG;lpszText:LPCWSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowW';
+Procedure DrawStatusText(hDC:HDC;lprc:LPRECT;pszText:LPCWSTR;uFlags:UINT); stdcall; external commctrldll name 'DrawStatusTextW';
 {$ENDIF}
 
 CONST
@@ -3106,9 +3106,9 @@ CONST
 
 {$IFNDEF NOMENUHELP}
 
-Procedure MenuHelp(uMsg:UINT;wParam:WPARAM;lParam:LPARAM;hMainMenu:HMENU;hInst:HINST;hwndStatus:HWND;lpwIDs:PUINT); external commctrldll name 'MenuHelp';
-function ShowHideMenuCtl(hWnd:HWND;uFlags:UINT_PTR;lpInfo:LPINT):BOOL; external commctrldll name 'ShowHideMenuCtl';
-Procedure GetEffectiveClientRect(hWnd:HWND;lprc:LPRECT;lpInfo:LPINT); external commctrldll name 'GetEffectiveClientRect';
+Procedure MenuHelp(uMsg:UINT;wParam:WPARAM;lParam:LPARAM;hMainMenu:HMENU;hInst:HINST;hwndStatus:HWND;lpwIDs:PUINT); stdcall; external commctrldll name 'MenuHelp';
+function ShowHideMenuCtl(hWnd:HWND;uFlags:UINT_PTR;lpInfo:LPINT):BOOL; stdcall; external commctrldll name 'ShowHideMenuCtl';
+Procedure GetEffectiveClientRect(hWnd:HWND;lprc:LPRECT;lpInfo:LPINT); stdcall; external commctrldll name 'GetEffectiveClientRect';
 
 CONST
          MINSYSCOMMAND                  = SC_SIZE;
@@ -3259,9 +3259,9 @@ CONST
 
          DRAGLISTMSGSTRING              = 'commctrl_DragListMsg'; // TEXT("commctrl_DragListMsg");
 
-function MakeDragList(hLB:HWND):BOOL; external commctrldll name 'MakeDragList';
-Procedure DrawInsert(handParent:HWND;hLB:HWND;nItem:cint); external commctrldll name 'DrawInsert';
-function LBItemFromPt(hLB:HWND;pt:POINT;bAutoScroll:BOOL):cint; external commctrldll name 'LBItemFromPt';
+function MakeDragList(hLB:HWND):BOOL; stdcall; external commctrldll name 'MakeDragList';
+Procedure DrawInsert(handParent:HWND;hLB:HWND;nItem:cint); stdcall; external commctrldll name 'DrawInsert';
+function LBItemFromPt(hLB:HWND;pt:POINT;bAutoScroll:BOOL):cint; stdcall; external commctrldll name 'LBItemFromPt';
 
 {$ENDIF}
 
@@ -3335,7 +3335,7 @@ CONST
          UDM_GETPOS32                   = (WM_USER+114);
 {$ENDIF}
 
-function CreateUpDownControl(dwStyle:DWORD;x:cint;y:cint;cx:cint;cy:cint;hParent:HWND;nID:cint;hInst:HINST;hBuddy:HWND;nUpper:cint;nLower:cint;nPos:cint):HWND; external commctrldll name 'CreateUpDownControl';
+function CreateUpDownControl(dwStyle:DWORD;x:cint;y:cint;cx:cint;cy:cint;hParent:HWND;nID:cint;hInst:HINST;hBuddy:HWND;nUpper:cint;nLower:cint;nPos:cint):HWND; stdcall; external commctrldll name 'CreateUpDownControl';
 
 TYPE
          _NM_UPDOWN           = Record
@@ -8935,10 +8935,10 @@ CONST
 // === MUI APIs ===
 //
 {$IFNDEF NOMUI}
-procedure InitMUILanguage(uiLang:LANGID); external commctrldll name 'InitMUILanguage';
+procedure InitMUILanguage(uiLang:LANGID); stdcall; external commctrldll name 'InitMUILanguage';
 
 
-function GetMUILanguage:LANGID; external commctrldll name 'GetMUILanguage';
+function GetMUILanguage:LANGID; stdcall; external commctrldll name 'GetMUILanguage';
 {$ENDIF}  // NOMUI
 
 {$ENDIF}      // _WIN32_IE >= 0x0400
@@ -8999,7 +8999,7 @@ TYPE
 // Declare _TrackMouseEvent.  This API tries to use the window manager's
 // implementation of TrackMouseEvent if it is present, otherwise it emulates.
 //
-function _TrackMouseEvent(lpEventTrack:LPTRACKMOUSEEVENT):BOOL; external commctrldll name '_TrackMouseEvent';
+function _TrackMouseEvent(lpEventTrack:LPTRACKMOUSEEVENT):BOOL; stdcall; external commctrldll name '_TrackMouseEvent';
 
 {$ENDIF} // !NOTRACKMOUSEEVENT
 
@@ -9028,35 +9028,35 @@ CONST
          FSB_ENCARTA_MODE               = 1;
          FSB_REGULAR_MODE               = 0;
 
-function FlatSB_EnableScrollBar(hwnd:HWND;code : cint;p3 : UINT):BOOL; external commctrldll name 'FlatSB_EnableScrollBar';
-function FlatSB_ShowScrollBar(hwnd:HWND;code : cint;p3 : BOOL):BOOL; external commctrldll name 'FlatSB_ShowScrollBar';
+function FlatSB_EnableScrollBar(hwnd:HWND;code : cint;p3 : UINT):BOOL; stdcall; external commctrldll name 'FlatSB_EnableScrollBar';
+function FlatSB_ShowScrollBar(hwnd:HWND;code : cint;p3 : BOOL):BOOL; stdcall; external commctrldll name 'FlatSB_ShowScrollBar';
 
-function FlatSB_GetScrollRange(hwnd:HWND;code : cint;p3 : LPINT;p4 : LPINT):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
-function FlatSB_GetScrollRange(hwnd:HWND;code : cint;var p3,p4 : cint):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
-function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;ScrollInfo : LPSCROLLINFO):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
-function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;var ScrollInfo : TSCROLLINFO):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
+function FlatSB_GetScrollRange(hwnd:HWND;code : cint;p3 : LPINT;p4 : LPINT):BOOL; stdcall; external commctrldll name 'FlatSB_GetScrollRange';
+function FlatSB_GetScrollRange(hwnd:HWND;code : cint;var p3,p4 : cint):BOOL; stdcall; external commctrldll name 'FlatSB_GetScrollRange';
+function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;ScrollInfo : LPSCROLLINFO):BOOL; stdcall; external commctrldll name 'FlatSB_GetScrollInfo';
+function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;var ScrollInfo : TSCROLLINFO):BOOL; stdcall; external commctrldll name 'FlatSB_GetScrollInfo';
 
-function FlatSB_GetScrollPos(hwnd:HWND;code : cint):cint; external commctrldll name 'FlatSB_GetScrollPos';
+function FlatSB_GetScrollPos(hwnd:HWND;code : cint):cint; stdcall; external commctrldll name 'FlatSB_GetScrollPos';
 
 
-function FlatSB_GetScrollProp(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
+function FlatSB_GetScrollProp(hwnd:HWND):BOOL; stdcall; external commctrldll name 'FlatSB_GetScrollProp';
 {$IFDEF _WIN64}
-function FlatSB_GetScrollPropPtr(hwnd:HWND;propIndex : cint;p3 : LPINT):BOOL; external commctrldll name 'FlatSB_GetScrollPropPtr';
+function FlatSB_GetScrollPropPtr(hwnd:HWND;propIndex : cint;p3 : LPINT):BOOL; stdcall; external commctrldll name 'FlatSB_GetScrollPropPtr';
 {$ELSE}
-function FlatSB_GetScrollPropPtr(hwnd:HWND;code : cint):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
+function FlatSB_GetScrollPropPtr(hwnd:HWND;code : cint):BOOL; stdcall; external commctrldll name 'FlatSB_GetScrollProp';
 {$ENDIF}
 
 
-function FlatSB_SetScrollPos(hWnd:HWND;nBar,nPos:cint;bRedraw:BOOL):cint; external commctrldll name 'FlatSB_SetScrollPos';
+function FlatSB_SetScrollPos(hWnd:HWND;nBar,nPos:cint;bRedraw:BOOL):cint; stdcall; external commctrldll name 'FlatSB_SetScrollPos';
 
-function FlatSB_SetScrollInfo(hWnd:HWND;BarFlag:cint;const ScrollInfo:TScrollInfo;Redraw:BOOL):cint; external commctrldll name 'FlatSB_SetScrollInfo';
+function FlatSB_SetScrollInfo(hWnd:HWND;BarFlag:cint;const ScrollInfo:TScrollInfo;Redraw:BOOL):cint; stdcall; external commctrldll name 'FlatSB_SetScrollInfo';
 
 
-function FlatSB_SetScrollRange(hWnd: HWND; nBar,nMinPos,nMaxPos: cint; bRedraw: BOOL):cint; external commctrldll name 'FlatSB_SetScrollRange';
-function FlatSB_SetScrollProp(p1: HWND; index : UINT; newValue: INT_PTR; p4: BOOL):BOOL; external commctrldll name 'FlatSB_SetScrollProp';
+function FlatSB_SetScrollRange(hWnd: HWND; nBar,nMinPos,nMaxPos: cint; bRedraw: BOOL):cint; stdcall; external commctrldll name 'FlatSB_SetScrollRange';
+function FlatSB_SetScrollProp(p1: HWND; index : UINT; newValue: INT_PTR; p4: BOOL):BOOL; stdcall; external commctrldll name 'FlatSB_SetScrollProp';
 
-function InitializeFlatSB(hWnd:HWND):BOOL; external commctrldll name 'InitializeFlatSB';
-function UninitializeFlatSB(hWnd:HWND):HRESULT; external commctrldll name 'UninitializeFlatSB';
+function InitializeFlatSB(hWnd:HWND):BOOL; stdcall; external commctrldll name 'InitializeFlatSB';
+function UninitializeFlatSB(hWnd:HWND):HRESULT; stdcall; external commctrldll name 'UninitializeFlatSB';
 
 {$ENDIF}  //  NOFLATSBAPIS
 
@@ -9083,17 +9083,17 @@ typedef LRESULT (CALLBACK *SUBCLASSPROC)(HWND hWnd, UINT uMsg, WPARAM wParam,
     hwnd:HWND;uMsg:cUINT; wParam:WPARAM;lparam:LPARAM;uISubClass : CUINT_PTR;dwRefData:DWORD_PTR):LRESULT; stdcall;
 }
 
-function SetWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UINT_PTR;dwRefData:DWORD_PTR):BOOL; external commctrldll name 'SetWindowSubclass';
-function GetWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UINT_PTR;pdwRefData:PDWORD_PTR):BOOL; external commctrldll name 'GetWindowSubclass';
-function RemoveWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UINT_PTR):BOOL; external commctrldll name 'RemoveWindowSubclass';
+function SetWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UINT_PTR;dwRefData:DWORD_PTR):BOOL; stdcall; external commctrldll name 'SetWindowSubclass';
+function GetWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UINT_PTR;pdwRefData:PDWORD_PTR):BOOL; stdcall; external commctrldll name 'GetWindowSubclass';
+function RemoveWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UINT_PTR):BOOL; stdcall; external commctrldll name 'RemoveWindowSubclass';
 
-function DefSubclassProc(hWnd:HWND;uMsg:UINT;wParam:WPARAM;lParam:LPARAM):LRESULT; external commctrldll name 'DefSubclassProc';
+function DefSubclassProc(hWnd:HWND;uMsg:UINT;wParam:WPARAM;lParam:LPARAM):LRESULT; stdcall; external commctrldll name 'DefSubclassProc';
 {$ENDIF}
 
 
 {$ifdef win32xp}
 
-function DrawShadowText(hdc:HDC;pszText:LPCWSTR;cch:UINT;prc:PRECT;dwFlags:DWORD;crText:COLORREF;crShadow:COLORREF;ixOffset:cint;iyOffset:cint):cint; external commctrldll name 'DrawShadowText';
+function DrawShadowText(hdc:HDC;pszText:LPCWSTR;cch:UINT;prc:PRECT;dwFlags:DWORD;crText:COLORREF;crShadow:COLORREF;ixOffset:cint;iyOffset:cint):cint; stdcall; external commctrldll name 'DrawShadowText';
 {$ENDIF}
 
 

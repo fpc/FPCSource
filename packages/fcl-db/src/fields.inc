@@ -950,13 +950,16 @@ begin
   SetDataType(ftString);
   FFixedChar := False;
   FTransliterate := False;
-  Size:=20;
+  FSize:=20;
 end;
 
 class procedure TStringField.CheckTypeSize(AValue: Longint);
 
 begin
-  If (AValue<1) or (AValue>dsMaxStringSize) Then
+// A size of 0 is allowed, since for example Firebird allows
+// a query like: 'select '' as fieldname from table' which
+// results in a string with size 0.
+  If (AValue<0) or (AValue>dsMaxStringSize) Then
     databaseErrorFmt(SInvalidFieldSize,[AValue])
 end;
 
@@ -1082,6 +1085,7 @@ begin
   else if FTransliterate then
     begin
     DataSet.Translate(@AValue[1],Buf,True);
+    Buf[DataSize-1] := #0;
     SetData(@buf);
     end
   else
@@ -1089,6 +1093,8 @@ begin
     // The data is copied into the buffer, since some TDataset descendents copy
     // the whole buffer-length in SetData. (See bug 8477)
     Buf := AValue;
+    // If length(AValue) > Datasize the buffer isn't terminated properly
+    Buf[DataSize-1] := #0;
     SetData(@Buf);
     end;
 end;

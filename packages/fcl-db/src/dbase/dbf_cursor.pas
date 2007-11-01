@@ -18,11 +18,11 @@ type
     FFile: TPagedFile;
 
   protected
-    function GetPhysicalRecno: Integer; virtual; abstract;
-    function GetSequentialRecno: Integer; virtual; abstract;
+    function GetPhysicalRecNo: Integer; virtual; abstract;
+    function GetSequentialRecNo: Integer; virtual; abstract;
     function GetSequentialRecordCount: Integer; virtual; abstract;
-    procedure SetPhysicalRecno(Recno: Integer); virtual; abstract;
-    procedure SetSequentialRecno(Recno: Integer); virtual; abstract;
+    procedure SetPhysicalRecNo(RecNo: Integer); virtual; abstract;
+    procedure SetSequentialRecNo(RecNo: Integer); virtual; abstract;
 
   public
     constructor Create(pFile: TPagedFile);

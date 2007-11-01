@@ -115,6 +115,7 @@ Type
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   Public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -402,14 +403,24 @@ procedure TConnectionName.Execute(cursor: TSQLCursor;
 Var
   C : TCursorName;
   i : integer;
+  ParamNames,ParamValues : array of string;
 
 begin
   C:=Cursor as TCursorName;
   If (C.FRes=Nil) then
     begin
     if Assigned(AParams) and (AParams.count > 0) then
+      begin
+      setlength(ParamNames,AParams.Count);
+      setlength(ParamValues,AParams.Count);
       for i := 0 to AParams.count -1 do
-        C.FStatement := stringreplace(C.FStatement,C.ParamReplaceString+inttostr(AParams[i].Index+1),GetAsSQLText(AParams[i]),[rfReplaceAll,rfIgnoreCase]);
+        begin
+        ParamNames[AParams.count-i-1] := C.ParamReplaceString+inttostr(AParams[i].Index+1);
+        ParamValues[AParams.count-i-1] := GetAsSQLText(AParams[i]);
+        end;
+      // paramreplacestring kan een probleem geven bij postgres als hij niet meer gewoon $ is?
+      C.FStatement := stringsreplace(C.FStatement,ParamNames,ParamValues,[rfReplaceAll]);
+      end;
     if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
       MySQLError(FMYSQL,Format(SErrExecuting,[StrPas(mysql_error(FMySQL))]),Self)
     else
@@ -832,6 +843,11 @@ begin
     end;
   qry.close;
   qry.free;
+end;
+
+function TConnectionName.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  Result := (cursor as TCursorName).RowsAffected;
 end;
 
 constructor TConnectionName.Create(AOwner: TComponent);

@@ -258,6 +258,11 @@ begin
     end
 end;
 
+procedure TRegistry.CloseKey(key:HKEY);
+begin
+  RegCloseKey(CurrentKey)
+end;
+
 procedure TRegistry.ChangeKey(Value: HKey; const Path: String);
 begin
   CloseKey;

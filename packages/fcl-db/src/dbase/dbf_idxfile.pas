@@ -409,6 +409,7 @@ uses
   dbf_fields,
   dbf_str,
   dbf_prssupp,
+  dbf_prscore,
   dbf_lang;
 
 const
@@ -1717,9 +1718,32 @@ end;
 { TDbfIndexParser }
 
 procedure TDbfIndexParser.ValidateExpression(AExpression: string);
+const
+  AnsiStrFuncs: array[0..13] of TExprFunc = (FuncUppercase, FuncLowercase, FuncStrI_EQ,
+    FuncStrIP_EQ, FuncStrI_NEQ, FuncStrI_LT, FuncStrI_GT, FuncStrI_LTE, FuncStrI_GTE,
+    FuncStrP_EQ, FuncStr_LT, FuncStr_GT, FuncStr_LTE, FuncStr_GTE);
+  AnsiFuncsToMode: array[boolean] of TStringFieldMode = (smRaw, smAnsi);
 var
+  TempRec: PExpressionRec;
   TempBuffer: pchar;
+  I: integer;
+  hasAnsiFuncs: boolean;
 begin
+  TempRec := CurrentRec;
+  hasAnsiFuncs := false;
+  while not hasAnsiFuncs and (TempRec <> nil) do
+  begin
+    for I := Low(AnsiStrFuncs) to High(AnsiStrFuncs) do
+      if @TempRec^.Oper = @AnsiStrFuncs[I] then
+      begin
+        hasAnsiFuncs := true;
+        break;
+      end;
+    TempRec := TempRec^.Next;
+  end;
+
+  StringFieldMode := AnsiFuncsToMode[hasAnsiFuncs];
+
   FResultLen := inherited ResultLen;
 
   if FResultLen = -1 then
@@ -2980,7 +3004,7 @@ function TIndexFile.ExtractKeyFromBuffer(Buffer: PChar): PChar;
 begin
   // execute expression to get key
   Result := PrepareKey(FCurrentParser.ExtractFromBuffer(Buffer), FCurrentParser.ResultType);
-  if not FCurrentParser.RawStringFields then
+  if FCurrentParser.StringFieldMode <> smRaw then
     TranslateString(GetACP, FCodePage, Result, Result, KeyLen);
 end;
 

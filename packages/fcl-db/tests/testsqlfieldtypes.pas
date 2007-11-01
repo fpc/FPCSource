@@ -26,6 +26,11 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestInsertLargeStrFields; // bug 9600
+    procedure TestRowsAffected; // bug 9758
+    procedure TestStringsReplace;
+    procedure TestCircularParams;
+    procedure Test11Params;
     procedure TestBug9744;
     procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;
@@ -343,7 +348,8 @@ var
   i             : byte;
 
 begin
-//  AssertTrue(SIgnoreAssertion,SQLDbType = postgresql); // Only postgres accept this type-definition
+  if SQLDbType<>postgresql then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
 
@@ -867,9 +873,137 @@ begin
     inherited RunTest;
 end;
 
+procedure TTestFieldTypes.TestInsertLargeStrFields;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  ID INT NOT NULL          , ' +
+                              '  NAME VARCHAR(16000),       ' +
+                              '  PRIMARY KEY (ID)           ' +
+                              ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
+    Query.ExecSQL;
+    query.sql.Text:='select * from FPDEV2';
+    Query.Open;
+    AssertEquals(query.FieldByName('NAME').AsString,'test1');
+    Query.insert;
+    query.fields[1].AsString:='11';
+    query.Close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestRowsAffected;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    AssertEquals(-1,query.RowsAffected);
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  ID INT NOT NULL            , ' +
+                              '  NAME VARCHAR(250),         ' +
+                              '  PRIMARY KEY (ID)           ' +
+                              ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
+    Query.ExecSQL;
+    AssertEquals(1,query.RowsAffected);
+    Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (2,''test2'')';
+    Query.ExecSQL;
+    AssertEquals(1,query.RowsAffected);
+    Query.SQL.Text := 'update FPDEV2 set NAME=''NewTest''';
+    Query.ExecSQL;
+    AssertEquals(2,query.RowsAffected);
+    Query.SQL.Text := 'select * from FPDEV2';
+    Query.Open;
+    AssertTrue(query.RowsAffected<>0); // It should return -1 or the number of selected rows.
+    query.Close;
+    AssertEquals(-1,query.RowsAffected);
+    Query.SQL.Text := 'delete from FPDEV2';
+    Query.ExecSQL;
+    AssertEquals(2,query.RowsAffected);
+    Query.SQL.Text := 'delete from FPDEV2';
+    Query.ExecSQL;
+    AssertEquals(0,query.RowsAffected);
+    end;
+end;
+
+procedure TTestFieldTypes.TestStringsReplace;
+begin
+  AssertEquals('dit is een string',StringsReplace('dit was een string',['was'],['is'],[]));
+  AssertEquals('dit is een string was een string',StringsReplace('dit was een string was een string',['was'],['is'],[]));
+  AssertEquals('dit is een string is een string',StringsReplace('dit was een string was een string',['was'],['is'],[rfReplaceAll]));
+
+  AssertEquals('dit is een char is een char',StringsReplace('dit was een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
+  AssertEquals('dit is een string was een string',StringsReplace('dit was een string was een string',['string','was'],['char','is'],[]));
+
+  AssertEquals('dit is een char is een strin',StringsReplace('dit was een string was een strin',['string','was'],['char','is'],[rfReplaceAll]));
+
+  AssertEquals('dit Was een char is een char',StringsReplace('dit Was een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
+  AssertEquals('dit wAs een char is een char',StringsReplace('dit wAs een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
+  AssertEquals('dit is een char is een char',StringsReplace('dit Was een sTring was een string',['was','string'],['is','char'],[rfReplaceAll,rfIgnoreCase]));
+  AssertEquals('dit is een char is een char',StringsReplace('dit wAs een STRING was een string',['was','string'],['is','char'],[rfReplaceAll,rfIgnoreCase]));
+
+  AssertEquals('dit was een si was een sa',StringsReplace('dit was een string was een straat',['straat','string'],['sa','si'],[rfReplaceAll]));
+  AssertEquals('dit was een si was een sa',StringsReplace('dit was een string was een straat',['string','straat'],['si','sa'],[rfReplaceAll]));
+
+  AssertEquals('dit was een sing was een saat',StringsReplace('dit was een string was een straat',['str','string'],['s','si'],[rfReplaceAll]));
+  AssertEquals('dit was een si was een saat',StringsReplace('dit was een string was een straat',['string','str'],['si','s'],[rfReplaceAll]));
+
+  AssertEquals('dit was een string was een string',StringsReplace('dit was een string was een string',[''],['is'],[rfReplaceAll]));
+  AssertEquals('dit  een string  een string',StringsReplace('dit was een string was een string',['was'],[''],[rfReplaceAll]));
+end;
+
+procedure TTestFieldTypes.TestCircularParams;
+begin
+  with TSQLDBConnector(dbconnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (id1 int, id2 int,vchar varchar(10))');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+    Query.sql.Text := 'insert into FPDEV2 values(:id1,:id2,:vchar)';
+    query.params[0].asinteger := 1;
+    query.params[1].asinteger := 1;
+    query.params[2].asstring := '$1 :id2 $';
+    query.ExecSQL;
+    query.sql.text := 'select * from FPDEV2';
+    query.open;
+    AssertEquals(1,query.fields[0].asinteger);
+    AssertEquals(1,query.fields[1].asinteger);
+    AssertEquals('$1 :id2 $',query.fields[2].AsString);
+    query.close;
+    end;
+end;
+
+procedure TTestFieldTypes.Test11Params;
+var i : integer;
+begin
+  with TSQLDBConnector(dbconnector) do
+    begin
+    Connection.ExecuteDirect('create table FPDEV2 (id1 int, id2 int, id3 int, id4 int,id5 int,id6 int,id7 int,id8 int, id9 int, id10 int, id11 int)');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+    Query.sql.Text := 'insert into FPDEV2 values(:id1,:id2,:id3,:id4,:id5,:id6,:id7,:id8,:id9,:id10,:id11)';
+    for i := 0 to 10 do
+      query.params[i].asinteger := 1;
+    query.ExecSQL;
+    query.sql.text := 'select * from FPDEV2';
+    query.open;
+    for i := 0 to 10 do
+      AssertEquals(1,query.fields[i].asinteger);
+    query.close;
+    end;
+end;
+
 procedure TTestFieldTypes.TestBug9744;
 var i : integer;
 begin
+  if SQLDbType in [interbase,postgresql] then Ignore('This test does not apply to this db-engine, since it has no double field-type');
+
   with TSQLDBConnector(DBConnector) do
     begin
     try
@@ -931,11 +1065,11 @@ begin
   ds.Prepare;
   ds.IndexDefs.Update;
   AssertEquals(1,ds.IndexDefs.count);
-  AssertEquals('ID',ds.indexdefs[0].Fields);
+  AssertTrue(CompareText('ID',ds.indexdefs[0].Fields)=0);
   Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
   ds.IndexDefs.Update;
   AssertEquals(1,ds.IndexDefs.count);
-  AssertEquals('ID',ds.indexdefs[0].Fields);
+  AssertTrue(CompareText('ID',ds.indexdefs[0].Fields)=0);
   Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
 end;
 
@@ -968,6 +1102,8 @@ end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
+  if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it doesn''t support temporary tables');
+
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
@@ -993,13 +1129,13 @@ begin
   AssertEquals(1,ds.IndexDefs.count);
   inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary]);
   AssertEquals(1,inddefs.count);
-  AssertEquals('ID',inddefs[0].Fields);
+  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
   Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
   inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary,ixUnique]);
   AssertEquals(1,inddefs.count);
-  AssertEquals('ID',inddefs[0].Fields);
+  AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
   Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
@@ -1021,14 +1157,18 @@ end;
 
 procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
+var ADateStr : String;
 begin
+  if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it doesn''t use semicolons for casts');
+
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
     sql.add('select now()::date as current_date where 1=1');
     open;
     first;
-    writeln(fields[0].asstring); // return the correct date
+    ADateStr:=fields[0].asstring; // return the correct date
+    // writeln(fields[0].asstring);
     close;
 
     sql.clear;
@@ -1036,13 +1176,17 @@ begin
     params.parambyname('PARAM1').asinteger:= 1;
     open;
     first;
-    writeln(fields[0].asstring); // return invalid date
+    AssertEquals(ADateStr,fields[0].asstring); // return invalid date
+    // writeln(fields[0].asstring);
     close;
 
     end
 end;
 
 procedure TTestFieldTypes.TestExceptOnsecClose;
+
+var passed : boolean;
+
 begin
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -1054,13 +1198,14 @@ begin
     
     SQL.Clear;
     SQL.Add('select blaise from FPDEV');
-{$IFDEF FPC}
-//    AssertException(EIBDatabaseError,@Open);
-{$ELSE}
-//    AssertException(EIBDatabaseError,Open);
-{$ENDIF}
-
-    Open;
+    passed := false;
+    try
+      open;
+    except
+      on E: Exception do
+        passed := (E.ClassType.InheritsFrom(EDatabaseError))
+      end;
+    AssertTrue(passed);
 
     Close;
     end;

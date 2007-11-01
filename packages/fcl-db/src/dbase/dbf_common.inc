@@ -144,16 +144,9 @@
   {$define DELPHI_3}
 {$endif}
 
-{$ifdef VER190} // Delphi 2007
+{$ifdef VER185} // Delphi 2007
   {$define DELPHI_2007}
-  {$define DELPHI_2006}
-  {$define DELPHI_2005}
-  {$define DELPHI_8}
-  {$define DELPHI_7}
-  {$define DELPHI_6}
-  {$define DELPHI_5}
-  {$define DELPHI_4}
-  {$define DELPHI_3}
+  { Delphi 2007 also defines VER180, so other DELPHI defines already done }
 {$endif}
 
 //-------------------------------------------------------
@@ -186,6 +179,7 @@
 
   {$define SUPPORT_BACKWARD_FIELDDATA}
   {$define SUPPORT_INITDEFSFROMFIELDS}
+  {$define SUPPORT_REFRESHEVENTS}
   {$define SUPPORT_DEF_DELETE}
   {$define SUPPORT_FREEANDNIL}
 
@@ -227,6 +221,7 @@
   {$define SUPPORT_MATH_UNIT}
   {$define SUPPORT_VARIANTS}
   {$define SUPPORT_SEPARATE_VARIANTS_UNIT}
+  {$define SUPPORT_REFRESHEVENTS}
 
   // FPC 2.0.x improvements
   {$ifdef VER2}

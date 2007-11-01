@@ -33,11 +33,11 @@ Var
 Procedure FreeHandles;
 
 begin
-  If StmtHAndle<>0 then
+  If assigned(StmtHAndle) then
     SQLFreeHandle(SQL_HANDLE_STMT,StmtHandle);
-  If DBHandle<>0 then
+  If assigned(dbhandle) then
     SQLFreeHandle(SQL_HANDLE_DBC,DBHandle);
-  If EnvHandle<>0 then
+  If assigned(EnvHandle) then
     SQLFreeHandle(SQL_HANDLE_ENV,EnvHandle);
 end;
 
@@ -55,9 +55,9 @@ Var
   Res : Integer;
 
 begin
-  EnvHandle:=0;
-  DBHandle:=0;
-  StmtHandle:=0;
+  EnvHandle:=nil;
+  DBHandle:=nil;
+  StmtHandle:=nil;
   Res:=SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, EnvHandle);
   if Res <> SQL_SUCCESS then
     DoError('Could allocate ODBC handle',Res);

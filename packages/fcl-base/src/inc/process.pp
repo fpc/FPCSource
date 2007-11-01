@@ -56,10 +56,8 @@ Type
     FCurrentDirectory : String;
     FDesktop : String;
     FEnvironment : Tstrings;
-    FExitCode : Cardinal;
     FShowWindow : TShowWindowOptions;
     FInherithandles : Boolean;
-    FRunning : Boolean;
     FProcessPriority : TProcessPriority;
     dwXCountchars,
     dwXSize,
@@ -85,6 +83,8 @@ Type
     procedure SetEnvironment(const Value: TStrings);
     function  PeekExitStatus: Boolean;
   Protected  
+    FRunning : Boolean;
+    FExitCode : Cardinal;
     FInputStream  : TOutputPipeStream;
     FOutputStream : TInputPipeStream;
     FStderrStream : TInputPipeStream;

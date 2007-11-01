@@ -467,6 +467,7 @@ begin
   st:=TSQLite3Cursor(cursor).fstatement;
   fnum:= FieldDef.fieldno - 1;
   st1:= TStorageType(sqlite3_column_type(st,fnum));
+  CreateBlob:=false;
   result:= st1 <> stnull;
   if Not result then 
     Exit;
@@ -499,6 +500,7 @@ begin
               end;
     ftMemo,
     ftBlob: begin
+            CreateBlob:=True;
             int2:= sqlite3_column_bytes(st,fnum);
             {$WARNING Blob data not handled correctly }
             // int1:= addblobdata(sqlite3_column_text(st,fnum),int2);

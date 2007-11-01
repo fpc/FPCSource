@@ -26,6 +26,8 @@ type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, 
      TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
      TConnOptions= set of TConnOption;
 
+     TRowsCount = LargeInt;
+
 type
   TSQLConnection = class;
   TSQLTransaction = class;
@@ -105,6 +107,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -241,6 +244,7 @@ type
     procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
     property Prepared : boolean read IsPrepared;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    function RowsAffected: TRowsCount; virtual;
   protected
       
     // redeclared data set properties
@@ -394,6 +398,7 @@ type
 
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -425,6 +430,7 @@ Procedure UnRegisterConnection(Def : TConnectionDefClass);
 Procedure UnRegisterConnection(ConnectionName : String);
 Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
 Procedure GetConnectionList(List : TSTrings);
+function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 
 implementation
 
@@ -553,6 +559,10 @@ begin
   qry.free;
 end;
 
+function TSQLConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  Result := -1;
+end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
 begin
@@ -634,7 +644,7 @@ end;
 
 function TSQLTransaction.GetHandle: pointer;
 begin
-  Result := (Database as tsqlconnection).GetTransactionHandle(FTrans);
+  Result := TSQLConnection(Database).GetTransactionHandle(FTrans);
 end;
 
 procedure TSQLTransaction.Commit;
@@ -642,7 +652,7 @@ begin
   if active then
     begin
     closedatasets;
-    if (Database as tsqlconnection).commit(FTrans) then
+    if TSQLConnection(Database).commit(FTrans) then
       begin
       closeTrans;
       FreeAndNil(FTrans);
@@ -653,7 +663,7 @@ end;
 procedure TSQLTransaction.CommitRetaining;
 begin
   if active then
-    (Database as tsqlconnection).commitRetaining(FTrans);
+    TSQLConnection(Database).commitRetaining(FTrans);
 end;
 
 procedure TSQLTransaction.Rollback;
@@ -661,7 +671,7 @@ begin
   if active then
     begin
     closedatasets;
-    if (Database as tsqlconnection).RollBack(FTrans) then
+    if TSQLConnection(Database).RollBack(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -672,7 +682,7 @@ end;
 procedure TSQLTransaction.RollbackRetaining;
 begin
   if active then
-    (Database as tsqlconnection).RollBackRetaining(FTrans);
+    TSQLConnection(Database).RollBackRetaining(FTrans);
 end;
 
 procedure TSQLTransaction.StartTransaction;
@@ -683,7 +693,7 @@ begin
   if Active then
     DatabaseError(SErrTransAlreadyActive);
 
-  db := (Database as tsqlconnection);
+  db := TSQLConnection(Database);
 
   if Db = nil then
     DatabaseError(SErrDatabasenAssigned);
@@ -713,9 +723,11 @@ Procedure TSQLTransaction.SetDatabase(Value : TDatabase);
 begin
   If Value<>Database then
     begin
+    if assigned(value) and not (Value is TSQLConnection) then
+      DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
     CheckInactive;
     If Assigned(Database) then
-      with Database as TSqlConnection do
+      with TSQLConnection(DataBase) do
         if Transaction = self then Transaction := nil;
     inherited SetDatabase(Value);
     end;
@@ -731,7 +743,7 @@ begin
   if (FSQL <> nil) then
     begin
     if assigned(DataBase) then
-      ConnOptions := (DataBase as TSQLConnection).ConnOptions
+      ConnOptions := TSQLConnection(DataBase).ConnOptions
     else
       ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
     Fparams.ParseSQL(FSQL.Text,True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase);
@@ -760,9 +772,11 @@ var db : tsqlconnection;
 begin
   if (Database <> Value) then
     begin
+    if assigned(value) and not (Value is TSQLConnection) then
+      DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
     UnPrepare;
-    if assigned(FCursor) then (Database as TSQLConnection).DeAllocateCursorHandle(FCursor);
-    db := value as tsqlconnection;
+    if assigned(FCursor) then TSQLConnection(DataBase).DeAllocateCursorHandle(FCursor);
+    db := TSQLConnection(Value);
     inherited setdatabase(value);
     if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
       transaction := Db.Transaction;
@@ -794,7 +808,7 @@ var S : String;
 
 begin
   FreeFldBuffers;
-  (Database as tsqlconnection).UnPrepareStatement(FCursor);
+  TSQLConnection(Database).UnPrepareStatement(FCursor);
   FIsEOF := False;
   inherited internalclose;
 
@@ -802,7 +816,7 @@ begin
 
   if ServerFiltered then s := AddFilter(s);
 
-  (Database as tsqlconnection).PrepareStatement(Fcursor,(transaction as tsqltransaction),S,FParams);
+  TSQLConnection(Database).PrepareStatement(Fcursor,(transaction as tsqltransaction),S,FParams);
 
   Execute;
   inherited InternalOpen;
@@ -847,7 +861,7 @@ var
 begin
   if not IsPrepared then
     begin
-    db := (Database as tsqlconnection);
+    db := TSQLConnection(Database);
     sqltr := (transaction as tsqltransaction);
     if not assigned(Db) then
       DatabaseError(SErrDatabasenAssigned);
@@ -885,13 +899,13 @@ procedure TCustomSQLQuery.UnPrepare;
 
 begin
   CheckInactive;
-  if IsPrepared then with Database as TSQLConnection do
+  if IsPrepared then with TSQLConnection(DataBase) do
     UnPrepareStatement(FCursor);
 end;
 
 procedure TCustomSQLQuery.FreeFldBuffers;
 begin
-  if assigned(FCursor) then (Database as tsqlconnection).FreeFldBuffers(FCursor);
+  if assigned(FCursor) then TSQLConnection(Database).FreeFldBuffers(FCursor);
 end;
 
 function TCustomSQLQuery.Fetch : boolean;
@@ -899,7 +913,7 @@ begin
   if not (Fcursor.FStatementType in [stSelect]) then
     Exit;
 
-  if not FIsEof then FIsEOF := not (Database as tsqlconnection).Fetch(Fcursor);
+  if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Fcursor);
   Result := not FIsEOF;
 end;
 
@@ -907,13 +921,21 @@ procedure TCustomSQLQuery.Execute;
 begin
   If (FParams.Count>0) and Assigned(FMasterLink) then
     FMasterLink.CopyParamsFromMaster(False);
-  (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction, FParams);
+  TSQLConnection(Database).execute(Fcursor,Transaction as tsqltransaction, FParams);
 end;
 
 function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 begin
-  result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer, Createblob)
+  result := TSQLConnection(Database).LoadField(FCursor,FieldDef,buffer, Createblob)
+end;
+
+function TCustomSQLQuery.RowsAffected: TRowsCount;
+begin
+  Result := -1;
+  if not Assigned(Database) then Exit;
+  //assert(Database is TSQLConnection);
+  Result := TSQLConnection(Database).RowsAffected(FCursor);
 end;
 
 procedure TCustomSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
@@ -925,7 +947,7 @@ procedure TCustomSQLQuery.InternalClose;
 begin
   if StatementType = stSelect then FreeFldBuffers;
 // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
-  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then (database as TSQLconnection).UnPrepareStatement(FCursor);
+  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -946,7 +968,7 @@ begin
   try
     FieldDefs.Clear;
 
-    (Database as tsqlconnection).AddFieldDefs(fcursor,FieldDefs);
+    TSQLConnection(Database).AddFieldDefs(fcursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
     FCursor.FInitFieldDef := false;
@@ -977,7 +999,7 @@ begin
   FWhereStartPos := 0;
   FWhereStopPos := 0;
   
-  ConnOptions := (DataBase as TSQLConnection).ConnOptions;
+  ConnOptions := TSQLConnection(DataBase).ConnOptions;
 
   repeat
     begin
@@ -1013,7 +1035,7 @@ begin
 
         case ParsePart of
           ppStart  : begin
-                     FCursor.FStatementType := (Database as tsqlconnection).StrToStatementType(s);
+                     FCursor.FStatementType := TSQLConnection(Database).StrToStatementType(s);
                      if FCursor.FStatementType = stSelect then ParsePart := ppSelect
                        else break;
                      if not FParseSQL then break;
@@ -1181,7 +1203,7 @@ begin
   finally
     // FCursor has to be assigned, or else the prepare went wrong before PrepareStatment was
     // called, so UnPrepareStatement shoudn't be called either
-    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then (database as TSQLConnection).UnPrepareStatement(Fcursor);
+    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(Fcursor);
   end;
 end;
 
@@ -1216,7 +1238,7 @@ destructor TCustomSQLQuery.Destroy;
 begin
   if Active then Close;
   UnPrepare;
-  if assigned(FCursor) then (Database as TSQLConnection).DeAllocateCursorHandle(FCursor);
+  if assigned(FCursor) then TSQLConnection(Database).DeAllocateCursorHandle(FCursor);
   FreeAndNil(FMasterLink);
   FreeAndNil(FParams);
   FreeAndNil(FSQL);
@@ -1268,7 +1290,7 @@ Procedure TCustomSQLQuery.UpdateIndexDefs;
 
 begin
   if assigned(DataBase) then
-    (DataBase as TSQLConnection).UpdateIndexDefs(FIndexDefs,FTableName);
+    TSQLConnection(DataBase).UpdateIndexDefs(FIndexDefs,FTableName);
 end;
 
 Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
@@ -1416,13 +1438,13 @@ procedure TCustomSQLQuery.SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectN
 begin
   ReadOnly := True;
   SQL.Clear;
-  SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
+  SQL.Add(TSQLConnection(DataBase).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
 end;
 
 procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField);
 begin
-  (DataBase as tsqlconnection).LoadBlobIntoBuffer(FieldDef, ABlobBuf, FCursor,(Transaction as tsqltransaction));
+  TSQLConnection(DataBase).LoadBlobIntoBuffer(FieldDef, ABlobBuf, FCursor,(Transaction as tsqltransaction));
 end;
 
 function TCustomSQLQuery.GetStatementType : TStatementType;
@@ -1636,6 +1658,68 @@ begin
   List.Text:=ConnDefs.Text;
 end;
 
+function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
+
+var pc,pcc,lastpc : pchar;
+    strcount      : integer;
+    ResStr,
+    CompStr       : string;
+    Found         : Boolean;
+    sc            : integer;
+
+
+begin
+  sc := length(OldPattern);
+  if sc <> length(NewPattern) then
+    raise exception.Create(SErrAmountStrings);
+
+  dec(sc);
+
+  if rfIgnoreCase in Flags then
+    begin
+    CompStr:=AnsiUpperCase(S);
+    for strcount := 0 to sc do
+      OldPattern[strcount] := AnsiUpperCase(OldPattern[strcount]);
+    end
+  else
+    CompStr := s;
+
+  ResStr := '';
+  pc := @CompStr[1];
+  pcc := @s[1];
+  lastpc := pc+Length(S);
+
+  while pc < lastpc do
+    begin
+    Found := False;
+    for strcount := 0 to sc do
+      begin
+      if (length(OldPattern[strcount])>0) and
+         (OldPattern[strcount][1]=pc^) and
+         (Length(OldPattern[strcount]) <= (lastpc-pc)) and
+         (CompareByte(OldPattern[strcount][1],pc^,Length(OldPattern[strcount]))=0) then
+        begin
+        ResStr := ResStr + NewPattern[strcount];
+        pc := pc+Length(OldPattern[strcount]);
+        pcc := pcc+Length(OldPattern[strcount]);
+        Found := true;
+        end
+      end;
+    if not found then
+      begin
+      ResStr := ResStr + pcc^;
+      inc(pc);
+      inc(pcc);
+      end
+    else if not (rfReplaceAll in Flags) then
+      begin
+      ResStr := ResStr + StrPas(pcc);
+      break;
+      end;
+    end;
+  Result := ResStr;
+end;
+
 { TSQLConnector }
 
 procedure TSQLConnector.SetConnectorType(const AValue: String);
@@ -1790,6 +1874,12 @@ function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TfieldDef;
 begin
   CheckProxy;
   Result:=FProxy.LoadField(cursor, FieldDef, buffer, CreateBlob);
+end;
+
+function TSQLConnector.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  CheckProxy;
+  Result := FProxy.RowsAffected(cursor);
 end;
 
 function TSQLConnector.GetTransactionHandle(trans: TSQLHandle): pointer;

@@ -22,6 +22,8 @@ uses
 
 type
 
+  TStringFieldMode = (smRaw, smAnsi, smAnsiTrim);
+
   TDbfParser = class(TCustomExpressionParser)
   private
     FDbfFile: Pointer;
@@ -29,7 +31,7 @@ type
     FIsExpression: Boolean;       // expression or simple field?
     FFieldType: TExpressionType;
     FCaseInsensitive: Boolean;
-    FRawStringFields: Boolean;
+    FStringFieldMode: TStringFieldMode;
     FPartialMatch: boolean;
 
   protected
@@ -44,7 +46,7 @@ type
     function  GetResultLen: Integer;
 
     procedure SetCaseInsensitive(NewInsensitive: Boolean);
-    procedure SetRawStringFields(NewRawFields: Boolean);
+    procedure SetStringFieldMode(NewMode: TStringFieldMode);
     procedure SetPartialMatch(NewPartialMatch: boolean);
   public
     constructor Create(ADbfFile: Pointer);
@@ -60,7 +62,7 @@ type
     property ResultLen: Integer read GetResultLen;
 
     property CaseInsensitive: Boolean read FCaseInsensitive write SetCaseInsensitive;
-    property RawStringFields: Boolean read FRawStringFields write SetRawStringFields;
+    property StringFieldMode: TStringFieldMode read FStringFieldMode write SetStringFieldMode;
     property PartialMatch: boolean read FPartialMatch write SetPartialMatch;
   end;
 
@@ -106,20 +108,19 @@ type
   TStringFieldVar = class(TFieldVar)
   protected
     FFieldVal: PChar;
-    FRawStringField: boolean;
+    FMode: TStringFieldMode;
 
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
     procedure SetExprWord(NewExprWord: TExprWord); override;
-    procedure SetRawStringField(NewRaw: boolean);
+    procedure SetMode(NewMode: TStringFieldMode);
     procedure UpdateExprWord;
   public
-    constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
     destructor Destroy; override;
 
     procedure Refresh(Buffer: PChar); override;
 
-    property RawStringField: boolean read FRawStringField write SetRawStringField;
+    property Mode: TStringFieldMode read FMode write SetMode;
   end;
 
   TFloatFieldVar = class(TFieldVar)
@@ -193,15 +194,9 @@ end;
 
 { TStringFieldVar }
 
-constructor TStringFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-begin
-  inherited;
-  FRawStringField := true;
-end;
-
 destructor TStringFieldVar.Destroy;
 begin
-  if not FRawStringField then
+  if FMode <> smRaw then
     FreeMem(FFieldVal);
 
   inherited;
@@ -223,11 +218,12 @@ var
   Src: PChar;
 begin
   Src := Buffer+FieldDef.Offset;
-  if not FRawStringField then
+  if FMode <> smRaw then
   begin
     // copy field data
     Len := FieldDef.Size;
-    while (Len >= 1) and (Src[Len-1] = ' ') do Dec(Len);
+    if FMode = smAnsiTrim then
+      while (Len >= 1) and (Src[Len-1] = ' ') do Dec(Len);
     // translate to ANSI
     Len := TranslateString(DbfFile.UseCodePage, GetACP, Src, FFieldVal, Len);
     FFieldVal[Len] := #0;
@@ -243,19 +239,21 @@ end;
 
 procedure TStringFieldVar.UpdateExprWord;
 begin
-  if FRawStringField then
+  if FMode <> smAnsiTrim then
     FExprWord.FixedLen := FieldDef.Size
   else
     FExprWord.FixedLen := -1;
 end;
 
-procedure TStringFieldVar.SetRawStringField(NewRaw: boolean);
+procedure TStringFieldVar.SetMode(NewMode: TStringFieldMode);
 begin
-  if NewRaw = FRawStringField then exit;
-  FRawStringField := NewRaw;
-  if NewRaw then
-    FreeMem(FFieldVal)
-  else
+  if NewMode = FMode then exit;
+  FMode := NewMode;
+  if NewMode = smRaw then
+  begin
+    FreeMem(FFieldVal);
+    FFieldVal := nil;
+  end else
     GetMem(FFieldVal, FieldDef.Size*3+1);
   UpdateExprWord;
 end;
@@ -361,7 +359,6 @@ begin
   FDbfFile := ADbfFile;
   FFieldVarList := TStringList.Create;
   FCaseInsensitive := true;
-  FRawStringFields := true;
   inherited Create;
 end;
 
@@ -391,7 +388,7 @@ begin
     etDateTime: Result := 8;
     etString:
     begin
-      if not FIsExpression and (TStringFieldVar(FFieldVarList.Objects[0]).RawStringField) then
+      if not FIsExpression and (TStringFieldVar(FFieldVarList.Objects[0]).Mode <> smAnsiTrim) then
         Result := TStringFieldVar(FFieldVarList.Objects[0]).FieldDef.Size
       else
         Result := -1;
@@ -421,17 +418,17 @@ begin
   end;
 end;
 
-procedure TDbfParser.SetRawStringFields(NewRawFields: Boolean);
+procedure TDbfParser.SetStringFieldMode(NewMode: TStringFieldMode);
 var
   I: integer;
 begin
-  if FRawStringFields <> NewRawFields then
+  if FStringFieldMode <> NewMode then
   begin
     // clear and regenerate functions, custom fields will be deleted too
-    FRawStringFields := NewRawFields;
+    FStringFieldMode := NewMode;
     for I := 0 to FFieldVarList.Count - 1 do
       if FFieldVarList.Objects[I] is TStringFieldVar then
-        TStringFieldVar(FFieldVarList.Objects[I]).RawStringField := NewRawFields;
+        TStringFieldVar(FFieldVarList.Objects[I]).Mode := NewMode;
   end;
 end;
 
@@ -486,7 +483,7 @@ begin
       begin
         TempFieldVar := TStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
         TempFieldVar.ExprWord := DefineStringVariable(VarName, TempFieldVar.FieldVal);
-        TStringFieldVar(TempFieldVar).RawStringField := FRawStringFields;
+        TStringFieldVar(TempFieldVar).Mode := FStringFieldMode;
       end;
     ftBoolean:
       begin

@@ -19,6 +19,7 @@ unit vorbis;
 
 {$mode objfpc}
 {$MINENUMSIZE 4}
+{$PACKRECORDS C}
 
 interface
 
@@ -440,7 +441,7 @@ begin
   while num > 0 do
   begin
     res := ov_read(vf, pointer(ptrint(buffer) + ofs), num, bigendianp, word, sgned, nil);
-    if res <= 0 then
+    if res < 0 then
       Exit(res);
 
     if res = 0 then

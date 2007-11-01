@@ -14,6 +14,9 @@ uses
   ibase60;
 {$EndIf}
 
+const
+  DEFDIALECT = 3;
+
 type
 
   EIBDatabaseError = class(EDatabaseError)
@@ -47,24 +50,26 @@ type
     FSQLDatabaseHandle   : pointer;
     FStatus              : array [0..19] of ISC_STATUS;
     FDialect             : integer;
+    FDBDialect           : integer;
     FBLobSegmentSize     : word;
 
     procedure ConnectFB;
     function GetDialect: integer;
-    procedure SetDBDialect;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
-    procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
+    procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer;
       var TrType : TFieldType; var TrLen : word);
     // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
-    procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
+    procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
     procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
+    function  IsDialectStored: boolean;
   protected
+    procedure DoConnect; override;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
@@ -89,14 +94,16 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
     procedure DropDB; override;
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
+    function GetDBDialect: integer;
   published
-    property Dialect  : integer read GetDialect write FDialect;
     property DatabaseName;
+    property Dialect : integer read GetDialect write FDialect stored IsDialectStored default DEFDIALECT;
     property KeepConnection;
     property LoginPrompt;
     property Params;
@@ -132,18 +139,20 @@ type
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
-  buf : array [0..1024] of char;
+  buf : array [0..1023] of char;
   Msg : string;
   E   : EIBDatabaseError;
+  Err : longint;
   
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
+    Err := Status[1];
     msg := '';
     while isc_interprete(Buf, @Status) > 0 do
       Msg := Msg + LineEnding +' -' + StrPas(Buf);
     E := EIBDatabaseError.CreateFmt('%s : %s : %s',[self.Name,ProcName,Msg]);
-    E.GDSErrorCode := Status[1];
+    E.GDSErrorCode := Err;
     Raise E;
   end;
 end;
@@ -156,6 +165,7 @@ begin
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FBLobSegmentSize := 80;
   FDialect := -1;
+  FDBDialect := -1;
 end;
 
 
@@ -308,6 +318,7 @@ end;
 procedure TIBConnection.DoInternalDisconnect;
 begin
   FDialect := -1;
+  FDBDialect := -1;
   if not Connected then
   begin
     FSQLDatabaseHandle := nil;
@@ -322,32 +333,36 @@ begin
 end;
 
 
-procedure TIBConnection.SetDBDialect;
+function TIBConnection.GetDBDialect: integer;
 var
   x : integer;
   Len : integer;
   Buffer : array [0..1] of byte;
   ResBuf : array [0..39] of byte;
 begin
-  Buffer[0] := isc_info_db_sql_dialect;
-  Buffer[1] := isc_info_end;
-  if isc_database_info(@FStatus[0], @FSQLDatabaseHandle, Length(Buffer),
-    pchar(@Buffer[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
-      CheckError('SetDBDialect', FStatus);
-  x := 0;
-  while x < 40 do
-    case ResBuf[x] of
-      isc_info_db_sql_dialect :
-        begin
-        Inc(x);
-        Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
-        Inc(x, 2);
-        FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
-        Inc(x, Len);
-        end;
-      isc_info_end : Break;
-    else
-      inc(x);
+  result := -1;
+  if Connected then
+    begin
+    Buffer[0] := isc_info_db_sql_dialect;
+    Buffer[1] := isc_info_end;
+    if isc_database_info(@FStatus[0], @FSQLDatabaseHandle, Length(Buffer),
+      pchar(@Buffer[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
+        CheckError('SetDBDialect', FStatus);
+    x := 0;
+    while x < 40 do
+      case ResBuf[x] of
+        isc_info_db_sql_dialect :
+          begin
+          Inc(x);
+          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+          Inc(x, 2);
+          Result := isc_vax_integer(pchar(@ResBuf[x]), Len);
+          Inc(x, Len);
+          end;
+        isc_info_end : Break;
+      else
+        inc(x);
+      end;
     end;
 end;
 
@@ -380,8 +395,13 @@ end;
 function TIBConnection.GetDialect: integer;
 begin
   if FDialect = -1 then
-    SetDBDialect;
-  Result := FDialect;
+  begin
+    if FDBDialect = -1 then
+      Result := DEFDIALECT
+    else
+      Result := FDBDialect;
+  end else
+    Result := FDialect;
 end;
 
 procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
@@ -403,34 +423,28 @@ begin
     reAllocMem(aSQLDA,0);
 end;
 
-procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
-  var TrType : TFieldType; var TrLen : word);
+procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer;
+           var TrType : TFieldType; var TrLen : word);
 begin
-  LensSet := False;
-
+  trlen := 0;
   if SQLScale < 0 then
     begin
     if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
       begin
-      LensSet := True;
-      TrLen := SQLLen;
+      TrLen := abs(SQLScale);
       TrType := ftBCD
       end
     else
       TrType := ftFMTBcd;
     end
   else case (SQLType and not 1) of
-    SQL_VARYING :
+    SQL_VARYING,SQL_TEXT :
       begin
-        LensSet := True;
         TrType := ftString;
-        TrLen := SQLLen;
-      end;
-    SQL_TEXT :
-      begin
-        LensSet := True;
-        TrType := ftString;
-        TrLen := SQLLen;
+        if SQLLen > dsMaxStringSize then
+          TrLen := dsMaxStringSize
+        else
+          TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
       TrType := ftDate{Time};
@@ -441,43 +455,25 @@ begin
     SQL_ARRAY :
       begin
         TrType := ftArray;
-        LensSet := true;
         TrLen := SQLLen;
       end;
     SQL_BLOB :
       begin
-          TrType := ftBlob;
-          LensSet := True;
-          TrLen := SQLLen;
+        TrType := ftBlob;
+        TrLen := SQLLen;
       end;
     SQL_SHORT :
         TrType := ftSmallint;
     SQL_LONG :
-      begin
-        LensSet := True;
-        TrLen := 0;
         TrType := ftInteger;
-      end;
     SQL_INT64 :
         TrType := ftLargeInt;
     SQL_DOUBLE :
-      begin
-        LensSet := True;
-        TrLen := SQLLen;
         TrType := ftFloat;
-      end;
     SQL_FLOAT :
-      begin
-        LensSet := True;
-        TrLen := SQLLen;
         TrType := ftFloat;
-      end
     else
-      begin
-        LensSet := True;
-        TrLen := 0;
         TrType := ftUnknown;
-      end;
   end;
 end;
 
@@ -608,6 +604,17 @@ begin
 {$R+}
 end;
 
+function TIBConnection.IsDialectStored: boolean;
+begin
+  result := (FDialect<>-1);
+end;
+
+procedure TIBConnection.DoConnect;
+begin
+  inherited DoConnect;
+  FDbDialect := GetDBDialect;
+end;
+
 procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
 
 begin
@@ -633,7 +640,6 @@ end;
 procedure TIBConnection.AddFieldDefs(cursor: TSQLCursor;FieldDefs : TfieldDefs);
 var
   x         : integer;
-  lenset    : boolean;
   TransLen  : word;
   TransType : TFieldType;
   FD        : TFieldDef;
@@ -646,7 +652,7 @@ begin
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
-        lenset, TransType, TransLen);
+        TransType, TransLen);
       FD := TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].AliasName, TransType,
          TransLen, False, (x + 1));
       if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
@@ -814,12 +820,14 @@ begin
         if ((SQLType and not 1) = SQL_VARYING) then
           begin
           Move(SQLData^, VarcharLen, 2);
+          if VarcharLen > dsMaxStringSize then
+            VarcharLen:=dsMaxStringSize;
           CurrBuff := SQLData + 2;
           end
         else
           begin
           CurrBuff := SQLData;
-          VarCharLen := SQLDA^.SQLVar[x].SQLLen;
+          VarCharLen := FieldDef.Size;
           end;
 
       Result := true;
@@ -850,11 +858,11 @@ begin
           GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
         ftString  :
           begin
-            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            Move(CurrBuff^, Buffer^, VarCharLen);
             PChar(Buffer + VarCharLen)^ := #0;
           end;
         ftFloat   :
-          GetFloat(CurrBuff, Buffer, FieldDef);
+          GetFloat(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLLen);
         ftBlob : begin  // load the BlobIb in field's buffer
             FillByte(buffer^,sizeof(TBufBlobField),0);
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
@@ -927,7 +935,7 @@ begin
     stTables     : s := 'select '+
                           'rdb$relation_id          as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$relation_name        as table_name, '+
                           '0                        as table_type '+
                         'from '+
@@ -939,7 +947,7 @@ begin
     stSysTables  : s := 'select '+
                           'rdb$relation_id          as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$relation_name        as table_name, '+
                           '0                        as table_type '+
                         'from '+
@@ -951,7 +959,7 @@ begin
     stProcedures : s := 'select '+
                            'rdb$procedure_id        as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$procedure_name       as proc_name, '+
                           '0                        as proc_type, '+
                           'rdb$procedure_inputs     as in_params, '+
@@ -963,13 +971,13 @@ begin
     stColumns    : s := 'select '+
                            'rdb$field_id            as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
+                          'cast ('''' as varchar(32)) as schema_name, '+
                           'rdb$relation_name        as table_name, '+
                           'rdb$field_name           as column_name, '+
                           'rdb$field_position       as column_position, '+
                           '0                        as column_type, '+
                           '0                        as column_datatype, '+
-                          '''''                     as column_typename, '+
+                          'cast ('''' as varchar(32)) as column_typename, '+
                           '0                        as column_subtype, '+
                           '0                        as column_precision, '+
                           '0                        as column_scale, '+
@@ -1066,13 +1074,13 @@ begin
   end;
 end;
 
-procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
+procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Size : byte);
 var
   Ext : extended;
   Dbl : double;
   Sin : single;
 begin
-  case Field.Size of
+  case Size of
     4 :
       begin
         Move(CurrBuff^, Sin, 4);
@@ -1153,6 +1161,53 @@ begin
     end
   else
     CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
+end;
+
+function TIBConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+
+var info_request       : string;
+    resbuf             : array[0..63] of byte;
+    i                  : integer;
+    BlockSize,
+    subBlockSize       : integer;
+    SelectedRows,
+    InsertedRows       : integer;
+    
+begin
+  SelectedRows:=-1;
+  InsertedRows:=-1;
+
+  if assigned(cursor) then with cursor as TIBCursor do
+   if assigned(statement) then
+    begin
+    info_request := chr(isc_info_sql_records);
+    if isc_dsql_sql_info(@Status[0],@Statement,Length(info_request), @info_request[1],sizeof(resbuf),@resbuf) <> 0 then
+      CheckError('RowsAffected', Status);
+
+    i := 0;
+    while not (byte(resbuf[i]) in [isc_info_end,isc_info_truncated]) do
+      begin
+      BlockSize:=isc_vax_integer(@resbuf[i+1],2);
+      if resbuf[i]=isc_info_sql_records then
+        begin
+        inc(i,3);
+        BlockSize:=BlockSize+i;
+        while (resbuf[i] <> isc_info_end) and (i < BlockSize) do
+          begin
+          subBlockSize:=isc_vax_integer(@resbuf[i+1],2);
+          if resbuf[i] = isc_info_req_select_count then
+            SelectedRows := isc_vax_integer(@resbuf[i+3],subBlockSize)
+          else if resbuf[i] = isc_info_req_insert_count then
+            InsertedRows := isc_vax_integer(@resbuf[i+3],subBlockSize);
+          inc(i,subBlockSize+3);
+          end;
+        end
+      else
+        inc(i,BlockSize+3);
+      end;
+    end;
+  if SelectedRows>0 then result:=SelectedRows
+  else Result:=InsertedRows;
 end;
 
 { TIBConnectionDef }

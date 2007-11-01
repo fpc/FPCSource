@@ -139,7 +139,8 @@ procedure TTestSuite.ErrorHandler(Error: EXMLReadError);
 begin
   if Error.Severity = esError then
   begin
-    FValError := Error.Message;
+    if FValError = '' then // fetch the _first_ message
+      FValError := Error.Message;
 { uncomment the line below to verify that the suite correctly handles
   exception raised from the handler }    
 //  Abort;  
@@ -351,16 +352,11 @@ begin
 
   table := nil;
   outURI := '';
+  Positive := False;
   if TestType = 'not-wf' then
-  begin
-    table := table_not_wf;
-    Positive := False;
-  end
+    table := table_not_wf
   else if TestType = 'error' then
-  begin
-    table := table_informative;
-    Positive := False;
-  end
+    table := table_informative
   else if TestType = 'valid' then
   begin
     if Element.hasAttribute('OUTPUT') then
@@ -393,30 +389,45 @@ begin
         if E.ClassType <> EAbort then
           FailMsg := E.Message;
     end;
-    if FailMsg <> '' then  // fatal errors take precedence
-      FValError := '';
+
+    if table = table_informative then
+    begin
+      if FailMsg <> '' then
+        Diagnose(element, table, dcInfo, '(fatal) ' + FailMsg)
+      else if FValError <> '' then
+        Diagnose(element, table, dcInfo, '(error) ' + FValError)
+      else
+        Diagnose(Element, table, dcInfo, '');
+      Exit;
+    end;
 
     if not Positive then  // must have been failed
     begin
-      if TestType = 'error' then
-      begin
-        if FailMsg <> '' then
-          Diagnose(element, table, dcInfo, FailMsg)
-        else
-          Diagnose(element, table, dcInfo, FValError);
-      end
-      else if (FailMsg = '') and (FValError = '') then
+      if (FailMsg = '') and (FValError = '') then
       begin
         Inc(FFailCount);
         Diagnose(element, table, dcNegfail, '');
       end
       else // FailMsg <> '' or FValError <> '' -> actually failed
       begin
-        Inc(FFalsePasses);
-        if FailMsg <> '' then
-          Diagnose(Element, table, dcPass, FailMsg)
+        if FailMsg <> '' then  // Fatal error
+        begin
+          Inc(FFalsePasses);
+          Diagnose(Element, table, dcPass, FailMsg);
+        end
         else
-          Diagnose(Element, table, dcPass, FValError);
+        begin
+          if table = table_not_wf then  // validation error here is a test failure!
+          begin
+            Inc(FFailCount);
+            Diagnose(Element, table, dcFail, FValError);
+          end
+          else
+          begin
+            Inc(FFalsePasses);
+            Diagnose(Element, table, dcPass, FValError);
+          end;
+        end;
       end;
       Exit;
     end
