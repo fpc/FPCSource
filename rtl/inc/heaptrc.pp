@@ -382,8 +382,6 @@ begin
 end;
 
 procedure try_finish_heap_free_todo_list(loc_info: pheap_info);
-var
-  bp: pointer;
 begin
   if loc_info^.heap_free_todo <> nil then
   begin
@@ -622,7 +620,6 @@ function InternalFreeMemSize(loc_info: pheap_info; p: pointer; pp: pheap_mem_inf
   size: ptruint; release_todo_lock: boolean): ptruint;
 var
   i,ppsize : ptruint;
-  bp : pointer;
   extra_size: ptruint;
   release_mem: boolean;
 begin
@@ -1252,7 +1249,6 @@ end;
 procedure TraceExitThread;
 var
   loc_info: pheap_info;
-  heap_mem: pheap_mem_info;
 begin
   loc_info := @heap_info;
   entercriticalsection(todo_lock);

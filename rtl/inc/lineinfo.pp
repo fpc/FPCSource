@@ -1270,9 +1270,9 @@ begin
   GetLineInfo(ptruint(addr),func,source,line);
 { create string }
   {$ifdef netware}
-  StabBackTraceStr:='  CodeStart + $'+HexStr(ptrint(addr),sizeof(ptrint)*2);
+  StabBackTraceStr:='  CodeStart + $'+HexStr(ptruint(addr),sizeof(ptruint)*2);
   {$else}
-  StabBackTraceStr:='  $'+HexStr(ptrint(addr),sizeof(ptrint)*2);
+  StabBackTraceStr:='  $'+HexStr(ptruint(addr),sizeof(ptruint)*2);
   {$endif}
   if func<>'' then
    StabBackTraceStr:=StabBackTraceStr+'  '+func;
