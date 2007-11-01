@@ -127,7 +127,7 @@ begin
                (j=curridx) then
               { compilation has to fail }
               writeln(t,'  abc');
-            writeln(t,'end. {$endif not bigfile}');
+            writeln(t,'end.');
             writeln(t,'{$endif FPC_HAS_TYPE_EXTENDED}');
           end;
 

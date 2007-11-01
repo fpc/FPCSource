@@ -1,4 +1,3 @@
-{ %fail }
 {$ifndef bigfile}
 {$ifdef fpc}
 {$mode delphi}
@@ -17,13 +16,12 @@ type
 procedure test62(a: currency); overload;
   begin
     writeln('currency called instead of extended');
-    writeln('XXX')
   end;
 
 procedure test62(a: extended); overload;
   begin
     writeln('extended called instead of currency');
-    writeln('YYY')
+    halt(1)
   end;
 
 var
@@ -40,7 +38,7 @@ begin
     test62(v);
   except
     on E : TObject do
-      writeln('QQQ');
+      halt(1);
   end;
 
   try
@@ -48,7 +46,7 @@ begin
     test62(v);
   except
     on E : TObject do
-      writeln('VVV');
+      halt(1);
   end;
 end;
 
@@ -57,5 +55,5 @@ end;
 end. {$endif not bigfile}
 {$else FPC_HAS_TYPE_EXTENDED}
 begin
-end. {$endif not bigfile}
+end.
 {$endif FPC_HAS_TYPE_EXTENDED}
