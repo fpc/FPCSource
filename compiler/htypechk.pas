@@ -1413,7 +1413,7 @@ implementation
       end;
 
 
-    procedure var_para_allowed(var eq:tequaltype;def_from,def_to:Tdef);
+    procedure var_para_allowed(var eq:tequaltype;def_from,def_to:Tdef; fromnode: tnode);
       begin
         { Note: eq must be already valid, it will only be updated! }
         case def_to.typ of
@@ -1421,7 +1421,10 @@ implementation
             begin
               { all types can be passed to a formaldef,
                 but it is not the prefered way }
-              eq:=te_convert_l2;
+              if not is_constnode(fromnode) then
+                eq:=te_convert_l2
+              else
+                eq:=te_incompatible;
             end;
           orddef :
             begin
@@ -2104,7 +2107,7 @@ implementation
                         eq:=te_incompatible;
                         { var_para_allowed will return te_equal and te_convert_l1 to
                           make a difference for best matching }
-                        var_para_allowed(eq,currpt.resultdef,currpara.vardef)
+                        var_para_allowed(eq,currpt.resultdef,currpara.vardef,currpt.left)
                       end
                     else
                       para_allowed(eq,currpt,def_to);
