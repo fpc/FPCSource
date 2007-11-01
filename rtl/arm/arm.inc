@@ -17,9 +17,11 @@
 
 {$asmmode gas}
 
+{$ifdef FPC_SYSTEM_FPC_MOVE}
 const
   cpu_has_edsp : boolean = false;
   in_edsp_test : boolean = false;
+{$endif FPC_SYSTEM_FPC_MOVE}
 
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
@@ -418,13 +420,13 @@ end;
 
 procedure fpc_cpucodeinit;
 begin
+{$ifdef FPC_SYSTEM_FPC_MOVE}
   cpu_has_edsp:=true;
   in_edsp_test:=true;
   asm
     pld [r0]
   end;
   in_edsp_test:=false;
-{$ifdef FPC_SYSTEM_FPC_MOVE}
   if cpu_has_edsp then
     moveproc:=@move_pld
   else

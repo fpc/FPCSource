@@ -720,7 +720,7 @@ type  Ptypeinfo=^Ttypeinfo;
         s:Pstring;
       end;
 
-var e:Penuminfo;
+var
     p:Pstring;
     l,h,m:cardinal;
     sorted_array:^Tsorted_array;
@@ -1325,7 +1325,6 @@ end;
 procedure WriteStrAnsi(var t: textrec);
 var
   str: pansistring;
-  newbytes,
   oldlen: longint;
 begin
   if (t.bufpos=0) then
