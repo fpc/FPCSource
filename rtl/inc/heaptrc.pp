@@ -471,16 +471,16 @@ begin
   fillchar(p^,size,#255);
   { retrieve backtrace info }
   bp:=get_caller_frame(get_frame);
-  for i:=1 to tracesize do
-   begin
-     { valid bp? }
-     if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+  { valid bp? }
+  if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+    for i:=1 to tracesize do
+     begin
        pp^.calls[i]:=get_caller_addr(bp);
-     oldbp:=bp;
-     bp:=get_caller_frame(bp);
-     if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-       bp:=nil;
-   end;
+       oldbp:=bp;
+       bp:=get_caller_frame(bp);
+       if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
+         bp:=nil;
+     end;
   { insert in the linked list }
   if loc_info^.heap_mem_root<>nil then
    loc_info^.heap_mem_root^.next:=pp;
@@ -916,7 +916,7 @@ type
   area_id   = Longint;
 
 function area_for(addr : Pointer) : area_id;
-            cdecl; external 'root' name 'area_for'; 
+            cdecl; external 'root' name 'area_for';
 {$endif BEOS}
 
 procedure CheckPointer(p : pointer); [public, alias : 'FPC_CHECKPOINTER'];
@@ -1013,10 +1013,10 @@ begin
   {$endif}
 
 {$ifdef BEOS}
-  // if we find the address in a known area in our current process, 
+  // if we find the address in a known area in our current process,
   // then it is a valid one
   if area_for(p) <> B_ERROR then
-    goto _exit;  
+    goto _exit;
 {$endif BEOS}
 
   { first try valid list faster }
