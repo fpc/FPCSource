@@ -1132,6 +1132,8 @@ parser_e_no_common_type=03235_E_No common type possible between "$1" and "$2"
 % type is then minimum..maximum.
 parser_e_no_generics_as_types=03236_E_Generics without specialization can not be used as a type for a variable
 % Generics must be always specialized before being used as variable type
+parser_w_register_list_ignored=03237_W_Register list is ignored for pure assembler routines
+% When using pure assembler routines, the list with modified registers is ignored.
 % \end{description}
 #
 # Type Checking
