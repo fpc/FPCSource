@@ -471,6 +471,7 @@ begin
   fillchar(p^,size,#255);
   { retrieve backtrace info }
   bp:=get_caller_frame(get_frame);
+
   { valid bp? }
   if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
     for i:=1 to tracesize do
@@ -479,8 +480,9 @@ begin
        oldbp:=bp;
        bp:=get_caller_frame(bp);
        if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-         bp:=nil;
+         break;
      end;
+
   { insert in the linked list }
   if loc_info^.heap_mem_root<>nil then
    loc_info^.heap_mem_root^.next:=pp;
@@ -572,11 +574,14 @@ begin
   else
     begin
        bp:=get_caller_frame(get_frame);
-       for i:=(tracesize div 2)+1 to tracesize do
-        begin
-          pp^.calls[i]:=get_caller_addr(bp);
-          bp:=get_caller_frame(bp);
-        end;
+       if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+         for i:=(tracesize div 2)+1 to tracesize do
+          begin
+            pp^.calls[i]:=get_caller_addr(bp);
+            bp:=get_caller_frame(bp);
+            if not((bp>=StackBottom) and (bp<(StackBottom + StackLength))) then
+              break;
+          end;
     end;
   inc(loc_info^.freemem_cnt);
   { clear the memory, $F0 will lead to GFP if used as pointer ! }
@@ -852,14 +857,15 @@ begin
   inc(loc_info^.getmem8_size,(size+7) and not 7);
   { generate new backtrace }
   bp:=get_caller_frame(get_frame);
-  for i:=1 to tracesize do
-   begin
-     pp^.calls[i]:=get_caller_addr(bp);
-     oldbp:=bp;
-     bp:=get_caller_frame(bp);
-     if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-       bp:=nil;
-   end;
+  if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+    for i:=1 to tracesize do
+     begin
+       pp^.calls[i]:=get_caller_addr(bp);
+       oldbp:=bp;
+       bp:=get_caller_frame(bp);
+       if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
+         break;
+     end;
   { regenerate signature }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
