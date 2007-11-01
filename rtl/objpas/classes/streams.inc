@@ -803,7 +803,7 @@ begin
   inherited Destroy;
 end;
   
-  
+{$warnings off}
 function TStreamAdapter.Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; stdcall;
 begin
   runerror(217);
@@ -868,3 +868,4 @@ function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
 begin
   runerror(217);
 end;
+{$warnings on}
