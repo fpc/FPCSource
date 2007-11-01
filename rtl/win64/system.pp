@@ -1136,17 +1136,19 @@ begin
 end;
 
 
-function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
-begin
-  result := stklen;
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;assembler;
+asm
+  movq  %gs:(8),%rax
+  subq  %gs:(16),%rax
 end;
 
 
 begin
-  SysResetFPU;    
+  SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
-  StackLength := CheckInitialStkLen(InitialStkLen);
+  { pass dummy value }
+  StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);

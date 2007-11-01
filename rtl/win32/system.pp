@@ -1083,7 +1083,7 @@ begin
    end;
 end;
 
-(* ProcessID cached to avoid repeated calls to GetCurrentProcess. *)
+{ ProcessID cached to avoid repeated calls to GetCurrentProcess. }
 
 var
   ProcessID: SizeUInt;
@@ -1093,9 +1093,10 @@ begin
  GetProcessID := ProcessID;
 end;
 
-function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
-begin
-  result := stklen;
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;assembler;
+asm
+  movl  %fs:(4),%eax
+  subl  %fs:(8),%eax
 end;
 
 {
@@ -1105,7 +1106,8 @@ const
 }
 
 begin
-  StackLength := CheckInitialStkLen(InitialStkLen);
+  { pass dummy value }
+  StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);

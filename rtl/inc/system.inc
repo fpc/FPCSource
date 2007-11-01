@@ -44,7 +44,11 @@ const
 var
   { widechar, because also used by widestring -> pwidechar conversions }
   emptychar : widechar;public name 'FPC_EMPTYCHAR';
+{$ifndef FPC_NO_GENERIC_STACK_CHECK}
+  { if the OS does the stack checking, we don't need any stklen from the
+    main program }
   initialstklen : SizeUint;external name '__stklen';
+{$endif FPC_NO_GENERIC_STACK_CHECK}
 
 { checks whether the given suggested size for the stack of the current
  thread is acceptable. If this is the case, returns it unaltered.
