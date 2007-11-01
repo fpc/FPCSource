@@ -119,22 +119,32 @@ type
  * All the types of functions that can be used in directives
  * @internal
  }
-  cmd_func = function(cmd: Pcmd_parms; mconfig: Pointer): PChar; cdecl;
-  Pcmd_func = ^cmd_func;
 
   { function to call for a no-args }
-  no_args_t = function (parms: Pcmd_parms; mconfig: Pointer): PChar;
+  no_args_t = function (parms: Pcmd_parms; mconfig: Pointer): PChar; cdecl;
   { function to call for a raw-args }
-  raw_args_t = function (parms: Pcmd_parms; mconfig: Pointer; const args: PChar): Pchar;
+  raw_args_t = function (parms: Pcmd_parms; mconfig: Pointer; const args: PChar): Pchar; cdecl;
   { function to call for a take1 }
-  take1_t = function (parms: Pcmd_parms; mconfig: Pointer; const w: PChar): PChar;
+  take1_t = function (parms: Pcmd_parms; mconfig: Pointer; const w: PChar): PChar; cdecl;
   { function to call for a take2 }
-  take2_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2: PChar): PChar;
+  take2_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2: PChar): PChar; cdecl;
   { function to call for a take3 }
-  take3_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2, w3: PChar): PChar;
+  take3_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2, w3: PChar): PChar; cdecl;
   { function to call for a flag }
-  flag_t = function (parms: Pcmd_parms; mconfig: Pointer; on_: Integer): PChar;
+  flag_t = function (parms: Pcmd_parms; mconfig: Pointer; on_: Integer): PChar; cdecl;
 
+  cmd_func_kind = ( cfk_no_args, cfk_raw_args, cfk_take1, cfk_take2, cfk_take3, cfk_flag);
+  cmd_func = record
+    case cmd_func_kind of
+      cfk_no_args   : ( func_no_args : no_args_t );
+      cfk_raw_args  : ( func_raw_args : raw_args_t );
+      cfk_take1     : ( func_take1 : take1_t);
+      cfk_take2     : ( func_take2 : take2_t);
+      cfk_take3     : ( func_take3 : take3_t);
+      cfk_flag      : ( func_flag : flag_t);
+  end;
+  Pcmd_func = ^cmd_func; 
+  
 //const
   { This configuration directive does not take any arguments }
 //  AP_NO_ARGS =	func.no_args;
@@ -1157,4 +1167,5 @@ procedure ap_hook_optional_fn_retrieve(pf: ap_HOOK_optional_fn_retrieve_t;
  const aszPre: PPChar; const aszSucc: PPChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_optional_fn_retrieve' + LibSuff16;
+
 
