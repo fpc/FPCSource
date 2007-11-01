@@ -50,14 +50,27 @@ implementation
     procedure tm68kcallnode.do_syscall;
       var
         tmpref: treference;
+	tmpref2: treference;
       begin
         case target_info.system of
           system_m68k_amiga:
             begin
               if po_syscall_legacy in tprocdef(procdefinition).procoptions then
                 begin
+		  { save base pointer on syscalls }
+		  { FIXME: probably this will need to be extended to save all regs (KB) }
+                  reference_reset_base(tmpref2, NR_STACK_POINTER_REG, 0);
+                  tmpref2.direction := dir_dec;
+		  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_MOVE,S_L,NR_FRAME_POINTER_REG,tmpref2));
+		  
+		  { the actuall call }
                   reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber);
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
+		  
+		  { restore frame pointer }
+                  reference_reset_base(tmpref2, NR_STACK_POINTER_REG, 0);
+                  tmpref2.direction := dir_inc;
+		  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_MOVE,S_L,tmpref2,NR_FRAME_POINTER_REG));
                 end
               else
                 internalerror(2005010403);
