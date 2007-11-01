@@ -140,7 +140,7 @@
      LCID   = DWORD;         //winnt
      PLCID  = ^LCID;         //+winnt
      LCTYPE = DWORD;
-     LPARAM = longint;       //windef LONG_PTR
+     LPARAM = ptruint;       //windef LONG_PTR
 
      LP     = ^word;
      LPBOOL = ^WINBOOL;      //windef
@@ -282,7 +282,7 @@
      WINT_T = WCHAR_T;      //+stdlib
      WCTYPE_T = WCHAR_T;    //+stdlib
      TIME_T=ULONG;          //+stdlib
-     WPARAM = Longint;      //windef UINT_PTR
+     WPARAM = ptruint;      //windef UINT_PTR
 {
   Enumerations
 }
