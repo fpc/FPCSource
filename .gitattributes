@@ -4665,6 +4665,7 @@ rtl/inc/except.inc svneol=native#text/plain
 rtl/inc/fexpand.inc svneol=native#text/plain
 rtl/inc/file.inc svneol=native#text/plain
 rtl/inc/filerec.inc svneol=native#text/plain
+rtl/inc/float128.pp svneol=native#text/plain
 rtl/inc/generic.inc svneol=native#text/plain
 rtl/inc/genmath.inc svneol=native#text/plain
 rtl/inc/genset.inc svneol=native#text/plain

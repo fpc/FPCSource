@@ -427,6 +427,33 @@ Function int64_to_float64( a: int64 ): float64; compilerproc;
 Function int64_to_float32( a: int64 ): float32rec; compilerproc;
 
 
+{$ifdef FPC_SOFTFLOAT_FLOAT128}
+function float128_is_nan( a : float128): flag;
+function float128_is_signaling_nan( a : float128): flag;
+function float128_to_int32(a: float128): int32;
+function float128_to_int32_round_to_zero(a: float128): int32;
+function float128_to_int64(a: float128): int64;
+function float128_to_int64_round_to_zero(a: float128): int64;
+function float128_to_float32(a: float128): float32;
+function float128_to_float64(a: float128): float64;
+{$ifdef FPC_SOFTFLOAT_FLOAT80}
+function float128_to_floatx80(a: float128): floatx80;
+{$endif FPC_SOFTFLOAT_FLOAT80}
+function float128_round_to_int(a: float128): float128;
+function float128_add(a: float128; b: float128): float128;
+function float128_sub(a: float128; b: float128): float128;
+function float128_mul(a: float128; b: float128): float128;
+function float128_div(a: float128; b: float128): float128;
+function float128_rem(a: float128; b: float128): float128;
+function float128_sqrt(a: float128): float128;
+function float128_eq(a: float128; b: float128): flag;
+function float128_le(a: float128; b: float128): flag;
+function float128_lt(a: float128; b: float128): flag;
+function float128_eq_signaling(a: float128; b: float128): flag;
+function float128_le_quiet(a: float128; b: float128): flag;
+function float128_lt_quiet(a: float128; b: float128): flag;
+{$endif FPC_SOFTFLOAT_FLOAT128}
+
 CONST
 {-------------------------------------------------------------------------------
 Software IEC/IEEE floating-point underflow tininess-detection mode.
