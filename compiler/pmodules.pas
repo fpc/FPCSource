@@ -363,10 +363,13 @@ implementation
         current_asmdata.asmlists[al_globals].concat(Tai_align.Create(const_align(32)));
         current_asmdata.asmlists[al_globals].concat(Tai_string.Create('FPC '+full_version_string+
           ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
-        { stacksize can be specified and is now simulated }
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(aint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(stacksize));
+        if not(tf_no_generic_stackcheck in target_info.flags) then
+          begin
+            { stacksize can be specified and is now simulated }
+            new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(aint));
+            current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(stacksize));
+          end;
 {$IFDEF POWERPC}
         { AmigaOS4 "stack cookie" support }
         if ( target_info.system = system_powerpc_amiga ) then
