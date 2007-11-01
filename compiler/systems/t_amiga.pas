@@ -35,9 +35,9 @@ type
   TLinkerAmiga = class(texternallinker)
     private
       function WriteResponseFile(isdll: boolean): boolean;
-//      procedure SetAmiga68kInfo;
+      procedure SetAmiga68kInfo;
       procedure SetAmigaPPCInfo;
-//      function MakeAmiga68kExe: boolean;
+      function MakeAmiga68kExe: boolean;
       function MakeAmigaPPCExe: boolean;
     public
       constructor Create; override;
@@ -76,6 +76,13 @@ begin
   StaticLibFiles.doubles:=true;
 end;
 
+procedure TLinkerAmiga.SetAmiga68kInfo;
+begin
+  with Info do begin
+    ExeCmd[1]:='m68k-amiga-ld $OPT -d -n -o $EXE $RES';
+  end;
+end;
+
 procedure TLinkerAmiga.SetAmigaPPCInfo;
 begin
   with Info do begin
@@ -86,7 +93,7 @@ end;
 procedure TLinkerAmiga.SetDefaultInfo;
 begin
   case (target_info.system) of
-    system_m68k_amiga:      begin end;
+    system_m68k_amiga:      SetAmiga68kInfo;
     system_powerpc_amiga:   SetAmigaPPCInfo;
   end;
 end;
@@ -196,6 +203,26 @@ begin
   WriteResponseFile:=True;
 end;
 
+
+function TLinkerAmiga.MakeAmiga68kExe: boolean;
+var
+  BinStr,
+  CmdStr  : TCmdStr;
+  StripStr: string[40];
+begin
+  StripStr:='';
+  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+
+  { Call linker }
+  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$EXE',PathConv(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+  Replace(cmdstr,'$RES',PathConv(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$STRIP',StripStr);
+  MakeAmiga68kExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+end;
+
+
 function TLinkerAmiga.MakeAmigaPPCExe: boolean;
 var
   BinStr,
@@ -214,6 +241,7 @@ begin
   MakeAmigaPPCExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 end;
 
+
 function TLinkerAmiga.MakeExecutable:boolean;
 var
   success : boolean;
@@ -225,7 +253,7 @@ begin
   WriteResponseFile(false);
 
   case (target_info.system) of
-    system_m68k_amiga:      begin end;
+    system_m68k_amiga:      success:=MakeAmiga68kExe;
     system_powerpc_amiga:   success:=MakeAmigaPPCExe;
   end;
 
@@ -244,6 +272,7 @@ end;
 initialization
 {$ifdef m68k}
 {$warning No executable creation support for m68k yet!}
+  RegisterExternalLinker(system_m68k_Amiga_info,TLinkerAmiga);
   RegisterTarget(system_m68k_Amiga_info);
 {$endif m68k}
 {$ifdef powerpc}
