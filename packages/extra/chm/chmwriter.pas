@@ -186,14 +186,14 @@ begin
     //FirstPMGLChunkIndex,
     //LastPMGLChunkIndex: LongWord;
     
-    Unknown2 := NToLE(DWord(-1));
+    Unknown2 := NToLE(Longint(-1));
     //DirectoryChunkCount: LongWord;
     LanguageID := NToLE(DWord($0409));
     GUID := ITSPHeaderGUID;
     LengthAgain := NToLE(DWord($54));
-    Unknown3 := NToLE(DWord(-1));
-    Unknown4 := NToLE(DWOrd(-1));
-    Unknown5 := NToLE(DWord(-1));
+    Unknown3 := NToLE(Longint(-1));
+    Unknown4 := NToLE(Longint(-1));
+    Unknown5 := NToLE(Longint(-1));
   end;
   
   // more endian stuff
@@ -284,7 +284,7 @@ const
       UnusedSpace := NToLE(ListingBlock.FreeSpace);
       Unknown1 :=  0;
       PreviousChunkIndex := NToLE(LastListIndex);
-      NextChunkIndex := NToLE(DWord(-1)); // we update this when we write the next chunk
+      NextChunkIndex := NToLE(Longint(-1)); // we update this when we write the next chunk
     end;
     if HeaderSection1.FirstPMGLChunkIndex <= 0 then
       HeaderSection1.FirstPMGLChunkIndex := NToLE(ChunkIndex);
