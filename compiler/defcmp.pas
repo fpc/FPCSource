@@ -252,7 +252,7 @@ implementation
                           eq:=te_incompatible
                         else if (not is_in_limit(def_from,def_to)) then
                           { "punish" bad type conversions :) (JM) }
-                          eq:=te_convert_l2
+                          eq:=te_convert_l3
                          else
                           eq:=te_convert_l1;
                       end;
@@ -505,7 +505,7 @@ implementation
                           (s64currencytype.typ = floatdef))) then
                        begin
                          doconv:=tc_int_2_real;
-                         eq:=te_convert_l3;
+                         eq:=te_convert_l4;
                        end
                      else if is_currency(def_from)
                              { and (s64currencytype.typ = orddef)) } then
@@ -906,7 +906,7 @@ implementation
                          if (m_delphi in current_settings.modeswitches) and is_integer(def_from) then
                           begin
                             doconv:=tc_cord_2_pointer;
-                            eq:=te_convert_l4;
+                            eq:=te_convert_l5;
                           end;
                       end;
                      { allow explicit typecasts from ordinals to pointer.

@@ -433,6 +433,7 @@ type
   tequaltype = (
     te_incompatible,
     te_convert_operator,
+    te_convert_l5,     { ad infinitum... }
     te_convert_l4,     { and yet even less preferred conversion }
     te_convert_l3,     { even less preferred conversion (possibly with loss of data) }
     te_convert_l2,     { compatible less preferred conversion }
@@ -493,7 +494,7 @@ const
      );
 
      EqualTypeName : array[tequaltype] of string[16] = (
-       'incompatible','convert_operator','convert_l4','convert_l3','convert_l2',
+       'incompatible','convert_operator','convert_l5','convert_l4','convert_l3','convert_l2',
        'convert_l1','equal','exact'
      );
 
