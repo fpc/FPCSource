@@ -786,6 +786,9 @@ Function  ParamStr(l:Longint):string;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure Dump_Stack(var f : text;bp:pointer);
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+procedure DumpExceptionBackTrace(var f:text);
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 Procedure RunError(w:Word);
