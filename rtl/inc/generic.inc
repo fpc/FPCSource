@@ -168,8 +168,9 @@ begin
   if Count>4*sizeof(ptruint)-1 then
     begin
       v:=(value shl 16) or value;
-      if sizeof(ptruint)=8 then
-        v:=(v shl 32) or v;
+{$ifdef CPU64}
+      v:=(v shl 32) or v;
+{$endif CPU64}
       { Align on native pointer size }
       aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 1;
       dec(count,aligncount);
@@ -211,8 +212,9 @@ begin
   if Count>4*sizeof(ptruint)-1 then
     begin
       v:=value;
-      if sizeof(ptruint)=8 then
-        v:=(v shl 32) or v;
+{$ifdef CPU64}
+      v:=(v shl 32) or v;
+{$endif CPU64}
       { Align on native pointer size }
       aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 2;
       dec(count,aligncount);
@@ -489,7 +491,7 @@ function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt;
 var
   aligncount : sizeint;
   psrc,pdest,pend : pdword;
-  b : ptruint;
+  b : ptrint;
 begin
   b:=0;
   psrc:=@buf1;
@@ -541,7 +543,7 @@ begin
   if ((PtrUInt(pdest) and 3) or (PtrUInt(psrc) and 3))<>0 then
     while psrc<pend do
       begin
-        b:=(ptruint(unaligned(psrc^))-ptruint(unaligned(pdest^)));
+        b:=(ptrint(unaligned(psrc^))-ptrint(unaligned(pdest^)));
         if b<>0 then
           begin
             if b<0 then
@@ -556,7 +558,7 @@ begin
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     while psrc<pend do
       begin
-        b:=(ptruint(psrc^)-ptruint(pdest^));
+        b:=(ptrint(psrc^)-ptrint(pdest^));
         if b<>0 then
           begin
             if b<0 then
@@ -617,7 +619,6 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 function CompareChar0(Const buf1,buf2;len:SizeInt):SizeInt;
 var
-  aligncount : sizeint;
   psrc,pdest,pend : pbyte;
   b : ptrint;
 begin
