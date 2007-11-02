@@ -133,6 +133,8 @@ implementation
                           if assigned(st) then
                            begin
                              sym:=tsym(st.Find(pattern));
+                             if not(assigned(sym)) and is_object(def) then
+                               sym:=search_class_member(tobjectdef(def),pattern);
                              if assigned(sym) then
                               begin
                                 pl.addsym(sl_subscript,sym);

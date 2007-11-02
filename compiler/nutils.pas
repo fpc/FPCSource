@@ -618,7 +618,8 @@ implementation
                   exit;
                 end;
               subscriptn,
-              blockn:
+              blockn,
+              callparan:
                 p := tunarynode(p).left;
               derefn :
                 begin

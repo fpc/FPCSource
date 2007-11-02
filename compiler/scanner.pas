@@ -1902,6 +1902,12 @@ In case not, the value returned can be arbitrary.
           _INTCONST,
           _REALNUMBER :
             begin
+              { pexpr.pas messes with pattern in case of negative integer consts,
+                see around line 2562 the comment of JM; remove the - before recording it
+                                                     (FK)
+              }
+              if (token=_INTCONST) and (pattern[1]='-') then
+                delete(pattern,1,1);
               recordtokenbuf.write(pattern[0],1);
               recordtokenbuf.write(pattern[1],length(pattern));
             end;

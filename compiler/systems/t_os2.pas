@@ -517,7 +517,15 @@ begin
         Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
+(*
+   Arrgh!!! The ancient EMX LD.EXE simply dies without saying anything
+   if the full pathname to link.res is quoted!!!!! @#$@@^%@#$^@#$^@^#$
+   This means that name of the output directory cannot contain spaces,
+   but at least it works otherwise...
+
         Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+*)
+        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));

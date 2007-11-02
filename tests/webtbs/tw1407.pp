@@ -3,6 +3,8 @@
 { e-mail: wingo@fh-konstanz.de }
 { compiled with 1.04 on win32 }
 { options : -B -CX -XXs -OG2p3 -So }
+{$mode tp}
+
 var
         a : array[1..10] of integer;
         i : byte;
