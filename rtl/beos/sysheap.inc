@@ -18,36 +18,19 @@ function sbrk2 (size : longint):pointer; cdecl; external name 'sbrk';
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
+{  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);}
   result := sbrk2(size);
-{  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
   if result=pointer(-1) then
     result:=nil
   else
     seterrno(0);
-}
 end;
 
-{$define HAS_SYSOSFREE}
+{ $ define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-//  fpmunmap(p, size);
-//  WriteLn('TODO : SysOSFree');
+  //  fpmunmap(p, size);
 end;
 
-
-
-{
-   $Log: sysheap.inc,v $
-   Revision 1.1  2005/02/07 22:04:55  peter
-     * moved to unix
-
-   Revision 1.1  2005/02/06 16:57:18  peter
-     * threads for go32v2,os,emx,netware
-
-   Revision 1.1  2005/02/06 13:06:20  peter
-     * moved file and dir functions to sysfile/sysdir
-     * win32 thread in systemunit
-
-}
 

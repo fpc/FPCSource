@@ -125,7 +125,15 @@ threadvar
 function nl_langinfo(__item:nl_item):pchar;
 begin
   {$warning TODO BeOS nl_langinfo or more uptodate port of iconv...}  
-  Result := '';
+  // Now implement the minimum required to correctly initialize WideString support
+  case __item of
+    CODESET : Result := 'UTF-8'; // BeOS use UTF-8
+    else
+    begin
+      Assert(False, 'nl_langinfo was called with an unknown nl_item value');
+      Result := '';
+    end;    
+  end;
 end;
 {$endif}
 

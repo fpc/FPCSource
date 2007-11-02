@@ -76,18 +76,3 @@ begin
      errno := 0;
    end;
 end;
-
-
-{
-  $Log: syscall.inc,v $
-  Revision 1.1  2003/01/08 22:32:28  marco
-   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-      but it could crash hard, since there are lots of unimplemented funcs.
-
-  Revision 1.1.2.2  2001/08/15 01:08:25  carl
-  * added SysCall(0 routine here as well as argument declarations
-
-  Revision 1.1.2.1  2001/07/13 03:16:03  carl
-  + static kernel call interface (CPU specific)
-
-}
