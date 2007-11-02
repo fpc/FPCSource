@@ -77,6 +77,8 @@ package=ufclxdos.zip,Free Component Libary (FCL)-XML
 package=ufclwdos.zip,Free Component Libary (FCL)-Web
 # Dos 25
 package=ufpmkunitdos.zip[ufpmkdos.zip],Units required for building fpmake.exe
+# Dos 25
+package=ufpmkdos.zip,Units required for building fpmake.exe
 
 #
 # Win32 packages
@@ -330,6 +332,8 @@ package=ufclremx.zip,Free Component Library (FCL)-registry
 package=ufclxemx.zip,Free Component Library (FCL)-XML
 # EMX 20
 #package=ufclwemx.zip,Free Component Library (FCL)-Web
+# EMX 21
+package=ufpmkos2.zip,Units required for building fpmake.exe
 
 
 #
