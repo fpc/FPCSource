@@ -6780,7 +6780,7 @@
     opcode  : A_ANDNPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#85#72;
+    code    : #193#211#2#15#85#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -6794,7 +6794,7 @@
     opcode  : A_ANDPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#84#72;
+    code    : #193#211#2#15#84#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7060,7 +7060,7 @@
     opcode  : A_COMISS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#47#72;
+    code    : #193#211#2#15#47#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7186,7 +7186,7 @@
     opcode  : A_LDMXCSR;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#15#174#130;
+    code    : #192#211#2#15#174#130;
     flags   : if_katmai or if_sse or if_sd
   ),
   (
@@ -7249,14 +7249,14 @@
     opcode  : A_MOVAPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#40#72;
+    code    : #193#211#2#15#40#72;
     flags   : if_katmai or if_sse
   ),
   (
     opcode  : A_MOVAPS;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #192#2#15#41#65;
+    code    : #192#211#2#15#41#65;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7277,14 +7277,14 @@
     opcode  : A_MOVHPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#22#72;
+    code    : #193#211#2#15#22#72;
     flags   : if_katmai or if_sse
   ),
   (
     opcode  : A_MOVHPS;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #192#2#15#23#65;
+    code    : #192#211#2#15#23#65;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7298,14 +7298,14 @@
     opcode  : A_MOVLPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#18#72;
+    code    : #193#211#2#15#18#72;
     flags   : if_katmai or if_sse
   ),
   (
     opcode  : A_MOVLPS;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #192#2#15#19#65;
+    code    : #192#211#2#15#19#65;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7333,14 +7333,14 @@
     opcode  : A_MOVSS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #219#193#2#15#16#72;
+    code    : #219#193#211#2#15#16#72;
     flags   : if_katmai or if_sse
   ),
   (
     opcode  : A_MOVSS;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #219#192#2#15#17#65;
+    code    : #219#192#211#2#15#17#65;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7389,7 +7389,7 @@
     opcode  : A_MULPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#89#72;
+    code    : #193#211#2#15#89#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7403,7 +7403,7 @@
     opcode  : A_MULSS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #219#193#2#15#89#72;
+    code    : #219#193#211#2#15#89#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7417,7 +7417,7 @@
     opcode  : A_ORPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#86#72;
+    code    : #193#211#2#15#86#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7445,7 +7445,7 @@
     opcode  : A_RCPSS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #219#193#2#15#83#72;
+    code    : #219#193#211#2#15#83#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7473,7 +7473,7 @@
     opcode  : A_RSQRTSS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #219#193#2#15#82#72;
+    code    : #219#193#211#2#15#82#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7487,7 +7487,7 @@
     opcode  : A_SHUFPS;
     ops     : 3;
     optypes : (ot_xmmreg,ot_memory,ot_immediate);
-    code    : #193#2#15#198#72#18;
+    code    : #193#211#2#15#198#72#18;
     flags   : if_katmai or if_sse or if_sb or if_ar2
   ),
   (
@@ -7529,7 +7529,7 @@
     opcode  : A_STMXCSR;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#15#174#131;
+    code    : #192#211#2#15#174#131;
     flags   : if_katmai or if_sse or if_sd
   ),
   (
@@ -7550,7 +7550,7 @@
     opcode  : A_SUBSS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #219#193#2#15#92#72;
+    code    : #219#193#211#2#15#92#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7564,7 +7564,7 @@
     opcode  : A_UCOMISS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#46#72;
+    code    : #193#211#2#15#46#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7578,7 +7578,7 @@
     opcode  : A_UNPCKHPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#21#72;
+    code    : #193#211#2#15#21#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7592,7 +7592,7 @@
     opcode  : A_UNPCKLPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#20#72;
+    code    : #193#211#2#15#20#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7606,7 +7606,7 @@
     opcode  : A_XORPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#2#15#87#72;
+    code    : #193#211#2#15#87#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7634,28 +7634,28 @@
     opcode  : A_PREFETCHNTA;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#15#24#128;
+    code    : #192#211#2#15#24#128;
     flags   : if_katmai
   ),
   (
     opcode  : A_PREFETCHT0;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#15#24#129;
+    code    : #192#211#2#15#24#129;
     flags   : if_katmai
   ),
   (
     opcode  : A_PREFETCHT1;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#15#24#130;
+    code    : #192#211#2#15#24#130;
     flags   : if_katmai
   ),
   (
     opcode  : A_PREFETCHT2;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#15#24#131;
+    code    : #192#211#2#15#24#131;
     flags   : if_katmai
   ),
   (
@@ -7704,7 +7704,7 @@
     opcode  : A_PAVGB;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #1#102#193#2#15#224#72;
+    code    : #1#102#193#211#2#15#224#72;
     flags   : if_willamette or if_sse2 or if_sm
   ),
   (
@@ -7732,7 +7732,7 @@
     opcode  : A_PAVGW;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #1#102#193#2#15#227#72;
+    code    : #1#102#193#211#2#15#227#72;
     flags   : if_willamette or if_sse2 or if_sm
   ),
   (
@@ -8089,14 +8089,14 @@
     opcode  : A_CLFLUSH;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#15#174#135;
+    code    : #192#211#2#15#174#135;
     flags   : if_willamette or if_sse2
   ),
   (
     opcode  : A_MOVNTDQ;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #1#102#192#2#15#231#65;
+    code    : #1#102#192#211#2#15#231#65;
     flags   : if_willamette or if_sse2 or if_sm
   ),
   (
@@ -8110,7 +8110,7 @@
     opcode  : A_MOVNTPD;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #1#102#192#2#15#43#65;
+    code    : #1#102#192#211#2#15#43#65;
     flags   : if_willamette or if_sse2 or if_sm
   ),
   (

@@ -2177,12 +2177,12 @@ xmmreg,xmmreg         \333\2\x0F\x58\110              KATMAI,SSE
 
 [ANDNPS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \301\2\x0F\x55\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x55\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x55\110              KATMAI,SSE
 
 [ANDPS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \301\2\x0F\x54\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x54\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x54\110              KATMAI,SSE
 
 [CMPEQPS]
@@ -2282,7 +2282,7 @@ xmmreg,xmmreg,imm     \333\323\2\x0F\xC2\110\22       KATMAI,SSE,SB,AR2
 
 [COMISS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \301\2\x0F\x2F\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x2F\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x2F\110              KATMAI,SSE
 
 [CVTPI2PS]
@@ -2327,7 +2327,7 @@ xmmreg,xmmreg         \333\323\2\x0F\x5E\110          KATMAI,SSE
 
 [LDMXCSR]
 (Ch_All, Ch_None, Ch_None)
-mem                   \300\2\x0F\xAE\202              KATMAI,SSE,SD
+mem                   \300\323\2\x0F\xAE\202              KATMAI,SSE,SD
 
 [MAXPS]
 (Ch_All, Ch_None, Ch_None)
@@ -2351,15 +2351,15 @@ xmmreg,xmmreg         \333\323\2\x0F\x5D\110          KATMAI,SSE
 
 [MOVAPS]
 (Ch_ROp1, Ch_WOp2, Ch_None)
-xmmreg,mem            \301\2\x0F\x28\110              KATMAI,SSE
-mem,xmmreg            \300\2\x0F\x29\101              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x28\110              KATMAI,SSE
+mem,xmmreg            \300\323\2\x0F\x29\101              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x28\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x29\101              KATMAI,SSE
 
 [MOVHPS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \301\2\x0F\x16\110              KATMAI,SSE
-mem,xmmreg            \300\2\x0F\x17\101              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x16\110              KATMAI,SSE
+mem,xmmreg            \300\323\2\x0F\x17\101              KATMAI,SSE
 
 [MOVLHPS]
 (Ch_All, Ch_None, Ch_None)
@@ -2367,8 +2367,8 @@ xmmreg,xmmreg         \323\2\x0F\x16\110              KATMAI,SSE
 
 [MOVLPS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \301\2\x0F\x12\110              KATMAI,SSE
-mem,xmmreg            \300\2\x0F\x13\101              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x12\110              KATMAI,SSE
+mem,xmmreg            \300\323\2\x0F\x13\101              KATMAI,SSE
 
 [MOVHLPS]
 (Ch_All, Ch_None, Ch_None)
@@ -2384,8 +2384,8 @@ mem,xmmreg            \323\2\x0F\x2B\101              KATMAI,SSE
 
 [MOVSS]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \333\301\2\x0F\x10\110          KATMAI,SSE
-mem,xmmreg            \333\300\2\x0F\x11\101          KATMAI,SSE
+xmmreg,mem            \333\301\323\2\x0F\x10\110          KATMAI,SSE
+mem,xmmreg            \333\300\323\2\x0F\x11\101          KATMAI,SSE
 xmmreg,xmmreg         \333\323\2\x0F\x10\110          KATMAI,SSE
 xmmreg,xmmreg         \333\323\2\x0F\x11\101          KATMAI,SSE
 
@@ -2398,17 +2398,17 @@ xmmreg,xmmreg         \323\331\2\x0F\x11\101          KATMAI,SSE
 
 [MULPS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \301\2\x0F\x59\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x59\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x59\110              KATMAI,SSE
 
 [MULSS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \333\301\2\x0F\x59\110          KATMAI,SSE
+xmmreg,mem            \333\301\323\2\x0F\x59\110          KATMAI,SSE
 xmmreg,xmmreg         \333\323\2\x0F\x59\110          KATMAI,SSE
 
 [ORPS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \301\2\x0F\x56\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x56\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x56\110              KATMAI,SSE
 
 [RCPPS]
@@ -2418,7 +2418,7 @@ xmmreg,xmmreg         \323\331\2\x0F\x53\110          KATMAI,SSE
 
 [RCPSS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \333\301\2\x0F\x53\110          KATMAI,SSE
+xmmreg,mem            \333\301\323\2\x0F\x53\110          KATMAI,SSE
 xmmreg,xmmreg         \333\323\2\x0F\x53\110          KATMAI,SSE
 
 [RSQRTPS]
@@ -2428,12 +2428,12 @@ xmmreg,xmmreg         \323\331\2\x0F\x52\110          KATMAI,SSE
 
 [RSQRTSS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \333\301\2\x0F\x52\110          KATMAI,SSE
+xmmreg,mem            \333\301\323\2\x0F\x52\110          KATMAI,SSE
 xmmreg,xmmreg         \333\323\2\x0F\x52\110          KATMAI,SSE
 
 [SHUFPS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem,imm        \301\2\x0F\xC6\110\22           KATMAI,SSE,SB,AR2
+xmmreg,mem,imm        \301\323\2\x0F\xC6\110\22           KATMAI,SSE,SB,AR2
 xmmreg,xmmreg,imm     \323\2\x0F\xC6\110\22           KATMAI,SSE,SB,AR2
 
 [SQRTPS]
@@ -2448,7 +2448,7 @@ xmmreg,xmmreg         \333\323\2\x0F\x51\110          KATMAI,SSE
 
 [STMXCSR]
 (Ch_All, Ch_None, Ch_None)
-mem                   \300\2\x0F\xAE\203              KATMAI,SSE,SD
+mem                   \300\323\2\x0F\xAE\203              KATMAI,SSE,SD
 
 [SUBPS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
@@ -2457,27 +2457,27 @@ xmmreg,xmmreg         \323\331\2\x0F\x5C\110          KATMAI,SSE
 
 [SUBSS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \333\301\2\x0F\x5C\110          KATMAI,SSE
+xmmreg,mem            \333\301\323\2\x0F\x5C\110          KATMAI,SSE
 xmmreg,xmmreg         \333\323\2\x0F\x5C\110          KATMAI,SSE
 
 [UCOMISS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \301\2\x0F\x2E\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x2E\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x2E\110              KATMAI,SSE
 
 [UNPCKHPS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \301\2\x0F\x15\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x15\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x15\110              KATMAI,SSE
 
 [UNPCKLPS]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,mem            \301\2\x0F\x14\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x14\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x14\110              KATMAI,SSE
 
 [XORPS]
 (Ch_Mop2, Ch_Rop1, Ch_None)
-xmmreg,mem            \301\2\x0F\x57\110              KATMAI,SSE
+xmmreg,mem            \301\323\2\x0F\x57\110              KATMAI,SSE
 xmmreg,xmmreg         \323\2\x0F\x57\110              KATMAI,SSE
 
 ;
@@ -2499,19 +2499,19 @@ mem                   \300\2\x0F\xAE\200              P6,SSE,FPU
 
 [PREFETCHNTA]
 (Ch_All, Ch_None, Ch_None)
-mem                   \300\2\x0F\x18\200              KATMAI
+mem                   \300\323\2\x0F\x18\200              KATMAI
 
 [PREFETCHT0]
 (Ch_All, Ch_None, Ch_None)
-mem                   \300\2\x0F\x18\201              KATMAI
+mem                   \300\323\2\x0F\x18\201              KATMAI
 
 [PREFETCHT1]
 (Ch_All, Ch_None, Ch_None)
-mem                   \300\2\x0F\x18\202              KATMAI
+mem                   \300\323\2\x0F\x18\202              KATMAI
 
 [PREFETCHT2]
 (Ch_All, Ch_None, Ch_None)
-mem                   \300\2\x0F\x18\203              KATMAI
+mem                   \300\323\2\x0F\x18\203              KATMAI
 
 [SFENCE]
 (Ch_All, Ch_None, Ch_None)
@@ -2534,14 +2534,14 @@ mem,mmxreg            \2\x0F\xE7\101                  KATMAI,MMX,SM
 mmxreg,mmxreg         \2\x0F\xE0\110                  KATMAI,MMX
 mmxreg,mem            \301\2\x0F\xE0\110              KATMAI,MMX,SM
 xmmreg,xmmreg         \1\x66\323\2\x0F\xE0\110          WILLAMETTE,SSE2
-xmmreg,mem            \1\x66\301\2\x0F\xE0\110          WILLAMETTE,SSE2,SM
+xmmreg,mem            \1\x66\301\323\2\x0F\xE0\110          WILLAMETTE,SSE2,SM
 
 [PAVGW]
 (Ch_All, Ch_None, Ch_None)
 mmxreg,mmxreg         \2\x0F\xE3\110                  KATMAI,MMX
 mmxreg,mem            \301\2\x0F\xE3\110              KATMAI,MMX,SM
 xmmreg,xmmreg         \1\x66\323\2\x0F\xE3\110          WILLAMETTE,SSE2
-xmmreg,mem            \1\x66\301\2\x0F\xE3\110          WILLAMETTE,SSE2,SM
+xmmreg,mem            \1\x66\301\323\2\x0F\xE3\110          WILLAMETTE,SSE2,SM
 
 [PEXTRW]
 (Ch_All, Ch_None, Ch_None)
@@ -2654,11 +2654,11 @@ xmmreg,xmmreg           \1\x66\323\2\x0F\xF7\110        WILLAMETTE,SSE2
 ; CLFLUSH needs its own feature flag implemented one day
 [CLFLUSH]
 (Ch_All, Ch_None, Ch_None)
-mem                     \300\2\x0F\xAE\207            WILLAMETTE,SSE2
+mem                     \300\323\2\x0F\xAE\207            WILLAMETTE,SSE2
 
 [MOVNTDQ]
 (Ch_All, Ch_None, Ch_None)
-mem,xmmreg              \1\x66\300\2\x0F\xE7\101        WILLAMETTE,SSE2,SM
+mem,xmmreg              \1\x66\300\323\2\x0F\xE7\101        WILLAMETTE,SSE2,SM
 
 [MOVNTI]
 (Ch_All, Ch_None, Ch_None)
@@ -2666,7 +2666,7 @@ mem,reg32|64            \300\320\2\x0F\xC3\101        WILLAMETTE,SSE2,SM
 
 [MOVNTPD]
 (Ch_All, Ch_None, Ch_None)
-mem,xmmreg              \1\x66\300\2\x0F\x2B\101        WILLAMETTE,SSE2,SM
+mem,xmmreg              \1\x66\300\323\2\x0F\x2B\101        WILLAMETTE,SSE2,SM
 
 [PAUSE]
 (Ch_All, Ch_None, Ch_None)
