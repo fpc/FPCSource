@@ -75,9 +75,9 @@ type
     FCharSet             : string;
     FRole                : String;
 
-    procedure GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
   protected
     FConnOptions         : TConnOptions;
+    procedure GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
     procedure SetTransaction(Value : TSQLTransaction);virtual;
     function StrToStatementType(s : string) : TStatementType; virtual;
     procedure DoInternalConnect; override;
