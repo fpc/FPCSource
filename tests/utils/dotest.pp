@@ -22,7 +22,8 @@ uses
 {$endif}
   teststr,
   testu,
-  redir;
+  redir,
+  bench;
 
 {$ifdef go32v2}
   {$define LIMIT83FS}
@@ -33,6 +34,8 @@ uses
 
 type
   tcompinfo = (compver,comptarget,compcpu);
+  tdelexecutable = (deBefore, deAfter);
+  tdelexecutables = set of tdelexecutable;
 
 const
   ObjExt='o';
@@ -46,6 +49,7 @@ const
   ExeExt='exe';
 {$endif MACOS}
 {$endif UNIX}
+  DefaultTimeout=60;
 
 var
   Config : TConfig;
@@ -75,14 +79,16 @@ const
   DoAll : boolean = false;
   DoUsual : boolean = true;
   TargetDir : string = '';
+  BenchmarkInfo : boolean = false;
   ExtraCompilerOpts : string = '';
-  DelExecutable : boolean = false;
+  DelExecutable : TDelExecutables = [];
   RemoteAddr : string = '';
   RemotePath : string = '/tmp';
   RemotePara : string = '';
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
   rquote : char = '''';
+  UseTimeout : boolean = false;
   emulatorname : string = '';
 
 Function FileExists (Const F : String) : Boolean;
@@ -691,18 +697,24 @@ var
   FullExeLogFile,
   TestRemoteExe,
   TestExe  : string;
+  execcmd  : string;
   execres  : boolean;
-
+  EndTicks,
+  StartTicks : int64;
   function ExecuteRemote(const prog,args:string):boolean;
     begin
       Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
+      StartTicks:=GetMicroSTicks;
       ExecuteRemote:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
+      EndTicks:=GetMicroSTicks;
     end;
 
   function ExecuteEmulated(const prog,args:string):boolean;
     begin
       Verbose(V_Debug,'EmulatorExecuting '+Prog+' '+args);
+      StartTicks:=GetMicroSTicks;
       ExecuteEmulated:=ExecuteRedir(prog,args,'',FullExeLogFile,'stdout');
+      EndTicks:=GetMicroSTicks;
    end;
 
 begin
@@ -735,12 +747,26 @@ begin
     begin
       { We don't want to create subdirs, remove paths from the test }
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
-      ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
+      if deBefore in DelExecutable then
+        ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
       ExecuteRemote(rcpprog,RemotePara+' '+TestExe+' '+RemoteAddr+':'+TestRemoteExe);
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
-      execres:=ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+
-        ' ; cd '+RemotePath+' ; '+TestRemoteExe+' ; echo "TestExitCode: $?"'+rquote);
+      execcmd:=RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+
+        ' ; cd '+RemotePath+' ;';
+      if UseTimeout then
+      begin
+        execcmd:=execcmd+'timeout -9 ';
+        if Config.Timeout=0 then
+          Config.Timeout:=DefaultTimeout;
+        str(Config.Timeout,s);
+        execcmd:=execcmd+s;
+      end;
+      execcmd:=execcmd+' '+TestRemoteExe+' ; echo "TestExitCode: $?"';
+      if deAfter in DelExecutable then
+        execcmd:=execcmd+' ; rm -f '+TestRemoteExe;
+      execcmd:=execcmd+rquote;
+      execres:=ExecuteRemote(rshprog,execcmd);
       { Check for TestExitCode error in output, sets ExecuteResult }
       CheckTestExitCode(EXELogFile);
     end
@@ -756,10 +782,12 @@ begin
       {$I+}
       ioresult;
       { don't redirect interactive and graph programs }
+      StartTicks:=GetMicroSTicks;
       if Config.IsInteractive or Config.UsesGraph then
         execres:=ExecuteRedir(CurrDir+SplitFileName(TestExe),'','','','')
       else
         execres:=ExecuteRedir(CurrDir+SplitFileName(TestExe),'','',FullExeLogFile,'stdout');
+      EndTicks:=GetMicroSTicks;
       {$I-}
        ChDir(OldDir);
       {$I+}
@@ -768,6 +796,10 @@ begin
 
   { Error during execution? }
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
+  if BenchmarkInfo then
+    begin
+      Verbose(V_Normal,'Execution took '+ToStr(EndTicks-StartTicks)+' us');
+    end;
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
@@ -810,11 +842,9 @@ begin
      RunExecutable:=true;
    end;
 
-  if DelExecutable then
+  if deAfter in DelExecutable then
     begin
       Verbose(V_Debug,'Deleting executable '+TestExe);
-      if RemoteAddr<>'' then
-        ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
       RemoveFile(TestExe);
       RemoveFile(ForceExtension(TestExe,ObjExt));
       RemoveFile(ForceExtension(TestExe,PPUExt));
@@ -833,6 +863,7 @@ var
     writeln('dotest [Options] <File>');
     writeln;
     writeln('Options can be:');
+    writeln('  -B            delete executable before remote upload');
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -V            verbose');
     writeln('  -E            execute test also');
@@ -841,6 +872,7 @@ var
     writeln('  -G            include graph tests');
     writeln('  -K            include known bug tests');
     writeln('  -I            include interactive tests');
+    writeln('  -O            use timeout wrapper for (remote) execution');
     writeln('  -M<emulator>  run the tests using the given emulator');
     writeln('  -R<remote>    run the tests remotely with the given rsh/ssh address');
     writeln('  -S            use ssh instead of rsh');
@@ -877,6 +909,8 @@ begin
              DoAll:=true;
            end;
 
+         'B' : Include(DelExecutable,deBefore);
+
          'C' : CompilerBin:=Para;
 
          'E' : DoExecute:=true;
@@ -900,6 +934,8 @@ begin
                end;
 
          'M' : EmulatorName:=Para;
+
+         'O' : UseTimeout:=true;
 
          'P' : RemotePath:=Para;
 
@@ -939,8 +975,7 @@ begin
 
          'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
 
-         'Z' :
-           DelExecutable:=true;
+         'Z' : Include(DelExecutable,deAfter);
         end;
      end
     else

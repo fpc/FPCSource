@@ -102,6 +102,7 @@ TEST_CCOMPILER         defaults to installed gcc compiler, but only
                        if driver and test full-targets are the same.
 TEST_VERBOSE           let dotest be more verbose, only usefull for debugging
 TEST_DELTEMP           delete temporary executable/object/ppu file, default is off
+V                      print dotest commandline
 
   (Please add more test options if needed)
 

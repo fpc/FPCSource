@@ -194,11 +194,24 @@ endif
 ifdef TEST_REMOTEPATH
 override DOTESTOPT+=-P$(TEST_REMOTEPATH)
 endif
+ifdef TEST_DELBEFORE
+override DOTESTOPT+=-B
+endif
 ifdef TEST_DELTEMP
 override DOTESTOPT+=-Z
 endif
+ifdef TEST_TIMEOUT
+override DOTESTOPT+=-O
+endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
+endif
+ifdef V
+Q=
+QECHO=
+else
+Q=@
+QECHO=@echo $(1)
 endif
 ifdef TEST_REMOTEOPT
 override DOTESTOPT+="-U$(TEST_REMOTEOPT)"
@@ -245,10 +258,12 @@ vpath %.log $(TEST_OUTPUTDIR)
 vpath %.elg $(TEST_OUTPUTDIR)
 
 %.log : %.pp
-        $(DOTEST) $(DOTESTOPT) $<
+	$(call QECHO,"  COMPILE $<")
+	$(Q)$(DOTEST) $(DOTESTOPT) $<
 
 %.elg : %.pp
-        $(DOTEST) $(DOTESTOPT) -e $<
+	$(call QECHO,"  EXECUTE $<")
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $<
 
 
 ################################
