@@ -2372,11 +2372,40 @@ const pemagic : array[0..3] of byte = (
           idata4label,
           idata5label,
           idata6label : TObjSymbol;
-          ordint,
           emptyint : longint;
           secname,
           num : string;
           absordnr: word;
+          
+          procedure WriteTableEntry;
+          var
+            ordint: dword;
+          begin
+            if AOrdNr <= 0 then
+              begin
+                { import by name }
+                internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
+                if target_info.system=system_x86_64_win64 then
+                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
+              end
+            else
+              begin
+                { import by ordinal }
+                ordint:=AOrdNr;
+                if target_info.system=system_x86_64_win64 then
+                  begin
+                    internalobjdata.writebytes(ordint,sizeof(ordint));
+                    ordint:=$80000000;
+                    internalobjdata.writebytes(ordint,sizeof(ordint));
+                  end
+                else
+                  begin
+                    ordint:=ordint or $80000000;
+                    internalobjdata.writebytes(ordint,sizeof(ordint));
+                  end;
+              end;
+          end;
+
         begin
           result:=nil;
           emptyint:=0;
@@ -2403,6 +2432,7 @@ const pemagic : array[0..3] of byte = (
           num:=tostr(idatalabnr);
           idata6label:=internalobjdata.SymbolDefine('__imp_'+num,AB_LOCAL,AT_DATA);
           absordnr:=Abs(AOrdNr);
+          { write index hint }
           internalobjdata.writebytes(absordnr,2);
           if AOrdNr <= 0 then
             internalobjdata.writebytes(afuncname[1],length(afuncname));
@@ -2411,27 +2441,7 @@ const pemagic : array[0..3] of byte = (
           { idata4, import lookup table }
           internalobjdata.SetSection(idata4objsection);
           idata4label:=internalobjdata.SymbolDefine('__imp_lookup_'+num,AB_LOCAL,AT_DATA);
-          if AOrdNr <= 0 then
-            begin
-              internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-              if target_info.system=system_x86_64_win64 then
-                internalobjdata.writebytes(emptyint,sizeof(emptyint));
-            end
-          else
-            begin
-              ordint:=AOrdNr;
-              if target_info.system=system_x86_64_win64 then
-                begin
-                  internalobjdata.writebytes(ordint,sizeof(ordint));
-                  ordint:=longint($80000000);
-                  internalobjdata.writebytes(ordint,sizeof(ordint));
-                end
-              else
-                begin
-                  ordint:=ordint or longint($80000000);
-                  internalobjdata.writebytes(ordint,sizeof(ordint));
-                end;
-            end;
+          WriteTableEntry;
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
           { dummy back links }
@@ -2442,9 +2452,7 @@ const pemagic : array[0..3] of byte = (
             result:=internalobjdata.SymbolDefine(amangledname,AB_GLOBAL,AT_DATA)
           else
             idata5label:=internalobjdata.SymbolDefine('__imp_'+amangledname,AB_LOCAL,AT_DATA);
-          internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-          if target_info.system=system_x86_64_win64 then
-            internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          WriteTableEntry;
           { text, jmp }
           if not isvar then
             begin
