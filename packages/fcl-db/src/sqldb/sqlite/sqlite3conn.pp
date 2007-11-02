@@ -115,7 +115,7 @@ type
 
 procedure freebindstring(astring: pointer); cdecl;
 begin
-  FreeMem(AString);
+  StrDispose(AString);
 end;
 
 procedure TSQLite3Cursor.checkerror(const aerror: integer);
@@ -304,29 +304,28 @@ Type
   TFieldMap = Record
     N : String;
     T : TFieldType;
-    S : Integer;
-  end;  
+  end;
   
 Const
   FieldMapCount = 15;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
-   (n:'INT'; t: ftInteger; S: SizeOf(Integer)),
-   (n:'LARGEINT'; t:ftlargeInt; S: SizeOf(Int64)),
-   (n:'WORD'; t: ftWord; S: SizeOf(Word)),
-   (n:'SMALLINT'; t: ftSmallint; S: SizeOf(SmallInt)),
-   (n:'BOOLEAN'; t: ftBoolean; S: SizeOf(WordBool)),
-   (n:'REAL'; t: ftFloat; S: SizeOf(Double)),
-   (n:'DOUBLE'; t: ftFloat; S: SizeOf(Double)),
-   (n:'DATETIME'; t: ftDateTime; S: SizeOf(TDateTime)), // MUST be before date
-   (n:'DATE'; t: ftDate; S: SizeOf(TDateTime)),
-   (n:'TIME'; t: ftTime; S: SizeOf(TDateTime)),
-   (n:'CURRENCY'; t: ftCurrency; S: SizeOf(double)),
-   (n:'VARCHAR'; t: ftString; S: 255),
-   (n:'NUMERIC'; t: ftBCD; S: SizeOf(Currency)),
-   (n:'TEXT'; t: ftmemo; S: 0),
-   (n:'BLOB'; t: ftBlob; S: 0)
+   (n:'INT'; t: ftInteger),
+   (n:'LARGEINT'; t:ftlargeInt),
+   (n:'WORD'; t: ftWord),
+   (n:'SMALLINT'; t: ftSmallint),
+   (n:'BOOLEAN'; t: ftBoolean),
+   (n:'REAL'; t: ftFloat),
+   (n:'DOUBLE'; t: ftFloat),
+   (n:'DATETIME'; t: ftDateTime), // MUST be before date
+   (n:'DATE'; t: ftDate),
+   (n:'TIME'; t: ftTime),
+   (n:'CURRENCY'; t: ftCurrency),
+   (n:'VARCHAR'; t: ftString),
+   (n:'NUMERIC'; t: ftBCD),
+   (n:'TEXT'; t: ftmemo),
+   (n:'BLOB'; t: ftBlob)
 { Template:   
-  (n:''; t: ft; S: SizeOf())
+  (n:''; t: ft)
 }
   );
 
@@ -349,18 +348,14 @@ begin
     FD:=uppercase(sqlite3_column_decltype(st,i));
     ft1:= ftUnknown;
     size1:= 0;
-    fi:=1;
-    While (ft1=ftUnknown) and (fi<=FieldMapCount) do
+    for fi := 1 to FieldMapCount do if pos(FieldMap[fi].N,FD)=1 then
       begin
-      if pos(FieldMap[fi].N,FD)=1 then
-        begin
-        ft1:=FieldMap[fi].t;
-        size1:=FieldMap[fi].S;
-        end;
-      Inc(fi);
+      ft1:=FieldMap[fi].t;
+      break;
       end;
-    // handle some specials.  
-    case ft1 of  
+    // handle some specials.
+    size1:=0;
+    case ft1 of
       ftString: begin
                 fi:=pos('(',FD);
                 if (fi>0) then
@@ -368,7 +363,18 @@ begin
                   System.Delete(FD,1,fi);
                   fi:=pos(')',FD);
                   size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
-                  end;
+                  end
+                else size1 := 255;
+                end;
+      ftBCD:    begin
+                fi:=pos(',',FD);
+                if (fi>0) then
+                  begin
+                  System.Delete(FD,1,fi);
+                  fi:=pos(')',FD);
+                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
+                  end
+                else size1 := 4;
                 end;
       ftUnknown : DatabaseError('Unknown record type: '+FN);
     end; // Case
