@@ -1598,7 +1598,7 @@ In case not, the value returned can be arbitrary.
 
 
 {*****************************************************************************
-                            Preprocessor writting
+                            Preprocessor writing
 *****************************************************************************}
 
 {$ifdef PREPROCWRITE}

@@ -882,6 +882,10 @@ implementation
          name_table_pointers.free;
          ordinal_table.free;
          name_table.free;
+
+         { the package support needs this data later on
+           to create the import library }
+         current_module._exports.concatlist(temtexport);
          temtexport.free;
       end;
 

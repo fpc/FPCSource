@@ -44,7 +44,12 @@ implementation
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype;
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype
+{$ifdef i386}
+       { fix me! }
+       ,cpubase
+{$endif i386}
+       ;
 
 
     procedure create_objectfile;
@@ -1188,10 +1193,33 @@ implementation
       end;
 
 
+    procedure procexport(const s : string);
+      var
+        hp : texported_item;
+      begin
+        hp:=texported_item.create;
+        hp.name:=stringdup(s);
+        hp.options:=hp.options or eo_name;
+        exportlib.exportprocedure(hp);
+      end;
+
+
+    procedure varexport(const s : string);
+      var
+        hp : texported_item;
+      begin
+        hp:=texported_item.create;
+        hp.name:=stringdup(s);
+        hp.options:=hp.options or eo_name;
+        exportlib.exportvar(hp);
+      end;
+
+
     procedure insert_export(sym : TObject;arg:pointer);
       var
         hp : texported_item;
         i : longint;
+        item : TCmdStrListItem;
       begin
         case TSym(sym).typ of
           { ignore: }
@@ -1205,29 +1233,246 @@ implementation
             begin
               for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
                 begin
-                  if not(tprocdef(tprocsym(sym).ProcdefList[i]).proccalloption in [pocall_internproc]) then
+                  if not(tprocdef(tprocsym(sym).ProcdefList[i]).proccalloption in [pocall_internproc]) and
+                    ((tprocdef(tprocsym(sym).ProcdefList[i]).procoptions*[po_external])=[]) and
+                    ((tsymtable(arg).symtabletype=globalsymtable) or
+                     ((tsymtable(arg).symtabletype=staticsymtable) and (po_public in tprocdef(tprocsym(sym).ProcdefList[i]).procoptions))
+                    ) then
                     begin
-                      hp:=texported_item.create;
-                      // hp.sym:=tsym(sym);
-                      hp.name:=stringdup(tprocdef(tprocsym(sym).ProcdefList[i]).mangledname);
-                      hp.options:=hp.options or eo_name;
-                      exportlib.exportprocedure(hp)
+                      procexport(tprocdef(tprocsym(sym).ProcdefList[i]).mangledname);
+                      { walk through all aliases }
+                      item:=TCmdStrListItem(tprocdef(tprocsym(sym).ProcdefList[i]).aliasnames.first);
+                      while assigned(item) do
+                        begin
+                          { avoid duplicate entries, sometimes aliasnames contains the mangledname }
+                          if item.str<>tprocdef(tprocsym(sym).ProcdefList[i]).mangledname then
+                            procexport(item.str);
+                          item:=TCmdStrListItem(item.next);
+                        end;
                     end;
                 end;
             end;
           staticvarsym:
             begin
-              hp:=texported_item.create;
-              // hp.sym:=tsym(sym);
-              hp.name:=stringdup(tsym(sym).mangledname);
-              hp.options:=hp.options or eo_name;
-              exportlib.exportvar(hp);
+              varexport(tsym(sym).mangledname);
             end;
           else
             begin
               writeln('unknown: ',ord(TSym(sym).typ));
             end;
         end;
+      end;
+
+
+    Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
+      Var
+        MakeStatic : Boolean;
+      Var
+        buffer : array[0..$1fff] of byte;
+        inppu,
+        outppu : tppufile;
+        b,
+        untilb : byte;
+        l,m    : longint;
+        f      : file;
+        ext,
+        s      : string;
+        ppuversion : dword;
+      begin
+        Result:=false;
+        MakeStatic:=False;
+        inppu:=tppufile.create(PPUFn);
+        if not inppu.openfile then
+         begin
+           inppu.free;
+           Comment(V_Error,'Could not open : '+PPUFn);
+           Exit;
+         end;
+      { Check the ppufile }
+        if not inppu.CheckPPUId then
+         begin
+           inppu.free;
+           Comment(V_Error,'Not a PPU File : '+PPUFn);
+           Exit;
+         end;
+        ppuversion:=inppu.GetPPUVersion;
+        if ppuversion<CurrentPPUVersion then
+         begin
+           inppu.free;
+           Comment(V_Error,'Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn);
+           Exit;
+         end;
+      { No .o file generated for this ppu, just skip }
+        if (inppu.header.flags and uf_no_link)<>0 then
+         begin
+           inppu.free;
+           Result:=true;
+           Exit;
+         end;
+      { Already a lib? }
+        if (inppu.header.flags and uf_in_library)<>0 then
+         begin
+           inppu.free;
+           Comment(V_Error,'PPU is already in a library : '+PPUFn);
+           Exit;
+         end;
+      { We need a static linked unit }
+        if (inppu.header.flags and uf_static_linked)=0 then
+         begin
+           inppu.free;
+           Comment(V_Error,'PPU is not static linked : '+PPUFn);
+           Exit;
+         end;
+      { Check if shared is allowed }
+        if tsystem(inppu.header.target) in [system_i386_go32v2] then
+         begin
+           Comment(V_Error,'Shared library not supported for ppu target, switching to static library');
+           MakeStatic:=true;
+         end;
+      { Create the new ppu }
+        if PPUFn=PPLFn then
+         outppu:=tppufile.create('ppumove.$$$')
+        else
+         outppu:=tppufile.create(PPLFn);
+        outppu.createfile;
+      { Create new header, with the new flags }
+        outppu.header:=inppu.header;
+        outppu.header.flags:=outppu.header.flags or uf_in_library;
+        if MakeStatic then
+         outppu.header.flags:=outppu.header.flags or uf_static_linked
+        else
+         outppu.header.flags:=outppu.header.flags or uf_shared_linked;
+      { read until the object files are found }
+        untilb:=iblinkunitofiles;
+        repeat
+          b:=inppu.readentry;
+          if b in [ibendinterface,ibend] then
+           begin
+             inppu.free;
+             outppu.free;
+             Comment(V_Error,'No files to be linked found : '+PPUFn);
+             Exit;
+           end;
+          if b<>untilb then
+           begin
+             repeat
+               inppu.getdatabuf(buffer,sizeof(buffer),l);
+               outppu.putdata(buffer,l);
+             until l<sizeof(buffer);
+             outppu.writeentry(b);
+           end;
+        until (b=untilb);
+      { we have now reached the section for the files which need to be added,
+        now add them to the list }
+        case b of
+          iblinkunitofiles :
+            begin
+              { add all o files, and save the entry when not creating a static
+                library to keep staticlinking possible }
+              while not inppu.endofentry do
+               begin
+                 s:=inppu.getstring;
+                 m:=inppu.getlongint;
+                 if not MakeStatic then
+                  begin
+                    outppu.putstring(s);
+                    outppu.putlongint(m);
+                  end;
+                 current_module.linkotherofiles.add(s,link_always);;
+               end;
+              if not MakeStatic then
+               outppu.writeentry(b);
+            end;
+      {    iblinkunitstaticlibs :
+            begin
+              AddToLinkFiles(ExtractLib(inppu.getstring));
+              if not inppu.endofentry then
+               begin
+                 repeat
+                   inppu.getdatabuf(buffer^,bufsize,l);
+                   outppu.putdata(buffer^,l);
+                 until l<bufsize;
+                 outppu.writeentry(b);
+               end;
+             end; }
+        end;
+      { just add a new entry with the new lib }
+        if MakeStatic then
+         begin
+           outppu.putstring('imp'+current_module.realmodulename^);
+           outppu.putlongint(link_static);
+           outppu.writeentry(iblinkunitstaticlibs)
+         end
+        else
+         begin
+           outppu.putstring('imp'+current_module.realmodulename^);
+           outppu.putlongint(link_shared);
+           outppu.writeentry(iblinkunitsharedlibs);
+         end;
+      { read all entries until the end and write them also to the new ppu }
+        repeat
+          b:=inppu.readentry;
+        { don't write ibend, that's written automaticly }
+          if b<>ibend then
+           begin
+             if b=iblinkothersharedlibs then
+               begin
+                 while not inppu.endofentry do
+                   begin
+                     s:=inppu.getstring;
+                     m:=inppu.getlongint;
+
+                     outppu.putstring(s);
+                     outppu.putlongint(m);
+
+                     { strip lib prefix }
+                     if copy(s,1,3)='lib' then
+                       delete(s,1,3);
+                     ext:=ExtractFileExt(s);
+                     if ext<>'' then
+                       delete(s,length(s)-length(ext)+1,length(ext));
+
+                     current_module.linkOtherSharedLibs.add(s,link_always);
+                   end;
+               end
+             else
+               repeat
+                 inppu.getdatabuf(buffer,sizeof(buffer),l);
+                 outppu.putdata(buffer,l);
+               until l<sizeof(buffer);
+             outppu.writeentry(b);
+           end;
+        until b=ibend;
+      { write the last stuff and close }
+        outppu.flush;
+        outppu.writeheader;
+        outppu.free;
+        inppu.free;
+      { rename }
+        if PPUFn=PPLFn then
+         begin
+           {$I-}
+            assign(f,PPUFn);
+            erase(f);
+            assign(f,'ppumove.$$$');
+            rename(f,PPUFn);
+           {$I+}
+           if ioresult<>0 then;
+         end;
+        Result:=True;
+      end;
+
+
+    procedure createimportlibfromexports;
+      var
+        hp : texported_item;
+      begin
+        hp:=texported_item(current_module._exports.first);
+        while assigned(hp) do
+          begin
+            current_module.AddExternalImport(current_module.realmodulename^,hp.name^,hp.index,hp.is_var);
+            hp:=texported_item(hp.next);
+          end;
       end;
 
 
@@ -1375,6 +1620,11 @@ implementation
 
          new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
          current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
+{$ifdef i386}
+         { fix me! }
+         current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_const_reg(A_MOV,S_L,1,NR_EAX));
+         current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_const(A_RET,S_W,12));
+{$endif i386}
          current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
 
          { leave when we got an error }
@@ -1401,7 +1651,18 @@ implementation
          uu:=tused_unit(usedunits.first);
          while assigned(uu) do
            begin
-             uu.u.globalsymtable.symlist.ForEachCall(@insert_export,nil);
+             uu.u.globalsymtable.symlist.ForEachCall(@insert_export,uu.u.globalsymtable);
+             { check localsymtable for exports too to get public symbols }
+             uu.u.localsymtable.symlist.ForEachCall(@insert_export,uu.u.localsymtable);
+
+             { create special exports }
+             if (uu.u.flags and uf_init)<>0 then
+               procexport(make_mangledname('INIT$',uu.u.globalsymtable,''));
+             if (uu.u.flags and uf_finalize)<>0 then
+               procexport(make_mangledname('FINALIZE$',uu.u.globalsymtable,''));
+             if (uu.u.flags and uf_threadvars)=uf_threadvars then
+               varexport(make_mangledname('THREADVARLIST',uu.u.globalsymtable,''));
+
              uu:=tused_unit(uu.next);
            end;
 
@@ -1412,15 +1673,19 @@ implementation
            InsertPData;
 {$endif arm}
 
-         { generate imports }
-         if current_module.ImportLibraryList.Count>0 then
-           importlib.generatelib;
-
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
          exportlib.generatelib;
+
+         { write all our exports to the import library,
+           needs to be done after exportlib.generatelib; }
+         createimportlibfromexports;
+
+         { generate imports }
+         if current_module.ImportLibraryList.Count>0 then
+           importlib.generatelib;
 
          { Reference all DEBUGINFO sections from the main .fpc section }
          if (cs_debuginfo in current_settings.moduleswitches) then
@@ -1450,6 +1715,14 @@ implementation
 
          if (not current_module.is_unit) then
            begin
+             { finally rewrite all units included into the package }
+             uu:=tused_unit(usedunits.first);
+             while assigned(uu) do
+               begin
+                 RewritePPU(uu.u.ppufilename^,uu.u.ppufilename^);
+                 uu:=tused_unit(uu.next);
+               end;
+
              { create the executable when we are at level 1 }
              if (compile_level=1) then
                begin
