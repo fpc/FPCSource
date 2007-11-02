@@ -664,7 +664,8 @@ begin
     if (directory = '') then break;
     inc(i);
   end;
-
+  if (directory<>'') and (directory[length(directory)]<>'/') then
+    directory:=directory+'/';
   GetFullFilename := directory + filename;
 end;
 
@@ -881,18 +882,17 @@ begin
           break;
         first_row := false;
       end;
-      found := (state.address >= addr);
 
-      { use the previous line/file information if the current address is larger
-        than the requested address }
-      if (found) and (state.address > addr) then begin
-        state.line := prev_line;
-        state.file_id := prev_file;
-      end;
-
-      { save old state information }
-      prev_file := state.file_id;
-      prev_line := state.line;
+      { when we have found the address we need to return the previous
+        line because that contains the call instruction }
+      if (state.address >= addr) then
+        found:=true
+      else
+        begin
+          { save line information }
+          prev_file := state.file_id;
+          prev_line := state.line;
+        end;
 
       state.append_row := false;
       if (state.end_sequence) then begin
@@ -904,8 +904,8 @@ begin
   end;
 
   if (found) then begin
-    line := state.line;
-    source := GetFullFilename(file_names, include_directories, state.file_id);
+    line := prev_line;
+    source := GetFullFilename(file_names, include_directories, prev_file);
   end;
 end;
 
