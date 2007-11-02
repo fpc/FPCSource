@@ -455,7 +455,7 @@ begin
     FIELD_TYPE_DECIMAL: if ADecimals < 5 then
                           begin
                           NewType := ftBCD;
-                          NewSize := 0;
+                          NewSize := ADecimals;
                           end
                         else
                           begin
@@ -847,7 +847,10 @@ end;
 
 function TConnectionName.RowsAffected(cursor: TSQLCursor): TRowsCount;
 begin
-  Result := (cursor as TCursorName).RowsAffected;
+  if assigned(cursor) then
+    Result := (cursor as TCursorName).RowsAffected
+  else
+    Result := -1;
 end;
 
 constructor TConnectionName.Create(AOwner: TComponent);
