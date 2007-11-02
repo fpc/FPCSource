@@ -363,6 +363,7 @@ begin
                   System.Delete(FD,1,fi);
                   fi:=pos(')',FD);
                   size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
+                  if size1 > dsMaxStringSize then size1 := dsMaxStringSize;
                   end
                 else size1 := 255;
                 end;
@@ -388,7 +389,7 @@ var
             
 begin
   SC:=TSQLite3Cursor(cursor);
-  If (AParams<>Nil) then
+  If (AParams<>Nil) and (AParams.count > 0) then
     SC.BindParams(AParams);
   SC.Execute;    
 end;
