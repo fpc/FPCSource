@@ -451,6 +451,7 @@ Type
     FRemove: String;
     FTarget: String;
     FUnixPaths: Boolean;
+    FSourceExt : String;
     function GetBaseInstallDir: String;
     function GetBinInstallDir: String;
     function GetCompiler: String;
@@ -481,6 +482,7 @@ Type
     Property Mode : TCompilerMode Read FMode Write FMode;
     Property UnixPaths : Boolean Read FUnixPaths Write FUnixPaths;
     Property Options : String Read FOptions Write FOptions;    // Default compiler options.
+    Property SourceExt : String Read FSourceExt Write FSourceExt;
     // paths etc.
     Property Prefix : String Read FPrefix Write SetPrefix;
     Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
@@ -898,6 +900,7 @@ Const
   KeyBinInstallDir      = 'BinInstallDir';
   KeyDocInstallDir      = 'DocInstallDir';
   KeyExamplesInstallDir = 'ExamplesInstallDir';
+  KeySourceExt = 'SourceExt';
 
 // Callback for Sysutils getapplicationname.
 
@@ -1483,6 +1486,7 @@ begin
   {$else}
   UnixPaths:=False;
   {$endif}
+  FSourceExt:=PPExt;
 end;
 
 procedure TCustomDefaults.Assign(ASource: TPersistent);
@@ -1512,7 +1516,10 @@ begin
     FRemove:=D.FRemove;
     FTarget:=D.FTarget;
     FUnixPaths:=D.FUnixPaths;
-    end;
+    FSourceExt:=D.SourceExt;
+    end
+  else
+    Inherited;  
 end;
 
 procedure TCustomDefaults.LocalInit(Const AFileName : String);
@@ -1630,6 +1637,7 @@ begin
       Values[KeyExamplesInstallDir]:=FExamplesInstallDir;
       Values[KeyRemove]:=FRemove;
       Values[KeyTarget]:=FTarget;
+      Values[KeySourceExt]:=FSourceExt;
       end;
     L.SaveToStream(S);
   Finally
@@ -1685,6 +1693,9 @@ begin
       FBinInstallDir:=Values[KeyBinInstallDir];
       FDocInstallDir:=Values[KeyDocInstallDir];
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
+      FSourceExt:=Values[KeySourceExt];
+      If (FSourceExt='') then
+        FSourceExt:=PPExt;
       end;
   Finally
     L.Free;
@@ -2983,10 +2994,10 @@ begin
     begin
     SFN:=SD+Target.SourceFileName;
     If (ExtractFileExt(SFN)='') then
-      if FileExists(SFN+'.pp') then
-        SFN:=SFN+'.pp'
+      if FileExists(SFN+PPUExt) then
+        SFN:=SFN+PPUExt
       else
-        SFN:=SFN+'.pas';
+        SFN:=SFN+PASExt;
     Log(vldebug, SDebugCheckingSAgainstS, [OFN, SFN]);
     Result:=FileNewer(SFN,OFN);
     // here we should check file timestamps.
@@ -3751,7 +3762,9 @@ begin
   E:=ExtractFileExt(N);
   N:=ExtractFileName(N);
   If (E<>'') then
-    N:=Copy(N,1,Length(N)-Length(E));
+    N:=Copy(N,1,Length(N)-Length(E))
+  else
+    E:=Defaults.SourceExt;
   inherited SetName(N);
   FExtension:=E;
   FDirectory:=D;
@@ -3804,7 +3817,11 @@ begin
 end;
 
 procedure TTarget.GetArchiveFiles(List: TStrings; APrefix : String; AnOS : TOS);
+
 begin
+  APrefix:=APrefix+Directory;
+  If (APrefix<>'') then
+    APrefix:=IncludeTrailingPathDelimiter(APrefix);
   If (OS=[]) or (AnOS in OS) then
     begin
     List.Add(APrefix+SourceFileName);
