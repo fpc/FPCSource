@@ -1559,7 +1559,7 @@ begin
   // Detect compiler version/target from -i option
   infosl:=TStringList.Create;
   infosl.Delimiter:=' ';
-  infosl.DelimitedText:=GetCompilerInfo(FCompiler,'-iVTPTO');
+  infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO');
   if infosl.Count<>3 then
     Raise EInstallerError.Create(SErrInvalidFPCInfo);
   FCompilerVersion:=infosl[0];
@@ -2942,15 +2942,16 @@ Var
 
 begin
   Result:=False;
-  OD:=FCurrentOutputDir;
-  If (OD<>'') then
-    OD:=IncludeTrailingPathDelimiter(OD);
-  OFN:=OD+Target.GetOutPutFileName(Defaults.OS);
+  OFN:=Target.GetOutPutFileName(Defaults.OS);
 
   if Target.TargetType in ProgramTargets then
-    OFN := GetBinOutputDir(FCurrentPackage, True) + PathDelim + OFN
+    OD:=GetBinOutputDir(FCurrentPackage, True)
   else
-    OFN := GetUnitsOutputDir(FCurrentPackage, True) + PathDelim + OFN;
+    OD:=GetUnitsOutputDir(FCurrentPackage, True);
+
+  If (OD<>'') then
+    OD:=IncludeTrailingPathDelimiter(OD);
+  OFN:=OD+OFN;
 
   SD:=Target.Directory;
   If (SD<>'') then
