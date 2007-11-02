@@ -31,7 +31,7 @@ uses
   tokens;
 
 const
-  Version   = 'Version 2.2.0';
+  Version   = 'Version 2.3.1';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1998-2007 by the Free Pascal Development Team';
 
@@ -64,20 +64,20 @@ type
   tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
 
   { Copied from systems.pas }
-       tsystemcpu=
-       (
-             cpu_no,                       { 0 }
-             cpu_i386,                     { 1 }
-             cpu_m68k,                     { 2 }
-             cpu_alpha,                    { 3 }
-             cpu_powerpc,                  { 4 }
-             cpu_sparc,                    { 5 }
-             cpu_vm,                       { 6 }
-             cpu_iA64,                     { 7 }
-             cpu_x86_64,                   { 8 }
-             cpu_mips,                     { 9 }
-             cpu_arm                       { 10 }
-       );
+  tsystemcpu=
+  (
+        cpu_no,                       { 0 }
+        cpu_i386,                     { 1 }
+        cpu_m68k,                     { 2 }
+        cpu_alpha,                    { 3 }
+        cpu_powerpc,                  { 4 }
+        cpu_sparc,                    { 5 }
+        cpu_vm,                       { 6 }
+        cpu_iA64,                     { 7 }
+        cpu_x86_64,                   { 8 }
+        cpu_mips,                     { 9 }
+        cpu_arm                       { 10 }
+  );
 
 var
   ppufile     : tppufile;
@@ -105,54 +105,54 @@ end;
 
 Function Target2Str(w:longint):string;
 type
-       { taken from systems.pas }
-       ttarget =
-       (
-             target_none,               { 0 }
-             target_i386_GO32V1,        { 1 }
-             target_i386_GO32V2,        { 2 }
-             target_i386_linux,         { 3 }
-             target_i386_OS2,           { 4 }
-             target_i386_Win32,         { 5 }
-             target_i386_freebsd,       { 6 }
-             target_m68k_Amiga,         { 7 }
-             target_m68k_Atari,         { 8 }
-             target_m68k_Mac,           { 9 }
-             target_m68k_linux,         { 10 }
-             target_m68k_PalmOS,        { 11 }
-             target_alpha_linux,        { 12 }
-             target_powerpc_linux,      { 13 }
-             target_powerpc_macos,      { 14 }
-             target_i386_sunos,         { 15 }
-             target_i386_beos,          { 16 }
-             target_i386_netbsd,        { 17 }
-             target_m68k_netbsd,        { 18 }
-             target_i386_Netware,       { 19 }
-             target_i386_qnx,           { 20 }
-             target_i386_wdosx,         { 21 }
-             target_sparc_sunos,        { 22 }
-             target_sparc_linux,        { 23 }
-             target_i386_openbsd,       { 24 }
-             target_m68k_openbsd,       { 25 }
-             system_x86_64_linux,       { 26 }
-             system_powerpc_macosx,     { 27 }
-             target_i386_emx,           { 28 }
-             target_powerpc_netbsd,     { 29 }
-             target_powerpc_openbsd,    { 30 }
-             target_arm_linux,          { 31 }
-             target_i386_watcom,        { 32 }
-             target_powerpc_MorphOS,    { 33 }
-             target_x86_64_freebsd,     { 34 }
-             target_i386_netwlibc,      { 35 }
-             system_powerpc_Amiga,      { 36 }
-             system_x86_64_win64,       { 37 }
-             system_arm_wince,          { 38 }
-             system_ia64_win64,         { 39 }
-             system_i386_wince,         { 40 }
-             system_x86_6432_linux,     { 41 }
-             system_arm_gba,            { 42 }
-             system_arm_nds             { 43 }
-       );
+  { taken from systems.pas }
+  ttarget =
+  (
+        target_none,               { 0 }
+        target_i386_GO32V1,        { 1 }
+        target_i386_GO32V2,        { 2 }
+        target_i386_linux,         { 3 }
+        target_i386_OS2,           { 4 }
+        target_i386_Win32,         { 5 }
+        target_i386_freebsd,       { 6 }
+        target_m68k_Amiga,         { 7 }
+        target_m68k_Atari,         { 8 }
+        target_m68k_Mac,           { 9 }
+        target_m68k_linux,         { 10 }
+        target_m68k_PalmOS,        { 11 }
+        target_alpha_linux,        { 12 }
+        target_powerpc_linux,      { 13 }
+        target_powerpc_macos,      { 14 }
+        target_i386_sunos,         { 15 }
+        target_i386_beos,          { 16 }
+        target_i386_netbsd,        { 17 }
+        target_m68k_netbsd,        { 18 }
+        target_i386_Netware,       { 19 }
+        target_i386_qnx,           { 20 }
+        target_i386_wdosx,         { 21 }
+        target_sparc_sunos,        { 22 }
+        target_sparc_linux,        { 23 }
+        target_i386_openbsd,       { 24 }
+        target_m68k_openbsd,       { 25 }
+        system_x86_64_linux,       { 26 }
+        system_powerpc_macosx,     { 27 }
+        target_i386_emx,           { 28 }
+        target_powerpc_netbsd,     { 29 }
+        target_powerpc_openbsd,    { 30 }
+        target_arm_linux,          { 31 }
+        target_i386_watcom,        { 32 }
+        target_powerpc_MorphOS,    { 33 }
+        target_x86_64_freebsd,     { 34 }
+        target_i386_netwlibc,      { 35 }
+        system_powerpc_Amiga,      { 36 }
+        system_x86_64_win64,       { 37 }
+        system_arm_wince,          { 38 }
+        system_ia64_win64,         { 39 }
+        system_i386_wince,         { 40 }
+        system_x86_6432_linux,     { 41 }
+        system_arm_gba,            { 42 }
+        system_arm_nds             { 43 }
+  );
 const
   Targets : array[ttarget] of string[17]=(
   { 0 }   'none',
@@ -1140,7 +1140,7 @@ begin
    begin
      write(space,'          Options : ');
      first:=true;
-     for i:=1to procopts do
+     for i:=1 to procopts do
       if (procopt[i].mask in procoptions) then
        begin
          if first then
@@ -1778,6 +1778,18 @@ begin
                 ppufile.getsmallset(procinfooptions);
                 writeln(space,'  ProcInfoOptions : ',dword(procinfooptions));
               end;
+             b:=ppufile.getbyte;
+             if b<>0 then
+               begin
+                 write  (space,'       Alias names : ');
+                 for j:=1 to b do
+                   begin
+                     write(ppufile.getstring);
+                     if j<b then
+                       write(', ');
+                   end;
+                 writeln;
+               end;
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
              space:='    '+space;

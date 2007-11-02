@@ -2833,6 +2833,8 @@ implementation
 
     constructor tprocdef.ppuload(ppufile:tcompilerppufile);
       var
+        i,aliasnamescount : longint;
+        item : TCmdStrListItem;
         level : byte;
       begin
          inherited ppuload(procdef,ppufile);
@@ -2878,6 +2880,13 @@ implementation
              inlininginfo:=nil;
              funcretsym:=nil;
            end;
+
+         aliasnames:=TCmdStrList.create;
+         { count alias names }
+         aliasnamescount:=ppufile.getbyte;
+         for i:=1 to aliasnamescount do
+           aliasnames.insert(ppufile.getstring);
+
          { load para symtable }
          parast:=tparasymtable.create(self,level);
          tparasymtable(parast).ppuload(ppufile);
@@ -2897,7 +2906,6 @@ implementation
             (tf_need_export in target_info.flags) and
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
-         aliasnames:=TCmdStrList.create;
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;
@@ -2959,6 +2967,8 @@ implementation
     procedure tprocdef.ppuwrite(ppufile:tcompilerppufile);
       var
         oldintfcrc : boolean;
+        aliasnamescount : longint;
+        item : TCmdStrListItem;
       begin
          { released procdef? }
          if not assigned(parast) then
@@ -2967,6 +2977,7 @@ implementation
          inherited ppuwrite(ppufile);
          if po_has_mangledname in procoptions then
           ppufile.putstring(_mangledname^);
+
          ppufile.putword(extnumber);
          ppufile.putbyte(parast.symtablelevel);
          ppufile.putderef(_classderef);
@@ -2997,6 +3008,25 @@ implementation
              ppufile.putderef(funcretsymderef);
              ppufile.putsmallset(inlininginfo^.flags);
            end;
+
+         { count alias names }
+         aliasnamescount:=0;
+         item:=TCmdStrListItem(aliasnames.first);
+         while assigned(item) do
+           begin
+             inc(aliasnamescount);
+             item:=TCmdStrListItem(item.next);
+           end;
+         if aliasnamescount>255 then
+           internalerror(200711021);
+         ppufile.putbyte(aliasnamescount);
+         item:=TCmdStrListItem(aliasnames.first);
+         while assigned(item) do
+          begin
+            ppufile.putstring(item.str);
+            item:=TCmdStrListItem(item.next);
+          end;
+
          ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
