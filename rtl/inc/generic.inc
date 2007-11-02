@@ -446,7 +446,7 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  if (len <= high(ptruint) div 2) and
+  if (len <= high(ptrint)) and
      (psrc+len >= psrc) then
     pend:=psrc+len
   else
@@ -528,7 +528,7 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  if (len <= high(ptruint) div 4) and
+  if (len <= high(ptrint) div 2) and
      (psrc+len >= psrc) then
     pend:=psrc+len
   else
