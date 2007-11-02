@@ -241,7 +241,7 @@ var esc_str : pchar;
 
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else if param.DataType in [ftString,ftBlob] then
+  else if param.DataType in [ftString,ftBlob,ftMemo] then
     begin
     Getmem(esc_str,length(param.asstring)*2+1);
     mysql_real_escape_string(FMySQL,esc_str,pchar(param.asstring),length(param.asstring));
