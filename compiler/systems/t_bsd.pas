@@ -208,10 +208,10 @@ begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
    if not(target_info.system in systems_darwin) then
-     LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true)
+     LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true)
    else
      { Mac OS X doesn't have a /lib }
-     LibrarySearchPath.AddPath('/usr/lib',true)
+     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib',true)
 end;
 
 
@@ -374,6 +374,13 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+
+  if (target_info.system in systems_darwin) and
+     (sysrootpath<>'') then
+    begin
+      LinkRes.Add('-syslibroot');
+      LinkRes.Add(sysrootpath);
+    end;
 
   if (not isdll) or
      (apptype=app_bundle) then

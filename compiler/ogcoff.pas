@@ -949,7 +949,7 @@ const pemagic : array[0..3] of byte = (
         secname : string;
       begin
         secname:=coffsecnames[atype];
-        if use_smartlink_section and
+        if create_smartlink_sections and
            (aname<>'') then
           begin
             case aorder of

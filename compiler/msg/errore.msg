@@ -2495,6 +2495,7 @@ S*2Aas_Assemble using GNU AS
 **2Ci_IO-checking
 **2Cn_Omit linking stage
 **2Co_Check overflow of integer operations
+**2CO_Check for possible overflow of integer operations
 **2Cp<x>_Select instruction set, see fpc -i for possible values
 **2CP<x>=<y>_ packing settings
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
@@ -2679,7 +2680,8 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
 **2XP<x>_Prepend the binutils names with the prefix <x>
-**2Xr<x>_Set library search path to <x> (needed for cross compile)
+**2Xr<x>_Set library search path to <x> (needed for cross compile) (BeOS, Linux)
+**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_Strip all symbols from executable
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)
 **2Xt_Link with static libraries (-static is passed to linker)

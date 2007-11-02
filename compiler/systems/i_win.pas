@@ -32,7 +32,7 @@ unit i_win;
             system       : system_i386_WIN32;
             name         : 'Win32 for i386';
             shortname    : 'Win32';
-            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses
+            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,tf_smartlink_library
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},tf_winlikewidestring,tf_no_pic_supported];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
@@ -93,7 +93,7 @@ unit i_win;
             name         : 'Win64 for x64';
             shortname    : 'Win64';
             flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,
-                            tf_winlikewidestring,tf_no_pic_supported];
+                            tf_smartlink_sections,tf_smartlink_library,tf_winlikewidestring,tf_no_pic_supported];
             cpu          : cpu_x86_64;
             unit_env     : 'WIN64UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';

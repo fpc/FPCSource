@@ -619,7 +619,7 @@ implementation
             result:=secname+'.'+aname;
             exit;
           end;
-        if use_smartlink_section and (aname<>'') then
+        if create_smartlink_sections and (aname<>'') then
           begin
             case aorder of
               secorder_begin :

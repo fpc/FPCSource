@@ -1559,8 +1559,6 @@ implementation
       end;
 
 
-end.
-
 {$ifdef dummy}
       (*
 static void gencode (long segment, long offset, int bits,
@@ -2499,3 +2497,8 @@ static char *CC[] =
 *)
 {$endif dummy
 }
+
+begin
+  cai_align:=tai_align;
+end.
+

@@ -130,8 +130,9 @@ interface
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
-    function  use_smartlink_section:boolean;
-    function  maybe_smartlink_symbol:boolean;
+    function create_smartlink_sections:boolean;inline;
+    function create_smartlink_library:boolean;inline;
+    function create_smartlink:boolean;inline;
 
     function LengthUleb128(a: qword) : byte;
     function LengthSleb128(a: int64) : byte;
@@ -146,17 +147,31 @@ implementation
       verbose;
 
 
-    function use_smartlink_section:boolean;
+    function create_smartlink_sections:boolean;inline;
       begin
         result:=(af_smartlink_sections in target_asm.flags) and
                 (tf_smartlink_sections in target_info.flags);
       end;
 
 
-    function maybe_smartlink_symbol:boolean;
+    function create_smartlink_library:boolean;inline;
       begin
-        result:=(cs_Create_smart in current_settings.moduleswitches) or
-                use_smartlink_section;
+        result:=(cs_Create_smart in current_settings.moduleswitches) and
+                (tf_smartlink_library in target_info.flags) and
+                not create_smartlink_sections;
+      end;
+
+
+    function create_smartlink:boolean;inline;
+      begin
+        result:=(
+                 (af_smartlink_sections in target_asm.flags) and
+                 (tf_smartlink_sections in target_info.flags)
+                ) or
+                (
+                 (cs_Create_smart in current_settings.moduleswitches) and
+                 (tf_smartlink_library in target_info.flags)
+                );
       end;
 
 

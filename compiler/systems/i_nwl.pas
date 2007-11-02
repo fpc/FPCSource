@@ -32,7 +32,7 @@ unit i_nwl;
             system       : system_i386_netwlibc;
             name         : 'Netware for i386(libc)';
             shortname    : 'Netwlibc';
-            flags        : [tf_use_function_relative_addresses];
+            flags        : [tf_use_function_relative_addresses,tf_smartlink_library];
             cpu          : cpu_i386;
             unit_env     : 'NETWLIBCUNITS';
             extradefines : 'NETWARE;NETWARE_LIBC';
@@ -83,6 +83,7 @@ unit i_nwl;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
+            abi : abi_default
           );
 
   implementation

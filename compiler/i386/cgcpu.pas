@@ -629,8 +629,7 @@ unit cgcpu;
 
         make_global:=false;
         if (not current_module.is_unit) or
-           (cs_create_smart in current_settings.moduleswitches) or
-           (af_smartlink_sections in target_asm.flags) or
+           create_smartlink or
            (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
           make_global:=true;
 

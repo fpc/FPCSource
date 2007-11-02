@@ -63,6 +63,7 @@ unit typinfo;
 
    type
       TTypeKinds = set of TTypeKind;
+		  ShortStringBase = string[255];
 
 {$PACKRECORDS 1}
       TTypeInfo = record
@@ -141,6 +142,14 @@ unit typinfo;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
               );
+			      tkDynArray: 
+			        (
+			        elSize     : PtrUInt;
+			        elType2    : PPTypeInfo;
+			        varType    : Longint;
+			        elType     : PPTypeInfo;
+			        DynUnitName: ShortStringBase
+			        );
       end;
 
       // unsed, just for completeness

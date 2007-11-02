@@ -98,8 +98,7 @@ implementation
         GenerateAsm(false);
 
         { Also create a smartlinked version ? }
-        if (cs_create_smart in current_settings.moduleswitches) and
-           (not use_smartlink_section) then
+        if create_smartlink_library then
          begin
            GenerateAsm(true);
            if (af_needar in target_asm.flags) then
@@ -117,8 +116,7 @@ implementation
         current_module.linkunitofiles.add(current_module.objfilename^,link_static);
         current_module.flags:=current_module.flags or uf_static_linked;
 
-        if (cs_create_smart in current_settings.moduleswitches) and
-           not use_smartlink_section then
+        if create_smartlink_library then
          begin
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename^,link_smart);
            current_module.flags:=current_module.flags or uf_smart_linked;
@@ -129,8 +127,7 @@ implementation
     procedure create_dwarf;
       begin
         { Dwarf conflicts with smartlinking in separate .a files }
-        if (cs_create_smart in current_settings.moduleswitches) and
-           not use_smartlink_section then
+        if create_smartlink_library then
           exit;
         { Call frame information }
         if (tf_needs_dwarf_cfi in target_info.flags) and
