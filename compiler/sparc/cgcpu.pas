@@ -489,7 +489,7 @@ implementation
           end
         else
           begin
-            case fromsize of
+            case tosize of
               { signed integer registers }
               OS_8,
               OS_S8:

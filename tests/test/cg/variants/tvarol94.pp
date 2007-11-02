@@ -1,43 +1,56 @@
 { %fail }
+{$ifndef bigfile}
 {$ifdef fpc}
 {$mode delphi}
+{$else fpc}
+{$define FPC_HAS_TYPE_EXTENDED}
 {$endif fpc}
+{$endif bigfile}
 
-{$ifdef FPC_COMP_IS_INT64}
 type 
-  comp = double;
+{$ifdef FPC_COMP_IS_INT64}
+  comp94 = double;
+{$else FPC_COMP_IS_INT64}
+  comp94 = comp;
 {$endif FPC_COMP_IS_INT64}
-procedure test(a: word); overload;
+procedure test94(a: word); overload;
   begin
     writeln('word called instead of smallint');
     writeln('XXX')
   end;
 
-procedure test(a: smallint); overload;
+procedure test94(a: smallint); overload;
   begin
     writeln('smallint called instead of word');
     writeln('YYY')
   end;
 
 var
+  x94: word;
+
+  y94: smallint;
+procedure dotest94;
+var
   v: variant;
-  x: word;
-  y: smallint;
 
 begin
   try
-    v := x;
-    test(v);
+    v := x94;
+    test94(v);
   except
     on E : TObject do
       writeln('QQQ');
   end;
 
   try
-    v := y;
-    test(v);
+    v := y94;
+    test94(v);
   except
     on E : TObject do
       writeln('VVV');
   end;
-end.
+end;
+
+{$ifndef bigfile} begin
+  dotest94;
+end. {$endif not bigfile}

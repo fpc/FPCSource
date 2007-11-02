@@ -2068,6 +2068,7 @@ end;
 
 procedure read_arguments(cmd:string);
 var
+  env: ansistring;
   i : tfeature;
 begin
   option:=coption.create;
@@ -2330,7 +2331,11 @@ begin
   if inputfilepath<>'' then
    Unitsearchpath.AddPath(inputfilepath,true);
   if not disable_configfile then
-    UnitSearchPath.AddPath(GetEnvironmentVariable(target_info.unit_env),false);
+    begin
+      env:=GetEnvironmentVariable(target_info.unit_env);
+      if env<>'' then
+        UnitSearchPath.AddPath(GetEnvironmentVariable(target_info.unit_env),false);
+    end;
 
 {$ifdef Unix}
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);

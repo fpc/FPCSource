@@ -435,9 +435,11 @@ unit cgx86;
            not((ref.symbol.bind=AB_LOCAL) and
                (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
           begin
-            href.refaddr:=addr_pic;
+            reference_reset_symbol(href,ref.symbol,0);
             href.base:=current_procinfo.got;
+            href.refaddr:=addr_pic;
             include(current_procinfo.flags,pi_needs_got);
+            hreg:=cg.getaddressregister(list);
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,hreg));
             ref.symbol:=nil;
             add_hreg:=true;

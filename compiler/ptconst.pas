@@ -1039,7 +1039,10 @@ implementation
                      {        end;                                        }
                      {   const r: tr = (w1:1;w2:1;l2:5);                  }
                      (tfieldvarsym(recsym).fieldoffset = curroffset) then
-                    srsym := recsym
+                    begin
+                      srsym := recsym;
+                      symidx := def.symtable.SymList.indexof(srsym)
+                    end
                   { going backwards isn't allowed in any mode }
                   else if (tfieldvarsym(recsym).fieldoffset<curroffset) then
                     begin
@@ -1123,7 +1126,7 @@ implementation
             end;
 
           { are there any fields left, but don't complain if there only
-            come other variant partsa fter the last initialized field }
+            come other variant parts after the last initialized field }
           if assigned(srsym) and
              (
               (recsym=nil) or

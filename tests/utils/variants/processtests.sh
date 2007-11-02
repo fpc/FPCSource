@@ -8,6 +8,20 @@
 # Only tested under Linux with Kylix installed, might also work under cygwin
 
 ./genvartests
+BIGTEST=tnofalvarol.pp
+BIGTESTMAIN=tnofalvarol.inc
+rm ivarol*
+rm $BIGTEST
+rm $BIGTESTMAIN
+
+echo '{$ifdef fpc}' > $BIGTEST
+echo '{$mode delphi}' >> $BIGTEST
+echo '{$else fpc}' >> $BIGTEST
+echo '{$define FPC_HAS_TYPE_EXTENDED}' >> $BIGTEST
+echo '{$endif fpc}' >> $BIGTEST
+echo '{$define bigfile}' >> $BIGTEST
+echo >> $BIGTEST
+
 for file in tvarol*.pp
 do
   dcc $file
@@ -20,12 +34,14 @@ do
 
     if grep XXX output >/dev/null; then
       sed -e "s/writeln('YYY')/halt(1)/" < $file > $file.new
-      mv $file.new $file
+      grep -v "writeln('XXX')" < $file.new > $file
+      rm $file.new
     fi
 
     if grep YYY output >/dev/null; then
       sed -e "s/writeln('XXX')/halt(1)/" < $file > $file.new
-      mv $file.new $file
+      grep -v "writeln('YYY')" < $file.new > $file
+      rm $file.new
     fi
 
     if grep VVV output >/dev/null; then
@@ -42,5 +58,21 @@ do
     fi
     mv $file.new $file
 
+    if ! grep "ifdef FPC_HAS_TYPE_EXTENDED" $file >/dev/null; then
+      namenr=`echo $file | sed -e 's/tvarol//' -e 's/\.pp//'`
+#      lines=`wc -l < $file`
+#      lines=$(($lines - 5))
+#      tail -$lines < $file >> $BIGTEST
+      echo "  dotest${namenr};" >> $BIGTESTMAIN
+      newname=`echo $file | sed -e 's/tvarol/ivarol/'`
+      mv $file $newname
+      echo '{$i' $newname '}' >> $BIGTEST
+    fi
   fi
 done
+
+echo >> $BIGTEST
+echo Begin >> $BIGTEST
+cat $BIGTESTMAIN >> $BIGTEST
+echo End. >> $BIGTEST
+rm $BIGTESTMAIN

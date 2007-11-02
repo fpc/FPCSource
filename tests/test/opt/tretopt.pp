@@ -243,7 +243,7 @@ begin
 end;
 
 
-{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpui386)}
+{$if defined(cpupowerpc32) or defined(cpupowerpc64) or defined(cpui386)}
 function f11: tr;
 begin
   fillchar(result,sizeof(result),0);
@@ -257,7 +257,7 @@ var
   t: tr;
 begin
   asm
-{$ifdef cpupowerpc}
+{$ifdef cpupowerpc32}
     la  r3,t
   {$ifndef macos}
     lis  r4,p3@ha
@@ -296,7 +296,7 @@ var
 begin
   inlined:=true;
   asm
-{$ifdef cpupowerpc}
+{$ifdef cpupowerpc32}
     la  r3,t
   {$ifndef macos}
     lis  r4,p3@ha
@@ -423,7 +423,7 @@ begin
   testrecinl5;
   testrec2a;
   testrec2ainl;
-{$if defined(cpupowerpc) or defined(cpui386) or defined(cpupowerpc64)}
+{$if defined(cpupowerpc32) or defined(cpui386) or defined(cpupowerpc64)}
   testrec3a;
   testrec3ainl;
 {$endif}
