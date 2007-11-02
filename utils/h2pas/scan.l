@@ -801,31 +801,31 @@ D [0-9]
                         end;
 "void"                  if NotInCPlusBlock then return(VOID) else skip_until_eol;
 "VOID"                  if NotInCPlusBlock then return(VOID) else skip_until_eol;
-"#ifdef __cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"
+"#ifdef"[ \t]*"__cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ extern C conditionnal removed }');
                         end;
-"#ifdef cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"
+"#ifdef"[ \t]*"cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ extern C conditionnal removed }');
                         end;
-"#ifdef __cplusplus"[ \t]*\n"}"\n"#endif"
+"#ifdef"[ \t]*"__cplusplus"[ \t]*\n"}"\n"#endif"
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ end of extern C conditionnal removed }');
                         end;
-"#ifdef cplusplus"[ \t]*\n"}"\n"#endif"
+"#ifdef"[ \t]*"cplusplus"[ \t]*\n"}"\n"#endif"
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ end of extern C conditionnal removed }');
                         end;
-"#ifdef cplusplus"[ \t]*
+"#ifdef"[ \t]*"cplusplus"[ \t]*
                         begin
                           Inc(cplusblocklevel);
                         end;
-"#ifdef __cplusplus"[ \t]*
+"#ifdef"[ \t]*"__cplusplus"[ \t]*
                         begin
                           Inc(cplusblocklevel);
                         end;
@@ -1078,6 +1078,7 @@ begin
 end;
 
 end.
+
 
 
 

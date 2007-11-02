@@ -47,6 +47,8 @@ type
     destructor Destroy; override;
     procedure FileCopy(source, dest: string);
     procedure MakeBuildPascal;
+    procedure MakeBuildPascal_UIQ21_ARM;
+    procedure MakeBuildPascal_UIQ3_Emulator;
     procedure MakeBuildCpp;
     procedure MakeBuildBindings;
     procedure BuildUIDFile;
@@ -151,6 +153,121 @@ end;
 *
 *******************************************************************}
 procedure TCompiler.MakeBuildPascal;
+begin
+  case vSDKUtil.SDKVersion of
+   sdkUIQ21: MakeBuildPascal_UIQ21_ARM;
+   sdkUIQ3:  MakeBuildPascal_UIQ3_Emulator;
+  end;
+end;
+
+procedure TCompiler.MakeBuildPascal_UIQ21_ARM;
+var
+  EPOCSTATLINKUREL, EPOCLINKUREL, LIBSUREL: string;
+begin
+  WriteLn('');
+  WriteLn('Preparations for compiling');
+  WriteLn('');
+
+  { Creation of directories }
+
+  { Compiling the source files }
+
+  WriteLn('');
+  WriteLn('Compiling the source files');
+  WriteLn('');
+
+  { Linking and library creation }
+  
+  WriteLn('');
+  WriteLn('Linking and library creation');
+  WriteLn('');
+
+  EPOCSTATLINKUREL := vSDKUtil.SDKPartialFolder + 'EPOC32\RELEASE\THUMB\UREL\';
+  EPOCLINKUREL := vSDKUtil.SDKPartialFolder + 'EPOC32\RELEASE\THUMB\UREL\';
+
+  LIBSUREL := EPOCSTATLINKUREL + 'EDLLSTUB.LIB '
+    + EPOCSTATLINKUREL + 'EGCC.LIB '
+    + EPOCLINKUREL + 'EUSER.LIB '
+    + EPOCLINKUREL + 'APPARC.LIB '
+    + EPOCLINKUREL + 'CONE.LIB '
+    + EPOCLINKUREL + 'EIKCORE.LIB '
+    + EPOCLINKUREL + 'EIKCOCTL.LIB ';
+
+  AProcess.CommandLine := 'dlltool -m thumb '
+   + '--output-def "' + MakePartialFolder + 'HELLOWORLD.inf" "'
+   + MakePartialFolder + 'HELLOWORLD.in" ';
+  WriteLn('');
+  WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  AProcess.Execute;
+
+  AProcess.CommandLine := 'perl -S ' + vSdkUtil.SDKFolder + Str_Path_UIQ2_Makmake
+   + ' -Deffile "' + MakePartialFolder + 'HELLOWORLD.inf" -1 NewApplication__Fv "'
+   + MakePartialFolder + 'HELLOWORLD.dev"';
+  WriteLn('');
+  WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  AProcess.Execute;
+
+{ -$(ERASE) "$(EPOCBLDUREL)\HELLOWORLD.inf" }
+
+  AProcess.CommandLine := 'dlltool -m thumb --def "'
+   + MakePartialFolder + 'HELLOWORLD.def" --output-exp "'
+   + MakePartialFolder + 'HELLOWORLD.exp" --dllname "HELLOWORLD[101f6163].APP"';
+  WriteLn('');
+  WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  AProcess.Execute;
+
+  AProcess.CommandLine := 'ld  -s --thumb-entry _E32Dll '
+   + '-u _E32Dll "' + MakePartialFolder + 'HELLOWORLD.exp" '
+   + '--dll --base-file "' + MakePartialFolder + 'HELLOWORLD.bas" '
+   + '-o "' + MakePartialFolder + 'HELLOWORLD.APP" "'
+   + EPOCSTATLINKUREL + 'EDLL.LIB" '
+   + '--whole-archive "' + MakePartialFolder + 'HELLOWORLD.in" '
+   + '--no-whole-archive ' + LIBSUREL;
+  WriteLn('');
+  WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  AProcess.Execute;
+
+{	-$(ERASE) "$(EPOCBLDUREL)\HELLOWORLD.exp"
+	-$(ERASE) "$(EPOCBLDUREL)\HELLOWORLD.APP"
+ }
+
+  AProcess.CommandLine := 'dlltool -m thumb '
+   + '--def "' + MakePartialFolder + 'HELLOWORLD.def" '
+   + '--dllname "HELLOWORLD[101f6163].APP" '
+   + '--base-file "' + MakePartialFolder + 'HELLOWORLD.bas" '
+   + '--output-exp ' + MakePartialFolder + 'HELLOWORLD.exp"';
+  WriteLn('');
+  WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  AProcess.Execute;
+
+  AProcess.CommandLine := 'ld  -s --thumb-entry _E32Dll -u _E32Dll --dll "'
+   + MakePartialFolder + 'HELLOWORLD.exp" -Map "'
+   + MakePartialFolder + 'HELLOWORLD.APP.map" -o "'
+   + MakePartialFolder + 'HELLOWORLD.APP" "'
+   + EPOCSTATLINKUREL + 'EDLL.LIB" --whole-archive "'
+   + MakePartialFolder + 'HELLOWORLD.in" --no-whole-archive '
+   + LIBSUREL;
+  WriteLn('');
+  WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  AProcess.Execute;
+
+  AProcess.CommandLine := 'petran  "'
+   + MakePartialFolder + 'HELLOWORLD.APP" "'
+   + MakePartialFolder + 'HELLOWORLD.APP" '
+   + '-nocall -uid1 0x10000079 -uid2 0x100039ce -uid3 0x101f6163';
+  WriteLn('');
+  WriteLn(AProcess.CommandLine);
+  WriteLn('');
+  AProcess.Execute;
+end;
+
+procedure TCompiler.MakeBuildPascal_UIQ3_Emulator;
 var
   STR_LINK_FLAGSUDEB, STR_EPOCBLDUDEB, STR_LINK_OBJSUDEB: string;
   STR_FPC_RTL_OBJECTS: string;
@@ -180,7 +297,7 @@ begin
   WriteLn('');
   WriteLn('Compiling file ' + vProject.MainSource);
   WriteLn('');
-  
+
   AProcess.CommandLine := vProject.CompilerPath + ' -a -s -Fu' + vProject.RTLUnitsDir +
     ' -Tsymbian QPasHello.pas';
   WriteLn(AProcess.CommandLine);

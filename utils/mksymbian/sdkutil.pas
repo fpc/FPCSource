@@ -29,21 +29,19 @@ unit sdkutil;
 interface
 
 uses
-  Classes, SysUtils, registry;
+  Classes, SysUtils, registry, constants;
 
 type
 
   { TSDKUtil }
 
   TSDKUtil = class(TObject)
-  private
-    vSDKFolder, vSDKPartialFolder: string;
   public
+    SDKFolder, SDKPartialFolder, StrSDKVersion: string;
+    SDKVersion: TSDKVersion;
     constructor Create;
-    procedure LocateSDK;
-
-    property SDKFolder: string read vSDKFolder;
-    property SDKPartialFolder: string read vSDKPartialFolder;
+    procedure LocateUIQ2SDK;
+    procedure LocateUIQ3SDK;
   end;
 
 var
@@ -51,9 +49,30 @@ var
 
 implementation
 
+uses projectparser;
+
 { TSDKUtil }
 
-procedure TSDKUtil.LocateSDK;
+constructor TSDKUtil.Create;
+begin
+  StrSDKVersion := vProject.SDK + ' ' + vProject.SDKVersion;
+
+  if StrSDKVersion = Str_UIQ21 then SDKVersion := sdkUIQ21
+  else if StrSDKVersion = Str_UIQ3 then SDKVersion := sdkUIQ3;
+
+  case SDKVersion of
+   sdkUIQ21: LocateUIQ2SDK;
+   sdkUIQ3:  LocateUIQ3SDK;
+  end;
+end;
+
+procedure TSDKUtil.LocateUIQ2SDK;
+begin
+  SDKPartialFolder := '\Programas\UIQ21\';
+  SDKFolder := 'C:' + SDKPartialFolder;
+end;
+
+procedure TSDKUtil.LocateUIQ3SDK;
 var
   Reg: TRegistry;
   BufferStr: string;
@@ -65,23 +84,18 @@ begin
     if Reg.OpenKey('\SOFTWARE\Symbian\UIQ\SDK\UIQ3SDK', False) then
     begin
       BufferStr := Reg.ReadString('InstallPath');
-      vSDKFolder := IncludeTrailingBackslash(BufferStr);
-      vSDKPartialFolder := Copy(vSDKFolder, 3, Length(vSDKFolder) - 2);
+      SDKFolder := IncludeTrailingBackslash(BufferStr);
+      SDKPartialFolder := Copy(SDKFolder, 3, Length(SDKFolder) - 2);
     end
     else
     begin
       WriteLn('  ERROR: Could not locate the SDK, using default values');
-      vSDKPartialFolder := '\Symbian\UIQ3SDK\';
-      vSDKFolder := 'C:' + vSDKPartialFolder;
+      SDKPartialFolder := '\Symbian\UIQ3SDK\';
+      SDKFolder := 'C:' + SDKPartialFolder;
     end;
   finally
     Reg.Free;
   end;
-end;
-
-constructor TSDKUtil.Create;
-begin
-  LocateSDK;
 end;
 
 end.
