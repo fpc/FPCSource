@@ -1,17 +1,11 @@
     StartPackage('hash');
     Version:='2.0.0';
-    T:=Targets.AddUnit('md5');
-      T.Directory:='src';
-    T:=Targets.AddUnit('crc');
-      T.Directory:='src';
-    T:=Targets.AddUnit('ntlm');
-      T.Directory:='src';
-    T:=Targets.AddUnit('uuid');
-      T.Directory:='src';
-    T:=Targets.AddUnit('unixcrypt');
-      T.Directory:='src';
-      T.OS:=[Linux];
-    T:=Targets.AddExampleunit('mdtest');
-      T.Directory:='tests';
+    T:=Targets.AddUnit('src/md5.pp');
+    T:=Targets.AddUnit('src/crc.pp');
+    T:=Targets.AddUnit('src/ntlm.pas');
+    T:=Targets.AddUnit('src/uuid.pas');
+    T:=Targets.AddUnit('src/unixcrypt.pas');
+    T.OS:=[Linux];
+    T:=Targets.AddExampleunit('tests/mdtest.pas');
     EndPackage;
 
