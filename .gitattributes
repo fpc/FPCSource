@@ -202,8 +202,6 @@ compiler/m68k/r68ksup.inc svneol=native#text/plain
 compiler/m68k/ra68k.pas svneol=native#text/plain
 compiler/m68k/ra68kmot.pas svneol=native#text/plain
 compiler/m68k/rgcpu.pas svneol=native#text/plain
-compiler/make_old.cmd -text
-compiler/mdppc386.bat -text
 compiler/mips/aasmcpu.pas svneol=native#text/plain
 compiler/mips/cpubase.pas svneol=native#text/plain
 compiler/mips/cpuinfo.pas svneol=native#text/plain
@@ -222,9 +220,6 @@ compiler/mips/rmipssri.inc svneol=native#text/plain
 compiler/mips/rmipssta.inc svneol=native#text/plain
 compiler/mips/rmipsstd.inc svneol=native#text/plain
 compiler/mips/rmipssup.inc svneol=native#text/plain
-compiler/mppc386.bat -text
-compiler/mppc68k.bat -text
-compiler/mppcsparc -text
 compiler/msg/errorct.msg svneol=native#text/plain
 compiler/msg/errord.msg svneol=native#text/plain
 compiler/msg/errorda.msg svneol=native#text/plain
