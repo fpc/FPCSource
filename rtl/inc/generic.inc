@@ -491,9 +491,7 @@ function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt;
 var
   aligncount : sizeint;
   psrc,pdest,pend : pdword;
-  b : ptrint;
 begin
-  b:=0;
   psrc:=@buf1;
   pdest:=@buf2;
   if (len>4*sizeof(ptruint)-11)
@@ -508,14 +506,11 @@ begin
       pend:=psrc+aligncount;
       while psrc<pend do
         begin
-          b:=(ptrint(psrc^)-ptrint(pdest^));
-          if b<>0 then
-            begin
-              if b<0 then
-                exit(-1)
-              else
-                exit(1);
-            end;
+          if psrc^<>pdest^ then
+            if psrc^>pdest^ then
+              exit(1)
+            else
+              exit(-1);
           inc(pdest);
           inc(psrc);
         end;
@@ -524,8 +519,7 @@ begin
       len:=((len*4) and (sizeof(PtrUInt)-1)) shr 2;
       while psrc<pend do
         begin
-          b:=(pptrint(psrc)^-pptrint(pdest)^);
-          if b<>0 then
+          if pptrint(psrc)^<>pptrint(pdest)^ then
             begin
               len:=sizeof(ptruint) shr 2;
               break;
@@ -543,14 +537,11 @@ begin
   if ((PtrUInt(pdest) and 3) or (PtrUInt(psrc) and 3))<>0 then
     while psrc<pend do
       begin
-        b:=(ptrint(unaligned(psrc^))-ptrint(unaligned(pdest^)));
-        if b<>0 then
-          begin
-            if b<0 then
-              exit(-1)
-            else
-              exit(1);
-          end;
+        if unaligned(psrc^)<>unaligned(pdest^) then
+          if unaligned(psrc^)>unaligned(pdest^) then
+            exit(1)
+          else
+            exit(-1);
         inc(pdest);
         inc(psrc);
       end
@@ -558,14 +549,11 @@ begin
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     while psrc<pend do
       begin
-        b:=(ptrint(psrc^)-ptrint(pdest^));
-        if b<>0 then
-          begin
-            if b<0 then
-              exit(-1)
-            else
-              exit(1);
-          end;
+        if psrc^<>pdest^ then
+          if psrc^>pdest^ then
+            exit(1)
+          else
+            exit(-1);
         inc(pdest);
         inc(psrc);
       end;
