@@ -500,7 +500,6 @@ begin
     ftDate,
     ftTime:  if st1 = sttext then 
                begin
-               result:= false;
                setlength(str1,sqlite3_column_bytes(st,fnum));
                move(sqlite3_column_text(st,fnum)^,str1[1],length(str1));
                PDateTime(Buffer)^:=ParseSqliteDateTime(str1)
