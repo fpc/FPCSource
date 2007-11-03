@@ -19,7 +19,6 @@
   { disables that                                                        }
   Stat = record  // No unix typing because of differences
     case byte of
-    case byte of
     0:
       (dev   : culonglong deprecated;
       ino    : culonglong deprecated;
