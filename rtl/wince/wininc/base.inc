@@ -140,7 +140,7 @@
      LCID   = DWORD;         //winnt
      PLCID  = ^LCID;         //+winnt
      LCTYPE = DWORD;
-     LPARAM = ptruint;       //windef LONG_PTR
+     LPARAM = ptrint;        //windef LONG_PTR
 
      LP     = ^word;
      LPBOOL = ^WINBOOL;      //windef
