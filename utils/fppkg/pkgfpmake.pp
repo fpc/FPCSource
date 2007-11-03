@@ -263,6 +263,11 @@ begin
     OOptions:=OOptions+' --baseinstalldir='+Options.GlobalInstallDir
   else
     OOptions:=OOptions+' --baseinstalldir='+Options.LocalInstallDir;
+  if Options.LocalInstallDir<>'' then
+    OOptions:=OOptions+' --localunitdir='+Options.LocalInstallDir+
+        'units'+PathDelim+MakeTargetString(Options.CompilerCPU,Options.CompilerOS);
+  OOptions:=OOptions+' --globalunitdir='+Options.GlobalInstallDir+
+      'units'+PathDelim+MakeTargetString(Options.CompilerCPU,Options.CompilerOS);
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath);
