@@ -7114,7 +7114,7 @@ CONST
          TCM_SETITEMSIZE                = (TCM_FIRST + 41);
 
 // Macro 231
-Function TabCtrl_SetItemSize( hwnd : hwnd; x :lparam ; y : lparam ):DWORD;
+Function TabCtrl_SetItemSize( hwnd : hwnd; x :wparam ; y : lparam ):DWORD;
 
 CONST
          TCM_REMOVEIMAGE                = (TCM_FIRST + 42);
@@ -7129,7 +7129,7 @@ CONST
          TCM_SETPADDING                 = (TCM_FIRST + 43);
 
 // Macro 233
-Procedure TabCtrl_SetPadding( hwnd : hwnd; cx : lparam ; cy : lparam );
+Procedure TabCtrl_SetPadding( hwnd : hwnd; cx : wparam ; cy : lparam );
 
 
 
