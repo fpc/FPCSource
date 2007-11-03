@@ -154,13 +154,6 @@ end;
 *)
 
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        SysReleaseThreadVars;
-      end;
-
-
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
