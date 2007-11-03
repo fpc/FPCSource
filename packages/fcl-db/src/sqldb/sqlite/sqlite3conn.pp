@@ -307,7 +307,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 15;
+  FieldMapCount = 18;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -315,13 +315,16 @@ Const
    (n:'SMALLINT'; t: ftSmallint),
    (n:'BOOLEAN'; t: ftBoolean),
    (n:'REAL'; t: ftFloat),
+   (n:'FLOAT'; t: ftFloat),
    (n:'DOUBLE'; t: ftFloat),
    (n:'DATETIME'; t: ftDateTime), // MUST be before date
    (n:'DATE'; t: ftDate),
    (n:'TIME'; t: ftTime),
    (n:'CURRENCY'; t: ftCurrency),
    (n:'VARCHAR'; t: ftString),
+   (n:'CHAR'; t: ftString),
    (n:'NUMERIC'; t: ftBCD),
+   (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftmemo),
    (n:'BLOB'; t: ftBlob)
 { Template:   
