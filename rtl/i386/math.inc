@@ -151,37 +151,37 @@
     {$define FPC_SYSTEM_HAS_FRAC}
     function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
-        subl $16,%esp
-        fnstcw -4(%ebp)
+        subl $4,%esp
+        fnstcw (%esp)
         fwait
-        movw -4(%ebp),%cx
-        orw $0x0f00,%cx
-        movw %cx,-8(%ebp)
-        fldcw -8(%ebp)
+        movw (%esp),%cx
+        orw $0x0f00,(%esp)
+        fldcw (%esp)
         fldt d
         frndint
         fldt d
         fsub %st(1),%st
         fstp %st(1)
-        fldcw -4(%ebp)
+        movw %cx,(%esp)
+        fldcw (%esp)
       end;
 
 
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
-        subl $16,%esp
-        fnstcw -4(%ebp)
+        subl $4,%esp
+        fnstcw (%esp)
         fwait
-        movw -4(%ebp),%cx
-        orw $0x0f00,%cx
-        movw %cx,-8(%ebp)
-        fldcw -8(%ebp)
+        movw (%esp),%cx
+        orw $0x0f00,(%esp)
+        fldcw (%esp)
         fwait
         fldt d
         frndint
         fwait
-        fldcw -4(%ebp)
+        movw %cx,(%esp)
+        fldcw (%esp)
       end;
 
 
