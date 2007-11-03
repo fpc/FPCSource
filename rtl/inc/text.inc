@@ -1309,7 +1309,7 @@ begin
       newbytes:=t.userdata[ShortStrLenIndex]-oldlen;
 {$ifdef writestr_iolencheck}
       // GPC only gives an io error if {$no-truncate-strings} is active
-      // FPC does not have this setting (it always gives errors when a
+      // FPC does not have this setting (it never gives errors when a
       // a string expression is truncated)
 
       { "disk full" }
