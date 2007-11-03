@@ -4325,7 +4325,6 @@ packages/fpmkunit/fpmake.pp svneol=native#text/plain
 packages/fpmkunit/src/fpmkunit.pp svneol=native#text/plain
 packages/hash/Makefile svneol=native#text/plain
 packages/hash/Makefile.fpc svneol=native#text/plain
-packages/hash/fpmake.inc svneol=native#text/plain
 packages/hash/fpmake.pp svneol=native#text/plain
 packages/hash/src/crc.pas svneol=native#text/plain
 packages/hash/src/md5.pp svneol=native#text/plain
