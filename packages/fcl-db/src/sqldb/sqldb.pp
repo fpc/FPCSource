@@ -104,7 +104,7 @@ type
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
@@ -203,7 +203,6 @@ type
     procedure InitUpdates(ASQL : string);
     function GetIndexDefs : TIndexDefs;
     function GetStatementType : TStatementType;
-    procedure SetIndexDefs(AValue : TIndexDefs);
     procedure SetReadOnly(AValue : Boolean);
     procedure SetParseSQL(AValue : Boolean);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
@@ -405,7 +404,7 @@ type
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     Property Proxy : TSQLConnection Read FProxy;
@@ -461,7 +460,7 @@ begin
     end;
 end;
 
-procedure TSQLConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+procedure TSQLConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
 begin
 // Empty abstract
@@ -1421,12 +1420,6 @@ begin
   Result := FIndexDefs;
 end;
 
-procedure TCustomSQLQuery.SetIndexDefs(AValue : TIndexDefs);
-
-begin
-  FIndexDefs := AValue;
-end;
-
 procedure TCustomSQLQuery.SetUpdateMode(AValue : TUpdateMode);
 
 begin
@@ -1919,7 +1912,7 @@ begin
   FProxy.RollBackRetaining(trans);
 end;
 
-procedure TSQLConnector.UpdateIndexDefs(var IndexDefs: TIndexDefs;
+procedure TSQLConnector.UpdateIndexDefs(IndexDefs: TIndexDefs;
   TableName: string);
 begin
   CheckProxy;
