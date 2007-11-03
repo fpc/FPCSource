@@ -42,6 +42,8 @@ type
   TArrayStringArray = Array of TStringArray;
   PArrayStringArray = ^TArrayStringArray;
  
+  { TSQLite3Connection }
+
   TSQLite3Connection = class(TSQLConnection)
   private
     fhandle: psqlite3;
@@ -83,6 +85,7 @@ type
     procedure execsql(const asql: string);
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs; const TableName : string); // Differs from SQLDB.
     function  getprimarykeyfield(const atablename: string; const acursor: tsqlcursor): string; 
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     function GetInsertID: int64; 
   published
@@ -111,6 +114,8 @@ type
    Procedure UnPrepare;
    Procedure Execute;
    Function Fetch : Boolean;
+ public
+   RowsAffected : Largeint;
  end;
 
 procedure freebindstring(astring: pointer); cdecl;
@@ -222,6 +227,7 @@ begin
 {$endif}  
   if (fstate<=sqliteerrormax) then 
     checkerror(sqlite3_reset(fstatement));
+  RowsAffected:=sqlite3_changes(fhandle);
   if (fstate=sqlite_row) then 
     fstate:= sqliteerrormax; //first row
 end;  
@@ -695,6 +701,14 @@ begin
         end;
       end;
     end;
+end;
+
+function TSQLite3Connection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  if assigned(cursor) then
+    Result := (cursor as TSQLite3Cursor).RowsAffected
+  else
+    Result := -1;
 end;
 
 procedure TSQLite3Connection.UpdateIndexDefs(var IndexDefs: TIndexDefs;

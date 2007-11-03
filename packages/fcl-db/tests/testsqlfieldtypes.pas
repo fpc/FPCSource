@@ -921,8 +921,11 @@ begin
     Query.Open;
     AssertTrue(query.RowsAffected<>0); // It should return -1 or the number of selected rows.
     query.Close;
-    AssertEquals(-1,query.RowsAffected);
-    Query.SQL.Text := 'delete from FPDEV2';
+    AssertTrue(query.RowsAffected<>0); // It should return -1 or the same as the last time it was called.
+    if (SQLDbType = sqlite3) then  // sqlite doesn't count the rowsaffected if there is no where-clause
+      Query.SQL.Text := 'delete from FPDEV2 where 1'
+    else
+      Query.SQL.Text := 'delete from FPDEV2';
     Query.ExecSQL;
     AssertEquals(2,query.RowsAffected);
     Query.SQL.Text := 'delete from FPDEV2';
