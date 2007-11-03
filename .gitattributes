@@ -4335,7 +4335,6 @@ packages/hash/tests/md5.ref svneol=native#text/plain
 packages/hash/tests/mdtest.pas svneol=native#text/plain
 packages/paszlib/Makefile svneol=native#text/plain
 packages/paszlib/Makefile.fpc svneol=native#text/plain
-packages/paszlib/fpmake.inc svneol=native#text/plain
 packages/paszlib/fpmake.pp svneol=native#text/plain
 packages/paszlib/readme.txt svneol=native#text/plain
 packages/paszlib/src/adler.pas svneol=native#text/plain
