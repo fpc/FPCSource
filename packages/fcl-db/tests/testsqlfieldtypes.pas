@@ -27,6 +27,7 @@ type
     procedure RunTest; override;
   published
     procedure TestInsertLargeStrFields; // bug 9600
+    procedure TestNumericNames; // Bug9661
     procedure Test11Params;
     procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
@@ -893,6 +894,47 @@ begin
     Query.insert;
     query.fields[1].AsString:='11';
     query.Close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestNumericNames;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    if sqQuoteFieldnames in Connection.ConnOptions then
+      Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                                '  "2ID" INT NOT NULL            , ' +
+                                '  "3TEST" VARCHAR(10),     ' +
+                                '  PRIMARY KEY ("2ID")           ' +
+                                ')                            ')
+    else
+      Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                                '  2ID INT NOT NULL            , ' +
+                                '  3TEST VARCHAR(10),     ' +
+                                '  PRIMARY KEY (2ID)           ' +
+                                ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    with query do
+      begin
+      SQL.Text:='select * from FPDEV2';
+      Open;
+      Edit;
+      fieldbyname('2ID').AsInteger:=1;
+      fieldbyname('3TEST').AsString:='3test';
+      Post;
+      ApplyUpdates(0);
+      close;
+      open;
+      AssertEquals('3test',FieldByName('3TEST').AsString);
+      Edit;
+      fieldbyname('3TEST').AsString:='test3';
+      Post;
+      ApplyUpdates(0);
+      open;
+      AssertEquals('test3',FieldByName('3TEST').AsString);
+      close;
+      end;
     end;
 end;
 

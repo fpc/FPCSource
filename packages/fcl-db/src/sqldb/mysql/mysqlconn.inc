@@ -838,7 +838,7 @@ begin
   qry.database := Self;
   with qry do
     begin
-    ReadOnly := True;
+    ParseSQL := False;
     sql.clear;
     sql.add('show index from ' +  TableName);
     open;
