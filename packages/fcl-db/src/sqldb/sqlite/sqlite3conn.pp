@@ -313,7 +313,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 18;
+  FieldMapCount = 19;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -323,6 +323,7 @@ Const
    (n:'REAL'; t: ftFloat),
    (n:'FLOAT'; t: ftFloat),
    (n:'DOUBLE'; t: ftFloat),
+   (n:'TIMESTAMP'; t: ftDateTime),
    (n:'DATETIME'; t: ftDateTime), // MUST be before date
    (n:'DATE'; t: ftDate),
    (n:'TIME'; t: ftTime),
@@ -465,7 +466,7 @@ begin
     else if (Pos(':',S)<>0) then
       TS:=S;
     end;
-  Result:=ParseSQLiteDate(DS)+ParseSQLiteTime(TS);    
+  Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS));
 end;
 function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
