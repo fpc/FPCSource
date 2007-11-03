@@ -689,7 +689,7 @@ begin
   if I >= 0 then
     Result := InternalItems[I]+FKeySize
   else
-    Error(SMapKeyError, PtrInt(AKey));
+    Error(SMapKeyError, PtrUInt(AKey));
 end;
 
 procedure TFPSMap.InitOnPtrCompare;

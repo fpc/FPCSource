@@ -23,7 +23,7 @@ interface
 
 {$checkpointer off}
 {$goto on}
-{$typedpointer on}
+{$TYPEDADDRESS on}
 
 {$if defined(win32) or defined(wince)}
   {$define windows}
