@@ -149,7 +149,6 @@ end;
 
 function TCommandInstall.Execute(const Args:TActionArgs):boolean;
 begin
-  ExecuteAction(CurrentPackage,'build',Args);
   ExecuteAction(CurrentPackage,'fpmakeinstall',Args);
   Result:=true;
 end;

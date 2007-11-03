@@ -55,4 +55,6 @@ fpmkunitsrc.inc: $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp
         $(DATA2INC) -b -s $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp fpmkunitsrc.inc fpmkunitsrc
 endif
 
-fppkg$(EXEEXT): $(wildcard pkg*.pp) fpmkunitsrc.inc
+# Don't include the dependency on fpmkunitsrc.inc by default so we can control
+# better when we want to update the internal fpmkunitsrc
+fppkg$(EXEEXT): $(wildcard pkg*.pp)
