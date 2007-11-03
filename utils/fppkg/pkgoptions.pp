@@ -327,9 +327,9 @@ begin
   FFPMakeLocalUnitDir:=FLocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim;
   for i:=low(FPMKUnitDeps) to high(FPMKUnitDeps) do
     begin
-      if not DirectoryExists(FFPMakeGlobalUnitDir+FPMKUnitDeps[i]+PathDelim) and
-         not DirectoryExists(FFPMakeLocalUnitDir+FPMKUnitDeps[i]+PathDelim) then
-        Log(vWarning,SWarnFPMKUnitNotFound,[FPMKUnitDeps[i]]);
+      if not DirectoryExistsLog(FFPMakeGlobalUnitDir+FPMKUnitDeps[i]+PathDelim) and
+         not DirectoryExistsLog(FFPMakeLocalUnitDir+FPMKUnitDeps[i]+PathDelim) then
+        Log(vWarning,SWarnFPMKUnitDirNotFound,[FPMKUnitDeps[i]]);
     end;
 end;
 

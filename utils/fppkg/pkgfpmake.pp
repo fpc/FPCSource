@@ -113,14 +113,14 @@ Procedure TFPMakeCompiler.CompileFPMake;
     if Options.FPMakeLocalUnitDir<>'' then
       begin
         AUnitDir:=IncludeTrailingPathDelimiter(Options.FPMakeLocalUnitDir+AUnitName);
-        if DirectoryExists(AUnitDir) then
+        if DirectoryExistsLog(AUnitDir) then
           begin
             Result:=true;
             exit;
           end;
       end;
     AUnitDir:=IncludeTrailingPathDelimiter(Options.FPMakeGlobalUnitDir+AUnitName);
-    if DirectoryExists(AUnitDir) then
+    if DirectoryExistsLog(AUnitDir) then
       begin
         Result:=true;
         exit;

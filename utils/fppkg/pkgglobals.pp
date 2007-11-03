@@ -37,6 +37,8 @@ Procedure Error(Fmt : String; const Args : array of const);
 // Utils
 function maybequoted(const s:string):string;
 Function FixPath(const S : String) : string;
+Function DirectoryExistsLog(const ADir:string):Boolean;
+Function FileExistsLog(const AFileName:string):Boolean;
 Procedure DeleteDir(const ADir:string);
 Procedure SearchFiles(SL:TStringList;const APattern:string);
 Function GetCompilerInfo(const ACompiler,AOptions:string):string;
@@ -94,8 +96,12 @@ begin
   if not(Level in Verbosity) then
     exit;
   Prefix:='';
-  if Level=vWarning then
-    Prefix:=SWarning;
+  case Level of
+    vWarning :
+      Prefix:=SWarning;
+    vDebug :
+      Prefix:=SDebug;
+  end;
   Writeln(stdErr,Prefix,Msg);
 end;
 
@@ -168,6 +174,26 @@ begin
     Result:=IncludeTrailingPathDelimiter(S)
   else
     Result:='';
+end;
+
+
+Function DirectoryExistsLog(const ADir:string):Boolean;
+begin
+  result:=SysUtils.DirectoryExists(ADir);
+  if result then
+    Log(vDebug,SDbgDirectoryExists,[ADir,SDbgFound])
+  else
+    Log(vDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
+end;
+
+
+Function FileExistsLog(const AFileName:string):Boolean;
+begin
+  result:=SysUtils.FileExists(AFileName);
+  if result then
+    Log(vDebug,SDbgFileExists,[AFileName,SDbgFound])
+  else
+    Log(vDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
 end;
 
 

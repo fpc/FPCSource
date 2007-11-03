@@ -7,6 +7,7 @@ interface
 
 Resourcestring
   SWarning                   = 'Warning: ';
+  SDebug                     = 'Debug: ';
 
   SErrInValidArgument        = 'Invalid command-line argument at position %d : %s';
   SErrNeedArgument           = 'Option at position %d (%s) needs an argument';
@@ -59,6 +60,11 @@ Resourcestring
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingPackagesFile    = 'Loading packages information from "%s"';
   SLogLoadingVersionsFile    = 'Loading local versions information from "%s"';
+
+  SDbgFound                  = 'Found';
+  SDbgNotFound               = 'Not Found';
+  SDbgDirectoryExists        = 'Directory "%s" %s';
+  SDbgFileExists             = 'File "%s" %s';
 
 
 implementation
