@@ -76,7 +76,7 @@ type
   cdouble                = double;             pcdouble               = ^cdouble;
 {$endif}
 
-{$ifdef windows}
+{$ifdef defined(win64) or defined(wince)}
   {$define longdouble_is_double}
 {$endif}
 
