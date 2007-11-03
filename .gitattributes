@@ -4320,7 +4320,6 @@ packages/fcl-xml/tests/xmlts.pp svneol=native#text/plain
 packages/fpmake.pp svneol=native#text/plain
 packages/fpmkunit/Makefile svneol=native#text/plain
 packages/fpmkunit/Makefile.fpc svneol=native#text/plain
-packages/fpmkunit/fpmake.inc svneol=native#text/plain
 packages/fpmkunit/fpmake.pp svneol=native#text/plain
 packages/fpmkunit/src/fpmkunit.pp svneol=native#text/plain
 packages/hash/Makefile svneol=native#text/plain
