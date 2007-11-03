@@ -285,15 +285,28 @@ begin
     pend:=pword(high(PtrUInt)-sizeof(word))
   else
     pend:=psrc+len;
-  while psrc<pend do
-    begin
-      if psrc^=b then
-        begin
-          result:=psrc-pword(@buf);
-          exit;
-        end;
-      inc(psrc);
-    end;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT} 
+  if (ptruint(psrc) mod 2)<>0 then  
+    while psrc<pend do
+      begin
+        if unaligned(psrc^)=b then
+          begin
+            result:=psrc-pword(@buf);
+            exit;
+          end;
+        inc(psrc);
+      end
+  else
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    while psrc<pend do
+      begin
+        if psrc^=b then
+          begin
+            result:=psrc-pword(@buf);
+            exit;
+          end;
+        inc(psrc);
+      end;
   result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXWORD}
@@ -313,15 +326,28 @@ begin
     pend:=pdword(high(PtrUInt)-sizeof(dword))
   else
     pend:=psrc+len;
-  while psrc<pend do
-    begin
-      if psrc^=b then
-        begin
-          result:=psrc-pdword(@buf);
-          exit;
-        end;
-      inc(psrc);
-    end;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  if (ptruint(psrc) mod 4)<>0 then
+    while psrc<pend do
+      begin
+        if unaligned(psrc^)=b then
+          begin
+            result:=psrc-pdword(@buf);
+            exit;
+          end;
+        inc(psrc);
+      end
+  else
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    while psrc<pend do
+      begin
+        if psrc^=b then
+          begin
+            result:=psrc-pdword(@buf);
+            exit;
+          end;
+        inc(psrc);
+      end;
   result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXDWORD}
