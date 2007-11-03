@@ -13,12 +13,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit float128;
+{$inline on}
+unit ufloat128;
 
   interface
 
     uses
       softfpu;
+
+    type
+      float128 = softfpu.float128;
 
     operator+ (const f1,f2 : float128) result : float128;inline;
     operator* (const f1,f2 : float128) result : float128;inline;
@@ -29,8 +33,24 @@ unit float128;
 
     operator :=(const source : float128) dest : double;inline;
 
+    procedure DumpFloat128(const f : float128);
 
   implementation
+
+    procedure DumpFloat128(const f : float128);
+      type
+        ta = packed array[0..15] of byte;
+      var
+        i : longint;
+      begin
+        for i:=15 downto 0 do
+          begin
+            write(hexstr(ta(f)[i],2));
+            if i<15 then
+              write(' ');
+          end;
+      end;
+
 
     operator+ (const f1,f2 : float128) result : float128;inline;
       begin
@@ -58,13 +78,14 @@ unit float128;
 
     operator :=(const source : double) dest : float128;inline;
       begin
-        dest:=float64_to_float128(source);
+        dest:=float64_to_float128(float64(source));
       end;
 
 
     operator :=(const source : float128) dest : double;inline;
       begin
-        dest:=float128_to_float64(source);
+        dest:=double(float128_to_float64(source));
       end;
+
 
 end.

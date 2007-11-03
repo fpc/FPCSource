@@ -70,7 +70,7 @@ these four paragraphs for those parts of this code that are retained.
 *}
 
 { $define FPC_SOFTFLOAT_FLOATX80}
-{ $define FPC_SOFTFLOAT_FLOAT128}
+{$define FPC_SOFTFLOAT_FLOAT128}
 
 { the softfpu unit can be also embedded directly into the system unit }
 
@@ -436,6 +436,7 @@ function float128_to_int64(a: float128): int64;
 function float128_to_int64_round_to_zero(a: float128): int64;
 function float128_to_float32(a: float128): float32;
 function float128_to_float64(a: float128): float64;
+function float64_to_float128( a : float64) : float128;
 {$ifdef FPC_SOFTFLOAT_FLOAT80}
 function float128_to_floatx80(a: float128): floatx80;
 {$endif FPC_SOFTFLOAT_FLOAT80}
@@ -1892,6 +1893,17 @@ Begin
 
 End;
 
+function float64ToCommonNaN( a : float64 ) : commonNaNT;
+Var
+    z : commonNaNT;
+Begin
+    if ( float64_is_signaling_nan( a )<>0 ) then
+        float_raise( float_flag_invalid );
+    z.sign := a.high shr 31;
+    shortShift64Left( a.high, a.low, 12, z.high, z.low );
+    result := z;
+
+End;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the canonical NaN `a' to the double-
@@ -2473,6 +2485,13 @@ Function extractFloat64Frac1(a: float64): bits32;
     extractFloat64Frac1 := a.low;
   End;
 
+
+{$define FPC_SYSTEM_HAS_extractFloat64Frac}
+Function extractFloat64Frac(a: float64): bits64;
+  Begin
+    extractFloat64Frac := bits64(a) and $000FFFFFFFFFFFFF;
+  End;
+
 {*
 -------------------------------------------------------------------------------
 Returns the exponent bits of the double-precision floating-point value `a'.
@@ -2536,6 +2555,16 @@ Procedure normalizeFloat64Subnormal(
         zExpPtr := 1 - shiftCount;
       End;
   End;
+
+procedure normalizeFloat64Subnormal(aSig : bits64;var zExpPtr : int16; var zSigPtr : bits64);
+var
+  shiftCount : int8;
+begin
+    shiftCount := countLeadingZeros64( aSig ) - 11;
+    zSigPtr := aSig shl shiftCount;
+    zExpPtr := 1 - shiftCount;
+end;
+
 
 {*
 -------------------------------------------------------------------------------
@@ -8394,6 +8423,43 @@ begin
       result:=lt128( b.high, b.low, a.high, a.low )
     else
       result:=lt128( a.high, a.low, b.high, b.low );
+
+end;
+
+{----------------------------------------------------------------------------
+| Returns the result of converting the double-precision floating-point value
+| `a' to the quadruple-precision floating-point format.  The conversion is
+| performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic.
+*----------------------------------------------------------------------------}
+
+function float64_to_float128( a : float64) : float128;
+var
+    aSign : flag;
+    aExp : int16;
+    aSig, zSig0, zSig1 : bits64;
+begin
+    aSig := extractFloat64Frac( a );
+    aExp := extractFloat64Exp( a );
+    aSign := extractFloat64Sign( a );
+    if ( aExp = $7FF ) then begin
+        if ( aSig<>0 ) then
+          result:=commonNaNToFloat128( float64ToCommonNaN( a ) );
+        result:=packFloat128( aSign, $7FFF, 0, 0 );
+        exit;
+    end;
+    if ( aExp = 0 ) then begin
+        if ( aSig = 0 ) then
+          begin
+            result:=packFloat128( aSign, 0, 0, 0 );
+            exit;
+          end;
+
+        normalizeFloat64Subnormal( aSig, aExp, aSig );
+        dec(aExp);
+    end;
+    shift128Right( aSig, 0, 4, zSig0, zSig1 );
+    result:=packFloat128( aSign, aExp + $3C00, zSig0, zSig1 );
 
 end;
 
