@@ -1657,9 +1657,11 @@ unit rgobj;
                               if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                                 with ref^ do
                                   begin
-                                    if base<>NR_NO then
+                                    if (base<>NR_NO) and
+                                       (getregtype(base)=regtype) then
                                       setsupreg(base,reginfo[getsupreg(base)].colour);
-                                    if index<>NR_NO then
+                                    if (index<>NR_NO) and
+                                       (getregtype(index)=regtype) then
                                       setsupreg(index,reginfo[getsupreg(index)].colour);
                                   end;
                             end;
@@ -1669,7 +1671,8 @@ unit rgobj;
                               if regtype=R_INTREGISTER then
                                 begin
                                   so:=shifterop;
-                                  if so^.rs<>NR_NO then
+                                  if (so^.rs<>NR_NO) and
+                                     (getregtype(so^.rs)=regtype) then
                                     setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
                                 end;
                             end;
