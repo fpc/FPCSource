@@ -126,7 +126,8 @@ var
 begin
   if not FileExists (FFileName) then
     if (DosCreateNPipe (PChar (FFileName), H, np_Access_Inbound,
-        np_ReadMode_Message or 1, PipeBufSize, PipeBufSize, 0) <> 0) or
+        np_ReadMode_Message or np_WriteMode_Message or 1, PipeBufSize,
+                                               PipeBufSize, 0) <> 0) or
            (DosCreateEventSem (PChar (SemName), EventSem, 0, 0) <> 0) or
                           (DosSetNPipeSem (H, EventSem, PipeKey) <> 0) or
                                             (DosConnectNPipe (H) <> 0) then
