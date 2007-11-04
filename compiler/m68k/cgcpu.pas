@@ -472,14 +472,9 @@ unit cgcpu;
 	else
 	  begin
 	    { if we have a data register, we need to move it to an address register first }
-	    { ... anyone with a clue why this doesn't work with a tmpreg? 
-	      results in code like: move.l d0,a0; jsr (a1); ... which is bad(tm) (KB) }
-{	    tmpreg:=getaddressregister(list);
+	    tmpreg:=getaddressregister(list);
             reference_reset_base(tmpref,tmpreg,0);
 	    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,tmpreg));
-}
-            reference_reset_base(tmpref,NR_A0,0);
-	    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,NR_A0));
 	  end;
 	list.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
      end;
