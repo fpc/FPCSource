@@ -19,7 +19,11 @@
 
  ****************************************************************************
 }
+{DEFINE DEBUG_CHARLIE}
+
+{$IFNDEF DEBUG_CHARLIE}
 {$WARNINGS OFF}
+{$ENDIF}
 unit cgcpu;
 
 {$i fpcdefs.inc}
@@ -236,7 +240,7 @@ unit cgcpu;
         ref : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-        writeln('a_param_reg');
+//        writeln('a_param_reg');
 {$endif DEBUG_CHARLIE}
         { it's probably necessary to port this from x86 later, or provide an m68k solution (KB) }
 {$WARNING FIX ME! check_register_size()}
@@ -264,9 +268,8 @@ unit cgcpu;
         ref : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-        writeln('a_param_const');
+//        writeln('a_param_const');
 {$endif DEBUG_CHARLIE}
-        { remove "not" to trigger the location bug (KB) }
         if use_push(cgpara) then
           begin
             cgpara.check_simple_location;
@@ -333,7 +336,7 @@ unit cgcpu;
         href : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-        writeln('a_param_ref');
+//        writeln('a_param_ref');
 {$endif DEBUG_CHARLIE}
 
         { cgpara.size=OS_NO requires a copy on the stack }
@@ -368,7 +371,7 @@ unit cgcpu;
         opsize : topsize;
       begin
 {$ifdef DEBUG_CHARLIE}
-        writeln('a_paramaddr_ref');
+//        writeln('a_paramaddr_ref');
 {$endif DEBUG_CHARLIE}
         with r do
           begin
@@ -453,12 +456,32 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_call_reg(list : TAsmList;reg : tregister);
-     var
-       href : treference;
-     begin
-       reference_reset_base(href, reg, 0);
-       //!!! a_call_ref(list,href);
+    procedure tcg68k.a_call_reg(list : TAsmList;reg: tregister);
+      var
+        tmpref : treference;
+	tmpreg : tregister;
+      begin
+{$ifdef DEBUG_CHARLIE}
+	list.concat(tai_comment.create(strpnew('a_call_reg')));
+{$endif}
+	if isaddressregister(reg) then
+	  begin
+	    { if we have an address register, we can jump to the address directly }
+            reference_reset_base(tmpref,reg,0);
+	  end
+	else
+	  begin
+	    { if we have a data register, we need to move it to an address register first }
+	    { ... anyone with a clue why this doesn't work with a tmpreg? 
+	      results in code like: move.l d0,a0; jsr (a1); ... which is bad(tm) (KB) }
+{	    tmpreg:=getaddressregister(list);
+            reference_reset_base(tmpref,tmpreg,0);
+	    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,tmpreg));
+}
+            reference_reset_base(tmpref,NR_A0,0);
+	    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,NR_A0));
+	  end;
+	list.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
      end;
 
 
@@ -466,10 +489,10 @@ unit cgcpu;
     procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);
       begin
 {$ifdef DEBUG_CHARLIE}
-        writeln('a_load_const_reg');
+//        writeln('a_load_const_reg');
 {$endif DEBUG_CHARLIE}
 
-        if getregtype(register)=R_ADDRESSREGISTER then
+        if isaddressregister(register) then
          begin
            list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
          end
@@ -488,7 +511,7 @@ unit cgcpu;
     procedure tcg68k.a_load_const_ref(list : TAsmList; tosize: tcgsize; a : aint;const ref : treference);
       begin
 {$ifdef DEBUG_CHARLIE}
-        writeln('a_load_const_ref');
+        list.concat(tai_comment.create(strpnew('a_load_const_ref')));
 {$endif DEBUG_CHARLIE}
 
         list.concat(taicpu.op_const_ref(A_MOVE,S_L,longint(a),ref));
@@ -499,13 +522,13 @@ unit cgcpu;
       var
        href : treference;
       begin
-         href := ref;
-         fixref(list,href);
+        href := ref;
+        fixref(list,href);
 {$ifdef DEBUG_CHARLIE}
-         writeln('a_load_reg_ref');
+        list.concat(tai_comment.create(strpnew('a_load_reg_ref')));
 {$endif DEBUG_CHARLIE}
-         { move to destination reference }
-         list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[fromsize],register,href));
+        { move to destination reference }
+        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[fromsize],register,href));
       end;
 
 
@@ -519,7 +542,7 @@ unit cgcpu;
         fixref(list,aref);
         fixref(list,bref);
 {$ifdef DEBUG_CHARLIE}
-        writeln('a_load_ref_ref');
+//        writeln('a_load_ref_ref');
 {$endif DEBUG_CHARLIE}
         list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
       end;
@@ -1278,7 +1301,7 @@ unit cgcpu;
         ref  : TReference;
       begin
 {$ifdef DEBUG_CHARLIE}
-        writeln('proc entry, localsize:',localsize);
+//        writeln('proc entry, localsize:',localsize);
 {$endif DEBUG_CHARLIE}
 	
         if not nostackframe then
@@ -1341,7 +1364,7 @@ unit cgcpu;
           begin
             localsize := current_procinfo.calc_stackframe_size;
 {$ifdef DEBUG_CHARLIE}
-            writeln('proc exit with stackframe, size:',localsize,' parasize:',parasize);
+//            writeln('proc exit with stackframe, size:',localsize,' parasize:',parasize);
 {$endif DEBUG_CHARLIE}
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
 	    parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
@@ -1360,7 +1383,7 @@ unit cgcpu;
         else
           begin
 {$ifdef DEBUG_CHARLIE}
-            writeln('proc exit, no stackframe');
+//            writeln('proc exit, no stackframe');
 {$endif DEBUG_CHARLIE}
             list.concat(taicpu.op_none(A_RTS,S_NO));
           end;
