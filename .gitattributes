@@ -6932,6 +6932,7 @@ tests/test/tindex.pp svneol=native#text/plain
 tests/test/tinivar.pp svneol=native#text/plain
 tests/test/tinlin64.pp svneol=native#text/plain
 tests/test/tinline1.pp svneol=native#text/plain
+tests/test/tinline10.pp svneol=native#text/plain
 tests/test/tinline2.pp svneol=native#text/plain
 tests/test/tinline3.pp svneol=native#text/plain
 tests/test/tinline4.pp svneol=native#text/plain
