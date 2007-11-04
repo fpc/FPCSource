@@ -70,7 +70,7 @@ these four paragraphs for those parts of this code that are retained.
 *}
 
 { $define FPC_SOFTFLOAT_FLOATX80}
-{$define FPC_SOFTFLOAT_FLOAT128}
+{ $define FPC_SOFTFLOAT_FLOAT128}
 
 { the softfpu unit can be also embedded directly into the system unit }
 
