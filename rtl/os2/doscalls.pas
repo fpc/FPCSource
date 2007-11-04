@@ -2960,11 +2960,14 @@ const   {np_XXXX constants for openmode.}
                                              stream instead of as a byte
                                              stream.}
         np_ReadMode_Message     = np_ReadMode_Mesg;
+        np_RMesg                = np_ReadMode_Message;
         np_WriteMode_Mesg       = $0400;    {Write the pipe as a message
                                              stream instead of as a byte
                                              stream.}
         np_WriteMode_Message    = np_WriteMode_Mesg;
         np_Type_Message         = np_WriteMode_Mesg;
+        np_WMesg                = np_WriteMode_Mesg;
+        np_Wait                 = 0;        { For compatibility only }
         np_NoWait               = $8000;    {Dosread and Doswrite do not
                                              wait is no data can be read or
                                              written; they return with an
