@@ -4248,6 +4248,7 @@ packages/fcl-process/src/netwlibc/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/netwlibc/process.inc svneol=native#text/plain
 packages/fcl-process/src/os2/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/os2/process.inc svneol=native#text/plain
+packages/fcl-process/src/os2/simpleipc.inc svneol=native#text/plain
 packages/fcl-process/src/pipes.pp svneol=native#text/plain
 packages/fcl-process/src/process.pp svneol=native#text/plain
 packages/fcl-process/src/process.txt svneol=native#text/plain
