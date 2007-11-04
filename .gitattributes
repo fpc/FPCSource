@@ -4233,6 +4233,7 @@ packages/fcl-passrc/src/pscanner.pp svneol=native#text/plain
 packages/fcl-passrc/src/readme.txt svneol=native#text/plain
 packages/fcl-process/Makefile svneol=native#text/plain
 packages/fcl-process/Makefile.fpc svneol=native#text/plain
+packages/fcl-process/fpmake.pp svneol=native#text/plain
 packages/fcl-process/src/amiga/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/amiga/process.inc svneol=native#text/plain
 packages/fcl-process/src/beos/pipes.inc svneol=native#text/plain
