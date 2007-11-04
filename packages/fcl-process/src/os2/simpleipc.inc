@@ -138,7 +138,8 @@ end;
 
 procedure TPipeServerComm.StopServer;
 begin
-  if (DosDisconnectNPipe (FStream.Handle) <> 0) then
+  if (DosDisconnectNPipe (FStream.Handle) <> 0) or
+                 (DosCloseEventSem (EventSem) <> 0) then
                        Owner.DoError (SErrFailedToDisconnectPipe, [FFileName]);
   FreeAndNil (FStream);
 end;
@@ -151,6 +152,11 @@ begin
   Result := (DosQueryNPipeSemState (EventSem, PipeSemState,
              SizeOf (PipeSemState)) = 0) and (PipeSemState.Status = 1) and
                 (PipeSemState.Avail <> 0) and (PipeSemState.Key = PipeKey);
+  if not (Result) then
+    Result := (DosWaitEventSem (EventSem, TimeOut) = 0) and
+               (DosQueryNPipeSemState (EventSem, PipeSemState,
+                SizeOf (PipeSemState)) = 0) and (PipeSemState.Status = 1) and
+                    (PipeSemState.Avail <> 0) and (PipeSemState.Key = PipeKey);
 end;
 
 
