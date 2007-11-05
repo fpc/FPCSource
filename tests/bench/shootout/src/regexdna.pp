@@ -2,6 +2,7 @@
   http://shootout.alioth.debian.org
 
   contributed by Steve Fisher
+  modified by Peter Vreman
 
   compile with
   fpc -O3 regex-dna.pp
@@ -24,14 +25,14 @@ begin
   end;
   count := 0;
   dest := '';
-  starti:=0;
+  starti := 1;
   pstart := pchar(str);
-  while starti < length(str) do
+  while starti <= length(str) do
   begin
     if RegExprPos(engine, pstart, index, size ) then
     begin
       inc(count);
-      dest:=dest+Copy( str, starti, index) + repl;
+      dest := dest + Copy( str, starti, index) + repl;
       inc(pstart,index+size);
       inc(starti,index+size);
     end
@@ -58,8 +59,8 @@ begin
   end;
   count := 0;
   pstart := pchar(str);
-  starti := 0;
-  while starti<length(str) do
+  starti := 1;
+  while starti <= length(str) do
   begin
     if RegExprPos(engine, pstart, index, size ) then
     begin
