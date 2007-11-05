@@ -7,14 +7,15 @@
   fpc -O3 regex-dna.pp
 }
 
-uses regexpr, strutils;
+uses regexpr,strutils;
 
-function replace_matches( const target: pchar;  const repl: pchar;
+function replace_matches( const target: pchar;  const repl: ansistring;
                 const str: ansistring;  var dest: ansistring ): longint;
 var
   engine : tRegexprEngine;
-  substr : ansistring;
   count, index, size : longint;
+  pstart : pchar;
+  starti : longint;
 begin
   if not GenerateRegExprEngine( target, [], engine) then
   begin
@@ -23,27 +24,31 @@ begin
   end;
   count := 0;
   dest := '';
-  substr := str;
-  while length(substr) > 0 do
+  starti:=0;
+  pstart := pchar(str);
+  while starti < length(str) do
   begin
-    if RegExprPos(engine, pchar(substr), index, size ) then
+    if RegExprPos(engine, pstart, index, size ) then
     begin
-      count += 1;
-      dest += ansiLeftStr( substr, index) + repl;
-      substr := ansiRightStr(substr,length(substr)-index-size);
+      inc(count);
+      dest:=dest+Copy( str, starti, index) + repl;
+      inc(pstart,index+size);
+      inc(starti,index+size);
     end
     else
       break
   end;
   DestroyRegExprEngine( engine );
-  dest += substr;
-  exit(count)
+  dest:=dest+Copy( str, starti, length(str)-starti+1);
+  exit(count);
 end;
+
 
 function count_matches( target: pchar; const str: ansistring ): longint;
 var
   engine : tRegexprEngine;
-  substr : ansistring;
+  pstart : pchar;
+  starti,
   count, index, size : longint;
 begin
   if not GenerateRegExprEngine( target, [ref_caseinsensitive], engine) then
@@ -52,13 +57,15 @@ begin
     halt(1)
   end;
   count := 0;
-  substr := str;
-  while length(substr) > 0 do
+  pstart := pchar(str);
+  starti := 0;
+  while starti<length(str) do
   begin
-    if RegExprPos(engine, pchar(substr), index, size ) then
+    if RegExprPos(engine, pstart, index, size ) then
     begin
-      count += 1;
-      substr := ansiRightStr(substr,length(substr)-index-size);
+      inc(count);
+      inc(pstart,index+size);
+      inc(starti,index+size);
     end
     else
       break
@@ -94,8 +101,9 @@ var
   line, tmp: string[255];
   letter, repl : pchar;
   i, count, init_length, clean_length, reps : longint;
-
+  inbuf : array[0..64*1024] of char;
 begin
+  settextbuf(input,inbuf);
   sequence := '';
   init_length := 0;
   while not eof do
