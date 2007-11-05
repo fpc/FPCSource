@@ -3,16 +3,18 @@
 #
 
 [target]
-dirs=base hash paszlib fpmkunit fcl-base fcl-process fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra
-dirs_freebsd=fcl-web fcl-async
-dirs_darwin=fcl-web fcl-async
-dirs_solaris=fcl-web fcl-async
-dirs_netbsd=fcl-web fcl-async
-dirs_openbsd=fcl-web fcl-async
-dirs_linux=fcl-web fcl-async
-dirs_win32=fcl-web
-dirs_win64=fcl-web
-dirs_wince=fcl-web
+dirs=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra
+dirs_freebsd=fcl-web fcl-async fcl-process
+dirs_darwin=fcl-web fcl-async fcl-process
+dirs_solaris=fcl-web fcl-async fcl-process
+dirs_netbsd=fcl-web fcl-async fcl-process
+dirs_openbsd=fcl-web fcl-async fcl-process
+dirs_linux=fcl-web fcl-async fcl-process
+dirs_win32=fcl-web fcl-process
+dirs_win64=fcl-web fcl-process
+dirs_wince=fcl-web fcl-process
+dirs_os2=fcl-process
+dirs_emx=fcl-process
 
 [install]
 fpcpackage=y
