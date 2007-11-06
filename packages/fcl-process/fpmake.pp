@@ -20,7 +20,7 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSs);
     P.IncludePath.Add('src/win',AllWindowsOSs);
-    P.IncludePath.Add('src/$OS',AllOSs-AllWindowsOSs-AllUnixOSs);
+    P.IncludePath.Add('src/$(OS)',AllOSs-AllWindowsOSs-AllUnixOSs);
     T:=Targets.AddUnit('pipes.pp');
       T.Dependencies.AddInclude('pipes.inc');
     T:=Targets.AddUnit('process.pp');
