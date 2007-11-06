@@ -40,24 +40,3 @@ begin
     end;
 end.
 {$endif ALLPACKAGES}
-
-{$mode objfpc}{$H+}
-program fpmake;
-
- { Generated automatically by fppkg on 4-11-07 }
-
-uses fpmkunit;
-
-Var
-  T : TTarget;
-
-begin
-  With Installer do
-    begin
-    {
-      fcl-process
-    }
-    Run;
-    end;
-end.
-
