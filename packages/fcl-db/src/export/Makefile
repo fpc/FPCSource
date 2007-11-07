@@ -2148,9 +2148,3 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-fpcsvexport$(PPUEXT): fpdbexport$(PPEXT)
-fpfixedexport$(PPUEXT): fpdbexport$(PPEXT)
-fpsqlexport$(PPUEXT): fpdbexport$(PPEXT)
-fpsimplexmlexport$(PPUEXT): fpdbexport$(PPEXT)
-fpsimplejsonexport$(PPUEXT): fpdbexport$(PPEXT)
-fpdbfexport$(PPUEXT): fpdbexport$(PPEXT)

@@ -19,15 +19,16 @@ fpcpackage=y
 fpcdir=../../../..
 
 [rules]
+#fpdbexport$(PPUEXT): fpdbexport$(PPEXT)
 
-fpcsvexport$(PPUEXT): fpdbexport$(PPEXT)
+#fpcsvexport$(PPUEXT): fpdbexport$(PPEXT)
 
-fpfixedexport$(PPUEXT): fpdbexport$(PPEXT)
+#fpfixedexport$(PPUEXT): fpdbexport$(PPEXT)
 
-fpsqlexport$(PPUEXT): fpdbexport$(PPEXT)
+#fpsqlexport$(PPUEXT): fpdbexport$(PPEXT)
 
-fpsimplexmlexport$(PPUEXT): fpdbexport$(PPEXT)
+#fpsimplexmlexport$(PPUEXT): fpdbexport$(PPEXT)
 
-fpsimplejsonexport$(PPUEXT): fpdbexport$(PPEXT)
+#fpsimplejsonexport$(PPUEXT): fpdbexport$(PPEXT)
 
-fpdbfexport$(PPUEXT): fpdbexport$(PPEXT)
+#fpdbfexport$(PPUEXT): fpdbexport$(PPEXT)

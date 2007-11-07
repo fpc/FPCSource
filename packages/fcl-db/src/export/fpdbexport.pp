@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, DB;
   
 Type
+  TCustomDatasetExporter = Class;
 
   // Quote string fields if value contains a space or delimiter char.
   TQuoteString = (qsAlways,qsSpace,qsDelimiter);
@@ -24,6 +25,7 @@ Type
     FFieldName: String;
     FExportedName: String;
     function GetExportedName: String;
+    function GetExporter: TCustomDatasetExporter;
     procedure SetExportedName(const AValue: String);
   Protected
     Procedure BindField (ADataset : TDataset); virtual;
@@ -32,6 +34,7 @@ Type
     Constructor Create(ACollection : TCollection); override;
     Procedure Assign(Source : TPersistent); override;
     Property Field : TField Read FField;
+    Property Exporter : TCustomDatasetExporter Read GetExporter;
   Published
     Property Enabled : Boolean Read FEnabled Write FEnabled default True;
     Property FieldName : String Read FFieldName Write SetFieldName;
@@ -42,6 +45,7 @@ Type
 
   TExportFields = Class(TCollection)
   private
+    FExporter : TCustomDatasetExporter;
     function GetFieldItem(Index : Integer): TExportFieldItem;
     procedure SetFieldItem(Index : Integer; const AValue: TExportFieldItem);
   Public
@@ -51,9 +55,9 @@ Type
     Function FindExportName(Const AFieldName : String) : TExportFieldItem;
     Function AddField(Const AFieldName : String) : TExportFieldItem; virtual;
     Property Fields[Index : Integer] : TExportFieldItem Read GetFieldItem Write SetFieldItem; Default;
+    Property Exporter : TCustomDatasetExporter Read FExporter;
   end;
 
-  { TExportFormatSettings }
 
   { TCustomExportFormatSettings }
 
@@ -85,6 +89,7 @@ Type
   end;
   TCustomExportFormatSettingsClass = Class of TCustomExportFormatSettings;
   
+  { TExportFormatSettings }
   TExportFormatSettings = Class(TCustomExportFormatSettings)
   Published
     Property IntegerFormat;
@@ -329,6 +334,12 @@ begin
   Result:=FExportedName;
   If (Result='') then
     Result:=FFieldName;
+end;
+
+function TExportFieldItem.GetExporter: TCustomDatasetExporter;
+begin
+  If Collection is TExportFields then
+    Result:=(Collection as TExportFields).Exporter;
 end;
 
 procedure TExportFieldItem.SetExportedName(const AValue: String);
@@ -641,6 +652,7 @@ begin
   inherited Create(AOwner);
   FromCurrent:=True;
   FExportFields:=CreateExportFields;
+  FExportFields.FExporter:=Self;
   FFormatSettings:=CreateFormatSettings;
 end;
 
