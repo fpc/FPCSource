@@ -1005,8 +1005,9 @@ const msgtxt : array[0..000189,1..240] of char=(
   '3*2Topenbsd_OpenBSD'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
-  '3*2Twatcom_Watcom compatible DOS extender'#010+
-  '3*2Twdosx_WDOSX DOS ext','ender'#010+
+  '3*2Tsymbian_Symbian OS'#010+
+  '3*2Twatcom_Watcom compatible DOS extender'#010,
+  '3*2Twdosx_WDOSX DOS extender'#010+
   '3*2Twin32_Windows 32 Bit'#010+
   '3*2Twince_Windows CE'#010+
   '4*2Tlinux_Linux'#010+
@@ -1016,75 +1017,74 @@ const msgtxt : array[0..000189,1..240] of char=(
   '6*2Tmacos_Macintosh m68k (not supported)'#010+
   '6*2Tpalmos_PalmOS'#010+
   'A*2Tlinux_Linux'#010+
-  'A*2Twince_Windows CE'#010+
-  'P*2','Tamiga_AmigaOS on PowerPC'#010+
+  'A','*2Twince_Windows CE'#010+
+  'P*2Tamiga_AmigaOS on PowerPC'#010+
   'P*2Tdarwin_Darwin and Mac OS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
   'P*2Tmacos_Mac OS (classic) on PowerPC'#010+
   'P*2Tmorphos_MorphOS'#010+
   'S*2Tlinux_Linux'#010+
   '**1u<x>_Undefines the symbol <x>'#010+
-  '**1U_Unit options:'#010+
-  '**2Un_Do not check ','where the unit name matches the file name'#010+
+  '**1U_Unit optio','ns:'#010+
+  '**2Un_Do not check where the unit name matches the file name'#010+
   '**2Ur_Generate release unit files (never automatically recompiled)'#010+
   '**2Us_Compile a system unit'#010+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
-  '**2*_e : Show errors (default)      ',' 0 : Show nothing (except errors'+
+  '**2*_e : Show',' errors (default)       0 : Show nothing (except errors'+
   ')'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
   '**2*_h : Show hints                  c : Show conditionals'#010+
-  '**2*_i : Show general info  ','         d : Show debug info'#010+
+  '**2*_','i : Show general info           d : Show debug info'#010+
   '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
   '**2*_a : Show everything             x : Executable info (Win32 only)'#010+
-  '**2*_b : Write file names messages with full path'#010+
-  '**2*_v : Write fpcdeb','ug.txt with     p : Write tree.log with parse t'+
-  'ree'#010+
+  '**2*_b : Write file names messages with full pat','h'#010+
+  '**2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tre'+
+  'e'#010+
   '**2*_    lots of debugging info'#010+
   '3*1W<x>_Target-specific options (targets)'#010+
   'A*1W<x>_Target-specific options (targets)'#010+
   'P*1W<x>_Target-specific options (targets)'#010+
-  '3*2Wb_Create a bundle instead o','f a library (Darwin)'#010+
+  '3*2Wb_Cr','eate a bundle instead of a library (Darwin)'#010+
   'P*2Wb_Create a bundle instead of a library (Darwin)'#010+
   'p*2Wb_Create a bundle instead of a library (Darwin)'#010+
   '3*2WB_Create a relocatable image (Windows)'#010+
-  'A*2WB_Create a relocatable image (Windows, Symbian)'#010+
-  '3*2WC_Specify consol','e type application (EMX, OS/2, Windows)'#010+
+  'A*2WB_Create a relocatable image (Windows, Symbia','n)'#010+
+  '3*2WC_Specify console type application (EMX, OS/2, Windows)'#010+
   'A*2WC_Specify console type application (Windows)'#010+
   'P*2WC_Specify console type application (Classic Mac OS)'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
-  'A*2WD_Use DEFFILE to export funct','ions of DLL or EXE (Windows)'#010+
+  'A*2WD_Use ','DEFFILE to export functions of DLL or EXE (Windows)'#010+
   '3*2WF_Specify full-screen type application (EMX, OS/2)'#010+
   '3*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
   'A*2WG_Specify graphic type application (Windows)'#010+
-  'P*2WG_Specify graphic type application (Classic',' Mac OS)'#010+
+  'P*2WG_Specify graphic ty','pe application (Classic Mac OS)'#010+
   '3*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   'A*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   '3*2WR_Generate relocation code (Windows)'#010+
-  'A*2WR_Generate relocation code (Windows)'#010+
-  'P*2WT_Spe','cify MPW tool type application (Classic Mac OS)'#010+
+  'A*2WR_Generate relocation c','ode (Windows)'#010+
+  'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
   '**1X_Executable options:'#010+
   '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Lin'+
   'ux)'#010+
-  '**2Xd_Do not use standard library search path (needed for cross compil'+
+  '**2Xd_Do not use standard library search path (needed for cross compil',
   'e)'#010+
-  '**2Xe_Use external l','inker'#010+
+  '**2Xe_Use external linker'#010+
   '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
-  '**2XP<x>_Prepend the binutils names with the',' prefix <x>'#010+
+  '**2XP<x>_Prepend the ','binutils names with the prefix <x>'#010+
   '**2Xr<x>_Set library search path to <x> (needed for cross compile) (Be'+
   'OS, Linux)'#010+
   '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
   ', Linux, Mac OS, Solaris)'#010+
-  '**2Xs_Strip all symbols from executable'#010+
-  '**2XS_Try t','o link units statically (default, defines FPC_LINK_STATIC'+
-  ')'#010+
+  '**2Xs_Strip all symbols from',' executable'#010+
+  '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
-  '**1h_Shows this help witho','ut waiting'#000
+  '**1','h_Shows this help without waiting'#000
 );
