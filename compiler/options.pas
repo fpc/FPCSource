@@ -1899,6 +1899,7 @@ procedure TOption.TargetOptions(def:boolean);
 var
   s : string;
   i : integer;
+  abi : tabi;
 begin
   if def then
    def_system_macro(target_info.shortname)
@@ -1948,19 +1949,10 @@ begin
       end;
   end;
 
-  { abi define }
-  case target_info.abi of
-    abi_powerpc_sysv :
-      if def then
-        def_system_macro('FPC_ABI_SYSV')
-      else
-        undef_system_macro('FPC_ABI_SYSV');
-    abi_powerpc_aix :
-      if def then
-        def_system_macro('FPC_ABI_AIX')
-      else
-        undef_system_macro('FPC_ABI_AIX');
-  end;
+  { define abi }
+  for abi:=low(tabi) to high(tabi) do
+    undef_system_macro('FPC_ABI_'+upper(abi2str[abi]));
+  def_system_macro('FPC_ABI_'+upper(abi2str[target_info.abi]));
 
   if (tf_winlikewidestring in target_info.flags) then
     if def then
@@ -2451,6 +2443,7 @@ begin
     system_m68k_linux,system_arm_nds])
 {$ifdef arm}
     or (init_settings.fputype=fpu_soft)
+    or (target_info.abi=abi_eabi)
 {$endif arm}
   then
     begin
