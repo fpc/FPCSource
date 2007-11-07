@@ -198,6 +198,7 @@ interface
 
        tabi = (abi_default
             ,abi_powerpc_sysv,abi_powerpc_aix
+            ,abi_eabi,abi_armeb
        );
 
 {*****************************************************************************
@@ -404,9 +405,12 @@ interface
              system_arm_embedded,system_powerpc64_embedded];
 
 
-       cpu2str : array[TSystemCpu] of string =
+       cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64');
+
+       abi2str : array[tabi] of string[10] =
+         ('default','sysv','aix','eabi','armeb');
 
     var
        targetinfos   : array[tsystem] of psysteminfo;
