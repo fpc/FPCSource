@@ -329,7 +329,13 @@ unit cpupara;
                  case loc of
                     LOC_REGISTER:
                       begin
-                        { this is not abi compliant }
+                        { align registers for eabi }
+                        if (target_info.abi=abi_eabi) and
+                          (paracgsize in [OS_F64,OS_64,OS_S64]) and
+                          (nextintreg in [RS_R1,RS_R3]) then
+                          inc(nextintreg);
+                        { this is not abi compliant
+                          why? (FK) }
                         if nextintreg<=RS_R3 then
                           begin
                             paraloc^.loc:=LOC_REGISTER;
@@ -377,6 +383,12 @@ unit cpupara;
                       end;
                     LOC_REFERENCE:
                       begin
+                        { align stack for eabi }
+                        if (target_info.abi=abi_eabi) and
+                          (paracgsize in [OS_F64,OS_64,OS_S64]) and
+                          (stack_offset mod 8<>0) then
+                          inc(stack_offset,8-(stack_offset mod 8));
+
                         paraloc^.size:=OS_ADDR;
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) or
                           is_open_array(paradef) or
