@@ -48,8 +48,7 @@ begin
 {$else}
   if do_syscall(syscall_nr__llseek,tsysparam(fd),
       {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
-      {$ifdef FPC_BIG_ENDIAN}    tsysparam(hi(offset)),tsysparam(lo(offset)),{$endif}
-      {$ifdef FPC_LITTLE_ENDIAN} tsysparam(lo(offset)),tsysparam(hi(offset)),{$endif}
+      tsysparam(hi(offset)),tsysparam(lo(offset)),
       tsysparam(@result), tsysparam(whence)) = -1 then
     result:=off_t(-1);
 {$endif}
@@ -307,7 +306,7 @@ begin
 {$else}
  Fpftruncate:=Do_syscall(syscall_nr_ftruncate64,TSysParam(fd),
    {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
-   {$ifdef FPC_BIG_ENDIAN}    tsysparam(hi(flength)),tsysparam(lo(flength)),{$endif}
+   {$ifdef FPC_BIG_ENDIAN}    tsysparam(hi(flength)),tsysparam(lo(flength)){$endif}
    {$ifdef FPC_LITTLE_ENDIAN} tsysparam(lo(flength)),tsysparam(hi(flength)){$endif}
    );
 {$endif}
