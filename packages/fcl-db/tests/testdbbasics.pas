@@ -27,6 +27,8 @@ type
     procedure TestOnFilter;
     procedure TestStringFilter;
 
+    procedure TestAddIndex;
+
     procedure TestNullAtOpen;
 
     procedure TestSupportIntegerFields;
@@ -537,6 +539,28 @@ begin
     next;
     AssertTrue(EOF);
     Close;
+    end;
+end;
+
+procedure TTestDBBasics.TestAddIndex;
+var ds   : TBufDataset;
+    I    : integer;
+begin
+  ds := DBConnector.GetNDataset(5) as TBufDataset;
+  with ds do
+    begin
+    i:=5;
+
+    open;
+    
+    AddSecondIndex;
+
+    while not eof do
+      begin
+      AssertEquals(i,fields[0].AsInteger);
+      Next;
+      dec(i);
+      end;
     end;
 end;
 
