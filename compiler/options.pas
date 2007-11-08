@@ -2454,7 +2454,6 @@ begin
 {$endif cpufpemu}
     end;
 
-
   { now we can defined cpu and cpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
 

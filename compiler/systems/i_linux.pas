@@ -532,7 +532,7 @@ unit i_linux;
             abi : abi_default
           );
 
-{$ifdef ARMEL}
+{$ifdef FPC_ARMEL}
        system_arm_linux_info : tsysteminfo =
           (
             system       : system_arm_Linux;
@@ -592,7 +592,7 @@ unit i_linux;
             stacksize    : 262144;
             abi : abi_eabi
           );
-{$else ARMEL}
+{$else FPC_ARMEL}
        system_arm_linux_info : tsysteminfo =
           (
             system       : system_arm_Linux;
@@ -652,7 +652,7 @@ unit i_linux;
             stacksize    : 262144;
             abi : abi_default
           );
-{$endif ARMEL}
+{$endif FPC_ARMEL}
 
   implementation
 
