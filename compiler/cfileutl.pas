@@ -930,7 +930,7 @@ implementation
    procedure TSearchPathList.AddPath(SrcPath,s:TCmdStr;addfirst:boolean);
      var
        staridx,
-       j        : longint;
+       i,j      : longint;
        prefix,
        suffix,
        CurrentDir,
@@ -970,6 +970,10 @@ implementation
         exit;
      { Support default macro's }
        DefaultReplacements(s);
+       if PathSeparator <> ';' then
+        for i:=1 to length(s) do
+         if s[i]=PathSeparator then
+          s[i]:=';';
      { get current dir }
        CurrentDir:=GetCurrentDir;
        repeat
