@@ -28,7 +28,7 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler; nostackframe; [public
   Perform syscall and set errno variable if needed.
 }
 asm
-  { for now we are lazy }
+  // for now we are lazy
   mov   r7,r0
   mov   r0,r1
   mov   r1,r2
