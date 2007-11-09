@@ -76,7 +76,8 @@ uses
   pkgmessages;
 
 var
-  PkgHandlerList : TFPHashList;
+  PkgHandlerList  : TFPHashList;
+  ExecutedActions : TFPHashList;
 
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 begin
@@ -102,8 +103,22 @@ var
   pkghandlerclass : TPackageHandlerClass;
   i : integer;
   logargs : string;
+  FullActionName : string;
 begin
   result:=false;
+  // Check if we have already executed or are executing the action
+  if assigned(Apackage) then
+    FullActionName:=APackage.Name+AAction
+  else
+    FullActionName:=AAction;
+  if ExecutedActions.Find(FullActionName)<>nil then
+    begin
+      Log(vDebug,'Already executed or executing action '+FullActionName);
+      result:=true;
+      exit;
+    end;
+  ExecutedActions.Add(FullActionName,Pointer(PtrUInt(1)));
+  // Create action handler class
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackage) do
     try
@@ -115,8 +130,9 @@ begin
           else
             logargs:=logargs+','+Args[i];
         end;
-      Log(vDebug,SLogRunAction,[AAction,logargs]);
+      Log(vDebug,SLogRunAction+' start',[AAction,logargs]);
       result:=Execute(Args);
+      Log(vDebug,SLogRunAction+' end',[AAction,logargs]);
     finally
       Free;
     end;
@@ -278,6 +294,8 @@ end;
 
 initialization
   PkgHandlerList:=TFPHashList.Create;
+  ExecutedActions:=TFPHashList.Create;
 finalization
   FreeAndNil(PkgHandlerList);
+  FreeAndNil(ExecutedActions);
 end.

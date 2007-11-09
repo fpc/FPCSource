@@ -13,7 +13,7 @@ uses
   pkgmessages, pkgglobals, pkgoptions, pkgrepos,
   // Package Handler components
   pkghandler,pkgmkconv, pkgdownload,
-  pkgarchive, pkgfpmake, pkgcommands
+  pkgfpmake, pkgcommands
   // Downloaders
 {$if defined(unix) or defined(windows)}
   ,pkgwget
@@ -25,10 +25,9 @@ Type
 
   TMakeTool = Class(TCustomApplication)
   Private
-    ActionStack : TActionStack;
-    ParaAction : string;
+    ActionStack  : TActionStack;
+    ParaAction   : string;
     ParaPackages : TStringList;
-    procedure GenerateParaActions;
     procedure MaybeCreateLocalDirs;
     procedure ShowUsage;
   Public
@@ -248,40 +247,12 @@ begin
 end;
 
 
-procedure TMakeTool.GenerateParaActions;
-var
-  ActionPackage : TFPPackage;
-  i : integer;
-begin
-  if GetPkgHandler(ParaAction)<>nil then
-    begin
-      if ParaPackages.Count=0 then
-        begin
-          Log(vDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
-          ActionStack.Push(nil,ParaAction,[]);
-        end
-      else
-        begin
-          for i:=0 to ParaPackages.Count-1 do
-            begin
-              ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
-              Log(vDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
-              ActionStack.Push(ActionPackage,ParaAction,[]);
-            end;
-        end;
-    end
-  else
-    Raise EMakeToolError.CreateFmt(SErrInvalidCommand,[ParaAction]);
-end;
-
-
 procedure TMakeTool.DoRun;
 var
-  Action : string;
   ActionPackage : TFPPackage;
-  Args   : TActionArgs;
   OldCurrDir : String;
   Res    : Boolean;
+  i      : Integer;
 begin
   OldCurrDir:=GetCurrentDir;
   LoadGlobalDefaults;
@@ -290,13 +261,24 @@ begin
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
     LoadLocalRepository;
-    GenerateParaActions;
 
-    repeat
-      if not ActionStack.Pop(ActionPackage,Action,Args) then
-        break;
-      res:=pkghandler.ExecuteAction(ActionPackage,Action,Args);
-    until not res;
+    if ParaPackages.Count=0 then
+      begin
+        Log(vDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
+        res:=pkghandler.ExecuteAction(nil,ParaAction);
+      end
+    else
+      begin
+        for i:=0 to ParaPackages.Count-1 do
+          begin
+            ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
+            Log(vDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
+            res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
+            if not res then
+              break;
+          end;
+      end;
+
     Terminate;
 
   except

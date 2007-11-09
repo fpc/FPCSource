@@ -201,6 +201,9 @@ Procedure DeleteDir(const ADir:string);
 var
   Info : TSearchRec;
 begin
+  // Prevent accidently deleting all files in current or root dir
+  if (ADir='') or (ADir=PathDelim) then
+    exit;
   if FindFirst(ADir+PathDelim+AllFiles,faAnyFile, Info)=0 then
     try
       repeat

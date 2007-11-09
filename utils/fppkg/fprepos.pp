@@ -26,15 +26,20 @@ Const
   StreamSignature = $FEEF;
 
 Type
-  TOS = (osNone,Amiga,Atari,Darwin,FreeBSD,Go32v2,Linux,MacOS,MorphOS,NetBSD,
-         Netware,NetwLibc,OpenBSD,OS2,PalmOS,Solaris,Win32,Win64,WinCE,Emx);
-  TOSes = Set of TOS;
-
-  TCPU = (cpuNone,Arm,I386,PPC,SPARC,X86_64,M68K,PPC64);
+  // Keep syncronized with fpmkunit.pp
+  TCpu=(cpuNone,
+    i386,m68k,powerpc,sparc,x86_64,arm,powerpc64
+  );
   TCPUS = Set of TCPU;
 
-  TCompilerMode = (cmFPC,cmTP,cmObjFPC,cmDelphi,cmMacPas);
-  TCompilerModes = Set of TCompilerMode;
+  // Keep syncronized with fpmkunit.pp
+  TOS=(osNone,
+    linux,go32v2,win32,os2,freebsd,beos,netbsd,
+    amiga,atari, solaris, qnx, netware, openbsd,wdosx,
+    palmos,macos,darwin,emx,watcom,morphos,netwlibc,
+    win64,wince,gba,nds,embedded,symbian
+  );
+  TOSes = Set of TOS;
 
   { TFPVersion }
 
@@ -214,8 +219,6 @@ Function StringToOS(S : String) : TOS;
 Function OSesToString(S : String) : TOSes;
 Function StringToCPU(S : String) : TCPU;
 Function StringToCPUS(S : String) : TCPUS;
-Function ModeToString(Mode: TCompilerMode) : String;
-Function StringToMode(S : String) : TCompilerMode;
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
 
@@ -299,25 +302,6 @@ Function StringToCPUS(S : String) : TCPUS;
 begin
   Result:=TCPUS(StringToSet(PTypeInfo(TypeInfo(TCPUS)),S));
 end;
-
-Function ModeToString(Mode: TCompilerMode) : String;
-
-begin
-  Result:=LowerCase(GetenumName(TypeInfo(TCompilerMode),Ord(Mode)));
-end;
-
-Function StringToMode(S : String) : TCompilerMode;
-
-Var
-  I : Integer;
-
-begin
-  I:=GetEnumValue(TypeInfo(TCompilerMode),S);
-  if (I=-1) then
-    Raise EPackage.CreateFmt(SErrInvalidMode,[S]);
-  Result:=TCompilerMode(I);
-end;
-
 
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 
@@ -460,9 +444,6 @@ end;
 
 procedure TFPPackage.SetName(const AValue: String);
 
-Var
-  I : Integer;
-
 begin
   If (AValue<>FName) and (AValue<>'') then
     If (Collection<>Nil) and (Collection is TFPPackages) then
@@ -482,7 +463,7 @@ end;
 
 function TFPPackage.GetHasDependencies: Boolean;
 begin
-  Result:=Assigned(FDependencies) and (FDependencies.Count>0);
+  Result:=(Dependencies<>nil) and (FDependencies.Count>0);
 end;
 
 function TFPPackage.GetFileName: String;
@@ -766,7 +747,6 @@ procedure TFPRepository.SaveToFile(AFileName: String);
 
 Var
   F : TFileStream;
-  S : String;
 
 begin
   If FileExists(AFileName) and BackupFiles then

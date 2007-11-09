@@ -104,7 +104,6 @@ Var
   F : TFileStream;
 
 begin
-  Log(vCommands,SLogDownloading,[URL,DestFileName]);
   If FileExists(DestFileName) and BackupFiles then
     BackupFile(DestFileName);
   F:=TFileStream.Create(DestFileName,fmCreate);
@@ -141,6 +140,7 @@ function TDownloadPackage.Execute(const Args:TActionArgs):boolean;
 begin
   with DownloaderClass.Create(nil) do
     try
+      Log(vCommands,SLogDownloading,[PackageRemoteArchive,PackageLocalArchive]);
       Download(PackageRemoteArchive,PackageLocalArchive);
     finally
       Free;
