@@ -15,18 +15,13 @@ uses
   cTypes, DynLibs;
 
 {$IFDEF Linux}
- {$IFDEF Compat64}
   {$DEFINE Static}
   const aspelllib='aspell';
- {$ELSE}
-  {$DEFINE Dynamic}
-  const aspelllib='/usr/lib/libaspell.so';
- {$ENDIF}
 {$ENDIF}
 
 {$IFDEF FreeBSD}
- {$DEFINE Dynamic}
- const aspelllib='/usr/local/lib/libaspell.so';
+  {$DEFINE Static}
+  const aspelllib='aspell';
 {$ENDIF}
 
 {$IFDEF darwin}
@@ -130,9 +125,12 @@ procedure delete_aspell_speller (ths:aspellspeller); cdecl; external aspelllib;
 
 implementation
 
-{$ifdef windows}
+{$ifdef Dynamic}
 uses
-  SysUtils;
+  {$ifdef windows}
+  SysUtils,
+  {$endif}
+  dynlibs;
 {$endif}
 
 {$IFDEF Dynamic}
@@ -175,12 +173,7 @@ var
 
  alib := LoadLibrary(mylib);
  if alib = NilHandle then
-  begin
- {$IFDEF LOG}
-  debuglog (' Error loading spellchecking engine...');
- {$ENDIF}
   exit;
-  end;
 
  if loadsymbol ('new_aspell_config',@new_aspell_config)=false then exit;
  if loadsymbol ('get_aspell_dict_info_list',@get_aspell_dict_info_list)=false then exit;
