@@ -1,0 +1,23 @@
+#
+# Makefile.fpc for SQL FCL db units
+#
+
+[package]
+main=fcl-db
+
+[target]
+units=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc \
+      fpddpq fpddoracle fpddsqlite3 fpddregstd
+rsts=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc \
+      fpddpq fpddoracle fpddsqlite3 fpddregstd
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
