@@ -126,11 +126,10 @@ procedure delete_aspell_speller (ths:aspellspeller); cdecl; external aspelllib;
 implementation
 
 {$ifdef Dynamic}
-uses
   {$ifdef windows}
-  SysUtils,
+uses
+  SysUtils;
   {$endif}
-  dynlibs;
 {$endif}
 
 {$IFDEF Dynamic}
