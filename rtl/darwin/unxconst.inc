@@ -71,36 +71,5 @@ Const
   STAT_IWUSR = STAT_IWOTH shl 6;
   STAT_IXUSR = STAT_IXOTH shl 6;
 
-  { Constants to test the type of filesystem }
-  fs_old_ext2 = $ef51;
-  fs_ext2     = $ef53;
-  fs_ext      = $137d;
-  fs_iso      = $9660;
-  fs_minix    = $137f;
-  fs_minix_30 = $138f;
-  fs_minux_V2 = $2468;
-  fs_msdos    = $4d44;
-  fs_nfs      = $6969;
-  fs_proc     = $9fa0;
-  fs_xia      = $012FD16D;
-
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
-  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
-
-  {Checked for BSD using Linuxthreads port}
-  { cloning flags }
-  CSIGNAL       = $000000ff; // signal mask to be sent at exit
-  CLONE_VM      = $00000100; // set if VM shared between processes
-  CLONE_FS      = $00000200; // set if fs info shared between processes
-  CLONE_FILES   = $00000400; // set if open files shared between processes
-  CLONE_SIGHAND = $00000800; // set if signal handlers shared
-  CLONE_PID     = $00001000; // set if pid shared
-
-  ITimer_Real    =0;
-  ITimer_Virtual =1;
-  ITimer_Prof    =2;
-
-type
-  TCloneFunc=function(args:pointer):longint;cdecl;
-
-
+  IOCtl_TCGETS=$40000000+$2C7400+19; // TCGETS is also in termios.inc (as TIOCGETA), but the sysunix needs only this
