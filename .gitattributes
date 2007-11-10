@@ -4014,6 +4014,7 @@ packages/fcl-db/src/export/fpsimplejsonexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpsimplexmlexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpsqlexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpstdexports.pp svneol=native#text/plain
+packages/fcl-db/src/export/fptexexport.pp svneol=native#text/plain
 packages/fcl-db/src/fields.inc svneol=native#text/plain
 packages/fcl-db/src/fpmake.inc svneol=native#text/plain
 packages/fcl-db/src/fpmake.pp svneol=native#text/plain
