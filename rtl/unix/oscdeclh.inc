@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2001 by the Free Pascal development team
 
     This file should become an alternative to the syscalls in due time,
     to import the base calls from libc.
@@ -74,7 +74,14 @@ const
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
     function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
+{$if defined(bsd) or defined(solaris)}
+    { The BSD/Solaris version has "..." as third parameter -> wrap for }
+    { interface compatibility with Linux                               }
+    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint;
+                                         {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+{$else bsd or solaris}
     function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; cdecl; external clib name 'ioctl';
+{$endif bsd or solaris}
 {$ifdef beos}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
 {$else}
