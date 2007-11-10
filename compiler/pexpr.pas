@@ -2078,7 +2078,10 @@ implementation
                                  end
                                else
                                  p2:=nil;
-                               p1:=translate_disp_call(p1,p2,dispatchstring,0,afterassignment);
+                               p1:=translate_disp_call(p1,p2,dispatchstring,0,
+                                 { this is only an approximation
+                                   setting useresult if not necessary is only a waste of time, no more, no less (FK) }
+                                 afterassignment or in_args or (token<>_SEMICOLON));
                              end
                            else { Error }
                              Consume(_ID);
