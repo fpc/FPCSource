@@ -8,7 +8,7 @@ version=2.0.0
 
 [target]
 programs=fppkg
-implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
 units_linux=pkgwget  pkglnet $(PKGCURL)
 units_beos=pkgwget pkglnet $(PKGCURL)
 units_freebsd=pkgwget pkglnet $(PKGCURL)
