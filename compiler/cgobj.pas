@@ -3781,8 +3781,7 @@ implementation
         case target_info.system of
           system_powerpc_darwin,
           system_i386_darwin,
-          system_powerpc64_darwin,
-          system_x86_64_darwin:
+          system_powerpc64_darwin:
             begin
               l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
               if not(assigned(l)) then

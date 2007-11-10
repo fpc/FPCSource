@@ -693,6 +693,11 @@ initialization
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);
+
+  RegisterExternalLinker(system_x86_64_darwin_info,TLinkerBSD);
+  RegisterImport(system_x86_64_darwin,timportlibdarwin);
+  RegisterExport(system_x86_64_darwin,texportlibbsd);
+  RegisterTarget(system_x86_64_darwin_info);
 {$endif}
 {$ifdef i386}
   RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerBSD);

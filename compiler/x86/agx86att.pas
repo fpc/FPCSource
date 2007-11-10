@@ -296,6 +296,20 @@ interface
             labelprefix : '.L';
             comment : '# ';
           );
+
+
+       as_x86_64_gas_darwin_info : tasminfo =
+          (
+            id     : as_darwin;
+            idtxt  : 'AS-Darwin';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM -arch x86_64';
+            supported_target : system_any;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+          );
+
 {$else x86_64}
        as_i386_as_info : tasminfo =
           (
@@ -351,6 +365,7 @@ interface
 initialization
 {$ifdef x86_64}
   RegisterAssembler(as_x86_64_as_info,Tx86ATTAssembler);
+  RegisterAssembler(as_x86_64_gas_darwin_info,Tx86AppleGNUAssembler);
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_info,Tx86ATTAssembler);

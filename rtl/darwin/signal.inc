@@ -181,7 +181,11 @@
 {$ifdef cpui386}
     {$include i386/sig_cpu.inc}       { SigContextRec }
 {$else cpui386}
+{$ifdef cpux86_64}
+    {$include x86_64/sig_cpu.inc}       { SigContextRec }
+{$else cpux86_64}
     {$error Unsupported cpu type!}
+{$endif cpux86_64}
 {$endif cpui386}
 {$endif cpupowerpc or cpupowerpc64}
 

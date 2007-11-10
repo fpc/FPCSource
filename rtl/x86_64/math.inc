@@ -85,6 +85,7 @@ FPC_ABSMASK_DOUBLE:
                        EXTENDED data type routines
  ****************************************************************************}
 
+    {$ifndef FPC_SYSTEM_HAS_PI}
     {$define FPC_SYSTEM_HAS_PI}
     function fpc_pi_real : ValReal;compilerproc;
     begin
@@ -92,6 +93,8 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_PI}
+    {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -99,6 +102,8 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_ABS}
+    {$ifndef FPC_SYSTEM_HAS_SQR}
     {$define FPC_SYSTEM_HAS_SQR}
     function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -106,6 +111,8 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_SQR}
+    {$ifndef FPC_SYSTEM_HAS_SQRT}
     {$define FPC_SYSTEM_HAS_SQRT}
     function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -113,6 +120,8 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_SQRT}
+    {$ifndef FPC_SYSTEM_HAS_ARCTAN}
     {$define FPC_SYSTEM_HAS_ARCTAN}
     function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -120,6 +129,8 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_ARCTAN}
+    {$ifndef FPC_SYSTEM_HAS_LN}
     {$define FPC_SYSTEM_HAS_LN}
     function fpc_ln_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -127,6 +138,8 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_LN}
+    {$ifndef FPC_SYSTEM_HAS_SIN}
     {$define FPC_SYSTEM_HAS_SIN}
     function fpc_sin_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -134,6 +147,8 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_SIN}
+    {$ifndef FPC_SYSTEM_HAS_COS}
     {$define FPC_SYSTEM_HAS_COS}
     function fpc_cos_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -141,8 +156,10 @@ FPC_ABSMASK_DOUBLE:
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_COS}
 
 {$ifndef WIN64}
+    {$ifndef FPC_SYSTEM_HAS_EXP}
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
        asm
@@ -167,8 +184,10 @@ FPC_ABSMASK_DOUBLE:
             fscale
             fstp        %st(1)
       end;
+    {$endif FPC_SYSTEM_HAS_EXP}
 
 
+    {$ifndef FPC_SYSTEM_HAS_FRAC}
     {$define FPC_SYSTEM_HAS_FRAC}
     function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
@@ -188,8 +207,10 @@ FPC_ABSMASK_DOUBLE:
             fnclex
             fldcw -4(%rbp)
       end;
+    {$endif FPC_SYSTEM_HAS_FRAC}
 
 
+    {$ifndef FPC_SYSTEM_HAS_INT}
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
@@ -206,9 +227,10 @@ FPC_ABSMASK_DOUBLE:
             fwait
             fldcw -4(%rbp)
       end;
+    {$endif FPC_SYSTEM_HAS_INT}
 
 
-
+    {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : ValReal) : int64;assembler;compilerproc;
       var
@@ -228,8 +250,10 @@ FPC_ABSMASK_DOUBLE:
         movq res,%rax
         fldcw oldcw
       end;
+    {$endif FPC_SYSTEM_HAS_TRUNC}
 
 
+    {$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
     function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
       var
@@ -240,8 +264,10 @@ FPC_ABSMASK_DOUBLE:
         fwait
         movq res,%rax
       end;
+    {$endif FPC_SYSTEM_HAS_ROUND}
 
 
+    {$ifndef FPC_SYSTEM_HAS_POWER}
     {$define FPC_SYSTEM_HAS_POWER}
     function power(bas,expo : extended) : extended;
       begin
@@ -261,4 +287,5 @@ FPC_ABSMASK_DOUBLE:
           else
            power:=exp(ln(bas)*expo);
       end;
+    {$endif FPC_SYSTEM_HAS_POWER}
 {$endif WIN64}

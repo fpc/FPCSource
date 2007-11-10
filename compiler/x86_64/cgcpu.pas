@@ -137,7 +137,7 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system in [system_x86_64_win64,system_x86_64_linux,system_x86_64_freebsd]) and
+                if (target_info.system in [system_x86_64_win64,system_x86_64_linux,system_x86_64_freebsd,system_x86_64_darwin]) and
                    ((stacksize <> 0) or
                     (pi_do_call in current_procinfo.flags) or
                     { can't detect if a call in this case -> use nostackframe }
@@ -205,7 +205,9 @@ unit cgcpu;
           begin
             sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
             reference_reset_symbol(r,sym,0);
-            if cs_create_pic in current_settings.moduleswitches then
+            if (cs_create_pic in current_settings.moduleswitches) and
+               { darwin/x86_64's assembler doesn't want @PLT after call symbols }
+               (target_info.system<>system_x86_64_darwin) then
               r.refaddr:=addr_pic
             else
               r.refaddr:=addr_full;

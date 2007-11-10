@@ -837,7 +837,7 @@ begin
    {$endif}
    {$ifdef darwin}
     default_target(system_x86_64_darwin);
-    {$define source_system_set}
+    {$define default_target_set}
    {$endif}
   {$endif cpux86_64}
   { default is linux }

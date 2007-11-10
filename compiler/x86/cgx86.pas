@@ -623,7 +623,9 @@ unit cgx86;
           begin
             sym:=current_asmdata.RefAsmSymbol(s);
             reference_reset_symbol(r,sym,0);
-            if cs_create_pic in current_settings.moduleswitches then
+            if (cs_create_pic in current_settings.moduleswitches) and
+               { darwin/x86_64's assembler doesn't want @PLT after call symbols }
+               (target_info.system<>system_x86_64_darwin) then
               begin
 {$ifdef i386}
                 include(current_procinfo.flags,pi_needs_got);
@@ -2021,13 +2023,13 @@ unit cgx86;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.system in [system_i386_darwin,
+               ((target_info.system in [system_i386_darwin,system_x86_64_darwin,
                  system_x86_64_win64,system_x86_64_linux,system_x86_64_freebsd]) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if (target_info.system in [system_i386_darwin,
+                if (target_info.system in [system_i386_darwin,system_x86_64_darwin,
                       system_x86_64_win64,system_x86_64_linux,system_x86_64_freebsd]) then
                   localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
                 cg.g_stackpointer_alloc(list,localsize);
@@ -2080,7 +2082,9 @@ unit cgx86;
         reference_reset_symbol(ref,sym,0);
 
         { create pic'ed? }
-        if cs_create_pic in current_settings.moduleswitches then
+        if (cs_create_pic in current_settings.moduleswitches) and
+           { darwin/x86_64's assembler doesn't want @PLT after call symbols }
+           (target_info.system<>system_x86_64_darwin) then
           begin
             { it could be that we're called from a procedure not having the
               got loaded

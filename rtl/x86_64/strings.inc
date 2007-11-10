@@ -15,6 +15,7 @@
 
  **********************************************************************}
 
+{$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
 { Created from glibc: libc/sysdeps/x86_64/strcpy.S Version 1.2 }
 function strcopy(dest,source : pchar) : pchar;assembler;
@@ -154,8 +155,10 @@ asm
         movq rdi,%rdi
 {$endif win64}
 end;
+{$endif FPC_UNIT_HAS_STRCOPY}
 
 
+{$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
 { Created from glibc: libc/sysdeps/x86_64/strcmp.S Version 1.2 }
 function StrComp(Str1, Str2: PChar): SizeInt;assembler;
@@ -192,4 +195,4 @@ asm
         movq rdi,%rdi
 {$endif win64}
 end;
-
+{$endif FPC_UNIT_HAS_STRCOMP}
