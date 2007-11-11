@@ -173,7 +173,7 @@ Procedure mdtgtr(n: ArbInt; Var l, d, u, l1, d1, u1, u2: ArbFloat;
                  Var p: boolean; Var ca: ArbFloat; Var term: ArbInt);
 
 Var
-                         i, j, k, nmin1, sr : ArbInt;
+                            i, j, nmin1, sr : ArbInt;
    normr, normt, sumrowi, h, lj, di, ui, ll : ArbFloat;
                                        sing : boolean;
            pd, pu, pd1, pu1, pu2, t, sumrow : ^arfloat1;
@@ -314,12 +314,12 @@ Procedure mdtgsy(n, rwidth: ArbInt; Var a: ArbFloat; Var pp:ArbInt;
                  Var qq:boolean; Var ca:ArbFloat; Var term:ArbInt);
 
 Var
-   i, j, kmin1, k, kplus1, kmin2, imin2, nsr, nsi, nsb, ii,
-   imin1, jmin1, indexpivot, iplus1, indi, indj, indk, indp       : ArbInt;
-   ra, h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
-                               alt, l, d, t, u, v, l1, d1, u1, t1 : ^arfloat1;
-                                                                p : ^arint1;
-                                                                q : ^arbool1;
+   i, j, kmin1, k, kplus1, kmin2, imin2, nsr, nsi, nsb,
+   imin1, jmin1, indexpivot, iplus1, indi, indj, indk, indp : ArbInt;
+    h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr : ArbFloat;
+                         alt, l, d, t, u, v, l1, d1, u1, t1 : ^arfloat1;
+                                                          p : ^arint1;
+                                                          q : ^arbool1;
 Begin
   If (n<1) Or (rwidth<1) Then
     Begin
@@ -615,11 +615,11 @@ Procedure mdtgba(n, lb, rb, rwa: ArbInt; Var a: ArbFloat; rwl: ArbInt;
                  Var l:ArbFloat; Var p: ArbInt; Var ca: ArbFloat; Var term:ArbInt);
 
 Var
-  sr, i, j, k, ipivot, m, lbj, lbi, ubi, ls,
-             ii, jj, ll, s, js, jl, ubj       : ArbInt;
-  ra, normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
-          pl, au, sumrow, t, row              : ^arfloat1;
-                                           pp : ^arint1;
+  sr, i, j, k, ipivot, lbj, lbi, ubi, ls,
+                ii, jj, ll, jl, ubj       : ArbInt;
+  normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
+      pl, au, sumrow, t, row              : ^arfloat1;
+                                       pp : ^arint1;
 
 Begin
   If (n<1) Or (lb<0) Or (rb<0) Or (lb>n-1) Or (rb>n-1) Or (rwl<0) Or (rwa<1) Then

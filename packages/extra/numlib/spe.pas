@@ -1267,7 +1267,7 @@ end; {speath}
 
 var exitsave : pointer;
 
-procedure MyExit; Far;
+procedure MyExit;
 const ErrorS : array[400..408,1..6] of char =
      ('spepow',
       'spebk0',

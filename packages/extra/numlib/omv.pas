@@ -110,7 +110,7 @@ End; {omvmmm}
 Procedure omvmmv(Var a: ArbFloat; m, n, rwidth: ArbInt; Var b, c: ArbFloat);
 
 Var     pa, pb, pc : ^arfloat1;
-         i, j, ind : ArbInt;
+            i, ind : ArbInt;
 Begin
   If (m<1) Or (n<1) Then
     exit;

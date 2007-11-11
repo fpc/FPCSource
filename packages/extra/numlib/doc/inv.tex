@@ -58,11 +58,11 @@ units typ an inv to use these routines.
 Integers used for parameters are of type "ArbInt" to avoid problems with
 systems that define integer differently depending on mode. 
 
-Floating point values are of type "ArbFloat" to allow writing code that is
-independant of the exact real type. (Contrary to directly specifying single,
-real, double or extended in library and examples). Typ.pas and the central
-includefile have some conditional code to switch between floating point
-types.
+Floating point values are of type "ArbFloat" to allow writing code
+that is independent of the exact real type. (Contrary to directly
+specifying single, real, double or extended in library and
+examples). Typ.pas and the central includefile have some conditional
+code to switch between floating point types.
 
 These changes were already prepared somewhat when I got the lib, but weren't
 consequently applied. I did that while porting to FPC.
@@ -78,8 +78,9 @@ Procedure to calculate the inverse of a matrix.
 
 \Dataorganisation
 
-The procedure assumes that the calling program has declared a two dimensional
-matrix containing the maxtrixelements in a square partial block.
+The procedure assumes that the calling program has declared a two
+dimensional matrix containing the matrix elements in a square
+partial block.
 
 \DeclarationandParams
 
@@ -89,18 +90,18 @@ matrix containing the maxtrixelements in a square partial block.
  \item[n: integer] \mbox{ } \\
     The parameter {\bf n} describes the size of the matrix
  \item[rwidth: integer] \mbox{} \\
-    The parameter {\bf rwidth} describes the declared rowlength of the twodimensional
+    The parameter {\bf rwidth} describes the declared rowlength of the two dimensional
     matrix.
  \item[var ai: real] \mbox{} \\
-    The parameter {\bf ai} must contain to the twodimensional arrayelement
+    The parameter {\bf ai} must contain to the two dimensional array element
     that is top-left in the matrix.
-    After the function has ended succesfully (\textbf{term=1}) then 
+    After the function has ended successfully (\textbf{term=1}) then
     the input matrix has been changed into its inverse, otherwise the contents 
     of the input matrix are undefined.
  \item[var term: integer]  \mbox{} \\
     After the procedure has run, this variable contains the reason for 
     the termination of the procedure:\\
-      {\bf term}=1, succesfull termination, the inverse has been calculated
+      {\bf term}=1, successful termination, the inverse has been calculated
       {\bf term}=2, inverse matrix could not be calculated because the matrix
 		    is (very close to) being singular.
       {\bf term}=3, wrong input n$<$1
@@ -125,8 +126,8 @@ Calculate the inverse of
  .
 \]
 
-Below is the source of the invgenex demo that demontrates invgenex, some
-routines of iom were used to construct matrices.
+Below is the source of the invgenex demo that demonstrates invgenex,
+some routines of iom were used to construct matrices.
 
 \NUMLIBexample{invgenex}
 
@@ -193,14 +194,12 @@ pivoting.
 
 \FunctionDescription
 
-Procedure to calculate the inverse of a symmetrical, positive definite
-matrix
+Procedure to calculate the inverse of a symmetrical, positive
+definitive matrix
 
-%van een symmetrische,positief definiete matrix.
-
-\Dataorganisation
-The procedure assumes that the calling program has declared a two dimensional
-matrix containing the maxtrixelements in a square partial block.
+\Dataorganisation The procedure assumes that the calling program has
+declared a two dimensional matrix containing the matrix elements in
+a square partial block.
 
 \DeclarationandParams
 
@@ -210,18 +209,18 @@ matrix containing the maxtrixelements in a square partial block.
  \item[n: integer] \mbox{ } \\
     The parameter {\bf n} describes the size of the matrix
  \item[rwidth: integer] \mbox{} \\
-    The parameter {\bf rwidth} describes the declared rowlength of the twodimensional
+    The parameter {\bf rwidth} describes the declared row length of the two dimensional
     matrix.
  \item[var ai: real] \mbox{} \\
-    The parameter {\bf ai} must contain to the twodimensional arrayelement
+    The parameter {\bf ai} must contain to the two dimensional array element
     that is top-left in the matrix.
-    After the function has ended succesfully (\textbf{term=1}) then 
+    After the function has ended successfully (\textbf{term=1}) then
     the input matrix has been changed into its inverse, otherwise the contents 
     of the input matrix are undefined.
  \item[var term: integer]  \mbox{} \\
     After the procedure has run, this variable contains the reason for 
     the termination of the procedure:\\
-      {\bf term}=1, succesfull termination, the inverse has been calculated
+      {\bf term}=1, successful termination, the inverse has been calculated
       {\bf term}=2, inverse matrix could not be calculated because the matrix
 		    is (very close to) being singular.
       {\bf term}=3, wrong input n$<$1
@@ -229,7 +228,7 @@ matrix containing the maxtrixelements in a square partial block.
 \Remarks
 
 \begin{itemize}
-\item Only the bottomleft part of the matrix $A$ needs to be passed.
+\item Only the bottom left part of the matrix $A$ needs to be passed.
 \item \textbf{Warning} This procedure does not do array range checks. When called with invalid
 parameters, invalid/nonsense responses or even crashes may be the result.
 \end{itemize}
@@ -298,8 +297,8 @@ operation after termination.
 
 \Method
 
-The calculation of the inverse is based on Cholesky decomposition for a
-symmetrical positive definitie matrix. 
+The calculation of the inverse is based on Cholesky decomposition
+for a symmetrical positive definitive matrix.
 
 \References
 
@@ -317,8 +316,8 @@ Procedure to calculate the inverse of a symmetrical matrix.
 \Dataorganisation
 
 The procedure assumes that the calling program has declared a two
-dimensional matrix containing the maxtrixelements in (the bottomleft part
-of) a square partial block.
+dimensional matrix containing the matrix elements in (the bottom
+left part of) a square partial block.
 
 \DeclarationandParams
 
@@ -328,18 +327,18 @@ of) a square partial block.
  \item[n: integer] \mbox{ } \\
     The parameter {\bf n} describes the size of the matrix
  \item[rwidth: integer] \mbox{} \\
-    The parameter {\bf rwidth} describes the declared rowlength of the twodimensional
+    The parameter {\bf rwidth} describes the declared row length of the two dimensional
     matrix.
  \item[var ai: real] \mbox{} \\
-    The parameter {\bf ai} must contain to the twodimensional arrayelement
+    The parameter {\bf ai} must contain to the two dimensional array element
     that is top-left in the matrix.
-    After the function has ended succesfully (\textbf{term=1}) then
+    After the function has ended successfully (\textbf{term=1}) then
     the input matrix has been changed into its inverse, otherwise the contents
     of the input matrix are undefined.
  \item[var term: integer]  \mbox{} \\
     After the procedure has run, this variable contains the reason for
     the termination of the procedure:\\
-      {\bf term}=1, succesfull termination, the inverse has been calculated
+      {\bf term}=1, successful termination, the inverse has been calculated
       {\bf term}=2, inverse matrix could not be calculated because the matrix
                     is (very close to) being singular.
       {\bf term}=3, wrong input n$<$1
@@ -348,14 +347,14 @@ of) a square partial block.
 
 \Remarks
 \begin{itemize}
-\item Only the bottomleft part of the matrix $A$ needs to be passed.
+\item Only the bottom left part of the matrix $A$ needs to be passed.
 \item \textbf{Warning} This procedure does not do array range checks. When called with invalid
 parameters, invalid/nonsense responses or even crashes may be the result.
 \end{itemize}
 
 \Example
 
-  Het berekenen van de inverse van
+  Calculating the inverse of
 \[
  A=
  \left(

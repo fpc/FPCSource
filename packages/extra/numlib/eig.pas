@@ -245,7 +245,7 @@ end; {eigts4}
 procedure eigbs1(var a: ArbFloat; n, l: ArbInt; var lam: ArbFloat;
                  var term: ArbInt);
 var             u, d, cd : ^arfloat1;
-      uwidth, i, sr, nsr : ArbInt;
+      uwidth, sr, nsr : ArbInt;
 begin
   if (n<1) or (l<0) or (l>n-1) then
     begin
@@ -262,7 +262,7 @@ end; {eigbs1}
 procedure eigbs2(var a: ArbFloat; n, l, k1, k2: ArbInt; var lam: ArbFloat;
                  var term: ArbInt);
 var                  u, d, cd : ^arfloat1;
-           i, sr, nsr, uwidth : ArbInt;
+            sr, nsr, uwidth : ArbInt;
 begin
   if (n<1) or (k1<1) or (k2<k1) or (k2>n) or (l<0) or (l>n-1) then
     begin
@@ -279,7 +279,7 @@ end; {eigbs2}
 procedure eigbs3(var a: ArbFloat; n, l: ArbInt; var lam, x: ArbFloat;
                  rwidthx: ArbInt; var term: ArbInt);
 var                  u, d, cd : ^arfloat1;
-           i, sr, nsr, uwidth : ArbInt;
+           sr, nsr, uwidth : ArbInt;
 begin
   if (n<1) or (l<0) or (l>n-1) then
     begin
@@ -361,7 +361,7 @@ end;  {eigge1}
 procedure eigge3(var a: ArbFloat; n, rwidtha: ArbInt; var lam, x: complex;
                  rwidthx: ArbInt; var term: ArbInt);
 var     pa, pd, u, v: ^arfloat1;
-    m1, m2, i, j, ns: ArbInt;
+    m1, m2, i, ns: ArbInt;
 begin
   if n<1 then
     begin
@@ -384,7 +384,7 @@ end;  {eigge3}
 procedure eiggg1(var a: ArbFloat; n, rwidtha: ArbInt; var b: ArbFloat;
                  rwidthb: ArbInt; var lam: ArbFloat; var term: ArbInt);
 var u, v, pa, pb : ^arfloat1;
-        i, j, ns : ArbInt;
+        i, ns : ArbInt;
 begin
   if n<1 then
     begin
@@ -401,7 +401,7 @@ end; {eiggg1}
 procedure eiggg2(var a: ArbFloat; n, rwidtha, k1, k2: ArbInt; var b: ArbFloat;
                  rwidthb: ArbInt; var lam: ArbFloat; var term: ArbInt);
 var u, v, pa, pb : ^arfloat1;
-        i, j, ns : ArbInt;
+        i, ns : ArbInt;
 begin
   if (n<1) or (k1<1) or (k2<k1) or (k2>n) then
     begin
@@ -419,7 +419,7 @@ procedure eiggg3(var a: ArbFloat; n, rwidtha: ArbInt; var b: ArbFloat;
                  rwidthb: ArbInt; var lam, x: ArbFloat; rwidthx: ArbInt;
                  var term: ArbInt);
 var u, v, pa, pb : ^arfloat1;
-        i, j, ns : ArbInt;
+        i, ns : ArbInt;
 begin
   if n<1 then
     begin
@@ -444,7 +444,7 @@ procedure eiggg4(var a: ArbFloat; n, rwidtha, k1, k2: ArbInt; var b: ArbFloat;
                  var m2, term: ArbInt);
 
 var u, v, pa, pb : ^arfloat1;
-     i, j, ns, t : ArbInt;
+     i, ns, t : ArbInt;
 begin
   if (n<1) or (k1<1) or (k2<k1) or (k2>n) then
     begin

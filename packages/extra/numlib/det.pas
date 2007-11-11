@@ -224,10 +224,10 @@ end; {detgpd}
 procedure detgba(n, l, r: ArbInt; var a, f: ArbFloat;
                  var k, term:ArbInt);
 var
-    rwidth, s, ns, kk, ii, i, j, jj, ll : ArbInt;
-    u, ca                               : ArbFloat;
-    pa, l1, acopy                       : ^arfloat1;
-    p                                   : ^arint1;
+    rwidth, s, ns, kk, ii, i, jj, ll : ArbInt;
+    u, ca                            : ArbFloat;
+    pa, l1, acopy                    : ^arfloat1;
+    p                                : ^arint1;
 begin
   if (n<1) or (l<0) or (r<0) or (l>n-1) or (r>n-1) then
     begin

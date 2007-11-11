@@ -408,9 +408,9 @@ Procedure slegba(n, l, r: ArbInt;
                  Var a, b, x, ca: ArbFloat; Var term:ArbInt);
 
 Var
-  sr, i, j, k, ipivot, m, lbj, lbi, ubi, ls,
-         ii, jj, ll, s, js, ubj, rwidth       : ArbInt;
-  ra, normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
+  sr, i, j, k, ipivot, lbj, lbi, ubi, ls,
+         ii, jj, ll, ubj, rwidth       : ArbInt;
+  normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
   pa, pb, px, au, sumrow, t, row              : ^arfloat1;
 Begin
   If (n<1) Or (l<0) Or (r<0) Or (l>n-1) Or (r>n-1)
@@ -562,9 +562,9 @@ Procedure slegbal(n, l, r: ArbInt;
                   Var a1; Var b1, x1, ca: ArbFloat; Var term:ArbInt);
 
 Var
-  sr, i, j, k, ipivot, m, lbj, lbi, ubi, ls,
-                 ll, s, js, ubj, rwidth       : ArbInt;
-  ra, normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
+  sr, i, j, k, ipivot, ubi, ls,
+                 ll, ubj, rwidth       : ArbInt;
+  normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
   a                                           : ar2dr1 absolute a1;
   b                                           : arfloat1 absolute b1;
   x                                           : arfloat1 absolute x1;
@@ -955,7 +955,7 @@ Procedure slegls(Var a: ArbFloat; m, n, rwidtha: ArbInt; Var b, x: ArbFloat;
                  Var term: ArbInt);
 
 Var     i, j, ns, ms, ii                : ArbInt;
-        normy0, norme0, norme1, s       : ArbFloat;
+        normy0, norme1, s       : ArbFloat;
         pa, pb, px, qr, alpha, e, y, r  : ^arfloat1;
         pivot                           : ^arint1;
 Begin
@@ -1034,7 +1034,7 @@ Procedure sleglsl(Var a1; m, n: ArbInt; Var b1, x1: ArbFloat;
                   Var term: ArbInt);
 
 Var     i, j, ns, ms                    : ArbInt;
-        normy0, norme0, norme1, s       : ArbFloat;
+        normy0, norme1, s       : ArbFloat;
         a                               : ar2dr1 absolute a1;
         b                               : arfloat1 absolute b1;
         x                               : arfloat1 absolute x1;
@@ -1625,9 +1625,9 @@ Procedure slegsy(n, rwidth: ArbInt; Var a, b, x, ca: ArbFloat;
                  Var term:ArbInt);
 
 Var
-   i, j, kmin1, k, kplus1, kmin2, imin2, nsr, nsi, nsb, ii,
+   i, j, kmin1, k, kplus1, kmin2, nsr, nsi, nsb,
    imin1, jmin1, indexpivot, iplus1, indi, indj, indk, indp       : ArbInt;
-   ra, h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
+   h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
               pa, pb, pb1, px, alt, l, d, t, u, v, l1, d1, u1, t1 : ^arfloat1;
                                                                 p : ^arint1;
                                                                 q : ^arbool1;
@@ -1885,9 +1885,8 @@ Procedure slegsyl(n: ArbInt; Var a1; Var b1, x1, ca: ArbFloat;
                   Var term: ArbInt);
 
 Var
-   i, j, kmin1, k, kplus1, kmin2, imin2, nsr, nsi, nsb, ii,
-   imin1, jmin1, indexpivot, iplus1, indi, indj, indk, indp       : ArbInt;
-   ra, h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
+   i, j, k, nsr, nsi, nsb, indexpivot: ArbInt;
+   h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
                                            a : ar2dr1 absolute a1;
                                            b : arfloat1 absolute b1;
                                            x : arfloat1 absolute x1;

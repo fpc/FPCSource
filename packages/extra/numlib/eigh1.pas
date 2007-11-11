@@ -837,7 +837,7 @@ procedure bandev(var a: ArbFloat; n, m, rwidth: ArbInt; lambda: ArbFloat;
 var                              pa, pv, au, l, u : ^arfloat1;
                                                 p : ^arint1;
           ind, ii, i, k, t, j, its, w, sr, ns, ll : ArbInt;
-    meps, eps, s, norm, lambdak, x, y, r1, d1, ca : ArbFloat;
+                 meps, eps, s, norm, x, y, r1, d1 : ArbFloat;
 begin
   pa:=@a; pv:=@v;
   sr:=sizeof(ArbFloat); ns:=n*sr; ll:=2*m+1;

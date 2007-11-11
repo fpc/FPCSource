@@ -502,7 +502,7 @@ Var
     ap   : arfloat1 absolute ap1;
     x    : arfloat1 absolute x1;
     temp : ArbFloat;
-    i, info, ix, j, jx, k, kk, kx: ArbInt;
+    info, ix, j, jx, k, kk, kx: ArbInt;
     nounit: boolean;
 Begin
     info := 0;
@@ -608,7 +608,7 @@ Procedure roo002(uplo, trans, diag: char; n: ArbInt;
 Var ap : arfloat1 absolute ap1;
     x  : arfloat1 absolute x1;
     temp : ArbFloat;
-    i, info, ix, j, jx, k, kk, kx: ArbInt;
+    info, ix, j, jx, k, kk, kx: ArbInt;
     nounit: boolean;
 Begin
     info := 0;
@@ -1135,7 +1135,7 @@ Const   one = 1.0;
  zero = 0.0;
 
 Var    cosine, cotan, sine, tangnt, tau: ArbFloat;
-                  i, j, jj, l, nm1, nmj: ArbInt;
+                  i, j, jj, nm1, nmj: ArbInt;
     s : arfloat1 absolute s1;
     u : arfloat1 absolute u1;
     v : arfloat1 absolute v1;
