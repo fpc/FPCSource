@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 8422
+#   Based on errore.msg of SVN revision 9149 + one
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -128,7 +128,7 @@ general_i_number_of_notes=01023_I_$1 Anmerkung(en) ausgegeben
 #
 # Scanner
 #
-# 02084 is the last used one
+# 02085 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -361,7 +361,7 @@ scan_e_illegal_minfpconstprec=02085_E_"$1" ist eine ungültige minimale Präzisi
 #
 # Parser
 #
-# 03235 is the last used one
+# 03237 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1124,19 +1124,6 @@ parser_e_type_object_constants=03230_E_Konstanten eines Objekts, das ein VMT ent
 parser_e_label_outside_proc=03231_E_Die Address von Labels, die ausserhalb des aktuellen Scopes definiert wurden, können nicht verwendet werden
 % It isn't allowed to take the addresss of labels outside the
 % current procedure.
-parser_f_no_anonymous_specializations=03232_F_Anonyme generische Spezialisierungen sind unzulässig
-% Something like
-% \begin{verbatim}
-% var
-%   MyLinkedList: specialize TLinkedList<TFixedString15>;
-% \end{verbatim}
-% is not allowed. Declare a specialized type first:
-% \begin{verbatim}
-% type
-%   TMyLinkedList = specialize TLinkedList<TFixedString15>;
-% var
-%   MyLinkedList: TMyLinkedList
-% \end{verbatim}
 parser_e_initialized_not_for_external=03233_E_Extern deklarierte Variablen können nicht intialisiert werden 
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Ungültiger Funktionsergebnistyp
@@ -1149,6 +1136,8 @@ parser_e_no_common_type=03235_E_"$1" und "$2" haben keinen gemeinsamen Typ
 % type is then minimum..maximum.
 parser_e_no_generics_as_types=03236_E_Generische Typen können nicht ohne Spezialisierung als Typ für eine Variable verwendet werden
 % Generics must be always specialized before being used as variable type
+parser_w_register_list_ignored=03237_W_Registerliste wird in reinen Assemblerroutinen ignoriert
+% When using pure assembler routines, the list with modified registers is ignored.
 % \end{description}
 #
 # Type Checking
@@ -1432,7 +1421,7 @@ type_w_pointer_to_signed=04082_W_Die Konvertierung von Pointern in einen Integer
 #
 # Symtable
 #
-# 05060 is the last used one
+# 05062 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1599,7 +1588,7 @@ sym_h_abstract_method_list=05062_H_Abstrakte Method "$1" gefunden
 #
 # Codegenerator
 #
-# 06040 is the last used one
+# 06049 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -1721,13 +1710,16 @@ cg_f_unknown_system_type=06047_F_Systemtyp "$1" konnte nicht gefunden werden. Ü
 cg_h_inherited_ignored=06048_H_Geerbter Aufruf einer abstrakten Methode ignoriert
 % This messages appears only in Delphi mode when you call an abstract method
 % of a parent class via \var{inherited;}. The call is then ignored.
+cg_e_goto_label_not_found=06049_E_Goto Label "$1": Das Label ist nicht definiert oder wurde bei der Optimierung entfernt
+% The label used in the goto definition is not defined or optimized away by the
+% unreachable code elemination.
 % \end{description}
 # EndOfTeX
 
 #
 # Assembler reader
 #
-# 07105 is the last used one
+# 07106 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -1972,7 +1964,7 @@ asmr_e_no_vmtoffset_possible=07106_E_VMTOffset muss in Kombination mit einer vir
 #
 # Assembler/binary writers
 #
-# 08018 is the last used one
+# 08020 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -2003,7 +1995,7 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit Operanden werden nicht unterstüt
 #
 # Executing linker/assembler
 #
-# 09034 is the last used one
+# 09028 is the last used one
 #
 # BeginOfTeX
 %
@@ -2089,6 +2081,8 @@ exec_d_resbin_params=09028_D_Resource Compiler "$1" wird mit "$2" als Kommandoze
 #
 # Executable information
 #
+# 09134 is the last used one
+#
 # BeginOfTeX
 % \section{Executable information messages.}
 % This section lists all messages that the compiler emits when an executable program is produced,
@@ -2114,7 +2108,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 #
 # Unit loading
 #
-# 10041 is the last used one
+# 10059 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2507,7 +2501,8 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
 **2Ci_I/O-Prüfung
 **2Cn_Lasse die Linkstufe aus
-**2Co_Prüfe Überlauf von Integer-Operationen
+**2Co_Prüfe auf Überlauf von Integer-Operationen
+**2CO_Prüfe auf möglichen Überlauf von Integer-Operationen
 **2Cp<x>_Wähle instruction set aus, siehe fpc -i wegen möglicher Werte
 **2CP<x>=<y>_ Einstellungen für packing
 **3CPPACKSET=<y>_ <y> Belegung von Sets: 0, 1 oder DEFAULT oder NORMAL, 2, 4 und 8
@@ -2625,6 +2620,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
 3*2Tsunos_SunOS/Solaris
+3*2Tsymbian_Symbian OS
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
@@ -2664,7 +2660,7 @@ S*2Tlinux_Linux
 P*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 p*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 3*2WB_Erzeuge ein relozierbares Image
-3*2WB<x>_Setze die Image base auf den Hexadecimal Wert <x>
+3*2WB<x>_Setze die Image base auf den Hexadezimal Wert <x>
 3*2WC_Spezifiziere "console type application"
 3*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren
 3*2WF_Spezifiziere "full-screen type application" (nur OS/2)
@@ -2684,6 +2680,7 @@ P*2WT_Spezifiziere "tool type application"    (MPW tool, nur Mac OS)
 **2XM<x>_Setze den Namen der 'main' program Routine   (default ist 'main')
 **2XP<x>_Stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
 **2Xr<x>_Setze den Bibliotheks-Suchpfad zu <x>       (benötigt für cross compile)
+**2XR<x>_Stelle allen Linker-Suchpfaden den Namen <x> voran (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_Entferne alle Symbole von ausführbarer Datei
 **2XS_Versuche Units statisch zu linken (default)    (definiert FPC_LINK_STATIC)
 **2Xt_Linke mit statischen Bibliotheken              (-static wird an den Linker übergeben)
