@@ -58,23 +58,23 @@ package=ufvdos.zip,Free ~V~ision (FV)
 # Dos 15
 package=ugraphdos.zip[ugrphdos.zip],Unit Graph
 # Dos 16
-package=ufclbdos.zip,Free Component Libary (FCL)-base part
+package=ufcl-basedos.zip[ufclbdos.zip],Free Component Libary (FCL)-base part
 # Dos 17
-package=ufclddos.zip,Free Component Libary (FCL)-datasets
+package=ufcl-dbdos.zip[ufclddos.zip],Free Component Libary (FCL)-datasets
 # Dos 18
-package=ufcludos.zip,Free Component Libary (FCL)-FPCUnit
+package=ufcl-fpcunitdos.zip[ufcludos.zip],Free Component Libary (FCL)-FPCUnit
 # Dos 19
-package=ufclidos.zip,Free Component Libary (FCL)-images
+package=ufcl-imagedos.zip[ufclidos.zip],Free Component Libary (FCL)-images
 # Dos 20
-package=ufclndos.zip,Free Component Libary (FCL)-network
+package=ufcl-netdos.zip[ufclndos.zip],Free Component Libary (FCL)-network
 # Dos 21
-package=ufclpdos.zip,Free Component Libary (FCL)-Pascal source processing
+package=ufcl-passrcdos.zip[ufclsdos.zip],Free Component Libary (FCL)-Pascal source processing
 # Dos 22
-package=ufclrdos.zip,Free Component Libary (FCL)-registry
+package=ufcl-registrydos.zip[ufclrdos.zip],Free Component Libary (FCL)-registry
 # Dos 23
-package=ufclxdos.zip,Free Component Libary (FCL)-XML
+package=ufcl-xmldos.zip[ufclxdos.zip],Free Component Libary (FCL)-XML
 # Dos 24
-package=ufclwdos.zip,Free Component Libary (FCL)-Web
+package=ufcl-webdos.zip[ufclwdos.zip],Free Component Libary (FCL)-Web
 # Dos 25
 package=ufpmkunitdos.zip[ufpmkdos.zip],Units required for building fpmake.exe
 # Dos 26
@@ -225,23 +225,23 @@ package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
 # OS/2 11
 package=uhashos2.zip,Hash calculation units
 # OS/2 12
-package=ufclbos2.zip,Free Component Library (FCL)-base part
+package=ufcl-baseos2.zip[ufclbos2.zip],Free Component Library (FCL)-base part
 # OS/2 13
-package=ufcldos2.zip,Free Component Library (FCL)-datasets
+package=ufcl-dbos2.zip[ufcldos2.zip],Free Component Library (FCL)-datasets
 # OS/2 14
-package=ufcluos2.zip,Free Component Library (FCL)-FPCUnit
+package=ufcl-fpcunitos2.zip[ufcluos2.zip],Free Component Library (FCL)-FPCUnit
 # OS/2 15
-package=ufclios2.zip,Free Component Library (FCL)-images
+package=ufcl-imageos2.zip[ufclios2.zip],Free Component Library (FCL)-images
 # OS/2 16
-package=ufclnos2.zip,Free Component Library (FCL)-network
+package=ufcl-netos2.zip[ufclnos2.zip],Free Component Library (FCL)-network
 # OS/2 17
-package=ufclpos2.zip,Free Component Library (FCL)-Pascal sources processing
+package=ufcl-passrcos2.zip[ufclsos2.zip],Free Component Library (FCL)-Pascal sources processing
 # OS/2 18
-package=ufclros2.zip,Free Component Library (FCL)-registry
+package=ufcl-registryos2.zip[ufclros2.zip],Free Component Library (FCL)-registry
 # OS/2 19
-package=ufclxos2.zip,Free Component Library (FCL)-XML
+package=ufcl-xmlos2.zip[ufclxos2.zip],Free Component Library (FCL)-XML
 # OS/2 20
-#package=ufclwos2.zip,Free Component Library (FCL)-Web
+#package=ufcl-webos2.zip[ufclwos2.zip],Free Component Library (FCL)-Web
 
 #
 # OS/2 packages 2nd part
@@ -320,23 +320,23 @@ package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
 # EMX 11
 package=uhashemx.zip,Hash calculation units
 # EMX 12
-package=ufclbemx.zip,Free Component Library (FCL)-base part
+package=ufcl-baseemx.zip[ufclbemx.zip],Free Component Library (FCL)-base part
 # EMX 13
-package=ufcldemx.zip,Free Component Library (FCL)-datasets
+package=ufcl-dbemx.zip[ufcldemx.zip],Free Component Library (FCL)-datasets
 # EMX 14
-package=ufcluemx.zip,Free Component Library (FCL)-FPCUnit
+package=ufcl-fpcunitemx.zip[ufcluemx.zip],Free Component Library (FCL)-FPCUnit
 # EMX 15
-package=ufcliemx.zip,Free Component Library (FCL)-images
+package=ufcl-imageemx.zip[ufcliemx.zip],Free Component Library (FCL)-images
 # EMX 16
-package=ufclnemx.zip,Free Component Library (FCL)-network
+package=ufcl-netemx.zip[ufclnemx.zip],Free Component Library (FCL)-network
 # EMX 17
-package=ufclpemx.zip,Free Component Library (FCL)-Pascal sources processing
+package=ufcl-passrcemx.zip[ufclsemx.zip],Free Component Library (FCL)-Pascal sources processing
 # EMX 18
-package=ufclremx.zip,Free Component Library (FCL)-registry
+package=ufcl-registryemx.zip[ufclremx.zip],Free Component Library (FCL)-registry
 # EMX 19
-package=ufclxemx.zip,Free Component Library (FCL)-XML
+package=ufcl-xmlemx.zip[ufclxemx.zip],Free Component Library (FCL)-XML
 # EMX 20
-#package=ufclwemx.zip,Free Component Library (FCL)-Web
+#package=ufcl-webemx.zip[ufclwemx.zip],Free Component Library (FCL)-Web
 
 #
 # EMX packages 2nd part
@@ -501,7 +501,7 @@ package=fcl-image.source.zip[ufclisrc.zip],Free component library (FCL)-images
 # Source-3 10
 package=fcl-net.source.zip[ufclnsrc.zip],Free component library (FCL)-network
 # Source-3 11
-package=fcl-passrc.source.zip[ufclpsrc.zip],Free component library (FCL)-Pascal source processing
+package=fcl-passrc.source.zip[ufclssrc.zip],Free component library (FCL)-Pascal source processing
 # Source-3 12
 package=fcl-registry.source.zip[ufclrsrc.zip],Free component library (FCL)-registry
 # Source-3 13
