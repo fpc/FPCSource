@@ -803,7 +803,12 @@ implementation
           case InvokeKind of
             DISPATCH_PROPERTYPUT:
               begin
-                { !! FIXME}
+                if (Arguments[0].VType and varDispatch)<>0 then
+                  InvokeKind:=DISPATCH_PROPERTYPUTREF;
+                { first name is actually the name of the property to set }
+                DispIDs^[0]:=DISPATCH_PROPERTYPUT;
+                DispParams.rgdispidNamedArgs:=@DispIDs^[0];
+                inc(DispParams.cNamedArgs);
               end;
             DISPATCH_METHOD:
               if assigned(Result) and (CallDesc^.ArgCount=0) then
