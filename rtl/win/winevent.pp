@@ -218,8 +218,8 @@ interface
          EnterCriticalSection(HandlerChanging);
          oldp:=MouseEventHandler;
          MouseEventHandler:=p;
-         NewEventHandlerInstalled(MouseEventHandler,oldp);
          LeaveCriticalSection(HandlerChanging);
+         NewEventHandlerInstalled(MouseEventHandler,oldp);
       end;
 
 
@@ -230,8 +230,8 @@ interface
          EnterCriticalSection(HandlerChanging);
          oldp:=KeyboardEventHandler;
          KeyboardEventHandler:=p;
-         NewEventHandlerInstalled(KeyboardEventHandler,oldp);
          LeaveCriticalSection(HandlerChanging);
+         NewEventHandlerInstalled(KeyboardEventHandler,oldp);
       end;
 
 
@@ -242,8 +242,8 @@ interface
          EnterCriticalSection(HandlerChanging);
          oldp:=FocusEventHandler;
          FocusEventHandler:=p;
-         NewEventHandlerInstalled(FocusEventHandler,oldp);
          LeaveCriticalSection(HandlerChanging);
+         NewEventHandlerInstalled(FocusEventHandler,oldp);
       end;
 
 
@@ -254,8 +254,8 @@ interface
          EnterCriticalSection(HandlerChanging);
          oldp:=MenuEventHandler;
          MenuEventHandler:=p;
-         NewEventHandlerInstalled(MenuEventHandler,oldp);
          LeaveCriticalSection(HandlerChanging);
+         NewEventHandlerInstalled(MenuEventHandler,oldp);
       end;
 
 
@@ -266,8 +266,8 @@ interface
          EnterCriticalSection(HandlerChanging);
          oldp:=ResizeEventHandler;
          ResizeEventHandler:=p;
-         NewEventHandlerInstalled(ResizeEventHandler,oldp);
          LeaveCriticalSection(HandlerChanging);
+         NewEventHandlerInstalled(ResizeEventHandler,oldp);
       end;
 
 
@@ -278,8 +278,8 @@ interface
          EnterCriticalSection(HandlerChanging);
          oldp:=UnknownEventHandler;
          UnknownEventHandler:=p;
-         NewEventHandlerInstalled(UnknownEventHandler,oldp);
          LeaveCriticalSection(HandlerChanging);
+         NewEventHandlerInstalled(UnknownEventHandler,oldp);
       end;
 
 
