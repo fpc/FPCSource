@@ -2191,12 +2191,6 @@ packages/extra/graph/win32/winmouse.pp svneol=native#text/plain
 packages/extra/gtk/Makefile svneol=native#text/plain
 packages/extra/gtk/Makefile.fpc svneol=native#text/plain
 packages/extra/gtk/README -text
-packages/extra/gtk/conv/fixexmcdecl.pp svneol=native#text/plain
-packages/extra/gtk/conv/fixgdk.pp svneol=native#text/plain
-packages/extra/gtk/conv/fixgdkcdecl.pp svneol=native#text/plain
-packages/extra/gtk/conv/fixglibcdecl.pp svneol=native#text/plain
-packages/extra/gtk/conv/fixgtk.pp svneol=native#text/plain
-packages/extra/gtk/conv/fixgtkcdecl.pp svneol=native#text/plain
 packages/extra/gtk/examples/Makefile svneol=native#text/plain
 packages/extra/gtk/examples/Makefile.fpc svneol=native#text/plain
 packages/extra/gtk/examples/clist.pp svneol=native#text/plain
