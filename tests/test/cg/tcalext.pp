@@ -26,7 +26,7 @@ uses strings,ctypes;
 {$endif USE_PASCAL_OBJECT}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-{$define test_longdouble}
+{define test_longdouble}
 {$endif}
 
 { Use C alignment of records }
