@@ -122,55 +122,54 @@ interface
               }
               if not(ExitEventHandleThread) then
                 begin
-                   EnterCriticalSection(HandlerChanging);
-                   { read, but don't remove the event }
                    if ReadConsoleInput(StdInputHandle,ir[0],irsize,dwRead) then
                     begin
                       i:=0;
-                      while (i<dwRead) do
-                       begin
-                       { call the handler }
-                       case ir[i].EventType of
-                        KEY_EVENT:
-                          begin
-                             if assigned(KeyboardEventHandler) then
-                               KeyboardEventHandler(ir[i]);
-                          end;
+                      EnterCriticalSection(HandlerChanging);
+                      while i<dwRead do
+                        begin
+                          { call the handler }
+                          case ir[i].EventType of
+                            KEY_EVENT:
+                              begin
+                                 if assigned(KeyboardEventHandler) then
+                                   KeyboardEventHandler(ir[i]);
+                              end;
 
-                        _MOUSE_EVENT:
-                          begin
-                             if assigned(MouseEventHandler) then
-                               MouseEventHandler(ir[i]);
-                          end;
+                            _MOUSE_EVENT:
+                              begin
+                                 if assigned(MouseEventHandler) then
+                                   MouseEventHandler(ir[i]);
+                              end;
 
-                        WINDOW_BUFFER_SIZE_EVENT:
-                          begin
-                             if assigned(ResizeEventHandler) then
-                               ResizeEventHandler(ir[i]);
-                          end;
+                            WINDOW_BUFFER_SIZE_EVENT:
+                              begin
+                                 if assigned(ResizeEventHandler) then
+                                   ResizeEventHandler(ir[i]);
+                              end;
 
-                        MENU_EVENT:
-                          begin
-                             if assigned(MenuEventHandler) then
-                               MenuEventHandler(ir[i]);
-                          end;
+                            MENU_EVENT:
+                              begin
+                                 if assigned(MenuEventHandler) then
+                                   MenuEventHandler(ir[i]);
+                              end;
 
-                        FOCUS_EVENT:
-                          begin
-                             if assigned(FocusEventHandler) then
-                               FocusEventHandler(ir[i]);
-                          end;
+                            FOCUS_EVENT:
+                              begin
+                                 if assigned(FocusEventHandler) then
+                                   FocusEventHandler(ir[i]);
+                              end;
 
-                        else
-                          begin
-                             if assigned(UnknownEventHandler) then
-                               UnknownEventHandler(ir[i]);
-                          end;
-                       end;
-                       inc(i);
+                            else
+                              begin
+                                 if assigned(UnknownEventHandler) then
+                                   UnknownEventHandler(ir[i]);
+                              end;
+                           end;
+                         inc(i);
                       end;
+                      LeaveCriticalSection(HandlerChanging);
                     end;
-                   LeaveCriticalSection(HandlerChanging);
                 end;
            end;
         EventHandleThread:=0;
