@@ -763,6 +763,35 @@ begin
    DestroyregExprEngine(r);
 
 {
+  initok:=GenerateRegExprEngine('\.localhost$',[],r);
+  if not initok then
+     do_error(1506);
+   if not(RegExprPos(r,'exsample.localhost',index,len)) or
+     (index<>8) or (len<>10) then
+     do_error(1506);
+   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('[^e]\.localhost$',[],r);
+  if not initok then
+     do_error(1507);
+   if RegExprPos(r,'exsample.localhost',index,len) then
+     do_error(1507);
+   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('.*[^e]\.localhost$',[],r);
+  if not initok then
+     do_error(1508);
+   if RegExprPos(r,'exsample.localhost',index,len) then
+     do_error(1508);
+   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('x.*[^e]\.localhost$',[],r);
+  if not initok then
+     do_error(1509);
+   if RegExprPos(r,'exsample.localhost',index,len) then
+     do_error(1509);
+   DestroyregExprEngine(r);
+
   initok:=GenerateRegExprEngine('(nofoo|foo)1234',[],r);
   if not initok then
      do_error(1500);
