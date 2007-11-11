@@ -1,3 +1,5 @@
+{ $DEFINE DEBUG}
+
 {
     This unit implements basic regular expression support
 
@@ -1122,7 +1124,7 @@ unit regexpr;
       oldlength : PtrInt;
     begin
       pos:=pchar(src);
-      lastpos:=pos;
+      lastpos:=nil;
       first:=true;
       Result:=0;
       { estimate some length }
@@ -1130,8 +1132,9 @@ unit regexpr;
       while RegExprPos(RegExprEngine,pos,index,len) do
         begin
           inc(pos,index);
-          if pos>lastpos then
+          if (lastpos = nil) or (pos>lastpos) then
             begin
+              if lastpos = nil then lastpos := pchar(src);
               { copy skipped part }
 
               { because we cheat with SetLength a SetLength(...,0) isn't what we want

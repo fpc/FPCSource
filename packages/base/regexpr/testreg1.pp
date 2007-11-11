@@ -856,5 +856,22 @@ begin
     (Dest<>'asdasdasdasd') then
     do_error(2009);
   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2000);
+  if (RegExprReplaceAll(r,'fasdfasdf','',Dest)<>2) or
+    (Dest<>'sdsdf') then
+    do_error(2010);
+  DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2011);
+  if (RegExprReplaceAll(r,'fasdfafaasdasdfafaasd','',Dest)<>5) or
+    (Dest<>'sdasdasdasd') then
+    do_error(2012);
+  DestroyregExprEngine(r);
+
    writeln('*** Testing unit regexpr was successful ***');
 end.
