@@ -175,6 +175,12 @@
     Sigset=sigset_t;
     PSigSet = ^TSigSet;
 
+    tdarwin_stack_t = record
+        ss_sp    : pchar;        { signal stack base }
+        ss_size  : clong;         { signal stack length }
+        ss_flags : cint;         { SA_DISABLE and/or SA_ONSTACK }
+    end;
+
 {$if defined(cpupowerpc) or defined(cpupowerpc64)}
     {$include ppcgen/sig_ppc.inc}    { SigContextRec }
 {$else cpupowerpc or cpupowerpc64}
@@ -189,6 +195,16 @@
 {$endif cpui386}
 {$endif cpupowerpc or cpupowerpc64}
 
+     psigcontext = ^sigcontextrec;
+     psigcontextrec = ^sigcontextrec;
+     sigcontextrec = record
+        uc_onstack : cint;
+        uc_sigmask : sigset_t;        { signal mask used by this context }
+        uc_stack   : tdarwin_stack_t; { stack used by this context }
+        uc_link    : psigcontextrec;  { pointer to resuming context }
+        uc_mcsize  : size_t;          { size of the machine context passed in }
+        uc_mcontext: ^mcontext_t;      { machine specific context }
+     end;
 
 
     SignalHandler   = Procedure(Sig : Longint);cdecl;
