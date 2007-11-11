@@ -83,6 +83,8 @@ package=ufcl-jsondos.zip[ufcljdos.zip],Free Component Libary (FCL)-JSON interfac
 package=ufcl-asyncdos.zip[ufclados.zip],Free Component Libary (FCL)-asynchronous events
 # Dos 28
 package=ufcl-processdos.zip[ufclpdos.zip],Free Component Libary (FCL)-process management
+# Dos 29
+package=uchmdos.zip,Support for .chm files handling
 
 
 #
@@ -197,6 +199,8 @@ package=units-fcl-json.i386-win32.zip,Free Component Libary (FCL)-JSON interface
 package=units-fcl-async.i386-win32.zip,Free Component Libary (FCL)-asynchronous events
 # Win32-2 25
 package=units-fcl-process.i386-win32.zip,Free Component Libary (FCL)-process management
+# Win32-2 26
+package=units-chm.i386-win32.zip,Support for .chm files handling
 
 
 #
@@ -296,6 +300,8 @@ package=ufcl-jsonos2.zip[ufcljos2.zip],Free Component Libary (FCL)-JSON interfac
 package=ufcl-asyncos2.zip[ufclaos2.zip],Free Component Libary (FCL)-asynchronous events
 # OS/2-2 20
 package=ufcl-processos2.zip[ufclpos2.zip],Free Component Libary (FCL)-process management
+# OS/2-2 21
+package=uchmos2.zip,Support for .chm files handling
 
 
 #
@@ -395,6 +401,8 @@ package=ufcl-jsonemx.zip[ufcljemx.zip],Free Component Libary (FCL)-JSON interfac
 package=ufcl-asyncemx.zip[ufclaemx.zip],Free Component Libary (FCL)-asynchronous events
 # EMX-2 20
 package=ufcl-processemx.zip[ufclpemx.zip],Free Component Libary (FCL)-process management
+# EMX-2 21
+package=uchmemx.zip,Support for .chm files handling
 
 
 #
@@ -494,6 +502,8 @@ package=fcl-json.source.zip[ufcljsrc.zip],Free Component Libary (FCL)-JSON inter
 package=fcl-async.source.zip[ufclasrc.zip],Free Component Libary (FCL)-asynchronous events
 # Source-2 20
 package=fcl-process.source.zip[ufclpsrc.zip],Free Component Libary (FCL)-process management
+# Source-2 21
+package=units-chm.source.zip[uchmsrc.zip],Support for .chm files handling
 
 #
 # Source packages 3rd part
