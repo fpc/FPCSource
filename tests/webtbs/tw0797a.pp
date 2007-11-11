@@ -10,11 +10,11 @@ var
   var
     i : longint;
   asm
-    movl j,%ebx
-    movl (%ebx),%eax
+    movl j,%ecx
+    movl (%ecx),%eax
     movl $5,i
     addl i,%eax
-    movl %eax,(%ebx)
+    movl %eax,(%ecx)
   end;
 
 begin
