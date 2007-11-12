@@ -318,7 +318,7 @@ ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_UNITS+=servlets  resolve ssockets
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=servlets
+override TARGET_UNITS+=servlets  resolve ssockets
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_UNITS+=servlets  resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
