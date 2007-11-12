@@ -4161,6 +4161,7 @@ packages/fcl-db/src/export/fpcsvexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpdbexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpdbfexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpfixedexport.pp svneol=native#text/plain
+packages/fcl-db/src/export/fprtfexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpsimplejsonexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpsimplexmlexport.pp svneol=native#text/plain
 packages/fcl-db/src/export/fpsqlexport.pp svneol=native#text/plain
