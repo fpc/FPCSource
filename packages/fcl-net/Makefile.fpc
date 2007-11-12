@@ -7,11 +7,19 @@ name=fcl-net
 version=2.0.0
 
 [target]
-units=servlets resolve ssockets
-units_linux=fpsock httpbase httpclient httpsvlt xmlrpc
-units_freebsd=fpsock httpbase httpclient httpsvlt xmlrpc
-units_netbsd=fpsock httpbase httpclient httpsvlt xmlrpc
-units_openbsd=fpsock httpbase httpclient httpsvlt xmlrpc
+units=servlets
+units_linux=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_freebsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_netbsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_openbsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_darwin=resolve ssockets 
+units_solaris=resolve ssockets 
+units_qnx=resolve ssockets 
+units_beos=resolve ssockets 
+units_emx=resolve ssockets 
+units_win32=resolve ssockets 
+units_win64=resolve ssockets 
+units_wince=resolve ssockets 
 programs_linux=mkxmlrpc
 programs_freebsd=mkxmlrpc
 programs_darwin=mkxmlrpc
