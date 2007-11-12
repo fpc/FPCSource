@@ -18,9 +18,9 @@ begin
 {$endif ALLPACKAGES}
     Version:='2.0.0';
     P.SourcePath.Add('src');
-    P.IncludePath.Add('src/unix',AllUnixOSs);
-    P.IncludePath.Add('src/win',AllWindowsOSs);
-    P.IncludePath.Add('src/$(OS)',AllOSs-AllWindowsOSs-AllUnixOSs);
+    P.IncludePath.Add('src/unix',AllUnixOSes);
+    P.IncludePath.Add('src/win',AllWindowsOSes);
+    P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     T:=Targets.AddUnit('pipes.pp');
       T.Dependencies.AddInclude('pipes.inc');
     T:=Targets.AddUnit('process.pp');
