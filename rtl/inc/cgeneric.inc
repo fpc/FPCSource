@@ -98,7 +98,7 @@ function CompareChar0(Const buf1,buf2;len:sizeint):sizeint;{$ifdef SYSTEMINLINE}
 begin
   if len <= 0 then
     exit(0);
-  strncmp_comparechar0(buf1,buf2,len);
+  CompareChar0:=strncmp_comparechar0(buf1,buf2,len);
 end;
 
 {$endif not FPC_SYSTEM_HAS_COMPARECHAR0}
