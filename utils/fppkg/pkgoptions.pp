@@ -113,10 +113,10 @@ Const
   DefaultVersionsFile     = 'versions-%s.dat';
   DefaultMirrorsLocation  = 'http://www.freepascal.org/repository/'+DefaultMirrorFile;
 {$warning TODO use real repository}
-{$ifdef unix}
+{$ifdef localrepository}
   DefaultRemoteRepository = 'file://'+{$I %HOME%}+'/repository/';
 {$else}
-  DefaultRemoteRepository = 'c:/repository/';
+  DefaultRemoteRepository = 'http://www.freepascal.org/~peter/repository/';
 {$endif}
 
   // ini file keys
