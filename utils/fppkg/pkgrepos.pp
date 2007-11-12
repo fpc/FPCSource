@@ -9,9 +9,13 @@ uses
   fprepos;
 
 procedure LoadLocalRepository;
-procedure SaveRepository;
-procedure ListRepository;
-procedure RebuildRepository;
+procedure LoadLocalStatus;
+procedure SaveLocalStatus;
+procedure ListLocalRepository(all:boolean=false);
+
+procedure ListRemoteRepository;
+procedure RebuildRemoteRepository;
+procedure SaveRemoteRepository;
 
 var
   CurrentRepository : TFPRepository;
@@ -26,6 +30,9 @@ uses
   pkgoptions,
   pkgmessages;
 
+{*****************************************************************************
+                           Local Repository
+*****************************************************************************}
 
 procedure LoadLocalRepository;
 var
@@ -47,44 +54,66 @@ begin
           Free;
         end;
     end;
-  // Versions
+end;
+
+
+procedure LoadLocalStatus;
+var
+  S : String;
+begin
   S:=Options.LocalVersionsFile(Options.CurrentCompilerConfig);
-  Log(vDebug,SLogLoadingVersionsFile,[S]);
+  Log(vDebug,SLogLoadingStatusFile,[S]);
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
 end;
 
 
-procedure SaveRepository;
+procedure SaveLocalStatus;
 var
-  X : TFPXMLRepositoryHandler;
+  S : String;
 begin
-  // Repository
-  Writeln('Saving repository in packages.xml');
-  X:=TFPXMLRepositoryHandler.Create;
-  With X do
-    try
-      SaveToXml(CurrentRepository,'packages.xml');
-    finally
-      Free;
-    end;
+  S:=Options.LocalVersionsFile(Options.CurrentCompilerConfig);
+  Log(vDebug,SLogSavingStatusFile,[S]);
+  CurrentRepository.SaveStatusToFile(S);
 end;
 
 
-procedure ListRepository;
+procedure ListLocalRepository(all:boolean=false);
 var
   P : TFPPackage;
   i : integer;
 begin
+  Writeln(Format('%-20s %-12s %-12s',['Name','Installed','Available']));
   for i:=0 to CurrentRepository.PackageCount-1 do
     begin
       P:=CurrentRepository.Packages[i];
-      Writeln(Format('%-20s %-20s',[P.Name,P.FileName]));
+      if all or (P.Version.CompareVersion(P.InstalledVersion)>0) then
+        begin
+          Writeln(Format('%-20s %-12s %-12s',[P.Name,P.InstalledVersion.AsString,P.Version.AsString]));
+        end;
     end;
 end;
 
 
-procedure RebuildRepository;
+{*****************************************************************************
+                           Remote Repository
+*****************************************************************************}
+
+procedure ListRemoteRepository;
+var
+  P : TFPPackage;
+  i : integer;
+begin
+  Writeln(Format('%-20s %-12s %-20s',['Name','Available','FileName']));
+  for i:=0 to CurrentRepository.PackageCount-1 do
+    begin
+      P:=CurrentRepository.Packages[i];
+      Writeln(Format('%-20s %-12s %-20s',[P.Name,P.Version.AsString,P.FileName]));
+    end;
+end;
+
+
+procedure RebuildRemoteRepository;
 var
   X : TFPXMLRepositoryHandler;
   i : integer;
@@ -135,6 +164,24 @@ begin
     ManifestSL.Free;
   end;
 end;
+
+
+procedure SaveRemoteRepository;
+var
+  X : TFPXMLRepositoryHandler;
+begin
+  // Repository
+  Writeln('Saving repository in packages.xml');
+  X:=TFPXMLRepositoryHandler.Create;
+  With X do
+    try
+      SaveToXml(CurrentRepository,'packages.xml');
+    finally
+      Free;
+    end;
+end;
+
+
 
 initialization
 end.

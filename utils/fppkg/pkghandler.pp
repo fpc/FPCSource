@@ -199,7 +199,8 @@ begin
   if assigned(CurrentPackage) then
     Result:='['+CurrentPackage.Name+'] '
   else
-    Result:='[<currentdir>] ';
+//    Result:='[<currentdir>] ';
+    Result:='';
 end;
 
 

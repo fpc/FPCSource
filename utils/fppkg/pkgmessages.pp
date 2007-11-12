@@ -19,6 +19,7 @@ Resourcestring
   SErrMissingCompilerConfig  = 'Could not find compiler configuration "%s"';
   SErrMissingInstallPackage  = 'Could not find package "%s"';
   SErrNoPackageSpecified     = 'No package specified';
+  SErrNoPackageAvailable     = 'Package %s %s is not available';
   SErrOnlyLocalDir           = 'The speficied command "%s" works only on current dir, not on a (remote) package';
   SErrRunning                = 'The FPC make tool encountered the following error:';
   SErrActionAlreadyRegistered= 'Action "%s" is already registered';
@@ -58,8 +59,9 @@ Resourcestring
   SLogDetectedCompiler       = 'Detected compiler "%s" (version %s for %s)';
   SLogDetectedFPCDIR         = 'Detected %s FPCDIR "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
-  SLogLoadingPackagesFile    = 'Loading packages information from "%s"';
-  SLogLoadingVersionsFile    = 'Loading local versions information from "%s"';
+  SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
+  SLogLoadingStatusFile      = 'Loading local status from "%s"';
+  SLogSavingStatusFile       = 'Saving local status to "%s"';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';

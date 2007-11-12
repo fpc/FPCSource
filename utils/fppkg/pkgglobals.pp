@@ -99,8 +99,12 @@ begin
   case Level of
     vWarning :
       Prefix:=SWarning;
+{    vInfo :
+      Prefix:='I: ';
+    vCommands :
+      Prefix:='C: ';
     vDebug :
-      Prefix:=SDebug;
+      Prefix:='D: '; }
   end;
   Writeln(stdErr,Prefix,Msg);
 end;

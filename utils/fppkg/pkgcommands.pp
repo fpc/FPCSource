@@ -33,6 +33,13 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
+  { TCommandAllAvail }
+
+  TCommandAllAvail = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
   { TCommandAvail }
 
   TCommandAvail = Class(TPackagehandler)
@@ -110,24 +117,34 @@ end;
 
 function TCommandUpdate.Execute(const Args:TActionArgs):boolean;
 begin
+  Log(vCommands,SLogDownloading,[Options.RemotePackagesFile,Options.LocalPackagesFile]);
   DownloadFile(Options.RemotePackagesFile,Options.LocalPackagesFile);
+  // Read the repository again
   LoadLocalRepository;
+  LoadLocalStatus;
+  Result:=true;
+end;
+
+
+function TCommandAllAvail.Execute(const Args:TActionArgs):boolean;
+begin
+  ListLocalRepository(true);
   Result:=true;
 end;
 
 
 function TCommandAvail.Execute(const Args:TActionArgs):boolean;
 begin
-  ListRepository;
+  ListLocalRepository(false);
   Result:=true;
 end;
 
 
 function TCommandScanPackages.Execute(const Args:TActionArgs):boolean;
 begin
-  RebuildRepository;
-  ListRepository;
-  SaveRepository;
+  RebuildRemoteRepository;
+  ListRemoteRepository;
+  SaveRemoteRepository;
   Result:=true;
 end;
 
@@ -200,6 +217,12 @@ begin
   if assigned(CurrentPackage) then
     ExecuteAction(CurrentPackage,'build',Args);
   ExecuteAction(CurrentPackage,'fpmakeinstall',Args);
+  // Update local status file
+  if assigned(CurrentPackage) then
+    begin
+      CurrentPackage.InstalledVersion.Assign(CurrentPackage.Version);
+      SaveLocalStatus;
+    end;
   Result:=true;
 end;
 
@@ -228,26 +251,28 @@ begin
       D:=CurrentPackage.Dependencies[i];
       DepPackage:=CurrentRepository.PackageByName(D.PackageName);
       // Need installation?
-      if (not DepPackage.InstalledVersion.Empty) and
+      if (DepPackage.InstalledVersion.Empty) or
          (DepPackage.InstalledVersion.CompareVersion(D.MinVersion)<0) then
         begin
           if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
-            status:='Required Version Not Available!'
+            status:='Not Available!'
           else
-            status:='Needs update';
+            status:='Updating';
           L.Add(DepPackage.Name);
         end
       else
         status:='OK';
-      Log(vDebug,'Dependency '+D.PackageName+'-'+D.MinVersion.AsString+' ('+status+')');
+      Log(vDebug,'Dependency on package %s %s, installed %s, available %s  (%s)',
+          [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
     end;
   // Install needed updates
   for i:=0 to L.Count-1 do
     begin
       DepPackage:=CurrentRepository.PackageByName(L[i]);
+      if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
+        Error(SErrNoPackageAvailable,[D.PackageName,D.MinVersion.AsString]);
       ExecuteAction(DepPackage,'install');
     end;
-
   FreeAndNil(L);
   Result:=true;
 end;
@@ -255,6 +280,7 @@ end;
 
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
+  RegisterPkgHandler('allavail',TCommandAllAvail);
   RegisterPkgHandler('avail',TCommandAvail);
   RegisterPkgHandler('scan',TCommandScanPackages);
   RegisterPkgHandler('download',TCommandDownload);

@@ -138,6 +138,7 @@ begin
   Writeln('  -v --verbose       Set verbosity');
   Writeln('  -b --bootstrap     Special bootstrapping mode');
   Writeln('  -g --global        Force installation to global (system-wide) directory');
+  Writeln('  -f --force         Force installation also if the package is already installed');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
   Writeln('  avail              List available packages');
@@ -260,7 +261,12 @@ begin
     ProcessCommandLine;
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
+
+    // Load local repository, update first if this is a new installation
+    if not FileExists(Options.LocalPackagesFile) then
+      pkghandler.ExecuteAction(nil,'update');
     LoadLocalRepository;
+    LoadLocalStatus;
 
     if ParaPackages.Count=0 then
       begin
@@ -269,6 +275,7 @@ begin
       end
     else
       begin
+        // Process packages
         for i:=0 to ParaPackages.Count-1 do
           begin
             ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
