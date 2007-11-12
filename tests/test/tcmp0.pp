@@ -10,13 +10,13 @@ begin
   if res<>0 then
     halt(1);
   res:=CompareChar0(str1[0],str3[0],maxint);
-  if res<>-1 then
+  if res>=0 then
     halt(1);
   res:=CompareChar0(str4[0],str1[0],maxint);
-  if res<>-1 then
+  if res>=0 then
     halt(1);
   res:=CompareChar0(str1[0],str4[0],maxint);
-  if res<>1 then
+  if res<=0 then
     halt(1);
 
   writeln('ok');
