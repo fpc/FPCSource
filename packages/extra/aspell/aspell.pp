@@ -15,13 +15,13 @@ uses
   cTypes, DynLibs;
 
 {$IFDEF Linux}
-  {$DEFINE Static}
-  const aspelllib='aspell';
+  {$DEFINE Dynamic}
+  const aspelllib='/usr/lib/libaspell.so.15';
 {$ENDIF}
 
 {$IFDEF FreeBSD}
   {$DEFINE Static}
-  const aspelllib='aspell';
+  const aspelllib='/usr/local/lib/libaspell.so.15';
 {$ENDIF}
 
 {$IFDEF darwin}
@@ -96,7 +96,7 @@ var aspellpresent:longbool;
     delete_aspell_speller:procedure (ths:aspellspeller); cdecl;
    {$ENDIF}
 
-procedure aspell_init;
+procedure aspell_init(const libn: ansistring);
 procedure aspell_done;
 
 {$IFDEF Static}
@@ -149,7 +149,7 @@ var addr:pointer;
  end;
 {$ENDIF}
 
-procedure aspell_init;
+procedure aspell_init(const libn: ansistring);
 var
   mylib:string;
   {$ifdef windows}
@@ -161,13 +161,14 @@ var
  aspellpresent:=true;
 {$ELSE}
  aspellpresent:=false;
- mylib:=aspelllib;
+ mylib:=libn;
 
 {$IFDEF windows}
  bversion:=RegistryQueryValue (regLocalMachine,'SOFTWARE\Aspell','AspellVersion');
  move (bversion[1],version,4);
  path:=RegistryQueryValue (regLocalMachine,'SOFTWARE\Aspell','Path');
- mylib:=path + PathDelim + StringReplace(aspelllib, '%s', IntToStr(Version), [rfReplaceAll]);
+ // will work if they passed %s, won't bork if they passed absolute
+ mylib:=path + PathDelim + StringReplace(libn, '%s', IntToStr(Version), [rfReplaceAll]);
 {$ENDIF}
 
  alib := LoadLibrary(mylib);
@@ -207,7 +208,7 @@ procedure aspell_done;
  end;
  
 initialization
- aspell_init;
+ aspell_init(aspelllib);
  
 finalization
  aspell_done;
