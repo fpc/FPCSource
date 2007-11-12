@@ -285,8 +285,8 @@ begin
     pend:=pword(high(PtrUInt)-sizeof(word))
   else
     pend:=psrc+len;
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT} 
-  if (ptruint(psrc) mod 2)<>0 then  
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  if (ptruint(psrc) mod 2)<>0 then
     while psrc<pend do
       begin
         if unaligned(psrc^)=b then
@@ -643,13 +643,12 @@ begin
   while psrc<pend do
     begin
       b:=(ptrint(psrc^)-ptrint(pdest^));
-      if (b<>0) or (psrc^=0) or (pdest^=0) then
-        begin
-          if b<0 then
-            exit(-1)
-          else
-            exit(1);
-        end;
+      if b<0 then
+        exit(-1)
+      else if b>0 then
+        exit(1);
+      if (psrc^=0) or (pdest^=0) then
+        exit(0);
       inc(pdest);
       inc(psrc);
     end;
