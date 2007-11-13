@@ -104,9 +104,9 @@ Procedure CommandToList(S : String; List : TStrings);
           end;
        inc(wend);
        end;
-       
+
      Result:=Copy(S,WStart,WEnd-WStart);
-     
+
      if  (Length(Result) > 0)
      and (Result[1] = Result[Length(Result)]) // if 1st char = last char and..
      and (Result[1] in Literals) then // it's one of the literals, then
@@ -248,6 +248,7 @@ Var
   FEnv     : PPChar;
   Argv     : PPChar;
   fd       : Integer;
+  FoundName,
   PName    : String;
 
 begin
@@ -270,14 +271,15 @@ begin
           If (PName='') then
             PName:=CommandLine;
           end;
-          
-        if not FileExists(PName) then begin
-          PName := FileSearch(Pname,fpgetenv('PATH'));
 
-          if Length(PName) = 0 then
+        if not FileExists(PName) then begin
+          FoundName := FileSearch(Pname,fpgetenv('PATH'));
+          if FoundName<>'' then
+            PName:=FoundName
+          else
             raise EProcess.CreateFmt(SErrNoSuchProgram,[PName]);
         end;
-      
+
         Pid:=fpfork;
         if Pid<0 then
           Raise EProcess.Create('Failed to Fork process');
@@ -302,7 +304,7 @@ begin
             fpdup2(HO[peWrite],1);
             if (poStdErrToOutPut in Options) then
               fpdup2(HO[peWrite],2)
-            else 
+            else
               begin
               fpclose(HE[peRead]);
               fpdup2(HE[peWrite],2);
