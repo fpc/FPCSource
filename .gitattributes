@@ -5822,6 +5822,7 @@ tests/bench/shootout/src/regexdna.pp svneol=native#text/plain
 tests/bench/shootout/src/simple_hash.pp svneol=native#text/plain
 tests/bench/shootout/src/spectralnorm.pp svneol=native#text/plain
 tests/bench/shootout/src/sumcol.pp svneol=native#text/plain
+tests/bench/shootout/src/thread_ring.pp svneol=native#text/pascal
 tests/bench/shortbench.pp svneol=native#text/plain
 tests/bench/stream.pp svneol=native#text/x-pascal
 tests/bench/timer.pas svneol=native#text/plain
