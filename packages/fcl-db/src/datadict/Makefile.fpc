@@ -5,6 +5,9 @@
 [package]
 main=fcl-db
 
+[require]
+packages=fcl-base
+
 [target]
 units=fpdatadict fpdddbf fpddsqldb
 units_linux=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
@@ -35,3 +38,4 @@ fpcpackage=y
 fpcdir=../../../..
 
 [rules]
+.NOTPARALLEL:
