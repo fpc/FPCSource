@@ -44,16 +44,23 @@ begin
   CurrentRepository:=TFPRepository.Create(Nil);
   // Repository
   Log(vDebug,SLogLoadingPackagesFile,[Options.LocalPackagesFile]);
-  if FileExists(Options.LocalPackagesFile) then
-    begin
-      X:=TFPXMLRepositoryHandler.Create;
-      With X do
-        try
-          LoadFromXml(CurrentRepository,Options.LocalPackagesFile);
-        finally
-          Free;
-        end;
-    end;
+  if not FileExists(Options.LocalPackagesFile) then
+    exit;
+  try
+    X:=TFPXMLRepositoryHandler.Create;
+    With X do
+      try
+        LoadFromXml(CurrentRepository,Options.LocalPackagesFile);
+      finally
+        Free;
+      end;
+  except
+    on E : Exception do
+      begin
+        Log(vError,E.Message);
+        Error(SErrCorruptPackagesFile,[Options.LocalPackagesFile]);
+      end;
+  end;
 end;
 
 

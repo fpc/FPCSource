@@ -6,6 +6,7 @@ interface
 
 
 Resourcestring
+  SError                     = 'Error: ';
   SWarning                   = 'Warning: ';
   SDebug                     = 'Debug: ';
 
@@ -35,6 +36,7 @@ Resourcestring
   SErrInvalidVerbosity       = 'Invalid verbosity string: "%s"';
   SErrInvalidCommand         = 'Invalid command: %s';
   SErrChangeDirFailed        = 'Could not change directory to "%s"';
+  SErrCorruptPackagesFile    = 'Packages file "%s" is corrupt, delete file manual and retry';
 
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';

@@ -99,6 +99,8 @@ begin
   case Level of
     vWarning :
       Prefix:=SWarning;
+    vError :
+      Prefix:=SError;
 {    vInfo :
       Prefix:='I: ';
     vCommands :

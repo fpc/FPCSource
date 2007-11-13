@@ -192,8 +192,8 @@ function TCommandCompile.Execute(const Args:TActionArgs):boolean;
 begin
   if assigned(CurrentPackage) then
     begin
-      ExecuteAction(CurrentPackage,'unzip',Args);
       ExecuteAction(CurrentPackage,'installdependencies',Args);
+      ExecuteAction(CurrentPackage,'unzip',Args);
     end;
   ExecuteAction(CurrentPackage,'fpmakecompile',Args);
   Result:=true;
@@ -204,8 +204,8 @@ function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
   if assigned(CurrentPackage) then
     begin
-      ExecuteAction(CurrentPackage,'unzip',Args);
       ExecuteAction(CurrentPackage,'installdependencies',Args);
+      ExecuteAction(CurrentPackage,'unzip',Args);
     end;
   ExecuteAction(CurrentPackage,'fpmakebuild',Args);
   Result:=true;

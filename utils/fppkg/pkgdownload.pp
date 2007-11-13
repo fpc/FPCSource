@@ -106,11 +106,16 @@ Var
 begin
   If FileExists(DestFileName) and BackupFiles then
     BackupFile(DestFileName);
-  F:=TFileStream.Create(DestFileName,fmCreate);
-  Try
-    Download(URL,F);
-  Finally
-    F.Free;
+  try
+    F:=TFileStream.Create(DestFileName,fmCreate);
+    try
+      Download(URL,F);
+    finally
+      F.Free;
+    end;
+  except
+    DeleteFile(DestFileName);
+    raise;
   end;
 end;
 
