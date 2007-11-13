@@ -3966,6 +3966,7 @@ packages/fcl-base/src/inc/inicol.pp svneol=native#text/plain
 packages/fcl-base/src/inc/inifiles.pp svneol=native#text/plain
 packages/fcl-base/src/inc/iostream.pp svneol=native#text/plain
 packages/fcl-base/src/inc/libtar.pas svneol=native#text/plain
+packages/fcl-base/src/inc/maskutils.pp svneol=native#text/plain
 packages/fcl-base/src/inc/pooledmm.pp svneol=native#text/plain
 packages/fcl-base/src/inc/rtfdata.inc svneol=native#text/plain
 packages/fcl-base/src/inc/rtfpars.pp svneol=native#text/plain
