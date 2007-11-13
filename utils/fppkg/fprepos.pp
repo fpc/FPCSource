@@ -368,6 +368,9 @@ begin
   Major:=0;
   Minor:=0;
   Suffix:='';
+  // Special support for empty version string
+  if AValue='<none>' then
+    exit;
   V:=AValue;
   Release:=NextDigit('.',V);
   Major:=NextDigit('.',V);
@@ -804,7 +807,8 @@ begin
   Try
     For I:=0 to PackageCount-1 do
       With Packages[i] do
-        L.Add(Name+'='+InstalledVersion.AsString);
+        if not InstalledVersion.Empty then
+          L.Add(Name+'='+InstalledVersion.AsString);
     L.SaveToStream(Stream);
   Finally
     L.Free;
