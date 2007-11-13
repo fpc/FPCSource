@@ -926,7 +926,7 @@ Begin
        finally
          FindClose(Info);
        end;
-     end;  
+     end;
 end;
 
 Procedure TZipper.OpenOutput;
@@ -1132,13 +1132,13 @@ Begin
       For I:=0 to FFiles.Count-1 do
         begin
           Item:=FFiles.Objects[i] as TZipItem;
-	  if assigned(Item) then
-	    begin
+          if assigned(Item) then
+            begin
               ZipOneFile(Item);
-	      inc(filecnt);
-	    end;  
+              inc(filecnt);
+            end;
         end;
-      if filecnt>0 then	
+      if filecnt>0 then
         BuildZipDirectory;
     finally
       CloseOutput;
@@ -1232,6 +1232,7 @@ End;
 Function TUnZipper.OpenOutput(OutFileName : String) : Boolean;
 
 Begin
+  ForceDirectories(ExtractFilePath(OutFileName));
   FOutFile:=TFileStream.Create(OutFileName,fmCreate);
   Result:=True;
   If Assigned(FOnStartFile) then
@@ -1331,7 +1332,7 @@ Begin
     OutputFileName:=Item.Name;
     if FOutputPath<>'' then
       OutputFileName:=IncludeTrailingPathDelimiter(FOutputPath)+OutputFileName;
-    OpenOutput(OutputFileName);  
+    OpenOutput(OutputFileName);
     if ZMethod=0 then
       begin
         Count:=FOutFile.CopyFrom(FZipFile,LocalHdr.Compressed_Size);
@@ -1358,18 +1359,19 @@ Procedure TUnZipper.UnZipAllFiles;
 Var
    Item : TZipItem;
    I : Integer;
-
+   AllFiles : Boolean;
 Begin
   FUnZipping:=True;
   Try
+    AllFiles:=(FFiles.Count=0);
     OpenInput;
     Try
       ReadZipDirectory;
       For I:=0 to FZipEntries.Count-1 do
         begin
           Item:=TZipItem(FZipEntries[i]);
-	  if (FFiles=nil) or
-	     (FFiles.IndexOf(Item.Name)<>-1) then
+          if AllFiles or
+             (FFiles.IndexOf(Item.Name)<>-1) then
             UnZipOneFile(Item);
         end;
     Finally
