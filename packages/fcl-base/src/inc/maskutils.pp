@@ -31,16 +31,9 @@ unit maskutils;
 
 {$mode objfpc}{$H+}
 {.$define DebugMaskUtils}
-{.$define MaskRaiseException}
 
 
 
-{ Define MaskRaiseException only if you want strict matching for required
-characters. It raises exception for some tests valid under delphi like
-
-AssertEquals('(123)_   -    ', FormatMaskText('(000)_000-0000;0;*','123'));
-
-}
 
 interface
 
@@ -52,7 +45,72 @@ Classes
  {$endif};
 
 
+
 function FormatMaskText(const EditMask: string; const Value: string): string;
+function FormatMaskInput(const EditMask: string): string;
+
+
+
+type
+  TStepState =
+  (
+  stLeading,  //? not used currently
+  stUpper,    //use uppercase
+  stLower,    //use lowercase
+  stSpecial,  //use escape character
+  stArbitrary //put arbitrary character
+  );
+
+  TParseState = set of TStepState;
+
+
+
+{ TMaskUtils }
+
+type
+  TMaskUtils = class(TObject)
+    private
+    FValue: string;
+    SourcePosition,Position : Integer;
+    FEditMask,FMask : string;
+    SourceVal,ExitVal : string;
+    Matched : Boolean;
+    MissChar : Char;
+    State : TParseState;
+    procedure EvaluateExit;
+    procedure EvaluateMissing;
+    procedure DoFillRest;
+    procedure DoLiteral;
+    procedure DoLiteralInputMask;
+    procedure DoToken;
+    procedure DoTokenInputMask;
+    procedure DoUpper;
+    procedure DoLower;
+    procedure DoNumeric(Required : Boolean);
+    procedure DoAlpha(Required : Boolean);
+    procedure DoAlphaNumeric(Required : Boolean);
+    procedure DoNumericPlusMinus;
+    procedure DoArbitrary(Required : Boolean);
+    procedure DoTime;
+    procedure DoDate;
+    function GetInputMask: string;
+    procedure SetMask(const AValue: string);
+    procedure SetValue(const AValue: string);
+    protected
+    procedure RaiseError;
+    procedure ExtractMask;
+    function MaskPtr : Char;
+    function SourcePtr : Char;
+    public
+    function ValidateInput : string;
+    property Mask : string read FEditMask write SetMask;
+    property Value : string read FValue write SetValue;
+    property InputMask : string read GetInputMask;
+  end;
+
+
+
+
 
 implementation
 
@@ -66,58 +124,6 @@ exInvalidMaskValue = 'FormatMaskText function failed!';
 
 
 
-type
-  TStepState =
-  (
-  stLeading,  //? not used currently
-  stUpper,    //use uppercase
-  stLower,    //use lowercase
-  stSpecial,  //use escape character
-  stArbitrary //put arbitrary character
-  );
-  
-  TParseState = set of TStepState;
-
-
-
-{ TMaskUtils }
-
-type
-  TMaskUtils = class(TObject)
-    FValue: string;
-    private
-    SourcePosition,Position : Integer;
-    FEditMask,FMask : string;
-    SourceVal,ExitVal : string;
-    Matched : Boolean;
-    MissChar : Char;
-    State : TParseState;
-    procedure EvaluateExit;
-    procedure EvaluateMissing;
-    procedure DoFillRest;
-    procedure DoLiteral;
-    procedure DoToken;
-    procedure DoUpper;
-    procedure DoLower;
-    procedure DoNumeric(Required : Boolean);
-    procedure DoAlpha(Required : Boolean);
-    procedure DoAlphaNumeric(Required : Boolean);
-    procedure DoNumericPlusMinus;
-    procedure DoArbitrary(Required : Boolean);
-    procedure DoTime;
-    procedure DoDate;
-    procedure SetMask(const AValue: string);
-    procedure SetValue(const AValue: string);
-    protected
-    procedure RaiseError;
-    procedure ExtractMask;
-    function MaskPtr : Char;
-    function SourcePtr : Char;
-    public
-    function Validate : string;
-    property Mask : string read FEditMask write SetMask;
-    property Value : string read FValue write SetValue;
-  end;
 
 
 
@@ -165,7 +171,7 @@ end;
 
 
 
-function TMaskUtils.Validate: string;
+function TMaskUtils.ValidateInput : string;
 begin
  {Prepare}
   ExitVal := '';
@@ -203,12 +209,9 @@ end;
 procedure TMaskUtils.RaiseError;inline;
 begin
   if SourcePosition > Length(SourceVal) then
-   EvaluateMissing;
-{$ifdef MaskRaiseException}
-  raise Exception.CreateFmtHelp(exInvalidMaskValue,[],Position);
-{$endif}
-  if Matched then
-   raise Exception.CreateFmtHelp(exInvalidMaskValue,[],Position);
+    EvaluateMissing
+  else
+    raise Exception.CreateFmtHelp(exInvalidMaskValue,[],Position);
 end;
 
 
@@ -231,6 +234,7 @@ end;
 
 
 
+
 {Extract mask from input parameter}
 procedure TMaskUtils.ExtractMask;
 var
@@ -246,8 +250,6 @@ begin
   else
     begin
       MissChar := PChar(Copy(s,P+1,1))^;
-      //for  compatibility with delphi bug ,uncomment  line below !
-      //MissChar := #32;
       Delete(s,P,2);
       P := LastDelimiter(';',s);
       Matched := (Copy(s,P+1,1) <> '0');
@@ -394,6 +396,27 @@ begin
   ExitVal := ExitVal + DateSeparator;
 end;
 
+function TMaskUtils.GetInputMask: string;
+begin
+ {Prepare}
+  ExitVal := '';
+  Position := 1;
+  State := [];
+
+ {Process}
+  while (Position <= Length(FMask)) do
+    begin
+      if (IsToken(MaskPtr) and not (stSpecial In State)) then
+       DoTokenInputMask
+      else
+        DoLiteralInputMask;
+
+      Inc(Position);
+    end;
+
+  Result := ExitVal;
+end;
+
 
 
 
@@ -444,6 +467,32 @@ begin
 
 end;
 
+
+
+procedure TMaskUtils.DoTokenInputMask;
+begin
+
+  case MaskPtr of
+    '!',
+    '>',
+    '<' : ;{nothing}
+    '\' : Include(State,stSpecial);
+    'L',
+    'l',
+    'A',
+    'a',
+    'C',
+    'c',
+    '0',
+    '9',
+    '#' : ExitVal := ExitVal + MissChar;
+    ':' : DoTime;
+    '/' : DoDate;
+  end;
+
+end;
+
+
 procedure TMaskUtils.DoLiteral;
 begin
  {$ifdef DebugMaskUtils}
@@ -457,6 +506,16 @@ begin
    Inc(SourcePosition);
   ExitVal := ExitVal + MaskPtr;
 end;
+
+
+procedure TMaskUtils.DoLiteralInputMask;
+begin
+  if stSpecial in State then
+   Exclude(State,stSpecial);
+  ExitVal := ExitVal + MaskPtr;
+end;
+
+
 
 procedure TMaskUtils.DoFillRest;
 var
@@ -479,6 +538,8 @@ Compatibility with delphi}
 end;
 
 
+
+
 function FormatMaskText(const EditMask: string; const Value: string): string;
 var
   msk : TMaskUtils;
@@ -488,7 +549,23 @@ begin
   try
     msk.Mask := EditMask;
     msk.Value := Value;
-    Result := msk.Validate;
+    Result := msk.ValidateInput;
+  finally
+    msk.Free;
+  end;
+end;
+
+{Returns preprocessed mask (without escape characters, with currect locale date
+and time separators) }
+function FormatMaskInput(const EditMask: string): string;
+var
+  msk : TMaskUtils;
+begin
+  Result := '';
+  msk := TMaskUtils.Create;
+  try
+    msk.Mask := EditMask;
+    Result := msk.InputMask;
   finally
     msk.Free;
   end;
