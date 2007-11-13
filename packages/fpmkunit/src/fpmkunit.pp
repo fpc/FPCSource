@@ -576,6 +576,7 @@ Type
     FRemove: String;
     FTarget: String;
     FUnixPaths: Boolean;
+    FNoFPCCfg: Boolean;
     FSourceExt : String;
     function GetLocalUnitDir: String;
     function GetGlobalUnitDir: String;
@@ -612,6 +613,7 @@ Type
     Property UnixPaths : Boolean Read FUnixPaths Write FUnixPaths;
     Property Options : String Read FOptions Write FOptions;    // Default compiler options.
     Property SourceExt : String Read FSourceExt Write FSourceExt;
+    Property NoFPCCfg : Boolean Read FNoFPCCfg Write FNoFPCCfg;
     // paths etc.
     Property LocalUnitDir : String Read GetLocalUnitDir Write SetLocalUnitDir;
     Property GlobalUnitDir : String Read GetGlobalUnitDir Write SetGlobalUnitDir;
@@ -1001,7 +1003,7 @@ ResourceString
   SHelpTarget         = 'Compile for indicated target';
   SHelpList           = 'list commands instead of actually executing them.';
   SHelpPrefix         = 'Use indicated prefix directory for all commands.';
-  SHelpNoDefaults     = 'Do not use defaults when compiling.';
+  SHelpNoFPCCfg       = 'Compiler will not use fpc.cfg';
   SHelpBaseInstallDir = 'Use indicated directory as base install dir.';
   SHelpLocalUnitDir   = 'Use indicated directory as local (user) unit dir.';
   SHelpGlobalUnitDir  = 'Use indicated directory as global unit dir.';
@@ -1024,6 +1026,7 @@ Const
   KeyMode     = 'Mode';
   KeyPrefix   = 'Prefix';
   KeyTarget   = 'Target';
+  KeyNoFPCCfg = 'NoFPCCfg';
   KeyLocalUnitDir       = 'LocalUnitDir';
   KeyGlobalUnitDir      = 'GlobalUnitDir';
   KeyBaseInstallDir     = 'BaseInstallDir';
@@ -2128,6 +2131,7 @@ begin
   UnixPaths:=False;
   {$endif}
   FSourceExt:=PPExt;
+  FNoFPCCfg:=False;
 end;
 
 
@@ -2279,6 +2283,8 @@ begin
       Values[KeyRemove]:=FRemove;
       Values[KeyTarget]:=FTarget;
       Values[KeySourceExt]:=FSourceExt;
+      if FNoFPCCfg then
+        Values[KeyNoFPCCfg]:='Y';
       end;
     L.SaveToStream(S);
   Finally
@@ -2337,6 +2343,7 @@ begin
       FSourceExt:=Values[KeySourceExt];
       If (FSourceExt='') then
         FSourceExt:=PPExt;
+      FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
       end;
   Finally
     L.Free;
@@ -2609,12 +2616,10 @@ procedure TCustomInstaller.AnalyzeOptions;
 
 Var
   I : Integer;
-  Nodefaults : Boolean;
   DefaultsFileName : string;
 
 begin
   I:=0;
-  NoDefaults:=False;
   FListMode:=False;
   FLogLevels := [vlError,vlWarning,vlInfo];
   While (I<ParamCount) do
@@ -2654,8 +2659,8 @@ begin
       FListMode:=True
     else if Checkoption(I,'P','prefix') then
       Defaults.Prefix:=OptionArg(I)
-    else if Checkoption(I,'n','nodefaults') then
-      NoDefaults:=true
+    else if Checkoption(I,'n','nofpccfg') then
+      Defaults.NoFPCCfg:=true
     else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
     else if CheckOption(I,'UL','localunitdir') then
@@ -2671,7 +2676,7 @@ begin
       Usage(SErrInValidArgument,[I,ParamStr(I)]);
       end;
     end;
-  If Not NoDefaults then
+  If DefaultsFileName<>'' then
     Defaults.LocalInit(DefaultsFileName);
   Defaults.CompilerDefaults;
 {$ifdef debug}
@@ -2710,7 +2715,7 @@ begin
   Log(vlInfo,SHelpCmdOptions);
   LogOption('h','help',SHelpHelp);
   LogOption('l','list-commands',SHelpList);
-  LogOption('n','nodefaults',SHelpNoDefaults);
+  LogOption('n','nofpccfg',SHelpNoFPCCfg);
   LogOption('v','verbose',SHelpVerbose);
   LogArgOption('C','CPU',SHelpCPU);
   LogArgOption('O','OS',SHelpOS);
