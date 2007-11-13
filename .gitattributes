@@ -4090,6 +4090,8 @@ packages/fcl-db/Makefile svneol=native#text/plain
 packages/fcl-db/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/Dataset.txt svneol=native#text/plain
 packages/fcl-db/src/README -text
+packages/fcl-db/src/base/Makefile svneol=native#text/plain
+packages/fcl-db/src/base/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/base/bufdataset.pas svneol=native#text/plain
 packages/fcl-db/src/base/bufdataset_parser.pp svneol=native#text/plain
 packages/fcl-db/src/base/database.inc svneol=native#text/plain
