@@ -103,7 +103,7 @@ procedure TSqlite3Dataset.InternalInitFieldDefs;
 var
   vm:Pointer;
   ColumnStr:String;
-  i,ColumnCount,FieldSize:Integer;
+  i,ColumnCount:Integer;
   AType:TFieldType;
 begin
   {$ifdef DEBUG}
@@ -118,71 +118,58 @@ begin
   FRowBufferSize:=(SizeOf(PPChar)*ColumnCount);
   //Prepare the array of pchar2sql functions
   SetLength(FGetSqlStr,ColumnCount);
-  for i:= 0 to ColumnCount - 1 do
+  for i := 0 to ColumnCount - 1 do
   begin
-   ColumnStr:= UpperCase(StrPas(sqlite3_column_decltype(vm,i)));
+   ColumnStr := UpperCase(StrPas(sqlite3_column_decltype(vm,i)));
    if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
    begin
      if AutoIncrementKey and (UpperCase(StrPas(sqlite3_column_name(vm,i))) = UpperCase(PrimaryKey)) then
      begin
-       AType:= ftAutoInc;
-       FAutoIncFieldNo:=i;
+       AType := ftAutoInc;
+       FAutoIncFieldNo := i;
      end
      else
-       AType:= ftInteger;
-     FieldSize:=SizeOf(LongInt);
+       AType := ftInteger;     
    end else if Pos('VARCHAR',ColumnStr) = 1 then
    begin
-     AType:= ftString;
-     FieldSize:=0;
+     AType := ftString;
    end else if Pos('BOOL',ColumnStr) = 1 then
    begin
-     AType:= ftBoolean;
-     FieldSize:=SizeOf(WordBool);
+     AType := ftBoolean;
    end else if Pos('AUTOINC',ColumnStr) = 1 then
    begin
-     AType:= ftAutoInc;
-     FieldSize:=SizeOf(LongInt);
+     AType := ftAutoInc;
      if FAutoIncFieldNo = -1 then
-       FAutoIncFieldNo:= i;
+       FAutoIncFieldNo := i;
    end else if (Pos('FLOAT',ColumnStr)=1) or (Pos('NUMERIC',ColumnStr)=1) then
    begin
-     AType:= ftFloat;
-     FieldSize:=SizeOf(Double);
+     AType := ftFloat;
    end else if (ColumnStr = 'DATETIME') then
    begin
-     AType:= ftDateTime;
-     FieldSize:=SizeOf(TDateTime);
+     AType := ftDateTime;
    end else if (ColumnStr = 'DATE') then
    begin
-     AType:= ftDate;
-     FieldSize:=SizeOf(TDateTime);
+     AType := ftDate;
    end else if (ColumnStr = 'LARGEINT') then
    begin
-     AType:= ftLargeInt;
-     FieldSize:=SizeOf(Int64);
+     AType := ftLargeInt;
    end else if (ColumnStr = 'TIME') then
    begin
-     AType:= ftTime;
-     FieldSize:=SizeOf(TDateTime);
+     AType := ftTime;
    end else if (ColumnStr = 'TEXT') then
    begin
-     AType:= ftMemo;
-     FieldSize:=0;
+     AType := ftMemo;
    end else if (ColumnStr = 'CURRENCY') then
    begin
-     AType:= ftCurrency;
-     FieldSize:=SizeOf(Double);
+     AType := ftCurrency;
    end else if (ColumnStr = 'WORD') then
    begin
-     AType:= ftWord;
-     FieldSize:=SizeOf(Word);
+     AType := ftWord;
    end else
    begin
-     AType:= ftString;
-     FieldSize:=0;
+     AType := ftString;
    end;
-   FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, FieldSize, False);
+   FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, 0, False);
    //Set the pchar2sql function
    if AType in [ftString,ftMemo] then
      FGetSqlStr[i]:=@Char2SqlStr
