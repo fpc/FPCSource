@@ -1206,6 +1206,7 @@ Function ModeToString(Mode: TCompilerMode) : String;
 
 begin
   Result:=LowerCase(GetenumName(TypeInfo(TCompilerMode),Ord(Mode)));
+  Delete(Result,1,2);
 end;
 
 Function StringToMode(const S : String) : TCompilerMode;
