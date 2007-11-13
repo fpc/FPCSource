@@ -261,7 +261,7 @@ begin
   { Maybe compile fpmake executable? }
   ExecuteAction(CurrentPackage,'compilefpmake');
   { Create options }
-  OOptions:=' --nodefaults';
+  OOptions:=' --nofpccfg';
   if vInfo in Verbosity then
     OOptions:=OOptions+' --verbose';
   OOptions:=OOptions+' --compiler='+Options.Compiler;
