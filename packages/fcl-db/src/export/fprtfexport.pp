@@ -5,7 +5,7 @@ unit fprtfexport;
 interface
 
 uses
-  Classes, SysUtils, DB, dbexport;
+  Classes, SysUtils, DB, fpdbexport;
 
 Type
   TRTFExportOption = (reHeaderRow,reHeaderLine,reTopLine,reBottomLine);
@@ -370,7 +370,5 @@ begin
   inherited Assign(Source);
 end;
 
-initialization
-  RegisterRTFExporter
 end.
 
