@@ -8866,11 +8866,6 @@ utils/fpmc/test.mc -text
 utils/fppkg/Makefile svneol=native#text/plain
 utils/fppkg/Makefile.fpc svneol=native#text/plain
 utils/fppkg/README svneol=native#text/plain
-utils/fppkg/fcl20/contnrs.pp svneol=native#text/plain
-utils/fppkg/fcl20/streamcoll.pp svneol=native#text/plain
-utils/fppkg/fcl20/uriparser.pp svneol=native#text/plain
-utils/fppkg/fcl20/zipper.pp svneol=native#text/plain
-utils/fppkg/fcl20/zstream.pp svneol=native#text/plain
 utils/fppkg/fpmkunitsrc.inc svneol=native#text/plain
 utils/fppkg/fppkg.lpi svneol=native#text/plain
 utils/fppkg/fppkg.pp svneol=native#text/plain

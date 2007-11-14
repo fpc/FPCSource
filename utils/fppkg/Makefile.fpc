@@ -9,13 +9,13 @@ version=2.0.0
 [target]
 programs=fppkg
 implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
-units_linux=pkgwget  pkglnet $(PKGCURL)
-units_beos=pkgwget pkglnet $(PKGCURL)
-units_freebsd=pkgwget pkglnet $(PKGCURL)
-units_netbsd=pkgwget pkglnet $(PKGCURL)
-units_openbsd=pkgwget pkglnet $(PKGCURL)
-units_darwin=pkgwget pkglnet $(PKGCURL)
-units_solaris=pkgwget pkglnet $(PKGCURL)
+units_linux=pkgwget  pkglnet pkgcurl
+units_beos=pkgwget pkglnet pkgcurl
+units_freebsd=pkgwget pkglnet pkgcurl
+units_netbsd=pkgwget pkglnet pkgcurl
+units_openbsd=pkgwget pkglnet pkgcurl
+units_darwin=pkgwget pkglnet pkgcurl
+units_solaris=pkgwget pkglnet pkgcurl
 units_win32=pkgwget pkglnet
 units_win64=pkgwget pkglnet
 units_wince=pkgwget pkglnet
@@ -23,11 +23,11 @@ examples=rep2xml
 rsts=fprepos fpxmlrep pkgmessages
 
 [compiler]
-unitdir=$(FCL20) lnet
+unitdir=lnet
 includedir=lnet/sys
 
 [clean]
-units=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+units=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
 
 [install]
 fpcpackage=y
@@ -38,15 +38,6 @@ fpcdir=../..
 [require]
 packages=fcl-base fcl-xml fcl-process paszlib libcurl
 tools=data2inc
-
-[prerules]
-# Compatibility to compile with 2.0.x
-ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
-FCL20=fcl20
-FCL20UNITS=zstream contnrs streamcoll zipper
-else
-PKGCURL=pkglibcurl
-endif
 
 [rules]
 .NOTPARALLEL:
