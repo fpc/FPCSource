@@ -26,6 +26,7 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestParseJoins; // bug 10148
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
     procedure Test11Params;
@@ -873,6 +874,19 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestParseJoins;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    with query do
+      begin
+      SQL.Text:='select TT.NAME from FPDEV left join FPDEV as TT on TT.ID=FPDEV.ID';
+      Open;
+      close;
+      end;
+    end;
 end;
 
 procedure TTestFieldTypes.TestInsertLargeStrFields;

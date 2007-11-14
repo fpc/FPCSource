@@ -1072,7 +1072,7 @@ begin
                          Move(PStatementPart^,FFromPart[1],(StrLength));
                          FFrompart := trim(FFrompart);
                        
-                         if pos(',',FFromPart) > 0 then
+                         if ExtractStrings([',',' '],[],pchar(FFromPart),nil) > 1 then
                            FUpdateable := False // select-statements from more then one table are not updateable
                          else
                            begin
