@@ -173,8 +173,11 @@ begin
     end else
     begin
       AType := ftString;
-    end;
-    FieldDefs.Add(StrPas(ColumnNames[i]), AType, 0, False);
+    end;    
+    if AType = ftString then
+      FieldDefs.Add(StrPas(ColumnNames[i]), AType, dsMaxStringSize)
+    else
+      FieldDefs.Add(StrPas(ColumnNames[i]), AType);  
     //Set the pchar2sql function
     if AType in [ftString,ftMemo] then
       FGetSqlStr[i]:=@Char2SqlStr

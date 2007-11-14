@@ -169,7 +169,10 @@ begin
    begin
      AType := ftString;
    end;
-   FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, 0, False);
+   if AType = ftString then
+     FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, dsMaxStringSize)
+   else
+     FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType);  
    //Set the pchar2sql function
    if AType in [ftString,ftMemo] then
      FGetSqlStr[i]:=@Char2SqlStr
