@@ -39,6 +39,7 @@ function maybequoted(const s:string):string;
 Function FixPath(const S : String) : string;
 Function DirectoryExistsLog(const ADir:string):Boolean;
 Function FileExistsLog(const AFileName:string):Boolean;
+procedure BackupFile(const AFileName: String);
 Procedure DeleteDir(const ADir:string);
 Procedure SearchFiles(SL:TStringList;const APattern:string);
 Function GetCompilerInfo(const ACompiler,AOptions:string):string;
@@ -200,6 +201,17 @@ begin
     Log(vDebug,SDbgFileExists,[AFileName,SDbgFound])
   else
     Log(vDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
+end;
+
+
+procedure BackupFile(const AFileName: String);
+Var
+  BFN : String;
+begin
+  BFN:=AFileName+'.bak';
+  Log(vDebug,SDbgBackupFile,[BFN]);
+  If not RenameFile(AFileName,BFN) then
+    Error(SErrBackupFailed,[AFileName,BFN]);
 end;
 
 

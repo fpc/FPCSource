@@ -43,7 +43,6 @@ Resourcestring
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';
   SErrGETFailed              = 'FTP GET "%s" command failed.';
 
-  SWarnFPMKUnitDirNotFound   = 'Unit directory for package "%s" is not found, compiling fpmake may file';
   SWarnFPMKUnitNotFound      = 'Package "fpmkunit" is not found, using internal bootstrap procedure';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
@@ -57,6 +56,7 @@ Resourcestring
   SLogZippping               = 'Zipping "%s"';
   SLogLoadingGlobalConfig    = 'Loading global configuration from "%s"';
   SLogLoadingCompilerConfig  = 'Loading compiler configuration from "%s"';
+  SLogLoadingFPMakeCompilerConfig = 'Loading compiler configuration for fpmake building from "%s"';
   SLogGeneratingGlobalConfig = 'Generating default global configuration in "%s"';
   SLogDetectedCompiler       = 'Detected compiler "%s" (version %s for %s)';
   SLogDetectedFPCDIR         = 'Detected %s FPCDIR "%s"';
@@ -69,6 +69,7 @@ Resourcestring
   SDbgNotFound               = 'Not Found';
   SDbgDirectoryExists        = 'Directory "%s" %s';
   SDbgFileExists             = 'File "%s" %s';
+  SDbgBackupFile             = 'Creating Backup File "%s"';
 
 
 implementation

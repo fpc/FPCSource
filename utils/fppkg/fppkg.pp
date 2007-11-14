@@ -74,20 +74,20 @@ begin
   GeneratedConfig:=false;
   // Load file or create new default configuration
   if FileExists(cfgfile) then
-    Options.LoadGlobalFromFile(cfgfile)
+    GlobalOptions.LoadGlobalFromFile(cfgfile)
   else
     begin
       ForceDirectories(ExtractFilePath(cfgfile));
-      Options.SaveGlobalToFile(cfgfile);
+      GlobalOptions.SaveGlobalToFile(cfgfile);
       GeneratedConfig:=true;
     end;
   // Load default verbosity from config
   SL:=TStringList.Create;
-  SL.CommaText:=Options.DefaultVerbosity;
+  SL.CommaText:=GlobalOptions.DefaultVerbosity;
   for i:=0 to SL.Count-1 do
     Include(Verbosity,StringToVerbosity(SL[i]));
   SL.Free;
-  Options.CurrentCompilerConfig:=Options.DefaultCompilerConfig;
+  GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
     Log(vDebug,SLogGeneratingGlobalConfig,[cfgfile])
@@ -98,9 +98,9 @@ end;
 
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
-  ForceDirectories(Options.BuildDir);
-  ForceDirectories(Options.PackagesDir);
-  ForceDirectories(Options.CompilerConfigDir);
+  ForceDirectories(GlobalOptions.BuildDir);
+  ForceDirectories(GlobalOptions.PackagesDir);
+  ForceDirectories(GlobalOptions.CompilerConfigDir);
 end;
 
 
@@ -108,24 +108,34 @@ procedure TMakeTool.LoadCompilerDefaults;
 var
   S : String;
 begin
-  S:=Options.CompilerConfigDir+Options.CurrentCompilerConfig;
+  // Load default compiler config
+  S:=GlobalOptions.CompilerConfigDir+GlobalOptions.CompilerConfig;
   if FileExists(S) then
     begin
       Log(vDebug,SLogLoadingCompilerConfig,[S]);
-      Options.LoadCompilerFromFile(S)
+      CompilerOptions.LoadCompilerFromFile(S)
     end
   else
     begin
       // Generate a default configuration if it doesn't exists
-      if Options.CurrentCompilerConfig='default' then
+      if GlobalOptions.CompilerConfig='default' then
         begin
           Log(vDebug,SLogGeneratingCompilerConfig,[S]);
-          Options.InitCompilerDefaults;
-          Options.SaveCompilerToFile(S);
+          CompilerOptions.InitCompilerDefaults;
+          CompilerOptions.SaveCompilerToFile(S);
         end
       else
         Error(SErrMissingCompilerConfig,[S]);
     end;
+  // Load FPMake compiler config, this is normally the same config as above
+  S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
+  if FileExists(S) then
+    begin
+      Log(vDebug,SLogLoadingFPMakeCompilerConfig,[S]);
+      FPMakeCompilerOptions.LoadCompilerFromFile(S)
+    end
+  else
+    Error(SErrMissingCompilerConfig,[S]);
 end;
 
 
@@ -136,18 +146,18 @@ begin
   Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Set verbosity');
-  Writeln('  -b --bootstrap     Special bootstrapping mode');
   Writeln('  -g --global        Force installation to global (system-wide) directory');
   Writeln('  -f --force         Force installation also if the package is already installed');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
   Writeln('  avail              List available packages');
   Writeln('  build              Build package');
+  Writeln('  compile            Compile package');
   Writeln('  install            Install package');
   Writeln('  archive            Create archive of package');
   Writeln('  download           Download package');
   Writeln('  convertmk          Convert Makefile.fpc to fpmake.pp');
-  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
+//  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
   Halt(0);
 end;
 
@@ -217,13 +227,11 @@ begin
       Inc(I);
       // Check options.
       if CheckOption(I,'c','config') then
-        Options.CurrentCompilerConfig:=OptionArg(I)
+        GlobalOptions.CompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         Include(Verbosity,StringToVerbosity(OptionArg(I)))
-      else if CheckOption(I,'b','bootstrap') then
-        Options.BootStrap:=true
       else if CheckOption(I,'g','global') then
-        Options.InstallGlobal:=true
+        GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
@@ -256,14 +264,14 @@ var
   i      : Integer;
 begin
   OldCurrDir:=GetCurrentDir;
-  LoadGlobalDefaults;
   Try
+    LoadGlobalDefaults;
     ProcessCommandLine;
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
 
     // Load local repository, update first if this is a new installation
-    if not FileExists(Options.LocalPackagesFile) then
+    if not FileExists(GlobalOptions.LocalPackagesFile) then
       pkghandler.ExecuteAction(nil,'update');
     LoadLocalRepository;
     LoadLocalStatus;

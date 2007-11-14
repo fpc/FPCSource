@@ -43,14 +43,15 @@ begin
     CurrentRepository.Free;
   CurrentRepository:=TFPRepository.Create(Nil);
   // Repository
-  Log(vDebug,SLogLoadingPackagesFile,[Options.LocalPackagesFile]);
-  if not FileExists(Options.LocalPackagesFile) then
+  S:=GlobalOptions.LocalPackagesFile;
+  Log(vDebug,SLogLoadingPackagesFile,[S]);
+  if not FileExists(S) then
     exit;
   try
     X:=TFPXMLRepositoryHandler.Create;
     With X do
       try
-        LoadFromXml(CurrentRepository,Options.LocalPackagesFile);
+        LoadFromXml(CurrentRepository,S);
       finally
         Free;
       end;
@@ -58,7 +59,7 @@ begin
     on E : Exception do
       begin
         Log(vError,E.Message);
-        Error(SErrCorruptPackagesFile,[Options.LocalPackagesFile]);
+        Error(SErrCorruptPackagesFile,[S]);
       end;
   end;
 end;
@@ -68,7 +69,7 @@ procedure LoadLocalStatus;
 var
   S : String;
 begin
-  S:=Options.LocalVersionsFile(Options.CurrentCompilerConfig);
+  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
   Log(vDebug,SLogLoadingStatusFile,[S]);
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
@@ -79,7 +80,7 @@ procedure SaveLocalStatus;
 var
   S : String;
 begin
-  S:=Options.LocalVersionsFile(Options.CurrentCompilerConfig);
+  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
   Log(vDebug,SLogSavingStatusFile,[S]);
   CurrentRepository.SaveStatusToFile(S);
 end;

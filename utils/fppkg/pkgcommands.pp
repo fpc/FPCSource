@@ -117,8 +117,8 @@ end;
 
 function TCommandUpdate.Execute(const Args:TActionArgs):boolean;
 begin
-  Log(vCommands,SLogDownloading,[Options.RemotePackagesFile,Options.LocalPackagesFile]);
-  DownloadFile(Options.RemotePackagesFile,Options.LocalPackagesFile);
+  Log(vCommands,SLogDownloading,[GlobalOptions.RemotePackagesFile,GlobalOptions.LocalPackagesFile]);
+  DownloadFile(GlobalOptions.RemotePackagesFile,GlobalOptions.LocalPackagesFile);
   // Read the repository again
   LoadLocalRepository;
   LoadLocalStatus;

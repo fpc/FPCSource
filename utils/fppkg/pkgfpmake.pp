@@ -118,16 +118,16 @@ Procedure TFPMakeCompiler.CompileFPMake;
   function CheckUnitDir(const AUnitName:string;Out AUnitDir:string):boolean;
   begin
     Result:=false;
-    if Options.FPMakeLocalUnitDir<>'' then
+    if FPMakeCompilerOptions.LocalUnitDir<>'' then
       begin
-        AUnitDir:=IncludeTrailingPathDelimiter(Options.FPMakeLocalUnitDir+AUnitName);
+        AUnitDir:=IncludeTrailingPathDelimiter(FPMakeCompilerOptions.LocalUnitDir+AUnitName);
         if DirectoryExistsLog(AUnitDir) then
           begin
             Result:=true;
             exit;
           end;
       end;
-    AUnitDir:=IncludeTrailingPathDelimiter(Options.FPMakeGlobalUnitDir+AUnitName);
+    AUnitDir:=IncludeTrailingPathDelimiter(FPMakeCompilerOptions.GlobalUnitDir+AUnitName);
     if DirectoryExistsLog(AUnitDir) then
       begin
         Result:=true;
@@ -149,7 +149,7 @@ Var
   HaveFpmake : boolean;
 begin
   SetCurrentDir(PackageBuildPath);
-  { Check for fpmake source }
+  // Check for fpmake source
   FPMakeBin:='fpmake'+ExeExt;
   FPMakeSrc:='fpmake.pp';
   HaveFpmake:=FileExists(FPMakeSrc);
@@ -159,7 +159,7 @@ begin
       If HaveFPMake then
         FPMakeSrc:='fpmake.pas';
     end;
-  { Need to compile fpmake executable? }
+  // Need to compile fpmake executable?
   if not FileExists(FPMakeBin) or
      (FileAge(FPMakeBin)<FileAge(FPMakeSrc)) then
     begin
@@ -233,7 +233,7 @@ begin
       if NeedFPMKUnitSource then
         CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
       // Call compiler
-      If ExecuteProcess(Options.FPMakeCompiler,OOptions+' '+FPmakeSrc)<>0 then
+      If ExecuteProcess(FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
         Error(SErrFailedToCompileFPCMake);
       // Cleanup units
       DeleteDir(TempBuildDir);
@@ -264,18 +264,16 @@ begin
   OOptions:=' --nofpccfg';
   if vInfo in Verbosity then
     OOptions:=OOptions+' --verbose';
-  OOptions:=OOptions+' --compiler='+Options.Compiler;
-  OOptions:=OOptions+' --CPU='+CPUToString(Options.CompilerCPU);
-  OOptions:=OOptions+' --OS='+OSToString(Options.CompilerOS);
-  if IsSuperUser or Options.InstallGlobal then
-    OOptions:=OOptions+' --baseinstalldir='+Options.GlobalInstallDir
+  OOptions:=OOptions+' --compiler='+CompilerOptions.Compiler;
+  OOptions:=OOptions+' --CPU='+CPUToString(CompilerOptions.CompilerCPU);
+  OOptions:=OOptions+' --OS='+OSToString(CompilerOptions.CompilerOS);
+  if IsSuperUser or GlobalOptions.InstallGlobal then
+    OOptions:=OOptions+' --baseinstalldir='+CompilerOptions.GlobalInstallDir
   else
-    OOptions:=OOptions+' --baseinstalldir='+Options.LocalInstallDir;
-  if Options.LocalInstallDir<>'' then
-    OOptions:=OOptions+' --localunitdir='+Options.LocalInstallDir+
-        'units'+PathDelim+MakeTargetString(Options.CompilerCPU,Options.CompilerOS);
-  OOptions:=OOptions+' --globalunitdir='+Options.GlobalInstallDir+
-      'units'+PathDelim+MakeTargetString(Options.CompilerCPU,Options.CompilerOS);
+    OOptions:=OOptions+' --baseinstalldir='+CompilerOptions.LocalInstallDir;
+  if CompilerOptions.LocalInstallDir<>'' then
+    OOptions:=OOptions+' --localunitdir='+CompilerOptions.LocalUnitDir;
+  OOptions:=OOptions+' --globalunitdir='+CompilerOptions.GlobalUnitDir;
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath);

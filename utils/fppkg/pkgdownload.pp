@@ -15,7 +15,6 @@ Type
   Private
     FBackupFile : Boolean;
   Protected
-    Procedure BackupFile(Const FileName : String);
     // Needs overriding.
     Procedure FTPDownload(Const URL : String; Dest : TStream); Virtual;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); Virtual;
@@ -60,15 +59,6 @@ end;
 
 
 { TBaseDownloader }
-
-procedure TBaseDownloader.BackupFile(const FileName: String);
-Var
-  BFN : String;
-begin
-  BFN:=FileName+'.bak';
-  If not RenameFile(FileName,BFN) then
-    Error(SErrBackupFailed,[FileName,BFN]);
-end;
 
 procedure TBaseDownloader.FTPDownload(const URL: String; Dest: TStream);
 begin

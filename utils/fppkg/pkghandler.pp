@@ -167,7 +167,7 @@ begin
   if CurrentPackage=nil then
     Result:='.'
   else
-    Result:=Options.BuildDir+CurrentPackage.Name;
+    Result:=GlobalOptions.BuildDir+CurrentPackage.Name;
 end;
 
 function TPackageHandler.PackageRemoteArchive: String;
@@ -177,14 +177,14 @@ begin
   if CurrentPackage.ExternalURL<>'' then
     Result:=CurrentPackage.ExternalURL
   else
-    Result:=Options.RemoteRepository+CurrentPackage.FileName;
+    Result:=GlobalOptions.RemoteRepository+CurrentPackage.FileName;
 end;
 
 function TPackageHandler.PackageLocalArchive: String;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
-  Result:=Options.PackagesDir+CurrentPackage.FileName;
+  Result:=GlobalOptions.PackagesDir+CurrentPackage.FileName;
 end;
 
 
