@@ -1,4 +1,4 @@
-{ %cpu=i386,x86_64 }
+{ %cpu=i386 }
 
 {$ifdef fpc}
 {$mode delphi}
