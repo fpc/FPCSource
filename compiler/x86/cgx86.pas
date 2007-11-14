@@ -1877,7 +1877,8 @@ unit cgx86;
              begin
                a_call_name(list,'MCOUNT');
              end;
-           system_x86_64_linux:
+           system_x86_64_linux,
+           system_x86_64_darwin:
              begin
                a_call_name(list,'mcount');
              end;
