@@ -24,6 +24,7 @@ uses
   pqconnection,
   mysql4conn,
   IBConnection,
+  sqlite3conn,
   sqldb;
 
 var connection  : tSQLConnection;
@@ -37,6 +38,7 @@ begin
   if dbtype = 'mysql' then connection := tMySQLConnection.Create(nil);
   if dbtype = 'postgresql' then connection := tpqConnection.Create(nil);
   if dbtype = 'interbase' then connection := tIBConnection.Create(nil);
+  if dbtype = 'sqlite3' then connection := tSQLite3Connection.Create(nil);
 
   if not assigned(connection) then exit; // probably an invalid database type given
 
