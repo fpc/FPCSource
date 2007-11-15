@@ -34,6 +34,7 @@ type
     procedure TestBug9744;
     procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;
+    procedure TestGetTables;
     procedure TestUpdateIndexDefs;
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsStringParam;
@@ -1048,12 +1049,32 @@ begin
     begin
     FieldNames := TStringList.Create;
     try
-      Connection.GetFieldNames('FpDEv',FieldNames);
+      if SQLDbType in MySQLdbTypes then
+        Connection.GetFieldNames('FPDEV',FieldNames)
+      else
+        Connection.GetFieldNames('fpDEv',FieldNames);
       AssertEquals(2,FieldNames.Count);
       AssertEquals('ID',UpperCase(FieldNames[0]));
       AssertEquals('NAME',UpperCase(FieldNames[1]));
     finally
       FieldNames.Free;
+      end;
+    end;
+end;
+
+procedure TTestFieldTypes.TestGetTables;
+var TableNames : TStringList;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    TableNames := TStringList.Create;
+    try
+      Connection.GetTableNames(TableNames);
+      AssertTrue(TableNames.Count>0);
+      AssertTrue(TableNames.IndexOf('FPDEV')>-1);
+      AssertTrue(TableNames.IndexOf('FPDEV_FIELD')>-1);
+    finally
+      TableNames.Free;
       end;
     end;
 end;
@@ -1159,7 +1180,7 @@ procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 var ADateStr : String;
 begin
-  if SQLDbType=interbase then Ignore('This test does not apply to Interbase/Firebird, since it doesn''t use semicolons for casts');
+  if SQLDbType in [interbase,mysql40,mysql41,mysql50] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
     begin

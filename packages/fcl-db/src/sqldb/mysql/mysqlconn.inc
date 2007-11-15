@@ -82,6 +82,7 @@ Type
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
     procedure ExecuteDirectMySQL(const query : string);
+    function EscapeString(const Str : string) : string;
   protected
     function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
@@ -114,10 +115,13 @@ Type
     function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   Public
     constructor Create(AOwner : TComponent); override;
+    procedure GetFieldNames(const TableName : string; List :  TStrings); override;
+    procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); override;
     procedure CreateDB; override;
     procedure DropDB; override;
     Property ServerInfo : String Read FServerInfo;
@@ -226,12 +230,7 @@ var esc_str : pchar;
 begin
   if (not assigned(field)) or field.IsNull then Result := 'Null'
   else if field.DataType = ftString then
-    begin
-    Getmem(esc_str,sizeof(field.asstring)*2+1);
-    mysql_real_escape_string(FMySQL,esc_str,pchar(field.asstring),length(field.asstring));
-    Result := '''' + esc_str + '''';
-    Freemem(esc_str);
-    end
+    Result := '''' + EscapeString(field.AsString) + ''''
   else Result := inherited GetAsSqlText(field);
 end;
 
@@ -241,13 +240,8 @@ var esc_str : pchar;
 
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else if param.DataType in [ftString,ftBlob] then
-    begin
-    Getmem(esc_str,length(param.asstring)*2+1);
-    mysql_real_escape_string(FMySQL,esc_str,pchar(param.asstring),length(param.asstring));
-    Result := '''' + esc_str + '''';
-    Freemem(esc_str);
-    end
+  else if param.DataType in [ftString,ftBlob,ftMemo] then
+    Result := '''' + EscapeString(Param.AsString) + ''''
   else Result := inherited GetAsSqlText(Param);
 end;
 
@@ -307,6 +301,16 @@ begin
   mysql_close(AMySQL);
 
   ReleaseMysql;
+end;
+
+function TConnectionName.EscapeString(const Str: string): string;
+
+var Len : integer;
+
+begin
+  SetLength(result,length(str)*2+1);
+  Len := mysql_real_escape_string(FMySQL,pchar(Result),pchar(Str),length(Str));
+  SetLength(result,Len);
 end;
 
 procedure TConnectionName.DoInternalConnect;
@@ -443,8 +447,12 @@ begin
       NewType := ftLargeint;
       NewSize := 0;
       end;
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG,
-    FIELD_TYPE_INT24:
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT:
+      begin
+      NewType := ftSmallint;
+      NewSize := 0;
+      end;
+    FIELD_TYPE_LONG, FIELD_TYPE_INT24:
       begin
       NewType := ftInteger;
       NewSize := 0;
@@ -455,7 +463,7 @@ begin
     FIELD_TYPE_DECIMAL: if ADecimals < 5 then
                           begin
                           NewType := ftBCD;
-                          NewSize := 0;
+                          NewSize := ADecimals;
                           end
                         else
                           begin
@@ -709,6 +717,7 @@ function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; 
 
 var
   VI: Integer;
+  VS: Smallint;
   VF: Double;
   VC: Currency;
   VD: TDateTime;
@@ -721,8 +730,15 @@ begin
     exit;
   Src:=StrPas(Source);
   case AType of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG,
-    FIELD_TYPE_INT24:
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT:
+      begin
+      if (Src<>'') then
+        VS := StrToInt(Src)
+      else
+        VS := 0;
+      Move(VS, Dest^, SizeOf(smallint));
+      end;
+    FIELD_TYPE_LONG, FIELD_TYPE_INT24:
       begin
       if (Src<>'') then
         VI := StrToInt(Src)
@@ -847,7 +863,10 @@ end;
 
 function TConnectionName.RowsAffected(cursor: TSQLCursor): TRowsCount;
 begin
-  Result := (cursor as TCursorName).RowsAffected;
+  if assigned(cursor) then
+    Result := (cursor as TCursorName).RowsAffected
+  else
+    Result := -1;
 end;
 
 constructor TConnectionName.Create(AOwner: TComponent);
@@ -855,6 +874,16 @@ begin
   inherited Create(AOwner);
   FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
   FMySQL := Nil;
+end;
+
+procedure TConnectionName.GetFieldNames(const TableName: string; List: TStrings);
+begin
+  GetDBInfo(stColumns,TableName,'field',List);
+end;
+
+procedure TConnectionName.GetTableNames(List: TStrings; SystemTables: Boolean);
+begin
+  GetDBInfo(stTables,'','tables_in_'+DatabaseName,List)
 end;
 
 function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;
@@ -885,6 +914,18 @@ end;
 procedure TConnectionName.RollBackRetaining(trans: TSQLHandle);
 begin
   // Do nothing
+end;
+
+function TConnectionName.GetSchemaInfoSQL(SchemaType: TSchemaType;
+  SchemaObjectName, SchemaPattern: string): string;
+
+begin
+  case SchemaType of
+    stTables     : result := 'show tables';
+    stColumns    : result := 'show columns from ' + EscapeString(SchemaObjectName);
+  else
+    DatabaseError(SMetadataUnavailable)
+  end; {case}
 end;
 
 { TMySQLConnectionDef }

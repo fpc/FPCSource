@@ -367,6 +367,7 @@ Destructor TDBTransaction.Destroy;
 
 begin
   Database:=Nil;
+  CloseDataSets;
   RemoveDatasets;
   FDatasets.Free;
   Inherited;
