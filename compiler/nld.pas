@@ -444,6 +444,8 @@ implementation
          inherited create(assignn,l,r);
          l.mark_write;
          assigntype:=at_normal;
+         if r.nodetype = typeconvn then
+           ttypeconvnode(r).warn_pointer_to_signed:=false;
       end;
 
 

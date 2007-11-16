@@ -37,6 +37,7 @@ interface
           totypedef   : tdef;
           totypedefderef : tderef;
           convtype : tconverttype;
+          warn_pointer_to_signed: boolean;
           constructor create(node : tnode;def:tdef);virtual;
           constructor create_explicit(node : tnode;def:tdef);
           constructor create_internal(node : tnode;def:tdef);
@@ -661,10 +662,6 @@ implementation
              muln:
                cgmessage1(type_h_convert_mul_operands_to_prevent_overflow,def.gettypename);
            end;
-         {Converting pointers to signed integers is a bad idea. Warn.}
-         if (node.resultdef<>nil) and (node.resultdef.typ=pointerdef) and
-           (def.typ=orddef) and (Torddef(def).ordtype in [s8bit,s16bit,s32bit,s64bit]) then
-           cgmessage(type_w_pointer_to_signed);
       end;
 
 
@@ -1923,6 +1920,8 @@ implementation
             ((resultdef.typ=orddef) and
              (left.resultdef.typ in [pointerdef,procvardef,classrefdef]))) then
           begin
+            {Converting pointers to signed integers is a bad idea. Warn.}
+            warn_pointer_to_signed:=(resultdef.typ=orddef) and (Torddef(resultdef).ordtype in [s8bit,s16bit,s32bit,s64bit]);
             { Give a warning when sizes don't match, because then info will be lost }
             if left.resultdef.size=resultdef.size then
               CGMessage(type_h_pointer_to_longint_conv_not_portable)
@@ -2687,6 +2686,8 @@ implementation
 
     function ttypeconvnode.pass_1 : tnode;
       begin
+        if warn_pointer_to_signed then
+          cgmessage(type_w_pointer_to_signed);
         result:=nil;
         firstpass(left);
         if codegenerror then
