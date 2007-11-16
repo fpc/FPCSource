@@ -14,5 +14,7 @@ begin
   HaltOnNotReleased := true;
   CheckThread := TCheckConnThread.Create(false);
   CheckThread.Terminate;
-  CheckThread.Waitfor;
+  { not really clean, but waitfor is not possible since the thread may }
+  { already have freed itself                                          }
+  sleep(500);
 end.

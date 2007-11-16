@@ -104,8 +104,8 @@ type
 {$ifndef beos}
 function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
 {$endif}
-{ $ ifndef bsd}
-{$if not defined(bsd) and not defined(beos)}
+
+{$if (not defined(bsd) and not defined(beos)) or defined(darwin)}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';

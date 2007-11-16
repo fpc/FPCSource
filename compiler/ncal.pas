@@ -809,7 +809,10 @@ implementation
     procedure tcallparanode.insert_typeconv(do_count : boolean);
       var
         olddef  : tdef;
-        hp       : tnode;
+        hp      : tnode;
+        block : tblocknode;
+        statements : tstatementnode;
+        temp : ttempcreatenode;
 {$ifdef extdebug}
         store_count_ref : boolean;
 {$endif def extdebug}
@@ -924,7 +927,33 @@ implementation
                       else
                        begin
                          check_ranges(left.fileinfo,left,parasym.vardef);
-                         inserttypeconv(left,parasym.vardef);
+                         { truncate shortstring value parameters at the caller side if }
+                         { they are passed by value (if passed by reference, then the  }
+                         { callee will truncate when copying in the string)            }
+                         { This happens e.g. on x86_64 for small strings               }
+                         if (parasym.varspez=vs_value) and
+                            not paramanager.push_addr_param(parasym.varspez,parasym.vardef,
+                                  aktcallnode.procdefinition.proccalloption) and
+                            (tstringdef(parasym.vardef).len<tstringdef(left.resultdef).len) then
+                           begin
+                             block:=internalstatements(statements);
+                             { temp for the new string }
+                             temp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,
+                               tt_persistent,true);
+                             addstatement(statements,temp);
+                             { assign parameter to temp }
+                             addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),left));
+                             left:=nil;
+                             { release temp after next use }
+                             addstatement(statements,ctempdeletenode.create_normal_temp(temp));
+                             addstatement(statements,ctemprefnode.create(temp));
+                             typecheckpass(block);
+                             left:=block;
+                           end
+                         else
+                           { type conversions perform no truncation for constant strings, }
+                           { which is TP/Delphi compatible                                }
+                           inserttypeconv(left,parasym.vardef);
                        end;
                       if codegenerror then
                         begin

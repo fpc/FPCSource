@@ -588,7 +588,10 @@ begin
         StaticStr:='-static';
     end;
   if (cs_link_strip in current_settings.globalswitches) then
-    StripStr:='-s';
+    if (target_info.system in systems_darwin) then
+      StripStr:='-x'
+    else
+      StripStr:='-s';
 
   if (cs_link_smart in current_settings.globalswitches) and
      (tf_smartlink_sections in target_info.flags) then

@@ -76,7 +76,9 @@ Uses Sysctl;
 {$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}      // general fdset funcs.
 
-{$ifndef FPC_USE_LIBC}
+{$ifdef FPC_USE_LIBC}
+  {$i oscdecl.inc}        // implementation of wrappers in oscdeclh.inc
+{$else}
   {$i syscallh.inc}       // do_syscall declarations themselves
   {$i sysnr.inc}          // syscall numbers.
   {$i bsyscall.inc}       // cpu specific syscalls

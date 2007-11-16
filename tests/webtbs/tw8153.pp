@@ -11,7 +11,7 @@ type
     procedure testatt; virtual;
   end;
 
-procedure tc.testintel; assembler;
+procedure tc.testintel; assembler; nostackframe;
 asm
   mov ecx,[eax]
   jmp [ecx + vmtoffset tc.v]
@@ -19,7 +19,7 @@ end;
 
 {$asmmode att}
 
-procedure tc.testatt; assembler;
+procedure tc.testatt; assembler; nostackframe;
 asm
   movl (%eax),%ecx
   jmpl +vmtoffset tc.v(%ecx)

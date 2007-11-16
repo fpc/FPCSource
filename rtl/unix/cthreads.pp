@@ -869,16 +869,16 @@ begin
         result := wrError;
 {$else}
       timespec.tv_sec:=0;
-      { 500 miliseconds or less -> wait once for this duration }
-      if (timeout <= 500) then
+      { 50 miliseconds or less -> wait once for this duration }
+      if (timeout <= 50) then
         loopcnt:=1
-      { otherwise wake up every 500 msecs to check   }
+      { otherwise wake up every 50 msecs to check    }
       { (we'll wait a little longer in total because }
       {  we don't take into account the overhead)    }
       else
         begin
-          loopcnt := timeout div 500;
-          timespec.tv_nsec:=500*1000000;
+          loopcnt := timeout div 50;
+          timespec.tv_nsec:=50*1000000;
         end;
       result := wrTimeOut;
       nanores := 0;
@@ -887,7 +887,7 @@ begin
         begin
           { in the last iteration, wait for the amount of time left }
           if (i = loopcnt) then
-            timespec.tv_nsec:=(timeout mod 500) * 1000000;
+            timespec.tv_nsec:=(timeout mod 50) * 1000000;
           timetemp:=timespec;
           lastloop:=false;
           { every time our sleep is interrupted for whatever reason, }

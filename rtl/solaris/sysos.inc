@@ -40,6 +40,7 @@ end;
 
 {$Linklib c}
 {$i oscdeclh.inc}
+{$i oscdecl.inc}
 
 {*****************************************************************************
                             Error conversion

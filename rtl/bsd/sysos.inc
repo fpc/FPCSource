@@ -84,6 +84,7 @@ end;
 {$ifdef FPC_USE_LIBC}
   {$Linklib c}
   {$i oscdeclh.inc}
+  {$i oscdecl.inc}
 {$else}
   {$I syscallh.inc}
   {$I syscall.inc}

@@ -216,7 +216,7 @@ implementation
       verbose,globals,systems,
       symconst,symdef,defutil,defcmp,
       pass_1,
-      nld,ncal,nflw,
+      nutils,nld,ncal,nflw,
       procinfo
       ;
 
@@ -317,6 +317,21 @@ implementation
       end;
 
 
+    function is_exit_statement(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if (n.nodetype<>exitn) then
+          result:=fen_false
+        else
+          result:=fen_norecurse_true;
+      end;
+
+
+    function no_exit_statement_in_block(n: tnode): boolean;
+      begin
+        result:=not foreachnodestatic(n,@is_exit_statement,nil);
+      end;
+
+
     function tstatementnode.simplify : tnode;
       begin
         result:=nil;
@@ -355,7 +370,12 @@ implementation
 
         { if the current statement contains a block with one statement, }
         { replace the current statement with that block's statement     }
+        { (but only if the block does not have nf_block_with_exit set   }
+        {  or has no exit statement, because otherwise it needs an own  }
+        {  exit label, see tests/test/tinline10)                        }
         if (left.nodetype = blockn) and
+           (not(nf_block_with_exit in left.flags) or
+            no_exit_statement_in_block(left)) and
            assigned(tblocknode(left).left) and
            not assigned(tstatementnode(tblocknode(left).left).right) then
           begin
@@ -465,6 +485,8 @@ implementation
           begin
             result:=tstatementnode(left).left;
             tstatementnode(left).left:=nil;
+            { make sure the nf_block_with_exit flag is safeguarded }
+            result.flags:=result.flags+(flags * [nf_block_with_exit]);
             exit;
           end;
       end;

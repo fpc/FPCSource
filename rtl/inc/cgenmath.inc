@@ -14,7 +14,9 @@
  **********************************************************************}
 
 { for 80x86, we can easily write the optimal inline code }
-{$ifndef cpui386}
+{ Furthermore, the routines below only go up to double   }
+{ precision and we need extended precision if supported  }
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 
 {$ifndef SOLARIS}
 
@@ -162,5 +164,5 @@
     end;
 {$endif}
 
-{$endif not i386}
+{$endif not FPC_HAS_TYPE_EXTENDED}
 

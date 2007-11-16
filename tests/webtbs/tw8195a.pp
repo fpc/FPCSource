@@ -76,7 +76,6 @@ end;
 function LabelOFFSET: Integer;
 asm
   mov eax, OFFSET @@Exit
-  ret
  @@Exit:
 end;
 

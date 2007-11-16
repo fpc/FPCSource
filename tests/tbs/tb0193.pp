@@ -4,14 +4,15 @@
 var
   stacksize : ptrint;external name '__stklen';
 
-function getstacksize:longint;assembler;
+function getstacksize:ptrint;assembler;
 asm
 {$ifdef CPUI386}
         movl    stacksize,%eax
 end ['EAX'];
 {$endif CPUI386}
 {$ifdef CPUX86_64}
-        movl    stacksize,%eax
+        movq    stacksize@GOTPCREL(%rip),%rax
+        movq    (%rax),%rax
 end ['EAX'];
 {$endif CPUX86_64}
 {$ifdef CPU68K}

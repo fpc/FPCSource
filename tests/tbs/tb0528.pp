@@ -1,4 +1,8 @@
 {%CPU=x86_64,powerpc64}
+{%skiptarget=darwin}
+
+{ darwin limits statically declared data structures to 32 bit for efficiency reasons }
+
 program tb0528;
 
 {This program tests if huge arrays work on 64-bit systems. I got the idea

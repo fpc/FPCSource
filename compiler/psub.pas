@@ -1417,7 +1417,7 @@ implementation
                   begin
                     Message1(parser_w_not_supported_for_inline,'nested procedures');
                     Message(parser_w_inlining_disabled);
-                    current_procinfo.procdef.proccalloption:=pocall_default;
+                    exclude(current_procinfo.procdef.procoptions,po_inline);
                   end;
               end;
             if not(df_generic in current_procinfo.procdef.defoptions) then

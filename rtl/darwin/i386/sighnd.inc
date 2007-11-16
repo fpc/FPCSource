@@ -16,6 +16,7 @@
 procedure SignalToRunerror(Sig: cint; info : psiginfo; SigContext:PSigContext); cdecl;
 
 var
+  p: pbyte;
   res : word;
 
 begin
@@ -31,15 +32,35 @@ begin
           FPE_FLTRES,             { floating point inexact result }
           FPE_FLTINV : Res:=207;  { invalid floating point operation }
           Else
-            Res:=207; { coprocessor error }
+            begin
+              { Assume that if an integer divide was executed, the }
+              { error was a divide-by-zero (FPE_INTDIV is not      }
+              { implemented as of 10.5.0)                          }
+              p:=pbyte(sigcontext^.uc_mcontext^.ts.eip);
+              if assigned(p) then
+                begin
+                  { skip some prefix bytes }
+                  while (p^ in [$66,$67]) do
+                    inc(p);
+                  if (p^ in [$f6,$f7]) and
+                     (((p+1)^ and (%110 shl 3)) = (%110 shl 3)) then
+                    Res:=200
+                  else
+                    Res:=207; { coprocessor error }
+                end
+              else
+                Res:=207;
+            end;
         end;
-        { the following is true on ppc, but fortunately not on x86 }
-        { FPU exceptions are completely disabled by the kernel if one occurred, it  }
-        { seems this is necessary to be able to return to user mode. They can be    }
-        { enabled by executing a sigreturn, however then the exception is triggered }
-        { triggered again immediately if we don't turn off the "exception occurred" }
-        { flags in fpscr                                                            }
+        { make sure any fpu operations won't trigger new exceptions in handler }
         sysResetFPU;
+        { Now clear exception flags in the context }
+        { perform an fnclex: clear exception and busy flags }
+        sigcontext^.uc_mcontext^.fs.fpu_fsw.flag0:=
+          sigcontext^.uc_mcontext^.fs.fpu_fsw.flag0 and (not(%11111111) and not(1 shl 15));
+        { also clear sse exception flags }
+        sigcontext^.uc_mcontext^.fs.fpu_mxcsr:=
+          sigcontext^.uc_mcontext^.fs.fpu_mxcsr and not(%111111)
       end;
     SIGILL,
     SIGBUS,
@@ -51,6 +72,16 @@ begin
   {$endif }
 
   if (res <> 0) then
-    HandleErrorAddrFrame(res,pointer(sigcontext^.ts.eip),pointer(sigcontext^.ts.ebp));
+    begin
+      { assume regcall calling convention is the default }
+      sigcontext^.uc_mcontext^.ts.eax:=res;
+      sigcontext^.uc_mcontext^.ts.edx:=sigcontext^.uc_mcontext^.ts.eip;
+      sigcontext^.uc_mcontext^.ts.ecx:=sigcontext^.uc_mcontext^.ts.ebp;
+      { the ABI expects the stack pointer to be 4 bytes off alignment }
+      { due to the return address which has been pushed               }
+      dec(sigcontext^.uc_mcontext^.ts.esp,sizeof(pointer));
+      { return to run time error handler }
+      sigcontext^.uc_mcontext^.ts.eip:=ptruint(@HandleErrorAddrFrame);
+    end;
 end;
 
