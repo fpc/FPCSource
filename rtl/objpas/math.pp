@@ -434,9 +434,9 @@ function popnstddev(const data : PSingle; Const N : Integer) : float;
 function popnvariance(const data : PSingle; Const N : Integer) : float;
 function popnvariance(const data : array of Single) : float;
 procedure momentskewkurtosis(const data : array of Single;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 procedure momentskewkurtosis(const data : PSingle; Const N : Integer;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
@@ -465,9 +465,9 @@ function popnstddev(const data : PDouble; Const N : Integer) : float;
 function popnvariance(const data : PDouble; Const N : Integer) : float;
 function popnvariance(const data : array of Double) : float;
 procedure momentskewkurtosis(const data : array of Double;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 procedure momentskewkurtosis(const data : PDouble; Const N : Integer;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
@@ -496,9 +496,9 @@ function popnstddev(const data : PExtended; Const N : Integer) : float;
 function popnvariance(const data : PExtended; Const N : Integer) : float;
 function popnvariance(const data : array of Extended) : float;
 procedure momentskewkurtosis(const data : array of Extended;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 procedure momentskewkurtosis(const data : PExtended; Const N : Integer;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
@@ -1317,46 +1317,59 @@ function popnvariance(const data : PSingle; Const N : Integer) : float;
      PopnVariance:=TotalVariance(Data,N)/N;
   end;
 
-procedure momentskewkurtosis(const data : array of Single;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+procedure momentskewkurtosis(const data : array of single;
+  out m1,m2,m3,m4,skew,kurtosis : float);
 
 begin
   momentskewkurtosis(PSingle(@Data[0]),High(Data)+1,m1,m2,m3,m4,skew,kurtosis);
 end;
 
-procedure momentskewkurtosis(const data : PSingle; Const N : Integer;
-  var m1,m2,m3,m4,skew,kurtosis : float);
-
-  Var S,SS,SC,SQ,invN,Acc,M1S,S2N,S3N,temp : Float;
-      I : Longint;
-
+procedure momentskewkurtosis(
+  const data: pSingle;
+  Const N: integer;
+  out m1: float;
+  out m2: float;
+  out m3: float;
+  out m4: float;
+  out skew: float;
+  out kurtosis: float
+);
+var
+  i: integer;
+  value : psingle;
+  deviation, deviation2: single;
+  reciprocalN: float;
+begin
+  m1 := 0;
+  reciprocalN := 1/N;
+  value := data;
+  for i := 0 to N-1 do
   begin
-     invN:=1.0/N;
-     s:=0;
-     ss:=0;
-     sq:=0;
-     sc:=0;
-     for i:=0 to N-1 do
-       begin
-       temp:=Data[i];   { faster }
-       S:=S+temp;
-       acc:=sqr(temp);
-       ss:=ss+acc;
-       Acc:=acc*temp;
-       Sc:=sc+acc;
-       acc:=acc*temp;
-       sq:=sq+acc;
-       end;
-     M1:=s*invN;
-     M1S:=sqr(M1);
-     S2N:=SS*invN;
-     S3N:=SC*invN;
-     M2:=S2N-M1S;
-     M3:=S3N-(M1*3*S2N) + 2*M1S*M1;
-     M4:=SQ*invN - (M1 * 4 * S3N) + (M1S*6*S2N-3*Sqr(M1S));
-     Skew:=M3*power(M2,-3/2);
-     Kurtosis:=M4 / Sqr(M2);
+    m1 := m1 + value^;
+    inc(value);
   end;
+  m1 := reciprocalN * m1;
+
+  m2 := 0;
+  m3 := 0;
+  m4 := 0;
+  value := data;
+  for i := 0 to N-1 do
+  begin
+    deviation := (value^-m1);
+    deviation2 := deviation * deviation;
+    m2 := m2 + deviation2;
+    m3 := m3 + deviation2 * deviation;
+    m4 := m4 + deviation2 * deviation2;
+    inc(value);
+  end;
+  m2 := reciprocalN * m2;
+  m3 := reciprocalN * m3;
+  m4 := reciprocalN * m4;
+  
+  skew := m3 / (sqrt(m2)*m2);
+  kurtosis := m4 / (m2 * m2);
+end;
 
 function norm(const data : array of Single) : float;
 
@@ -1473,45 +1486,59 @@ function popnvariance(const data : PDouble; Const N : Integer) : float;
   end;
 
 procedure momentskewkurtosis(const data : array of Double;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 
 begin
   momentskewkurtosis(PDouble(@Data[0]),High(Data)+1,m1,m2,m3,m4,skew,kurtosis);
 end;
 
-procedure momentskewkurtosis(const data : PDouble; Const N : Integer;
-  var m1,m2,m3,m4,skew,kurtosis : float);
-
-  Var S,SS,SC,SQ,invN,Acc,M1S,S2N,S3N,temp : Float;
-      I : Longint;
-
+procedure momentskewkurtosis(
+  const data: pdouble;
+  Const N: integer;
+  out m1: float;
+  out m2: float;
+  out m3: float;
+  out m4: float;
+  out skew: float;
+  out kurtosis: float
+);
+var
+  i: integer;
+  value : pdouble;
+  deviation, deviation2: double;
+  reciprocalN: float;
+begin
+  m1 := 0;
+  reciprocalN := 1/N;
+  value := data;
+  for i := 0 to N-1 do
   begin
-     invN:=1.0/N;
-     s:=0;
-     ss:=0;
-     sq:=0;
-     sc:=0;
-     for i:=0 to N-1 do
-       begin
-       temp:=Data[i];   { faster }
-       S:=S+temp;
-       acc:=sqr(temp);
-       ss:=ss+acc;
-       Acc:=acc*temp;
-       Sc:=sc+acc;
-       acc:=acc*temp;
-       sq:=sq+acc;
-       end;
-     M1:=s*invN;
-     M1S:=sqr(M1);
-     S2N:=SS*invN;
-     S3N:=SC*invN;
-     M2:=S2N-M1S;
-     M3:=S3N-(M1*3*S2N) + 2*M1S*M1;
-     M4:=SQ*invN - (M1 * 4 * S3N) + (M1S*6*S2N-3*Sqr(M1S));
-     Skew:=M3*power(M2,-3/2);
-     Kurtosis:=M4 / Sqr(M2);
+    m1 := m1 + value^;
+    inc(value);
   end;
+  m1 := reciprocalN * m1;
+
+  m2 := 0;
+  m3 := 0;
+  m4 := 0;
+  value := data;
+  for i := 0 to N-1 do
+  begin
+    deviation := (value^-m1);
+    deviation2 := deviation * deviation;
+    m2 := m2 + deviation2;
+    m3 := m3 + deviation2 * deviation;
+    m4 := m4 + deviation2 * deviation2;
+    inc(value);
+  end;
+  m2 := reciprocalN * m2;
+  m3 := reciprocalN * m3;
+  m4 := reciprocalN * m4;
+  
+  skew := m3 / (sqrt(m2)*m2);
+  kurtosis := m4 / (m2 * m2);
+end;
+
 
 function norm(const data : array of Double) : float;
 
@@ -1628,45 +1655,58 @@ function popnvariance(const data : PExtended; Const N : Integer) : float;
   end;
 
 procedure momentskewkurtosis(const data : array of Extended;
-  var m1,m2,m3,m4,skew,kurtosis : float);
+  out m1,m2,m3,m4,skew,kurtosis : float);
 
 begin
   momentskewkurtosis(PExtended(@Data[0]),High(Data)+1,m1,m2,m3,m4,skew,kurtosis);
 end;
 
-procedure momentskewkurtosis(const data : PExtended; Const N : Integer;
-  var m1,m2,m3,m4,skew,kurtosis : float);
-
-  Var S,SS,SC,SQ,invN,Acc,M1S,S2N,S3N,temp : Float;
-      I : Longint;
-
+procedure momentskewkurtosis(
+  const data: pExtended;
+  Const N: integer;
+  out m1: float;
+  out m2: float;
+  out m3: float;
+  out m4: float;
+  out skew: float;
+  out kurtosis: float
+);
+var
+  i: integer;
+  value : pextended;
+  deviation, deviation2: extended;
+  reciprocalN: float;
+begin
+  m1 := 0;
+  reciprocalN := 1/N;
+  value := data;
+  for i := 0 to N-1 do
   begin
-     invN:=1.0/N;
-     s:=0;
-     ss:=0;
-     sq:=0;
-     sc:=0;
-     for i:=0 to N-1 do
-       begin
-       temp:=Data[i];   { faster }
-       S:=S+temp;
-       acc:=sqr(temp);
-       ss:=ss+acc;
-       Acc:=acc*temp;
-       Sc:=sc+acc;
-       acc:=acc*temp;
-       sq:=sq+acc;
-       end;
-     M1:=s*invN;
-     M1S:=sqr(M1);
-     S2N:=SS*invN;
-     S3N:=SC*invN;
-     M2:=S2N-M1S;
-     M3:=S3N-(M1*3*S2N) + 2*M1S*M1;
-     M4:=SQ*invN - (M1 * 4 * S3N) + (M1S*6*S2N-3*Sqr(M1S));
-     Skew:=M3*power(M2,-3/2);
-     Kurtosis:=M4 / Sqr(M2);
+    m1 := m1 + value^;
+    inc(value);
   end;
+  m1 := reciprocalN * m1;
+
+  m2 := 0;
+  m3 := 0;
+  m4 := 0;
+  value := data;
+  for i := 0 to N-1 do
+  begin
+    deviation := (value^-m1);
+    deviation2 := deviation * deviation;
+    m2 := m2 + deviation2;
+    m3 := m3 + deviation2 * deviation;
+    m4 := m4 + deviation2 * deviation2;
+    inc(value);
+  end;
+  m2 := reciprocalN * m2;
+  m3 := reciprocalN * m3;
+  m4 := reciprocalN * m4;
+  
+  skew := m3 / (sqrt(m2)*m2);
+  kurtosis := m4 / (m2 * m2);
+end;
 
 function norm(const data : array of Extended) : float;
 
