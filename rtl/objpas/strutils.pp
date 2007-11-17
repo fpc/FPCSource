@@ -519,112 +519,9 @@ end;
 
 Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String; Options: TStringSearchOptions): PChar;
 
-var
-  Len,I,SLen: Integer;
-  C: Char;
-  Found : Boolean;
-  Direction: Shortint;
-  CharMap: array[Char] of Char;
-
-  Function GotoNextWord(var P : PChar): Boolean;
-
-  begin
-    if (Direction=1) then
-      begin
-      // Skip characters
-      While (Len>0) and not (P^ in WordDelimiters) do
-        begin
-        Inc(P);
-        Dec(Len);
-        end;
-     // skip delimiters
-      While (Len>0) and (P^ in WordDelimiters) do
-        begin
-        Inc(P);
-        Dec(Len);
-        end;
-      Result:=Len>0;
-      end
-    else
-      begin
-      // Skip Delimiters
-      While (Len>0) and (P^ in WordDelimiters) do
-        begin
-        Dec(P);
-        Dec(Len);
-        end;
-     // skip characters
-      While (Len>0) and not (P^ in WordDelimiters) do
-        begin
-        Dec(P);
-        Dec(Len);
-        end;
-      Result:=Len>0;
-      // We're on the first delimiter. Pos back on char.
-      Inc(P);
-      Inc(Len);
-      end;
-  end;
-
 begin
-  Result:=nil;
-  Slen:=Length(SearchString);
-  if (BufLen<=0) or (Slen=0) then
-    Exit;
-  if soDown in Options then
-    begin
-    Direction:=1;
-    Inc(SelStart,SelLength);
-    Len:=BufLen-SelStart-SLen+1;
-    if (Len<=0) then
-      Exit;
-    end
-  else
-    begin
-    Direction:=-1;
-    Dec(SelStart,Length(SearchString));
-    Len:=SelStart+1;
-    end;
-  if (SelStart<0) or (SelStart>BufLen) then
-    Exit;
-  Result:=@Buf[SelStart];
-  for C:=Low(Char) to High(Char) do
-    if (soMatchCase in Options) then
-      CharMap[C]:=C
-    else
-      CharMap[C]:=Upcase(C);
-  if Not (soMatchCase in Options) then
-    SearchString:=UpCase(SearchString);
-  Found:=False;
-  while (Result<>Nil) and (Not Found) do
-    begin
-    if ((soWholeWord in Options) and
-        (Result<>@Buf[SelStart]) and
-        not GotoNextWord(Result)) then
-        Result:=Nil
-    else
-      begin
-        // try to match whole searchstring
-      I:=0;
-      while (I<Slen) and (CharMap[Result[I]]=SearchString[I+1]) do
-      Inc(I);
-      // Whole searchstring matched ?
-      if (I=SLen) then
-      Found:=(Len=0) or
-              (not (soWholeWord in Options)) or
-              (Result[SLen] in WordDelimiters);
-      if not Found then
-        begin
-        Inc(Result,Direction);
-        Dec(Len);
-        If (Len=0) then
-          Result:=Nil;
-        end;
-      end;
-    end;
+  // Tainted
 end;
-
-
 
 Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String): PChar;inline; // ; Options: TStringSearchOptions = [soDown]
 begin
@@ -761,22 +658,8 @@ end;
 
 Function DecodeSoundexInt(AValue: Integer): string;
 
-var
-  I, Len: Integer;
-
 begin
-  Result := '';
-  Len := AValue mod 9;
-  AValue := AValue div 9;
-  for I:=Len downto 3 do
-    begin
-    Result:=Chr(Ord0+(AValue mod 7))+Result;
-    AValue:=AValue div 7;
-    end;
-  if Len>2 then
-    Result:=IntToStr(AValue mod 26)+Result;
-  AValue:=AValue div 26;
-  Result:=Chr(OrdA+AValue)+Result;
+  // Tainted
 end;
 
 
