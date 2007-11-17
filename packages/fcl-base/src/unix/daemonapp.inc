@@ -112,6 +112,8 @@ end;
 
 procedure TDaemonThread.CheckControlMessage(WaitForMessage : Boolean);
 begin
+  If WaitForMessage then // Don't hog CPU.
+    Sleep(50);
 end;
 
 

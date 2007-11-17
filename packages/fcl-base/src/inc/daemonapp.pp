@@ -1137,10 +1137,7 @@ begin
     if not FDaemon.Execute then
       begin
       While Not Terminated do
-        begin
         CheckControlMessage(True);
-        Sleep(50);
-        end;
       CheckControlMessage(False);
       end;
     end;
