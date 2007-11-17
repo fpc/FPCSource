@@ -192,7 +192,9 @@ begin
   Result:=-1;
   While I<=Length(DirName) do
     begin
-    If DirName[i]=PathDelim then
+    If (DirName[i]=PathDelim) and
+       { avoid error in case last char=pathdelim }
+       (length(dirname)>i) then
       begin
       DirName[i]:=#0;
       Inc(Result);
