@@ -5522,6 +5522,14 @@ rtl/symbian/uiq.pas -text
 rtl/symbian/uiqclasses.pas -text
 rtl/symbian/uiqinc/qikapplication.inc -text
 rtl/symbian/uiqinc/qikapplicationoo.inc -text
+rtl/tests/findnested.lpi svneol=native#text/plain
+rtl/tests/findnested.lpr svneol=native#text/plain
+rtl/tests/fplists.pp svneol=native#text/plain
+rtl/tests/lists.pp svneol=native#text/plain
+rtl/tests/lltests.lpi svneol=native#text/plain
+rtl/tests/lltests.lpr svneol=native#text/plain
+rtl/tests/tcfindnested.pp svneol=native#text/plain
+rtl/tests/testll.pp svneol=native#text/plain
 rtl/ucmaps/8859-1.txt svneol=native#text/plain
 rtl/ucmaps/8859-10.txt svneol=native#text/plain
 rtl/ucmaps/8859-13.txt svneol=native#text/plain
