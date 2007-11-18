@@ -35,30 +35,47 @@ static const struct idf ppcmd[] = {
 static const struct idf reserved[] = {
 	{"and",		NORM('&')},
 	{"array",	NORM('A')},
+        {"as",          NORM('a')},
 	{"begin",	NORM('{')},
 	{"case",	NORM('c')},
+        {"catch",       META('C')},
+        {"class",       META('c')},
+	{"continue",	CTRL('C')},
+	{"constructor",	NORM('p')},	/* equal to procedure */
 	{"const",	NORM('C')},
+	{"destructor",	NORM('p')},	/* equal to procedure */
 	{"div",		NORM('/')},
 	{"do",		NORM('D')},
 	{"downto",	NORM('d')},
 	{"else",	NORM('e')},
 	{"end",		NORM('}')},
 	{"extern",	CTRL('E')},
+	{"except",	META('E')},
 	{"file",	NORM('F')},
+        {"finally",     META('F')},
 	{"for",		NORM('f')},
 	{"function",	NORM('p')},	/* Equal to procedure */
 	{"goto",	NORM('g')},
 	{"if",		NORM('i')},
 	{"in",		NORM('I')},
+	{"inherited",	META('i')},
+	{"is",		META('I')},
 	{"label",	NORM('l')},
 	{"mod",		NORM('%')},
 	{"nil",		NORM('n')},
 	{"not",		NORM('!')},
 	{"of",		SKIP},
+	{"on",		SKIP},
 	{"or",		NORM('|')},
+	{"object",	NORM('O')},
+	{"override",	NORM('o')},
 	{"packed",	NORM('P')},
 	{"procedure",	NORM('p')},
 	{"program",	SKIP},
+	{"private",	META('P')},
+	{"protected",	META('p')},
+	{"public",	CTRL('P')},
+	{"raise",	META('R')},
 	{"record",	NORM('r')},
 	{"repeat",	NORM('R')},
 	{"set",		NORM('s')},
@@ -67,6 +84,7 @@ static const struct idf reserved[] = {
 	{"type",	NORM('T')},
 	{"until",	NORM('u')},
 	{"var",		NORM('v')},
+	{"virtual",	NORM('V')},
 	{"while",	NORM('w')},
 	{"with",	NORM('W')}
 };
@@ -108,6 +126,8 @@ const TOKEN NonFinals[] = {
 	NORM('['),
 	NORM('A'),	/* array */
 	NORM('c'),	/* case */
+        META('C'),      /* catch */
+        META('c'),      /* class */
 	NORM('C'),	/* const */
 	NORM('/'),	/* div */
 	CTRL('E'),	/* extern */
@@ -115,9 +135,15 @@ const TOKEN NonFinals[] = {
 	NORM('f'),	/* for */
 	NORM('g'),	/* goto */
 	NORM('i'),	/* if */
+	META('i'),	/* inherited */
 	NORM('l'),	/* label */
+	NORM('O'),	/* object */
 	NORM('P'),	/* packed */
-	NORM('p'),	/* procedure/function */
+	NORM('p'),	/* procedure/function/constructor/destructor */
+	META('P'),	/* private */
+	META('p'),	/* protected */
+	CTRL('p'),	/* public */
+	META('R'),	/* raise */
 	NORM('r'),	/* record */
 	NORM('R'),	/* repeat */
 	NORM('s'),	/* set */
@@ -164,6 +190,8 @@ EndComment	("}"|"*)")
 SafeComChar	([^*}\n])
 UnsafeComChar	("*")
 
+SingleLineCom   ("//".*)
+
 Digit		([0-9])
 Idf		([A-Za-z][A-Za-z0-9_]*)
 
@@ -190,6 +218,10 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 \'{StrChar}*\'	{			/* character strings */
 		return_ch('"');
 	}
+
+{SingleLineCom}"\n"     {               /* single-line comment */
+                return_eol();
+        }
 
 ^#{Layout}*include.*	{		/* ignore #include lines */
 	}
