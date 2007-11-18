@@ -1,0 +1,8 @@
+To compare a body of suspect code with pre-existing code, use the following
+command (after performing a make to build the tool)
+
+./sim_pasc -eS -w 170 suspectfile1  suspectfileN / orgfile1 ... orgfileM
+
+You can obviously use wild cards. The number after "-w" indicates how
+many columns will be used in the output (best make it > 160 to avoid too
+much wrapping)
