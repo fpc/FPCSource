@@ -178,7 +178,7 @@ interface
           procedure printnodetree(var t:text);override;
           { returns whether a parameter contains a type conversion from }
           { a refcounted into a non-refcounted type                     }
-          function contains_unsafe_typeconversion: boolean;
+          function can_be_inlined: boolean;
 
           property nextpara : tnode read right write right;
           property parametername : tnode read third write third;
@@ -834,11 +834,12 @@ implementation
       end;
 
 
-    function tcallparanode.contains_unsafe_typeconversion: boolean;
+    function tcallparanode.can_be_inlined: boolean;
       var
         n: tnode;
       begin
         n:=left;
+        result:=false;
         while assigned(n) and
               (n.nodetype=typeconvn) do
           begin
@@ -848,13 +849,21 @@ implementation
                 is_class(n.resultdef)) and
                (ttypeconvnode(n).left.resultdef.needs_inittable and
                 not is_class(ttypeconvnode(n).left.resultdef)) then
-              begin
-                result:=true;
-                exit;
-              end;
+              exit;
             n:=ttypeconvnode(n).left;
           end;
-        result:=false;
+        { also check for dereferencing constant pointers, like }
+        { tsomerecord(nil^) passed to a const r: tsomerecord   }
+        { parameter                                           }
+        if (n.nodetype=derefn) then
+          begin
+            repeat
+              n:=tunarynode(n).left;
+            until (n.nodetype<>typeconvn);
+            if (n.nodetype in [niln,pointerconstn]) then
+              exit
+          end;
+        result:=true;
       end;
 
 
@@ -2598,9 +2607,9 @@ implementation
             para:=tcallparanode(parameters);
             while assigned(para) do
               begin
-                if para.contains_unsafe_typeconversion then
+                if not para.can_be_inlined then
                   begin
-                    Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", invocation parameter contains unsafe type conversion');
+                    Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", invocation parameter contains an unsafe/unsupported construct');
                     exclude(callnodeflags,cnf_do_inline);
                     break;
                   end;
