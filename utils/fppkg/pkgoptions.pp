@@ -38,6 +38,7 @@ Type
     FPackagesDir,
     FBuildDir,
     FDefaultVerbosity,
+    FDownloader,
     FDefaultCompilerConfig,
     FFPMakeCompilerConfig : String;
     // Parameter options
@@ -68,6 +69,7 @@ Type
     Property DefaultVerbosity : String Index 7 Read GetOptString Write SetOptString;
     Property DefaultCompilerConfig : String Index 8 Read GetOptString Write SetOptString;
     Property FPMakeCompilerConfig : String Index 9 Read GetOptString Write SetOptString;
+    Property Downloader: String Index 10 Read GetOptString Write SetOptString;
     // Parameters
     Property CompilerConfig : String Read FCompilerConfig Write FCompilerConfig;
     Property InstallGlobal : Boolean Read FInstallGlobal Write FInstallGlobal;
@@ -152,6 +154,7 @@ Const
   KeyVerbosity             = 'Verbosity';
   KeyCompilerConfig        = 'CompilerConfig';
   KeyFPMakeCompilerConfig  = 'FPMakeCompilerConfig';
+  KeyDownloader            = 'Downloader';
 
   // Compiler dependent config
   KeyGlobalInstallDir      = 'GlobalInstallDir';
@@ -185,6 +188,7 @@ begin
     7 : Result:=FDefaultVerbosity;
     8 : Result:=FDefaultCompilerConfig;
     9 : Result:=FFPMakeCompilerConfig;
+   10 : Result:=FDownloader;
     else
       Error('Unknown option');
   end;
@@ -205,6 +209,7 @@ begin
     7 : FDefaultVerbosity:=AValue;
     8 : FDefaultCompilerConfig:=AValue;
     9 : FFPMakeCompilerConfig:=AValue;
+   10 : FDownloader:=AValue;
     else
       Error('Unknown option');
   end;
@@ -263,6 +268,12 @@ begin
   FDefaultVerbosity:='error,warning,info,debug,commands';
   FDefaultCompilerConfig:='default';
   FFPMakeCompilerConfig:='default';
+  // Downloader
+{$if defined(unix) or defined(windows)}
+  FDownloader:='lnet';
+{$else}
+  FDownloader:='base';
+{$endif}
   // Parameter defaults
   FCompilerConfig:=FDefaultCompilerConfig;
   FInstallGlobal:=False;
@@ -286,6 +297,7 @@ begin
      FDefaultVerbosity:=ReadString(SDefaults,KeyVerbosity,FDefaultVerbosity);
      FDefaultCompilerConfig:=ReadString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
      FFPMakeCompilerConfig:=ReadString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
+     FDownloader:=ReadString(SDefaults,KeyDownloader,FDownloader);
    end;
 end;
 
@@ -305,6 +317,7 @@ begin
      WriteString(SDefaults,KeyVerbosity,FDefaultVerbosity);
      WriteString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
      WriteString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
+     WriteString(SDefaults,KeyDownloader,FDownloader);
    end;
 end;
 

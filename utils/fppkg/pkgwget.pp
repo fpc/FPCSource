@@ -72,5 +72,5 @@ begin
 end;
 
 initialization
-  DownloaderClass:=TWGetDownloader;
+  RegisterDownloader('wget',TWGetDownloader);
 end.

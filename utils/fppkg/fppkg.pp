@@ -17,6 +17,7 @@ uses
   // Downloaders
 {$if defined(unix) or defined(windows)}
   ,pkgwget
+  ,pkglnet
 {$endif}
   ;
 

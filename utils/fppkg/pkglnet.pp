@@ -175,6 +175,5 @@ begin
 end;
 
 initialization
-  DownloaderClass:=TLNetDownloader;
-
+  RegisterDownloader('lnet',TLNetDownloader);
 end.

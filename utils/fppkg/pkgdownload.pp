@@ -1,4 +1,4 @@
-unit pkgdownload;
+unit pkgDownload;
 
 {$mode objfpc}{$H+}
 
@@ -33,8 +33,8 @@ Type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
-Var
-  DownloaderClass : TBaseDownloaderClass;
+procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
+function GetDownloader(const AName:string):TBaseDownloaderClass;
 
 procedure DownloadFile(const RemoteFile,LocalFile:String);
 
@@ -42,13 +42,39 @@ procedure DownloadFile(const RemoteFile,LocalFile:String);
 implementation
 
 uses
+  contnrs,
   uriparser,
   pkgglobals,
+  pkgoptions,
   pkgmessages;
+
+var
+  DownloaderList  : TFPHashList;
+
+procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
+begin
+  if DownloaderList.Find(AName)<>nil then
+    begin
+      Error('Downloader already registered');
+      exit;
+    end;
+  DownloaderList.Add(AName,Downloaderclass);
+end;
+
+
+function GetDownloader(const AName:string):TBaseDownloaderClass;
+begin
+  result:=TBaseDownloaderClass(DownloaderList.Find(AName));
+  if result=nil then
+    Error('Downloader %s not supported',[AName]);
+end;
 
 
 procedure DownloadFile(const RemoteFile,LocalFile:String);
+var
+  DownloaderClass : TBaseDownloaderClass;
 begin
+  DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
   with DownloaderClass.Create(nil) do
     try
       Download(RemoteFile,LocalFile);
@@ -132,7 +158,10 @@ end;
 { TDownloadPackage }
 
 function TDownloadPackage.Execute(const Args:TActionArgs):boolean;
+var
+  DownloaderClass : TBaseDownloaderClass;
 begin
+  DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
   with DownloaderClass.Create(nil) do
     try
       Log(vCommands,SLogDownloading,[PackageRemoteArchive,PackageLocalArchive]);
@@ -144,9 +173,10 @@ end;
 
 
 initialization
-  // Default value.
-  DownloaderClass := TBaseDownloader;
-
-  RegisterPkgHandler('downloadpackage',TDownloadPackage);
+  DownloaderList:=TFPHashList.Create;
+  RegisterDownloader('base',TBaseDownloader);
+  RegisterPkgHandler('Downloadpackage',TDownloadPackage);
+finalization
+  FreeAndNil(DownloaderList);
 end.
 
