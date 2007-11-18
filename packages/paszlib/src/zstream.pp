@@ -1,8 +1,14 @@
-{
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+unit zstream;
 
-    Implementation of compression streams.
+{**********************************************************************
+    This file is part of the Free Pascal free component library.
+
+    Copyright (c) 2007 by Daniel Mantione
+      member of the Free Pascal development team
+
+    Implements a Tstream descendents that allow you to read and write
+    compressed data according to the Deflate algorithm described in
+    RFC1951.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,429 +18,364 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 {$mode objfpc}
 
-unit zstream;
+{***************************************************************************}
+                                    interface
+{***************************************************************************}
 
-
-{ ---------------------------------------------------------------------
-  For linux and freebsd it's also possible to use ZLib instead
-  of paszlib. You need to undefine 'usepaszlib'.
-  ---------------------------------------------------------------------}
-
-{$define usepaszlib}
-
-
-interface
-
-uses
-  Sysutils, Classes
-{$ifdef usepaszlib}
-  ,paszlib,zbase
-{$else}
-  ,zlib
-{$endif}
-  ;
-
-{$H+}
+uses    classes,zbase,gzio;
 
 type
-  // Error reporting.
-  EZlibError = class(EStreamError);
-  ECompressionError = class(EZlibError);
-  EDecompressionError = class(EZlibError);
+        Tcompressionlevel=(
+          clnone,                     {Do not use compression, just copy data.}
+          clfastest,                  {Use fast (but less) compression.}
+          cldefault,                  {Use default compression}
+          clmax                       {Use maximum compression}
+        );
 
-  TCustomZlibStream = class(TOwnerStream)
-  private
-    FStrmPos: Integer;
-    FOnProgress: TNotifyEvent;
-    FZRec: TZStream;
-    FBuffer: array [Word] of Byte;
-  protected
-    procedure Progress(Sender: TObject); dynamic;
-    property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
-  public
-    constructor Create(Strm: TStream);
-  end;
+        Tgzopenmode=(
+          gzopenread,                 {Open file for reading.}
+          gzopenwrite                 {Open file for writing.}
+        );
 
-  TCompressionLevel = (clNone, clFastest, clDefault, clMax);
+        Tcustomzlibstream=class(Townerstream)
+        protected
+          Fstream:z_stream;
+          Fbuffer:pointer;
+          Fonprogress:Tnotifyevent;
+          procedure progress(sender:Tobject);
+          property onprogress:Tnotifyevent read Fonprogress write Fonprogress;
+        public
+          constructor create(stream:Tstream);
+          destructor destroy;override;
+        end;
 
-  TCompressionStream = class(TCustomZlibStream)
-  private
-    function GetCompressionRate: extended;
-    function CompressionCheck(code: Integer): Integer;
-    procedure CompressBuf(const InBuf: Pointer; InBytes: Integer;
-                          var OutBuf: Pointer; var OutBytes: Integer);
-  public
-    constructor Create(CompressionLevel: TCompressionLevel; Dest: TStream; ASkipHeader : Boolean = False);
-    destructor Destroy; override;
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
-    property CompressionRate: extended read GetCompressionRate;
-    property OnProgress;
-  end;
+        Tcompressionstream=class(Tcustomzlibstream)
+        protected
+          raw_written,compressed_written:longint;
+        public
+          constructor create(level:Tcompressionlevel;
+                             dest:Tstream;
+                             Askipheader:boolean=false);
+          destructor destroy;override;
+          function write(const buffer;count:longint):longint;override;
+          procedure flush;
+          function get_compressionrate:single;
+        end;
 
-  TDecompressionStream = class(TCustomZlibStream)
-  private
-    function DecompressionCheck(code: Integer): Integer;
-    procedure DecompressBuf(const InBuf: Pointer; InBytes: Integer;
-    OutEstimate: Integer; var OutBuf: Pointer; var OutBytes: Integer);
-  public
-    constructor Create(ASource: TStream; ASkipHeader : Boolean = False);
-    destructor Destroy; override;
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
-    property OnProgress;
-  end;
+        Tdecompressionstream=class(Tcustomzlibstream)
+        protected
+          raw_read,compressed_read:longint;
+        public
+          constructor create(Asource:Tstream;Askipheader:boolean=false);
+          destructor destroy;override;
+          function read(var buffer;count:longint):longint;override;
+          function seek(offset:longint;origin:word):longint;override;
+          function get_compressionrate:single;
+        end;
 
-  TGZOpenMode = (gzOpenRead,gzOpenWrite);
+        TGZFileStream = Class(TStream)
+        protected
+          Fgzfile:gzfile;
+          Ffilemode:Tgzopenmode;
+        public
+          constructor create(filename:ansistring;filemode:Tgzopenmode);
+          function read(var buffer;count:longint):longint;override;
+          function write(const buffer;count:longint):longint;override;
+          function seek(offset:longint;origin:word):longint;override;
+          destructor destroy;override;
+        end;
 
-  TGZFileStream = Class(TStream)
-    Private
-    FOpenMode : TGZOpenmode;
-    FFIle : gzfile;
-    Public
-    Constructor Create(FileName: String;FileMode: TGZOpenMode);
-    Destructor Destroy;override;
-    Function Read(Var Buffer; Count : longint): longint;override;
-    function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
-    end;
+        Ezliberror=class(Estreamerror)
+        end;
 
+        Egzfileerror=class(Ezliberror)
+        end;
 
-implementation
+        Ecompressionerror=class(Ezliberror)
+        end;
 
-Const
-  ErrorStrings : array [0..6] of string =
-    ('Unknown error %d','Z_ERRNO','Z_STREAM_ERROR',
-     'Z_DATA_ERROR','Z_MEM_ERROR','Z_BUF_ERROR','Z_VERSION_ERROR');
-  SCouldntOpenFile = 'Couldn''t open file : %s';
-  SReadOnlyStream = 'Decompression streams are read-only';
-  SWriteOnlyStream = 'Compression streams are write-only';
-  SSeekError = 'Compression stream seek error';
-  SInvalidSeek = 'Invalid Compression seek operation';
+        Edecompressionerror=class(Ezliberror)
+        end;
 
-procedure TCompressionStream.CompressBuf(const InBuf: Pointer; InBytes: Integer;
-                      var OutBuf: Pointer; var OutBytes: Integer);
-var
-  strm: TZStream;
-  P: Pointer;
+{***************************************************************************}
+                                 implementation
+{***************************************************************************}
+
+uses    zdeflate,zinflate;
+
+const   bufsize=16384;     {Size of the buffer used for temporarily storing
+                            data from the child stream.}
+
+resourcestring Sgz_open_error='Could not open gzip compressed file %s.';
+               Sgz_read_only='Gzip compressed file was opened for reading.';
+               Sgz_write_only='Gzip compressed file was opened for writing.';
+               Sseek_failed='Seek in deflate compressed stream failed.';
+
+constructor Tcustomzlibstream.create(stream:Tstream);
+
 begin
-  FillChar(strm, sizeof(strm), 0);
-  OutBytes := ((InBytes + (InBytes div 10) + 12) + 255) and not 255;
-  OutBuf:=GetMem(OutBytes);
-  try
-    strm.next_in := InBuf;
-    strm.avail_in := InBytes;
-    strm.next_out := OutBuf;
-    strm.avail_out := OutBytes;
-    CompressionCheck(deflateInit(strm, Z_BEST_COMPRESSION));
-    try
-      while CompressionCheck(deflate(strm, Z_FINISH)) <> Z_STREAM_END do
-      begin
-        P := OutBuf;
-        Inc(OutBytes, 256);
-        ReallocMem(OutBuf,OutBytes);
-        strm.next_out := PByte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
-        strm.avail_out := 256;
-      end;
-    finally
-      CompressionCheck(deflateEnd(strm));
-    end;
-    ReallocMem(OutBuf,strm.total_out);
-    OutBytes := strm.total_out;
-  except
-    FreeMem(OutBuf);
-    raise;
-  end;
+  assert(stream<>nil);
+  inherited create(stream);
+  getmem(Fbuffer,bufsize);
 end;
 
+procedure Tcustomzlibstream.progress(sender:Tobject);
 
-procedure TDecompressionStream.DecompressBuf(const InBuf: Pointer; InBytes: Integer;
-       OutEstimate: Integer; var OutBuf: Pointer; var OutBytes: Integer);
-var
-  strm: TZStream;
-  P: Pointer;
-  BufInc: Integer;
-Type
-  PByte = ^Byte;
 begin
-  FillChar(strm, sizeof(strm), 0);
-  BufInc := (InBytes + 255) and not 255;
-  if OutEstimate = 0 then
-    OutBytes := BufInc
+  if Fonprogress<>nil then
+    Fonprogress(sender);
+end;
+
+destructor Tcustomzlibstream.destroy;
+
+begin
+  freemem(Fbuffer);
+  inherited destroy;
+end;
+
+{***************************************************************************}
+
+constructor Tcompressionstream.create(level:Tcompressionlevel;
+                                      dest:Tstream;
+                                      Askipheader:boolean=false);
+
+var err,l:smallint;
+
+begin
+  inherited create(dest);
+  Fstream.next_out:=Fbuffer;
+  Fstream.avail_out:=bufsize;
+
+  case level of
+    clnone:
+      l:=Z_NO_COMPRESSION;
+    clfastest:
+      l:=Z_BEST_SPEED;
+    cldefault:
+      l:=Z_DEFAULT_COMPRESSION;
+    clmax:
+      l:=Z_BEST_COMPRESSION;
+  end;
+
+  if Askipheader then
+    err:=deflateInit2(Fstream,l,Z_DEFLATED,-MAX_WBITS,DEF_MEM_LEVEL,0)
   else
-    OutBytes := OutEstimate;
-  OutBuf:=GetMem(OutBytes);
-  try
-    strm.next_in := InBuf;
-    strm.avail_in := InBytes;
-    strm.next_out := OutBuf;
-    strm.avail_out := OutBytes;
-    DecompressionCheck(inflateInit(strm));
-    try
-      while DecompressionCheck(inflate(strm, Z_FINISH)) <> Z_STREAM_END do
-      begin
-        P := OutBuf;
-        Inc(OutBytes, BufInc);
-        ReallocMem(OutBuf, OutBytes);
-        strm.next_out := PByte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
-        strm.avail_out := BufInc;
-      end;
-    finally
-      DecompressionCheck(inflateEnd(strm));
-    end;
-    ReallocMem(OutBuf, strm.total_out);
-    OutBytes := strm.total_out;
-  except
-    FreeMem(OutBuf);
-    raise;
-  end;
+    err:=deflateInit(Fstream,l);
+  if err<>Z_OK then
+    raise Ecompressionerror.create(zerror(err));
 end;
 
+function Tcompressionstream.write(const buffer;count:longint):longint;
 
-// TCustomZlibStream
-
-constructor TCustomZLibStream.Create(Strm: TStream);
+var err:smallint;
+    lastavail,
+    written:longint;
 begin
-  inherited Create(Strm);
-  FStrmPos := Strm.Position;
-end;
-
-procedure TCustomZLibStream.Progress(Sender: TObject);
-begin
-  if Assigned(FOnProgress) then FOnProgress(Sender);
-end;
-
-
-// TCompressionStream
-
-constructor TCompressionStream.Create(CompressionLevel: TCompressionLevel;
-  Dest: TStream; ASkipHeader : Boolean = False);
-const
-  Levels: array [TCompressionLevel] of ShortInt =
-    (Z_NO_COMPRESSION, Z_BEST_SPEED, Z_DEFAULT_COMPRESSION, Z_BEST_COMPRESSION);
-begin
-  inherited Create(Dest);
-  FZRec.next_out := @FBuffer[0];
-  FZRec.avail_out := sizeof(FBuffer);
-  If ASkipHeader then
-    CompressionCheck(deflateInit2(FZRec, Levels[CompressionLevel],Z_DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, 0))
-  else
-    CompressionCheck(deflateInit(FZRec, Levels[CompressionLevel]));
-end;
-
-destructor TCompressionStream.Destroy;
-begin
-  FZRec.next_in := nil;
-  FZRec.avail_in := 0;
-  try
-    if Source.Position <> FStrmPos then Source.Position := FStrmPos;
-    while (CompressionCheck(deflate(FZRec, Z_FINISH)) <> Z_STREAM_END)
-      and (FZRec.avail_out = 0) do
+  Fstream.next_in:=@buffer;
+  Fstream.avail_in:=count;
+  lastavail:=count;
+  while Fstream.avail_in<>0 do
     begin
-      Source.WriteBuffer(FBuffer, sizeof(FBuffer));
-      FZRec.next_out := @FBuffer[0];
-      FZRec.avail_out := sizeof(FBuffer);
+      if Fstream.avail_out=0 then
+        begin
+          { Flush the buffer to the stream and update progress }
+          written:=source.write(Fbuffer^,bufsize);
+          inc(compressed_written,written);
+          inc(raw_written,lastavail-Fstream.avail_in);
+          lastavail:=Fstream.avail_in;
+          progress(self);
+          { reset output buffer }
+          Fstream.next_out:=Fbuffer;
+          Fstream.avail_out:=bufsize;
+        end;
+      err:=deflate(Fstream,Z_NO_FLUSH);
+      if err<>Z_OK then
+        raise Ecompressionerror.create(zerror(err));
     end;
-    if FZRec.avail_out < sizeof(FBuffer) then
-      Source.WriteBuffer(FBuffer, sizeof(FBuffer) - FZRec.avail_out);
+  inc(raw_written,lastavail-Fstream.avail_in);
+  write:=count;
+end;
+
+function Tcompressionstream.get_compressionrate:single;
+
+begin
+  get_compressionrate:=100*compressed_written/raw_written;
+end;
+
+
+procedure Tcompressionstream.flush;
+var err:smallint;
+    written:longint;
+begin
+  {Compress remaining data still in internal zlib data buffers.}
+  repeat
+    err:=deflate(Fstream,Z_FINISH);
+    if err=Z_STREAM_END then
+      break;
+    if err<>Z_OK then
+      raise Ecompressionerror.create(zerror(err));
+    if Fstream.avail_out=0 then
+      begin
+        { Flush the buffer to the stream and update progress }
+        written:=source.write(Fbuffer^,bufsize);
+        inc(compressed_written,written);
+        progress(self);
+        { reset output buffer }
+        Fstream.next_out:=Fbuffer;
+        Fstream.avail_out:=bufsize;
+      end;
+  until false;
+  if Fstream.avail_out<bufsize then
+    begin
+      source.writebuffer(FBuffer,bufsize-Fstream.avail_out);
+      inc(compressed_written,written);
+      progress(self);
+    end;
+end;
+
+
+destructor Tcompressionstream.destroy;
+
+begin
+  try
+    Flush;
   finally
-    deflateEnd(FZRec);
+    deflateEnd(Fstream);
+    inherited destroy;
   end;
-  inherited Destroy;
 end;
 
-function TCompressionStream.CompressionCheck(code: Integer): Integer;
-begin
-  Result := code;
-  if (code < 0) then
-    if code < -6 then
-      raise ECompressionError.CreateFmt(Errorstrings[0],[Code])
-    else
-      raise ECompressionError.Create(ErrorStrings[Abs(Code)]);
-end;
+{***************************************************************************}
 
+constructor Tdecompressionstream.create(Asource:Tstream;Askipheader:boolean=false);
 
-function TCompressionStream.Read(var Buffer; Count: Longint): Longint;
-begin
-  raise ECompressionError.Create('Invalid stream operation');
-  result:=0;
-end;
+var err:smallint;
 
-function TCompressionStream.Write(const Buffer; Count: Longint): Longint;
 begin
-  FZRec.next_in := @Buffer;
-  FZRec.avail_in := Count;
-  if Source.Position <> FStrmPos then Source.Position := FStrmPos;
-  while (FZRec.avail_in > 0) do
-  begin
-    CompressionCheck(deflate(FZRec, 0));
-    if FZRec.avail_out = 0 then
-    begin
-      Source.WriteBuffer(FBuffer, sizeof(FBuffer));
-      FZRec.next_out := @FBuffer[0];
-      FZRec.avail_out := sizeof(FBuffer);
-      FStrmPos := Source.Position;
-      Progress(Self);
-    end;
-  end;
-  Result := Count;
-end;
+  inherited create(Asource);
 
-function TCompressionStream.Seek(Offset: Longint; Origin: Word): Longint;
-begin
-  if (Offset = 0) and (Origin = soFromCurrent) then
-    Result := FZRec.total_in
+  if Askipheader then
+    err:=inflateInit2(Fstream,-MAX_WBITS)
   else
-    raise ECompressionError.Create(SInvalidSeek);
+    err:=inflateInit(Fstream);
+  if err<>Z_OK then
+    raise Ecompressionerror.create(zerror(err));
 end;
 
-function TCompressionStream.GetCompressionRate: extended;
+function Tdecompressionstream.read(var buffer;count:longint):longint;
+
+var err:smallint;
+    lastavail:longint;
 begin
-  Result:=0.0;
-{  With FZrec do
-    if total_in = 0 then
-      GetCompressionRate:=0.0
-    else
-      GetCompressionRate:=1.0E2*(1.0E0-(total_out/total_in));
-}
-end;
-
-
-// TDecompressionStream
-
-constructor TDecompressionStream.Create(ASource: TStream; ASkipHeader : Boolean = False);
-begin
-  inherited Create(ASource);
-  FZRec.next_in := @FBuffer[0];
-  If ASkipHeader then
-    DeCompressionCheck(inflateInit2(FZRec,-MAX_WBITS))
-  else
-    DeCompressionCheck(inflateInit(FZRec));
-end;
-
-destructor TDecompressionStream.Destroy;
-begin
-  if FZRec.avail_in <> 0 then
-    Source.Seek(-FZRec.avail_in, soFromCurrent);
-  inflateEnd(FZRec);
-  inherited Destroy;
-end;
-
-function TDecompressionStream.DecompressionCheck(code: Integer): Integer;
-begin
-  Result := code;
-  If Code<0 then
-    if code < -6 then
-      raise EDecompressionError.CreateFmt(Errorstrings[0],[Code])
-    else
-      raise EDecompressionError.Create(ErrorStrings[Abs(Code)]);
-end;
-
-function TDecompressionStream.Read(var Buffer; Count: Longint): Longint;
-begin
-  FZRec.next_out := @Buffer;
-  FZRec.avail_out := Count;
-  if Source.Position <> FStrmPos then Source.Position := FStrmPos;
-  while (FZRec.avail_out > 0) do
-  begin
-    if FZRec.avail_in = 0 then
+  Fstream.next_out:=@buffer;
+  Fstream.avail_out:=count;
+  lastavail:=count;
+  while Fstream.avail_out<>0 do
     begin
-      FZRec.avail_in := Source.Read(FBuffer, sizeof(FBuffer));
-      if FZRec.avail_in = 0 then
+      if Fstream.avail_in=0 then
         begin
-          Result := Count - FZRec.avail_out;
-          Exit;
+          {Refill the buffer.}
+          Fstream.next_in:=Fbuffer;
+          Fstream.avail_in:=source.read(Fbuffer^,bufsize);
+          inc(compressed_read,Fstream.avail_in);
+          inc(raw_read,lastavail-Fstream.avail_out);
+          lastavail:=Fstream.avail_out;
+          progress(self);
         end;
-      FZRec.next_in := @FBuffer[0];
-      FStrmPos := Source.Position;
-      Progress(Self);
+      err:=inflate(Fstream,Z_NO_FLUSH);
+      if err=Z_STREAM_END then
+        break;
+      if err<>Z_OK then
+        raise Ecompressionerror.create(zerror(err));
     end;
-    if DeCompressionCheck(inflate(FZRec, 0)) = Z_STREAM_END then
-        begin
-          Result := Count - FZRec.avail_out;
-          Exit;
-        end;
-  end;
-  Result := Count;
+  if err=Z_STREAM_END then
+    dec(compressed_read,Fstream.avail_in);
+  inc(raw_read,lastavail-Fstream.avail_out);
+  read:=count-Fstream.avail_out;
 end;
 
-function TDecompressionStream.Write(const Buffer; Count: Longint): Longint;
-begin
-  raise EDecompressionError.Create('Invalid stream operation');
-  result:=0;
-end;
+function Tdecompressionstream.seek(offset:longint;origin:word):longint;
 
-function TDecompressionStream.Seek(Offset: Longint; Origin: Word): Longint;
-var
-  I: Integer;
-  Buf: array [0..4095] of Char;
 begin
-  if (Offset = 0) and (Origin = soFromBeginning) then
-  begin
-    DecompressionCheck(inflateReset(FZRec));
-    FZRec.next_in := @FBuffer[0];
-    FZRec.avail_in := 0;
-    Source.Position := 0;
-    FStrmPos := 0;
-  end
-  else if ( (Offset >= 0) and (Origin = soFromCurrent)) or
-          ( ((Offset - FZRec.total_out) > 0) and (Origin = soFromBeginning)) then
-  begin
-    if Origin = soFromBeginning then Dec(Offset, FZRec.total_out);
-    if Offset > 0 then
+  if ((origin=sofrombeginning) and (offset>=raw_read)) or
+     ((origin=sofromcurrent) and (offset>=0)) then
     begin
-      for I := 1 to Offset div sizeof(Buf) do
-        ReadBuffer(Buf, sizeof(Buf));
-      ReadBuffer(Buf, Offset mod sizeof(Buf));
-    end;
-  end
+      if origin=sofrombeginning then
+        dec(offset,raw_read);
+      while offset>0 do
+        begin
+          size:=bufsize;
+          if offset<bufsize then
+            size:=offset;
+          size:=read(Fbuffer^,size);
+          dec(offset,size);
+        end;
+    end
   else
-    raise EDecompressionError.Create(SInvalidSeek);
-  Result := FZRec.total_out;
+    raise Edecompressionerror.create(Sseek_failed);
 end;
 
-// TGZFileStream
-
-Constructor TGZFileStream.Create(FileName: String;FileMode: TGZOpenMode);
-
-Const OpenStrings : array[TGZOpenMode] of pchar = ('rb','wb');
+function Tdecompressionstream.get_compressionrate:single;
 
 begin
-   FOpenMode:=FileMode;
-   FFile:=gzopen (PChar(FileName),Openstrings[FileMode]);
-   If FFile=Nil then
-     Raise ezlibError.CreateFmt (SCouldntOpenFIle,[FileName]);
+  get_compressionrate:=100*compressed_read/raw_read;
 end;
 
-Destructor TGZFileStream.Destroy;
+
+destructor Tdecompressionstream.destroy;
+
 begin
-  gzclose(FFile);
-  Inherited Destroy;
+  inflateEnd(Fstream);
+  inherited destroy;
 end;
 
-Function TGZFileStream.Read(Var Buffer; Count : longint): longint;
+
+{***************************************************************************}
+
+constructor Tgzfilestream.create(filename:ansistring;filemode:Tgzopenmode);
+
 begin
-  If FOpenMode=gzOpenWrite then
-    Raise ezliberror.create(SWriteOnlyStream);
-  Result:=gzRead(FFile,@Buffer,Count);
+  if filemode=gzopenread then
+    Fgzfile:=gzopen(filename,'rb')
+  else
+    Fgzfile:=gzopen(filename,'wb');
+  Ffilemode:=filemode;
+  if Fgzfile=nil then
+    raise Egzfileerror.createfmt(Sgz_open_error,[filename]);
 end;
 
-function TGZFileStream.Write(const Buffer; Count: Longint): Longint;
+function Tgzfilestream.read(var buffer;count:longint):longint;
+
 begin
-  If FOpenMode=gzOpenRead then
-    Raise EzlibError.Create(SReadonlyStream);
-  Result:=gzWrite(FFile,@Buffer,Count);
+  if Ffilemode=gzopenwrite then
+    raise Egzfileerror.create(Sgz_write_only);
+  read:=gzread(Fgzfile,@buffer,count);
 end;
 
-function TGZFileStream.Seek(Offset: Longint; Origin: Word): Longint;
+function Tgzfilestream.write(const buffer;count:longint):longint;
+
 begin
-  Result:=gzseek(FFile,Offset,Origin);
-  If Result=-1 then
-    Raise eZlibError.Create(SSeekError);
+  if Ffilemode=gzopenread then
+    raise Egzfileerror.create(Sgz_write_only);
+  write:=gzwrite(Fgzfile,@buffer,count);
+end;
+
+function Tgzfilestream.seek(offset:longint;origin:word):longint;
+
+begin
+  seek:=gzseek(Fgzfile,offset,origin);
+  if seek=-1 then
+    raise egzfileerror.create(Sseek_failed);
+end;
+
+destructor Tgzfilestream.destroy;
+
+begin
+  gzclose(Fgzfile);
+  inherited destroy;
 end;
 
 end.
