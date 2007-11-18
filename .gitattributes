@@ -7776,6 +7776,7 @@ tests/webtbs/tw10002.pp svneol=native#text/plain
 tests/webtbs/tw10009.pp svneol=native#text/plain
 tests/webtbs/tw10013.pp svneol=native#text/plain
 tests/webtbs/tw10072.pp svneol=native#text/plain
+tests/webtbs/tw10203.pp svneol=native#text/plain
 tests/webtbs/tw1021.pp svneol=native#text/plain
 tests/webtbs/tw1023.pp svneol=native#text/plain
 tests/webtbs/tw1041.pp svneol=native#text/plain
