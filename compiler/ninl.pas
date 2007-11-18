@@ -132,7 +132,7 @@ implementation
       end;
 
 
-      function tinlinenode.handle_str : tnode;
+    function tinlinenode.handle_str : tnode;
       var
         lenpara,
         fracpara,
@@ -344,6 +344,23 @@ implementation
       end;
 
 
+    procedure maybe_convert_to_string(var n: tnode);
+      begin
+        { stringconstnodes are arrays of char. It's much more }
+        { efficient to write a constant string, so convert    }
+        { either to shortstring or ansistring depending on    }
+        { length                                              }
+        if (n.nodetype=stringconstn) then
+          if is_chararray(n.resultdef) then
+            if (tstringconstnode(n).len<=255) then
+              inserttypeconv(n,cshortstringtype)
+            else
+              inserttypeconv(n,cansistringtype)
+          else if is_widechararray(n.resultdef) then
+            inserttypeconv(n,cwidestringtype);
+      end;
+
+
     function Tinlinenode.handle_text_read_write(filepara,params:Ttertiarynode;var newstatement:Tnode):boolean;
 
     {Read(ln)/write(ln) for text files.}
@@ -389,6 +406,10 @@ implementation
               typecheckpass(p1);
               para.left:=p1;
             end;
+
+          if inlinenumber in [in_write_x,in_writeln_x] then
+            { prefer strings to chararrays }
+            maybe_convert_to_string(para.left);
 
           case para.left.resultdef.typ of
             stringdef :
