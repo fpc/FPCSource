@@ -50,7 +50,7 @@ static const struct idf reserved[] = {
 	{"else",	NORM('e')},
 	{"end",		NORM('}')},
 	{"extern",	CTRL('E')},
-	{"except",	META('E')},
+	{"except",	MTCT('E')},
 	{"file",	NORM('F')},
         {"finally",     META('F')},
 	{"for",		NORM('f')},
@@ -58,8 +58,8 @@ static const struct idf reserved[] = {
 	{"goto",	NORM('g')},
 	{"if",		NORM('i')},
 	{"in",		NORM('I')},
-	{"inherited",	META('i')},
-	{"is",		META('I')},
+	{"inherited",	CTRL('I')},
+	{"is",		NORM('j')},
 	{"label",	NORM('l')},
 	{"mod",		NORM('%')},
 	{"nil",		NORM('n')},
@@ -135,7 +135,7 @@ const TOKEN NonFinals[] = {
 	NORM('f'),	/* for */
 	NORM('g'),	/* goto */
 	NORM('i'),	/* if */
-	META('i'),	/* inherited */
+	CTRL('I'),	/* inherited */
 	NORM('l'),	/* label */
 	NORM('O'),	/* object */
 	NORM('P'),	/* packed */
