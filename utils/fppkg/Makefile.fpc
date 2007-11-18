@@ -9,17 +9,16 @@ version=2.0.0
 [target]
 programs=fppkg
 implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
-units_linux=pkgwget  pkglnet
-units_beos=pkgwget pkglnet
-units_freebsd=pkgwget pkglnet
-units_netbsd=pkgwget pkglnet
-units_openbsd=pkgwget pkglnet
-units_darwin=pkgwget pkglnet
-units_solaris=pkgwget pkglnet
-units_win32=pkgwget pkglnet
-units_win64=pkgwget pkglnet
-units_wince=pkgwget pkglnet
-examples=rep2xml
+implicitunits_linux=pkgwget  pkglnet
+implicitunits_beos=pkgwget pkglnet
+implicitunits_freebsd=pkgwget pkglnet
+implicitunits_netbsd=pkgwget pkglnet
+implicitunits_openbsd=pkgwget pkglnet
+implicitunits_darwin=pkgwget pkglnet
+implicitunits_solaris=pkgwget pkglnet
+implicitunits_win32=pkgwget pkglnet
+implicitunits_win64=pkgwget pkglnet
+implicitunits_wince=pkgwget pkglnet
 rsts=fprepos fpxmlrep pkgmessages
 
 [compiler]
