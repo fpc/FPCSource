@@ -1,0 +1,17 @@
+#	I N S T A L L A T I O N   P A R A M E T E R S
+
+BINDIR =	/com
+MANDIR =	/man
+
+
+#	C O M P I L A T I O N   P A R A M E T E R S
+
+EXE =		.exe
+CC =		gcc -pedantic -Wall
+LEX =		flex
+COPY =		xcopy
+ZIP =		pkzip -ko
+ATFILEARGS =	gcc.exe:ar.exe:lint.exe## use DOS at-convention for these
+LINT =		lint -ansi $(SYSTEM)
+
+SYSTEM =	-DMSDOS

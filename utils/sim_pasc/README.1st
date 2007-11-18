@@ -1,0 +1,68 @@
+This is SIM, Software and text similarity tester, most recent revision
+                                                               (2.19, 20050220)
+by Dick Grune, Vrije Universiteit, Amsterdam, the Netherlands (dick@cs.vu.nl).
+
+SIM tests lexical similarity in texts in C, Java, Pascal, Modula-2, Lisp,
+Miranda and natural language. It can be used
+
+- to detect potentially duplicated code fragments in large software projects,
+- to detect plagiarism in software and text-based projects, educational and
+  otherwise.
+
+The program is fast:
+the UNIX version on a Sun ULTRA does about 50000 tokens/sec,
+the DOS version on a Pentium 166 does about 25000 tokens/sec.
+
+SIM is available for UNIX (in source code) and MSDOS (32-bit executables).
+
+UNIX:
+	To obtain the files, do:
+		sh sim_2_21.shar
+	This unpacks the sources, the Makefile, sim.1 and READ_ME.
+	For installation notes and other info then see READ_ME.
+
+MSDOS:
+	To obtain the files, do:
+		[pk]unzip SIM_2_21.zip
+	This unpacks the executables, SIM.DOC and READ.ME.
+	For other info then see READ.ME.
+
+Changes from Release 2.19:
+	Various changes necessitated by Linux flex being different
+
+Changes from Release 2.16:
+	Various updates and adjustments in the code and the installation
+	procedure.
+
+Changes from Release 2.13:
+	Percentage reporting feature added.
+
+Changes from Release 2.12:
+	Miranda checker added.
+
+Changes from Release 2.9:
+	Java checker added.
+	The C checker 'sim' was renamed to 'sim_c', for uniformity.
+	Converted the sources to ANSI C.
+	All versions now report non_ASCI characters in the input.
+
+Changes from Release 2.8:
+	DOS versions can now compare very large files (>400000 tokens)
+
+Changes from Release 1.21, as posted in comp.sources.unix (1987):
+	Ported to MSDOS
+	Significant speed improvements
+	New options: -e, -S and / , to compare files group-wise
+	New option: -F , to require function names to match exactly
+	Lisp version added
+	Miscellaneous improvements
+
+
+					Dick Grune
+					Vrije Universiteit
+					de Boelelaan 1081
+					1081 HV  Amsterdam
+					the Netherlands
+					email: dick@cs.vu.nl
+					ftp://ftp.cs.vu.nl/pub/dick
+					http://www.cs.vu.nl/~dick

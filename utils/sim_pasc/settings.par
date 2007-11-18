@@ -1,0 +1,8 @@
+/*	This file is part of the software similarity tester SIM.
+	Written by Dick Grune, Vrije Universiteit, Amsterdam.
+	$Id: settings.par,v 1.1 1997/06/20 12:03:22 dick Exp $
+*/
+
+#define	DFLT_MIN_RUN_SIZE	24	/* default minimum run size */
+
+#define	DFLT_PAGE_WIDTH		80	/* default page width */
