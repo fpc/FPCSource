@@ -142,7 +142,7 @@ begin
     FHTTP.Host := URI.Host;
     FHTTP.Method := hmGet;
     FHTTP.Port := URI.Port;
-    FHTTP.URI := '/' + URI.Document;
+    FHTTP.URI := URI.Path + URI.Document;
     FHTTP.SendRequest;
 
     FQuit:=False;
