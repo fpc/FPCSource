@@ -21,10 +21,13 @@
 }
 
 function ChangeFileExt(const FileName, Extension: string): string;
-var i: longint;
+var
+  i : longint;
+  EndSep : Set of Char;
 begin
-  I := Length(FileName);
-  while (I > 0) and not(FileName[I] in ['/', '.', '\', ':']) do
+  i := Length(FileName);
+  EndSep:=DirSeparators+[':','.'];
+  while (I > 0) and not(FileName[I] in EndSep) do
     Dec(I);
   if (I = 0) or (FileName[I] <> '.') then
     I := Length(FileName)+1;
@@ -32,24 +35,33 @@ begin
 end;
 
 function ExtractFilePath(const FileName: string): string;
-var i: longint;
+var
+  i : longint;
+  EndSep : Set of Char;
 begin
-i := Length(FileName);
-while (i > 0) and not (FileName[i] in ['/', '\', ':']) do Dec(i);
-If I>0 then
-  Result := Copy(FileName, 1, i)
-else
-  Result:='';
+  i := Length(FileName);
+  EndSep:=DirSeparators+[':'];
+  while (i > 0) and not (FileName[i] in EndSep) do
+    Dec(i);
+  If I>0 then
+    Result := Copy(FileName, 1, i)
+  else
+    Result:='';
 end;
 
 function ExtractFileDir(const FileName: string): string;
-var i: longint;
+var
+  i : longint;
+  EndSep : Set of Char;
 begin
-I := Length(FileName);
-while (I > 0) and not (FileName[I] in ['/', '\', ':']) do Dec(I);
-if (I > 1) and (FileName[I] in ['\', '/']) and
-   not (FileName[I - 1] in ['/', '\', ':']) then Dec(I);
-Result := Copy(FileName, 1, I);
+  I := Length(FileName);
+  EndSep:=DirSeparators+[':'];
+  while (I > 0) and not (FileName[I] in EndSep) do
+    Dec(I);
+  if (I > 1) and (FileName[I] in DirSeparators) and
+     not (FileName[I - 1] in EndSep) then
+    Dec(I);
+  Result := Copy(FileName, 1, I);
 end;
 
 function ExtractFileDrive(const FileName: string): string;
@@ -60,37 +72,45 @@ var
 begin
   Result := '';
   l:=Length(FileName);
-  if (L>=2) then
+  if (L<2) then
+    exit;
+  If (FileName[2]=':') then
+    result:=Copy(FileName,1,2)
+  else if (FileName[1] in DirSeparators) and
+          (FileName[2] in DirSeparators) then
     begin
-    If (FileName[2]=':') then
-      result:=Copy(FileName,1,2)
-    else if (FileName[1] in ['/','\']) and
-            (FileName[2] in ['/','\']) then
-      begin
       i := 2;
-      While (i<L) and Not (Filename[i+1] in ['/', '\']) do
+      While (i<L) and Not (Filename[i+1] in DirSeparators) do
         inc(i);
       Result:=Copy(FileName,1,i);
-      end;
     end;
 end;
 
 function ExtractFileName(const FileName: string): string;
-var i: longint;
+var
+  i : longint;
+  EndSep : Set of Char;
 begin
-I := Length(FileName);
-while (I > 0) and not (FileName[I] in ['/', '\', ':']) do Dec(I);
-Result := Copy(FileName, I + 1, MaxInt);
+  I := Length(FileName);
+  EndSep:=DirSeparators+[':'];
+  while (I > 0) and not (FileName[I] in EndSep) do
+    Dec(I);
+  Result := Copy(FileName, I + 1, MaxInt);
 end;
 
 function ExtractFileExt(const FileName: string): string;
-var i: longint;
+var
+  i : longint;
+  EndSep : Set of Char;
 begin
-I := Length(FileName);
-while (I > 0) and not (FileName[I] in ['.', '/', '\', ':']) do Dec(I);
-if (I > 0) and (FileName[I] = '.') then
-   Result := Copy(FileName, I, MaxInt)
-else Result := '';
+  I := Length(FileName);
+  EndSep:=DirSeparators+['.', ':'];
+  while (I > 0) and not (FileName[I] in EndSep) do
+    Dec(I);
+  if (I > 0) and (FileName[I] = '.') then
+    Result := Copy(FileName, I, MaxInt)
+  else
+    Result := '';
 end;
 
 
@@ -213,7 +233,7 @@ Var
 begin
   Result:=Path;
   l:=Length(Result);
-  If (L=0) or (Result[l]<>PathDelim) then
+  If (L=0) or not(Result[l] in DirSeparators) then
     Result:=Result+PathDelim;
 end;
 
@@ -236,7 +256,7 @@ Var
 
 begin
   L:=Length(Path);
-  If (L>0) and (Path[L]=PathDelim) then
+  If (L>0) and (Path[L] in DirSeparators) then
     Dec(L);
   Result:=Copy(Path,1,L);
 end;
@@ -244,7 +264,7 @@ end;
 function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
 
 begin
-  Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index]=PathDelim);
+  Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index] in DirSeparators);
 end;
 
 Function GetFileHandle(var f : File):Longint;
