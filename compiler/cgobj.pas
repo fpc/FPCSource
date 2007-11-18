@@ -3618,14 +3618,13 @@ implementation
                 inc(size,tcgsize2size[OS_VECTOR]);
           end;
 
-        tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
-
         if size>0 then
           begin
             tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
+            include(current_procinfo.flags,pi_has_saved_regs);
+
             { Copy registers to temp }
             href:=current_procinfo.save_regs_ref;
-
             for r:=low(saved_standard_registers) to high(saved_standard_registers) do
               begin
                 if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
@@ -3660,10 +3659,10 @@ implementation
         href     : treference;
         r        : integer;
         hreg     : tregister;
-        freetemp : boolean;
       begin
+        if not(pi_has_saved_regs in current_procinfo.flags) then
+          exit;
         { Copy registers from temp }
-        freetemp:=false;
         href:=current_procinfo.save_regs_ref;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
@@ -3673,7 +3672,6 @@ implementation
               a_reg_alloc(list,hreg);
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
               inc(href.offset,sizeof(aint));
-              freetemp:=true;
             end;
 
         if uses_registers(R_MMREGISTER) then
@@ -3690,13 +3688,10 @@ implementation
                     a_reg_alloc(list,hreg);
                     a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
                     inc(href.offset,tcgsize2size[OS_VECTOR]);
-                    freetemp:=true;
                   end;
               end;
           end;
-
-        if freetemp then
-          tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;
 
 
