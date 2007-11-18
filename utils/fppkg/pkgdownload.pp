@@ -175,7 +175,7 @@ end;
 initialization
   DownloaderList:=TFPHashList.Create;
   RegisterDownloader('base',TBaseDownloader);
-  RegisterPkgHandler('Downloadpackage',TDownloadPackage);
+  RegisterPkgHandler('downloadpackage',TDownloadPackage);
 finalization
   FreeAndNil(DownloaderList);
 end.
