@@ -46,6 +46,7 @@ Resourcestring
   SInactiveDataset         = 'Operation cannot be performed on an inactive dataset';
   SInvalidDisplayValues    = '"%s" are not valid boolean displayvalues';
   SInvalidFieldKind        = '%s : invalid field kind : ';
+  SInvalidBookmark         = 'Invalid bookmark';
   SInvalidFieldSize        = 'Invalid field size : %d';
   SInvalidTypeConversion   = 'Invalid type conversion to %s in field %s';
   SNeedField               = 'Field %s is required, but not supplied.';
