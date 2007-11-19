@@ -479,19 +479,7 @@ begin
     if bufsize=0 then
       exit;
   until false;
-  { For small values copy directly }
-  if len<=sizeof(ptruint) then
-    begin
-      pmax:=p+len;
-      while (p<pmax) do
-        begin
-          p^:=pbuf^;
-          inc(pbuf);
-          inc(p);
-        end;
-    end
-  else
-    move(pbuf^,p^,len);
+  move(pbuf^,p^,len);
   inc(bufidx,len);
 end;
 
@@ -574,43 +562,48 @@ end;
 
 
 function tppufile.getbyte:byte;
-var
-  b : byte;
 begin
   if entryidx+1>entry.size then
    begin
      error:=true;
-     getbyte:=0;
+     result:=0;
      exit;
    end;
-  readdata(b,1);
-  getbyte:=b;
+  if bufsize-bufidx>=1 then
+    begin
+      result:=pbyte(@buf[bufidx])^;
+      inc(bufidx);
+    end
+  else
+    readdata(result,1);
   inc(entryidx);
 end;
 
 
 function tppufile.getword:word;
-var
-  w : word;
 begin
   if entryidx+2>entry.size then
    begin
      error:=true;
-     getword:=0;
+     result:=0;
      exit;
    end;
-  readdata(w,2);
-  if change_endian then
-   getword:=swapendian(w)
+{$ifdef FPC_SUPPORTS_UNALIGNED}
+  if bufsize-bufidx>=sizeof(word) then
+    begin
+      result:=Unaligned(pword(@buf[bufidx])^);
+      inc(bufidx,sizeof(word));
+    end
   else
-   getword:=w;
+{$endif FPC_SUPPORTS_UNALIGNED}
+    readdata(result,sizeof(word));
+  if change_endian then
+   result:=swapendian(result);
   inc(entryidx,2);
 end;
 
 
 function tppufile.getlongint:longint;
-var
-  l : longint;
 begin
   if entryidx+4>entry.size then
    begin
@@ -618,18 +611,22 @@ begin
      getlongint:=0;
      exit;
    end;
-  readdata(l,4);
-  if change_endian then
-   getlongint:=swapendian(l)
+{$ifdef FPC_SUPPORTS_UNALIGNED}
+  if bufsize-bufidx>=sizeof(longint) then
+    begin
+      result:=Unaligned(plongint(@buf[bufidx])^);
+      inc(bufidx,sizeof(longint));
+    end
   else
-   getlongint:=l;
+{$endif FPC_SUPPORTS_UNALIGNED}
+    readdata(result,sizeof(longint));
+  if change_endian then
+   result:=swapendian(result);
   inc(entryidx,4);
 end;
 
 
 function tppufile.getint64:int64;
-var
-  i : int64;
 begin
   if entryidx+8>entry.size then
    begin
@@ -637,11 +634,17 @@ begin
      result:=0;
      exit;
    end;
-  readdata(i,8);
-  if change_endian then
-    result:=swapendian(i)
+{$ifdef FPC_SUPPORTS_UNALIGNED}
+  if bufsize-bufidx>=sizeof(int64) then
+    begin
+      result:=Unaligned(pint64(@buf[bufidx])^);
+      inc(bufidx,sizeof(int64));
+    end
   else
-    result:=i;
+{$endif FPC_SUPPORTS_UNALIGNED}
+    readdata(result,sizeof(int64));
+  if change_endian then
+   result:=swapendian(result);
   inc(entryidx,8);
 end;
 
