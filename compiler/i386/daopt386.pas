@@ -65,8 +65,9 @@ const
 {********************************* Types *********************************}
 
 type
-  TRegArray = Array[RS_EAX..RS_ESP] of tsuperregister;
-  TRegSet = Set of RS_EAX..RS_ESP;
+  TRegEnum = RS_EAX..RS_ESP;
+  TRegArray = Array[TRegEnum] of tsuperregister;
+  TRegSet = Set of TRegEnum;
   toptreginfo = Record
                 NewRegsEncountered, OldRegsEncountered: TRegSet;
                 RegsLoadedForRef: TRegSet;
@@ -337,9 +338,9 @@ begin
       begin
         case tai_regalloc(p).ratype of
           ra_alloc :
-            UsedRegs := UsedRegs + [tai_regalloc(p).reg];
+            Include(UsedRegs, TRegEnum(getsupreg(tai_regalloc(p).reg)));
           ra_dealloc :
-            UsedRegs := UsedRegs - [tai_regalloc(p).reg];
+            Exclude(UsedRegs, TRegEnum(getsupreg(tai_regalloc(p).reg)));
         end;
         p := tai(p.next);
       end;
@@ -1151,9 +1152,9 @@ begin
           begin
             case tai_regalloc(p).ratype of
               ra_alloc :
-                UsedRegs := UsedRegs + [getsupreg(tai_regalloc(p).reg)];
+                Include(UsedRegs, TRegEnum(getsupreg(tai_regalloc(p).reg)));
               ra_dealloc :
-                UsedRegs := UsedRegs - [getsupreg(tai_regalloc(p).reg)];
+                Exclude(UsedRegs, TRegEnum(getsupreg(tai_regalloc(p).reg)));
             end;
           end;
         p := tai(p.next);
