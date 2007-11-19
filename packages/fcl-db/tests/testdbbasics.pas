@@ -19,10 +19,20 @@ type
     procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
+
+    procedure FTestDelete1(TestCancelUpdate : boolean);
+    procedure FTestDelete2(TestCancelUpdate : boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure TestCancelUpdDelete1;
+    procedure TestCancelUpdDelete2;
+    procedure TestBookmarks;
+
+    procedure TestFirst;
+    procedure TestDelete1;
+    procedure TestDelete2;
     procedure TestIntFilter;
     procedure TestOnFilter;
     procedure TestStringFilter;
@@ -453,6 +463,237 @@ end;
 procedure TTestDBBasics.TearDown;
 begin
   DBConnector.StopTest;
+end;
+
+procedure TTestDBBasics.TestBookmarks;
+var BM1,BM2,BM3,BM4,BM5 : TBookmark;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    AssertNull(GetBookmark);
+    open;
+    BM1:=GetBookmark; // id=1, BOF
+    next;next;
+    BM2:=GetBookmark; // id=3
+    next;next;next;
+    BM3:=GetBookmark; // id=6
+    next;next;next;next;next;next;next;next;
+    BM4:=GetBookmark; // id=14
+    next;
+    BM5:=GetBookmark; // id=14, EOF
+    
+    GotoBookmark(BM2);
+    AssertEquals(3,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    AssertEquals(1,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM3);
+    AssertEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM4);
+    AssertEquals(14,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM3);
+    AssertEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM5);
+    AssertEquals(14,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    AssertEquals(1,FieldByName('id').AsInteger);
+
+    next;
+    delete;
+
+    GotoBookmark(BM2);
+    AssertEquals(3,FieldByName('id').AsInteger);
+    
+    delete;delete;
+
+    GotoBookmark(BM3);
+    AssertEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    AssertEquals(1,FieldByName('id').AsInteger);
+    insert;
+    fieldbyname('id').AsInteger:=20;
+    insert;
+    fieldbyname('id').AsInteger:=21;
+    insert;
+    fieldbyname('id').AsInteger:=22;
+    insert;
+    fieldbyname('id').AsInteger:=23;
+    post;
+    
+    GotoBookmark(BM3);
+    AssertEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    AssertEquals(1,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM5);
+    AssertEquals(14,FieldByName('id').AsInteger);
+    end;
+end;
+
+procedure TTestDBBasics.TestFirst;
+var i : integer;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    open;
+    AssertEquals(1,FieldByName('ID').AsInteger);
+    First;
+    AssertEquals(1,FieldByName('ID').AsInteger);
+    next;
+    AssertEquals(2,FieldByName('ID').AsInteger);
+    First;
+    AssertEquals(1,FieldByName('ID').AsInteger);
+    for i := 0 to 12 do
+      next;
+    AssertEquals(14,FieldByName('ID').AsInteger);
+    First;
+    AssertEquals(1,FieldByName('ID').AsInteger);
+    close;
+    end;
+end;
+
+procedure TTestDBBasics.TestDelete1;
+begin
+  FTestDelete1(false);
+end;
+
+procedure TTestDBBasics.TestDelete2;
+begin
+  FTestDelete2(false);
+end;
+
+procedure TTestDBBasics.TestCancelUpdDelete1;
+begin
+  FTestDelete1(true);
+end;
+
+procedure TTestDBBasics.TestCancelUpdDelete2;
+begin
+  FTestDelete2(true);
+end;
+
+procedure TTestDBBasics.FTestDelete1(TestCancelUpdate : boolean);
+// Test the deletion of records, including the first and the last one
+var i  : integer;
+    ds : TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,17);
+  with ds do
+    begin
+    Open;
+
+    for i := 0 to 16 do if i mod 4=0 then
+      delete
+    else
+       next;
+
+    First;
+    for i := 0 to 16 do
+      begin
+      if i mod 4<>0 then
+        begin
+        AssertEquals(i+1,FieldByName('ID').AsInteger);
+        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+      end;
+    end;
+    
+  if TestCancelUpdate then
+    begin
+    if not (ds is TBufDataset) then
+      Ignore('This test only applies to TBufDataset and descendents.');
+    with TBufDataset(ds) do
+      begin
+      CancelUpdates;
+
+      First;
+      for i := 0 to 16 do
+        begin
+        AssertEquals(i+1,FieldByName('ID').AsInteger);
+        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+
+      close;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.FTestDelete2(TestCancelUpdate : boolean);
+// Test the deletion of edited and appended records
+var i : integer;
+    ds : TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,17);
+  with ds do
+    begin
+    Open;
+
+    for i := 0 to 16 do
+      begin
+      if i mod 4=0 then
+        begin
+        edit;
+        fieldbyname('name').AsString:='this record will be gone soon';
+        post;
+        end;
+      next;
+      end;
+
+    for i := 17 to 20 do
+      begin
+      append;
+      fieldbyname('id').AsInteger:=i+1;
+      fieldbyname('name').AsString:='TestName'+inttostr(i+1);
+      post;
+      end;
+
+    first;
+    for i := 0 to 20 do if i mod 4=0 then
+      delete
+    else
+       next;
+
+    First;
+    i := 0;
+    for i := 0 to 20 do
+      begin
+      if i mod 4<>0 then
+        begin
+        AssertEquals(i+1,FieldByName('ID').AsInteger);
+        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+      end;
+    end;
+
+  if TestCancelUpdate then
+    begin
+    if not (ds is TBufDataset) then
+      Ignore('This test only applies to TBufDataset and descendents.');
+    with TBufDataset(ds) do
+      begin
+      CancelUpdates;
+
+      First;
+      for i := 0 to 16 do
+        begin
+        AssertEquals(i+1,FieldByName('ID').AsInteger);
+        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+
+      close;
+      end;
+    end;
 end;
 
 procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
