@@ -117,12 +117,12 @@ interface
     Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     Function  RemoveDir(d:TCmdStr):boolean;
-    Function  FixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
+    Function  FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
     function  FixFileName(const s:TCmdStr):TCmdStr;
     function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
     function  TargetFixFileName(const s:TCmdStr):TCmdStr;
     procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
-    function  FindFile(const f : TCmdStr;path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+    function  FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
 {    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  GetShortName(const n:TCmdStr):TCmdStr;
@@ -523,7 +523,7 @@ implementation
         else
 {$endif usedircache}
           Result:=SysUtils.FileExists(F);
-        if assigned(do_comment) then
+        if do_checkverbosity(V_Tried) then
          begin
            if Result then
              do_comment(V_Tried,'Searching file '+F+'... found')
@@ -652,27 +652,37 @@ implementation
       end;
 
 
-    Function FixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
+    Function FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
       var
-        i : longint;
+        i, L : longint;
+        P: PChar;
       begin
+        Result := s;
+        L := Length(Result);
+        if L=0 then
+          exit;
         { Fix separator }
-        for i:=1 to length(s) do
-         if s[i] in ['/','\'] then
-          s[i]:=source_info.DirSep;
+        P := @Result[1];
+        for i:=0 to L-1 do
+          begin
+            if p^ in ['/','\'] then
+              p^:=source_info.DirSep;
+            inc(p);
+          end;
         { Fix ending / }
-        if (length(s)>0) and (s[length(s)]<>source_info.DirSep) and
-           (s[length(s)]<>DriveSeparator) then
-         s:=s+source_info.DirSep;
+        if (L>0) and (Result[L]<>source_info.DirSep) and
+           (Result[L]<>DriveSeparator) then
+          Result:=Result+source_info.DirSep;  { !still results in temp AnsiString }
         { Remove ./ }
-        if (not allowdot) and (s='.'+source_info.DirSep) then
-         s:='';
+        if (not allowdot) and ((Length(Result)=2) and (Result[1]='.') and (Result[2] = source_info.DirSep)) then
+          begin
+            Result:='';
+            Exit;
+          end;
         { return }
-        if (tf_files_case_aware in source_info.flags) or
-           (tf_files_case_sensitive in source_info.flags) then
-         FixPath:=s
-        else
-         FixPath:=Lower(s);
+        if not ((tf_files_case_aware in source_info.flags) or
+           (tf_files_case_sensitive in source_info.flags)) then
+          Result := lower(Result);
       end;
 
   {Actually the version in macutils.pp could be used,
@@ -945,7 +955,7 @@ implementation
 
        procedure WarnNonExistingPath(const path : TCmdStr);
        begin
-         if assigned(do_comment) then
+         if do_checkverbosity(V_Tried) then
            do_comment(V_Tried,'Path "'+path+'" not found');
        end;
 
@@ -1134,26 +1144,22 @@ implementation
      end;
 
 
-   function FindFile(const f : TCmdStr;path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-      Var
-        singlepathstring : TCmdStr;
-        i : longint;
+   function FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+     Var
+       StartPos, EndPos, L: LongInt;
      begin
-       if PathSeparator <> ';' then
-        for i:=1 to length(path) do
-         if path[i]=PathSeparator then
-          path[i]:=';';
-       FindFile:=false;
+       Result:=False;
+       StartPos := 1;
+       L := Length(Path);
        repeat
-          i:=pos(';',path);
-          if i=0 then
-           i:=Succ (Length (Path));
-          singlepathstring:=FixPath(copy(path,1,i-1),false);
-          delete(path,1,i);
-          result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
-          if result then
-            exit;
-       until path='';
+         EndPos := StartPos;
+         while (EndPos <= L) and ((Path[EndPos] <> PathSeparator) and (Path[EndPos] <> ';')) do
+           Inc(EndPos);
+         Result := FileExistsNonCase(FixPath(Copy(Path, StartPos, EndPos-StartPos), False), f, allowcache, FoundFile);
+         if Result then
+           Exit;
+         StartPos := EndPos + 1;
+       until StartPos > L;
        FoundFile:=f;
      end;
 

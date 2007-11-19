@@ -265,7 +265,8 @@ uses
 
          Function UnitExists(const ext:string;var foundfile:TCmdStr):boolean;
          begin
-           Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
+           if CheckVerbosity(V_Tried) then
+             Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
            UnitExists:=FindFile(FileName+ext,Singlepathstring,true,foundfile);
          end;
 
@@ -382,16 +383,19 @@ uses
           begin
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
-            Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,sourceext));
+            if CheckVerbosity(V_Tried) then
+              Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,sourceext));
             fnd:=FindFile(ChangeFileExt(sourcefn^,sourceext),'',true,hs);
             if not fnd then
              begin
-               Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pasext));
+               if CheckVerbosity(V_Tried) then
+                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pasext));
                fnd:=FindFile(ChangeFileExt(sourcefn^,pasext),'',true,hs);
              end;
             if not fnd and ((m_mac in current_settings.modeswitches) or (tf_p_ext_support in target_info.flags)) then
              begin
-               Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pext));
+               if CheckVerbosity(V_Tried) then
+                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pext));
                fnd:=FindFile(ChangeFileExt(sourcefn^,pext),'',true,hs);
              end;
             if fnd then

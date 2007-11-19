@@ -383,7 +383,7 @@ begin
   if hp=nil then
     Get:='msg nr '+tostr(nr)
   else
-    Get:=MsgReplace(strpas(hp),args);
+    Get:=MsgReplace(system.strpas(hp),args);
 end;
 
 end.
