@@ -693,7 +693,11 @@ implementation
                         len:=left.resultdef.size;
                         if (right.location.reference.offset mod sizeof(aint)<>0) or
                           (left.location.reference.offset mod sizeof(aint)<>0) or
-                          (right.resultdef.alignment<sizeof(aint)) then
+                          (right.resultdef.alignment<sizeof(aint)) or
+                          ((right.location.reference.alignment<>0) and
+                           (right.location.reference.alignment<sizeof(aint))) or
+                          ((left.location.reference.alignment<>0) and
+                           (left.location.reference.alignment<sizeof(aint))) then
                           cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
                         else
                           cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);

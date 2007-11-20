@@ -588,14 +588,14 @@ begin
      result:=0;
      exit;
    end;
-{$ifdef FPC_SUPPORTS_UNALIGNED}
+{$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(word) then
     begin
-      result:=Unaligned(pword(@buf[bufidx])^);
+      result:=Unaligned(pword(@buf[bufidx]))^;
       inc(bufidx,sizeof(word));
     end
   else
-{$endif FPC_SUPPORTS_UNALIGNED}
+{$endif FPC_UNALIGNED_FIXED}
     readdata(result,sizeof(word));
   if change_endian then
    result:=swapendian(result);
@@ -611,14 +611,14 @@ begin
      getlongint:=0;
      exit;
    end;
-{$ifdef FPC_SUPPORTS_UNALIGNED}
+{$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(longint) then
     begin
-      result:=Unaligned(plongint(@buf[bufidx])^);
+      result:=Unaligned(plongint(@buf[bufidx]))^;
       inc(bufidx,sizeof(longint));
     end
   else
-{$endif FPC_SUPPORTS_UNALIGNED}
+{$endif FPC_UNALIGNED_FIXED}
     readdata(result,sizeof(longint));
   if change_endian then
    result:=swapendian(result);
@@ -634,14 +634,14 @@ begin
      result:=0;
      exit;
    end;
-{$ifdef FPC_SUPPORTS_UNALIGNED}
+{$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(int64) then
     begin
       result:=Unaligned(pint64(@buf[bufidx])^);
       inc(bufidx,sizeof(int64));
     end
   else
-{$endif FPC_SUPPORTS_UNALIGNED}
+{$endif FPC_UNALIGNED_FIXED}
     readdata(result,sizeof(int64));
   if change_endian then
    result:=swapendian(result);
