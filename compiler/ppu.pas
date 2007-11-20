@@ -591,7 +591,7 @@ begin
 {$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(word) then
     begin
-      result:=Unaligned(pword(@buf[bufidx]))^;
+      result:=Unaligned(pword(@buf[bufidx])^);
       inc(bufidx,sizeof(word));
     end
   else
@@ -614,7 +614,7 @@ begin
 {$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(longint) then
     begin
-      result:=Unaligned(plongint(@buf[bufidx]))^;
+      result:=Unaligned(plongint(@buf[bufidx])^);
       inc(bufidx,sizeof(longint));
     end
   else
