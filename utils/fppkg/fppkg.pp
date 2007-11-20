@@ -275,7 +275,11 @@ begin
     if not FileExists(GlobalOptions.LocalPackagesFile) then
       pkghandler.ExecuteAction(nil,'update');
     LoadLocalRepository;
-    LoadLocalStatus;
+    LoadFPMakeLocalStatus;
+    // We only need to reload the status when we use a different
+    // configuration for compiling fpmake
+    if GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig then
+      LoadLocalStatus;
 
     if ParaPackages.Count=0 then
       begin

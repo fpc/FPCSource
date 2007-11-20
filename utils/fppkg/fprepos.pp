@@ -53,6 +53,7 @@ Type
     function GetEmpty: Boolean;
     procedure SetAsString(const AValue: String);
   Public
+   Procedure Clear;
    Procedure Assign(Source : TPersistent); override;
    Property AsString : String Read GetAsString Write SetAsString;
    Function CompareVersion(AVersion : TFPVersion) : Integer;
@@ -90,7 +91,7 @@ Type
     function GetDependency(Index : Integer): TFPDependency;
     procedure SetDependency(Index : Integer; const AValue: TFPDependency);
   public
-    Function AddDependency(Const APackageName : String; AMinVersion : String = '') : TFPDependency;
+    Function AddDependency(const APackageName : String; const AMinVersion : String = '') : TFPDependency;
     Property Dependencies[Index : Integer] : TFPDependency Read GetDependency Write SetDependency;default;
   end;
 
@@ -150,10 +151,10 @@ Type
   Protected
     Function CurrentStreamVersion : Integer; override;
   Public
-    Function IndexOfPackage(PackageName : String) : Integer;
-    Function FindPackage(PackageName : String) : TFPPackage;
-    Function PackageByName(PackageName : String) : TFPPackage;
-    Function AddPackage(PackageName : string) : TFPPackage;
+    Function IndexOfPackage(const APackageName : String) : Integer;
+    Function FindPackage(const APackageName : String) : TFPPackage;
+    Function PackageByName(const APackageName : String) : TFPPackage;
+    Function AddPackage(const APackageName : string) : TFPPackage;
     Property StreamVersion : Integer Read FVersion Write FVersion;
     Property Packages [Index : Integer] : TFPPackage Read GetPackage Write SetPackage; default;
   end;
@@ -170,31 +171,32 @@ Type
     function GetPackageCount: Integer;
   Protected
     procedure CreatePackages; virtual;
-    Procedure BackupFile(AFileName : String); virtual;
-    Procedure DoGetPackageDependencies(PackageName : String; List : TStringList; Level : Integer); virtual;
+    Procedure BackupFile(const AFileName : String); virtual;
+    Procedure DoGetPackageDependencies(const APackageName : String; List : TStringList; Level : Integer); virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
     // Loading and Saving repository. Own format.
     Procedure LoadFromStream(Stream : TStream); Virtual;
     Procedure SaveToStream(Stream : TStream); Virtual;
-    Procedure LoadFromFile(AFileName : String);
-    Procedure SaveToFile(AFileName : String);
+    Procedure LoadFromFile(const AFileName : String);
+    Procedure SaveToFile(const AFileName : String);
     Procedure Save;
     // Loading and Saving version numbers: List of Name=Value pairs.
+    procedure ClearStatus;
     Procedure LoadStatusFromStream(Stream : TStream); virtual;
     Procedure SaveStatusToStream(Stream : TStream); virtual;
-    Procedure LoadStatusFromFile(AFileName : String);
-    Procedure SaveStatusToFile(AFileName : String);
+    Procedure LoadStatusFromFile(const AFileName : String);
+    Procedure SaveStatusToFile(const AFileName : String);
     // Package management
-    Function IndexOfPackage(PackageName : String) : Integer;
-    Function FindPackage(PackageName : String) : TFPPackage;
-    Function PackageByName(PackageName : String) : TFPPackage;
+    Function IndexOfPackage(const APackageName : String) : Integer;
+    Function FindPackage(const APackageName : String) : TFPPackage;
+    Function PackageByName(const APackageName : String) : TFPPackage;
     Procedure DeletePackage(Index : Integer);
-    Procedure RemovePackage(PackageName : string);
-    Function AddPackage(PackageName : string) : TFPPackage;
+    Procedure RemovePackage(const APackageName : string);
+    Function AddPackage(const APackageName : string) : TFPPackage;
     // Dependencies
-    Procedure GetPackageDependencies(PackageName : String; List : TObjectList; Recurse : Boolean);
+    Procedure GetPackageDependencies(const APackageName : String; List : TObjectList; Recurse : Boolean);
     // Properties
     Property FileName : String Read FFileName;
     Property Packages[Index : Integer] : TFPPackage Read GetPackage; default;
@@ -364,12 +366,9 @@ Var
   V : String;
 
 begin
-  Release:=0;
-  Major:=0;
-  Minor:=0;
-  Suffix:='';
+  Clear;
   // Special support for empty version string
-  if AValue='<none>' then
+  if (AValue='') or (AValue='<none>') then
     exit;
   V:=AValue;
   Release:=NextDigit('.',V);
@@ -379,6 +378,14 @@ begin
   If (P<>0) then
     Delete(V,1,P);
   Suffix:=V;
+end;
+
+procedure TFPVersion.Clear;
+begin
+  Release:=0;
+  Major:=0;
+  Minor:=0;
+  Suffix:='';
 end;
 
 procedure TFPVersion.Assign(Source: TPersistent);
@@ -620,41 +627,41 @@ begin
   Result:=FVersion;
 end;
 
-function TFPPackages.IndexOfPackage(PackageName: String): Integer;
+function TFPPackages.IndexOfPackage(const APackageName: String): Integer;
 
 
 begin
   Result:=Count-1;
-  While (Result>=0) and (CompareText(GetPackage(Result).Name,PackageName)<>0) do
+  While (Result>=0) and (CompareText(GetPackage(Result).Name,APackageName)<>0) do
     Dec(Result);
 end;
 
-function TFPPackages.FindPackage(PackageName: String): TFPPackage;
+function TFPPackages.FindPackage(const APackageName: String): TFPPackage;
 
 Var
   I : Integer;
 
 begin
-  I:=IndexOfPackage(PackageName);
+  I:=IndexOfPackage(APackageName);
   If (I=-1) then
     Result:=Nil
   else
     Result:=GetPackage(I);
 end;
 
-function TFPPackages.PackageByName(PackageName: String): TFPPackage;
+function TFPPackages.PackageByName(const APackageName: String): TFPPackage;
 begin
-  Result:=FindPackage(PackageName);
+  Result:=FindPackage(APackageName);
   If Result=Nil then
-    Raise EPackage.CreateFmt(SErrPackageNotFound,[PackageName]);
+    Raise EPackage.CreateFmt(SErrPackageNotFound,[APackageName]);
 end;
 
-function TFPPackages.AddPackage(PackageName: string): TFPPackage;
+function TFPPackages.AddPackage(const APackageName: string): TFPPackage;
 
 begin
   Result:=Add as TFPPackage;
   Try
-    Result.Name:=PackageName;
+    Result.Name:=APackageName;
   Except
     Result.Free;
     Raise;
@@ -689,7 +696,7 @@ begin
   FPackages.StreamVersion:=StreamVersion;
 end;
 
-procedure TFPRepository.BackupFile(AFileName: String);
+procedure TFPRepository.BackupFile(const AFileName: String);
 
 Var
   S : String;
@@ -735,7 +742,7 @@ begin
   FPackages.SaveToStream(Stream);
 end;
 
-procedure TFPRepository.LoadFromFile(AFileName: String);
+procedure TFPRepository.LoadFromFile(const AFileName: String);
 
 Var
   F : TFileStream;
@@ -750,7 +757,7 @@ begin
   end;
 end;
 
-procedure TFPRepository.SaveToFile(AFileName: String);
+procedure TFPRepository.SaveToFile(const AFileName: String);
 
 Var
   F : TFileStream;
@@ -773,6 +780,17 @@ begin
      Raise EPackage.Create(SErrNoFileName);
   SaveToFile(FFileName);
 end;
+
+
+procedure TFPRepository.ClearStatus;
+Var
+  I : Integer;
+begin
+  For I:=0 to PackageCount-1 do
+    With Packages[i] do
+      InstalledVersion.Clear;
+end;
+
 
 procedure TFPRepository.LoadStatusFromStream(Stream: TStream);
 
@@ -815,7 +833,7 @@ begin
   end;
 end;
 
-procedure TFPRepository.LoadStatusFromFile(AFileName: String);
+procedure TFPRepository.LoadStatusFromFile(const AFileName: String);
 
 Var
   F : TFileStream;
@@ -829,7 +847,7 @@ begin
   end;
 end;
 
-procedure TFPRepository.SaveStatusToFile(AFileName: String);
+procedure TFPRepository.SaveStatusToFile(const AFileName: String);
 
 Var
   F : TFileStream;
@@ -845,24 +863,24 @@ begin
   end;
 end;
 
-function TFPRepository.IndexOfPackage(PackageName: String): Integer;
+function TFPRepository.IndexOfPackage(const APackageName: String): Integer;
 begin
-  Result:=FPackages.IndexOfPackage(PackageName);
+  Result:=FPackages.IndexOfPackage(APackageName);
 end;
 
-function TFPRepository.FindPackage(PackageName: String): TFPPackage;
+function TFPRepository.FindPackage(const APackageName: String): TFPPackage;
 begin
-  Result:=FPackages.FindPackage(PackageName);
+  Result:=FPackages.FindPackage(APackageName);
 end;
 
-function TFPRepository.PackageByName(PackageName: String): TFPPackage;
+function TFPRepository.PackageByName(const APackageName: String): TFPPackage;
 begin
-  Result:=FPackages.PackageByName(PackageName);
+  Result:=FPackages.PackageByName(APackageName);
 end;
 
-procedure TFPRepository.RemovePackage(PackageName: string);
+procedure TFPRepository.RemovePackage(const APackageName: string);
 begin
-  PackageByName(PackageName).Free;
+  PackageByName(APackageName).Free;
 end;
 
 procedure TFPRepository.DeletePackage(Index : Integer);
@@ -870,13 +888,13 @@ begin
   GetPackage(Index).Free;
 end;
 
-function TFPRepository.AddPackage(PackageName: string): TFPPackage;
+function TFPRepository.AddPackage(const APackageName: string): TFPPackage;
 
 begin
-  Result:=FPackages.AddPackage(PackageName);
+  Result:=FPackages.AddPackage(APackageName);
 end;
 
-procedure TFPRepository.DoGetPackageDependencies(PackageName: String;
+procedure TFPRepository.DoGetPackageDependencies(const APackageName: String;
   List: TStringList; Level: Integer);
 Var
   P : TFPPackage;
@@ -886,14 +904,14 @@ Var
 begin
   // If too many levels, bail out
   If (Level>FMaxDependencyLevel) then
-    Raise EPackage.CreateFmt(SErrMaxLevelExceeded,[Level,PackageName]);
+    Raise EPackage.CreateFmt(SErrMaxLevelExceeded,[Level,APackageName]);
   // Check if it is a known package.
-  P:=FindPackage(PackageName);
+  P:=FindPackage(APackageName);
   If Assigned(P) and P.HasDependencies then
     For I:=0 to P.Dependencies.Count-1 do
       begin
       D1:=P.Dependencies[i];
-      J:=List.IndexOf(PackageName);
+      J:=List.IndexOf(APackageName);
       If J=-1 then
         begin
         // Dependency not yet in list.
@@ -914,7 +932,7 @@ begin
       end;
 end;
 
-procedure TFPRepository.GetPackageDependencies(PackageName: String;
+procedure TFPRepository.GetPackageDependencies(const APackageName: String;
   List: TObjectList; Recurse: Boolean);
 
 Var
@@ -925,7 +943,7 @@ begin
   L:=TStringList.Create;
   Try
     L.Sorted:=True;
-    DoGetPackageDependencies(PackageName,L,Ord(Recurse)-1);
+    DoGetPackageDependencies(APackageName,L,Ord(Recurse)-1);
     For I:=0 to L.Count-1 do
       List.Add(L.Objects[i]);
   Finally
@@ -992,8 +1010,7 @@ begin
   Items[Index]:=AValue;
 end;
 
-function TFPDependencies.AddDependency(const APackageName: String;
-  AMinVersion: String): TFPDependency;
+function TFPDependencies.AddDependency(const APackageName: String; const AMinVersion: String): TFPDependency;
 begin
   Result:=Add as TFPDependency;
   Result.PackageName:=APackageName;

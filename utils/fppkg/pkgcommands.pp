@@ -262,7 +262,7 @@ begin
         end
       else
         status:='OK';
-      Log(vDebug,'Dependency on package %s %s, installed %s, available %s  (%s)',
+      Log(vDebug,SDbgPackageDependency,
           [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
     end;
   // Install needed updates

@@ -11,6 +11,7 @@ uses
 procedure LoadLocalRepository;
 procedure LoadLocalStatus;
 procedure SaveLocalStatus;
+procedure LoadFPMakeLocalStatus;
 procedure ListLocalRepository(all:boolean=false);
 
 procedure ListRemoteRepository;
@@ -71,6 +72,7 @@ var
 begin
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
   Log(vDebug,SLogLoadingStatusFile,[S]);
+  CurrentRepository.ClearStatus;
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
 end;
@@ -83,6 +85,35 @@ begin
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
   Log(vDebug,SLogSavingStatusFile,[S]);
   CurrentRepository.SaveStatusToFile(S);
+end;
+
+
+procedure LoadFPMakeLocalStatus;
+var
+  S : String;
+  P : TFPPackage;
+  ReqVer : TFPVersion;
+begin
+  HasFPMKUnitInstalled:=false;
+  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.FPMakeCompilerConfig);
+  Log(vDebug,SLogLoadingStatusFile,[S]);
+  CurrentRepository.ClearStatus;
+  if FileExists(S) then
+    CurrentRepository.LoadStatusFromFile(S);
+  // Check for fpmkunit package
+  P:=CurrentRepository.PackageByName('fpmkunit');
+  if P<>nil then
+    begin
+      ReqVer:=TFPVersion.Create;
+      ReqVer.AsString:=RequiredFPMKUnitVersion;
+      Log(vDebug,SLogPackageFPMKUnitVersion,[ReqVer.AsString,P.InstalledVersion.AsString,P.Version.AsString]);
+      if ReqVer.CompareVersion(P.InstalledVersion)<=0 then
+        HasFPMKUnitInstalled:=true
+      else
+        Log(vDebug,SLogPackageFPMKUnitTooOld);
+    end
+  else
+    Log(vDebug,SLogPackageFPMKUnitTooOld);
 end;
 
 

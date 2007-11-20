@@ -43,8 +43,6 @@ Resourcestring
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';
   SErrGETFailed              = 'FTP GET "%s" command failed.';
 
-  SWarnFPMKUnitNotFound      = 'Package "fpmkunit" is not found, using internal bootstrap procedure';
-
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
   SLogCommandLineAction      = 'Adding action from commandline: "%s %s"';
@@ -64,12 +62,15 @@ Resourcestring
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
   SLogLoadingStatusFile      = 'Loading local status from "%s"';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
+  SLogPackageFPMKUnitVersion = 'Checking for fpmkunit %s, installed %s, available %s';
+  SLogPackageFPMKUnitTooOld  = 'Minimum fpmkunit version not installed, using internal fpmkunit';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
   SDbgDirectoryExists        = 'Directory "%s" %s';
   SDbgFileExists             = 'File "%s" %s';
   SDbgBackupFile             = 'Creating Backup File "%s"';
+  SDbgPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
 
 
 implementation

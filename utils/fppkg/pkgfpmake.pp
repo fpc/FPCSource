@@ -165,34 +165,32 @@ begin
     begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
-      // Special bootstrapping mode to compile fpmake?
-      DoBootStrap:=False;
-      NeedFPMKUnitSource:=False;
       OOptions:='-n';
-      // Add FPMKUnit unit dir, if not found we use the internal fpmkunit source
-      if CheckUnitDir('fpmkunit',DepDir) then
-        OOptions:=OOptions+' -Fu'+DepDir
+      // Add FPMKUnit unit dir, if not installed we use the internal fpmkunit source
+      if HasFPMKUnitInstalled then
+        begin
+          if CheckUnitDir('fpmkunit',DepDir) then
+            OOptions:=OOptions+' -Fu'+DepDir
+          else
+            Error(SErrMissingInstallPackage,['fpmkunit']);
+        end
       else
         begin
-          Log(vWarning,SWarnFPMKUnitNotFound);
-          DoBootStrap:=true;
           NeedFPMKUnitSource:=true;
           OOptions:=OOptions+' -Fu'+TempBuildDir;
         end;
-      // Add PaszLib and Hash units dir
-      // we need to check for the zipper.ppu that is not
-      // delivered with fpc 2.0.4
+      // Add PaszLib and Hash units dir, when internal fpmkunit is used we
+      // can suppress the use by NO_UNIT_ZIPPER
       if not CheckUnitDir('hash',DepDir) then
         begin
-          if DoBootStrap then
+          if NeedFPMKUnitSource then
             DepDir:=''
           else
             Error(SErrMissingInstallPackage,['hash']);
         end;
-      if not CheckUnitDir('paszlib',DepDir2) or
-         not FileExists(DepDir2+'zipper.ppu') then
+      if not CheckUnitDir('paszlib',DepDir2) then
         begin
-          if DoBootStrap then
+          if NeedFPMKUnitSource then
             DepDir2:=''
           else
             Error(SErrMissingInstallPackage,['paszlib']);
@@ -201,12 +199,13 @@ begin
         OOptions:=OOptions+' -Fu'+DepDir+' -Fu'+DepDir2
       else
         OOptions:=OOptions+' -dNO_UNIT_ZIPPER';
-      // Add Process unit
+      // Add Process unit dir, when internal fpmkunit is used we
+      // can suppress the use by NO_UNIT_PROCESS
       if CheckUnitDir('fcl-process',DepDir) then
         OOptions:=OOptions+' -Fu'+DepDir
       else
         begin
-          if DoBootStrap then
+          if NeedFPMKUnitSource then
             OOptions:=OOptions+' -dNO_UNIT_PROCESS'
           else
             Error(SErrMissingInstallPackage,['fcl-process']);
@@ -220,15 +219,11 @@ begin
       ForceDirectories(TempBuildDir);
       OOptions:=OOptions+' -FU'+TempBuildDir;
       // Compile options
-      //   -- bootstrapping compile with -g
       //   -- default is to optimize, smartlink and strip to reduce
       //      the executable size (there can be 100's of fpmake's on a system)
       if vInfo in Verbosity then
         OOptions:=OOptions+' -vi';
-      if DoBootStrap then
-        OOptions:=OOptions+' -g'
-      else
-        OOptions:=OOptions+' -O2 -XXs';
+      OOptions:=OOptions+' -O2 -XXs';
       // Create fpmkunit.pp if needed
       if NeedFPMKUnitSource then
         CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');

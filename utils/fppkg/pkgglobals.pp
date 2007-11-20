@@ -18,6 +18,7 @@ Const
 {$endif unix}
 
   // Dependencies for compiling the fpmkunit unit
+  RequiredFPMKUnitVersion = '2.2.0';
   FPMKUnitDeps : array[0..4] of string[11] = ('rtl','hash','paszlib','fcl-process','fpmkunit');
 
 Type
@@ -47,6 +48,7 @@ function IsSuperUser:boolean;
 
 var
   Verbosity : TVerbosities;
+  HasFPMKUnitInstalled : boolean;
 
 
 Implementation
