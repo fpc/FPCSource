@@ -219,6 +219,15 @@ end;
 {   these functions rely on the character set loaded by the OS                 }
 {==============================================================================}
 
+type
+  TCaseTranslationTable = array[0..255] of char;
+  
+var
+  { Tables with upper and lowercase forms of character sets.
+    MUST be initialized with the correct code-pages }
+  UpperCaseTable: TCaseTranslationTable;
+  LowerCaseTable: TCaseTranslationTable;
+
 function GenericAnsiUpperCase(const s: string): string;
   var
     len, i: integer;

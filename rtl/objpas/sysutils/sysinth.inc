@@ -27,7 +27,6 @@
   ---------------------------------------------------------------------}
 
 type
-  TCaseTranslationTable = array[0..255] of char;
   TMonthNameArray = array[1..12] of string;
   TWeekNameArray = array[1..7] of string;
 
@@ -55,13 +54,6 @@ type
   end;
 
 var
-{$ifndef FPC_NOGENERICANSIROUTINES}
-   { Tables with upper and lowercase forms of character sets.
-     MUST be initialized with the correct code-pages }
-   UpperCaseTable: TCaseTranslationTable;
-   LowerCaseTable: TCaseTranslationTable;
-{$endif FPC_NOGENERICANSIROUTINES}
-
   DefaultFormatSettings : TFormatSettings = (
     CurrencyFormat: 1;
     NegCurrFormat: 5;
