@@ -62,8 +62,8 @@ Resourcestring
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
   SLogLoadingStatusFile      = 'Loading local status from "%s"';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
-  SLogPackageFPMKUnitVersion = 'Checking for fpmkunit %s, installed %s, available %s';
-  SLogPackageFPMKUnitTooOld  = 'Minimum fpmkunit version not installed, using internal fpmkunit';
+  SLogFPMKUnitDepVersion     = 'Checking for %s %s, installed %s, available %s';
+  SLogFPMKUnitDepTooOld      = 'Minimum version of %s is not installed, using internal fpmkunit with limited functionality';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';

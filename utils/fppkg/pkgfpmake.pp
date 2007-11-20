@@ -139,13 +139,12 @@ Procedure TFPMakeCompiler.CompileFPMake;
 const
   TempBuildDir = 'build-fpmake';
 Var
+  i : Integer;
   OOptions,
   DepDir,
-  DepDir2,
   FPMakeBin,
   FPMakeSrc : string;
   NeedFPMKUnitSource,
-  DoBootStrap,
   HaveFpmake : boolean;
 begin
   SetCurrentDir(PackageBuildPath);
@@ -166,49 +165,26 @@ begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
       OOptions:='-n';
-      // Add FPMKUnit unit dir, if not installed we use the internal fpmkunit source
-      if HasFPMKUnitInstalled then
+      for i:=1 to FPMKUnitDepCount do
         begin
-          if CheckUnitDir('fpmkunit',DepDir) then
-            OOptions:=OOptions+' -Fu'+DepDir
+          if FPMKUnitDepAvailable[i] then
+            begin
+              if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
+                OOptions:=OOptions+' -Fu'+DepDir
+              else
+                Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
+            end
           else
-            Error(SErrMissingInstallPackage,['fpmkunit']);
-        end
-      else
-        begin
-          NeedFPMKUnitSource:=true;
-          OOptions:=OOptions+' -Fu'+TempBuildDir;
-        end;
-      // Add PaszLib and Hash units dir, when internal fpmkunit is used we
-      // can suppress the use by NO_UNIT_ZIPPER
-      if not CheckUnitDir('hash',DepDir) then
-        begin
-          if NeedFPMKUnitSource then
-            DepDir:=''
-          else
-            Error(SErrMissingInstallPackage,['hash']);
-        end;
-      if not CheckUnitDir('paszlib',DepDir2) then
-        begin
-          if NeedFPMKUnitSource then
-            DepDir2:=''
-          else
-            Error(SErrMissingInstallPackage,['paszlib']);
-        end;
-      if (DepDir<>'') and (DepDir2<>'') then
-        OOptions:=OOptions+' -Fu'+DepDir+' -Fu'+DepDir2
-      else
-        OOptions:=OOptions+' -dNO_UNIT_ZIPPER';
-      // Add Process unit dir, when internal fpmkunit is used we
-      // can suppress the use by NO_UNIT_PROCESS
-      if CheckUnitDir('fcl-process',DepDir) then
-        OOptions:=OOptions+' -Fu'+DepDir
-      else
-        begin
-          if NeedFPMKUnitSource then
-            OOptions:=OOptions+' -dNO_UNIT_PROCESS'
-          else
-            Error(SErrMissingInstallPackage,['fcl-process']);
+            begin
+              // If fpmkunit is not installed, we use the internal fpmkunit source
+              if FPMKUnitDeps[i].package='fpmkunit' then
+                begin
+                  NeedFPMKUnitSource:=true;
+                  OOptions:=OOptions+' -Fu'+TempBuildDir;
+                end;
+              if FPMKUnitDeps[i].undef<>'' then
+                OOptions:=OOptions+' -d'+FPMKUnitDeps[i].undef;
+            end;
         end;
       // Add RTL unit dir
       if not CheckUnitDir('rtl',DepDir) then

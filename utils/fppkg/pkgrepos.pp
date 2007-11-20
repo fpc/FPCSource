@@ -90,30 +90,34 @@ end;
 
 procedure LoadFPMakeLocalStatus;
 var
+  i : Integer;
   S : String;
   P : TFPPackage;
   ReqVer : TFPVersion;
 begin
-  HasFPMKUnitInstalled:=false;
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.FPMakeCompilerConfig);
   Log(vDebug,SLogLoadingStatusFile,[S]);
   CurrentRepository.ClearStatus;
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
-  // Check for fpmkunit package
-  P:=CurrentRepository.PackageByName('fpmkunit');
-  if P<>nil then
+  // Check for fpmkunit dependencies
+  for i:=1 to FPMKUnitDepCount do
     begin
-      ReqVer:=TFPVersion.Create;
-      ReqVer.AsString:=RequiredFPMKUnitVersion;
-      Log(vDebug,SLogPackageFPMKUnitVersion,[ReqVer.AsString,P.InstalledVersion.AsString,P.Version.AsString]);
-      if ReqVer.CompareVersion(P.InstalledVersion)<=0 then
-        HasFPMKUnitInstalled:=true
+      FPMKUnitDepAvailable[i]:=false;
+      P:=CurrentRepository.PackageByName(FPMKUnitDeps[i].package);
+      if P<>nil then
+        begin
+          ReqVer:=TFPVersion.Create;
+          ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
+          Log(vDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.InstalledVersion.AsString,P.Version.AsString]);
+          if ReqVer.CompareVersion(P.InstalledVersion)<=0 then
+            FPMKUnitDepAvailable[i]:=true
+          else
+            Log(vDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+        end
       else
-        Log(vDebug,SLogPackageFPMKUnitTooOld);
-    end
-  else
-    Log(vDebug,SLogPackageFPMKUnitTooOld);
+        Log(vDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+    end;
 end;
 
 

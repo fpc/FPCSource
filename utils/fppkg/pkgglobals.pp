@@ -17,9 +17,30 @@ Const
   AllFiles='*.*';
 {$endif unix}
 
+Type
+  TFPMKUnitDep=record
+    package : string[12];
+    reqver  : string[8];
+    undef   : string[16];
+  end;
+
+Const
   // Dependencies for compiling the fpmkunit unit
-  RequiredFPMKUnitVersion = '2.2.0';
-  FPMKUnitDeps : array[0..4] of string[11] = ('rtl','hash','paszlib','fcl-process','fpmkunit');
+  FPMKUnitDepCount=4;
+  FPMKUnitDeps : array[1..4] of TFPMKUnitDep = (
+    (package: 'hash';
+     reqver : '2.0.0';
+     undef  : 'NO_UNIT_ZIPPER'),
+    (package: 'paszlib';
+     reqver : '2.2.0';
+     undef  : 'NO_UNIT_ZIPPER'),
+    (package: 'fcl-process';
+     reqver : '2.0.0';
+     undef  : 'NO_UNIT_PROCESS'),
+    (package: 'fpmkunit';
+     reqver : '2.2.0';
+     undef  : '')
+  );
 
 Type
   TVerbosity = (vError,vWarning,vInfo,vCommands,vDebug);
@@ -48,7 +69,7 @@ function IsSuperUser:boolean;
 
 var
   Verbosity : TVerbosities;
-  HasFPMKUnitInstalled : boolean;
+  FPMKUnitDepAvailable : array[1..FPMKUnitDepCount] of boolean;
 
 
 Implementation
