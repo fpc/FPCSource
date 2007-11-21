@@ -4,7 +4,7 @@ program testclasses;
 
 uses
   Classes, consoletestrunner, tcfindnested, tcstringlist, tccollection, tclist,
-  tcpersistent;
+  tcpersistent, tclinkedlist;
 
 type
 
