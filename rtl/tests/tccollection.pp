@@ -21,12 +21,32 @@ type
     Property Nr : integer Read FNr Write FNr;
   end;
   
+  { TMyCollection }
+
+  TMyCollection = Class(TCollection)
+  Private
+    FOwner : TPersistent;
+    FUpdateCount : Integer;
+    FLastNotifyItem,
+    FLastUpdate : TCollectionItem;
+    FNotifyCount : Integer;
+    FLastNotify : TCollectionNotification;
+    Function GetOwner : TPersistent; override;
+  Public
+    procedure Update(Item: TCollectionItem); override;
+    procedure Notify(Item: TCollectionItem;Action: TCollectionNotification); override;
+    Procedure ResetUpdate;
+    Procedure ResetNotify;
+    property PropName;
+  end;
+  
+  
   { TTestTCollection }
 
   TTestTCollection= class(TTestCase)
   private
   protected
-    FColl : TCollection;
+    FColl : TMyCollection;
     Function MyItem(I : integer) : TMyItem;
     procedure AddItems(ACount : Integer);
     procedure SetUp; override; 
@@ -44,7 +64,18 @@ type
     Procedure TestID;
     Procedure TestItemOwner;
     Procedure TestDisplayName;
+    procedure TestOwnerNamePath;
     Procedure TestItemNamePath;
+    Procedure TestOwnerItemNamePath;
+    Procedure TestChangeCollection;
+    Procedure TestUpdateAdd;
+    Procedure TestUpdateDelete;
+    Procedure TestUpdateDisplayName;
+    Procedure TestUpdateCount;
+    Procedure TestUpdateCountNested;
+    Procedure TestUpdateMove;
+    Procedure TestNotifyAdd;
+    Procedure TestNotifyDelete;
   end;
 
 implementation
@@ -169,6 +200,168 @@ begin
   AssertEquals('Item namepath is collection namepath+index',FColl.GetNamePath+'[1]',MyItem(1).GetNamePath);
 end;
 
+procedure TTestTCollection.TestOwnerItemNamePath;
+
+Var
+  P : TPersistent;
+
+begin
+  P:=TPersistent.Create;
+  try
+    TMyCollection(FColl).FOwner:=P;
+    AddItems(2);
+    TMyCollection(FColl).PropName:='Something';
+    AssertEquals('Item namepath is collection namepath+index','TPersistent.Something[0]',MyItem(0).GetNamePath);
+  finally
+    P.Free;
+  end;
+end;
+
+procedure TTestTCollection.TestOwnerNamePath;
+
+Var
+  P : TPersistent;
+
+begin
+  P:=TPersistent.Create;
+  try
+    TMyCollection(FColl).FOwner:=P;
+    AddItems(2);
+    TMyCollection(FColl).PropName:='Something';
+    AssertEquals('Namepath is collection namepath+index','TPersistent.Something',FColl.GetNamePath);
+  finally
+    P.Free;
+  end;
+end;
+
+procedure TTestTCollection.TestChangeCollection;
+
+Var
+  FCol2 : TCollection;
+  I : TCollectionItem;
+  
+begin
+  AddItems(2);
+  FCol2:=TCollection.Create(TMyItem);
+  try
+    I:=FCol2.Add;
+    I.Collection:=FColl;
+    AssertEquals('Moved item, count of source is zero',0,FCol2.Count);
+    AssertEquals('Moved item, count of dest is 1',3,FColl.Count);
+    AssertEquals('Moved item, index is 2',2,I.Index);
+    If (FColl.Items[0].Collection<>FColl) then
+      Fail('Collection owner is not set correctly after move');
+    AssertEquals('Moved item, ID is 2',2,I.ID);
+  finally
+    FCol2.free;
+  end;
+end;
+
+procedure TTestTCollection.TestUpdateAdd;
+begin
+  AddItems(1);
+  If (FColl.FLastUpdate<>Nil) then
+    Fail('update item found !');
+  AssertEquals('Update count is 1',1,FColl.FUpdateCount);
+
+end;
+
+procedure TTestTCollection.TestUpdateDelete;
+begin
+  AddItems(1);
+  FColl.ResetUpdate;
+  FColl.Delete(0);
+  If (FColl.FLastUpdate<>Nil) then
+    Fail('update item found !');
+  AssertEquals('Update count is 1',1,FColl.FUpdateCount);
+
+end;
+
+procedure TTestTCollection.TestUpdateDisplayName;
+begin
+  AddItems(1);
+  FColl.ResetUpdate;
+  MyItem(0).DisplayName:='Something';
+  AssertEquals('Display name notification. Update count is 1',1,FColl.FUpdateCount);
+  If (FColl.FLastUpdate<>MyItem(0)) then
+    Fail('No displayname update');
+end;
+
+procedure TTestTCollection.TestUpdateCount;
+begin
+  FColl.BeginUpdate;
+  Try
+    AddItems(2);
+    
+    AssertEquals('Beginupdate; adds. Update count is 0',0,FColl.FUpdateCount);
+    If (FColl.FLastUpdate<>Nil) then
+      Fail('Beginupdate; FlastUpdate not nil');
+  finally
+    FColl.EndUpdate;
+  end;
+  AssertEquals('Endupdate; adds. Update count is 1',1,FColl.FUpdateCount);
+  If (FColl.FLastUpdate<>Nil) then
+    Fail('Endupdate; FlastUpdate not nil');
+end;
+
+procedure TTestTCollection.TestUpdateCountNested;
+begin
+  FColl.BeginUpdate;
+  Try
+    AddItems(2);
+    FColl.BeginUpdate;
+    Try
+      AddItems(2);
+      AssertEquals('Beginupdate 2; adds. Update count is 0',0,FColl.FUpdateCount);
+      If (FColl.FLastUpdate<>Nil) then
+        Fail('Beginupdate 2; FlastUpdate not nil');
+    finally
+      FColl.EndUpdate;
+    end;
+    AssertEquals('Endupdate 1; Update count is 0',0,FColl.FUpdateCount);
+    If (FColl.FLastUpdate<>Nil) then
+      Fail('EndUpdate 1; FlastUpdate not nil');
+  finally
+    FColl.EndUpdate;
+  end;
+  AssertEquals('Endupdate 2; adds. Update count is 1',1,FColl.FUpdateCount);
+  If (FColl.FLastUpdate<>Nil) then
+    Fail('Endupdate 2; FlastUpdate not nil');
+end;
+
+procedure TTestTCollection.TestUpdateMove;
+begin
+  AddItems(5);
+  FColl.ResetUpdate;
+  MyItem(4).Index:=2;
+  AssertEquals('Moved item. Update count is 1',1,FColl.FUpdateCount);
+  If (FColl.FLastUpdate<>Nil) then
+    Fail('Moved item notification - not all items updated');
+end;
+
+procedure TTestTCollection.TestNotifyAdd;
+begin
+  AddItems(1);
+  If (FColl.FLastNotifyItem<>MyItem(0)) then
+    Fail('No notify item found !');
+  AssertEquals('Notify count is 1',1,FColl.FNotifyCount);
+  AssertEquals('Notify action is cnAdded',Ord(cnAdded),Ord(FColl.FLastNotify));
+end;
+
+procedure TTestTCollection.TestNotifyDelete;
+
+Var
+  I : TMyItem;
+
+begin
+  AddItems(3);
+  FColl.ResetNotify;
+  FColl.Delete(1);
+  // cnDeleting/cnExtracing. Can't currently test for 2 events...
+  AssertEquals('Notify count is 2',2,FColl.FNotifyCount);
+  AssertEquals('Notify action is cnExtracted',Ord(cnExtracting),Ord(FColl.FLastNotify));
+end;
+
 function TTestTCollection.MyItem(I: integer): TMyItem;
 begin
   Result:=TMyItem(FColl.Items[i]);
@@ -186,7 +379,7 @@ end;
 
 procedure TTestTCollection.SetUp; 
 begin
-  FColl:=TCollection.Create(TMyItem);
+  FColl:=TMyCollection.Create(TMyItem);
 end; 
 
 procedure TTestTCollection.TearDown; 
@@ -199,6 +392,41 @@ end;
 function TMyItem.GetOwner: TPersistent;
 begin
   Result:=inherited GetOwner;
+end;
+
+{ TMyCollection }
+
+function TMyCollection.GetOwner: TPersistent;
+begin
+  Result:=FOwner;
+  If (Result=Nil) then
+    Result:=Inherited GetOwner;
+end;
+
+procedure TMyCollection.Update(Item: TCollectionItem);
+begin
+  Inc(FUpdateCount);
+  FLastUpdate:=Item;
+end;
+
+procedure TMyCollection.Notify(Item: TCollectionItem;
+  Action: TCollectionNotification);
+begin
+  Inc(FNotifyCount);
+  FLastNotify:=Action;
+  FLastNotifyItem:=Item;
+end;
+
+procedure TMyCollection.ResetUpdate;
+begin
+  FUpdateCount:=0;
+  FLastUpdate:=Nil;
+end;
+
+procedure TMyCollection.ResetNotify;
+begin
+  FNotifyCount:=0;
+  FLastNotifyItem:=Nil;
 end;
 
 initialization
