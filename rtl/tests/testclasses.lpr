@@ -1,9 +1,10 @@
-program findnested;
+program testclasses;
 
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcfindnested;
+  Classes, consoletestrunner, tcfindnested, tcstringlist, tccollection, tclist,
+  tcpersistent;
 
 type
 

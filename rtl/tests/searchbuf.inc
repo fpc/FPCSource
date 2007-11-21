@@ -20,7 +20,7 @@ begin
 end;
 
 function SearchDown(buf,aStart,endchar:pchar; SearchString:string;
-    equal : TEqualFunction; WholeWords:boolean) : pchar;
+    Equals : TEqualFunction; WholeWords:boolean) : pchar;
 var Found : boolean;
     s, c : pchar;
 begin
@@ -29,7 +29,7 @@ begin
   while not Found and (result <= endchar) do
     begin
     // Search first letter
-    while (result <= endchar) and not Equal(result^,SearchString[1]) do
+    while (result <= endchar) and not Equals(result^,SearchString[1]) do
       inc (result);
     // Check if following is searchstring
     c := result;
@@ -37,7 +37,7 @@ begin
     Found := true;
     while (c <= endchar) and (s^ <> #0) and Found do
       begin
-      Found := Equal(c^, s^);
+      Found := Equals(c^, s^);
       inc (c);
       inc (s);
       end;
@@ -53,18 +53,18 @@ begin
     result := nil;
 end;
 
-Function SearchUp(buf,aStart,endchar:pchar; SearchString:string;
-    equal : TEqualFunction; WholeWords:boolean) : pchar;
+function SearchUp(buf,aStart,endchar:pchar; SearchString:string;
+    equals : TEqualFunction; WholeWords:boolean) : pchar;
 var Found : boolean;
     s, c, l : pchar;
 begin
-  aStart := buf;
+  result := aStart;
   Found := false;
   l := @(SearchString[length(SearchString)]);
   while not Found and (result >= buf) do
     begin
     // Search last letter
-    while (result >= buf) and not Equal(result^,l^) do
+    while (result >= buf) and not Equals(result^,l^) do
       dec (result);
     // Check if before is searchstring
     c := result;
@@ -72,7 +72,7 @@ begin
     Found := true;
     while (c >= buf) and (s >= @SearchString[1]) and Found do
       begin
-      Found := Equal(c^, s^);
+      Found := Equals(c^, s^);
       dec (c);
       dec (s);
       end;
@@ -96,22 +96,19 @@ function SearchBuf(Buf: PChar;BufLen: Integer;SelStart: Integer;SelLength: Integ
 var
   equal : TEqualFunction;
 begin
-  {$ifdef noexception}
-  if SearchString = '' then
+  SelStart := SelStart + SelLength;
+  if (SearchString = '') or (SelStart > BufLen) or (SelStart < 0) then
     result := nil
   else
     begin
-  {$endif}
     if soMatchCase in Options then
       Equal := @EqualWithCase
     else
       Equal := @EqualWithoutCase;
     if soDown in Options then
-      SearchDown(buf,buf+SelStart+SelLength,Buf+(BufLen-1), SearchString, Equal, (soWholeWord in Options))
+      result := SearchDown(buf,buf+SelStart,Buf+(BufLen-1), SearchString, Equal, (soWholeWord in Options))
     else
-      SearchUp(buf,buf+SelStart+SelLength,Buf+(BufLen-1), SearchString, Equal, (soWholeWord in Options))
-    {$ifdef noexception}
+      result := SearchUp(buf,buf+SelStart,Buf+(Buflen-1), SearchString, Equal, (soWholeWord in Options));
     end;
-    {$endif}
 end;
 

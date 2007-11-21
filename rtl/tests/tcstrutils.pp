@@ -5,7 +5,7 @@ unit tcstrutils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, strutils;
+  Classes, SysUtils, fpcunit, testregistry, strutils;
 
 type
 
@@ -31,6 +31,13 @@ type
     procedure TestSimplePartialStart;
     procedure TestEndMatchDown;
     procedure TestEndMatch;
+    procedure TestWholeWordAtStart;
+    procedure TestWholeWordAtStartDown;
+    procedure TestWholeWordAtEnd;
+    procedure TestWholeWordAtEndDown;
+    procedure TestEmptySearchString;
+    procedure TestSelstartBeforeBuf;
+    procedure testSelstartAfterBuf;
   end;
 
 implementation
@@ -41,11 +48,15 @@ Const
    //  1234567890123456789012345678901234567890123456789
   S = 'Some very long string with some words in it';
   SLen = Length(S);
-  Starts : Array[1..3] of Integer = (0,10,41);
   
 {$define usenew}
 {$ifdef usenew}
 {$i searchbuf.inc}
+const
+  WhichSearchbuf = 'new';
+{$else}
+const
+  WhichSearchbuf = 'old';
 {$endif}
 
 procedure TTestSearchBuf.TestSearch(Sub: String; Start: Integer;
@@ -111,6 +122,41 @@ begin
   TestSearch('it',SLen,[],42);
 end;
 
+procedure TTestSearchBuf.TestWholeWordAtStart;
+begin
+  TestSearch('Some',20,[soWholeWord],1);
+end;
+
+procedure TTestSearchBuf.TestWholeWordAtStartDown;
+begin
+  TestSearch('Some',0,[soDown,soWholeWord],1);
+end;
+
+procedure TTestSearchBuf.TestWholeWordAtEnd;
+begin
+  TestSearch('it',SLen,[soWholeWord],42);
+end;
+
+procedure TTestSearchBuf.TestWholeWordAtEndDown;
+begin
+  TestSearch('it',30,[soDown,soWholeWord],42);
+end;
+
+procedure TTestSearchBuf.TestEmptySearchString;
+begin
+  TestSearch('',30,[],-1);
+end;
+
+procedure TTestSearchBuf.TestSelstartBeforeBuf;
+begin
+  TestSearch('very',-5,[soDown],-1);
+end;
+
+procedure TTestSearchBuf.testSelstartAfterBuf;
+begin
+  TestSearch('very',100,[],-1);
+end;
+
 procedure TTestSearchBuf.TestSimpleDownPos;
 begin
   TestSearch('it',30,[soDown],42);
@@ -153,5 +199,7 @@ end;
 
 initialization
   RegisterTest(TTestSearchBuf);
+  writeln ('Testing with ', WhichSearchbuf, ' implementation');
+  writeln;
 end.
 

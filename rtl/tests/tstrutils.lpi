@@ -5,8 +5,9 @@
     <Version Value="6"/>
     <General>
       <MainUnit Value="0"/>
+      <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <ActiveEditorIndexAtStart Value="2"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -34,35 +35,35 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="10">
       <Unit0>
         <Filename Value="tstrutils.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tstrutils"/>
-        <CursorPos X="1" Y="21"/>
+        <CursorPos X="63" Y="6"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="4"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="7"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcstrutils.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcstrutils"/>
-        <CursorPos X="10" Y="52"/>
+        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="tcstringlist.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcstringlist"/>
-        <CursorPos X="1" Y="2"/>
+        <CursorPos X="19" Y="47"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
@@ -70,145 +71,178 @@
         <UnitName Value="fpcunit"/>
         <CursorPos X="6" Y="554"/>
         <TopLine Value="524"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="8"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../../../fpc/rtl/objpas/classes/classesh.inc"/>
-        <CursorPos X="3" Y="66"/>
-        <TopLine Value="40"/>
-        <EditorIndex Value="3"/>
-        <UsageCount Value="10"/>
+        <CursorPos X="1" Y="233"/>
+        <TopLine Value="212"/>
+        <EditorIndex Value="4"/>
+        <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="searchbuf.inc"/>
-        <CursorPos X="15" Y="112"/>
+        <CursorPos X="47" Y="117"/>
         <TopLine Value="65"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="8"/>
       </Unit5>
+      <Unit6>
+        <Filename Value="tclist.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tclist"/>
+        <CursorPos X="66" Y="341"/>
+        <TopLine Value="346"/>
+        <EditorIndex Value="3"/>
+        <UsageCount Value="44"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../../../../fpc/rtl/objpas/classes/resreference.inc"/>
+        <CursorPos X="39" Y="345"/>
+        <TopLine Value="311"/>
+        <EditorIndex Value="6"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../../../fpc/rtl/objpas/classes/lists.inc"/>
+        <CursorPos X="20" Y="271"/>
+        <TopLine Value="222"/>
+        <EditorIndex Value="5"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="testll.pp"/>
+        <UnitName Value="Testll"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit9>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="200" Column="15" TopLine="176"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="183" Column="30" TopLine="157"/>
       </Position1>
       <Position2>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="207" Column="40" TopLine="181"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="342" Column="18" TopLine="327"/>
       </Position2>
       <Position3>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="43" Column="1" TopLine="16"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="357" Column="5" TopLine="300"/>
       </Position3>
       <Position4>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="215" Column="5" TopLine="158"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="354" Column="13" TopLine="333"/>
       </Position4>
       <Position5>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="216" Column="8" TopLine="189"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="365" Column="1" TopLine="328"/>
       </Position5>
       <Position6>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="55" Column="1" TopLine="27"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="360" Column="42" TopLine="334"/>
       </Position6>
       <Position7>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="242" Column="1" TopLine="191"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="357" Column="7" TopLine="335"/>
       </Position7>
       <Position8>
-        <Filename Value="tcstringlist.pp"/>
-        <Caret Line="65" Column="54" TopLine="27"/>
+        <Filename Value="tclist.pp"/>
+        <Caret Line="366" Column="20" TopLine="340"/>
       </Position8>
       <Position9>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="224" Column="1" TopLine="199"/>
+        <Caret Line="52" Column="26" TopLine="27"/>
       </Position9>
       <Position10>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="233" Column="5" TopLine="176"/>
+        <Caret Line="58" Column="49" TopLine="31"/>
       </Position10>
       <Position11>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="16" Column="3" TopLine="15"/>
+        <Caret Line="57" Column="3" TopLine="55"/>
       </Position11>
       <Position12>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="78" Column="25" TopLine="51"/>
+        <Caret Line="60" Column="22" TopLine="36"/>
       </Position12>
       <Position13>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="26" Column="38" TopLine="25"/>
+        <Caret Line="327" Column="5" TopLine="270"/>
       </Position13>
       <Position14>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="258" Column="82" TopLine="232"/>
+        <Caret Line="334" Column="1" TopLine="315"/>
       </Position14>
       <Position15>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="254" Column="13" TopLine="228"/>
+        <Caret Line="62" Column="9" TopLine="36"/>
       </Position15>
       <Position16>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/classesh.inc"/>
-        <Caret Line="618" Column="36" TopLine="592"/>
+        <Filename Value="tcstringlist.pp"/>
+        <Caret Line="332" Column="29" TopLine="301"/>
       </Position16>
       <Position17>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="114" Column="5" TopLine="57"/>
+        <Caret Line="335" Column="46" TopLine="308"/>
       </Position17>
       <Position18>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="115" Column="69" TopLine="107"/>
+        <Caret Line="330" Column="3" TopLine="324"/>
       </Position18>
       <Position19>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="274" Column="5" TopLine="217"/>
+        <Caret Line="335" Column="52" TopLine="309"/>
       </Position19>
       <Position20>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="280" Column="1" TopLine="247"/>
+        <Caret Line="334" Column="1" TopLine="309"/>
       </Position20>
       <Position21>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="239" Column="5" TopLine="182"/>
+        <Caret Line="360" Column="1" TopLine="319"/>
       </Position21>
       <Position22>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="240" Column="20" TopLine="217"/>
+        <Caret Line="26" Column="27" TopLine="25"/>
       </Position22>
       <Position23>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="253" Column="15" TopLine="237"/>
+        <Caret Line="373" Column="5" TopLine="316"/>
       </Position23>
       <Position24>
         <Filename Value="tcstringlist.pp"/>
-        <Caret Line="272" Column="1" TopLine="272"/>
+        <Caret Line="330" Column="5" TopLine="325"/>
       </Position24>
       <Position25>
-        <Filename Value="searchbuf.inc"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="tcstringlist.pp"/>
+        <Caret Line="420" Column="1" TopLine="399"/>
       </Position25>
       <Position26>
-        <Filename Value="searchbuf.inc"/>
-        <Caret Line="40" Column="21" TopLine="12"/>
+        <Filename Value="tcstringlist.pp"/>
+        <Caret Line="331" Column="5" TopLine="326"/>
       </Position26>
       <Position27>
-        <Filename Value="searchbuf.inc"/>
-        <Caret Line="56" Column="9" TopLine="31"/>
+        <Filename Value="tcstringlist.pp"/>
+        <Caret Line="440" Column="1" TopLine="420"/>
       </Position27>
       <Position28>
-        <Filename Value="searchbuf.inc"/>
-        <Caret Line="75" Column="21" TopLine="49"/>
+        <Filename Value="tcstringlist.pp"/>
+        <Caret Line="26" Column="30" TopLine="25"/>
       </Position28>
       <Position29>
-        <Filename Value="searchbuf.inc"/>
-        <Caret Line="65" Column="42" TopLine="39"/>
+        <Filename Value="tcstringlist.pp"/>
+        <Caret Line="467" Column="1" TopLine="432"/>
       </Position29>
       <Position30>
-        <Filename Value="searchbuf.inc"/>
-        <Caret Line="110" Column="94" TopLine="65"/>
+        <Filename Value="tcstringlist.pp"/>
+        <Caret Line="26" Column="35" TopLine="25"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

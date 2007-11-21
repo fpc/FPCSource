@@ -49,6 +49,27 @@ type
     Procedure TestSortedDupError;
     procedure TestSortedAddDuplicate;
     Procedure TestSortedIndexOf;
+    Procedure TestChange;
+    procedure TestChangeAgain;
+    procedure TestChangeCount;
+    procedure TestChangeClear;
+    Procedure TestSetText;
+    procedure TestSetTextEOL;
+    procedure TestSetTextEmpty;
+    procedure TestSetTextEOLEmpty;
+  end;
+
+  { TEventSink }
+
+  TEventSink = Class(TObject)
+  private
+    FCOunt: Integer;
+    FSender: TObject;
+  public
+    Procedure Change(Sender : TObject);
+    Procedure Reset;
+    Property ChangeCount : Integer Read FCOunt;
+    Property LastSender : TObject Read FSender;
   end;
 
 implementation
@@ -307,6 +328,160 @@ begin
   AssertEquals('Find third element, wrong case',4,List.IndexOf('ITEM 3'));
 end;
 
+procedure TTestTStringList.TestChange;
+
+Var
+  S : TEventSink;
+
+begin
+  S:=TEventSink.Create;
+  try
+    List.OnChange:=@S.Change;
+    List.Add('new');
+    AssertEquals('Change count equals 1 after add',1,S.ChangeCount);
+    If List<>S.LastSender then
+      Fail('Sender is list');
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TTestTStringList.TestChangeAgain;
+
+Var
+  S : TEventSink;
+
+begin
+  S:=TEventSink.Create;
+  try
+    List.BeginUpdate;
+    Try
+    List.OnChange:=@S.Change;
+    List.Add('new');
+      AssertEquals('Change count equals 0 after add (beginupdate)',0,S.ChangeCount);
+      If (Nil<>S.LastSender) then
+        Fail('Sender is nil');
+    Finally
+      List.EndUpdate;
+    end;
+    AssertEquals('Change count equals 1 after add endupdate',1,S.ChangeCount);
+    If List<>S.LastSender then
+      Fail('Sender is list');
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TTestTStringList.TestChangeCount;
+
+Var
+  S : TEventSink;
+
+begin
+  S:=TEventSink.Create;
+  try
+    List.BeginUpdate;
+    Try
+      // Count is 1, no notification
+      List.OnChange:=@S.Change;
+      List.Add('new');
+      AssertEquals('Change count equals 0 after add (1st beginupdate)',0,S.ChangeCount);
+      If (Nil<>S.LastSender) then
+        Fail('Sender is nil');
+      List.BeginUpdate;
+      Try
+        List.Add('new2');
+        // Count is 2, no notification
+        AssertEquals('Change count equals 0 after add (2nd beginupdate)',0,S.ChangeCount);
+        If (Nil<>S.LastSender) then
+          Fail('Sender is nil');
+      Finally
+        List.EndUpdate;
+      end;
+      // Count is 1 again, no notification
+      AssertEquals('Change count equals 0 after first endupdate',0,S.ChangeCount);
+      If (Nil<>S.LastSender) then
+        Fail('Sender is nil after first endupdate');
+    Finally
+      List.EndUpdate;
+    end;
+    AssertEquals('Change count equals 1 after add endupdate',1,S.ChangeCount);
+    If List<>S.LastSender then
+      Fail('Sender is list');
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TTestTStringList.TestChangeClear;
+
+Var
+  S : TEventSink;
+  
+begin
+  FillList(9);
+  S:=TEventSink.Create;
+  try
+    List.OnChange:=@S.Change;
+    List.Clear;
+    AssertEquals('Change count equals 1 after clear',1,S.ChangeCount);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TTestTStringList.TestSetText;
+
+Const
+  Lines = 'Line 1'+sLineBreak+'Line 2'+sLineBreak+'Line 3';
+
+begin
+  List.Text:=Lines;
+  AssertEquals('3 lines set',3,List.Count);
+  AssertEquals('First line is "Line 1"','Line 1',List[0]);
+  AssertEquals('Second line is "Line 2"','Line 2',List[1]);
+  AssertEquals('Third line is "Line 3"','Line 3',List[2]);
+end;
+
+procedure TTestTStringList.TestSetTextEOL;
+
+Const
+  Lines = 'Line 1'+sLineBreak+'Line 2'+sLineBreak;
+
+begin
+  List.Text:=Lines;
+  AssertEquals('2 lines set',2,List.Count);
+  AssertEquals('First line is "Line 1"','Line 1',List[0]);
+  AssertEquals('Second line is "Line 2"','Line 2',List[1]);
+end;
+
+procedure TTestTStringList.TestSetTextEOLEmpty;
+
+Const
+  Lines = 'Line 1'+sLineBreak+'Line 2'+sLineBreak+slineBreak;
+
+begin
+  List.Text:=Lines;
+  AssertEquals('3 lines set',3,List.Count);
+  AssertEquals('First line is "Line 1"','Line 1',List[0]);
+  AssertEquals('Second line is "Line 2"','Line 2',List[1]);
+  AssertEquals('Third line is empty','',List[2]);
+end;
+
+procedure TTestTStringList.TestSetTextEmpty;
+
+Const
+  Lines = 'Line 1'+sLineBreak+sLineBreak+SlineBreak+'Line 2';
+
+begin
+  List.Text:=Lines;
+  AssertEquals('4 lines set',4,List.Count);
+  AssertEquals('First line is "Line 1"','Line 1',List[0]);
+  AssertEquals('Second line is empty','',List[1]);
+  AssertEquals('Third line is empty','',List[2]);
+  AssertEquals('Fourth line is "Line 2"','Line 2',List[3]);
+end;
+
 
 procedure TTestTStringList.FillList(ACount: Integer);
 
@@ -326,6 +501,20 @@ end;
 procedure TTestTStringList.TearDown; 
 begin
   FreeAndNil(List);
+end;
+
+{ TEventSink }
+
+procedure TEventSink.Change(Sender: TObject);
+begin
+  Inc(FCount);
+  FSender:=Sender;
+end;
+
+procedure TEventSink.Reset;
+begin
+  FCount:=0;
+  FSender:=Nil;
 end;
 
 initialization

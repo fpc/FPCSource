@@ -3,7 +3,7 @@ program tstrutils;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcstrutils, tcstringlist;
+  Classes, consoletestrunner, tcstrutils, tcstringlist, tclist;
 
 type
 
