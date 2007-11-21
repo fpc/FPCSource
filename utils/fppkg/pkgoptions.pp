@@ -463,6 +463,7 @@ begin
          not(DirectoryExists(FGlobalInstallDir+'/rtl')) then
         FGlobalInstallDir:=FGlobalInstallDir+'../';
     end;
+  FGlobalInstallDir:=ExpandFileName(FGlobalInstallDir);
 {$endif unix}
   Log(vDebug,SLogDetectedFPCDIR,['global',FGlobalInstallDir]);
   // User writable install directory
