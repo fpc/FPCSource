@@ -3326,7 +3326,12 @@ Var
 begin
   PD:=GetPackageDir(APackage,True);
 
-  Result := '-n';
+  Result := '';
+
+  //compiler configuration
+  if Defaults.NoFPCCfg then
+    Result := '-n';
+
   // Compile mode
   If Target.Mode<>cmFPC then
     Result:=Result+' -M'+ModeToString(Target.Mode)
@@ -3366,7 +3371,7 @@ begin
   If (Target.Options<>'') then
     Result:=Result+' '+Target.Options;
   // Add Filename to compile
-  Result:=Result+' '+Target.FullSourceFileName;
+  Result:=Result+' '+ExtractRelativePath(PD, ExpandFileName(Target.FullSourceFileName));
 end;
 
 
@@ -4128,7 +4133,7 @@ begin
   If not(ACPU in CPUs) or not(AOS in OSes) then
     exit;
   List.Add(APrefixU + ObjectFileName);
-  If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
+  If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit, ttCleanOnlyUnit]) then
     List.Add(APrefixU + UnitFileName)
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
