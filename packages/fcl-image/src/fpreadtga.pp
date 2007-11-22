@@ -14,6 +14,8 @@
 }
 {*****************************************************************************}
 
+{ - 22/11/2007 Modified by Laurent Jacques for support all format }
+
 {$mode objfpc}
 {$h+}
 
@@ -23,17 +25,27 @@ interface
 
 uses FPImage, classes, sysutils, targacmn;
 
+const
+  TARGA_EMPTY_IMAGE = 0;
+  TARGA_INDEXED_IMAGE = 1;
+  TARGA_TRUECOLOR_IMAGE = 2;
+  TARGA_GRAY_IMAGE = 3;
+
 type
+
+  { TFPReaderTarga }
+
   TFPReaderTarga = class (TFPCustomImageReader)
   Private
     Procedure FreeBuffers;       // Free (and nil) buffers.
   protected
     Header         : TTargaHeader;
+    AlphaBits      : Byte;
     Identification : ShortString;
     Compressed,
     BottomUp       : Boolean;
     BytesPerPixel  : Byte;
-    FPalette        : PFPColor;
+    FPalette       : PFPColor;
     FScanLine      : PByte;
     FLineSize      : Integer;
     FPaletteSize   : Integer;
@@ -42,6 +54,7 @@ type
     FLastPixel     : Packed Array[0..3] of byte;
     // AnalyzeHeader will allocate the needed buffers.
     Procedure AnalyzeHeader(Img : TFPCustomImage);
+    procedure CreateGrayPalette;
     Procedure ReadPalette(Stream : TStream);
     procedure ReadScanLine(Row : Integer; Stream : TStream); virtual;
     procedure WriteScanLine(Row : Integer; Img : TFPCustomImage); virtual;
@@ -87,61 +100,86 @@ Procedure TFPReaderTarga.AnalyzeHeader(Img : TFPCustomImage);
 begin
   With Header do
     begin
-    If (Flags shl 6)<>0 then
-      Raise Exception.Create('Interlaced targa images not supported.');
-    If MapType>1 then
-      Raise Exception.CreateFmt('Unknown targa colormap type: %d',[MapType]);
-    if (PixelSize and 7)<>0 then
-      Raise Exception.Create('Pixelsize must be multiple of 8');
+    if not (ImgType in [1, 2, 3, 9, 10, 11]) and
+       not (PixelSize in [8, 16, 24, 32]) then
+      Raise Exception.Create('Unknown/Unsupported Targa image type');
     BottomUp:=(Flags and $20) <>0;
-    BytesPerPixel:=PixelSize shr 3;
+    AlphaBits := Flags and $0F;
+    BytesPerPixel:=PixelSize;
     Compressed:=ImgType>8;
     If Compressed then
       ImgType:=ImgType-8;
-    Case ImgType of
-      1: if (BytesPerPixel<>1) or (MapType<>1) then
-           Raise Exception.Create('Error in targa header: Colormapped image needs 1 byte per pixel and maptype 1');
-      2: If not (BytesPerPixel in [2..4]) then
-           Raise Exception.Create('Error in targa header: RGB image needs bytes per pixel between 2 and 4');
-      3: begin
-         if BytesPerPixel<>1 then
-           Raise Exception.Create('Error in targa header: Grayscale image needs 1 byte per pixel.');
-         end;
-    else
-      Raise Exception.CreateFmt('Unknown/Unsupported Targa image type : %d',[ImgType]);
-    end;
-    if (ToWord(MapLength)>0) and (MapEntrySize<>24) then
-      Raise Exception.CreateFmt('Only targa BGR colormaps are supported. Got : %d',[MapEntrySize]);
-    if (ToWord(MapLength)>0) and (MapType<>0) then
-      Raise Exception.Create('Empty colormap in Targa image file');
-    FLineSize:=BytesPerPixel*ToWord(Width);
+    FLineSize:=(BytesPerPixel div 8)*ToWord(Width);
     GetMem(FScanLine,FLineSize);
-    FPaletteSize:=SizeOf(TFPColor)*ToWord(MapLength);
+
+    if ImgType = TARGA_GRAY_IMAGE then
+      FPaletteSize:=SizeOf(TFPColor)*255
+    else
+      FPaletteSize:=SizeOf(TFPColor)*ToWord(MapLength);
     GetMem(FPalette,FPaletteSize);
     Img.Width:=ToWord(Width);
     Img.Height:=ToWord(Height);
     end;
 end;
 
+Procedure TFPReaderTarga.CreateGrayPalette;
+
+Var
+  I : Integer;
+
+Begin
+  For I:=0 To 255 Do
+  Begin
+    With FPalette[I] do
+      begin
+      Red:=I*255;
+      Green:=I*255;
+      Blue:=I*255;
+      Alpha:=AlphaOpaque;
+      end;
+  end;
+End;
+
 Procedure TFPReaderTarga.ReadPalette(Stream : TStream);
 
 Var
-  Entry : TBGREntry;
+  BGREntry : TBGREntry;
+  BGRAEntry : TBGRAEntry;
   I : Integer;
 
 begin
-  For I:=0 to ToWord(Header.MapLength)-1 do
-    begin
-    Stream.ReadBuffer(Entry,SizeOf(Entry));
-    With FPalette[i] do
-      begin
-      Red:=Entry.Red;
-      Green:=Entry.Green;
-      Blue:=Entry.Blue;
-      Alpha:=AlphaOpaque;
-      end;
+  Case Header.MapEntrySize Of
+     16, 24:
+        For I:=0 to ToWord(Header.MapLength)-1 do
+        begin
+          Stream.ReadBuffer(BGREntry, SizeOf(BGREntry));
+          With FPalette[I] do
+            begin
+            Red:=BGREntry.Red shl 8;
+            Green:=BGREntry.Green shl 8;
+            Blue:=BGREntry.Blue shl 8;
+            Alpha:=alphaOpaque;
+            end;
+        end;
+     32:
+        For I:=0 to ToWord(Header.MapLength)-1 do
+        begin
+          Stream.ReadBuffer(BGRAEntry,SizeOf(BGRAEntry));
+          With FPalette[I] do
+            begin
+            Red:=BGRAEntry.Red shl 8;
+            Green:=BGRAEntry.Green shl 8;
+            Blue:=BGRAEntry.Blue shl 8;
+            if alphaBits = 8 then
+               if (BGRAEntry.Alpha and $80) <> 0 then
+                 Alpha:=alphaTransparent
+               else
+                 Alpha:=AlphaOpaque;
+            end;
+        end;
     end;
 end;
+
 
 Procedure TFPReaderTarga.InternalRead  (Stream:TStream; Img:TFPCustomImage);
 
@@ -158,8 +196,12 @@ begin
     If Length(Identification)<>0 then
       Img.Extra[KeyIdentification]:=Identification;
     end;
-  If Toword(Header.MapLength)>0 then
+
+  If Header.MapType<>0 then
     ReadPalette(Stream);
+  if Header.ImgType = TARGA_GRAY_IMAGE then
+    CreateGrayPalette;
+
   H:=Img.height;
   If BottomUp then
     For Row:=0 to H-1 do
@@ -206,9 +248,9 @@ begin
           else
             FBlockCount:=B and $7F
           end;
-        Stream.ReadBuffer(FlastPixel,BytesPerPixel);
+        Stream.ReadBuffer(FlastPixel,BytesPerPixel shr 3);
         end;
-      For J:=0 to BytesPerPixel-1 do
+      For J:=0 to (BytesPerPixel shr 3)-1 do
         begin
         P[0]:=FLastPixel[j];
         Inc(P);
@@ -217,19 +259,10 @@ begin
     end;
 end;
 
-const
-  c5to8bits : array[0..32-1] of Byte =
-   (  0,   8,  16,  25,  33,  41,  49,  58,
-     66,  74,  82,  90,  99, 107, 115, 123,
-    132, 140, 148, 156, 165, 173, 181, 189,
-    197, 206, 214, 222, 230, 239, 247, 255);
-
-
 Procedure TFPReaderTarga.WriteScanLine(Row : Integer; Img : TFPCustomImage);
 
 Var
   Col : Integer;
-  B   : Byte;
   C   : TFPColor;
   W   : Word;
   P   : PByte;
@@ -238,54 +271,66 @@ begin
   C.Alpha:=AlphaOpaque;
   P:=FScanLine;
   Case Header.ImgType of
-    1 : for Col:=0 to Img.width-1 do
+    TARGA_INDEXED_IMAGE
+      : for Col:=0 to Img.width-1 do
          Img.Colors[Col,Row]:=FPalette[P[Col]];
-    2 : for Col:=0 to Img.Width-1 do
+    TARGA_TRUECOLOR_IMAGE
+      : for Col:=0 to Img.Width-1 do
           begin
           // Fill C depending on number of pixels.
           case BytesPerPixel of
-            2 : begin
-                W:=P[0];
-                inc(P);
-                W:=W or (P[0] shl 8);
-                With C do
-                  begin
-                  Blue:=c5to8bits[W and $1F];
-                  W:=W shr 5;
-                  Green:=c5to8bits[W and $1F];
-                  W:=W shr 5;
-                  Red:=c5to8bits[W and $1F];
-                  end;
+          8,16 : begin
+                 W:=P[0];
+                 inc(P);
+                 W:=W or (P[0] shl 8);
+                 With C do
+                   begin
+                   Red:=((W)shr 10) shl 11;
+                   Green:=((w)shr 5) shl 11;
+                   Blue:=((w)) shl 11;
+                   end;
                 end;
-            3,4 : With C do
+          24,32 : With C do
                   begin
                   Blue:=P[0] or (P[0] shl 8);
                   Inc(P);
                   Green:=P[0] or (P[0] shl 8);
                   Inc(P);
                   Red:=P[0] or (P[0] shl 8);
-                  If bytesPerPixel=4 then
+                  If bytesPerPixel=32 then
                     begin
                     Inc(P);
-                    // Alpha:=P[0] or (P[0] shl 8); what is TARGA Attribute ??
+                    Alpha:=AlphaOpaque;
+                    if alphaBits = 8 then
+                      if (P[0] and $80) = 0 then
+                        Alpha:=alphaTransparent;
                     end;
                   end;
           end; // Case BytesPerPixel;
           Img[Col,Row]:=C;
           Inc(P);
           end;
-    3 : For Col:=0 to Img.Width-1 do
-          begin
-          B:=FScanLine[Col];
-          B:=B+(B Shl 8);
-          With C do
-            begin
-            Red:=B;
-            Green:=B;
-            Blue:=B;
-            end;
-          Img.Colors[Col,Row]:=C;
-          end;
+    TARGA_GRAY_IMAGE
+      :  case BytesPerPixel of
+           8 : for Col:=0 to Img.width-1 do
+                 Img.Colors[Col,Row]:=FPalette[P[Col]];
+          16 : for Col:=0 to Img.width-1 do
+               begin
+                 With C do
+                 begin
+                   Blue:=FPalette[P^].blue;
+                   Green:=FPalette[P^].green;
+                   Red:=FPalette[P^].red;
+                   Inc(P);
+                   Alpha:=AlphaOpaque;
+                   if alphaBits = 8 then
+                    if (P[0] and $80) = 0 then
+                        Alpha:=alphaTransparent;
+                   Inc(P);
+                 end;
+               Img[Col,Row]:=C;
+               end;
+         end;
   end;
 end;
 
