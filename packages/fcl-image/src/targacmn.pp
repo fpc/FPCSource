@@ -47,6 +47,10 @@ Type
     Blue, Green, Red : Byte;
   end;
 
+  TBGRAEntry = packed record
+    Blue, Green, Red, Alpha : Byte;
+  end;
+
 Function ToWord(AWord : TWordRec) : Word;
 Function FromWord(AWord : Word) : TWordRec;
 
