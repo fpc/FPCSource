@@ -1896,7 +1896,7 @@ implementation
 
         tmpreg:=getintregister(list,bitnumbersize);
         a_op_const_reg_reg(list,OP_SHR,bitnumbersize,3,bitnumber,tmpreg);
-        tmpaddrreg:=cg.getaddressregister(list);
+        tmpaddrreg:=getaddressregister(list);
         a_load_reg_reg(list,bitnumbersize,OS_ADDR,tmpreg,tmpaddrreg);
         if (result.ref.base=NR_NO) then
           result.ref.base:=tmpaddrreg
@@ -1919,7 +1919,7 @@ implementation
       var
         tmpvalue: tregister;
       begin
-        tmpvalue:=cg.getintregister(list,valuesize);
+        tmpvalue:=getintregister(list,valuesize);
 
         if (target_info.endian=endian_little) then
           begin
@@ -2030,7 +2030,7 @@ implementation
       var
         tmpvalue: tregister;
       begin
-        tmpvalue:=cg.getintregister(list,destsize);
+        tmpvalue:=getintregister(list,destsize);
 
         if (target_info.endian=endian_little) then
           begin
@@ -2103,7 +2103,7 @@ implementation
           LOC_CSUBSETREG:
             begin
               { hard to do in-place in a generic way, so operate on a copy }
-              tmpreg:=cg.getintregister(list,loc.size);
+              tmpreg:=getintregister(list,loc.size);
               a_load_subsetreg_reg(list,loc.size,loc.size,loc.sreg,tmpreg);
               a_bit_set_reg_reg(list,doset,bitnumbersize,loc.size,bitnumber,tmpreg);
               a_load_reg_subsetreg(list,loc.size,loc.size,tmpreg,loc.sreg);
