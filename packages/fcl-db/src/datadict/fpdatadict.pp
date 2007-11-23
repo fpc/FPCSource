@@ -483,7 +483,7 @@ Const
   ---------------------------------------------------------------------}
 
 Var
-  DDEngines : TStringList;
+  DDEngines : TStringList = nil;
   
 Type
 
@@ -1933,6 +1933,6 @@ end;
 initialization
 
 finalization
-  FreeAndNil(DDEngines);
+  if assigned(DDEngines) then FreeAndNil(DDEngines);
 end.
 
