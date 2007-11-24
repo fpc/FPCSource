@@ -47,7 +47,8 @@ type
     { UIDs section }
     UID2, UID3: string;
     { Files section }
-    MainSource, MainSourceNoExt, MainResource, RegResource: string;
+    MainSource, MainSourceNoExt, MainSourceAsm, MainSourceObj,
+     MainResource, RegResource: string;
     { Objects section }
     ObjectFiles: TStringList;
   public
@@ -109,6 +110,8 @@ begin
 
     MainSource := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_MainSource, 'default.pas');
     MainSourceNoExt := ExtractFileExt(MainSource);
+    MainSourceAsm := ChangeFileExt(MainSource, STR_ASSEMBLER_EXT);
+    MainSourceObj := ChangeFileExt(MainSource, STR_OBJECT_EXT);
     MainResource := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_MainResource, 'default.rss');
     RegResource :=  IniFile.ReadString(STR_PRJ_Files, STR_PRJ_RegResource, 'default_reg.rss');
     

@@ -173,8 +173,22 @@ begin
   { Compiling the source files }
 
   WriteLn('');
-  WriteLn('Compiling the source files');
+  WriteLn('Compiling file ' + vProject.MainSource);
   WriteLn('');
+
+  AProcess.CommandLine := vProject.CompilerPath + ' -a -s -Fu' + vProject.RTLUnitsDir +
+    ' -Tsymbian ' + vProject.MainSource;
+  WriteLn(AProcess.CommandLine);
+  AProcess.Execute;
+
+  WriteLn('');
+  WriteLn('Assembling file '+ vProject.MainSourceAsm);
+  WriteLn('');
+
+  AProcess.CommandLine := vProject.AssemblerPath + ' ' +
+   vProject.MainSourceAsm + ' -o ' + vProject.MainSourceObj;
+  WriteLn(AProcess.CommandLine);
+  AProcess.Execute;
 
   { Linking and library creation }
   
@@ -299,15 +313,16 @@ begin
   WriteLn('');
 
   AProcess.CommandLine := vProject.CompilerPath + ' -a -s -Fu' + vProject.RTLUnitsDir +
-    ' -Tsymbian QPasHello.pas';
+    ' -Tsymbian ' + vProject.MainSource;
   WriteLn(AProcess.CommandLine);
   AProcess.Execute;
 
   WriteLn('');
-  WriteLn('Assembling file QPasHello.s');
+  WriteLn('Assembling file '+ vProject.MainSourceAsm);
   WriteLn('');
 
-  AProcess.CommandLine := vProject.AssemblerPath + ' QPasHello.s -o QPasHello.o';
+  AProcess.CommandLine := vProject.AssemblerPath + ' ' +
+   vProject.MainSourceAsm + ' -o ' + vProject.MainSourceObj;
   WriteLn(AProcess.CommandLine);
   AProcess.Execute;
 
