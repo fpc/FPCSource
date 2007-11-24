@@ -545,13 +545,6 @@ begin
         LinkRes.Add(')');
       end;
    end;
-  { ignore the fact that our relocations are in non-writable sections, }
-  { will be fixed once we have pic support                             }
-  if isdll and IsDarwin Then
-    begin
-      LinkRes.Add('-read_only_relocs');
-      LinkRes.Add('suppress');
-    end;
 { Write and Close response }
   linkres.writetodisk;
   linkres.Free;
