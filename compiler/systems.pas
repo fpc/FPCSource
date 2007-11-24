@@ -404,6 +404,8 @@ interface
              system_iA64_embedded,system_x86_64_embedded,system_mips_embedded,
              system_arm_embedded,system_powerpc64_embedded];
 
+       { all symbian systems }
+       systems_symbian = [system_i386_symbian,system_arm_symbian];
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',

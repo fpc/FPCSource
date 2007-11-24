@@ -30,7 +30,7 @@ unit i_symbian;
     const
        system_i386_symbian_info : tsysteminfo =
           (
-            system       : system_i386_SYMBIAN;
+            system       : system_i386_symbian;
             name         : 'Symbian OS for i386';
             shortname    : 'Symbian';
             flags        : [tf_files_case_aware, tf_has_dllscanner,
@@ -88,6 +88,67 @@ unit i_symbian;
             abi          : abi_default;
           );
 
+       system_arm_symbian_info : tsysteminfo =
+          (
+            system       : system_arm_symbian;
+            name         : 'Symbian OS for ARM';
+            shortname    : 'Symbian';
+            flags        : [tf_files_case_aware, tf_has_dllscanner,
+                            tf_use_function_relative_addresses,
+                            tf_requires_proper_alignment,tf_no_pic_supported];
+            cpu          : cpu_arm;
+            unit_env     : 'SYMBIANUNITS';
+            extradefines : 'SYMBIAN';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            Cprefix      : '_';
+            newline      : #13#10;
+            dirsep       : '\';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : nil;
+            dbg          : dbg_stabs;
+            script       : script_dos;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            abi          : abi_default;
+          );
+
 
 implementation
 
@@ -104,4 +165,5 @@ initialization
   set_source_info(system_arm_symbian_info);
   {$endif Symbian}
 {$endif CPUARM}
+
 end.
