@@ -386,6 +386,7 @@ compiler/ppcppc.lpi svneol=native#text/plain
 compiler/ppcsparc.lpi svneol=native#text/plain
 compiler/ppheap.pas svneol=native#text/plain
 compiler/ppu.pas svneol=native#text/plain
+compiler/ppx86_64.lpi svneol=native#text/plain
 compiler/procinfo.pas svneol=native#text/plain
 compiler/pstatmnt.pas svneol=native#text/plain
 compiler/psub.pas svneol=native#text/plain
