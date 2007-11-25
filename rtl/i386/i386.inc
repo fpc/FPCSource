@@ -1054,18 +1054,6 @@ end;
                                  Math
 ****************************************************************************}
 
-{$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-{$ifndef REGCALL}
-        movl    l,%eax
-{$endif}
-        cltd
-        xorl    %edx,%eax
-        subl    %edx,%eax
-end;
-
-
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
 function sqr(l:longint):longint;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
