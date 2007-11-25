@@ -663,12 +663,6 @@ interface
       AsmLn;
     end;
 
-    var
-      LasTSec : TAsmSectiontype;
-      lastfileinfo : tfileposinfo;
-      infile,
-      lastinfile   : tinputfile;
-
     const
       ait_const2str:array[aitconst_32bit..aitconst_8bit] of string[8]=
         (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
@@ -1231,7 +1225,6 @@ interface
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource^);
 {$endif}
-      LasTSec:=sec_none;
 
       WriteAsmFileHeader;
       WriteExternals;

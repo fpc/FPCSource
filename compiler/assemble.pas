@@ -33,7 +33,7 @@ interface
 
     uses
       SysUtils,
-      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase;
+      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,finput;
 
     const
        { maximum of aasmoutput lists there will be }
@@ -75,6 +75,12 @@ interface
         outbuf   : array[0..AsmOutSize-1] of char;
         outfile  : file;
         ioerror : boolean;
+      {input source info}
+        lastfileinfo : tfileposinfo;
+        infile,
+        lastinfile   : tinputfile;
+      {last section type written}
+        lastsectype : TAsmSectionType;
       public
         {# Returns the complete path and executable name of the assembler
            program.
@@ -604,6 +610,10 @@ Implementation
     procedure TExternalAssembler.MakeObject;
       begin
         AsmCreate(cut_normal);
+        FillChar(lastfileinfo, sizeof(lastfileinfo), 0);
+        lastfileinfo.line := -1;
+        lastinfile := nil;
+        lastsectype := sec_none;
         WriteAsmList;
         AsmClose;
         if not(ioerror) then

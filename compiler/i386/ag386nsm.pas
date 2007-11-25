@@ -67,11 +67,6 @@ interface
         {$i r386nasm.inc}
       );
 
-    var
-      lastfileinfo : tfileposinfo;
-      infile,
-      lastinfile   : tinputfile;
-
     function nasm_regname(r:Tregister):string;
       var
         p : tregisterindex;
@@ -441,10 +436,6 @@ interface
         end;
       end;
 
-
-
-    var
-      LastSecType : TAsmSectiontype;
 
     const
       ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
@@ -1053,13 +1044,8 @@ interface
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource^);
 {$endif}
-      LasTSecType:=sec_none;
       AsmWriteLn('BITS 32');
       AsmLn;
-
-      lastfileinfo.line:=-1;
-      lastfileinfo.fileindex:=0;
-      lastinfile:=nil;
 
       WriteExternals;
 
