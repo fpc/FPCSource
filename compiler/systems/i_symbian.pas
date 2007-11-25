@@ -125,7 +125,7 @@ unit i_symbian;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : nil;
+            res          : res_none;
             dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;
