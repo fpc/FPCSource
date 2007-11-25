@@ -62,6 +62,7 @@ interface
           function first_round_real: tnode; virtual;
           function first_trunc_real: tnode; virtual;
           function first_int_real: tnode; virtual;
+          function first_abs_long: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -1618,7 +1619,6 @@ implementation
                   end;
                 end;
 
-
               in_sizeof_x:
                 begin
                   set_varstate(left,vs_read,[]);
@@ -2281,12 +2281,30 @@ implementation
               in_abs_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                   setconstrealvalue(abs(getconstrealvalue))
+                    setconstrealvalue(abs(getconstrealvalue))
                   else
+                    begin
+                      set_varstate(left,vs_read,[vsf_must_be_valid]);
+                      inserttypeconv(left,pbestrealtype^);
+                      resultdef:=pbestrealtype^;
+                    end;
+                end;
+
+              in_abs_long:
+                begin
+                 if left.nodetype=ordconstn then
+                   begin
+                     if tordconstnode(left).value<0 then
+                       result:=cordconstnode.create((-tordconstnode(left).value),s32inttype,false)
+                     else
+                       result:=cordconstnode.create((tordconstnode(left).value),s32inttype,false);
+                     left:=nil
+                   end
+                 else
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
-                     inserttypeconv(left,pbestrealtype^);
-                     resultdef:=pbestrealtype^;
+                     inserttypeconv(left,s32inttype);
+                     resultdef:=s32inttype;
                    end;
                 end;
 
@@ -2650,6 +2668,11 @@ implementation
              result := first_abs_real;
            end;
 
+         in_abs_long:
+           begin
+             result := first_abs_long;
+           end;
+
          in_sqr_real:
            begin
              result := first_sqr_real;
@@ -2854,6 +2877,11 @@ implementation
         { on entry left node contains the parameter }
         result := ccallnode.createintern('fpc_trunc_real',ccallparanode.create(left,nil));
         left := nil;
+      end;
+
+     function tinlinenode.first_abs_long : tnode;
+      begin
+        result:=nil;
       end;
 
      function tinlinenode.first_pack_unpack: tnode;

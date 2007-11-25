@@ -72,6 +72,7 @@ const
    fpc_in_bitsizeof_x       = 61;
    fpc_in_writestr_x        = 62;
    fpc_in_readstr_x         = 63;
+   fpc_in_abs_long          = 64;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

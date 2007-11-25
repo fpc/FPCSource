@@ -58,6 +58,8 @@ interface
           procedure second_trunc_real; override;
 
           procedure second_prefetch;override;
+
+          procedure second_abs_long;override;
        private
           procedure load_fpu_location;
        end;
@@ -414,6 +416,44 @@ implementation
              end;
            end;
        end;
+
+
+    procedure tx86inlinenode.second_abs_long;
+      var
+        hregister : tregister;
+        opsize : tcgsize;
+        hp : taicpu;
+      begin
+{$ifdef i386}
+        if current_settings.cputype<cpu_Pentium2 then
+          begin
+            opsize:=int_cgsize(tcallparanode(left).resultdef.size);
+            secondpass(left);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+            location:=left.location;
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+            emit_reg_reg(A_MOV,S_L,left.location.register,location.register);
+            emit_const_reg(A_SAR,tcgsize2opsize[opsize],31,left.location.register);
+            emit_reg_reg(A_XOR,S_L,left.location.register,location.register);
+            emit_reg_reg(A_SUB,S_L,left.location.register,location.register);
+          end
+        else
+{$endif i386}
+          begin
+            opsize:=int_cgsize(tcallparanode(left).resultdef.size);
+            secondpass(left);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+            hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+            location:=left.location;
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hregister);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,location.register);
+            emit_reg(A_NEG,tcgsize2opsize[opsize],hregister);
+            hp:=taicpu.op_reg_reg(A_CMOVcc,tcgsize2opsize[opsize],hregister,location.register);
+            hp.condition:=C_NS;
+            current_asmdata.CurrAsmList.concat(hp);
+          end;
+      end;
 
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING

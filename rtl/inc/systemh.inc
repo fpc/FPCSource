@@ -481,7 +481,12 @@ Function  Random: extended;
 Procedure Randomize;
 {$endif FPC_HAS_FEATURE_RANDOM}
 
+{$ifdef FPC_HAS_INTERNAL_ABS_LONG and (defined(cpui386) or defined(cpux86_64))}
+{$define FPC_SYSTEM_HAS_ABS_LONGINT}
+Function abs(l:longint):longint;[internproc:fpc_in_abs_long];
+{$else FPC_HAS_INTERNAL_ABS_LONG}
 Function abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ABS_LONG}
 Function abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}

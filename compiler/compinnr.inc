@@ -71,6 +71,7 @@ const
    in_bitsizeof_x       = 61;
    in_writestr_x        = 62;
    in_readstr_x         = 63;
+   in_abs_long          = 64;
 
 { Internal constant functions }
    in_const_sqr        = 100;

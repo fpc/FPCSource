@@ -53,6 +53,7 @@ interface
           procedure second_prefetch; virtual;
           procedure second_round_real; virtual;
           procedure second_trunc_real; virtual;
+          procedure second_abs_long; virtual;
        end;
 
 implementation
@@ -109,6 +110,8 @@ implementation
               second_arctan_real;
             in_abs_real:
               second_abs_real;
+            in_abs_long:
+              second_abs_long;
             in_round_real:
               second_round_real;
             in_trunc_real:
@@ -596,6 +599,11 @@ implementation
       begin
       end;
 
+    procedure tcginlinenode.second_abs_long;
+      begin
+        internalerror(200711251);
+      end;
+
 
 {*****************************************************************************
                          ASSIGNED GENERIC HANDLING
@@ -630,7 +638,7 @@ implementation
 
     procedure Tcginlinenode.second_get_caller_frame;
 
-    var 
+    var
       frame_reg:Tregister;
       use_frame_pointer:boolean;
 
