@@ -138,6 +138,7 @@ implementation
          oldclabel,oldblabel : tasmlabel;
          otlabel,oflabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
+         oldexecutionweight : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -167,8 +168,15 @@ implementation
 
          current_procinfo.CurrContinueLabel:=lcont;
          current_procinfo.CurrBreakLabel:=lbreak;
+
          if assigned(right) then
-           secondpass(right);
+           begin
+             { calc register weight }
+             oldexecutionweight:=cg.executionweight;
+             cg.executionweight:=cg.executionweight*8;
+             secondpass(right);
+             cg.executionweight:=oldexecutionweight;
+           end;
 
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
@@ -213,6 +221,7 @@ implementation
       var
          hl,otlabel,oflabel : tasmlabel;
          oldflowcontrol: tflowcontrol;
+         oldexecutionweight : longint;
 (*
          org_regvar_loaded_other,
          then_regvar_loaded_other,
@@ -254,6 +263,11 @@ implementation
              org_regvar_loaded_other := rg.regvar_loaded_other;
            end;
 *)
+         { determines registers weigths }
+         oldexecutionweight:=cg.executionweight;
+         cg.executionweight:=cg.executionweight div 2;
+         if cg.executionweight<1 then
+           cg.executionweight:=1;
 
          if assigned(right) then
            begin
@@ -361,6 +375,8 @@ implementation
            end;
 *)
 
+         cg.executionweight:=oldexecutionweight;
+
          current_procinfo.CurrTrueLabel:=otlabel;
          current_procinfo.CurrFalseLabel:=oflabel;
          flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);
@@ -416,7 +432,7 @@ implementation
          count_var_is_signed,do_loopvar_at_end : boolean;
          cmp_const:Tconstexprint;
          oldflowcontrol : tflowcontrol;
-
+         oldexecutionweight : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
          oldflowcontrol:=flowcontrol;
@@ -452,9 +468,16 @@ implementation
          else
            temptovalue:=false;
 
-         { produce start assignment }
+         { load loopvar, prefer loopvar being a register variable }
+         oldexecutionweight:=cg.executionweight;
+         inc(cg.executionweight,8);
          secondpass(left);
+         cg.executionweight:=oldexecutionweight;
+
+         { load from value }
          secondpass(right);
+
+         { produce start assignment }
          case left.location.loc of
            LOC_REFERENCE,
            LOC_CREFERENCE :
@@ -534,7 +557,11 @@ implementation
 
          if assigned(t2) then
            begin
+             { Calc register weight }
+             oldexecutionweight:=cg.executionweight;
+             cg.executionweight:=cg.executionweight*8;
              secondpass(t2);
+             cg.executionweight:=oldexecutionweight;
 {$ifdef OLDREGVARS}
              load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}

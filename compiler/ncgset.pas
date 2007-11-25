@@ -673,6 +673,7 @@ implementation
          isjump : boolean;
          max_dist,
          dist : aword;
+         oldexecutionweight : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -817,6 +818,12 @@ implementation
                 genlinearlist(labels);
            end;
 
+         { estimates the repeat of each instruction }
+         oldexecutionweight:=cg.executionweight;
+         cg.executionweight:=cg.executionweight div case_count_labels(labels);
+         if cg.executionweight<1 then
+           cg.executionweight:=1;
+
          { generate the instruction blocks }
          for i:=0 to blocks.count-1 do
            begin
@@ -840,6 +847,9 @@ implementation
               load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
            end;
+
+         cg.executionweight:=oldexecutionweight;
+
          current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
          cg.a_label(current_asmdata.CurrAsmList,endlabel);
 

@@ -385,9 +385,6 @@ implementation
                   Tabstractvarsym(symtableentry).trigger_notifications(vn_onwrite)
                 else
                   Tabstractvarsym(symtableentry).trigger_notifications(vn_onread);
-                { count variable references }
-                if cg.t_times>1 then
-                  tabstractvarsym(symtableentry).IncRefCountBy(cg.t_times-1);
               end;
             procsym :
                 begin

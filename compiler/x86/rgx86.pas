@@ -66,9 +66,6 @@ unit rgx86;
           is_reg_var_other : regvarother_booleanarray;
           regvar_loaded_other : regvarother_booleanarray;}
 
-          { tries to hold the amount of times which the current tree is processed  }
-          t_times: longint;
-
           fpuvaroffset : byte;
 
           constructor create;
@@ -134,7 +131,7 @@ implementation
                     end;
                 end;
               2,3 :
-                begin 
+                begin
                   { We can handle opcodes with 2 and 3 operands the same way. The opcodes
                     with 3 registers are shrd/shld, where the 3rd operand is const or CL,
                     that doesn't need spilling.
@@ -269,7 +266,6 @@ implementation
     constructor Trgx86fpu.create;
       begin
         used_in_proc:=[];
-        t_times := 0;
         unusedregsfpu:=usableregsfpu;
       end;
 

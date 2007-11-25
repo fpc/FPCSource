@@ -728,13 +728,6 @@ implementation
         { add parast/localst to symtablestack }
         add_to_symtablestack;
 
-        { when size optimization only count occurrence }
-        if cs_opt_size in current_settings.optimizerswitches then
-          cg.t_times:=1
-        else
-          { reference for repetition is 100 }
-          cg.t_times:=100;
-
         { clear register count }
         procdef.localst.SymList.ForEachCall(@clearrefs,nil);
         procdef.parast.SymList.ForEachCall(@clearrefs,nil);

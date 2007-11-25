@@ -474,21 +474,15 @@ implementation
 
 
     function twhilerepeatnode.pass_1 : tnode;
-      var
 {$ifdef prefetchnext}
+      var
          runnernode, prefetchcode: tnode;
          assignmentnode: tassignmentnode;
          prefetchstatements: tstatementnode;
 {$endif prefetchnext}
-         old_t_times : longint;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         old_t_times:=cg.t_times;
-
-         { calc register weight }
-         if not(cs_opt_size in current_settings.optimizerswitches) then
-           cg.t_times:=cg.t_times*8;
 
          firstpass(left);
          if codegenerror then
@@ -502,7 +496,6 @@ implementation
                 exit;
            end;
 
-         cg.t_times:=old_t_times;
 {$ifdef prefetchnext}
          { do at the end so all complex typeconversions are already }
          { converted to calln's                                     }
@@ -708,19 +701,10 @@ implementation
 
 
     function tifnode.pass_1 : tnode;
-      var
-         old_t_times : longint;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         old_t_times:=cg.t_times;
          firstpass(left);
-
-         { determines registers weigths }
-         if not(cs_opt_size in current_settings.optimizerswitches) then
-           cg.t_times:=cg.t_times div 2;
-         if cg.t_times=0 then
-           cg.t_times:=1;
 
          { if path }
          if assigned(right) then
@@ -734,8 +718,6 @@ implementation
 
          if codegenerror then
            exit;
-
-         cg.t_times:=old_t_times;
       end;
 
 
@@ -824,9 +806,7 @@ implementation
 
 
     function tfornode.pass_1 : tnode;
-      var
-         old_t_times : longint;
-     begin
+      begin
          result:=nil;
          expectloc:=LOC_VOID;
 
@@ -836,14 +816,9 @@ implementation
 
          if assigned(t2) then
           begin
-            { Calc register weight }
-            old_t_times:=cg.t_times;
-            if not(cs_opt_size in current_settings.optimizerswitches) then
-              cg.t_times:=cg.t_times*8;
             firstpass(t2);
             if codegenerror then
              exit;
-            cg.t_times:=old_t_times;
           end;
       end;
 

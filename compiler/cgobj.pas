@@ -55,9 +55,10 @@ unit cgobj;
        }
        tcg = class
        public
+          { how many times is this current code executed }
+          executionweight : longint;
           alignment : talignment;
           rg        : array[tregistertype] of trgobj;
-          t_times   : longint;
        {$ifdef flowgraph}
           aktflownode:word;
        {$endif}
@@ -608,6 +609,7 @@ implementation
       begin
         fillchar(rg,sizeof(rg),0);
         add_reg_instruction_hook:=@add_reg_instruction;
+        executionweight:=1;
       end;
 
 
@@ -757,7 +759,7 @@ implementation
           No IE can be generated, because the VMT is written
           without a valid rg[] }
         if assigned(rg[rt]) then
-          rg[rt].add_reg_instruction(instr,r);
+          rg[rt].add_reg_instruction(instr,r,cg.executionweight);
       end;
 
 

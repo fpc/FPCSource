@@ -601,7 +601,6 @@ implementation
 
     function tcasenode.pass_1 : tnode;
       var
-         old_t_times : longint;
          i  : integer;
       begin
          result:=nil;
@@ -611,16 +610,7 @@ implementation
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
-         { walk through all instructions }
 
-         { estimates the repeat of each instruction }
-         old_t_times:=cg.t_times;
-         if not(cs_opt_size in current_settings.optimizerswitches) then
-           begin
-              cg.t_times:=cg.t_times div case_count_labels(labels);
-              if cg.t_times<1 then
-                cg.t_times:=1;
-           end;
          { first case }
          for i:=0 to blocks.count-1 do
            firstpass(pcaseblock(blocks[i])^.statement);
@@ -628,7 +618,6 @@ implementation
          { may be handle else tree }
          if assigned(elseblock) then
            firstpass(elseblock);
-         cg.t_times:=old_t_times;
       end;
 
 

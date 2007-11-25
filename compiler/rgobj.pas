@@ -100,6 +100,7 @@ unit rgobj;
         adjlist  : Psuperregisterworklist;
         degree   : TSuperregister;
         flags    : Treginfoflagset;
+        weight   : longint;
       end;
       Preginfo=^TReginfo;
 
@@ -145,7 +146,7 @@ unit rgobj;
         {# Free multiple registers specified.}
         procedure dealloccpuregisters(list:TAsmList;const r:Tcpuregisterset);virtual;
         function uses_registers:boolean;virtual;
-        procedure add_reg_instruction(instr:Tai;r:tregister);
+        procedure add_reg_instruction(instr:Tai;r:tregister;aweight:longint);
         procedure add_move_instruction(instr:Taicpu);
         {# Do the register allocation.}
         procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
@@ -694,7 +695,7 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.add_reg_instruction(instr:Tai;r:tregister);
+    procedure trgobj.add_reg_instruction(instr:Tai;r:tregister;aweight:longint);
       var
         supreg : tsuperregister;
       begin
@@ -707,6 +708,8 @@ unit rgobj;
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
+              if aweight>weight then
+                weight:=aweight;
               if (live_range_direction=rad_forward) then
                 begin
                   if not assigned(live_start) then
@@ -1250,12 +1253,11 @@ unit rgobj;
     end;
 
     procedure trgobj.select_spill;
-
     var
       n : tsuperregister;
       adj : psuperregisterworklist;
       max,p,i:word;
-
+      minweight: longint;
     begin
       { We must look for the element with the most interferences in the
         spillworklist. This is required because those registers are creating
@@ -1264,6 +1266,7 @@ unit rgobj;
         to get too much conflicts with the result that the spilling code
         will never converge (PFV) }
       max:=0;
+      minweight:=high(longint);
       p:=0;
       with spillworklist do
         begin
@@ -1271,10 +1274,15 @@ unit rgobj;
           for i:=0 to length-1 do
             begin
               adj:=reginfo[buf^[i]].adjlist;
-              if assigned(adj) and (adj^.length>max) then
+              if assigned(adj) and
+                 (
+                  (adj^.length>max) or
+                  ((adj^.length=max) and (reginfo[buf^[i]].weight<minweight))
+                 ) then
                 begin
                   p:=i;
                   max:=adj^.length;
+                  minweight:=reginfo[buf^[i]].weight;
                 end;
             end;
           n:=buf^[p];
@@ -2023,7 +2031,7 @@ unit rgobj;
               if mustbespilled and regread and (not regwritten) then
                 begin
                   { The original instruction will be the next that uses this register }
-                  add_reg_instruction(instr,tempreg);
+                  add_reg_instruction(instr,tempreg,1);
                   ungetregisterinline(list,tempreg);
                 end;
             end;
@@ -2040,7 +2048,7 @@ unit rgobj;
                     tempreg:=getregisterinline(list,get_spill_subreg(regs[counter].spillreg));
                   { The original instruction will be the next that uses this register, this
                     also needs to be done for read-write registers }
-                  add_reg_instruction(instr,tempreg);
+                  add_reg_instruction(instr,tempreg,1);
                 end;
             end;
 
