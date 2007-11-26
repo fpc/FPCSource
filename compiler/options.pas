@@ -2141,7 +2141,9 @@ begin
   def_system_macro('FPC_STRTOCHARARRAYPROC');
   def_system_macro('FPC_NEW_BIGENDIAN_SETS');
   def_system_macro('FPC_STRTOSHORTSTRINGPROC');
+{$ifdef x86}
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
+{$endif}
 
 {$ifdef SUPPORT_UNALIGNED}
   def_system_macro('FPC_SUPPORTS_UNALIGNED');
