@@ -759,8 +759,8 @@ interface
               ;
             ait_section:
               begin
-                 {if LasTSec<>sec_none then
-                  AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');}
+                 {if LastSecType<>sec_none then
+                  AsmWriteLn('_'+target_asm.secnames[LastSecType]+#9#9'ENDS');}
 
                  if tai_section(hp).sectype<>sec_none then
                   begin
@@ -780,7 +780,7 @@ interface
                     AsmLn;
                     AsmWriteLn(#9+secnames[tai_section(hp).sectype]+' '+cur_CSECT_name+cur_CSECT_class);
                   end;
-                 LasTSec:=tai_section(hp).sectype;
+                 LastSecType:=tai_section(hp).sectype;
                end;
             ait_align:
               begin
