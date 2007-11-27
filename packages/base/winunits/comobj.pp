@@ -224,28 +224,8 @@ implementation
 
     function HandleSafeCallException(ExceptObject: TObject; ExceptAddr: Pointer; const ErrorIID: TGUID; const ProgID,
       HelpFileName: WideString): HResult;
-      var
-        _CreateErrorInfo : ICreateErrorInfo;
-        ErrorInfo : IErrorInfo;
+
       begin
-        Result:=E_UNEXPECTED;
-        if Succeeded(CreateErrorInfo(_CreateErrorInfo)) then
-          begin
-            _CreateErrorInfo.SetGUID(ErrorIID);
-            if ProgID<>'' then
-              _CreateErrorInfo.SetSource(PWidechar(ProgID));
-            if HelpFileName<>'' then
-              _CreateErrorInfo.SetHelpFile(PWidechar(HelpFileName));
-            if ExceptObject is Exception then
-              begin
-                _CreateErrorInfo.SetDescription(PWidechar(Widestring(Exception(ExceptObject).Message)));
-                _CreateErrorInfo.SetHelpContext(Exception(ExceptObject).HelpContext);
-                if (ExceptObject is EOleSyserror) and (EOleSysError(ExceptObject).ErrorCode<0) then
-                  Result:=EOleSysError(ExceptObject).ErrorCode
-              end;
-            if _CreateErrorInfo.QueryInterface(IErrorInfo,ErrorInfo)=S_OK then
-              SetErrorInfo(0,ErrorInfo);
-          end;
       end;
 
 
