@@ -719,6 +719,7 @@ In case not, the value returned can be arbitrary.
            mac: tmacro;
            srsym : tsym;
            srsymtable : TSymtable;
+           hdef : TDef;
            l : longint;
            w : integer;
            hasKlammer: Boolean;
@@ -856,6 +857,79 @@ In case not, the value returned can be arbitrary.
                               Message(scan_e_error_in_preproc_expr);
                           end;
                           str(l,read_factor);
+                        end
+                      else
+                        Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
+
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+
+                    if current_scanner.preproc_token =_RKLAMMER then
+                      preproc_consume(_RKLAMMER)
+                    else
+                      Message(scan_e_preproc_syntax_error);
+                  end
+                else
+                if current_scanner.preproc_pattern='HIGH' then
+                  begin
+                    factorType:= [ctetInteger];
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+                    if current_scanner.preproc_token =_LKLAMMER then
+                      begin
+                        preproc_consume(_LKLAMMER);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_preproc_syntax_error);
+
+                    if eval then
+                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
+                        begin
+                          hdef:=nil;
+                          hs:='';
+                          l:=0;
+                          case srsym.typ of
+                            staticvarsym,
+                            localvarsym,
+                            paravarsym :
+                              hdef:=tabstractvarsym(srsym).vardef;
+                            typesym:
+                              hdef:=ttypesym(srsym).typedef;
+                            else
+                              Message(scan_e_error_in_preproc_expr);
+                          end;
+                          if hdef<>nil then
+                            begin
+                              if hdef.typ=setdef then
+                                hdef:=tsetdef(hdef).elementdef;
+                              case hdef.typ of
+                                orddef:
+                                  with torddef(hdef).high do
+                                    if signed then
+                                      str(svalue,hs)
+                                    else
+                                      str(uvalue,hs);
+                                enumdef:
+                                  l:=tenumdef(hdef).maxval;
+                                arraydef:
+                                  if is_open_array(hdef) or is_array_of_const(hdef) or is_dynamic_array(hdef) then
+                                    Message(type_e_mismatch)
+                                  else
+                                    l:=tarraydef(hdef).highrange;
+                                stringdef:
+                                  if is_open_string(hdef) or is_ansistring(hdef) or is_widestring(hdef) then
+                                    Message(type_e_mismatch)
+                                  else
+                                    l:=tstringdef(hdef).len;
+                                else
+                                  Message(type_e_mismatch);
+                              end;
+                            end;
+                          if hs='' then
+                            str(l,read_factor)
+                          else
+                            read_factor:=hs;
                         end
                       else
                         Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
