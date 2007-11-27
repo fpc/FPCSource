@@ -363,12 +363,14 @@ begin
   if Length = -1 then
     Length := StrLen(Src);
   Result := Length;
+{$ifndef WINCE}
   if (FromCP = GetOEMCP) and (ToCP = GetACP) then
     OemToCharBuff(Src, Dest, Length)
   else
   if (FromCP = GetACP) and (ToCP = GetOEMCP) then
     CharToOemBuff(Src, Dest, Length)
   else
+{$endif}
   if FromCP = ToCP then
   begin
     if Src <> Dest then
