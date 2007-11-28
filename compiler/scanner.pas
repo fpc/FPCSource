@@ -1012,7 +1012,7 @@ In case not, the value returned can be arbitrary.
 
                     { Default is to return the original symbol }
                     read_factor:=hs;
-                    if eval and (m_delphi in current_settings.modeswitches) and (ctetString in factorType) then
+                    if eval and ([m_delphi,m_objfpc]*current_settings.modeswitches<>[]) and (ctetString in factorType) then
                       if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
                         begin
                           case srsym.typ of
