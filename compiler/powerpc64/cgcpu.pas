@@ -1738,18 +1738,14 @@ end;
 
 { ************* concatcopy ************ }
 
-const
-  maxmoveunit = 8;
-
-
 procedure tcgppc.g_concatcopy(list: TAsmList; const source, dest: treference;
   len: aint);
 
 var
-  countreg, tempreg: TRegister;
+  countreg, tempreg:TRegister;
   src, dst: TReference;
   lab: tasmlabel;
-  count, count2: longint;
+  count, count2, step: longint;
   size: tcgsize;
 
 begin
@@ -1759,7 +1755,8 @@ begin
   list.concat(tai_comment.create(strpnew('g_concatcopy1 ' + inttostr(len) + ' bytes left ')));
 {$ENDIF extdebug}
   { if the references are equal, exit, there is no need to copy anything }
-  if (references_equal(source, dest)) then
+  if references_equal(source, dest) or
+     (len=0) then
     exit;
 
   { make sure short loads are handled as optimally as possible;
@@ -1768,7 +1765,7 @@ begin
    NOTE: maybe use some scratch registers to pair load/store instructions
   }
 
-  if (len <= maxmoveunit) then begin
+  if (len <= 8) then begin
     src := source; dst := dest;
     {$IFDEF extdebug}
     list.concat(tai_comment.create(strpnew('g_concatcopy3 ' + inttostr(src.offset) + ' ' + inttostr(dst.offset))));
@@ -1798,16 +1795,29 @@ begin
 {$ENDIF extdebug}
 
 
-  count := len div maxmoveunit;
+  if not(source.alignment in [1,2]) and
+     not(dest.alignment in [1,2]) then
+    begin
+      count:=len div 8;
+      step:=8;
+      size:=OS_64;
+    end
+  else
+    begin
+      count:=len div 4;
+      step:=4;
+      size:=OS_32;
+    end;
 
+  tempreg:=getintregister(list,size);
   reference_reset(src);
   reference_reset(dst);
   { load the address of source into src.base }
   if (count > 4) or
     not issimpleref(source) or
     ((source.index <> NR_NO) and
-    ((source.offset + len) > high(smallint))) then begin
-    src.base := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+     ((source.offset + len) > high(smallint))) then begin
+    src.base := getaddressregister(list);
     a_loadaddr_ref_reg(list, source, src.base);
   end else begin
     src := source;
@@ -1817,7 +1827,7 @@ begin
     not issimpleref(dest) or
     ((dest.index <> NR_NO) and
     ((dest.offset + len) > high(smallint))) then begin
-    dst.base := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+    dst.base := getaddressregister(list);
     a_loadaddr_ref_reg(list, dest, dst.base);
   end else begin
     dst := dest;
@@ -1826,64 +1836,63 @@ begin
   { generate a loop }
   if count > 4 then begin
     { the offsets are zero after the a_loadaddress_ref_reg and just
-     have to be set to 8. I put an Inc there so debugging may be
+     have to be set to step. I put an Inc there so debugging may be
      easier (should offset be different from zero here, it will be
      easy to notice in the generated assembler }
-    inc(dst.offset, 8);
-    inc(src.offset, 8);
-    list.concat(taicpu.op_reg_reg_const(A_SUBI, src.base, src.base, 8));
-    list.concat(taicpu.op_reg_reg_const(A_SUBI, dst.base, dst.base, 8));
-    countreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    a_load_const_reg(list, OS_64, count, countreg);
-    { explicitely allocate F0 since it can be used safely here
-     (for holding date that's being copied) }
-    a_reg_alloc(list, NR_F0);
+    inc(dst.offset, step);
+    inc(src.offset, step);
+    list.concat(taicpu.op_reg_reg_const(A_SUBI, src.base, src.base, step));
+    list.concat(taicpu.op_reg_reg_const(A_SUBI, dst.base, dst.base, step));
+    countreg := getintregister(list, OS_INT);
+    a_load_const_reg(list, OS_INT, count, countreg);
     current_asmdata.getjumplabel(lab);
     a_label(list, lab);
     list.concat(taicpu.op_reg_reg_const(A_SUBIC_, countreg, countreg, 1));
-    list.concat(taicpu.op_reg_ref(A_LFDU, NR_F0, src));
-    list.concat(taicpu.op_reg_ref(A_STFDU, NR_F0, dst));
+    if (size=OS_64) then
+      begin
+        list.concat(taicpu.op_reg_ref(A_LDU, tempreg, src));
+        list.concat(taicpu.op_reg_ref(A_STDU, tempreg, dst));
+      end
+    else
+      begin
+        list.concat(taicpu.op_reg_ref(A_LWZU, tempreg, src));
+        list.concat(taicpu.op_reg_ref(A_STWU, tempreg, dst));
+      end;
     a_jmp(list, A_BC, C_NE, 0, lab);
-    a_reg_dealloc(list, NR_F0);
-    len := len mod 8;
+    a_reg_sync(list,src.base);
+    a_reg_sync(list,dst.base);
+    a_reg_sync(list,countreg);
+    len := len mod step;
+    count := 0;
   end;
 
-  count := len div 8;
   { unrolled loop }
   if count > 0 then begin
-    a_reg_alloc(list, NR_F0);
     for count2 := 1 to count do begin
-      a_loadfpu_ref_reg(list, OS_F64, OS_F64, src, NR_F0);
-      a_loadfpu_reg_ref(list, OS_F64, OS_F64, NR_F0, dst);
-      inc(src.offset, 8);
-      inc(dst.offset, 8);
+      a_load_ref_reg(list, size, size, src, tempreg);
+      a_load_reg_ref(list, size, size, tempreg, dst);
+      inc(src.offset, step);
+      inc(dst.offset, step);
     end;
-    a_reg_dealloc(list, NR_F0);
-    len := len mod 8;
+    len := len mod step;
   end;
 
   if (len and 4) <> 0 then begin
-    a_reg_alloc(list, NR_R0);
-    a_load_ref_reg(list, OS_32, OS_32, src, NR_R0);
-    a_load_reg_ref(list, OS_32, OS_32, NR_R0, dst);
+    a_load_ref_reg(list, OS_32, OS_32, src, tempreg);
+    a_load_reg_ref(list, OS_32, OS_32, tempreg, dst);
     inc(src.offset, 4);
     inc(dst.offset, 4);
-    a_reg_dealloc(list, NR_R0);
   end;
   { copy the leftovers }
   if (len and 2) <> 0 then begin
-    a_reg_alloc(list, NR_R0);
-    a_load_ref_reg(list, OS_16, OS_16, src, NR_R0);
-    a_load_reg_ref(list, OS_16, OS_16, NR_R0, dst);
+    a_load_ref_reg(list, OS_16, OS_16, src, tempreg);
+    a_load_reg_ref(list, OS_16, OS_16, tempreg, dst);
     inc(src.offset, 2);
     inc(dst.offset, 2);
-    a_reg_dealloc(list, NR_R0);
   end;
   if (len and 1) <> 0 then begin
-    a_reg_alloc(list, NR_R0);
-    a_load_ref_reg(list, OS_8, OS_8, src, NR_R0);
-    a_load_reg_ref(list, OS_8, OS_8, NR_R0, dst);
-    a_reg_dealloc(list, NR_R0);
+    a_load_ref_reg(list, OS_8, OS_8, src, tempreg);
+    a_load_reg_ref(list, OS_8, OS_8, tempreg, dst);
   end;
 
 end;
