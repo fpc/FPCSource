@@ -1926,6 +1926,7 @@ implementation
 {$endif}
             if (cs_create_pic in current_settings.moduleswitches) and
               assigned(r.symbol) and
+              not assigned(r.relsymbol) and
               (r.refaddr=addr_no) then
               internalerror(200502052);
             typ:=top_ref;
