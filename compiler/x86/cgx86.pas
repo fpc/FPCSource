@@ -426,7 +426,6 @@ unit cgx86;
                    include(current_procinfo.flags,pi_needs_got);
                    hreg:=current_procinfo.got;
                    ref.relsymbol:=current_procinfo.CurrGOTLabel;
-                   ref.refaddr:=addr_pic;
                  end;
                add_hreg:=true
              end

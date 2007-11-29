@@ -589,6 +589,7 @@ unit nx86add;
                   internalerror(200203245);
 
                  hregister:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+                 tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
                  emit_ref_reg(A_MOVQ,S_NO,left.location.reference,hregister);
                end;
 
@@ -612,6 +613,7 @@ unit nx86add;
                begin
                  if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(200203247);
+                 tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  emit_ref_reg(A_MOVQ,S_NO,right.location.reference,hreg);
                  emit_reg_reg(op,S_NO,left.location.register,hreg);
                end;
@@ -625,6 +627,7 @@ unit nx86add;
                begin
                  if not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(200203246);
+                 tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  emit_ref_reg(op,S_NO,right.location.reference,left.location.register);
                end;
               location.register:=left.location.register;

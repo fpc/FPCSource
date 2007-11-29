@@ -743,8 +743,9 @@ unit cgcpu;
         tempref : treference;
       begin
         get_64bit_ops(op,op1,op2);
-        list.concat(taicpu.op_ref_reg(op1,S_L,ref,reg.reglo));
         tempref:=ref;
+        tcgx86(cg).make_simple_ref(list,tempref);
+        list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
         inc(tempref.offset,4);
         list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
       end;
@@ -807,11 +808,12 @@ unit cgcpu;
         op1,op2 : TAsmOp;
         tempref : treference;
       begin
+        tempref:=ref;
+        tcgx86(cg).make_simple_ref(list,tempref);
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_ref(list,op,OS_32,aint(lo(value)),ref);
-              tempref:=ref;
+              cg.a_op_const_ref(list,op,OS_32,aint(lo(value)),tempref);
               inc(tempref.offset,4);
               cg.a_op_const_ref(list,op,OS_32,aint(hi(value)),tempref);
             end;
@@ -819,8 +821,7 @@ unit cgcpu;
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
-              list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),ref));
-              tempref:=ref;
+              list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),tempref));
               inc(tempref.offset,4);
               list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
             end;
