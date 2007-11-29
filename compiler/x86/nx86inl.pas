@@ -246,8 +246,6 @@ implementation
 
 
      procedure tx86inlinenode.second_round_real;
-       var
-         href : treference;
        begin
 {$ifdef x86_64}
          if use_sse(left.resultdef) then
@@ -279,9 +277,7 @@ implementation
 
      procedure tx86inlinenode.second_trunc_real;
        var
-         href : treference;
          oldcw,newcw : treference;
-         tempreg : tregister;
        begin
 {$ifdef x86_64}
          if use_sse(left.resultdef) and
@@ -427,7 +423,7 @@ implementation
 {$ifdef i386}
         if current_settings.cputype<cpu_Pentium2 then
           begin
-            opsize:=int_cgsize(tcallparanode(left).resultdef.size);
+            opsize:=int_cgsize(left.resultdef.size);
             secondpass(left);
             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
             location:=left.location;
@@ -440,7 +436,7 @@ implementation
         else
 {$endif i386}
           begin
-            opsize:=int_cgsize(tcallparanode(left).resultdef.size);
+            opsize:=int_cgsize(left.resultdef.size);
             secondpass(left);
             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
