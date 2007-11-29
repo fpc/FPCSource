@@ -1265,6 +1265,7 @@ begin
                          GetNextInstruction(p,hp1) and
                          (hp1.typ = ait_instruction) and
                          IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
+                         (getsupreg(taicpu(hp1).oper[0]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX]) and
                          GetNextInstruction(hp1,hp2) and
                          (hp2.typ = ait_instruction) and
                          (taicpu(hp2).opcode = A_MOV) and
@@ -1275,8 +1276,10 @@ begin
                       {          mov            reg2 reg/ref              }
                       { to       add/sub/or/... reg3/$const, reg/ref      }
                         begin
-                          taicpu(hp1).opsize:=taicpu(hp2).opsize;
+                          taicpu(hp1).changeopsize(taicpu(hp2).opsize);
                           taicpu(hp1).loadoper(1,taicpu(hp2).oper[1]^);
+                          if  (taicpu(hp1).oper[0]^.typ = top_reg) then
+                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
                           asml.remove(p);
                           asml.remove(hp2);
                           p.free;
