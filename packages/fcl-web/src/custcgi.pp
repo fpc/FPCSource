@@ -116,6 +116,8 @@ Type
     FAdministrator : String;
     FOutput : TStream;
     FHandleGetOnPost : Boolean;
+    FRedirectOnError : Boolean;
+    FRedirectOnErrorURL : String;
     Procedure InitRequestVars;
     Function GetEmail : String;
     Function GetAdministrator : String;
@@ -144,6 +146,8 @@ Type
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RequestVariables[VarName : String] : String Read GetRequestVariable;
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
+    Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
+    Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
   end;
 
 ResourceString
@@ -285,6 +289,13 @@ Var
   S : TStrings;
 
 begin
+  If RedirectOnError and not FResponse.HeadersSent then
+    begin
+    FResponse.Location := RedirectOnErrorURL;
+    FResponse.Code := 301;
+    FResponse.SendContent;
+    Exit;
+    end;
   If not FResponse.HeadersSent then
     FResponse.ContentType:='text/html';
   If (FResponse.ContentType='text/html') then
@@ -483,6 +494,8 @@ constructor TCustomCGIApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FHandleGetOnPost := True;
+  FRedirectOnError := False;
+  FRedirectOnErrorURL := '';
 end;
 
 Procedure TCustomCGIApplication.AddResponse(Const S : String);
