@@ -1493,8 +1493,6 @@ implementation
          hightree,
          hp        : tnode;
          checkrange : boolean;
-      label
-         myexit;
       begin
          result:=nil;
          { if we handle writeln; left contains no valid address }
@@ -1566,7 +1564,6 @@ implementation
             if hp=nil then
              hp:=cerrornode.create;
             result:=hp;
-            goto myexit;
           end
          else
           begin
@@ -1588,20 +1585,18 @@ implementation
                    begin
                      case inlinenumber of
                        in_lo_word :
-                         hp:=cordconstnode.create(tordconstnode(left).value and $ff,left.resultdef,true);
+                         result:=cordconstnode.create(tordconstnode(left).value and $ff,left.resultdef,true);
                        in_hi_word :
-                         hp:=cordconstnode.create(tordconstnode(left).value shr 8,left.resultdef,true);
+                         result:=cordconstnode.create(tordconstnode(left).value shr 8,left.resultdef,true);
                        in_lo_long :
-                         hp:=cordconstnode.create(tordconstnode(left).value and $ffff,left.resultdef,true);
+                         result:=cordconstnode.create(tordconstnode(left).value and $ffff,left.resultdef,true);
                        in_hi_long :
-                         hp:=cordconstnode.create(tordconstnode(left).value shr 16,left.resultdef,true);
+                         result:=cordconstnode.create(tordconstnode(left).value shr 16,left.resultdef,true);
                        in_lo_qword :
-                         hp:=cordconstnode.create(tordconstnode(left).value and $ffffffff,left.resultdef,true);
+                         result:=cordconstnode.create(tordconstnode(left).value and $ffffffff,left.resultdef,true);
                        in_hi_qword :
-                         hp:=cordconstnode.create(tordconstnode(left).value shr 32,left.resultdef,true);
+                         result:=cordconstnode.create(tordconstnode(left).value shr 32,left.resultdef,true);
                      end;
-                     result:=hp;
-                     goto myexit;
                    end;
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   if not is_integer(left.resultdef) then
@@ -1672,10 +1667,8 @@ implementation
                 begin
                    if (left.nodetype=ordconstn) then
                     begin
-                      hp:=cordconstnode.create(
-                         tordconstnode(left).value,sinttype,true);
-                      result:=hp;
-                      goto myexit;
+                      result:=cordconstnode.create(
+                        tordconstnode(left).value,sinttype,true);
                     end;
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    case left.resultdef.typ of
@@ -1686,56 +1679,49 @@ implementation
                            uchar:
                              begin
                                { change to byte() }
-                               hp:=ctypeconvnode.create_internal(left,u8inttype);
+                               result:=ctypeconvnode.create_internal(left,u8inttype);
                                left:=nil;
-                               result:=hp;
                              end;
                            bool16bit,
                            uwidechar :
                              begin
                                { change to word() }
-                               hp:=ctypeconvnode.create_internal(left,u16inttype);
+                               result:=ctypeconvnode.create_internal(left,u16inttype);
                                left:=nil;
-                               result:=hp;
                              end;
                            bool32bit :
                              begin
                                { change to dword() }
-                               hp:=ctypeconvnode.create_internal(left,u32inttype);
+                               result:=ctypeconvnode.create_internal(left,u32inttype);
                                left:=nil;
-                               result:=hp;
                              end;
                            bool64bit :
                              begin
                                { change to qword() }
-                               hp:=ctypeconvnode.create_internal(left,u64inttype);
+                               result:=ctypeconvnode.create_internal(left,u64inttype);
                                left:=nil;
-                               result:=hp;
                              end;
                            uvoid :
                              CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                            else
                              begin
                                { all other orddef need no transformation }
-                               hp:=left;
+                               result:=left;
                                left:=nil;
-                               result:=hp;
                              end;
                          end;
                        end;
                      enumdef :
                        begin
-                         hp:=ctypeconvnode.create_internal(left,s32inttype);
+                         result:=ctypeconvnode.create_internal(left,s32inttype);
                          left:=nil;
-                         result:=hp;
                        end;
                      pointerdef :
                        begin
                          if m_mac in current_settings.modeswitches then
                            begin
-                             hp:=ctypeconvnode.create_internal(left,ptruinttype);
+                             result:=ctypeconvnode.create_internal(left,ptruinttype);
                              left:=nil;
-                             result:=hp;
                            end
                          else
                            CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
@@ -1749,9 +1735,8 @@ implementation
                 begin
                    { convert to explicit char() }
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
-                   hp:=ctypeconvnode.create_internal(left,cchartype);
+                   result:=ctypeconvnode.create_internal(left,cchartype);
                    left:=nil;
-                   result:=hp;
                 end;
 
               in_length_x:
@@ -1782,13 +1767,11 @@ implementation
                            left:=hp;
                          end;
 
-                        { evaluates length of constant strings direct }
+                        { evaluate the length of constant strings directly }
                         if (left.nodetype=stringconstn) then
                          begin
-                           hp:=cordconstnode.create(
+                           result:=cordconstnode.create(
                              tstringconstnode(left).len,s32inttype,true);
-                           result:=hp;
-                           goto myexit;
                          end;
                       end;
                     orddef :
@@ -1797,9 +1780,7 @@ implementation
                         if is_char(left.resultdef) or
                            is_widechar(left.resultdef) then
                          begin
-                           hp:=cordconstnode.create(1,s32inttype,false);
-                           result:=hp;
-                           goto myexit;
+                           result:=cordconstnode.create(1,s32inttype,false);
                          end
                         else
                          CGMessage(type_e_mismatch);
@@ -1813,7 +1794,6 @@ implementation
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
                             left:=nil;
-                            goto myexit;
                          end
                         else if is_pwidechar(left.resultdef) then
                          begin
@@ -1822,7 +1802,6 @@ implementation
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
                             left:=nil;
-                            goto myexit;
                          end
                         else
                          CGMessage(type_e_mismatch);
@@ -1834,21 +1813,17 @@ implementation
                          begin
                            hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                            if assigned(hightree) then
-                            begin
-                              hp:=caddnode.create(addn,hightree,
-                                                  cordconstnode.create(1,s32inttype,false));
-                              result:=hp;
-                            end;
-                           goto myexit;
+                             result:=caddnode.create(addn,hightree,
+                               cordconstnode.create(1,s32inttype,false));
+                           exit;
                          end
                         else
                          if not is_dynamic_array(left.resultdef) then
                           begin
-                            hp:=cordconstnode.create(tarraydef(left.resultdef).highrange-
+                            result:=cordconstnode.create(tarraydef(left.resultdef).highrange-
                                                       tarraydef(left.resultdef).lowrange+1,
-                                                     s32inttype,true);
-                            result:=hp;
-                            goto myexit;
+                                                      s32inttype,true);
+                            exit;
                           end
                         else
                           begin
@@ -1857,7 +1832,7 @@ implementation
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
                             left:=nil;
-                            goto myexit;
+                            exit;
                           end;
                       end;
                     else
@@ -1889,12 +1864,7 @@ implementation
                       { let an add node figure it out }
                       result := caddnode.create(unequaln,tcallparanode(left).left,cnilnode.create);
                       tcallparanode(left).left := nil;
-                      { free left, because otherwise some code at 'myexit' tries  }
-                      { to run get_paratype for it, which crashes since left.left }
-                      { is now nil                                                }
-                      left.free;
-                      left := nil;
-                      goto myexit;
+                      exit;
                     end;
                   { otherwise handle separately, because there could be a procvar, which }
                   { is 2*sizeof(pointer), while we must only check the first pointer     }
@@ -1909,7 +1879,6 @@ implementation
                 begin
                   set_varstate(left,vs_read,[]);
                   result:=cordconstnode.create(0,s32inttype,false);
-                  goto myexit;
                 end;
 
               in_pred_x,
@@ -2126,8 +2095,8 @@ implementation
                          begin
                            if is_open_string(left.resultdef) then
                             begin
-                               set_varstate(left,vs_read,[]);
-                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
+                              set_varstate(left,vs_read,[]);
+                              result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
                             end
                            else if not is_ansistring(left.resultdef) and
                                    not is_widestring(left.resultdef) then
@@ -2204,7 +2173,7 @@ implementation
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                       { for direct float rounding, no best real type cast should be necessary }
                       if not((left.resultdef.typ=floatdef) and
-                        (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real])) then
+                         (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real])) then
                         inserttypeconv(left,pbestrealtype^);
                       resultdef:=s64inttype;
                     end;
@@ -2237,15 +2206,15 @@ implementation
              in_pi_real :
                 begin
                   if block_type=bt_const then
-                     setconstrealvalue(getpi)
+                    setconstrealvalue(getpi)
                   else
-                     resultdef:=pbestrealtype^;
+                    resultdef:=pbestrealtype^;
                 end;
 
               in_cos_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                   setconstrealvalue(cos(getconstrealvalue))
+                    setconstrealvalue(cos(getconstrealvalue))
                   else
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -2257,7 +2226,7 @@ implementation
               in_sin_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                   setconstrealvalue(sin(getconstrealvalue))
+                    setconstrealvalue(sin(getconstrealvalue))
                   else
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -2269,7 +2238,7 @@ implementation
               in_arctan_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                   setconstrealvalue(arctan(getconstrealvalue))
+                    setconstrealvalue(arctan(getconstrealvalue))
                   else
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -2374,13 +2343,13 @@ implementation
                   resultdef:=voidtype;
                   if assigned(left) then
                     begin
-                       set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
-                       { check type }
-                       if is_boolean(left.resultdef) then
-                         begin
-                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
-                            { must always be a string }
-                            inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype);
+                      set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
+                      { check type }
+                      if is_boolean(left.resultdef) then
+                        begin
+                           set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
+                           { must always be a string }
+                           inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype);
                          end
                        else
                          CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
@@ -2408,15 +2377,6 @@ implementation
                 internalerror(8);
             end;
           end;
-
-      myexit:
-        { Run get_paratype again to update maybe inserted typeconvs }
-        if not codegenerror then
-         begin
-           if assigned(left) and
-              (left.nodetype=callparan) then
-            tcallparanode(left).get_paratype;
-         end;
       end;
 
 
