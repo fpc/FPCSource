@@ -304,7 +304,7 @@ begin
   except
     On E : Exception do
       begin
-        Writeln(StdErr,SErrRunning);
+        Writeln(StdErr,SErrException);
         Writeln(StdErr,E.Message);
         Halt(1);
       end;

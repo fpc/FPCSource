@@ -249,7 +249,8 @@ begin
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath);
   Result:=ExecuteProcess(FPMakeBin,Command+OOptions);
-
+  if Result<>0 then
+    Error(SErrExecutionFPMake,[Command]);
 end;
 
 
