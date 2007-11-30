@@ -2108,8 +2108,10 @@ implementation
             ((right.nodetype = typeconvn) and
              is_integer(ttypeconvnode(right).left.resultdef) and
              not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit])) and
-             (is_signed(ttypeconvnode(left).left.resultdef) =
-              is_signed(ttypeconvnode(right).left.resultdef)))) then
+             ((is_signed(ttypeconvnode(left).left.resultdef) =
+               is_signed(ttypeconvnode(right).left.resultdef)) or
+              (is_signed(ttypeconvnode(left).left.resultdef) and
+               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit]))))) then
           begin
             temp := ttypeconvnode(left).left;
             ttypeconvnode(left).left := nil;
