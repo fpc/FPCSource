@@ -11,6 +11,7 @@ procedure Test(const T: TTest);
  begin
   if @T = nil then exit;
   // do something
+//  halt(1);
  end;
 
 begin

@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 { testfdiv variant with GNU AS output forced }
 {$ifdef win32}
 {$ifdef VER1_0}

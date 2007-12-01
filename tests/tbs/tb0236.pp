@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 { Old file: tbs0276.pp }
 { Asm, intel reference parsing incompatibility         OK 0.99.13 (PFV) }
 

@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 { This test program deals with the
   the delicate problem of
   non commutative FPU instruction

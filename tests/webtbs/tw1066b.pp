@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 {----------------cut here----------------}
 
 {$asmmode intel}

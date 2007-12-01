@@ -1,4 +1,4 @@
-{ %opt=-O2r }
+{ %opt=-O2r -Cg- }
 { %cpu=i386 }
 {$mode delphi}
 

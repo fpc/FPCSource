@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 { Old file: tbs0304.pp }
 { Label redefined when inlining assembler              OK 0.99.13 (PFV) }
 
