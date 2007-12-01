@@ -45,7 +45,8 @@ implementation
       begin
         result:=inherited ConcatInstruction(p);
         { delay slot annulled support }
-        if (result.typ=ait_instruction) and
+        if assigned(result) and
+           (result.typ=ait_instruction) and
            delayslot_annulled then
           taicpu(result).delayslot_annulled:=true;
       end;

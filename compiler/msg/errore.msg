@@ -1715,7 +1715,7 @@ cg_e_goto_label_not_found=06049_E_Goto label "$1" not defined or optimized away
 #
 # Assembler reader
 #
-# 07106 is the last used one
+# 07107 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -1956,7 +1956,11 @@ asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), access may cause a cr
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
 asmr_e_no_vmtoffset_possible=07106_E_VMTOffset must be used in combination with a virtual method, and "$1" is not virtual
-%
+% Only virtul methods have a VMT offset
+asmr_e_need_pic_ref=07107_E_Generating PIC, but reference is not PIC-safe
+% The compiler has been configured to generate position-independent code
+% (PIC), but there are position-dependent references in the current
+% handwritten assembler instruction.
 #
 # Assembler/binary writers
 #
