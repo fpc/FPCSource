@@ -2271,7 +2271,8 @@ implementation
                 begin
                   case left.resultdef.typ of
                     orddef,
-                    enumdef:
+                    enumdef,
+                    setdef:
                       ;
                     arraydef:
                       begin
