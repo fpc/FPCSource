@@ -296,7 +296,10 @@ Implementation
               Consume(AS_MINUS);
               BuildConstSymbolExpression(true,true,false,l,relsym,asmsymtyp);
               if (relsym<>'') then
-                oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym)
+                if not assigned(oper.opr.ref.relsymbol) then
+                  oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym)
+                else
+                  Message(asmr_e_invalid_reference_syntax)
               else
                 dec(oper.opr.ref.offset,l);
             end;
