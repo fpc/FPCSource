@@ -68,6 +68,8 @@ type
         Tdecompressionstream=class(Tcustomzlibstream)
         protected
           raw_read,compressed_read:longint;
+          skipheader:boolean;
+          procedure reset;
         public
           constructor create(Asource:Tstream;Askipheader:boolean=false);
           destructor destroy;override;
@@ -173,6 +175,7 @@ function Tcompressionstream.write(const buffer;count:longint):longint;
 var err:smallint;
     lastavail,
     written:longint;
+
 begin
   Fstream.next_in:=@buffer;
   Fstream.avail_in:=count;
@@ -207,8 +210,10 @@ end;
 
 
 procedure Tcompressionstream.flush;
+
 var err:smallint;
     written:longint;
+
 begin
   {Compress remaining data still in internal zlib data buffers.}
   repeat
@@ -230,8 +235,8 @@ begin
   until false;
   if Fstream.avail_out<bufsize then
     begin
-      source.writebuffer(FBuffer,bufsize-Fstream.avail_out);
-      inc(compressed_written,written);
+      source.writebuffer(FBuffer^,bufsize-Fstream.avail_out);
+      inc(compressed_written,bufsize-Fstream.avail_out);
       progress(self);
     end;
 end;
@@ -257,6 +262,7 @@ var err:smallint;
 begin
   inherited create(Asource);
 
+  skipheader:=Askipheader;
   if Askipheader then
     err:=inflateInit2(Fstream,-MAX_WBITS)
   else
@@ -269,6 +275,7 @@ function Tdecompressionstream.read(var buffer;count:longint):longint;
 
 var err:smallint;
     lastavail:longint;
+
 begin
   Fstream.next_out:=@buffer;
   Fstream.avail_out:=count;
@@ -297,21 +304,45 @@ begin
   read:=count-Fstream.avail_out;
 end;
 
-function Tdecompressionstream.seek(offset:longint;origin:word):longint;
+procedure Tdecompressionstream.reset;
+
+var err:smallint;
 
 begin
-  if ((origin=sofrombeginning) and (offset>=raw_read)) or
-     ((origin=sofromcurrent) and (offset>=0)) then
+  raw_read:=0;
+  compressed_read:=0;
+  source.position:=0;
+  inflateEnd(Fstream);
+  if skipheader then
+    err:=inflateInit2(Fstream,-MAX_WBITS)
+  else
+    err:=inflateInit(Fstream);
+  if err<>Z_OK then
+    raise Ecompressionerror.create(zerror(err));
+end;
+
+function Tdecompressionstream.seek(offset:longint;origin:word):longint;
+
+var c:longint;
+
+begin
+  if (origin=sofrombeginning) or
+     ((origin=sofromcurrent) and (offset+raw_read>=0)) then
     begin
       if origin=sofrombeginning then
         dec(offset,raw_read);
+      if offset<0 then
+        begin
+          inc(offset,raw_read);
+          reset;
+        end;
       while offset>0 do
         begin
-          size:=bufsize;
-          if offset<bufsize then
-            size:=offset;
-          size:=read(Fbuffer^,size);
-          dec(offset,size);
+          c:=offset;
+          if c>bufsize then
+            c:=bufsize;
+          c:=read(Fbuffer^,c);
+          dec(offset,c);
         end;
     end
   else
