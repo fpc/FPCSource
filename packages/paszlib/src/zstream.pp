@@ -296,7 +296,7 @@ begin
       if err=Z_STREAM_END then
         break;
       if err<>Z_OK then
-        raise Ecompressionerror.create(zerror(err));
+        raise Edecompressionerror.create(zerror(err));
     end;
   if err=Z_STREAM_END then
     dec(compressed_read,Fstream.avail_in);
@@ -318,7 +318,7 @@ begin
   else
     err:=inflateInit(Fstream);
   if err<>Z_OK then
-    raise Ecompressionerror.create(zerror(err));
+    raise Edecompressionerror.create(zerror(err));
 end;
 
 function Tdecompressionstream.seek(offset:longint;origin:word):longint;
