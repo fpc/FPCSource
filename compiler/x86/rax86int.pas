@@ -1187,11 +1187,12 @@ Unit Rax86int;
                  end
                 else
                  Begin
-                   if oper.hasvar and not GotOffset then
+                   if negative and not oper.hasvar then
+                     Message(asmr_e_only_add_relocatable_symbol)
+                   else if oper.hasvar and not GotOffset and
+                           (not negative or assigned(oper.opr.ref.relsymbol)) then
                      Message(asmr_e_cant_have_multiple_relocatable_symbols);
                    HadVar:=oper.hasvar and GotOffset;
-                   if negative then
-                     Message(asmr_e_only_add_relocatable_symbol);
                    tempstr:=actasmpattern;
                    Consume(AS_ID);
                    { typecasting? }
@@ -1209,8 +1210,13 @@ Unit Rax86int;
                       begin
                         CreateLocalLabel(tempstr,hl,false);
                         oper.InitRef;
-                        oper.opr.ref.symbol:=hl;
-                        oper.hasvar:=true;
+                        if not negative then
+                          begin
+                            oper.opr.ref.symbol:=hl;
+                            oper.hasvar:=true;
+                          end
+                        else
+                          oper.opr.ref.relsymbol:=hl;
                       end
                    else
                     if oper.SetupVar(tempstr,GotOffset) then
