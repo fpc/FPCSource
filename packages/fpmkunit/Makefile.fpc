@@ -4,7 +4,7 @@
 
 [package]
 name=fpmkunit
-version=2.2.1
+version=2.0.0
 
 [target]
 units=fpmkunit
@@ -13,7 +13,7 @@ units=fpmkunit
 fpcpackage=y
 
 [require]
-packages=fcl-base
+packages=paszlib fcl-process
 
 [compiler]
 sourcedir=src
@@ -24,4 +24,3 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
-fpmkunit$(PPUEXT) : fpmkunit.pp

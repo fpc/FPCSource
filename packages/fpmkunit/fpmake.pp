@@ -1,16 +1,30 @@
+{$ifndef ALLPACKAGES}
 {$mode objfpc}{$H+}
 program fpmake;
 
 uses fpmkunit;
 
-var
+Var
   T : TTarget;
-  S : TSource;
+
 begin
-  with Installer do
+  With Installer do
     begin
-      {$i fpmake.inc}
-      Run;
+{$endif ALLPACKAGES}
+
+    StartPackage('fpmkunit');
+{$ifdef ALLPACKAGES}
+    Directory:='fpmkunit';
+{$endif ALLPACKAGES}
+    AddDependency('paszlib');
+    AddDependency('fcl-process');
+    Version:='2.2.0';
+    Description:='Free Pascal Make Tool';
+    T:=Targets.AddUnit('src/fpmkunit.pp');
+    EndPackage;
+
+{$ifndef ALLPACKAGES}
+    Run;
     end;
 end.
-
+{$endif ALLPACKAGES}

@@ -7,50 +7,28 @@ name=fcl-base
 version=2.0.0
 
 [require]
-packages=paszlib hash
-packages_linux=netdb libasync pthreads
-packages_beos=netdb libasync pthreads
-packages_freebsd=netdb libasync pthreads
-packages_darwin=netdb libasync pthreads
-packages_solaris=netdb libasync pthreads
-packages_netbsd=netdb libasync
-packages_openbsd=netdb libasync
-packages_win32=netdb winunits
-packages_win64=netdb winunits
-packages_wince=netdb
-packages_os2=netdb
-packages_emx=netdb
-packages_netware=netdb
-packages_netwlibc=netdb
-
-# clean package units
-[clean]
-units=adler gzcrc gzio infblock infcodes inffast inftrees infutil\
-      minigzip paszlib trees zbase zcompres zdeflate zinflate\
-      zuncompr zutil pthreads streamio blowfish testutils fpcunit
+packages_win32=winunits
+packages_win64=winunits
 
 [target]
-# Leave xmlreg and registry last, they require xml.
-units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
-      iostream zstream cachecls avl_tree \
+units=contnrs inifiles ezcgi rtfpars idea base64 gettext \
+      iostream cachecls avl_tree \
       eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
-      streamex blowfish zipper streamio inicol pooledmm libtar streamcoll
-units_beos=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf 
-units_freebsd=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp fptimer
-units_darwin=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp fptimer 
-units_solaris=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp fptimer
-units_netbsd=process ssockets resolve fpasync simpleipc dbugmsg dbugintf daemonapp fptimer
-units_openbsd=process ssockets resolve fpasync simpleipc dbugmsg dbugintf daemonapp fptimer
-units_linux=process resolve ssockets fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp fptimer
-units_win32=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf daemonapp ServiceManager fptimer
-units_win64=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf daemonapp ServiceManager fptimer
-units_wince=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf fptimer
-units_os2=resolve ssockets
-units_emx=resolve ssockets
+      streamex blowfish streamio inicol pooledmm libtar streamcoll
+units_beos=syncobjs 
+units_freebsd=syncobjs daemonapp fptimer
+units_darwin=syncobjs daemonapp fptimer 
+units_solaris=syncobjs daemonapp fptimer
+units_netbsd=daemonapp fptimer
+units_openbsd=daemonapp fptimer
+units_linux=syncobjs daemonapp fptimer
+units_win32=fileinfo syncobjs daemonapp ServiceManager fptimer
+units_win64=fileinfo syncobjs daemonapp ServiceManager fptimer
+units_wince=fileinfo syncobjs fptimer
 # syncobjs requires GetLastOSError function
-units_netware=resolve ssockets syncobjs
-units_netwlibc=resolve ssockets syncobjs
-rsts=ssockets cachecls resolve custapp cgiapp eventlog registry simpleipc streamcoll inicol
+units_netware=syncobjs
+units_netwlibc=syncobjs
+rsts=cachecls custapp cgiapp eventlog registry streamcoll inicol
 
 [compiler]
 options=-S2h

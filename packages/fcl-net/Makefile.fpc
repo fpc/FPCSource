@@ -8,10 +8,19 @@ version=2.2.1
 
 [target]
 units=servlets
-units_linux=fpsock httpbase httpclient httpsvlt xmlrpc
-units_freebsd=fpsock httpbase httpclient httpsvlt xmlrpc
-units_netbsd=fpsock httpbase httpclient httpsvlt xmlrpc
-units_openbsd=fpsock httpbase httpclient httpsvlt xmlrpc
+units_linux=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_freebsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_netbsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_openbsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_darwin=resolve ssockets 
+units_solaris=resolve ssockets 
+units_qnx=resolve ssockets 
+units_beos=resolve ssockets 
+units_emx=resolve ssockets 
+units_os2=resolve ssockets 
+units_win32=resolve ssockets 
+units_win64=resolve ssockets 
+units_wince=resolve ssockets 
 programs_linux=mkxmlrpc
 programs_freebsd=mkxmlrpc
 programs_darwin=mkxmlrpc
@@ -23,25 +32,26 @@ rsts_freebsd=fpsock httpsvlt mkxmlrpc
 rsts_darwin=fpsock httpsvlt mkxmlrpc
 rsts_netbsd=fpsock httpsvlt mkxmlrpc
 rsts_openbsd=fpsock httpsvlt mkxmlrpc
-#exampledirs_linux=tests
-#exampledirs_freebsd=tests
-#exampledirs_darwin=tests
-#exampledirs_netbsd=tests
-#exampledirs_openbsd=tests
 
 [require]
-packages=netdb fcl-base fcl-xml fcl-passrc
-
-packages_linux=libasync 
-packages_freebsd=libasync 
-packages_darwin=libasync 
-packages_solaris=libasync 
-packages_netbsd=libasync
-packages_openbsd=libasync
+packages=netdb fcl-base fcl-xml fcl-passrc fcl-async
 
 [compiler]
 options=-S2h
-sourcedir=src
+includedir=src/$(OS_TARGET)
+includedir_linux=src/unix
+includedir_freebsd=src/unix
+includedir_darwin=src/unix
+includedir_netbsd=src/unix
+includedir_openbsd=src/unix
+includedir_solaris=src/unix
+includedir_qnx=src/unix
+includedir_beos=src/unix
+includedir_emx=src/os2
+includedir_win32=src/win
+includedir_win64=src/win
+includedir_wince=src/win
+sourcedir=src/$(OS_TARGET) src
 
 [install]
 fpcpackage=y

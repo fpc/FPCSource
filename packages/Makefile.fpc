@@ -3,13 +3,13 @@
 #
 
 [target]
-dirs=base fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra
-dirs_freebsd=fcl-web
-dirs_darwin=fcl-web
-dirs_solaris=fcl-web
-dirs_netbsd=fcl-web
-dirs_openbsd=fcl-web
-dirs_linux=fcl-web
+dirs=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+dirs_freebsd=fcl-web fcl-async
+dirs_darwin=fcl-web fcl-async
+dirs_solaris=fcl-web fcl-async
+dirs_netbsd=fcl-web fcl-async
+dirs_openbsd=fcl-web fcl-async
+dirs_linux=fcl-web fcl-async
 dirs_win32=fcl-web
 dirs_win64=fcl-web
 dirs_wince=fcl-web
@@ -22,11 +22,11 @@ fpcsubdir=packages
 fpcdir=..
 
 [rules]
-fpmkunit_all: fcl-base_all
-fpmkunit_debug: fcl-base_debug
-fpmkunit_smart: fcl-base_smart
-fpmkunit_release: fcl-base_release
-fpmkunit_shared: fcl-base_shared
+fpmkunit_all: fcl-base_all fcl-process_all paszlib_all
+fpmkunit_debug: fcl-base_debug fcl-process_debug paszlib_debug
+fpmkunit_smart: fcl-base_smart fcl-process_smart paszlib_smart
+fpmkunit_release: fcl-base_release fcl-process_release paszlib_release
+fpmkunit_shared: fcl-base_shared fcl-process_shared paszlib_shared
 
 extra_all: base_all fcl-xml_all
 extra_debug: base_debug fcl-xml_debug
@@ -52,11 +52,11 @@ fcl-json_smart: fcl-base_smart
 fcl-json_release: fcl-base_release
 fcl-json_shared: fcl-base_shared
 
-fcl-image_all: fcl-base_all
-fcl-image_debug: fcl-base_debug
-fcl-image_smart: fcl-base_smart
-fcl-image_release: fcl-base_release
-fcl-image_shared: fcl-base_shared
+fcl-image_all: fcl-base_all paszlib_all
+fcl-image_debug: fcl-base_debug paszlib_debug
+fcl-image_smart: fcl-base_smart paszlib_smart
+fcl-image_release: fcl-base_release paszlib_release
+fcl-image_shared: fcl-base_shared paszlib_shared
 
 fcl-fpcunit_all: fcl-xml_all
 fcl-fpcunit_debug: fcl-xml_debug
@@ -70,17 +70,25 @@ fcl-registry_smart: fcl-xml_smart
 fcl-registry_release: fcl-xml_release
 fcl-registry_shared: fcl-xml_shared
 
+ifeq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
 fcl-net_all: fcl-passrc_all fcl-xml_all
 fcl-net_debug: fcl-passrc_debug fcl-xml_debug
 fcl-net_smart: fcl-passrc_smart fcl-xml_smart
 fcl-net_release: fcl-passrc_release fcl-xml_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared
+else
+fcl-net_all: fcl-passrc_all fcl-xml_all fcl-async_all
+fcl-net_debug: fcl-passrc_debug fcl-xml_debug fcl-async_debug
+fcl-net_smart: fcl-passrc_smart fcl-xml_smart fcl-async_smart
+fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
+fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
+endif
 
-fcl-web_all: fcl-db_all fcl-xml_all
-fcl-web_debug: fcl-db_debug fcl-xml_debug
-fcl-web_smart: fcl-db_smart fcl-xml_smart
-fcl-web_release: fcl-db_release fcl-xml_release
-fcl-web_shared: fcl-db_shared fcl-xml_shared
+fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all
+fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
+fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
+fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
+fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
 
 fcl-db_all: fcl-base_all
 fcl-db_debug: fcl-base_debug
@@ -93,4 +101,11 @@ fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_d
 fcl_smart: fcl-base_smart fcl-xml_smart fcl-fpcunit_smart fcl-db_smart fcl-web_smart fcl-registry_smart fcl-passrc_smart fcl-image_smart fcl-net_smart fcl-json_smart
 fcl_release: fcl-base_release fcl-xml_release fcl-fpcunit_release fcl-db_release fcl-web_release fcl-registry_release fcl-passrc_release fcl-image_release fcl-net_release fcl-json_release
 fcl_shared: fcl-base_shared fcl-xml_shared fcl-fpcunit_shared fcl-db_shared fcl-web_shared fcl-registry_shared fcl-passrc_shared fcl-image_shared fcl-net_shared fcl-json_shared
+
+paszlib_all: hash_all
+paszlib_debug: hash_debug
+paszlib_smart: hash_smart
+paszlib_release: hash_release
+paszlib_shared: hash_shared
+
 

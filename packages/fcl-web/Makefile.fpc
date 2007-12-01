@@ -12,7 +12,7 @@ units=httpdefs fphttp custcgi fpcgi fptemplate fphtml websession fpweb \
 rsts=fpcgi fphtml fpweb websession
 
 [require]
-packages=fcl-base fcl-xml fcl-db
+packages=fcl-base fcl-xml fcl-db fcl-process
 
 [compiler]
 options=-S2h
