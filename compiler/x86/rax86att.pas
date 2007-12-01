@@ -38,6 +38,8 @@ Interface
       procedure BuildOperand(oper : tx86operand);
       procedure BuildOpCode(instr : tx86instruction);
       procedure handlepercent;override;
+     protected
+      procedure MaybeGetPICModifier(var oper: tx86operand);
     end;
 
 
@@ -259,6 +261,49 @@ Implementation
       end;
 
 
+    Procedure tx86attreader.MaybeGetPICModifier(var oper: tx86operand);
+      var
+        relsym: string;
+        asmsymtyp: tasmsymtype;
+        l: aint;
+      begin
+        case actasmtoken of
+          AS_AT:
+            begin
+              { darwin/i386 needs a relsym instead, and we can't }
+              { generate this automatically                      }
+              if (target_info.system=system_i386_darwin) then
+                Message(asmr_e_invalid_reference_syntax);
+              consume(AS_AT);
+              if actasmtoken=AS_ID then
+                begin
+{$ifdef x86_64}
+                  if actasmpattern='GOTPCREL' then
+{$endif x86_64}
+{$ifdef i386}
+                  if actasmpattern='GOT' then
+{$endif i386}
+                    oper.opr.ref.refaddr:=addr_pic
+                  else
+                    Message(asmr_e_invalid_reference_syntax);
+                end
+              else
+                Message(asmr_e_invalid_reference_syntax);
+            end;
+          AS_MINUS:
+            begin
+              { relsym? }
+              Consume(AS_MINUS);
+              BuildConstSymbolExpression(true,true,false,l,relsym,asmsymtyp);
+              if (relsym<>'') then
+                oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym)
+              else
+                dec(oper.opr.ref.offset,l);
+            end;
+        end;
+      end;
+
+
     Procedure tx86attreader.BuildOperand(oper : tx86operand);
       var
         tempstr,
@@ -340,11 +385,6 @@ Implementation
           end;
 
 
-        procedure handleat;
-          begin
-          end;
-
-
         function MaybeBuildReference:boolean;
           { Try to create a reference, if not a reference is found then false
             is returned }
@@ -391,24 +431,7 @@ Implementation
                        Message(asmr_e_invalid_reference_syntax);
                      inc(oper.opr.ref.offset,l);
                    end;
-                  if actasmtoken=AS_AT then
-                    begin
-                      consume(AS_AT);
-                      if actasmtoken=AS_ID then
-                        begin
-{$ifdef x86_64}
-                          if actasmpattern='GOTPCREL' then
-{$endif x86_64}
-{$ifdef i386}
-                          if actasmpattern='GOT' then
-{$endif i386}
-                            oper.opr.ref.refaddr:=addr_pic
-                          else
-                            Message(asmr_e_invalid_reference_syntax);
-                        end
-                      else
-                        Message(asmr_e_invalid_reference_syntax);
-                    end;
+                  MaybeGetPICModifier(oper);
                   case actasmtoken of
                     AS_END,
                     AS_SEPARATOR,
@@ -525,29 +548,7 @@ Implementation
                     else
                      begin
                        if oper.SetupVar(expr,false) then
-                        begin
-                          if actasmtoken=AS_AT then
-                            begin
-                              consume(AS_AT);
-                              if actasmtoken=AS_ID then
-                                begin
-{$ifdef x86_64}
-                                  if actasmpattern='GOTPCREL' then
-{$endif x86_64}
-{$ifdef i386}
-                                  if actasmpattern='GOT' then
-{$endif i386}
-                                    begin
-                                      oper.opr.ref.refaddr:=addr_pic;
-                                      consume(AS_ID);
-                                    end
-                                  else
-                                    Message(asmr_e_invalid_reference_syntax);
-                                end
-                              else
-                                Message(asmr_e_invalid_reference_syntax);
-                            end;
-                          end
+                         MaybeGetPICModifier(oper)
                        else
                         Begin
                           { look for special symbols ... }
