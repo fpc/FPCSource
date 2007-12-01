@@ -14,7 +14,7 @@ packages_win64=winunits
 units=contnrs inifiles ezcgi rtfpars idea base64 gettext \
       iostream cachecls avl_tree \
       eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
-      streamex blowfish streamio inicol pooledmm libtar streamcoll
+      streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 units_beos=syncobjs 
 units_freebsd=syncobjs daemonapp fptimer
 units_darwin=syncobjs daemonapp fptimer 

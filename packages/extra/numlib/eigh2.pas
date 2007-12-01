@@ -50,7 +50,7 @@ implementation
 
 procedure orthes(var a: ArbFloat; n, rwidth: ArbInt; var u: ArbFloat);
 var               pa, pu, d : ^arfloat1;
-    sig, sig2, h, f, g, tol : ArbFloat;
+    sig, sig2, h, f, tol : ArbFloat;
                     k, i, j : ArbInt;
 begin
   pa:=@a; pu:=@u; tol:=midget/macheps;
@@ -309,7 +309,7 @@ procedure orttrans(var a: ArbFloat; n, rwidtha: ArbInt; var q: ArbFloat;
                    rwidthq: ArbInt);
 
 var                 i, j, k : ArbInt;
-    sig, sig2, f, g, h, tol : ArbFloat;
+    sig, sig2, f, h, tol : ArbFloat;
                   pa, pq, d : ^arfloat1;
 
 begin

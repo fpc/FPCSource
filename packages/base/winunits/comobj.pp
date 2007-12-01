@@ -800,6 +800,15 @@ implementation
             end;
           InvokeKind:=CallDesc^.CallType;
           MethodID:=DispIDs^[0];
+          case InvokeKind of
+            DISPATCH_PROPERTYPUT:
+              begin
+                { !! FIXME}
+              end;
+            DISPATCH_METHOD:
+              if assigned(Result) and (CallDesc^.ArgCount=0) then
+                InvokeKind:=DISPATCH_METHOD or DISPATCH_PROPERTYGET;
+          end;
 {$ifdef DEBUG_COMDISPATCH}
           writeln('DispatchInvoke: MethodID: ',MethodID,' InvokeKind: ',InvokeKind);
 {$endif DEBUG_COMDISPATCH}

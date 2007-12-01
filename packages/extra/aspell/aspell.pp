@@ -15,18 +15,13 @@ uses
   cTypes, DynLibs;
 
 {$IFDEF Linux}
- {$IFDEF Compat64}
-  {$DEFINE Static}
-  const aspelllib='aspell';
- {$ELSE}
   {$DEFINE Dynamic}
-  const aspelllib='/usr/lib/libaspell.so';
- {$ENDIF}
+  const aspelllib='/usr/lib/libaspell.so.15';
 {$ENDIF}
 
 {$IFDEF FreeBSD}
- {$DEFINE Dynamic}
- const aspelllib='/usr/local/lib/libaspell.so';
+  {$DEFINE Static}
+  const aspelllib='/usr/local/lib/libaspell.so.15';
 {$ENDIF}
 
 {$IFDEF darwin}
@@ -101,7 +96,7 @@ var aspellpresent:longbool;
     delete_aspell_speller:procedure (ths:aspellspeller); cdecl;
    {$ENDIF}
 
-procedure aspell_init;
+procedure aspell_init(const libn: ansistring);
 procedure aspell_done;
 
 {$IFDEF Static}
@@ -130,9 +125,11 @@ procedure delete_aspell_speller (ths:aspellspeller); cdecl; external aspelllib;
 
 implementation
 
-{$ifdef windows}
+{$ifdef Dynamic}
+  {$ifdef windows}
 uses
   SysUtils;
+  {$endif}
 {$endif}
 
 {$IFDEF Dynamic}
@@ -152,7 +149,7 @@ var addr:pointer;
  end;
 {$ENDIF}
 
-procedure aspell_init;
+procedure aspell_init(const libn: ansistring);
 var
   mylib:string;
   {$ifdef windows}
@@ -164,23 +161,19 @@ var
  aspellpresent:=true;
 {$ELSE}
  aspellpresent:=false;
- mylib:=aspelllib;
+ mylib:=libn;
 
 {$IFDEF windows}
  bversion:=RegistryQueryValue (regLocalMachine,'SOFTWARE\Aspell','AspellVersion');
  move (bversion[1],version,4);
  path:=RegistryQueryValue (regLocalMachine,'SOFTWARE\Aspell','Path');
- mylib:=path + PathDelim + StringReplace(aspelllib, '%s', IntToStr(Version), [rfReplaceAll]);
+ // will work if they passed %s, won't bork if they passed absolute
+ mylib:=path + PathDelim + StringReplace(libn, '%s', IntToStr(Version), [rfReplaceAll]);
 {$ENDIF}
 
  alib := LoadLibrary(mylib);
  if alib = NilHandle then
-  begin
- {$IFDEF LOG}
-  debuglog (' Error loading spellchecking engine...');
- {$ENDIF}
   exit;
-  end;
 
  if loadsymbol ('new_aspell_config',@new_aspell_config)=false then exit;
  if loadsymbol ('get_aspell_dict_info_list',@get_aspell_dict_info_list)=false then exit;
@@ -215,7 +208,7 @@ procedure aspell_done;
  end;
  
 initialization
- aspell_init;
+ aspell_init(aspelllib);
  
 finalization
  aspell_done;

@@ -52,10 +52,14 @@ Type
   { TFPWebActions }
 
   TFPWebActions = Class(TCustomWebActions)
+  private
+    FCurrentAction : TCustomWebAction;
+  protected
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
   Public
     Property ActionVar;
+    Property CurrentAction: TCustomWebAction read FCurrentAction;
   end;
 
   { TTemplateVar }
@@ -512,7 +516,10 @@ begin
 {$ifdef cgidebug}SendMethodEnter('FPWebActions.handlerequest');{$endif cgidebug}
   A:=GetRequestAction(ARequest);
   if Assigned(A) then
+    begin
+    FCurrentAction := A;
     (A as TFPWebAction).HandleRequest(ARequest,AResponse,Handled);
+    end;
 {$ifdef cgidebug}SendMethodExit('FPWebActions.handlerequest');{$endif cgidebug}
 end;
 

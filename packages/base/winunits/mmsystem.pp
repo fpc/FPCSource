@@ -1598,6 +1598,8 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
     Procedure (uTimerID, uMsg: UINT; dwUser, dw1, dw2: DWORD);stdcall;
  TTIMECALLBACK=LPTIMECALLBACK;
 
+ TFNTimeCallBack = TTimeCallback; // delphi compat
+
  _timecaps = packed Record
                      wPeriodMin: UINT;
                      wPeriodMax: UINT;
@@ -1606,7 +1608,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  PTIMECAPS  = ^_timecaps;
  NPTIMECAPS = ^_timecaps;
  LPTIMECAPS = ^_timecaps;
- TTIMECAS   = TIMECAPS;
+ TTIMECAPS  = TIMECAPS;
 
  _JOYCAPSA = packed Record
                      wMid: WORD;

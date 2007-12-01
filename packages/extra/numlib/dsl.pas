@@ -191,8 +191,8 @@ Procedure dslgsy(n, rwidth: ArbInt; Var alt: ArbFloat; Var p: ArbInt;
 
 Var
     i, indexpivot, imin1, j, jmin1, iplus1, imin2, ns, ii  : ArbInt;
-                                          success, regular : boolean;
-                                                 h, ct, di : ArbFloat;
+                                                   success : boolean;
+                                                     h, di : ArbFloat;
                                palt, pb, px, y, l, d, u, v : ^arfloat1;
                                                         pp : ^arint1;
                                                         pq : ^arbool1;
@@ -424,7 +424,7 @@ Procedure dslgpb(n, lb, rwidth: ArbInt; Var al, b, x: ArbFloat;
 
 Var
    ll, ii, llmin1, p, i, q, k : ArbInt;
-            h, hh, alim       : ArbFloat;
+                      h, alim : ArbFloat;
                   pal, pb, px : ^arfloat1;
 Begin
   If (lb<0) Or (lb>n-1) Or (n<1) Or (rwidth<1) Then

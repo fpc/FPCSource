@@ -671,7 +671,7 @@ Var  absc, absc1, absc2, centr,
 
      fv1, fv2: array[1..7] Of ArbFloat;
 
-     j, min0: ArbInt;
+     j: ArbInt;
 Begin
       If inf<1 Then dinf := inf
  Else dinf := 1;
@@ -1022,7 +1022,7 @@ End;
 Procedure int1fr(f: rfunc1r; a, b, ae: ArbFloat; Var integral, err: ArbFloat;
                  Var term: ArbInt);
 
-Var neval, ier, last, inf: ArbInt;
+Var neval, ier, last: ArbInt;
 Begin
      term := 3;
  integral := NaN;

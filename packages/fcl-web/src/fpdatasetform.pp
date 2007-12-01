@@ -76,7 +76,8 @@ type
     FLabelPos: TTablePosition;
     FProducer: THTMLContentProducer;
     FValuePos: TTablePosition;
-    
+    FName : String;
+
     FOnGetValue: TFieldItemEvent;
     FOnGetLabel: TFieldItemEvent;
     FOnGetAction: TFieldItemEvent;
@@ -84,6 +85,8 @@ type
     procedure SetValuePos(const AValue: TTablePosition);
   protected
     procedure AssignTo(Dest: TPersistent); override;
+    Function  GetDisplayName : String; override;
+    Procedure SetDisplayName(AValue : String);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -92,6 +95,7 @@ type
     function getAction : String; virtual;
     property Field : TField read FField;
   published
+    Property Name : String Read GetDisplayName Write SetDisplayName;
     property Fieldname : string read FFieldName write FFieldname;
       // the field to show/edit
     property LabelCaption : string read FLabelCaption write FLabelCaption;
@@ -124,6 +128,8 @@ type
   public
     constructor create;
     function AddField (afieldname, acaption : string) : TFormFieldItem;
+    Function FindItem(AName : String): TFormFieldItem;
+    Function IndexofItem(AName : String) : Integer;
     property Items [index : integer] : TFormFieldItem read GetItem write SetItem;
   end;
 
@@ -183,6 +189,7 @@ type
     FCaption: string;
     FCellType: TCellType;
     FChecked: boolean;
+    FDisabled: boolean;
     FColSpan: integer;
     FEndRow: boolean;
     FFormField: TFormFieldItem;
@@ -231,6 +238,8 @@ type
           // MaxLength of text input element
     property Checked : boolean read FChecked write FChecked;
           // checked or not for radio,checkbox
+    property Disabled : boolean read FDisabled write FDisabled;
+          // disabled or not for radio,checkbox
     { only for labels: }
     property Link : string read FLink write FLink;
           // link to place around the text
@@ -465,6 +474,19 @@ begin
       end;
 end;
 
+function TFormFieldItem.GetDisplayName: String;
+begin
+  If (FName='') then
+    FName:=ClassName+IntToStr(self.Index);
+  Result:=FName;
+end;
+
+procedure TFormFieldItem.SetDisplayName(AValue: String);
+begin
+  Inherited;
+  FName:=AValue;
+end;
+
 constructor TFormFieldItem.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
@@ -484,7 +506,7 @@ begin
   if inputType in [fitcheckbox,fitradio] then
     Result := 'T'
   else
-    Result := FField.asstring;
+    Result := FField.Text;
   if assigned (FOnGetValue) then
     onGetValue(self,Result);
 end;
@@ -526,6 +548,26 @@ begin
   result := TFormFieldItem (Add);
   result.fieldname := afieldname;
   result.labelcaption := acaption;
+end;
+
+function TFormFieldCollection.FindItem(AName: String): TFormFieldItem;
+Var
+  I : Integer;
+
+begin
+  I:=IndexofItem(AName);
+  If (I=-1) then
+    Result:=Nil
+  else
+    Result:=Items[I];
+end;
+
+function TFormFieldCollection.IndexofItem(AName: String): Integer;
+
+begin
+  Result:=Count-1;
+  While (Result>=0) and (CompareText(Items[Result].Name,AName)<>0) do
+    Dec(Result);
 end;
 
 { TFormButtonItem }
@@ -904,6 +946,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
   begin
     with TableDef.CopyTablePosition(aControlDef.ValuePos) do
       begin
+      FormField := aControldef;
       case aControlDef.inputtype of
         fitlabel,
         fittext,
@@ -1051,10 +1094,23 @@ end;
 procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFieldItem; IsHeader:boolean);
 
   procedure PlaceFieldValue;
+  var check : boolean;
   begin
     with TableDef.CopyTablePosition(aControlDef.ValuePos) do
       begin
-      CellType := ctLabel;
+      if aControldef.InputType = fitcheckbox then
+        begin
+        CellType := ctInput;
+        InputType := aControldef.InputType;
+        Disabled := True;
+        with aControlDef.Field do
+          Check := asBoolean;
+        if assigned (FOnFieldChecked) then
+          FOnFieldChecked (aControlDef.Field, check);
+        Checked := check;
+        end
+      else
+        CellType := ctLabel;
       IsLabel := false;
       Value := aControlDef.getValue;
       Link := aControldef.getAction;
@@ -1142,7 +1198,7 @@ function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
           MaxLength := m;
           end;
       fitcheckbox, fitrecordselection :
-        aWriter.FormCheckbox (Name, Value, checked);
+        aWriter.FormCheckbox (Name, Value, checked).disabled := Disabled;
       fitradio :
         aWriter.FormRadio(Name, Value, checked);
       fitfile :

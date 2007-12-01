@@ -113,7 +113,7 @@ END {iomwrm};
 procedure iomrems(inp: ArbString; var a: ArbFloat; var m, n: ArbInt; c: ArbInt);
 var
   pa: ^arfloat1;
-  i, j, k: ArbInt;
+  i, k: ArbInt;
   err: ArbInt;
   s: ArbString;
   ni: ArbInt;

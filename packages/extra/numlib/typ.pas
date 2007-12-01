@@ -347,8 +347,6 @@ begin
     a := Nil
 end;
 
-var h, r, i: ArbFloat;
-
 procedure Complex.Init(r, i: ArbFloat);
 begin
       xreal:= r;

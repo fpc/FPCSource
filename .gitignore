@@ -881,13 +881,6 @@ packages/extra/gtk/*.exe
 packages/extra/gtk/*.o
 packages/extra/gtk/*.ppu
 packages/extra/gtk/*.s
-packages/extra/gtk/conv/*.bak
-packages/extra/gtk/conv/*.exe
-packages/extra/gtk/conv/*.o
-packages/extra/gtk/conv/*.ppu
-packages/extra/gtk/conv/*.s
-packages/extra/gtk/conv/fpcmade.*
-packages/extra/gtk/conv/units
 packages/extra/gtk/examples/*.bak
 packages/extra/gtk/examples/*.exe
 packages/extra/gtk/examples/*.o

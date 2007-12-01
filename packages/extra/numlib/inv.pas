@@ -42,7 +42,7 @@ procedure invgen(n, rwidth: ArbInt; var ai: ArbFloat; var term: ArbInt);
 var
      success                          : boolean;
      inn, ii, i, j, k, kk, indexpivot : ArbInt;
-     ca, h, pivot, l, s               : ArbFloat;
+     ca, h, pivot, s                  : ArbFloat;
      pa, save                         : ^arfloat1;
      p                                : ^arint1;
 
@@ -220,10 +220,10 @@ begin
 end; {invgsy}
 
 procedure invgpd(n, rwidth: ArbInt; var ai: ArbFloat; var term: ArbInt);
-var success             : boolean;
-    i, j, k, kmin1, ind : ArbInt;
-    tk, h, ca           : ArbFloat;
-    pa, t               : ^arfloat1;
+var success      : boolean;
+    i, j, k, ind : ArbInt;
+    tk, h, ca    : ArbFloat;
+    pa, t        : ^arfloat1;
 begin
   if (n<1) or (rwidth<1) then
   begin

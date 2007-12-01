@@ -1,0 +1,430 @@
+%
+% part of numlib docs. In time this won't be a standalone pdf anymore, but part of a larger part.
+% for now I keep it directly compliable. Uses fpc.sty from fpc-docs pkg.
+%
+
+\documentclass{report}
+
+\usepackage{fpc}
+\lstset{%
+  basicstyle=\small,
+  language=delphi,
+  commentstyle=\itshape,
+  keywordstyle=\bfseries,
+  showstringspaces=false,
+  frame=
+}
+
+\makeindex
+
+\newcommand{\FunctionDescription}{\item[Description]\rmfamily}
+\newcommand{\Dataorganisation}{\item[Data Struct]\rmfamily}
+\newcommand{\DeclarationandParams}{\item[Declaration]\rmfamily}
+\newcommand{\References}{\item[References]\rmfamily}
+\newcommand{\Method}{\item[Method]\rmfamily}
+\newcommand{\Precision}{\item[Precision]\rmfamily}
+\newcommand{\Remarks}{\item[Remarks]\rmfamily}
+\newcommand{\Example}{\item[Example]\rmfamily}
+\newcommand{\ProgramData}{\item[Example Data]\rmfamily}
+\newcommand{\ProgramResults}{\item[Example Result]\rmfamily}
+
+\makeatletter
+\@ifpackageloaded{tex4ht}{%
+\newcommand{\NUMLIBexample}[1]{
+\par \file{\textbf{Listing:} \exampledir/#1.pas}%
+\HCode{<HR/>}%
+\listinginput[9999]{5000}{\exampledir/#1.pas}%
+\HCode{<HR/>}%
+}%
+}{% else ifpackageloaded
+\newcommand{\NUMLIBexample}[1]{%
+\par \file{\textbf{Listing:} \exampledir/#1.pas}%
+\lstinputlisting{\exampledir/#1.pas}%
+}% End of FPCExample
+}% End of ifpackageloaded.
+\makeatother
+%
+
+\begin{document}
+\FPCexampledir{../examples}
+\section{general comments}
+
+\textbf{Original comments:} \\
+The used floating point type \textbf{real} depends on the used
+version, see the general introduction for more information. You'll
+need to USE units typ and iom to use these routines.
+
+\textbf{MvdV notes:} \\
+Integers used for parameters are of type "ArbInt" to avoid problems
+with systems that define integer differently depending on mode.
+
+Floating point values are of type "ArbFloat" to allow writing code
+that is independent of the exact real type. (Contrary to directly
+specifying single, real, double or extended in library and
+examples). Typ.pas and the central includefile have some conditional
+code to switch between floating point types.
+
+These changes were already prepared somewhat when I got the lib, but
+weren't consequently applied. I did that while porting to FPC.
+
+\section{Unit iom}
+
+
+\begin{procedure}{iomrev}
+
+\FunctionDescription Procedure to read a vector from file.
+
+\Dataorganisation The procedure assumes that the program that is
+calling it has declared a one dimensional vector where the data will
+be stored in.
+
+\DeclarationandParams
+
+\lstinline|procedure iomrev(var inp: text; var v: ArbFloat; n:|
+\lstinline|ArbInt);|
+
+\begin{description}
+ \item[var inp: text] \mbox{} \\
+   The parameter {\bf inp} contains the file where the components of the vector are stored in.
+ \item[var v: ArbFloat] \mbox{} \\
+   Parameter {\bf v} must contain the top array element.
+ \item[n: ArbInt] \mbox{} \\
+   The parameter {\bf n} contains the length of the resulting vector.
+\end{description}
+
+\Remarks
+  This procedure does not do array range checks. When called with invalid
+  parameters, invalid/nonsense responses or even crashes may be the result.
+
+\Example Reading and printing the vector \[(1,\; 2,\; 3,\; 4,\;
+5)^{T}\].
+
+\NUMLIBexample{iomrevex}
+
+\ProgramData Below is the data from the inputfile shown.
+\begin{verbatim}
+ 1  2  3  4  5
+\end{verbatim}
+
+\ProgramResults Running the example program {\bf iomrevex} when
+using the real type single gives the following results.
+
+\begin{verbatim}
+v =
+  1.000E+0000   2.000E+0000   3.000E+0000   4.000E+0000   5.000E+0000
+\end{verbatim}
+
+%\Precision
+
+%\Method
+
+%\References
+
+\end{procedure}
+%===========================================================================
+\begin{procedure}{iomwrv}
+
+\FunctionDescription Procedure to write a vector to file.
+
+\Dataorganisation The procedure assumes that the program that is
+calling it has declared a one dimensional vector where the data is
+stored in.
+
+\DeclarationandParams \lstinline|procedure iomwrv(var out: text;|
+\lstinline|var v: ArbFloat; n, form: ArbInt);|
+
+\begin{description}
+  \item[var out: text] \mbox{} \\
+   The parameter {\bf out} contains the file where the components of the vector are stored in.
+  \item[var v: ArbFloat] \mbox{} \\
+   Parameter {\bf v} must contain the top array element.
+  \item[n: ArbInt] \mbox{} \\
+   The parameter {\bf n} contains the length of the vector.
+  \item[form: ArbInt] \mbox{} \\
+   The parameter {\bf form} controls the number of decimals of the floating point representation.
+\end{description}
+
+\Remarks If the number of elements of the vector is so big that the
+vector does not fit one line, then the vector is split up over
+several lines.
+
+One line is typically 78 character positions. (It is possible though
+to change the global unit variable {\bf npos} that controls the
+number of characters).
+
+{\bf NOTE} \\
+  This procedure does not do array range checks. When called with invalid
+  parameters, invalid/nonsense responses or even crashes may be the result.
+
+\Example A random generated 5-vector $v$, with components between
+ $-1$ and $+1$, is written to file in two ways with {\bf form}=15 and {\bf form}=12.
+
+\ProgramData
+
+\NUMLIBexample{iomwrvex}
+
+\ProgramResults Running the example program {\bf iomwrvex} when
+using the real type single will give a similar result.
+
+\begin{verbatim}
+-9.193040E-0001  -2.695178E-0001  -1.123863E-0001  -8.804156E-0001
+-4.882166E-0001
+
+-9.193E-0001  -2.695E-0001  -1.124E-0001  -8.804E-0001  -4.882E-0001
+\end{verbatim}
+
+%\Precision
+%
+%\Method
+%
+%\References
+
+\end{procedure}
+%===========================================================================
+
+\begin{procedure}{iomrem}
+
+\FunctionDescription Procedure for reading a rectangular matrix.
+
+\Dataorganisation The procedure assumes that the program that is
+calling it has declared a two dimensional matrix where the data will
+be stored in.
+
+\DeclarationandParams
+
+\lstinline|procedure iomrem(var inp: text; var a: ArbFloat; m, n,|
+\lstinline|rwidth: ArbInt);|
+
+\begin{description}
+  \item[var inp: text] \mbox{} \\
+   The parameter {\bf inp} contains the file where the components of the matrix are stored in.
+ \item[var a: ArbFloat] \mbox{} \\
+   Parameter {\bf a} must contain the left top array element.
+ \item[m: ArbInt] \mbox{} \\
+   Parameter {\bf m} contains the column length of the matrix to be read.
+ \item[n: ArbInt] \mbox{} \\
+   Parameter {\bf n} contains the row length of the matrix to be read.
+ \item[rwidth: ArbInt] \mbox{} \\
+   Parameter {\bf rwidth} contains the declared rowlength of the two
+   dimensional array where the matrix will be stored in.
+\end{description}
+
+\Remarks This procedure does not do array range checks. When called
+with invalid parameters, invalid/nonsense responses or even crashes
+may be the result.
+
+\Example reading and printing if the  $3 \times 2$-matrix
+
+\[ \left( \begin{array}{cc}
+                 1 & 2 \\
+                 3 & 4 \\
+                 5 & 6
+          \end{array}
+   \right).
+\]
+
+\ProgramData
+
+\NUMLIBexample{iomremex}
+
+\ProgramResults Running the example program {\bf iomremex} when
+using the real type single gives the following results.
+
+\begin{verbatim}
+A=
+
+ 1.000E+0000   2.000E+0000
+ 3.000E+0000   4.000E+0000
+ 5.000E+0000   6.000E+0000
+\end{verbatim}
+
+%\Precision
+%
+%\Method
+%
+%\References
+
+\end{procedure}
+%===========================================================================
+\begin{procedure}{iomwrm}
+
+\FunctionDescription Procedure for writing a rectangular matrix to
+file.
+
+\Dataorganisation The procedure assumes that the program that is
+calling it has declared a two dimensional matrix where the data will
+be stored in.
+
+\DeclarationandParams \lstinline|procedure iomwrm(var out: text;|
+\lstinline|var a: real; m, n, rwidth, form: integer);|
+
+\begin{description}
+ \item[var out: text] \mbox{} \\
+   The parameter {\bf out} contains the file where the components of the matrix are stored.
+ \item[var a: real] \mbox{} \\
+   Parameter {\bf a} must contain the left top array element.
+ \item[m: integer] \mbox{} \\
+   Parameter {\bf m} contains the column length of the matrix.
+ \item[n: integer] \mbox{} \\
+   Parameter {\bf n} contains the row length of the matrix.
+ \item[rwidth: integer] \mbox{} \\
+   Parameter {\bf rwidth} contains the true column count of the declared matrix.
+ \item[form: integer] \mbox{} \\
+   The parameter {\bf form} controls the number of decimals of the floating point representation.
+\end{description}
+
+\Remarks If the number of columns of the matrix is so big that the
+row does not fit one line, then the matrix columns are split up over
+several lines separated by an empty line.
+
+One line is typically 78 character positions. (It is possible though
+to change the global unit variable {\bf npos} that controls the
+number of characters).
+
+{\bf NOTE} \\
+  This procedure does not do array range checks. When called with invalid
+  parameters, invalid/nonsense responses or even crashes may be the result.
+
+\Example Of a $5 \times 13$-matrix $A$ with elements
+$A_{ij}=-(i+j/10), 1 \leq i \leq 5,\ 1 \leq j \leq 13$, is the $3
+\times 6$ block matrix $(A_{ij}), \ 2 \leq i \leq 4, \ 3 \leq j \leq
+8$ written to file with {\bf form}=14 and {\bf form}=10.
+
+\ProgramData
+
+\NUMLIBexample{iomwrmex}
+
+\ProgramResults Running the example program {\bf iomwrmex} when
+using the real type single gives the following results.
+
+\begin{verbatim}
+-2.30000E+0000  -2.40000E+0000  -2.50000E+0000  -2.60000E+0000
+-3.30000E+0000  -3.40000E+0000  -3.50000E+0000  -3.60000E+0000
+-4.30000E+0000  -4.40000E+0000  -4.50000E+0000  -4.60000E+0000
+
+-2.70000E+0000  -2.80000E+0000 -3.70000E+0000  -3.80000E+0000
+-4.70000E+0000  -4.80000E+0000
+
+-2.3E+0000  -2.4E+0000  -2.5E+0000  -2.6E+0000  -2.7E+0000
+-2.8E+0000 -3.3E+0000  -3.4E+0000  -3.5E+0000  -3.6E+0000
+-3.7E+0000  -3.8E+0000 -4.3E+0000  -4.4E+0000  -4.5E+0000
+-4.6E+0000  -4.7E+0000  -4.8E+0000
+\end{verbatim}
+
+%\Precision
+%
+%\Method
+%
+%\References
+
+\end{procedure}
+
+%===========================================================================
+\begin{procedure}{iomwrms}
+
+\FunctionDescription Procedure for writing a rectangular matrix to a
+string.
+
+\Dataorganisation The procedure assumes that the program that is
+calling it has declared a two dimensional matrix where the data will
+be stored in.
+
+\DeclarationandParams \lstinline|procedure iomwrms(var out:|
+\lstinline|ArbString; var a: ArbFloat; m, n, form, c: ArbInt);|
+
+\begin{description}
+ \item[var out: ArbString] \mbox{} \\
+   The parameter {\bf out} contains the string where the components of the matrix are stored.
+ \item[var a: ArbFloat] \mbox{} \\
+   Parameter {\bf a} must contain the left top array element.
+ \item[m: ArbInt] \mbox{} \\
+   Parameter {\bf m} contains the column length of the matrix.
+ \item[n: ArbInt] \mbox{} \\
+   Parameter {\bf n} contains the row length of the matrix.
+ \item[form: ArbInt] \mbox{} \\
+   The parameter {\bf form} controls the number of decimals of the floating point representation.
+ \item[c: ArbInt] \mbox{} \\
+   The parameter {\bf c} contains the true column count of the declared matrix.
+\end{description}
+
+\Remarks This procedure does not do array range checks. When called
+with invalid parameters, invalid/nonsense responses or even crashes
+may be the result.
+
+\Example
+
+\NUMLIBexample{iomrewrsex}
+
+\ProgramData
+\begin{verbatim}
+{1 2}{3 4}{5 6}
+\end{verbatim}
+
+\ProgramResults
+\begin{verbatim}
+A = { 1.0E+0000  2.0E+0000 }{ 3.0E+0000  4.0E+0000 }{ 5.0E+0000
+6.0E+0000 }
+\end{verbatim}
+
+%\Precision
+%
+%\Method
+%
+%\References
+
+\end{procedure}
+%===========================================================================
+
+\begin{procedure}{iomrems}
+
+\FunctionDescription Procedure for reading a rectangular matrix from
+string.
+
+\Dataorganisation The procedure assumes that the program that is
+calling it has declared a two dimensional matrix where the data will
+be stored in.
+
+\DeclarationandParams \lstinline|procedure iomrems(inp: ArbString;|
+\lstinline|var a: ArbFloat; var m, n: ArbInt; c: ArbInt);|
+
+\begin{description}
+  \item[inp: ArbString] \mbox{} \\
+    De parameter {\bf inp} contains the string where all components of the new matrix are stored in.
+  \item[var a: ArbFloat] \mbox{} \\
+   Parameter {\bf a} must contain the left top array element.
+  \item[var m: ArbInt] \mbox{} \\
+   Parameter {\bf m} contains the column length of the matrix.
+  \item[var n: ArbInt] \mbox{} \\
+   Parameter {\bf n} contains the row length of the matrix.
+  \item[c: ArbInt] \mbox{} \\
+   Parameter {\bf c} contains the true column count of the declared matrix.
+\end{description}
+
+\Remarks This procedure does not do array range checks. When called
+with invalid parameters, invalid/nonsense responses or even crashes
+may be the result.
+
+\Example
+
+\NUMLIBexample{iomrewrsex}
+
+\ProgramData
+\begin{verbatim}
+{1 2}{3 4}{5 6}
+\end{verbatim}
+
+\ProgramResults
+\begin{verbatim}
+A = { 1.0E+0000  2.0E+0000 }{ 3.0E+0000  4.0E+0000 }{ 5.0E+0000
+6.0E+0000 }
+\end{verbatim}
+
+%\Precision
+%
+%\Method
+%
+%\References
+
+\end{procedure}
+
+\end{document}

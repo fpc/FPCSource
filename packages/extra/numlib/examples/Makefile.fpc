@@ -1,0 +1,40 @@
+#
+#   Makefile.fpc for numlib
+#
+
+[package]
+name=iom
+version=0
+ 
+[target]
+programs=invgenex invgpdex invgsyex iomremex iomrevex iomrewrsex iomwrmex iomwrvex
+
+[compiler]
+options= -gl
+unittargetdir=../units/$(CPU_TARGET)-$(OS_TARGET)
+unitdir=..
+targetdir=.
+ 
+[clean]
+files=$(wildcard ../units/$(CPU_TARGET)-$(OS_TARGET)/*$(OEXT)) \
+      $(wildcard ../units/$(CPU_TARGET)-$(OS_TARGET)/*$(PPUEXT)) \
+      $(wildcard ../units/$(CPU_TARGET)-$(OS_TARGET)/*$(RSTEXT))
+
+[default]
+fpcdir=../../../..
+
+
+[rules]
+.PHONY: all
+
+all: 
+	$(MAKE) --assume-new=invgenex.pas invgenex$(EXEEXT)
+	$(MAKE) --assume-new=invgpdex.pas invgpdex$(EXEEXT)
+	$(MAKE) --assume-new=invgsyex.pas invgsyex$(EXEEXT)
+	$(MAKE) --assume-new=iomremex.pas iomremex$(EXEEXT)
+	$(MAKE) --assume-new=iomrevex.pas iomrevex$(EXEEXT)
+	$(MAKE) --assume-new=iomrewrsex.pas iomrewrsex$(EXEEXT)
+	$(MAKE) --assume-new=iomwrmex.pas iomwrmex$(EXEEXT)
+	$(MAKE) --assume-new=iomwrvex.pas iomwrvex$(EXEEXT)
+#-----------------------------------------------------------------------------
+# end.

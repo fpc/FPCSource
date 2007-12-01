@@ -34,6 +34,7 @@ interface
 
 uses ImageMagick;
 
+{ Various types }
 type
   MagickWand = record
     id: Cardinal;
@@ -47,6 +48,10 @@ type
   end;
 
   PMagickWand = ^MagickWand;
+
+  size_t = Integer;
+  
+  Psize_t = ^size_t;
 
 {$include pixel_wand.inc}
 {$include drawing_wand.inc}

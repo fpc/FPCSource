@@ -763,6 +763,35 @@ begin
    DestroyregExprEngine(r);
 
 {
+  initok:=GenerateRegExprEngine('\.localhost$',[],r);
+  if not initok then
+     do_error(1506);
+   if not(RegExprPos(r,'exsample.localhost',index,len)) or
+     (index<>8) or (len<>10) then
+     do_error(1506);
+   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('[^e]\.localhost$',[],r);
+  if not initok then
+     do_error(1507);
+   if RegExprPos(r,'exsample.localhost',index,len) then
+     do_error(1507);
+   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('.*[^e]\.localhost$',[],r);
+  if not initok then
+     do_error(1508);
+   if RegExprPos(r,'exsample.localhost',index,len) then
+     do_error(1508);
+   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('x.*[^e]\.localhost$',[],r);
+  if not initok then
+     do_error(1509);
+   if RegExprPos(r,'exsample.localhost',index,len) then
+     do_error(1509);
+   DestroyregExprEngine(r);
+
   initok:=GenerateRegExprEngine('(nofoo|foo)1234',[],r);
   if not initok then
      do_error(1500);
@@ -827,5 +856,22 @@ begin
     (Dest<>'asdasdasdasd') then
     do_error(2009);
   DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2000);
+  if (RegExprReplaceAll(r,'fasdfasdf','',Dest)<>2) or
+    (Dest<>'sdsdf') then
+    do_error(2010);
+  DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2011);
+  if (RegExprReplaceAll(r,'fasdfafaasdasdfafaasd','',Dest)<>5) or
+    (Dest<>'sdasdasdasd') then
+    do_error(2012);
+  DestroyregExprEngine(r);
+
    writeln('*** Testing unit regexpr was successful ***');
 end.
