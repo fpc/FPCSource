@@ -2049,6 +2049,7 @@ implementation
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
                             left:=nil;
+                            exit;
                          end
                         else if is_pwidechar(left.resultdef) then
                          begin
@@ -2057,6 +2058,7 @@ implementation
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
                             left:=nil;
+                            exit;
                          end
                         else
                          CGMessage(type_e_mismatch);
