@@ -781,6 +781,7 @@ implementation
            stringdef :
              begin
                 case tstringdef(left.resultdef).stringtype of
+                  st_unicodestring,
                   st_widestring :
                     elementdef:=cwidechartype;
                   st_ansistring :

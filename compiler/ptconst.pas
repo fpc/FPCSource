@@ -718,6 +718,7 @@ implementation
                          current_asmdata.asmlists[al_const].concat(Tai_string.Create_pchar(ca,strlength+1));
                        end;
                   end;
+                st_unicodestring,
                 st_widestring:
                   begin
                      { an empty ansi string is nil! }
@@ -730,7 +731,7 @@ implementation
                          current_asmdata.getdatalabel(ll2);
                          current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll2));
-                         if tf_winlikewidestring in target_info.flags then
+                         if (def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags) then
                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
                          else
                            begin

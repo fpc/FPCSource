@@ -766,7 +766,7 @@ implementation
 
     destructor tstringconstnode.destroy;
       begin
-        if cst_type=cst_widestring then
+        if cst_type in [cst_widestring,cst_unicodestring] then
           donewidestring(pcompilerwidestring(value_str))
         else
           ansistringdispose(value_str,len);
@@ -781,7 +781,7 @@ implementation
         inherited ppuload(t,ppufile);
         cst_type:=tconststringtype(ppufile.getbyte);
         len:=ppufile.getlongint;
-        if cst_type=cst_widestring then
+        if cst_type in [cst_widestring,cst_unicodestring] then
           begin
             initwidestring(pw);
             setlengthwidestring(pw,len);
@@ -803,7 +803,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putbyte(byte(cst_type));
         ppufile.putlongint(len);
-        if cst_type=cst_widestring then
+        if cst_type in [cst_widestring,cst_unicodestring] then
           ppufile.putdata(pcompilerwidestring(value_str)^.data,len*sizeof(tcompilerwidechar))
         else
           ppufile.putdata(value_str^,len);
@@ -833,7 +833,7 @@ implementation
          n.cst_type:=cst_type;
          n.len:=len;
          n.lab_str:=lab_str;
-         if cst_type=cst_widestring then
+         if cst_type in [cst_widestring,cst_unicodestring] then
            begin
              initwidestring(pcompilerwidestring(n.value_str));
              copywidestring(pcompilerwidestring(value_str),pcompilerwidestring(n.value_str));
@@ -864,6 +864,7 @@ implementation
             resultdef:=cshortstringtype;
           cst_ansistring :
             resultdef:=cansistringtype;
+          cst_unicodestring,
           cst_widestring :
             resultdef:=cwidestringtype;
           cst_longstring :
@@ -874,7 +875,7 @@ implementation
     function tstringconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        if (cst_type in [cst_ansistring,cst_widestring]) and
+        if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) and
            (len=0) then
          expectloc:=LOC_CONSTANT
         else
@@ -909,8 +910,7 @@ implementation
     procedure tstringconstnode.changestringtype(def:tdef);
       const
         st2cst : array[tstringtype] of tconststringtype = (
-          cst_shortstring,cst_longstring,cst_ansistring,cst_widestring,cst_unicodestring
-        );
+          cst_shortstring,cst_longstring,cst_ansistring,cst_widestring,cst_unicodestring);
       var
         pw : pcompilerwidestring;
         pc : pchar;
