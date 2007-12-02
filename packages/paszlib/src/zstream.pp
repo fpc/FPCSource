@@ -309,9 +309,9 @@ procedure Tdecompressionstream.reset;
 var err:smallint;
 
 begin
+  source.seek(-compressed_read,sofromcurrent);
   raw_read:=0;
   compressed_read:=0;
-  source.position:=0;
   inflateEnd(Fstream);
   if skipheader then
     err:=inflateInit2(Fstream,-MAX_WBITS)
