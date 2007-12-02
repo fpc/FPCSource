@@ -587,7 +587,7 @@ begin
      (s^.pending_buf=nil) then
   begin
     {ERR_MSG(Z_MEM_ERROR);}
-    strm.msg := z_errmsg[z_errbase-Z_MEM_ERROR];
+    strm.msg := zerror(Z_MEM_ERROR);
     deflateEnd (strm);
     deflateInit2_ := Z_MEM_ERROR;
     exit;
@@ -857,14 +857,14 @@ begin
      ((s^.status=FINISH_STATE) and (flush<>Z_FINISH)) then
   begin
     {ERR_RETURN(strm^, Z_STREAM_ERROR);}
-    strm.msg := z_errmsg[z_errbase - Z_STREAM_ERROR];
+    strm.msg := zerror(Z_STREAM_ERROR);
     deflate := Z_STREAM_ERROR;
     exit;
   end;
   if (strm.avail_out = 0) then
   begin
     {ERR_RETURN(strm^, Z_BUF_ERROR);}
-    strm.msg := z_errmsg[z_errbase - Z_BUF_ERROR];
+    strm.msg := zerror(Z_BUF_ERROR);
     deflate := Z_BUF_ERROR;
     exit;
   end;
@@ -926,7 +926,7 @@ begin
       and (flush <> Z_FINISH) then
     begin
       {ERR_RETURN(strm^, Z_BUF_ERROR);}
-      strm.msg := z_errmsg[z_errbase - Z_BUF_ERROR];
+      strm.msg := zerror(Z_BUF_ERROR);
       deflate := Z_BUF_ERROR;
       exit;
     end;
@@ -935,7 +935,7 @@ begin
   if (s^.status = FINISH_STATE) and (strm.avail_in <> 0) then
   begin
     {ERR_RETURN(strm^, Z_BUF_ERROR);}
-    strm.msg := z_errmsg[z_errbase - Z_BUF_ERROR];
+    strm.msg := zerror(Z_BUF_ERROR);
     deflate := Z_BUF_ERROR;
     exit;
   end;
