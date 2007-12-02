@@ -500,10 +500,12 @@ interface
           constructor loadshort(ppufile:tcompilerppufile);
           constructor createlong(l : aint);
           constructor loadlong(ppufile:tcompilerppufile);
-          constructor createansi(l : aint);
+          constructor createansi;
           constructor loadansi(ppufile:tcompilerppufile);
-          constructor createwide(l : aint);
+          constructor createwide;
           constructor loadwide(ppufile:tcompilerppufile);
+          constructor createunicode;
+          constructor loadunicode(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           function  stringtypname:string;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -593,6 +595,7 @@ interface
        clongstringtype,           { pointer to type of long string const   }
        cansistringtype,           { pointer to type of ansi string const  }
        cwidestringtype,           { pointer to type of wide string const  }
+       cunicodestringtype,
        openshortstringtype,       { pointer to type of an open shortstring,
                                     needed for readln() }
        openchararraytype,         { pointer to type of an open array of char,
@@ -720,6 +723,7 @@ implementation
       varlongword = 19;
       varint64 = 20;
       varqword = 21;
+      varunicodestr = 22;
 
       varUndefined = -1;
 
@@ -1127,11 +1131,11 @@ implementation
       end;
 
 
-    constructor tstringdef.createansi(l:aint);
+    constructor tstringdef.createansi;
       begin
          inherited create(stringdef);
          stringtype:=st_ansistring;
-         len:=l;
+         len:=-1;
          savesize:=sizeof(aint);
       end;
 
@@ -1145,11 +1149,11 @@ implementation
       end;
 
 
-    constructor tstringdef.createwide(l : aint);
+    constructor tstringdef.createwide;
       begin
          inherited create(stringdef);
          stringtype:=st_widestring;
-         len:=l;
+         len:=-1;
          savesize:=sizeof(aint);
       end;
 
@@ -1158,6 +1162,24 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_widestring;
+         len:=ppufile.getaint;
+         savesize:=sizeof(aint);
+      end;
+
+
+    constructor tstringdef.createunicode;
+      begin
+         inherited create(stringdef);
+         stringtype:=st_unicodestring;
+         len:=-1;
+         savesize:=sizeof(aint);
+      end;
+
+
+    constructor tstringdef.loadunicode(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(stringdef,ppufile);
+         stringtype:=st_unicodestring;
          len:=ppufile.getaint;
          savesize:=sizeof(aint);
       end;
@@ -1175,8 +1197,8 @@ implementation
 
     function tstringdef.stringtypname:string;
       const
-        typname:array[tstringtype] of string[8]=(
-          'shortstr','longstr','ansistr','widestr'
+        typname:array[tstringtype] of string[10]=(
+          'shortstr','longstr','ansistr','widestr','unicodestr'
         );
       begin
         stringtypname:=typname[stringtype];
@@ -1200,20 +1222,21 @@ implementation
             st_longstring : ppufile.writeentry(iblongstringdef);
             st_ansistring : ppufile.writeentry(ibansistringdef);
             st_widestring : ppufile.writeentry(ibwidestringdef);
+            st_unicodestring : ppufile.writeentry(ibunicodestringdef);
          end;
       end;
 
 
     function tstringdef.needs_inittable : boolean;
       begin
-         needs_inittable:=stringtype in [st_ansistring,st_widestring];
+         needs_inittable:=stringtype in [st_ansistring,st_widestring,st_unicodestring];
       end;
 
 
     function tstringdef.GetTypeName : string;
       const
-         names : array[tstringtype] of string[11] = (
-           'ShortString','LongString','AnsiString','WideString');
+         names : array[tstringtype] of string[15] = (
+           'ShortString','LongString','AnsiString','WideString','UnicodeString');
       begin
          GetTypeName:=names[stringtype];
       end;
@@ -1222,7 +1245,7 @@ implementation
     function tstringdef.getvardef : longint;
       const
         vardef : array[tstringtype] of longint = (
-          varUndefined,varUndefined,varString,varOleStr);
+          varUndefined,varUndefined,varString,varOleStr,varUnicodeStr);
       begin
         result:=vardef[stringtype];
       end;
@@ -1231,6 +1254,7 @@ implementation
     function tstringdef.alignment : shortint;
       begin
         case stringtype of
+          st_unicodestring,
           st_widestring,
           st_ansistring:
             alignment:=size_2_align(savesize);

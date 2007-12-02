@@ -186,7 +186,8 @@ type
     st_shortstring,
     st_longstring,
     st_ansistring,
-    st_widestring
+    st_widestring,
+    st_unicodestring
   );
 
   { set types }
@@ -445,6 +446,7 @@ type
   tvariantequaltype = (
     tve_incompatible,
     tve_chari64,
+    tve_unicodestring,
     tve_wstring,
     tve_astring,
     tve_sstring,

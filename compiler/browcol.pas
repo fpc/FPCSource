@@ -1301,6 +1301,8 @@ end;
         Name:='ansistring';
       st_widestring :
         Name:='widestring';
+      st_unicodestring :
+        Name:='unicodestring';
     else ;
     end;
     GetStringDefStr:=Name;

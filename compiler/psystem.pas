@@ -141,8 +141,9 @@ implementation
         cshortstringtype:=tstringdef.createshort(255);
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=tstringdef.createlong(-1);
-        cansistringtype:=tstringdef.createansi(-1);
-        cwidestringtype:=tstringdef.createwide(-1);
+        cansistringtype:=tstringdef.createansi;
+        cwidestringtype:=tstringdef.createwide;
+        cunicodestringtype:=tstringdef.createunicode;
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=tstringdef.createshort(0);
         openchararraytype:=tarraydef.create(0,-1,s32inttype);
@@ -246,6 +247,7 @@ implementation
 {$endif support_longstring}
         addtype('AnsiString',cansistringtype);
         addtype('WideString',cwidestringtype);
+        addtype('UnicodeString',cunicodestringtype);
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',booltype);
@@ -285,6 +287,7 @@ implementation
         addtype('$longstring',clongstringtype);
         addtype('$ansistring',cansistringtype);
         addtype('$widestring',cwidestringtype);
+        addtype('$unicodestring',cwidestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',booltype);
         addtype('$boolean16',bool16type);
@@ -369,6 +372,7 @@ implementation
         loadtype('longstring',clongstringtype);
         loadtype('ansistring',cansistringtype);
         loadtype('widestring',cwidestringtype);
+        loadtype('unicodestring',cunicodestringtype);
         loadtype('openshortstring',openshortstringtype);
         loadtype('openchararray',openchararraytype);
         loadtype('s32real',s32floattype);

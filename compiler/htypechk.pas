@@ -2201,7 +2201,7 @@ implementation
           (tve_single,tve_dblcurrency,tve_extended,
            tve_dblcurrency,tve_dblcurrency,tve_extended);
         variantstringdef_cl: array[tstringtype] of tvariantequaltype =
-          (tve_sstring,tve_astring,tve_astring,tve_wstring);
+          (tve_sstring,tve_astring,tve_astring,tve_wstring,tve_unicodestring);
       begin
         result:=tve_incompatible;
         case def.typ of

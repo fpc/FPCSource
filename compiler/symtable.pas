@@ -310,27 +310,28 @@ implementation
          repeat
            b:=ppufile.readentry;
            case b of
-              ibpointerdef : def:=tpointerdef.ppuload(ppufile);
-                ibarraydef : def:=tarraydef.ppuload(ppufile);
-                  iborddef : def:=torddef.ppuload(ppufile);
-                ibfloatdef : def:=tfloatdef.ppuload(ppufile);
-                 ibprocdef : def:=tprocdef.ppuload(ppufile);
-          ibshortstringdef : def:=tstringdef.loadshort(ppufile);
-           iblongstringdef : def:=tstringdef.loadlong(ppufile);
-           ibansistringdef : def:=tstringdef.loadansi(ppufile);
-           ibwidestringdef : def:=tstringdef.loadwide(ppufile);
-               ibrecorddef : def:=trecorddef.ppuload(ppufile);
-               ibobjectdef : def:=tobjectdef.ppuload(ppufile);
-                 ibenumdef : def:=tenumdef.ppuload(ppufile);
-                  ibsetdef : def:=tsetdef.ppuload(ppufile);
-              ibprocvardef : def:=tprocvardef.ppuload(ppufile);
-                 ibfiledef : def:=tfiledef.ppuload(ppufile);
+             ibpointerdef : def:=tpointerdef.ppuload(ppufile);
+             ibarraydef : def:=tarraydef.ppuload(ppufile);
+             iborddef : def:=torddef.ppuload(ppufile);
+             ibfloatdef : def:=tfloatdef.ppuload(ppufile);
+             ibprocdef : def:=tprocdef.ppuload(ppufile);
+             ibshortstringdef : def:=tstringdef.loadshort(ppufile);
+             iblongstringdef : def:=tstringdef.loadlong(ppufile);
+             ibansistringdef : def:=tstringdef.loadansi(ppufile);
+             ibwidestringdef : def:=tstringdef.loadwide(ppufile);
+             ibunicodestringdef : def:=tstringdef.loadunicode(ppufile);
+             ibrecorddef : def:=trecorddef.ppuload(ppufile);
+             ibobjectdef : def:=tobjectdef.ppuload(ppufile);
+             ibenumdef : def:=tenumdef.ppuload(ppufile);
+             ibsetdef : def:=tsetdef.ppuload(ppufile);
+             ibprocvardef : def:=tprocvardef.ppuload(ppufile);
+             ibfiledef : def:=tfiledef.ppuload(ppufile);
              ibclassrefdef : def:=tclassrefdef.ppuload(ppufile);
-               ibformaldef : def:=tformaldef.ppuload(ppufile);
-              ibvariantdef : def:=tvariantdef.ppuload(ppufile);
-            ibundefineddef : def:=tundefineddef.ppuload(ppufile);
-                 ibenddefs : break;
-                     ibend : Message(unit_f_ppu_read_error);
+             ibformaldef : def:=tformaldef.ppuload(ppufile);
+             ibvariantdef : def:=tvariantdef.ppuload(ppufile);
+             ibundefineddef : def:=tundefineddef.ppuload(ppufile);
+             ibenddefs : break;
+             ibend : Message(unit_f_ppu_read_error);
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;

@@ -112,7 +112,8 @@ interface
          cst_shortstring,
          cst_longstring,
          cst_ansistring,
-         cst_widestring
+         cst_widestring,
+         cst_unicodestring
        );
 
        tstringconstnode = class(tnode)
@@ -908,7 +909,7 @@ implementation
     procedure tstringconstnode.changestringtype(def:tdef);
       const
         st2cst : array[tstringtype] of tconststringtype = (
-          cst_shortstring,cst_longstring,cst_ansistring,cst_widestring
+          cst_shortstring,cst_longstring,cst_ansistring,cst_widestring,cst_unicodestring
         );
       var
         pw : pcompilerwidestring;

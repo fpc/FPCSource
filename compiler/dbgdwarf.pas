@@ -1420,6 +1420,7 @@ implementation
              append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
              finish_entry;
            end;
+         st_unicodestring,
          st_widestring:
            begin
              { looks like a pwidechar }

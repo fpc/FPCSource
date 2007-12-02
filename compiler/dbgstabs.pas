@@ -505,6 +505,7 @@ implementation
                  charst:=def_stab_number(cchartype);
                  result:=strpnew('*'+charst);
                end;
+             st_unicodestring,
              st_widestring:
                begin
                  { looks like a pwidechar }
@@ -852,7 +853,7 @@ implementation
         case def.typ of
           stringdef :
             begin
-              if tstringdef(def).stringtype=st_widestring then
+              if tstringdef(def).stringtype in [st_widestring,st_unicodestring] then
                 insertdef(list,cwidechartype)
               else
                 begin

@@ -331,9 +331,9 @@ implementation
                            doconv:=tc_string_2_string;
                            { Don't prefer conversions from widestring to a
                              normal string as we can loose information }
-                           if tstringdef(def_from).stringtype=st_widestring then
+                           if tstringdef(def_from).stringtype in [st_widestring,st_unicodestring] then
                              eq:=te_convert_l3
-                           else if tstringdef(def_to).stringtype=st_widestring then
+                           else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
                              eq:=te_convert_l2
                            else
                              eq:=te_equal;
@@ -357,6 +357,14 @@ implementation
                                else
                                  eq:=te_convert_l3;
                              end;
+                           st_unicodestring :
+                             begin
+                               { Prefer conversions to ansistring }
+                               if tstringdef(def_to).stringtype=st_ansistring then
+                                 eq:=te_convert_l2
+                               else
+                                 eq:=te_convert_l3;
+                             end;
                            st_shortstring :
                              begin
                                { Prefer shortstrings of different length or conversions
@@ -371,7 +379,7 @@ implementation
                            st_ansistring :
                              begin
                                { Prefer conversion to widestrings }
-                               if (tstringdef(def_to).stringtype=st_widestring) then
+                               if (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
                                  eq:=te_convert_l2
                                else
                                  eq:=te_convert_l3;
