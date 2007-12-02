@@ -283,7 +283,10 @@ Implementation
 {$ifdef i386}
                   if actasmpattern='GOT' then
 {$endif i386}
-                    oper.opr.ref.refaddr:=addr_pic
+                    begin
+                      oper.opr.ref.refaddr:=addr_pic;
+                      consume(AS_ID);
+                    end
                   else
                     Message(asmr_e_invalid_reference_syntax);
                 end
