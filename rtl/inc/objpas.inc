@@ -245,13 +245,11 @@
       class function TObject.MethodAddress(const name : shortstring) : pointer;
 
         var
-           UName : ShortString;
            methodtable : pmethodnametable;
            i : dword;
            vmt : tclass;
 
         begin
-           UName := UpCase(name);
            vmt:=self;
            while assigned(vmt) do
              begin
@@ -259,7 +257,7 @@
                 if assigned(methodtable) then
                   begin
                      for i:=0 to methodtable^.count-1 do
-                       if UpCase(methodtable^.entries[i].name^)=UName then
+                       if ShortCompareText(methodtable^.entries[i].name^, name)=0 then
                          begin
                             MethodAddress:=methodtable^.entries[i].addr;
                             exit;
@@ -323,7 +321,6 @@
            end;
 
         var
-           UName: ShortString;
            CurClassType: TClass;
            FieldTable: PFieldTable;
            FieldInfo: PFieldInfo;
@@ -332,7 +329,6 @@
         begin
            if Length(name) > 0 then
            begin
-             UName := UpCase(name);
              CurClassType := ClassType;
              while CurClassType <> nil do
              begin
@@ -342,7 +338,7 @@
                  FieldInfo := @FieldTable^.Fields[0];
                  for i := 0 to FieldTable^.FieldCount - 1 do
                  begin
-                   if UpCase(FieldInfo^.Name) = UName then
+                   if ShortCompareText(FieldInfo^.Name, name) = 0 then
                    begin
                      fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
                      exit;
@@ -384,7 +380,7 @@
       class function TObject.ClassNameIs(const name : string) : boolean;
 
         begin
-           ClassNameIs:=Upcase(ClassName)=Upcase(name);
+           ClassNameIs:=ShortCompareText(ClassName, name) = 0;
         end;
 
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;

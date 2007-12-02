@@ -561,6 +561,7 @@ Function  Pos (const Substr : ShortString; const Source : AnsiString) : SizeInt;
 Procedure SetString (out S : AnsiString; Buf : PChar; Len : SizeInt);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
+function  ShortCompareText(const S1, S2: shortstring): SizeInt;
 Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring; overload;
 Function  Space(b:byte):shortstring;

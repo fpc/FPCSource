@@ -1341,3 +1341,40 @@ begin
     end;
 end;
 
+function ShortCompareText(const S1, S2: shortstring): SizeInt;
+var
+  c1, c2: Byte;
+  i: Integer;
+  L1, L2, Count: SizeInt;
+  P1, P2: PChar;
+begin
+  L1 := Length(S1);
+  L2 := Length(S2);
+  if L1 > L2 then
+    Count := L2
+  else
+    Count := L1;
+  i := 0;
+  P1 := @S1[1];
+  P2 := @S2[1];
+  while i < count do
+  begin
+    c1 := byte(p1^);
+    c2 := byte(p2^);
+    if c1 <> c2 then
+    begin
+      if c1 in [97..122] then
+        Dec(c1, 32);
+      if c2 in [97..122] then
+        Dec(c2, 32);
+      if c1 <> c2 then
+        Break;
+    end;
+    Inc(P1); Inc(P2); Inc(I);
+  end;
+  if i < count then
+    ShortCompareText := c1 - c2
+  else
+    ShortCompareText := L1 - L2;
+end;
+

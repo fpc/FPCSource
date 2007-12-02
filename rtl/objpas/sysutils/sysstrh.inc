@@ -71,7 +71,7 @@ function LowerCase(const s: string): string; overload;
 { the compiler can't decide else if it should use the char or the ansistring
   version for a variant }
 function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function CompareStr(const S1, S2: string): Integer;
+function CompareStr(const S1, S2: string): Integer; overload;
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
 function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
 function CompareText(const S1, S2: string): integer;

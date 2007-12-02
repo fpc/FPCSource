@@ -354,17 +354,19 @@ Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
   Var PS : PShortString;
       PT : PTypeData;
       Count : longint;
+      sName: shortstring;
 
 begin
   If Length(Name)=0 then
     exit(-1);
+  sName := Name;
   PT:=GetTypeData(TypeInfo);
   Count:=0;
   Result:=-1;
   PS:=@PT^.NameList;
   While (Result=-1) and (PByte(PS)^<>0) do
     begin
-      If CompareText(PS^, Name) = 0 then
+      If ShortCompareText(PS^, sName) = 0 then
         Result:=Count;
       PS:=PShortString(pointer(PS)+PByte(PS)^+1);
       Inc(Count);
@@ -517,10 +519,10 @@ Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
 var
   hp : PTypeData;
   i : longint;
-  p : string;
+  p : shortstring;
   pd : ^TPropData;
 begin
-  P:=UpCase(PropName);
+  P:=PropName;  // avoid Ansi<->short conversion in a loop
   while Assigned(TypeInfo) do
     begin
       // skip the name
@@ -531,7 +533,7 @@ begin
       for i:=1 to pd^.PropCount do
         begin
           // found a property of that name ?
-          if Upcase(Result^.Name)=P then
+          if ShortCompareText(Result^.Name, P) = 0 then
             exit;
           // skip to next property
           Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+1));
