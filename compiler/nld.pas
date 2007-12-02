@@ -599,7 +599,8 @@ implementation
          end
         { call helpers for composite types containing automated types }
         else if (left.resultdef.needs_inittable) and
-            (left.resultdef.typ in [arraydef,objectdef,recorddef]) then
+            (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
+            not is_dynamic_array(left.resultdef) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(
                   crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
