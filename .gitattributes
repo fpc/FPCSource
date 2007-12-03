@@ -5532,6 +5532,7 @@ rtl/tests/tclist.pp svneol=native#text/plain
 rtl/tests/tcpersistent.pp svneol=native#text/plain
 rtl/tests/tcstringlist.pp svneol=native#text/plain
 rtl/tests/tcstrutils.pp svneol=native#text/plain
+rtl/tests/tctparser.pp svneol=native#text/plain
 rtl/tests/testclasses.lpi svneol=native#text/plain
 rtl/tests/testclasses.lpr svneol=native#text/plain
 rtl/tests/tstrutils.lpi svneol=native#text/plain

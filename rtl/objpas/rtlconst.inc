@@ -216,6 +216,14 @@ ResourceString
   SOutOfResources               = 'Out of system resources';
   SParentRequired               = 'Element ''%s'' has no parent Window';
   SParseError                   = '%s on line %d';
+  SParLocInfo                   = ' (at %d,%d, stream offset %.8x)';
+  SParExpected                  = 'Wrong token type: %s expected';
+  SParWrongTokenType            = 'Wrong token type: %s expected but %s found';
+  SParWrongTokenSymbol          = 'Wrong token symbol: %s expected but %s found';
+  SParInvalidInteger            = 'Invalid integer number: %s';
+  SParInvalidFloat              = 'Invalid floating point number: %s';
+  SParUnterminatedString        = 'Unterminated string';
+  SParUnterminatedBinValue      = 'Unterminated byte value';
   SPictureDesc                  = ' (%dx%d)';
   SPictureLabel                 = 'Image:';
   SPreviewLabel                 = 'Preview';
