@@ -1263,22 +1263,20 @@ begin
   else
     begin
     If (FLastMatchTableDef<>Nil) then
-      begin
       TD:=FLastMatchTableDef;
-      If (TD<>Nil) then
-        Result:=TD.Fields.FindField(FN)
-      else
+    If (TD<>Nil) then
+      Result:=TD.Fields.FindField(FN);
+    If Result=Nil then
+      begin
+      // Hard scan of all tables...
+      I:=0;
+      While (Result=Nil) and (I<Tables.Count) do
         begin
-        // Hard scan of all tables...
-        I:=0;
-        While (Result=Nil) and (I<Tables.Count) do
-          begin
-          TD:=Tables[i];
-          Result:=TD.Fields.FindField(FN);
-          If (Result<>Nil) then
-            FLastMatchTableDef:=TD;
-          Inc(I);
-          end;
+        TD:=Tables[i];
+        Result:=TD.Fields.FindField(FN);
+        If (Result<>Nil) then
+          FLastMatchTableDef:=TD;
+        Inc(I);
         end;
       end;
     end;
