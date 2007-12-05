@@ -315,7 +315,7 @@ var
 begin
   { we know that s is unique -> avoid uniquestring calls}
   p:=@s[index];
-  if (nc<$7f) then
+  if (nc<=127) then
     ConcatCharToAnsiStr(char(nc),s,index)
   else
     begin
