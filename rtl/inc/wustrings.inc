@@ -1814,24 +1814,111 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
   end;
 
 
+{ converts an utf-16 code point or surrogate pair to utf-32 }
+function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char;
+var
+  w: widechar;
+begin
+  { UTF-16 points in the range #$0-#$D7FF and #$E000-#$FFFF }
+  { are the same in UTF-32                                  }
+  w:=s[index];
+  if (w<=#$d7ff) or
+     (w>=#$e000) then
+    begin
+      result:=UCS4Char(w);
+      len:=1;
+    end
+  { valid surrogate pair? }
+  else if (w<=#$dbff) and
+          { w>=#$d7ff check not needed, checked above }
+          (index<length(s)) and
+          (s[index+1]>=#$dc00) and
+          (s[index+1]<=#$dfff) then
+      { convert the surrogate pair to UTF-32 }
+    begin
+      result:=(UCS4Char(w)-$d800) shl 10 + (UCS4Char(s[index+1])-$dc00) + $10000;
+      len:=2;
+    end
+  else
+    { invalid surrogate -> do nothing }
+    begin
+      result:=UCS4Char(w);
+      len:=1;
+    end;
+end;
+
+
 function WideStringToUCS4String(const s : WideString) : UCS4String;
   var
-    i : SizeInt;
+    i, slen,
+    destindex : SizeInt;
+    len       : longint;
+    uch       : UCS4Char;
   begin
-    setlength(result,length(s)+1);
-    for i:=1 to length(s) do
-      result[i-1]:=UCS4Char(s[i]);
-    result[length(s)]:=UCS4Char(0);
+    slen:=length(s);
+    setlength(result,slen+1);
+    i:=1;
+    destindex:=0;
+    while (i<=slen) do
+      begin
+        result[destindex]:=utf16toutf32(s,i,len);
+        inc(destindex);
+        inc(i,len);
+      end;
+    result[destindex]:=UCS4Char(0);
+    { destindex <= slen }
+    setlength(result,destindex);
   end;
+
+
+{ concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
+procedure ConcatUTF32ToWideStr(const nc: UCS4Char; var S: WideString; var index: SizeInt);
+var
+  p : PWideChar;
+begin
+  { if nc > $ffff, we need two places }
+  if (index+ord(nc > $ffff)>length(s)) then
+    if (length(s) < 10*256) then
+      setlength(s,length(s)+10)
+    else
+      setlength(s,length(s)+length(s) shr 8);
+  { we know that s is unique -> avoid uniquestring calls}
+  p:=@s[index];
+  if (nc<$ffff) then
+    begin
+      p^:=widechar(nc);
+      inc(index);
+    end
+  else if (nc<=$10ffff) then
+    begin
+      p^:=widechar((nc - $10000) shr 10 + $d800);
+      (p+1)^:=widechar((nc - $10000) and $3ff + $dc00);
+      inc(index,2);
+    end
+  else
+    { invalid code point }
+    begin
+      p^:='?';
+      inc(index);
+    end;
+end;
 
 
 function UCS4StringToWideString(const s : UCS4String) : WideString;
   var
-    i : SizeInt;
+    i, slen   : SizeInt;
+    nc        : wint_t;
+    resindex  : SizeInt;
+    len       : longint;
+    valid     : boolean;
   begin
-    setlength(result,length(s)-1);
-    for i:=1 to length(s)-1 do
-      result[i]:=WideChar(s[i-1]);
+    SetLength(result,length(s));
+    resindex:=1;
+    for i:=0 to high(s) do
+      ConcatUTF32ToWideStr(s[i],result,resindex);
+    { adjust result length (may be too big due to growing }
+    { for surrogate pairs)                                }
+    setlength(result,resindex-1);
   end;
 
 
