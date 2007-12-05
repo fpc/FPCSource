@@ -77,9 +77,9 @@ type
     pTime    = ^time_t;
     ptime_t  = ^time_t;
 
-    wchar_t  = widechar;
+    wchar_t  = cint32;
     pwchar_t = ^wchar_t;
-    wint_t   = cint;
+    wint_t   = cint32;
 
     socklen_t= cuint32;
     TSocklen = socklen_t;
@@ -162,6 +162,13 @@ type
           reserved4: array[0..3] of clong;
        end;
     pstatfs = ^tstatfs;
+
+    mbstate_t = record
+      case byte of
+        0: (__mbstate8: array[0..127] of char);
+        1: (_mbstateL: clonglong); { for alignment }
+    end;
+    pmbstate_t = ^mbstate_t;
 
    pthread_t            = pointer;
    pthread_attr_t       = record sig: clong; opaque: array[0..{$ifdef cpu64}56{$else}36{$endif}-1] of byte; end;

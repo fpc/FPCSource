@@ -129,7 +129,11 @@ Type
     uint_t    = cuint;
 
 
-    wchar_t   = widechar;
+{$ifdef cpu64}
+    wchar_t   = cint;
+{$else cpu64}
+    wchar_t   = clong;
+{$endif cpu64}
     pwchar_t  = ^wchar_t;
 
     uid_t    = cuint32;         { used for user ID type        }
@@ -168,6 +172,15 @@ Type
   end;
   PStatFS=^TStatFS;
 
+  mbstate_t = record
+{$ifdef cpu64}
+        __filler: array[0..3] of clong;
+{$else cpu64}
+        __filler: array[0..5] of cint;
+{$endif cpu64}
+  end;
+  pmbstate_t = ^mbstate_t;
+  
 
   clock32_t = int32_t;
   timeval32 = record

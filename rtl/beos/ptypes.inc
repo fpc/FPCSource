@@ -90,7 +90,7 @@ type
     pTime    = ^time_t;
     ptime_t =  ^time_t;
     
-    wchar_t   = widechar;
+    wchar_t   = cint32;
     pwchar_t  = ^wchar_t;
 
     socklen_t= cuint32;

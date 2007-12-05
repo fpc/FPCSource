@@ -80,7 +80,7 @@ type
     pUid     = ^Uid_t;
 
     wint_t    = cint32;
-    wchar_t   = widechar;
+    wchar_t   = cint32;
     pwchar_t  = ^wchar_t;
 
 
@@ -185,6 +185,13 @@ type
     fspare3        : array[0..1] of clong;
   end;
   PStatFS=^TStatFS;
+
+    mbstate_t = record
+      case byte of
+        0: (__mbstate8: array[0..127] of char);
+        1: (_mbstateL: cint64); { for alignment }
+    end;
+    pmbstate_t = ^mbstate_t;
 
   ITimerVal= Record
               It_Interval,
