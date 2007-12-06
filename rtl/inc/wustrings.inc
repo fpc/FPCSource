@@ -1906,11 +1906,9 @@ end;
 
 function UCS4StringToWideString(const s : UCS4String) : WideString;
   var
-    i, slen   : SizeInt;
-    nc        : wint_t;
-    resindex  : SizeInt;
-    len       : longint;
-    valid     : boolean;
+    i        : SizeInt;
+    resindex : SizeInt;
+    len      : longint;
   begin
     SetLength(result,length(s));
     resindex:=1;
