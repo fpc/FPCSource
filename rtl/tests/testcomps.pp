@@ -1,3 +1,9 @@
+unit testcomps;
+
+interface
+
+uses classes, sysutils;
+
 Type
   TEmptyComponent = Class(TComponent)
   end;
@@ -344,10 +350,60 @@ Type
     procedure SetPers(const Value: TTestPersistent1);
   Public
     Constructor Create(AOwner : TComponent);  override;
+    Destructor Destroy; override;
   Published
     Property Persist : TTestPersistent1 Read FPers Write SetPers;
   end;
 
+  // For use in collection streaming
+  TTestItem = Class(TCollectionItem)
+  Private
+    F : String;
+  Published
+    Property StrProp : String Read F Write F;
+  end;
+
+  TTestCollection = Class(TCollection)
+  Public
+    Constructor Create;
+  end;
+
+  // Empty collection
+  TCollectionComponent = Class(TComponent)
+  Private
+    FColl : TCollection;
+    Procedure SetColl(AColl : TCollection);
+  Public
+    Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy; override;
+  Published
+    Property Coll : TCollection Read FColl Write SetCOll;
+  end;
+
+  // collection with elements.
+  TCollectionComponent2 = Class(TCollectionComponent)
+  Public
+    Constructor Create(AOwner : TComponent); override;
+  end;
+
+  // collection with elements, one has no props
+  TCollectionComponent3 = Class(TCollectionComponent)
+  Public
+    Constructor Create(AOwner : TComponent); override;
+  end;
+
+  // collection with changed propname, one element
+  TCollectionComponent4 = Class(TComponent)
+    FColl : TTestCollection;
+    Procedure SetColl(AColl : TTestCollection);
+  Public
+    Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy; override;
+  Published
+    Property Coll : TTestCollection Read FColl Write SetCOll;
+  end;
+
+  // Component as published property
   TOwnedComponent = Class(TComponent)
     F : TComponent;
   Public
@@ -362,6 +418,7 @@ Type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   end;
 
+  // Stream sub component.
   TStreamedOwnedComponent = Class(TChildrenComponent)
   Public
     Constructor Create(AOwner : TComponent);  override;
@@ -369,8 +426,11 @@ Type
     Sub : TIntegerComponent;
   end;
 
+  // Method tests.
+
   THandler = Procedure of Object;
 
+  // Method property that points to own method.
   TMethodComponent = Class(TComponent)
   Private
     F : THandler;
@@ -381,12 +441,15 @@ Type
     Property MethodProp : THandler Read F Write F;
   end;
 
+  // Method property of owned component that points to own method.
   TMethodComponent2 = Class(TChildrenComponent)
   Public
     Constructor Create(AOwner : TComponent);  override;
   Published
     Procedure MyMethod2;
   end;
+
+Implementation
 
 procedure TChildrenComponent.GetChildren(Proc: TGetChildProc; Root: TComponent);
 
@@ -655,10 +718,63 @@ begin
   FPers.AString:='A persistent string';
 end;
 
+Destructor TPersistentComponent.Destroy;
+
+begin
+  FreeAndNil(FPers);
+  Inherited;
+end;
+
 procedure TPersistentComponent.SetPers(const Value: TTestPersistent1);
 begin
   FPers.Assign(Value);
 end;
+
+{ TCollectionComponent }
+
+Procedure TCollectionComponent.SetColl(AColl : TCollection);
+
+begin
+  FColl.Assign(AColl);
+end;
+
+Constructor TCollectionComponent.Create(AOwner : TComponent);
+
+begin
+  Inherited;
+  FColl:=TCollection.Create(TTestItem);
+end;
+
+Destructor TCollectionComponent.Destroy;
+
+begin
+  FreeAndNil(FColl);
+  Inherited;
+end;
+
+{ TCollectionComponent2 }
+
+Constructor TCollectionComponent2.Create(AOwner : TComponent);
+
+begin
+  Inherited;
+  (FColl.Add as TTestItem).StrProp:='First';
+  (FColl.Add as TTestItem).StrProp:='Second';
+  (FColl.Add as TTestItem).StrProp:='Third';
+end;
+
+{ TCollectionComponen3 }
+
+Constructor TCollectionComponent3.Create(AOwner : TComponent);
+
+begin
+  Inherited;
+  (FColl.Add as TTestItem).StrProp:='First';
+  (FColl.Add as TTestItem).StrProp:='';
+  (FColl.Add as TTestItem).StrProp:='Third';
+end;
+
+{ TStreamedOwnedComponent }
 
 Constructor TStreamedOwnedComponent.Create(AOwner : TComponent);
 
@@ -724,3 +840,33 @@ begin
  // Do nothng
 end;
 
+
+{ TCollectionComponent4 }
+
+constructor TCollectionComponent4.Create(AOwner: TComponent);
+begin
+  inherited;
+  FColl:=TTestCollection.Create;
+  (FColl.Add as TTestItem).StrProp:='Something'
+end;
+
+destructor TCollectionComponent4.Destroy;
+begin
+  FreeAndNil(FColl);
+  inherited;
+end;
+
+procedure TCollectionComponent4.SetColl(AColl: TTestCollection);
+begin
+
+end;
+
+{ TTestCollection }
+
+Constructor TTestCollection.Create;
+begin
+  Inherited Create(TTestitem);
+  PropName:='MyCollProp';
+end;
+
+end.

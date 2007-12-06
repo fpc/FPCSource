@@ -3,8 +3,8 @@ program testclasses;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcfindnested, tcstringlist, tccollection, tclist,
-  tcpersistent, tclinkedlist, tccomponent, tcstreaming, tccompstreaming;
+  Classes, tcfindnested, tcstringlist, tccollection, tclist,
+  tcpersistent, tclinkedlist, tccomponent, tcstreaming, tccompstreaming,consoletestrunner;
 
 type
 

@@ -5,7 +5,9 @@ program gencomptest;
 uses
   SysUtils,
   classes,
-  typinfo;
+  typinfo,
+  tcstreaming in 'tcstreaming.pas',
+  testcomps in 'testcomps.pas';
 
 Var
   Indent : String;
@@ -183,6 +185,7 @@ var
               ConvertValue;
               end;
             Reader.CheckValue(vaList);
+            AddExpectValue(vaList);
             Inc(NestingLevel);
             while not Reader.EndOfList do
               ConvertProperty;
@@ -292,8 +295,6 @@ begin
   Addln('end;');
 end;
 
-{$i testcomps.inc}
-
 Procedure GenTests;
 
 begin
@@ -331,6 +332,10 @@ begin
   TestComponent(TSetComponent4,Nil);
   TestComponent(TMultipleComponent,Nil);
   TestComponent(TPersistentComponent,Nil);
+  TestComponent(TCollectionComponent,Nil);
+  TestComponent(TCollectionComponent2,Nil);
+  TestComponent(TCollectionComponent3,Nil);
+  TestComponent(TCollectionComponent4,Nil);
   TestComponent(TOwnedComponent,Nil);
   TestComponent(TStreamedOwnedComponent,Nil);
   TestComponent(TMethodComponent,Nil);
@@ -345,15 +350,15 @@ Var
   F : Text;
 
 begin
-  Assign(f,'tccompstreaming.pp');
+  Assign(f,'tctestcompstreaming.pas');
   Rewrite(F);
   try
-  Writeln(F,'Unit tccompstreaming;');
+  Writeln(F,'Unit tctestcompstreaming;');
   Writeln(F);
   Writeln(F,'interface');
   Writeln(F);
   Writeln(F,'Uses');
-  Writeln(F,'  SysUtils,Classes,tcstreaming, testregistry;');
+  Writeln(F,'  SysUtils,Classes,tcstreaming;');
   Writeln(F);
   Writeln(F,'Type ');
   Writeln(F,'  TTestComponentStream = Class(TTestStreaming)');
@@ -364,12 +369,10 @@ begin
   Writeln(F);
   Writeln(F,'Implementation');
   Writeln(F);
-  Writeln(F,'{$i testcomps.inc}');
+  Writeln(F,'uses testcomps;');
   For I:=0 to Src.Count-1 do
     Writeln(F,Src[i]);
   Writeln(F);
-  Writeln(F,'begin');
-  Writeln(F,'  RegisterTest(TTestComponentStream);');
   Writeln(F,'end.');
   Finally
     Close(f);

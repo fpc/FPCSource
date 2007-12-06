@@ -3,7 +3,7 @@ Unit tccompstreaming;
 interface
 
 Uses
-  SysUtils, Classes, tcstreaming, testregistry;
+  SysUtils,Classes,tcstreaming;
 
 Type 
   TTestComponentStream = Class(TTestStreaming)
@@ -42,6 +42,10 @@ Type
     Procedure TestTSetComponent4;
     Procedure TestTMultipleComponent;
     Procedure TestTPersistentComponent;
+    Procedure TestTCollectionComponent;
+    Procedure TestTCollectionComponent2;
+    Procedure TestTCollectionComponent3;
+    Procedure TestTCollectionComponent4;
     Procedure TestTOwnedComponent;
     Procedure TestTStreamedOwnedComponent;
     Procedure TestTMethodComponent;
@@ -50,7 +54,7 @@ Type
 
 Implementation
 
-{$i testcomps.inc}
+uses testcomps;
 
 
 Procedure TTestComponentStream.TestTEmptyComponent;
@@ -843,6 +847,128 @@ begin
 end;
 
 
+Procedure TTestComponentStream.TestTCollectionComponent;
+
+Var
+  C : TComponent;
+
+begin
+  C:=TCollectionComponent.Create(Nil);
+  Try
+    SaveToStream(C);
+    ExpectSignature;
+    ExpectFlags([],0);
+    ExpectBareString('TCollectionComponent');
+    ExpectBareString('TestTCollectionComponent');
+    ExpectBareString('Coll');
+    ExpectValue(vaCollection);
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+  Finally
+    C.Free;
+    end;
+end;
+
+
+Procedure TTestComponentStream.TestTCollectionComponent2;
+
+Var
+  C : TComponent;
+
+begin
+  C:=TCollectionComponent2.Create(Nil);
+  Try
+    SaveToStream(C);
+    ExpectSignature;
+    ExpectFlags([],0);
+    ExpectBareString('TCollectionComponent2');
+    ExpectBareString('TestTCollectionComponent2');
+    ExpectBareString('Coll');
+    ExpectValue(vaCollection);
+    ExpectValue(vaList);
+    ExpectBareString('StrProp');
+    ExpectString('First');
+    ExpectEndOfList;
+    ExpectValue(vaList);
+    ExpectBareString('StrProp');
+    ExpectString('Second');
+    ExpectEndOfList;
+    ExpectValue(vaList);
+    ExpectBareString('StrProp');
+    ExpectString('Third');
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+  Finally
+    C.Free;
+    end;
+end;
+
+
+Procedure TTestComponentStream.TestTCollectionComponent3;
+
+Var
+  C : TComponent;
+
+begin
+  C:=TCollectionComponent3.Create(Nil);
+  Try
+    SaveToStream(C);
+    ExpectSignature;
+    ExpectFlags([],0);
+    ExpectBareString('TCollectionComponent3');
+    ExpectBareString('TestTCollectionComponent3');
+    ExpectBareString('Coll');
+    ExpectValue(vaCollection);
+    ExpectValue(vaList);
+    ExpectBareString('StrProp');
+    ExpectString('First');
+    ExpectEndOfList;
+    ExpectValue(vaList);
+    ExpectEndOfList;
+    ExpectValue(vaList);
+    ExpectBareString('StrProp');
+    ExpectString('Third');
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+  Finally
+    C.Free;
+    end;
+end;
+
+
+Procedure TTestComponentStream.TestTCollectionComponent4;
+
+Var
+  C : TComponent;
+
+begin
+  C:=TCollectionComponent4.Create(Nil);
+  Try
+    SaveToStream(C);
+    ExpectSignature;
+    ExpectFlags([],0);
+    ExpectBareString('TCollectionComponent4');
+    ExpectBareString('TestTCollectionComponent4');
+    ExpectBareString('Coll');
+    ExpectValue(vaCollection);
+    ExpectValue(vaList);
+    ExpectBareString('StrProp');
+    ExpectString('Something');
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+  Finally
+    C.Free;
+    end;
+end;
+
+
 Procedure TTestComponentStream.TestTOwnedComponent;
 
 Var
@@ -944,6 +1070,4 @@ begin
     end;
 end;
 
-begin
-  RegisterTest(TTestComponentStream);
 end.
