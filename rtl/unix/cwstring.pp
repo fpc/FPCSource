@@ -353,8 +353,10 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
 {$endif beos}
     wc       : wchar_t;
   begin
+{$ifndef beos}
     fillchar(ombstate,sizeof(ombstate),0);
     fillchar(nmbstate,sizeof(nmbstate),0);
+{$endif beos}
     slen:=length(s);
     SetLength(result,slen+10);
     i:=1;
@@ -414,12 +416,16 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
     i, slen,
     resindex : SizeInt;
     mblen    : size_t;
+{$ifndef beos}
     ombstate,
     nmbstate : mbstate_t;
+{$endif beos}
     wc       : wchar_t;
   begin
+{$ifndef beos}
     fillchar(ombstate,sizeof(ombstate),0);
     fillchar(nmbstate,sizeof(nmbstate),0);
+{$endif beos}
     slen:=length(s);
     SetLength(result,slen+10);
     i:=1;
@@ -433,7 +439,11 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
           end
         else
           begin
+{$ifndef beos}          
             mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
+{$else not beos}
+            mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
+{$endif beos}
             case mblen of
               size_t(-2):
                 begin
@@ -456,7 +466,11 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
                   { even if mblen = 1, the uppercase version may have a }
                   { different length                                     }
                   { We can't do anything special if wchar_t is 16 bit... }
+{$ifndef beos}
                   ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
+{$else not beos}
+                  ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
+{$endif not beos}
                   inc(i,mblen);
                 end;
             end;
