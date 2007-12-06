@@ -7,13 +7,11 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <Title Value="findnested"/>
-      <ActiveEditorIndexAtStart Value="2"/>
+      <Title Value="Test classes"/>
+      <ActiveEditorIndexAtStart Value="5"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
-      <Language Value=""/>
-      <CharSet Value=""/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -35,12 +33,12 @@
         <PackageName Value="FPCUnitConsoleRunner"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="15">
       <Unit0>
         <Filename Value="testclasses.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testclasses"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcfindnested.pp"/>
@@ -49,41 +47,41 @@
         <CursorPos X="1" Y="91"/>
         <TopLine Value="61"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="tcstringlist.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcstringlist"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
         <SyntaxHighlighter Value="Text"/>
       </Unit2>
       <Unit3>
         <Filename Value="tccollection.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tccollection"/>
-        <CursorPos X="1" Y="360"/>
-        <TopLine Value="338"/>
+        <CursorPos X="24" Y="66"/>
+        <TopLine Value="52"/>
         <EditorIndex Value="2"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="tclist.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tclist"/>
-        <CursorPos X="1" Y="336"/>
-        <TopLine Value="331"/>
-        <EditorIndex Value="4"/>
-        <UsageCount Value="20"/>
+        <CursorPos X="1" Y="253"/>
+        <TopLine Value="203"/>
+        <EditorIndex Value="7"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcpersistent.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcpersistent"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
         <SyntaxHighlighter Value="Text"/>
       </Unit5>
       <Unit6>
@@ -93,14 +91,14 @@
         <CursorPos X="14" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit6>
       <Unit7>
         <Filename Value="../../../../fpc/rtl/objpas/classes/classesh.inc"/>
-        <CursorPos X="14" Y="432"/>
-        <TopLine Value="401"/>
-        <EditorIndex Value="3"/>
+        <CursorPos X="1" Y="1430"/>
+        <TopLine Value="1402"/>
+        <EditorIndex Value="6"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit7>
@@ -108,132 +106,93 @@
         <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
         <CursorPos X="51" Y="319"/>
         <TopLine Value="293"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="8"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="tccomponent.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tccomponent"/>
+        <CursorPos X="1" Y="260"/>
+        <TopLine Value="236"/>
+        <EditorIndex Value="3"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../../../../fpc/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <UnitName Value="fpcunit"/>
+        <CursorPos X="27" Y="111"/>
+        <TopLine Value="94"/>
+        <EditorIndex Value="5"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="tcstreaming.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcstreaming"/>
+        <CursorPos X="1" Y="337"/>
+        <TopLine Value="312"/>
+        <EditorIndex Value="4"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="tccompstreaming.pas"/>
+        <UnitName Value="tctestcompstreaming"/>
+        <CursorPos X="51" Y="4"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="20"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="testcomps.inc"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="tccompstreaming.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tccompstreaming"/>
+        <UsageCount Value="20"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit14>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="8" HistoryIndex="7">
       <Position1>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
+        <Filename Value="tcstreaming.pp"/>
         <Caret Line="1" Column="1" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="51" Column="24" TopLine="22"/>
+        <Filename Value="tcstreaming.pp"/>
+        <Caret Line="8" Column="20" TopLine="1"/>
       </Position2>
       <Position3>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="218" Column="12" TopLine="192"/>
+        <Filename Value="tcstreaming.pp"/>
+        <Caret Line="66" Column="1" TopLine="30"/>
       </Position3>
       <Position4>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="240" Column="30" TopLine="214"/>
+        <Filename Value="tcstreaming.pp"/>
+        <Caret Line="63" Column="13" TopLine="37"/>
       </Position4>
       <Position5>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="tcstreaming.pp"/>
+        <Caret Line="21" Column="67" TopLine="1"/>
       </Position5>
       <Position6>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="42" Column="32" TopLine="22"/>
+        <Filename Value="tcstreaming.pp"/>
+        <Caret Line="65" Column="46" TopLine="38"/>
       </Position6>
       <Position7>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="48" Column="24" TopLine="22"/>
+        <Filename Value="tcstreaming.pp"/>
+        <Caret Line="124" Column="12" TopLine="99"/>
       </Position7>
       <Position8>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="50" Column="24" TopLine="24"/>
+        <Filename Value="tcstreaming.pp"/>
+        <Caret Line="131" Column="53" TopLine="106"/>
       </Position8>
-      <Position9>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="218" Column="12" TopLine="192"/>
-      </Position9>
-      <Position10>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="240" Column="30" TopLine="214"/>
-      </Position10>
-      <Position11>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position11>
-      <Position12>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="43" Column="34" TopLine="16"/>
-      </Position12>
-      <Position13>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="91" Column="12" TopLine="65"/>
-      </Position13>
-      <Position14>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="99" Column="10" TopLine="73"/>
-      </Position14>
-      <Position15>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="29" Column="27" TopLine="14"/>
-      </Position15>
-      <Position16>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position16>
-      <Position17>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="289" Column="5" TopLine="232"/>
-      </Position17>
-      <Position18>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="299" Column="14" TopLine="271"/>
-      </Position18>
-      <Position19>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="71" Column="1" TopLine="49"/>
-      </Position19>
-      <Position20>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="297" Column="50" TopLine="278"/>
-      </Position20>
-      <Position21>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="333" Column="5" TopLine="276"/>
-      </Position21>
-      <Position22>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="350" Column="5" TopLine="288"/>
-      </Position22>
-      <Position23>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="348" Column="71" TopLine="316"/>
-      </Position23>
-      <Position24>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="345" Column="28" TopLine="319"/>
-      </Position24>
-      <Position25>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="355" Column="18" TopLine="322"/>
-      </Position25>
-      <Position26>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="361" Column="22" TopLine="329"/>
-      </Position26>
-      <Position27>
-        <Filename Value="tccollection.pp"/>
-        <Caret Line="364" Column="45" TopLine="334"/>
-      </Position27>
-      <Position28>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="195" Column="3" TopLine="192"/>
-      </Position28>
-      <Position29>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position29>
-      <Position30>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <Caret Line="176" Column="33" TopLine="150"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -45,6 +45,12 @@ type
 
   TTestTCollection= class(TTestCase)
   private
+    procedure AccessNegativeIndex;
+    procedure AccessTooBigIndex;
+    procedure DeleteNegativeIndex;
+    procedure DeleteTooBigIndex;
+    procedure MoveNegativeIndex;
+    procedure MoveTooBigIndex;
   protected
     FColl : TMyCollection;
     Function MyItem(I : integer) : TMyItem;
@@ -68,6 +74,9 @@ type
     Procedure TestItemNamePath;
     Procedure TestOwnerItemNamePath;
     Procedure TestChangeCollection;
+    procedure TestAccesIndexOutOfBounds;
+    procedure TestDeleteIndexOutOfBounds;
+    procedure TestMoveIndexOutOfBounds;
     Procedure TestUpdateAdd;
     Procedure TestUpdateDelete;
     Procedure TestUpdateDisplayName;
@@ -255,6 +264,60 @@ begin
   finally
     FCol2.free;
   end;
+end;
+
+procedure TTestTCollection.AccessNegativeIndex;
+
+begin
+  FColl.Items[-1];
+end;
+
+procedure TTestTCollection.AccessTooBigIndex;
+
+begin
+  FColl.Items[3];
+end;
+
+
+procedure TTestTCollection.TestAccesIndexOutOfBounds;
+begin
+  AddItems(3);
+  AssertException('Access Negative Index',EListError,@AccessNegativeIndex);
+  AssertException('Access Index too big',EListError,@AccessTooBigIndex);
+end;
+
+procedure TTestTCollection.DeleteNegativeIndex;
+begin
+  FColl.Delete(-1);
+end;
+
+procedure TTestTCollection.DeleteTooBigIndex;
+begin
+  FColl.Delete(3);
+end;
+
+procedure TTestTCollection.TestDeleteIndexOutOfBounds;
+begin
+  AddItems(3);
+  AssertException('Delete Negative Index',EListError,@DeleteNegativeIndex);
+  AssertException('Delete Index too big',EListError,@DeleteTooBigIndex);
+end;
+
+procedure TTestTCollection.MoveNegativeIndex;
+begin
+  FColl.Items[1].Index:=-1;
+end;
+
+procedure TTestTCollection.MoveTooBigIndex;
+begin
+  FColl.Items[1].Index:=3;
+end;
+
+procedure TTestTCollection.TestMoveIndexOutOfBounds;
+begin
+  AddItems(3);
+  AssertException('Move Negative first index',EListError,@MoveNegativeIndex);
+  AssertException('Exchange Negative second index',EListError,@MoveTooBigIndex);
 end;
 
 procedure TTestTCollection.TestUpdateAdd;

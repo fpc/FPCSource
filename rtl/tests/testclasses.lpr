@@ -4,7 +4,7 @@ program testclasses;
 
 uses
   Classes, consoletestrunner, tcfindnested, tcstringlist, tccollection, tclist,
-  tcpersistent, tclinkedlist;
+  tcpersistent, tclinkedlist, tccomponent, tcstreaming, tccompstreaming;
 
 type
 
@@ -21,7 +21,7 @@ var
 begin
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
-  Application.Title := 'FPCUnit Console test runner';
+  Application.Title:='Test classes';
   Application.Run;
   Application.Free;
 end.
