@@ -56,7 +56,7 @@ interface
        private
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
-          function  is_simple_para_load(p:tnode):boolean;
+          function  is_simple_para_load(p:tnode; may_be_in_reg: boolean):boolean;
           procedure maybe_load_in_temp(var p:tnode);
           function  gen_high_tree(var p:tnode;paradef:tdef):tnode;
           function  gen_self_tree_methodpointer:tnode;
@@ -1222,7 +1222,7 @@ implementation
       end;
 
 
-    function tcallnode.is_simple_para_load(p:tnode):boolean;
+    function tcallnode.is_simple_para_load(p:tnode; may_be_in_reg: boolean):boolean;
       var
         hp : tnode;
       begin
@@ -1232,6 +1232,14 @@ implementation
               (ttypeconvnode(hp).convtype=tc_equal) do
           hp:=tunarynode(hp).left;
         result:=(hp.nodetype in [typen,loadvmtaddrn,loadn,temprefn,arrayconstructorn]);
+        if result and
+           not(may_be_in_reg) then
+          case hp.nodetype of
+            loadn:
+              result:=(tabstractvarsym(tloadnode(hp).symtableentry).varregable in [vr_none,vr_addr]);
+            temprefn:
+              result:=not(ti_may_be_in_reg in ttemprefnode(hp).tempinfo^.flags);
+          end;
       end;
 
 
@@ -1247,7 +1255,7 @@ implementation
         { Load all complex loads into a temp to prevent
           double calls to a function. We can't simply check for a hp.nodetype=calln }
         if assigned(p) and
-           not is_simple_para_load(p) then
+           not is_simple_para_load(p,true) then
           begin
             { temp create }
             usederef:=(p.resultdef.typ in [arraydef,recorddef]) or
@@ -1663,26 +1671,33 @@ implementation
             ) then
           begin
             { Optimize calls like x:=f() where we can use x directly as
-              result instead of using a temp. Condition is that cannot be accessed from f().
+              result instead of using a temp. Condition is that x cannot be accessed from f().
               This implies that x is a local variable or value parameter of the current block
               and its address is not passed to f. One problem: what if someone takes the
-              address of x, puts it in a pointer variable/field and then accesses it that way from within
-              the function? This is solved (in a conservative way) using the ti_addr_taken/addr_taken flags.
+              address of x, puts it in a pointer variable/field and then accesses it that way
+              from within the function? This is solved (in a conservative way) using the
+              ti_addr_taken flag.
 
-              When the result is not not passed in a parameter there are no problem because then then it
-              means only reference counted types (eg. ansistrings) that need a decr of the refcount before
-              being assigned. This is all done after the call so there is no issue with exceptions and
-              possible use of the old value in the called function }
+              When the result is not not passed in a parameter there are no problem because
+              then it means only reference counted types (eg. ansistrings) that need a decr
+              of the refcount before being assigned. This is all done after the call so there
+              is no issue with exceptions and possible use of the old value in the called
+              function }
             if assigned(aktassignmentnode) and
                (aktassignmentnode.right=self) and
                (aktassignmentnode.left.resultdef=resultdef) and
                valid_for_var(aktassignmentnode.left,false) and
                (
-                { when it is not passed in a parameter it will only be used after the function call, but
-                  only do it when it will be a simple parameter node and doesn't need to be in a temp }
+                { when it is not passed in a parameter it will only be used after the
+                  function call, but only do it when it will be a simple parameter node
+                  and doesn't need to be in a temp }
                 (
                  not paramanager.ret_in_param(resultdef,procdefinition.proccalloption) and
-                 is_simple_para_load(aktassignmentnode.left)
+                 { when we substitute a function result inside an inlined function,
+                   we may take the address of this function result. Therefore the
+                   substituted function result may not be in a register, as we cannot
+                   take its address in that case                                      }
+                 is_simple_para_load(aktassignmentnode.left,false)
                 ) or
                 (
                  (aktassignmentnode.left.nodetype = temprefn) and
