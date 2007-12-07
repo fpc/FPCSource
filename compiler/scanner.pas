@@ -487,6 +487,11 @@ implementation
 
     procedure dir_ifopt;
       begin
+        if localswitcheschanged then
+          begin
+            current_settings.localswitches:=nextlocalswitches;
+            localswitcheschanged:=false;
+          end;
         current_scanner.ifpreprocstack(pp_ifopt,@opt_check,scan_c_ifopt_found);
       end;
 
