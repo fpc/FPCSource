@@ -1657,6 +1657,7 @@ implementation
     procedure tcallnode.maybe_create_funcret_node;
       var
         temp : ttempcreatenode;
+        realassignmenttarget: tnode;
       begin
         { For the function result we need to create a temp node for:
             - Inlined functions
@@ -1683,6 +1684,8 @@ implementation
               of the refcount before being assigned. This is all done after the call so there
               is no issue with exceptions and possible use of the old value in the called
               function }
+            if assigned(aktassignmentnode) then
+              realassignmenttarget:=aktassignmentnode.left.actualtargetnode;
             if assigned(aktassignmentnode) and
                (aktassignmentnode.right=self) and
                (aktassignmentnode.left.resultdef=resultdef) and
@@ -1700,27 +1703,30 @@ implementation
                  is_simple_para_load(aktassignmentnode.left,false)
                 ) or
                 (
-                 (aktassignmentnode.left.nodetype = temprefn) and
-                 not(ti_addr_taken in ttemprefnode(aktassignmentnode.left).tempinfo^.flags) and
-                 not(ti_may_be_in_reg in ttemprefnode(aktassignmentnode.left).tempinfo^.flags)
+                 (realassignmenttarget.nodetype=temprefn) and
+                 not(ti_addr_taken in ttemprefnode(realassignmenttarget).tempinfo^.flags) and
+                 not(ti_may_be_in_reg in ttemprefnode(realassignmenttarget).tempinfo^.flags)
                 ) or
                 (
-                 (aktassignmentnode.left.nodetype = loadn) and
+                 (realassignmenttarget.nodetype=loadn) and
                  { nested procedures may access the current procedure's locals }
                  (procdefinition.parast.symtablelevel=normal_function_level) and
-                 { must be a local variable or a value para }
+                 { must be a local variable, a value para or a hidden function result }
+                 { parameter (which can be passed by address, but in that case it got }
+                 { through these same checks at the caller side and is thus safe      }
                  (
-                  (tloadnode(aktassignmentnode.left).symtableentry.typ = localvarsym) or
+                  (tloadnode(realassignmenttarget).symtableentry.typ=localvarsym) or
                   (
-                   (tloadnode(aktassignmentnode.left).symtableentry.typ = paravarsym) and
-                   (tparavarsym(tloadnode(aktassignmentnode.left).symtableentry).varspez = vs_value)
+                   (tloadnode(realassignmenttarget).symtableentry.typ=paravarsym) and
+                   ((tparavarsym(tloadnode(realassignmenttarget).symtableentry).varspez = vs_value) or
+                    (vo_is_funcret in tparavarsym(tloadnode(realassignmenttarget).symtableentry).varoptions))
                   )
                  ) and
                  { the address may not have been taken of the variable/parameter, because }
                  { otherwise it's possible that the called function can access it via a   }
                  { global variable or other stored state                                  }
-                 not(tabstractvarsym(tloadnode(aktassignmentnode.left).symtableentry).addr_taken) and
-                 (tabstractvarsym(tloadnode(aktassignmentnode.left).symtableentry).varregable in [vr_none,vr_addr])
+                 not(tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).addr_taken) and
+                 (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
                 )
                ) then
               begin

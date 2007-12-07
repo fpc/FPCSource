@@ -47,6 +47,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
+          function actualtargetnode: tnode;override;
           procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -1628,6 +1629,16 @@ implementation
          r.obj:=self;
          if assigned(r.proc) then
           result:=tprocedureofobject(r)();
+      end;
+
+
+    function ttypeconvnode.actualtargetnode: tnode;
+      begin
+        result:=self;
+        while (result.nodetype=typeconvn) and
+              (nf_absolute in result.flags) and
+              (resultdef.size=left.resultdef.size) do
+          result:=ttypeconvnode(result).left;
       end;
 
 
