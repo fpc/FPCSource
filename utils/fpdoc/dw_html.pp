@@ -15,14 +15,11 @@
 {$mode objfpc}
 {$H+}
 
-{$DEFINE FPDOC_CHM}
-
 unit dw_HTML;
 
 interface
 
-uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter
-    {$IFDEF FPDOC_CHM},ChmWriter, ChmBase{$ENDIF};
+uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter, ChmWriter, ChmBase;
 
 const
   // Subpage indices for modules
@@ -255,17 +252,13 @@ type
     Procedure CreateAllocator; override;
   end;
 
-{$DEFINE FPDOC_CHM}
-
-{$IFDEF FPDOC_CHM}
   {$DEFINE chmInterface}
   {$I dw_htmlchm.inc}
   {$UNDEF chmInterface}
-{$ENDIF}
 
 implementation
 
-uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas {$IFDEF FPDOC_CHM},chmsitemap{$ENDIF};
+uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas,chmsitemap;
 
 
 Function FixHTMLpath(S : String) : STring;
@@ -3019,13 +3012,10 @@ initialization
   // Do not localize.
   RegisterWriter(THTMLWriter,'html','HTML output using fpdoc.css stylesheet.');
   RegisterWriter(THTMWriter,'htm','HTM (8.3 filenames) output using fpdoc.css stylesheet.');
-  {$IFDEF FPDOC_CHM}
   RegisterWriter(TCHMHTMLWriter,'chm','Compressed HTML file output using fpdoc.css stylesheet.');
-  {$ENDIF}
+
 finalization
   UnRegisterWriter('html');
   UnRegisterWriter('htm');
-  {$IFDEF FPDOC_CHM}
   UnRegisterWriter('chm');
-  {$ENDIF}
 end.
