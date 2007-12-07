@@ -8820,6 +8820,7 @@ utils/fpdoc/Makefile.fpc svneol=native#text/plain
 utils/fpdoc/README -text
 utils/fpdoc/dglobals.pp svneol=native#text/plain
 utils/fpdoc/dw_html.pp svneol=native#text/plain
+utils/fpdoc/dw_htmlchm.inc svneol=native#text/plain
 utils/fpdoc/dw_ipf.pp svneol=native#text/plain
 utils/fpdoc/dw_latex.pp svneol=native#text/plain
 utils/fpdoc/dw_linrtf.pp svneol=native#text/plain

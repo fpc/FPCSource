@@ -98,6 +98,15 @@ resourcestring
   
   // HTML usage
   SHTMLUsageFooter = 'Append xhtml from file as footer to html page';
+  
+  // CHM usage
+  SCHMUsageTOC     = 'Use [File] as the table of contents. Usually a .hhc file.';
+  SCHMUsageIndex   = 'Use [File] as the index. Usually a .hhk file.';
+  SCHMUsageDefPage = 'Set the "Home" page relative to where it lives in the chm. i.e. "/index.html"';
+  SCHMUsageOtrFiles= 'A txt file containing a list of files to be added relative to the working directory.';
+  SCHMUsageCSSFile = 'Filename of a .css file to be included in the chm.';
+  SCHMUsageAutoTOC = 'Automatically generate a Table of Contents. Ignores --toc-file';
+  SCHMUsageAutoIDX = 'Automatically generate an Index. Ignores --index-file';
 
   STitle           = 'FPDoc - Free Pascal Documentation Tool';
   SVersion         = 'Version %s [%s]';
