@@ -439,7 +439,7 @@ implementation
                 end
             end;
 
-        { Add,Sub,Mul with constant 0 or 1?  }
+        { Add,Sub,Mul with constant 0, 1 or -1?  }
         if is_constintnode(right) and is_integer(left.resultdef) then
           begin
             if tordconstnode(right).value = 0 then
@@ -456,6 +456,13 @@ implementation
                 case nodetype of
                   muln:
                    result := left.getcopy;
+                end;
+              end
+            else if tordconstnode(right).value = -1 then
+              begin
+                case nodetype of
+                  muln:
+                   result := cunaryminusnode.create(left.getcopy);
                 end;
               end;
             if assigned(result) then
@@ -479,6 +486,13 @@ implementation
                 case nodetype of
                   muln:
                    result := right.getcopy;
+                end;
+              end
+            else if tordconstnode(left).value = -1 then
+              begin
+                case nodetype of
+                  muln:
+                   result := cunaryminusnode.create(right.getcopy);
                 end;
               end;
             if assigned(result) then
