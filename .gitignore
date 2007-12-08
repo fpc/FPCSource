@@ -87,6 +87,7 @@ compiler/powerpc/*.ppu
 compiler/powerpc/*.s
 compiler/powerpc/fpcmade.*
 compiler/powerpc/units
+compiler/powerpc64/units
 compiler/ppc1
 compiler/ppc2
 compiler/ppc3
@@ -114,11 +115,14 @@ compiler/utils/*.exe
 compiler/utils/*.o
 compiler/utils/*.ppu
 compiler/utils/*.s
+compiler/utils/dummyas
 compiler/utils/fpc
 compiler/utils/fpcmade.*
 compiler/utils/fpcmkcfg
 compiler/utils/fpcsubst
 compiler/utils/fppkg
+compiler/utils/mkx86ins
+compiler/utils/mkx86reg
 compiler/utils/ppudump
 compiler/utils/ppufiles
 compiler/utils/ppumove
