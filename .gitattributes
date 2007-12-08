@@ -7301,6 +7301,7 @@ tests/test/twide3.pp svneol=native#text/plain
 tests/test/twide4.pp svneol=native#text/plain
 tests/test/twide5.pp svneol=native#text/plain
 tests/test/twide6.pp svneol=native#text/plain
+tests/test/twide7.pp svneol=native#text/plain
 tests/test/twrstr1.pp svneol=native#text/plain
 tests/test/twrstr2.pp svneol=native#text/plain
 tests/test/twrstr3.pp svneol=native#text/plain
