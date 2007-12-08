@@ -537,12 +537,41 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
   end;
 
 
+function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char; external name 'FPC_UTF16TOUTF32';
+
+function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
+  var
+    i, slen,
+    destindex : SizeInt;
+    len       : longint;
+    uch       : UCS4Char;
+  begin
+    slen:=length(s);
+    setlength(result,slen+1);
+    i:=1;
+    destindex:=0;
+    while (i<=slen) do
+      begin
+        uch:=utf16toutf32(s,i,len);
+        if (uch=UCS4Char(0)) then
+          uch:=UCS4Char(32);
+        result[destindex]:=uch;
+        inc(destindex);
+        inc(i,len);
+      end;
+    result[destindex]:=UCS4Char(0);
+    { destindex <= slen }
+    setlength(result,destindex);
+  end;
+
+
 function CompareWideString(const s1, s2 : WideString) : PtrInt;
   var
     hs1,hs2 : UCS4String;
   begin
-    hs1:=WideStringToUCS4String(s1);
-    hs2:=WideStringToUCS4String(s2);
+    { wcscoll interprets null chars as end-of-string -> filter out }
+    hs1:=WideStringToUCS4StringNoNulls(s1);
+    hs2:=WideStringToUCS4StringNoNulls(s2);
     result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
   end;
 

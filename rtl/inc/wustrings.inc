@@ -1815,7 +1815,7 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
 
 
 { converts an utf-16 code point or surrogate pair to utf-32 }
-function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char;
+function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char; [public, alias: 'FPC_UTF16TOUTF32'];
 var
   w: widechar;
 begin
@@ -1853,7 +1853,6 @@ function WideStringToUCS4String(const s : WideString) : UCS4String;
     i, slen,
     destindex : SizeInt;
     len       : longint;
-    uch       : UCS4Char;
   begin
     slen:=length(s);
     setlength(result,slen+1);
