@@ -2223,7 +2223,7 @@ _MCI_ANIM_PLAY_PARMS = packed Record
   PMCI_ANIM_WINDOW_PARMS  = PMCI_ANIM_WINDOW_PARMSA;
   LPMCI_ANIM_WINDOW_PARMS = LPMCI_ANIM_WINDOW_PARMSA;
  {$endif}
-  TMCI_ANIM_WINDOW_PARMS  = TMCI_Anim_Window_Parms;
+  TMCI_ANIM_WINDOW_PARMS  = MCI_Anim_Window_Parms;
  _MCI_ANIM_RECT_PARMS  = packed Record
                                 dwCallback: DWORD;
                                 rc: TRECT;
