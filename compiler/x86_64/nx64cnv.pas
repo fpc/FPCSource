@@ -26,7 +26,7 @@ unit nx64cnv;
 interface
 
     uses
-      node,ncgcnv,defutil,defcmp,
+      node,ncgcnv,defutil,defcmp,pass_1,
       nx86cnv;
 
     type
@@ -41,6 +41,7 @@ interface
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
          { function first_int_to_real: tnode; override; }
+         function first_int_to_real : tnode;override;
          procedure second_int_to_real;override;
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
@@ -68,6 +69,22 @@ implementation
       tgobj;
 
 
+    function tx8664typeconvnode.first_int_to_real : tnode;
+      begin
+        result:=nil;
+        if use_sse(resultdef) and
+           (torddef(left.resultdef).ordtype=u32bit) then
+          begin
+            inserttypeconv(left,s64inttype);
+            firstpass(left);
+          end
+        else
+          result:=inherited first_int_to_real;
+       if use_sse(resultdef) then
+         expectloc:=LOC_MMREGISTER;
+      end;
+
+
     procedure tx8664typeconvnode.second_int_to_real;
       var
          href : treference;
@@ -76,11 +93,6 @@ implementation
       begin
         if use_sse(resultdef) then
           begin
-            { We can only directly convert s32bit and s64bit,u64bit values, for other
-              values convert first to s64bit }
-            if not(torddef(left.resultdef).ordtype in [s32bit,s64bit,u64bit]) then
-              location_force_reg(current_asmdata.CurrAsmList,left.location,OS_S64,false);
-
             if is_double(resultdef) then
               op:=A_CVTSI2SD
             else if is_single(resultdef) then
@@ -89,7 +101,7 @@ implementation
               internalerror(200506061);
 
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
             case torddef(left.resultdef).ordtype of
               u64bit:
@@ -148,24 +160,7 @@ implementation
                    cg.a_label(current_asmdata.CurrAsmList,l2);
                 end
               else
-                begin
-                  if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-                    location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
-                  case left.location.loc of
-                    LOC_CREFERENCE,
-                    LOC_REFERENCE :
-                      begin
-                        href:=left.location.reference;
-                        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-                        current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
-                      end;
-                    LOC_CREGISTER,
-                    LOC_REGISTER :
-                      current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(op,tcgsize2opsize[left.location.size],left.location.register,location.register));
-                    else
-                      internalerror(200506072);
-                  end;
-                end;
+                inherited second_int_to_real;
             end;
           end
         else
