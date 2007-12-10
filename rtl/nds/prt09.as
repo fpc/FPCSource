@@ -1,4 +1,13 @@
 @---------------------------------------------------------------------------------
+@ DS processor selection
+@---------------------------------------------------------------------------------
+	.arch	armv5te
+	.cpu	arm946e-s
+@---------------------------------------------------------------------------------
+
+	.equ	_libnds_argv,	0x027FFF70
+
+@---------------------------------------------------------------------------------
 	.section ".init"
 	.global _start
 @---------------------------------------------------------------------------------
@@ -95,14 +104,14 @@ _start:
 	@-------------------------------------------------------------------------
 	@ Write buffer enable
 	@-------------------------------------------------------------------------
-	ldr	r0,=0b00000110
+	ldr	r0,=0b00000010
 	mcr	p15, 0, r0, c3, c0, 0
 
 	@-------------------------------------------------------------------------
 	@ DCache & ICache enable
 	@-------------------------------------------------------------------------
-	ldr	r0,=0b01000010
-
+	ldr	r0,=0b01000110
+	ldr	r0,=0x42
 	mcr	p15, 0, r0, c2, c0, 0
 	mcr	p15, 0, r0, c2, c0, 1
 
@@ -148,6 +157,8 @@ _start:
 	ldr	r4, =__dtcm_end
 	bl	CopyMemCheck
 
+	bl	checkARGV					@	check and process argv trickery
+
 	ldr	r0, =__bss_start	@ Clear BSS section
 	ldr	r1, =__bss_end
 	sub	r1, r1, r0
@@ -162,13 +173,26 @@ _start:
 	ldr	r0, =__eheap_end
 	str	r0, [r1]
 
-	mov	r0, #0			@ int argc
-	mov	r1, #0			@ char *argv[]
-	ldr	r3, =main
-  bx	r3
-  nop
+@	ldr	r3, =__libc_init_array	@ global constructors
+@	blx	r3
 
-	@ If the user ever returns, go to an infinte loop
+	ldr	r3,	=initSystem
+	blx	r3	@	jump to user code
+
+	ldr	r0,	=_libnds_argv
+
+	@ reset heap base
+	ldr	r2, [r0,#20]            @ newheap base
+	ldr	r1,=fake_heap_start
+	str	r2,[r1]
+
+	ldr	r1, [r0,#16]            @ argv
+	ldr	r0, [r0,#12]            @ argc
+
+	ldr	r3, =main
+	blx	r3		@ jump to user code
+		
+	@ If the user ever returns, go back to passme loop
 	ldr	r0, =ILoop
 	ldr	r0, [r0]
 	ldr	r1, =0x027FFE78
@@ -177,8 +201,56 @@ _start:
 ILoop:
 	b	ILoop
 
-
 @---------------------------------------------------------------------------------
+@ check for a commandline
+@---------------------------------------------------------------------------------
+checkARGV:
+@---------------------------------------------------------------------------------
+	ldr	r0, =_libnds_argv       @ argv structure
+	mov	r1, #0
+	str	r1, [r0,#12]            @ clear argc
+	str	r1, [r0,#16]            @ clear argv
+ 	  	 
+	ldr	r1, [r0]                @ argv magic number
+	ldr	r2, =0x5f617267         @ '_arg'
+	cmp	r1, r2
+	bxne	lr                      @ bail out if no magic
+
+	ldr	r1, [r0, #4]            @ command line address
+	ldr	r2, [r0, #8]            @ length of command line
+
+	@ copy to heap
+	ldr	r3, =__end__            @ initial heap base
+	str	r3, [r0, #4]            @ set command line address
+ 	  	 
+	cmp	r2, #0
+	subnes	r4, r3, r1              @ dst-src
+	bxeq	lr                      @ dst == src || len==0 : nothing to do.
+
+	cmphi	r2, r4                  @ len > (dst-src)
+	bhi	.copybackward
+
+.copyforward:
+	ldrb	r4, [r1], #1
+	strb	r4, [r3], #1
+	subs	r2, r2, #1
+	bne	.copyforward
+	b	.copydone
+
+.copybackward:
+	subs	r2, r2, #1
+	ldrb	r4, [r1, r2]
+	strb	r4, [r3, r2]
+	bne	.copybackward
+
+.copydone:
+	push	{lr}
+	ldr	r3, =build_argv
+	blx	r3
+	pop	{lr}
+	bx	lr
+
+
 @---------------------------------------------------------------------------------
 @ Clear memory to 0x00 if length != 0
 @  r0 = Start Address
