@@ -2497,7 +2497,7 @@ implementation
         lastfileinfo : tfileposinfo;
         currfuncname : pshortstring;
         currsectype  : TAsmSectiontype;
-        hp : tai;
+        hp, hpend : tai;
         infile : tinputfile;
         prevcolumn,
         diffline,
@@ -2620,7 +2620,19 @@ implementation
                 lastfileinfo:=currfileinfo;
               end;
 
+            hpend:=hp;
             hp:=tai(hp.next);
+          end;
+
+        if assigned(hpend) then
+          begin
+           { set address for end (see appendix 3 of dwarf 2 specs) }
+            current_asmdata.getlabel(currlabel, alt_dbgline);
+            list.insertafter(tai_label.create(currlabel), hpend);
+            asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
+            asmline.concat(tai_const.create_uleb128bit(1+sizeof(aint)));
+            asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
+            asmline.concat(tai_const.create_sym(currlabel));
           end;
 
         { end sequence }
