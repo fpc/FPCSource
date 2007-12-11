@@ -313,10 +313,16 @@ implementation
           type is not available. The rtti for pvmt will be written implicitly
           by thev tblarray below }
         systemunit.insert(ttypesym.create('$pvmt',pvmttype));
+        hrecst.insertfield(tfieldvarsym.create('$length',vs_value,ptrsinttype,[]));
+        hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,ptrsinttype,[]));
         hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype,[]));
-        hrecst.insertfield(tfieldvarsym.create('$length',vs_value,s32inttype,[]));
-        hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,s32inttype,[]));
-        vmtarraytype:=tarraydef.create(0,1,s32inttype);
+        { it seems vmttype is used both for TP objects and Delphi classes,
+          so the next entry could either be the first virtual method (vm1)
+          (object) or the class name (class). We can't easily create separate
+          vtable formats for both, as gdb is hard coded to search for
+          __vtbl_ptr_type in all cases (JM) }
+        hrecst.insertfield(tfieldvarsym.create('$vm1_or_classname',vs_value,tpointerdef.create(cshortstringtype),[]));
+        vmtarraytype:=tarraydef.create(0,0,s32inttype);
         tarraydef(vmtarraytype).elementdef:=voidpointertype;
         hrecst.insertfield(tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
         addtype('$__vtbl_ptr_type',vmttype);
