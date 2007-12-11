@@ -3604,8 +3604,10 @@ implementation
         { mm registers }
         if uses_registers(R_MMREGISTER) then
           begin
-            if (size mod tcgsize2size[OS_VECTOR])<>0 then
-              inc(size,tcgsize2size[OS_VECTOR]-(size mod tcgsize2size[OS_VECTOR]));
+            { Make sure we reserve enough space to do the alignment based on the offset
+              later on. We can't use the size for this, because the alignment of the start
+              of the temp is smaller than needed for an OS_VECTOR }
+            inc(size,tcgsize2size[OS_VECTOR]);
 
             for r:=low(saved_mm_registers) to high(saved_mm_registers) do
               if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
