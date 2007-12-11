@@ -2539,7 +2539,11 @@ implementation
 
     function TDebugInfoDwarf.symname(sym: tsym): String;
       begin
-        result := sym.Name;
+        if (sym.typ=paravarsym) and
+           (vo_is_self in tlocalvarsym(sym).varoptions) then
+          result:='this'
+        else
+          result := sym.Name;
       end;
 
 
