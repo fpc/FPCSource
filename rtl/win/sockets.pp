@@ -265,7 +265,7 @@ var
   wsadata : twsadata;
 
 initialization
-  WSAStartUp($2,wsadata);
+  WSAStartUp(WINSOCK_VERSION,wsadata);
 finalization
   WSACleanUp;
 end.

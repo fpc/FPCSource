@@ -86,6 +86,7 @@ unit winsock;
 
     const
        winsockdll    = 'ws2.dll';
+       WINSOCK_VERSION = $0101; // hopefully is right for winCE too
 
        {
          Default maximium number of sockets.
