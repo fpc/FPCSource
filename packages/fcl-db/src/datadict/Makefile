@@ -366,7 +366,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_UNITS+=fpdatadict fpdddbf fpddsqldb  fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=fpdatadict fpdddbf fpddsqldb  fpddpq fpddodbc fpddsqlite3
+override TARGET_UNITS+=fpdatadict fpdddbf fpddsqldb  fpddodbc fpddsqlite3
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_UNITS+=fpdatadict fpdddbf fpddsqldb
