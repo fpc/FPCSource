@@ -7,6 +7,7 @@ uses
 
 type
   ITest = interface
+    ['{7B7E58C4-6E23-4414-8EB2-CA81023348DE}']
     procedure DoIt(AMsg : string);
   end;
 

@@ -368,6 +368,7 @@ implementation
               valid:=string2guid(aktobjectdef.iidstr^,aktobjectdef.iidguid^);
               if (classtype in [odt_interfacecom,odt_dispinterface]) and not assigned(aktobjectdef.iidguid) and not valid then
                 Message(parser_e_improper_guid_syntax);
+              include(aktobjectdef.objectoptions,oo_has_valid_guid);
             end
           else
             begin

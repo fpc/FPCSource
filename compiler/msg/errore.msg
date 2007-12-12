@@ -1413,6 +1413,9 @@ type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may resu
 % allocate memory above \$80000000, for example both Windows and Linux allow pointers in the range \$0000000 to \$bfffffff.
 % If you convert pointers to signed types, this can cause overflow and range check errors, but also \$80000000 < \$7fffffff.
 % This can cause random errors in code like "if p>q".
+type_interface_has_no_guid=04084_E_Interface type $1 has no valid GUID
+% When applying the as-operator to an interface or class, the desired interface, i.e. the right operand of the
+% as-operator must have a valid GUID
 % \end{description}
 #
 # Symtable
