@@ -1,3 +1,4 @@
+{ %fail }
 program intfbug2;
 {$ifdef fpc}
 {$mode objfpc} {$H+}
@@ -42,5 +43,8 @@ var
 
 begin
   I := TMyComCorba.Create;
-  if Supports(I, IMyCom1, A1) then A1.A1;
+  A1 := I as IMyCom1;
+  A1.A1;
+  A2 := I as IMyCom2;
+  A2.A2;
 end.
