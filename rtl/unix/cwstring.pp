@@ -46,20 +46,20 @@ Const
 {$endif}
 
 { helper functions from libc }
-function tolower(__wc:cint):cint;cdecl;external libiconvname name 'tolower';
-function toupper(__wc:cint):cint;cdecl;external libiconvname name 'toupper';
-function towlower(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towlower';
-function towupper(__wc:wint_t):wint_t;cdecl;external libiconvname name 'towupper';
+function towlower(__wc:wint_t):wint_t;cdecl;external clib name 'towlower';
+function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
 
-function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external libiconvname name 'wcscoll';
-function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external libiconvname name 'strcoll';
+function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external clib name 'wcscoll';
+function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external clib name 'strcoll';
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
 {$ifndef beos}
 function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
 function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
+function mbrlen(const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrlen';
 {$else beos}
 function mbtowc(pwc: pwchar_t; const s: pchar; n: size_t): size_t; cdecl; external clib name 'mbtowc';
 function wctomb(s: pchar; wc: wchar_t): size_t; cdecl; external clib name 'wctomb';
+function mblen(const s: pchar; n: size_t): size_t; cdecl; external clib name 'mblen';
 {$endif beos}
 
 
@@ -109,6 +109,13 @@ const
   unicode_encoding4 = 'UCS-4BE';
 {$endif  FPC_LITTLE_ENDIAN}
 
+{ en_US.UTF-8 needs maximally 6 chars, UCS-4/UTF-32 needs 4   }
+{ -> 10 should be enough? Should actually use MB_CUR_MAX, but }
+{ that's a libc macro mapped to internal functions/variables  }
+{ and thus not a stable external API on systems where libc    }
+{ breaks backwards compatibility every now and then           }
+  MB_CUR_MAX = 10;
+
 type
   piconv_t = ^iconv_t;
   iconv_t = pointer;
@@ -127,9 +134,10 @@ function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppc
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'libiconv_close';
 {$endif}
 
+procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
+
+
 threadvar
-  iconv_ansi2ucs4,
-  iconv_ucs42ansi,
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
  
@@ -270,8 +278,8 @@ function LowerWideString(const s : WideString) : WideString;
     i : SizeInt;
   begin
     SetLength(result,length(s));
-    for i:=1 to length(s) do
-      result[i]:=WideChar(towlower(wint_t(s[i])));
+    for i:=0 to length(s)-1 do
+      pwidechar(result)[i]:=WideChar(towlower(wint_t(s[i+1])));
   end;
 
 
@@ -280,8 +288,8 @@ function UpperWideString(const s : WideString) : WideString;
     i : SizeInt;
   begin
     SetLength(result,length(s));
-    for i:=1 to length(s) do
-      result[i]:=WideChar(towupper(wint_t(s[i])));
+    for i:=0 to length(s)-1 do
+      pwidechar(result)[i]:=WideChar(towupper(wint_t(s[i+1])));
   end;
 
 
@@ -319,12 +327,7 @@ begin
     ConcatCharToAnsiStr(char(nc),s,index)
   else
     begin
-      { en_US.UTF-8 needs maximally 6 chars, UCS-4/UTF-32 needs 4   }
-      { -> 10 should be enough? Should actually use MB_CUR_MAX, but }
-      { that's a libc macro mapped to internal functions/variables  }
-      { and thus not a stable external API on systems where libc    }
-      { breaks backwards compatibility every now and then           }
-      EnsureAnsiLen(s,index+10);
+      EnsureAnsiLen(s,index+MB_CUR_MAX);
 {$ifndef beos}
       mblen:=wcrtomb(p,wchar_t(nc),@mbstate);
 {$else not beos}
@@ -365,46 +368,44 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
       begin
         if (s[i]<=#127) then
           begin
-            ConcatCharToAnsiStr(char(tolower(cint(s[i]))),result,resindex);
-            inc(i)
+            wc:=wchar_t(s[i]);
+            mblen:= 1;
           end
         else
-          begin
 {$ifndef beos}
-            mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
+          mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
-            mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
+          mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
 {$endif not beos}
-            case mblen of
-              size_t(-2):
-                begin
-                  { partial invalid character, copy literally }
-                  while (i<=slen) do
-                    begin
-                      ConcatCharToAnsiStr(s[i],result,resindex);
-                      inc(i);
-                    end;
-                end;
-              size_t(-1), 0:
-                begin
-                  { invalid or null character }
-                  ConcatCharToAnsiStr(s[i],result,resindex);
-                  inc(i);
-                end;
-              else
-                begin
-                  { a valid sequence }
-                  { even if mblen = 1, the lowercase version may have a }
-                  { different length                                     }
-                  { We can't do anything special if wchar_t is 16 bit... }
+          case mblen of
+            size_t(-2):
+              begin
+                { partial invalid character, copy literally }
+                while (i<=slen) do
+                  begin
+                    ConcatCharToAnsiStr(s[i],result,resindex);
+                    inc(i);
+                  end;
+              end;
+            size_t(-1), 0:
+              begin
+                { invalid or null character }
+                ConcatCharToAnsiStr(s[i],result,resindex);
+                inc(i);
+              end;
+            else
+              begin
+                { a valid sequence }
+                { even if mblen = 1, the lowercase version may have a }
+                { different length                                     }
+                { We can't do anything special if wchar_t is 16 bit... }
 {$ifndef beos}
-                  ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex,nmbstate);
+                ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
-                  ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex);
+                ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex);
 {$endif not beos}
-                  inc(i,mblen);
-                end;
-            end;
+                inc(i,mblen);
+              end;
           end;
       end;
     SetLength(result,resindex-1);
@@ -434,106 +435,47 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
       begin
         if (s[i]<=#127) then
           begin
-            ConcatCharToAnsiStr(char(toupper(cint(s[i]))),result,resindex);
-            inc(i)
+            wc:=wchar_t(s[i]);
+            mblen:= 1;
           end
         else
-          begin
 {$ifndef beos}          
-            mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
+          mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
-            mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
+          mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
 {$endif beos}
-            case mblen of
-              size_t(-2):
-                begin
-                  { partial invalid character, copy literally }
-                  while (i<=slen) do
-                    begin
-                      ConcatCharToAnsiStr(s[i],result,resindex);
-                      inc(i);
-                    end;
-                end;
-              size_t(-1), 0:
-                begin
-                  { invalid or null character }
-                  ConcatCharToAnsiStr(s[i],result,resindex);
-                  inc(i);
-                end;
-              else
-                begin
-                  { a valid sequence }
-                  { even if mblen = 1, the uppercase version may have a }
-                  { different length                                     }
-                  { We can't do anything special if wchar_t is 16 bit... }
+          case mblen of
+            size_t(-2):
+              begin
+                { partial invalid character, copy literally }
+                while (i<=slen) do
+                  begin
+                    ConcatCharToAnsiStr(s[i],result,resindex);
+                    inc(i);
+                  end;
+              end;
+            size_t(-1), 0:
+              begin
+                { invalid or null character }
+                ConcatCharToAnsiStr(s[i],result,resindex);
+                inc(i);
+              end;
+            else
+              begin
+                { a valid sequence }
+                { even if mblen = 1, the uppercase version may have a }
+                { different length                                     }
+                { We can't do anything special if wchar_t is 16 bit... }
 {$ifndef beos}
-                  ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
+                ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
-                  ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
+                ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
 {$endif not beos}
-                  inc(i,mblen);
-                end;
-            end;
+                inc(i,mblen);
+              end;
           end;
       end;
     SetLength(result,resindex-1);
-  end;
-
-
-procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
-  var
-    outlength,
-    outoffset,
-    outleft : size_t;
-    err: cint;
-    srcpos,
-    destpos: pchar;
-    mynil : pchar;
-    my0 : size_t;
-  begin
-    mynil:=nil;
-    my0:=0;
-    // extra space
-    outlength:=len+1;
-    setlength(dest,outlength);
-    outlength:=len+1;
-    srcpos:=source;
-    destpos:=pchar(dest);
-    outleft:=outlength*4;
-    while iconv(iconv_ansi2ucs4,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
-      begin
-        err:=fpgetCerrno;
-        case err of
-         ESysEINVAL,
-         ESysEILSEQ:
-            begin
-              { skip and set to '?' }
-              inc(srcpos);
-              dec(len);
-              plongint(destpos)^:=longint('?');
-              inc(destpos,4);
-              dec(outleft,4);
-              { reset }
-              iconv(iconv_ansi2ucs4,@mynil,@my0,@mynil,@my0);
-              if err=ESysEINVAL then
-                break;
-            end;
-          ESysE2BIG:
-            begin
-              outoffset:=destpos-pchar(dest);
-              { extend }
-              setlength(dest,outlength+len);
-              inc(outleft,len*4);
-              inc(outlength,len);
-              { string could have been moved }
-              destpos:=pchar(dest)+outoffset;
-            end;
-          else
-            runerror(231);
-        end;
-      end;
-    // truncate string
-    setlength(dest,length(dest)-outleft div 4);
   end;
 
 
@@ -582,18 +524,169 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   end;
 
 
+function CharLengthPChar(const Str: PChar): PtrInt;
+  var
+    nextlen: ptrint;
+    s: pchar;
+{$ifndef beos}
+    mbstate: mbstate_t;
+{$endif not beos}
+  begin
+    result:=0;
+    s:=str;
+    repeat
+{$ifdef beos}
+      nextlen:=ptrint(mblen(str,MB_CUR_MAX));
+{$else beos}
+      nextlen:=ptrint(mbrlen(str,MB_CUR_MAX,@mbstate));
+{$endif beos}
+      { skip invalid/incomplete sequences }
+      if (nextlen<0) then
+        nextlen:=1;
+      inc(result,nextlen);
+      inc(s,nextlen);
+    until (nextlen=0);
+  end;
+
+
+function StrCompAnsiIntern(const s1,s2 : PChar; len1, len2: PtrInt): PtrInt;
+  var
+    a,b: pchar;
+    i: PtrInt;
+  begin
+    getmem(a,len1+1);
+    getmem(b,len2+1);
+    for i:=0 to len1-1 do
+      if s1[i]<>#0 then
+        a[i]:=s1[i]
+      else
+        a[i]:=#32;
+    a[len1]:=#0;
+    for i:=0 to len2-1 do
+      if s2[i]<>#0 then
+        b[i]:=s2[i]
+      else
+        b[i]:=#32;
+    b[len2]:=#0;
+    result:=strcoll(a,b);
+    freemem(a);
+    freemem(b);
+  end;
+
+
+function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
+  begin
+    result:=StrCompAnsiIntern(pchar(s1),pchar(s2),length(s1),length(s2));
+  end;
+
+
 function StrCompAnsi(s1,s2 : PChar): PtrInt;
   begin
     result:=strcoll(s1,s2);
   end;
 
 
+function AnsiCompareText(const S1, S2: ansistring): PtrInt;
+  var
+    a, b: AnsiString;
+  begin
+    a:=UpperAnsistring(s1);
+    b:=UpperAnsistring(s2);
+    result:=StrCompAnsiIntern(pchar(a),pchar(b),length(a),length(b));
+  end;
+
+
+function AnsiStrIComp(S1, S2: PChar): PtrInt;
+  begin
+    result:=AnsiCompareText(ansistring(s1),ansistring(s2));
+  end;
+
+
+function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+  var
+    a, b: pchar;
+begin
+  if (IndexChar(s1^,maxlen,#0)<0) then
+    begin
+      getmem(a,maxlen+1);
+      move(s1^,a^,maxlen);
+      a[maxlen]:=#0;
+    end
+  else
+    a:=s1;
+  if (IndexChar(s2^,maxlen,#0)<0) then
+    begin
+      getmem(b,maxlen+1);
+      move(s2^,b^,maxlen);
+      b[maxlen]:=#0;
+    end
+  else
+    b:=s2;
+  result:=strcoll(a,b);
+  if (a<>s1) then
+    freemem(a);
+  if (b<>s2) then
+    freemem(b);
+end;
+
+
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+  var
+    a, b: ansistring;
+    len1,len2: SizeInt;
+begin
+  len1:=IndexChar(s1^,maxlen,#0);
+  if (len1<0) then
+    len1:=maxlen;
+  setlength(a,len1);
+  if (len1<>0) then
+    move(s1^,a[1],len1);
+  len2:=IndexChar(s2^,maxlen,#0);
+  if (len2<0) then
+    len2:=maxlen;
+  setlength(b,len2);
+  if (len2<>0) then
+    move(s2^,b[1],len2);
+  result:=AnsiCompareText(a,b);
+end;
+
+
+procedure ansi2pchar(const s: ansistring; const orgp: pchar; out p: pchar);
+var
+  newlen: sizeint;
+begin
+  newlen:=length(s);
+  if newlen>strlen(orgp) then
+    fpc_rangeerror;
+  p:=orgp;
+  if (newlen>0) then
+    move(s[1],p[0],newlen);
+  p[newlen]:=#0;
+end;
+
+
+function AnsiStrLower(Str: PChar): PChar;
+var
+  temp: ansistring;
+begin
+  temp:=upperansistring(str);
+  ansi2pchar(temp,str,result);
+end;
+
+
+function AnsiStrUpper(Str: PChar): PChar;
+var
+  temp: ansistring;
+begin
+  temp:=loweransistring(str);
+  ansi2pchar(temp,str,result);
+end;
+
+
 procedure InitThread;
 begin
   iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,nl_langinfo(CODESET));
-  iconv_ucs42ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding4);
-  iconv_ansi2ucs4:=iconv_open(unicode_encoding4,nl_langinfo(CODESET));
 end;
 
 
@@ -603,10 +696,6 @@ begin
     iconv_close(iconv_wide2ansi);
   if (iconv_ansi2wide <> iconv_t(-1)) then
     iconv_close(iconv_ansi2wide);
-  if (iconv_ucs42ansi <> iconv_t(-1)) then
-    iconv_close(iconv_ucs42ansi);
-  if (iconv_ansi2ucs4 <> iconv_t(-1)) then
-    iconv_close(iconv_ansi2ucs4);
 end;
 
 
@@ -625,23 +714,19 @@ begin
 
       CompareWideStringProc:=@CompareWideString;
       CompareTextWideStringProc:=@CompareTextWideString;
-      {
-      CharLengthPCharProc
-      }
+
+      CharLengthPCharProc:=@CharLengthPChar;
+
       UpperAnsiStringProc:=@UpperAnsiString;
       LowerAnsiStringProc:=@LowerAnsiString;
-      {
-      CompareStrAnsiStringProc
-      CompareTextAnsiStringProc
-      }
+      CompareStrAnsiStringProc:=@CompareStrAnsiString;
+      CompareTextAnsiStringProc:=@AnsiCompareText;
       StrCompAnsiStringProc:=@StrCompAnsi;
-      {
-      StrICompAnsiStringProc
-      StrLCompAnsiStringProc
-      StrLICompAnsiStringProc
-      StrLowerAnsiStringProc
-      StrUpperAnsiStringProc
-      }
+      StrICompAnsiStringProc:=@AnsiStrIComp;
+      StrLCompAnsiStringProc:=@AnsiStrLComp;
+      StrLICompAnsiStringProc:=@AnsiStrLIComp;
+      StrLowerAnsiStringProc:=@AnsiStrLower;
+      StrUpperAnsiStringProc:=@AnsiStrUpper;
       ThreadInitProc:=@InitThread;
       ThreadFiniProc:=@FiniThread;
     end;
