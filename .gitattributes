@@ -7294,7 +7294,6 @@ tests/test/tunroll1.pp svneol=native#text/plain
 tests/test/tutf81.pp svneol=native#text/plain%3Bcharset%3Dutf-8
 tests/test/tutf82.pp svneol=native#text/plain%3Bcharset%3Dutf-8
 tests/test/tvarset1.pp svneol=native#text/plain
-tests/test/tw6727.pp svneol=native#text/plain
 tests/test/twide1.pp svneol=native#text/plain
 tests/test/twide2.pp svneol=native#text/plain
 tests/test/twide3.pp svneol=native#text/plain
@@ -8504,6 +8503,7 @@ tests/webtbs/tw6686.pp svneol=native#text/plain
 tests/webtbs/tw6687.pp svneol=native#text/plain
 tests/webtbs/tw6690.pp svneol=native#text/plain
 tests/webtbs/tw6700.pp svneol=native#text/plain
+tests/webtbs/tw6727.pp svneol=native#text/plain
 tests/webtbs/tw6735.pp svneol=native#text/plain
 tests/webtbs/tw6737.pp -text
 tests/webtbs/tw6742.pp svneol=native#text/plain
