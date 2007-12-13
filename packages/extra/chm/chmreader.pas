@@ -671,7 +671,7 @@ var
   I: Integer;
 begin
   Result := 0;
-  WriteLn('Looking for URL : ', Name);
+  //WriteLn('Looking for URL : ', Name);
   if Name = '' then Exit;
   if fDirectoryHeader.DirectoryChunkCount = 0 then exit;
 
@@ -1117,7 +1117,7 @@ begin
     Found := True;
   end;
   if not Found then exit;
-  WriteLn('Looking for URL ', URL, ' in ', AFileName);
+  //WriteLn('Looking for URL ', URL, ' in ', AFileName);
   if CheckOpenFile(AFileName) then
     Result := fLastChm.ObjectExists(URL);
   if Result > 0 then NAme := Url;
