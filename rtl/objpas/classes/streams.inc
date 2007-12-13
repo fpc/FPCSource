@@ -225,13 +225,8 @@
     var
       ResType, Flags : word;
     begin
-      {$IFDEF ENDIAN_LITTLE}
-      ResType:=$000A;
-      Flags:=$1030;
-      {$ELSE}
-      ResType:=$0A00;
-      Flags:=$3010;
-      {$ENDIF}
+       ResType:=NtoLE(word($000A));
+       Flags:=NtoLE(word($1030));
        { Note: This is a Windows 16 bit resource }
        { Numeric resource type }
        WriteByte($ff);
@@ -257,11 +252,7 @@
     begin
 
       ResSize := Position - FixupInfo;
-      {$IFDEF ENDIAN_BIG}
-      TmpResSize:=SwapEndian(ResSize);
-      {$ELSE}
-      TmpResSize:=ResSize;
-      {$ENDIF}
+      TmpResSize := NtoLE(longword(ResSize));
 
       { Insert the correct resource size into the placeholder written by
         WriteResourceHeader }
@@ -281,20 +272,14 @@
          { application specific resource ? }
          if ReadByte<>$ff then
            raise EInvalidImage.Create(SInvalidImage);
-         ResType:=ReadWord;
-         {$IFDEF ENDIAN_BIG}
-         ResType:=SwapEndian(ResType);
-         {$ENDIF}
+         ResType:=LEtoN(ReadWord);
          if ResType<>$000a then
            raise EInvalidImage.Create(SInvalidImage);
          { read name }
          while ReadByte<>0 do
            ;
          { check the access specifier }
-         Flags:=ReadWord;
-         {$IFDEF ENDIAN_BIG}
-         Flags:=SwapEndian(Flags);
-         {$ENDIF}
+         Flags:=LEtoN(ReadWord);
          if Flags<>$1030 then
            raise EInvalidImage.Create(SInvalidImage);
          { ignore the size }
