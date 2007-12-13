@@ -39,6 +39,29 @@ begin
     halt(1);
   if (w4 <> w2) then
     halt(2);
+
+  w1:='aéèàł'#$d87e#$dc04;
+  w2:='AÉÈÀŁ'#$d87e#$dc04;
+  s:=w1;
+  w3:=s;
+  w4:=AnsiStrUpper(pchar(s));
+  { filter out unsupported characters }
+  for i:=1 to length(w3) do
+    if w3[i]='?' then
+      begin
+        w2[i]:='?';
+        w1[i]:='?';
+      end;
+  w1:=wideuppercase(w1);
+{$ifdef print}
+  writeln('wideupper: ',w1);
+  writeln('ansistrupper: ',w4);
+{$endif print}
+  if (w1 <> w2) then
+    halt(1);
+  if (w4 <> w2) then
+    halt(2);
+
 end;
 
 
@@ -70,6 +93,29 @@ begin
 {$ifdef print}
   writeln('widelower: ',w1);
   writeln('ansilower: ',w4);
+{$endif print}
+  if (w1 <> w2) then
+    halt(3);
+  if (w4 <> w2) then
+    halt(4);
+
+
+  w1:='AÉÈÀŁ'#$d87e#$dc04;
+  w2:='aéèàł'#$d87e#$dc04;
+  s:=w1;
+  w3:=s;
+  w4:=AnsiStrLower(pchar(s));
+  { filter out unsupported characters }
+  for i:=1 to length(w3) do
+    if w3[i]='?' then
+      begin
+        w2[i]:='?';
+        w1[i]:='?';
+      end;
+  w1:=widelowercase(w1);
+{$ifdef print}
+  writeln('widelower: ',w1);
+  writeln('ansistrlower: ',w4);
 {$endif print}
   if (w1 <> w2) then
     halt(3);
