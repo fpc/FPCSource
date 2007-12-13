@@ -377,35 +377,35 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
 {$else not beos}
           mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
 {$endif not beos}
-          case mblen of
-            size_t(-2):
-              begin
-                { partial invalid character, copy literally }
-                while (i<=slen) do
-                  begin
-                    ConcatCharToAnsiStr(s[i],result,resindex);
-                    inc(i);
-                  end;
-              end;
-            size_t(-1), 0:
-              begin
-                { invalid or null character }
-                ConcatCharToAnsiStr(s[i],result,resindex);
-                inc(i);
-              end;
-            else
-              begin
-                { a valid sequence }
-                { even if mblen = 1, the lowercase version may have a }
-                { different length                                     }
-                { We can't do anything special if wchar_t is 16 bit... }
+        case mblen of
+          size_t(-2):
+            begin
+              { partial invalid character, copy literally }
+              while (i<=slen) do
+                begin
+                  ConcatCharToAnsiStr(s[i],result,resindex);
+                  inc(i);
+                end;
+            end;
+          size_t(-1), 0:
+            begin
+              { invalid or null character }
+              ConcatCharToAnsiStr(s[i],result,resindex);
+              inc(i);
+            end;
+          else
+            begin
+              { a valid sequence }
+              { even if mblen = 1, the lowercase version may have a }
+              { different length                                     }
+              { We can't do anything special if wchar_t is 16 bit... }
 {$ifndef beos}
-                ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex,nmbstate);
+              ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
-                ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex);
+              ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex);
 {$endif not beos}
-                inc(i,mblen);
-              end;
+              inc(i,mblen);
+            end;
           end;
       end;
     SetLength(result,resindex-1);
@@ -444,35 +444,35 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
 {$else not beos}
           mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
 {$endif beos}
-          case mblen of
-            size_t(-2):
-              begin
-                { partial invalid character, copy literally }
-                while (i<=slen) do
-                  begin
-                    ConcatCharToAnsiStr(s[i],result,resindex);
-                    inc(i);
-                  end;
-              end;
-            size_t(-1), 0:
-              begin
-                { invalid or null character }
-                ConcatCharToAnsiStr(s[i],result,resindex);
-                inc(i);
-              end;
-            else
-              begin
-                { a valid sequence }
-                { even if mblen = 1, the uppercase version may have a }
-                { different length                                     }
-                { We can't do anything special if wchar_t is 16 bit... }
+        case mblen of
+          size_t(-2):
+            begin
+              { partial invalid character, copy literally }
+              while (i<=slen) do
+                begin
+                  ConcatCharToAnsiStr(s[i],result,resindex);
+                  inc(i);
+                end;
+            end;
+          size_t(-1), 0:
+            begin
+              { invalid or null character }
+              ConcatCharToAnsiStr(s[i],result,resindex);
+              inc(i);
+            end;
+          else
+            begin
+              { a valid sequence }
+              { even if mblen = 1, the uppercase version may have a }
+              { different length                                     }
+              { We can't do anything special if wchar_t is 16 bit... }
 {$ifndef beos}
-                ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
+              ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
-                ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
+              ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
 {$endif not beos}
-                inc(i,mblen);
-              end;
+              inc(i,mblen);
+            end;
           end;
       end;
     SetLength(result,resindex-1);
