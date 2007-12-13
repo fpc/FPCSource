@@ -669,7 +669,7 @@ function AnsiStrLower(Str: PChar): PChar;
 var
   temp: ansistring;
 begin
-  temp:=upperansistring(str);
+  temp:=loweransistring(str);
   ansi2pchar(temp,str,result);
 end;
 
@@ -678,7 +678,7 @@ function AnsiStrUpper(Str: PChar): PChar;
 var
   temp: ansistring;
 begin
-  temp:=loweransistring(str);
+  temp:=upperansistring(str);
   ansi2pchar(temp,str,result);
 end;
 
