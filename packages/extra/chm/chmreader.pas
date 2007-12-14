@@ -57,9 +57,9 @@ type
     fChmHeader: TITSFHeader;
     fHeaderSuffix: TITSFHeaderSuffix;
     fDirectoryHeader: TITSPHeader;
-    fDirectoryHeaderPos: Int64;
+    fDirectoryHeaderPos: QWord;
     fDirectoryHeaderLength: QWord;
-    fDirectoryEntriesStartPos: Int64;
+    fDirectoryEntriesStartPos: QWord;
     fDirectoryEntries: array of TPMGListChunkEntry;
     fCachedEntry: TPMGListChunkEntry; //contains the last entry found by ObjectExists
     fDirectoryEntriesCount: LongWord;
@@ -75,7 +75,7 @@ type
     procedure GetSections(out Sections: TStringList);
     function  GetBlockFromSection(SectionPrefix: String; StartPos: QWord; BlockLength: QWord): TMemoryStream;
     function  FindBlocksFromUnCompressedAddr(var ResetTableEntry: TPMGListChunkEntry;
-       out CompressedSize: Int64; out UnCompressedSize: Int64; out LZXResetTable: TLZXResetTableArr): QWord;  // Returns the blocksize
+       out CompressedSize: QWord; out UnCompressedSize: QWord; out LZXResetTable: TLZXResetTableArr): QWord;  // Returns the blocksize
   public
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); virtual;
     destructor Destroy; override;
@@ -343,10 +343,10 @@ procedure TChmReader.ReadCommonData;
      fStrings: TMemoryStream;
      EntryCount,
      EntrySize: DWord;
-     EntryStart: Int64;
+     EntryStart: QWord;
      StrPosition: DWord;
      X: Integer;
-     OffSet: Int64;
+     OffSet: QWord;
    begin
      fWindows := TMemoryStream(GetObject('/#WINDOWS'));
      if fWindows = nil then begin
@@ -629,7 +629,7 @@ var
   ItemCount: Integer;
   procedure ReadQuickRefSection;
   var
-    OldPosn: Int64;
+    OldPosn: QWord;
     Posn: Integer;
     I: Integer;
   begin
@@ -835,8 +835,8 @@ var
   Compressed: Boolean;
   Sig: Array [0..3] of char;
   CompressionVersion: LongWord;
-  CompressedSize: Int64;
-  UnCompressedSize: Int64;
+  CompressedSize: QWord;
+  UnCompressedSize: QWord;
   //LZXResetInterval: LongWord;
   //LZXWindowSize: LongWord;
   //LZXCacheSize: LongWord;
@@ -942,7 +942,7 @@ begin
 
       //now write the decompressed data to the stream
       if ResultCode = DECR_OK then begin
-        Result.Write(OutBuf[WriteStart], Int64(WriteCount));
+        Result.Write(OutBuf[WriteStart], QWord(WriteCount));
       end
       else begin
         {$IFDEF CHM_DEBUG} // windows gui program will cause an exception with writeln's
@@ -967,7 +967,7 @@ begin
 end;
 
 function TITSFReader.FindBlocksFromUnCompressedAddr(var ResetTableEntry: TPMGListChunkEntry;
-  out CompressedSize: Int64; out UnCompressedSize: Int64; out LZXResetTable: TLZXResetTableArr): QWord;
+  out CompressedSize: QWord; out UnCompressedSize: QWord; out LZXResetTable: TLZXResetTableArr): QWord;
 var
   BlockCount: LongWord;
   {$IFDEF ENDIAN_BIG}

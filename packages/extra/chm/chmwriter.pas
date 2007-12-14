@@ -54,7 +54,7 @@ type
     FContextStream: TMemoryStream; // the #IVB file
     FSection0: TMemoryStream;
     FSection1: TStream; // Compressed Stream
-    FSection1Size: Int64;
+    FSection1Size: QWord;
     FSection1ResetTable: TMemoryStream; // has a list of frame positions NOT window positions
     FDirectoryListings: TStream;
     FOutStream: TStream;
@@ -66,7 +66,7 @@ type
     FHasTOC: Boolean;
     FHasIndex: Boolean;
     FWindowSize: LongWord;
-    FReadCompressedSize: Int64; // Current Size of Uncompressed data that went in Section1 (compressed)
+    FReadCompressedSize: QWord; // Current Size of Uncompressed data that went in Section1 (compressed)
     // Linear order of file
     ITSFHeader: TITSFHeader;
     HeaderSection0Table: TITSFHeaderEntry;  // points to HeaderSection0
@@ -248,7 +248,7 @@ const
   PMGI = 'PMGI';
   procedure UpdateLastListChunk;
   var
-    Tmp: Int64;
+    Tmp: QWord;
   begin
     if ChunkIndex < 1 then begin
       Exit;
@@ -692,7 +692,7 @@ procedure TChmWriter.MarkFrame(UnCompressedTotal, CompressedTotal: LongWord);
   end;
   procedure IncEntryCount;
   var
-    OldPos: Int64;
+    OldPos: QWord;
     Value: DWord;
   begin
     OldPos := FSection1ResetTable.Position;
@@ -704,7 +704,7 @@ procedure TChmWriter.MarkFrame(UnCompressedTotal, CompressedTotal: LongWord);
   end;
   procedure UpdateTotalSizes;
   var
-    OldPos: Int64;
+    OldPos: QWord;
   begin
     OldPos := FSection1ResetTable.Position;
     FSection1ResetTable.Position := $10;
