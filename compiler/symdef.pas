@@ -820,8 +820,11 @@ implementation
         if suffix<>'' then
           result:=result+'_'+suffix;
         { the Darwin assembler assumes that all symbols starting with 'L' are local }
-        if (target_info.system in systems_darwin) and
-           (result[1] = 'L') then
+        { Further, the Mac OS X 10.5 linker does not consider symbols which do not  }
+        { start with '_' as regular symbols (it does not generate N_GSYM entries    }
+        { those in the debug map, leading to troubles with dsymutil). So always     }
+        { add an underscore on darwin.                                              }
+        if (target_info.system in systems_darwin) then
           result := '_' + result;
       end;
 
