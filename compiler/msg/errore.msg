@@ -124,7 +124,7 @@ general_i_number_of_notes=01023_I_$1 note(s) issued
 #
 # Scanner
 #
-# 02084 is the last used one
+# 02085 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -357,7 +357,7 @@ scan_e_illegal_minfpconstprec=02085_E_Illegal minimal floating point constant pr
 #
 # Parser
 #
-# 03235 is the last used one
+# 03237 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1416,7 +1416,7 @@ type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may resu
 #
 # Symtable
 #
-# 05060 is the last used one
+# 05062 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1583,7 +1583,7 @@ sym_h_abstract_method_list=05062_H_Found abstract method: $1
 #
 # Codegenerator
 #
-# 06040 is the last used one
+# 06049 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -1714,7 +1714,7 @@ cg_e_goto_label_not_found=06049_E_Goto label "$1" not defined or optimized away
 #
 # Assembler reader
 #
-# 07105 is the last used one
+# 07107 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -1955,11 +1955,15 @@ asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), access may cause a cr
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
 asmr_e_no_vmtoffset_possible=07106_E_VMTOffset must be used in combination with a virtual method, and "$1" is not virtual
-%
+% Only virtul methods have a VMT offset
+asmr_e_need_pic_ref=07107_E_Generating PIC, but reference is not PIC-safe
+% The compiler has been configured to generate position-independent code
+% (PIC), but there are position-dependent references in the current
+% handwritten assembler instruction.
 #
 # Assembler/binary writers
 #
-# 08018 is the last used one
+# 08020 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -1990,7 +1994,7 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
 #
 # Executing linker/assembler
 #
-# 09034 is the last used one
+# 09028 is the last used one
 #
 # BeginOfTeX
 %
@@ -2076,6 +2080,8 @@ exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command
 #
 # Executable information
 #
+# 09134 is the last used one
+#
 # BeginOfTeX
 % \section{Executable information messages.}
 % This section lists all messages that the compiler emits when an executable program is produced,
@@ -2101,7 +2107,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Unit loading
 #
-# 10041 is the last used one
+# 10059 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}

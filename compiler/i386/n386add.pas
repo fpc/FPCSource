@@ -44,7 +44,7 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
-      cga,ncgutil,cgobj,cg64f32;
+      cga,ncgutil,cgobj,cg64f32,cgx86;
 
 {*****************************************************************************
                                 Add64bit
@@ -312,6 +312,7 @@ interface
              LOC_CREFERENCE,
              LOC_REFERENCE :
                begin
+                 tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  href:=right.location.reference;
                  inc(href.offset,4);
                  emit_ref_reg(A_CMP,S_L,href,left.location.register64.reghi);
@@ -361,6 +362,7 @@ interface
         reg:=left.location.register
       else if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
         begin
+          tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
           ref:=left.location.reference;
           use_ref:=true;
         end

@@ -44,7 +44,7 @@ type
     opsize  : topsize;
     Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
-    Procedure CheckOperand; override;
+    Function CheckOperand: boolean; override;
   end;
 
   Tx86Instruction=class(TInstruction)
@@ -207,23 +207,34 @@ begin
     end;
 end;
 
-Procedure Tx86Operand.CheckOperand;
+Function Tx86Operand.CheckOperand: boolean;
 
 begin
-  if (opr.typ=OPR_Reference) and
-     not hasvar then
+  result:=true;
+  if (opr.typ=OPR_Reference) then
     begin
-      if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset>0) then
+      if not hasvar then
         begin
-          if current_procinfo.procdef.proccalloption=pocall_register then
-            message(asmr_w_no_direct_ebp_for_parameter)
-          else
-            message(asmr_w_direct_ebp_for_parameter_regcall);
-        end
-      else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
-        message(asmr_w_direct_ebp_neg_offset)
-      else if (getsupreg(opr.ref.base)=RS_ESP) and (opr.ref.offset<0) then
-        message(asmr_w_direct_esp_neg_offset);
+          if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset>0) then
+            begin
+              if current_procinfo.procdef.proccalloption=pocall_register then
+                message(asmr_w_no_direct_ebp_for_parameter)
+              else
+                message(asmr_w_direct_ebp_for_parameter_regcall);
+            end
+          else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
+            message(asmr_w_direct_ebp_neg_offset)
+          else if (getsupreg(opr.ref.base)=RS_ESP) and (opr.ref.offset<0) then
+            message(asmr_w_direct_esp_neg_offset);
+        end;
+      if (cs_create_pic in current_settings.moduleswitches) and
+         assigned(opr.ref.symbol) and
+         not assigned(opr.ref.relsymbol) and
+         (opr.ref.refaddr<>addr_pic) then
+        begin
+          message(asmr_e_need_pic_ref);
+          result:=false;
+        end;
     end;
 end;
 
@@ -525,8 +536,10 @@ begin
   if (OpOrder=op_intel) then
     SwapOperands;
 
+  ai:=nil;
   for i:=1 to Ops do
-    operands[i].CheckOperand;
+    if not operands[i].CheckOperand then
+      exit;
 
 { Get Opsize }
   if (opsize<>S_NO) or (Ops=0) then

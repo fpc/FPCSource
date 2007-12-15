@@ -11,7 +11,19 @@ var l: longint;
 begin
 {$ifdef cpui386}
   asm
+{$ifndef FPC_PIC}
      mov test.l, 5
+{$else FPC_PIC}
+     call @@LPIC
+@@LPIC:
+     pop ecx
+{$ifdef darwin}
+     mov [test.l-@@LPIC+ecx],5
+{$else darwin}
+     add ecx, @_GLOBAL_OFFSET_TABLE_
+     mov [ecx].OFFSET test.l,5
+{$endif darwin}
+{$endif FPC_PIC}
   end;
 {$endif cpui386}
 {$ifdef cpu68k}

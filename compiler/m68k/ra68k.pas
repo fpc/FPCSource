@@ -49,11 +49,10 @@ unit ra68k;
 *****************************************************************************}
 
  function TM68kInstruction.ConcatInstruction(p : TAsmList):tai;
-   var
-     ai : taicpu;
    begin
-     ai:=taicpu(inherited ConcatInstruction(p));
-     ai.opsize:=opsize;
+     result:=inherited ConcatInstruction(p);
+     if assigned(result) then
+       taicpu(result).opsize:=opsize;
    end;
 {
  function TM68kInstruction.ConcatInstruction(p : TAsmList):tai;

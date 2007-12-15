@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 { Old file: tbs0228.pp }
 { Asm, wrong warning for size                          OK 0.99.11 (PFV) }
 

@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 {$asmmode intel}
 {$inline on}
 

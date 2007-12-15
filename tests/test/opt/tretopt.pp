@@ -281,8 +281,20 @@ begin
 {$endif}
 {$ifdef cpui386}
     leal t,%eax
+{$ifndef FPC_PIC}
     movl %eax,p3
-{$endif}
+{$else FPC_PIC}
+    call .Lpic
+.Lpic:
+    popl %ecx
+{$ifdef darwin}
+    movl %eax,p3-.Lpic(%ecx)
+{$else darwin}
+   addl $_GLOBAL_OFFSET_TABLE_,%ecx
+   movl %eax,p3@GOT(%ecx)
+{$endif darwin}
+{$endif FPC_PIC}
+{$endif cpui386}
   end;
 
   t.a:='x';
@@ -320,7 +332,19 @@ begin
 {$endif}
 {$ifdef cpui386}
     leal t,%eax
+{$ifndef FPC_PIC}
     movl %eax,p3
+{$else FPC_PIC}
+    call .Lpic
+.Lpic:
+    popl %ecx
+{$ifdef darwin}
+    movl %eax,p3-.Lpic(%ecx)
+{$else darwin}
+   addl $_GLOBAL_OFFSET_TABLE_,%ecx
+   movl %eax,p3@GOT(%ecx)
+{$endif darwin}
+{$endif FPC_PIC}
 {$endif}
   end;
 

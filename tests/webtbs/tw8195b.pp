@@ -1,4 +1,5 @@
 { %cpu=i386 }
+{ %OPT=-Cg- }
 
 {$APPTYPE CONSOLE}
 

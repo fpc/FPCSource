@@ -1,4 +1,5 @@
 { %cpu=i386 }
+{ %OPT=-Cg- }
 {$asmmode intel}
 var
   Digits : array[0..63] of byte;

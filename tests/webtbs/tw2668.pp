@@ -1,4 +1,5 @@
 { %cpu=i386 }
+{ %OPT=-Cg- }
 { %version=1.1 }
 { Source provided for Free Pascal Bug Report 2668 }
 { Submitted by "Marco" on  2003-09-06 }

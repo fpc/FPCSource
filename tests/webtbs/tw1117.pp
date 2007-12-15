@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %OPT=-Cg- }
 {$asmmode intel}
 var
   l1,l2 : longint;

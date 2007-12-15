@@ -104,7 +104,7 @@ type
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
     Function  SetupVar(const s:string;GetOffset : boolean): Boolean;
-    Procedure CheckOperand; virtual;
+    Function  CheckOperand: boolean; virtual;
     Procedure InitRef;
   end;
   TCOperand = class of TOperand;
@@ -118,7 +118,8 @@ type
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
-      and concats it to the passed list, the newly created item is returned }
+      and concats it to the passed list. The newly created item is returned if the 
+      instruction was valid, otherwise nil is returned }
     function ConcatInstruction(p:TAsmList) : tai;virtual;
     Procedure Swapoperands;
   end;
@@ -966,12 +967,13 @@ Begin
   end;
 end;
 
-Procedure TOperand.CheckOperand;
+Function TOperand.CheckOperand: boolean;
 {*********************************************************************}
 {  Description: This routine checks if the operand is of              }
-{  valid. Does nothing by default.                                    }
+{  valid, and returns false if it isn't. Does nothing by default.     }
 {*********************************************************************}
 begin
+  result:=true;
 end;
 
 

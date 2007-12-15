@@ -506,12 +506,18 @@ begin
                          break;
                        end;
                     'g' :
-                       if tf_no_pic_supported in target_info.flags then
-                         message(scan_w_pic_ignored)
-                       else if UnsetBool(More, j) then
-                         exclude(init_settings.moduleswitches,cs_create_pic)
-                       else
-                         include(init_settings.moduleswitches,cs_create_pic);
+                       begin
+                         if tf_no_pic_supported in target_info.flags then
+                           begin
+                             { consume a possible '-' coming after it }
+                             UnsetBool(More, j);
+                             message(scan_w_pic_ignored);
+                           end
+                         else if UnsetBool(More, j) then
+                           exclude(init_settings.moduleswitches,cs_create_pic)
+                         else
+                           include(init_settings.moduleswitches,cs_create_pic);
+                      end;
                     'h' :
                       begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);

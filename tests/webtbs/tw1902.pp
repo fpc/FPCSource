@@ -1,4 +1,5 @@
 { %cpu=i386 }
+{ %OPT=-Cg- }
 
 {$ifdef fpc}
 {$MODE DELPHI}
