@@ -20,16 +20,27 @@ procedure InitInternationalGeneric;
     
     { keep these routines out of the executable? }
 {$ifndef FPC_NOGENERICANSIROUTINES}
-    widestringmanager.UpperAnsiStringProc:=@GenericAnsiUpperCase;
-    widestringmanager.LowerAnsiStringProc:=@GenericAnsiLowerCase;    
-    widestringmanager.CompareStrAnsiStringProc:=@GenericAnsiCompareStr;
-    widestringmanager.CompareTextAnsiStringProc:=@GenericAnsiCompareText;
-    widestringmanager.StrCompAnsiStringProc:=@GenericAnsiStrComp;
-    widestringmanager.StrICompAnsiStringProc:=@GenericAnsiStrIComp;
-    widestringmanager.StrLCompAnsiStringProc:=@GenericAnsiStrLComp;
-    widestringmanager.StrLICompAnsiStringProc:=@GenericAnsiStrLIComp;
-    widestringmanager.StrLowerAnsiStringProc:=@GenericAnsiStrLower;
-    widestringmanager.StrUpperAnsiStringProc:=@GenericAnsiStrUpper;
+    { don't override a previously installed widestring manager }
+    if not assigned(widestringmanager.UpperAnsiStringProc) then
+      widestringmanager.UpperAnsiStringProc:=@GenericAnsiUpperCase;
+    if not assigned(widestringmanager.LowerAnsiStringProc) then
+      widestringmanager.LowerAnsiStringProc:=@GenericAnsiLowerCase;    
+    if not assigned(widestringmanager.CompareStrAnsiStringProc) then
+      widestringmanager.CompareStrAnsiStringProc:=@GenericAnsiCompareStr;
+    if not assigned(widestringmanager.CompareTextAnsiStringProc) then
+      widestringmanager.CompareTextAnsiStringProc:=@GenericAnsiCompareText;
+    if not assigned(widestringmanager.StrCompAnsiStringProc) then
+      widestringmanager.StrCompAnsiStringProc:=@GenericAnsiStrComp;
+    if not assigned(widestringmanager.StrICompAnsiStringProc) then
+      widestringmanager.StrICompAnsiStringProc:=@GenericAnsiStrIComp;
+    if not assigned(widestringmanager.StrLCompAnsiStringProc) then
+      widestringmanager.StrLCompAnsiStringProc:=@GenericAnsiStrLComp;
+    if not assigned(widestringmanager.StrLICompAnsiStringProc) then
+      widestringmanager.StrLICompAnsiStringProc:=@GenericAnsiStrLIComp;
+    if not assigned(widestringmanager.StrLowerAnsiStringProc) then
+      widestringmanager.StrLowerAnsiStringProc:=@GenericAnsiStrLower;
+    if not assigned(widestringmanager.StrUpperAnsiStringProc) then
+      widestringmanager.StrUpperAnsiStringProc:=@GenericAnsiStrUpper;
 {$endif FPC_NOGENERICANSIROUTINES}    
   end;
   

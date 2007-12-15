@@ -102,7 +102,7 @@ Type
     pTime     = ^time_t;
     ptime_t   = ^time_t;
 
-    wchar_t   = widechar;
+    wchar_t   = cint32;
     pwchar_t  = ^wchar_t;
 
 {$ifdef cpu64}
@@ -153,6 +153,18 @@ Type
     spare   : array [0..5] of clong; { For later use }
   end;
   PStatFS=^TStatFS;
+
+  mbstate_value_t = record
+    case byte of
+      0: (__wch: wint_t);
+      1: (__wchb: array[0..3] of char);
+  end;
+  
+  mbstate_t = record
+    __count: cint;
+    __value: mbstate_value_t;
+  end;
+  pmbstate_t = ^mbstate_t;
 
   pthread_t = culong;
 
