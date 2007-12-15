@@ -48,9 +48,7 @@ Unit rax64att;
         BuildOpcode(instr);
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;
-        {
         instr.CheckOperandSizes;
-        }
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;
