@@ -1532,6 +1532,52 @@ implementation
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
 
+        if (target_info.system in systems_darwin) then
+          begin
+            { On Darwin, dwarf info is not linked in the final binary,
+              but kept in the individual object files. This allows for
+              faster linking, but means that you have to keep the object
+              files for debugging and also that gdb only loads in the
+              debug info of a particular object file once you step into
+              or over a procedure in it.
+              
+              To solve this, there is a tool called dsymutil which can
+              extract all the dwarf info from a program's object files.
+              This utility however performs "smart linking" on the dwarf
+              info and throws away all unreferenced dwarf entries. Since
+              variables' types always point to the dwarfino for a tdef
+              and never to that for a typesym, this means all debug
+              entries generated for typesyms are thrown away.
+              
+              The problem with that is that we translate typesyms into
+              DW_TAG_typedef, and gdb's dwarf-2 reader only makes types
+              globally visibly if they are defined using a DW_TAG_typedef.
+              So as a result, before running dsymutil types only become
+              available once you stepped into/over a function in the object
+              file where they are declared, and after running dsymutil they
+              are all gone (printng variables still works because the
+              tdef dwarf info is still available, but you cannot typecast
+              anything outside the declaring units because the type names
+              are not known there).
+              
+              The solution: if a tdef has an associated typesym, let the
+              debug label for the tdef point to a DW_TAG_typedef instead
+              of directly to the tdef itself. And don't write anything
+              special for the typesym itself.
+            }
+          if assigned(def.typesym) and
+             not(df_generic in def.defoptions) then
+            begin
+              current_asmdata.getaddrlabel(TAsmLabel(pointer(labsym)));
+              append_entry(DW_TAG_typedef,false,[
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0
+              ]);
+              append_labelentry_ref(DW_AT_type,labsym);
+              finish_entry;
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+            end;
+          end;
+
         case def.typ of
           stringdef :
             appenddef_string(tstringdef(def));
@@ -2006,14 +2052,20 @@ implementation
 
       procedure TDebugInfoDwarf.appendsym_type(sym: ttypesym);
         begin
-          if not(df_generic in sym.typedef.defoptions) then
+          if not (target_info.system in systems_darwin) then
             begin
-              append_entry(DW_TAG_typedef,false,[
-                DW_AT_name,DW_FORM_string,symname(sym)+#0
-              ]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedef));
-            end;
-          finish_entry;
+              if not(df_generic in sym.typedef.defoptions) then
+                begin
+                  append_entry(DW_TAG_typedef,false,[
+                    DW_AT_name,DW_FORM_string,symname(sym)+#0
+                  ]);
+                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedef));
+                end;
+              finish_entry;
+            end
+          else
+            { just queue the def if needed }
+            def_dwarf_lab(sym.typedef);
 
           (* Moved fom append sym, do we need this (MWE)
           { For object types write also the symtable entries }
@@ -2486,7 +2538,11 @@ implementation
 
     function TDebugInfoDwarf.symname(sym: tsym): String;
       begin
-        result := sym.Name;
+        if (sym.typ=paravarsym) and
+           (vo_is_self in tlocalvarsym(sym).varoptions) then
+          result:='this'
+        else
+          result := sym.Name;
       end;
 
 
@@ -2496,7 +2552,7 @@ implementation
         lastfileinfo : tfileposinfo;
         currfuncname : pshortstring;
         currsectype  : TAsmSectiontype;
-        hp : tai;
+        hp, hpend : tai;
         infile : tinputfile;
         prevcolumn,
         diffline,
@@ -2619,7 +2675,19 @@ implementation
                 lastfileinfo:=currfileinfo;
               end;
 
+            hpend:=hp;
             hp:=tai(hp.next);
+          end;
+
+        if assigned(hpend) then
+          begin
+           { set address for end (see appendix 3 of dwarf 2 specs) }
+            current_asmdata.getlabel(currlabel, alt_dbgline);
+            list.insertafter(tai_label.create(currlabel), hpend);
+            asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
+            asmline.concat(tai_const.create_uleb128bit(1+sizeof(aint)));
+            asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
+            asmline.concat(tai_const.create_sym(currlabel));
           end;
 
         { end sequence }
