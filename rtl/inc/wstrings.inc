@@ -1091,7 +1091,7 @@ begin
               then
         begin
           Dec(Pointer(S),WideFirstOff);
-          if L*sizeof(WideChar)+WideRecLen>MemSize(Pointer(S)) then
+          if SizeUInt(L*sizeof(WideChar)+WideRecLen)>MemSize(Pointer(S)) then
               reallocmem(pointer(S), L*sizeof(WideChar)+WideRecLen);
           Inc(Pointer(S), WideFirstOff);
         end
