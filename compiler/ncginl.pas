@@ -252,7 +252,7 @@ implementation
          hregister : tregister;
       begin
         if inlinenumber=in_sizeof_x then
-          location_reset(location,LOC_REGISTER,OS_INT)
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef))
         else
           location_reset(location,LOC_REGISTER,OS_ADDR);
         { for both cases load vmt }
@@ -355,7 +355,7 @@ implementation
            if is_widestring(left.resultdef) then
              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,1,hregister);
            cg.a_label(current_asmdata.CurrAsmList,lengthlab);
-           location_reset(location,LOC_REGISTER,OS_INT);
+           location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
       end;

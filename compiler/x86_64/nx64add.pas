@@ -38,6 +38,7 @@ interface
     uses
       globtype,globals,
       aasmbase,aasmtai,aasmdata,
+      defutil,
       cgbase,cgutils,cga,cgobj,
       tgobj;
 
@@ -56,7 +57,7 @@ interface
       pass_left_right;
 
       { The location.register will be filled in later (JM) }
-      location_reset(location,LOC_REGISTER,OS_INT);
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       { Mul supports registers and references, so if not register/reference,
         load the location into a register}
       use_ref:=false;
