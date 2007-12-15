@@ -3537,7 +3537,7 @@ begin
           cmBackSpace   : BackSpace;
           cmDelChar     : DelChar;
           cmDelWord     : DelWord;
-       cmDelToEndOfWord : DelToEndOfWord;
+          cmDelToEndOfWord : DelToEndOfWord;
           cmDelStart    : DelStart;
           cmDelEnd      : DelEnd;
           cmDelLine     : DelLine;
@@ -5009,35 +5009,59 @@ end;
 
 procedure TCustomCodeEditor.DelStart;
 var S: string;
+    OI: Sw_integer;
+    HoldUndo : Boolean;
+    SCP : TPoint;
 begin
   if IsReadOnly then Exit;
   Lock;
+  HoldUndo:=GetStoreUndo;
+  SetStoreUndo(false);
+  SCP:=CurPos;
   S:=GetLineText(CurPos.Y);
   if (S<>'') and (CurPos.X<>0) then
   begin
-    SetLineText(CurPos.Y,copy(S,LinePosToCharIdx(CurPos.Y,CurPos.X),High(S)));
+    OI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+    SetLineText(CurPos.Y,copy(S,OI,High(S)));
     SetCurPtr(0,CurPos.Y);
+    SetStoreUndo(HoldUndo);
+    Addaction(eaDeleteText,SCP,CurPos,copy(S,1,OI-1),GetFlags);
+    SetStoreUndo(false);
+    AdjustSelectionPos(CurPos.X,CurPos.Y,-length(copy(S,1,OI-1)),0);
     UpdateAttrs(CurPos.Y,attrAll);
     DrawLines(CurPos.Y);
     SetModified(true);
   end;
+  SetStoreUndo(HoldUndo);
   Unlock;
 end;
 
 procedure TCustomCodeEditor.DelEnd;
 var S: string;
+    OI: Sw_integer;
+    HoldUndo : Boolean;
+    SCP : TPoint;
 begin
   if IsReadOnly then Exit;
   Lock;
+  HoldUndo:=GetStoreUndo;
+  SetStoreUndo(false);
+  SCP:=CurPos;
   S:=GetLineText(CurPos.Y);
   if (S<>'') and (CurPos.X<>length(S)) then
   begin
-    SetLineText(CurPos.Y,copy(S,1,LinePosToCharIdx(CurPos.Y,CurPos.X)-1));
+    OI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+    SetLineText(CurPos.Y,copy(S,1,OI-1));
     SetCurPtr(CurPos.X,CurPos.Y);
+    SetStoreUndo(HoldUndo);
+    Addaction(eaDeleteText,SCP,CurPos,copy(S,OI,High(S)),GetFlags);
+    SetStoreUndo(false);
+    AdjustSelectionPos(CurPos.X+1,CurPos.Y,-length(copy(S,OI,High(S)))+1,0);
     UpdateAttrs(CurPos.Y,attrAll);
     DrawLines(CurPos.Y);
     SetModified(true);
   end;
+  SetStoreUndo(HoldUndo);
   Unlock;
 end;
 
