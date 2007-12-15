@@ -998,7 +998,7 @@ implementation
                   { allow 2nd or 3rd operand being a constant and expect no size for shuf* etc. }
                   if (opsize=S_NO) and not(i in [1,2]) then
                     message(asmr_e_invalid_opcode_and_operand);
-                  if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
+                  if (opsize<>S_W) and (aint(val)>=-128) and (val<=127) then
                     ot:=OT_IMM8 or OT_SIGNED
                   else
                     ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];

@@ -73,8 +73,8 @@ implementation
           exit;
 
         { put numerator in register }
-        location_reset(location,LOC_REGISTER,OS_INT);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,false);
         hreg1:=left.location.register;
 
         if (nodetype=divn) and (right.nodetype=ordconstn) and

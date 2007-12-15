@@ -34,10 +34,19 @@ begin
                 End;
              sysResetFPU;
           End;
-    SIGILL,
-    SIGBUS,
-    SIGSEGV :
+    SIGILL:
+      if sse_check then
+        begin
+          os_supports_sse:=false;
+          res:=0;
+          inc(sigcontext^.sc_eip,3);
+        end
+      else
         res:=216;
+    SIGBUS:
+      res:=214;
+    SIGSEGV :
+      res:=216;
   end;
   {$ifdef FPC_USE_SIGPROCMASK}
    reenable_signal(sig);

@@ -382,8 +382,8 @@ begin
   Add('IFS="');
   Add('"');
   Add(maybequoted(command)+' '+Options);
-  Add('IFS=$OFS');
   Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(FileName)+'; fi');
+  Add('IFS=$OFS');
 end;
 
 

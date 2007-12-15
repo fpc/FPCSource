@@ -545,13 +545,6 @@ begin
         LinkRes.Add(')');
       end;
    end;
-  { ignore the fact that our relocations are in non-writable sections, }
-  { will be fixed once we have pic support                             }
-  if isdll and IsDarwin Then
-    begin
-      LinkRes.Add('-read_only_relocs');
-      LinkRes.Add('suppress');
-    end;
 { Write and Close response }
   linkres.writetodisk;
   linkres.Free;
@@ -564,11 +557,12 @@ function TLinkerBSD.MakeExecutable:boolean;
 var
   binstr,
   cmdstr  : TCmdStr;
-  success : boolean;
+  linkscript: TAsmScript;
   DynLinkStr : string[60];
   GCSectionsStr,
   StaticStr,
   StripStr   : string[40];
+  success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
@@ -625,11 +619,33 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,LdSupportsNoResponseFile);
+  BinStr:=FindUtil(utilsprefix+BinStr);
+
+  if (LdSupportsNoResponseFile) and
+     not(cs_link_nolink in current_settings.globalswitches) then
+    begin
+      { we have to use a script to use the IFS hack }
+      linkscript:=TAsmScriptUnix.create(outputexedir+'ppaslink');
+      linkscript.AddLinkCommand(BinStr,CmdStr,'');
+      linkscript.WriteToDisk;
+      BinStr:=linkscript.fn;
+      if not path_absolute(BinStr) then
+        BinStr:='./'+BinStr;
+      CmdStr:='';
+    end;
+
+  success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+   begin
+     DeleteFile(outputexedir+Info.ResName);
+     if LdSupportsNoResponseFile Then
+       begin
+         DeleteFile(linkscript.fn);
+         linkscript.free
+       end; 
+   end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -640,6 +656,7 @@ var
   InitStr,
   FiniStr,
   SoNameStr : string[80];
+  linkscript: TAsmScript;
   binstr,
   cmdstr  : TCmdStr;
   success : boolean;
@@ -667,8 +684,22 @@ begin
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
+  BinStr:=FindUtil(utilsprefix+BinStr);
 
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,LdSupportsNoResponseFile);
+  if (LdSupportsNoResponseFile) and
+     not(cs_link_nolink in current_settings.globalswitches) then
+    begin
+      { we have to use a script to use the IFS hack }
+      linkscript:=TAsmScriptUnix.create(outputexedir+'ppaslink');
+      linkscript.AddLinkCommand(BinStr,CmdStr,'');
+      linkscript.WriteToDisk;
+      BinStr:=linkscript.fn;
+      if not path_absolute(BinStr) then
+        BinStr:='./'+BinStr;
+      CmdStr:='';
+    end;
+
+  success:=DoExec(BinStr,cmdstr,true,LdSupportsNoResponseFile);
 
 { Strip the library ? }
   if success and (cs_link_strip in current_settings.globalswitches) then
@@ -680,7 +711,11 @@ begin
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+    begin
+      DeleteFile(outputexedir+Info.ResName);
+//      DeleteFile(linkscript.fn);
+      linkscript.free
+    end;     
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;

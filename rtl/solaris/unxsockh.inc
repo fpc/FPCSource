@@ -13,6 +13,8 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$linklib libsocket.so}
+{$linklib libnsl.so}
 
 const
   {
