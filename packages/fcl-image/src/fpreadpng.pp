@@ -803,9 +803,9 @@ begin
       ReadChunk;
       HandleChunk;
       end;
+    ZData.position:=0;
     Decompress := TDecompressionStream.Create (ZData);
     try
-      Decompress.position := 0;
       DoDecompress;
     finally
       Decompress.Free;

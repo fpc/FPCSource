@@ -400,21 +400,17 @@ function zError(err : integer) : string;
 const
   ZLIB_VERSION : string[10] = '1.1.2';
 
+resourcestring Sneed_dict     = 'need dictionary';
+               Sstream_end    = 'stream end';
+               Sfile_error    = 'file error';
+               Sstream_error  = 'stream error';
+               Sdata_error    = 'data error';
+               Smem_error     = 'insufficient memory';
+               Sbuf_error     = 'buffer error';
+               Sversion_error = 'incompatible version';
+
 const
-  z_errbase = Z_NEED_DICT;
-  z_errmsg : Array[0..9] of string[21] = { indexed by 2-zlib_error }
-           ('need dictionary',     { Z_NEED_DICT       2  }
-            'stream end',          { Z_STREAM_END      1  }
-            '',                    { Z_OK              0  }
-            'file error',          { Z_ERRNO         (-1) }
-            'stream error',        { Z_STREAM_ERROR  (-2) }
-            'data error',          { Z_DATA_ERROR    (-3) }
-            'insufficient memory', { Z_MEM_ERROR     (-4) }
-            'buffer error',        { Z_BUF_ERROR     (-5) }
-            'incompatible version',{ Z_VERSION_ERROR (-6) }
-            '');
-const
-  z_verbose : integer = 1;
+  z_verbose = 1;
 
 {$IFDEF ZLIB_DEBUG}
 procedure z_error (m : string);
@@ -423,8 +419,31 @@ procedure z_error (m : string);
 implementation
 
 function zError(err : integer) : string;
+
 begin
-  zError := z_errmsg[Z_NEED_DICT-err];
+  case err of
+    Z_VERSION_ERROR:
+      zerror:=Sversion_error;
+    Z_BUF_ERROR:
+      zerror:=Sbuf_error;
+    Z_MEM_ERROR:
+      zerror:=Smem_error;
+    Z_DATA_ERROR:
+      zerror:=Sdata_error;
+    Z_STREAM_ERROR:
+      zerror:=Sstream_error;
+    Z_ERRNO:
+      zerror:=Sfile_error;
+    Z_OK:
+      zerror:='';
+    Z_STREAM_END:
+      zerror:=Sstream_end;
+    Z_NEED_DICT:
+      zerror:=Sneed_dict;
+    else
+      str(err,zerror);
+      zerror:='Unknown zlib error '+zerror;
+  end;
 end;
 
 function zlibVersion : string;

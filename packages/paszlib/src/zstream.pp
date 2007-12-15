@@ -296,7 +296,7 @@ begin
       if err=Z_STREAM_END then
         break;
       if err<>Z_OK then
-        raise Ecompressionerror.create(zerror(err));
+        raise Edecompressionerror.create(zerror(err));
     end;
   if err=Z_STREAM_END then
     dec(compressed_read,Fstream.avail_in);
@@ -309,16 +309,16 @@ procedure Tdecompressionstream.reset;
 var err:smallint;
 
 begin
+  source.seek(-compressed_read,sofromcurrent);
   raw_read:=0;
   compressed_read:=0;
-  source.position:=0;
   inflateEnd(Fstream);
   if skipheader then
     err:=inflateInit2(Fstream,-MAX_WBITS)
   else
     err:=inflateInit(Fstream);
   if err<>Z_OK then
-    raise Ecompressionerror.create(zerror(err));
+    raise Edecompressionerror.create(zerror(err));
 end;
 
 function Tdecompressionstream.seek(offset:longint;origin:word):longint;
