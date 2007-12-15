@@ -505,7 +505,7 @@ implementation
                           (s64currencytype.typ = floatdef))) then
                        begin
                          doconv:=tc_int_2_real;
-                         eq:=te_convert_l1;
+                         eq:=te_convert_l4;
                        end
                      else if is_currency(def_from)
                              { and (s64currencytype.typ = orddef)) } then
@@ -528,7 +528,7 @@ implementation
                                 (m_delphi in current_settings.modeswitches)) then
                            begin
                              doconv:=tc_real_2_real;
-                             { do we loose precision? }
+                             { do we lose precision? }
                              if def_to.size<def_from.size then
                                eq:=te_convert_l2
                              else
@@ -906,7 +906,7 @@ implementation
                          if (m_delphi in current_settings.modeswitches) and is_integer(def_from) then
                           begin
                             doconv:=tc_cord_2_pointer;
-                            eq:=te_convert_l2;
+                            eq:=te_convert_l5;
                           end;
                       end;
                      { allow explicit typecasts from ordinals to pointer.

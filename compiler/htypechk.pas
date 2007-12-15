@@ -48,6 +48,8 @@ interface
          cl1_count,
          cl2_count,
          cl3_count,
+         cl4_count,
+         cl5_count,
          coper_count : integer; { should be signed }
          ordinal_distance : double;
          invalid     : boolean;
@@ -1925,6 +1927,8 @@ implementation
                           ' l1: '+tostr(hp^.cl1_count)+
                           ' l2: '+tostr(hp^.cl2_count)+
                           ' l3: '+tostr(hp^.cl3_count)+
+                          ' l4: '+tostr(hp^.cl4_count)+
+                          ' l5: '+tostr(hp^.cl5_count)+
                           ' oper: '+tostr(hp^.coper_count)+
                           ' ord: '+realtostr(hp^.ordinal_distance));
               { Print parameters in left-right order }
@@ -2163,6 +2167,10 @@ implementation
                   inc(hp^.cl2_count);
                 te_convert_l3 :
                   inc(hp^.cl3_count);
+                te_convert_l4 :
+                  inc(hp^.cl4_count);
+                te_convert_l5 :
+                  inc(hp^.cl5_count);
                 te_convert_operator :
                   inc(hp^.coper_count);
                 te_incompatible :
@@ -2288,39 +2296,49 @@ implementation
            res:=(bestpd^.coper_count-currpd^.coper_count);
            if (res=0) then
             begin
-              { less cl3 parameters? }
-              res:=(bestpd^.cl3_count-currpd^.cl3_count);
-              if (res=0) then
-               begin
-                 { less cl2 parameters? }
-                 res:=(bestpd^.cl2_count-currpd^.cl2_count);
+             { less cl5 parameters? }
+             res:=(bestpd^.cl5_count-currpd^.cl5_count);
+             if (res=0) then
+              begin
+               { less cl4 parameters? }
+               res:=(bestpd^.cl4_count-currpd^.cl4_count);
+               if (res=0) then
+                begin
+                 { less cl3 parameters? }
+                 res:=(bestpd^.cl3_count-currpd^.cl3_count);
                  if (res=0) then
                   begin
-                    { less cl1 parameters? }
-                    res:=(bestpd^.cl1_count-currpd^.cl1_count);
+                    { less cl2 parameters? }
+                    res:=(bestpd^.cl2_count-currpd^.cl2_count);
                     if (res=0) then
                      begin
-                       { more exact parameters? }
-                       res:=(currpd^.exact_count-bestpd^.exact_count);
+                       { less cl1 parameters? }
+                       res:=(bestpd^.cl1_count-currpd^.cl1_count);
                        if (res=0) then
                         begin
-                          { less equal parameters? }
-                          res:=(bestpd^.equal_count-currpd^.equal_count);
+                          { more exact parameters? }
+                          res:=(currpd^.exact_count-bestpd^.exact_count);
                           if (res=0) then
                            begin
-                             { smaller ordinal distance? }
-                             if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
-                              res:=1
-                             else
-                              if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
-                               res:=-1
-                             else
-                              res:=0;
+                             { less equal parameters? }
+                             res:=(bestpd^.equal_count-currpd^.equal_count);
+                             if (res=0) then
+                              begin
+                                { smaller ordinal distance? }
+                                if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
+                                 res:=1
+                                else
+                                 if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
+                                  res:=-1
+                                else
+                                 res:=0;
+                              end;
                            end;
                         end;
                      end;
                   end;
-               end;
+                end;
+              end;
             end;
          end;
         is_better_candidate:=res;
