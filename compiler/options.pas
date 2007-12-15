@@ -2141,6 +2141,8 @@ begin
   def_system_macro('FPC_HAS_STR_CURRENCY');
   def_system_macro('FPC_REAL2REAL_FIXED');
   def_system_macro('FPC_STRTOCHARARRAYPROC');
+  def_system_macro('FPC_STRTOSHORTSTRINGPROC');
+
 {$ifdef SUPPORT_UNALIGNED}
   def_system_macro('FPC_SUPPORTS_UNALIGNED');
 {$endif SUPPORT_UNALIGNED}

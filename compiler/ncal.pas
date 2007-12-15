@@ -1212,7 +1212,7 @@ implementation
         { both the normal and specified resultdef either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
         if paramanager.ret_in_param(typedef,pd.proccalloption) xor
-           paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
+          paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
           internalerror(200108291);
       end;
 

@@ -620,6 +620,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 begin
   asm
@@ -653,6 +654,47 @@ begin
         movsb
   end ['ESI','EDI','EAX','ECX'];
 end;
+
+
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring);assembler;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
+  var
+   saveesi,saveedi : longint;
+  asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        cld
+        movl    %eax,%edi
+        movl    %ecx,%esi
+        movl    %edx,%ecx
+        xorl    %eax,%eax
+        lodsb
+        cmpl    %ecx,%eax
+        jbe     .LStrCopy1
+        movl    %ecx,%eax
+.LStrCopy1:
+        stosb
+        cmpl    $7,%eax
+        jl      .LStrCopy2
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        rep
+        movsb
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        rep
+        movsl
+.LStrCopy2:
+        movl    %eax,%ecx
+        rep
+        movsb
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+  end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
@@ -866,8 +908,105 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 {$include strpas.inc}
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
+var
+  saveres,saveebx,saveesi,saveedi : longint;
+asm
+        movl    %ebx,saveebx
+        movl    %esi,saveesi
+        movl    %edi,saveedi
+{$ifdef regcall}
+        movl    %ecx,%esi
+        movl    %eax,%edi
+        movl    %edi,saveres
+{$else}
+        movl    p,%esi
+{$endif}
+        movl    $1,%ecx
+        testl   %esi,%esi
+        movl    %esi,%eax
+        jz      .LStrPasDone
+{$ifndef REGCALL}
+        movl    res,%edi
+{$endif}
+        leal    3(%esi),%edx
+        andl    $-4,%edx
+        // skip length byte
+        incl    %edi
+        subl    %esi,%edx
+        jz      .LStrPasAligned
+        // align source to multiple of 4 (not dest, because we can't read past
+        // the end of the source, since that may be past the end of the heap
+        // -> sigsegv!!)
+.LStrPasAlignLoop:
+        movb    (%esi),%al
+        incl    %esi
+        testb   %al,%al
+        jz      .LStrPasDone
+        incl    %edi
+        incb    %cl
+        decb    %dl
+        movb    %al,-1(%edi)
+        jne     .LStrPasAlignLoop
+        .balign  16
+.LStrPasAligned:
+        movl    (%esi),%ebx
+        addl    $4,%edi
+        leal    0x0fefefeff(%ebx),%eax
+        movl    %ebx,%edx
+        addl    $4,%esi
+        notl    %edx
+        andl    %edx,%eax
+        addl    $4,%ecx
+        andl    $0x080808080,%eax
+        movl    %ebx,-4(%edi)
+        jnz     .LStrPasEndFound
+        cmpl    $252,%ecx
+        ja      .LStrPasPreEndLoop
+        jmp     .LStrPasAligned
+.LStrPasEndFound:
+        subl    $4,%ecx
+        // this won't overwrite data since the result = 255 char string
+        // and we never process more than the first 255 chars of p
+        shrl    $8,%eax
+        jc      .LStrPasDone
+        incl    %ecx
+        shrl    $8,%eax
+        jc      .LStrPasDone
+        incl    %ecx
+        shrl    $8,%eax
+        jc      .LStrPasDone
+        incl    %ecx
+        jmp     .LStrPasDone
+.LStrPasPreEndLoop:
+        testb   %cl,%cl
+        jz      .LStrPasDone
+        movl    (%esi),%eax
+.LStrPasEndLoop:
+        testb   %al,%al
+        jz      .LStrPasDone
+        movb    %al,(%edi)
+        shrl    $8,%eax
+        incl    %edi
+        incb    %cl
+        jnz     .LStrPasEndLoop
+.LStrPasDone:
+{$ifdef REGCALL}
+        movl    saveres,%edi
+{$else}
+        movl    __RESULT,%edi
+{$endif}
+        addb    $255,%cl
+        movb    %cl,(%edi)
+        movl    saveesi,%esi
+        movl    saveedi,%edi
+        movl    saveebx,%ebx
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 

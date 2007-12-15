@@ -203,7 +203,7 @@ end;
 var
   __data_start: byte; external name '__data_start__';
   __data_end: byte; external name '__data_end__';
-  
+
 function IsWideStringConstant(S: pointer): boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 {
   Returns True if widestring is constant (located in .data section);
@@ -270,6 +270,7 @@ Procedure fpc_WideStr_Incr_Ref(Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_
 { alias for internal use }
 Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  compilerproc;
 {
   Converts a WideString to a ShortString;
@@ -288,6 +289,26 @@ begin
       result:=temp;
     end;
 end;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_WideStr_To_ShortStr (out res: ShortString;const S2 : WideString); [Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];compilerproc;
+{
+  Converts a WideString to a ShortString;
+}
+Var
+  Size : SizeInt;
+  temp : ansistring;
+begin
+  res:='';
+  Size:=Length(S2);
+  if Size>0 then
+    begin
+      If Size>high(res) then
+        Size:=high(res);
+      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
+      res:=temp;
+    end;
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString;compilerproc;
@@ -367,6 +388,7 @@ begin
 end;
 
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
 var
   Size : SizeInt;
@@ -382,7 +404,23 @@ begin
       result:=temp;
     end;
 end;
-
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
+var
+  Size : SizeInt;
+  temp: ansistring;
+begin
+  res:='';
+  if p=nil then
+    exit;
+  Size:=IndexWord(p^, high(PtrInt), 0);
+  if Size>0 then
+    begin
+      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
+      res:=temp;
+    end;
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 { checked against the ansistring routine, 2001-05-27 (FK) }
@@ -597,9 +635,9 @@ var
   w: widestring;
 begin
   widestringmanager.Ansi2WideMoveProc(@c, w, 1);
-  fpc_Char_To_WChar:= w[1];    
-end;  
- 
+  fpc_Char_To_WChar:= w[1];
+end;
+
 
 
 Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
@@ -648,6 +686,7 @@ begin
 end;
 
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
 {
   Converts a WideChar to a ShortString;
@@ -658,6 +697,18 @@ begin
   widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
   fpc_WChar_To_ShortStr:= s;
 end;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
+{
+  Converts a WideChar to a ShortString;
+}
+var
+  s: ansistring;
+begin
+  widestringmanager.Wide2AnsiMoveProc(@c,s,1);
+  res:=s;
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
@@ -692,6 +743,7 @@ begin
 end;
 
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
@@ -717,6 +769,33 @@ begin
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
   fpc_WideCharArray_To_ShortStr := temp;
 end;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true);[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
+var
+  l: longint;
+  index: ptrint;
+  len: byte;
+  temp: ansistring;
+begin
+  l := high(arr)+1;
+  if l>=high(res)+1 then
+    l:=high(res)
+  else if l<0 then
+    l:=0;
+  if zerobased then
+    begin
+      index:=IndexWord(arr[0],l,0);
+      if index<0 then
+        len:=l
+      else
+        len:=index;
+    end
+  else
+    len:=l;
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
+  res:=temp;
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
 var

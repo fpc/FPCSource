@@ -742,9 +742,8 @@ implementation
                begin
                  hp:=ccallparanode.create
                        (right,
-                  ccallparanode.create(cinlinenode.create
-                       (in_high_x,false,left.getcopy),nil));
-                 result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp,left);
+                  ccallparanode.create(left,nil));
+                 result:=ccallnode.createintern('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp);
                  firstpass(result);
                  left:=nil;
                  right:=nil;

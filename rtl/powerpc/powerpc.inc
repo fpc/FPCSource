@@ -819,64 +819,6 @@ end;
                                  String
 ****************************************************************************}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
-function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
-assembler; nostackframe;
-{ input: r3: pointer to result, r4: len, r5: sstr }
-asm
-        { load length source }
-        lbz     r10,0(r5)
-        {  load the begin of the dest buffer in the data cache }
-        dcbtst  0,r3
-
-        { put min(length(sstr),len) in r4 }
-        subfc   r7,r10,r4     { r0 := r4 - r10                               }
-        subfe   r4,r4,r4      { if r3 >= r4 then r3' := 0 else r3' := -1     }
-        and     r7,r7,r4      { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
-        add     r4,r10,r7     { if r3 >= r4 then r3' := r10 else r3' := r3   }
-
-        cmplwi  r4,0
-        { put length in ctr }
-        mtctr   r4
-        stb     r4,0(r3)
-        beq     .LShortStrCopyDone
-.LShortStrCopyLoop:
-        lbzu    r0,1(r5)
-        stbu    r0,1(r3)
-        bdnz    .LShortStrCopyLoop
-.LShortStrCopyDone:
-end;
-
-
-procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
-assembler; nostackframe;
-{ input: r3: len, r4: sstr, r5: dstr }
-asm
-        { load length source }
-        lbz     r10,0(r4)
-        {  load the begin of the dest buffer in the data cache }
-        dcbtst  0,r5
-
-        { put min(length(sstr),len) in r3 }
-        subc    r0,r3,r10    { r0 := r3 - r10                               }
-        subfe   r3,r3,r3     { if r3 >= r4 then r3' := 0 else r3' := -1     }
-        and     r3,r0,r3     { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
-        add     r3,r3,r10    { if r3 >= r4 then r3' := r10 else r3' := r3   }
-
-        cmplwi  r3,0
-        { put length in ctr }
-        mtctr   r3
-        stb     r3,0(r5)
-        beq     .LShortStrCopyDone2
-.LShortStrCopyLoop2:
-        lbzu    r0,1(r4)
-        stbu    r0,1(r5)
-        bdnz    .LShortStrCopyLoop2
-.LShortStrCopyDone2:
-end;
-{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
-
 {$ifndef STR_CONCAT_PROCS}
 
 (*
@@ -1035,9 +977,14 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
-assembler; nostackframe;
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc; assembler; nostackframe;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc; nostackframe;
+{$define FPC_STRPASPROC}
+{$endif FPC_STRTOSHORTSTRINGPROC}
 {$include strpas.inc}
+{$undef FPC_STRPASPROC}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 

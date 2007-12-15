@@ -14,10 +14,12 @@
  **********************************************************************}
 unit strings;
 {$S-}
+{$inline on}
 interface
 
     { Implemented in System Unit }
-    function strpas(p:pchar):shortstring;external name 'FPC_PCHAR_TO_SHORTSTR';
+    function strpas(p:pchar):shortstring;inline;
+
     function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
 
     { Converts a Pascal string to a null-terminated string }
@@ -108,6 +110,27 @@ implementation
 {$i stringsi.inc}
 
 { Functions, different from the one in sysutils }
+
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+
+    { also define alias which can be used inside the system unit }
+    function fpc_pchar_to_shortstr(p:pchar):shortstring;[external name 'FPC_PCHAR_TO_SHORTSTR'];
+
+{$else FPC_STRTOSHORTSTRINGPROC}
+
+    { also define alias which can be used inside the system unit }
+    procedure fpc_pchar_to_shortstr(var res : openstring;p:pchar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
+
+{$endif FPC_STRTOSHORTSTRINGPROC}
+
+    function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+      begin
+    {$ifndef FPC_STRTOSHORTSTRINGPROC}
+        strpas:=fpc_pchar_to_shortstr(p);
+    {$else FPC_STRTOSHORTSTRINGPROC}
+        fpc_pchar_to_shortstr(strpas,p);
+    {$endif FPC_STRTOSHORTSTRINGPROC}
+      end;
 
     function stralloc(L : SizeInt) : pchar;
 

@@ -215,7 +215,7 @@ interface
 implementation
 
    uses
-      cclasses,globtype,systems,
+      globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symbase,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,nmat,nbas,nutils,
@@ -820,17 +820,35 @@ implementation
     function ttypeconvnode.typecheck_chararray_to_string : tnode;
       var
         chartype : string[8];
+        newblock : tblocknode;
+        newstat  : tstatementnode;
+        restemp  : ttempcreatenode;
       begin
         if is_widechar(tarraydef(left.resultdef).elementdef) then
           chartype:='widechar'
         else
           chartype:='char';
-        result := ccallnode.createinternres(
-           'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
-           ccallparanode.create(cordconstnode.create(
-             ord(tarraydef(left.resultdef).lowrange=0),booltype,false),
-           ccallparanode.create(left,nil)),resultdef);
-        left := nil;
+        if tstringdef(resultdef).stringtype=st_shortstring then
+          begin
+            newblock:=internalstatements(newstat);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            addstatement(newstat,restemp);
+            addstatement(newstat,ccallnode.createintern('fpc_'+chartype+'array_to_shortstr',
+              ccallparanode.create(cordconstnode.create(
+                ord(tarraydef(left.resultdef).lowrange=0),booltype,false),
+              ccallparanode.create(left,ccallparanode.create(
+              ctemprefnode.create(restemp),nil)))));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+            addstatement(newstat,ctemprefnode.create(restemp));
+            result:=newblock;
+          end
+        else
+          result:=ccallnode.createinternres(
+            'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
+            ccallparanode.create(cordconstnode.create(
+               ord(tarraydef(left.resultdef).lowrange=0),booltype,false),
+             ccallparanode.create(left,nil)),resultdef);
+        left:=nil;
       end;
 
 
@@ -898,11 +916,11 @@ implementation
 
 
     function ttypeconvnode.typecheck_string_to_string : tnode;
-
       var
         procname: string[31];
-        stringpara : tcallparanode;
-
+        newblock : tblocknode;
+        newstat  : tstatementnode;
+        restemp  : ttempcreatenode;
       begin
          result:=nil;
          if (left.nodetype=stringconstn) and
@@ -921,18 +939,20 @@ implementation
              procname := 'fpc_'+tstringdef(left.resultdef).stringtypname+
                          '_to_'+tstringdef(resultdef).stringtypname;
 
-             { create parameter (and remove left node from typeconvnode }
-             { since it's reused as parameter)                          }
-             stringpara := ccallparanode.create(left,nil);
-             left := nil;
-
-             { when converting to shortstrings, we have to pass high(destination) too }
-             if (tstringdef(resultdef).stringtype = st_shortstring) then
-               stringpara.right := ccallparanode.create(cinlinenode.create(
-                 in_high_x,false,self.getcopy),nil);
-
-             { and create the callnode }
-             result := ccallnode.createinternres(procname,stringpara,resultdef);
+             if tstringdef(resultdef).stringtype=st_shortstring then
+               begin
+                 newblock:=internalstatements(newstat);
+                 restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+                 addstatement(newstat,restemp);
+                 addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
+                   ctemprefnode.create(restemp),nil))));
+                 addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+                 addstatement(newstat,ctemprefnode.create(restemp));
+                 result:=newblock;
+               end
+             else
+               result := ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
+             left:=nil;
            end;
       end;
 
@@ -944,6 +964,9 @@ implementation
          para : tcallparanode;
          hp : tstringconstnode;
          ws : pcompilerwidestring;
+         newblock : tblocknode;
+         newstat  : tstatementnode;
+         restemp  : ttempcreatenode;
 
       begin
          result:=nil;
@@ -980,19 +1003,33 @@ implementation
            if (tstringdef(resultdef).stringtype <> st_shortstring) or
               (torddef(left.resultdef).ordtype = uwidechar) then
              begin
-               { create the procname }
-               if torddef(left.resultdef).ordtype<>uwidechar then
-                 procname := 'fpc_char_to_'
+               if (tstringdef(resultdef).stringtype <> st_shortstring) then
+                 begin
+                   { create the procname }
+                   if torddef(left.resultdef).ordtype<>uwidechar then
+                     procname := 'fpc_char_to_'
+                   else
+                     procname := 'fpc_wchar_to_';
+                   procname:=procname+tstringdef(resultdef).stringtypname;
+
+                   { and the parameter }
+                   para := ccallparanode.create(left,nil);
+
+                   { and finally the call }
+                   result := ccallnode.createinternres(procname,para,resultdef);
+                 end
                else
-                 procname := 'fpc_wchar_to_';
-               procname:=procname+tstringdef(resultdef).stringtypname;
-
-               { and the parameter }
-               para := ccallparanode.create(left,nil);
+                 begin
+                   newblock:=internalstatements(newstat);
+                   restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+                   addstatement(newstat,restemp);
+                   addstatement(newstat,ccallnode.createintern('fpc_wchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
+                     ctemprefnode.create(restemp),nil))));
+                   addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+                   addstatement(newstat,ctemprefnode.create(restemp));
+                   result:=newblock;
+                 end;
                left := nil;
-
-               { and finally the call }
-               result := ccallnode.createinternres(procname,para,resultdef);
              end
            else
              begin
@@ -1277,11 +1314,27 @@ implementation
 
 
     function ttypeconvnode.typecheck_pchar_to_string : tnode;
+      var
+        newblock : tblocknode;
+        newstat  : tstatementnode;
+        restemp  : ttempcreatenode;
       begin
-        result := ccallnode.createinternres(
-          'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
-          ccallparanode.create(left,nil),resultdef);
-        left := nil;
+        if tstringdef(resultdef).stringtype=st_shortstring then
+          begin
+            newblock:=internalstatements(newstat);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            addstatement(newstat,restemp);
+            addstatement(newstat,ccallnode.createintern('fpc_pchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
+              ctemprefnode.create(restemp),nil))));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+            addstatement(newstat,ctemprefnode.create(restemp));
+            result:=newblock;
+          end
+        else
+          result := ccallnode.createinternres(
+            'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
+            ccallparanode.create(left,nil),resultdef);
+        left:=nil;
       end;
 
 
@@ -1307,11 +1360,27 @@ implementation
 
 
     function ttypeconvnode.typecheck_pwchar_to_string : tnode;
+      var
+        newblock : tblocknode;
+        newstat  : tstatementnode;
+        restemp  : ttempcreatenode;
       begin
-        result := ccallnode.createinternres(
-          'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
-          ccallparanode.create(left,nil),resultdef);
-        left := nil;
+        if tstringdef(resultdef).stringtype=st_shortstring then
+          begin
+            newblock:=internalstatements(newstat);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            addstatement(newstat,restemp);
+            addstatement(newstat,ccallnode.createintern('fpc_pwidechar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
+              ctemprefnode.create(restemp),nil))));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+            addstatement(newstat,ctemprefnode.create(restemp));
+            result:=newblock;
+          end
+        else
+          result := ccallnode.createinternres(
+            'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
+            ccallparanode.create(left,nil),resultdef);
+        left:=nil;
       end;
 
 

@@ -327,6 +327,8 @@ end;
 {$endif EXTRAANSISHORT}
 
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+
 { the following declaration has exactly the same effect as                   }
 { procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);     }
 { which is what the old helper was, so we don't need an extra implementation }
@@ -349,6 +351,29 @@ begin
      byte(fpc_AnsiStr_To_ShortStr[0]):=byte(Size);
    end;
 end;
+
+{$else FPC_STRTOSHORTSTRINGPROC}
+
+procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
+{
+  Converts a AnsiString to a ShortString;
+}
+Var
+  Size : SizeInt;
+begin
+  if S2='' then
+   res:=''
+  else
+   begin
+     Size:=Length(S2);
+     If Size>high(res) then
+      Size:=high(res);
+     Move (S2[1],res[1],Size);
+     byte(res[0]):=byte(Size);
+   end;
+end;
+
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;

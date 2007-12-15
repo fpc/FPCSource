@@ -787,6 +787,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 var
   slen : byte;
@@ -798,6 +799,18 @@ begin
   if slen>len then
     result[0]:=chr(len);
 end;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring);[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
+var
+  slen : byte;
+begin
+  slen:=length(sstr);
+  if slen>high(res) then
+    slen:=high(res);
+  move(sstr[0],res[0],slen+1);
+  res[0]:=chr(slen);
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
 var
@@ -986,6 +999,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
   l : longint;
@@ -1003,11 +1017,54 @@ begin
   fpc_pchar_to_shortstr := s;
 end;
 
+{$else FPC_STRTOSHORTSTRINGPROC}
+
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
+var
+  l : longint;
+  s: shortstring;
+begin
+  if p=nil then
+    l:=0
+  else
+    l:=strlen(p);
+  if l>high(res) then
+    l:=high(res);
+  if l>0 then
+    move(p^,s[1],l);
+  s[0]:=chr(l);
+  res:=s;
+end;
+
+{$endif FPC_STRTOSHORTSTRINGPROC}
+
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+
+{ also define alias which can be used inside the system unit }
+function fpc_pchar_to_shortstr(p:pchar):shortstring;[external name 'FPC_PCHAR_TO_SHORTSTR'];
+
+{$else FPC_STRTOSHORTSTRINGPROC}
+
+{ also define alias which can be used inside the system unit }
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
+
+{$endif FPC_STRTOSHORTSTRINGPROC}
+
+function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+    result:=fpc_pchar_to_shortstr(p);
+{$else FPC_STRTOSHORTSTRINGPROC}
+    fpc_pchar_to_shortstr(result,p);
+{$endif FPC_STRTOSHORTSTRINGPROC}
+  end;
+
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_chararray_to_shortstr(const arr: array of char; zerobased: boolean = true):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
  l: longint;
@@ -1032,6 +1089,32 @@ begin
   move(arr[0],fpc_chararray_to_shortstr[1],len);
   fpc_chararray_to_shortstr[0]:=chr(len);
 end;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of char; zerobased: boolean = true);[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
+var
+ l: longint;
+ index: longint;
+ len: byte;
+begin
+  l:=high(arr)+1;
+  if l>=high(res)+1 then
+    l:=high(res)
+  else if l<0 then
+    l:=0;
+  if zerobased then
+    begin
+      index:=IndexByte(arr[0],l,0);
+      if index<0 then
+        len:=l
+      else
+        len:=index;
+    end
+  else
+    len:=l;
+  move(arr[0],res[1],len);
+  res[0]:=chr(len);
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
