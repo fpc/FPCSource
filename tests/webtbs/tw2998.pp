@@ -1,5 +1,5 @@
 { %cpu=i386 }
-{ %OPT=-OaVARMIN=8 -Cg- }
+{ %OPT=-OaVARMIN=16 -Cg- }
 
 { Source provided for Free Pascal Bug Report 2998 }
 { Submitted by "bartek" on  2004-03-02 }
@@ -12,7 +12,7 @@ uses
 type
         vector4 = array[0..3] of single;
 
-{$maxalignment 8}
+{$codealign varmax 16}
 var
         a,b,c :vector4;
 begin
