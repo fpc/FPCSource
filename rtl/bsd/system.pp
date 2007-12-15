@@ -277,6 +277,11 @@ Begin
   StackBottom := Sptr - StackLength;
   { Set up signals handlers }
   InstallSignals;
+
+  SysResetFPU;
+  if not(IsLibrary) then
+    SysInitFPU;
+
 {$if defined(cpui386) or defined(cpuarm)}
   fpc_cpucodeinit;
 {$endif cpui386}
