@@ -2275,7 +2275,7 @@ begin
             Hide;
           cmSave :
             if Editor^.IsClipboard=false then
-             if (Editor^.FileName='') and Editor^.GetModified then
+             if (Editor^.FileName='') then
               Editor^.SaveAs
              else
               Editor^.Save;

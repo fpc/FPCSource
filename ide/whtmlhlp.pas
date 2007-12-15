@@ -867,7 +867,7 @@ begin
             exists PM }
           src:=DirAndNameOf(src)+'.ans';
 {$ifdef DEBUG}
-  DebugMessage(GetFileName,' Trying "'+Src+'"',Line,1);
+          DebugMessage(GetFileName,' Trying "'+Src+'"',Line,1);
 {$endif DEBUG}
           if not ExistsFile(src) then
             begin
@@ -1443,7 +1443,7 @@ begin
       if Name<>'' then
         HTMLFile:=New(PDOSTextFile, Init(Name));
 
-      if (HTMLFile=nil)and (CurFileName<>'') then
+      if (HTMLFile=nil) and (CurFileName<>'') then
         begin
           Name:=CurFileName;
           HTMLFile:=New(PDOSTextFile, Init(Name));

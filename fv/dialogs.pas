@@ -1136,12 +1136,22 @@ BEGIN
      evNothing: Exit;                                 { Speed up exit }
      evKeyDown:                                       { Key down event }
        Case Event.KeyCode Of
-         kbEsc: Begin                                 { Escape key press }
+         kbEsc, kbCtrlF4: Begin                       { Escape key press }
              Event.What := evCommand;                 { Command event }
              Event.Command := cmCancel;               { cancel command }
              Event.InfoPtr := Nil;                    { Clear info ptr }
              PutEvent(Event);                         { Put event on queue }
              ClearEvent(Event);                       { Clear the event }
+           End;
+         kbCtrlF5: Begin                              { movement of modal dialogs }
+             If (State AND sfModal <> 0) Then
+               begin
+                 Event.What := evCommand;
+                 Event.Command := cmResize;
+                 Event.InfoPtr := Nil;
+                 PutEvent(Event);
+                 ClearEvent(Event);
+               end;
            End;
          kbEnter: Begin                               { Enter key press }
              Event.What := evBroadcast;               { Broadcast event }
