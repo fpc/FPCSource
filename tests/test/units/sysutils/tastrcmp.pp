@@ -83,7 +83,7 @@ end;
 
 procedure testAnsiStrLComp;
 begin
-  teststr:='AnsiStrIComp';
+  teststr:='AnsiStrLComp';
   check (ansistrlcomp ('', '', 99) = 0, 1); { Trivial case. }
   check (ansistrlcomp ('a', 'a', 99) = 0, 2);       { Identity. }
   check (ansistrlcomp ('abc', 'abc', 99) = 0, 3);   { Multicharacter. }
@@ -95,7 +95,7 @@ begin
   check (ansistrlcomp ('abce', 'abc', 3) = 0, 11);  { Count = length. }
   check (ansistrlcomp ('abcd', 'abce', 4) < 0, 12);  { Nudging limit. }
   check (ansistrlcomp ('abc', 'def', 0) = 0, 13);   { Zero count. }
-  check (ansistrlcomp ('abc'#0'e', 'abc'#0'd', 99) = 0, 14);
+  check (ansistrlcomp ('abc'#0'e', 'abc'#0'd', 99) > 0, 14);
 end;
 
 
@@ -150,7 +150,7 @@ begin
   check(ansistrlicomp('AbC', 'abcd', 4) < 0, 18);
   check(ansistrlicomp('ADC', 'abcd', 1) = 0, 19);
   check(ansistrlicomp('ADC', 'abcd', 2) > 0, 20);
-  check(ansistrlicomp('abc'#0'e', 'abc'#0'd', 99) = 0, 21);
+  check(ansistrlicomp('abc'#0'e', 'abc'#0'd', 99) > 0, 21);
 end;
 
 

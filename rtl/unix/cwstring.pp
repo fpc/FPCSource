@@ -549,19 +549,26 @@ function CharLengthPChar(const Str: PChar): PtrInt;
   end;
 
 
-function StrCompAnsiIntern(const s1,s2 : PChar; len1, len2: PtrInt): PtrInt;
+function StrCompAnsiIntern(s1,s2 : PChar; len1, len2: PtrInt; canmodifys1, canmodifys2: boolean): PtrInt;
   var
     a,b: pchar;
     i: PtrInt;
   begin
-    getmem(a,len1+1);
-    getmem(b,len2+1);
+    if not(canmodifys1) then
+      getmem(a,len1+1)
+    else
+      a:=s1;
     for i:=0 to len1-1 do
       if s1[i]<>#0 then
         a[i]:=s1[i]
       else
         a[i]:=#32;
     a[len1]:=#0;
+
+    if not(canmodifys2) then
+      getmem(b,len2+1)
+    else
+      b:=s2;
     for i:=0 to len2-1 do
       if s2[i]<>#0 then
         b[i]:=s2[i]
@@ -569,14 +576,16 @@ function StrCompAnsiIntern(const s1,s2 : PChar; len1, len2: PtrInt): PtrInt;
         b[i]:=#32;
     b[len2]:=#0;
     result:=strcoll(a,b);
-    freemem(a);
-    freemem(b);
+    if not(canmodifys1) then
+      freemem(a);
+    if not(canmodifys2) then
+      freemem(b);
   end;
 
 
 function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
   begin
-    result:=StrCompAnsiIntern(pchar(s1),pchar(s2),length(s1),length(s2));
+    result:=StrCompAnsiIntern(pchar(s1),pchar(s2),length(s1),length(s2),false,false);
   end;
 
 
@@ -592,7 +601,7 @@ function AnsiCompareText(const S1, S2: ansistring): PtrInt;
   begin
     a:=UpperAnsistring(s1);
     b:=UpperAnsistring(s2);
-    result:=StrCompAnsiIntern(pchar(a),pchar(b),length(a),length(b));
+    result:=StrCompAnsiIntern(pchar(a),pchar(b),length(a),length(b),true,true);
   end;
 
 
@@ -606,7 +615,9 @@ function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
   var
     a, b: pchar;
 begin
-  if (IndexChar(s1^,maxlen,#0)<0) then
+  if (maxlen=0) then
+    exit(0);
+  if (s1[maxlen]<>#0) then
     begin
       getmem(a,maxlen+1);
       move(s1^,a^,maxlen);
@@ -614,7 +625,7 @@ begin
     end
   else
     a:=s1;
-  if (IndexChar(s2^,maxlen,#0)<0) then
+  if (s2[maxlen]<>#0) then
     begin
       getmem(b,maxlen+1);
       move(s2^,b^,maxlen);
@@ -622,7 +633,7 @@ begin
     end
   else
     b:=s2;
-  result:=strcoll(a,b);
+  result:=StrCompAnsiIntern(a,b,maxlen,maxlen,a<>s1,b<>s2);
   if (a<>s1) then
     freemem(a);
   if (b<>s2) then
@@ -633,20 +644,13 @@ end;
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
   var
     a, b: ansistring;
-    len1,len2: SizeInt;
 begin
-  len1:=IndexChar(s1^,maxlen,#0);
-  if (len1<0) then
-    len1:=maxlen;
-  setlength(a,len1);
-  if (len1<>0) then
-    move(s1^,a[1],len1);
-  len2:=IndexChar(s2^,maxlen,#0);
-  if (len2<0) then
-    len2:=maxlen;
-  setlength(b,len2);
-  if (len2<>0) then
-    move(s2^,b[1],len2);
+  if (maxlen=0) then
+    exit(0);
+  setlength(a,maxlen);
+  move(s1^,a[1],maxlen);
+  setlength(b,maxlen);
+  move(s2^,b[1],maxlen);
   result:=AnsiCompareText(a,b);
 end;
 
