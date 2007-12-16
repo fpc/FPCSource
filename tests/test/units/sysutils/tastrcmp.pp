@@ -83,7 +83,7 @@ end;
 
 procedure testAnsiStrLComp;
 begin
-  teststr:='AnsiStrIComp';
+  teststr:='AnsiStrLComp';
   check (ansistrlcomp ('', '', 99) = 0, 1); { Trivial case. }
   check (ansistrlcomp ('a', 'a', 99) = 0, 2);       { Identity. }
   check (ansistrlcomp ('abc', 'abc', 99) = 0, 3);   { Multicharacter. }
