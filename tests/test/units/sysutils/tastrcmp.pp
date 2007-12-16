@@ -84,18 +84,18 @@ end;
 procedure testAnsiStrLComp;
 begin
   teststr:='AnsiStrLComp';
-  check (ansistrlcomp ('', '', 99) = 0, 1); { Trivial case. }
-  check (ansistrlcomp ('a', 'a', 99) = 0, 2);       { Identity. }
-  check (ansistrlcomp ('abc', 'abc', 99) = 0, 3);   { Multicharacter. }
-  check (ansistrlcomp ('abc', 'abcd', 99) < 0, 4);   { Length unequal. }
-  check (ansistrlcomp ('abcd', 'abc', 99) > 0, 5);
-  check (ansistrlcomp ('abcd', 'abce', 99) < 0, 6);  { Honestly unequal. }
-  check (ansistrlcomp ('abce', 'abcd', 99) > 0, 7);
+  check (ansistrlcomp ('', '', 0) = 0, 1); { Trivial case. }
+  check (ansistrlcomp ('a', 'a', 1) = 0, 2);       { Identity. }
+  check (ansistrlcomp ('abc', 'abc', 3) = 0, 3);   { Multicharacter. }
+  check (ansistrlcomp ('abc'#0, 'abcd', 4) < 0, 4);   { Length unequal. }
+  check (ansistrlcomp ('abcd', 'abc'#0, 4) > 0, 5);
+  check (ansistrlcomp ('abcd', 'abce', 4) < 0, 6);  { Honestly unequal. }
+  check (ansistrlcomp ('abce', 'abcd', 4) > 0, 7);
   check (ansistrlcomp ('abce', 'abcd', 3) = 0, 10); { Count limited. }
   check (ansistrlcomp ('abce', 'abc', 3) = 0, 11);  { Count = length. }
   check (ansistrlcomp ('abcd', 'abce', 4) < 0, 12);  { Nudging limit. }
   check (ansistrlcomp ('abc', 'def', 0) = 0, 13);   { Zero count. }
-  check (ansistrlcomp ('abc'#0'e', 'abc'#0'd', 99) > 0, 14);
+  check (ansistrlcomp ('abc'#0'e', 'abc'#0'd', 5) > 0, 14);
 end;
 
 
@@ -130,27 +130,27 @@ end;
 procedure testAnsiStrLIComp;
 begin
   teststr:='AnsiStrLIComp';
-  check(ansistrlicomp('a', 'a', 5) = 0, 1);
-  check(ansistrlicomp('a', 'A', 5) = 0, 2);
-  check(ansistrlicomp('A', 'a', 5) = 0, 3);
-  check(ansistrlicomp('a', 'b', 5) < 0, 4);
-  check(ansistrlicomp('c', 'b', 5) > 0, 5);
-  check(ansistrlicomp('abc', 'AbC', 5) = 0, 6);
+  check(ansistrlicomp('a', 'a', 1) = 0, 1);
+  check(ansistrlicomp('a', 'A', 1) = 0, 2);
+  check(ansistrlicomp('A', 'a', 1) = 0, 3);
+  check(ansistrlicomp('a', 'b', 1) < 0, 4);
+  check(ansistrlicomp('c', 'b', 1) > 0, 5);
+  check(ansistrlicomp('abc', 'AbC', 3) = 0, 6);
   check(ansistrlicomp('0123456789', '0123456789', 10) = 0, 7);
-  check(ansistrlicomp('', '0123456789', 10) < 0, 8);
-  check(ansistrlicomp('AbC', '', 5) > 0, 9);
-  check(ansistrlicomp('AbC', 'A', 5) > 0, 10);
-  check(ansistrlicomp('AbC', 'Ab', 5) > 0, 11);
-  check(ansistrlicomp('AbC', 'ab', 5) > 0, 12);
+  check(ansistrlicomp(#0'123456789', '0123456789', 10) < 0, 8);
+  check(ansistrlicomp('AbC', #0'bC', 3) > 0, 9);
+  check(ansistrlicomp('AbC', 'A'#0#0,3) > 0, 10);
+  check(ansistrlicomp('AbC', 'Ab'#0, 3) > 0, 11);
+  check(ansistrlicomp('AbC', 'ab'#0, 3) > 0, 12);
   check(ansistrlicomp('0123456789', 'AbC', 0) = 0, 13);
   check(ansistrlicomp('AbC', 'abc', 1) = 0, 14);
   check(ansistrlicomp('AbC', 'abc', 2) = 0, 15);
   check(ansistrlicomp('AbC', 'abc', 3) = 0, 16);
   check(ansistrlicomp('AbC', 'abcd', 3) = 0, 17);
-  check(ansistrlicomp('AbC', 'abcd', 4) < 0, 18);
+  check(ansistrlicomp('AbCc', 'abcd', 4) < 0, 18);
   check(ansistrlicomp('ADC', 'abcd', 1) = 0, 19);
   check(ansistrlicomp('ADC', 'abcd', 2) > 0, 20);
-  check(ansistrlicomp('abc'#0'e', 'abc'#0'd', 99) > 0, 21);
+  check(ansistrlicomp('abc'#0'e', 'abc'#0'd', 5) > 0, 21);
 end;
 
 
