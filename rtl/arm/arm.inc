@@ -17,6 +17,10 @@
 
 {$asmmode gas}
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
+{$define FPC_SYSTEM_FPC_MOVE}
+{$endif FPC_SYSTEM_HAS_MOVE}
+
 {$ifdef FPC_SYSTEM_FPC_MOVE}
 const
   cpu_has_edsp : boolean = false;
@@ -143,7 +147,6 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-{$define FPC_SYSTEM_FPC_MOVE}
 procedure Move_pld(const source;var dest;count:longint);assembler;nostackframe;
 asm
   pld [r0]
