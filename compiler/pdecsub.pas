@@ -2529,15 +2529,8 @@ const
               { check arguments, we need to check only the user visible parameters. The hidden parameters
                 can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV) }
               (
-               (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden])>=te_equal) and
-               { for operators equal_paras is not enough !! }
-               ((currpd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
-                { be careful here, equal_defs doesn't take care of unique }
-                (fwpd.returndef=currpd.returndef) or
-                (equal_defs(fwpd.returndef,currpd.returndef) and
-                 not(df_unique in fwpd.returndef.defoptions) and not(df_unique in currpd.returndef.defoptions)
-                )
-               )
+               (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden,cpo_openequalisexact])=te_exact) and
+               (fwpd.returndef=currpd.returndef)
               ) then
              begin
                { Check if we've found the forwarddef, if found then
@@ -2549,9 +2542,9 @@ const
 
                    if not(m_repeat_forward in current_settings.modeswitches) and
                       (fwpd.proccalloption<>currpd.proccalloption) then
-                     paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue]
+                     paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_openequalisexact]
                    else
-                     paracompopt:=[cpo_comparedefaultvalue];
+                     paracompopt:=[cpo_comparedefaultvalue,cpo_openequalisexact];
 
                    { Check calling convention }
                    if (fwpd.proccalloption<>currpd.proccalloption) then
@@ -2588,8 +2581,8 @@ const
                      also the parameters must match also with the type }
                    if ((m_repeat_forward in current_settings.modeswitches) or
                        not is_bareprocdef(currpd)) and
-                      ((compare_paras(currpd.paras,fwpd.paras,cp_all,paracompopt)<te_equal) or
-                       (not equal_defs(fwpd.returndef,currpd.returndef))) then
+                      ((compare_paras(currpd.paras,fwpd.paras,cp_all,paracompopt)<>te_exact) or
+                       (fwpd.returndef<>currpd.returndef)) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
