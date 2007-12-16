@@ -816,7 +816,7 @@ implementation
           include(vs.varoptions,vo_is_external);
           vs.varregable := vr_none;
           if is_dll then
-            current_module.AddExternalImport(dll_name,C_Name,0,true)
+            current_module.AddExternalImport(dll_name,C_Name,0,true,false)
           else
             if tf_has_dllscanner in target_info.flags then
               current_module.dllscannerinputlist.Add(vs.mangledname,vs);
@@ -1087,7 +1087,7 @@ implementation
               include(vs.varoptions,vo_is_external);
               vs.varregable := vr_none;
               if is_dll then
-                current_module.AddExternalImport(dll_name,C_Name,0,true)
+                current_module.AddExternalImport(dll_name,C_Name,0,true,false)
               else
                 if tf_has_dllscanner in target_info.flags then
                   current_module.dllscannerinputlist.Add(vs.mangledname,vs);

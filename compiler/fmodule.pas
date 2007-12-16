@@ -169,7 +169,7 @@ interface
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
         procedure setmodulename(const s:string);
-        procedure AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean);
+        procedure AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
       end;
 
@@ -898,7 +898,7 @@ implementation
       end;
 
 
-    procedure TModule.AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean);
+    procedure TModule.AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
       var
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TFPHashObject;
@@ -908,7 +908,12 @@ implementation
           ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
-          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,OrdNr,isvar);
+          begin
+            if not ImportByOrdinalOnly then
+              { negative ordinal number indicates import by name with ordinal number as hint }
+              OrdNr:=-OrdNr;
+            ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,OrdNr,isvar);
+          end;
       end;
 
 

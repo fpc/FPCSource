@@ -113,6 +113,7 @@ implementation
           rescmd : '--include $INC -O coff -o $OBJ $RES';
           rcbin  : 'windres';
           rccmd  : '--include $INC -O res -o $RES $RC';
+          resourcefileclass : nil;
         );
 
     res_gnu_wince_windres_info : tresinfo =
@@ -122,8 +123,10 @@ implementation
           rescmd : '--include $INC -O coff -o $OBJ $RES';
           rcbin  : 'windres';
           rccmd  : '--include $INC -O res -o $RES $RC';
+          resourcefileclass : nil;
         );
 
+{$ifdef x86_64}
     res_win64_gorc_info : tresinfo =
         (
           id     : res_win64_gorc;
@@ -131,7 +134,9 @@ implementation
           rescmd : '/machine x64 /nw /ni /o /fo $OBJ $RES';
           rcbin  : 'gorc';
           rccmd  : '/machine x64 /nw /ni /r /fo $RES $RC';
+          resourcefileclass : nil;
         );
+{$endif x86_64}
 
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);
@@ -301,6 +306,37 @@ implementation
           idata5objsection,
           idata6objsection,
           idata7objsection : TObjSection;
+          absordnr: word;
+
+          procedure WriteTableEntry;
+          var
+            ordint: dword;
+          begin
+            if ordnr <= 0 then
+              begin
+                { import by name }
+                objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
+                if target_info.system=system_x86_64_win64 then
+                  objdata.writebytes(emptyint,sizeof(emptyint));
+              end
+            else
+              begin
+                { import by ordinal }
+                ordint:=ordnr;
+                if target_info.system=system_x86_64_win64 then
+                  begin
+                    objdata.writebytes(ordint,sizeof(ordint));
+                    ordint:=$80000000;
+                    objdata.writebytes(ordint,sizeof(ordint));
+                  end
+                else
+                  begin
+                    ordint:=ordint or $80000000;
+                    objdata.writebytes(ordint,sizeof(ordint));
+                  end;
+              end;
+          end;
+          
         begin
           objdata:=CreateObjData(cut_normal);
           if not isvar then
@@ -318,43 +354,23 @@ implementation
           objdata.SetSection(idata6objsection);
           inc(idatalabnr);
           idata6label:=objdata.SymbolDefine(asmprefix+'_'+tostr(idatalabnr),AB_LOCAL,AT_DATA);
-          objdata.writebytes(ordnr,2);
-          objdata.writebytes(afuncname[1],length(afuncname));
+          absordnr:=Abs(ordnr);
+          { write index hint }
+          objdata.writebytes(absordnr,2);
+          if ordnr <= 0 then
+            objdata.writebytes(afuncname[1],length(afuncname));
           objdata.writebytes(emptyint,1);
           objdata.writebytes(emptyint,align(objdata.CurrObjSec.size,2)-objdata.CurrObjSec.size);
           { idata4, import lookup table }
           objdata.SetSection(idata4objsection);
-          if mangledname<>'' then
-            begin
-              objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-              if target_info.system=system_x86_64_win64 then
-                objdata.writebytes(emptyint,sizeof(emptyint));
-            end
-          else
-            begin
-              emptyint:=ordnr;
-              if target_info.system=system_x86_64_win64 then
-                begin
-                  objdata.writebytes(emptyint,sizeof(emptyint));
-                  emptyint:=longint($80000000);
-                  objdata.writebytes(emptyint,sizeof(emptyint));
-                end
-              else
-                begin
-                  emptyint:=emptyint or longint($80000000);
-                  objdata.writebytes(emptyint,sizeof(emptyint));
-                end;
-              emptyint:=0;
-            end;
+          WriteTableEntry;
           { idata5, import address table }
           objdata.SetSection(idata5objsection);
           if isvar then
             implabel:=objdata.SymbolDefine(mangledname,AB_GLOBAL,AT_DATA)
           else
             idata5label:=objdata.SymbolDefine(asmprefix+'_'+mangledname,AB_LOCAL,AT_DATA);
-          objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-          if target_info.system=system_x86_64_win64 then
-            objdata.writebytes(emptyint,sizeof(emptyint));
+          WriteTableEntry;
           { text, jmp }
           if not isvar then
             begin
@@ -1701,7 +1717,7 @@ implementation
             ExtName:=current_module.dllscannerinputlist.NameOfIndex(i);
             if (ExtName=funcname) then
               begin
-                current_module.AddExternalImport(dllname,funcname,0,false);
+                current_module.AddExternalImport(dllname,funcname,0,false,false);
                 importfound:=true;
                 current_module.dllscannerinputlist.Delete(i);
                 exit;
@@ -1738,9 +1754,11 @@ implementation
 ****************************************************************************}
 
 procedure TWinResourceFile.PostProcessResourcefile(const s : ansistring);
+{$ifdef arm}
 var
   f : file;
   w : word;
+{$endif arm}
 begin
 {$ifdef arm}
   assign(f,s);
