@@ -2720,6 +2720,10 @@ var
 {$endif}
 begin
 {$ifdef WINDOWS}
+{$ifdef wince}
+  FUserName:='cedevice';
+  FUserNameLen:=Length(FUserName);
+{$else}
   FUserNameLen := MAX_COMPUTERNAME_LENGTH+1;
   SetLength(FUserName, FUserNameLen);
   Windows.GetComputerName(PChar(FUserName), 
@@ -2728,7 +2732,8 @@ begin
     {$ifdef DELPHI_3}){$endif}
     );
   SetLength(FUserName, FUserNameLen);
-{$else}  
+{$endif wince}
+{$else}
 {$ifdef FPC}
   FpUname(TempName);
   FUserName := TempName.machine;
