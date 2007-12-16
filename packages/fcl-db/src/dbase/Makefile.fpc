@@ -30,10 +30,12 @@ units=dbf_collate dbf_common dbf_cursor dbf_dbffile dbf_fields \
 # dbf_Wtil is needed on all targets except windows
 ifneq ($(OS_TARGET),win32)
 ifneq ($(OS_TARGET),win64)
+ifneq ($(OS_TARGET),wince)
 
 INSTALL_UNITS+=dbf_wtil
 CLEAN_UNITS+=dbf_wtil
 
+endif
 endif
 endif
 
