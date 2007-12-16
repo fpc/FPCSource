@@ -175,7 +175,7 @@ function ui64tod(i : qword) : double; compilerproc;
 
 function i64tod(i : int64) : double; compilerproc;
    cdecl;external 'coredll' name '__i64tod';
-   
+
 function utos(i : dword) : single; compilerproc;
    cdecl;external 'coredll' name '__utos';
 
@@ -310,6 +310,7 @@ const
      MB_USEGLYPHCHARS = 4;
      CP_ACP = 0;
      CP_OEMCP = 1;
+     WC_NO_BEST_FIT_CHARS = $400;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
      cdecl; external 'coredll' name 'MultiByteToWideChar';
@@ -336,7 +337,7 @@ end;
 
 function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
 begin
-  Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideCharsLen, AnsiBuf, AnsiBufLen, nil, nil);
+  Result := WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, WideBuf, WideCharsLen, AnsiBuf, AnsiBufLen, nil, nil);
   if ((WideCharsLen <> -1) or (Result = 0)) and (AnsiBuf <> nil) then
   begin
     if Result + 1 > AnsiBufLen then
@@ -1789,7 +1790,7 @@ begin
 end;
 
 initialization
-  SysResetFPU;    
+  SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);

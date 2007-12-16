@@ -1079,7 +1079,6 @@ end;
                     Target Dependent WideString stuff
 ****************************************************************************}
 
-
 function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
     SetLastError(0);
@@ -1182,6 +1181,7 @@ function Win32AnsiStrUpper(Str: PChar): PChar;
   are relevant already for the system unit }
 procedure InitWin32Widestrings;
   begin
+//!!!    CharLengthPCharProc : function(const Str: PChar): PtrInt;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
