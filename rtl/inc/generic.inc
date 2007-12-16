@@ -1686,10 +1686,18 @@ end;
 procedure SysResetFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   softfloat_exception_flags:=0;
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSRESETFPU}
+
+{$ifndef FPC_SYSTEM_HAS_SYSINITFPU}
+
+procedure SysInitFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+end;
+
+{$endif FPC_SYSTEM_HAS_SYSINITFPU}
 
 {$ifndef FPC_SYSTEM_HAS_SWAPENDIAN}
 function SwapEndian(const AValue: SmallInt): SmallInt;

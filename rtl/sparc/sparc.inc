@@ -45,20 +45,27 @@ function get_got : pointer;assembler;nostackframe;[public, alias: 'FPC_GETGOT'];
   end;
 
 
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    softfloat_exception_flags:=0;
     softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
     { enable div by 0 and invalid operation fpu exceptions
       round towards zero; ieee compliant arithmetics }
     set_fsr((get_fsr and $3fbfffff) or $09000000);
+  end;
+  
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    softfloat_exception_flags:=0;
   end;
 
 
 procedure fpc_cpuinit;
   begin
     SysResetFPU;
+    if not(IsLibrary) then
+      SysInitFPU;
   end;
 
 

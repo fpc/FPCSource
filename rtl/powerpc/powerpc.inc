@@ -1192,8 +1192,8 @@ end;
 
 {$IFDEF MORPHOS}
 { this is only required for MorphOS }
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   var tmp: array[0..1] of dword;
 begin
   asm
@@ -1207,6 +1207,12 @@ begin
   { powerpc might use softfloat code }
   softfloat_exception_flags:=0;
   softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+end;
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  softfloat_exception_flags:=0;
 end;
 {$ENDIF}
 

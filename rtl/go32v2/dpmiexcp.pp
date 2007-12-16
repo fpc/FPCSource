@@ -1594,12 +1594,9 @@ begin
            ErrorOfSig:=206
          else
            ErrorOfSig:=207;  {'Coprocessor Error'}
-         { if exceptions then Reset FPU and reload control word }
+         { if exceptions then Reset FPU and reload control word }        
          if (FPUStatus and FPU_ExceptionMask)<>0 then
-           asm
-             fninit
-             fldcw FPU_ControlWord
-           end;
+           SysResetFPU;
         end;
    4 : ErrorOfSig:=215;    {'Overflow'}
    1,                      {'Debug'}

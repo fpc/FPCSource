@@ -140,6 +140,7 @@ end;
 (*    procedure InitThread(stklen:cardinal);
       begin
         SysResetFPU;
+        SysInitFPU;
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
         { so every thread has its on exception handling capabilities }
         SysInitExceptions;

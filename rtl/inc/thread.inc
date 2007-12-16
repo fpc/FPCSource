@@ -24,6 +24,7 @@ Var
     procedure InitThread(stklen:SizeUInt);
       begin
         SysResetFPU;
+        SysInitFPU;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
         if assigned(widestringmanager.ThreadInitProc) then
           widestringmanager.ThreadInitProc;

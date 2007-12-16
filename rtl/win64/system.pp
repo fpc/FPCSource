@@ -416,7 +416,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         xorl %rax,%rax
         movw %ss,%ax
         movl %eax,_SS
-        call SysResetFPU
         xorl %rbp,%rbp
         call PASCALMAIN
         popq %rbp
@@ -1144,7 +1143,9 @@ end;
 
 
 begin
-  SysResetFPU;
+  SysResetFPU;    
+  if not(IsLibrary) then
+    SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
   { get some helpful informations }

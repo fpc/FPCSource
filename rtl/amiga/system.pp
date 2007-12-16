@@ -361,9 +361,11 @@ end;
 
 
 begin
-  SysResetFPU;
   IsConsole := TRUE;
   IsLibrary := FALSE;
+  SysResetFPU;    
+  if not(IsLibrary) then
+    SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
 { OS specific startup }

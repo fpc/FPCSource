@@ -393,11 +393,13 @@ end;
 
 
 begin
-  SysResetFPU;
   IsConsole := TRUE;
   IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
+  SysResetFPU;
+  if not(IsLibrary) then
+    SysInitFPU;
 { OS specific startup }
   MOS_ambMsg:=nil;
   MOS_origDir:=0;

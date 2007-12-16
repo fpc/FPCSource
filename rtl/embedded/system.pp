@@ -259,6 +259,8 @@ var
 begin
 {$ifdef FPC_HAS_FEATURE_FPU}
   SysResetFPU;
+  if not(IsLibrary) then
+    SysInitFPU;
 {$endif FPC_HAS_FEATURE_FPU}
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}

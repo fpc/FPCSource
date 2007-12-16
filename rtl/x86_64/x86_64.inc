@@ -27,6 +27,8 @@
 procedure fpc_cpuinit;
   begin
     SysResetFPU;
+    if not(IsLibrary) then
+      SysInitFPU;
   end;
 
 {$define FPC_SYSTEM_HAS_SPTR}
@@ -591,16 +593,10 @@ const
 
   mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
 
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+Procedure SysInitFPU;
 begin
   asm
-{ Win64 uses the fpu for ln etc. so we've to reset it as well
-  $ifndef WIN64}
-    { initialize fpu }
-    fninit
-    fwait
-{ $endif WIN64}
 {$ifdef FPC_PIC}
     movq fpucw@GOTPCREL(%rip),%rax
     fldcw (%rax)
@@ -614,8 +610,20 @@ begin
 {$endif FPC_PIC}
   end ['RAX'];
   { x86-64 might use softfloat code }
-  softfloat_exception_flags:=0;
   softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+end;
+
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;
+begin
+  asm
+    { initialize fpu }
+    fnclex
+    fwait
+  end;
+  { x86-64 might use softfloat code }
+  softfloat_exception_flags:=0;
 end;
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
