@@ -1,5 +1,8 @@
-procedure ttt(i1:integer;s1:string[255];b1:byte;i2:integer;
-  i3:integer;i4:integer;c1:char;s2,s3,s4,s5:string[255]);
+type
+  tstr255 = string[255];
+
+procedure ttt(i1:integer;s1:tstr255;b1:byte;i2:integer;
+  i3:integer;i4:integer;c1:char;s2,s3,s4,s5:tstr255);
 
 begin
      if (i1 <> 1) or
