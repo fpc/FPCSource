@@ -52,10 +52,12 @@ unit agppcgas;
       function MakeCmdLine: TCmdStr; override;
     end;
 
+    topstr = string[4];
+
     function getreferencestring(var ref : treference) : string;
     function getopstr_jmp(const o:toper) : string;
     function getopstr(const o:toper) : string;
-    function branchmode(o: tasmop): string[4];
+    function branchmode(o: tasmop): topstr;
     function cond2str(op: tasmop; c: tasmcond): string;  
 
   implementation
@@ -209,8 +211,8 @@ unit agppcgas;
     end;
 
 
-    function branchmode(o: tasmop): string[4];
-      var tempstr: string[4];
+    function branchmode(o: tasmop): topstr;
+      var tempstr: topstr;
       begin
         tempstr := '';
         case o of

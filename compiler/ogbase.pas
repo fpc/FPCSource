@@ -208,9 +208,11 @@ interface
      end;
      TObjSectionClass = class of TObjSection;
 
+     TString80 = string[80];
+
      TObjData = class(TLinkedListItem)
      private
-       FName       : string[80];
+       FName       : TString80;
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
        FCObjSection     : TObjSectionClass;
@@ -256,7 +258,7 @@ interface
        procedure afteralloc;virtual;
        procedure afterwrite;virtual;
        procedure resetsections;
-       property Name:string[80] read FName;
+       property Name:TString80 read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
        property ObjSymbolList:TFPHashObjectList read FObjSymbolList;
        property ObjSectionList:TFPHashObjectList read FObjSectionList;

@@ -238,8 +238,11 @@ interface
       end;
     end;
 
-    function branchmode(o: tasmop): string[4];
-      var tempstr: string[4];
+    type
+      topstr = string[4];
+
+    function branchmode(o: tasmop): topstr;
+      var tempstr: topstr;
       begin
         tempstr := '';
         case o of
