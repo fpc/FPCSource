@@ -341,8 +341,16 @@ begin
 end;
 
 function TTestStreaming.ReadValue: TValueType;
+{$IFDEF FPC}
+var b : byte;
+{$ENDIF}
 begin
+{$IFDEF FPC}
+  FStream.Read(b,1);
+  result := TValueType(b);
+{$ELSE}
   FStream.Read(Result,SizeOf(Result));
+{$ENDIF}
 end;
 
 procedure TTestStreaming.Setup;
