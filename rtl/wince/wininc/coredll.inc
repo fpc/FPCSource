@@ -2465,8 +2465,8 @@ function GetFileAttributesW(lpFileName:LPCWSTR):DWORD; external KernelDLL name '
 function GetFileAttributesEx(lpFileName:LPCWSTR; fInfoLevelId:GET_FILEEX_INFO_LEVELS; lpFileInformation:LPVOID):WINBOOL; external KernelDLL name 'GetFileAttributesExW'; //+winbase
 function GetFileAttributesExW(lpFileName:LPCWSTR; fInfoLevelId:GET_FILEEX_INFO_LEVELS; lpFileInformation:LPVOID):WINBOOL; external KernelDLL name 'GetFileAttributesExW'; //+winbase
 function GetFileInformationByHandle(hFile:HWND; lpFileInformation:LPBY_HANDLE_FILE_INFORMATION):WINBOOL; external KernelDLL name 'GetFileInformationByHandle';
-function GetFileSize(hFile:HWND; lpFileSizeHigh:LPDWORD):DWORD; external KernelDLL name 'GetFileSize';
-function GetFileTime(hFile:HWND; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external KernelDLL name 'GetFileTime';
+function GetFileSize(hFile:HANDLE; lpFileSizeHigh:LPDWORD):DWORD; external KernelDLL name 'GetFileSize';
+function GetFileTime(hFile:HANDLE; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external KernelDLL name 'GetFileTime';
 function GetFileVersionInfoSize(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external KernelDLL name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfoSize(lptstrFilename:LPWSTR; var dwHandle: DWORD):DWORD; external KernelDLL name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external KernelDLL name 'GetFileVersionInfoSizeW';
