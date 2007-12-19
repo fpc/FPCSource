@@ -2245,7 +2245,7 @@ function CreateCompatibleBitmap(_para1:HDC; _para2:longint; _para3:longint):HBIT
 function CreateCompatibleDC(_para1:HDC):HDC; external KernelDLL name 'CreateCompatibleDC';
 function CreateDC(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:pDEVMODE):HDC; external KernelDLL name 'CreateDCW';
 function CreateDCW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:pDEVMODE):HDC; external KernelDLL name 'CreateDCW';
-function CreateDialogIndirect(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+function CreateDialogIndirect(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 function CreateDialogIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 function CreateDialogIndirectParam(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external KernelDLL name 'CreateDialogIndirectParamW';
 function CreateDialogIndirectParamW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external KernelDLL name 'CreateDialogIndirectParamW';
@@ -3146,7 +3146,7 @@ begin
   CreateDialogIndirect:=CreateDialogIndirectParam(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
 end;
 
-function CreateDialogIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+function CreateDialogIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 begin
   CreateDialogIndirectW:=CreateDialogIndirectParamW(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
 end;
