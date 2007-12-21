@@ -98,6 +98,7 @@ Resourcestring
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
   SErrUnknownConnectorType = 'Unknown connector type';
   SErrAmountStrings        = 'Amount of search and replace strings don''t match';
+  SNoIndexFieldNameGiven   = 'There are no fields selected to base the index on';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
   
 

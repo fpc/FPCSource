@@ -106,13 +106,21 @@ type
 
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
-  TBufDataset = class(TDBDataSet)
-  private
+  TBufIndex = record
+    Name            : String;
+    SortField       : TField;
+    SortFieldName   : String;
 {$IFDEF ARRAYBUF}
     FCurrentRecInd  : integer;
     FRecordArray    : array of Pointer;
     FLastRecInd     : integer;
-    
+{$ENDIF ARRAYBUF}
+  end;
+
+  TBufDataset = class(TDBDataSet)
+  private
+    FIndexes        : array of TBufIndex;
+{$IFDEF ARRAYBUF}
     FInitialBuffers : integer;
     FGrowBuffer     : integer;
 {$ELSE}
@@ -147,11 +155,15 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
+    procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: pchar);
     function  GetCurrentBuffer: PChar;
     procedure CalcRecordSize;
+    function GetIndexName: String;
+    procedure InitialiseIndex(AIndex: TBufIndex);
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer : boolean;
+    procedure SetIndexName(const AValue: String);
     procedure SetPacketRecords(aValue : integer);
     function  IntAllocRecordBuffer: PChar;
     procedure DoFilterRecord(var Acceptable: Boolean);
@@ -175,6 +187,7 @@ type
     procedure InternalClose; override;
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
+    procedure InternalAddIndex(const AName, AFields : string); virtual;
     procedure InternalPost; override;
     procedure InternalCancel; Override;
     procedure InternalDelete; override;
@@ -214,15 +227,42 @@ type
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
     function UpdateStatus: TUpdateStatus; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
+    procedure AddIndex(const AName, AFields : string); virtual;
     property ChangeCount : Integer read GetChangeCount;
   published
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
+    property IndexName : String read GetIndexName write SetIndexName;
   end;
 
 implementation
 
 uses variants, dbconst;
+
+function CompareText0(substr, astr: pchar; len : integer; options: TLocateOptions): integer;
+
+var
+  i : integer; Chr1, Chr2: byte;
+begin
+  result := 0;
+  i := 0;
+  chr1 := 1;
+  while (result=0) and (i<len) and (chr1 <> 0) do
+    begin
+    Chr1 := byte(substr[i]);
+    Chr2 := byte(astr[i]);
+    inc(i);
+    if loCaseInsensitive in options then
+      begin
+      if Chr1 in [97..122] then
+        dec(Chr1,32);
+      if Chr2 in [97..122] then
+        dec(Chr2,32);
+      end;
+    result := Chr1 - Chr2;
+    end;
+  if (result <> 0) and (chr1 = 0) and (loPartialKey in options) then result := 0;
+end;
 
 { ---------------------------------------------------------------------
     TBufDataSet
@@ -232,14 +272,12 @@ constructor TBufDataset.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
 {$IFDEF ARRAYBUF}
-  FRecordArray:=nil;
-  FCurrentRecInd:=-1;
-  FLastRecInd:=-1;
-
   FInitialBuffers:=10000;
   FGrowBuffer:=1000;
-  
-  setlength(FRecordArray,FInitialBuffers);
+
+  FIndexesCount:=0;
+  InternalAddIndex('DEFAULT_ORDER','');
+  FCurrentIndex:=0;
 {$ELSE}
 
   FIndexesCount:=2;
@@ -298,6 +336,8 @@ end;
 
 procedure TBufDataset.InternalOpen;
 
+var IndexNr : integer;
+
 begin
   CalcRecordSize;
 
@@ -308,9 +348,12 @@ begin
   FLastRecBuf := FFirstRecBuf;
   FCurrentRecBuf := FLastRecBuf;
 {$ELSE}
-  FLastRecInd := 0;
-  FCurrentRecInd := 0;
-  FRecordArray[0]:=IntAllocRecordBuffer;
+  for IndexNr:=0 to FIndexesCount-1 do
+    begin
+    FIndexes[IndexNr].FLastRecInd := 0;
+    FIndexes[IndexNr].FCurrentRecInd := 0;
+    FIndexes[IndexNr].FRecordArray[0] := IntAllocRecordBuffer;
+    end;
 {$ENDIF}
 
   FAllPacketsFetched := False;
@@ -335,9 +378,9 @@ var pc : pchar;
 begin
   FOpen:=False;
 {$IFDEF ARRAYBUF}
-  for r := 0 to FLastRecInd do
-    FreeRecordBuffer(FRecordArray[r]);
-  SetLength(FRecordArray,FInitialBuffers);
+  for r := 0 to FIndexes[FCurrentIndex].FLastRecInd do
+    FreeRecordBuffer(FIndexes[FCurrentIndex].FRecordArray[r]);
+  SetLength(FIndexes[FCurrentIndex].FRecordArray,FInitialBuffers);
 {$ELSE}
   FCurrentRecBuf := FFirstRecBuf;
   while assigned(FCurrentRecBuf) do
@@ -383,8 +426,9 @@ begin
 // if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
 // in which case InternalFirst should do nothing (bug 7211)
 {$IFDEF ARRAYBUF}
-  if FCurrentRecInd <> FLastRecInd then
-    FCurrentRecInd := -1;
+  with FIndexes[FCurrentIndex] do
+    if FCurrentRecInd <> FLastRecInd then
+      FCurrentRecInd := -1;
 {$ELSE}
   if FCurrentRecBuf <> FLastRecBuf then
     FCurrentRecBuf := nil;
@@ -396,7 +440,7 @@ begin
   repeat
   until (getnextpacket < FPacketRecords) or (FPacketRecords = -1);
 {$IFDEF ARRAYBUF}
-  if FLastRecInd <> 0 then
+  with FIndexes[FCurrentIndex] do if FLastRecInd <> 0 then
     FCurrentRecInd := FLastRecInd;
 {$ELSE}
   if FLastRecBuf <> FFirstRecBuf then
@@ -432,10 +476,10 @@ begin
   case GetMode of
     gmPrior :
 {$IFDEF ARRAYBUF}
-      if FCurrentRecInd=0 then
+      if FIndexes[FCurrentIndex].FCurrentRecInd=0 then
         Result := grBOF
       else
-        Dec(FCurrentRecInd);
+        Dec(FIndexes[FCurrentIndex].FCurrentRecInd);
 {$ELSE}
       if not assigned(FCurrentRecBuf[FCurrentIndex].prior) then
         begin
@@ -448,7 +492,7 @@ begin
 {$ENDIF}
     gmCurrent :
 {$IFDEF ARRAYBUF}
-      if FCurrentRecInd = FLastRecInd then
+      if FIndexes[FCurrentIndex].FCurrentRecInd = FIndexes[FCurrentIndex].FLastRecInd then
         Result := grError;
 {$ELSE}
       if FCurrentRecBuf = FLastRecBuf then
@@ -456,16 +500,16 @@ begin
 {$ENDIF}
     gmNext :
 {$IFDEF ARRAYBUF}
-      if FCurrentRecInd = FLastRecInd then // Dataset is empty (just opened)
+      if FIndexes[FCurrentIndex].FCurrentRecInd = FIndexes[FCurrentIndex].FLastRecInd then // Dataset is empty (just opened)
         begin
         if getnextpacket = 0 then result := grEOF;
         end
-      else if FCurrentRecInd = -1 then FCurrentRecInd := 0
-      else if FCurrentRecInd = FLastRecInd-1 then
+      else if FIndexes[FCurrentIndex].FCurrentRecInd = -1 then FIndexes[FCurrentIndex].FCurrentRecInd := 0
+      else if FIndexes[FCurrentIndex].FCurrentRecInd = FIndexes[FCurrentIndex].FLastRecInd-1 then
         begin
         if getnextpacket > 0 then
           begin
-          inc(FCurrentRecInd);
+          inc(FIndexes[FCurrentIndex].FCurrentRecInd);
           end
         else
           begin
@@ -474,7 +518,7 @@ begin
         end
       else
         begin
-        inc(FCurrentRecInd);
+        inc(FIndexes[FCurrentIndex].FCurrentRecInd);
         end;
 {$ELSE}
       if FCurrentRecBuf = FLastRecBuf then // Dataset is empty (just opened)
@@ -506,15 +550,16 @@ begin
     with PBufBookmark(Buffer + FRecordSize)^ do
       begin
 {$IFDEF ARRAYBUF}
-      BookmarkData := FCurrentRecInd;
-      BookMarkBuf := FRecordArray[FCurrentRecInd];
+      BookmarkData := FIndexes[FCurrentIndex].FCurrentRecInd;
+      BookMarkBuf := FIndexes[FCurrentIndex].FRecordArray[FIndexes[FCurrentIndex].FCurrentRecInd];
 {$ELSE}
       BookmarkData := FCurrentRecBuf;
 {$ENDIF}
       BookmarkFlag := bfCurrent;
       end;
 {$IFDEF ARRAYBUF}
-    move((FRecordArray[FCurrentRecInd])^,buffer^,FRecordSize);
+    with FIndexes[FCurrentIndex] do
+      move((FRecordArray[FCurrentRecInd])^,buffer^,FRecordSize);
 {$ELSE}
     move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount)^,buffer^,FRecordSize);
 {$ENDIF}
@@ -577,10 +622,22 @@ begin
   Result := (FCurrentUpdateBuffer < length(FUpdateBuffer))  and CompareBuf(FCurrentUpdateBuffer);
 end;
 
+procedure TBufDataset.SetIndexName(const AValue: String);
+var i : integer;
+begin
+  for i := 0 to FIndexesCount-1 do
+    if SameText(FIndexes[i].Name,AValue) then
+      begin
+      FCurrentIndex:=i;
+      Resync([rmCenter]);
+      exit;
+      end;
+end;
+
 procedure TBufDataset.InternalSetToRecord(Buffer: PChar);
 begin
 {$IFDEF ARRAYBUF}
-  FCurrentRecInd:=GetRecordFromBookmark(PBufBookmark(Buffer + FRecordSize)^);
+  FIndexes[FCurrentIndex].FCurrentRecInd:=GetRecordFromBookmark(PBufBookmark(Buffer + FRecordSize)^);
 {$ELSE}
   FCurrentRecBuf := PBufBookmark(Buffer + FRecordSize)^.BookmarkData;
 {$ENDIF}
@@ -619,9 +676,62 @@ begin
   // note that ABookMark should be a PBufBookmark. But this way it can also be
   // a pointer to a TBufRecLinkItem
 {$IFDEF ARRAYBUF}
-  FCurrentRecInd:=GetRecordFromBookmark(PBufBookmark(ABookmark)^);
+  FIndexes[FCurrentIndex].FCurrentRecInd:=GetRecordFromBookmark(PBufBookmark(ABookmark)^);
 {$ELSE}
   FCurrentRecBuf := pointer(ABookmark^);
+{$ENDIF}
+end;
+
+procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : pchar);
+{$IFDEF ARRAYBUF}
+var RecInd : integer;
+    NewValueBuf, CompValueBuf : pchar;
+    HighVal,LowVal : Integer;
+    cp : integer;
+{$ENDIF}
+begin
+{$IFDEF ARRAYBUF}
+  if not assigned(AIndex.SortField) then
+    AIndex.SortField := FieldByName(AIndex.SortFieldName);
+
+  NewValueBuf:=ARecBuf;
+  inc(NewValueBuf,FFieldBufPositions[AIndex.SortField.FieldNo-1]);
+  
+  HighVal := AIndex.FLastRecInd;
+  LowVal := 0;
+
+  repeat
+  RecInd := lowval+((HighVal-LowVal) div 2);
+  CompValueBuf:=AIndex.FRecordArray[RecInd]+FFieldBufPositions[AIndex.SortField.FieldNo-1];
+  if AIndex.SortField.DataType = ftString then
+    begin
+    cp := CompareText0(NewValueBuf,CompValueBuf,length(NewValueBuf),[]);
+    if cp >0 then
+      LowVal := RecInd
+    else
+      HighVal := RecInd;
+    end;
+  until abs(HighVal-LowVal)<2;
+  if cp <0 then RecInd:=RecInd else RecInd := RecInd+1;
+  if recind > AIndex.FLastRecInd then recind := AIndex.FLastRecInd;
+{
+  Write('New: ' + NewValueBuf);
+  Write(' Verg: ' + CompValueBuf);
+  CompValueBuf:=AIndex.FRecordArray[LowVal]+FFieldBufPositions[AIndex.SortField.FieldNo-1];
+  Write(' Low: ' + CompValueBuf + '('+inttostr(LowVal)+')');
+  CompValueBuf:=AIndex.FRecordArray[HighVal]+FFieldBufPositions[AIndex.SortField.FieldNo-1];
+  Write(' High: ' + CompValueBuf + '('+inttostr(HighVal)+')');
+  CompValueBuf:=AIndex.FRecordArray[RecInd]+FFieldBufPositions[AIndex.SortField.FieldNo-1];
+  Write(' RecIND: ' + CompValueBuf + '('+inttostr(RecInd)+')');
+  Writeln(' cp: ' + inttostr(cp));
+}
+
+  if (AIndex.FLastRecInd+1) >= length(AIndex.FRecordArray) then
+    SetLength(AIndex.FRecordArray,length(AIndex.FRecordArray)+FGrowBuffer);
+
+  move(AIndex.FRecordArray[RecInd],AIndex.FRecordArray[RecInd+1],sizeof(pointer)*(AIndex.FLastRecInd-RecInd+5)); // Let op. Moet zijn +1?
+  AIndex.FRecordArray[RecInd]:= ARecBuf;
+  inc(AIndex.FLastRecInd)
 {$ENDIF}
 end;
 
@@ -629,6 +739,7 @@ function TBufDataset.getnextpacket : integer;
 
 var i : integer;
     pb : pchar;
+    IndexNr : integer;
     
 begin
   if FAllPacketsFetched then
@@ -638,18 +749,26 @@ begin
     end;
   i := 0;
 {$IFDEF ARRAYBUF}
-  pb := pchar(FRecordArray[FLastRecInd]);
+  with FIndexes[FCurrentIndex] do
+    pb := pchar(FRecordArray[FLastRecInd]);
 {$ELSE}
   pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount);
 {$ENDIF}
   while ((i < FPacketRecords) or (FPacketRecords = -1)) and (loadbuffer(pb) = grOk) do
     begin
 {$IFDEF ARRAYBUF}
-    inc(FLastRecInd);
-    if FLastRecInd >= length(FRecordArray) then
-      SetLength(FRecordArray,length(FRecordArray)+FGrowBuffer);
-    FRecordArray[FLastRecInd]:=IntAllocRecordBuffer;
-    pb := pchar(FRecordArray[FLastRecInd]);
+    with FIndexes[0] do
+      begin
+      inc(FLastRecInd);
+      if FLastRecInd >= length(FRecordArray) then
+        SetLength(FRecordArray,length(FRecordArray)+FGrowBuffer);
+      FRecordArray[FLastRecInd]:=IntAllocRecordBuffer;
+      end;
+
+    for IndexNr:= 1 to FIndexesCount-1 do
+      AddRecordToIndex(FIndexes[IndexNr],pb);
+
+    pb := pchar(FIndexes[FCurrentIndex].FRecordArray[FIndexes[FCurrentIndex].FLastRecInd]);
 {$ELSE}
     FLastRecBuf^.next := pointer(IntAllocRecordBuffer);
     FLastRecBuf^.next^.prior := FLastRecBuf;
@@ -815,7 +934,8 @@ begin
     end;
   if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
 {$IFDEF ARRAYBUF}
-    CurrBuff := FRecordArray[FLastRecInd]
+    with FIndexes[FCurrentIndex] do
+      CurrBuff := FRecordArray[FLastRecInd]
 {$ELSE}
     CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)*FIndexesCount
 {$ENDIF}
@@ -865,9 +985,12 @@ begin
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
 
 {$IFDEF ARRAYBUF}
-    FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FRecordArray[FCurrentRecInd];
-    FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf:=nil;
-    FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
+    with FIndexes[FCurrentIndex] do
+      begin
+      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FRecordArray[FCurrentRecInd];
+      FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf:=nil;
+      FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
+      end;
 {$ELSE}
     FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := pchar(FCurrentRecBuf);
     FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
@@ -880,9 +1003,12 @@ begin
     if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukModify then
       begin
 {$IFDEF ARRAYBUF}
-      FreeRecordBuffer(FRecordArray[FCurrentRecInd]);
-      FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
-      FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf := nil;
+      with FIndexes[FCurrentIndex] do
+        begin
+        FreeRecordBuffer(FRecordArray[FCurrentRecInd]);
+        FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
+        FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf := nil;
+        end;
 {$ELSE}
       FCurrentRecBuf := FCurrentRecBuf^.next;
       FreeRecordBuffer(pchar(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData));
@@ -892,7 +1018,7 @@ begin
     else
       begin
 {$IFDEF ARRAYBUF}
-      FreeRecordBuffer(pchar(FRecordArray[GetRecordFromBookmark(FUpdateBuffer[FCurrentUpdateBuffer].Bookmark)]));
+      FreeRecordBuffer(pchar(FIndexes[FCurrentIndex].FRecordArray[GetRecordFromBookmark(FUpdateBuffer[FCurrentUpdateBuffer].Bookmark)]));
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := -1;  //this 'disables' the updatebuffer
 {$ELSE}
       FCurrentRecBuf := FCurrentRecBuf^.next;
@@ -903,8 +1029,11 @@ begin
     end;
 
 {$IFDEF ARRAYBUF}
-  Move(FRecordArray[FCurrentRecInd+1],FRecordArray[FCurrentRecInd],sizeof(Pointer)*(FLastRecInd-FCurrentRecInd));
-  dec(FLastRecInd);
+  with FIndexes[FCurrentIndex] do
+    begin
+    Move(FRecordArray[FCurrentRecInd+1],FRecordArray[FCurrentRecInd],sizeof(Pointer)*(FLastRecInd-FCurrentRecInd));
+    dec(FLastRecInd);
+    end;
 {$ENDIF}
 
   dec(FBRecordCount);
@@ -942,8 +1071,11 @@ begin
         if UpdateKind = ukModify then
           begin
 {$IFDEF ARRAYBUF}
-          FreeRecordBuffer(FRecordArray[Bookmark.BookmarkData]);
-          FRecordArray[Bookmark.BookmarkData] := OldValuesBuffer;
+          with FIndexes[FCurrentIndex] do
+            begin
+            FreeRecordBuffer(FRecordArray[Bookmark.BookmarkData]);
+            FRecordArray[Bookmark.BookmarkData] := OldValuesBuffer;
+            end;
 {$ELSE}
           move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem)*FIndexesCount)^,pchar(BookmarkData+sizeof(TBufRecLinkItem)*FIndexesCount)^,FRecordSize);
           FreeRecordBuffer(OldValuesBuffer);
@@ -953,9 +1085,12 @@ begin
           begin
 {$IFDEF ARRAYBUF}
           RecInd := GetRecordFromBookmark(Bookmark);
-          move(FRecordArray[RecInd],FRecordArray[RecInd+1],sizeof(Pointer)*(FLastRecInd-RecInd+1));
-          FRecordArray[RecInd] := OldValuesBuffer;
-          inc(FLastRecInd);
+          with FIndexes[FCurrentIndex] do
+            begin
+            move(FRecordArray[RecInd],FRecordArray[RecInd+1],sizeof(Pointer)*(FLastRecInd-RecInd+1));
+            FRecordArray[RecInd] := OldValuesBuffer;
+            inc(FLastRecInd);
+            end;
 {$ELSE}
           if assigned(PBufRecLinkItem(BookmarkData)^.prior) then  // or else it was the first record
             PBufRecLinkItem(BookmarkData)^.prior^.next := BookmarkData
@@ -969,9 +1104,9 @@ begin
           begin
 {$IFDEF ARRAYBUF}
           RecInd := GetRecordFromBookmark(Bookmark);
-          FreeRecordBuffer(FRecordArray[RecInd]);
-          move(FRecordArray[RecInd+1],FRecordArray[RecInd],sizeof(Pointer)*(FLastRecInd-RecInd));
-          dec(FLastRecInd);
+          FreeRecordBuffer(FIndexes[FCurrentIndex].FRecordArray[RecInd]);
+          move(FIndexes[FCurrentIndex].FRecordArray[RecInd+1],FIndexes[FCurrentIndex].FRecordArray[RecInd],sizeof(Pointer)*(FIndexes[FCurrentIndex].FLastRecInd-RecInd));
+          dec(FIndexes[FCurrentIndex].FLastRecInd);
 {$ELSE}
           if assigned(PBufRecLinkItem(BookmarkData)^.prior) then // or else it was the first record
             PBufRecLinkItem(BookmarkData)^.prior^.next := PBufRecLinkItem(BookmarkData)^.next
@@ -1137,7 +1272,8 @@ begin
     if GetBookmarkFlag(ActiveBuffer) = bfEOF then
       // Append
 {$IFDEF ARRAYBUF}
-      FCurrentRecInd := FLastRecInd
+      with FIndexes[FCurrentIndex] do
+        FCurrentRecInd := FLastRecInd
 {$ELSE}
       FCurrentRecBuf := FLastRecBuf
 {$ENDIF}
@@ -1148,11 +1284,14 @@ begin
       InternalSetToRecord(ActiveBuffer);
 
 {$IFDEF ARRAYBUF}
-    inc(FLastRecInd);
-    if FLastRecInd >= length(FRecordArray) then
-      SetLength(FRecordArray,length(FRecordArray)+FGrowBuffer);
-    Move(FRecordArray[FCurrentRecInd],FRecordArray[FCurrentRecInd+1],sizeof(Pointer)*(FLastRecInd-FCurrentRecInd));
-    FRecordArray[FCurrentRecInd]:=pointer(IntAllocRecordBuffer);
+    with FIndexes[FCurrentIndex] do
+      begin
+      inc(FLastRecInd);
+      if FLastRecInd >= length(FRecordArray) then
+        SetLength(FRecordArray,length(FRecordArray)+FGrowBuffer);
+      Move(FRecordArray[FCurrentRecInd],FRecordArray[FCurrentRecInd+1],sizeof(Pointer)*(FLastRecInd-FCurrentRecInd));
+      FRecordArray[FCurrentRecInd]:=pointer(IntAllocRecordBuffer);
+      end;
 {$ELSE}
     // Create the new record buffer
     tmpRecBuffer := FCurrentRecBuf^.prior;
@@ -1173,7 +1312,7 @@ begin
     with PBufBookmark(ActiveBuffer + FRecordSize)^ do
       begin
 {$IFDEF ARRAYBUF}
-      BookmarkData := FCurrentRecInd;
+      BookmarkData := FIndexes[FCurrentIndex].FCurrentRecInd;
 {$ELSE}
       BookmarkData := FCurrentRecBuf;
 {$ENDIF}
@@ -1191,8 +1330,11 @@ begin
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
 
 {$IFDEF ARRAYBUF}
-    FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
-    FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf := FRecordArray[FCurrentRecInd];
+    with FIndexes[FCurrentIndex] do
+      begin
+      FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
+      FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf := FRecordArray[FCurrentRecInd];
+      end;
 {$ELSE}
     FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
 {$ENDIF}
@@ -1202,7 +1344,8 @@ begin
       // Update the oldvalues-buffer
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := intAllocRecordBuffer;
 {$IFDEF ARRAYBUF}
-      move(FRecordArray[FCurrentRecInd]^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
+      with FIndexes[FCurrentIndex] do
+        move(FRecordArray[FCurrentRecInd]^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
 {$ELSE}
       move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize+sizeof(TBufRecLinkItem)*FIndexesCount);
 {$ENDIF}
@@ -1213,7 +1356,8 @@ begin
     end;
 
 {$IFDEF ARRAYBUF}
-  move(ActiveBuffer^,FRecordArray[FCurrentRecInd]^,FRecordSize);
+  with FIndexes[FCurrentIndex] do
+    move(ActiveBuffer^,FRecordArray[FCurrentRecInd]^,FRecordSize);
 {$ELSE}
   CurrBuff := pchar(FCurrentRecBuf);
   inc(Currbuff,sizeof(TBufRecLinkItem)*FIndexesCount);
@@ -1234,6 +1378,13 @@ begin
     FFieldBufPositions[x] := FRecordSize;
     inc(FRecordSize, GetFieldSize(FieldDefs[x]));
     end;
+end;
+
+function TBufDataset.GetIndexName: String;
+begin
+{$IFDEF ARRAYBUF}
+  result := FIndexes[FCurrentIndex].Name;
+{$ENDIF}
 end;
 
 function TBufDataset.GetRecordSize : Word;
@@ -1478,6 +1629,27 @@ begin
     end;
 end;
 
+procedure TBufDataset.AddIndex(const AName, AFields: string);
+begin
+  if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
+  InternalAddIndex(AName,AFields);
+  // If not all packets are fetched, you can not sort properly.
+  FPacketRecords:=-1;
+end;
+
+procedure TBufDataset.InternalAddIndex(const AName, AFields: string);
+begin
+{$IFDEF ARRAYBUF}
+  inc(FIndexesCount);
+  setlength(FIndexes,FIndexesCount);
+  InitialiseIndex(FIndexes[FIndexesCount-1]);
+  FIndexes[FIndexesCount-1].Name:=AName;
+  FIndexes[FIndexesCount-1].SortFieldName:=AFields;
+  if Active then FIndexes[FIndexesCount-1].SortField := FieldByName(AFields);
+  setlength(FIndexes[FIndexesCount-1].FRecordArray,FInitialBuffers);
+{$ENDIF}
+end;
+
 procedure TBufDataset.DoFilterRecord(var Acceptable: Boolean);
 begin
   Acceptable := true;
@@ -1521,8 +1693,13 @@ end;
 
 procedure TBufDataset.AddSecondIndex;
 
-var ALinkItem,
+var
+{$IFNDEF ARRAYBUF}
+    ALinkItem,
     ANewLinkItem : PBufRecLinkItem;
+{$ELSE}
+    aRecNo : Integer;
+{$ENDIF}
 
 begin
 {$IFNDEF ARRAYBUF}
@@ -1551,7 +1728,35 @@ begin
   FFirstRecBuf:=FFirstRecBufs[FCurrentIndex];
   FCurrentRecBuf:=FFirstRecBuf;
 
+{$ELSE}
+// Maak index
+  inc(FIndexesCount);
+  setlength(FIndexes,FIndexesCount);
+  InitialiseIndex(FIndexes[FIndexesCount-1]);
+
+// Stel index in
+  inc(FCurrentIndex);
+
+// Vul index - reverse van index 0
+  SetLength(FIndexes[FCurrentIndex].FRecordArray,length(FIndexes[0].FRecordArray));
+  FIndexes[FCurrentIndex].FCurrentRecInd:=0;
+  FIndexes[FCurrentIndex].FLastRecInd:=FIndexes[0].FLastRecInd;
+  for arecno := 0 to FIndexes[FCurrentIndex].FLastRecInd-1 do
+    begin
+    FIndexes[FCurrentIndex].FRecordArray[aRecNo] := FIndexes[0].FRecordArray[FIndexes[0].FLastRecInd-aRecNo-1];
+//    FIndexes[FCurrentIndex].FRecordArray[aRecNo] := FIndexes[0].FRecordArray[aRecNo];
+    end;
+  FIndexes[FCurrentIndex].FRecordArray[FIndexes[FCurrentIndex].FLastRecInd] := FIndexes[0].FRecordArray[FIndexes[0].FLastRecInd];
+{$ENDIF}
   Resync([rmExact,rmCenter]);
+end;
+
+procedure TBufDataset.InitialiseIndex(AIndex : TBufIndex);
+begin
+{$IFDEF ARRAYBUF}
+  AIndex.FRecordArray:=nil;
+  AIndex.FCurrentRecInd:=-1;
+  AIndex.FLastRecInd:=-1;
 {$ENDIF}
 end;
 
@@ -1581,23 +1786,23 @@ end;
 function TBufDataset.GetRecordFromBookmark(ABookMark: TBufBookmark) : integer;
 begin
   // ABookmark.BookMarkBuf is nil if SetRecNo calls GotoBookmark
-  if (ABookmark.BookMarkBuf<>nil) and (FRecordArray[ABookmark.BookmarkData]<>ABookmark.BookMarkBuf) then
+  if (ABookmark.BookMarkBuf<>nil) and (FIndexes[FCurrentIndex].FRecordArray[ABookmark.BookmarkData]<>ABookmark.BookMarkBuf) then
     begin
     if ABookmark.BookmarkData > 2 then
       Result := ABookmark.BookmarkData-2
     else
       Result := 0;
 
-    while (Result<FLastRecInd) do
+    while (Result<FIndexes[FCurrentIndex].FLastRecInd) do
       begin
-      if (FRecordArray[Result] = ABookmark.BookMarkBuf) then exit;
+      if (FIndexes[FCurrentIndex].FRecordArray[Result] = ABookmark.BookMarkBuf) then exit;
       inc(Result);
       end;
 
     Result:=0;
     while (Result<ABookmark.BookmarkData) do
       begin
-      if (FRecordArray[Result] = ABookmark.BookMarkBuf) then exit;
+      if (FIndexes[FCurrentIndex].FRecordArray[Result] = ABookmark.BookMarkBuf) then exit;
       inc(Result);
       end;
 
@@ -1609,33 +1814,6 @@ end;
 {$ENDIF}
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
-
-
-  function CompareText0(substr, astr: pchar; len : integer; options: TLocateOptions): integer;
-
-  var
-    i : integer; Chr1, Chr2: byte;
-  begin
-    result := 0;
-    i := 0;
-    chr1 := 1;
-    while (result=0) and (i<len) and (chr1 <> 0) do
-      begin
-      Chr1 := byte(substr[i]);
-      Chr2 := byte(astr[i]);
-      inc(i);
-      if loCaseInsensitive in options then
-        begin
-        if Chr1 in [97..122] then
-          dec(Chr1,32);
-        if Chr2 in [97..122] then
-          dec(Chr2,32);
-        end;
-      result := Chr1 - Chr2;
-      end;
-    if (result <> 0) and (chr1 = 0) and (loPartialKey in options) then result := 0;
-  end;
-
 
 var keyfield    : TField;     // Field to search in
     ValueBuffer : pchar;      // Pointer to value to search for, in TField' internal format
