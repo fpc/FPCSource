@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 units=$(SYSTEMUNIT) ctypes objpas macpas strings \
-      lineinfo lnfodwrf heaptrc \
+      lineinfo heaptrc \
       windows messages dynlibs \
       dos objects \
       rtlconsts sysconst sysutils \

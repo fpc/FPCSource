@@ -10,7 +10,7 @@ loaders=$(LOADERS)
 units=system objpas macpas buildrtl
 implicitunits=sysinitpas sysinitcyg sysinitgprof \
       ctypes strings \
-      lineinfo lnfodwrf heaptrc matrix \
+      lineinfo heaptrc matrix \
       windows winsock winsock2 initc cmem dynlibs signals \
       dos crt objects messages \
       rtlconsts sysconst sysutils math types \

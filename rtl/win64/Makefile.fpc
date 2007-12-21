@@ -9,7 +9,7 @@ main=rtl
 loaders=$(LOADERS)
 units=system objpas macpas buildrtl
 implicitunits=ctypes strings \
-      lineinfo lnfodwrf heaptrc matrix \
+      lineinfo heaptrc matrix \
       dos crt objects messages \
       windows winsock winsock2 cmem dynlibs \
       rtlconsts sysconst sysutils math types \
