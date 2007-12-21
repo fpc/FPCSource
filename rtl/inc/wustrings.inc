@@ -1888,7 +1888,7 @@ begin
       p^:=widechar(nc);
       inc(index);
     end
-  else if (nc<=$10ffff) then
+  else if (dword(nc)<=$10ffff) then
     begin
       p^:=widechar((nc - $10000) shr 10 + $d800);
       (p+1)^:=widechar((nc - $10000) and $3ff + $dc00);
@@ -1907,7 +1907,6 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
   var
     i        : SizeInt;
     resindex : SizeInt;
-    len      : longint;
   begin
     SetLength(result,length(s));
     resindex:=1;
