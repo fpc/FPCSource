@@ -12,6 +12,12 @@
 
  **********************************************************************}
 
+{$ifdef FPC_OBJFPC_EXTENDED_IF}
+  {$if High(errorcode)<>maxExitCode}
+    {$define FPC_LIMITED_EXITCODE}
+  {$endif}
+{$endif FPC_OBJFPC_EXTENDED_IF}
+
 {****************************************************************************
                                 Local types
 ****************************************************************************}
@@ -867,10 +873,12 @@ begin
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
-  if errorcode <= maxExitCode then
-    halt(errorcode)
-  else
+{$ifdef FPC_LIMITED_EXITCODE}
+  if errorcode > maxExitCode then
     halt(255)
+  else
+{$endif FPC_LIMITED_EXITCODE}
+    halt(errorcode);
 {$else FPC_HAS_FEATURE_EXITCODE}
   halt;
 {$endif FPC_HAS_FEATURE_EXITCODE}
@@ -903,10 +911,12 @@ begin
   erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
-  if errorcode <= maxExitCode then
-    halt(errorcode)
-  else
+{$ifdef FPC_LIMITED_EXITCODE}
+  if errorcode > maxExitCode then
     halt(255)
+  else
+{$endif FPC_LIMITED_EXITCODE}
+    halt(errorcode);
 {$else FPC_HAS_FEATURE_EXITCODE}
   halt;
 {$endif FPC_HAS_FEATURE_EXITCODE}

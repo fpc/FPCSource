@@ -175,10 +175,12 @@ begin
   if erroraddr = nil then
     RunError(217)
   else
-    if errorcode <= maxExitCode then
-      halt(errorcode)
-    else
+{$ifdef FPC_LIMITED_EXITCODE}
+    if errorcode > maxExitCode then
       halt(255)
+    else
+{$endif FPC_LIMITED_EXITCODE}
+      halt(errorcode);
 end;
 
 
