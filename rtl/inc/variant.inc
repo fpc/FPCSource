@@ -783,7 +783,7 @@ operator :=(const source : olevariant) dest : extended;{$ifdef SYSTEMINLINE}inli
 {$ifdef SUPPORT_COMP}
 operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    dest:=variantmanager.vartoreal(variant(tvardata(source)));
+    dest:=comp(variantmanager.vartoreal(variant(tvardata(source))));
   end;
 {$endif SUPPORT_COMP}
 
