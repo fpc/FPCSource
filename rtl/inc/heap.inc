@@ -1001,15 +1001,10 @@ end;
 function SysGetMem(size : ptruint):pointer;
 begin
 { Something to allocate ? }
-  if size<=0 then
-    begin
-      { give an error for < 0 }
-      if size<0 then
-        HandleError(204);
-      { we always need to allocate something, using heapend is not possible,
-        because heappend can be changed by growheap (PFV) }
-      size := 1;
-    end;
+  if size=0 then
+    { we always need to allocate something, using heapend is not possible,
+      because heappend can be changed by growheap (PFV) }
+    size := 1;
 { calc to multiple of 16 after adding the needed bytes for memchunk header }
   if size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr)) then
     begin
@@ -1195,12 +1190,8 @@ end;
 
 Function SysFreeMemSize(p: pointer; size: ptruint):ptruint;
 begin
-  if size<=0 then
-  begin
-    if size<0 then
-      HandleError(204);
+  if size=0 then
     exit(0);
-  end;
   { can't free partial blocks, ignore size }
   result := SysFreeMem(p);
 end;
