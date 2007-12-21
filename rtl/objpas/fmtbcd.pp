@@ -65,23 +65,23 @@
 { $define BCDgr180} { define this if MCDMaxDigits is greater 180, else undefine! }
 
 {$ifdef BCDgr4}
- {$note BCD Digits > 4}
+ {$hint BCD Digits > 4}
 {$endif}
 
 {$ifdef BCDgr9}
- {$note BCD Digits > 9}
+ {$hint BCD Digits > 9}
 {$endif}
 
 {$ifdef BCDgr18}
- {$note BCD Digits > 18}
+ {$hint BCD Digits > 18}
 {$endif}
 
 {$ifdef BCDgr64}
- {$note BCD Digits > 64}
+ {$hint BCD Digits > 64}
 {$endif}
 
 {$ifdef BCDgr180}
- {$note BCD Digits > 180}
+ {$hint BCD Digits > 180}
 {$endif}
 
 {$ifndef NO_SMART_LINK}
@@ -178,9 +178,9 @@ INTERFACE
 {$endif}
 
 {$ifdef use_ansistring}
-  {$note ansi}
+  {$hint ansi}
 {$else}
-  {$note -ansi}
+  {$hint -ansi}
 {$endif}
 
 {$ifdef integ32}
