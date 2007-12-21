@@ -144,6 +144,8 @@ type
     FOpen           : Boolean;
     FUpdateBuffer   : TRecordsUpdateBuffer;
     FCurrentUpdateBuffer : integer;
+    
+    FIndexDefs      : TIndexDefs;
 
     FParser         : TBufDatasetParser;
 
@@ -155,6 +157,7 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
+    function GetIndexDefs : TIndexDefs;
     procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: pchar);
     function  GetCurrentBuffer: PChar;
     procedure CalcRecordSize;
@@ -232,6 +235,7 @@ type
   published
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
+    property IndexDefs : TIndexDefs read GetIndexDefs;
     property IndexName : String read GetIndexName write SetIndexName;
   end;
 
@@ -286,6 +290,7 @@ begin
   setlength(FFirstRecBufs,FIndexesCount);
   SetLength(FLastRecBufs,FIndexesCount);
 {$ENDIF}
+  FIndexDefs := TIndexDefs.Create(Self);
 
   SetLength(FUpdateBuffer,0);
   SetLength(FBlobBuffers,0);
@@ -303,7 +308,15 @@ end;
 
 destructor TBufDataset.Destroy;
 begin
+  FreeAndNil(FIndexDefs);
+
   inherited destroy;
+end;
+
+function TBufDataset.GetIndexDefs : TIndexDefs;
+
+begin
+  Result := FIndexDefs;
 end;
 
 Function TBufDataset.GetCanModify: Boolean;

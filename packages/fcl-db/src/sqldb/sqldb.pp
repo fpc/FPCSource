@@ -179,7 +179,6 @@ type
     FDeleteSQL           : TStringList;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
-    FIndexDefs           : TIndexDefs;
     FReadOnly            : boolean;
     FUpdateMode          : TUpdateMode;
     FParams              : TParams;
@@ -199,7 +198,6 @@ type
     FInsertQry           : TCustomSQLQuery;
 
     procedure FreeFldBuffers;
-    function GetIndexDefs : TIndexDefs;
     function GetStatementType : TStatementType;
     procedure SetReadOnly(AValue : Boolean);
     procedure SetParseSQL(AValue : Boolean);
@@ -281,7 +279,6 @@ type
     property UpdateSQL : TStringlist read FUpdateSQL write FUpdateSQL;
     property InsertSQL : TStringlist read FInsertSQL write FInsertSQL;
     property DeleteSQL : TStringlist read FDeleteSQL write FDeleteSQL;
-    property IndexDefs : TIndexDefs read GetIndexDefs;
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
@@ -1220,7 +1217,6 @@ begin
   FDeleteSQL := TStringList.Create;
   FDeleteSQL.OnChange := @OnChangeModifySQL;
 
-  FIndexDefs := TIndexDefs.Create(Self);
   FReadOnly := false;
   FParseSQL := True;
   
@@ -1244,7 +1240,6 @@ begin
   FreeAndNil(FInsertSQL);
   FreeAndNil(FDeleteSQL);
   FreeAndNil(FUpdateSQL);
-  FreeAndNil(FIndexDefs);
   inherited Destroy;
 end;
 
@@ -1288,8 +1283,9 @@ end;
 Procedure TCustomSQLQuery.UpdateIndexDefs;
 
 begin
+  Inherited;
   if assigned(DataBase) and (FTableName<>'') then
-    TSQLConnection(DataBase).UpdateIndexDefs(FIndexDefs,FTableName);
+    TSQLConnection(DataBase).UpdateIndexDefs(IndexDefs,FTableName);
 end;
 
 Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
@@ -1418,12 +1414,6 @@ begin
     Result:= FUpdateable and (not FReadOnly)
   else
     Result := False;
-end;
-
-function TCustomSQLQuery.GetIndexDefs : TIndexDefs;
-
-begin
-  Result := FIndexDefs;
 end;
 
 procedure TCustomSQLQuery.SetUpdateMode(AValue : TUpdateMode);
