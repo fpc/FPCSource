@@ -103,7 +103,7 @@ const
 { unicode encoding name }
 {$ifdef FPC_LITTLE_ENDIAN}
   unicode_encoding2 = 'UTF-16LE';
-  unicode_encoding4 = 'UCS-4LE'; 
+  unicode_encoding4 = 'UCS-4LE';
 {$else  FPC_LITTLE_ENDIAN}
   unicode_encoding2 = 'UTF-16BE';
   unicode_encoding4 = 'UCS-4BE';
@@ -140,11 +140,11 @@ procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 threadvar
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
- 
+
 {$ifdef beos}
 function nl_langinfo(__item:nl_item):pchar;
 begin
-  {$warning TODO BeOS nl_langinfo or more uptodate port of iconv...}  
+  {$warning TODO BeOS nl_langinfo or more uptodate port of iconv...}
   // Now implement the minimum required to correctly initialize WideString support
   case __item of
     CODESET : Result := 'UTF-8'; // BeOS use UTF-8
@@ -152,7 +152,7 @@ begin
     begin
       Assert(False, 'nl_langinfo was called with an unknown nl_item value');
       Result := '';
-    end;    
+    end;
   end;
 end;
 {$endif}
@@ -439,7 +439,7 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
             mblen:= 1;
           end
         else
-{$ifndef beos}          
+{$ifndef beos}
           mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
           mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
@@ -503,7 +503,7 @@ function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
       end;
     result[destindex]:=UCS4Char(0);
     { destindex <= slen }
-    setlength(result,destindex);
+    setlength(result,destindex+1);
   end;
 
 

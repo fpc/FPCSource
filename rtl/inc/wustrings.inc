@@ -1866,7 +1866,7 @@ function WideStringToUCS4String(const s : WideString) : UCS4String;
       end;
     result[destindex]:=UCS4Char(0);
     { destindex <= slen }
-    setlength(result,destindex);
+    setlength(result,destindex+1);
   end;
 
 
