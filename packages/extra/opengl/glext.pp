@@ -1011,10 +1011,10 @@ const
   GL_FOG_COORDINATE_ARRAY_POINTER_EXT = $8456;
   GL_FOG_COORDINATE_ARRAY_EXT = $8457;
 var
-  glFogCoordfEXfloat: procedure(coord: GLfloat); extdecl;
-  glFogCoorddEXdouble: procedure(coord: GLdouble); extdecl;
-  glFogCoordfvEXfloat: procedure(coord: GLfloat); extdecl;
-  glFogCoorddvEXdouble: procedure(coord: GLdouble); extdecl;
+  glFogCoordfEXT: procedure(coord: GLfloat); extdecl;
+  glFogCoorddEXT: procedure(coord: GLdouble); extdecl;
+  glFogCoordfvEXT: procedure(coord: PGLfloat); extdecl;
+  glFogCoorddvEXT: procedure(coord: PGLdouble); extdecl;
   glFogCoordPointerEXT: procedure(_type: GLenum; stride: GLsizei; pointer: PGLvoid); extdecl;
 
 function Load_GL_EXT_fog_coord: Boolean;
@@ -5311,14 +5311,14 @@ begin
 
   if glext_ExtensionSupported('GL_EXT_fog_coord', extstring) then
   begin
-    glFogCoordfEXfloat := wglGetProcAddress('glFogCoordfEXfloat');
-    if not Assigned(glFogCoordfEXfloat) then Exit;
-    glFogCoorddEXdouble := wglGetProcAddress('glFogCoorddEXdouble');
-    if not Assigned(glFogCoorddEXdouble) then Exit;
-    glFogCoordfvEXfloat := wglGetProcAddress('glFogCoordfvEXfloat');
-    if not Assigned(glFogCoordfvEXfloat) then Exit;
-    glFogCoorddvEXdouble := wglGetProcAddress('glFogCoorddvEXdouble');
-    if not Assigned(glFogCoorddvEXdouble) then Exit;
+    glFogCoordfEXT := wglGetProcAddress('glFogCoordfEXT');
+    if not Assigned(glFogCoordfEXT) then Exit;
+    glFogCoorddEXT := wglGetProcAddress('glFogCoorddEXT');
+    if not Assigned(glFogCoorddEXT) then Exit;
+    glFogCoordfvEXT := wglGetProcAddress('glFogCoordfvEXT');
+    if not Assigned(glFogCoordfvEXT) then Exit;
+    glFogCoorddvEXT := wglGetProcAddress('glFogCoorddvEXT');
+    if not Assigned(glFogCoorddvEXT) then Exit;
     glFogCoordPointerEXT := wglGetProcAddress('glFogCoordPointerEXT');
     if not Assigned(glFogCoordPointerEXT) then Exit;
     Result := TRUE;
