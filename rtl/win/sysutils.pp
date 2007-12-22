@@ -92,8 +92,8 @@ function CheckWin32Version(Major : Integer): Boolean;
 
 function CheckWin32Version(Major,Minor: Integer): Boolean;
   begin
-    Result:=(Win32MajorVersion>Major) or
-            ((Win32MajorVersion=Major) and (Win32MinorVersion>=Minor));
+    Result:=(Win32MajorVersion>dword(Major)) or
+            ((Win32MajorVersion=dword(Major)) and (Win32MinorVersion>=dword(Minor)));
   end;
 
 
