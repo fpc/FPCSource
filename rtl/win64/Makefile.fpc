@@ -7,9 +7,9 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system objpas macpas buildrtl
+units=system objpas macpas buildrtl lineinfo
 implicitunits=ctypes strings \
-      lineinfo heaptrc matrix \
+      heaptrc matrix \
       dos crt objects messages \
       windows winsock winsock2 cmem dynlibs \
       rtlconsts sysconst sysutils math types \

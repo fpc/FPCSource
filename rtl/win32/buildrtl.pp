@@ -5,7 +5,7 @@ unit buildrtl;
     uses
       sysinitpas, sysinitcyg, sysinitgprof,
       ctypes, strings,
-      lineinfo, lnfodwrf, heaptrc, matrix,
+      heaptrc, matrix,
       windows, winsock, winsock2, initc, cmem, dynlibs, signals,
       dos, crt, objects, messages,
       rtlconsts, sysconst, sysutils, math, types,
