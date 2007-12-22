@@ -158,7 +158,7 @@ begin
   EnterCriticalSection(ChangeMouseEvents);
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
-  if ptrint(PendingMouseHead)=ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+  if ptruint(PendingMouseHead)=ptruint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
    PendingMouseHead:=@PendingMouseEvent[0];
   dec(PendingMouseEvents);
 
@@ -205,7 +205,7 @@ begin
    begin
      PendingMouseTail^:=MouseEvent;
      inc(PendingMouseTail);
-     if ptrint(PendingMouseTail)=ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+     if ptruint(PendingMouseTail)=ptruint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
       PendingMouseTail:=@PendingMouseEvent[0];
       { why isn't this done here ?
         so the win32 version do this by hand:}

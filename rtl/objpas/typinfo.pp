@@ -1395,7 +1395,7 @@ begin
           PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=trunc(Value);
 {$else FPC_COMP_IS_INT64}
         ftComp:
-          PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
+          PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Comp(Value);
 {$endif FPC_COMP_IS_INT64}
         ftCurr:
           PCurrency(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
