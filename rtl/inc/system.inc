@@ -13,9 +13,11 @@
  **********************************************************************}
 
 {$ifdef FPC_OBJFPC_EXTENDED_IF}
-  {$if High(errorcode)<>maxExitCode}
+//  {$if High(errorcode)<>maxExitCode}
     {$define FPC_LIMITED_EXITCODE}
-  {$endif}
+//  {$endif}
+{$else}
+  {$define FPC_LIMITED_EXITCODE}
 {$endif FPC_OBJFPC_EXTENDED_IF}
 
 {****************************************************************************
