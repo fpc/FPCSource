@@ -19,11 +19,13 @@ unit sysinitgprof;
 
   implementation
 
+{$warnings off}
     {$linklib gmon}
     {$linklib gcc}
     {$linklib cygwin}
     {$linklib user32}
     {$linklib kernel32}
+{$warnings on}
 
     const
       monstarted : dword = 0;
