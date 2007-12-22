@@ -843,7 +843,6 @@ begin
     sql.add('show index from ' +  TableName);
     open;
     end;
-  IndexDefs.Clear;
   while not qry.eof do with IndexDefs.AddIndexDef do
     begin
     Name := trim(qry.fieldbyname('Key_name').asstring);

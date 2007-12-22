@@ -1031,7 +1031,6 @@ begin
               'ind.rdb$index_name;');
     open;
     end;
-  IndexDefs.Clear;
   while not qry.eof do with IndexDefs.AddIndexDef do
     begin
     Name := trim(qry.fields[0].asstring);

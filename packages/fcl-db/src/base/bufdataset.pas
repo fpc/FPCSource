@@ -108,8 +108,10 @@ type
 
   TBufIndex = record
     Name            : String;
-    SortField       : TField;
-    SortFieldName   : String;
+    Fields          : TField;
+    FieldsName      : String;
+    CaseinsFields   : String;
+    DescFields      : String;
 {$IFDEF ARRAYBUF}
     FCurrentRecInd  : integer;
     FRecordArray    : array of Pointer;
@@ -158,6 +160,7 @@ type
     FUpdateBlobBuffers: array of PBlobBuffer;
 
     function GetIndexDefs : TIndexDefs;
+    procedure UpdateIndexDefs; override;
     procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: pchar);
     function  GetCurrentBuffer: PChar;
     procedure CalcRecordSize;
@@ -309,7 +312,6 @@ end;
 destructor TBufDataset.Destroy;
 begin
   FreeAndNil(FIndexDefs);
-
   inherited destroy;
 end;
 
@@ -317,6 +319,19 @@ function TBufDataset.GetIndexDefs : TIndexDefs;
 
 begin
   Result := FIndexDefs;
+end;
+
+procedure TBufDataset.UpdateIndexDefs;
+var i : integer;
+begin
+  FIndexDefs.Clear;
+  for i := 0 to length(FIndexes) do with FIndexDefs.AddIndexDef do
+    begin
+    Name := FIndexes[i].Name;
+    Fields := FIndexes[i].FieldsName;
+    DescFields:= FIndexes[i].DescFields;
+    CaseInsFields:=FIndexes[i].CaseinsFields;
+    end;
 end;
 
 Function TBufDataset.GetCanModify: Boolean;
