@@ -7138,6 +7138,7 @@ tests/test/tint2str2.pp svneol=native#text/plain
 tests/test/tint641.pp svneol=native#text/plain
 tests/test/tint642.pp svneol=native#text/plain
 tests/test/tint643.pp svneol=native#text/plain
+tests/test/tint644.pp svneol=native#text/plain
 tests/test/tinterface1.pp svneol=native#text/plain
 tests/test/tinterface2.pp svneol=native#text/plain
 tests/test/tinterface3.pp svneol=native#text/plain
