@@ -458,7 +458,7 @@ implementation
                    result := left.getcopy;
                 end;
               end
-            else if tordconstnode(right).value = -1 then
+            else if tordconstnode(right).value.svalue = -1 then
               begin
                 case nodetype of
                   muln:
@@ -488,7 +488,7 @@ implementation
                    result := right.getcopy;
                 end;
               end
-            else if tordconstnode(left).value = -1 then
+            else if tordconstnode(left).value.svalue = -1 then
               begin
                 case nodetype of
                   muln:
