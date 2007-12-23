@@ -1864,8 +1864,9 @@ function WideStringToUCS4String(const s : WideString) : UCS4String;
         inc(destindex);
         inc(i,len);
       end;
-    result[destindex]:=UCS4Char(0);
-    { destindex <= slen }
+    { destindex <= slen (surrogate pairs may have been merged) }
+    { destindex+1 for terminating #0 (dynamic arrays are       }
+    { implicitely filled with zero)                            }
     setlength(result,destindex+1);
   end;
 
@@ -1908,9 +1909,10 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
     i        : SizeInt;
     resindex : SizeInt;
   begin
-    SetLength(result,length(s));
+    { skip terminating #0 }
+    SetLength(result,length(s)-1);
     resindex:=1;
-    for i:=0 to high(s) do
+    for i:=0 to high(s)-1 do
       ConcatUTF32ToWideStr(s[i],result,resindex);
     { adjust result length (may be too big due to growing }
     { for surrogate pairs)                                }
