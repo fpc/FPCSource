@@ -553,6 +553,7 @@ implementation
                procinfo:=hpi;
              end;
           end;
+        DoneDebugInfo(self);
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -682,7 +683,6 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=TAsmData.create(realmodulename^);
-        DoneDebugInfo(self);
         InitDebugInfo(self);
         _exports.free;
         _exports:=tlinkedlist.create;
