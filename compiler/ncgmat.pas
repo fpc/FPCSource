@@ -173,13 +173,29 @@ implementation
 
 {$ifndef cpu64bit}
     procedure tcgunaryminusnode.second_64bit;
+      var
+        tr: tregister;
+        hl: tasmlabel;
       begin
         secondpass(left);
-        { load left operator in a register }
-        location_copy(location,left.location);
-        location_force_reg(current_asmdata.CurrAsmList,location,OS_64,false);
-        cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NEG,OS_64,
-           location,joinreg64(location.register64.reglo,location.register64.reghi));
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
+          left.location,joinreg64(location.register64.reglo,location.register64.reghi));
+        { there's only overflow in case left was low(int64) -> -left = left }
+        if (cs_check_overflow in current_settings.localswitches) then
+          begin
+            tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
+              aint($80000000),location.register64.reghi,tr);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,
+              location.register64.reglo,tr);
+            current_asmdata.getjumplabel(hl);
+            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,tr,hl);
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+            cg.a_label(current_asmdata.CurrAsmList,hl);
+          end;
       end;
 {$endif cpu64bit}
 
@@ -215,12 +231,22 @@ implementation
 
 
     procedure tcgunaryminusnode.second_integer;
+      var
+        hl: tasmlabel;
       begin
         secondpass(left);
         { load left operator in a register }
         location_copy(location,left.location);
         location_force_reg(current_asmdata.CurrAsmList,location,OS_SINT,false);
         cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,location.register,location.register);
+        
+        if (cs_check_overflow in current_settings.localswitches) then
+          begin
+            current_asmdata.getjumplabel(hl);
+            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_SINT,OC_NE,low(aint),location.register,hl);
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+            cg.a_label(current_asmdata.CurrAsmList,hl);
+          end;
       end;
 
 
