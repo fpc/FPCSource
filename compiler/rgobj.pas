@@ -661,7 +661,8 @@ unit rgobj;
         begin
           if movelist=nil then
             begin
-              getmem(movelist,sizeof(tmovelistheader)+60*sizeof(pointer));
+              { don't use sizeof(tmovelistheader), because that ignores alignment }
+              getmem(movelist,ptrint(@movelist^.data)-ptrint(movelist)+60*sizeof(pointer));
               movelist^.header.maxcount:=60;
               movelist^.header.count:=0;
               movelist^.header.sorted_until:=0;
@@ -671,7 +672,8 @@ unit rgobj;
               if movelist^.header.count>=movelist^.header.maxcount then
                 begin
                   movelist^.header.maxcount:=movelist^.header.maxcount*2;
-                  reallocmem(movelist,sizeof(tmovelistheader)+movelist^.header.maxcount*sizeof(pointer));
+                  { don't use sizeof(tmovelistheader), because that ignores alignment }
+                  reallocmem(movelist,ptrint(@movelist^.data)-ptrint(movelist)+movelist^.header.maxcount*sizeof(pointer));
                 end;
             end;
           movelist^.data[movelist^.header.count]:=data;
