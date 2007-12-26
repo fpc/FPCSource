@@ -1080,16 +1080,26 @@ implementation
          { procsym and propertysym have special code
            to override values in inherited classes. For other
            symbols check for duplicates }
-         if not(sym.typ in [procsym,propertysym]) and
-            (
-             not(m_delphi in current_settings.modeswitches) or
-             is_object(tdef(defowner))
-            ) then
+         if not(sym.typ in [procsym,propertysym]) then
            begin
               { but private ids can be reused }
               hsym:=search_class_member(tobjectdef(defowner),hashedid.id);
               if assigned(hsym) and
-                 tsym(hsym).is_visible_for_object(tobjectdef(defowner),tobjectdef(defowner)) then
+                 (
+                  (not(m_delphi in current_settings.modeswitches) and
+                   tsym(hsym).is_visible_for_object(tobjectdef(defowner),tobjectdef(defowner))
+                  ) or
+                  (
+                   { In Delphi, you can repeat members of a parent class. You can't }
+                   { do this for objects however, and you (obviouly) can't          }
+                   { declare two fields with the same name in a single class        }
+                   (m_delphi in current_settings.modeswitches) and
+                   (
+                    is_object(tdef(defowner)) or
+                    (hsym.owner = self)
+                   )
+                  )
+                 ) then
                 begin
                   DuplicateSym(hashedid,sym,hsym);
                   result:=true;
@@ -1207,7 +1217,11 @@ implementation
         if not is_funcret_sym(sym) and
            (defowner.typ=procdef) and
            assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           (
+            not(m_delphi in current_settings.modeswitches) or
+            is_object(tprocdef(defowner)._class)
+           ) then
           result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
       end;
 
@@ -1233,7 +1247,11 @@ implementation
         if not(m_duplicate_names in current_settings.modeswitches) and
            (defowner.typ=procdef) and
            assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           (
+            not(m_delphi in current_settings.modeswitches) or
+            is_object(tprocdef(defowner)._class)
+           ) then
           result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
       end;
 
