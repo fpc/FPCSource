@@ -3894,6 +3894,8 @@ implementation
                   tObjectSymtable(symtable).datasize:=
                     tObjectSymtable(symtable).datasize+
                     tObjectSymtable(c.symtable).datasize;
+                  { inherit recordalignment }
+                  tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
                     tObjectSymtable(symtable).datasize:=
