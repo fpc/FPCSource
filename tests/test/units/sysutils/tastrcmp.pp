@@ -137,8 +137,8 @@ begin
   check(ansistrlicomp('c', 'b', 1) > 0, 5);
   check(ansistrlicomp('abc', 'AbC', 3) = 0, 6);
   check(ansistrlicomp('0123456789', '0123456789', 10) = 0, 7);
-  check(ansistrlicomp(#0'123456789', '0123456789', 10) < 0, 8);
-  check(ansistrlicomp('AbC', #0'bC', 3) > 0, 9);
+  check(ansistrlicomp(#0'123456789', #0'123456799', 10) < 0, 8);
+  check(ansistrlicomp(#0'bD', #0'bC', 3) > 0, 9);
   check(ansistrlicomp('AbC', 'A'#0#0,3) > 0, 10);
   check(ansistrlicomp('AbC', 'Ab'#0, 3) > 0, 11);
   check(ansistrlicomp('AbC', 'ab'#0, 3) > 0, 12);

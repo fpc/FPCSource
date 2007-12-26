@@ -21,14 +21,15 @@ begin
      (ws[8]<>#$dc04) then
     halt(1);
   us:=WideStringToUCS4String(ws);
-  if (length(us)<>7) or
+  if (length(us)<>8) or
      (us[0]<>UCS4Char(widechar('é'))) or
      (us[1]<>UCS4Char(widechar('ł'))) or
      (us[2]<>UCS4Char(widechar('Ł'))) or
      (us[3]<>UCS4Char(widechar('ć'))) or
      (us[4]<>UCS4Char(widechar('ç'))) or
      (us[5]<>UCS4Char(widechar('Ź'))) or
-     (us[6]<>UCS4Char($2F804)) then
+     (us[6]<>UCS4Char($2F804)) or
+     (us[7]<>UCS4Char(0)) then
     halt(2);
   ws:=UCS4StringToWideString(us);
   if (length(ws)<>8) or
