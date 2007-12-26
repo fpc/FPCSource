@@ -4,7 +4,7 @@ unit utests;
 
 interface
 
-uses cgiapp,sysutils,mysql41conn,sqldb,whtml,dbwhtml,db,
+uses cgiapp,sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
@@ -199,7 +199,7 @@ Function TTestSuite.ConnectToDB : Boolean;
 
 begin
   Result:=False;
-  FDB:=TMySQL41Connection.Create(Self);
+  FDB:=TMySQl50Connection.Create(Self);
   FDB.HostName:=DefHost;
   FDB.DatabaseName:=DefDatabase;
   FDB.UserName:=DefDBUser;
