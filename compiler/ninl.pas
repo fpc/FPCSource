@@ -1256,9 +1256,14 @@ implementation
 
           The implicit conversion is avoided for enums because implicit conversion between
           longint (which is what fpc_val_enum_shortstr returns) and enumerations is not
-          possible. (DM).}
-        if destpara.resultdef.typ=enumdef then
-          tc:=ccallnode.createintern(procname,newparas)
+          possible. (DM).
+          
+          The implicit conversion is also avoided for COMP type if it is handled by FPU (x86)
+          to prevent warning about automatic type conversion. }
+        if (destpara.resultdef.typ=enumdef) or
+           ((destpara.resultdef.typ=floatdef) and (tfloatdef(destpara.resultdef).floattype=s64comp))
+          then
+            tc:=ccallnode.createintern(procname,newparas)
         else
           tc:=ctypeconvnode.create(ccallnode.createintern(procname,newparas),destpara.left.resultdef);
         addstatement(newstatement,cassignmentnode.create(
