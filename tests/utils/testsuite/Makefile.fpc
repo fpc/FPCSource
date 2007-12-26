@@ -7,8 +7,11 @@ name=testsuite
 version=1.9.9
 
 [require]
-nortl=fcl
+packages=fcl
 libc=y
+
+[compiler]
+unitdir=..
 
 [target]
 programs=testsuite

@@ -8,13 +8,13 @@ uses cgiapp,sysutils,mysql41conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
-{$ifndef TEST}
 const
+{$ifndef TEST}
   CGI = 'testsuite.cgi';
 {$else TEST}
-const
   CGI = 'testsuite-new.cgi';
 {$endif TEST}
+  ViewVCURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/tests/';
 
 Type
   TTestSuite = Class(TCgiApplication)
@@ -992,9 +992,7 @@ begin
                 HeaderStart(3);
                 DumpLn('<P>No Source in TestSuite DataBase.</P>');
                 DumpLn('Link to SVN view of '+
-                  '<A HREF="http://www.freepascal.org'+
-                  '/cgi-bin/viewcvs.cgi/trunk/tests/'+
-                  FTestFileName+'?view=markup'+
+                  '<A HREF="'+ViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
               end
@@ -1002,9 +1000,7 @@ begin
               begin
                 HeaderStart(3);
                 DumpLn('Link to SVN view of '+
-                  '<A HREF="http://www.freepascal.org'+
-                  '/cgi-bin/viewcvs.cgi/trunk/tests/'+
-                  FTestFileName+'?view=markup'+
+                  '<A HREF="'+ViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
               end;  
