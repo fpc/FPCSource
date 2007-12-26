@@ -583,8 +583,7 @@ implementation
                   end
                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tsym(sym).owner.realname^,tsym(sym).realname)
-                else if not(vo_is_public in tabstractvarsym(sym).varoptions) and
-                        not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).realname);
              end
            else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
