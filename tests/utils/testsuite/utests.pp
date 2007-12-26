@@ -9,11 +9,8 @@ uses cgiapp,sysutils,mysql41conn,sqldb,whtml,dbwhtml,db,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
 const
-{$ifndef TEST}
-  CGI = 'testsuite.cgi';
-{$else TEST}
-  CGI = 'testsuite-new.cgi';
-{$endif TEST}
+  TestsuiteURLPrefix='http://www.freepascal.org/testsuite/';
+  TestsuiteCGIURL = TestsuiteURLPrefix+'cgi-bin/testsuite.cgi';
   ViewVCURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/tests/';
 
 Type
@@ -40,6 +37,7 @@ Type
     FAction,
     FLimit : Integer;
     FTestLastDays : Integer;
+    FNeedEnd : boolean;
     Procedure GetOverviewRowAttr(Sender : TObject; Var BGColor : String;
                                    Var Align : THTMLAlign; Var VAlign : THTMLValign;
                                    Var CustomAttr : String) ;
@@ -92,7 +90,7 @@ Const
 }
 
 Const
-  SDetailsURL = CGI + '?action=1&run1id=%s';
+  SDetailsURL = TestsuiteCGIURL + '?action=1&run1id=%s';
 
 Procedure TTestSuite.DoRun;
 
@@ -294,6 +292,7 @@ begin
   AddResponseLn('<HTML>');
   AddResponseLn('<TITLE>'+ATitle+'</TITLE>');
   AddResponseLn('<BODY>');
+  FNeedEnd:=true;
 end;
 
 Procedure TTestSuite.EmitOverviewForm;
@@ -310,7 +309,7 @@ begin
     HeaderEnd(1);
     Write('Please specify search criteria:');
     ParagraphStart;
-    FormStart(CGI,'');
+    FormStart(TestsuiteCGIURL,'');
     TableStart(2,true);
     RowStart;
       CellStart;
@@ -363,6 +362,8 @@ end;
 
 procedure TTestSuite.EmitEnd;
 begin  
+  if not FNeedEnd then
+    exit;
   AddResponseLn('</BODY>');
   AddResponseLn('</HTML>');
 end;
@@ -562,7 +563,7 @@ begin
       If Result then
         With FHTMLWriter do
           begin
-          FormStart(CGI,'get');
+          FormStart(TestsuiteCGIURL,'get');
           EmitHiddenVar('action', '1');
           TableStart(3,true);
           RowStart;
@@ -773,7 +774,7 @@ begin
       If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
         begin
         ParaGraphStart;
-        TagStart('IMG',Format('Src="'+CGI+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        TagStart('IMG',Format('Src="'+TestsuiteCGIURL+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
         end;
       end
     else
@@ -789,7 +790,7 @@ Var
   Q : TSQLQuery;
   i : longint;
   FieldName,FieldValue,
-  Log,Comment,Source : String;
+  Log,Source : String;
   Res : Boolean;
 begin
   ConnectToDB;
@@ -1128,7 +1129,7 @@ begin
       If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
         begin
         ParaGraphStart;
-        TagStart('IMG',Format('Src="'+CGI+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        TagStart('IMG',Format('Src="'+TestsuiteCGIURL+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
         end;
       end
     else
@@ -1228,10 +1229,10 @@ Var
 begin
   P:=(Sender as TTableProducer);
   if FCompareRunID<>'' then
-    S:=Format(CGI + '?action=3&run1id=%s&run2id=%s&testfileid=%s',
+    S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&run2id=%s&testfileid=%s',
        [FRunID,FCompareRunID,P.DataSet.FieldByName('Id').AsString])
   else 
-    S:=Format(CGI + '?action=3&run1id=%s&testfileid=%s',
+    S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&testfileid=%s',
        [FRunID,P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
@@ -1242,9 +1243,7 @@ Var
   Res : longint;
   Error:word;
   TS : TTestStatus;
-  P : TTableProducer;
 begin
-  P:=(Sender as TTableProducer);
   Val(CellData,Res,Error);
   if (Error=0) and (Res>=longint(FirstStatus)) and
      (Res<=longint(LastStatus)) then
