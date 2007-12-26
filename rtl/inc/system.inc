@@ -12,14 +12,6 @@
 
  **********************************************************************}
 
-{$ifdef FPC_OBJFPC_EXTENDED_IF}
-//  {$if High(errorcode)<>maxExitCode}
-    {$define FPC_LIMITED_EXITCODE}
-//  {$endif}
-{$else}
-  {$define FPC_LIMITED_EXITCODE}
-{$endif FPC_OBJFPC_EXTENDED_IF}
-
 {****************************************************************************
                                 Local types
 ****************************************************************************}
@@ -32,6 +24,14 @@
 }
 {$i filerec.inc}
 {$i textrec.inc}
+
+{$ifdef FPC_OBJFPC_EXTENDED_IF}
+  {$if High(errorcode)<>maxExitCode}
+    {$define FPC_LIMITED_EXITCODE}
+  {$endif}
+{$else}
+  {$define FPC_LIMITED_EXITCODE}
+{$endif FPC_OBJFPC_EXTENDED_IF}
 
 Procedure HandleError (Errno : Longint); forward;
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
