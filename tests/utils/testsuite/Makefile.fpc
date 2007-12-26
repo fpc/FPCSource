@@ -7,7 +7,7 @@ name=testsuite
 version=1.9.9
 
 [require]
-packages=fcl
+packages=fcl-base fcl-db
 libc=y
 
 [compiler]
@@ -15,3 +15,6 @@ unitdir=..
 
 [target]
 programs=testsuite
+
+[default]
+fpcdir=../../..
