@@ -110,7 +110,6 @@ end;
 
 procedure TextMode (Mode: word);
 begin
-  {$WARNING TextMode not implemented yet!!}
 end;
 
 Procedure TextColor(Color: Byte);
