@@ -608,7 +608,7 @@ end;
 function TFPGList.IndexOf(const Item: T): Integer;
 begin
   Result := 0;
-  {$note TODO: fix inlining to work! InternalItems[Result]^}
+  {$info TODO: fix inlining to work! InternalItems[Result]^}
   while (Result < FCount) and (PT(FList)[Result] <> Item) do
     Inc(Result);
   if Result = FCount then
