@@ -611,12 +611,8 @@ begin
   {$note TODO: fix inlining to work! InternalItems[Result]^}
   while (Result < FCount) and (PT(FList)[Result] <> Item) do
     Inc(Result);
-  {$note TODO: Result := -1; does not compile }
   if Result = FCount then
-  begin
-    Result := 0;
-    dec(Result);
-  end;
+    Result := -1;
 end;
 
 procedure TFPGList.Insert(Index: Integer; const Item: T);
