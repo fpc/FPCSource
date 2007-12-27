@@ -446,7 +446,7 @@ function Dll_entry(const info : TEntryInformation) : longbool; [public,alias:'_F
        DLL_THREAD_ATTACH :
          begin
            inclocked(Thread_count);
-{$warning Allocate Threadvars !}
+{ Allocate Threadvars ?!}
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
            Dll_entry:=true; { return value is ignored }
@@ -456,7 +456,7 @@ function Dll_entry(const info : TEntryInformation) : longbool; [public,alias:'_F
            declocked(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
-{$warning Release Threadvars !}
+{ Release Threadvars ?!}
            Dll_entry:=true; { return value is ignored }
          end;
        DLL_PROCESS_DETACH :
