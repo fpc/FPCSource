@@ -1275,11 +1275,13 @@ end;
 {$i sysres.inc}
 {$endif}
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function FindResource(ModuleHandle: HMODULE; ResourceName, ResourceType: AnsiString): TResourceHandle;
 
 begin
   Result:=FindResource(ModuleHandle,PChar(ResourceName),PChar(ResourceType));
 end;
+{$endif}
 
 const
   CtrlBreakHandler: TCtrlBreakHandler = nil;
