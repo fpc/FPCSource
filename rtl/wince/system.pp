@@ -872,7 +872,7 @@ begin
      DLL_THREAD_ATTACH :
        begin
          inclocked(Thread_count);
-{$note Allocate Threadvars !}
+{ Allocate Threadvars ?!}
          if assigned(Dll_Thread_Attach_Hook) then
            Dll_Thread_Attach_Hook(DllParam);
        end;
@@ -881,7 +881,7 @@ begin
          declocked(Thread_count);
          if assigned(Dll_Thread_Detach_Hook) then
            Dll_Thread_Detach_Hook(DllParam);
-{$note Release Threadvars !}
+{ Release Threadvars ?!}
        end;
      DLL_PROCESS_DETACH :
        begin
