@@ -203,7 +203,6 @@ const
 {$endif}
 
 var
-  main_orig_freelists : pfreelists;
   main_relo_freelists : pfreelists;
   orphaned_freelists : tfreelists;
   heap_lock : trtlcriticalsection;
@@ -1419,8 +1418,6 @@ begin
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
   fillchar(orphaned_freelists,sizeof(orphaned_freelists),0);
-  { main freelist will be copied in memory }
-  main_orig_freelists := loc_freelists;
 end;
 
 procedure RelocateHeap;
