@@ -831,6 +831,8 @@ IMPLEMENTATION
       function GetInstance(const v : TVarData): tObject; OVERRIDE;
     PUBLIC
       procedure BinaryOp(var Left: TVarData; const Right: TVarData; const Operation: TVarOp); override;
+      procedure Clear(var V: TVarData); override;
+      procedure Copy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean); override;
     end;
 
     TFMTBcdVarData = CLASS(TPersistent)
@@ -3677,6 +3679,21 @@ procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; con
     else
       RaiseInvalidOp;
     end;
+  end;
+  
+procedure TFMTBcdFactory.Clear(var V: TVarData);
+  begin
+    FreeAndNil(tObject(V.VPointer));
+    V.VType:=varEmpty;
+  end;
+
+procedure TFMTBcdFactory.Copy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean);
+  begin
+    if Indirect then
+      Dest.VPointer:=Source.VPointer
+    else
+      Dest.VPointer:=TFMTBcdVarData.Create(TFMTBcdVarData(Source.VPointer).BCD);
+    Dest.VType:=Vartype;
   end;
 
 {$if declared ( myMinIntBCD ) }
