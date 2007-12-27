@@ -106,7 +106,7 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    {$note TODO: fix TFPGList<T>.Assign(TFPGList) to work somehow}
+    {$info FIXME: bug #10479: implement TFPGList<T>.Assign(TFPGList) to work somehow}
     {procedure Assign(Source: TFPGList);}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
