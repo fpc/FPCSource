@@ -31,6 +31,8 @@ resourcestring
     '                 po    GNU gettext .po (portable) format (DEFAULT)'+LineEnding+
     '                 msg   IBM OS/2 MSG file format'+LineEnding+
     '                 rc    Resource compiler .rc format'+LineEnding+LineEnding+
+    '.po format only options are:'+LineEnding+
+    '  -c char set    Adds a header specifying the given character set (OPTIONAL).'+LineEnding+LineEnding+
     'OS/2 MSG file only options are:'+LineEnding+
     '  -c identifier  Specifies the component identifier (REQUIRED).'+LineEnding+
     '                 Identifier is any three chars in upper case.'+LineEnding+
@@ -60,6 +62,7 @@ type
 var
   InFilename, OutFilename: String;
   ConstItems: TCollection;
+  CharSet: String;
   Identifier: String;
   FirstMessage: Word;
   MessageTable: Boolean;
@@ -126,6 +129,16 @@ var
 begin
   Assign(f, OutFilename);
   Rewrite(f);
+  
+  if CharSet<>'' then begin
+    // Write file header  with
+    WriteLn(f, 'msgid ""');
+    WriteLn(f, 'msgstr ""');
+    WriteLn(f, '"MIME-Version: 1.0\n"');
+    WriteLn(f, '"Content-Type: text/plain; charset=', CharSet, '\n"');
+    WriteLn(f, '"Content-Transfer-Encoding: 8bit\n"');
+    WriteLn(f);
+  end;
 
   for i := 0 to ConstItems.Count - 1 do begin
     item := TConstItem(ConstItems.items[i]);
@@ -291,6 +304,7 @@ begin
 
   ConversionProc := @ConvertToGettextPO;
   OutputFormat:='';
+  CharSet:='';
   Identifier:='';
   FirstMessage:=0;
   MessageTable:=True;
@@ -330,11 +344,20 @@ begin
       end;
       Inc(i, 2);
     end else if ParamStr(i) = '-c' then begin
-      if Identifier <> '' then begin
-        WriteLn(StdErr, OptionAlreadySpecified, '-c');
-        Halt(1);
+      if (OutputFormat='') or (OutputFormat='po') then begin
+        if CharSet <> '' then begin
+          WriteLn(StdErr, OptionAlreadySpecified, '-c');
+          Halt(1);
+        end;
+        CharSet:=ParamStr(i+1);
+      end else
+      begin
+        if Identifier <> '' then begin
+          WriteLn(StdErr, OptionAlreadySpecified, '-c');
+          Halt(1);
+        end;
+        Identifier:=ParamStr(i+1);
       end;
-      Identifier:=ParamStr(i+1);
       Inc(i, 2);
     end else if ParamStr(i) = '-s' then begin
       if not MessageTable then begin
@@ -363,6 +386,11 @@ begin
       WriteLn(StdErr, InvalidOption, ParamStr(i));
       Halt(1);
     end;
+  end;
+
+  If ((OutputFormat<>'') and (OutputFormat<>'po')) and (CharSet<>'')  then begin
+    WriteLn(StdErr, InvalidOption, '');
+    Halt(1);
   end;
 
   If ((OutputFormat<>'msg') and (OutputFormat<>'rc')) and ((Identifier<>'') or (FirstMessage<>0)) then begin
