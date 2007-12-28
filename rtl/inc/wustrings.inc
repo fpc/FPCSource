@@ -578,13 +578,14 @@ Var
   p,pc        : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;
-  destcopy    : widestring;
+  destcopy    : pointer;
 begin
   if high(sarr)=0 then
     begin
       DestS:='';
       exit;
     end;
+  destcopy:=nil;
   lowstart:=low(sarr);
   if Pointer(DestS)=Pointer(sarr[lowstart]) then
     inc(lowstart);
@@ -597,7 +598,8 @@ begin
           { if DestS is used somewhere in the middle of the expression,
             we need to make sure the original string still exists after
             we empty/modify DestS                                       }
-          destcopy:=dests;
+          destcopy:=pointer(dests);
+          fpc_WideStr_Incr_Ref(destcopy);
           lowstart:=low(sarr);
           break;
         end;
@@ -626,6 +628,7 @@ begin
           inc(pc,size*sizeof(WideChar));
         end;
     end;
+  fpc_WideStr_Decr_Ref(destcopy);
 end;
 
 {$endif STR_CONCAT_PROCS}
