@@ -553,7 +553,6 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   errno:=0;
-  InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
 

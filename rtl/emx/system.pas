@@ -577,8 +577,6 @@ begin
     { no I/O-Error }
     inoutres:=0;
 
-    InitSystemThreads;
-
     InitVariantManager;
 
 {$ifdef HASWIDESTRING}

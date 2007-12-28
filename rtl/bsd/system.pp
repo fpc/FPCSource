@@ -294,8 +294,6 @@ Begin
   InOutRes:=0;
   { Arguments }
   SetupCmdLine;
-  { threading }
-  InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
 End.

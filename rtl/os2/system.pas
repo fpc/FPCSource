@@ -1189,7 +1189,6 @@ begin
     DefaultCreator := '';
     DefaultFileType := '';
 
-    InitSystemThreads;
     InitVariantManager;
 
 {$ifdef HASWIDESTRING}

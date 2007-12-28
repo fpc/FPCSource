@@ -546,7 +546,6 @@ Begin
 {Delphi Compatible}
   IsConsole := TRUE;
   ExitCode  := 0;
-  InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
 End.

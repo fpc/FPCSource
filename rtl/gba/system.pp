@@ -146,7 +146,5 @@ begin
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
-{ Arguments }
-  InitSystemThreads;
   initvariantmanager;
 end.

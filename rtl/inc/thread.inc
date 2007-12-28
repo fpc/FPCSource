@@ -15,7 +15,16 @@
 
 
 Var
-  CurrentTM : TThreadManager;
+  fCurrentTM : TThreadManager; public;
+  
+    Procedure InitSystemThreads; forward;
+    
+    function CurrentTM : TThreadManager;
+      begin
+        if not Assigned(fCurrentTM.BeginThread) then
+          InitSystemThreads;
+        Result:=fCurrentTM;
+      end;
 
 {*****************************************************************************
                            Threadvar initialization
@@ -212,13 +221,13 @@ Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 
 begin
   Result:=True;
-  If Assigned(CurrentTM.DoneManager) then
-    Result:=CurrentTM.DoneManager();
+  If Assigned(fCurrentTM.DoneManager) then
+    Result:=fCurrentTM.DoneManager();
   If Result then
     begin
-    CurrentTM:=NewTM;
-    If Assigned(CurrentTM.InitManager) then
-      Result:=CurrentTM.InitManager();
+    fCurrentTM:=NewTM;
+    If Assigned(fCurrentTM.InitManager) then
+      Result:=fCurrentTM.InitManager();
     end;
 end;
 

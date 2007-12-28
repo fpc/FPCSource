@@ -476,7 +476,6 @@ Begin
   IsLibrary := FALSE;
   IsConsole := TRUE;
   ExitCode  := 0;
-  InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
 End.
