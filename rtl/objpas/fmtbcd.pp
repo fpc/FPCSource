@@ -823,7 +823,7 @@ INTERFACE
 IMPLEMENTATION
 
   USES
-    classes;
+    classes {$ifopt r+}, sysconst {$endif};
 
   type
     TFMTBcdFactory = CLASS(TPublishableVarianttype)
@@ -866,9 +866,10 @@ IMPLEMENTATION
     range_fracdigits = 0..pred ( MaxFmtBCDFractionSize );
 
 {$ifopt r+}
-  var
-    rcheck : 0..0;
-    rbad : Byte = 1;
+  procedure RangeError;
+    begin
+      raise ERangeError.Create(SRangeError);
+    end;
 {$endif}
 
 {$ifndef debug_version}
@@ -1986,8 +1987,8 @@ IMPLEMENTATION
     begin
       NormalizeBCD := True;
 {$ifopt r+}
-      if ( Prec < 0 ) OR ( Prec > MaxFmtBCDFractionSize ) then rcheck := rbad;
-      if ( Scale < 0 ) OR ( Prec >= MaxFmtBCDFractionSize ) then rcheck := rbad;
+      if ( Prec < 0 ) OR ( Prec > MaxFmtBCDFractionSize ) then RangeError;
+      if ( Scale < 0 ) OR ( Prec >= MaxFmtBCDFractionSize ) then RangeError;
 {$endif}
       if BCDScale ( InBCD ) > Scale
         then begin
