@@ -16,11 +16,6 @@
 {****************************************************************************}
 
 { Do not use standard memory manager }
-{ Custom memory manager is Multi Threaded and does not require locking }
-{ define HAS_MT_MEMORYMANAGER}
-
-{ Do not use standard memory manager }
-{ Custom memory manager requires locking when threading is used }
 { define HAS_MEMORYMANAGER}
 
 { Try to find the best matching block in general freelist }
@@ -33,10 +28,6 @@
   keep statistics of number of each size allocated 
   (with 16 byte granularity) }
 { define DUMP_MEM_USAGE}
-
-{$ifdef HAS_MT_MEMORYMANAGER}
-  {$define HAS_MEMORYMANAGER}
-{$endif HAS_MT_MEMORYMANAGER}
 
 {$ifdef DUMP_MEM_USAGE}
   {$define SHOW_MEM_USAGE}
@@ -76,11 +67,7 @@ const
 { Memory manager }
 const
   MemoryManager: TMemoryManager = (
-{$ifdef HAS_MT_MEMORYMANAGER}
-    NeedLock: false;
-{$else HAS_MT_MEMORYMANAGER}
-    NeedLock: true;
-{$endif HAS_MT_MEMORYMANAGER}
+    NeedLock: false;  // Obsolete
     GetMem: @SysGetMem;
     FreeMem: @SysFreeMem;
     FreeMemSize: @SysFreeMemSize;

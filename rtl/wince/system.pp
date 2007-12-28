@@ -24,7 +24,7 @@ interface
 {$define WINCE_EXCEPTION_HANDLING}
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_CMDLINE}
-{$define HAS_MT_MEMORYMANAGER}  // comment this line to switch from wincemm to fpcmm
+{$define HAS_MEMORYMANAGER}  // comment this line to switch from wincemm to fpcmm
 {$define HAS_WIDESTRINGMANAGER}
 
 { include system-independent routine headers }
@@ -1585,7 +1585,7 @@ procedure InitWinCEWidestrings;
   end;
 
 
-{$IFDEF HAS_MT_MEMORYMANAGER}
+{$IFDEF HAS_MEMORYMANAGER}
 
 {****************************************************************************
                     Memory manager
@@ -1652,7 +1652,7 @@ begin
   fillchar(Result,sizeof(Result),0);
 end;
 
-{$ENDIF HAS_MT_MEMORYMANAGER}
+{$ENDIF HAS_MEMORYMANAGER}
 
 {****************************************************************************
                     Error Message writing using messageboxes
@@ -1800,10 +1800,10 @@ initialization
   if not IsLibrary then
     SysInstance:=GetModuleHandle(nil);
   MainInstance:=SysInstance;
-{$IFNDEF HAS_MT_MEMORYMANAGER}
+{$IFNDEF HAS_MEMORYMANAGER}
   { Setup Heap }
   InitHeap;
-{$ENDIF HAS_MT_MEMORYMANAGER}
+{$ENDIF HAS_MEMORYMANAGER}
   SysInitExceptions;
   if not IsLibrary then
     begin

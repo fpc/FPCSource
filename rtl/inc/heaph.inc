@@ -37,7 +37,7 @@ type
 
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
-    NeedLock            : boolean;
+    NeedLock            : boolean;   // Obsolete
     Getmem              : Function(Size:ptruint):Pointer;
     Freemem             : Function(p:pointer):ptruint;
     FreememSize         : Function(p:pointer;Size:ptruint):ptruint;

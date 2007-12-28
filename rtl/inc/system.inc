@@ -767,7 +767,7 @@ end;
 
 Procedure system_exit;forward;
 {$ifdef FPC_HAS_FEATURE_HEAP}
-{$if not (defined(HAS_MEMORYMANAGER) or defined(HAS_MT_MEMORYMANAGER))}
+{$ifndef HAS_MEMORYMANAGER}
 //not needed if independant memory manager
 Procedure FinalizeHeap;forward;
 {$endif HAS_MEMORYMANAGER}
@@ -829,7 +829,7 @@ Begin
 {$endif}
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
-{$if not (defined(HAS_MEMORYMANAGER) or defined(HAS_MT_MEMORYMANAGER))}
+{$ifndef HAS_MEMORYMANAGER}
   FinalizeHeap;
 {$endif HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
