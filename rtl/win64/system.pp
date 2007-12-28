@@ -23,6 +23,8 @@ interface
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
+{$define DISABLE_NO_THREAD_MANAGER}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 
