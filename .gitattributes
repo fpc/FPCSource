@@ -4573,7 +4573,6 @@ rtl/amiga/sysheap.inc svneol=native#text/plain
 rtl/amiga/sysos.inc svneol=native#text/plain
 rtl/amiga/sysosh.inc svneol=native#text/plain
 rtl/amiga/system.pp svneol=native#text/plain
-rtl/amiga/systhrd.inc svneol=native#text/plain
 rtl/amiga/sysutils.pp svneol=native#text/plain
 rtl/amiga/timerd.inc svneol=native#text/plain
 rtl/amiga/tthread.inc svneol=native#text/plain
@@ -4693,7 +4692,6 @@ rtl/embedded/sysheap.inc svneol=native#text/plain
 rtl/embedded/sysos.inc svneol=native#text/plain
 rtl/embedded/sysosh.inc svneol=native#text/plain
 rtl/embedded/system.pp svneol=native#text/plain
-rtl/embedded/systhrd.inc svneol=native#text/plain
 rtl/emx/Makefile svneol=native#text/plain
 rtl/emx/Makefile.fpc svneol=native#text/plain
 rtl/emx/crt.pas svneol=native#text/plain
@@ -4762,7 +4760,6 @@ rtl/gba/sysheap.inc svneol=native#text/plain
 rtl/gba/sysos.inc svneol=native#text/plain
 rtl/gba/sysosh.inc svneol=native#text/plain
 rtl/gba/system.pp svneol=native#text/plain
-rtl/gba/systhrd.inc svneol=native#text/plain
 rtl/gba/sysutils.pp svneol=native#text/plain
 rtl/gba/tthread.inc svneol=native#text/plain
 rtl/gba/varutils.pp svneol=native#text/plain
@@ -4796,7 +4793,6 @@ rtl/go32v2/sysheap.inc svneol=native#text/plain
 rtl/go32v2/sysos.inc svneol=native#text/plain
 rtl/go32v2/sysosh.inc svneol=native#text/plain
 rtl/go32v2/system.pp svneol=native#text/plain
-rtl/go32v2/systhrd.inc svneol=native#text/plain
 rtl/go32v2/sysutils.pp svneol=native#text/plain
 rtl/go32v2/tthread.inc svneol=native#text/plain
 rtl/go32v2/v2prt0.as svneol=native#text/plain
@@ -5066,7 +5062,6 @@ rtl/macos/sysheap.inc svneol=native#text/plain
 rtl/macos/sysos.inc svneol=native#text/plain
 rtl/macos/sysosh.inc svneol=native#text/plain
 rtl/macos/system.pp svneol=native#text/plain
-rtl/macos/systhrd.inc svneol=native#text/plain
 rtl/macos/sysutils.pp svneol=native#text/plain
 rtl/morphos/Makefile svneol=native#text/plain
 rtl/morphos/Makefile.fpc svneol=native#text/plain
@@ -5104,7 +5099,6 @@ rtl/morphos/sysheap.inc svneol=native#text/plain
 rtl/morphos/sysos.inc svneol=native#text/plain
 rtl/morphos/sysosh.inc svneol=native#text/plain
 rtl/morphos/system.pp svneol=native#text/plain
-rtl/morphos/systhrd.inc svneol=native#text/plain
 rtl/morphos/sysutils.pp svneol=native#text/plain
 rtl/morphos/timer.pp svneol=native#text/plain
 rtl/morphos/timerd.inc svneol=native#text/plain
@@ -5133,7 +5127,6 @@ rtl/nds/sysfile.inc -text
 rtl/nds/sysheap.inc svneol=native#text/x-pascal
 rtl/nds/sysos.inc -text
 rtl/nds/sysosh.inc -text
-rtl/nds/systhrd.inc -text
 rtl/nds/sysutils.pp -text
 rtl/nds/tthread.inc -text
 rtl/nds/varutils.pp -text
@@ -5612,7 +5605,6 @@ rtl/unix/syscall.pp svneol=native#text/plain
 rtl/unix/sysdir.inc svneol=native#text/plain
 rtl/unix/sysfile.inc svneol=native#text/plain
 rtl/unix/sysheap.inc svneol=native#text/plain
-rtl/unix/systhrd.inc svneol=native#text/plain
 rtl/unix/sysunixh.inc svneol=native#text/plain
 rtl/unix/sysutils.pp svneol=native#text/plain
 rtl/unix/terminfo.pp svneol=native#text/plain
@@ -5642,7 +5634,6 @@ rtl/watcom/sysheap.inc -text
 rtl/watcom/sysos.inc -text
 rtl/watcom/sysosh.inc -text
 rtl/watcom/system.pp svneol=native#text/plain
-rtl/watcom/systhrd.inc -text
 rtl/watcom/sysutils.pp svneol=native#text/plain
 rtl/watcom/varutils.pp svneol=native#text/plain
 rtl/watcom/watcom.pp svneol=native#text/plain

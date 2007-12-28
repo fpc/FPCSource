@@ -1231,8 +1231,10 @@ end;
 { Generic threadvar support }
 {$i threadvr.inc}
 
+{$ifdef DISABLE_NO_THREAD_MANAGER}
 { OS Dependent implementation }
 {$i systhrd.inc}
+{$endif DISABLE_NO_THREAD_MANAGER}
 {$endif FPC_HAS_FEATURE_THREADING}
 
 

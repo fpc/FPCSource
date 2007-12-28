@@ -27,6 +27,7 @@ interface
 {$endif SYSTEMDEBUG}
 
 {$DEFINE OS2EXCEPTIONS}
+{$define DISABLE_NO_THREAD_MANAGER}
 
 {$I systemh.inc}
 

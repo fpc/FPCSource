@@ -548,5 +548,13 @@ begin
     end;
   SetThreadManager(NoThreadManager);
 end;
-{$endif DISABLE_NO_THREAD_MANAGER}
 
+Procedure InitSystemThreads;
+begin
+  { This should be changed to a real value during
+    thread driver initialization if appropriate. }
+  ThreadID := TThreadID(1);
+  SetNoThreadManager;
+end;
+
+{$endif DISABLE_NO_THREAD_MANAGER}

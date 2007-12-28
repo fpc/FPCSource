@@ -24,6 +24,7 @@ interface
 {$define autoHeapRelease}
 {$define IOpossix}
 {$define DisableArrayOfConst}
+{$define DISABLE_NO_THREAD_MANAGER}
 
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}

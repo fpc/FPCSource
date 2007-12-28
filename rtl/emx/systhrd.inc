@@ -146,16 +146,3 @@ procedure SysEnterCriticalSection(var cs : TRTLCriticalSection);
 
 procedure SysLeaveCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'LeaveCriticalSection';
-
-
-{*****************************************************************************
-                           Thread management
-*****************************************************************************}
-
-    procedure InitSystemThreads;
-      begin
-        SetNoThreadManager;
-      end;
-
-
-

@@ -19,6 +19,7 @@ interface
 {$define StdErrToConsole}
 {$define useLongNamespaceByDefault}
 {$define autoHeapRelease}
+{$define DISABLE_NO_THREAD_MANAGER}
 
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
