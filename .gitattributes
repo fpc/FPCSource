@@ -5523,7 +5523,6 @@ rtl/symbian/sysheap.inc svneol=native#text/plain
 rtl/symbian/sysos.inc svneol=native#text/plain
 rtl/symbian/sysosh.inc svneol=native#text/plain
 rtl/symbian/system.pp svneol=native#text/plain
-rtl/symbian/systhrd.inc svneol=native#text/plain
 rtl/symbian/uiq.pas -text
 rtl/symbian/uiqclasses.pas -text
 rtl/symbian/uiqinc/qikapplication.inc -text

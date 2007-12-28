@@ -24,8 +24,6 @@ interface
   {$define Set_i386_Exception_handler}
 {$endif cpui386}
 
-{$define DISABLE_NO_THREAD_MANAGER}
-
 { include system-independent routine headers }
 {$I systemh.inc}
 
