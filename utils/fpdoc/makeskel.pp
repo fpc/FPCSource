@@ -35,7 +35,10 @@ type
   TCmdLineAction = (actionHelp, actionConvert);
 
   TSkelEngine = class(TFPDocEngine)
+    FModules : TStringList;
   public
+    Destructor Destroy; override;
+    function FindModule(const AName: String): TPasModule; override;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility :TPasMemberVisibility;
       const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement; override;
@@ -63,6 +66,45 @@ var
   EmitClassSeparator: Boolean;
   PackageName, OutputName: String;
   f: Text;
+
+function TSkelEngine.FindModule(const AName: String): TPasModule; 
+
+Var
+  I : Integer;
+
+begin
+  Result:=Inherited FindModule(AName);
+  If (Result=Nil) then
+    begin // Create dummy list and search in that.
+    If (FModules=Nil) then
+      begin
+      FModules:=TStringList.Create;
+      FModules.Sorted:=True;
+      end;
+    I:=FModules.IndexOf(AName);
+    IF (I=-1) then
+      begin
+      Result:=TPasModule.Create(AName,Nil);
+      FModules.AddObject(AName,Result);
+      end
+    else
+      Result:=FModules.Objects[i] as TPasModule;  
+    end;  
+end;
+
+Destructor TSkelEngine.Destroy; 
+
+Var
+  I : Integer;
+
+begin
+  If Assigned(FModules) then 
+    begin
+    For I:=0 to FModules.Count-1 do
+      FModules.Objects[i].Free;
+    FreeAndNil(FModules);    
+    end;
+end;
 
 
 function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
