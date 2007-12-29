@@ -782,6 +782,19 @@
          Result := IUnknown(fcontroller);
       end;
 
+{****************************************************************************
+                               TContainedOBJECT
+****************************************************************************}
+
+    function TContainedObject.QueryInterface(
+            const iid : tguid;out obj) : longint; stdcall;
+
+    begin
+      if getinterface(iid,obj) then
+        result:=0
+      else
+        result:=longint(E_NOINTERFACE); 
+    end;
 
 {****************************************************************************
                              Exception Support
