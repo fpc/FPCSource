@@ -271,6 +271,7 @@ Type
   PAnsiString         = ^AnsiString;
 
   PDate               = ^TDateTime;
+  PDateTime	      = ^TDateTime;
   PError              = ^TError;
   PVariant            = ^Variant;
   POleVariant         = ^OleVariant;
