@@ -26,10 +26,14 @@ type
     procedure Shuffle;
   protected
     List : TList;
+    List2 : TList;
+    List3 : TList;
     Pointers : Packed Array[0..20] of Byte;
-    procedure SetUp; override; 
+    procedure SetUp; override;
     procedure TearDown; override; 
-    Procedure FillList(ACount : Integer);
+    Procedure FillList(ACount : Integer); overload;
+    Procedure FillList(AList : TList; AOffSet, ACount : Integer); overload;
+    procedure HavePointer(I: Integer);
   published
     procedure TestCreate;
     procedure TestAdd;
@@ -54,6 +58,18 @@ type
     Procedure TestNotifyDelete;
     Procedure TestNotifyExtract;
     Procedure TestPack;
+    Procedure TestAssignCopy;
+    Procedure TestAssignCopy2;
+    Procedure TestAssignAnd;
+    procedure TestAssignAnd2;
+    Procedure TestAssignOr;
+    procedure TestAssignOr2;
+    procedure TestAssignXOr;
+    procedure TestAssignXOr2;
+    procedure TestAssignSrcUnique;
+    procedure TestAssignSrcUnique2;
+    procedure TestAssignDestUnique;
+    procedure TestAssignDestUnique2;
   end;
 
   { TMyList }
@@ -63,6 +79,7 @@ type
     FLastPointer : Pointer;
     FLastAction : TListNotification;
   end;
+  
 
 implementation
 
@@ -75,6 +92,8 @@ Var
 
 begin
   List:=TMyList.Create;
+  List2:=TMyList.Create;
+  List3:=TMyList.Create;
   For I:=0 to 20 do
     Pointers[i]:=I; // Zero serves as sentinel.
 end; 
@@ -82,6 +101,27 @@ end;
 procedure TTestTList.TearDown; 
 begin
   FreeAndNil(List);
+  FreeAndNil(List2);
+  FreeAndNil(List3);
+end;
+
+procedure TTestTList.FillList(ACount: Integer);
+
+
+begin
+  FillList(List,0,ACount);
+end;
+
+procedure TTestTList.FillList(AList: TList; AOffSet, ACount: Integer);
+
+Var
+  I : integer;
+  
+begin
+  If ACount+AOffSet>20 then
+    Fail('Too many elements added to list. Max is 20');
+  For I:=1+AOffSet to AOffSet+ACount do
+    List.Add(@Pointers[i]);
 end;
 
 procedure TTestTList.TestCreate;
@@ -369,18 +409,176 @@ begin
   AssertEquals('Packed list[6] is @pointer[9]',@pointers[9],List[6]);
 end;
 
-
-procedure TTestTList.FillList(ACount: Integer);
+procedure TTestTList.TestAssignCopy;
 
 Var
-  I : integer;
+  I : Integer;
+begin
+  FillList(20);
+  List2.Assign(List,laCopy);
+  AssertEquals('20 elements copied',20,List2.Count);
+  For I:=0 to 19 do
+    AssertSame(Format('Element %d copied correctly',[i]),@Pointers[I+1],List2[i]);
+end;
+
+procedure TTestTList.TestAssignAnd;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  List.Assign(List2,laAnd); // Should have 6-10
+  AssertEquals('5 elements copied',5,List.Count);
+  For I:=0 to 4 do
+    HavePointer(6+i);
+end;
+
+procedure TTestTList.TestAssignAnd2;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  FillList(List3,10,9); // 11--19
+  List.Assign(List2,laAnd,List3); // Should have 11-15
+  AssertEquals('5 elements copied',5,List.Count);
+  For I:=0 to 4 do
+    HavePointer(11+i);
+end;
+
+procedure TTestTList.TestAssignOr;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  List.Assign(List2,laOr); // Should have 6-10
+  AssertEquals('15 elements copied',15,List.Count);
+  For I:=0 to 14 do
+    HavePointer(1+i);
+end;
+
+procedure TTestTList.TestAssignOr2;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  FillList(List3,10,9); // 11--19
+  List.Assign(List2,laOr,List3); // Should have 6-19
+  AssertEquals('14 elements copied',14,List.Count);
+  For I:=0 to 13 do
+    HavePointer(6+i);
+end;
+
+procedure TTestTList.TestAssignXOr;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  List.Assign(List2,laxOr); // Should have 1-5 and 11-15
+  AssertEquals('10 elements copied',10,List.Count);
+  For I:=0 to 4 do
+    HavePointer(1+i);
+  For I:=5 to 9 do
+    HavePointer(6+i);
+end;
+
+procedure TTestTList.TestAssignXOr2;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  FillList(List3,10,9); // 11--19
+  List.Assign(List2,laXor,List3); // Should have 6-10 and 16-19
+  AssertEquals('14 elements copied',9,List.Count);
+  For I:=0 to 4 do
+    HavePointer(6+i);
+  For I:=5 to 8 do
+    HavePointer(11+i);
+end;
+
+procedure TTestTList.TestAssignSrcUnique;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  List.Assign(List2,laSrcUnique); // Should have 1-5
+  AssertEquals('5 elements copied',5,List.Count);
+  For I:=0 to 4 do
+    HavePointer(1+i);
+end;
+
+procedure TTestTList.TestAssignSrcUnique2;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  FillList(List3,10,9); // 11--19
+  List.Assign(List2,laSrcUnique,List3); // Should have 6-10
+  AssertEquals('5 elements copied',5,List.Count);
+  For I:=0 to 4 do
+    HavePointer(6+i);
+end;
+
+procedure TTestTList.HavePointer(I : Integer);
 
 begin
-  If ACount>20 then
-    Fail('Too many elements added to list. Max is 20');
-  For I:=1 to ACount do
-    List.Add(@Pointers[i]);
+  If List.IndexOf(@Pointers[i])=-1 then
+    Fail(Format('Pointer to %d not in list',[i]));
 end;
+procedure TTestTList.TestAssignDestUnique;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  List.Assign(List2,laDestUnique); // Should have 11-15
+  AssertEquals('5 elements copied',5,List.Count);
+  For I:=0 to 4 do
+    HavePointer(11+I);
+end;
+
+procedure TTestTList.TestAssignDestUnique2;
+
+Var
+  I : Integer;
+begin
+  FillList(10); // 1--10
+  FillList(List2,5,10); // 6--15
+  FillList(List3,10,9); // 11--19
+  List.Assign(List2,laDestUnique,List3); // Should have 16-19
+  AssertEquals('4 elements copied',4,List.Count);
+  For I:=0 to 3 do
+    HavePointer(16+i);
+end;
+
+procedure TTestTList.TestAssignCopy2;
+Var
+  I : Integer;
+begin
+  FillList(6); // 1--6
+  FillList(List2,6,6); // 7--12
+  FillList(List3,12,6); // 13--18
+  List.Assign(List2,laCopy,List3); // Should have 13-18
+  AssertEquals('6 elements copied',6,List.Count);
+  For I:=1 to 6 do
+    HavePointer(12+i);
+end;
+
 
 { TMyList }
 

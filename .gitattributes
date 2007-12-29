@@ -5527,7 +5527,9 @@ rtl/symbian/uiqinc/qikapplicationoo.inc -text
 rtl/tests/fplists.pp svneol=native#text/plain
 rtl/tests/gencomptest.dpr svneol=native#text/plain
 rtl/tests/lists.pp svneol=native#text/plain
+rtl/tests/resref.inc svneol=native#text/plain
 rtl/tests/searchbuf.inc svneol=native#text/plain
+rtl/tests/sllist.inc svneol=native#text/plain
 rtl/tests/tccollection.pp svneol=native#text/plain
 rtl/tests/tccomponent.pp svneol=native#text/plain
 rtl/tests/tccompstreaming.pp svneol=native#text/plain
@@ -5535,6 +5537,7 @@ rtl/tests/tcfindnested.pp svneol=native#text/plain
 rtl/tests/tclinkedlist.pp svneol=native#text/plain
 rtl/tests/tclist.pp svneol=native#text/plain
 rtl/tests/tcpersistent.pp svneol=native#text/plain
+rtl/tests/tcresref.pp svneol=native#text/plain
 rtl/tests/tcstreaming.pp svneol=native#text/plain
 rtl/tests/tcstringlist.pp svneol=native#text/plain
 rtl/tests/tcstrutils.pp svneol=native#text/plain
