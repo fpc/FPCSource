@@ -42,6 +42,9 @@ TYPE
      OleChar             = WChar;
      LPOLESTR            = ^OLECHAR;
 
+CONST 
+   GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
+
      // bit flags for IExternalConnection
 CONST
     EXTCONN_STRONG              = $0001;   // strong connection
