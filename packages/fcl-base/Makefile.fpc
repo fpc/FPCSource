@@ -49,6 +49,8 @@ sourcedir=src/$(OS_TARGET) src/inc
 
 [install]
 fpcpackage=y
+files_win32=fclel.res
+files_win64=fclel.res
 
 [default]
 fpcdir=../..
