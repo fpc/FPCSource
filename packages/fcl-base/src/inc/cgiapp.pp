@@ -143,6 +143,21 @@ Implementation
 
 uses
   iostream;
+  
+Type
+  TFormFile = Class(TObject)
+  Private
+    FFileName : String;
+  Public  
+    Constructor Create(Const AFileName : String);
+    Property FileName : String Read FFileName Write FFileName;
+  end;  
+  
+Constructor  TFormFile.Create(Const AFileName : String);
+
+begin
+  FFileName:=AFileName;
+end;
 
 {$ifdef cgidebug}
 Var
@@ -185,6 +200,9 @@ end;
 
 Destructor TCgiApplication.Destroy;
 
+Var
+  i : Integer;
+
 begin
   DeleteFormFiles;
   FFormFiles.Free;
@@ -226,15 +244,17 @@ Procedure TCgiApplication.DeleteFormFiles;
 Var
   I,P : Integer;
   FN : String;
-
+  FF : TFormFile;
 begin
   For I:=0 to FFormFiles.Count-1 do
     begin
-    FN:=FFormFiles[i];
-    P:=Pos('=',FN);
-    Delete(FN,1,P);
-    If FileExists(FN) then
-      DeleteFile(FN);
+    FF:=TFormFile(FFormFiles.Objects[i]);
+    If Assigned(FF) then
+      begin
+      If FileExists(FF.FileName) then
+        DeleteFile(FF.FileName);
+      FF.Free;
+      end;  
     end;
 end;
 
@@ -612,7 +632,7 @@ begin
         begin
         Value:=FI.FileName;
         FF:=GetTempCGIFileName;
-        FFormFiles.Add(Key+'='+FF);
+        FFormFiles.AddObject(Key,TFormFile.Create(FF));
         F:=TFileStream.Create(FF,fmCreate);
         Try
           if Length(FI.Data)>0 then
@@ -865,13 +885,24 @@ end;
 Function TCGIApplication.VariableIsUploadedFile(Const VarName : String) : boolean;
 
 begin
-  Result:=FFormFiles.IndexOfName(VarName)<>-1;
+  Result:=FFormFiles.IndexOf(VarName)<>-1;
 end;
 
 Function TCGIApplication.UploadedFileName(Const VarName : String) : String;
 
+Var
+  FF : TFormFile;
+  i : Integer;
+ 
 begin
-  Result:=FFormFiles.Values[VarName];
+  Result:='';
+  I:=FFormFiles.IndexOf(VarName);
+  If (I<>-1) then
+    begin
+    FF:=TFormFile(FFormFiles.Objects[i]);
+    If Assigned(FF) then
+      Result:=FF.FileName;
+    end;  
 end;
 
 {$ifdef cgidebug}
