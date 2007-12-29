@@ -23,8 +23,6 @@ Uses sysutils,Classes;
 
 Type
   EPipeError = Class(EStreamError);
-  ENoReadPipe = Class(EPipeError);
-  ENoWritePipe = Class (EPipeError);
   EPipeSeek = Class (EPipeError);
   EPipeCreation = Class (EPipeError);
 
@@ -52,8 +50,6 @@ Procedure CreatePipeStreams (Var InPipe : TInputPipeStream;
                              Var OutPipe : TOutputPipeStream);
 
 Const EPipeMsg = 'Failed to create pipe.';
-      ENoReadMSg = 'Cannot read from OuputPipeStream.';
-      ENoWriteMsg = 'Cannot write to InputPipeStream.';
       ENoSeekMsg = 'Cannot seek on pipes';
 
 
@@ -79,7 +75,8 @@ end;
 Function TInputPipeStream.Write (Const Buffer; Count : Longint) : longint;
 
 begin
-  Raise ENoWritePipe.Create (ENoWriteMsg);
+  WriteNotImplemented;
+  Result := 0;
 end;
 
 Function TInputPipeStream.Read (Var Buffer; Count : Longint) : longint;
@@ -115,7 +112,8 @@ end;
 Function TOutputPipeStream.Read(Var Buffer; Count : Longint) : longint;
 
 begin
-  Raise ENoReadPipe.Create (ENoReadMsg);
+  ReadNotImplemented;
+  Result := 0;
 end;
 
 Function TOutputPipeStream.Seek (Offset : Longint;Origin : Word) : longint;

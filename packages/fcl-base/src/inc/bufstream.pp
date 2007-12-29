@@ -38,7 +38,7 @@ Type
     FCapacity: Integer;
     procedure SetCapacity(const AValue: Integer);
   Protected
-    procedure BufferError(Msg : String);
+    procedure BufferError(const Msg : String);
     Procedure FillBuffer; Virtual;
     Procedure FlushBuffer; Virtual;
   Public
@@ -57,7 +57,6 @@ Type
   Public
     Function Seek(Offset: Longint; Origin: Word): Longint; override;
     Function Read(var ABuffer; ACount : LongInt) : Integer; override;
-    Function Write(Const ABuffer; ACount : LongInt) : Integer; override;
   end;
 
   { TWriteBufStream }
@@ -66,7 +65,6 @@ Type
   Public
     Destructor Destroy; override;
     Function Seek(Offset: Longint; Origin: Word): Longint; override;
-    Function Read(var ABuffer; ACount : LongInt) : Integer; override;
     Function Write(Const ABuffer; ACount : LongInt) : Integer; override;
   end;
 
@@ -75,8 +73,6 @@ implementation
 Resourcestring
   SErrCapacityTooSmall = 'Capacity is less than actual buffer size.';
   SErrCouldNotFLushBuffer = 'Could not flush buffer';
-  SErrWriteOnlyStream = 'Illegal stream operation: Only writing is allowed.';
-  SErrReadOnlyStream = 'Illegal stream operation: Only reading is allowed.';
   SErrInvalidSeek = 'Invalid buffer seek operation';
 
 { TBufStream }
@@ -92,7 +88,7 @@ begin
     end;
 end;
 
-procedure TBufStream.BufferError(Msg: String);
+procedure TBufStream.BufferError(const Msg: String);
 begin
   Raise EStreamError.Create(Msg);
 end;
@@ -222,11 +218,6 @@ begin
   Inc(FTotalPos,Result);
 end;
 
-function TReadBufStream.Write(const ABuffer; ACount: LongInt): Integer;
-begin
-  BufferError(SErrReadOnlyStream);
-end;
-
 { TWriteBufStream }
 
 destructor TWriteBufStream.Destroy;
@@ -241,11 +232,6 @@ begin
     Result := FTotalPos
   else
     BufferError(SErrInvalidSeek);
-end;
-
-function TWriteBufStream.Read(var ABuffer; ACount: LongInt): Integer;
-begin
-  BufferError(SErrWriteOnlyStream);
 end;
 
 function TWriteBufStream.Write(const ABuffer; ACount: LongInt): Integer;

@@ -85,7 +85,6 @@ Type
   TIDEAEncryptStream = Class(TIDEAStream)
   public
     Destructor Destroy; override;
-    function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     procedure Flush;
@@ -94,7 +93,6 @@ Type
   TIDEADeCryptStream = Class(TIDEAStream)
   public
     function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
 
@@ -102,8 +100,6 @@ Implementation
 
 Const
   SNoSeekAllowed  = 'Seek not allowed on encryption streams';
-  SNoReadAllowed  = 'Reading from encryption stream not allowed';
-  SNoWriteAllowed = 'Writing to decryption stream not allowed';
 
 PROCEDURE mul(VAR a:Word; b: Word);
 VAR p: LongInt;
@@ -288,12 +284,6 @@ begin
     end;
 end;
 
-function TIDEAEncryptStream.Read(var Buffer; Count: Longint): Longint;
-
-begin
-  Raise EIDEAError.Create(SNoReadAllowed);
-end;
-
 function TIDEAEncryptStream.Write(const Buffer; Count: Longint): Longint;
 
 Var
@@ -380,11 +370,6 @@ begin
       end;
     end;
   Inc(FPos,Result);
-end;
-
-function TIDEADeCryptStream.Write(const Buffer; Count: Longint): Longint;
-begin
-  Raise EIDEAError.Create(SNoWriteAllowed);
 end;
 
 function TIDEADeCryptStream.Seek(Offset: Longint; Origin: Word): Longint;
