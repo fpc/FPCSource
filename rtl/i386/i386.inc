@@ -1091,10 +1091,12 @@ Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$end
 asm
         movl    %esp,%eax
 end;
+
 {****************************************************************************
                                  Str()
 ****************************************************************************}
 
+{$ifdef disabled}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1102,7 +1104,7 @@ label str_int_shortcut;
 
 {$asmmode intel}
 
-procedure int_str(l:longword;var s:string);assembler;nostackframe;
+procedure int_str(l:longword;out s:string);assembler;nostackframe;
 
 asm
   push edi
@@ -1112,7 +1114,7 @@ asm
   jmp str_int_shortcut
 end;
 
-procedure int_str(l:longint;var s:string);assembler;nostackframe;
+procedure int_str(l:longint;out s:string);assembler;nostackframe;
 
 {Optimized for speed, but balanced with size.}
 
@@ -1164,6 +1166,7 @@ str_int_shortcut:
 end;
 
 {$asmmode att}
+{$endif disabled}
 
 {****************************************************************************
                                Bounds Check
