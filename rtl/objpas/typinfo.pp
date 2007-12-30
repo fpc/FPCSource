@@ -306,7 +306,9 @@ Type
   TSetPropValue   = Procedure (Instance: TObject; const PropName: string; const Value: Variant);
   TGetVariantProp = Function (Instance: TObject; PropInfo : PPropInfo): Variant;
   TSetVariantProp = Procedure (Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
-
+  
+  EPropertyConvertError = class(Exception); // Not used (yet), but defined for compatibility.
+  
 Const
   OnGetPropValue   : TGetPropValue = Nil;
   OnSetPropValue   : TSetPropValue = Nil;
