@@ -287,7 +287,7 @@ begin
          begin
            optarg:=strpas(argv[optind]);
            inc(optind);
-           Internal_getopt:=#1;
+           Internal_getopt:=#0;
            exit;
          end;
       end;
