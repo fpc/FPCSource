@@ -1079,7 +1079,7 @@ end;
 
 
 Const
-  NrDevices = 14;
+  NrDevices = 16;
   Devices : Array[1..NrDevices] of string = (
   '/dev/cdrom',
   '/dev/cdroms/cdrom?',
@@ -1094,6 +1094,8 @@ Const
   '/dev/sjcd',
   '/dev/cm206cd',
   '/dev/gscd',
+  '/dev/scd?',
+  '/dev/sr?',
   '/dev/optcd');
 
 Function DetectCD : String;
