@@ -113,9 +113,19 @@ begin
     Result := '';
 end;
 
+function ExtractShortPathName(Const FileName : String) : String;
 
-  type
-    PathStr=string;
+begin
+{$ifdef MSWINDOWS} 
+  SetLength(Result,Max_Path);
+  SetLength(Result,GetShortPathName(PChar(FileName), Pchar(Result),Length(Result)));
+{$else}
+  Result:=FileName;
+{$endif}
+end;
+
+type
+  PathStr=string;
 
 {$DEFINE FPC_FEXPAND_SYSUTILS}
 
