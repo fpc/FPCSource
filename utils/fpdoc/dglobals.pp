@@ -849,17 +849,23 @@ end;
 function TFPDocEngine.FindElement(const AName: String): TPasElement;
 
   function FindInModule(AModule: TPasModule; const LocalName: String): TPasElement;
+  
   var
     l: TList;
     i: Integer;
+    
   begin
-    l := AModule.InterfaceSection.Declarations;
-    for i := 0 to l.Count - 1 do
-    begin
-      Result := TPasElement(l[i]);
-      if CompareText(Result.Name, LocalName) = 0 then
-        exit;
-    end;
+    If assigned(AModule.InterfaceSection) and 
+       Assigned(AModule.InterfaceSection.Declarations) then
+      begin
+      l:=AModule.InterfaceSection.Declarations;
+      for i := 0 to l.Count - 1 do
+        begin
+        Result := TPasElement(l[i]);
+        if  CompareText(Result.Name, LocalName) = 0 then
+          exit;
+        end;
+      end;  
     Result := nil;
  end;
 
