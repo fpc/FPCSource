@@ -208,9 +208,11 @@ type
     FFirstExample: TDOMElement;
     FLink: String;
     FTopicNode : Boolean;
+    FRefCount : Integer;
   public
     constructor Create(const AName: String; ANode: TDOMElement);
     destructor Destroy; override;
+    Function IncRefcount : Integer;
     function FindChild(const APathName: String): TDocNode;
     function CreateChildren(const APathName: String): TDocNode;
     // Properties for tree structure
@@ -228,7 +230,9 @@ type
     property FirstExample: TDOMElement read FFirstExample;
     property Link: String read FLink;
     Property TopicNode : Boolean Read FTopicNode;
+    Property RefCount : Integer Read FRefCount;
   end;
+  
 
 
   // The main FPDoc engine
@@ -425,6 +429,13 @@ begin
   inherited Destroy;
 end;
 
+Function TDocNode.IncRefcount : Integer;
+
+begin
+  Inc(FRefCount);
+  Result:=FRefCount;
+end;
+
 function TDocNode.FindChild(const APathName: String): TDocNode;
 var
   DotPos: Integer;
@@ -537,6 +548,8 @@ begin
     '#' + APackageName, nil, '', 0));
   FPackages.Add(FPackage);
   CurPackageDocNode := RootDocNode.FindChild('#' + APackageName);
+  If Assigned(CurPackageDocNode) then
+    CurPackageDocNode.IncRefCount;
 end;
 
 procedure TFPDocEngine.ReadContentFile(const AFilename, ALinkPrefix: String);
@@ -1055,6 +1068,7 @@ begin
     if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'package') then
       begin
       PackageDocNode := ReadNode(RootDocNode, TDOMElement(Node));
+      PackageDocNode.IncRefCount;
       // Scan all 'module' elements within this package element
       Subnode := Node.FirstChild;
       while Assigned(Subnode) do
