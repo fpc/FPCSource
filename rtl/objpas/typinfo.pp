@@ -280,6 +280,10 @@ Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
 Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
 Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
 
+function GetInterfaceProp(Instance: TObject; const PropName: string): IInterface;
+function GetInterfaceProp(Instance: TObject; PropInfo: PPropInfo): IInterface;
+procedure SetInterfaceProp(Instance: TObject; const PropName: string; const Value: IInterface);
+procedure SetInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: IInterface);
 
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -1089,6 +1093,42 @@ begin
   Result:=GetTypeData(FindPropInfo(Instance,PropName)^.PropType)^.ClassType;
 end;
 
+{ ---------------------------------------------------------------------
+    Interface wrapprers
+  ---------------------------------------------------------------------}
+
+
+function GetInterfaceProp(Instance: TObject; const PropName: string): IInterface;
+
+begin
+  Result:=GetInterfaceProp(Instance,FindPropInfo(Instance,PropName));
+end;
+
+function GetInterfaceProp(Instance: TObject; PropInfo: PPropInfo): IInterface;
+
+begin
+{$ifdef cpu64}
+  Result:=IInterface(GetInt64Prop(Instance,PropInfo));
+{$else cpu64}
+  Result:=IInterface(PtrInt(GetOrdProp(Instance,PropInfo)));
+{$endif cpu64}
+end;
+
+procedure SetInterfaceProp(Instance: TObject; const PropName: string; const Value: IInterface);
+
+begin
+  SetInterfaceProp(Instance,FindPropInfo(Instance,PropName),Value);
+end;
+
+procedure SetInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: IInterface);
+
+begin
+{$ifdef cpu64}
+  SetInt64Prop(Instance,PropInfo,Int64(Value));
+{$else cpu64}
+  SetOrdProp(Instance,PropInfo,Integer(Value));
+{$endif cpu64}
+end;
 
 { ---------------------------------------------------------------------
   String properties
