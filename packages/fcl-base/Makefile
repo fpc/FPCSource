@@ -561,10 +561,10 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override INSTALL_FILES+=fclel.res
+override INSTALL_FILES+=src/win/fclel.res
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override INSTALL_FILES+=fclel.res
+override INSTALL_FILES+=src/win/fclel.res
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
