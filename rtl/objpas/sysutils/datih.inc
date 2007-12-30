@@ -113,6 +113,7 @@ function Date: TDateTime;
 function Time: TDateTime;
 function Now: TDateTime;
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDateTime;
+procedure IncAMonth(var Year, Month, Day: Word; NumberOfMonths: Integer = 1);
 function IsLeapYear(Year: Word): boolean;
 function DateToStr(Date: TDateTime): string;
 function TimeToStr(Time: TDateTime): string;
