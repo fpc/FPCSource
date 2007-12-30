@@ -792,7 +792,12 @@ implementation
             GUID.D4[i]:=byte(hexstr2longint(copy(s,22+i*2,2)));
           string2guid:=true;
         end
-        else
+        else if (length(s)=0) then
+          begin
+          FillChar(GUID,SizeOf(GUID),0);
+          string2guid:=true;
+          end
+        else  
           string2guid:=false;
       end;
 
