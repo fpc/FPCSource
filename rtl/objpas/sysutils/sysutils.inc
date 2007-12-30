@@ -625,3 +625,14 @@ function SafeLoadLibrary(const FileName: AnsiString;
 {$endif}
     end;
   end;
+
+function GetModuleName(Module: HMODULE): string;
+
+begin
+{$ifdef MSWINDOWS}
+  SetLength(Result,MAX_PATH);
+  SetLength(Result,GetModuleFileName(Module, Pchar(Result),Length(Result)));
+{$ELSE}  
+  Result:='';
+{$ENDIF}  
+end;
