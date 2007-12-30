@@ -307,6 +307,168 @@ end;
 
 {$endif FPC_SYSTEM_HAS_MOVE}
 
+{****************************************************************************
+                                 String
+****************************************************************************}
+
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
+
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring):shortstring;assembler;nostackframe;[public,alias: 'FPC_SHORTSTR_TO_SHORTSTR'];compilerproc;
+{$else}
+procedure fpc_shortstr_to_shortstr(out res:shortstring;const sstr:shortstring);assembler;nostackframe;[public,alias: 'FPC_SHORTSTR_TO_SHORTSTR'];compilerproc;
+{$endif}
+{r0: __RESULT
+ r1: len
+ r2: sstr}
+
+asm
+    ldrb r12,[r2],#1
+    cmp  r12,r1
+    movgt r1,r12
+    strb r12,[r0],#1
+    cmp  r12,#6 (* 6 seems to be the break even point. *)
+    blt  .LStartTailCopy
+    (* Align destination on 32bits. This is the only place where unrolling
+       really seems to help, since in the common case, sstr is aligned on
+       32 bits, therefore in the common case we need to copy 3 bytes to
+       align, i.e. in the case of a loop, you wouldn't branch out early.*)
+    rsb  r3,r0,#0
+    ands  r3,r3,#3
+    sub  r12,r12,r3
+    ldrneb r1,[r2],#1
+    strneb r1,[r0],#1
+    subnes  r3,r3,#1
+    ldrneb r1,[r2],#1
+    strneb r1,[r0],#1
+    subnes  r3,r3,#1
+    ldrneb r1,[r2],#1
+    strneb r1,[r0],#1
+    subnes  r3,r3,#1
+.LDoneAlign:
+    (* Destination should be aligned now, but source might not be aligned,
+       if this is the case, do a byte-per-byte copy. *)
+    tst r2,#3
+    bne .LStartTailCopy
+    (* Start the main copy, 32 bit at a time. *)
+    movs r3,r12,lsr #2
+    and r12,r12,#3
+    beq  .LStartTailCopy
+.LNext4bytes:
+    (* Unrolling this loop would save a little bit of time for long strings
+       (>20 chars), but alas, it hurts for short strings and they are the
+       common case.*)
+    ldrne r1,[r2],#4
+    strne r1,[r0],#4
+    subnes  r3,r3,#1
+    bne .LNext4bytes
+.LStartTailCopy:
+    (* Do remaining bytes. *)
+    cmp r12,#0
+    beq .LDoneTail
+.LNextChar3:
+    ldrb r1,[r2],#1
+    strb r1,[r0],#1
+    subs  r12,r12,#1
+    bne .LNextChar3
+.LDoneTail:
+end;
+
+procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);assembler;nostackframe;[public,alias:'FPC_SHORTSTR_ASSIGN'];compilerproc;
+
+{r0: len
+ r1: sstr
+ r2: dstr}
+
+asm
+    ldrb r12,[r1],#1
+    cmp  r12,r0
+    movgt r0,r12
+    strb r12,[r2],#1
+    cmp  r12,#6 (* 6 seems to be the break even point. *)
+    blt  .LStartTailCopy
+    (* Align destination on 32bits. This is the only place where unrolling
+       really seems to help, since in the common case, sstr is aligned on
+       32 bits, therefore in the common case we need to copy 3 bytes to
+       align, i.e. in the case of a loop, you wouldn't branch out early.*)
+    rsb  r3,r2,#0
+    ands  r3,r3,#3
+    sub  r12,r12,r3
+    ldrneb r0,[r1],#1
+    strneb r0,[r2],#1
+    subnes  r3,r3,#1
+    ldrneb r0,[r1],#1
+    strneb r0,[r2],#1
+    subnes  r3,r3,#1
+    ldrneb r0,[r1],#1
+    strneb r0,[r2],#1
+    subnes  r3,r3,#1
+.LDoneAlign:
+    (* Destination should be aligned now, but source might not be aligned,
+       if this is the case, do a byte-per-byte copy. *)
+    tst r1,#3
+    bne .LStartTailCopy
+    (* Start the main copy, 32 bit at a time. *)
+    movs r3,r12,lsr #2
+    and r12,r12,#3
+    beq  .LStartTailCopy
+.LNext4bytes:
+    (* Unrolling this loop would save a little bit of time for long strings
+       (>20 chars), but alas, it hurts for short strings and they are the
+       common case.*)
+    ldrne r0,[r1],#4
+    strne r0,[r2],#4
+    subnes  r3,r3,#1
+    bne .LNext4bytes
+.LStartTailCopy:
+    (* Do remaining bytes. *)
+    cmp r12,#0
+    beq .LDoneTail
+.LNextChar3:
+    ldrb r0,[r1],#1
+    strb r0,[r2],#1
+    subs  r12,r12,#1
+    bne .LNextChar3
+.LDoneTail:
+end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
+
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+function fpc_Pchar_length(p:Pchar):longint;assembler;nostackframe;[public,alias:'FPC_PCHAR_LENGTH'];compilerproc;
+
+asm
+    mov r1,r0
+.Lnextchar:
+    (*Are we aligned?*)
+    tst r1,#3
+    bne .Ltest_unaligned    (*No, do byte per byte.*)
+    ldr r3,.L01010101
+.Ltest_aligned:
+    (*Aligned, load 4 bytes at a time.*)
+    ldr r12,[r1],#4
+    (*Check wether r12 contains a 0 byte.*)
+    sub r2,r12,r3
+    mvn r12,r12
+    and r2,r2,r12
+    ands r2,r2,r3,lsl #7    (*r3 lsl 7 = $80808080*)
+    beq .Ltest_aligned      (*No 0 byte, repeat.*)
+    sub r1,r1,#4
+.Ltest_unaligned:
+    ldrb r12,[r1],#1
+    cmp r12,#1              (*r12<1 same as r12=0, but result in carry flag*)
+    bcs .Lnextchar
+    (*Dirty trick: we need to subtract 1 extra because we have counted the
+      terminating 0, due to the known carry flag sbc can do this.*)
+    sbc r0,r1,r0
+    mov pc,lr
+.L01010101:
+    .long 0x01010101
+end;
+{$endif}
+
+
 var
   fpc_system_lock: longint; export name 'fpc_system_lock';
 
@@ -439,3 +601,4 @@ end;
 
 {include hand-optimized assembler division code}
 {$i divide.inc}
+
