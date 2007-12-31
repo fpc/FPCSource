@@ -41,6 +41,7 @@ Type
     function Parse: TJSONData;
     Constructor Create(Source : TStream); overload;
     Constructor Create(Source : TJSONStringType); overload;
+    destructor Destroy();override;
   end;
   
   EJSONScanner = Class(Exception);
@@ -243,6 +244,12 @@ constructor TJSONParser.Create(Source: TJSONStringType);
 begin
   Inherited Create;
   FScanner:=TJSONScanner.Create(Source);
+end;
+
+destructor TJSONParser.Destroy();
+begin
+  FreeAndNil(FScanner);
+  inherited Destroy();
 end;
 
 end.
