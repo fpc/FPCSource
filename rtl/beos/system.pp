@@ -411,6 +411,7 @@ begin
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
+  InitSystemThreads;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}

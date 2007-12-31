@@ -333,6 +333,8 @@ begin
   SysInitExecPath;
   { Reset IO Error }
   InOutRes:=0;
+  { threading }
+  InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
 end.

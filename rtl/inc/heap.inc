@@ -395,22 +395,6 @@ procedure finish_waitvarlist(loc_freelists: pfreelists); forward;
 function  try_finish_waitfixedlist(loc_freelists: pfreelists): boolean; forward;
 procedure try_finish_waitvarlist(loc_freelists: pfreelists); forward;
 
-
-var
-  fTM: TThreadManager; external name 'fCurrentTM';
-
-procedure do_heap_lock;
-begin
-  if Assigned(fTM.EnterCriticalSection) then
-    fTM.EnterCriticalSection(heap_lock);
-end;
-
-procedure do_heap_unlock;
-begin
-  if Assigned(fTM.LeaveCriticalSection) then
-    fTM.LeaveCriticalSection(heap_lock);
-end;
-
 {*****************************************************************************
                                 List adding/removal
 *****************************************************************************}
@@ -750,7 +734,7 @@ begin
   if not assigned(poc) and (assigned(orphaned_freelists.waitfixed) 
       or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
     begin
-      do_heap_lock;
+      entercriticalsection(heap_lock);
       finish_waitfixedlist(@orphaned_freelists);
       finish_waitvarlist(@orphaned_freelists);
       if orphaned_freelists.oscount > 0 then
@@ -774,7 +758,7 @@ begin
               loc_freelists^.oslist_all := poc;
             end;
         end;
-      do_heap_unlock;
+      leavecriticalsection(heap_lock);
     end;
   if poc = nil then
     begin
@@ -1035,18 +1019,18 @@ end;
 
 procedure waitfree_fixed(pmc: pmemchunk_fixed; poc: poschunk);
 begin
-  do_heap_lock;
+  entercriticalsection(heap_lock);
   pmc^.next_fixed := poc^.freelists^.waitfixed;
   poc^.freelists^.waitfixed := pmc;
-  do_heap_unlock;
+  leavecriticalsection(heap_lock);
 end;
 
 procedure waitfree_var(pmcv: pmemchunk_var);
 begin
-  do_heap_lock;
+  entercriticalsection(heap_lock);
   pmcv^.next_var := pmcv^.freelists^.waitvar;
   pmcv^.freelists^.waitvar := pmcv;
-  do_heap_unlock;
+  leavecriticalsection(heap_lock);
 end;
 
 function SysFreeMem_Fixed(loc_freelists: pfreelists; pmc: pmemchunk_fixed): ptruint;
@@ -1157,9 +1141,9 @@ function try_finish_waitfixedlist(loc_freelists: pfreelists): boolean;
 begin
   if loc_freelists^.waitfixed = nil then 
     exit(false);
-  do_heap_lock;
+  entercriticalsection(heap_lock);
   finish_waitfixedlist(loc_freelists);
-  do_heap_unlock;
+  leavecriticalsection(heap_lock);
   result := true;
 end;
 
@@ -1181,9 +1165,9 @@ procedure try_finish_waitvarlist(loc_freelists: pfreelists);
 begin
   if loc_freelists^.waitvar = nil then 
     exit;
-  do_heap_lock;
+  entercriticalsection(heap_lock);
   finish_waitvarlist(loc_freelists);
-  do_heap_unlock;
+  leavecriticalsection(heap_lock);
 end;
 
 {*****************************************************************************
@@ -1447,7 +1431,7 @@ begin
   loc_freelists := @freelists;
   if main_relo_freelists <> nil then
   begin
-    do_heap_lock;
+    entercriticalsection(heap_lock);
     finish_waitfixedlist(loc_freelists);
     finish_waitvarlist(loc_freelists);
 {$ifdef HAS_SYSOSFREE}
@@ -1479,9 +1463,9 @@ begin
         orphaned_freelists.oslist_all := loc_freelists^.oslist_all;
       end;
     end;
-    do_heap_unlock;
-    if (main_relo_freelists = loc_freelists) and Assigned(fTM.DoneCriticalSection) then
-      fTM.DoneCriticalSection(heap_lock);
+    leavecriticalsection(heap_lock);
+    if main_relo_freelists = loc_freelists then
+      donecriticalsection(heap_lock);
   end;
 {$ifdef SHOW_MEM_USAGE}
   writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/', 

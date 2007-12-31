@@ -1812,6 +1812,8 @@ initialization
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
+  { threading }
+  InitSystemThreads;
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;

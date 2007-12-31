@@ -229,6 +229,7 @@ Begin
   InOutRes:=0;
 { Arguments }
   SetupCmdLine;
+  InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
 End.

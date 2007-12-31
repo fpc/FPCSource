@@ -298,6 +298,11 @@ begin
   InOutRes:=0;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  { threading }
+  InitSystemThreads;
+{$endif FPC_HAS_FEATURE_THREADING}
+
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
   initvariantmanager;
 {$endif FPC_HAS_FEATURE_VARIANTS}

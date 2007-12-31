@@ -417,6 +417,7 @@ begin
   InOutRes:=0;
 { Arguments }
   GenerateArgs;
+  InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
 end.
