@@ -34,8 +34,14 @@ const
    SecsPerDay  = MinsPerDay * SecsPerMin;
    MSecsPerDay = SecsPerDay * MSecsPerSec;
 
+{TDateTime holds the date as the number of days since 30 Dec 1899, known as
+Microsoft Excel epoch}
+   JulianEpoch = TDateTime(-2415018.5);
+   UnixEpoch = JulianEpoch + TDateTime(2440587.5);
+
    DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
-   UnixDateDelta = 25569;
+   UnixDateDelta = Trunc(UnixEpoch); //25569
+
 
    { True=Leapyear }
    MonthDays: array [Boolean] of TDayTable =

@@ -1979,20 +1979,22 @@ end;
 {$warnings off}
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
 begin
-  NotYetImplemented('DateTimeToJulianDate');
+  DateTimeToJulianDate := AValue - JulianEpoch;
 end;
 
 
 Function JulianDateToDateTime(const AValue: Double): TDateTime;
 begin
-  NotYetImplemented('JulianDateToDateTime');
+  JulianDateToDateTime := AValue + JulianEpoch;
+  if(AValue <= 0) or (AValue >= 10000)then
+    JulianDateToDateTime := NaN;
 end;
 
 
 Function TryJulianDateToDateTime(const AValue: Double; var ADateTime: TDateTime): Boolean;
-
 begin
-  NotYetImplemented('TryJulianDateToDateTime');
+  ADateTime := JulianDateToDateTime(AValue);
+  TryJulianDateToDateTime := ADateTime <> NaN;
 end;
 
 
@@ -2020,20 +2022,14 @@ end;
   ---------------------------------------------------------------------}
 
 Function DateTimeToUnix(const AValue: TDateTime): Int64;
-var
-  Epoch:TDateTime;
 begin
-  Epoch:=EncodeDateTime( 1970, 1, 1, 0, 0, 0, 0 );
-  Result:=SecondsBetween( Epoch, AValue );
+  Result:=SecondsBetween(UnixEpoch, AValue);
 end;
 
 
 Function UnixToDateTime(const AValue: Int64): TDateTime;
-var
-  Epoch:TDateTime;
 begin
-  Epoch:=EncodeDateTime( 1970, 1, 1, 0, 0, 0, 0 );
-  Result:=IncSecond( Epoch, AValue );
+  Result:=IncSecond(UnixEpoch, AValue);
 end;
 
 
