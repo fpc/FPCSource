@@ -1195,6 +1195,68 @@
     TWMHScroll          = TWMScroll;
     TWMVScroll          = TWMScroll;
     TWMGetTextLength    = TWMNoParams;
+    TWMUIState          = Windows.TWMUIState;
+    TWMNCHitTest        = Windows.TWMNCHitTest;
+    TWMMouse            = Windows.TWMMouse;
+    TWMMouseWheel       = Windows.TWMMouseWheel;
+    TWMNCHitMessage     = Windows.TWMNCHitMessage;
+    TWMPaint            = Windows.TWMPaint;
+    TWMCommand          = Windows.TWMCommand;
+    TWMNotify           = Windows.TWMNotify;
+    TWMPrint            = Windows.TWMPrint;
+    TWMWinIniChange     = Windows.TWMWinIniChange;
+    TWMContextMenu      = Windows.TWMContextMenu;
+    TWMNCCalcSize       = Windows.TWMNCCalcSize;
+    TWMCharToItem       = Windows.TWMCharToItem;
+    TWMParentNotify     = Windows.TWMParentNotify;
+    TWMSysCommand       = Windows.TWMSysCommand;
+    TWMMove             = Windows.TWMMove;
+    TWMWindowPosMsg     = Windows.TWMWindowPosMsg;
+    TWMCompareItem      = Windows.TWMCompareItem;
+    TWMDeleteItem       = Windows.TWMDeleteItem;
+    TWMDrawItem         = Windows.TWMDrawItem;
+    TWMMeasureItem      = Windows.TWMMeasureItem;
+    TWMNCCreate         = Windows.TWMNCCreate;
+    TWMInitMenuPopup    = Windows.TWMInitMenuPopup;
+    TWMMenuSelect       = Windows.TWMMenuSelect;
+    TWMActivate         = Windows.TWMActivate;
+    TWMQueryEndSession  = Windows.TWMQueryEndSession;
+    TWMMDIActivate      = Windows.TWMMDIActivate;
+    TWMNextDlgCtl       = Windows.TWMNextDlgCtl;
+    TWMHelp             = Windows.TWMHelp;
+    TWMGetMinMaxInfo    = Windows.TWMGetMinMaxInfo;
+    TWMSettingChange    = Windows.TWMSettingChange;
+    TWMCreate           = Windows.TWMCreate;
+    TWMCtlColor         = Windows.TWMCtlColor;
+    TWMInitDialog       = Windows.TWMInitDialog;
+    TWMNCPaint          = Windows.TWMNCPaint;
+    TWMSetText          = Windows.TWMSetText;
+    TWMSizeClipboard    = Windows.TWMSizeClipboard;
+    TWMSpoolerStatus    = Windows.TWMSpoolerStatus;
+    TWMStyleChange      = Windows.TWMStyleChange;
+    TWMSysDeadChar      = Windows.TWMSysDeadChar;
+    TWMSystemError      = Windows.TWMSystemError;
+    TWMTimer            = Windows.TWMTimer;
+    TWMVScrollClipboard = Windows.TWMVScrollClipboard;
+    TWMDisplayChange    = Windows.TWMDisplayChange;
+    TWMDropFiles        = Windows.TWMDropFiles;
+    TWMEnable           = Windows.TWMEnable;
+    TWMMouseActivate    = Windows.TWMMouseActivate;
+    TWMEndSession       = Windows.TWMEndSession;
+    TWMActivateApp      = Windows.TWMActivateApp;
+    TWMCancelMode       = Windows.TWMCancelMode;
+    TWMNCDestroy        = Windows.TWMNCDestroy;
+    TWMDestroy          = Windows.TWMDestroy;
+    TWMClose            = Windows.TWMClose;
+    TWMQueryUIState     = Windows.TWMQueryUIState;
+    TWMSysColorChange   = Windows.TWMSysColorChange;
+    TWMQueryDragIcon    = Windows.TWMQueryDragIcon;
+    TWMTimeChange       = Windows.TWMTimeChange;
+    TWMUndo             = Windows.TWMUndo;
+
+    TWMPaste            = Windows.TWMPaste;
+    TWMCut 	        = Windows.TWMCut;	
+    TWMCopy	        = Windows.TWMCopy;
 
 {$else}
 
@@ -1261,6 +1323,10 @@
     TWMDestroy       = TWMNoParams;
     TWMClose         = TWMNoParams;
     TWMQueryUIState  = TWMNoParams;
+
+    TWMPaste         = TWMNoParams;
+    TWMCut 	     = TWMNoParams;	
+    TWMCopy	     = TWMNoParams;
 
     TWMUIState = record
       Msg : UINT;
@@ -1766,6 +1832,7 @@
       Result: LRESULT;
     end;
 {$endif messagesunit}
+    
 
 {$endif read_interface}
 
