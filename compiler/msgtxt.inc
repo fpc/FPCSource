@@ -456,7 +456,7 @@ const msgtxt : array[0..000189,1..240] of char=(
   'd prevent overflow errors.'#000+
   '04082_W_Converting pointers to signed integers may result i','n wrong c'+
   'omparison results and range errors, use an unsigned type instead.'#000+
-  '04084_E_Interface type $1 has no valid GUID'#000+
+  '04083_E_Interface type $1 has no valid GUID'#000+
   '05000_E_Identifier not found "$1"'#000+
   '05001_F_Internal Error in SymTableStack()'#000+
   '05002_E_Duplicate identifier "$1"'#000+
