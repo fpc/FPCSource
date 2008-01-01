@@ -103,6 +103,8 @@ begin
   if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
   if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
+  if SQLDbType in MySQLdbTypes then
+    FieldtypeDefinitions[ftLargeint] := 'BIGINT';
   if SQLDbType = sqlite3 then
     begin
     Fconnection := TSQLite3Connection.Create(nil);

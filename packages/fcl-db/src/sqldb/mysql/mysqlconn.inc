@@ -717,6 +717,7 @@ function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; 
 
 var
   VI: Integer;
+  VL: LargeInt;
   VS: Smallint;
   VF: Double;
   VC: Currency;
@@ -749,10 +750,10 @@ begin
     FIELD_TYPE_LONGLONG:
       begin
       if (Src<>'') then
-        VI := StrToInt64(Src)
+        VL := StrToInt64(Src)
       else
-        VI := 0;
-      Move(VI, Dest^, SizeOf(LargeInt));
+        VL := 0;
+      Move(VL, Dest^, SizeOf(LargeInt));
       end;
 {$ifdef mysql50}
     FIELD_TYPE_NEWDECIMAL,
