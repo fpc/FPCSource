@@ -131,6 +131,8 @@ type
 {$IFDEF ARRAYBUF}
     FInitialBuffers : integer;
     FGrowBuffer     : integer;
+{$ELSE}
+    FMaxIndexesCount: integer;
 {$ENDIF ARRAYBUF}
 
     FIndexesCount   : integer;
@@ -158,6 +160,7 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
+    procedure BuildIndex(AIndex : TBufIndex);
     function GetIndexDefs : TIndexDefs;
 {$IFDEF ARRAYBUF}
     procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: pchar);
@@ -282,6 +285,8 @@ begin
 {$IFDEF ARRAYBUF}
   FInitialBuffers:=10000;
   FGrowBuffer:=1000;
+{$ELSE}
+  FMaxIndexesCount:=2;
 {$ENDIF}
   FIndexesCount:=0;
   InternalAddIndex('DEFAULT_ORDER','');
@@ -307,6 +312,33 @@ destructor TBufDataset.Destroy;
 begin
   FreeAndNil(FIndexDefs);
   inherited destroy;
+end;
+
+procedure TBufDataset.BuildIndex(AIndex: TBufIndex);
+var PCurRecLinkItem : PBufRecLinkItem;
+begin
+// This simply copies the index...
+{$IFNDEF ARRAYBUF}
+  PCurRecLinkItem:=FIndexes[0].FFirstRecBuf;
+  
+  if PCurRecLinkItem <> FIndexes[0].FLastRecBuf then
+    begin
+    while PCurRecLinkItem^.next<>FIndexes[0].FLastRecBuf do
+      begin
+      PCurRecLinkItem:=PCurRecLinkItem^.next;
+
+      PCurRecLinkItem[AIndex.IndNr].next := PCurRecLinkItem[0].next;
+      PCurRecLinkItem[AIndex.IndNr].prior := PCurRecLinkItem[0].prior;
+      end;
+    end;
+
+  // Set FirstRecBuf and FCurrentRecBuf
+  AIndex.FFirstRecBuf:=FIndexes[0].FFirstRecBuf;
+  AIndex.FCurrentRecBuf:=FIndexes[0].FCurrentRecBuf;
+  // Link in the FLastRecBuf that belongs to this index
+  PCurRecLinkItem[AIndex.IndNr].next:=AIndex.FLastRecBuf;
+  AIndex.FLastRecBuf:=PCurRecLinkItem;
+{$ENDIF}
 end;
 
 function TBufDataset.GetIndexDefs : TIndexDefs;
@@ -339,7 +371,7 @@ begin
 {$IFDEF ARRAYBUF}
   result := AllocMem(FRecordsize);
 {$ELSE}
-  result := AllocMem(FRecordsize+sizeof(TBufRecLinkItem)*FIndexesCount);
+  result := AllocMem(FRecordsize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
 {$ENDIF}
 end;
 
@@ -597,7 +629,7 @@ begin
       with FCurrentIndex^ do
         move((FRecordArray[FCurrentRecInd])^,buffer^,FRecordSize);
 {$ELSE}
-      move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount)^,buffer^,FRecordSize);
+      move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount)^,buffer^,FRecordSize);
 {$ENDIF}
 
       GetCalcFields(Buffer);
@@ -777,7 +809,7 @@ begin
   AIndex.FRecordArray[RecInd]:= ARecBuf;
   inc(AIndex.FLastRecInd)
 {$ELSE}
-  inc(NewValueBuf,sizeof(TBufRecLinkItem)*FIndexesCount);
+  inc(NewValueBuf,sizeof(TBufRecLinkItem)*FMaxIndexesCount);
   CompBuf:=AIndex.FFirstRecBuf;
 
   cp := 1;
@@ -785,7 +817,7 @@ begin
     begin
     if AIndex.Fields.DataType = ftString then
       begin
-      cp := CompareText0(pointer(NewValueBuf),pchar(CompBuf)+sizeof(TBufRecLinkItem)*FIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],length(pchar(NewValueBuf)),[]);
+      cp := CompareText0(pointer(NewValueBuf),pchar(CompBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],length(pchar(NewValueBuf)),[]);
       if cp > 0 then
         CompBuf := CompBuf[AIndex.IndNr].next;
       end;
@@ -819,7 +851,7 @@ begin
   with FCurrentIndex^ do
     pb := pchar(FRecordArray[FLastRecInd]);
 {$ELSE}
-  pb := pchar(pointer(FIndexes[0].FLastRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount);
+  pb := pchar(pointer(FIndexes[0].FLastRecBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
 {$ENDIF}
   while ((i < FPacketRecords) or (FPacketRecords = -1)) and (loadbuffer(pb) = grOk) do
     begin
@@ -847,7 +879,7 @@ begin
 
       FLastRecBuf := FLastRecBuf^.next;
 
-      pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount);
+      pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
       end;
 {$ENDIF}
     inc(i);
@@ -952,7 +984,7 @@ begin
       result := false;
       exit;
       end;
-    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem)*FIndexesCount;
+    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
     end
   else
     begin
@@ -1012,7 +1044,7 @@ begin
 {$IFDEF ARRAYBUF}
       CurrBuff := FRecordArray[FLastRecInd]
 {$ELSE}
-      CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)*FIndexesCount
+      CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)*FMaxIndexesCount
 {$ENDIF}
   else
     CurrBuff := GetCurrentBuffer;
@@ -1152,7 +1184,7 @@ begin
             FRecordArray[Bookmark.BookmarkData] := OldValuesBuffer;
             end;
 {$ELSE}
-          move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem)*FIndexesCount)^,pchar(BookmarkData+sizeof(TBufRecLinkItem)*FIndexesCount)^,FRecordSize);
+          move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem)*FMaxIndexesCount)^,pchar(BookmarkData+sizeof(TBufRecLinkItem)*FMaxIndexesCount)^,FRecordSize);
           FreeRecordBuffer(OldValuesBuffer);
 {$ENDIF}
           end
@@ -1423,7 +1455,7 @@ begin
 {$IFDEF ARRAYBUF}
         move(FRecordArray[FCurrentRecInd]^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
 {$ELSE}
-        move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize+sizeof(TBufRecLinkItem)*FIndexesCount);
+        move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
 {$ENDIF}
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukModify;
       end
@@ -1436,7 +1468,7 @@ begin
     move(ActiveBuffer^,FRecordArray[FCurrentRecInd]^,FRecordSize);
 {$ELSE}
     CurrBuff := pchar(FCurrentRecBuf);
-  inc(Currbuff,sizeof(TBufRecLinkItem)*FIndexesCount);
+  inc(Currbuff,sizeof(TBufRecLinkItem)*FMaxIndexesCount);
   move(ActiveBuffer^,CurrBuff^,FRecordSize);
 {$ENDIF}
 end;
@@ -1724,11 +1756,18 @@ begin
   InitialiseIndex(FIndexes[FIndexesCount-1]);
   FIndexes[FIndexesCount-1].Name:=AName;
   FIndexes[FIndexesCount-1].FieldsName:=AFields;
-  if Active then FIndexes[FIndexesCount-1].Fields := FieldByName(AFields);
   FIndexes[FIndexesCount-1].IndNr:=FIndexesCount-1;
 {$IFDEF ARRAYBUF}
   setlength(FIndexes[FIndexesCount-1].FRecordArray,FInitialBuffers);
 {$ENDIF}
+  if Active then
+    begin
+    FIndexes[FIndexesCount-1].Fields := FieldByName(AFields);
+    FIndexes[FIndexesCount-1].FFirstRecBuf := pointer(IntAllocRecordBuffer);
+    FIndexes[FIndexesCount-1].FLastRecBuf := FIndexes[FIndexesCount-1].FFirstRecBuf;
+    FIndexes[FIndexesCount-1].FCurrentRecBuf := FIndexes[FIndexesCount-1].FLastRecBuf;
+    BuildIndex(FIndexes[FIndexesCount-1]);
+    end;
 end;
 
 procedure TBufDataset.DoFilterRecord(var Acceptable: Boolean);
@@ -1870,7 +1909,7 @@ begin
     FieldBufPos := FFieldBufPositions[keyfield.FieldNo-1];
     VBLength := keyfield.DataSize;
     ValueBuffer := AllocMem(VBLength);
-    currbuff := pointer(FCurrentIndex^.FLastRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount+FieldBufPos;
+    currbuff := pointer(FCurrentIndex^.FLastRecBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FieldBufPos;
     move(currbuff^,ValueBuffer^,VBLength);
     end;
 
@@ -1879,7 +1918,7 @@ begin
   if CheckNull then
     begin
     repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FIndexesCount;
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
     if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       result := True;
@@ -1892,7 +1931,7 @@ begin
   else if keyfield.DataType = ftString then
     begin
     repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FIndexesCount;
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
     if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       inc(CurrBuff,FieldBufPos);
@@ -1909,7 +1948,7 @@ begin
   else
     begin
     repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FIndexesCount;
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
     if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       inc(CurrBuff,FieldBufPos);
