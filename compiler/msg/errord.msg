@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 9149 + one
+#   Based on errore.msg of SVN revision 9207 + one
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -186,7 +186,7 @@ scan_e_illegal_pack_records=02015_E_UngÅltige Record Ausrichtung "$1"
 scan_e_illegal_pack_enum=02016_E_UngÅltige minimale Grîsse der AufzÑhlung "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 NORMAL or DEFAULT are valid in this case.
-scan_e_endif_expected=02017_E_$1 erwartet fÅr $1 $2 definiert in $3 Zeile $4
+scan_e_endif_expected=02017_E_$ENDIF erwartet fÅr $1 $2 definiert in $3 Zeile $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Syntaxfehler im Argument einer $if Direktive
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
@@ -1142,7 +1142,7 @@ parser_w_register_list_ignored=03237_W_Registerliste wird in reinen Assemblerrou
 #
 # Type Checking
 #
-# 04082 is the last used one
+# 04083 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1417,6 +1417,9 @@ type_w_pointer_to_signed=04082_W_Die Konvertierung von Pointern in einen Integer
 % allocate memory above \$80000000, for example both Windows and Linux allow pointers in the range \$0000000 to \$bfffffff.
 % If you convert pointers to signed types, this can cause overflow and range check errors, but also \$80000000 < \$7fffffff.
 % This can cause random errors in code like "if p>q".
+type_interface_has_no_guid=04083_E_Interface Typ $1 hat keine gÅltige GUID
+% When applying the as-operator to an interface or class, the desired interface, i.e. the right operand of the
+% as-operator must have a valid GUID
 % \end{description}
 #
 # Symtable
@@ -1719,7 +1722,7 @@ cg_e_goto_label_not_found=06049_E_Goto Label "$1": Das Label ist nicht definiert
 #
 # Assembler reader
 #
-# 07106 is the last used one
+# 07107 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -1960,7 +1963,11 @@ asmr_w_direct_esp_neg_offset=07105_W_Verwendung von -offset(%esp); Zugriff kann 
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
 asmr_e_no_vmtoffset_possible=07106_E_VMTOffset muss in Kombination mit einer virtuellen Methode verwendet werden; "$1" ist aber nicht virtuell
-%
+% Only virtual methods have VMT offsets
+asmr_e_need_pic_ref=07107_E_Erzeuge eigentlich PIC, aber die Referenz ist nicht PIC-sicher
+% The compiler has been configured to generate position-independent code
+% (PIC), but there are position-dependent references in the current
+% handwritten assembler instruction.
 #
 # Assembler/binary writers
 #
