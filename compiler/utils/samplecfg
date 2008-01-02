@@ -297,7 +297,7 @@ $CPUCROSSIFDEF2
 # searchpath for includefiles
 #-Fi/pp/inc;/pp/rtl/inc
 
-#IFDEF FPCAPACHE_1_13
+#IFDEF FPCAPACHE_1_3
 -Fu$FPCPATH/units/\$fpctarget/httpd-1.3/
 #ELSE
 #IFDEF FPCAPACHE_2_0
