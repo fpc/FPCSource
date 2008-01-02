@@ -1125,22 +1125,10 @@ TYPE
 
 
 
-   tagSTATSTG                   = record
-                                    pwcsName      : POleStr;
-                                    dwType        : DWord;
-                                    cbSize        : ULarge_integer;
-                                    mtime         : TFileTime;
-                                    ctime         : TFileTime;
-                                    atime         : TFileTime;
-                                    grfMode       : DWord;
-                                    grfLocksSupported : DWord;
-                                    clsid         : TCLSID;
-                                    grfStateBits  : DWord;
-                                    reserved      : DWord;
-                                    end;
+   tagSTATSTG                   = types.tagSTATSTG;
 
    TStatStg                     = tagSTATSTG;
-   PStatStg                     = ^TStatStg;
+   PStatStg                     = types.PStatStg;
    STATSTG                      = TStatStg;
 
 {    TagRemSNB = Record

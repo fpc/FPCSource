@@ -228,17 +228,17 @@ type
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
-     pwcsName : POleStr;
-     dwType : Longint;
-     cbSize : Largeint;
-     mtime : TFileTime;
-     ctime : TFileTime;
-     atime : TFileTime;
-     grfMode : Longint;
-     grfLocksSupported : Longint;
-     clsid : TCLSID;
-     grfStateBits : Longint;
-     reserved : Longint;
+     pwcsName      : POleStr;
+     dwType        : DWord;
+     cbSize        : Large_uint;
+     mtime         : TFileTime;
+     ctime         : TFileTime;
+     atime         : TFileTime;
+     grfMode       : DWord;
+     grfLocksSupported : DWord;
+     clsid         : TCLSID;
+     grfStateBits  : DWord;
+     reserved      : DWord;
   end;
   TStatStg = tagSTATSTG;
   STATSTG = TStatStg;
