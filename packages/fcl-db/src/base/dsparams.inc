@@ -288,7 +288,7 @@ begin
           if p^=':' then
           begin // find parameter name
             Inc(p);
-            if p^=':' then  // ignore ::, since some databases uses this as a cast (wb 4813)
+            if p^ in [':','='] then  // ignore ::, since some databases uses this as a cast (wb 4813)
             begin
               IgnorePart := True;
               Inc(p);
