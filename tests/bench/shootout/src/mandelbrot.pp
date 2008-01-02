@@ -9,59 +9,64 @@ program mandelbrot;
 
 {$FPUTYPE SSE2}{$I-}
 
-var n, x, y, bits,bit: Longint;
-    Cx, Cy: double;
+var n: longint;
+    TextBuf: array[0..$FFF] of byte;
+    OutFile: PText;
+    
 
-procedure CalculatePoint; nostackframe;
-const
-  Limit: double =4.0;
-  zero: double = 0.0;
+procedure run;
 var
-  i: longint;
-  OutOfLimit: boolean;
-  Cr, Ci, Zr, Zi, Ti, Tr: Double;
-  
+  Cy, Step: double;
+  x, y, bits,bit: Longint;
+  function CalculatePoint(Cx, Cy: double): boolean; nostackframe; inline;
+  const
+    Limit = 4;
+  var
+    i: longint;
+    Zr, Zi, Ti, Tr: Double;
+
+  begin
+    Zr := 0;  Zi := 0; Tr := 0; Ti := 0;
+    for i := 1 to 50 do begin
+      Zi := 2*Zr*Zi + Cy;
+      Zr := Tr - Ti + Cx;
+      Ti := Zi * Zi;
+      Tr := Zr * Zr;
+      if (Tr + Ti>=limit) then exit(true);
+    end;
+
+    CalculatePoint := false;
+  end;
+
 begin
-  Cr := Cx; Ci := Cy;
-  Zr := zero;  Zi := zero; Tr := zero; Ti := zero;
-  i := 0;
-  repeat
-    Zi := 2*Zr*Zi + Ci;
-    Zr := Tr - Ti + Cr;
-    Ti := Zi * Zi;
-    Tr := Zr * Zr;
-    inc(i);
-    OutOfLimit := (Tr + Ti>=limit);
-  until OutOfLimit or (i=50);
-
-  if OutOfLimit then
-    bits := bits xor bit;
-end;
-
-{$FPUTYPE X87}
-
-begin
-  Val(ParamStr(1), n);
-  writeln('P4');
-  writeln(n,' ',n);
+  Step := 2/n;
   for y := 0 to n-1 do
   begin
-    Cy := y * 2 / n - 1;
+    Cy := y * Step - 1;
     bits := 255;  bit := 128;
     for x := 0 to n-1 do
     begin
-      Cx := x * 2 / n  - 1.5;
-
-      CalculatePoint;
+      if CalculatePoint(x * Step  - 1.5, Cy) then
+        bits := bits xor bit;
 
       if bit > 1 then
         bit := bit shr 1
       else
       begin
-        write(chr(bits));
+        write(OutFile^, chr(bits));
         bits := 255;  bit := 128;
       end;
     end;
-    if bit < 128 then write(chr(bits xor((bit shl 1)-1)));
+    if bit < 128 then write(OutFile^, chr(bits xor((bit shl 1)-1)));
   end;
+end;
+
+begin
+  OutFile := @Output;
+  SetTextBuf(OutFile^, TextBuf);
+
+  Val(ParamStr(1), n);
+  writeln(OutFile^, 'P4');
+  writeln(OutFile^, n,' ',n);
+  run;
 end.
