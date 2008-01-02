@@ -580,4 +580,8 @@ begin
   result:=-1;
 end;
 
+function TComponent.iicrGetComponent: TComponent;
 
+begin
+  result:=self;
+end;
