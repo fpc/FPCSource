@@ -205,10 +205,10 @@ implementation
 
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_darwin_dwarf_delta32] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.secrel32'#9,#9'.indirect_symbol'#9
+        #9'.rva'#9,#9'.secrel32'#9,#9'.indirect_symbol'#9,#9'.quad'#9,#9'.long'#9
       );
 
 {****************************************************************************}
@@ -695,10 +695,12 @@ implementation
                  aitconst_8bit,
                  aitconst_rva_symbol,
                  aitconst_secrel32_symbol,
-                 aitconst_indirect_symbol :
+                 aitconst_indirect_symbol,
+                 aitconst_darwin_dwarf_delta32,
+                 aitconst_darwin_dwarf_delta64:
                    begin
                      if (target_info.system in systems_darwin) and
-                        (tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) then
+                        (constdef in [aitconst_uleb128bit,aitconst_sleb128bit]) then
                        begin
                          AsmWrite(ait_const2str[aitconst_8bit]);
                          case tai_const(hp).consttype of
@@ -710,7 +712,7 @@ implementation
                        end
                      else
                        begin
-                         AsmWrite(ait_const2str[tai_const(hp).consttype]);
+                         AsmWrite(ait_const2str[constdef]);
                          l:=0;
                          t := '';
                          repeat
@@ -718,7 +720,7 @@ implementation
                              begin
                                if assigned(tai_const(hp).endsym) then
                                  begin
-                                   if (target_info.system in systems_darwin) then
+                                   if (constdef in [aitconst_darwin_dwarf_delta32,aitconst_darwin_dwarf_delta64]) then
                                      begin
                                        s := NextSetLabel;
                                        t := #9'.set '+s+','+tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name;

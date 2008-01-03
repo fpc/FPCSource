@@ -643,11 +643,17 @@ implementation
                offsetabstype:=aitconst_secrel32_symbol
              else
                offsetabstype:=aitconst_32bit;
-             offsetreltype:=aitconst_32bit;
+             if (target_info.system in systems_darwin) then
+                offsetreltype:=aitconst_darwin_dwarf_delta32
+              else
+                offsetreltype:=aitconst_32bit;
            end
          else
            begin
-             offsetreltype:=aitconst_64bit;
+             if (target_info.system in systems_darwin) then
+                offsetreltype:=aitconst_darwin_dwarf_delta64
+             else
+               offsetreltype:=aitconst_64bit;
              offsetabstype:=aitconst_64bit;
            end;
       end;
