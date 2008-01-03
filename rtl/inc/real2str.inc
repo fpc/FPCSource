@@ -385,7 +385,14 @@ begin
               roundStr(temp,spos);
               d := frac(d+roundCorr);
               if (f < 0) then
-                dec(currprec);
+                begin
+                  dec(currprec);
+                  if (currprec=0) then
+                    begin
+                      inc(spos);
+                      temp[spos]:='0';
+                    end;
+                end;
             end;
           { calculate the necessary fractional digits }
           for fracCount := 1 to currPrec do
