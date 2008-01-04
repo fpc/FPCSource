@@ -2315,7 +2315,7 @@ initialization
 
   { according to bug 7570, this is necessary on all x86 platforms,
     maybe we've to fix the sse control word as well }
-  {$ifdef x86}
+  {$if defined(cpui386) or defined(cpux86_64)}
   Set8087CW($133F);
   {$endif x86}
 
