@@ -135,13 +135,17 @@ implementation
       begin
         result := false;
 
-           { only do for -O2 or higher (breaks debugging since }
-           { variables move to different memory locations)     }
+        { only do for -O2 or higher (breaks debugging since }
+        { variables move to different memory locations)     }
         if not(cs_opt_level2 in current_settings.optimizerswitches) or
            { must be a copy to a memory location ... }
            (n.location.loc <> LOC_REFERENCE) or
            { not inside a control flow statement and no goto's in sight }
            ([fc_inflowcontrol,fc_gotolabel] * flowcontrol <> []) or
+           { not for refcounted types, because those locations are   }
+           { still used later on in initialisation/finalisation code }
+           (not(is_class(n.resultdef)) and
+            n.resultdef.needs_inittable) or
            { source and destination are temps (= not global variables) }
            not tg.istemp(n.location.reference) or
            not tg.istemp(newref) or
