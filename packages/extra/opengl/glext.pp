@@ -57,11 +57,11 @@ type
   TGLhandleARB = GLhandleARB;
   PGLhandleARB = ^GLhandleARB;
 
-  GLintptr = Integer;
+  GLintptr = PtrInt;
   TGLintptr = GLintptr;
   PGLintptr = ^GLintptr;
 
-  GLsizeiptr = Integer;
+  GLsizeiptr = PtrInt;
   TGLsizeiptr = GLsizeiptr;
   PGLsizeiptr = ^GLsizeiptr;
 
@@ -4269,8 +4269,8 @@ begin
   begin
     where := StrPos(start, PChar(extension));
     if where = nil then Break;
-    terminator := Pointer(Integer(where) + Length(extension));
-    if (where = start) or (PChar(Integer(where) - 1)^ = ' ') then
+    terminator := Pointer(PtrUInt(where) + Length(extension));
+    if (where = start) or (PChar(PtrUInt(where) - 1)^ = ' ') then
     begin
       if (terminator^ = ' ') or (terminator^ = #0) then
       begin
