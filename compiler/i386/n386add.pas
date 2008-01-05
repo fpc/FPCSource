@@ -40,7 +40,7 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,paramgr,
+      symconst,symdef,paramgr,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
@@ -108,7 +108,7 @@ interface
               hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
-              location_reset(left.location,LOC_REGISTER,OS_64);
+              location_reset(left.location,LOC_REGISTER,left.location.size);
               left.location.register64.reglo:=hregister;
               left.location.register64.reghi:=hregister2;
             end
@@ -279,7 +279,7 @@ interface
                  hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                  cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
-                 location_reset(left.location,LOC_REGISTER,OS_64);
+                 location_reset(left.location,LOC_REGISTER,left.location.size);
                  left.location.register64.reglo:=hregister;
                  left.location.register64.reghi:=hregister2;
                end;
@@ -354,7 +354,7 @@ interface
       pass_left_right;
 
       {The location.register will be filled in later (JM)}
-      location_reset(location,LOC_REGISTER,OS_INT);
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       { Mul supports registers and references, so if not register/reference,
         load the location into a register}
       use_ref:=false;

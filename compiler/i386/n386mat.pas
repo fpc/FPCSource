@@ -93,8 +93,8 @@ implementation
           { should be handled in pass_1 (JM) }
           internalerror(200109052);
         { put numerator in register }
-        location_reset(location,LOC_REGISTER,OS_INT);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,false);
         hreg1:=left.location.register;
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
@@ -368,10 +368,10 @@ implementation
         v : TConstExprInt;
         l1,l2,l3:Tasmlabel;
       begin
-        location_reset(location,LOC_REGISTER,OS_64);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
         { load left operator in a register }
-        location_force_reg(current_asmdata.CurrAsmList,left.location,OS_64,false);
+        location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,false);
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
 
