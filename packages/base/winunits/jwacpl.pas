@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaCpl.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaCpl.pas,v 1.10 2007/09/06 14:57:11 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaCpl;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "cpl.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinUser, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // General rules for being installed in the Control Panel:
@@ -97,15 +103,15 @@ uses
 //
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   WM_CPL_LAUNCH   = WM_USER + 1000;
   {$EXTERNALSYM WM_CPL_LAUNCH}
   WM_CPL_LAUNCHED = WM_USER + 1001;
   {$EXTERNALSYM WM_CPL_LAUNCHED}
 
-// A function prototype for CPlApplet()
-
 type
+// A function prototype for CPlApplet()
   APPLET_PROC = function(hwndCpl: HWND; msg: UINT;
     lParam1, lParam2: LPARAM): LONG; stdcall;
   {$EXTERNALSYM APPLET_PROC}
@@ -124,6 +130,7 @@ type
   {$EXTERNALSYM tagCPLINFO}
   CPLINFO = tagCPLINFO;
   {$EXTERNALSYM CPLINFO}
+
   TCplInfo = CPLINFO;
   PCplInfo = LPCPLINFO;
 
@@ -161,6 +168,7 @@ type
   NEWCPLINFOW = tagNEWCPLINFOW;
   {$EXTERNALSYM NEWCPLINFOW}
   TNewCplInfoW = NEWCPLINFOW;
+
   PNewCplInfoW = LPNEWCPLINFOW;
 
   {$IFDEF UNICODE}
@@ -291,7 +299,19 @@ const
 
   CPL_SETUP = 200;
   {$EXTERNALSYM CPL_SETUP}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

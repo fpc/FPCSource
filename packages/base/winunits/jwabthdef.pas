@@ -38,23 +38,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaBtHDef.pas,v 1.10 2005/09/03 14:27:47 marquardt Exp $
+// $Id: JwaBtHDef.pas,v 1.13 2007/09/06 14:57:11 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaBtHDef;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "bthdef.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaBthSdpDef;
+  JwaWinType, JwaBthSdpDef;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   GUID_BTHPORT_DEVICE_INTERFACE: TGUID =     '{0850302A-B344-4FDA-9BE9-90576B8D46F0}';
   {$EXTERNALSYM GUID_BTHPORT_DEVICE_INTERFACE}
@@ -388,8 +394,10 @@ const
   {$EXTERNALSYM BTH_MFG_INTERNAL_USE}
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   BTH_ADDR = Int64;
   {$EXTERNALSYM BTH_ADDR}
+  {$ENDIF JWA_INCLUDEMODE}
   PBTH_ADDR = ^BTH_ADDR;
   {$EXTERNALSYM PBTH_ADDR}
   BTH_COD = ULONG;
@@ -1327,7 +1335,14 @@ function LMP_TRANSPARENT_SCO_DATA(X: Integer): Integer;
 function LMP_FLOW_CONTROL_LAG(X: Integer): Integer;
 {$EXTERNALSYM LMP_FLOW_CONTROL_LAG}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 function GET_NAP(_bth_addr: BTH_ADDR): Word;
 begin
@@ -1524,4 +1539,8 @@ begin
   _cod := (_cod and not COD_SERVICE_MASK) or (_service shl COD_SERVICE_BIT_OFFSET);
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

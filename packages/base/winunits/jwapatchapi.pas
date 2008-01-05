@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPatchApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaPatchApi.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPatchApi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "patchapi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 //  The following constants can be combined and used as the OptionFlags
@@ -420,10 +425,28 @@ function GetFilePatchSignature(FileName: LPCTSTR; OptionFlags: ULONG; OptionData
   RetainRangeCount: ULONG; RetainRangeArray: PPATCH_RETAIN_RANGE; SignatureBufferSizeInBytes: ULONG; SignatureBuffer: PVOID): BOOL; stdcall;
 {$EXTERNALSYM GetFilePatchSignature}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  patchapi = 'mspatcha.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -824,4 +847,10 @@ function GetFilePatchSignature; external patchapi name 'GetFilePatchSignature' +
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

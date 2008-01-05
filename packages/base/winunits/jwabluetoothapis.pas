@@ -38,22 +38,31 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaBluetoothAPIs.pas,v 1.11 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaBluetoothAPIs.pas,v 1.15 2007/09/06 14:57:11 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaBluetoothAPIs;
 
 {$WEAKPACKAGEUNIT}
+
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "bluetoothapis.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
+{$I jedi.inc} //used for D5 compiling
 
 interface
 
 uses
-  JwaWindows, JwaBthSdpDef;
+  JwaWinType, JwaWinBase, JwaBthSdpDef;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   BLUETOOTH_MAX_NAME_SIZE            = 248;
@@ -296,7 +305,7 @@ type
   {$EXTERNALSYM _BLUETOOTH_DEVICE_INFO}
   BLUETOOTH_DEVICE_INFO = _BLUETOOTH_DEVICE_INFO;
   {$EXTERNALSYM BLUETOOTH_DEVICE_INFO}
-  PBLUETOOTH_DEVICE_INFO = BLUETOOTH_DEVICE_INFO;
+  PBLUETOOTH_DEVICE_INFO = ^BLUETOOTH_DEVICE_INFO;
   {$EXTERNALSYM PBLUETOOTH_DEVICE_INFO}
   TBlueToothDeviceInfo = BLUETOOTH_DEVICE_INFO;
   PBlueToothDeviceInfo = PBLUETOOTH_DEVICE_INFO;
@@ -1586,10 +1595,19 @@ function BluetoothEnumAttributes(
     pvParam: Pointer): BOOL;
 {$EXTERNALSYM BluetoothEnumAttributes}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  btapi = 'irprops.cpl';
+{$ENDIF JWA_INCLUDEMODE}
 
 // (rom) MACRO implementation
 function BluetoothEnumAttributes(pSDPStream: PBYTE; cbStreamSize: ULONG;
@@ -1757,16 +1775,33 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothDisplayDeviceProperties: Pointer;
+{$ELSE}
+  _BluetoothDisplayDProperties: Pointer;
+{$ENDIF}
+
 
 function BluetoothDisplayDeviceProperties;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothDisplayDeviceProperties, btapi, 'BluetoothDisplayDeviceProperties');
+{$ELSE}
+  GetProcedureAddress(_BluetoothDisplayDProperties, btapi, 'BluetoothDisplayDeviceProperties');
+{$ENDIF}
+
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothDisplayDeviceProperties]
+{$ELSE}
+       JMP     [_BluetoothDisplayDProperties]
+{$ENDIF}
+
   end;
+
 end;
 
 var
@@ -1783,15 +1818,30 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothAuthenticateMultipleDevices: Pointer;
+{$ELSE}
+  _BluetoothAuthenticateMDevices: Pointer;
+{$ENDIF}
+
 
 function BluetoothAuthenticateMultipleDevices;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothAuthenticateMultipleDevices, btapi, 'BluetoothAuthenticateMultipleDevices');
+{$ELSE}
+  GetProcedureAddress(_BluetoothAuthenticateMDevices, btapi, 'BluetoothAuthenticateMultipleDevices');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothAuthenticateMultipleDevices]
+{$ELSE}
+       JMP     [_BluetoothAuthenticateMDevices]
+{$ENDIF}
+
   end;
 end;
 
@@ -1809,15 +1859,30 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothEnumerateInstalledServices: Pointer;
+{$ELSE}
+  _BluetoothEnumerateIS: Pointer;
+{$ENDIF}
+
 
 function BluetoothEnumerateInstalledServices;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothEnumerateInstalledServices, btapi, 'BluetoothEnumerateInstalledServices');
+{$ELSE}
+  GetProcedureAddress(_BluetoothEnumerateIS, btapi, 'BluetoothEnumerateInstalledServices');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothEnumerateInstalledServices]
+{$ELSE}
+       JMP     [_BluetoothEnumerateIS]
+{$ENDIF}
+
   end;
 end;
 
@@ -1848,15 +1913,29 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothEnableIncomingConnections: Pointer;
+{$ELSE}
+  _BluetoothEnableIC: Pointer;
+{$ENDIF}
 
 function BluetoothEnableIncomingConnections;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothEnableIncomingConnections, btapi, 'BluetoothEnableIncomingConnections');
+{$ELSE}
+  GetProcedureAddress(_BluetoothEnableIC, btapi, 'BluetoothEnableIncomingConnections');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothEnableIncomingConnections]
+{$ELSE}
+       JMP     [_BluetoothEnableIC]
+{$ENDIF}
+
   end;
 end;
 
@@ -1874,41 +1953,86 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothRegisterForAuthentication: Pointer;
+{$ELSE}
+  _BluetoothRegisterFA: Pointer;
+{$ENDIF}
+
 
 function BluetoothRegisterForAuthentication;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothRegisterForAuthentication, btapi, 'BluetoothRegisterForAuthentication');
+{$ELSE}
+  GetProcedureAddress(_BluetoothRegisterFA, btapi, 'BluetoothRegisterForAuthentication');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothRegisterForAuthentication]
+{$ELSE}
+        JMP     [_BluetoothRegisterFA]
+{$ENDIF}
+
   end;
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothUnregisterAuthentication: Pointer;
+{$ELSE}
+  _BluetoothUA: Pointer;
+{$ENDIF}
 
 function BluetoothUnregisterAuthentication;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothUnregisterAuthentication, btapi, 'BluetoothUnregisterAuthentication');
+{$ELSE}
+  GetProcedureAddress(_BluetoothUA, btapi, 'BluetoothUnregisterAuthentication');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothUnregisterAuthentication]
+{$ELSE}
+        JMP     [_BluetoothUA]
+{$ENDIF}
+
   end;
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothSendAuthenticationResponse: Pointer;
+{$ELSE}
+  _BluetoothSendAR: Pointer;
+{$ENDIF}
+
 
 function BluetoothSendAuthenticationResponse;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothSendAuthenticationResponse, btapi, 'BluetoothSendAuthenticationResponse');
+{$ELSE}
+  GetProcedureAddress(_BluetoothSendAR, btapi, 'BluetoothSendAuthenticationResponse');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothSendAuthenticationResponse]
+{$ELSE}
+        JMP     [_BluetoothSendAR]
+{$ENDIF}
+
   end;
 end;
 
@@ -1926,15 +2050,29 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _BluetoothSdpGetContainerElementData: Pointer;
+{$ELSE}
+  _BluetoothSdpGetCED: Pointer;
+{$ENDIF}
 
 function BluetoothSdpGetContainerElementData;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_BluetoothSdpGetContainerElementData, btapi, 'BluetoothSdpGetContainerElementData');
+{$ELSE}
+  GetProcedureAddress(_BluetoothSdpGetCED, btapi, 'BluetoothSdpGetContainerElementData');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_BluetoothSdpGetContainerElementData]
+{$ELSE}
+        JMP     [_BluetoothSdpGetCED]
+{$ENDIF}
+
   end;
 end;
 
@@ -2011,4 +2149,8 @@ function BluetoothSdpEnumAttributes; external btapi name 'BluetoothSdpEnumAttrib
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,23 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDSClient.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaDSClient.pas,v 1.12 2007/09/06 14:57:11 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDSClient;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "dsclient.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaAdsTLB, JwaWindows;
+  JwaAdsTLB, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //---------------------------------------------------------------------------//
 // CLSIDs exposed for the dsclient.
 //---------------------------------------------------------------------------//
@@ -681,10 +685,24 @@ procedure DsGetFriendlyClassName(pszObjectClass, pszBuffer: LPWSTR;
   cchBuffer: UINT); stdcall;
 {$EXTERNALSYM DsGetFriendlyClassName}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  dsuiext = 'dsuiext.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -763,4 +781,8 @@ procedure DsGetFriendlyClassName; external dsuiext name 'DsGetFriendlyClassName'
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

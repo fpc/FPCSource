@@ -40,23 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWPApi.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaWPApi.pas,v 1.10 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWPApi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "wpapi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWPTypes, JwaWindows;
+  JwaWPTypes, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Flags
 //
@@ -180,10 +186,28 @@ function WpEnumProviders(var pdwProvidersBufLen: DWORD; pProvidersBuffer: LPWPPR
 function WpGetErrorString(uErrCode: UINT; wsOutputBuf: LPTSTR; var pdwBufLen: DWORD): DWORD; stdcall;
 {$EXTERNALSYM WpGetErrorString}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  wpapilib = 'wpapi.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -528,4 +552,10 @@ function WpGetErrorString; external wpapilib name 'WpGetErrorString' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

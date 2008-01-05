@@ -40,28 +40,33 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmCons.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLmCons.pas,v 1.12 2007/09/05 11:58:50 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLmCons;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "lm.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaLmErr;
+  JwaWinType, JwaLmErr;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "lm.h"'}
-{$HPPEMIT ''}
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  NetApi32 = 'netapi32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 // NOTE:  Lengths of strings are given as the maximum lengths of the
@@ -361,15 +366,21 @@ const
   MAX_LANMAN_MESSAGE_ID = 5899;
   {$EXTERNALSYM MAX_LANMAN_MESSAGE_ID}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-implementation
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

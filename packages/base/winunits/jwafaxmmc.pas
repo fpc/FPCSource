@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaFaxMmc.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaFaxMmc.pas,v 1.8 2007/09/05 11:58:49 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaFaxMmc;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "faxmmc.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   OLESTR = WideString; // todo 
@@ -94,6 +101,23 @@ const
   CF_MSFAXSRV_ROUTING_METHOD_GUID = TEXT('FAXSRV_RoutingMethodGuid');
   {$EXTERNALSYM CF_MSFAXSRV_ROUTING_METHOD_GUID}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

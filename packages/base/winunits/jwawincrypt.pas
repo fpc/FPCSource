@@ -40,24 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinCrypt.pas,v 1.13 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaWinCrypt.pas,v 1.17 2007/09/05 11:58:53 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinCrypt;
 
 {$I jediapilib.inc}
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 interface
 
 uses
-  JwaWindows;
+  JwaWinBase, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include <WinCrypt.h>'}
@@ -15955,18 +15955,153 @@ const
 //          dwError is set to CERT_E_UNTRUSTEDCA.
 //--------------------------------------------------------------------------
 
-{$ENDIF JWA_INTERFACESECTION}
+//+-------------------------------------------------------------------------
+//  CERT_CHAIN_POLICY_MICROSOFT_ROOT
+//
+//  Checks if the last element of the first simple chain contains a
+//  Microsoft root public key. If it doesn't contain a Microsoft root
+//  public key, dwError is set to CERT_E_UNTRUSTEDROOT.
+//
+//  pPolicyPara is optional. However,
+//  MICROSOFT_ROOT_CERT_CHAIN_POLICY_ENABLE_TEST_ROOT_FLAG can be set in
+//  the dwFlags in pPolicyPara to also check for the Microsoft Test Roots.
+//
+//  pvExtraPolicyPara and pvExtraPolicyStatus aren't used and must be set
+//  to NULL.
+//--------------------------------------------------------------------------
+const
+  MICROSOFT_ROOT_CERT_CHAIN_POLICY_ENABLE_TEST_ROOT_FLAG = $00010000;
+  {$EXTERNALSYM MICROSOFT_ROOT_CERT_CHAIN_POLICY_ENABLE_TEST_ROOT_FLAG}
+
+//+-------------------------------------------------------------------------
+// convert formatted string to binary
+// If cchString is 0, then pszString is NULL terminated and
+// cchString is obtained via strlen() + 1.
+// dwFlags defines string format
+// if pbBinary is NULL, *pcbBinary returns the size of required memory
+// *pdwSkip returns the character count of skipped strings, optional
+// *pdwFlags returns the actual format used in the conversion, optional
+//--------------------------------------------------------------------------
+function CryptStringToBinaryA(pszString: LPCSTR; cchString: DWORD;
+  dwFlags: DWORD; ppBinary: PBYTE; var ppcbBinary: DWORD;
+  ppdwSkip: PDWORD): BOOL; stdcall;
+{$EXTERNALSYM CryptStringToBinaryA}
+
+//+-------------------------------------------------------------------------
+// convert formatted string to binary
+// If cchString is 0, then pszString is NULL terminated and
+// cchString is obtained via strlen() + 1.
+// dwFlags defines string format
+// if pbBinary is NULL, *pcbBinary returns the size of required memory
+// *pdwSkip returns the character count of skipped strings, optional
+// *pdwFlags returns the actual format used in the conversion, optional
+//--------------------------------------------------------------------------
+
+function CryptStringToBinaryW(pszString: LPCWSTR; cchString: DWORD;
+  dwFlags: DWORD; ppBinary: BYTE; var ppcbBinary: DWORD;
+  ppdwSkip: DWORD): BOOL; stdcall;
+{$EXTERNALSYM CryptStringToBinaryW}
+
+function CryptStringToBinary(pszString: LPCSTR; cchString: DWORD;
+  dwFlags: DWORD; ppBinary: BYTE; var ppcbBinary: DWORD;
+  ppdwSkip: DWORD): BOOL; stdcall;
+{$EXTERNALSYM CryptStringToBinary}
+
+
+//+-------------------------------------------------------------------------
+// convert binary to formatted string
+// dwFlags defines string format
+// if pszString is NULL, *pcchString returns size in characters
+// including null-terminator
+//--------------------------------------------------------------------------
+function CryptBinaryToStringA(const pBinary: PBYTE; cbBinary: DWORD;
+  dwFlags: DWORD; pszString: LPSTR; var pchString: DWORD): BOOL; stdcall;
+{$EXTERNALSYM CryptBinaryToStringA}
+
+//+-------------------------------------------------------------------------
+// convert binary to formatted string
+// dwFlags defines string format
+// if pszString is NULL, *pcchString returns size in characters
+// including null-terminator
+//--------------------------------------------------------------------------
+function CryptBinaryToStringW(const pBinary: PBYTE; cbBinary: DWORD;
+  dwFlags: DWORD; pszString: LPWSTR; var pchString: DWORD): BOOL; stdcall;
+{$EXTERNALSYM CryptBinaryToStringW}
+
+function CryptBinaryToString(const pBinary: PBYTE; cbBinary: DWORD;
+  dwFlags: DWORD; pszString: LPSTR; var pchString: DWORD): BOOL; stdcall;
+{$EXTERNALSYM CryptBinaryToString}
+
+// dwFlags has the following defines
+const
+  CRYPT_STRING_BASE64HEADER                 = $00000000;
+  CRYPT_STRING_BASE64                       = $00000001;
+  CRYPT_STRING_BINARY                       = $00000002;
+  CRYPT_STRING_BASE64REQUESTHEADER          = $00000003;
+  CRYPT_STRING_HEX                          = $00000004;
+  CRYPT_STRING_HEXASCII                     = $00000005;
+  CRYPT_STRING_BASE64_ANY                   = $00000006;
+  CRYPT_STRING_ANY                          = $00000007;
+  CRYPT_STRING_HEX_ANY                      = $00000008;
+  CRYPT_STRING_BASE64X509CRLHEADER          = $00000009;
+  CRYPT_STRING_HEXADDR                      = $0000000a;
+  CRYPT_STRING_HEXASCIIADDR                 = $0000000b;
+
+  CRYPT_STRING_NOCR                         = DWORD($80000000);
+
+// CryptBinaryToString uses the following flags
+// CRYPT_STRING_BASE64HEADER - base64 format with certificate begin
+//                             and end headers
+// CRYPT_STRING_BASE64 - only base64 without headers
+// CRYPT_STRING_BINARY - pure binary copy
+// CRYPT_STRING_BASE64REQUESTHEADER - base64 format with request begin
+//                                    and end headers
+// CRYPT_STRING_BASE64X509CRLHEADER - base64 format with x509 crl begin
+//                                    and end headers
+// CRYPT_STRING_HEX - only hex format
+// CRYPT_STRING_HEXASCII - hex format with ascii char display
+// CRYPT_STRING_HEXADDR - hex format with address display
+// CRYPT_STRING_HEXASCIIADDR - hex format with ascii char and address display
+//
+// CryptBinaryToString accepts CRYPT_STRING_NOCR or'd into one of the above.
+// When set, line breaks contain only LF, instead of CR-LF pairs.
+
+// CryptStringToBinary uses the following flags
+// CRYPT_STRING_BASE64_ANY tries the following, in order:
+//    CRYPT_STRING_BASE64HEADER
+//    CRYPT_STRING_BASE64
+// CRYPT_STRING_ANY tries the following, in order:
+//    CRYPT_STRING_BASE64_ANY
+//    CRYPT_STRING_BINARY -- should always succeed
+// CRYPT_STRING_HEX_ANY tries the following, in order:
+//    CRYPT_STRING_HEXADDR
+//    CRYPT_STRING_HEXASCIIADDR
+//    CRYPT_STRING_HEXASCII
+//    CRYPT_STRING_HEX
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  crypt32 = 'crypt32.dll';
+  cryptnet = 'cryptnet.dll';
+  advapi32 = 'advapi32.dll';
+  softpub = 'softpub.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';   
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function GET_ALG_CLASS(x: DWORD): DWORD;
 begin
@@ -16147,7 +16282,7 @@ var
 
 function CryptSetKeyParam;
 begin
-  GetProcedureAddress(_CryptSetKeyParam, crypt32, 'CryptSetKeyParam');
+  GetProcedureAddress(_CryptSetKeyParam, advapi32, 'CryptSetKeyParam');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19085,7 +19220,7 @@ var
 
 function CryptRetrieveObjectByUrlA;
 begin
-  GetProcedureAddress(_CryptRetrieveObjectByUrlA, crypt32, 'CryptRetrieveObjectByUrlA');
+  GetProcedureAddress(_CryptRetrieveObjectByUrlA, cryptnet, 'CryptRetrieveObjectByUrlA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19098,7 +19233,7 @@ var
 
 function CryptRetrieveObjectByUrlW;
 begin
-  GetProcedureAddress(_CryptRetrieveObjectByUrlW, crypt32, 'CryptRetrieveObjectByUrlW');
+  GetProcedureAddress(_CryptRetrieveObjectByUrlW, cryptnet, 'CryptRetrieveObjectByUrlW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19111,7 +19246,7 @@ var
 
 function CryptRetrieveObjectByUrl;
 begin
-  GetProcedureAddress(_CryptRetrieveObjectByUrl, crypt32, 'CryptRetrieveObjectByUrl' + AWSuffix);
+  GetProcedureAddress(_CryptRetrieveObjectByUrl, cryptnet, 'CryptRetrieveObjectByUrl' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19124,7 +19259,7 @@ var
 
 function CryptInstallCancelRetrieval;
 begin
-  GetProcedureAddress(_CryptInstallCancelRetrieval, crypt32, 'CryptInstallCancelRetrieval');
+  GetProcedureAddress(_CryptInstallCancelRetrieval, cryptnet, 'CryptInstallCancelRetrieval');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19137,7 +19272,7 @@ var
 
 function CryptUninstallCancelRetrieval;
 begin
-  GetProcedureAddress(_CryptUninstallCancelRetrieval, crypt32, 'CryptUninstallCancelRetrieval');
+  GetProcedureAddress(_CryptUninstallCancelRetrieval, cryptnet, 'CryptUninstallCancelRetrieval');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19150,7 +19285,7 @@ var
 
 function CryptCancelAsyncRetrieval;
 begin
-  GetProcedureAddress(_CryptCancelAsyncRetrieval, crypt32, 'CryptCancelAsyncRetrieval');
+  GetProcedureAddress(_CryptCancelAsyncRetrieval, cryptnet, 'CryptCancelAsyncRetrieval');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19163,7 +19298,7 @@ var
 
 function CryptGetObjectUrl;
 begin
-  GetProcedureAddress(_CryptGetObjectUrl, crypt32, 'CryptGetObjectUrl');
+  GetProcedureAddress(_CryptGetObjectUrl, cryptnet, 'CryptGetObjectUrl');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19176,7 +19311,7 @@ var
 
 function CryptGetTimeValidObject;
 begin
-  GetProcedureAddress(_CryptGetTimeValidObject, crypt32, 'CryptGetTimeValidObject');
+  GetProcedureAddress(_CryptGetTimeValidObject, cryptnet, 'CryptGetTimeValidObject');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19189,7 +19324,7 @@ var
 
 function CryptFlushTimeValidObject;
 begin
-  GetProcedureAddress(_CryptFlushTimeValidObject, crypt32, 'CryptFlushTimeValidObject');
+  GetProcedureAddress(_CryptFlushTimeValidObject, cryptnet, 'CryptFlushTimeValidObject');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -19200,7 +19335,7 @@ end;
 var
   _CryptProtectData: Pointer;
 
-function CryptProtectData;
+function CryptProtectData;              
 begin
   GetProcedureAddress(_CryptProtectData, crypt32, 'CryptProtectData');
   asm
@@ -19392,6 +19527,80 @@ begin
   end;
 end;
 
+var
+  _CryptBinaryToStringA: Pointer;
+
+function CryptBinaryToStringA;
+begin
+  GetProcedureAddress(_CryptBinaryToStringA, crypt32, 'CryptBinaryToStringA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_CryptBinaryToStringA]
+  end;
+end;
+
+var
+  _CryptBinaryToStringW: Pointer;
+
+function CryptBinaryToStringW;
+begin
+  GetProcedureAddress(_CryptBinaryToStringW, crypt32, 'CryptBinaryToStringW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_CryptBinaryToStringW]
+  end;
+end;
+
+
+var
+  _CryptStringToBinaryA: Pointer;
+
+function CryptStringToBinaryA;
+begin
+  GetProcedureAddress(_CryptStringToBinaryA, crypt32, 'CryptStringToBinaryA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_CryptStringToBinaryA]
+  end;
+end;
+
+var _CryptStringToBinaryW : Pointer;
+function CryptStringToBinaryW;
+begin
+  GetProcedureAddress(_CryptStringToBinaryW, crypt32, 'CryptStringToBinaryW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_CryptStringToBinaryW]
+  end;
+end;
+
+var _CryptStringToBinary : Pointer;
+function CryptStringToBinary;
+begin
+  GetProcedureAddress(_CryptStringToBinary, advapi32, 'CryptStringToBinary' + AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_CryptStringToBinary]
+  end;
+end;
+
+var _CryptBinaryToString : Pointer;
+function CryptBinaryToString;
+begin
+  GetProcedureAddress(_CryptBinaryToString, advapi32, 'CryptBinaryToString' + AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_CryptBinaryToString]
+  end;
+end;
+
+
 {$ELSE}
 
 function CryptAcquireContextA; external advapi32 name 'CryptAcquireContextA';
@@ -19401,7 +19610,7 @@ function CryptReleaseContext; external advapi32 name 'CryptReleaseContext';
 function CryptGenKey; external advapi32 name 'CryptGenKey';
 function CryptDeriveKey; external advapi32 name 'CryptDeriveKey';
 function CryptDestroyKey; external advapi32 name 'CryptDestroyKey';
-function CryptSetKeyParam; external crypt32 name 'CryptSetKeyParam';
+function CryptSetKeyParam; external advapi32 name 'CryptSetKeyParam';
 function CryptGetKeyParam; external advapi32 name 'CryptGetKeyParam';
 function CryptSetHashParam; external advapi32 name 'CryptSetHashParam';
 function CryptGetHashParam; external advapi32 name 'CryptGetHashParam';
@@ -19627,15 +19836,15 @@ function CryptCreateAsyncHandle; external crypt32 name 'CryptCreateAsyncHandle';
 function CryptSetAsyncParam; external crypt32 name 'CryptSetAsyncParam';
 function CryptGetAsyncParam; external crypt32 name 'CryptGetAsyncParam';
 function CryptCloseAsyncHandle; external crypt32 name 'CryptCloseAsyncHandle';
-function CryptRetrieveObjectByUrlA; external crypt32 name 'CryptRetrieveObjectByUrlA';
-function CryptRetrieveObjectByUrlW; external crypt32 name 'CryptRetrieveObjectByUrlW';
-function CryptRetrieveObjectByUrl; external crypt32 name 'CryptRetrieveObjectByUrl' + AWSuffix;
-function CryptInstallCancelRetrieval; external crypt32 name 'CryptInstallCancelRetrieval';
-function CryptUninstallCancelRetrieval; external crypt32 name 'CryptUninstallCancelRetrieval';
-function CryptCancelAsyncRetrieval; external crypt32 name 'CryptCancelAsyncRetrieval';
-function CryptGetObjectUrl; external crypt32 name 'CryptGetObjectUrl';
-function CryptGetTimeValidObject; external crypt32 name 'CryptGetTimeValidObject';
-function CryptFlushTimeValidObject; external crypt32 name 'CryptFlushTimeValidObject';
+function CryptRetrieveObjectByUrlA; external cryptnet name 'CryptRetrieveObjectByUrlA';
+function CryptRetrieveObjectByUrlW; external cryptnet name 'CryptRetrieveObjectByUrlW';
+function CryptRetrieveObjectByUrl; external cryptnet name 'CryptRetrieveObjectByUrl' + AWSuffix;
+function CryptInstallCancelRetrieval; external cryptnet name 'CryptInstallCancelRetrieval';
+function CryptUninstallCancelRetrieval; external cryptnet name 'CryptUninstallCancelRetrieval';
+function CryptCancelAsyncRetrieval; external cryptnet name 'CryptCancelAsyncRetrieval';
+function CryptGetObjectUrl; external cryptnet name 'CryptGetObjectUrl';
+function CryptGetTimeValidObject; external cryptnet name 'CryptGetTimeValidObject';
+function CryptFlushTimeValidObject; external cryptnet name 'CryptFlushTimeValidObject';
 function CryptProtectData; external crypt32 name 'CryptProtectData';
 function CryptUnprotectData; external crypt32 name 'CryptUnprotectData';
 function CertCreateSelfSignCertificate; external crypt32 name 'CertCreateSelfSignCertificate';
@@ -19651,11 +19860,16 @@ procedure CertFreeCertificateChain; external crypt32 name 'CertFreeCertificateCh
 function CertDuplicateCertificateChain; external crypt32 name 'CertDuplicateCertificateChain';
 function CertFindChainInStore; external crypt32 name 'CertFindChainInStore';
 function CertVerifyCertificateChainPolicy; external crypt32 name 'CertVerifyCertificateChainPolicy';
+function CryptBinaryToStringA; external crypt32 name 'CryptBinaryToStringA';
+function CryptBinaryToStringW; external crypt32 name 'CryptBinaryToStringW';
+function CryptBinaryToString; external crypt32 name 'CryptBinaryToString' + AWSuffix;
+function CryptStringToBinaryA; external crypt32 name 'CryptToStringBinaryA';
+function CryptStringToBinaryW; external crypt32 name 'CryptToStringBinaryW';
+function CryptStringToBinary; external crypt32 name 'CryptToStringBinary' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

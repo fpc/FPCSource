@@ -40,23 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSddl.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaSddl.pas,v 1.11 2007/09/05 11:58:52 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSddl;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "sddl.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // SDDL Version information
 //
@@ -349,10 +355,25 @@ function ConvertSecurityDescriptorToStringSecurityDescriptor(
   StringSecurityDescriptorLen: PULONG): BOOL; stdcall;
 {$EXTERNALSYM ConvertSecurityDescriptorToStringSecurityDescriptor}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  advapi32 = 'advapi32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -529,4 +550,8 @@ function ConvertSecurityDescriptorToStringSecurityDescriptor; external advapi32 
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

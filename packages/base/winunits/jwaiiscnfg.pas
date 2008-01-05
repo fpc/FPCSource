@@ -40,20 +40,25 @@
 {                                                                              }
 {******************************************************************************}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaIisCnfg;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "iiscnfg.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "iiscnfg.h"'}
-{$HPPEMIT ''}
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Paths
@@ -1755,7 +1760,15 @@ procedure MD_SET_DATA_RECORD(_pMDR, _id, _attr, _utype, _dtype, _dlen, _pData);
   IIS_CLASS_COMPRESS_SCHEME_W  = WideString('IIsCompressionScheme');
   {$EXTERNALSYM IIS_CLASS_COMPRESS_SCHEME_W}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
 
 {TODO structure declaration is in generated file
 procedure MD_SET_DATA_RECORD(_pMDR: Pointer; _id, _attr, _utype, _dtype, _dlen: DWORD; _pData: Pointer);
@@ -1769,5 +1782,11 @@ begin
 end;
 }
 
+
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
 

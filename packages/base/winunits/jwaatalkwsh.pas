@@ -40,23 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAtalkWsh.pas,v 1.7 2005/09/08 07:49:25 marquardt Exp $
-
+// $Id: JwaAtalkWsh.pas,v 1.9 2007/09/05 11:58:48 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAtalkWsh;
 
 interface
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "atalkwsh.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 uses
-  JwaWindows;
+  JwaWinSock2, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 //  All protocol types should be specified in the Decimal base
 //
@@ -321,6 +325,23 @@ type
   TWSHPapGetServerStatus = WSH_PAP_GET_SERVER_STATUS;
   PWSHPapGetServerStatus = PWSH_PAP_GET_SERVER_STATUS;
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaMSTcpIP.pas,v 1.5 2004/12/08 08:18:37 marquardt Exp $
-
+// $Id: JwaMSTcpIP.pas,v 1.6 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaMSTcpIP;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "mstcpip.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // Argument structure for SIO_KEEPALIVE_VALS
 
@@ -104,6 +109,24 @@ const
   RCVALL_SOCKETLEVELONLY = 2;
   {$EXTERNALSYM RCVALL_SOCKETLEVELONLY}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

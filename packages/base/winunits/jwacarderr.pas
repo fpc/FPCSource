@@ -6,11 +6,15 @@
    They exist here to provide error messages on pre-Win2K systems.
 
 *}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaCardErr;
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 const
   // =============================
   // Facility SCARD Error Messages
@@ -600,7 +604,19 @@ const
   //  No PIN was presented to the smart card.
   //
   SCARD_W_CARD_NOT_AUTHENTICATED   = $8010006F;
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

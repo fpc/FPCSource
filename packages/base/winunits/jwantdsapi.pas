@@ -40,18 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNtDsApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaNtDsApi.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNtDsApi;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows, JwaSchedule;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ntdsapi.h"'}
@@ -64,6 +58,17 @@ uses
 {$HPPEMIT 'typedef PPDS_REPSYNCALL_ERRINFOA PPDS_REPSYNCALL_ERRINFO'}
 {$HPPEMIT '#endif'}
 {$HPPEMIT ''}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinBase, JwaWinType, JwaWinNT, JwaWinNLS, JwaRpcDce, JwaSchedule;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -104,6 +109,7 @@ const
   DS_SYNCED_EVENT_NAME_W = 'NTDSInitialSyncsCompleted';
   {$EXTERNALSYM DS_SYNCED_EVENT_NAME_W}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Permissions bits used in security descriptors in the directory.
 
   ACTRL_DS_OPEN           = $00000000;
@@ -126,6 +132,7 @@ const
   {$EXTERNALSYM ACTRL_DS_LIST_OBJECT}
   ACTRL_DS_CONTROL_ACCESS = $00000100;
   {$EXTERNALSYM ACTRL_DS_CONTROL_ACCESS}
+{$ENDIF JWA_INCLUDEMODE}
 
 // generic read
 
@@ -3245,11 +3252,25 @@ function DsIsMangledDnW(pszDn: LPCWSTR; eDsMangleFor: DS_MANGLE_FOR): BOOL; stdc
 {$EXTERNALSYM DsIsMangledDnW}
 function DsIsMangledDn(pszDn: LPCTSTR; eDsMangleFor: DS_MANGLE_FOR): BOOL; stdcall;
 {$EXTERNALSYM DsIsMangledDn}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  ntdsapilib = 'ntdsapi.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function NTDSCONN_IGNORE_SCHEDULE(_options_: DWORD): DWORD;
 begin
@@ -5238,4 +5259,10 @@ function DsIsMangledDn; external ntdsapilib name 'DsIsMangledDn' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

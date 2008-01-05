@@ -40,27 +40,16 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinType.pas,v 1.16 2005/09/06 16:36:51 marquardt Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
+// $Id: JwaWinType.pas,v 1.20 2007/10/07 23:55:45 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinType;
+{$I jediapilib.inc}
 
 {$WEAKPACKAGEUNIT}
 
-{$I jediapilib.inc}
-
-interface
-
-uses
-  {$IFDEF USE_DELPHI_TYPES}
-  Windows,
-  {$ENDIF USE_DELPHI_TYPES}
-  SysUtils; // TODO
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "BaseTsd.h"'}
@@ -74,6 +63,20 @@ uses
 {$HPPEMIT 'typedef GUID CLSID'}
 {$HPPEMIT 'typedef HMODULE *PHMODULE'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+
+interface
+
+uses
+  {$IFDEF USE_DELPHI_TYPES}
+  Windows,
+  {$ENDIF USE_DELPHI_TYPES}
+  SysUtils; // TODO
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   EJwaError = class(Exception);
@@ -662,11 +665,8 @@ function UInt32x32To64(a, b: DWORD): ULONGLONG;
 
 function Int64ShllMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
 
-{$ifdef cpui386}
 {$EXTERNALSYM Int64ShllMod32}
 function Int64ShraMod32(Value: LONGLONG; ShiftCount: DWORD): LONGLONG;
-{$endif}
-
 {$EXTERNALSYM Int64ShraMod32}
 function Int64ShrlMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
 {$EXTERNALSYM Int64ShrlMod32}
@@ -1088,6 +1088,7 @@ type
   SUITE_TYPE = _SUITE_TYPE;
   {$EXTERNALSYM SUITE_TYPE}
   TSuiteType = SUITE_TYPE;
+
 
 const
   VER_SERVER_NT                      = DWORD($80000000);
@@ -1681,27 +1682,25 @@ type
   PPTCHAR = ^PTCHAR;
   LPLPCTSTR = ^LPCTSTR;
 
-{$IFDEF JWA_INCLUDEMODE}
-function GetModuleHandle(lpModuleName: LPCTSTR): HMODULE; stdcall;
-{$EXTERNALSYM GetModuleHandle}
-function LoadLibrary(lpLibFileName: LPCTSTR): HMODULE; stdcall;
-{$EXTERNALSYM LoadLibrary}
-function GetProcAddress(hModule: HMODULE; lpProcName: LPCSTR): FARPROC; stdcall;
-{$EXTERNALSYM GetProcAddress}
-{$ENDIF JWA_INCLUDEMODE}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+//***
 
-{$IFNDEF JWA_INCLUDEMODE}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
 
 uses
-  JwaWinDLLNames, JwaWinNT;
+  JwaWinNT;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
+{$IFNDEF JWA_INTERFACESECTION}
 
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF USE_DELPHI_TYPES}
+const
+  kernel32 = 'kernel32.dll';
+{$ENDIF !USE_DELPHI_TYPES}
 
 function Int32x32To64(a, b: LONG): LONGLONG;
 begin
@@ -1714,7 +1713,6 @@ begin
 end;
 
 function Int64ShllMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
-{$ifdef cpui386}
 asm
         MOV     ECX, ShiftCount
         MOV     EAX, DWORD PTR [Value]
@@ -1722,13 +1720,7 @@ asm
         SHLD    EDX, EAX, CL
         SHL     EAX, CL
 end;
-{$else}
-begin
-  Result:=Value shl Shiftcount;
-end;
-{$endif}
 
-{$ifdef cpui386}  
 function Int64ShraMod32(Value: LONGLONG; ShiftCount: DWORD): LONGLONG;
 asm
         MOV     ECX, ShiftCount
@@ -1737,11 +1729,8 @@ asm
         SHRD    EAX, EDX, CL
         SAR     EDX, CL
 end;
-{$endif}
-
 
 function Int64ShrlMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
-{$ifdef cpui386}
 asm
         MOV     ECX, ShiftCount
         MOV     EAX, DWORD PTR [Value]
@@ -1749,11 +1738,6 @@ asm
         SHRD    EAX, EDX, CL
         SHR     EDX, CL
 end;
-{$else}
-begin
-  Result:=Value shr Shiftcount;
-end;  
-{$endif}
 
 procedure ListEntry32To64(l32: PLIST_ENTRY32; l64: PLIST_ENTRY64);
 begin
@@ -1833,10 +1817,14 @@ begin
   Result := W shr 8;
 end;
 
-{$IFDEF JWA_INCLUDEMODE}
-function GetModuleHandle; external kernel32 name 'GetModuleHandleA';
-function LoadLibrary; external kernel32 name 'LoadLibraryA';
-function GetProcAddress; stdcall; external kernel32 name 'GetProcAddress';
+{$IFDEF JWA_INCLUDEMODE}  //prevents stackoverflow in GetProcedureAddress
+function JwaWinType_GetModuleHandle(lpModuleName: LPCSTR): HMODULE; stdcall; external kernel32 name 'GetModuleHandleA';
+function JwaWinType_LoadLibrary(lpLibFileName: LPCSTR): HMODULE; stdcall; external kernel32 name 'LoadLibraryA';
+function JwaWinType_GetProcAddress(hModule: HMODULE; lpProcName: LPCSTR): FARPROC; stdcall; external kernel32 name 'GetProcAddress';
+{$ELSE}
+function GetModuleHandle(lpModuleName: LPCSTR): HMODULE; stdcall; external kernel32 name 'GetModuleHandleA';
+function LoadLibrary(lpLibFileName: LPCSTR): HMODULE; stdcall; external kernel32 name 'LoadLibraryA';
+function GetProcAddress(hModule: HMODULE; lpProcName: LPCSTR): FARPROC; stdcall; external kernel32 name 'GetProcAddress';
 {$ENDIF JWA_INCLUDEMODE}
 
 const
@@ -1849,21 +1837,37 @@ var
 begin
   if not Assigned(P) then
   begin
-    ModuleHandle := GetModuleHandle(PChar(ModuleName));
+    ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_GetModuleHandle
+                    {$ELSE}GetModuleHandle
+                    {$ENDIF JWA_INCLUDEMODE}
+                    (PChar(ModuleName));
     if ModuleHandle = 0 then
     begin
-      ModuleHandle := LoadLibrary(PChar(ModuleName));
+      ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_LoadLibrary
+                    {$ELSE}LoadLibrary
+                    {$ENDIF JWA_INCLUDEMODE}(PChar(ModuleName));
       if ModuleHandle = 0 then
         raise EJwaLoadLibraryError.CreateFmt(RsELibraryNotFound, [ModuleName]);
     end;
-    P := Pointer(GetProcAddress(ModuleHandle, PChar(ProcName)));
+    P := Pointer({$IFDEF JWA_INCLUDEMODE}jwaWinType_GetProcAddress
+                    {$ELSE}GetProcAddress
+                    {$ENDIF JWA_INCLUDEMODE}(ModuleHandle, PChar(ProcName)));
     if not Assigned(P) then
       raise EJwaGetProcAddressError.CreateFmt(RsEFunctionNotFound, [ModuleName, ProcName]);
   end;
 end;
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+
+
+
+
+

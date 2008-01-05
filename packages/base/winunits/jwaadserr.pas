@@ -40,19 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAdsErr.pas,v 1.5 2004/12/08 08:18:35 marquardt Exp $
+// $Id: JwaAdsErr.pas,v 1.7 2007/09/06 14:57:10 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdsErr;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "adserr.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 //  Values are 32 bit values layed out as follows:
@@ -84,6 +93,7 @@ interface
 // Define the facility codes
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   FACILITY_WINDOWS  = 8;
   {$EXTERNALSYM FACILITY_WINDOWS}
@@ -318,6 +328,19 @@ const
   E_ADS_INVALID_FILTER = HRESULT($80005014);
   {$EXTERNALSYM E_ADS_INVALID_FILTER}
 
-implementation
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

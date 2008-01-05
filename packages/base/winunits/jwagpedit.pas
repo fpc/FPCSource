@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaGPEdit.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaGPEdit.pas,v 1.11 2007/09/14 06:48:45 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaGPEdit;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "GPEdit.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaActiveX, JwaPrSht, JwaWindows;
+  JwaActiveX, JwaPrSht, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "GPEdit.h"'}
-{$HPPEMIT ''}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   LPOLESTR = POleStr;
@@ -166,9 +171,11 @@ const
 // GUID that identifies the registry extension
 //
 
+  {$IFNDEF JWA_INCLUDEMODE}
   REGISTRY_EXTENSION_GUID: TGUID = (
     D1:$35378EAC; D2:$683F; D3:$11D2; D4:($A8, $9A, $00, $C0, $4F, $BB, $CF, $A2));
   {$EXTERNALSYM IID_IGroupPolicyObject}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //========================================================================================
 //
@@ -851,10 +858,19 @@ function ImportRSoPData(lpNameSpace, lpFileName: LPOLESTR): HRESULT; stdcall;
 function ExportRSoPData(lpNameSpace, lpFileName: LPOLESTR): HRESULT; stdcall;
 {$EXTERNALSYM ExportRSoPData}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  gpeditlib = 'gpedit.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -947,4 +963,9 @@ function ExportRSoPData; external gpeditlib name 'ExportRSoPData';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

@@ -40,23 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinCred.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaWinCred.pas,v 1.15 2007/09/14 06:48:48 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinCred;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaLmCons, JwaWindows, JwaNtSecApi;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "wincred.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+{$I jedi.inc} //used for D5 compiling
+
+interface
+
+uses
+  JwaLmCons, JwaWinBase, JwaWinError, JwaWinType, JwaNtSecApi;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
   PCtxtHandle = PSecHandle;
   {$EXTERNALSYM PCtxtHandle}
@@ -93,6 +100,7 @@ type
 // Don't require ntstatus.h
 
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   STATUS_LOGON_FAILURE          = NTSTATUS($C000006D); // ntsubauth
   {$EXTERNALSYM STATUS_LOGON_FAILURE}
   STATUS_WRONG_PASSWORD         = NTSTATUS($C000006A); // ntsubauth
@@ -103,10 +111,12 @@ const
   {$EXTERNALSYM STATUS_PASSWORD_MUST_CHANGE}
   STATUS_ACCESS_DENIED          = NTSTATUS($C0000022);
   {$EXTERNALSYM STATUS_ACCESS_DENIED}
+  {$ENDIF JWA_INCLUDEMODE}
   STATUS_DOWNGRADE_DETECTED     = NTSTATUS($C0000388);
   {$EXTERNALSYM STATUS_DOWNGRADE_DETECTED}
   STATUS_AUTHENTICATION_FIREWALL_FAILED = NTSTATUS($C0000413);
   {$EXTERNALSYM STATUS_AUTHENTICATION_FIREWALL_FAILED}
+  {$IFNDEF JWA_INCLUDEMODE}
   STATUS_ACCOUNT_DISABLED       = NTSTATUS($C0000072);   // ntsubauth
   {$EXTERNALSYM STATUS_ACCOUNT_DISABLED}
   STATUS_ACCOUNT_RESTRICTION    = NTSTATUS($C000006E);   // ntsubauth
@@ -124,6 +134,7 @@ const
   {$EXTERNALSYM NERR_BASE}
   NERR_PasswordExpired = NERR_BASE + 142; // The password of this user has expired.
   {$EXTERNALSYM NERR_PasswordExpired}
+  {$ENDIF JWA_INCLUDEMODE}
 
 function CREDUIP_IS_USER_PASSWORD_ERROR(_Status: NTSTATUS): BOOL;
 {$EXTERNALSYM CREDUIP_IS_USER_PASSWORD_ERROR}
@@ -786,10 +797,25 @@ function CredUIStoreSSOCredW(pszRealm, pszUsername, pszPassword: LPCWSTR; bPersi
 function CredUIReadSSOCredW(pszRealm: LPCWSTR; out ppszUsername: PWSTR): DWORD; stdcall;
 {$EXTERNALSYM CredUIReadSSOCredW}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  credapi = 'advapi32.dll';
+  credui = 'credui.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function CREDUIP_IS_USER_PASSWORD_ERROR(_Status: NTSTATUS): BOOL;
 begin
@@ -1404,41 +1430,80 @@ begin
 end;
 
 var
-  _CredUICmdLinePromptForCredentialsW: Pointer;
+{$IFDEF SUPPORT_LONG_VARNAMES}
+   _CredUICmdLinePromptForCredentialsW: Pointer;
+{$ELSE}
+  _CredUICmdLinePromptFCW: Pointer;
+{$ENDIF}
 
 function CredUICmdLinePromptForCredentialsW;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_CredUICmdLinePromptForCredentialsW, credui, 'CredUICmdLinePromptForCredentialsW');
+{$ELSE}
+  GetProcedureAddress(_CredUICmdLinePromptFCW, credui, 'CredUICmdLinePromptForCredentialsW');
+{$ENDIF}
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_CredUICmdLinePromptForCredentialsW]
+{$ELSE}
+        JMP     [_CredUICmdLinePromptFCW]
+{$ENDIF}
   end;
 end;
 
 var
-  _CredUICmdLinePromptForCredentialsA: Pointer;
+{$IFDEF SUPPORT_LONG_VARNAMES}
+   _CredUICmdLinePromptForCredentialsA: Pointer;
+{$ELSE}
+  _CredUICmdLinePromptFCA: Pointer;
+{$ENDIF}
+
 
 function CredUICmdLinePromptForCredentialsA;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_CredUICmdLinePromptForCredentialsA, credui, 'CredUICmdLinePromptForCredentialsA');
+{$ELSE}
+  GetProcedureAddress(_CredUICmdLinePromptFCA, credui, 'CredUICmdLinePromptForCredentialsA');
+{$ENDIF}
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_CredUICmdLinePromptForCredentialsA]
+{$ELSE}
+        JMP     [_CredUICmdLinePromptFCA]
+{$ENDIF}
   end;
 end;
 
 var
-  _CredUICmdLinePromptForCredentials: Pointer;
+
+{$IFDEF SUPPORT_LONG_VARNAMES}
+        _CredUICmdLinePromptForCredentials: Pointer;
+{$ELSE}
+        _CredUICmdLinePromptFC: Pointer;
+{$ENDIF}
 
 function CredUICmdLinePromptForCredentials;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_CredUICmdLinePromptForCredentials, credui, 'CredUICmdLinePromptForCredentials' + AWSuffix);
+{$ELSE}
+  GetProcedureAddress(_CredUICmdLinePromptFC, credui, 'CredUICmdLinePromptForCredentials' + AWSuffix);
+{$ENDIF}
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_CredUICmdLinePromptForCredentials]
+{$ELSE}
+        JMP     [_CredUICmdLinePromptFC]
+{$ENDIF}
   end;
 end;
 
@@ -1560,5 +1625,8 @@ function CredUIStoreSSOCredW; external credui name 'CredUIStoreSSOCredW';
 function CredUIReadSSOCredW; external credui name 'CredUIReadSSOCredW';
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

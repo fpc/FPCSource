@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaIme.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaIme.pas,v 1.12 2007/09/14 06:48:46 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaIme;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "Ime.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   IME_MAXPROCESS = 32;
@@ -391,10 +396,24 @@ type
   {$EXTERNALSYM NPSTRINGEXSTRUCT}
   TStringexStruct = STRINGEXSTRUCT;
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  imelib = 'user32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -445,4 +464,8 @@ function SendIMEMessageEx; external imelib name 'SendIMEMessageEx' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

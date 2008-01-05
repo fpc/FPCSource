@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDhcpCSdk.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaDhcpCSdk.pas,v 1.11 2007/09/06 14:57:11 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDhcpCSdk;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "dhcpcsdk.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // DHCP Standard Options.
@@ -336,10 +341,21 @@ function DhcpDeRegisterParamChange(Flags: DWORD; Reserved, Event: LPVOID): DWORD
 function DhcpRemoveDNSRegistrations: DWORD; stdcall;
 {$EXTERNALSYM DhcpRemoveDNSRegistrations}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  dhcpapi = 'dhcpcsvc.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -446,4 +462,8 @@ function DhcpRemoveDNSRegistrations; external dhcpapi name 'DhcpRemoveDNSRegistr
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

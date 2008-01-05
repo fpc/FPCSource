@@ -40,22 +40,31 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinFax.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaWinFax.pas,v 1.13 2007/10/19 19:54:18 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinFax;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "winfax.h"'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+
+
+uses
+  JwaWinType, JwaWinError, JwaWinBase, JwaWinNT;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // FAX ERROR CODES
@@ -1495,11 +1504,29 @@ const
     FAX_CONFIG_SET or FAX_PORT_QUERY or FAX_PORT_SET or FAX_JOB_MANAGE;
   {$EXTERNALSYM FAX_ALL_ACCESS}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
 
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  winfax = 'winfax.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
+
+{$IFNDEF DYNAMIC_LINK}
 function FaxConnectFaxServerA; external winfax name 'FaxConnectFaxServerA';
 function FaxConnectFaxServerW; external winfax name 'FaxConnectFaxServerW';
 function FaxConnectFaxServer; external winfax name 'FaxConnectFaxServer' + AWSuffix;
@@ -1576,6 +1603,472 @@ function FaxPrintCoverPageA; external winfax name 'FaxPrintCoverPageA';
 function FaxPrintCoverPageW; external winfax name 'FaxPrintCoverPageW';
 function FaxPrintCoverPage; external winfax name 'FaxPrintCoverPage' + AWSuffix;
 function FaxRegisterServiceProviderW; external winfax name 'FaxRegisterServiceProviderW';
+function FaxRegisterRoutingExtensionW; external winfax name 'FaxRegisterRoutingExtensionW';
+
+
+function FaxUnregisterRoutingExtensionA; external winfax name 'FaxUnregisterRoutingExtensionA';
+function FaxUnregisterRoutingExtensionW; external winfax name 'FaxUnregisterRoutingExtensionW';
+function FaxUnregisterRoutingExtension; external winfax name 'FaxUnregisterRoutingExtension' + AWSuffix;
+function FaxAccessCheck; external winfax name 'FaxAccessCheck';
+{$ELSE}
+
+{$IFDEF FPC}
+{$WARNING Dynamic linking of JwaWinFax is active. But not all function will be linked dynamically. This is a todo!}
+{$ENDIF FPC}
+{TODO: load these function dynamically}
+function FaxConnectFaxServerA; external winfax name 'FaxConnectFaxServerA';
+function FaxConnectFaxServerW; external winfax name 'FaxConnectFaxServerW';
+function FaxConnectFaxServer; external winfax name 'FaxConnectFaxServer' + AWSuffix;
+
+function FaxClose; external winfax name 'FaxClose';
+
+function FaxOpenPort; external winfax name 'FaxOpenPort';
+
+function FaxCompleteJobParamsA; external winfax name 'FaxCompleteJobParamsA';
+function FaxCompleteJobParamsW; external winfax name 'FaxCompleteJobParamsW';
+function FaxCompleteJobParams; external winfax name 'FaxCompleteJobParams' + AWSuffix;
+
+function FaxSendDocumentA; external winfax name 'FaxSendDocumentA';
+function FaxSendDocumentW; external winfax name 'FaxSendDocumentW';
+function FaxSendDocument; external winfax name 'FaxSendDocument' + AWSuffix;
+
+function FaxSendDocumentForBroadcastA; external winfax name 'FaxSendDocumentForBroadcastA';
+function FaxSendDocumentForBroadcastW; external winfax name 'FaxSendDocumentForBroadcastW';
+function FaxSendDocumentForBroadcast; external winfax name 'FaxSendDocumentForBroadcast' + AWSuffix;
+
+function FaxEnumJobsA; external winfax name 'FaxEnumJobsA';
+function FaxEnumJobsW; external winfax name 'FaxEnumJobsW';
+function FaxEnumJobs; external winfax name 'FaxEnumJobs' + AWSuffix;
+
+function FaxGetJobA; external winfax name 'FaxGetJobA';
+function FaxGetJobW; external winfax name 'FaxGetJobW';
+function FaxGetJob; external winfax name 'FaxGetJob' + AWSuffix;
+
+function FaxSetJobA; external winfax name 'FaxSetJobA';
+function FaxSetJobW; external winfax name 'FaxSetJobW';
+function FaxSetJob; external winfax name 'FaxSetJob' + AWSuffix;
+
+function FaxGetPageData; external winfax name 'FaxGetPageData';
+
+function FaxGetDeviceStatusA; external winfax name 'FaxGetDeviceStatusA';
+function FaxGetDeviceStatusW; external winfax name 'FaxGetDeviceStatusW';
+function FaxGetDeviceStatus; external winfax name 'FaxGetDeviceStatus' + AWSuffix;
+
+function FaxAbort; external winfax name 'FaxAbort';
+
+function FaxGetConfigurationA; external winfax name 'FaxGetConfigurationA';
+function FaxGetConfigurationW; external winfax name 'FaxGetConfigurationW';
+function FaxGetConfiguration; external winfax name 'FaxGetConfiguration' + AWSuffix;
+
+function FaxSetConfigurationA; external winfax name 'FaxSetConfigurationA';
+function FaxSetConfigurationW; external winfax name 'FaxSetConfigurationW';
+function FaxSetConfiguration; external winfax name 'FaxSetConfiguration' + AWSuffix;
+
+function FaxGetLoggingCategoriesA; external winfax name 'FaxGetLoggingCategoriesA';
+function FaxGetLoggingCategoriesW; external winfax name 'FaxGetLoggingCategoriesW';
+function FaxGetLoggingCategories; external winfax name 'FaxGetLoggingCategories' + AWSuffix;
+
+function FaxSetLoggingCategoriesA; external winfax name 'FaxSetLoggingCategoriesA';
+function FaxSetLoggingCategoriesW; external winfax name 'FaxSetLoggingCategoriesW';
+function FaxSetLoggingCategories; external winfax name 'FaxSetLoggingCategories' + AWSuffix;
+
+function FaxEnumPortsA; external winfax name 'FaxEnumPortsA';
+function FaxEnumPortsW; external winfax name 'FaxEnumPortsW';
+function FaxEnumPorts; external winfax name 'FaxEnumPorts' + AWSuffix;
+
+function FaxGetPortA; external winfax name 'FaxGetPortA';
+function FaxGetPortW; external winfax name 'FaxGetPortW';
+function FaxGetPort; external winfax name 'FaxGetPort' + AWSuffix;
+
+function FaxSetPortA; external winfax name 'FaxSetPortA';
+function FaxSetPortW; external winfax name 'FaxSetPortW';
+function FaxSetPort; external winfax name 'FaxSetPort' + AWSuffix;
+
+function FaxEnumRoutingMethodsA; external winfax name 'FaxEnumRoutingMethodsA';
+function FaxEnumRoutingMethodsW; external winfax name 'FaxEnumRoutingMethodsW';
+function FaxEnumRoutingMethods; external winfax name 'FaxEnumRoutingMethods' + AWSuffix;
+
+function FaxInitializeEventQueue; external winfax name 'FaxInitializeEventQueue';
+procedure FaxFreeBuffer; external winfax name 'FaxFreeBuffer';
+
+
+
+//******** next function family *****
+var
+  _FaxEnableRoutingMethodA: Pointer;
+
+function FaxEnableRoutingMethodA;
+begin
+  GetProcedureAddress(_FaxEnableRoutingMethodA, ntdll, 'FaxEnableRoutingMethodA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxEnableRoutingMethodA]
+  end;
+end;
+
+var
+  _FaxEnableRoutingMethodW: Pointer;
+
+function FaxEnableRoutingMethodW;
+begin
+  GetProcedureAddress(_FaxEnableRoutingMethodW, ntdll, 'FaxEnableRoutingMethodW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxEnableRoutingMethodW]
+  end;
+end;
+
+
+var
+  _FaxEnableRoutingMethod: Pointer;
+
+function FaxEnableRoutingMethod;
+begin
+  GetProcedureAddress(_FaxEnableRoutingMethod, ntdll, 'FaxEnableRoutingMethod'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxEnableRoutingMethod]
+  end;
+end;
+
+//******** next function family *****
+var
+  _FaxEnumGlobalRoutingInfoA: Pointer;
+
+function FaxEnumGlobalRoutingInfoA;
+begin
+  GetProcedureAddress(_FaxEnumGlobalRoutingInfoA, ntdll, 'FaxEnumGlobalRoutingInfoA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxEnumGlobalRoutingInfoA]
+  end;
+end;
+
+var
+  _FaxEnumGlobalRoutingInfoW: Pointer;
+
+function FaxEnumGlobalRoutingInfoW;
+begin
+  GetProcedureAddress(_FaxEnumGlobalRoutingInfoW, ntdll, 'FaxEnumGlobalRoutingInfoW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxEnumGlobalRoutingInfoW]
+  end;
+end;
+
+
+var
+  _FaxEnumGlobalRoutingInfo: Pointer;
+
+function FaxEnumGlobalRoutingInfo;
+begin
+  GetProcedureAddress(_FaxEnumGlobalRoutingInfo, ntdll, 'FaxEnumGlobalRoutingInfo'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxEnumGlobalRoutingInfo]
+  end;
+end;
+
+//******** next function family *****
+var
+  _FaxSetGlobalRoutingInfoA: Pointer;
+
+function FaxSetGlobalRoutingInfoA;
+begin
+  GetProcedureAddress(_FaxSetGlobalRoutingInfoA, ntdll, 'FaxSetGlobalRoutingInfoA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxSetGlobalRoutingInfoA]
+  end;
+end;
+
+var
+  _FaxSetGlobalRoutingInfoW: Pointer;
+
+function FaxSetGlobalRoutingInfoW;
+begin
+  GetProcedureAddress(_FaxSetGlobalRoutingInfoW, ntdll, 'FaxSetGlobalRoutingInfoW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxSetGlobalRoutingInfoW]
+  end;
+end;
+
+
+var
+  _FaxSetGlobalRoutingInfo: Pointer;
+
+function FaxSetGlobalRoutingInfo;
+begin
+  GetProcedureAddress(_FaxSetGlobalRoutingInfo, ntdll, 'FaxSetGlobalRoutingInfo'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxSetGlobalRoutingInfo]
+  end;
+end;
+
+
+//******** next function family *****
+var
+  _FaxGetRoutingInfoA: Pointer;
+
+function FaxGetRoutingInfoA;
+begin
+  GetProcedureAddress(_FaxGetRoutingInfoA, ntdll, 'FaxGetRoutingInfoA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxGetRoutingInfoA]
+  end;
+end;
+
+var
+  _FaxGetRoutingInfoW: Pointer;
+
+function FaxGetRoutingInfoW;
+begin
+  GetProcedureAddress(_FaxGetRoutingInfoW, ntdll, 'FaxGetRoutingInfoW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxGetRoutingInfoW]
+  end;
+end;
+
+
+var
+  _FaxGetRoutingInfo: Pointer;
+
+function FaxGetRoutingInfo;
+begin
+  GetProcedureAddress(_FaxGetRoutingInfo, ntdll, 'FaxGetRoutingInfo'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxGetRoutingInfo]
+  end;
+end;
+
+//******** next function family *****
+var
+  _FaxSetRoutingInfoA: Pointer;
+
+function FaxSetRoutingInfoA;
+begin
+  GetProcedureAddress(_FaxSetRoutingInfoA, ntdll, 'FaxSetRoutingInfoA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxSetRoutingInfoA]
+  end;
+end;
+
+var
+  _FaxSetRoutingInfoW: Pointer;
+
+function FaxSetRoutingInfoW;
+begin
+  GetProcedureAddress(_FaxSetRoutingInfoW, ntdll, 'FaxSetRoutingInfoW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxSetRoutingInfoW]
+  end;
+end;
+
+
+var
+  _FaxSetRoutingInfo: Pointer;
+
+function FaxSetRoutingInfo;
+begin
+  GetProcedureAddress(_FaxSetRoutingInfo, ntdll, 'FaxSetRoutingInfo'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxSetRoutingInfo]
+  end;
+end;
+
+//******** next function family *****
+var
+  _FaxStartPrintJobA: Pointer;
+
+function FaxStartPrintJobA;
+begin
+  GetProcedureAddress(_FaxStartPrintJobA, ntdll, 'FaxStartPrintJobA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxStartPrintJobA]
+  end;
+end;
+
+var
+  _FaxStartPrintJobW: Pointer;
+
+function FaxStartPrintJobW;
+begin
+  GetProcedureAddress(_FaxStartPrintJobW, ntdll, 'FaxStartPrintJobW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxStartPrintJobW]
+  end;
+end;
+
+
+var
+  _FaxStartPrintJob: Pointer;
+
+function FaxStartPrintJob;
+begin
+  GetProcedureAddress(_FaxStartPrintJob, ntdll, 'FaxStartPrintJob'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxStartPrintJob]
+  end;
+end;
+
+//******** next function family *****
+var
+  _FaxPrintCoverPageA: Pointer;
+
+function FaxPrintCoverPageA;
+begin
+  GetProcedureAddress(_FaxPrintCoverPageA, ntdll, 'FaxPrintCoverPageA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxPrintCoverPageA]
+  end;
+end;
+
+var
+  _FaxPrintCoverPageW: Pointer;
+
+function FaxPrintCoverPageW;
+begin
+  GetProcedureAddress(_FaxPrintCoverPageW, ntdll, 'FaxPrintCoverPageW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxPrintCoverPageW]
+  end;
+end;
+
+
+var
+  _FaxPrintCoverPage: Pointer;
+
+function FaxPrintCoverPage;
+begin
+  GetProcedureAddress(_FaxPrintCoverPage, ntdll, 'FaxPrintCoverPage'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxPrintCoverPage]
+  end;
+end;
+
+
+
+var
+  _FaxRegisterServiceProviderW: Pointer;
+
+function FaxRegisterServiceProviderW;
+begin
+  GetProcedureAddress(_FaxRegisterServiceProviderW, ntdll, 'FaxRegisterServiceProviderW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxRegisterServiceProviderW]
+  end;
+end;
+
+
+var
+  _FaxRegisterRoutingExtensionW: Pointer;
+
+function FaxRegisterRoutingExtensionW;
+begin
+  GetProcedureAddress(_FaxRegisterRoutingExtensionW, ntdll, 'FaxRegisterRoutingExtensionW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxRegisterRoutingExtensionW]
+  end;
+end;
+
+
+
+var
+  _FaxAccessCheck: Pointer;
+
+function FaxAccessCheck;
+begin
+  GetProcedureAddress(_FaxAccessCheck, ntdll, 'FaxAccessCheck');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxAccessCheck]
+  end;
+end;
+
+
+
+
+
+var
+  _FaxUnregisterRoutingExtensionA: Pointer;
+
+function FaxUnregisterRoutingExtensionA;
+begin
+  GetProcedureAddress(_FaxUnregisterRoutingExtensionA, ntdll, 'FaxUnregisterRoutingExtensionA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxUnregisterRoutingExtensionA]
+  end;
+end;
+
+var
+  _FaxUnregisterRoutingExtensionW: Pointer;
+
+function FaxUnregisterRoutingExtensionW;
+begin
+  GetProcedureAddress(_FaxUnregisterRoutingExtensionW, ntdll, 'FaxUnregisterRoutingExtensionW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxUnregisterRoutingExtensionW]
+  end;
+end;
+
+var
+  _FaxUnregisterRoutingExtension: Pointer;
+
+function FaxUnregisterRoutingExtension;
+begin
+  GetProcedureAddress(_FaxUnregisterRoutingExtension, ntdll, 'FaxUnregisterRoutingExtension'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_FaxUnregisterRoutingExtension]
+  end;
+end;
+
+{$ENDIF DYNAMIC_LINK}
 
 function FaxRegisterServiceProvider(DeviceProvider: LPCWSTR; FriendlyName: LPCWSTR; ImageName: LPCWSTR; TspName: LPCWSTR): BOOL;
 begin
@@ -1589,16 +2082,16 @@ begin
   Result := FaxUnregisterServiceProviderW(DeviceProvider);
 end;
 
-function FaxRegisterRoutingExtensionW; external winfax name 'FaxRegisterRoutingExtensionW';
-
 function FaxRegisterRoutingExtension(FaxHandle: HANDLE; ExtensionName, FriendlyName, ImageName: LPCWSTR; CallBack: PFAX_ROUTING_INSTALLATION_CALLBACKW; Context: LPVOID): BOOL;
 begin
   Result := FaxRegisterRoutingExtensionW(FaxHandle, ExtensionName, FriendlyName, ImageName, CallBack, Context);
 end;
 
-function FaxUnregisterRoutingExtensionA; external winfax name 'FaxUnregisterRoutingExtensionA';
-function FaxUnregisterRoutingExtensionW; external winfax name 'FaxUnregisterRoutingExtensionW';
-function FaxUnregisterRoutingExtension; external winfax name 'FaxUnregisterRoutingExtension' + AWSuffix;
-function FaxAccessCheck; external winfax name 'FaxAccessCheck';
 
+
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

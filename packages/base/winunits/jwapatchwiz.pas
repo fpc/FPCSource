@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPatchWiz.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaPatchWiz.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPatchWiz;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "PatchWiz.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
   (* PATCHWIZ.H - public header file for PATCHWIZ.DLL *)
 
@@ -372,10 +377,28 @@ function UiCreatePatchPackageW(szwPcpPath, szwPatchPath, szwLogPath: LPWSTR; hwn
 function UiCreatePatchPackage(szwPcpPath, szwPatchPath, szwLogPath: LPTSTR; hwndStatus: HWND; szwTempFolder: LPTSTR; fRemoveTempFolderIfPresent: BOOL): UINT; stdcall;
 {$EXTERNALSYM UiCreatePatchPackage}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  patchwiz = 'patchwiz.dll'; // mvb Installed in Samples\SysMgmt\Msi\Patching
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -426,4 +449,10 @@ function UiCreatePatchPackage; external patchwiz name 'UiCreatePatchPackage' + A
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

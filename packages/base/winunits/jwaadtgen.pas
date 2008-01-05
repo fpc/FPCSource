@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAdtGen.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaAdtGen.pas,v 1.13 2007/09/06 14:57:11 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdtGen;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "adtgen.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // type of audit 
@@ -137,7 +142,7 @@ type
     //
     
     APT_Luid,
-    
+
     //
     // Guid
     //
@@ -434,10 +439,20 @@ const
   AUTHZ_AUDIT_INSTANCE_INFORMATION = $2;
   {$EXTERNALSYM AUTHZ_AUDIT_INSTANCE_INFORMATION}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  authzlib = 'authz.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 // (rom) MACRO implementation
 function ApExtractType(TypeFlags: DWORD): AUDIT_PARAM_TYPE;
@@ -455,4 +470,8 @@ end;
 AuthzpRegisterAuditEvent
 AuthzpUnregisterAuditEvent
 }
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

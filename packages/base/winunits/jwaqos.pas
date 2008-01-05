@@ -40,26 +40,37 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaQos.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaQos.pas,v 1.9 2007/09/05 11:58:52 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaQos;
 
 {$WEAKPACKAGEUNIT}
+
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "qos.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
 
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 type
   ULONG = Cardinal;
   {$NODEFINE ULONG}
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 //  Definitions for valued-based Service Type for each direction of data flow.
@@ -281,6 +292,21 @@ type
   TQOSShapingRate = QOS_SHAPING_RATE;
   PQOSShapingRate = LPQOS_SHAPING_RATE;
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

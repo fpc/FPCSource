@@ -40,22 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinWlx.pas,v 1.10 2005/09/06 16:36:51 marquardt Exp $
-
+// $Id: JwaWinWlx.pas,v 1.12 2007/09/05 11:58:54 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinWlx;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "WinWlx.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType, JwaWinUser, JwaWinNT;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //    WLX == WinLogon eXtension
 //
@@ -1061,12 +1069,25 @@ type
   TWlxNotificationInfo = WLX_NOTIFICATION_INFO;
   PWlxNotificationInfo = PWLX_NOTIFICATION_INFO;
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF MSGINA_IMPORT}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  msgina = 'msgina.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1395,4 +1416,9 @@ procedure WlxDisconnectNotify; external msgina name 'WlxDisconnectNotify';
 
 {$ENDIF MSGINA_IMPORT}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

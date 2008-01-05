@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaProfInfo.pas,v 1.6 2005/09/03 13:12:10 marquardt Exp $
-
+// $Id: JwaProfInfo.pas,v 1.8 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaProfInfo;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "profinfo.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   LPPROFILEINFOA = ^PROFILEINFOA;
@@ -110,6 +115,23 @@ type
   PProfileInfo = PProfileInfoA;
   {$ENDIF UNICODE}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

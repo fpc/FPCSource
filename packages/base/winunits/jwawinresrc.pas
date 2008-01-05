@@ -36,19 +36,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinResrc.pas,v 1.4 2004/12/08 08:18:44 marquardt Exp $
-
+// $Id: JwaWinResrc.pas,v 1.5 2007/09/05 11:58:54 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinResrc;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "winresrc.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   WINVER         = $0500;
@@ -69,6 +77,22 @@ const
 #include <winver.h>
 }
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

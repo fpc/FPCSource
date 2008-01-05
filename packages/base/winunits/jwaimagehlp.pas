@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaImageHlp.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaImageHlp.pas,v 1.13 2007/09/14 06:48:45 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaImageHlp;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ImageHlp.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  Windows, JwaWindows;
+  Windows, JwaWinBase, JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   IMAGE_SEPARATION = 64*1024;
@@ -2733,8 +2739,10 @@ type
 //
 //--
 
+
 function RVA_TO_ADDR(Mapping, Rva: Pointer): Pointer;
 {$EXTERNALSYM RVA_TO_ADDR}
+
 
 function MiniDumpWriteDump(hProcess: HANDLE; ProcessId: DWORD; hFile: HANDLE; DumpType: MINIDUMP_TYPE; ExceptionParam: PMINIDUMP_EXCEPTION_INFORMATION; UserStreamParam: PMINIDUMP_USER_STREAM_INFORMATION; CallbackParam: PMINIDUMP_CALLBACK_INFORMATION): BOOL; stdcall;
 {$EXTERNALSYM MiniDumpWriteDump}
@@ -2742,10 +2750,24 @@ function MiniDumpWriteDump(hProcess: HANDLE; ProcessId: DWORD; hFile: HANDLE; Du
 function MiniDumpReadDumpStream(BaseOfDump: PVOID; StreamNumber: ULONG; var Dir: PMINIDUMP_DIRECTORY; var StreamPointer: PVOID; var StreamSize: ULONG): BOOL; stdcall;
 {$EXTERNALSYM MiniDumpReadDumpStream}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  ImageHlpLib = 'imagehlp.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 procedure Address32To64(a32: LPADDRESS; a64: LPADDRESS64);
 begin
@@ -2777,7 +2799,9 @@ begin
   Result := Pointer(Cardinal(Mapping) + Cardinal(Rva));
 end;
 
+
 {$IFDEF DYNAMIC_LINK}
+
 
 var
   _BindImage: Pointer;
@@ -3428,6 +3452,7 @@ begin
         JMP     [_SymMatchString]
   end;
 end;
+
 
 var
   _SymEnumSourceFiles: Pointer;
@@ -4274,6 +4299,7 @@ begin
   end;
 end;
 
+
 {$ELSE}
 
 function BindImage; external ImageHlpLib name 'BindImage';
@@ -4394,4 +4420,8 @@ function MiniDumpReadDumpStream; external ImageHlpLib name 'MiniDumpReadDumpStre
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

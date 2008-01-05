@@ -40,19 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaBLBErr.pas,v 1.5 2004/12/08 08:18:35 marquardt Exp $
-
+// $Id: JwaBLBErr.pas,v 1.6 2007/09/05 11:58:48 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaBLBErr;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "BLBErr.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
 
@@ -60,7 +67,23 @@ const
 
   SDPBLB_CONF_BLOB_DESTROYED = $e0000300;
   {$EXTERNALSYM SDPBLB_CONF_BLOB_DESTROYED}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

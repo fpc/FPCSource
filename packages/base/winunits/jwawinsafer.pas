@@ -40,22 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinSafer.pas,v 1.9 2005/09/08 07:49:25 marquardt Exp $
-
+// $Id: JwaWinSafer.pas,v 1.11 2007/09/05 11:58:54 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinSafer;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "winsafer.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinCrypt, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Opaque datatype for representing handles to Safer objects.
@@ -148,7 +156,7 @@ const
 //
 
 // (rom) handled by $A+ in jediapilib.inc
-// #include <pshpack8.h>
+// #include <pshpack8.h> todo
 
 type
   _SAFER_CODE_PROPERTIES = record
@@ -363,8 +371,7 @@ type
 // Structures and enums used by the SaferGet/SetLevelInformation APIs.
 //
 
-// (rom) handled by $A+ in jediapilib.inc
-// #include <pshpack8.h>
+// #include <pshpack8.h> todo
 
   _SAFER_IDENTIFICATION_TYPES = (
     SaferIdentityDefault,
@@ -550,10 +557,22 @@ function SaferRecordEventLogEntry(hLevel: SAFER_LEVEL_HANDLE; szTargetPath: LPCW
 function SaferiIsExecutableFileType(szFullPathname: LPCWSTR; bFromShellExecute: BOOL): BOOL; stdcall;
 {$EXTERNALSYM SaferiIsExecutableFileType}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  advapi32 = 'advapi32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -702,4 +721,9 @@ function SaferiIsExecutableFileType; external advapi32 name 'SaferiIsExecutableF
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

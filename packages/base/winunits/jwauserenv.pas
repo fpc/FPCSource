@@ -40,18 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaUserEnv.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaUserEnv.pas,v 1.12 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaUserEnv;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaActiveX, JwaProfInfo, JwaWbemCli, JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "userenv.h"'}
@@ -65,6 +59,16 @@ uses
 {$HPPEMIT 'typedef PPGROUP_POLICY_OBJECTA PPGROUP_POLICY_OBJECT'}
 {$HPPEMIT 'typedef #endif'}
 {$HPPEMIT ''}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaActiveX, JwaProfInfo, JwaWbemCli, JwaWinType, JWaWinBase, JwaWinNT;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 //=============================================================================
 //
@@ -94,6 +98,7 @@ uses
 //
 //=============================================================================
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Flags that can be set in the dwFlags field
 //
@@ -1201,10 +1206,24 @@ const
   RSOP_TEMPNAMESPACE_EXISTS = $00000004;
   {$EXTERNALSYM RSOP_TEMPNAMESPACE_EXISTS}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  userenvlib = 'userenv.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1857,4 +1876,9 @@ function RsopResetPolicySettingStatus; external userenvlib name 'RsopResetPolicy
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

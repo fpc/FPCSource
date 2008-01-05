@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWS2dnet.pas,v 1.4 2004/12/08 08:18:40 marquardt Exp $
-
+// $Id: JwaWS2dnet.pas,v 1.5 2007/09/05 11:58:53 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWS2dnet;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ws2dnet.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //************************************************************************
 //  Winsock V2.0  DECnet definitions    File: WS2DNET.H
@@ -361,7 +366,18 @@ type
   LPGETNODENAME = function: PChar; stdcall;
   {$EXTERNALSYM LPGETNODENAME}
   TGetNodeName = LPGETNODENAME;
-
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

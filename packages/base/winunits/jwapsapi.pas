@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPsApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaPsApi.pas,v 1.12 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPsApi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include <psapi.h>'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 function EnumProcesses(lpidProcess: LPDWORD; cb: DWORD; var cbNeeded: DWORD): BOOL; stdcall;
 {$EXTERNALSYM EnumProcesses}
@@ -291,11 +296,25 @@ function GetProcessImageFileNameW(hProcess: HANDLE; lpImageFileName: LPWSTR;
 function GetProcessImageFileName(hProcess: HANDLE; lpImageFileName: LPTSTR;
   nSize: DWORD): DWORD; stdcall;
 {$EXTERNALSYM GetProcessImageFileName}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  PsapiLib = 'psapi.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -738,4 +757,9 @@ function GetProcessImageFileName; external PsapiLib name 'GetProcessImageFileNam
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinIoctl.pas,v 1.7 2005/09/03 14:27:49 marquardt Exp $
+// $Id: JwaWinIoctl.pas,v 1.9 2007/09/05 11:58:54 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinIoctl;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "WinIoCtl.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Device interface class GUIDs.
@@ -4930,8 +4937,14 @@ type
   {$EXTERNALSYM VOLUME_DISK_EXTENTS}
   TVolumeDiskExtents = VOLUME_DISK_EXTENTS;
   PVolumeDiskExtents = PVOLUME_DISK_EXTENTS;
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 function CTL_CODE(DeviceType, Func, Method, Access: WORD): DWORD;
 begin
@@ -5003,4 +5016,10 @@ begin
   Result := PDiskDetectionInfo(PChar(Partition) + Partition^.SizeOfPartitionInfo*SizeOf(DWORD));
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

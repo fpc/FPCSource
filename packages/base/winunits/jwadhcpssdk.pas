@@ -40,11 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDhcpSSdk.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaDhcpSSdk.pas,v 1.8 2007/09/05 11:58:49 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDhcpSSdk;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "dhcpssdk.h"'}
@@ -52,12 +53,17 @@ unit JwaDhcpSSdk;
 {$HPPEMIT 'typedef DHCP_IP_ADDRESS *LPDHCP_IP_ADDRESS;'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //  This structure could change any day.  This will be accurate only for version 0 -- which
 //  has to be checked for by any CalloutDLL that is hooking onto the DhcpHandleOptionsHook.
@@ -68,6 +74,7 @@ type
   LPDHCP_IP_ADDRESS = ^DHCP_IP_ADDRESS;
   {$NODEFINE LPDHCP_IP_ADDRESS}
   TDhcpIpAddress = DHCP_IP_ADDRESS;
+
 
   _DHCP_SERVER_OPTIONS = record
     MessageType: LPBYTE;
@@ -516,6 +523,21 @@ Arguments:
     this table structure.  The table structure is defined above.
 }
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+
+

@@ -40,17 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinBase.pas,v 1.14 2005/09/06 16:36:50 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaWinBase.pas,v 1.17 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinBase;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$WEAKPACKAGEUNIT}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinBase.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+
 {$I jediapilib.inc}
 
-{$STACKFRAMES ON}
+{$STACKFRAMES ON} // must be after include. FPC's $MODE command resets this
 
 interface
 
@@ -59,14 +64,9 @@ uses
   Windows,
   {$ENDIF USE_DELPHI_TYPES}
   JwaNtStatus, JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinBase.h"'}
-{$HPPEMIT ''}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   INVALID_HANDLE_VALUE     = HANDLE(-1);
@@ -377,7 +377,6 @@ type
 //
 //  File System time stamps are represented with the following structure:
 //
-
   {$IFNDEF JWA_INCLUDEMODE}
   LPFILETIME = ^FILETIME;
   {$EXTERNALSYM LPFILETIME}
@@ -390,7 +389,7 @@ type
   {$EXTERNALSYM FILETIME}
   TFileTime = FILETIME;
   PFileTime = LPFILETIME;
-  {$ENDIF !JWA_INCLUDEMODE}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // System time is represented with the following structure:
@@ -449,13 +448,14 @@ type
   LPCRITICAL_SECTION_DEBUG = PRTL_CRITICAL_SECTION_DEBUG;
   {$EXTERNALSYM LPCRITICAL_SECTION_DEBUG}
   TCriticalSectionDebug = CRITICAL_SECTION_DEBUG;
-  PCriticalSectionDebug = PCRITICAL_SECTION_DEBUG;
+  PCriticalSectionDebug = PCRITICAL_SECTION_DEBUG;  
 
   LPLDT_ENTRY = PLDT_ENTRY;
   {$EXTERNALSYM LPLDT_ENTRY}
+
   {$IFNDEF JWA_INCLUDEMODE}
   PLdtEntry = LPLDT_ENTRY;
-  {$ENDIF !JWA_INCLUDEMODE}
+  {$ENDIF JWA_INCLUDEMODE}
 
 const
   MUTEX_MODIFY_STATE = MUTANT_QUERY_STATE;
@@ -1699,10 +1699,8 @@ procedure FreeLibraryAndExitThread(hLibModule: HMODULE; dwExitCode: DWORD); stdc
 function DisableThreadLibraryCalls(hLibModule: HMODULE): BOOL; stdcall;
 {$EXTERNALSYM DisableThreadLibraryCalls}
 
-{$IFNDEF JWA_INCLUDEMODE}
 function GetProcAddress(hModule: HMODULE; lpProcName: LPCSTR): FARPROC; stdcall;
 {$EXTERNALSYM GetProcAddress}
-{$ENDIF !JWA_INCLUDEMODE}
 
 function GetVersion: DWORD; stdcall;
 {$EXTERNALSYM GetVersion)}
@@ -2050,6 +2048,10 @@ function GetEnvironmentStringsA: LPSTR; stdcall;
 {$EXTERNALSYM GetEnvironmentStringsA}
 {$ENDIF !UNICODE}
 
+
+{$IFDEF WIN2003_UP}
+//This function is only available in Windows 2003, Vista and 2008
+//http://sourceforge.net/support/tracker.php?aid=1846987
 function SetEnvironmentStringsA(NewEnvironment: LPSTR): BOOL; stdcall;
 {$EXTERNALSYM SetEnvironmentStringsA}
 
@@ -2057,6 +2059,7 @@ function SetEnvironmentStringsW(NewEnvironment: LPWSTR): BOOL; stdcall;
 {$EXTERNALSYM SetEnvironmentStringsW}
 function SetEnvironmentStrings(NewEnvironment: LPTSTR): BOOL; stdcall;
 {$EXTERNALSYM SetEnvironmentStrings}
+{$ENDIF WIN2003_UP}
 
 function FreeEnvironmentStringsA(pstr: LPSTR): BOOL; stdcall;
 {$EXTERNALSYM FreeEnvironmentStringsA}
@@ -3476,10 +3479,8 @@ function LoadLibraryA(lpLibFileName: LPCSTR): HMODULE; stdcall;
 {$EXTERNALSYM LoadLibraryA}
 function LoadLibraryW(lpLibFileName: LPCWSTR): HMODULE; stdcall;
 {$EXTERNALSYM LoadLibraryW}
-{$IFNDEF JWA_INCLUDEMODE}
 function LoadLibrary(lpLibFileName: LPCTSTR): HMODULE; stdcall;
 {$EXTERNALSYM LoadLibrary}
-{$ENDIF !JWA_INCLUDEMODE}
 
 function LoadLibraryExA(lpLibFileName: LPCSTR; hFile: HANDLE; dwFlags: DWORD): HMODULE; stdcall;
 {$EXTERNALSYM LoadLibraryExA}
@@ -3509,10 +3510,8 @@ function GetModuleHandleA(lpModuleName: LPCSTR): HMODULE; stdcall;
 {$EXTERNALSYM GetModuleHandleA}
 function GetModuleHandleW(lpModuleName: LPCWSTR): HMODULE; stdcall;
 {$EXTERNALSYM GetModuleHandleW}
-{$IFNDEF JWA_INCLUDEMODE}
 function GetModuleHandle(lpModuleName: LPCTSTR): HMODULE; stdcall;
 {$EXTERNALSYM GetModuleHandle}
-{$ENDIF !JWA_INCLUDEMODE}
 
 const
   GET_MODULE_HANDLE_EX_FLAG_PIN                = $00000001;
@@ -5947,7 +5946,7 @@ type
   {$EXTERNALSYM PCACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA}
   TActCtxSectionKeyedDataAssemblyMetadata = ACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA;
   PActCtxSectionKeyedDataAssemblyMetadata = PACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA;
-
+  
   tagACTCTX_SECTION_KEYED_DATA = record
     cbSize: ULONG;
     ulDataFormatVersion: ULONG;
@@ -6048,7 +6047,7 @@ const
 //
 // String are placed after the structs.
 //
-
+  
 function QueryActCtxW(dwFlags: DWORD; hActCtx: HANDLE; pvSubInstance: PVOID;
   ulInfoClass: ULONG; pvBuffer: PVOID; cbBuffer: SIZE_T;
   pcbWrittenOrRequired: PSIZE_T): BOOL; stdcall;
@@ -6088,18 +6087,24 @@ function GetNumaNodeProcessorMask(Node: UCHAR; ProcessorMask: ULONGLONG): BOOL; 
 function GetNumaAvailableMemoryNode(Node: UCHAR; var AvailableBytes: ULONGLONG): BOOL; stdcall;
 {$EXTERNALSYM GetNumaAvailableMemoryNode}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+const
+  kernel32 = 'kernel32.dll';
+  advapi32 = 'advapi32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 procedure MoveMemory(Destination, Source: PVOID; Length: SIZE_T);
 begin
@@ -6161,22 +6166,33 @@ begin
   Result := $100000;
 end;
 
+{added tweak from
+http://sourceforge.net/tracker/index.php?func=detail&aid=1662760&group_id=121894&atid=694029
+by
+Marco
+}
 function InterlockedExchangePointer(var Target: PVOID; Value: PVOID): PVOID;
 begin
-{$ifdef cpu64}
+{$ifdef CPU64}
   Result := PVOID(InterlockedExchange64(LONGLONG(Target), LONGLONG(Value)));
 {$else}
   Result := PVOID(InterlockedExchange(LONG(Target), LONG(Value)));
-{$endif cpu64}
+{$endif CPU64}
 end;
 
+{added tweak from
+http://sourceforge.net/tracker/index.php?func=detail&aid=1662760&group_id=121894&atid=694029
+by Marco
+}
 function InterlockedCompareExchangePointer(var Destination: PVOID; Exchange, Comperand: PVOID): PVOID;
 begin
-{$ifdef cpu64}
-  Result := PVOID(InterlockedCompareExchange64(LONGLONG(Destination), LONGLONG(Exchange), LONGLONG(Comperand)));
-{$else cpu64}
-  Result := PVOID(InterlockedCompareExchange(LONG(Destination), LONG(Exchange), LONG(Comperand)));
-{$endif cpu64}
+{$ifdef CPU64}
+  Result := PVOID(InterlockedCompareExchange64(LONGLONG(Destination),
+              LONGLONG(Exchange), LONGLONG(Comperand)));
+{$else CPU64}
+  Result := PVOID(InterlockedCompareExchange(LONG(Destination),
+    LONG(Exchange), LONG(Comperand)));
+{$endif CPU64}
 end;
 
 function UnlockResource(hResData: HANDLE): BOOL;
@@ -6507,7 +6523,6 @@ begin
   end;
 end;
 
-{$IFNDEF JWA_INCLUDEMODE}
 // MVB TODO Dynamic linking for GetProcAddress doesn't make much sense, does it? Same for LoadLibrary.
 
 var
@@ -6522,8 +6537,6 @@ begin
         JMP     [_GetProcAddress]
   end;
 end;
-
-{$ENDIF !JWA_INCLUDEMODE}
 
 var
   _GetVersion: Pointer;
@@ -7582,6 +7595,7 @@ end;
 
 {$ENDIF !UNICODE}
 
+{$IFDEF WIN2003_UP}
 var
   _SetEnvironmentStringsA: Pointer;
 
@@ -7620,6 +7634,8 @@ begin
         JMP     [_SetEnvironmentStrings]
   end;
 end;
+
+{$ENDIF WIN2003_UP}
 
 var
   _FreeEnvironmentStringsA: Pointer;
@@ -18988,9 +19004,7 @@ function LockResource; external kernel32 name 'LockResource';
 function FreeLibrary; external kernel32 name 'FreeLibrary';
 procedure FreeLibraryAndExitThread; external kernel32 name 'FreeLibraryAndExitThread';
 function DisableThreadLibraryCalls; external kernel32 name 'DisableThreadLibraryCalls';
-{$IFNDEF JWA_INCLUDEMODE}
 function GetProcAddress; external kernel32 name 'GetProcAddress';
-{$ENDIF !JWA_INCLUDEMODE}
 function GetVersion; external kernel32 name 'GetVersion';
 function GlobalAlloc; external kernel32 name 'GlobalAlloc';
 function GlobalReAlloc; external kernel32 name 'GlobalReAlloc';
@@ -19074,9 +19088,13 @@ function GetEnvironmentStrings; external kernel32 name 'GetEnvironmentStrings' +
 {$IFNDEF UNICODE}
 function GetEnvironmentStringsA; external kernel32 name 'GetEnvironmentStringsA';
 {$ENDIF !UNICODE}
+
+{$IFDEF WIN2003_UP}
 function SetEnvironmentStringsA; external kernel32 name 'SetEnvironmentStringsA';
 function SetEnvironmentStringsW; external kernel32 name 'SetEnvironmentStringsW';
 function SetEnvironmentStrings; external kernel32 name 'SetEnvironmentStrings' + AWSuffix;
+{$ENDIF WIN2003_UP}
+
 function FreeEnvironmentStringsA; external kernel32 name 'FreeEnvironmentStringsA';
 function FreeEnvironmentStringsW; external kernel32 name 'FreeEnvironmentStringsW';
 function FreeEnvironmentStrings; external kernel32 name 'FreeEnvironmentStrings' + AWSuffix;
@@ -19366,9 +19384,7 @@ function CreateMemoryResourceNotification; external kernel32 name 'CreateMemoryR
 function QueryMemoryResourceNotification; external kernel32 name 'QueryMemoryResourceNotification';
 function LoadLibraryA; external kernel32 name 'LoadLibraryA';
 function LoadLibraryW; external kernel32 name 'LoadLibraryW';
-{$IFNDEF JWA_INCLUDEMODE}
 function LoadLibrary; external kernel32 name 'LoadLibrary' + AWSuffix;
-{$ENDIF !JWA_INCLUDEMODE}
 function LoadLibraryExA; external kernel32 name 'LoadLibraryExA';
 function LoadLibraryExW; external kernel32 name 'LoadLibraryExW';
 function LoadLibraryEx; external kernel32 name 'LoadLibraryEx' + AWSuffix;
@@ -19377,9 +19393,7 @@ function GetModuleFileNameW; external kernel32 name 'GetModuleFileNameW';
 function GetModuleFileName; external kernel32 name 'GetModuleFileName' + AWSuffix;
 function GetModuleHandleA; external kernel32 name 'GetModuleHandleA';
 function GetModuleHandleW; external kernel32 name 'GetModuleHandleW';
-{$IFNDEF JWA_INCLUDEMODE}
 function GetModuleHandle; external kernel32 name 'GetModuleHandle' + AWSuffix;
-{$ENDIF !JWA_INCLUDEMODE}
 function CreateProcessA; external kernel32 name 'CreateProcessA';
 function CreateProcessW; external kernel32 name 'CreateProcessW';
 function CreateProcess; external kernel32 name 'CreateProcess' + AWSuffix;
@@ -19957,8 +19971,8 @@ function GetNumaAvailableMemoryNode; external kernel32 name 'GetNumaAvailableMem
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

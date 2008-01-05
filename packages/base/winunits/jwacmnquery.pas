@@ -40,23 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaCmnQuery.pas,v 1.8 2005/09/03 13:12:10 marquardt Exp $
-
+// $Id: JwaCmnQuery.pas,v 1.10 2007/09/05 11:58:49 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaCmnQuery;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "cmnquery.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaActiveX, // IPersist todo objidl, ocidl
-  JwaWindows;
+  JwaWinUser, JwaWinType;
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "cmnquery.h"'}
-{$HPPEMIT ''}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   IID_IQueryForm: TGUID = (D1:$8cfcee30; D2:$39bd; D3:$11d0; D4:($b8, $d1, $0, $a0, $24, $ab, $2d, $bb));
@@ -276,6 +282,21 @@ type
   end;
   {$EXTERNALSYM ICommonQuery}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+
+

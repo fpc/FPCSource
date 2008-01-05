@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaIAdmExt.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaIAdmExt.pas,v 1.8 2007/09/05 11:58:49 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaIAdmExt;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "iadmext.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaIisCnfg, JwaWindows;
+  JwaIisCnfg, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // The Main Interface. All extensions must support this interface.
@@ -124,7 +129,19 @@ type
   end;
   {$EXTERNALSYM IADMEXT}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-
+{$ENDIF JWA_OMIT_SECTIONS}

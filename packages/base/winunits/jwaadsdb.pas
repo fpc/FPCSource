@@ -40,19 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAdsDb.pas,v 1.5 2004/12/08 08:18:35 marquardt Exp $
+// $Id: JwaAdsDb.pas,v 1.7 2007/09/06 14:57:10 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdsDb;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "adsdb.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //  Contents:   Definitions for the OLE DB provider for ADSI
 
@@ -64,10 +71,23 @@ interface
 // are available publicly in iads.h. This file has been left here so that
 // old references to adsdb.h do not break compiles.
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   DBPROPFLAGS_ADSISEARCH        = $0000C000;
   {$EXTERNALSYM DBPROPFLAGS_ADSISEARCH}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

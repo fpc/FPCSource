@@ -40,19 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaMciAvi.pas,v 1.6 2004/12/08 08:18:37 marquardt Exp $
-
+// $Id: JwaMciAvi.pas,v 1.7 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaMciAvi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "MciAvi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 (*
 ** These three flags apply to the 'play' command:
@@ -145,6 +150,24 @@ const
   MCIERR_AVI_BADPALETTE         = MCIERR_CUSTOM_DRIVER_BASE + 108;
   {$EXTERNALSYM MCIERR_AVI_BADPALETTE}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

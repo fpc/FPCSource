@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDSAdmin.pas,v 1.6 2005/09/03 13:12:10 marquardt Exp $
+// $Id: JwaDSAdmin.pas,v 1.8 2007/09/05 11:58:49 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDSAdmin;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "dsadmin.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaActiveX, JwaAdsTLB, JwaPrSht, JwaWindows;
+  JwaActiveX, JwaAdsTLB, JwaPrSht, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "dsadmin.h"'}
-{$HPPEMIT ''}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // CoClass for the Object creation dialog object
@@ -252,7 +258,21 @@ type
     function End_: HRESULT; stdcall;
   end;
   {$EXTERNALSYM IDsAdminNotifyHandler}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+
+

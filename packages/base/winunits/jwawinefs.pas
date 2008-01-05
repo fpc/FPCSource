@@ -40,24 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinEFS.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaWinEFS.pas,v 1.11 2007/09/14 06:48:48 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinEFS;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinBase, JwaWinNT, JwaWinType;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "WinEFS.h"'}
@@ -67,11 +55,22 @@ uses
 {$HPPEMIT 'typedef PENCRYPTION_CERTIFICATE_HASH_LIST *PPENCRYPTION_CERTIFICATE_HASH_LIST'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinBase, JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
 {$IFNDEF JWA_INCLUDEMODE}
 type
   ALG_ID = Cardinal;
   {$EXTERNALSYM ALG_ID}
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}  
 
 //
 //  Encoded Certificate
@@ -235,18 +234,19 @@ function DuplicateEncryptionInfoFile(SrcFileName, DstFileName: LPCWSTR; dwCreati
   dwAttributes: DWORD; lpSecurityAttributes: LPSECURITY_ATTRIBUTES): DWORD; stdcall;
 {$EXTERNALSYM DuplicateEncryptionInfoFile}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_INCLUDEMODE}
+const
+  advapi32 = 'advapi32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -367,8 +367,9 @@ function DuplicateEncryptionInfoFile; external advapi32 name 'DuplicateEncryptio
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

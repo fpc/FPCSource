@@ -42,8 +42,8 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaHhError.pas,v 1.8 2005/09/03 16:10:30 marquardt Exp $
-
+// $Id: JwaHhError.pas,v 1.11 2007/09/14 06:48:45 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaHhError;
 
 interface
@@ -53,10 +53,13 @@ interface
 {$I jediapilib.inc}
 
 uses
-  JwaWindows;
-
+  JwaWinType, JwaWinError;
+{$ENDIF JWA_OMIT_SECTIONS}
 // Published: http://support.microsoft.com/default.aspx?scid=kb;en-us;297768
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 type
   // HH_LAST_ERROR Command Related structures and constants
   // Used by command HH_GET_LAST_ERROR
@@ -69,7 +72,7 @@ type
   end;
   HH_LAST_ERROR = tagHH_LAST_ERROR;
   THHLastError = tagHH_LAST_ERROR;
-
+{$ENDIF JWA_INCLUDEMODE}
 // Error codes
 
 const
@@ -88,6 +91,17 @@ const
   HH_E_KEYWORD_EXCLUDED        = HRESULT((ERROR_SEVERITY_ERROR shl 31) or (FACILITY_ITF shl 16) or $0304); // no hits found because of infotype and subset exclusion.
   HH_E_KEYWORD_NOT_SUPPORTED   = HRESULT((ERROR_SEVERITY_ERROR shl 31) or (FACILITY_ITF shl 16) or $0305); // no hits found because of keywords not being supported in this mode.
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

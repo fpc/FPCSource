@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWSnetbs.pas,v 1.5 2004/12/08 08:18:40 marquardt Exp $
-
+// $Id: JwaWSnetbs.pas,v 1.6 2007/09/05 11:58:53 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWSnetbs;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "wsnetbs.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 //   wsnetbs.h
@@ -69,6 +74,7 @@ uses
 //
 //   This is the structure of the SOCKADDR structure for NETBIOS.
 //
+
 
 const
   NETBIOS_NAME_LENGTH = 16;
@@ -102,12 +108,16 @@ const
   NETBIOS_TYPE_QUICK_GROUP  = $0003;
   {$EXTERNALSYM NETBIOS_TYPE_QUICK_GROUP}
 
+
+
 //
 // A macro convenient for setting up NETBIOS SOCKADDRs.
 //
 
 procedure SET_NETBIOS_SOCKADDR(var SNB: TSockAddrNB; _Type: u_short; const Name: string; Port: Byte);
 {$EXTERNALSYM SET_NETBIOS_SOCKADDR}
+
+
 
 //
 //   To open a NetBIOS socket, call the socket() function as follows:
@@ -118,8 +128,15 @@ procedure SET_NETBIOS_SOCKADDR(var SNB: TSockAddrNB; _Type: u_short; const Name:
 //   open a socket for Lana 2, specify -2 as the "protocol" parameter
 //   to the socket() function.
 //
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 procedure SET_NETBIOS_SOCKADDR(var SNB: TSockAddrNB; _Type: u_short; const Name: string; Port: Byte);
 var
@@ -140,4 +157,9 @@ begin
   SNB.snb_name[NETBIOS_NAME_LENGTH - 1] := Char(Port);
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

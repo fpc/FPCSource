@@ -40,29 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNtStatus.pas,v 1.6 2005/08/31 05:57:47 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaNtStatus.pas,v 1.8 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNtStatus;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinType;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ntstatus.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+
+interface
+
+uses
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 /////////////////////////////////////////////////////////////////////////
 //
 // Standard Success values
@@ -10592,15 +10590,20 @@ const
   STATUS_PNP_IRQ_TRANSLATION_FAILED = NTSTATUS($C0040037);
   {$EXTERNALSYM STATUS_PNP_IRQ_TRANSLATION_FAILED}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-implementation
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
+
+implementation
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+

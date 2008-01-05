@@ -40,29 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinSvc.pas,v 1.10 2005/09/06 16:36:51 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaWinSvc.pas,v 1.12 2007/09/05 11:58:54 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinSvc;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinSvc.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinSvc.h"'}
-{$HPPEMIT ''}
-
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Service database names
 //
@@ -981,18 +979,24 @@ function StartService(hService: SC_HANDLE; dwNumServiceArgs: DWORD;
 function UnlockServiceDatabase(ScLock: SC_LOCK): BOOL; stdcall;
 {$EXTERNALSYM UnlockServiceDatabase}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  advapi32 = 'advapi32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1869,8 +1873,9 @@ function UnlockServiceDatabase; external advapi32 name 'UnlockServiceDatabase';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

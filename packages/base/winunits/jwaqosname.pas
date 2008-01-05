@@ -40,16 +40,18 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaQosName.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaQosName.pas,v 1.10 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaQosName;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "qosname.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
@@ -58,9 +60,12 @@ uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows,
   {$ELSE}
-  JwaWindows,
+  JwaWinType,
   {$ENDIF USE_DELPHI_TYPES}
   JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // Built-in QoS Templates
 
@@ -92,16 +97,34 @@ const
 type
   WSC_INSTALL_QOS_TEMPLATE = function(Guid: PGUID; QosName: LPWSABUF; Qos: LPQOS): BOOL; stdcall;
   {$EXTERNALSYM WSC_INSTALL_QOS_TEMPLATE}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   TWscInstallQosTemplate = WSC_INSTALL_QOS_TEMPLATE;
+  {$ENDIF JWA_INCLUDEMODE}
 
   WSC_REMOVE_QOS_TEMPLATE = function(Guid: PGUID; QosName: LPWSABUF): BOOL; stdcall;
   {$EXTERNALSYM WSC_REMOVE_QOS_TEMPLATE}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   TWscRemoveQosTemplate = WSC_REMOVE_QOS_TEMPLATE;
+  {$ENDIF JWA_INCLUDEMODE}
 
   WPU_GET_QOS_TEMPLATE = function(Guid: PGUID; QosName: LPWSABUF; Qos: LPQOS): BOOL; stdcall;
   {$EXTERNALSYM WPU_GET_QOS_TEMPLATE}
   TWpuGetQosTemplate = WPU_GET_QOS_TEMPLATE;
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

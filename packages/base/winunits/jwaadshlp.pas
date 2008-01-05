@@ -40,22 +40,31 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAdsHlp.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaAdsHlp.pas,v 1.12 2007/09/06 14:57:10 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdsHlp;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "adshlp.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
 uses
-  JwaActiveX, JwaAdsTLB, JwaWindows;
+  JwaActiveX, JwaAdsTLB, JwaWinType, JwaWinNT;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 function ADsGetObject(lpszPathName: LPCWSTR; const riid: TGUID; out ppObject: Pointer): HRESULT; stdcall;
 {$EXTERNALSYM ADsGetObject}
@@ -136,6 +145,7 @@ function PropVariantToAdsType(var pVariant: OleVariant; dwNumVariant: DWORD;
   var ppAdsValues: PADSVALUE; pdwNumValues: PDWORD): HRESULT; stdcall;
 {$EXTERNALSYM PropVariantToAdsType}
 
+
 function AdsTypeToPropVariant(pAdsValues: PADSVALUE; dwNumValues: DWORD;
   var pVariant: OleVariant): HRESULT; stdcall;
 {$EXTERNALSYM AdsTypeToPropVariant}
@@ -155,19 +165,32 @@ function BinarySDToSecurityDescriptor(pSecurityDescriptor: PSECURITY_DESCRIPTOR;
   var pVarsec: VARIANT; pszServerName, userName, passWord: LPCWSTR; dwFlags: DWORD): HRESULT; stdcall;
 {$EXTERNALSYM BinarySDToSecurityDescriptor}
 
+{$ENDIF JWA_INCLUDEMODE}
+
 function SecurityDescriptorToBinarySD(vVarSecDes: VARIANT;
   var ppSecurityDescriptor: PSECURITY_DESCRIPTOR; pdwSDLength: PDWORD;
   pszServerName, userName, passWord: LPCWSTR; dwFlags: DWORD): HRESULT; stdcall;
 {$EXTERNALSYM SecurityDescriptorToBinarySD}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  adslib = 'activeds.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 //procedure ADsFreeAllErrorRecords
 
 {$IFDEF DYNAMIC_LINK}
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 var
   _ADsGetObject: Pointer;
@@ -442,6 +465,8 @@ begin
   end;
 end;
 
+{$ENDIF JWA_INCLUDEMODE}
+
 var
   _SecurityDescriptorToBinarySD: Pointer;
 
@@ -457,6 +482,7 @@ end;
 
 {$ELSE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 function ADsGetObject; external adslib name 'ADsGetObject';
 function ADsBuildEnumerator; external adslib name 'ADsBuildEnumerator';
 function ADsFreeEnumerator; external adslib name 'ADsFreeEnumerator';
@@ -478,8 +504,14 @@ function PropVariantToAdsType; external adslib name 'PropVariantToAdsType';
 function AdsTypeToPropVariant; external adslib name 'AdsTypeToPropVariant';
 procedure AdsFreeAdsValues; external adslib name 'AdsFreeAdsValues';
 function BinarySDToSecurityDescriptor; external adslib name 'BinarySDToSecurityDescriptor';
+{$ENDIF JWA_INCLUDEMODE}
+
 function SecurityDescriptorToBinarySD; external adslib name 'SecurityDescriptorToBinarySD';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

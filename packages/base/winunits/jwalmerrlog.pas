@@ -40,29 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmErrLog.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLmErrLog.pas,v 1.12 2007/09/05 11:58:50 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmErrLog;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows, JwaLmCons;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmerrlog.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaLmCons, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Data Structures - Config
 //
@@ -2139,20 +2138,14 @@ const
      * to this domain controller. After the misconfiguration is corrected, restart the NetLogon
      * service on this machine and verify that this event log no longer appears.
      *)
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
-
+{$IFNDEF JWA_INTERFACESECTION}
 {$IFDEF DYNAMIC_LINK}
 
 var
@@ -2201,9 +2194,8 @@ function NetErrorLogRead; external netapi32 name 'NetErrorLogRead';
 function NetErrorLogWrite; external netapi32 name 'NetErrorLogWrite';
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}

@@ -40,13 +40,19 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaReason.pas,v 1.8 2005/09/04 07:02:38 marquardt Exp $
+// $Id: JwaReason.pas,v 1.10 2007/09/05 11:58:52 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaReason;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinReg.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 
 {$I jediapilib.inc}
 
@@ -54,19 +60,13 @@ interface
 
 uses
   JwaWinType;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinReg.h"'}
-{$HPPEMIT ''}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 // Reason flags
 
 // Flags used by the various UIs.
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   SHTDN_REASON_FLAG_COMMENT_REQUIRED          = $01000000;
   {$EXTERNALSYM SHTDN_REASON_FLAG_COMMENT_REQUIRED}
@@ -237,15 +237,20 @@ const
   MAX_NUM_REASONS = 256;
   {$EXTERNALSYM MAX_NUM_REASONS}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-implementation
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

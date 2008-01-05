@@ -40,28 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinNLS.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaWinNLS.pas,v 1.12 2007/09/05 11:58:54 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinNLS;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinNls.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinBase, JwaWinType;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinNls.h"'}
-{$HPPEMIT ''}
+  JwaWinType, JwaWinBase;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -76,6 +76,7 @@ uses
 //
 
 const
+
   MAX_LEADBYTES   = 12; // 5 ranges, 2 bytes ea., 0 term.
   {$EXTERNALSYM MAX_LEADBYTES}
   MAX_DEFAULTCHAR = 2; // single or double byte
@@ -278,6 +279,7 @@ const
   {$EXTERNALSYM LGRPID_INSTALLED}
   LGRPID_SUPPORTED = $00000002; // supported language group ids
   {$EXTERNALSYM LGRPID_SUPPORTED}
+
 
 //
 //  Locale Enumeration Flags.
@@ -594,6 +596,7 @@ const
   CTRY_ZIMBABWE           = 263; // Zimbabwe
   {$EXTERNALSYM CTRY_ZIMBABWE}
 
+
 //
 //  Locale Types.
 //
@@ -620,8 +623,12 @@ const
   LOCALE_USE_CP_ACP     = $40000000; // use the system ACP
   {$EXTERNALSYM LOCALE_USE_CP_ACP}
 
+
+
   LOCALE_RETURN_NUMBER = $20000000; // return number instead of string
   {$EXTERNALSYM LOCALE_RETURN_NUMBER}
+
+
 
 //
 //  The following LCTypes are mutually exclusive in that they may NOT
@@ -1836,18 +1843,25 @@ function EnumSystemCodePages(lpCodePageEnumProc: CODEPAGE_ENUMPROC;
   dwFlags: DWORD): BOOL; stdcall;
 {$EXTERNALSYM EnumSystemCodePages}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
+const
+  kernel32 = 'kernel32.dll';
 
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -3228,8 +3242,8 @@ function EnumSystemCodePages; external kernel32 name 'EnumSystemCodePages' + AWS
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

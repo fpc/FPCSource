@@ -40,25 +40,25 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmErr.pas,v 1.7 2005/09/07 09:54:54 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaLmErr.pas,v 1.9 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLmErr;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmerr.h"'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   NERR_Success = 0; // Success
@@ -931,15 +931,21 @@ const
 //    WARNING:  Do not exceed MAX_NERR; values above this are used by
 //              other error code ranges (errlog.h, service.h, apperr.h).
 
-{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-implementation
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+

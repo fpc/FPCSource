@@ -40,29 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmAlert.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaLmAlert.pas,v 1.12 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmAlert;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows, JwaLmCons;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmalert.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaLmCons, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Function Prototypes
 //
@@ -237,18 +235,19 @@ const
   PRJOB_QS_PRINTING = 3;
   {$EXTERNALSYM PRJOB_QS_PRINTING}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
 
-{$ENDIF !JWA_INCLUDEMODE}
 
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 function ALERT_OTHER_INFO(x: Pointer): Pointer;
 begin
@@ -290,8 +289,9 @@ function NetAlertRaiseEx; external netapi32 name 'NetAlertRaiseEx';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}

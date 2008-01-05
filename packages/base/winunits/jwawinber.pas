@@ -40,22 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinBer.pas,v 1.6 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaWinBer.pas,v 1.9 2007/09/14 06:48:48 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinBer;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "WinBer.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinLDAP, JwaWindows;
+  JwaWinLDAP, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   LBER_ERROR   = DWORD($ffffffff);
@@ -91,6 +99,7 @@ function ber_init(pBerVal: PBerVal): PBerElement; cdecl;
 procedure ber_free(pBerElement: PBerElement; fbuf: Integer); cdecl;
 {$EXTERNALSYM ber_free}
 
+{$IFNDEF JWA_INCLUDEMODE}
 //
 // Frees a BERVAL structure. Applications should not call
 // this API to free BERVAL structures which they themselves
@@ -99,6 +108,7 @@ procedure ber_free(pBerElement: PBerElement; fbuf: Integer); cdecl;
 
 procedure ber_bvfree(pBerVal: PBerVal); cdecl;
 {$EXTERNALSYM ber_bvfree}
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 // Frees an array of BERVAL structures.
@@ -360,14 +370,29 @@ contain the following characters:
 
 //WINBERAPI ULONG BERAPI ber_scanf( BerElement *pBerElement, PCHAR fmt, ... );
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  winberapi = 'wldap32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 function ber_init; external winberapi name 'ber_init';
 procedure ber_free; external winberapi name 'ber_free';
+{$IFNDEF JWA_INCLUDEMODE}
 procedure ber_bvfree; external winberapi name 'ber_bvfree';
+{$ENDIF JWA_INCLUDEMODE}
 procedure ber_bvecfree; external winberapi name 'ber_bvecfree';
 function ber_bvdup; external winberapi name 'ber_bvdup';
 function ber_alloc_t; external winberapi name 'ber_alloc_t';
@@ -379,4 +404,9 @@ function ber_flatten; external winberapi name 'ber_flatten';
 //function ber_printf; external winberapi name 'ber_printf';
 //function ber_scanf; external winberapi name 'ber_scanf';
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

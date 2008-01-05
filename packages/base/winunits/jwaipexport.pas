@@ -43,22 +43,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaIpExport.pas,v 1.8 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaIpExport.pas,v 1.11 2007/09/14 06:48:46 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaIpExport;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ipexport.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaWS2tcpip;
+  JwaWinType, JwaWS2tcpip;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // IP type definitions.
@@ -103,6 +108,7 @@ type
 
 //#ifndef s_addr
 
+  {$IFNDEF JWA_INCLUDEMODE}
   in_addr = record
     case Integer of
       0: (
@@ -116,6 +122,7 @@ type
         );
   end;
   {$EXTERNALSYM in_addr}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //#define s_addr  S_un.S_addr /* can be used for most tcp & ip code */
 
@@ -436,6 +443,18 @@ const
   IOCTL_IP_UNIDIRECTIONAL_ADAPTER_ADDRESS = 106;
   {$EXTERNALSYM IOCTL_IP_UNIDIRECTIONAL_ADAPTER_ADDRESS}
 
-implementation
+//your interface declarations here
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

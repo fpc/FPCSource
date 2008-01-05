@@ -40,32 +40,47 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDhcpsApi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaDhcpsApi.pas,v 1.12 2007/09/06 14:57:11 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDhcpsApi;
 
 {$WEAKPACKAGEUNIT}
+
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "dhcpsapi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   DHCP_IP_ADDRESS = DWORD;
+  {$ENDIF JWA_INCLUDEMODE}
+
   {$EXTERNALSYM DHCP_IP_ADDRESS}
   PDHCP_IP_ADDRESS = ^DHCP_IP_ADDRESS;
   {$EXTERNALSYM PDHCP_IP_ADDRESS}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   LPDHCP_IP_ADDRESS = ^DHCP_IP_ADDRESS;
   {$EXTERNALSYM LPDHCP_IP_ADDRESS}
+  {$ENDIF JWA_INCLUDEMODE}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   TDhcpIpAddress = DHCP_IP_ADDRESS;
   PDhcpIpAddress = ^DHCP_IP_ADDRESS;
+  {$ENDIF JWA_INCLUDEMODE}
 
   DHCP_IP_MASK = DWORD;
   {$EXTERNALSYM DHCP_IP_MASK}
@@ -87,8 +102,11 @@ type
   {$EXTERNALSYM DATE_TIME}
   LPDATE_TIME = ^DATE_TIME;
   {$EXTERNALSYM LPDATE_TIME}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   TDateTime = DATE_TIME;
   PDateTime = ^DATE_TIME;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _DWORD_DWORD = record
     DWord1: DWORD;
@@ -311,7 +329,13 @@ type
 
 type
   _DHCP_SUBNET_STATE = (
-    DhcpSubnetEnabled = 0,
+{$IFDEF COMPILER6_UP}
+  DhcpSubnetEnabled = 0,
+{$ELSE}
+  DhcpSubnetEnabled,
+{$ENDIF}
+
+
     DhcpSubnetDisabled,
     DhcpSubnetEnabledSwitched,
     DhcpSubnetDisabledSwitched,
@@ -413,7 +437,10 @@ type
   LPDHCP_OPTION_VALUE = ^DHCP_OPTION_VALUE;
   {$EXTERNALSYM LPDHCP_OPTION_VALUE}
   TDhcpOptionValue = DHCP_OPTION_VALUE;
-  PDhcpOptionValue = ^DHCP_OPTION_VALUE;  
+  PDhcpOptionValue = ^DHCP_OPTION_VALUE;
+
+
+
 
 function DhcpGetVersion(ServerIpAddress: LPWSTR; MajorVersion, MinorVersion: LPDWORD): DWORD; stdcall;
 {$EXTERNALSYM DhcpGetVersion}
@@ -438,12 +465,22 @@ function DhcpGetSubnetInfo(ServerIpAddress: PWideChar; SubnetAddress: DHCP_IP_AD
 function DhcpGetOptionValue(ServerIpAddress: PWideChar; OptionID: DHCP_OPTION_ID; const ScopeInfo: DHCP_OPTION_SCOPE_INFO; out OptionValue: LPDHCP_OPTION_VALUE): DWORD; stdcall;
 {$EXTERNALSYM DhcpGetOptionValue}
 procedure DhcpRpcFreeMemory(BufferPointer: PVOID); stdcall;
-{$EXTERNALSYM DhcpRpcFreeMemory}
+{$EXTERNALSYM DhcpRpcFreeMemory}     
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  dhcplib = 'dhcpsapi.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -601,8 +638,8 @@ begin
         POP     EBP
         JMP     [_DhcpRpcFreeMemory]
   end;
-end;
-                                   
+end;     
+
 {$ELSE}
 
 function DhcpGetVersion; external dhcplib name 'DhcpGetVersion';
@@ -620,4 +657,9 @@ procedure DhcpRpcFreeMemory; external dhcplib name 'DhcpRpcFreeMemory';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

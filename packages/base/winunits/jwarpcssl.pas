@@ -40,30 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaRpcSsl.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaRpcSsl.pas,v 1.11 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaRpcSsl;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFNDEF JWARPC_PAS}
-uses
-  JwaWinCrypt, JwaWinType;
-{$ENDIF !JWARPC_PAS}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "rpcssl.h"'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaRpc, JwaWinCrypt, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 function RpcCertGeneratePrincipalNameW(Context: PCCERT_CONTEXT; Flags: DWORD; out pBuffer: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcCertGeneratePrincipalNameW}
@@ -72,18 +69,28 @@ function RpcCertGeneratePrincipalNameA(Context: PCCERT_CONTEXT; Flags: DWORD; ou
 function RpcCertGeneratePrincipalName(Context: PCCERT_CONTEXT; Flags: DWORD; out pBuffer: PTCHAR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcCertGeneratePrincipalName}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  rpclib = 'rpcrt4.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -134,8 +141,10 @@ function RpcCertGeneratePrincipalName; external rpclib name 'RpcCertGeneratePrin
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

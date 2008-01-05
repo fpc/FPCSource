@@ -41,30 +41,40 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLM.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLM.pas,v 1.11 2007/09/05 11:58:50 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLM;
 
 {$WEAKPACKAGEUNIT}
 
-{$DEFINE JWALM_PAS}
-{$DEFINE JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$DEFINE JWALM_PAS}
+{.$DEFINE JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 {$DEFINE JWA_INTERFACESECTION}
-{$I JwaLmErr.pas}      // LAN Manager network error definitions
-{$I JwaLmCons.pas}     // LAN Manager common definitions
+{$DEFINE JWA_OMIT_SECTIONS_LM}
 
-{$I JwaLmAccess.pas}   // Access, Domain, Group and User classes
-{$I JwaLmAlert.pas}    // Alerter
-{$I JwaLmShare.pas}    // Connection, File, Session and Share classes
-{$I JwaLmMsg.pas}      // Message class
+
+
+ {$I JwaLmCons.pas}     // LAN Manager common definitions
+ {$I JwaLmErr.pas}      // LAN Manager network error definitions
+ {$I JwaLmAccess.pas}   // Access, Domain, Group and User classes
+ {$I JwaLmAlert.pas}    // Alerter
+ {$I JwaLmShare.pas}    // Connection, File, Session and Share classes
+ {$I JwaLmMsg.pas}      // Message class
 {$I JwaLmRemUtl.pas}   // Remote Utility class
 {$I JwaLmRepl.pas}     // Replicator class
 {$I JwaLmServer.pas}   // Server class
@@ -77,21 +87,30 @@ uses
 {$I JwaLmStats.pas}    // NetStats class
 {$I JwaLmAudit.pas}    // NetAudit class
 {$I JwaLmJoin.pas}     // NetJoinDomain class
-{$UNDEF JWA_INTERFACESECTION}
 
+
+
+{$UNDEF JWA_INTERFACESECTION}
+{$UNDEF JWA_OMIT_SECTIONS_LM}
+
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
 
 uses
   JwaWinDLLNames;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$DEFINE JWA_IMPLEMENTATIONSECTION}
-{$I JwaLmCons.pas}     // LAN Manager common definitions
-{$I JwaLmErr.pas}      // LAN Manager network error definitions
+{$DEFINE JWA_OMIT_SECTIONS_LM}
 
-{$I JwaLmAccess.pas}   // Access, Domain, Group and User classes
-{$I JwaLmAlert.pas}    // Alerter
-{$I JwaLmShare.pas}    // Connection, File, Session and Share classes
-{$I JwaLmMsg.pas}      // Message class
+ {$I JwaLmCons.pas}     // LAN Manager common definitions
+ {$I JwaLmErr.pas}      // LAN Manager network error definitions
+ {$I JwaLmAccess.pas}   // Access, Domain, Group and User classes
+ {$I JwaLmAlert.pas}    // Alerter
+ {$I JwaLmShare.pas}    // Connection, File, Session and Share classes
+ {$I JwaLmMsg.pas}      // Message class
 {$I JwaLmRemUtl.pas}   // Remote Utility class
 {$I JwaLmRepl.pas}     // Replicator class
 {$I JwaLmServer.pas}   // Server class
@@ -104,7 +123,25 @@ uses
 {$I JwaLmStats.pas}    // NetStats class
 {$I JwaLmAudit.pas}    // NetAudit class
 {$I JwaLmJoin.pas}     // NetJoinDomain class
+
+{$UNDEF JWA_OMIT_SECTIONS_LM}
 {$UNDEF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

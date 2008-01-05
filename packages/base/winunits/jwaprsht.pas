@@ -40,24 +40,31 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPrSht.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaPrSht.pas,v 1.15 2007/09/14 06:48:46 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPrSht;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ntdsapi.h"'}
 {$HPPEMIT ''}
 {$HPPEMIT 'typedef PHPROPSHEETPAGE  *HPROPSHEETPAGE'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinNT, JwaWinUser, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //#ifndef CCSIZEOF_STRUCT
 //#define CCSIZEOF_STRUCT(structname, member)  (((int)((LPBYTE)(&((structname*)0)->member) - ((LPBYTE)((structname*)0)))) + sizeof(((structname*)0)->member))
@@ -72,8 +79,10 @@ const
   {$EXTERNALSYM MAXPROPPAGES}
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   HPROPSHEETPAGE = Pointer;
   {$EXTERNALSYM HPROPSHEETPAGE}
+  {$ENDIF JWA_INCLUDEMODE}
   PHPROPSHEETPAGE = ^HPROPSHEETPAGE;
   {$NODEFINE PHPROPSHEETPAGE}
 
@@ -787,10 +796,24 @@ const
   PROP_LG_CYDLG = 218;
   {$EXTERNALSYM PROP_LG_CYDLG}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  comctl32 = 'comctl32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function PropSheet_SetCurSel(hPropSheetDlg: HWND; hPage: HPROPSHEETPAGE; Index: Integer): BOOL;
 begin
@@ -1042,4 +1065,8 @@ function PropertySheet; external comctl32 name 'PropertySheet' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,23 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAF_Irda.pas,v 1.6 2005/09/08 07:49:25 marquardt Exp $
-
+// $Id: JwaAF_Irda.pas,v 1.8 2007/09/05 11:58:48 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAF_Irda;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "af_irda.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinSock2, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Winsock1.1, IrDA1.1, WindowsNT5.0, Windows98 and WindowsCE1.0.
 // Define one of _WIN32_WINNT, _WIN32_WINDOWS, _WIN32_WCE.
@@ -441,6 +445,20 @@ type
   TIasQuery = IAS_QUERY;
   PIasQuery = PIAS_QUERY;  
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

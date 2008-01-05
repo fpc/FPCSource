@@ -40,25 +40,32 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAdssts.pas,v 1.6 2005/09/03 14:27:47 marquardt Exp $
+// $Id: JwaAdssts.pas,v 1.9 2007/09/06 14:57:11 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdssts;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "adssts.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //  Contents:   Status Codes for ADS objects
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   ADS_PRINTER_PAUSED            = $00000001;
   {$EXTERNALSYM ADS_PRINTER_PAUSED}
@@ -197,7 +204,19 @@ const
   {$EXTERNALSYM ADS_SERVICE_ERROR_SEVERE}
   ADS_SERVICE_ERROR_CRITICAL = 3;
   {$EXTERNALSYM ADS_SERVICE_ERROR_CRITICAL}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

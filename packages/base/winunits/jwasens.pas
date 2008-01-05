@@ -40,19 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSens.pas,v 1.4 2004/12/08 08:18:39 marquardt Exp $
-
+// $Id: JwaSens.pas,v 1.5 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSens;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "Sens.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Constants
@@ -90,6 +95,23 @@ const
   SENSGUID_EVENTCLASS_LOGON2: TGUID = '{d5978650-5b9f-11d1-8dd2-00aa004abd5e}';
   {$EXTERNALSYM SENSGUID_EVENTCLASS_LOGON2}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

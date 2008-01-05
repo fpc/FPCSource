@@ -40,18 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaActiveDS.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaActiveDS.pas,v 1.13 2007/09/06 14:57:10 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaActiveDS;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaActiveX, JwaAdsTLB, JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "activeds.h"'}
@@ -59,6 +53,18 @@ uses
 {$HPPEMIT 'typedef GUID REFIID'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaActiveX, JwaAdsTLB, JwaWinNT, JwaWinType, JwaWinUser;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
   REFIID = GUID;
   {$NODEFINE REFIID}
@@ -209,6 +215,7 @@ procedure AdsFreeAdsValues(pAdsValues: PADSVALUE; dwNumValues: DWORD); stdcall;
 //
 
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   FACILITY_WINDOWS  = 8;
   {$EXTERNALSYM FACILITY_WINDOWS}
   FACILITY_STORAGE  = 3;
@@ -227,6 +234,7 @@ const
   {$EXTERNALSYM FACILITY_ITF}
   FACILITY_DISPATCH = 2;
   {$EXTERNALSYM FACILITY_DISPATCH}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // Define the severity codes
@@ -850,11 +858,20 @@ function ADsPropSetHwnd(hNotifyObj: HWND; hPage: HWND): BOOL; stdcall;
 
 function ADsPropCheckIfWritable(pwzAttr: PWSTR; pWritableAttrs: PADS_ATTR_INFO): BOOL; stdcall;
 {$EXTERNALSYM ADsPropCheckIfWritable}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  adslib = 'activeds.dll';
+  dsprop = 'dsprop.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 // adshlp.h
 
@@ -1203,4 +1220,9 @@ function ADsPropCheckIfWritable; external dsprop name 'ADsPropCheckIfWritable';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

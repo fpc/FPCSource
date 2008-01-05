@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmDFS.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaLmDFS.pas,v 1.10 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLmDFS;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmdfs.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaLmCons;
+  JwaLmCons, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // DFS Volume state
@@ -481,10 +487,15 @@ function NetDfsMove(DfsEntryPath: LPWSTR; DfsNewEntryPath: LPWSTR): NET_API_STAT
 function NetDfsRename(Path: LPWSTR; NewPath: LPWSTR): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetDfsRename}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -731,4 +742,9 @@ function NetDfsRename; external netapi32 name 'NetDfsRename';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

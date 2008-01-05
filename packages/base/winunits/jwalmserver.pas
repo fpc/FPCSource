@@ -40,29 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmServer.pas,v 1.11 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLmServer.pas,v 1.13 2007/09/05 11:58:51 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmServer;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows, JwaLmCons;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmserver.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaLmCons, JwaWinSvc, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Function Prototypes - SERVER
 //
@@ -102,7 +102,7 @@ function NetServerTransportAdd(servername: LMSTR; level: DWORD; bufptr: LPBYTE):
 
 function NetServerTransportAddEx(servername: LMSTR; level: DWORD; bufptr: LPBYTE): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetServerTransportAddEx}
-
+     
 function NetServerTransportDel(servername: LMSTR; level: DWORD; bufptr: LPBYTE): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetServerTransportDel}
 
@@ -2415,19 +2415,14 @@ const
 
   SVTI2_REMAP_PIPE_NAMES = $2;
   {$EXTERNALSYM SVTI2_REMAP_PIPE_NAMES}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -2618,8 +2613,8 @@ function SetServiceBits; external netapi32 name 'SetServiceBits';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}

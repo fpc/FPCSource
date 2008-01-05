@@ -38,23 +38,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaBthSdpDef.pas,v 1.1 2005/09/05 06:29:33 marquardt Exp $
+// $Id: JwaBthSdpDef.pas,v 1.3 2007/09/05 11:58:49 dezipaitor Exp $
 
-unit JwaBthSdpDef;
+{$IFNDEF JWA_OMIT_SECTIONS}
+unit JWaBthSdpDef;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "bthsdpdef.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
   SDP_LARGE_INTEGER_16 = record
     LowPart: Int64;
@@ -187,6 +192,19 @@ type
   {$EXTERNALSYM SdpQueryUuid}
   TSdpQueryUuid = SdpQueryUuid;
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,30 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmConfig.pas,v 1.11 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLmConfig.pas,v 1.13 2007/09/05 11:58:50 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmConfig;
 
 {$I jediapilib.inc}
+{$I jedi.inc} //used for D5 compiling
 
 {$WEAKPACKAGEUNIT}
 
 interface
 
 uses
-  JwaWindows, JwaLmCons;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+  JwaLmCons, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmconfig.h"'}
 {$HPPEMIT ''}
 
 {$DEFINE LM_REVISED_CONFIG_APIS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Function Prototypes - Config
@@ -115,18 +114,14 @@ type
   TConfigInfo0 = CONFIG_INFO_0;
   PConfigInfo0 = PCONFIG_INFO_0;  
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -170,28 +165,57 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _NetRegisterDomainNameChangeNotification: Pointer;
+{$ELSE}
+  _NetRegisterDomainNCN: Pointer;
+{$ENDIF}
+
 
 function NetRegisterDomainNameChangeNotification;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_NetRegisterDomainNameChangeNotification, netapi32, 'NetRegisterDomainNameChangeNotification');
+{$ELSE}
+  GetProcedureAddress(_NetRegisterDomainNCN, netapi32, 'NetRegisterDomainNameChangeNotification');
+{$ENDIF}
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_NetRegisterDomainNameChangeNotification]
+{$ELSE}
+        JMP     [_NetRegisterDomainNCN]
+{$ENDIF}
   end;
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _NetUnregisterDomainNameChangeNotification: Pointer;
+{$ELSE}
+  _NetUnregisterDomainNCN: Pointer;
+{$ENDIF}
+
 
 function NetUnregisterDomainNameChangeNotification;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_NetUnregisterDomainNameChangeNotification, netapi32, 'NetUnregisterDomainNameChangeNotification');
+{$ELSE}
+  GetProcedureAddress(_NetUnregisterDomainNCN, netapi32, 'NetUnregisterDomainNameChangeNotification');
+{$ENDIF}
+
+
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_NetUnregisterDomainNameChangeNotification]
+{$ELSE}
+        JMP     [_NetUnregisterDomainNCN]
+{$ENDIF}
+
   end;
 end;
 
@@ -205,8 +229,8 @@ function NetUnregisterDomainNameChangeNotification; external netapi32 name 'NetU
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}

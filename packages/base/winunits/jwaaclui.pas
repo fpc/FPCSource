@@ -40,23 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAclUI.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaAclUI.pas,v 1.13 2007/09/05 11:58:48 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAclUI;
 
 {$WEAKPACKAGEUNIT}
+
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "aclui.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaAccCtrl, JwaWindows;
+  JwaAccCtrl, JwaWinNT, JwaWinUser, JwaWinType, JwaActiveX;
 
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // ISecurityInformation interface
 //
@@ -91,7 +98,7 @@ type
   {$EXTERNALSYM PSI_OBJECT_INFO}
   _SI_OBJECT_INFO = record
     dwFlags: DWORD;
-    hInstance: HINST;      // resources (e.g. strings) reside here
+    hInstance: HINST;  // resources (e.g. strings) reside here
     pszServerName: LPWSTR; // must be present
     pszObjectName: LPWSTR; // must be present
     pszPageTitle: LPWSTR;  // only valid if SI_PAGE_TITLE is set
@@ -250,10 +257,13 @@ type
   {$EXTERNALSYM LPSECURITYINFO}
 
   ISecurityInformation2 = interface(IUnknown)
-  [SID_ISecurityInformation]
+  [SID_ISecurityInformation2]
     function IsDaclCanonical(pDacl: PACL): BOOL; stdcall;
+
+    {If the compiler does not compile your implemented interface.
+     Try ActiveX.IDataObject instead if simply IDataObject.}
     function LookupSids(cSids: ULONG; rgpSids: PPSID;
-      out ppdo: Pointer{*LPDATAOBJECT}): HRESULT; stdcall;
+      out ppdo: IDataObject): HRESULT; stdcall;
   end;
   {$EXTERNALSYM ISecurityInformation2}
 
@@ -331,10 +341,20 @@ function CreateSecurityPage(psi: LPSECURITYINFO): HPROPSHEETPAGE; stdcall;
 function EditSecurity(hwndOwner: HWND; psi: LPSECURITYINFO): BOOL; stdcall;
 {$EXTERNALSYM EditSecurity}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  acluilib = 'aclui.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -371,4 +391,9 @@ function EditSecurity; external acluilib name 'EditSecurity';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

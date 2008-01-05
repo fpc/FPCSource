@@ -40,23 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaMsiQuery.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaMsiQuery.pas,v 1.11 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaMsiQuery;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "msiquery.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaMsi, JwaWindows;
+  JwaMsi, JwaWinBase, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 (*****************************************************************************\
 *                                                                             *
 * MsiQuery.h - Interface to running installer for custom actions and tools    *
@@ -1060,10 +1064,25 @@ function MsiPreviewBillboard(hPreview: MSIHANDLE; szControlName: LPCTSTR;
 function MsiGetLastErrorRecord: MSIHANDLE; stdcall;
 {$EXTERNALSYM MsiGetLastErrorRecord}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  msilib = 'msi.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
+
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -2948,4 +2967,9 @@ function MsiGetLastErrorRecord; external msilib name 'MsiGetLastErrorRecord';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

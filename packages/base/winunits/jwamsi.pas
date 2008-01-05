@@ -42,8 +42,9 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaMsi.pas,v 1.15 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaMsi.pas,v 1.17 2007/09/05 11:58:51 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaMsi;
 
 {$WEAKPACKAGEUNIT}
@@ -53,12 +54,14 @@ unit JwaMsi;
 interface
 
 uses
-  JwaWindows;
+  JwaWinType, JwaWinCrypt { for PCCERT_CONTEXT };
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "msi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 // (rom) MSI version IFDEFs now declared in jediapilib.inc
 
 (*****************************************************************************\
@@ -1224,6 +1227,7 @@ function MsiIsProductElevated(szProduct: LPCTSTR; var pfElevated: BOOL): UINT; s
 // Error codes for installer access functions - until merged to winerr.h
 // --------------------------------------------------------------------------
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   ERROR_INSTALL_USEREXIT      = 1602; // User cancel installation.
   {$EXTERNALSYM ERROR_INSTALL_USEREXIT}
@@ -1338,13 +1342,27 @@ const
   {$EXTERNALSYM ERROR_INSTALL_REMOTE_PROHIBITED}
 
 //#endif
+{$ENDIF JWA_INCLUDEMODE}
 
 // LOCALIZE END
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  msilib = 'msi.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -3639,4 +3657,9 @@ function MsiIsProductElevated; external msilib name 'MsiIsProductElevated' + AWS
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

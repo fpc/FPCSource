@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDSQuery.pas,v 1.8 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaDSQuery.pas,v 1.10 2007/09/05 11:58:49 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDSQuery;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "dsquery.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaCmnQuery, JwaWindows;
+  JwaCmnQuery, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   CLSID_DsQuery: TGUID = (D1:$8a23e65e; D2:$31c2; D3:$11d0; D4:($89, $1c, $0, $a0, $24, $ab, $2d, $bb));
@@ -218,6 +223,21 @@ const
   DSQPM_HELPTOPICS = CQPM_HANDLERSPECIFIC + 1; // wParam = 0, lParam = hWnd parent
   {$EXTERNALSYM DSQPM_HELPTOPICS}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+
+

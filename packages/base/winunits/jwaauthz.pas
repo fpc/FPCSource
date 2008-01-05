@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAuthz.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaAuthz.pas,v 1.13 2007/09/06 14:57:11 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAuthz;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "authz.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Flags which may be used at the time of client context creation using a sid.
@@ -466,10 +473,20 @@ AuthzReportSecurityEventFromParams(
     );
 *)
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  authzlib = 'authz.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -702,4 +719,8 @@ function AuthzFreeAuditEvent; external authzlib name 'AuthzFreeAuditEvent';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

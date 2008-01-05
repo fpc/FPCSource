@@ -40,11 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSceSvc.pas,v 1.3 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaSceSvc.pas,v 1.5 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSceSvc;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "scesvc.h"'}
@@ -52,12 +53,16 @@ unit JwaSceSvc;
 {$HPPEMIT 'typedef SCESVC_HANDLE *PSCESVC_HANDLE'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   SCESTATUS = DWORD;
@@ -331,6 +336,23 @@ type
   LPSCESVCATTACHMENTDATA = ISceSvcAttachmentData;
   {$EXTERNALSYM LPSCESVCATTACHMENTDATA}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

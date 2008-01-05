@@ -40,19 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSecurity.pas,v 1.5 2004/12/08 08:18:39 marquardt Exp $
-
+// $Id: JwaSecurity.pas,v 1.7 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSecurity;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "security.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // This file will go out and pull in all the header files that you need,
 // based on defines that you issue.  The following macros are used.
@@ -70,6 +75,7 @@ const
   NTLMSP_NAME = WideString('NTLM');
   {$EXTERNALSYM NTLMSP_NAME}
 
+  {$IFNDEF JWA_INCLUDEMODE}
   MICROSOFT_KERBEROS_NAME_A = 'Kerberos';
   {$EXTERNALSYM MICROSOFT_KERBEROS_NAME_A}
   MICROSOFT_KERBEROS_NAME_W = WideString('Kerberos');
@@ -83,6 +89,7 @@ const
   MICROSOFT_KERBEROS_NAME = MICROSOFT_KERBEROS_NAME_A;
   {$EXTERNALSYM MICROSOFT_KERBEROS_NAME}
   {$ENDIF UNICODE}
+  {$ENDIF JWA_INCLUDEMODE}  
 
   NEGOSSP_NAME_W = WideString('Negotiate');
   {$EXTERNALSYM NEGOSSP_NAME_W}
@@ -97,6 +104,20 @@ const
   {$EXTERNALSYM NEGOSSP_NAME}
   {$ENDIF UNICODE}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

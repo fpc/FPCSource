@@ -40,23 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaErrorRep.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaErrorRep.pas,v 1.13 2007/09/14 06:48:45 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaErrorRep;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "errorrep.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinBase, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
   tagEFaultRepRetVal = (
     frrvOk,
@@ -92,10 +97,24 @@ type
   pfn_ADDEREXCLUDEDAPPLICATION = pfn_ADDEREXCLUDEDAPPLICATIONW;
   {$EXTERNALSYM pfn_ADDEREXCLUDEDAPPLICATION}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  faultreplib = 'faultrep.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -160,4 +179,8 @@ function AddERExcludedApplication; external faultreplib name 'AddERExcludedAppli
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

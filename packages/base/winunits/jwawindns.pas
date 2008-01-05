@@ -40,7 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinDNS.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaWinDNS.pas,v 1.12 2007/09/05 11:58:53 dezipaitor Exp $
 
 {******************************************************************}
 { Notes (TODO):                                                    }
@@ -50,9 +50,11 @@
 {   DNS_RRSET_ADD macro untranslatable                             }
 {******************************************************************}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinDNS;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "WinDNS.h"'}
@@ -60,15 +62,22 @@ unit JwaWinDNS;
 {$HPPEMIT 'typeded PDNS_RECORD *PPDNS_RECORD'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinsock2, JwaWindows, JwaWS2atm;
+  JwaWinsock2, JwaWinType, JwaWS2atm;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+
+{$IFNDEF JWA_INCLUDEMODE}
 type
   IN6_ADDR = Pointer; // todo
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 //  Define QWORD -- not yet defined globally 
@@ -1816,10 +1825,27 @@ function DnsExtractRecordsFromMessage_W(pDnsBuffer: PDNS_MESSAGE_BUFFER; wMessag
 function DnsExtractRecordsFromMessage_UTF8(pDnsBuffer: PDNS_MESSAGE_BUFFER; wMessageLength: WORD; ppRecord: PPDNS_RECORD): DNS_STATUS; stdcall;
 {$EXTERNALSYM DnsExtractRecordsFromMessage_UTF8}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  dnsapi = 'dnsapi.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 procedure INLINE_WORD_FLIP(var Out_: WORD; In_: WORD);
 begin
@@ -2472,4 +2498,9 @@ function DnsExtractRecordsFromMessage_UTF8; external dnsapi name 'DnsExtractReco
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

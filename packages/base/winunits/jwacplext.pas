@@ -40,19 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaCplext.pas,v 1.5 2004/12/08 08:18:36 marquardt Exp $
+// $Id: JwaCplext.pas,v 1.6 2007/09/05 11:58:49 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaCplext;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "Cplext.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Below are constants for pages which can be replaced in the standard control
@@ -102,6 +107,19 @@ const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

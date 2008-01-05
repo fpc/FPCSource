@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaIssPer16.pas,v 1.5 2004/12/08 08:18:36 marquardt Exp $
-
+// $Id: JwaIssPer16.pas,v 1.7 2007/09/14 06:48:46 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaIssPer16;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "issper16.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaSSPI;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // Define the severities
 //
@@ -89,6 +96,7 @@ uses
 //
 
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   FACILITY_SECURITY = $9;
   {$EXTERNALSYM FACILITY_SECURITY}
   FACILITY_NULL     = 0;
@@ -100,9 +108,12 @@ const
 
   STATUS_SEVERITY_SUCCESS = $0;
   {$EXTERNALSYM STATUS_SEVERITY_SUCCESS}
+  {$ENDIF JWA_INCLUDEMODE}
+
   STATUS_SEVERITY_COERROR = $2;
   {$EXTERNALSYM STATUS_SEVERITY_COERROR}
 
+{$IFNDEF JWA_INCLUDEMODE}
 //
 // MessageId: SEC_E_INSUFFICIENT_MEMORY
 //
@@ -394,7 +405,19 @@ const
   {$EXTERNALSYM SEC_E_NO_SPM}
   SEC_E_BAD_PKGID     = SEC_E_SECPKG_NOT_FOUND;
   {$EXTERNALSYM SEC_E_BAD_PKGID}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

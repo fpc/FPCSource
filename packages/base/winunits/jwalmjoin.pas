@@ -40,10 +40,9 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmJoin.pas,v 1.11 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLmJoin.pas,v 1.13 2007/09/05 11:58:50 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmJoin;
 
 {$WEAKPACKAGEUNIT}
@@ -53,16 +52,14 @@ unit JwaLmJoin;
 interface
 
 uses
-  JwaWindows, JwaLmCons;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+  JwaLmCons, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmjoin.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Types of name that can be validated
 //
@@ -220,18 +217,14 @@ type
 function NetEnumerateComputerNames(Server: LPCWSTR; NameType: NET_COMPUTER_NAME_TYPE; Reserved: ULONG; EntryCount: PDWORD; var ComputerNames: LPLPWSTR): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetEnumerateComputerNames}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -379,9 +372,8 @@ function NetSetPrimaryComputerName; external netapi32 name 'NetSetPrimaryCompute
 function NetEnumerateComputerNames; external netapi32 name 'NetEnumerateComputerNames';
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}

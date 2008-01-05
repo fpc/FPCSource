@@ -40,22 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaTlHelp32.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaTlHelp32.pas,v 1.11 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaTlHelp32;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "tlhelp32.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   MAX_MODULE_NAME32 = 255;
@@ -242,9 +246,9 @@ function Process32FirstW(hSnapshot: HANDLE; var lppe: PROCESSENTRY32W): BOOL; st
 function Process32NextW(hSnapshot: HANDLE; var lppe: PROCESSENTRY32W): BOOL; stdcall;
 {$EXTERNALSYM Process32NextW}
 
-function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
+function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;//always ANSI!
 {$EXTERNALSYM Process32First}
-function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
+function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall; //always ANSI!
 {$EXTERNALSYM Process32Next}
 
 // Thread walking
@@ -341,15 +345,33 @@ function Module32NextW(hSnapshot: HANDLE; var lpme: MODULEENTRY32W): BOOL; stdca
 // NOTE CAREFULLY that the modBaseAddr and hModule fields are valid ONLY
 // in th32ProcessID's process context.
 //
-function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall;
+function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall; //always ANSI!
 {$EXTERNALSYM Module32First}
-function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall;
+function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall; //always ANSI!
 {$EXTERNALSYM Module32Next}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  kernel32 = 'kernel32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -462,7 +484,7 @@ var
 
 function Process32First;
 begin
-  GetProcedureAddress(_Process32First, kernel32, 'Process32First' + AWSuffix);
+  GetProcedureAddress(_Process32First, kernel32, 'Process32First');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -475,7 +497,7 @@ var
 
 function Process32Next;
 begin
-  GetProcedureAddress(_Process32Next, kernel32, 'Process32Next' + AWSuffix);
+  GetProcedureAddress(_Process32Next, kernel32, 'Process32Next');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -540,7 +562,7 @@ var
 
 function Module32First;
 begin
-  GetProcedureAddress(_Module32First, kernel32, 'Module32First' + AWSuffix);
+  GetProcedureAddress(_Module32First, kernel32, 'Module32First');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -553,7 +575,7 @@ var
 
 function Module32Next;
 begin
-  GetProcedureAddress(_Module32Next, kernel32, 'Module32Next' + AWSuffix);
+  GetProcedureAddress(_Module32Next, kernel32, 'Module32Next');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -569,17 +591,28 @@ function Heap32ListNext; external kernel32 name 'Heap32ListNext';
 function Heap32First; external kernel32 name 'Heap32First';
 function Heap32Next; external kernel32 name 'Heap32Next';
 function Toolhelp32ReadProcessMemory; external kernel32 name 'Toolhelp32ReadProcessMemory';
-function Process32FirstW; external kernel32 name 'Process32FirstW';
-function Process32NextW; external kernel32 name 'Process32NextW';
-function Process32First; external kernel32 name 'Process32First' + AWSuffix;
-function Process32Next; external kernel32 name 'Process32Next' + AWSuffix;
 function Thread32First; external kernel32 name 'Thread32First';
 function Thread32Next; external kernel32 name 'Thread32Next';
+
+
+function Process32FirstW; external kernel32 name 'Process32FirstW';
+function Process32First; external kernel32 name 'Process32First'; //ANSI
+
+function Process32NextW; external kernel32 name 'Process32NextW';
+function Process32Next; external kernel32 name 'Process32Next';  //ANSI
+
+function Module32First; external kernel32 name 'Module32First'; //ANSI
 function Module32FirstW; external kernel32 name 'Module32FirstW';
+
 function Module32NextW; external kernel32 name 'Module32NextW';
-function Module32First; external kernel32 name 'Module32First' + AWSuffix;
-function Module32Next; external kernel32 name 'Module32Next' + AWSuffix;
+function Module32Next; external kernel32 name 'Module32Next'; //ANSI
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,23 +40,32 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinAble.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaWinAble.pas,v 1.11 2007/09/14 06:48:47 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinAble;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "WinAble.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 //
 // This gets GUI information out of context.  If you pass in a NULL thread ID,
 // we will get the 'global' information, using the foreground thread.  This
@@ -99,6 +108,7 @@ const
   {$EXTERNALSYM GUI_SYSTEMMENUMODE}
   GUI_POPUPMENUMODE  = $00000010;
   {$EXTERNALSYM GUI_POPUPMENUMODE}
+
 
 function GetGUIThreadInfo(idThread: DWORD; var lpgui: GUITHREADINFO): BOOL; stdcall;
 {$EXTERNALSYM GetGUIThreadInfo}
@@ -209,10 +219,13 @@ type
 function SendInput(cInputs: UINT; pInputs: LPINPUT; cbSize: Integer): UINT; stdcall;
 {$EXTERNALSYM SendInput}
 
+{$ENDIF JWA_INCLUDEMODE}
+
 const
   CCHILDREN_FRAME = 7;
   {$EXTERNALSYM CCHILDREN_FRAME}
 
+{$IFNDEF JWA_INCLUDEMODE}
 //
 // This generates a notification that anyone watching for it will get.
 // This call is superfast if nobody is hooking anything.
@@ -299,7 +312,10 @@ type
   {$EXTERNALSYM WINEVENTPROC}
   TWinEventProc = WINEVENTPROC;
 
+{$ENDIF JWA_INCLUDEMODE}
+
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   WINEVENT_OUTOFCONTEXT   = $0000; // Events are ASYNC
   {$EXTERNALSYM WINEVENT_OUTOFCONTEXT}
   WINEVENT_SKIPOWNTHREAD  = $0001; // Don't call back for events on installer's thread
@@ -308,10 +324,13 @@ const
   {$EXTERNALSYM WINEVENT_SKIPOWNPROCESS}
   WINEVENT_INCONTEXT      = $0004; // Events are SYNC, this causes your dll to be injected into every process
   {$EXTERNALSYM WINEVENT_INCONTEXT}
+  {$ENDIF JWA_INCLUDEMODE}
   WINEVENT_32BITCALLER    = $8000; // ;Internal
   {$EXTERNALSYM WINEVENT_32BITCALLER}
   WINEVENT_VALID          = $8007; // ;Internal
   {$EXTERNALSYM WINEVENT_VALID}
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 function SetWinEventHook(eventMin, eventMax: DWORD; hmodWinEventProc: HMODULE;
   lpfnWinEventProc: WINEVENTPROC; idProcess, idThread, dwFlags: DWORD): HWINEVENTHOOK; stdcall;
@@ -607,12 +626,30 @@ const
   EVENT_OBJECT_ACCELERATORCHANGE = $8012; // hwnd + ID + idChild is item w/ keybd accel change
   {$EXTERNALSYM EVENT_OBJECT_ACCELERATORCHANGE}
 
-implementation
+{$ENDIF JWA_INCLUDEMODE}
 
-uses
-  JwaWinDLLNames;
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  user32 = 'user32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 var
   _GetGUIThreadInfo: Pointer;
@@ -692,6 +729,7 @@ begin
   end;
 end;
 
+
 var
   _NotifyWinEvent: Pointer;
 
@@ -704,6 +742,7 @@ begin
         JMP     [_NotifyWinEvent]
   end;
 end;
+
 
 var
   _SetWinEventHook: Pointer;
@@ -731,8 +770,11 @@ begin
   end;
 end;
 
+{$ENDIF JWA_INCLUDEMODE}
+
 {$ELSE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 function GetGUIThreadInfo; external user32 name 'GetGUIThreadInfo';
 function GetWindowModuleFileNameW; external user32 name 'GetWindowModuleFileNameW';
 function GetWindowModuleFileNameA; external user32 name 'GetWindowModuleFileNameA';
@@ -742,7 +784,11 @@ function SendInput; external user32 name 'SendInput';
 procedure NotifyWinEvent; external user32 name 'NotifyWinEvent';
 function SetWinEventHook; external user32 name 'SetWinEventHook';
 function UnhookWinEvent; external user32 name 'UnhookWinEvent';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -36,22 +36,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWsrm.pas,v 1.6 2005/09/03 14:27:49 marquardt Exp $
-
+// $Id: JwaWsrm.pas,v 1.8 2007/09/05 11:58:54 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWsrm;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "wsrm.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 (*
 **  wsrm.h - winsock extension for Reliable Multicast (RMCast) Transport
@@ -160,7 +165,15 @@ const
   {$EXTERNALSYM LOG2_BITS_PER_BYTE}
 
 type
-  eWINDOW_ADVANCE_METHOD = (E_WINDOW_ADVANCE_BY_TIME = 1, E_WINDOW_USE_AS_DATA_CACHE);
+  eWINDOW_ADVANCE_METHOD = (
+{$IFDEF SUPPORTS_ENUMVALUE}
+  E_WINDOW_ADVANCE_BY_TIME = 1,
+{$ELSE}
+  E_WINDOW_ADVANCE_PAD0,
+  E_WINDOW_ADVANCE_BY_TIME,
+{$ENDIF}
+
+  E_WINDOW_USE_AS_DATA_CACHE);
   {$EXTERNALSYM eWINDOW_ADVANCE_METHOD}
 
 //==============================================================
@@ -237,7 +250,19 @@ type
   RM_FEC_INFO = _RM_FEC_INFO;
   {$EXTERNALSYM RM_FEC_INFO}
   TRmFecInfo = RM_FEC_INFO;
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

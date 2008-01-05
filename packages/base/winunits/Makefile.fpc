@@ -46,7 +46,7 @@ implicitunits=flatsb winver mmsystem comobj comconst commctrl ole2 activex shell
  jwawpwizmsg jwaws2atm jwaws2bth jwaws2dnet jwaws2spi jwaws2tcpip \
  jwawshisotp jwawsnetbs jwawsnwlink jwawtsapi32 jwazmouse jwasensevts \
  jwaadstlb jwanative shfolder richedit jwawindows jwacarderr jwaactivex \
- jwawindllnames jwawinternl
+ jwawindllnames jwawinternl jwawinsta jwavista
 
 
 examples=examples

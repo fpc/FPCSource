@@ -40,29 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinVer.pas,v 1.9 2005/09/06 16:36:51 marquardt Exp $
+// $Id: JwaWinVer.pas,v 1.12 2007/09/14 06:48:48 marquardt Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinVer;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinVer.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinUser, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinVer.h"'}
-{$HPPEMIT ''}
-
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
 
 //  RT_VERSION = MAKEINTRESOURCE(16);
@@ -345,18 +344,23 @@ function VerQueryValue(pBlock: LPVOID; lpSubBlock: LPTSTR; var lplpBuffer: LPVOI
   var puLen: UINT): BOOL; stdcall;
 {$EXTERNALSYM VerQueryValue}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
+  {$IFNDEF JWA_INCLUDEMODE}
+const
+  versionlib = 'version.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+  {$ENDIF JWA_INCLUDEMODE}  
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -617,8 +621,8 @@ function VerQueryValue; external versionlib name 'VerQueryValue' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

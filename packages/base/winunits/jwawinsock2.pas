@@ -40,25 +40,35 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinsock2.pas,v 1.14 2005/09/08 07:49:25 marquardt Exp $
+// $Id: JwaWinsock2.pas,v 1.17 2007/09/14 06:48:49 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinsock2;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaQos, JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "winsock2.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaQos, JwaWinType, JwaWinBase, JwaWinError, JwaWinNT;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
 //#include <pshpack4.h>
+{$IFDEF COMPILER6_UP}
 {$ALIGN 4}
+{$ENDIF COMPILER6_UP}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // Winsock2.h -- definitions to be used with the WinSock 2 DLL and
 //               WinSock 2 applications.
@@ -1031,9 +1041,10 @@ const
 // All Windows Sockets error constants are biased by WSABASEERR from
 // the "normal"
 //
-
+{$IFNDEF JWA_INCLUDEMODE}
   WSABASEERR = 10000;
   {$EXTERNALSYM WSABASEERR}
+
 
 //
 // Windows Sockets definitions of regular Microsoft C error constants
@@ -1256,6 +1267,7 @@ const
   {$EXTERNALSYM WSA_QOS_ESHAPERATEOBJ}
   WSA_QOS_RESERVED_PETYPE    = WSABASEERR + 1031; // reserved policy element in provider specific buffer
   {$EXTERNALSYM WSA_QOS_RESERVED_PETYPE}
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 // Compatibility macros.
@@ -2752,11 +2764,25 @@ function WSAGETSELECTEVENT(lParam: DWORD): WORD;
 
 function WSAGETSELECTERROR(lParam: DWORD): WORD;
 {$EXTERNALSYM WSAGETSELECTERROR}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  ws2_32 = 'ws2_32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 procedure FD_CLR(fd: TSocket; var fdset: TFdSet);
 var
@@ -4463,4 +4489,9 @@ function WSAProviderConfigChange; external ws2_32 name 'WSAProviderConfigChange'
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

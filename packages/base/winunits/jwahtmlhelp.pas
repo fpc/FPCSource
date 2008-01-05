@@ -43,8 +43,8 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaHtmlHelp.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaHtmlHelp.pas,v 1.15 2007/09/14 06:48:45 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaHtmlHelp;
 
 {$I jediapilib.inc}
@@ -52,6 +52,7 @@ unit JwaHtmlHelp;
 interface
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 (*$HPPEMIT ''*)
 (*$HPPEMIT '#include "htmlhelp.h"'*)
@@ -64,14 +65,16 @@ interface
 (*$HPPEMIT '} HH_LAST_ERROR ;'*)
 (*$HPPEMIT ''*)
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 uses
   {$IFDEF HAS_UNIT_VARIANTS}
   Variants,
   {$ENDIF HAS_UNIT_VARIANTS}
-  JwaWindows;
-
+  JwaWinType, JwaWinUser;
+{$ENDIF JWA_OMIT_SECTIONS}
 // Commands to pass to HtmlHelp()
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   HH_DISPLAY_TOPIC           = $0000;
   {$EXTERNALSYM HH_DISPLAY_TOPIC}
@@ -401,7 +404,7 @@ type
   PHHPopup = ^THHPopup;
   tagHH_POPUP = packed record
     cbStruct: Integer;                     // sizeof this structure
-    hinst_: HINST;                         // instance handle for string resource
+    hinst_: HINST;                     // instance handle for string resource
     idString: UINT;                        // string resource id, or text id if pszFile is specified in HtmlHelp call
     pszText: LPCTSTR;                      // used if idString is zero
     pt: POINT;                             // top center of popup window
@@ -738,13 +741,26 @@ type
 
 {$ENDIF HTMLHELP12}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+{$IFDEF DYNAMIC_LINK}
 uses
-  {$IFDEF DYNAMIC_LINK}
-  JwaWindows, JwaWinReg,
-  {$ENDIF DYNAMIC_LINK}
-  JwaWinDLLNames;
+  JwaWinBase, JwaWinError, JwaWinNT, JwaWinReg;
+{$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -813,10 +829,20 @@ end;
 
 {$ELSE}
 
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  hhctrl = 'hhctrl.ocx';
+{$ENDIF JWA_INCLUDEMODE}
+
 function HtmlHelpA; external hhctrl name 'HtmlHelpA';
 function HtmlHelpW; external hhctrl name 'HtmlHelpW';
 function HtmlHelp; external hhctrl name 'HtmlHelp' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

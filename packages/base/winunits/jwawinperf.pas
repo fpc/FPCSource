@@ -40,28 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinPerf.pas,v 1.6 2005/09/04 16:25:57 marquardt Exp $
+// $Id: JwaWinPerf.pas,v 1.8 2007/09/05 11:58:54 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinPerf;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinPerf.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
+
 
 interface
 
 uses
   JwaWinBase, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
 
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinPerf.h"'}
-{$HPPEMIT ''}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //  Header file for the Performance Monitor data.
 //
@@ -883,15 +885,21 @@ const
   WINPERF_LOG_VERBOSE   = 3;          // Report everything
   {$EXTERNALSYM WINPERF_LOG_VERBOSE}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-implementation
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

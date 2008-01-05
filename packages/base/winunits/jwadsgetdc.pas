@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDSGetDc.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaDSGetDc.pas,v 1.13 2007/09/14 06:48:45 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDSGetDc;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "DsGetDC.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaNtSecApi, JwaWindows;
+  JwaNtSecApi, JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Structure definitions
@@ -261,15 +266,24 @@ function DsValidateSubnetName(SubnetName: LPCTSTR): DWORD; stdcall;
 
 // Types from Winsock2.h 
 
+
+
+{$IFNDEF JWA_INCLUDEMODE}
 type
   sockaddr = record
-    sa_family: Word;              // address family
-    sa_data: array [0..13]of Char;   // up to 14 bytes of direct address
+    sa_family: Word;                  // address family
+    sa_data: array [0..13] of Char;   // up to 14 bytes of direct address
   end;
   {$EXTERNALSYM sockaddr}
 
   PSOCKADDR = ^SOCKADDR;
   {$EXTERNALSYM PSOCKADDR}
+{$ENDIF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_WINSOCK_2}
+//include only if not defined in jwaWinsock2.pas
+type
+
   LPSOCKADDR = PSOCKADDR;
   {$EXTERNALSYM LPSOCKADDR}
 
@@ -286,6 +300,7 @@ type
   {$EXTERNALSYM LPSOCKET_ADDRESS}
   TSocketAddress = SOCKET_ADDRESS;
   PSocketAddress = LPSOCKET_ADDRESS;
+{$ENDIF JWA_WINSOCK_2}
 
 function DsAddressToSiteNamesA(ComputerName: LPCSTR; EntryCount: DWORD;
   SocketAddresses: PSOCKET_ADDRESS; var SiteNames: PPChar): DWORD; stdcall;
@@ -518,10 +533,24 @@ procedure DsGetDcCloseW(GetDcContextHandle: HANDLE); stdcall;
 procedure DsGetDcClose(GetDcContextHandle: HANDLE); stdcall;
 {$EXTERNALSYM DsGetDcClose}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  netapi32 = 'netapi32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1006,4 +1035,8 @@ procedure DsGetDcClose; external netapi32 name 'DsGetDcClose';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

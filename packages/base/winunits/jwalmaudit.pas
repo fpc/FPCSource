@@ -40,28 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmAudit.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLmAudit.pas,v 1.13 2007/09/14 06:48:46 marquardt Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmAudit;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "lmaudit.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaLmCons;
+  JwaLmCons, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "lmaudit.h"'}
-{$HPPEMIT ''}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
 
@@ -88,7 +88,7 @@ const
   LOGFLAGS_SEEK     = $2;
   {$EXTERNALSYM LOGFLAGS_SEEK}
 
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 // Function Prototypes - Audit
@@ -677,19 +677,14 @@ const
   {$EXTERNALSYM AA_A_ACL}
   AA_A_ALL    = AA_F_OPEN or AA_F_WRITE or AA_F_DELETE or AA_F_ACL;
   {$EXTERNALSYM AA_A_ALL}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -740,8 +735,8 @@ function NetAuditWrite; external netapi32 name 'NetAuditWrite';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}

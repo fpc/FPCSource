@@ -40,23 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaBits.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
+// $Id: JwaBits.pas,v 1.9 2007/09/05 11:58:49 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaBits;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "bits.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaBitsMsg;
+  JwaWinBase, JwaWinType, JwaBitsMsg;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   BG_SIZE_UNKNOWN = Int64(-1);
   {$EXTERNALSYM BG_SIZE_UNKNOWN}
@@ -442,6 +447,19 @@ const
   CLSID_BackgroundCopyManager: GUID = '{4991d34b-80a1-4291-83b6-3328366b9097}';
   {$EXTERNALSYM CLSID_BackgroundCopyManager}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
