@@ -7,8 +7,8 @@ name=fcl-base
 version=2.0.0
 
 [require]
-packages_win32=winunits
-packages_win64=winunits
+packages_win32=winunits-base winunits-jedi
+packages_win64=winunits-base winunits-jedi
 
 [target]
 units=contnrs inifiles ezcgi rtfpars idea base64 gettext \

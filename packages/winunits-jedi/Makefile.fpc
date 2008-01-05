@@ -67,6 +67,7 @@ fpcdir=../..
 options=-Ur
 sourcedir=src
 includedir=src
+unitdir=units
 
 [rules]
 .NOTPARALLEL:
