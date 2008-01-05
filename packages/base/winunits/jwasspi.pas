@@ -40,11 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSspi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaSspi.pas,v 1.13 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSspi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "sspi.h"'}
@@ -53,13 +54,16 @@ unit JwaSspi;
 {$HPPEMIT '#typedef SEC_WCHAR *PSEC_WCHAR'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Determine environment:
 //
@@ -118,6 +122,7 @@ type
 // Okay, security specific types:
 //
 
+  {$IFNDEF JWA_INCLUDEMODE}
   PSecHandle = ^SecHandle;
   {$EXTERNALSYM PSecHandle}
   _SecHandle = record
@@ -128,6 +133,7 @@ type
   SecHandle = _SecHandle;
   {$EXTERNALSYM SecHandle}
   TSecHandle = SecHandle;
+  {$ENDIF JWA_INCLUDEMODE}
 
 procedure SecInvalidateHandle(var x: SecHandle);
 {$EXTERNALSYM SecInvalidateHandle}
@@ -144,8 +150,11 @@ type
 
   CtxtHandle = SecHandle;
   {$EXTERNALSYM CtxtHandle}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   PCtxtHandle = ^CtxtHandle;
   {$EXTERNALSYM PCtxthandle}
+  {$ENDIF JWA_INCLUDEMODE}
   TCtxthandle = CtxtHandle;
 
   _SECURITY_INTEGER = LARGE_INTEGER;
@@ -157,11 +166,17 @@ type
 
 // todo Timestamp was removed from SSPI in August 2001 PSDK, where is it now?!
 
+  {$IFNDEF JWA_INCLUDEMODE}
   TimeStamp = SECURITY_INTEGER;
   {$EXTERNALSYM TimeStamp}
+  {$ENDIF JWA_INCLUDEMODE}
+
   PTimeStamp = ^SECURITY_INTEGER;
   {$EXTERNALSYM PTimeStamp}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   TTimeStamp = TimeStamp;
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // If we are in 32 bit mode, define the SECURITY_STRING structure,
@@ -2291,10 +2306,25 @@ function DeleteSecurityPackage(pszPackageName: PSEC_CHAR): SECURITY_STATUS; stdc
 {$EXTERNALSYM DeleteSecurityPackage}
 {$ENDIF UNICODE}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  secur32 = 'secur32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 procedure SecInvalidateHandle(var x: SecHandle);
 begin
@@ -3239,4 +3269,9 @@ function DeleteSecurityPackage; external secur32 name 'DeleteSecurityPackage' + 
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

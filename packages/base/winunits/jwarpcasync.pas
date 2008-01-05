@@ -40,26 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaRpcASync.pas,v 1.11 2005/09/06 16:36:50 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaRpcASync.pas,v 1.13 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaRpcASync;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFNDEF JWARPC_PAS}
-uses
-  JwaWinBase, JwaWinType, JwaRpcDce;
-{$ENDIF !JWARPC_PAS}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "RpcAsync.h"'}
@@ -67,6 +53,17 @@ uses
 {$HPPEMIT 'typedef RPC_EXTENDED_ERROR_INFO* PRPC_EXTENDED_ERROR_INFO'}
 {$HPPEMIT 'typedef RPC_ERROR_ENUM_HANDLE* PRPC_ERROR_ENUM_HANDLE'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaRpc, JwaRpcDce, JwaWinBase, JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   _RPC_NOTIFICATION_TYPES = (
@@ -183,8 +180,13 @@ function RpcAsyncAbortCall(var pAsync: RPC_ASYNC_STATE; ExceptionCode: Cardinal)
 {$EXTERNALSYM RpcAsyncAbortCall}
 function RpcAsyncCancelCall(var pAsync: RPC_ASYNC_STATE; fAbort: BOOL): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcAsyncCancelCall}
-function RpcAsyncCleanupThread(dwTimeout: DWORD): RPC_STATUS; stdcall;
-{$EXTERNALSYM RpcAsyncCleanupThread}
+
+{This function is removed due to
+http://www.freepascal.org/mantis/view.php?id=10364
+and
+http://sourceforge.net/tracker/index.php?func=detail&aid=1846986&group_id=121894&atid=694029
+function RpcAsyncCleanupThread(dwTimeout: DWORD): RPC_STATUS; stdcall;}
+{.$EXTERNALSYM RpcAsyncCleanupThread}
 
 type
   tagExtendedErrorParamTypes = (
@@ -375,18 +377,28 @@ type
   {$EXTERNALSYM RPC_CALL_ATTRIBUTES}
   TRpcCallAttributes = RPC_CALL_ATTRIBUTES;
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  rpclib = 'rpc4rt.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function RpcAsyncGetCallHandle(var pAsync: RPC_ASYNC_STATE): Pointer;
 begin
@@ -473,6 +485,12 @@ begin
   end;
 end;
 
+{
+{This function is removed due to
+http://www.freepascal.org/mantis/view.php?id=10364
+and
+http://sourceforge.net/tracker/index.php?func=detail&aid=1846986&group_id=121894&atid=694029
+
 var
   _RpcAsyncCleanupThread: Pointer;
 
@@ -485,6 +503,7 @@ begin
         JMP     [_RpcAsyncCleanupThread]
   end;
 end;
+}
 
 var
   _RpcErrorStartEnumeration: Pointer;
@@ -702,7 +721,13 @@ function RpcAsyncGetCallStatus; external rpclib name 'RpcAsyncGetCallStatus';
 function RpcAsyncCompleteCall; external rpclib name 'RpcAsyncCompleteCall';
 function RpcAsyncAbortCall; external rpclib name 'RpcAsyncAbortCall';
 function RpcAsyncCancelCall; external rpclib name 'RpcAsyncCancelCall';
-function RpcAsyncCleanupThread; external rpclib name 'RpcAsyncCleanupThread';
+
+{This function is removed due to
+http://www.freepascal.org/mantis/view.php?id=10364
+and
+http://sourceforge.net/tracker/index.php?func=detail&aid=1846986&group_id=121894&atid=694029
+}
+//function RpcAsyncCleanupThread; external rpclib name 'RpcAsyncCleanupThread';
 function RpcErrorStartEnumeration; external rpclib name 'RpcErrorStartEnumeration';
 function RpcErrorGetNextRecord; external rpclib name 'RpcErrorGetNextRecord';
 function RpcErrorEndEnumeration; external rpclib name 'RpcErrorEndEnumeration';
@@ -722,8 +747,10 @@ function RpcServerInqCallAttributes; external rpclib name 'RpcServerInqCallAttri
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

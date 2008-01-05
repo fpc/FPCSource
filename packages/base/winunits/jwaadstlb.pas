@@ -1,6 +1,8 @@
-// $Id: JwaAdsTLB.pas,v 1.5 2005/09/03 13:12:10 marquardt Exp $
+// $Id: JwaAdsTLB.pas,v 1.7 2007/09/06 14:57:10 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdsTLB;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 // ************************************************************************ //
 // WARNING
@@ -48,7 +50,7 @@ unit JwaAdsTLB;
 //   Error creating palette bitmap of (TAccessControlEntry) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TAccessControlList) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TSecurityDescriptor) : Server activeds.dll contains no icons
-//   Error creating palette bitmap of (TLargeInteger) : Server activeds.dll contains no icons
+//   Error creating palette bitmap of ({$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TNameTranslate) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TCaseIgnoreList) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TFaxNumber) : Server activeds.dll contains no icons
@@ -57,7 +59,7 @@ unit JwaAdsTLB;
 //   Error creating palette bitmap of (TEmail) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TPath) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TReplicaPointer) : Server activeds.dll contains no icons
-//   Error creating palette bitmap of (TAcl) : Server activeds.dll contains no icons
+//   Error creating palette bitmap of ({$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TTimestamp) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TPostalAddress) : Server activeds.dll contains no icons
 //   Error creating palette bitmap of (TBackLink) : Server activeds.dll contains no icons
@@ -71,10 +73,16 @@ unit JwaAdsTLB;
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 interface
 {$i jediapilib.inc}
 uses
-  Windows, ActiveX, Classes {$IFNDEF NOVCL} , Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} ;
+  Windows, ActiveX, Classes 
+     {$ifndef FPC} {$IFNDEF NOVCL} , Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} {$endif} ;  // Are these used at all?
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF FPC}
 Type
@@ -905,7 +913,9 @@ type
   Email = IADsEmail;
   Path = IADsPath;
   ReplicaPointer = IADsReplicaPointer;
+  {$IFNDEF JWA_INCLUDEMODE}
   Acl = IADsAcl;
+  {$ENDIF JWA_INCLUDEMODE}
   Timestamp = IADsTimestamp;
   PostalAddress = IADsPostalAddress;
   BackLink = IADsBackLink;
@@ -959,6 +969,9 @@ type
 
   ADS_NT_SECURITY_DESCRIPTOR = __MIDL___MIDL_itf_ads_0000_0003;
 
+
+  {$IFNDEF JWA_INCLUDEMODE}
+
   _SYSTEMTIME = packed record
     wYear: Word;
     wMonth: Word;
@@ -973,6 +986,8 @@ type
   _LARGE_INTEGER = packed record
     QuadPart: Int64;
   end;
+
+  {$ENDIF JWA_INCLUDEMODE}
 
   __MIDL___MIDL_itf_ads_0000_0004 = packed record
     dwLength: LongWord;
@@ -1178,14 +1193,18 @@ type
     lLbound: Integer;
   end;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   ULONG_PTR = LongWord;
+  {$ENDIF JWA_INCLUDEMODE}
 
   tagIDLDESC = packed record
     dwReserved: ULONG_PTR;
     wIDLFlags: Word;
   end;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   DWORD = LongWord;
+  {$ENDIF JWA_INCLUDEMODE}
 
   tagPARAMDESCEX = packed record
     cBytes: LongWord;
@@ -4561,7 +4580,7 @@ type
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
   TSecurityDescriptorProperties= class;
 {$ENDIF}
-  TSecurityDescriptor = class(TOleServer)
+  {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF} = class(TOleServer)
   private
     FIntf:        IADsSecurityDescriptor;
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -4618,15 +4637,15 @@ type
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
 // *********************************************************************//
 // OLE Server Properties Proxy Class
-// Server Object    : TSecurityDescriptor
+// Server Object    : {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}
 // (This object is used by the IDE's Property Inspector to allow editing
 //  of the properties of this server)
 // *********************************************************************//
  TSecurityDescriptorProperties = class(TPersistent)
   private
-    FServer:    TSecurityDescriptor;
+    FServer:    {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF};
     function    GetDefaultInterface: IADsSecurityDescriptor;
-    constructor Create(AServer: TSecurityDescriptor);
+    constructor Create(AServer: {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF});
   protected
     function  Get_Revision: Integer;
     procedure Set_Revision(retval: Integer);
@@ -4676,7 +4695,7 @@ type
 
 // *********************************************************************//
 // OLE Server Proxy class declaration
-// Server Object    : TLargeInteger
+// Server Object    : {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}
 // Help String      :
 // Default Interface: IADsLargeInteger
 // Def. Intf. DISP? : No
@@ -4686,7 +4705,7 @@ type
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
   TLargeIntegerProperties= class;
 {$ENDIF}
-  TLargeInteger = class(TOleServer)
+  {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF} = class(TOleServer)
   private
     FIntf:        IADsLargeInteger;
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -4718,15 +4737,15 @@ type
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
 // *********************************************************************//
 // OLE Server Properties Proxy Class
-// Server Object    : TLargeInteger
+// Server Object    : {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}
 // (This object is used by the IDE's Property Inspector to allow editing
 //  of the properties of this server)
 // *********************************************************************//
  TLargeIntegerProperties = class(TPersistent)
   private
-    FServer:    TLargeInteger;
+    FServer:    {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF};
     function    GetDefaultInterface: IADsLargeInteger;
-    constructor Create(AServer: TLargeInteger);
+    constructor Create(AServer: {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF});
   protected
     function  Get_HighPart: Integer;
     procedure Set_HighPart(retval: Integer);
@@ -5384,7 +5403,7 @@ type
 
 // *********************************************************************//
 // OLE Server Proxy class declaration
-// Server Object    : TAcl
+// Server Object    : {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}
 // Help String      :
 // Default Interface: IADsAcl
 // Def. Intf. DISP? : No
@@ -5394,7 +5413,7 @@ type
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
   TAclProperties= class;
 {$ENDIF}
-  TAcl = class(TOleServer)
+  {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF} = class(TOleServer)
   private
     FIntf:        IADsAcl;
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -5430,15 +5449,15 @@ type
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
 // *********************************************************************//
 // OLE Server Properties Proxy Class
-// Server Object    : TAcl
+// Server Object    : {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}
 // (This object is used by the IDE's Property Inspector to allow editing
 //  of the properties of this server)
 // *********************************************************************//
  TAclProperties = class(TPersistent)
   private
-    FServer:    TAcl;
+    FServer:    {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF};
     function    GetDefaultInterface: IADsAcl;
-    constructor Create(AServer: TAcl);
+    constructor Create(AServer:  {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF});
   protected
     function  Get_ProtectedAttrName: WideString;
     procedure Set_ProtectedAttrName(const retval: WideString);
@@ -6255,11 +6274,18 @@ type
   end;
 {$ENDIF}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 procedure Register;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
-
 uses ComObj;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 class function CoPropertyEntry.Create: IADsPropertyEntry;
 begin
@@ -7164,7 +7190,7 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_SecurityDescriptor) as IADsSecurityDescriptor;
 end;
 
-procedure TSecurityDescriptor.InitServerData;
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.InitServerData;
 const
   CServerData: TServerData = (
     ClassID:   '{B958F73C-9BDD-11D0-852C-00C04FD8D503}';
@@ -7176,7 +7202,7 @@ begin
   ServerData := @CServerData;
 end;
 
-procedure TSecurityDescriptor.Connect;
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Connect;
 var
   punk: IUnknown;
 begin
@@ -7187,13 +7213,13 @@ begin
   end;
 end;
 
-procedure TSecurityDescriptor.ConnectTo(svrIntf: IADsSecurityDescriptor);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.ConnectTo(svrIntf: IADsSecurityDescriptor);
 begin
   Disconnect;
   FIntf := svrIntf;
 end;
 
-procedure TSecurityDescriptor.DisConnect;
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.DisConnect;
 begin
   if Fintf <> nil then
   begin
@@ -7201,7 +7227,7 @@ begin
   end;
 end;
 
-function TSecurityDescriptor.GetDefaultInterface: IADsSecurityDescriptor;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.GetDefaultInterface: IADsSecurityDescriptor;
 begin
   if FIntf = nil then
     Connect;
@@ -7209,7 +7235,7 @@ begin
   Result := FIntf;
 end;
 
-constructor TSecurityDescriptor.Create(AOwner: TComponent);
+constructor {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -7217,7 +7243,7 @@ begin
 {$ENDIF}
 end;
 
-destructor TSecurityDescriptor.Destroy;
+destructor {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Destroy;
 begin
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
   FProps.Free;
@@ -7226,119 +7252,119 @@ begin
 end;
 
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
-function TSecurityDescriptor.GetServerProperties: TSecurityDescriptorProperties;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.GetServerProperties: TSecurityDescriptorProperties;
 begin
   Result := FProps;
 end;
 {$ENDIF}
 
-function  TSecurityDescriptor.Get_Revision: Integer;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_Revision: Integer;
 begin
   Result := DefaultInterface.Get_Revision;
 end;
 
-procedure TSecurityDescriptor.Set_Revision(retval: Integer);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_Revision(retval: Integer);
 begin
   DefaultInterface.Set_Revision(retval);
 end;
 
-function  TSecurityDescriptor.Get_Control: Integer;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_Control: Integer;
 begin
   Result := DefaultInterface.Get_Control;
 end;
 
-procedure TSecurityDescriptor.Set_Control(retval: Integer);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_Control(retval: Integer);
 begin
   DefaultInterface.Set_Control(retval);
 end;
 
-function  TSecurityDescriptor.Get_Owner: WideString;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_Owner: WideString;
 begin
   Result := DefaultInterface.Get_Owner;
 end;
 
-procedure TSecurityDescriptor.Set_Owner(const retval: WideString);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_Owner(const retval: WideString);
 begin
   DefaultInterface.Set_Owner(retval);
 end;
 
-function  TSecurityDescriptor.Get_OwnerDefaulted: WordBool;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_OwnerDefaulted: WordBool;
 begin
   Result := DefaultInterface.Get_OwnerDefaulted;
 end;
 
-procedure TSecurityDescriptor.Set_OwnerDefaulted(retval: WordBool);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_OwnerDefaulted(retval: WordBool);
 begin
   DefaultInterface.Set_OwnerDefaulted(retval);
 end;
 
-function  TSecurityDescriptor.Get_Group: WideString;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_Group: WideString;
 begin
   Result := DefaultInterface.Get_Group;
 end;
 
-procedure TSecurityDescriptor.Set_Group(const retval: WideString);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_Group(const retval: WideString);
 begin
   DefaultInterface.Set_Group(retval);
 end;
 
-function  TSecurityDescriptor.Get_GroupDefaulted: WordBool;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_GroupDefaulted: WordBool;
 begin
   Result := DefaultInterface.Get_GroupDefaulted;
 end;
 
-procedure TSecurityDescriptor.Set_GroupDefaulted(retval: WordBool);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_GroupDefaulted(retval: WordBool);
 begin
   DefaultInterface.Set_GroupDefaulted(retval);
 end;
 
-function  TSecurityDescriptor.Get_DiscretionaryAcl: IDispatch;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_DiscretionaryAcl: IDispatch;
 begin
   Result := DefaultInterface.Get_DiscretionaryAcl;
 end;
 
-procedure TSecurityDescriptor.Set_DiscretionaryAcl(const retval: IDispatch);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_DiscretionaryAcl(const retval: IDispatch);
 begin
   DefaultInterface.Set_DiscretionaryAcl(retval);
 end;
 
-function  TSecurityDescriptor.Get_DaclDefaulted: WordBool;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_DaclDefaulted: WordBool;
 begin
   Result := DefaultInterface.Get_DaclDefaulted;
 end;
 
-procedure TSecurityDescriptor.Set_DaclDefaulted(retval: WordBool);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_DaclDefaulted(retval: WordBool);
 begin
   DefaultInterface.Set_DaclDefaulted(retval);
 end;
 
-function  TSecurityDescriptor.Get_SystemAcl: IDispatch;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_SystemAcl: IDispatch;
 begin
   Result := DefaultInterface.Get_SystemAcl;
 end;
 
-procedure TSecurityDescriptor.Set_SystemAcl(const retval: IDispatch);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_SystemAcl(const retval: IDispatch);
 begin
   DefaultInterface.Set_SystemAcl(retval);
 end;
 
-function  TSecurityDescriptor.Get_SaclDefaulted: WordBool;
+function {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Get_SaclDefaulted: WordBool;
 begin
   Result := DefaultInterface.Get_SaclDefaulted;
 end;
 
-procedure TSecurityDescriptor.Set_SaclDefaulted(retval: WordBool);
+procedure {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.Set_SaclDefaulted(retval: WordBool);
 begin
   DefaultInterface.Set_SaclDefaulted(retval);
 end;
 
-function  TSecurityDescriptor.CopySecurityDescriptor: IDispatch;
+function  {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF}.CopySecurityDescriptor: IDispatch;
 begin
   Result := DefaultInterface.CopySecurityDescriptor;
 end;
 
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
-constructor TSecurityDescriptorProperties.Create(AServer: TSecurityDescriptor);
+constructor TSecurityDescriptorProperties.Create(AServer: {$IFNDEF JWA_INCLUDEMODE} TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF});
 begin
   inherited Create;
   FServer := AServer;
@@ -7461,7 +7487,7 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_LargeInteger) as IADsLargeInteger;
 end;
 
-procedure TLargeInteger.InitServerData;
+procedure {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.InitServerData;
 const
   CServerData: TServerData = (
     ClassID:   '{927971F5-0939-11D1-8BE1-00C04FD8D503}';
@@ -7473,7 +7499,7 @@ begin
   ServerData := @CServerData;
 end;
 
-procedure TLargeInteger.Connect;
+procedure {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.Connect;
 var
   punk: IUnknown;
 begin
@@ -7484,13 +7510,13 @@ begin
   end;
 end;
 
-procedure TLargeInteger.ConnectTo(svrIntf: IADsLargeInteger);
+procedure {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.ConnectTo(svrIntf: IADsLargeInteger);
 begin
   Disconnect;
   FIntf := svrIntf;
 end;
 
-procedure TLargeInteger.DisConnect;
+procedure {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.DisConnect;
 begin
   if Fintf <> nil then
   begin
@@ -7498,7 +7524,7 @@ begin
   end;
 end;
 
-function TLargeInteger.GetDefaultInterface: IADsLargeInteger;
+function {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.GetDefaultInterface: IADsLargeInteger;
 begin
   if FIntf = nil then
     Connect;
@@ -7506,7 +7532,7 @@ begin
   Result := FIntf;
 end;
 
-constructor TLargeInteger.Create(AOwner: TComponent);
+constructor {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -7514,7 +7540,7 @@ begin
 {$ENDIF}
 end;
 
-destructor TLargeInteger.Destroy;
+destructor {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.Destroy;
 begin
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
   FProps.Free;
@@ -7523,34 +7549,34 @@ begin
 end;
 
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
-function TLargeInteger.GetServerProperties: TLargeIntegerProperties;
+function {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.GetServerProperties: TLargeIntegerProperties;
 begin
   Result := FProps;
 end;
 {$ENDIF}
 
-function  TLargeInteger.Get_HighPart: Integer;
+function  {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.Get_HighPart: Integer;
 begin
   Result := DefaultInterface.Get_HighPart;
 end;
 
-procedure TLargeInteger.Set_HighPart(retval: Integer);
+procedure {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.Set_HighPart(retval: Integer);
 begin
   DefaultInterface.Set_HighPart(retval);
 end;
 
-function  TLargeInteger.Get_LowPart: Integer;
+function  {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.Get_LowPart: Integer;
 begin
   Result := DefaultInterface.Get_LowPart;
 end;
 
-procedure TLargeInteger.Set_LowPart(retval: Integer);
+procedure {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF}.Set_LowPart(retval: Integer);
 begin
   DefaultInterface.Set_LowPart(retval);
 end;
 
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
-constructor TLargeIntegerProperties.Create(AServer: TLargeInteger);
+constructor TLargeIntegerProperties.Create(AServer: {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF});
 begin
   inherited Create;
   FServer := AServer;
@@ -8691,7 +8717,7 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_Acl) as IADsAcl;
 end;
 
-procedure TAcl.InitServerData;
+procedure {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.InitServerData;
 const
   CServerData: TServerData = (
     ClassID:   '{7AF1EFB6-0869-11D1-A377-00C04FB950DC}';
@@ -8703,7 +8729,7 @@ begin
   ServerData := @CServerData;
 end;
 
-procedure TAcl.Connect;
+procedure {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Connect;
 var
   punk: IUnknown;
 begin
@@ -8714,13 +8740,13 @@ begin
   end;
 end;
 
-procedure TAcl.ConnectTo(svrIntf: IADsAcl);
+procedure {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.ConnectTo(svrIntf: IADsAcl);
 begin
   Disconnect;
   FIntf := svrIntf;
 end;
 
-procedure TAcl.DisConnect;
+procedure {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.DisConnect;
 begin
   if Fintf <> nil then
   begin
@@ -8728,7 +8754,7 @@ begin
   end;
 end;
 
-function TAcl.GetDefaultInterface: IADsAcl;
+function  {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.GetDefaultInterface: IADsAcl;
 begin
   if FIntf = nil then
     Connect;
@@ -8736,7 +8762,7 @@ begin
   Result := FIntf;
 end;
 
-constructor TAcl.Create(AOwner: TComponent);
+constructor {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
@@ -8744,7 +8770,7 @@ begin
 {$ENDIF}
 end;
 
-destructor TAcl.Destroy;
+destructor {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Destroy;
 begin
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
   FProps.Free;
@@ -8753,49 +8779,49 @@ begin
 end;
 
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
-function TAcl.GetServerProperties: TAclProperties;
+function {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.GetServerProperties: TAclProperties;
 begin
   Result := FProps;
 end;
 {$ENDIF}
 
-function  TAcl.Get_ProtectedAttrName: WideString;
+function {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Get_ProtectedAttrName: WideString;
 begin
   Result := DefaultInterface.Get_ProtectedAttrName;
 end;
 
-procedure TAcl.Set_ProtectedAttrName(const retval: WideString);
+procedure {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Set_ProtectedAttrName(const retval: WideString);
 begin
   DefaultInterface.Set_ProtectedAttrName(retval);
 end;
 
-function  TAcl.Get_SubjectName: WideString;
+function {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Get_SubjectName: WideString;
 begin
   Result := DefaultInterface.Get_SubjectName;
 end;
 
-procedure TAcl.Set_SubjectName(const retval: WideString);
+procedure {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Set_SubjectName(const retval: WideString);
 begin
   DefaultInterface.Set_SubjectName(retval);
 end;
 
-function  TAcl.Get_Privileges: Integer;
+function {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Get_Privileges: Integer;
 begin
   Result := DefaultInterface.Get_Privileges;
 end;
 
-procedure TAcl.Set_Privileges(retval: Integer);
+procedure {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.Set_Privileges(retval: Integer);
 begin
   DefaultInterface.Set_Privileges(retval);
 end;
 
-function  TAcl.CopyAcl: IDispatch;
+function {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF}.CopyAcl: IDispatch;
 begin
   Result := DefaultInterface.CopyAcl;
 end;
 
 {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}
-constructor TAclProperties.Create(AServer: TAcl);
+constructor TAclProperties.Create(AServer: {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF});
 begin
   inherited Create;
   FServer := AServer;
@@ -10286,17 +10312,41 @@ end;
 
 {$endif}
 
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 procedure Register;
 begin
-  RegisterComponents('ActiveX',[TPropertyEntry, TPropertyValue, TAccessControlEntry, TAccessControlList,
-    TSecurityDescriptor, TLargeInteger, TNameTranslate, TCaseIgnoreList, TFaxNumber,
-    TNetAddress, TOctetList, TEmail, TPath, TReplicaPointer,
-    TAcl, TTimestamp, TPostalAddress, TBackLink, TTypedName,
-    THold, TPathname, TADSystemInfo, TWinNTSystemInfo, TDNWithBinary,
-    TDNWithString]);
+  RegisterComponents('ActiveX',[
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}TPropertyEntry,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}TPropertyValue,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}TAccessControlEntry,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME}TAccessControlList,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+//   {$IFNDEF JWA_INCLUDEMODE} JwaAdsTLB.TSecurityDescriptor {$ELSE} TSecurityDescriptorX {$ENDIF},
+//   {$IFNDEF JWA_INCLUDEMODE} TLargeInteger {$ELSE} TLargeIntegerX {$ENDIF},
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TNameTranslate,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TCaseIgnoreList,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TFaxNumber,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TNetAddress,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TOctetList,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TEmail,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TReplicaPointer,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+   {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TPath,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+//   {$IFNDEF JWA_INCLUDEMODE} TAcl {$ELSE} TAclX {$ENDIF},
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TTimestamp,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TPostalAddress,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TBackLink,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TTypedName,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TPathname,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TADSystemInfo,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TWinNTSystemInfo,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TDNWithBinary,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TDNWithString,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    {$IFDEF LIVE_SERVER_AT_DESIGN_TIME} TPath,{$ENDIF LIVE_SERVER_AT_DESIGN_TIME}
+    ]);
 end;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

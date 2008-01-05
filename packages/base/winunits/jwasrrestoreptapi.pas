@@ -41,22 +41,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSrRestorePtApi.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaSrRestorePtApi.pas,v 1.9 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSrRestorePtApi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "SrRestorePtApi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Type of Event
@@ -223,10 +227,28 @@ function SRRemoveRestorePoint(dwRPNum: DWORD): DWORD; stdcall;
 function SRSetRestorePoint(pRestorePtSpec: PRESTOREPOINTINFO; pSMgrStatus: PSTATEMGRSTATUS): BOOL stdcall;
 {$EXTERNALSYM SRSetRestorePoint}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  srclient = 'srclient.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -291,5 +313,11 @@ function SRRemoveRestorePoint; external srclient name 'SRRemoveRestorePoint';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
 

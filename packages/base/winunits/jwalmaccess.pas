@@ -40,29 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmAccess.pas,v 1.11 2005/09/07 09:54:53 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaLmAccess.pas,v 1.13 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmAccess;
 
 {$WEAKPACKAGEUNIT}
 
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows, JwaLmCons;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmaccess.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinNT, JwaWinType, JwaLmCons;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Function Prototypes - User
 //
@@ -2170,18 +2169,13 @@ const
   NETLOGON_VERIFY_STATUS_RETURNED  = $80; // Trust verification status returned in netlog2_pdc_connection_status
   {$EXTERNALSYM NETLOGON_VERIFY_STATUS_RETURNED}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -2833,9 +2827,11 @@ function I_NetLogonControl2; external netapi32 name 'I_NetLogonControl2';
 function NetEnumerateTrustedDomains; external netapi32 name 'NetEnumerateTrustedDomains';
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
+

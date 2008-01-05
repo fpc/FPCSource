@@ -39,23 +39,28 @@
 { For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html }
 {                                                                              }
 {******************************************************************************}
-
-// $Id: JwaNspApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
+// $Id: JwaNspApi.pas,v 1.13 2007/09/14 06:48:46 marquardt Exp $
 
 unit JwaNspAPI;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "nspapi.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaWinSock2;
+  JwaWinType, JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Service categories
@@ -134,6 +139,7 @@ const
   NS_DEFAULT = 0;
   {$EXTERNALSYM NS_DEFAULT}
 
+  {$IFNDEF JWA_INCLUDEMODE}
   NS_SAP         = 1;
   {$EXTERNALSYM NS_SAP}
   NS_NDS         = 2;
@@ -166,6 +172,7 @@ const
   {$EXTERNALSYM NS_X500}
   NS_NIS  = 41;
   {$EXTERNALSYM NS_NIS}
+  {$ENDIF JWA_INCLUDEMODE}
 
   NS_VNS = 50;
   {$EXTERNALSYM NS_VNS}
@@ -224,6 +231,8 @@ const
   {$EXTERNALSYM RES_SOFT_SEARCH}
   RES_FIND_MULTIPLE = $00000002;
   {$EXTERNALSYM RES_FIND_MULTIPLE}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   RES_SERVICE       = $00000004;
   {$EXTERNALSYM RES_SERVICE}
 
@@ -235,12 +244,14 @@ const
   {$EXTERNALSYM SERVICE_TYPE_VALUE_SAPIDA}
   SERVICE_TYPE_VALUE_SAPIDW = WideString('SapId');
   {$EXTERNALSYM SERVICE_TYPE_VALUE_SAPIDW}
+  {$ENDIF JWA_INCLUDEMODE}
 
   SERVICE_TYPE_VALUE_CONNA = 'ConnectionOriented';
   {$EXTERNALSYM SERVICE_TYPE_VALUE_CONNA}
   SERVICE_TYPE_VALUE_CONNW = WideString('ConnectionOriented');
   {$EXTERNALSYM SERVICE_TYPE_VALUE_CONNW}
 
+  {$IFNDEF JWA_INCLUDEMODE}
   SERVICE_TYPE_VALUE_TCPPORTA = 'TcpPort';
   {$EXTERNALSYM SERVICE_TYPE_VALUE_TCPPORTA}
   SERVICE_TYPE_VALUE_TCPPORTW = WideString('TcpPort');
@@ -270,6 +281,7 @@ const
   SERVICE_TYPE_VALUE_UDPPORT = SERVICE_TYPE_VALUE_UDPPORTA;
   {$EXTERNALSYM SERVICE_TYPE_VALUE_UDPPORT}
   {$ENDIF UNICODE}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // status flags returned by SetService
@@ -342,6 +354,7 @@ type
 // Type specific values. This structure is self relative and has no pointers.
 //
 
+
   LPSERVICE_TYPE_VALUE = ^SERVICE_TYPE_VALUE;
   {$EXTERNALSYM LPSERVICE_TYPE_VALUE}
   PSERVICE_TYPE_VALUE = ^SERVICE_TYPE_VALUE;
@@ -358,6 +371,7 @@ type
   {$EXTERNALSYM SERVICE_TYPE_VALUE}
   TServiceTypeValue = SERVICE_TYPE_VALUE;
   PServiceTypeValue = LPSERVICE_TYPE_VALUE;
+
 
 //
 // An absolute version of above. This structure does contain pointers.
@@ -401,6 +415,7 @@ type
   TServiceTypeValueAbsW = SERVICE_TYPE_VALUE_ABSW;
   PServiceTypeValueAbsW = LPSERVICE_TYPE_VALUE_ABSW;
 
+
   {$IFDEF UNICODE}
   SERVICE_TYPE_VALUE_ABS = SERVICE_TYPE_VALUE_ABSW;
   {$EXTERNALSYM SERVICE_TYPE_VALUE_ABS}
@@ -421,16 +436,14 @@ type
   PServiceTypeValueAbs = PServiceTypeValueAbsA;
   {$ENDIF UNICODE}
 
+
+
 //
 // Service Type Information. Contains the name of the Service Type and
 // and an array of SERVICE_NS_TYPE_VALUE structures. This structure is self
 // relative and has no pointers in it.
 //
 
-  LPSERVICE_TYPE_INFO = ^SERVICE_TYPE_INFO;
-  {$EXTERNALSYM LPSERVICE_TYPE_INFO}
-  PSERVICE_TYPE_INFO = ^SERVICE_TYPE_INFO;
-  {$EXTERNALSYM PSERVICE_TYPE_INFO}
   _SERVICE_TYPE_INFO = record
     dwTypeNameOffset: DWORD;
     dwValueCount: DWORD;
@@ -440,6 +453,12 @@ type
   SERVICE_TYPE_INFO = _SERVICE_TYPE_INFO;
   {$EXTERNALSYM SERVICE_TYPE_INFO}
   TServiceTypeInfo = SERVICE_TYPE_INFO;
+
+
+  LPSERVICE_TYPE_INFO = ^SERVICE_TYPE_INFO;
+  {$EXTERNALSYM LPSERVICE_TYPE_INFO}
+  PSERVICE_TYPE_INFO = ^SERVICE_TYPE_INFO;
+  {$EXTERNALSYM PSERVICE_TYPE_INFO}
   PServiceTypeInfo = LPSERVICE_TYPE_INFO;
 
   LPSERVICE_TYPE_INFO_ABSA = ^SERVICE_TYPE_INFO_ABSA;
@@ -663,7 +682,7 @@ type
 //
 // SockAddr Information
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   LPSOCKET_ADDRESS = ^SOCKET_ADDRESS;
   {$EXTERNALSYM LPSOCKET_ADDRESS}
   PSOCKET_ADDRESS = ^SOCKET_ADDRESS;
@@ -677,11 +696,12 @@ type
   {$EXTERNALSYM SOCKET_ADDRESS}
   TSocketAddress = SOCKET_ADDRESS;
   PSocketAddress = PSOCKET_ADDRESS;
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // CSAddr Information
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   LPCSADDR_INFO = ^CSADDR_INFO;
   {$EXTERNALSYM LPCSADDR_INFO}
   PCSADDR_INFO = ^CSADDR_INFO;
@@ -697,6 +717,7 @@ type
   {$EXTERNALSYM CSADDR_INFO}
   TCsAddrInfo = CSADDR_INFO;
   PCsAddrInfo = LPCSADDR_INFO;
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // Protocol Information
@@ -931,11 +952,26 @@ function GetService(dwNameSpace: DWORD; const lpGuid: TGUID; lpServiceName: LPTS
   dwProperties: DWORD; lpBuffer: LPVOID; var lpdwBufferSize: DWORD;
   lpServiceAsyncInfo: LPSERVICE_ASYNC_INFO): Integer; stdcall;
 {$EXTERNALSYM GetService}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  nsplib = 'wsock32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1196,4 +1232,9 @@ function GetService; external nsplib name 'GetService' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

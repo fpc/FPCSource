@@ -40,20 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPbt.pas,v 1.5 2004/12/08 08:18:39 marquardt Exp $
-
+// $Id: JwaPbt.pas,v 1.6 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPbt;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "pbt.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 const
   WM_POWERBROADCAST             = $0218;
   {$EXTERNALSYM WM_POWERBROADCAST}
@@ -92,7 +98,26 @@ const
   {$EXTERNALSYM PBT_APMOEMEVENT}
   PBT_APMRESUMEAUTOMATIC        = $0012;
   {$EXTERNALSYM PBT_APMRESUMEAUTOMATIC}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaBits1_5.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
-
+// $Id: JwaBits1_5.pas,v 1.9 2007/09/05 11:58:49 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaBits1_5;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "bits1_5.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaBits;
+  JwaWinBase, JwaWinType, JwaBits;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   _BG_JOB_REPLY_PROGRESS = record
@@ -128,6 +135,23 @@ const
   CLSID_BackgroundCopyManager1_5: GUID = '{f087771f-d74f-4c1a-bb8a-e16aca9124ea}';
   {$EXTERNALSYM CLSID_BackgroundCopyManager1_5}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

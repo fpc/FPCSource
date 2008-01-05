@@ -40,22 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAdsnms.pas,v 1.5 2004/12/08 08:18:35 marquardt Exp $
+// $Id: JwaAdsnms.pas,v 1.7 2007/09/06 14:57:11 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdsnms;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "adsnms.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
 //  Contents:   Class Names and schema definitions for ADS objects
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   NAMESPACE_CLASS_NAME        = 'Namespace';
   {$EXTERNALSYM NAMESPACE_CLASS_NAME}
@@ -140,7 +148,20 @@ const
   {$EXTERNALSYM FPNW_RESOURCE_SCHEMA_NAME}
   FPNW_FILESHARE_SCHEMA_NAME   = 'FPNWFileShare';
   {$EXTERNALSYM FPNW_FILESHARE_SCHEMA_NAME}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

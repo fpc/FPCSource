@@ -40,13 +40,19 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinUser.pas,v 1.16 2005/09/06 16:36:51 marquardt Exp $
+// $Id: JwaWinUser.pas,v 1.19 2007/09/14 06:48:48 marquardt Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinUser;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinUser.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 
 {$I jediapilib.inc}
 
@@ -54,15 +60,9 @@ interface
 
 uses
   JwaWinBase, JwaWinGDI, JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinUser.h"'}
-{$HPPEMIT ''}
-
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   UINT_MAX = UINT($FFFFFFFF); // from limits.h TODO
   {$EXTERNALSYM UINT_MAX}
@@ -10063,7 +10063,7 @@ const
   {$IFNDEF JWA_INCLUDEMODE}
   CCHDEVICENAME = 32;
   {$EXTERNALSYM CCHDEVICENAME}
-  {$ENDIF !JWA_INCLUDEMODE}
+  {$ENDIF JWA_INCLUDEMODE}  
 
 type
   LPMONITORINFO = ^MONITORINFO;
@@ -11557,18 +11557,24 @@ function GetRawInputDeviceList(pRawInputDeviceList: PRAWINPUTDEVICELIST; var pui
 function DefRawInputProc(paRawInput: PRAWINPUT; nInput: Integer; cbSizeHeader: UINT): LRESULT; stdcall;
 {$EXTERNALSYM DefRawInputProc}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  user32 = 'user32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function IS_INTRESOURCE(wInteger: WORD): BOOL;
 begin
@@ -21903,8 +21909,8 @@ function DefRawInputProc; external user32 name 'DefRawInputProc';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

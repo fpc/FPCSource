@@ -40,22 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSnmp.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaSnmp.pas,v 1.11 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSnmp;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "snmp.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   PAsnOctetString = ^TAsnOctetString;
@@ -569,10 +573,26 @@ const
 
 {$ENDIF !SNMPSTRICT}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
 uses
-  JwaWinDLLNames;
+  JwaWinBase;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  snmpapilib = 'snmpapi.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1175,4 +1195,10 @@ function SNMP_DBG_realloc; external snmpapilib name 'SnmpUtilMemReAlloc';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

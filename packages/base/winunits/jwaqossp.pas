@@ -38,24 +38,39 @@
 {                                                                              }
 { For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html }
 {                                                                              }
+{                                                                              }
+{ Bug:                                                                         }
+{ This file cannot be compiled with JwaWindows.pas                             }
 {******************************************************************************}
 
-// $Id: JwaQosSp.pas,v 1.9 2005/09/08 07:49:25 marquardt Exp $
-
+// $Id: JwaQosSp.pas,v 1.11 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaQosSp;
 
 {$WEAKPACKAGEUNIT}
+
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "qossp.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaQos;
+  {$IFDEF USE_DELPHI_TYPES}
+  Windows,
+  {$ELSE}
+  JwaWinType,
+  {$ENDIF USE_DELPHI_TYPES}
+  JwaWinSock2, JwaQos;
+
+
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 (*
  * Definition of object Types
@@ -367,7 +382,8 @@ type
   {$EXTERNALSYM LPQOS_DESTADDR}
   _QOS_DESTADDR = record
     ObjectHdr: QOS_OBJECT_HDR; // Object header
-    SocketAddress: PSockAddr; // Destination socket address
+    //Wimmer@2007 - to compile in JwaWindows.pas made into Pointer
+    SocketAddress: Pointer{PSockAddr}; // Destination socket address
     SocketAddressLength: ULONG; // Length of the address structure
   end;
   {$EXTERNALSYM _QOS_DESTADDR}
@@ -1007,10 +1023,24 @@ const
   GQOS_CHKQOS_EXCEPTION       = QOSSP_ERR_BASE + 850 + 6;
   {$EXTERNALSYM GQOS_CHKQOS_EXCEPTION}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-
+{$ENDIF JWA_OMIT_SECTIONS}
 
 
 

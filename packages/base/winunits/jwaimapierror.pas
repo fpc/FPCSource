@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaImapiError.pas,v 1.7 2005/09/03 16:10:31 marquardt Exp $
-
+// $Id: JwaImapiError.pas,v 1.9 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaImapiError;
 
 interface
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-uses
-  JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "imapi.h"'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+uses
+  JwaWinError, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   IMAPI_S_PROPERTIESIGNORED     = HRESULT((SEVERITY_SUCCESS shl 31) or (FACILITY_ITF shl 16) or $200);
@@ -135,6 +142,23 @@ const
   IMAPI_E_BOOTIMAGE_AND_NONBLANK_DISC = HRESULT((SEVERITY_ERROR shl 31) or (FACILITY_ITF shl 16) or $200 + 46);
   {$EXTERNALSYM IMAPI_E_BOOTIMAGE_AND_NONBLANK_DISC}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

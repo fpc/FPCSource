@@ -40,22 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSpOrder.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaSpOrder.pas,v 1.9 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSpOrder;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "sporder.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
   
 function WSCWriteProviderOrder(lpwdCatalogEntryId: LPDWORD; dwNumberOfEntries: DWORD): Integer; stdcall;
 {$EXTERNALSYM WSCWriteProviderOrder}
@@ -71,10 +75,23 @@ type
   LPWSCWRITENAMESPACEORDER = function(const lpProviderId: TGUID; dwNumberOfEntries: DWORD): Integer; stdcall;
   {$EXTERNALSYM LPWSCWRITENAMESPACEORDER}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  sporderlib = 'sporder.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -111,4 +128,10 @@ function WSCWriteNameSpaceOrder; external sporderlib name 'WSCWriteNameSpaceOrde
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

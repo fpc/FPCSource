@@ -40,29 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinGDI.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaWinGDI.pas,v 1.15 2007/09/14 06:48:48 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinGDI;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinGDI.h"'}
+{$HPPEMIT ''}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
 
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinGDI.h"'}
-{$HPPEMIT ''}
-
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 // Binary raster ops
 
 const
@@ -3168,25 +3168,25 @@ type
     case Integer of
       // printer only fields
       0: (
-        dmOrientation: Smallint;
-        dmPaperSize: Smallint;
-        dmPaperLength: Smallint;
-        dmPaperWidth: Smallint;
-        dmScale: Smallint;
-        dmCopies: Smallint;
-        dmDefaultSource: Smallint;
-        dmPrintQuality: Smallint);
+        dmOrientation: short;
+        dmPaperSize: short;
+        dmPaperLength: short;
+        dmPaperWidth: short;
+        dmScale: short;
+        dmCopies: short;
+        dmDefaultSource: short;
+        dmPrintQuality: short);
       // display only fields
       1: (
         dmPosition: POINTL;
         dmDisplayOrientation: DWORD;
         dmDisplayFixedOutput: DWORD);
     end;
-    dmColor: Shortint;
-    dmDuplex: Shortint;
-    dmYResolution: Shortint;
-    dmTTOption: Shortint;
-    dmCollate: Shortint;
+    dmColor: short;
+    dmDuplex: short;
+    dmYResolution: short;
+    dmTTOption: short;
+    dmCollate: short;
     dmFormName: array [0..CCHFORMNAME - 1] of BYTE;
     dmLogPixels: WORD;
     dmBitsPerPel: DWORD;
@@ -3227,25 +3227,25 @@ type
     case Integer of
       // printer only fields
       0: (
-        dmOrientation: Smallint;
-        dmPaperSize: Smallint;
-        dmPaperLength: Smallint;
-        dmPaperWidth: Smallint;
-        dmScale: Smallint;
-        dmCopies: Smallint;
-        dmDefaultSource: Smallint;
-        dmPrintQuality: Smallint);
+        dmOrientation: short;
+        dmPaperSize: short;
+        dmPaperLength: short;
+        dmPaperWidth: short;
+        dmScale: short;
+        dmCopies: short;
+        dmDefaultSource: short;
+        dmPrintQuality: short);
       // display only fields
       1: (
         dmPosition: POINTL;
         dmDisplayOrientation: DWORD;
         dmDisplayFixedOutput: DWORD);
     end;
-    dmColor: Shortint;
-    dmDuplex: Shortint;
-    dmYResolution: Shortint;
-    dmTTOption: Shortint;
-    dmCollate: Shortint;
+    dmColor: short;
+    dmDuplex: short;
+    dmYResolution: short;
+    dmTTOption: short;
+    dmCollate: short;
     dmFormName: array [0..CCHFORMNAME - 1] of WCHAR;
     dmLogPixels: WORD;
     dmBitsPerPel: DWORD;
@@ -4649,8 +4649,8 @@ function DescribePixelFormat(hdc: HDC; iPixelFormat: Integer; nBytes: UINT; ppfd
 
 // mode selections for the device mode function
 
-{$IFNDEF JWA_INCLUDEMODE}
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   DM_UPDATE = 1;
   {$EXTERNALSYM DM_UPDATE}
   DM_COPY   = 2;
@@ -4660,6 +4660,7 @@ const
   DM_MODIFY = 8;
   {$EXTERNALSYM DM_MODIFY}
 
+
   DM_IN_BUFFER   = DM_MODIFY;
   {$EXTERNALSYM DM_IN_BUFFER}
   DM_IN_PROMPT   = DM_PROMPT;
@@ -4668,6 +4669,7 @@ const
   {$EXTERNALSYM DM_OUT_BUFFER}
   DM_OUT_DEFAULT = DM_UPDATE;
   {$EXTERNALSYM DM_OUT_DEFAULT}
+
 
 // device capabilities indices
 
@@ -4707,6 +4709,8 @@ const
   {$EXTERNALSYM DC_ORIENTATION}
   DC_COPIES            = 18;
   {$EXTERNALSYM DC_COPIES}
+  {$ENDIF JWA_INCLUDEMODE}
+
   DC_BINADJUST         = 19;
   {$EXTERNALSYM DC_BINADJUST}
   DC_EMF_COMPLIANT     = 20;
@@ -4750,7 +4754,6 @@ const
   {$EXTERNALSYM DC_MEDIATYPENAMES}
   DC_MEDIATYPES     = 35;
   {$EXTERNALSYM DC_MEDIATYPES}
-{$ENDIF !JWA_INCLUDEMODE}
 
 // bit fields of the return value (DWORD) for DC_TRUETYPE
 const
@@ -7773,18 +7776,27 @@ const
 function wglSwapMultipleBuffers(fuCount: UINT; lpBuffers: LPWGLSWAP): DWORD; stdcall;
 {$EXTERNALSYM wglSwapMultipleBuffers}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
 
-uses
-  JwaWinDLLNames;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
+{$IFNDEF JWA_INTERFACESECTION}
 
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  gdi32 = 'gdi32.dll';
+  msimg32 = 'msimg32.dll';
+  winspool32 = 'winspool32.drv';
+  opengl32 = 'opengl32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function MAKEROP4(Fore, Back: DWORD): DWORD;
 begin
@@ -13612,9 +13624,8 @@ function wglSwapLayerBuffers; external opengl32 name 'wglSwapLayerBuffers';
 function wglSwapMultipleBuffers; external opengl32 name 'wglSwapMultipleBuffers';
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

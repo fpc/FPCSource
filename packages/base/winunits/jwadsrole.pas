@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDSRole.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaDSRole.pas,v 1.11 2007/09/14 06:48:45 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDSRole;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "dsrole.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Domain information
@@ -173,10 +178,19 @@ function DsRoleGetPrimaryDomainInformation(lpServer: LPCWSTR;
 procedure DsRoleFreeMemory(Buffer: PVOID); stdcall;
 {$EXTERNALSYM DsRoleFreeMemory}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  netapi32 = 'netapi32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -213,4 +227,8 @@ procedure DsRoleFreeMemory; external netapi32 name 'DsRoleFreeMemory';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

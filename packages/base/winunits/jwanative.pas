@@ -32,7 +32,7 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNative.pas,v 1.21 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaNative.pas,v 1.24 2007/09/14 06:48:46 marquardt Exp $
 
 {******************************************************************************}
 {** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING  **}
@@ -164,25 +164,29 @@
 {**   http://www.reactos.com/                                                **}
 {**                                                                          **}
 {******************************************************************************}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNative;
 
 interface
 {$INCLUDE jediapilib.inc}
 uses
-  JwaWinType, JwaWinBase, JwaNTStatus, JwaWinNT;
+  JwaWinType, JwaWinNT, JwaWinBase, JwaNtStatus;
 
 {$WEAKPACKAGEUNIT}
 
 // For native APIs we consider RTDL the better method of importing
-{$DEFINE RTDL}
+{.$DEFINE RTDL}
 {$IFDEF RTDL}{$DEFINE DYNAMIC_LINK}{$ENDIF}
 const
   ntdll = 'ntdll.dll';
 
 //------------------------------------------------------------------------------
 
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
 type
+ 
   _CLIENT_ID = record
     UniqueProcess: HANDLE;
     UniqueThread: HANDLE;
@@ -276,6 +280,7 @@ type
   TIoStatusBlock = IO_STATUS_BLOCK;
   PIoStatusBlock = ^TIoStatusBlock;
 
+
 const
   ViewShare = 1;
   ViewUnmap = 2;
@@ -283,6 +288,7 @@ const
 type
   SECTION_INHERIT = ViewShare..ViewUnmap;
 
+  {.$IFNDEF JWA_INCLUDEMODE}
   _THREADINFOCLASS = (
     ThreadBasicInformation,
     ThreadTimes,
@@ -305,13 +311,19 @@ type
     ThreadBreakOnTermination, // was added in XP - used by RtlSetThreadIsCritical()
     MaxThreadInfoClass);
   THREADINFOCLASS = _THREADINFOCLASS;
+  {.$ENDIF JWA_INCLUDEMODE}
   THREAD_INFORMATION_CLASS = THREADINFOCLASS;
+
+
   TThreadInfoClass = THREADINFOCLASS;
 
+{$IFNDEF JWA_INCLUDEMODE}
   KAFFINITY = ULONG;
   PKAFFINITY = ^KAFFINITY;
+{$ENDIF JWA_INCLUDEMODE}
 
   PKNORMAL_ROUTINE = procedure(NormalContext, SystemArgument1, SystemArgument2: PVOID); stdcall;
+
 
   _PROCESSINFOCLASS = (
     ProcessBasicInformation,
@@ -411,7 +423,11 @@ type
   TFsInformationClass = FS_INFORMATION_CLASS;
   PFsInformationClass = ^TFsInformationClass;
 
+
+{$IFNDEF JWA_INCLUDEMODE} //defined in jwaWindows.pas
   UUID = GUID;
+{$ENDIF JWA_INCLUDEMODE}
+
 
   _FILE_BASIC_INFORMATION = record
     CreationTime: LARGE_INTEGER;
@@ -439,6 +455,7 @@ type
   TFileNetworkOpenInformation = FILE_NETWORK_OPEN_INFORMATION;
   PFileNetworkOpenInformation = ^TFileNetworkOpenInformation;
 
+  
   _FILE_INFORMATION_CLASS = (
     FileFiller0,
     FileDirectoryInformation, // 1
@@ -542,6 +559,7 @@ type
   TKeyValueEntry = KEY_VALUE_ENTRY;
   PKeyValueEntry = ^TKeyValueEntry;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   _DEVICE_POWER_STATE = (
     PowerDeviceUnspecified,
     PowerDeviceD0,
@@ -549,6 +567,7 @@ type
     PowerDeviceD2,
     PowerDeviceD3,
     PowerDeviceMaximum);
+
   DEVICE_POWER_STATE = _DEVICE_POWER_STATE;
   PDEVICE_POWER_STATE = ^DEVICE_POWER_STATE;
   TDevicePowerState = DEVICE_POWER_STATE;
@@ -593,6 +612,7 @@ type
     ProcessorInformation,
     SystemPowerInformation);
   TPowerInformationLevel = POWER_INFORMATION_LEVEL;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _RTL_RANGE = record
     // The start of the range
@@ -712,6 +732,7 @@ type
   TSystemInformationClass = SYSTEM_INFORMATION_CLASS;
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   _SYSTEM_BASIC_INFORMATION = record // Information Class 0
     Unknown: ULONG;
     MaximumIncrement: ULONG;
@@ -729,6 +750,7 @@ type
   PSYSTEM_BASIC_INFORMATION = ^SYSTEM_BASIC_INFORMATION;
   TSystemBasicInformation = SYSTEM_BASIC_INFORMATION;
   PSystemBasicInformation = ^TSystemBasicInformation;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _SYSTEM_PROCESSOR_INFORMATION = record // Information Class 1
     ProcessorArchitecture: USHORT;
@@ -739,6 +761,8 @@ type
   end;
   SYSTEM_PROCESSOR_INFORMATION = _SYSTEM_PROCESSOR_INFORMATION;
   PSYSTEM_PROCESSOR_INFORMATION = ^SYSTEM_PROCESSOR_INFORMATION;
+
+  {$IFNDEF JWA_INCLUDEMODE}
   TSystemProcessorInformation = SYSTEM_PROCESSOR_INFORMATION;
   PSystemProcessorInformation = ^TSystemProcessorInformation;
 
@@ -821,6 +845,7 @@ type
   PSYSTEM_PERFORMANCE_INFORMATION = ^SYSTEM_PERFORMANCE_INFORMATION;
   TSystemPerformanceInformation = SYSTEM_PERFORMANCE_INFORMATION;
   PSystemPerformanceInformation = ^TSystemPerformanceInformation;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _SYSTEM_TIME_OF_DAY_INFORMATION = record // Information Class 3
     BootTime: LARGE_INTEGER;
@@ -830,8 +855,11 @@ type
   end;
   SYSTEM_TIME_OF_DAY_INFORMATION = _SYSTEM_TIME_OF_DAY_INFORMATION;
   PSYSTEM_TIME_OF_DAY_INFORMATION = ^SYSTEM_TIME_OF_DAY_INFORMATION;
+
+  {$IFNDEF JWA_INCLUDEMODE}
   TSystemTimeOfDayInformation = SYSTEM_TIME_OF_DAY_INFORMATION;
   PSystemTimeOfDayInformation = ^TSystemTimeOfDayInformation;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _IO_COUNTERSEX = record
     ReadOperationCount: LARGE_INTEGER;
@@ -1181,6 +1209,7 @@ type
   TSystemCrashDumpInformation = SYSTEM_CRASH_DUMP_INFORMATION;
   PSystemCrashDumpInformation = ^TSystemCrashDumpInformation;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   _SYSTEM_EXCEPTION_INFORMATION = record // Information Class 33
     AlignmentFixupCount: ULONG;
     ExceptionDispatchCount: ULONG;
@@ -1191,6 +1220,7 @@ type
   PSYSTEM_EXCEPTION_INFORMATION = ^SYSTEM_EXCEPTION_INFORMATION;
   TSystemExceptionInformation = SYSTEM_EXCEPTION_INFORMATION;
   PSystemExceptionInformation = ^TSystemExceptionInformation;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _SYSTEM_CRASH_STATE_INFORMATION = record // Information Class 34
     ValidCrashDump: ULONG;
@@ -1219,6 +1249,7 @@ type
   TSystemContextSwitchInformation = SYSTEM_CONTEXT_SWITCH_INFORMATION;
   PSystemContextSwitchInformation = ^TSystemContextSwitchInformation;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   _SYSTEM_REGISTRY_QUOTA_INFORMATION = record // Information Class 37
     RegistryQuota: ULONG;
     RegistryQuotaInUse: ULONG;
@@ -1228,6 +1259,7 @@ type
   PSYSTEM_REGISTRY_QUOTA_INFORMATION = ^SYSTEM_REGISTRY_QUOTA_INFORMATION;
   TSystemRegistryQuotaInformation = SYSTEM_REGISTRY_QUOTA_INFORMATION;
   PSystemRegistryQuotaInformation = ^TSystemRegistryQuotaInformation;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _SYSTEM_LOAD_AND_CALL_IMAGE = record // Information Class 38
     ModuleName: UNICODE_STRING;
@@ -1259,6 +1291,7 @@ type
   TSystemTimeZoneInformation = SYSTEM_TIME_ZONE_INFORMATION;
   PSystemTimeZoneInformation = ^TSystemTimeZoneInformation;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   _SYSTEM_LOOKASIDE_INFORMATION = record // Information Class 45
     Depth: USHORT;
     MaximumDepth: USHORT;
@@ -1274,6 +1307,7 @@ type
   PSYSTEM_LOOKASIDE_INFORMATION = ^SYSTEM_LOOKASIDE_INFORMATION;
   TSystemLookAsideInformation = SYSTEM_LOOKASIDE_INFORMATION;
   PSystemLookAsideInformation = ^TSystemLookAsideInformation;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _SYSTEM_SET_TIME_SLIP_EVENT = record // Information Class 46
     TimeSlipEvent: HANDLE;
@@ -1463,6 +1497,7 @@ type
   PMemoryInformationClass = ^TMemoryInformationClass;
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   _MEMORY_BASIC_INFORMATION = record // Information Class 0
     BaseAddress: PVOID;
     AllocationBase: PVOID;
@@ -1476,6 +1511,7 @@ type
   PMEMORY_BASIC_INFORMATION = ^MEMORY_BASIC_INFORMATION;
   TMemoryBasicInformation = MEMORY_BASIC_INFORMATION;
   PMemoryBasicInformation = ^TMemoryBasicInformation;
+  {$ENDIF JWA_INCLUDEMODE}
 
   _MEMORY_WORKING_SET_LIST = record // Information Class 1
     NumberOfPages: ULONG;
@@ -1858,7 +1894,7 @@ type
     FileSystemFlags: ULONG;
     MaximumComponentNameLength: ULONG;
     FileSystemNameLength: ULONG;
-    FileSystemName: array[0..0] of WCHAR
+    FileSystemName: array[0..0] of WCHAR;
   end;
   FILE_FS_ATTRIBUTE_INFORMATION = _FILE_FS_ATTRIBUTE_INFORMATION;
   PFILE_FS_ATTRIBUTE_INFORMATION = ^FILE_FS_ATTRIBUTE_INFORMATION;
@@ -1933,7 +1969,7 @@ type
     AllocationSize: LARGE_INTEGER;
     FileAttributes: ULONG;
     FileNameLength: ULONG;
-    FileName: array[0..0] of WCHAR
+    FileName: array[0..0] of WCHAR;
   end;
   FILE_DIRECTORY_INFORMATION = _FILE_DIRECTORY_INFORMATION;
   PFILE_DIRECTORY_INFORMATION = ^FILE_DIRECTORY_INFORMATION;
@@ -1952,7 +1988,7 @@ type
     FileAttributes: ULONG;
     FileNameLength: ULONG;
     EaInformationLength: ULONG;
-    FileName: array[0..0] of WCHAR
+    FileName: array[0..0] of WCHAR;
   end;
   FILE_FULL_DIRECTORY_INFORMATION = _FILE_FULL_DIRECTORY_INFORMATION;
   PFILE_FULL_DIRECTORY_INFORMATION = ^FILE_FULL_DIRECTORY_INFORMATION;
@@ -2162,9 +2198,11 @@ type
   PEXECUTION_STATE = ^EXECUTION_STATE;
   PExecutionState = PEXECUTION_STATE;
 
-
+{$IFNDEF JWA_INCLUDEMODE}
 type
   PLANGID = ^LANGID;
+{$ENDIF JWA_INCLUDEMODE}
+
 type
   _ATOM_INFORMATION_CLASS = (AtomBasicInformation, AtomListInformation);
   ATOM_INFORMATION_CLASS = _ATOM_INFORMATION_CLASS;
@@ -2512,6 +2550,7 @@ const
 type
   PRTL_CONFLICT_RANGE_CALLBACK = function(Context: PVOID; Range: PRTL_RANGE): ByteBool; stdcall;
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   _OSVERSIONINFOW = record
     dwOSVersionInfoSize: ULONG;
@@ -2525,19 +2564,24 @@ type
   POSVERSIONINFOW = ^OSVERSIONINFOW;
   LPOSVERSIONINFOW = ^OSVERSIONINFOW;
   RTL_OSVERSIONINFOW = OSVERSIONINFOW;
+{$ENDIF JWA_INCLUDEMODE}
   PRTL_OSVERSIONINFOW = ^OSVERSIONINFOW;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   TOsVersionInfoW = OSVERSIONINFOW;
   //POsVersionInfoW = ^TOsVersionInfoW;
 
   OSVERSIONINFO = OSVERSIONINFOW;
   POSVERSIONINFO = POSVERSIONINFOW;
   LPOSVERSIONINFO = LPOSVERSIONINFOW;
+  {$ENDIF JWA_INCLUDEMODE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   VER_PLATFORM_WIN32s = 0;
   VER_PLATFORM_WIN32_WINDOWS = 1;
   VER_PLATFORM_WIN32_NT = 2;
+{$ENDIF JWA_INCLUDEMODE}
 
 type
   _RTL_BITMAP = record
@@ -2576,6 +2620,7 @@ type
   TTimeFields = TIME_FIELDS;
   PTimeFields = ^TTimeFields;
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   _OSVERSIONINFOEXW = record
     dwOSVersionInfoSize: ULONG;
@@ -2602,12 +2647,14 @@ type
   OSVERSIONINFOEX = OSVERSIONINFOEXW;
   POSVERSIONINFOEX = POSVERSIONINFOEXW;
   LPOSVERSIONINFOEX = LPOSVERSIONINFOEXW;
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 // RtlVerifyVersionInfo() conditions
 //
 
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   VER_EQUAL = 1;
   VER_GREATER = 2;
   VER_GREATER_EQUAL = 3;
@@ -2639,6 +2686,7 @@ const
   VER_NT_WORKSTATION = $0000001;
   VER_NT_DOMAIN_CONTROLLER = $0000002;
   VER_NT_SERVER = $0000003;
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // Related constant(s) for RtlDetermineDosPathNameType_U()
@@ -2673,9 +2721,11 @@ type
   REFGUID = ^GUID;
   TRefGuid = REFGUID;
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   // Should be defined, but isn't
   HEAP_ZERO_MEMORY = $00000008;
+{$ENDIF JWA_INCLUDEMODE}
 
 type
 // =================================================================
@@ -3038,26 +3088,27 @@ type
   (*22c*)FlsHighIndex: ULONG;
   end;
 
-{$IFDEF WINNT4}
+  {$IFDEF WINNT4}
   _PEB = _PEB_W2K; // Exact layout for NT4 unknown
-{$ENDIF}
+  {$ENDIF WINNT4}
 
-{$IFDEF WIN2000}
+  {$IFDEF WIN2000}
   _PEB = _PEB_W2K;
-{$ENDIF}
+  {$ENDIF WIN2000}
 
-{$IFDEF WINXP}
+  {$IFDEF WINXP}
   _PEB = _PEB_WXP;
-{$ENDIF}
+  {$ENDIF WINXP}
 
-{$IFDEF WIN2003}
+  {$IFDEF WIN2003}
   _PEB = _PEB_2K3;
-{$ENDIF}
+  {$ENDIF WIN2003}
+
   PEB = _PEB;
   PPEB = ^_PEB;
   PPPEB = ^PPEB;
 
-
+{$IFNDEF JWA_INCLUDEMODE}
 // =================================================================
 // THREAD ENVIRONMENT BLOCK (TEB)
 // =================================================================
@@ -3079,6 +3130,7 @@ type
         )
   end;
   NT_TIB = _NT_TIB;
+{$ENDIF JWA_INCLUDEMODE}
   PPNT_TIB = ^PNT_TIB;
 
   tagACTCTX = record // not packed!
@@ -3092,8 +3144,10 @@ type
   (*018*)lpApplicationName: LPCTSTR;
   (*01C*)hModule: HMODULE;
   end;
+  {$IFNDEF JWA_INCLUDEMODE}
   ACTCTX = tagACTCTX;
   PACTCTX = ^tagACTCTX;
+  {$ENDIF JWA_INCLUDEMODE}
   ACTIVATION_CONTEXT = tagACTCTX;
   PACTIVATION_CONTEXT = ^tagACTCTX;
   PPACTIVATION_CONTEXT = ^PACTIVATION_CONTEXT;
@@ -3157,6 +3211,7 @@ type
   end;
   TEB_ACTIVE_FRAME = _TEB_ACTIVE_FRAME;
   PPTEB_ACTIVE_FRAME = ^PTEB_ACTIVE_FRAME;
+
 
 // Verified in W2K, WXP and W2K3 using WinDbg
   _TEB = record // not packed!
@@ -3275,9 +3330,11 @@ const
   SYMBOLIC_LINK_QUERY = $0001;
   SYMBOLIC_LINK_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED or $1;
 
+  {$IFNDEF JWA_INCLUDEMODE}
   DUPLICATE_CLOSE_SOURCE = $00000001;
   DUPLICATE_SAME_ACCESS = $00000002;
   DUPLICATE_SAME_ATTRIBUTES = $00000004;
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // Define the access check value for any access
@@ -3292,7 +3349,7 @@ const
 // The file systems, however, may add additional access checks for I/O and FS controls
 // that use this value.
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   FILE_ANY_ACCESS = 0;
   FILE_SPECIAL_ACCESS = FILE_ANY_ACCESS;
   FILE_READ_ACCESS = $0001; // file & pipe
@@ -3304,6 +3361,7 @@ const
   FILE_SHARE_READ = $00000001; // JwaWindows.pas
   FILE_SHARE_WRITE = $00000002; // JwaWindows.pas
   FILE_SHARE_DELETE = $00000004; // JwaWindows.pas
+  {$ENDIF JWA_INCLUDEMODE}
   FILE_SHARE_VALID_FLAGS = $00000007;
 
 //
@@ -3322,7 +3380,7 @@ const
 //        flags in attributes words without having to pick each flag out
 //        individually.  The order of these flags should not be changed!
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   FILE_ATTRIBUTE_READONLY = $00000001; // JwaWindows.pas
   FILE_ATTRIBUTE_HIDDEN = $00000002; // JwaWindows.pas
   FILE_ATTRIBUTE_SYSTEM = $00000004; // JwaWindows.pas
@@ -3348,6 +3406,7 @@ const
 
   FILE_ATTRIBUTE_VALID_FLAGS = $00007FB7;
   FILE_ATTRIBUTE_VALID_SET_FLAGS = $000031A7;
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // Define the create disposition values
@@ -3918,9 +3977,12 @@ function  ZwClearEvent(EventHandle: HANDLE): NTSTATUS; stdcall; {$IFNDEF RTDL}ex
 // to the PSDK for additional information. Usually the same flags apply.
 // Documented in the DDK as ZwClose().
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
+{$IFNDEF JWA_INCLUDEMODE}
 function  NtClose(
     Handle : HANDLE
-  ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+  ): NTSTATUS; stdcall; {$IFNDEF RTDL} external ntdll; {$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 function  ZwClose(Handle: HANDLE): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -3959,7 +4021,7 @@ function  NtContinue(
 function  ZwContinue(Context: PCONTEXT; TestAlert: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-//
+// 
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtCreateChannel(
@@ -3995,6 +4057,7 @@ function  NtCreateEventPair(
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 function  ZwCreateEventPair(EventPairHandle: PHANDLE; DesiredAccess: ACCESS_MASK; ObjectAttributes: POBJECT_ATTRIBUTES): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Documented in the DDK as ZwCreateFile().
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  NtCreateFile(
@@ -4010,6 +4073,7 @@ function  NtCreateFile(
     EaBuffer : PVOID;
     EaLength : ULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 function  ZwCreateFile(FileHandle: PHANDLE; DesiredAccess: ACCESS_MASK; ObjectAttributes: POBJECT_ATTRIBUTES; IoStatusBlock: PIO_STATUS_BLOCK; AllocationSize: PLARGE_INTEGER; FileAttributes: ULONG; ShareAccess: ULONG;
     CreateDisposition: ULONG; CreateOptions: ULONG; EaBuffer: PVOID; EaLength: ULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
@@ -4221,7 +4285,10 @@ function  NtCreateWaitablePort(
 function  ZwCreateWaitablePort(PortHandle: PHANDLE; ObjectAttributes: POBJECT_ATTRIBUTES; MaxDataSize: ULONG; MaxMessageSize: ULONG; Reserved: ULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
+
+
 function  NtCurrentTeb(): PTEB; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+
 function  ZwCurrentTeb(): PTEB; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: WXP, 2K3
@@ -4272,6 +4339,7 @@ function  NtDeleteValueKey(
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 function  ZwDeleteValueKey(KeyHandle: HANDLE; ValueName: PUNICODE_STRING): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  NtDeviceIoControlFile(
     FileHandle : HANDLE;
@@ -4285,6 +4353,8 @@ function  NtDeviceIoControlFile(
     OutputBuffer : PVOID;
     OutputBufferLength : ULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 function  ZwDeviceIoControlFile(FileHandle: HANDLE; Event: HANDLE; ApcRoutine: PIO_APC_ROUTINE; ApcContext: PVOID; IoStatusBlock: PIO_STATUS_BLOCK; IoControlCode: ULONG; InputBuffer: PVOID; InputBufferLength: ULONG; OutputBuffer: PVOID;
     OutputBufferLength: ULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
@@ -4523,7 +4593,7 @@ function  NtIsSystemResumeAutomatic(): BOOLEAN; stdcall; {$IFNDEF RTDL}external 
 function  ZwIsSystemResumeAutomatic(): BOOLEAN; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-//
+// 
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtListenChannel(
@@ -4683,7 +4753,7 @@ function  ZwNotifyChangeMultipleKeys(KeyHandle: HANDLE; Flags: ULONG; KeyObjectA
     WatchSubtree: BOOLEAN; Buffer: PVOID; BufferLength: ULONG; Asynchronous: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-//
+// 
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtOpenChannel(
@@ -4716,6 +4786,7 @@ function  NtOpenEventPair(
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 function  ZwOpenEventPair(EventPairHandle: PHANDLE; DesiredAccess: ACCESS_MASK; ObjectAttributes: POBJECT_ATTRIBUTES): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Documented in the DDK as ZwOpenFile().
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  NtOpenFile(
@@ -4726,6 +4797,8 @@ function  NtOpenFile(
     ShareAccess : ULONG;
     OpenOptions : ULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 function  ZwOpenFile(FileHandle: PHANDLE; DesiredAccess: ACCESS_MASK; ObjectAttributes: POBJECT_ATTRIBUTES; IoStatusBlock: PIO_STATUS_BLOCK; ShareAccess: ULONG; OpenOptions: ULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -5043,6 +5116,7 @@ function  NtQueryInformationPort(
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 function  ZwQueryInformationPort(PortHandle: HANDLE; PortInformationClass: PORT_INFORMATION_CLASS; PortInformation: PVOID; PortInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  NtQueryInformationProcess(
     ProcessHandle : HANDLE;
@@ -5051,9 +5125,12 @@ function  NtQueryInformationProcess(
     ProcessInformationLength : ULONG;
     ReturnLength : PULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
-function  ZwQueryInformationProcess(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;
-   {$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
+function  ZwQueryInformationProcess(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
+  {$IFNDEF RTDL}external ntdll;{$ENDIF}
+
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  NtQueryInformationThread(
     ThreadHandle : HANDLE;
@@ -5062,6 +5139,8 @@ function  NtQueryInformationThread(
     ThreadInformationLength : ULONG;
     ReturnLength : PULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 function  ZwQueryInformationThread(ThreadHandle: HANDLE; ThreadInformationClass: THREADINFOCLASS; ThreadInformation: PVOID; ThreadInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -5223,6 +5302,7 @@ function  NtQuerySystemEnvironmentValue(
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 function  ZwQuerySystemEnvironmentValue(Name: PUNICODE_STRING; Value: PVOID; ValueLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  NtQuerySystemInformation(
     SystemInformationClass : SYSTEM_INFORMATION_CLASS;
@@ -5230,12 +5310,17 @@ function  NtQuerySystemInformation(
     SystemInformationLength : ULONG;
     ReturnLength : PULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 function  ZwQuerySystemInformation(SystemInformationClass: SYSTEM_INFORMATION_CLASS; SystemInformation: PVOID; SystemInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
+{$IFNDEF JWA_INCLUDEMODE}
 function  NtQuerySystemTime(
     CurrentTime : PLARGE_INTEGER
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 function  ZwQuerySystemTime(CurrentTime: PLARGE_INTEGER): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -5453,7 +5538,7 @@ function  NtReplyWaitReplyPort(
 function  ZwReplyWaitReplyPort(PortHandle: HANDLE; ReplyMessage: PPORT_MESSAGE): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-//
+// 
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtReplyWaitSendChannel(
@@ -5569,7 +5654,7 @@ function  ZwSecureConnectPort(PortHandle: PHANDLE; PortName: PUNICODE_STRING; Se
     ConnectData: PVOID; ConnectDataLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-//
+// 
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtSendWaitReplyChannel(
@@ -5581,7 +5666,7 @@ function  NtSendWaitReplyChannel(
 function  ZwSendWaitReplyChannel(x: PVOID; y: PVOID; z: PVOID; z2: PVOID): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-//
+// 
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtSetContextChannel(
@@ -6003,12 +6088,15 @@ function  NtWaitForMultipleObjects(
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 function  ZwWaitForMultipleObjects(HandleCount: ULONG; Handles: PHANDLE; WaitType: WAIT_TYPE; Alertable: BOOLEAN; Timeout: PLARGE_INTEGER): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  NtWaitForSingleObject(
     Handle : HANDLE;
     Alertable : BOOLEAN;
     Timeout : PLARGE_INTEGER
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 function  ZwWaitForSingleObject(Handle: HANDLE; Alertable: BOOLEAN; Timeout: PLARGE_INTEGER): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -6097,7 +6185,7 @@ procedure RtlAcquirePebLock(); stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 // same flags apply.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlAddAccessAllowedAce(
-    pAcl : PACL;
+    pAcl: PACL;
     dwAceRevision : DWORD;
     AccessMask : ACCESS_MASK;
     pSid : PSID
@@ -6240,6 +6328,7 @@ function  RtlAnsiStringToUnicodeSize(
     AnsiString : PANSI_STRING
   ): ULONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlAnsiStringToUnicodeString(
@@ -6247,6 +6336,7 @@ function  RtlAnsiStringToUnicodeString(
     SourceString : PANSI_STRING;
     AllocateDestinationString : BOOLEAN
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlAppendAsciizToString(
@@ -6316,15 +6406,17 @@ procedure RtlAssert(
     LineNumber : ULONG;
     Message : PCHAR
   ); stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
-
+{$IFNDEF JWA_INCLUDEMODE}
 // The function RtlCaptureContext() from Kernel32.dll is an export
 // forwarder to this function. This means you can refer to the
 // documentation of RtlCaptureContext()!
 // Compatibility: WXP, 2K3
 procedure RtlCaptureContext(
     ContextRecord : PCONTEXT
-  ); stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+  ); stdcall;  {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlCharToInteger(
@@ -6332,6 +6424,8 @@ function  RtlCharToInteger(
     Base : ULONG;
     Value : PULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
 
 // Somehow internally used.
 // Compatibility: W2K, WXP, 2K3
@@ -6368,6 +6462,7 @@ function  RtlCompactHeap(
     dwFlags : ULONG
   ): ULONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlCompareMemory(
@@ -6375,6 +6470,7 @@ function  RtlCompareMemory(
     Source2 : PVOID;
     Length : SIZE_T
   ): SIZE_T; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlCompareMemoryUlong(
@@ -6405,6 +6501,7 @@ function  RtlConvertLongToLargeInteger(
     SignedInteger : LONG
   ): LARGE_INTEGER; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // This function is very similar to ConvertSidToStringSid() from
 // Advapi32.dll. Refer to the PSDK for additional information. Usually the
 // same flags apply.
@@ -6414,6 +6511,7 @@ function  RtlConvertSidToUnicodeString(
     Sid : PSID;
     AllocateDestinationString : BOOLEAN
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -7220,10 +7318,12 @@ function  RtlInitializeSid(
     nSubAuthorityCount : UCHAR
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: WXP, 2K3
 procedure RtlInitializeSListHead(
     ListHead : PSLIST_HEADER
   ); stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -7269,21 +7369,24 @@ function  RtlIntegerToUnicodeString(
     Str : PUNICODE_STRING
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: WXP, 2K3
 function  RtlInterlockedFlushSList(
     ListHead : PSLIST_HEADER
   ): PSLIST_ENTRY; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+
 // Compatibility: WXP, 2K3
 function  RtlInterlockedPopEntrySList(
     ListHead : PSLIST_HEADER
   ): PSLIST_ENTRY; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
-
+{$ENDIF JWA_INCLUDEMODE}
 // Compatibility: WXP, 2K3
 function  RtlInterlockedPushEntrySList(
     ListHead : PSLIST_HEADER;
     ListEntry : PSLIST_ENTRY
   ): PSLIST_ENTRY; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+
 
 // Compatibility: W2K, WXP
 function  RtlInvertRangeList(
@@ -7308,12 +7411,14 @@ function  RtlIsDosDeviceName_U(
     TestString : LPCWSTR
   ): ULONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlIsNameLegalDOS8Dot3(
     Name : PUNICODE_STRING;
     OemName : POEM_STRING;
     NameContainsSpaces : PBOOLEAN
   ): BOOLEAN; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // Compatibility: W2K, WXP
 function  RtlIsRangeAvailable(
@@ -7426,11 +7531,13 @@ function  RtlLengthSid(
     pSid : PSID
   ): ULONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlLocalTimeToSystemTime(
     LocalTime : PLARGE_INTEGER;
     SystemTime : PLARGE_INTEGER
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // This function is very similar to HeapLock() from Kernel32.dll. Refer to
 // the PSDK for additional information. Usually the same flags apply.
@@ -7490,6 +7597,7 @@ function  RtlNormalizeProcessParams(
 function  RtlNtStatusToDosError(
     Status : NTSTATUS
   ): ULONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+
 
 // Compatibility: WXP, 2K3
 function  RtlNtStatusToDosErrorNoTeb(
@@ -7614,10 +7722,12 @@ function  RtlPrefixUnicodeString(
     CaseInsensitive : BOOLEAN
   ): BOOLEAN; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: WXP, 2K3
 function  RtlQueryDepthSList(
     ListHead : PSLIST_HEADER
   ): USHORT; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // VarValue has to have a buffer assigned big enough to hold the value.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -7893,11 +8003,13 @@ procedure RtlTimeToElapsedTimeFields(
     TimeFields : PTIME_FIELDS
   ); stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlTimeToSecondsSince1970(
     Time : PLARGE_INTEGER;
     ElapsedSeconds : PULONG
   ): BOOLEAN; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlTimeToSecondsSince1980(
@@ -7928,11 +8040,13 @@ function  RtlUnicodeStringToAnsiSize(
 
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
+{$IFNDEF JWA_INCLUDEMODE}
 function  RtlUnicodeStringToAnsiString(
     DestinationString : PANSI_STRING;
     SourceString : PUNICODE_STRING;
     AllocateDestinationString : BOOLEAN
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlUnicodeStringToCountedOemString(
@@ -7954,12 +8068,16 @@ function  RtlUnicodeStringToOemSize(
     UnicodeString : PUNICODE_STRING
   ): ULONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlUnicodeStringToOemString(
     DestinationString : POEM_STRING;
     SourceString : PCUNICODE_STRING;
     AllocateDestinationString : BOOLEAN
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlUnicodeToMultiByteSize(
@@ -7968,10 +8086,13 @@ function  RtlUnicodeToMultiByteSize(
     BytesInUnicodeString : ULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlUniform(
     Seed : PULONG
   ): ULONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+
+{$ENDIF JWA_INCLUDEMODE}
 
 // The function RtlUnwind() from Kernel32.dll is an export forwarder to
 // this function. This means you can refer to the documentation of
@@ -8149,6 +8270,7 @@ procedure RtlZeroMemory(
     Length : SIZE_T
   ); stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
+{$IFNDEF JWA_INCLUDEMODE}
 // This function is very similar to VerSetConditionMask() from
 // Kernel32.dll. Refer to the PSDK for additional information. Usually the
 // same flags apply.
@@ -8158,11 +8280,18 @@ function  VerSetConditionMask(
     dwTypeMask : DWORD;
     Condition : BYTE
   ): ULONGLONG; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+{$ENDIF JWA_INCLUDEMODE}
 
 //// 810 automatically created prototype entries.
 //// END  : Function prototypes
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 // This function is actually declared as a macro defined as memcpy()
 
@@ -8175,42 +8304,43 @@ end;
 
 function NtpGetProcessHeap(): HANDLE;
 asm
-{$ifdef cpu386}
+  {$ifdef CPU386}
   mov   EAX, FS:[018h]            // EAX now holds the TEB address
   mov   EAX, [EAX+030h]           // TEB+$30 holds the PEB address
-  mov   EAX, DWORD PTR [EAX+24] // PEB+$30 holds the ProcessHeap's handle
-{$endif cpu386}
-{$ifdef cpux86_64}
-  mov   RAX, GS:[48]              // EAX now holds the TEB address
-  mov   RAX, [RAX+060h]           // TEB+$30 holds the PEB address
-  mov   RAX, DWORD PTR [RAX+48]   // PEB+$30 holds the ProcessHeap's handle
-{$endif cpux86_64}
+  mov   EAX, DWORD PTR [EAX+018h] // PEB+$30 holds the ProcessHeap's handle
+  {$endif}
+  {$ifdef cpux86_64}
+    mov   RAX, GS:[48]              // EAX now holds the TEB address
+    mov   RAX, [RAX+060h]           // TEB+$30 holds the PEB address
+    mov   RAX, DWORD PTR [RAX+48]   // PEB+$30 holds the ProcessHeap's handle
+  {$endif cpux86_64}
 end;
 
 // Own function to retrieve the thread environment block (TEB) pointer
 
 function NtpCurrentTeb(): PTEB;
 asm
-{$ifdef cpu386}
-  mov   EAX, FS:[24]
-{$endif cpu386}
-{$ifdef cpux86_64}
-  mov   RAX, GS:[48]
-{$endif cpux86_64}
+  {$ifdef cpu386}
+    mov   EAX, FS:[018h]
+  {$endif cpu386}
+  {$ifdef cpux86_64}
+    mov   RAX, GS:[48]
+  {$endif cpux86_64}
+  
 end;
 
 // Own function to retrieve the process environment block (PEB) pointer
 
 function RtlpGetCurrentPeb(): PPEB;
 asm
-{$ifdef cpu386}
-  mov   EAX, FS:[24]
-  mov   EAX, [EAX+030h]
-{$endif cpu386}
-{$ifdef cpux86_64}
-  mov   RAX, GS:[24]
-  mov   RAX, [RAX+060h]
-{$endif cpux86_64}
+  {$ifdef cpu386}
+   mov   EAX, FS:[018h]
+   mov   EAX, [EAX+030h]
+  {$endif cpu386}
+  {$ifdef cpux86_64}
+   mov   RAX, GS:[24]
+   mov   RAX, [RAX+060h]
+  {$endif cpux86_64}
 end;
 
 (* Own function to swap bytes in 16bit values
@@ -8220,9 +8350,9 @@ end;
 
 function RtlUshortByteSwap(Source: USHORT): USHORT;
 asm
-{$ifdef cpux86_64}
-  mov   CX, AX
-{$endif cpux86_64}
+  {$ifdef cpux86_64}
+   mov   CX, AX
+  {$endif cpux86_64}
   rol   AX, 08h
 end;
 
@@ -8233,10 +8363,16 @@ end;
 
 function RtlUlongByteSwap(Source: ULONG): ULONG;
 asm
-{$ifdef cpux86_64}
-  mov   ECX, EAX
-{$endif cpux86_64}
-  bswap EAX
+  {$ifndef FPC}
+  // This is not written as mnemonics to be compatible with D4!
+  db    0Fh, 0C8h       // "bswap EAX" can only be executed on 486+!!!
+  {$else}
+    {$ifdef cpux86_64}
+       mov   ECX, EAX
+    {$endif cpux86_64}
+       bswap EAX	// .. but bswap EAX is also 64-bit!!! 0F C8 isn't.
+  {$endif}
+   
 (*
 // Does the same but perhaps slower ...
                         // Source = $11223344
@@ -8253,18 +8389,18 @@ end;
 
 function RtlUlonglongByteSwap(Source: ULONGLONG): ULONGLONG;
 asm
-{$ifdef cpu386}
-  mov   EAX, [ESP+0Ch]  // Get the high part of the ULONGLONG into EAX
-  mov   EDX, [ESP+08h]  // Get the low part of the ULONGLONG into EDX
+  {$ifdef cpu386}
+    mov   EAX, [ESP+0Ch]  // Get the high part of the ULONGLONG into EAX
+    mov   EDX, [ESP+08h]  // Get the low part of the ULONGLONG into EDX
   // This is not written as mnemonics to be compatible with D4!
-  db    0Fh, 0C8h       // "bswap EAX" can only be executed on 486+!!!
-  db    0Fh, 0CAh       // "bswap EDX" can only be executed on 486+!!!
+    db    0Fh, 0C8h       // "bswap EAX" can only be executed on 486+!!!
+    db    0Fh, 0CAh       // "bswap EDX" can only be executed on 486+!!!
   // High part returns in EDX, low part in EAX
-{$endif cpu386}
-{$ifdef cpux86_64}
-  MOV   RCX,RAX
-  BSWAP EAX
-{$endif cpux86_64}
+  {$endif}
+  {$ifdef cpux86_64}
+    MOV   RCX,RAX
+    BSWAP EAX
+  {$endif cpux86_64}
 end;
 
 // Resembles the RtlValidateUnicodeString() function available from Windows XP
@@ -9198,7 +9334,9 @@ var
   _NtCancelIoFile : Pointer = nil;
   _NtCancelTimer : Pointer = nil;
   _NtClearEvent : Pointer = nil;
+
   _NtClose : Pointer = nil;
+
   _NtCloseObjectAuditAlarm : Pointer = nil;
   _NtCompleteConnectPort : Pointer = nil;
   _NtConnectPort : Pointer = nil;
@@ -9207,7 +9345,9 @@ var
   _NtCreateDirectoryObject : Pointer = nil;
   _NtCreateEvent : Pointer = nil;
   _NtCreateEventPair : Pointer = nil;
+
   _NtCreateFile : Pointer = nil;
+
   _NtCreateIoCompletion : Pointer = nil;
   _NtCreateJobObject : Pointer = nil;
   _NtCreateKey : Pointer = nil;
@@ -9233,7 +9373,9 @@ var
   _NtDeleteKey : Pointer = nil;
   _NtDeleteObjectAuditAlarm : Pointer = nil;
   _NtDeleteValueKey : Pointer = nil;
+
   _NtDeviceIoControlFile : Pointer = nil;
+
   _NtDisplayString : Pointer = nil;
   _NtDuplicateObject : Pointer = nil;
   _NtDuplicateToken : Pointer = nil;
@@ -9281,7 +9423,9 @@ var
   _NtOpenDirectoryObject : Pointer = nil;
   _NtOpenEvent : Pointer = nil;
   _NtOpenEventPair : Pointer = nil;
+
   _NtOpenFile : Pointer = nil;
+
   _NtOpenIoCompletion : Pointer = nil;
   _NtOpenJobObject : Pointer = nil;
   _NtOpenKey : Pointer = nil;
@@ -9460,14 +9604,18 @@ var
   _RtlAreBitsClear : Pointer = nil;
   _RtlAreBitsSet : Pointer = nil;
   _RtlAssert : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlCaptureContext : Pointer = nil;
   _RtlCharToInteger : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlCheckForOrphanedCriticalSections : Pointer = nil;
   _RtlCheckRegistryKey : Pointer = nil;
   _RtlClearAllBits : Pointer = nil;
   _RtlClearBits : Pointer = nil;
   _RtlCompactHeap : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlCompareMemory : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlCompareMemoryUlong : Pointer = nil;
   _RtlCompareString : Pointer = nil;
   _RtlCompareUnicodeString : Pointer = nil;
@@ -9582,19 +9730,25 @@ var
   _RtlInitializeCriticalSection : Pointer = nil;
   _RtlInitializeCriticalSectionAndSpinCount : Pointer = nil;
   _RtlInitializeRangeList : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlInitializeSListHead : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlInitializeSid : Pointer = nil;
   _RtlInt64ToUnicodeString : Pointer = nil;
   _RtlIntegerToChar : Pointer = nil;
   _RtlIntegerToUnicodeString : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlInterlockedFlushSList : Pointer = nil;
   _RtlInterlockedPopEntrySList : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlInterlockedPushEntrySList : Pointer = nil;
   _RtlInvertRangeList : Pointer = nil;
   _RtlIpv4AddressToStringA : Pointer = nil;
   _RtlIpv4AddressToStringW : Pointer = nil;
   _RtlIsDosDeviceName_U : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlIsNameLegalDOS8Dot3 : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlIsRangeAvailable : Pointer = nil;
   _RtlIsTextUnicode : Pointer = nil;
   _RtlLargeIntegerAdd : Pointer = nil;
@@ -9609,7 +9763,9 @@ var
   _RtlLengthRequiredSid : Pointer = nil;
   _RtlLengthSecurityDescriptor : Pointer = nil;
   _RtlLengthSid : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlLocalTimeToSystemTime : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlLockHeap : Pointer = nil;
   _RtlMakeSelfRelativeSD : Pointer = nil;
   _RtlMapGenericMask : Pointer = nil;
@@ -9664,17 +9820,23 @@ var
   _RtlSystemTimeToLocalTime : Pointer = nil;
   _RtlTimeFieldsToTime : Pointer = nil;
   _RtlTimeToElapsedTimeFields : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlTimeToSecondsSince1970 : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlTimeToSecondsSince1980 : Pointer = nil;
   _RtlTimeToTimeFields : Pointer = nil;
   _RtlTryEnterCriticalSection : Pointer = nil;
   _RtlUnicodeStringToAnsiSize : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlUnicodeStringToAnsiString : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlUnicodeStringToCountedOemString : Pointer = nil;
   _RtlUnicodeStringToInteger : Pointer = nil;
   _RtlUnicodeStringToOemSize : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _RtlUnicodeStringToOemString : Pointer = nil;
   _RtlUnicodeToMultiByteSize : Pointer = nil;
+  {$ENDIF JWA_INCLUDEMODE}
   _RtlUniform : Pointer = nil;
   _RtlUnwind : Pointer = nil;
   _RtlUpcaseUnicodeChar : Pointer = nil;
@@ -9708,8 +9870,9 @@ var
   _RtlxOemStringToUnicodeSize : Pointer = nil;
   _RtlxUnicodeStringToAnsiSize : Pointer = nil;
   _RtlxUnicodeStringToOemSize : Pointer = nil;
+  {$IFNDEF JWA_INCLUDEMODE}
   _VerSetConditionMask : Pointer = nil;
-
+  {$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of CsrGetProcessId
 function  CsrGetProcessId(): DWORD; stdcall;
@@ -10646,6 +10809,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtClose
 function  NtClose(
     Handle : HANDLE
@@ -10656,6 +10820,7 @@ begin
     Handle
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtClose
 function  ZwClose(
@@ -10882,6 +11047,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtCreateFile
 function  NtCreateFile(
     FileHandle : PHANDLE;
@@ -10902,6 +11068,7 @@ begin
     FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtCreateFile
 function  ZwCreateFile(
@@ -11488,12 +11655,15 @@ begin
   );
 end;
 
+{.$IFNDEF JWA_INCLUDEMODE}
+
 // Dynamic version of NtCurrentTeb
 function  NtCurrentTeb(): PTEB; stdcall;
 begin
   GetProcedureAddress(_NtCurrentTeb, ntdll, 'NtCurrentTeb');
   Result := TFNNtCurrentTeb(_NtCurrentTeb)();
 end;
+{.$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtCurrentTeb
 function  ZwCurrentTeb(): PTEB; stdcall;
@@ -11666,6 +11836,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtDeviceIoControlFile
 function  NtDeviceIoControlFile(
     FileHandle : HANDLE;
@@ -11685,6 +11856,7 @@ begin
     FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, IoControlCode, InputBuffer, InputBufferLength, OutputBuffer, OutputBufferLength
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtDeviceIoControlFile
 function  ZwDeviceIoControlFile(
@@ -12970,6 +13142,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtOpenFile
 function  NtOpenFile(
     FileHandle : PHANDLE;
@@ -12985,6 +13158,7 @@ begin
     FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, ShareAccess, OpenOptions
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtOpenFile
 function  ZwOpenFile(
@@ -13920,6 +14094,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtQueryInformationProcess
 function  NtQueryInformationProcess(
     ProcessHandle : HANDLE;
@@ -13934,6 +14109,7 @@ begin
     ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtQueryInformationProcess
 function  ZwQueryInformationProcess(
@@ -13950,6 +14126,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtQueryInformationThread
 function  NtQueryInformationThread(
     ThreadHandle : HANDLE;
@@ -13964,6 +14141,7 @@ begin
     ThreadHandle, ThreadInformationClass, ThreadInformation, ThreadInformationLength, ReturnLength
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtQueryInformationThread
 function  ZwQueryInformationThread(
@@ -14452,6 +14630,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtQuerySystemInformation
 function  NtQuerySystemInformation(
     SystemInformationClass : SYSTEM_INFORMATION_CLASS;
@@ -14465,6 +14644,7 @@ begin
     SystemInformationClass, SystemInformation, SystemInformationLength, ReturnLength
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtQuerySystemInformation
 function  ZwQuerySystemInformation(
@@ -14480,6 +14660,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtQuerySystemTime
 function  NtQuerySystemTime(
     CurrentTime : PLARGE_INTEGER
@@ -14490,6 +14671,7 @@ begin
     CurrentTime
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtQuerySystemTime
 function  ZwQuerySystemTime(
@@ -16872,6 +17054,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of NtWaitForSingleObject
 function  NtWaitForSingleObject(
     Handle : HANDLE;
@@ -16884,6 +17067,7 @@ begin
     Handle, Alertable, Timeout
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of NtWaitForSingleObject
 function  ZwWaitForSingleObject(
@@ -17319,6 +17503,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlAnsiStringToUnicodeString
 function  RtlAnsiStringToUnicodeString(
     DestinationString : PUNICODE_STRING;
@@ -17331,6 +17516,7 @@ begin
     DestinationString, SourceString, AllocateDestinationString
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlAppendAsciizToString
 function  RtlAppendAsciizToString(
@@ -17444,6 +17630,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlCaptureContext
 procedure RtlCaptureContext(
     ContextRecord : PCONTEXT
@@ -17454,6 +17641,7 @@ begin
     ContextRecord
   );
 end;
+
 
 // Dynamic version of RtlCharToInteger
 function  RtlCharToInteger(
@@ -17467,6 +17655,7 @@ begin
     Str, Base, Value
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlCheckForOrphanedCriticalSections
 procedure RtlCheckForOrphanedCriticalSections(
@@ -17527,6 +17716,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlCompareMemory
 function  RtlCompareMemory(
     Source1 : PVOID;
@@ -17539,6 +17729,7 @@ begin
     Source1, Source2, Length
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlCompareMemoryUlong
 function  RtlCompareMemoryUlong(
@@ -18949,6 +19140,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlInitializeSListHead
 procedure RtlInitializeSListHead(
     ListHead : PSLIST_HEADER
@@ -18959,6 +19151,7 @@ begin
     ListHead
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlInitializeSid
 function  RtlInitializeSid(
@@ -19013,6 +19206,7 @@ begin
   );
 end;
 
+{$IFNDEf JWA_INCLUDEMODE}
 // Dynamic version of RtlInterlockedFlushSList
 function  RtlInterlockedFlushSList(
     ListHead : PSLIST_HEADER
@@ -19024,6 +19218,7 @@ begin
   );
 end;
 
+
 // Dynamic version of RtlInterlockedPopEntrySList
 function  RtlInterlockedPopEntrySList(
     ListHead : PSLIST_HEADER
@@ -19034,6 +19229,7 @@ begin
     ListHead
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlInterlockedPushEntrySList
 function  RtlInterlockedPushEntrySList(
@@ -19046,6 +19242,7 @@ begin
     ListHead, ListEntry
   );
 end;
+
 
 // Dynamic version of RtlInvertRangeList
 function  RtlInvertRangeList(
@@ -19094,6 +19291,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlIsNameLegalDOS8Dot3
 function  RtlIsNameLegalDOS8Dot3(
     Name : PUNICODE_STRING;
@@ -19106,6 +19304,7 @@ begin
     Name, OemName, NameContainsSpaces
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlIsRangeAvailable
 function  RtlIsRangeAvailable(
@@ -19280,6 +19479,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlLocalTimeToSystemTime
 function  RtlLocalTimeToSystemTime(
     LocalTime : PLARGE_INTEGER;
@@ -19291,6 +19491,7 @@ begin
     LocalTime, SystemTime
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlLockHeap
 function  RtlLockHeap(
@@ -19377,6 +19578,7 @@ begin
   );
 end;
 
+
 // Dynamic version of RtlNtStatusToDosError
 function  RtlNtStatusToDosError(
     Status : NTSTATUS
@@ -19387,6 +19589,7 @@ begin
     Status
   );
 end;
+
 
 // Dynamic version of RtlNtStatusToDosErrorNoTeb
 function  RtlNtStatusToDosErrorNoTeb(
@@ -19958,6 +20161,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlTimeToSecondsSince1970
 function  RtlTimeToSecondsSince1970(
     Time : PLARGE_INTEGER;
@@ -19969,6 +20173,7 @@ begin
     Time, ElapsedSeconds
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlTimeToSecondsSince1980
 function  RtlTimeToSecondsSince1980(
@@ -20016,6 +20221,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlUnicodeStringToAnsiString
 function  RtlUnicodeStringToAnsiString(
     DestinationString : PANSI_STRING;
@@ -20028,6 +20234,7 @@ begin
     DestinationString, SourceString, AllocateDestinationString
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlUnicodeStringToCountedOemString
 function  RtlUnicodeStringToCountedOemString(
@@ -20066,6 +20273,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of RtlUnicodeStringToOemString
 function  RtlUnicodeStringToOemString(
     DestinationString : POEM_STRING;
@@ -20079,6 +20287,7 @@ begin
   );
 end;
 
+
 // Dynamic version of RtlUnicodeToMultiByteSize
 function  RtlUnicodeToMultiByteSize(
     BytesInMultiByteString : PULONG;
@@ -20091,6 +20300,7 @@ begin
     BytesInMultiByteString, UnicodeString, BytesInUnicodeString
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 // Dynamic version of RtlUniform
 function  RtlUniform(
@@ -20508,6 +20718,7 @@ begin
   );
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 // Dynamic version of VerSetConditionMask
 function  VerSetConditionMask(
     ConditionMask : ULONGLONG;
@@ -20520,9 +20731,9 @@ begin
     ConditionMask, dwTypeMask, Condition
   );
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 {$ENDIF RTDL}
-
 
 (*
 Function forwarders which are not implemented by this unit
@@ -21039,5 +21250,9 @@ ZwWaitForProcessMutant [NT3]
 
  = 31 deprecated functions
 *)
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
 

@@ -40,8 +40,9 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaZMOUSE.pas,v 1.5 2005/09/03 14:27:49 marquardt Exp $
+// $Id: JwaZMOUSE.pas,v 1.8 2007/09/14 06:48:49 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaZMOUSE;
 
 {$I jediapilib.inc}
@@ -49,8 +50,10 @@ unit JwaZMOUSE;
 interface
 
 uses
-  JwaWindows;
+  JwaWinUser, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 {****************************************************************************
 *                                                                           *
 * ZMOUSE.H -- Include file for IntelliMouse(tm) 1.0                         *
@@ -84,11 +87,13 @@ const
 // wParam = wheel rotation expressed in multiples of WHEEL_DELTA
 // lParam is the mouse coordinates
 
+  {$IFNDEF JWA_INCLUDEMODE}
   WHEEL_DELTA    = 120;      // Default value for rolling one notch
   {$EXTERNALSYM WHEEL_DELTA}
 
   WM_MOUSEWHEEL  = WM_MOUSELAST + 1;  // message that will be supported by the OS
   {$EXTERNALSYM WM_MOUSEWHEEL}
+  {$ENDIF JWA_INCLUDEMODE}
 
 {**************************************************************************
     Client Application (API) Defines for
@@ -149,6 +154,8 @@ const
   {$EXTERNALSYM MSH_SCROLL_LINES}
   {$ENDIF UNICODE}
 
+{$IFNDEF JWA_INCLUDEMODE}
+
 // MSH_SCROLL_LINES
 //    wParam - not used
 //    lParam - not used
@@ -174,6 +181,7 @@ const
                                        // should query Mswheel for the new
                                        // setting.
   {$EXTERNALSYM SPI_SETWHEELSCROLLLINES}
+{$ENDIF JWA_INCLUDEMODE}
 
 {*********************************************************************
 * INLINE FUNCTION: HwndMsWheel
@@ -196,8 +204,14 @@ function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,
   var piScrollLines: Integer): HWND;
 {$EXTERNALSYM HwndMSWheel}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,
   puiMsh_MsgScrollLines: UINT; var pf3DSupport: BOOL;
   var piScrollLines: Integer): HWND;
@@ -216,4 +230,9 @@ begin
     piScrollLines := 3;  // default
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

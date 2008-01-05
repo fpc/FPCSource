@@ -40,16 +40,18 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWowNT16.pas,v 1.7 2005/09/06 16:36:51 marquardt Exp $
-
+// $Id: JwaWowNT16.pas,v 1.9 2007/09/05 11:58:54 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWowNT16;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "wownt16.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 // (rom) get rid of warnings about "index" directive
@@ -58,7 +60,12 @@ unit JwaWowNT16;
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // 16:16 -> 0:32 Pointer translation.
@@ -172,10 +179,22 @@ const
   CPEX_DEST_CDECL    = DWORD($80000000);
   {$EXTERNALSYM CPEX_DEST_CDECL}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  wow16lib = 'kernel32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 //function CallProcEx32W; external wow16lib index 517;
 
@@ -242,4 +261,10 @@ function FreeLibrary32W; external wow16lib index 514;
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

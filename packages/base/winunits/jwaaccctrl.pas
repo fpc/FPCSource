@@ -36,18 +36,13 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAccCtrl.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
-
+// $Id: JwaAccCtrl.pas,v 1.9 2007/09/05 11:58:48 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAccCtrl;
 
 {$WEAKPACKAGEUNIT}
 
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "aclapi.h"'}
@@ -61,6 +56,17 @@ uses
 {$HPPEMIT '#endif'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinNT, JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 (* Dependencies
 // winnt
 PSID
@@ -1214,7 +1220,18 @@ type
   PInheritedFrom = PInheritedFromA;
   {$ENDIF UNICODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+uses
+  JwaWinBase;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 // (rom) MACRO implementation
 function AccFree(hMem: HLOCAL): HLOCAL;
@@ -1222,5 +1239,9 @@ begin
   Result := LocalFree(hMem);
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
 

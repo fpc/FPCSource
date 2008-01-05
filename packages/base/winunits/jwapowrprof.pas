@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPowrProf.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaPowrProf.pas,v 1.12 2007/09/05 11:58:52 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPowrProf;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "powrprof.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // Registry storage structures for the GLOBAL_POWER_POLICY data. There are two
 // structures, GLOBAL_MACHINE_POWER_POLICY and GLOBAL_USER_POWER_POLICY. the
@@ -283,10 +288,23 @@ function ValidatePowerPolicies(GlobalPolicy: PGLOBAL_POWER_POLICY; Policy: PPOWE
 function CallNtPowerInformation(InformationLeveL: POWER_INFORMATION_LEVEL; lpInputBuffer: PVOID; nInputBufferSize: ULONG; lpOutputBuffer: PVOID; nOutputBufferSize: ULONG): NTSTATUS; stdcall;
 {$EXTERNALSYM CallNtPowerInformation}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  powrproflib = 'powrprof.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -589,4 +607,10 @@ function CallNtPowerInformation; external powrproflib name 'CallNtPowerInformati
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

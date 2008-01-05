@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaImapi.pas,v 1.7 2005/09/03 13:12:10 marquardt Exp $
-
+// $Id: JwaImapi.pas,v 1.9 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaImapi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "imapi.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaActiveX, JwaWindows;
+  JwaActiveX, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "imapi.h"'}
-{$HPPEMIT ''}
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // interface IDiscRecorder
@@ -288,6 +295,23 @@ const
   MSEnumDiscRecordersObj: TGUID = '{8A03567A-63CB-4BA8-BAF6-52119816D1EF}';
   {$EXTERNALSYM MSEnumDiscRecordersObj}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

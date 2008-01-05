@@ -40,28 +40,34 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDbt.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaDbt.pas,v 1.10 2007/09/06 14:57:11 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDbt;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "dbt.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType, JwaWinUser;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // BroadcastSpecialMessage constants.
 //
 
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   WM_DEVICECHANGE = $0219;
   {$EXTERNALSYM WM_DEVICECHANGE}
 
@@ -92,11 +98,14 @@ const
   {$EXTERNALSYM BSF_FORCEIFHUNG}
   BSF_NOTIMEOUTIFNOTHUNG = $00000040;
   {$EXTERNALSYM BSF_NOTIMEOUTIFNOTHUNG}
+  {$ENDIF JWA_INCLUDEMODE}
+
   BSF_MSGSRV32ISOK       = $80000000;     // Called synchronously from PM API
   {$EXTERNALSYM BSF_MSGSRV32ISOK}
   BSF_MSGSRV32ISOK_BIT   = 31;            // Called synchronously from PM API
   {$EXTERNALSYM BSF_MSGSRV32ISOK_BIT}
 
+  {$IFNDEF JWA_INCLUDEMODE}
   BSM_ALLCOMPONENTS      = $00000000;
   {$EXTERNALSYM BSM_ALLCOMPONENTS}
   BSM_VXDS               = $00000001;
@@ -107,6 +116,7 @@ const
   {$EXTERNALSYM BSM_INSTALLABLEDRIVERS}
   BSM_APPLICATIONS       = $00000008;
   {$EXTERNALSYM BSM_APPLICATIONS}
+  {$ENDIF JWA_INCLUDEMODE}
 
 (*
  * Message = WM_DEVICECHANGE
@@ -667,7 +677,18 @@ type
    dwData: Pointer;
    Result: Longint;
   end;
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

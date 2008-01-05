@@ -40,13 +40,20 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaExcpt.pas,v 1.7 2005/09/04 07:02:38 marquardt Exp $
+// $Id: JwaExcpt.pas,v 1.9 2007/09/05 11:58:49 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaExcpt;
 
 {$WEAKPACKAGEUNIT}
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "excpt.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 
 {$I jediapilib.inc}
 
@@ -55,13 +62,8 @@ interface
 uses
   JwaWinType;
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "excpt.h"'}
-{$HPPEMIT ''}
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // This file contains the definitions and prototypes for the compiler-
 // dependent intrinsics, support functions and keywords which implement
@@ -94,15 +96,18 @@ const
   EXCEPTION_CONTINUE_EXECUTION   = DWORD(-1);
   {$EXTERNALSYM EXCEPTION_CONTINUE_EXECUTION}
 
-{$ENDIF JWA_INTERFACESECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
-implementation
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

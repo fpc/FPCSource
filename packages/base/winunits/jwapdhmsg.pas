@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPdhMsg.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaPdhMsg.pas,v 1.9 2007/09/14 06:48:46 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPdhMsg;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "pdhmsg.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //     PDH DLL messages
 //
@@ -110,7 +115,7 @@ const
 //
 // Define the severity codes
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   STATUS_SEVERITY_WARNING          = $2;
   {$EXTERNALSYM STATUS_SEVERITY_WARNING}
   STATUS_SEVERITY_SUCCESS          = $0;
@@ -119,6 +124,7 @@ const
   {$EXTERNALSYM STATUS_SEVERITY_INFORMATIONAL}
   STATUS_SEVERITY_ERROR            = $3;
   {$EXTERNALSYM STATUS_SEVERITY_ERROR}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // MessageId: PDH_CSTATUS_VALID_DATA
@@ -1097,6 +1103,24 @@ const
   PDH_QUERY_PERF_DATA_TIMEOUT      = DWORD($C0000BFE);
   {$EXTERNALSYM PDH_QUERY_PERF_DATA_TIMEOUT}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

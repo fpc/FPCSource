@@ -40,7 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinternl.pas,v 1.3 2005/09/06 16:36:51 marquardt Exp $
+// $Id: JwaWinternl.pas,v 1.6 2007/09/14 06:48:49 marquardt Exp $
 
 (************************************************************************
 *                                                                       *
@@ -70,15 +70,22 @@
 *   Copyright (c) Microsoft Corp. All rights reserved.                  *
 *                                                                       *
 ************************************************************************)
+{$IFDEF JWA_INCLUDEMODE}
+This unit must not be included in JwaWindows.pas because the members are
+already declared.
+{$ENDIF JWA_INCLUDEMODE}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinternl;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "Winternl.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 {$STACKFRAMES ON}
@@ -90,6 +97,11 @@ uses
   Windows,
   {$ENDIF USE_DELPHI_TYPES}
   JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // The PEB and TEB structures are subject to changes between Windows
@@ -111,6 +123,7 @@ uses
 //     mov     eax,[eax+0x1d4]
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   _PEB = record
     Reserved1: array [0..1] of Byte;
@@ -122,6 +135,7 @@ type
   PEB = _PEB;
   PPEB = ^PEB;
   TPeb = PEB;
+{$ENDIF JWA_INCLUDEMODE}
 
 //
 // Instead of using the Tls fields, use the Win32 TLS APIs
@@ -151,6 +165,7 @@ type
 // use of the internal Windows APIs defined in this header.
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   NTSTATUS = Longword;
 
@@ -172,8 +187,10 @@ type
 
   OEM_STRING = _STRING;
   POEM_STRING = ^OEM_STRING;
-  PCOEM_STRING = POEM_STRING;
+{$ENDIF JWA_INCLUDEMODE}
 
+  PCOEM_STRING = POEM_STRING;
+  {$IFNDEF JWA_INCLUDEMODE}
   _UNICODE_STRING = record
     Length: USHORT;
     MaximumLength: USHORT;
@@ -198,6 +215,7 @@ type
   TObjectAttributes = OBJECT_ATTRIBUTES;
   PObjectAttributes = ^TObjectAttributes;
 
+
   _IO_STATUS_BLOCK = record
     (*
     union {
@@ -211,9 +229,12 @@ type
   PIO_STATUS_BLOCK = ^IO_STATUS_BLOCK;
   TIoStatusBlock = IO_STATUS_BLOCK;
   PIoStatusBlock = ^TIoStatusBlock;
+  {$ENDIF JWA_INCLUDEMODE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   PIO_APC_ROUTINE = procedure (ApcContext: PVOID; IoStatusBlock: PIO_STATUS_BLOCK; Reserved: ULONG); stdcall;
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF _M_IA64}
 
@@ -352,24 +373,64 @@ type
 const
   FileDirectoryInformation = 1;
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   _FILE_INFORMATION_CLASS = DWORD;
   FILE_INFORMATION_CLASS = _FILE_INFORMATION_CLASS;
   TFileInformationClass = FILE_INFORMATION_CLASS;
+{$ENDIF JWA_INCLUDEMODE}  
 
+{
 const
   ProcessBasicInformation = 0;
   ProcessWow64Information = 26;
+}
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
-  _PROCESSINFOCLASS = DWORD;
+{  _PROCESSINFOCLASS = DWORD;}
+  _PROCESSINFOCLASS = (
+    ProcessBasicInformation {= 0},
+    ProcessPad1,
+    ProcessPad2,
+    ProcessPad3,
+    ProcessPad4,
+    ProcessPad5,
+    ProcessPad6,
+    ProcessPad7,
+    ProcessPad8,
+    ProcessPad9,
+    ProcessPad10,
+    ProcessPad11,
+    ProcessPad12,
+    ProcessPad13,
+    ProcessPad14,
+    ProcessPad15,
+    ProcessPad16,
+    ProcessPad17,
+    ProcessPad18,
+    ProcessPad19,
+    ProcessPad20,
+    ProcessPad21,
+    ProcessPad22,
+    ProcessPad23,
+    ProcessPad24,
+    ProcessPad25,
+    ProcessWow64Information {= 26}
+  );
+
   PROCESSINFOCLASS = _PROCESSINFOCLASS;
   TProcessInfoClass = PROCESSINFOCLASS;
 
+
+{$ENDIF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_INCLUDEMODE}
 type
   _THREADINFOCLASS = DWORD;
   THREADINFOCLASS = _THREADINFOCLASS;
   TThreadInfoClass = THREADINFOCLASS;
+{$ENDIF JWA_INCLUDEMODE}
 
 const
   SystemBasicInformation = 0;
@@ -382,9 +443,11 @@ const
   SystemRegistryQuotaInformation = 37;
   SystemLookasideInformation = 45;
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   _SYSTEM_INFORMATION_CLASS = DWORD;
   SYSTEM_INFORMATION_CLASS = _SYSTEM_INFORMATION_CLASS;
+{$ENDIF JWA_INCLUDEMODE}  
 
 {$IFDEF WINXP}
 
@@ -417,14 +480,14 @@ function INTERNAL_TS_ACTIVE_CONSOLE_ID: ULONG;
 //     CloseHandle
 //
 
-function NtClose(_Handle: HANDLE): NTSTATUS; stdcall;
+function NtClose(_Handle: HANDLE): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtClose'; {$ENDIF}
 
 //
 // use the Win32 API instead
 //     CreateFile
 //
 
-function NtCreateFile (
+function NtCreateFile(
   FileHandle: PHANDLE;
   DesiredAccess: ACCESS_MASK;
   ObjectAttributes: POBJECT_ATTRIBUTES;
@@ -435,27 +498,27 @@ function NtCreateFile (
   CreateDisposition: ULONG;
   CreateOptions: ULONG;
   EaBuffer: PVOID;
-  EaLength: ULONG): NTSTATUS; stdcall;
+  EaLength: ULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtCreateFile'; {$ENDIF}
 
 //
 // use the Win32 API instead
 //     CreateFile
 //
 
-function NtOpenFile (
+function NtOpenFile(
   FileHandle: PHANDLE;
   DesiredAccess: ACCESS_MASK;
   ObjectAttributes: POBJECT_ATTRIBUTES;
   IoStatusBlock: PIO_STATUS_BLOCK;
   ShareAccess: ULONG;
-  OpenOptions: ULONG): NTSTATUS; stdcall;
+  OpenOptions: ULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtOpenFile'; {$ENDIF}
 
 //
 // use the Win32 API instead
 //     DeviceIoControl
 //
 
-function NtDeviceIoControlFile (
+function NtDeviceIoControlFile(
   FileHandle: HANDLE;
   Event: HANDLE;
   ApcRoutine: PIO_APC_ROUTINE;
@@ -465,34 +528,34 @@ function NtDeviceIoControlFile (
   InputBuffer: PVOID;
   InputBufferLength: ULONG;
   OutputBuffer: PVOID;
-  OutputBufferLength: ULONG): NTSTATUS; stdcall;
+  OutputBufferLength: ULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtDeviceIoControlFile'; {$ENDIF}
 
 //
 // use the Win32 API instead
 //     WaitForSingleObjectEx
 //
 
-function NtWaitForSingleObject (
+function NtWaitForSingleObject(
   Handle: HANDLE;
   Alertable: BOOLEAN;
-  Timeout: PLARGE_INTEGER): NTSTATUS; stdcall;
+  Timeout: PLARGE_INTEGER): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtWaitForSingleObject'; {$ENDIF}
 
 //
 // use the Win32 API instead
 //     CheckNameLegalDOS8Dot3
 //
 
-function RtlIsNameLegalDOS8Dot3 (
+function RtlIsNameLegalDOS8Dot3(
   Name: PUNICODE_STRING;
   OemName: POEM_STRING;
-  NameContainsSpaces: PBOOLEAN): BOOLEAN; stdcall;
+  NameContainsSpaces: PBOOLEAN): BOOLEAN; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlIsNameLegalDOS8Dot3'; {$ENDIF}
 
 //
 // This function might be needed for some of the internal Windows functions,
 // defined in this header file.
 //
 
-function RtlNtStatusToDosError(Status: NTSTATUS): ULONG; stdcall;
+function RtlNtStatusToDosError(Status: NTSTATUS): ULONG; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlNtStatusToDosError'; {$ENDIF}
 
 //
 // use the Win32 APIs instead
@@ -500,24 +563,24 @@ function RtlNtStatusToDosError(Status: NTSTATUS): ULONG; stdcall;
 //     GetProcessId
 //
 
-function NtQueryInformationProcess (
+function NtQueryInformationProcess(
   ProcessHandle: HANDLE;
   ProcessInformationClass: PROCESSINFOCLASS;
   ProcessInformation: PVOID;
   ProcessInformationLength: ULONG;
-  ReturnLength: PULONG): NTSTATUS; stdcall;
+  ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtQueryInformationProcess'; {$ENDIF}
 
 //
 // use the Win32 API instead
 //     GetThreadIOPendingFlag
 //
 
-function NtQueryInformationThread (
+function NtQueryInformationThread(
   ThreadHandle: HANDLE;
   ThreadInformationClass: THREADINFOCLASS;
   ThreadInformation: PVOID;
   ThreadInformationLength: ULONG;
-  ReturnLength: PULONG): NTSTATUS; stdcall;
+  ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtQueryInformationThread'; {$ENDIF}
 
 //
 // use the Win32 APIs instead
@@ -527,18 +590,18 @@ function NtQueryInformationThread (
 //     CryptGenRandom
 //
 
-function NtQuerySystemInformation (
+function NtQuerySystemInformation(
   SystemInformationClass: SYSTEM_INFORMATION_CLASS;
   SystemInformation: PVOID;
   SystemInformationLength: ULONG;
-  ReturnLength: PULONG): NTSTATUS; stdcall;
+  ReturnLength: PULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtQuerySystemInformation'; {$ENDIF}
 
 //
 // use the Win32 API instead
 //     GetSystemTimeAsFileTime
 //
 
-function NtQuerySystemTime (SystemTime: PLARGE_INTEGER): NTSTATUS; stdcall;
+function NtQuerySystemTime(SystemTime: PLARGE_INTEGER): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'NtQuerySystemTime'; {$ENDIF}
 
 //
 // use the Win32 API instead
@@ -547,7 +610,7 @@ function NtQuerySystemTime (SystemTime: PLARGE_INTEGER): NTSTATUS; stdcall;
 
 function RtlLocalTimeToSystemTime(
   LocalTime: PLARGE_INTEGER;
-  SystemTime: PLARGE_INTEGER): NTSTATUS; stdcall;
+  SystemTime: PLARGE_INTEGER): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlLocalTimeToSystemTime'; {$ENDIF}
 
 //
 // use the Win32 API instead
@@ -558,39 +621,36 @@ function RtlLocalTimeToSystemTime(
 
 function RtlTimeToSecondsSince1970(
   Time: PLARGE_INTEGER;
-  ElapsedSeconds: PULONG): BOOLEAN; stdcall;
+  ElapsedSeconds: PULONG): BOOLEAN; stdcall;{$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlTimeToSecondsSince1970'; {$ENDIF}
 
 //
 // These APIs might be need for some of the internal Windows functions,
 // defined in this header file.
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 procedure RtlFreeAnsiString(AnsiString: PANSI_STRING); stdcall;
-
 procedure RtlFreeUnicodeString(UnicodeString: PUNICODE_STRING); stdcall;
-
 procedure RtlFreeOemString(OemString: POEM_STRING); stdcall;
-
 procedure RtlInitString(DestinationString: PSTRING; SourceString: PCSZ); stdcall;
-
 procedure RtlInitAnsiString(DestinationString: PANSI_STRING; SourceString: PCSZ); stdcall;
-
 procedure RtlInitUnicodeString(DestinationString: PUNICODE_STRING; SourceString: PWSTR); stdcall;
+{$ENDIF JWA_INCLUDEMODE}
 
 function RtlAnsiStringToUnicodeString(
   DestinationString: PUNICODE_STRING;
   SourceString: PCANSI_STRING;
-  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
+  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlAnsiStringToUnicodeString'; {$ENDIF}
 
 function RtlUnicodeStringToAnsiString(
   DestinationString: PANSI_STRING;
   SourceString: PCUNICODE_STRING;
-  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
+  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlUnicodeStringToAnsiString'; {$ENDIF}
 
 function RtlUnicodeStringToOemString(
   DestinationString: POEM_STRING;
   SourceString: PCUNICODE_STRING;
-  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
+  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlUnicodeStringToOemString'; {$ENDIF}
 
 //
 // Use the Win32 API instead
@@ -602,14 +662,14 @@ function RtlUnicodeStringToOemString(
 function RtlUnicodeToMultiByteSize(
   BytesInMultiByteString: PULONG;
   UnicodeString: PWSTR;
-  BytesInUnicodeString: ULONG): NTSTATUS; stdcall;
+  BytesInUnicodeString: ULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlUnicodeToMultiByteSize'; {$ENDIF}
 
 //
 // Use the C runtime function instead
 //     strtol
 //
 
-function RtlCharToInteger(Str: PCSZ; Base: ULONG; Value: PULONG): NTSTATUS; stdcall;
+function RtlCharToInteger(Str: PCSZ; Base: ULONG; Value: PULONG): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlCharToInteger'; {$ENDIF}
 
 //
 // use the Win32 API instead
@@ -619,7 +679,7 @@ function RtlCharToInteger(Str: PCSZ; Base: ULONG; Value: PULONG): NTSTATUS; stdc
 function RtlConvertSidToUnicodeString(
   UnicodeString: PUNICODE_STRING;
   Sid: PSID;
-  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
+  AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF DYNAMIC_LINK} external winternl_lib name 'RtlConvertSidToUnicodeString'; {$ENDIF}
 
 //
 // use the CryptoAPIs instead
@@ -633,11 +693,13 @@ function RtlUniform(Seed: PULONG): ULONG; stdcall;
 // functions
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 procedure RtlUnwind(
     TargetFrame: PVOID;
     TargetIp: PVOID;
     ExceptionRecord: PEXCEPTION_RECORD;
     ReturnValue: PVOID); stdcall;
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF _M_IA64}
 
@@ -692,10 +754,21 @@ type
 type
   PWINSTATIONQUERYINFORMATIONW = function (p1: HANDLE; p2: ULONG; p3: WINSTATIONINFOCLASS; p4: PVOID; p5: ULONG; p6: PULONG): BOOLEAN; stdcall;
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+         
 uses
   JwaWinDLLNames;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
 
 {$IFDEF WINXP}
 
@@ -708,6 +781,8 @@ end;
 
 {$IFDEF DYNAMIC_LINK}
 
+var _NtClose: Pointer;
+
 function NtClose;
 begin
   GetProcedureAddress(_NtClose, winternl_lib, 'NtClose');
@@ -718,15 +793,20 @@ begin
   end;
 end;
 
+var _NtCreateFile: Pointer;
+
 function NtCreateFile;
 begin
-  GetProcedureAddress(_,NtCreateFile winternl_lib, 'NtCreateFile');
+  GetProcedureAddress(_NtCreateFile, winternl_lib, 'NtCreateFile');
   asm
         MOV     ESP, EBP
         POP     EBP
         JMP     [_NtCreateFile]
   end;
 end;
+
+var _NtOpenFile: Pointer;
+
 
 function NtOpenFile;
 begin
@@ -738,6 +818,9 @@ begin
   end;
 end;
 
+var _NtDeviceIoControlFile: Pointer;
+
+
 function NtDeviceIoControlFile;
 begin
   GetProcedureAddress(_NtDeviceIoControlFile, winternl_lib, 'NtDeviceIoControlFile');
@@ -748,6 +831,9 @@ begin
   end;
 end;
 
+var _NtWaitForSingleObject: Pointer;
+
+
 function NtWaitForSingleObject;
 begin
   GetProcedureAddress(_NtWaitForSingleObject, winternl_lib, 'NtWaitForSingleObject');
@@ -757,6 +843,9 @@ begin
         JMP     [_NtWaitForSingleObject]
   end;
 end;
+ 
+var _RtlIsNameLegalDOS8Dot3: Pointer;
+
 
 function RtlIsNameLegalDOS8Dot3;
 begin
@@ -767,6 +856,9 @@ begin
         JMP     [_RtlIsNameLegalDOS8Dot3]
   end;
 end;
+ 
+var _RtlNtStatusToDosError: Pointer;
+
 
 function RtlNtStatusToDosError;
 begin
@@ -777,6 +869,9 @@ begin
         JMP     [_RtlNtStatusToDosError]
   end;
 end;
+    
+var _NtQueryInformationProcess: Pointer;
+
 
 function NtQueryInformationProcess;
 begin
@@ -787,6 +882,9 @@ begin
         JMP     [_NtQueryInformationProcess]
   end;
 end;
+ 
+var _NtQueryInformationThread: Pointer;
+
 
 function NtQueryInformationThread;
 begin
@@ -797,6 +895,9 @@ begin
         JMP     [_NtQueryInformationThread]
   end;
 end;
+ 
+var _NtQuerySystemInformation: Pointer;
+
 
 function NtQuerySystemInformation;
 begin
@@ -808,6 +909,9 @@ begin
   end;
 end;
 
+var _NtQuerySystemTime: Pointer;
+
+
 function NtQuerySystemTime;
 begin
   GetProcedureAddress(_NtQuerySystemTime, winternl_lib, 'NtQuerySystemTime');
@@ -817,6 +921,9 @@ begin
         JMP     [_NtQuerySystemTime]
   end;
 end;
+
+var _RtlLocalTimeToSystemTime: Pointer;
+
 
 function RtlLocalTimeToSystemTime;
 begin
@@ -828,6 +935,8 @@ begin
   end;
 end;
 
+var _RtlTimeToSecondsSince1970: Pointer;
+
 function RtlTimeToSecondsSince1970;
 begin
   GetProcedureAddress(_RtlTimeToSecondsSince1970, winternl_lib, 'RtlTimeToSecondsSince1970');
@@ -837,6 +946,10 @@ begin
         JMP     [_RtlTimeToSecondsSince1970]
   end;
 end;
+
+{$IFNDEF JWA_INCLUDEMODE}
+
+var _RtlFreeAnsiString: Pointer;
 
 function RtlFreeAnsiString;
 begin
@@ -848,6 +961,9 @@ begin
   end;
 end;
 
+var _RtlFreeUnicodeString: Pointer;
+
+
 function RtlFreeUnicodeString;
 begin
   GetProcedureAddress(_RtlFreeUnicodeString, winternl_lib, 'RtlFreeUnicodeString');
@@ -857,6 +973,9 @@ begin
         JMP     [_RtlFreeUnicodeString]
   end;
 end;
+
+var _RtlFreeOemString: Pointer;
+
 
 function RtlFreeOemString;
 begin
@@ -868,6 +987,9 @@ begin
   end;
 end;
 
+var _RtlInitString: Pointer;
+
+
 function RtlInitString;
 begin
   GetProcedureAddress(_RtlInitString, winternl_lib, 'RtlInitString');
@@ -877,6 +999,9 @@ begin
         JMP     [_RtlInitString]
   end;
 end;
+
+var _RtlInitAnsiString: Pointer;
+
 
 function RtlInitAnsiString;
 begin
@@ -888,6 +1013,9 @@ begin
   end;
 end;
 
+var _RtlInitUnicodeString: Pointer;
+
+
 function RtlInitUnicodeString;
 begin
   GetProcedureAddress(_RtlInitUnicodeString, winternl_lib, 'RtlInitUnicodeString');
@@ -897,6 +1025,11 @@ begin
         JMP     [_RtlInitUnicodeString]
   end;
 end;
+
+{$ENDIF JWA_INCLUDEMODE}
+
+var _RtlAnsiStringToUnicodeString: Pointer;
+
 
 function RtlAnsiStringToUnicodeString;
 begin
@@ -908,6 +1041,9 @@ begin
   end;
 end;
 
+var _RtlUnicodeStringToAnsiString: Pointer;
+
+
 function RtlUnicodeStringToAnsiString;
 begin
   GetProcedureAddress(_RtlUnicodeStringToAnsiString, winternl_lib, 'RtlUnicodeStringToAnsiString');
@@ -917,6 +1053,9 @@ begin
         JMP     [_RtlUnicodeStringToAnsiString]
   end;
 end;
+
+var _RtlUnicodeStringToOemString: Pointer;
+
 
 function RtlUnicodeStringToOemString;
 begin
@@ -928,6 +1067,9 @@ begin
   end;
 end;
 
+var _RtlUnicodeToMultiByteSize: Pointer;
+
+
 function RtlUnicodeToMultiByteSize;
 begin
   GetProcedureAddress(_RtlUnicodeToMultiByteSize, winternl_lib, 'RtlUnicodeToMultiByteSize');
@@ -937,6 +1079,9 @@ begin
         JMP     [_RtlUnicodeToMultiByteSize]
   end;
 end;
+
+var _RtlCharToInteger: Pointer;
+
 
 function RtlCharToInteger;
 begin
@@ -948,6 +1093,10 @@ begin
   end;
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
+
+var _RtlConvertSidToUnicodeString: Pointer;
+
 function RtlConvertSidToUnicodeString;
 begin
   GetProcedureAddress(_RtlConvertSidToUnicodeString, winternl_lib, 'RtlConvertSidToUnicodeString');
@@ -957,6 +1106,8 @@ begin
         JMP     [_RtlConvertSidToUnicodeString]
   end;
 end;
+
+var _RtlUniform: Pointer;
 
 function RtlUniform;
 begin
@@ -968,6 +1119,8 @@ begin
   end;
 end;
 
+var _RtlUnwind: Pointer;
+
 function RtlUnwind;
 begin
   GetProcedureAddress(_RtlUnwind, winternl_lib, 'RtlUnwind');
@@ -978,8 +1131,10 @@ begin
   end;
 end;
 
-{$ELSE}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ELSE}
+(*
 function NtClose; external winternl_lib name 'NtClose';
 function NtCreateFile; external winternl_lib name 'NtCreateFile';
 function NtOpenFile; external winternl_lib name 'NtOpenFile';
@@ -993,20 +1148,28 @@ function NtQuerySystemInformation; external winternl_lib name 'NtQuerySystemInfo
 function NtQuerySystemTime; external winternl_lib name 'NtQuerySystemTime';
 function RtlLocalTimeToSystemTime; external winternl_lib name 'RtlLocalTimeToSystemTime';
 function RtlTimeToSecondsSince1970; external winternl_lib name 'RtlTimeToSecondsSince1970';
+*)
+
 procedure RtlFreeAnsiString; external winternl_lib name 'RtlFreeAnsiString';
 procedure RtlFreeUnicodeString; external winternl_lib name 'RtlFreeUnicodeString';
 procedure RtlFreeOemString; external winternl_lib name 'RtlFreeOemString';
 procedure RtlInitString; external winternl_lib name 'RtlInitString';
 procedure RtlInitAnsiString; external winternl_lib name 'RtlInitAnsiString';
 procedure RtlInitUnicodeString; external winternl_lib name 'RtlInitUnicodeString';
-function RtlAnsiStringToUnicodeString; external winternl_lib name 'RtlAnsiStringToUnicodeString';
+
+(*
+{function RtlAnsiStringToUnicodeString; external winternl_lib name 'RtlAnsiStringToUnicodeString';
 function RtlUnicodeStringToAnsiString; external winternl_lib name 'RtlUnicodeStringToAnsiString';
 function RtlUnicodeStringToOemString; external winternl_lib name 'RtlUnicodeStringToOemString';
 function RtlUnicodeToMultiByteSize; external winternl_lib name 'RtlUnicodeToMultiByteSize';
-function RtlCharToInteger; external winternl_lib name 'RtlCharToInteger';
+function RtlCharToInteger; external winternl_lib name 'RtlCharToInteger';}
+
 function RtlConvertSidToUnicodeString; external winternl_lib name 'RtlConvertSidToUnicodeString';
-function RtlUniform; external winternl_lib name 'RtlUniform';
+
+*)
 procedure RtlUnwind; external winternl_lib name 'RtlUnwind';
+
+function RtlUniform; external winternl_lib name 'RtlUniform';
 
 {$ENDIF DYNAMIC_LINK}
 
@@ -1017,4 +1180,8 @@ RtlUnwindEx
 
 {$ENDIF _M_IA64}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

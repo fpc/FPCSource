@@ -48,11 +48,14 @@ ALERT_jedi_inc_incompatible
 // secure against old versions of jedi.inc.
 {$ENDIF !JEDI_INC}
 
-// activate standalone feature for files
-{$IFNDEF JWA_INCLUDEMODE}
-{$DEFINE JWA_INTERFACESECTION}
-{$DEFINE JWA_IMPLEMENTATIONSECTION}
-{$ENDIF !JWA_INCLUDEMODE}
+{WARNING:
+Do not change state of
+JWA_INCLUDEMODE
+JWA_INTERFACESECTION
+JWA_IMPLEMENTATIONSECTION
+Its only set in JwaWindows.pas.
+Standalone compiling would be useless!
+}
 
 // Global switch to enable dynamic linking of some APIs
 {.DEFINE DYNAMIC_LINK}
@@ -69,6 +72,24 @@ ALERT_jedi_inc_incompatible
 // directly through the use of Windows.pas instead of JwaWinType.pas.
 {$DEFINE USE_DELPHI_TYPES}
 
+
+// This global switch activates the using of long function variables
+// for dynamic linking
+// in old Delphi versions long var names are shorten and no more recognized.
+{$UNDEF SUPPORT_LONG_VARNAMES}
+{$IFDEF DELPHI6_UP}
+  {$DEFINE SUPPORT_LONG_VARNAMES}
+{$ENDIF DELPHI6_UP}
+
+{$IFDEF FPC}
+  {$DEFINE SUPPORT_LONG_VARNAMES}
+{$ENDIF FPC}
+
+//activate 64bit tweaks for some functions
+//jwaWinBase::InterlockedCompareExchangePointer
+//jwaWinBase::InterlockedExchangePointer
+{$DEFINE CPU64BIT}
+
 // Global switch for the Windows version the files are compatible with
 // ONLY A SINGLE ONE IS ALLOWED TO BE ACTIVATED BY CHANGING THE DOT TO A DOLLAR SIGN!
 // Default is WINXP
@@ -80,6 +101,13 @@ ALERT_jedi_inc_incompatible
 {.DEFINE WIN2000}
 {$DEFINE WINXP}
 {.DEFINE WIN2003}
+{.DEFINE WINVISTA}
+{.$DEFINE WIN2008}
+
+{.DEFINE SERVICEPACK_1}
+{.DEFINE SERVICEPACK_2}
+{.DEFINE SERVICEPACK_3}
+{.DEFINE SERVICEPACK_4}
 
 // Global switch for the Windows Internet Explorer versions
 // ONLY A SINGLE ONE IS ALLOWED TO BE ACTIVATED BY CHANGING THE DOT TO A DOLLAR SIGN!
@@ -106,6 +134,32 @@ ALERT_jedi_inc_incompatible
 {$DEFINE HTMLHELP12}
 
 // secondary IFDEFs for "_UP" which means also any later OS version
+
+{$IFDEF WIN2008}
+ {$DEFINE WIN95_UP}
+ {$DEFINE WIN98_UP}
+ {$DEFINE WIN98SE_UP}
+ {$DEFINE WIN98ME_UP}
+ {$DEFINE WINNT4_UP}
+ {$DEFINE WIN2000_UP}
+ {$DEFINE WINXP_UP}
+ {$DEFINE WIN2003_UP}
+ {$DEFINE WINVISTA_UP}
+ {$DEFINE WIN2008_UP}
+{$ENDIF WIN2008}
+
+{$IFDEF WINVISTA}
+ {$DEFINE WIN95_UP}
+ {$DEFINE WIN98_UP}
+ {$DEFINE WIN98SE_UP}
+ {$DEFINE WIN98ME_UP}
+ {$DEFINE WINNT4_UP}
+ {$DEFINE WIN2000_UP}
+ {$DEFINE WINXP_UP}
+ {$DEFINE WIN2003_UP}
+ {$DEFINE WINVISTA_UP}
+{$ENDIF WINVISTA}
+
 {$IFDEF WIN2003}
  {$DEFINE WIN95_UP}
  {$DEFINE WIN98_UP}
@@ -165,6 +219,21 @@ ALERT_jedi_inc_incompatible
 {$IFDEF WIN95}
  {$DEFINE WIN95_UP}
 {$ENDIF WIN95}
+
+{$IFDEF SERVICEPACK_2}
+ {$DEFINE SERVICEPACK_1_UP}
+{$ENDIF SERVICEPACK_2}
+
+{$IFDEF SERVICEPACK_3}
+ {$DEFINE SERVICEPACK_1_UP}
+ {$DEFINE SERVICEPACK_2_UP}
+{$ENDIF SERVICEPACK_3}
+
+{$IFDEF SERVICEPACK_4}
+ {$DEFINE SERVICEPACK_1_UP}
+ {$DEFINE SERVICEPACK_2_UP}
+ {$DEFINE SERVICEPACK_3_UP}
+{$ENDIF SERVICEPACK_4}
 
 
 // secondary IFDEFs for "_UP" which means also any later IE version

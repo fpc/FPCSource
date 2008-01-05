@@ -40,27 +40,33 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNtSecApi.pas,v 1.13 2005/09/08 07:49:25 marquardt Exp $
+// $Id: JwaNtSecApi.pas,v 1.15 2007/09/05 11:58:51 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNtSecApi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ntsecapi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType, JwaNtStatus, JwaWinNT;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Security operation mode of the system is held in a control
 // longword.
 //
+
 
 type
   LSA_OPERATIONAL_MODE = ULONG;
@@ -2781,6 +2787,7 @@ const
   KRB_NT_MS_PRINCIPAL_AND_ID = -129; // nt4 style name with sid
   {$EXTERNALSYM KRB_NT_MS_PRINCIPAL_AND_ID}
 
+
   MICROSOFT_KERBEROS_NAME_A = 'Kerberos';
   {$EXTERNALSYM MICROSOFT_KERBEROS_NAME_A}
   MICROSOFT_KERBEROS_NAME_W = WideString('Kerberos');
@@ -2795,7 +2802,6 @@ const
   {$ENDIF UNICODE}
 
 function KERB_IS_MS_PRINCIPAL(X: Integer): BOOL;
-
 /////////////////////////////////////////////////////////////////////////
 //
 // Quality of protection parameters for MakeSignature / EncryptMessage
@@ -2806,6 +2812,7 @@ function KERB_IS_MS_PRINCIPAL(X: Integer): BOOL;
 // This flag indicates to EncryptMessage that the message is not to actually
 // be encrypted, but a header/trailer are to be produced.
 //
+
 const
   KERB_WRAP_NO_ENCRYPT = DWORD($80000001);
   {$EXTERNALSYM KERB_WRAP_NO_ENCRYPT}
@@ -3540,10 +3547,23 @@ const
   KERB_REQUEST_REMOVE_CREDENTIAL  = 4;
   {$EXTERNALSYM KERB_REQUEST_REMOVE_CREDENTIAL}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  secur32 = 'secur32.dll';
+  advapi32 = 'advapi32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 function LSA_SUCCESS(Error: NTSTATUS): BOOL;
 begin
@@ -4108,4 +4128,10 @@ function LsaNtStatusToWinError; external advapi32 name 'LsaNtStatusToWinError';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

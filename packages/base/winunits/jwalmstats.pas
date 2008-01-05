@@ -40,29 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmStats.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+// $Id: JwaLmStats.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 unit JwaLmStats;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWindows, JwaLmCons;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmstats.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaLmCons, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS_LM}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Function Prototypes - Statistics
 //
@@ -228,19 +227,14 @@ const
   STATS_OVERFLOW = ULONG(-2);
   {$EXTERNALSYM STATS_OVERFLOW}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS_LM}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
-
+{$IFNDEF JWA_INTERFACESECTION}
 {$IFDEF DYNAMIC_LINK}
 
 var
@@ -261,9 +255,9 @@ end;
 function NetStatisticsGet; external netapi32 name 'NetStatisticsGet';
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
-
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS_LM}
+

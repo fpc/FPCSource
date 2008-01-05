@@ -40,23 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaIoEvent.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaIoEvent.pas,v 1.8 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaIoEvent;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "Ioevent.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
 
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 //  Label change event.  This event is signalled upon successful completion
 //  of a label change.  There is no additional data.
@@ -285,6 +292,24 @@ const
   GUID_IO_DISK_LAYOUT_CHANGE: TGUID = (D1:$11dff54c; D2:$8469; D3:$41f9; D4:($b3, $de, $ef, $83, $64, $87, $c5, $4a));
   {$EXTERNALSYM GUID_IO_DISK_LAYOUT_CHANGE}
 
-implementation
+//your interface declarations here
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

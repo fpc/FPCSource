@@ -40,22 +40,31 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAuthif.pas,v 1.6 2005/09/03 14:27:47 marquardt Exp $
+// $Id: JwaAuthif.pas,v 1.8 2007/09/05 11:58:48 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAuthif;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "authif.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 //  Enumerates the attribute types that are passed to the extension DLL.  The
@@ -642,6 +651,22 @@ type
   PRADIUS_EXTENSION_PROCESS_2 = function(pECB: PRADIUS_EXTENSION_CONTROL_BLOCK): DWORD; stdcall;
   {$EXTERNALSYM PRADIUS_EXTENSION_PROCESS_2}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

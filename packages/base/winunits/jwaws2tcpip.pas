@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWS2tcpip.pas,v 1.10 2005/09/08 07:49:25 marquardt Exp $
-
+// $Id: JwaWS2tcpip.pas,v 1.12 2007/09/05 11:58:53 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWS2tcpip;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ws2tcpip.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinSock2, JwaWindows;
+  JwaWinSock2, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // WS2TCPIP.H - WinSock2 Extension for TCP/IP protocols
@@ -220,6 +225,7 @@ type
   {$EXTERNALSYM in6_addr}
   TIn6Addr = in6_addr;
   PIn6Addr = ^in6_addr;
+
 
 //
 // Defines to match RFC 2553.
@@ -532,8 +538,18 @@ const
   {$EXTERNALSYM NI_NUMERICSERV}
   NI_DGRAM       = $10; // Service is a datagram service
   {$EXTERNALSYM NI_DGRAM}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+uses
+  SysUtils, JwaWinBase, JwaWinNT;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+
 
 function IP_MSFILTER_SIZE(numsrc: Integer): Integer;
 begin
@@ -755,4 +771,9 @@ function getnameinfo; external ws2tcpip name 'getnameinfo';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

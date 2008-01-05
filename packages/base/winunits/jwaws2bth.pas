@@ -38,22 +38,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWs2Bth.pas,v 1.9 2005/09/03 14:27:49 marquardt Exp $
-
+// $Id: JwaWs2Bth.pas,v 1.12 2007/09/14 06:48:49 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWs2Bth;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ws2bth.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaBthSdpDef, JwaBlueToothApis, JwaBthDef;
+  JwaWinType, JwaBthSdpDef, JwaBlueToothApis, JwaBthDef;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   BT_PORT_ANY = -1;
@@ -79,7 +84,7 @@ const
 
 type
   _SOCKADDR_BTH = packed record
-    addressFamily: Word;   // Always AF_BTH
+    addressFamily: Word; // Always AF_BTH
     btAddr: BTH_ADDR;      // Bluetooth device address
     serviceClassId: TGUID; // [OPTIONAL] system will query SDP for port
     port: ULONG;           // RFCOMM channel or L2CAP PSM
@@ -288,15 +293,19 @@ const
 //
 // SOCKET IOCTLs
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   IOC_OUT      = $40000000;        // copy out parameters
   {$EXTERNALSYM IOC_OUT}
   IOC_IN       = DWORD($80000000); // copy in parameters
   {$EXTERNALSYM IOC_IN}
   IOC_INOUT    = DWORD(IOC_IN or IOC_OUT);
   {$EXTERNALSYM IOC_INOUT}
+  {$ENDIF JWA_INCLUDEMODE}
+
+  {$IFNDEF JWA_WINSOCK_2}
   IOC_VENDOR   = $18000000;
   {$EXTERNALSYM IOC_VENDOR}
+  {$ENDIF JWA_WINSOCK_2}
 
 const
   SIO_RFCOMM_SEND_COMMAND = IOC_INOUT or IOC_VENDOR or 101;
@@ -594,12 +603,24 @@ typedef struct _BTH_SET_SERVICE BTHNS_SETBLOB, *PBTHNS_SETBLOB;
 typedef struct _BTH_QUERY_DEVICE BTHNS_INQUIRYBLOB, *PBTHNS_INQUIRYBLOB;
 typedef struct _BTH_QUERY_SERVICE BTHNS_RESTRICTIONBLOB, *PBTHNS_RESTRICTIONBLOB;
 }
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 function BIT(b: Integer): DWORD;
 begin
   Result := DWORD(1 shl b);
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

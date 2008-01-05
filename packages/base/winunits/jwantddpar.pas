@@ -32,22 +32,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNtDdPar.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaNtDdPar.pas,v 1.8 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNtDdPar;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ntddk.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaWinIoctl;
+  JwaWinType, JwaWinIoctl;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   // Parallel port device GUIDs
@@ -212,7 +217,19 @@ const
   {$EXTERNALSYM ECP_SW}
   ECP_ANY            = $0780;
   {$EXTERNALSYM ECP_ANY}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

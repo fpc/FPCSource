@@ -40,29 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinSock.pas,v 1.9 2005/09/06 16:36:51 marquardt Exp $
+// $Id: JwaWinSock.pas,v 1.12 2007/09/05 11:58:54 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinSock;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinBase, JwaWinType;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "winsock.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinType, JwaWinBase;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 (*
  * Basic system type definitions, taken from the BSD file sys/types.h.
  *)
@@ -542,7 +542,7 @@ const
 type
   ip_mreq = record
     imr_multiaddr: in_addr;  (* IP multicast address of group *)
-    mr_interface: in_addr;  (* local IP address of interface *)
+    imr_interface: in_addr;  (* local IP address of interface *)
   end;
   {$EXTERNALSYM ip_mreq}
   TIpMReq = ip_mreq;
@@ -885,15 +885,18 @@ const
   FD_CLOSE       = $20;
   {$EXTERNALSYM FD_CLOSE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 (*
  * All Windows Sockets error constants are biased by WSABASEERR from
  * the "normal"
  *)
 
-{$IFNDEF JWA_INCLUDEMODE}
   WSABASEERR = 10000;
   {$EXTERNALSYM WSABASEERR}
+{$ENDIF JWA_INCLUDEMODE}
 
+
+{$IFNDEF JWA_INCLUDEMODE}
 (*
  * Windows Sockets definitions of regular Microsoft C error constants
  *)
@@ -1035,7 +1038,7 @@ const
   WSANO_DATA = WSABASEERR + 1004;
   {$EXTERNALSYM WSANO_DATA}
 
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 (*
  * Compatibility macros.
@@ -1378,18 +1381,20 @@ function WSAGETSELECTEVENT(lParam: DWORD): WORD;
 function WSAGETSELECTERROR(lParam: DWORD): WORD;
 {$EXTERNALSYM WSAGETSELECTERROR}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  wsock32 = 'wsock32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 procedure FD_CLR(fd: TSocket; var fdset: TFdSet);
 var
@@ -1411,6 +1416,7 @@ begin
     Inc(I);
   end;
 end;
+
 
 procedure _FD_SET(fd: TSocket; var fdset: TFDSet);
 var
@@ -1520,6 +1526,7 @@ begin
 end;
 
 {$IFDEF DYNAMIC_LINK}
+
 
 var
   ___WSAFDIsSet: Pointer;
@@ -1676,6 +1683,7 @@ begin
         JMP     [_inet_addr]
   end;
 end;
+
 
 var
   _inet_ntoa: Pointer;
@@ -2184,6 +2192,7 @@ begin
   end;
 end;
 
+
 {$ELSE}
 
 function __WSAFDIsSet; external wsock32 name '__WSAFDIsSet';
@@ -2240,8 +2249,8 @@ procedure GetAcceptExSockaddrs; external wsock32 name 'GetAcceptExSockaddrs';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

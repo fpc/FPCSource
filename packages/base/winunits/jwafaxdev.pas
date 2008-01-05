@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaFaxDev.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaFaxDev.pas,v 1.9 2007/09/14 06:48:45 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaFaxDev;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "faxdev.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaPrSht;
+  JwaWinType, JwaPrSht;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // FAX status constants
@@ -104,7 +110,9 @@ const
 //
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   HCALL = HANDLE; // todo from TAPI
+  {$ENDIF JWA_INCLUDEMODE}
 
   PFAX_SEND = ^FAX_SEND;
   {$EXTERNALSYM PFAX_SEND}
@@ -202,6 +210,17 @@ type
   PFAXDEVCONFIGURE = function(out PropSheetPage: HPROPSHEETPAGE): BOOL; stdcall;
   {$EXTERNALSYM PFAXDEVCONFIGURE}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

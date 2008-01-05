@@ -40,22 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNtDsbCli.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaNtDsbCli.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNtDsbCli;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include ":ntdsbcli.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   g_wszBackupAnnotation = 'NTDS Backup Interface';
@@ -625,11 +629,25 @@ function DsSetAuthIdentityW(szUserName, szDomainName, szPassword: LPCWSTR): HRES
 {$EXTERNALSYM DsSetAuthIdentityW}
 function DsSetAuthIdentity(szUserName, szDomainName, szPassword: LPCTSTR): HRESULT; stdcall;
 {$EXTERNALSYM DsSetAuthIdentity}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  ntdsbclilib = 'ntdsbclilib.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1156,4 +1174,9 @@ function DsSetAuthIdentity; external ntdsbclilib name 'DsSetAuthIdentity' + AWSu
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

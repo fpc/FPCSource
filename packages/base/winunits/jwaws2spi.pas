@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWS2spi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaWS2spi.pas,v 1.11 2007/09/05 11:58:53 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWS2spi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ws2spi.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaWinSock2;
+  JwaWinType, JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 (*
  * Ensure structures are packed consistently.
@@ -774,11 +779,21 @@ type
   LPNSPSTARTUP = function(const lpProviderId: TGUID; lpnspRoutines:  LPNSP_ROUTINE): Integer; stdcall;
   {$EXTERNALSYM LPNSPSTARTUP}
   TNspStartup = LPNSPSTARTUP;
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  ws2_32 = 'ws2_32.dll';
+  qosname = 'qosname.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -937,7 +952,7 @@ var
 
 function WSCInstallQOSTemplate;
 begin
-  GetProcedureAddress(_WSCInstallQOSTemplate, JwaWs2spi.qosname, 'WSCInstallQOSTemplate');
+  GetProcedureAddress(_WSCInstallQOSTemplate, String(qosname), String('WSCInstallQOSTemplate'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -950,7 +965,7 @@ var
 
 function WSCRemoveQOSTemplate;
 begin
-  GetProcedureAddress(_WSCRemoveQOSTemplate, JwaWs2spi.qosname, 'WSCRemoveQOSTemplate');
+  GetProcedureAddress(_WSCRemoveQOSTemplate, String(qosname), String('WSCRemoveQOSTemplate'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1091,4 +1106,9 @@ function WSCEnableNSProvider32; external ws2_32 name 'WSCEnableNSProvider32';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

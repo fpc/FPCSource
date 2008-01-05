@@ -40,13 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinReg.pas,v 1.11 2005/09/06 16:36:51 marquardt Exp $
+// $Id: JwaWinReg.pas,v 1.13 2007/09/05 11:58:54 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinReg;
 
 {$WEAKPACKAGEUNIT}
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinReg.h"'}
+{$HPPEMIT ''}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 
 {$I jediapilib.inc}
 
@@ -55,14 +64,8 @@ interface
 uses
   JwaReason, JwaWinBase, JwaWinNT, JwaWinType;
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinReg.h"'}
-{$HPPEMIT ''}
-
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 // Requested Key access mask type.
 //
@@ -533,18 +536,25 @@ function RegSaveKeyEx(hKey: HKEY; lpFile: LPCTSTR;
 function Wow64Win32ApiEntry(dwFuncNumber, dwFlag, dwRes: DWORD): LONG; stdcall;
 {$EXTERNALSYM Wow64Win32ApiEntry}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
 
-{$ENDIF !JWA_INCLUDEMODE}
+{$IFNDEF JWA_INTERFACESECTION}
 
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_OMIT_SECTIONS}
+const
+  advapi32 = 'advapi32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 type
   TRegNotifyChangeKeyValue = function(hKey: HKEY; bWatchSubtree: LongBool; dwNotifyFilter: DWORD; hEvent: HANDLE; fAsynchronus: LongBool): LONG; stdcall;
@@ -1744,8 +1754,8 @@ function Wow64Win32ApiEntry; external advapi32 name 'Wow64Win32ApiEntry';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

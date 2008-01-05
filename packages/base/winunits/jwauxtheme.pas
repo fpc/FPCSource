@@ -40,25 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaUxTheme.pas,v 1.9 2005/09/08 07:49:25 marquardt Exp $
+// $Id: JwaUxTheme.pas,v 1.11 2007/09/05 11:58:52 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaUxTheme;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "uxtheme.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType, JwaWinGDI;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
-  HIMAGELIST = Pointer; // TODO
+  HIMAGELIST = HANDLE; // TODO TEMPORARY
 
 type
   HTHEME = HANDLE;          // handle to a section of theme data for class
@@ -1105,10 +1110,23 @@ type
 function DrawThemeBackgroundEx(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; pRect: LPRECT; pOptions: PDTBGOPTS): HRESULT; stdcall;
 {$EXTERNALSYM DrawThemeBackgroundEx}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  themelib = 'uxtheme.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1789,4 +1807,10 @@ function DrawThemeBackgroundEx; external themelib name 'DrawThemeBackgroundEx';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

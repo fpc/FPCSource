@@ -40,29 +40,36 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaBitscfg.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
-
+// $Id: JwaBitscfg.pas,v 1.10 2007/09/06 14:57:11 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaBitscfg;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "bitscfg.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinBase, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   IID_IBITSExtensionSetup: TGUID = '{29cfbbf7-09e4-4b97-b0bc-f2287e3d8eb3}';
   {$EXTERNALSYM IID_IBITSExtensionSetup}
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   REFIID = TGUID; // also in ActiveDS and another unit
+  {$ENDIF JWA_INCLUDEMODE}
 
   IBITSExtensionSetup = interface(IDispatch)
   ['{29cfbbf7-09e4-4b97-b0bc-f2287e3d8eb3}']
@@ -87,6 +94,17 @@ const
   CLSID_BITSExtensionSetupFactory: GUID = '{efbbab68-7286-4783-94bf-9461d8b7e7e9}';
   {$EXTERNALSYM CLSID_BITSExtensionSetupFactory}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

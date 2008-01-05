@@ -58,7 +58,7 @@ uses
     jwawpcrsmsg, jwawpftpmsg, jwawppstmsg, jwawpspihlp, jwawptypes,
     jwawpwizmsg, jwaws2atm, jwaws2bth, jwaws2dnet, jwaws2spi, jwaws2tcpip,
     jwawshisotp, jwawsnetbs, jwawsnwlink, jwawtsapi32, jwazmouse, jwasensevts,
-    jwaadstlb, jwanative, jwawindows, jwacarderr;
+    jwaadstlb, jwanative, jwawindows, jwacarderr,jwawinsta, jwavista;
 
 implementation
 

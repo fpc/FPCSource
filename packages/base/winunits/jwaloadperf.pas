@@ -40,18 +40,25 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLoadPerf.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaLoadPerf.pas,v 1.11 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLoadPerf;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 // flags for dwFlags Argument
 
@@ -124,10 +131,28 @@ function BackupPerfRegistryToFileW(szFileName: LPCWSTR; szCommentString: LPCWSTR
 function RestorePerfRegistryFromFileW(szFileName: LPCWSTR; szLangId: LPCWSTR): DWORD; stdcall;
 {$EXTERNALSYM RestorePerfRegistryFromFileW}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  loadperflib = 'loadperf.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -374,4 +399,11 @@ function RestorePerfRegistryFromFileW; external loadperflib name 'RestorePerfReg
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

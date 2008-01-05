@@ -40,29 +40,38 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNtQuery.pas,v 1.11 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaNtQuery.pas,v 1.14 2007/09/14 06:48:46 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNtQuery;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "ntquery.h"'}
+{$HPPEMIT ''}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaActiveX, JwaWindows;
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "ntquery.h"'}
-{$HPPEMIT ''}
+  JwaActiveX, ComObj, {TODO}
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   // TODO STUBS  see CmdTree.h (cmdtree.idl)
   IFilter = Pointer;
   IUnkown = Pointer;
   ICommand = Pointer;
+  {$IFNDEF JWA_INCLUDEMODE}
+  PPWCHAR = ^PWCHAR;
   REFIID = TGUID; // also in ActiveDS
+  {$ENDIF JWA_INCLUDEMODE}
   DBID = Pointer;
   DBCOMMANDTREE = Pointer;
   PDBCOMMANDTREE = Pointer;
@@ -485,10 +494,25 @@ function CIRestrictionToFullTree(const pTree: DBCOMMANDTREE; pwszColumns,
   cProperties: ULONG; pReserved: PCIPROPERTYDEF; LocaleID: LCID): HRESULT; stdcall;
 {$EXTERNALSYM CIRestrictionToFullTree}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  querylib = 'query.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function QUERY_FILL_STATUS(x: DWORD): DWORD;
 begin
@@ -759,4 +783,10 @@ function CIRestrictionToFullTree; external querylib name 'CIRestrictionToFullTre
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

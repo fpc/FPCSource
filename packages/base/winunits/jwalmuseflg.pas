@@ -40,19 +40,23 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmUseFlg.pas,v 1.5 2004/12/08 08:18:37 marquardt Exp $
-
+// $Id: JwaLmUseFlg.pas,v 1.6 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLmUseFlg;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmuseflg.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Definition for NetWkstaTransportDel and NetUseDel deletion force levels
@@ -66,6 +70,20 @@ const
   USE_LOTS_OF_FORCE      = 2;
   {$EXTERNALSYM USE_LOTS_OF_FORCE}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

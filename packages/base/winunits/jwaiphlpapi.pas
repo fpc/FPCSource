@@ -43,22 +43,31 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaIpHlpApi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaIpHlpApi.pas,v 1.11 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaIpHlpApi;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaIpExport, JwaIpRtrMib, JwaIpTypes, JwaWindows;
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "iphlpapi.h"'}
 {$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+{$I jedi.inc} //used for D5 compiling
+
+interface
+
+uses
+  JwaIpExport, JwaIpRtrMib, JwaIpTypes, JwaWinType, JwaWinBase, JwaWinSock;
+
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //////////////////////////////////////////////////////////////////////////////
 //                                                                          //
@@ -386,10 +395,23 @@ function RestoreMediaSense(pOverlapped: POVERLAPPED; lpdwEnableCount: LPDWORD): 
 function GetIpErrorString(ErrorCode: IP_STATUS; Buffer: PWCHAR; var Size: DWORD): DWORD; stdcall;
 {$EXTERNALSYM GetIpErrorString}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  iphlpapilib = 'iphlpapi.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -797,15 +819,27 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _NhpAllocateAndGetInterfaceInfoFromStack: Pointer;
+{$ELSE}
+  _NhpAllocateAGIIFrStack: Pointer;
+{$ENDIF}
 
 function NhpAllocateAndGetInterfaceInfoFromStack;
 begin
-  GetProcedureAddress(_NhpAllocateAndGetInterfaceInfoFromStack, iphlpapilib, 'NhpAllocateAndGetInterfaceInfoFromStack');
+{$IFDEF SUPPORT_LONG_VARNAMES}
+  GetProcedureAddress(_NhpAllocateAndGetInterfaceInfoFromStack,iphlpapilib, 'NhpAllocateAndGetInterfaceInfoFromStack');
+{$ELSE}
+  GetProcedureAddress(_NhpAllocateAGIIFrStack,iphlpapilib, 'NhpAllocateAndGetInterfaceInfoFromStack');
+{$ENDIF}
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_NhpAllocateAndGetInterfaceInfoFromStack]
+{$ELSE}
+        JMP     [_NhpAllocateAGIIFrStack]
+{$ENDIF}
   end;
 end;
 
@@ -1182,4 +1216,10 @@ function GetIpErrorString; external iphlpapilib name 'GetIpErrorString';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

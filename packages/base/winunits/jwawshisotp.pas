@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWShisotp.pas,v 1.4 2004/12/08 08:18:40 marquardt Exp $
-
+// $Id: JwaWShisotp.pas,v 1.6 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWShisotp;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "wshisotp.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 //   wshisotp.h
@@ -99,10 +104,12 @@ const
   ISOPROTO_INTRAISIS = 35;     // IS-IS protocol
   {$EXTERNALSYM ISOPROTO_INTRAISIS}
 
+  {$IFNDEF JWA_INCLUDEMODE}
   IPPROTO_RAW        = 255;    // raw clnp
   {$EXTERNALSYM IPPROTO_RAW}
   IPPROTO_MAX        = 256;
   {$EXTERNALSYM IPPROTO_MAX}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 //   The maximum size of the tranport address (tp_addr field of a
@@ -163,8 +170,15 @@ const
   {$EXTERNALSYM ISO_EXP_DATA_USE}
   ISO_EXP_DATA_NUSE = 01;    // Non-use of Expedited Data
   {$EXTERNALSYM ISO_EXP_DATA_NUSE}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 // TODO
 //procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PChar; portlen: u_short; node: PChar; nodelen: u_short);
@@ -177,4 +191,9 @@ implementation
 //  System.Move(node, @sa_tp.tp_addr[portlen], nodelen);
 //end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

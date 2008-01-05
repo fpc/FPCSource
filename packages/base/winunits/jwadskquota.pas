@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDskQuota.pas,v 1.7 2005/09/03 13:12:10 marquardt Exp $
-
+// $Id: JwaDskQuota.pas,v 1.9 2007/09/05 11:58:49 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDskQuota;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "DskQuota.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaActiveX, JwaWindows;
+  JwaActiveX, JwaWinNT, JwaWinType;
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "DskQuota.h"'}
-{$HPPEMIT ''}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
 
@@ -352,8 +358,15 @@ type
   {$EXTERNALSYM DISKQUOTA_EVENTS;}
   PDISKQUOTA_EVENTS = ^DISKQUOTA_EVENTS;
   {$EXTERNALSYM PDISKQUOTA_EVENTS;}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 function DISKQUOTA_SET_DISABLED(var s: DWORD): DWORD;
 begin
@@ -422,4 +435,9 @@ begin
     Result := Result or DISKQUOTA_LOGFLAG_USER_LIMIT;
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

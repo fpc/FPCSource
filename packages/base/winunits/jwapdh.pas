@@ -40,23 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaPdh.pas,v 1.12 2005/09/08 07:49:25 marquardt Exp $
-
+// $Id: JwaPdh.pas,v 1.15 2007/09/14 06:48:46 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaPdh;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "pdh.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinBase, JwaWinType, JwaWinPerf;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
   PDH_STATUS = DWORD;
   {$EXTERNALSYM PDH_STATUS}
@@ -116,12 +120,16 @@ type
   {$EXTERNALSYM HCOUNTER}
   HQUERY = PDH_HQUERY;
   {$EXTERNALSYM HQUERY}
+  {$IFNDEF JWA_INCLUDEMODE}
   HLOG = PDH_HLOG;
   {$EXTERNALSYM HLOG}
+  {$ENDIF JWA_INCLUDEMODE}
 
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   INVALID_HANDLE_VALUE = HANDLE(LONG_PTR(-1));
   {$EXTERNALSYM INVALID_HANDLE_VALUE}
+  {$ENDIF JWA_INCLUDEMODE}
 
   H_REALTIME_DATASOURCE = NULL;
   {$EXTERNALSYM H_REALTIME_DATASOURCE}
@@ -746,6 +754,8 @@ function PdhMakeCounterPath(pCounterPathElements: PPDH_COUNTER_PATH_ELEMENTS;
   szFullPathBuffer: LPTSTR; var pcchBufferSize: DWORD; dwFlags: DWORD): PDH_STATUS; stdcall;
 {$EXTERNALSYM PdhMakeCounterPath}
 
+// todo shouldn't pCounterPathElements be a pointer to ...?
+
 function PdhParseCounterPathA(szFullPathBuffer: LPCSTR;
   pCounterPathElements: PPDH_COUNTER_PATH_ELEMENTS_A; var pdwBufferSize: DWORD;
   dwFlags: DWORD): PDH_STATUS; stdcall;
@@ -1261,10 +1271,24 @@ function PdhGetLogSetGUID(hLog: PDH_HLOG; pGuid: LPGUID; pRunId: LPINT): PDH_STA
 function PdhSetLogSetRunID(hLog: PDH_HLOG; RunId: Integer): PDH_STATUS; stdcall;
 {$EXTERNALSYM PdhSetLogSetRunID}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  PdhLib = 'pdh.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function IsSuccessSeverity(ErrorCode: Longint): Boolean;
 begin
@@ -3090,4 +3114,8 @@ function PdhSetLogSetRunID; external PdhLib name 'PdhSetLogSetRunID';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

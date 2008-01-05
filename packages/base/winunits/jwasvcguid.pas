@@ -40,16 +40,19 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSvcGuid.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaSvcGuid.pas,v 1.8 2007/09/05 11:58:52 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSvcGuid;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "svguid.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
@@ -58,8 +61,11 @@ uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows;
   {$ELSE}
-  JwaWindows;
+  JwaWinType;
   {$ENDIF USE_DELPHI_TYPES}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //  Defines GUIDs for well-known services including:
 //
@@ -563,7 +569,14 @@ const
   SVCID_DNS_TYPE_ATMA: TGUID = '{00090035-0000-0022-C000-000000000046}';
   {$EXTERNALSYM SVCID_DNS_TYPE_ATMA}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 function SVCID_TCP_RR(Port, RR: Word): TGUID;
 begin
@@ -733,4 +746,10 @@ begin
   Guid.D4[7] := $46;
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

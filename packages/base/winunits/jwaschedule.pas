@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSchedule.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaSchedule.pas,v 1.8 2007/09/05 11:58:52 dezipaitor Exp $
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSchedule;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "schedule.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // The DS and FRS use the same structure to represent different schedules.
@@ -128,6 +135,16 @@ const
   SCHEDULE_DATA_ENTRIES = 7 * 24;    // 7 days X 24 hours
   {$EXTERNALSYM SCHEDULE_DATA_ENTRIES}
   
-implementation
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+Implementation // implementation is mandatory under FPC.
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

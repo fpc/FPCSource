@@ -32,9 +32,8 @@
 { For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html }
 {                                                                              }
 {******************************************************************************}
-
-// $Id: JwaWinDLLNames.pas,v 1.1 2005/09/06 16:02:48 marquardt Exp $
-
+{$IFNDEF JWA_OMIT_SECTIONS}
+// $Id: JwaWinDLLNames.pas,v 1.2 2007/09/05 11:58:53 dezipaitor Exp $
 unit JwaWinDLLNames;
 
 {$WEAKPACKAGEUNIT}
@@ -42,7 +41,9 @@ unit JwaWinDLLNames;
 {$I jediapilib.inc}
 
 interface
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   {$IFDEF UNICODE}
   AWSuffix = 'W';
@@ -60,6 +61,7 @@ const
   credapi = 'advapi32.dll';
   credui = 'credui.dll';
   crypt32 = 'crypt32.dll';
+  cryptnet = 'cryptnet.dll';
   cryptuiapi = 'cryptui.dll';
   dhcpapi = 'dhcpcsvc.dll';
   dhcplib = 'dhcpsapi.dll';
@@ -112,10 +114,12 @@ const
   trafficlib = 'traffic.dll';
   user32 = 'user32.dll';
   userenvlib = 'userenv.dll';
+  utildll = 'utildll.dll';
   versionlib = 'version.dll';
   winberapi = 'wldap32.dll';
   winfax = 'winfax.dll';
   winspool32 = 'winspool32.drv';
+  winstaDLL = 'winsta.dll';
   winternl_lib = 'ntdll.dll';
   wow16lib = 'kernel32.dll';
   wow32lib = 'wow32.dll';
@@ -123,7 +127,26 @@ const
   ws2_32 = 'ws2_32.dll';
   wsock32 = 'wsock32.dll';
   wtsapi = 'wtsapi32.dll';
+  SetupApiModuleName = 'SetupApi.dll';
+  CfgMgrDllName = 'cfgmgr32.dll';
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

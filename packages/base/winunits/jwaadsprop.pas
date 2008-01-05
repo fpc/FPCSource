@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaAdsProp.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaAdsProp.pas,v 1.13 2007/09/06 14:57:10 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaAdsProp;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "adsprop.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaAdsTLB, JwaWindows;
+  JwaActiveX, JwaAdsTLB, JwaWinUser, JwaWinType;
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "adsprop.h"'}
-{$HPPEMIT ''}
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //  Windows NT Active Directory Service Property Pages
 //
@@ -63,6 +70,7 @@ uses
 //              sheets.
 
 const
+  {$IFNDEF JWA_INCLUDEMODE}
   WM_ADSPROP_NOTIFY_PAGEINIT   = WM_USER + 1101; // where LPARAM is the PADSPROPINITPARAMS pointer.
   {$EXTERNALSYM WM_ADSPROP_NOTIFY_PAGEINIT}
   WM_ADSPROP_NOTIFY_PAGEHWND   = WM_USER + 1102; // where WPARAM => page's HWND and LPARAM => page's Title
@@ -77,6 +85,7 @@ const
   {$EXTERNALSYM WM_ADSPROP_NOTIFY_FOREGROUND}
   WM_ADSPROP_NOTIFY_EXIT       = WM_USER + 1107; // sent on page release
   {$EXTERNALSYM WM_ADSPROP_NOTIFY_EXIT}
+  {$ENDIF JWA_INCLUDEMODE}
   WM_ADSPROP_NOTIFY_ERROR      = WM_USER + 1110; // used to send the notification object an error message
   {$EXTERNALSYM WM_ADSPROP_NOTIFY_ERROR}
   
@@ -90,6 +99,7 @@ const
 //-----------------------------------------------------------------------------
 
 type
+  {$IFNDEF JWA_INCLUDEMODE}
   // imports of a type library sometimes are missing a few decls, these are just
   // a few of them to make this file compile at all. I really should do all of
   // them one day. TODO
@@ -113,6 +123,7 @@ type
   ADSPROPINITPARAMS = _ADSPROPINITPARAMS;
   {$EXTERNALSYM ADSPROPINITPARAMS}
   TAdsPropInitParams = ADSPROPINITPARAMS;
+  {$ENDIF JWA_INCLUDEMODE}
 
 //+----------------------------------------------------------------------------
 //
@@ -138,6 +149,7 @@ type
   {$EXTERNALSYM PADSPROPERROR}
   TAdsPropError = ADSPROPERROR;
 
+{$IFNDEF JWA_INCLUDEMODE}
 //+----------------------------------------------------------------------------
 //
 //  Function:   ADsPropCreateNotifyObj
@@ -259,6 +271,8 @@ function ADsPropCheckIfWritable(pwzAttr: PWSTR; pWritableAttrs: PADS_ATTR_INFO):
 function ADsPropSendErrorMessage(hNotifyObj: HWND; pError: PADSPROPERROR): BOOL; stdcall;
 {$EXTERNALSYM ADsPropSendErrorMessage}
 
+
+
 //+----------------------------------------------------------------------------
 //
 //  function:   ADsPropShowErrorDialog
@@ -276,12 +290,25 @@ function ADsPropSendErrorMessage(hNotifyObj: HWND; pError: PADSPROPERROR): BOOL;
 function ADsPropShowErrorDialog(hNotifyObj: HWND; hPage: HWND): BOOL; stdcall;
 {$EXTERNALSYM ADsPropShowErrorDialog}
 
-implementation
+{$ENDIF JWA_INCLUDEMODE}
 
-uses
-  JwaWinDLLNames;
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  dsprop = 'dsprop.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 var
   _ADsPropCreateNotifyObj: Pointer;
@@ -374,8 +401,11 @@ begin
   end;
 end;
 
+{$ENDIF JWA_INCLUDEMODE}
+
 {$ELSE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 function ADsPropCreateNotifyObj; external dsprop name 'ADsPropCreateNotifyObj';
 function ADsPropGetInitInfo; external dsprop name 'ADsPropGetInitInfo';
 function ADsPropSetHwndWithTitle; external dsprop name 'ADsPropSetHwndWithTitle';
@@ -383,7 +413,12 @@ function ADsPropSetHwnd; external dsprop name 'ADsPropSetHwnd';
 function ADsPropCheckIfWritable; external dsprop name 'ADsPropCheckIfWritable';
 function ADsPropSendErrorMessage; external dsprop name 'ADsPropSendErrorMessage';
 function ADsPropShowErrorDialog; external dsprop name 'ADsPropShowErrorDialog';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

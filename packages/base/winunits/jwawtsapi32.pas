@@ -40,16 +40,23 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWtsApi32.pas,v 1.10 2005/09/06 16:36:51 marquardt Exp $
+// $Id: JwaWtsApi32.pas,v 1.13 2007/09/14 06:48:49 marquardt Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWtsApi32;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
+
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //   Windows Terminal Server public APIs
 //
@@ -82,9 +89,10 @@ const
 //
 //  Possible pResponse values from WTSSendMessage()
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   IDTIMEOUT = 32000;
   {$EXTERNALSYM IDTIMEOUT}
+  {$ENDIF JWA_INCLUDEMODE}
   IDASYNC   = 32001;
   {$EXTERNALSYM IDASYNC}
 
@@ -107,6 +115,12 @@ const
                                         // off through software)
   WTS_WSD_FASTREBOOT = $00000010;       // reboot without logging users
   {$EXTERNALSYM WTS_WSD_FASTREBOOT}     // off or shutting down
+
+// Added from Server 2008 pre-release SDK
+  MAX_ELAPSED_TIME_LENGTH = 15;
+  MAX_DATE_TIME_LENGTH = 56;
+  WINSTATIONNAME_LENGTH = 32;
+  DOMAIN_LENGTH = 17;
 
 //==============================================================================
 // WTS_CONNECTSTATE_CLASS - Session connect state
@@ -710,11 +724,24 @@ function WTSUnRegisterSessionNotification(hWnd: HWND): BOOL; stdcall;
 
 function WTSQueryUserToken(SessionId: ULONG; var phToken: HANDLE): BOOL; stdcall;
 {$EXTERNALSYM WTSQueryUserToken}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  wtsapi = 'wtsapi32.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1297,4 +1324,10 @@ function WTSQueryUserToken; external wtsapi name 'WTSQueryUserToken';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

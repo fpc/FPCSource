@@ -29,8 +29,8 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinLDAP.pas,v 1.6 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaWinLDAP.pas,v 1.9 2007/09/14 06:48:48 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinLDAP;
 
 {$WEAKPACKAGEUNIT}
@@ -41,6 +41,9 @@ interface
 
 uses
   Windows;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 {$HPPEMIT '#ifndef LDAP_CLIENT_DEFINED'}
 {$HPPEMIT '#pragma option push -b -a8 -pc -A- /*P_O_Push_S*/'}
@@ -95,7 +98,10 @@ type
   {$NODEFINE PPCharA}
   PPCharW = ^PWideChar;
   {$NODEFINE PPCharW}
+
+  {$IFNDEF JWA_INCLUDEMODE}
   PPChar = PPCharA;
+  {$ENDIF JWA_INCLUDEMODE}
 
   PPPCharA = ^PPCharA;
   {$NODEFINE PPPCharA}
@@ -2515,10 +2521,19 @@ const
   {$EXTERNALSYM LDAP_OPT_REF_DEREF_CONN_PER_MSG}
   LDAP_OPT_REF_DEREF_CONN_PER_MSG = $94;
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  LDAPLib = 'wldap32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 function ldap_openA; external LDAPLib name 'ldap_openA';
 function ldap_openW; external LDAPLib name 'ldap_openW';
@@ -2748,7 +2763,6 @@ function LdapGetLastError; external LDAPLib name 'LdapGetLastError';
 function LdapMapErrorToWin32; external LDAPLib name 'LdapMapErrorToWin32';
 function ldap_conn_from_msg; external LDAPLib name 'ldap_conn_from_msg';
 
-
 // Macros.
 function LDAP_IS_CLDAP(ld: PLDAP): boolean;
 begin
@@ -2757,8 +2771,12 @@ end;
 
 function NAME_ERROR(n: integer): boolean;
 begin
-  Result :=((n and $f0) = $20);
+  Result := (n and $F0) = $20;
 end;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
 

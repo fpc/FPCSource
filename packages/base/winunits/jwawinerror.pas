@@ -40,29 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinError.pas,v 1.7 2005/09/04 07:02:38 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaWinError.pas,v 1.9 2007/09/05 11:58:53 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinError;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinError.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinError.h"'}
-{$HPPEMIT ''}
-
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 //
 //  Values are 32 bit values layed out as follows:
 //
@@ -30351,14 +30350,15 @@ const
   COMADMIN_E_PARTITIONS_DISABLED = HRESULT($80110824);
   {$EXTERNALSYM COMADMIN_E_PARTITIONS_DISABLED}
 
-{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
-{$ENDIF !JWA_INCLUDEMODE}
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
-
+{$IFNDEF JWA_INTERFACESECTION}
 function SUCCEEDED(Status: HRESULT): BOOL;
 begin
   Result := Status >= 0;
@@ -30456,8 +30456,8 @@ begin
   Result := HRESULT(scBase);
 end;
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

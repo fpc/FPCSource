@@ -40,22 +40,29 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSisBkUp.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaSisBkUp.pas,v 1.10 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSisBkUp;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "sisbkup.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinNT, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 function SisCreateBackupStructure(volumeRoot: PWCHAR; var sisBackupStructure: PVOID; var commonStoreRootPathname: PWCHAR;
   countOfCommonStoreFilesToBackup: PULONG; var commonStoreFilesToBackup: PWCHAR): BOOL; stdcall;
@@ -85,10 +92,13 @@ function SisFreeRestoreStructure(sisRestoreStructure: PVOID): BOOL; stdcall;
 function SisFreeAllocatedMemory(allocatedSpace: PVOID): BOOL; stdcall;
 {$EXTERNALSYM SisFreeAllocatedMemory}
 
+{$ENDIF JWA_INCLUDEMODE}
+
 //
 // SIS entry function typedefs
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 type
   PF_SISCREATEBACKUPSTRUCTURE = function(volumeRoot: PWCHAR; var sisBackupStructure: PVOID; var commonStoreRootPathname: PWCHAR;
     countOfCommonStoreFilesToBackup: PULONG; var commonStoreFilesToBackup: PWCHAR): BOOL; stdcall;
@@ -125,14 +135,25 @@ type
   PF_SISFREEALLOCATEDMEMORY = function(allocatedSpace: PVOID): BOOL; stdcall;
   {$EXTERNALSYM PF_SISFREEALLOCATEDMEMORY}
   TSisFreeAllocatedMemory = PF_SISFREEALLOCATEDMEMORY;
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  sisbkuplib = 'sisbkup.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
+{$IFNDEF JWA_INCLUDEMODE}
 var
   _SisCreateBackupStructure: Pointer;
 
@@ -237,8 +258,11 @@ begin
   end;
 end;
 
+{$ENDIF JWA_INCLUDEMODE}
+
 {$ELSE}
 
+{$IFNDEF JWA_INCLUDEMODE}
 function SisCreateBackupStructure; external sisbkuplib name 'SisCreateBackupStructure';
 function SisCSFilesToBackupForLink; external sisbkuplib name 'SisCSFilesToBackupForLink';
 function SisFreeBackupStructure; external sisbkuplib name 'SisFreeBackupStructure';
@@ -248,6 +272,12 @@ function SisRestoredCommonStoreFile; external sisbkuplib name 'SisRestoredCommon
 function SisFreeRestoreStructure; external sisbkuplib name 'SisFreeRestoreStructure';
 function SisFreeAllocatedMemory; external sisbkuplib name 'SisFreeAllocatedMemory';
 
+{$ENDIF JWA_INCLUDEMODE}
+
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

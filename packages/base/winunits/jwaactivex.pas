@@ -41,8 +41,8 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaActiveX.pas,v 1.1 2005/09/03 13:12:10 marquardt Exp $
-
+// $Id: JwaActiveX.pas,v 1.5 2007/10/18 16:32:37 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaActiveX;
 
 {$WEAKPACKAGEUNIT}
@@ -52,7 +52,10 @@ unit JwaActiveX;
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   { IConnectionPoint status codes }
@@ -147,6 +150,7 @@ type
   TSafeArray = SAFEARRAY;
   {$EXTERNALSYM SAFEARRAY}
 
+  {$IFNDEF JWA_INCLUDEMODE}
   (* tagBLOB related types cause problem due to two definitions of BLOB in wtypes.h/nspapi.h *)
   (* Investigating something that will always work even when a BLOB is not a tagBLOB         *)
   {$EXTERNALSYM PBlob}
@@ -162,6 +166,7 @@ type
   TBlob = tagBLOB;
   {$EXTERNALSYM BLOB}
   BLOB = TBlob;
+  {$ENDIF JWA_INCLUDEMODE}
 
   PClipData = ^CLIPDATA;
   CLIPDATA = record
@@ -414,10 +419,10 @@ type
     function QueryGetData(const formatetc: TFormatEtc): HRESULT; stdcall;
     function GetCanonicalFormatEtc(const formatetc: TFormatEtc; out formatetcOut: TFormatEtc): HRESULT; stdcall;
     function SetData(const formatetc: TFormatEtc; var medium: TStgMedium; fRelease: BOOL): HRESULT; stdcall;
-    function EnumFormatEtc(dwDirection: Longint; out enumFormatEtc: IEnumFORMATETC): HRESULT; stdcall;
-    function DAdvise(const formatetc: TFormatEtc; advf: Longint;
-      const advSink: IAdviseSink; out dwConnection: Longint): HRESULT; stdcall;
-    function DUnadvise(dwConnection: Longint): HRESULT; stdcall;
+    function EnumFormatEtc(dwDirection: DWORD; out enumFormatEtc: IEnumFORMATETC): HRESULT; stdcall;
+    function DAdvise(const formatetc: TFormatEtc; advf: DWORD;
+      const advSink: IAdviseSink; out dwConnection: DWORD): HRESULT; stdcall;
+    function DUnadvise(dwConnection: DWORD): HRESULT; stdcall;
     function EnumDAdvise(out enumAdvise: IEnumSTATDATA): HRESULT; stdcall;
   end;
   {$EXTERNALSYM IDataObject}
@@ -793,6 +798,21 @@ type
   end;
   {$EXTERNALSYM IStorage}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

@@ -40,26 +40,33 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLpmApi.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaLpmApi.pas,v 1.10 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLpmApi;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lpmapi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinSock2, JwaWindows;
+  JwaWinSock2, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 type
   FLOAT = Single;
   {$NODEFINE FLOAT}
+{$ENDIF JWA_INCLUDEMODE}  
 
 (****************************************************************************
 
@@ -1489,10 +1496,19 @@ procedure LPM_CommitResv(RsvpSession: PRsvpSession; FlowInstalledIntf: PRsvpHop;
   pMergedFlowSpec: PIsFlowSpec; CommitDecision: ULONG); stdcall;
 {$EXTERNALSYM LPM_CommitResv}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  lpmlib = 'msidlpm.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 function ObjLength(const x: TRsvpObjHdr): USHORT;
 begin
@@ -1653,5 +1669,9 @@ function LPM_IpAddressTable; external lpmlib name 'LPM_IpAddressTable';
 procedure LPM_CommitResv; external lpmlib name 'LPM_CommitResv';
 
 {$ENDIF DYNAMIC_LINK}
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
+

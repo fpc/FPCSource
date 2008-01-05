@@ -40,23 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaSubAuth.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaSubAuth.pas,v 1.8 2007/09/05 11:58:52 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaSubAuth;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "subauth.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
   SAM_HANDLE = PVOID;
   {$EXTERNALSYM SAM_HANDLE}
@@ -474,6 +479,7 @@ const
 //  KickoffTime: PLARGE_INTEGER): NTSTATUS; stdcall;
 //{$EXTERNALSYM Msv1_0SubAuthenticationFilter}
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   STATUS_SUCCESS                = NTSTATUS($00000000);
   {$EXTERNALSYM STATUS_SUCCESS}
@@ -505,7 +511,23 @@ const
   {$EXTERNALSYM STATUS_PASSWORD_MUST_CHANGE}
   STATUS_ACCOUNT_LOCKED_OUT     = NTSTATUS($C0000234);
   {$EXTERNALSYM STATUS_ACCOUNT_LOCKED_OUT}
+{$ENDIF JWA_INCLUDEMODE}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

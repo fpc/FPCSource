@@ -42,23 +42,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaMsTask.pas,v 1.8 2005/09/03 14:27:48 marquardt Exp $
-
+// $Id: JwaMsTask.pas,v 1.10 2007/09/05 11:58:51 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaMsTask;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "mstask.h"'}
 {$HPPEMIT ''}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaPrSht;
+  JwaWinBase, JwaWinType, JwaPrSht;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   TASK_SUNDAY = $1;
   {$EXTERNALSYM TASK_SUNDAY}
@@ -402,7 +405,25 @@ const
   IID_IPersistFile: TGUID = (
     D1: $0000010B; D2: $0000; D3: $0000; D4: ($C0, $00, $00, $00, $00, $00, $00, $46));
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}
 

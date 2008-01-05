@@ -40,22 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaLmAt.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaLmAt.pas,v 1.10 2007/09/05 11:58:50 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLmAt;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmat.h"'}
 {$HPPEMIT ''}
 
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaLmCons;
+  JwaLmCons, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 //  The following bits are used with Flags field in structures below.
@@ -157,11 +162,14 @@ function NetScheduleJobEnum(Servername: LPCWSTR; var PointerToBuffer: LPBYTE; Pr
 function NetScheduleJobGetInfo(Servername: LPCWSTR; JobId: DWORD; var PointerToBuffer: LPBYTE): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetScheduleJobGetInfo}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
-
+{$IFNDEF JWA_INTERFACESECTION}
 {$IFDEF DYNAMIC_LINK}
 
 var
@@ -225,4 +233,9 @@ function NetScheduleJobGetInfo; external netapi32 name 'NetScheduleJobGetInfo';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

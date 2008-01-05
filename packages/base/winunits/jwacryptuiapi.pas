@@ -40,23 +40,27 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaCryptUIApi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
-
+// $Id: JwaCryptUIApi.pas,v 1.12 2007/09/06 14:57:11 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaCryptUIApi;
 
 {$WEAKPACKAGEUNIT}
 
+{$ENDIF JWA_OMIT_SECTIONS}
 {$HPPEMIT ''}
 {$HPPEMIT '#include "cryptuiapi.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinCrypt, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 // #include <pshpack8.h>
 
 //+-------------------------------------------------------------------------
@@ -114,10 +118,19 @@ const
   CRYPTUI_SELECT_EXPIRATION_COLUMN     = $000000020;
   {$EXTERNALSYM CRYPTUI_SELECT_EXPIRATION_COLUMN}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  cryptuiapi = 'cryptui.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -154,4 +167,8 @@ function CryptUIDlgSelectCertificateFromStore; external cryptuiapi name 'CryptUI
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

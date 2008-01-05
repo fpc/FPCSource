@@ -40,22 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNtDsBMsg.pas,v 1.7 2005/09/03 16:10:31 marquardt Exp $
-
+// $Id: JwaNtDsBMsg.pas,v 1.10 2007/09/14 06:48:46 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNtDsBMsg;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "NtDsBMsg.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "NtDsBMsg.h"'}
-{$HPPEMIT ''}
+  JwaWinError, JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Windows NT Directory Service Backup/Restore API error codes
@@ -106,7 +110,7 @@ const
 //
 // Define the severity codes
 //
-
+  {$IFNDEF JWA_INCLUDEMODE}
   STATUS_SEVERITY_WARNING         = $2;
   {$EXTERNALSYM STATUS_SEVERITY_WARNING}
   STATUS_SEVERITY_SUCCESS         = $0;
@@ -115,6 +119,7 @@ const
   {$EXTERNALSYM STATUS_SEVERITY_INFORMATIONAL}
   STATUS_SEVERITY_ERROR           = $3;
   {$EXTERNALSYM STATUS_SEVERITY_ERROR}
+  {$ENDIF JWA_INCLUDEMODE}
 
 //
 // MessageId: hrNone
@@ -2007,7 +2012,19 @@ const
 //
   hrAccessDenied = HRESULT($C8000773);
   {$EXTERNALSYM hrAccessDenied}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

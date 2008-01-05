@@ -40,28 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaNb30.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaNb30.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaNb30;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "Nb30.h"'}
+{$HPPEMIT ''}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "Nb30.h"'}
-{$HPPEMIT ''}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 (****************************************************************
  *                                                              *
@@ -495,18 +497,14 @@ function Netbios(pncb: PNCB): UCHAR; stdcall;
 
 // #define NCB_POST void CALLBACK
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -515,7 +513,7 @@ var
 
 function Netbios;
 begin
-  GetProcedureAddress(_Netbios, netapi32, 'Netbios');
+  GetProcedureAddress(_Netbios, 'netapi32.dll', 'Netbios');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -525,12 +523,13 @@ end;
 
 {$ELSE}
 
-function Netbios; external netapi32 name 'Netbios';
+function Netbios; external 'netapi32.dll' name 'Netbios';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

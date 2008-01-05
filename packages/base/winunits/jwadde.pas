@@ -40,30 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaDde.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaDde.pas,v 1.11 2007/09/05 11:58:49 dezipaitor Exp $
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaDde;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "Dde.h"'}
+{$HPPEMIT ''}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
   JwaWinNT, JwaWinType;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "Dde.h"'}
-{$HPPEMIT ''}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 // DDE window messages
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 const
   WM_DDE_FIRST = $03E0;
@@ -237,18 +237,20 @@ function FreeDDElParam(msg: UINT; lParam: LPARAM): BOOL; stdcall;
 function ReuseDDElParam(lParam: LPARAM; msgIn, msgOut: UINT; uiLo, uiHi: UINT_PTR): LPARAM; stdcall;
 {$EXTERNALSYM ReuseDDElParam}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  user32 = 'user32.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -341,8 +343,8 @@ function ReuseDDElParam; external user32 name 'ReuseDDElParam';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

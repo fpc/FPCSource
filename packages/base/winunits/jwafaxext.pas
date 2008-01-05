@@ -40,22 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaFaxExt.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
+// $Id: JwaFaxExt.pas,v 1.9 2007/09/05 11:58:49 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaFaxExt;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "faxext.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows;
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 {************************************
 *                                   *
@@ -121,6 +129,23 @@ type
     pFaxExtFreeBuffer: PFAX_EXT_FREE_BUFFER): HRESULT; stdcall;
   {$EXTERNALSYM PFAX_EXT_INITIALIZE_CONFIG}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

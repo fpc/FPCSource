@@ -40,72 +40,46 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaRpc.pas,v 1.8 2005/09/07 07:04:44 marquardt Exp $
-
-{$IFNDEF JWAWINDOWS_PAS}
-
+// $Id: JwaRpc.pas,v 1.11 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaRpc;
 
 {$WEAKPACKAGEUNIT}
-
-{$DEFINE JWA_INCLUDEMODE}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinBase, JwaWinError, JwaWinType, JwaWinCrypt;
-
-{$DEFINE JWA_INTERFACESECTION}
-
-{$ENDIF !JWAWINDOWS_PAS}
-
-{$DEFINE JWARPC_PAS}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "Rpc.h"'}
 {$HPPEMIT ''}
 
-{$I JwaRpcDce.pas}
-{$I JwaRpcNsi.pas}
-{$I JwaRpcNtErr.pas}
-{$I JwaRpcASync.pas}
-{$I JwaRpcSsl.pas}
+{$IFNDEF JWA_OMIT_SECTIONS}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$I jediapilib.inc}
 
-{$IFNDEF JWAWINDOWS_PAS}
-{$UNDEF JWA_INTERFACESECTION}
-{$ENDIF !JWAWINDOWS_PAS}
+interface
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$IFNDEF JWAWINDOWS_PAS}
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
+type
+  I_RPC_HANDLE = Pointer;
+  {$EXTERNALSYM I_RPC_HANDLE}
 
-implementation
-
-{$DEFINE JWA_IMPLEMENTATIONSECTION}
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWAWINDOWS_PAS}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
-
-{$I JwaRpcDce.pas}
-{$I JwaRpcNsi.pas}
-{$I JwaRpcNtErr.pas}
-{$I JwaRpcASync.pas}
-{$I JwaRpcSsl.pas}
+  {$IFNDEF JWA_INCLUDEMODE}
+  RPC_STATUS = Longint;
+  {$EXTERNALSYM RPC_STATUS}
+  {$ENDIF JWA_INCLUDEMODE}
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWAWINDOWS_PAS}
-{$UNDEF JWA_IMPLEMENTATIONSECTION}
-{$ENDIF !JWAWINDOWS_PAS}
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-{$IFNDEF JWAWINDOWS_PAS}
+{$IFNDEF JWA_INTERFACESECTION}
+//your implementation here
+{$ENDIF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWAWINDOWS_PAS}
+{$ENDIF JWA_OMIT_SECTIONS}

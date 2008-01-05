@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaMSWSock.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
+// $Id: JwaMSWSock.pas,v 1.10 2007/09/05 11:58:51 dezipaitor Exp $
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaMSWSock;
 
 {$WEAKPACKAGEUNIT}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "mswsock.h"'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWindows, JwaWinSock2;
+  JwaWinType, JwaWinBase, JwaWinSock2;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 //
 // Options for connect and disconnect data and options.  Used only by
@@ -575,10 +581,23 @@ const
     D1: $f689d7c8; D2:$6f1f; D3:$436b; D4:($8a, $53, $e5, $4f, $e3, $51, $c3, $22));
   {$EXTERNALSYM WSAID_WSARECVMSG}
 
-implementation
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-uses
-  JwaWinDLLNames;
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+{$IFNDEF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+const
+  mswsocklib = 'mswsock.dll';
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -643,4 +662,10 @@ procedure GetAcceptExSockaddrs; external mswsocklib name 'GetAcceptExSockaddrs';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
+{$ENDIF JWA_OMIT_SECTIONS}

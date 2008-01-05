@@ -40,26 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaRpcDce.pas,v 1.11 2005/09/06 16:36:50 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaRpcDce.pas,v 1.14 2007/09/14 06:48:47 marquardt Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaRpcDce;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFNDEF JWARPC_PAS}
-uses
-  JwaWinType;
-{$ENDIF !JWARPC_PAS}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "RpcDce.h"'}
@@ -78,14 +64,24 @@ uses
 {$HPPEMIT 'typedef UUID *LPUUID'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinNT, JwaWinType, JwaRpc;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 type
-  // (rom) moved from JwaRpc.pas
-  I_RPC_HANDLE = Pointer;
-  {$EXTERNALSYM I_RPC_HANDLE}
   RPC_BINDING_HANDLE = I_RPC_HANDLE;
   {$EXTERNALSYM RPC_BINDING_HANDLE}
+
+{$IFNDEF JWA_INCLUDEMODE}
   UUID = GUID;
   {$EXTERNALSYM UUID}
+{$ENDIF JWA_INCLUDEMODE}
 
   PRPC_BINDING_HANDLE = ^RPC_BINDING_HANDLE;
   {$NODEFINE PRPC_BINDING_HANDLE}
@@ -737,6 +733,8 @@ type
   TRpcSecurityQos = RPC_SECURITY_QOS;
   PRpcSecurityQos = PRPC_SECURITY_QOS;
 
+{$IFNDEF JWA_INCLUDEMODE}
+
 const
   SEC_WINNT_AUTH_IDENTITY_ANSI    = $1;
   {$EXTERNALSYM SEC_WINNT_AUTH_IDENTITY_ANSI}
@@ -797,6 +795,8 @@ type
   TSecWinNTAuthIdentity = TSecWinNTAuthIdentityA;
   PSecWinNTAuthIdentity = PSecWinNTAuthIdentityA;
   {$ENDIF UNICODE}
+
+{$ENDIF JWA_INCLUDEMODE}
 
 const
   RPC_C_SECURITY_QOS_VERSION_2 = 2;
@@ -1315,18 +1315,24 @@ const
   RPC_IF_ALLOW_CALLBACKS_WITH_NO_AUTH = $0010;
   {$EXTERNALSYM RPC_IF_ALLOW_CALLBACKS_WITH_NO_AUTH}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+implementation
+//uses ...
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_INCLUDEMODE}
-
-implementation
-
-uses
-  JwaWinDLLNames;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+const
+  rpclib = 'rpcrt4.dll';
+  {$IFDEF UNICODE}
+  AWSuffix = 'W';
+  {$ELSE}
+  AWSuffix = 'A';
+  {$ENDIF UNICODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -3435,8 +3441,9 @@ function RpcMgmtSetAuthorizationFn; external rpclib name 'RpcMgmtSetAuthorizatio
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}

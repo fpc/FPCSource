@@ -40,24 +40,12 @@
 {                                                                              }
 {******************************************************************************}
 
-// $Id: JwaWinNT.pas,v 1.11 2005/09/06 16:36:51 marquardt Exp $
-
-{$IFNDEF JWA_INCLUDEMODE}
-
+// $Id: JwaWinNT.pas,v 1.15 2007/10/20 18:08:49 dezipaitor Exp $
+{$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinNT;
 
 {$WEAKPACKAGEUNIT}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinType;
-
-{$ENDIF !JWA_INCLUDEMODE}
-
-{$IFDEF JWA_INTERFACESECTION}
+{$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "winnt.h"'}
@@ -67,6 +55,16 @@ uses
 {$HPPEMIT 'typedef PSECURITY_DESCRIPTOR *PPSECURITY_DESCRIPTOR'}
 {$HPPEMIT ''}
 
+{$IFNDEF JWA_OMIT_SECTIONS}
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinType;
+{$ENDIF JWA_OMIT_SECTIONS}
+
+{$IFNDEF JWA_IMPLEMENTATIONSECTION}
 const
   MAXBYTE  = BYTE($ff);
   {$EXTERNALSYM MAXBYTE}
@@ -74,6 +72,7 @@ const
   {$EXTERNALSYM MAXWORD}
   MAXDWORD = DWORD($ffffffff);
   {$EXTERNALSYM MAXDWORD}
+
 
 {$IFNDEF JWA_INCLUDEMODE}
 const
@@ -103,11 +102,11 @@ const
   {$EXTERNALSYM VER_SUITE_PERSONAL}
   VER_SUITE_BLADE                    = $00000400;
   {$EXTERNALSYM VER_SUITE_BLADE}
+{$ENDIF JWA_INCLUDEMODE}
   VER_SUITE_EMBEDDED_RESTRICTED      = $00000800;
   {$EXTERNALSYM VER_SUITE_EMBEDDED_RESTRICTED}
   VER_SUITE_SECURITY_APPLIANCE       = $00001000;
   {$EXTERNALSYM VER_SUITE_SECURITY_APPLIANCE}
-{$ENDIF !JWA_INCLUDEMODE}
 
 //
 //  Language IDs.
@@ -959,7 +958,7 @@ type
   PACCESS_MASK = ^ACCESS_MASK;
   {$EXTERNALSYM PACCESS_MASK}
   TAccessMask = ACCESS_MASK;
-  PAccessMask = PACCESS_MASK;
+  PAccessMask = PACCESS_MASK;  
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -1542,6 +1541,13 @@ const
   {$EXTERNALSYM SE_GROUP_LOGON_ID}
   SE_GROUP_RESOURCE           = $20000000;
   {$EXTERNALSYM SE_GROUP_RESOURCE}
+  SE_GROUP_INTEGRITY          = $00000020;
+  {$EXTERNALSYM SE_GROUP_INTEGRITY}
+  SE_GROUP_INTEGRITY_ENABLED  = $00000040;
+  {$EXTERNALSYM SE_GROUP_INTEGRITY_ENABLED}
+
+
+
 
 //
 // User attributes
@@ -1916,7 +1922,7 @@ type
   PACCESS_ALLOWED_CALLBACK_ACE = ^ACCESS_ALLOWED_CALLBACK_ACE;
   {$EXTERNALSYM PACCESS_ALLOWED_CALLBACK_ACE}
   TAccessAllowedCallBackAce = ACCESS_ALLOWED_CALLBACK_ACE;
-  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;
+  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;  
 
   _ACCESS_DENIED_CALLBACK_ACE = record
     Header: ACE_HEADER;
@@ -2815,7 +2821,7 @@ type
   PTOKEN_ORIGIN = ^TOKEN_ORIGIN;
   {$EXTERNALSYM PTOKEN_ORIGIN}
   TTokenOrigin = TOKEN_ORIGIN;
-  PTokenOrigin = PTOKEN_ORIGIN;
+  PTokenOrigin = PTOKEN_ORIGIN;  
 
 //
 // Security Tracking Mode
@@ -2881,7 +2887,7 @@ type
   PSECURITY_INFORMATION = ^SECURITY_INFORMATION;
   {$EXTERNALSYM PSECURITY_INFORMATION}
   TSecurityInformation = SECURITY_INFORMATION;
-  PSecurityInformation = PSECURITY_INFORMATION;
+  PSecurityInformation = PSECURITY_INFORMATION;  
 
 const
   OWNER_SECURITY_INFORMATION = $00000001;
@@ -3118,8 +3124,10 @@ type
 // Define function to return the current Thread Environment Block
 //
 
+{$IFNDEF JWA_INCLUDEMODE}
 function NtCurrentTeb: PNT_TIB;
 {$EXTERNALSYM NtCurrentTeb}
+{$ENDIF JWA_INCLUDEMODE}
 
 const
   THREAD_BASE_PRIORITY_LOWRT = 15;         // value that gets a thread to LowRealtime-1
@@ -3179,7 +3187,7 @@ type
   PQUOTA_LIMITS_EX = ^QUOTA_LIMITS_EX;
   {$EXTERNALSYM PQUOTA_LIMITS_EX}
   TQuotaLimitsEx = QUOTA_LIMITS_EX;
-  PQuotaLimitsEx = PQUOTA_LIMITS_EX;
+  PQuotaLimitsEx = PQUOTA_LIMITS_EX;  
 
   PIO_COUNTERS = ^IO_COUNTERS;
   {$EXTERNALSYM PIO_COUNTERS}
@@ -3333,7 +3341,7 @@ type
   PJOBOBJECT_JOBSET_INFORMATION = ^JOBOBJECT_JOBSET_INFORMATION;
   {$EXTERNALSYM PJOBOBJECT_JOBSET_INFORMATION}
   TJobObjectSetInformation = JOBOBJECT_JOBSET_INFORMATION;
-  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;
+  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;  
 
 const
   JOB_OBJECT_TERMINATE_AT_END_OF_JOB = 0;
@@ -3545,7 +3553,7 @@ type
   {$EXTERNALSYM SYSTEM_LOGICAL_PROCESSOR_INFORMATION}
   PSYSTEM_LOGICAL_PROCESSOR_INFORMATION = ^SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
   TSystemLogicalProcessorInformation = SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
-  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;  
 
 const
   PROCESSOR_INTEL_386     = 386;
@@ -5155,7 +5163,7 @@ type
 
 function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
 {$EXTERNALSYM IMAGE_FIRST_SECTION}
-
+  
 const
   IMAGE_SIZEOF_SECTION_HEADER = 40;
   {$EXTERNALSYM IMAGE_SIZEOF_SECTION_HEADER}
@@ -7165,7 +7173,7 @@ type
   PSLIST_ENTRY = PSINGLE_LIST_ENTRY;
   {$EXTERNALSYM PSLIST_ENTRY}
   TSListEntry = SLIST_ENTRY;
-  PSListEntry = PSLIST_ENTRY;
+  PSListEntry = PSLIST_ENTRY;  
 
 type
   _SLIST_HEADER = record
@@ -7183,16 +7191,16 @@ type
   PSLIST_HEADER = ^SLIST_HEADER;
   {$EXTERNALSYM PSLIST_HEADER}
   TSListHeader = SLIST_HEADER;
-  PSListHeader = PSLIST_HEADER;
+  PSListHeader = PSLIST_HEADER;  
 
 procedure RtlInitializeSListHead(ListHead: PSLIST_HEADER); stdcall;
-{$EXTERNALSYM RtlInitializeSListHead}
 function RtlFirstEntrySList(ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
-{$EXTERNALSYM RtlFirstEntrySList}
 function RtlInterlockedPopEntrySList(ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
 {$EXTERNALSYM RtlInterlockedPopEntrySList}
+{$IFNDEF JWA_INCLUDEMODE}
 function RtlInterlockedPushEntrySList(ListHead, ListEntry: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
 {$EXTERNALSYM RtlInterlockedPushEntrySList}
+{$ENDIF JWA_INCLUDEMODE}
 function RtlInterlockedFlushSList(ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
 {$EXTERNALSYM RtlInterlockedFlushSList}
 function RtlQueryDepthSList(ListHead: PSLIST_HEADER): WORD; stdcall;
@@ -7646,8 +7654,8 @@ type
 
     //
     // Filled by verifier provider DLL
-    //
-
+    // 
+    
     ProviderNtdllHeapFreeCallback: RTL_VERIFIER_NTDLLHEAPFREE_CALLBACK;
   end;
   {$EXTERNALSYM _RTL_VERIFIER_PROVIDER_DESCRIPTOR}
@@ -8257,9 +8265,9 @@ const
   KEY_EXECUTE = KEY_READ and  (not SYNCHRONIZE);
   {$EXTERNALSYM KEY_EXECUTE}
 
-  KEY_ALL_ACCESS = STANDARD_RIGHTS_ALL or KEY_QUERY_VALUE or KEY_SET_VALUE or
+  KEY_ALL_ACCESS = (STANDARD_RIGHTS_ALL or KEY_QUERY_VALUE or KEY_SET_VALUE or
     KEY_CREATE_SUB_KEY or KEY_ENUMERATE_SUB_KEYS or KEY_NOTIFY or
-    KEY_CREATE_LINK and (not SYNCHRONIZE);
+    KEY_CREATE_LINK) and (not SYNCHRONIZE);
   {$EXTERNALSYM KEY_ALL_ACCESS}
 
 //
@@ -8945,24 +8953,29 @@ const
   ACTIVATION_CONTEXT_SECTION_CLR_SURROGATES               = 9;
   {$EXTERNALSYM ACTIVATION_CONTEXT_SECTION_CLR_SURROGATES}
 
-{$ENDIF JWA_INTERFACESECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
-
+{$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+//uses...
+{$ENDIF JWA_OMIT_SECTIONS}
 
-uses
-  JwaWinDLLNames;
+{$IFNDEF JWA_INTERFACESECTION}
 
-{$ENDIF !JWA_INCLUDEMODE}
 
-{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$IFNDEF JWA_OMIT_SECTIONS}
+const
+  ntdll = 'ntdll.dll';
+  kernel32 = 'kernel32.dll';
+{$ENDIF JWA_OMIT_SECTIONS}
+
 
 function WT_SET_MAX_THREADPOOL_THREADS(var Flags: DWORD; Limit: DWORD): DWORD;
 begin
   Flags := Flags or (Limit shl 16);
   Result := Flags;
 end;
+
 
 function VALID_IMPERSONATION_LEVEL(L: TSecurityImpersonationLevel): BOOL;
 begin
@@ -8994,20 +9007,24 @@ begin
 //    ( sizeof(TOKEN_AUDIT_POLICY) + (((C) > ANYSIZE_ARRAY) ? (sizeof(TOKEN_AUDIT_POLICY_ELEMENT) * ((C) - ANYSIZE_ARRAY)) : 0) )
 end;
 
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 function NtCurrentTeb: PNT_TIB;
 asm
 {$ifdef cpu386}
-        MOV     EAX, FS:[24]
+        MOV     EAX, FS:[024]   // was zero        
 {$endif cpu386}
 {$ifdef cpux86_64}
         movq     RAX, GS:[48]
 {$endif cpux86_64}
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 function GetFiberData: PVOID;
 asm
 {$ifdef cpu386}
-        MOV     EAX, FS:[16]
+        MOV     EAX, FS:[$1016]
         MOV     EAX, [EAX]
 {$endif cpu386}
 {$ifdef cpux86_64}
@@ -9019,7 +9036,7 @@ end;
 function GetCurrentFiber: PVOID;
 asm
 {$ifdef cpu386}
-        MOV     EAX, FS:[16]
+        MOV     EAX, FS:[$1016]
 {$endif cpu386}
 {$ifdef cpux86_64}
         MOV     RAX, GS:[32]
@@ -9038,7 +9055,7 @@ begin
   Result := a * b;
 end;
 
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}
 
 function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
 begin
@@ -9246,6 +9263,7 @@ begin
   end;
 end;
 
+
 var
   _RtlInitializeSListHead: Pointer;
 
@@ -9258,6 +9276,7 @@ begin
         JMP     [_RtlInitializeSListHead]
   end;
 end;
+
 
 var
   _RtlFirstEntrySList: Pointer;
@@ -9285,6 +9304,7 @@ begin
   end;
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 var
   _RtlInterlockedPushEntrySList: Pointer;
 
@@ -9297,6 +9317,7 @@ begin
         JMP     [_RtlInterlockedPushEntrySList]
   end;
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 var
   _RtlInterlockedFlushSList: Pointer;
@@ -9311,6 +9332,7 @@ begin
   end;
 end;
 
+{$IFNDEF JWA_INCLUDEMODE}
 var
   _RtlQueryDepthSList: Pointer;
 
@@ -9323,23 +9345,29 @@ begin
         JMP     [_RtlQueryDepthSList]
   end;
 end;
+{$ENDIF JWA_INCLUDEMODE}
 
 {$ELSE}
 
 procedure RtlCaptureContext; external ntdll name 'RtlCaptureContext';
 function RtlCompareMemory; external ntdll name 'RtlCompareMemory';
 function VerSetConditionMask; external kernel32 name 'VerSetConditionMask';
+
 procedure RtlInitializeSListHead; external 'ntdll.dll' name 'RtlInitializeSListHead';
+
 function RtlFirstEntrySList; external 'ntdll.dll' name 'RtlFirstEntrySList';
 function RtlInterlockedPopEntrySList; external 'ntdll.dll' name 'RtlInterlockedPopEntrySList';
+{$IFNDEF JWA_INCLUDEMODE}
 function RtlInterlockedPushEntrySList; external 'ntdll.dll' name 'RtlInterlockedPushEntrySList';
+{$ENDIF JWA_INCLUDEMODE}
+
 function RtlInterlockedFlushSList; external 'ntdll.dll' name 'RtlInterlockedFlushSList';
 function RtlQueryDepthSList; external 'ntdll.dll' name 'RtlQueryDepthSList';
 
 {$ENDIF DYNAMIC_LINK}
 
-{$ENDIF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_INTERFACESECTION}
 
-{$IFNDEF JWA_INCLUDEMODE}
+{$IFNDEF JWA_OMIT_SECTIONS}
 end.
-{$ENDIF !JWA_INCLUDEMODE}
+{$ENDIF JWA_OMIT_SECTIONS}
