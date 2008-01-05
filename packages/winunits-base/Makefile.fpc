@@ -25,7 +25,6 @@ fpcdir=../..
 [compiler]
 options=-Ur
 sourcedir=src
-unitdir=units
 
 [rules]
 .NOTPARALLEL:
