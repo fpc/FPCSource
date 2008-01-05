@@ -2177,7 +2177,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
 
  _MCI_ANIM_WINDOW_PARMSW = packed Record
                                    dwCallback: DWORD;
-                                   hWnd: HWND;
+                                   Wnd: HWND;
                                    nCmdShow: UINT;
                                    lpstrText: LPCWSTR;
 				End;
@@ -2197,7 +2197,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
 
  _MCI_ANIM_WINDOW_PARMSA = packed Record
                                    dwCallback: DWORD;
-                                   hWnd: HWND;
+                                   Wnd: HWND;
                                    nCmdShow: UINT;
                                    lpstrText: LPCSTR;
 				  End;
@@ -2223,6 +2223,7 @@ _MCI_ANIM_PLAY_PARMS = packed Record
   PMCI_ANIM_WINDOW_PARMS  = PMCI_ANIM_WINDOW_PARMSA;
   LPMCI_ANIM_WINDOW_PARMS = LPMCI_ANIM_WINDOW_PARMSA;
  {$endif}
+  TMCI_ANIM_WINDOW_PARMS  = TMCI_Anim_Window_Parms;
  _MCI_ANIM_RECT_PARMS  = packed Record
                                 dwCallback: DWORD;
                                 rc: TRECT;
