@@ -118,6 +118,7 @@ interface
 {$endif opt Q+}
        NaN = 0.0/0.0;
        Infinity = 1.0/0.0;
+       NegInfinity = -1.0/0.0;
 {$ifdef RangeCheckWasOn}
 {$R+}
 {$undef RangeCheckWasOn}

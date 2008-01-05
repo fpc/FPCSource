@@ -242,6 +242,11 @@
           property Controller : IUnknown read GetController;
        end;
 
+       TContainedObject = class(TObject)
+         protected 
+           function QueryInterface(const iid : tguid;out obj) : longint;virtual; stdcall;
+         end;
+
        { some pointer definitions }
        PUnknown = ^IUnknown;
        PPUnknown = ^PUnknown;

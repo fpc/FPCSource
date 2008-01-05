@@ -9,7 +9,7 @@ version=2.2.1
 [target]
 dirs=src/sdf src/memds src/sqldb 
 dirs_linux=src/dbase src/sqlite
-dirs_freebsd=src/dbase src/sqlite
+dirs_freebsd=src/dbase src/sqlite src/export src/datadict
 dirs_darwin=src/sqlite
 dirs_solaris=src/sqlite
 dirs_netbsd=src/sqlite

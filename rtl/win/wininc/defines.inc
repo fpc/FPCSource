@@ -1000,6 +1000,8 @@
      DFCS_INACTIVE = 256;
      DFCS_MONO = 32768;
      DFCS_PUSHED = 512;
+     DFCS_TRANSPARENT =  2048;
+     DFCS_HOT         =  4096;
   { DrawIconEx  }
      DI_COMPAT = 4;
      DI_DEFAULTSIZE = 8;
