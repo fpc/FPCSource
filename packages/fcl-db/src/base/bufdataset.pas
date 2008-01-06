@@ -256,7 +256,9 @@ implementation
 
 uses variants, dbconst;
 
-function CompareText0(substr, astr: pchar; len : integer; options: TLocateOptions): integer;
+type TCompareFunc = function(subValue, aValue: pointer; options: TLocateOptions): int64;
+
+function DBCompareTextLen(substr, astr: pchar; len : integer; options: TLocateOptions): int64;
 
 var
   i : integer; Chr1, Chr2: byte;
@@ -279,6 +281,57 @@ begin
     result := Chr1 - Chr2;
     end;
   if (result <> 0) and (chr1 = 0) and (loPartialKey in options) then result := 0;
+end;
+
+function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+
+begin
+  DBCompareTextLen(subValue,aValue,Length(pchar(subValue)),options);
+end;
+
+function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+
+begin
+  Result := PByte(aValue)^-PByte(subValue)^;
+end;
+
+function DBCompareSmallInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+
+begin
+  Result := PSmallInt(aValue)^-PSmallInt(subValue)^;
+end;
+
+function DBCompareInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+
+begin
+  Result := PInteger(aValue)^-PInteger(subValue)^;
+end;
+
+function DBCompareLargeInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+
+begin
+  Result := PInt64(aValue)^-PInt64(subValue)^;
+end;
+
+function DBCompareWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+
+begin
+  Result := PWord(aValue)^-PWord(subValue)^;
+end;
+
+function DBCompareQWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+
+begin
+  Result := PQWord(aValue)^-PQWord(subValue)^;
+end;
+
+function DBCompareDouble(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+var Dbl : Double;
+begin
+  Dbl := PDouble(aValue)^-PDouble(subValue)^;
+  if dbl < 0 then result := -1
+  else if dbl > 0 then result := 1
+  else result := 0;
 end;
 
 { ---------------------------------------------------------------------
@@ -326,6 +379,7 @@ var PCurRecLinkItem : PBufRecLinkItem;
     i,k,psize,qsize : integer;
     MergeAmount     : integer;
     PlaceQRec       : boolean;
+    Comparefunc     : TCompareFunc;
 
   procedure PlaceNewRec(var e: PBufRecLinkItem; var esize: integer);
   begin
@@ -348,6 +402,18 @@ var PCurRecLinkItem : PBufRecLinkItem;
 begin
 // This simply copies the index...
 {$IFNDEF ARRAYBUF}
+  case AIndex.Fields.DataType of
+    ftString : Comparefunc := @DBCompareText;
+    ftSmallint : Comparefunc := @DBCompareSmallInt;
+    ftInteger,ftCurrency,ftBCD : Comparefunc := @DBCompareInt;
+    ftWord : Comparefunc := @DBCompareWord;
+    ftBoolean : Comparefunc := @DBCompareByte;
+    ftFloat : Comparefunc := @DBCompareDouble;
+    ftDateTime,ftDate,ftTime : Comparefunc := @DBCompareDouble;
+  else
+    DatabaseErrorFmt(SErrIndexBasedOnInvField,[aindex.fields.Name]);
+  end;
+
   PCurRecLinkItem:=FIndexes[0].FFirstRecBuf;
   PCurRecLinkItem[AIndex.IndNr].next := PCurRecLinkItem[0].next;
   PCurRecLinkItem[AIndex.IndNr].prior := PCurRecLinkItem[0].prior;
@@ -432,7 +498,7 @@ begin
         PlaceQRec := true
       else if (qsize=0) or (q = AIndex.FLastRecBuf) then
         PlaceQRec := False
-      else if CompareText0(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],pchar(q)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],length(pchar(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1])),[]) <= 0 then
+      else if DBCompareText(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],pchar(q)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],[]) <= 0 then
         PlaceQRec := False
       else
         PlaceQRec := True;
@@ -893,6 +959,7 @@ procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : pchar);
 procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : PBufRecLinkItem);
 {$ENDIF}
 var cp : integer;
+    NewValueBufLen : Integer;
 {$IFDEF ARRAYBUF}
     NewValueBuf,CompValueBuf : pchar;
     RecInd : integer;
@@ -909,6 +976,7 @@ begin
   inc(NewValueBuf,FFieldBufPositions[AIndex.Fields.FieldNo-1]);
 
 {$IFDEF ARRAYBUF}
+  NewValueBufLen:= Length(NewValueBuf);
   HighVal := AIndex.FLastRecInd;
   LowVal := 0;
 
@@ -917,7 +985,7 @@ begin
   CompValueBuf:=AIndex.FRecordArray[RecInd]+FFieldBufPositions[AIndex.Fields.FieldNo-1];
   if AIndex.Fields.DataType = ftString then
     begin
-    cp := CompareText0(NewValueBuf,CompValueBuf,length(NewValueBuf),[]);
+    cp := DBCompareText(NewValueBuf,CompValueBuf,NewValueBufLen,[]);
     if cp >0 then
       LowVal := RecInd
     else
@@ -946,6 +1014,7 @@ begin
   inc(AIndex.FLastRecInd)
 {$ELSE}
   inc(NewValueBuf,sizeof(TBufRecLinkItem)*FMaxIndexesCount);
+  NewValueBufLen:= Length(pchar(NewValueBuf));
   CompBuf:=AIndex.FFirstRecBuf;
 
   cp := 1;
@@ -953,7 +1022,7 @@ begin
     begin
     if AIndex.Fields.DataType = ftString then
       begin
-      cp := CompareText0(pointer(NewValueBuf),pchar(CompBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],length(pchar(NewValueBuf)),[]);
+      cp := DBCompareTextLen(pointer(NewValueBuf),pchar(CompBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],NewValueBufLen,[]);
       if cp > 0 then
         CompBuf := CompBuf[AIndex.IndNr].next;
       end;
@@ -2081,7 +2150,7 @@ begin
     if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       inc(CurrBuff,FieldBufPos);
-      if CompareText0(ValueBuffer,CurrBuff,VBLength,options) = 0 then
+      if DBCompareTextLen(ValueBuffer,CurrBuff,VBLength,options) = 0 then
         begin
         result := True;
         break;
