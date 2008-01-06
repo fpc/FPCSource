@@ -1953,6 +1953,96 @@ implementation
       end;
 
 
+{$ifndef cpu64bit}
+
+    { checks whether we can safely remove 64 bit typeconversions }
+    { in case range and overflow checking are off, and in case   }
+    { the result of thise node tree is downcasted again to a     }
+    { 8/16/32 bit value afterwards                               }
+    function checkremove64bittypeconvs(n: tnode): boolean;
+
+      { checks whether a node is either an u32bit, or originally }
+      { was one but was implicitly converted to s64bit           }
+      function wasoriginallyuint32(n: tnode): boolean;
+        begin
+          if (n.resultdef.typ<>orddef) then
+            exit(false);
+          if (torddef(n.resultdef).ordtype=u32bit) then
+            exit(true);
+          result:=
+            (torddef(n.resultdef).ordtype=s64bit) and
+            { nf_explicit is also set for explicitly typecasted }
+            { ordconstn's                                       }
+            ([nf_internal,nf_explicit]*n.flags=[]) and
+            { either a typeconversion node coming from u32bit }
+            (((n.nodetype=typeconvn) and
+              (ttypeconvnode(n).left.resultdef.typ=orddef) and
+              (torddef(ttypeconvnode(n).left.resultdef).ordtype=u32bit)) or
+            { or an ordconstnode which was/is a valid cardinal }
+             ((n.nodetype=ordconstn) and
+              (tordconstnode(n).value>=0) and
+              (tordconstnode(n).value<=high(cardinal))));
+        end;
+
+    
+      begin
+        result:=false;
+        if wasoriginallyuint32(n) then
+          exit(true);
+        case n.nodetype of
+          subn:
+            begin
+              { nf_internal is set by taddnode.typecheckpass in  }
+              { case the arguments of this subn were u32bit, but }
+              { upcasted to s64bit for calculation correctness   }
+              { (normally only needed when range checking, but   }
+              {  also done otherwise so there is no difference   }
+              {  in overload choosing etc between $r+ and $r-)   }
+              if (nf_internal in n.flags) then
+                result:=true
+              else
+                result:=
+                  checkremove64bittypeconvs(tbinarynode(n).left) and
+                  checkremove64bittypeconvs(tbinarynode(n).right);
+            end;
+          addn,muln,divn,modn,xorn,andn,orn:
+            begin
+              result:=
+                checkremove64bittypeconvs(tbinarynode(n).left) and
+                checkremove64bittypeconvs(tbinarynode(n).right);
+            end;
+        end;
+      end;
+
+
+    procedure doremove64bittypeconvs(var n: tnode; todef: tdef);
+      begin
+        case n.nodetype of
+          subn,addn,muln,divn,modn,xorn,andn,orn:
+            begin
+              exclude(n.flags,nf_internal);
+              if is_signed(n.resultdef) then
+                begin
+                  doremove64bittypeconvs(tbinarynode(n).left,s32inttype);
+                  doremove64bittypeconvs(tbinarynode(n).right,s32inttype);
+                  n.resultdef:=s32inttype
+                end
+              else
+                begin
+                  doremove64bittypeconvs(tbinarynode(n).left,u32inttype);
+                  doremove64bittypeconvs(tbinarynode(n).right,u32inttype);
+                  n.resultdef:=u32inttype
+                end;
+            end;
+          ordconstn:
+            inserttypeconv_internal(n,todef);
+          typeconvn:
+            n.resultdef:=todef;
+        end;
+      end;
+{$endif not cpu64bit}
+
+
     function ttypeconvnode.simplify: tnode;
       var
         hp: tnode;
@@ -2041,7 +2131,10 @@ implementation
                 begin
                    { replace the resultdef and recheck the range }
                    if ([nf_explicit,nf_internal] * flags <> []) then
-                     include(left.flags, nf_explicit);
+                     include(left.flags, nf_explicit)
+                   else
+                     { no longer an ordconst with an explicit typecast }
+                     exclude(left.flags, nf_explicit);
                    testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags));
                    left.resultdef:=resultdef;
                    result:=left;
@@ -2057,7 +2150,10 @@ implementation
                 begin
                    left.resultdef:=resultdef;
                    if ([nf_explicit,nf_internal] * flags <> []) then
-                     include(left.flags, nf_explicit);
+                     include(left.flags, nf_explicit)
+                   else
+                     { no longer an ordconst with an explicit typecast }
+                     exclude(left.flags, nf_explicit);
                    result:=left;
                    left:=nil;
                    exit;
@@ -2074,6 +2170,28 @@ implementation
                 end;
             end;
         end;
+        
+{$ifndef cpu64bit}
+        { must be done before code below, because we need the
+          typeconversions for ordconstn's as well }
+        case convtype of
+          tc_int_2_int:
+            begin
+              if (localswitches * [cs_check_range,cs_check_overflow] = []) and
+                 (resultdef.typ in [pointerdef,orddef,enumdef]) and
+                 (resultdef.size <= 4) and
+                 is_64bitint(left.resultdef) and
+                 (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                 checkremove64bittypeconvs(left) then
+                begin
+                  { avoid unnecessary widening of intermediary calculations }
+                  { to 64 bit                                               }
+                  doremove64bittypeconvs(left,generrordef);
+                end;
+            end;
+        end;
+{$endif cpu64bit}
+
       end;
 
 

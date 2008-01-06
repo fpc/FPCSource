@@ -240,6 +240,7 @@ interface
          nf_novariaallowed,
 
          { ttypeconvnode, and the first one also treal/ord/pointerconstn }
+         { second one also for subtractions of u32-u32 implicitly upcasted to s64 }
          nf_explicit,
          nf_internal,  { no warnings/hints generated }
          nf_load_procvar,

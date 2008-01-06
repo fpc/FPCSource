@@ -1162,6 +1162,16 @@ implementation
                    begin
                      if nodetype<>subn then
                        CGMessage(type_w_mixed_signed_unsigned);
+                     { mark as internal in case added for a subn, so }
+                     { ttypeconvnode.simplify can remove the 64 bit  }
+                     { typecast again if semantically correct. Even  }
+                     { if we could detect that here already, we      }
+                     { mustn't do it here because that would change  }
+                     { overload choosing behaviour etc. The code in  }
+                     { ncnv.pas is run after that is already decided }
+                     if not is_signed(left.resultdef) and
+                        not is_signed(right.resultdef) then
+                       include(flags,nf_internal);
                      inserttypeconv(left,s64inttype);
                      inserttypeconv(right,s64inttype);
                    end
