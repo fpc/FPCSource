@@ -767,7 +767,10 @@ implementation
                      distv:=max_label+min_label
                    else
                      distv:=max_label-min_label;
-                   dist:=distv.uvalue;
+                   if (distv>=0) then
+                     dist:=distv.uvalue
+                   else
+                     dist:=-distv.svalue;
 
                    { optimize for size ? }
                    if cs_opt_size in current_settings.optimizerswitches  then
