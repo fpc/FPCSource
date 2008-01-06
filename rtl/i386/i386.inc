@@ -1096,21 +1096,19 @@ end;
                                  Str()
 ****************************************************************************}
 
-{$ifdef disabled}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
 label str_int_shortcut;
 
-{$asmmode intel}
 
 procedure int_str(l:longword;out s:string);assembler;nostackframe;
 
 asm
-  push edi
-  push ebx
-  mov edi,edx
-  xor edx,edx
+  pushl %edi
+  pushl %ebx
+  mov %edx,%edi
+  xor %edx,%edx
   jmp str_int_shortcut
 end;
 
@@ -1123,50 +1121,48 @@ const digits:array[0..9] of cardinal=(0,10,100,1000,10000,
                                       100000000,1000000000);
 
 asm
-  push edi
-  push ebx
-  mov edi,edx
+  push %edi
+  push %ebx
+  movl %edx,%edi
 
   { Calculate absolute value and put sign in edx}
-  cdq
-  xor eax,edx
-  sub eax,edx
-  neg edx
+  cltd
+  xorl %edx,%eax
+  subl %edx,%eax
+  negl %edx
 str_int_shortcut:
   {Calculate amount of digits in ecx.}
-  bsr ecx,eax
-  inc ecx
-  imul ecx,1233
-  shr ecx,12
-  cmp eax,[digits+4*ecx]
+  bsrl %eax,%ecx
+  incl %ecx
+  imul $1233,%ecx
+  shr $12,%ecx
+  cmpl digits(,%ecx,4),%eax
   cmc
-  adc ecx,0 {Nr. digits ready in ecx.}
+  adcl $0,%ecx               {Nr. digits ready in ecx.}
 
   {Write length & sign.}
-  lea ebx,[edx+ecx]
-  mov bh,'-'
-  mov [edi],bx
-  add edi,edx
+  lea (%edx,%ecx),%ebx
+  movb $45,%bh               {movb $'-,%bh   Not supported by our ATT reader.}
+  movw %bx,(%edi)
+  addl %edx,%edi
 
   {Write out digits.}
-  mov edx,eax
-@loop:
-  mov eax,$cccccccd    {Divide by 10 using mul+shr}
-  lea ebx,[edx+'0']    {Pre-add '0'}
-  mul edx
-  shr edx,3
-  lea eax,[8*edx+edx]  {x mod 10 = x-10*(x div 10)}
-  sub ebx,edx
-  sub ebx,eax
-  mov [edi+ecx],bl
-  dec ecx
-  jnz @loop
-  pop ebx
-  pop edi
+  movl %eax,%edx
+.Lloop:
+  movl $0xcccccccd,%eax      {Divide by 10 using mul+shr}
+  {Pre-add '0'}
+  leal 48(%edx),%ebx         {leal $'0(,%edx),%ebx Not supported by our ATT reader.}
+  mull %edx
+  shrl $3,%edx
+  leal (%edx,%edx,8),%eax    {x mod 10 = x-10*(x div 10)}
+  subl %edx,%ebx
+  subl %eax,%ebx
+  movb %bl,(%edi,%ecx)
+  decl %ecx
+  jnz .Lloop
+  popl %ebx
+  popl %edi
 end;
-
-{$asmmode att}
-{$endif disabled}
 
 {****************************************************************************
                                Bounds Check
