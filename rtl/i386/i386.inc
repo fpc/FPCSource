@@ -1095,7 +1095,7 @@ end;
 {****************************************************************************
                                  Str()
 ****************************************************************************}
-
+{ $ifdef disabled}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1136,7 +1136,14 @@ str_int_shortcut:
   incl %ecx
   imul $1233,%ecx
   shr $12,%ecx
+{$ifdef FPC_PIC}
+  call fpc_geteipasebx
+  addl $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl digits@GOT(%ebx),%ebx
+  cmpl (%ebx,%ecx,4),%eax
+{$else}
   cmpl digits(,%ecx,4),%eax
+{$endif}
   cmc
   adcl $0,%ecx               {Nr. digits ready in ecx.}
 
@@ -1163,7 +1170,7 @@ str_int_shortcut:
   popl %ebx
   popl %edi
 end;
-
+{ $endif}
 {****************************************************************************
                                Bounds Check
 ****************************************************************************}
