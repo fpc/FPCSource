@@ -45,13 +45,13 @@ Type
                ftSharedLibrary);
   TFileTypes = set of TFileType;
 
-  // Please keep this order, see OSCPUPOSesible below
+  // Please keep this order, see OSCPUpossible below
   TCpu=(cpuNone,
     i386,m68k,powerpc,sparc,x86_64,arm,powerpc64
   );
   TCPUS = Set of TCPU;
 
-  // Please keep this order, see OSCPUPOSesible below
+  // Please keep this order, see OSCPUpossible below
   TOS=(osNone,
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
@@ -72,7 +72,7 @@ Type
   TSourceType = (stDoc,stSrc,stExample,stTest);
   TSourceTypes = set of TSourceType;
 
-  TVerboseLevel = (vlError,vlWarning,vlInfo,vlCompare,vlCommand,vldebug);
+  TVerboseLevel = (vlError,vlWarning,vlInfo,vldebug);
   TVerboseLevels = Set of TVerboseLevel;
 
   TCommandAt = (caBeforeCompile,caAfterCompile,
@@ -102,7 +102,7 @@ Const
   AllWindowsOSes  = [Win32,Win64,WinCE];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
-  OSCpuPOSesible : array[TOS,TCpu] of boolean = (
+  OSCpupossible : array[TOS,TCpu] of boolean = (
     { os          none   i386   m68k   ppc    sparc  x86_64 arm    ppc64}
     { none  }   ( false, false, false, false, false, false, false, false),
     { linux }   ( false, true,  true,  true,  true,  true,  true,  true),
@@ -157,7 +157,8 @@ Const
   UnitTargets = [ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit];
   ProgramTargets = [ttProgram,ttExampleProgram];
 
-  AllMessages = [vlError,vlWarning,vlInfo,vlCompare,vlCommand];
+  DefaultMessages = [vlError,vlWarning,vlInfo];
+  AllMessages = [vlError,vlWarning,vlInfo];
 
 
 Type
@@ -658,6 +659,8 @@ Type
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; Args : Array of const);
     // Internal copy/delete/move/archive/mkdir files
+    Function  SysDirectoryExists(const ADir:string):Boolean;
+    Function  SysFileExists(const AFileName:string):Boolean;
     Procedure SysCopyFile(Const Src,Dest : String); virtual;
     Procedure SysMoveFile(Const Src,Dest : String); virtual;
     Procedure SysDeleteFile(Const AFileName : String); virtual;
@@ -666,7 +669,7 @@ Type
     Procedure Log(Level : TVerboseLevel; Const Fmt : String; Args : Array Of Const);
     Procedure EnterDir(ADir : String);
     Function GetCompiler : String;
-    Procedure InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Src,Dest : String); virtual;
+    Function InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
     Function FindFileInPath(Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS; Const PathPrefix :String=''):Boolean;
 
@@ -904,21 +907,21 @@ Implementation
 uses typinfo;
 
 ResourceString
-  SErrInvalidCPU        = 'Invalid CPU name : "%s"';
-  SErrInvalidOS         = 'Invalid OS name : "%s"';
-  SErrInvalidMode       = 'Invalid compiler mode : "%s"';
-  SErrInvalidTarget     = 'Invalid compiler target: %s';
+  SErrInvalidCPU        = 'Invalid CPU name "%s"';
+  SErrInvalidOS         = 'Invalid OS name "%s"';
+  SErrInvalidMode       = 'Invalid compiler mode "%s"';
+  SErrInvalidTarget     = 'Invalid compiler target "%s"';
   SErrNameExists        = 'Name "%s" already exists in the collection.';
   SErrNoSuchName        = 'Could not find item with name "%s" in the collection.';
   SErrNoPackage         = 'No package available. Add package with StartPackage Call';
-  SErrInValidArgument   = 'Invalid command-line argument at position %d : %s';
+  SErrInValidArgument   = 'Invalid command-line argument at position %d: %s';
   SErrNeedArgument      = 'Option at position %d (%s) needs an argument';
-  SErrNoPackagesDefined = 'No action pOSesible: No packages were defined.';
+  SErrNoPackagesDefined = 'No action possible: No packages were defined.';
   SErrInstaller         = 'The installer encountered the following error:';
   SErrDepUnknownTarget  = 'Unknown target in dependencies for %s: %s';
-  SErrExternalCommandFailed = 'External command "%s" failed with exit code: %d';
+  SErrExternalCommandFailed = 'External command "%s" failed with exit code %d';
   SErrCreatingDirectory = 'Failed to create directory: "%s"';
-  SErrDeletingFile      = 'Failed to delete file: "%s"';
+  SErrDeletingFile      = 'Failed to delete file "%s"';
   SErrMovingFile        = 'Failed to move file "%s" to "%s"';
   SErrCopyingFile       = 'Failed to copy file "%s" to "%s"';
   SErrChangeDirFailed   = 'Failed to enter directory: %s';
@@ -930,41 +933,47 @@ ResourceString
   SErrInvalidFPCInfo    = 'Compiler returns invalid information, check if fpc -iV works';
   SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s"';
   SErrAlreadyInitialized = 'Installer can only be initialized once';
-  SWarnCircularDependency = 'Warning: Circular dependency detected when compiling target %s: %s';
-  SWarnFailedToSetTime  = 'Warning: Failed to set timestamp on file : %s';
-  SWarnFailedToGetTime  = 'Warning: Failed to get timestamp from file : %s';
-  SWarnFileDoesNotExist = 'Warning: File "%s" does not exist';
-  SWarnAttemptingToCompileNonNeutralTarget = 'Attempting to compile non-neutral target: %s';
-  SDebugCompilingDependenciesOfTarget = 'Compiling dependencies of target: %s';
-  SDebugResolvedSourceFile = 'Resolved source file %s to "%s"';
-  SDebugResolvedIncludeFile = 'Resolved include file %s to "%s"';
-  SDebugOutputNotYetAvailable = 'Output file %s not available';
-  SDebugDependencyOnUnit = 'Dependency of %s on unit %s';
-  SDebugDependencyUnitRecompiled = 'Dependent unit %s is being recompiled';
-  SDebugMustCompile      = 'Must compile %s';
-  SDebugTargetHasWrongOS   = 'Target has wrong OS: %s';
-  SDebugTargetHasWrongCPU  = 'Target has wrong CPU: %s';
-  SDebugTargetIsNotAUnitOrProgram = 'Target %s is not a unit or program';
-  SDebugConsideringTarget = 'Considering target: %s';
-  SDebugExternalDependency = 'External dependency %s found in "%s"';
-  SDebugBuildEngineArchiving = 'Build engine archiving.';
-  SDebugBuildEngineCleaning = 'Build engine cleaning.';
-  SCmdGenerating         = 'Generating %s';
-  SInfoArchiving         = 'Archiving : %s';
 
-  // Log messages
-  SLogEnterDir           = 'Entering directory: %s';
-  SLogCompilingPackage   = 'Compiling package : %s';
-  SLogCompilingTarget    = 'Compiling target  : %s';
-  SLogExecutingCommand   = 'Executing command : %s %s';
-  SLogCreatingOutputDir  = 'Creating output dir : %s';
-  SLogOutputDirExists    = 'Output dir exists : %s';
-  SLogInstallingPackage  = 'Installing package : %s';
-  SLogArchivingPackage   = 'Archiving package : %s';
-  SLogCleaningPackage    = 'Cleaning package : %s';
-  SLogCopyingFile        = 'Copying file "%s" to "%s"';
-  SLogCompilingFileTimes = 'Comparing file "%s" time "%s" to "%s" time "%s".';
-  SLogSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
+  SWarnCircularDependency = 'Warning: Circular dependency detected when compiling target %s: %s';
+  SWarnFailedToSetTime    = 'Warning: Failed to set timestamp on file %s';
+  SWarnFailedToGetTime    = 'Warning: Failed to get timestamp from file %s';
+  SWarnFileDoesNotExist   = 'Warning: File "%s" does not exist';
+  SWarnAttemptingToCompileNonNeutralTarget = 'Attempting to compile non-neutral target: %s';
+
+  SInfoEnterDir           = 'Entering directory "%s"';
+  SInfoCompilingPackage   = 'Compiling package %s';
+  SInfoCompilingTarget    = 'Compiling target %s';
+  SInfoExecutingCommand   = 'Executing command "%s %s"';
+  SInfoCreatingOutputDir  = 'Creating output dir "%s"';
+  SInfoInstallingPackage  = 'Installing package %s';
+  SInfoArchivingPackage   = 'Archiving package %s';
+  SInfoArchivingFile      = 'Archiving "%s"';
+  SInfoCleaningPackage    = 'Cleaning package %s';
+  SInfoCopyingFile        = 'Copying file "%s" to "%s"';
+  SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
+
+  SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
+  SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target: %s';
+  SDbgResolvedSourceFile    = 'Resolved source file %s to "%s"';
+  SDbgResolvedIncludeFile   = 'Resolved include file %s to "%s"';
+  SDbgOutputNotYetAvailable = 'Output file %s not available';
+  SDbgDependencyOnUnit      = 'Dependency of %s on unit %s';
+  SDbgDependencyUnitRecompiled = 'Dependent unit %s is being recompiled';
+  SDbgMustCompile           = 'Must compile %s';
+  SDbgTargetHasWrongOS      = 'Target has wrong OS: %s';
+  SDbgTargetHasWrongCPU     = 'Target has wrong CPU: %s';
+  SDbgTargetIsNotAUnitOrProgram = 'Skipping Target %s, not an unit or program';
+  SDbgConsideringTarget     = 'Considering target %s';
+  SDbgConsideringPackage    = 'Considering package %s';
+  SDbgExternalDependency    = 'External dependency %s found in "%s"';
+  SDbgBuildEngineArchiving  = 'Build engine archiving.';
+  SDbgBuildEngineCleaning   = 'Build engine cleaning.';
+  SDbgGenerating            = 'Generating "%s"';
+  SDbgLoading               = 'Loading "%s"';
+  SDbgFound                 = 'Found';
+  SDbgNotFound              = 'Not Found';
+  SDbgDirectoryExists       = 'Directory "%s" %s';
+  SDbgFileExists            = 'File "%s" %s';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -1024,6 +1033,7 @@ Const
 {****************************************************************************
                                 Helpers
 ****************************************************************************}
+
 
 Procedure SplitVersion(AValue: String; Var Release,Major,Minor : Word; Var Suffix : String);
 
@@ -1905,7 +1915,12 @@ begin
           begin
             D:=Dependencies[i];
             if (ACPU in D.CPUs) and (AOS in D.OSes) then
-              Deps:=Deps+','+D.Value;
+              begin
+                if Deps='' then
+                  Deps:=D.Value
+                else
+                  Deps:=Deps+','+D.Value;
+              end;
           end;
         Values[KeyDepends]:=Deps;
         if NeedLibC then
@@ -2040,7 +2055,7 @@ begin
     Result:=FBinInstallDir
   else
     If UnixPaths then
-      Result:=Prefix+'share'+PathDelim+'docs'
+      Result:=Prefix+'share'+PathDelim+'doc'
     else
       Result:=BaseInstallDir+'docs';
 end;
@@ -2087,20 +2102,29 @@ end;
 procedure TCustomDefaults.SetLocalUnitDir(const AValue: String);
 begin
   // Use ExpandFileName to support ~/ expansion
-  FLocalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue));
+  if AValue<>'' then
+    FLocalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
+  else
+    FLocalUnitDir:='';
 end;
 
 procedure TCustomDefaults.SetGlobalUnitDir(const AValue: String);
 begin
   // Use ExpandFileName to support ~/ expansion
-  FGlobalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue));
+  if AValue<>'' then
+    FGlobalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
+  else
+    FGlobalUnitDir:='';
 end;
 
 
 procedure TCustomDefaults.SetBaseInstallDir(const AValue: String);
 begin
   // Use ExpandFileName to support ~/ expansion
-  FBaseInstallDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue));
+  if AValue<>'' then
+    FBaseInstallDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
+  else
+    FBaseInstallDir:='';
   UnitInstallDir:='';
   BinInstallDir:='';
   ExamplesInstallDir:='';
@@ -2171,28 +2195,28 @@ Var
 begin
   If ASource is TCustomDefaults then
     begin
-    D:=ASource as TCustomDefaults;
-    FArchive:=D.Farchive;
-    FCompiler:=D.Compiler;
-    FCopy:=D.FCopy;
-    FCPU:=D.FCPU;
-    FMode:=D.FMode;
-    FMkDir:=D.FMkDir;
-    FMove:=D.FMove;
-    FOptions:=D.FOptions;
-    FOS:=D.FOS;
-    FLocalUnitDir:=D.FLocalUnitDir;
-    FGlobalUnitDir:=D.FGlobalUnitDir;
-    FPrefix:=D.FPrefix;
-    FBaseInstallDir:=D.FBaseInstallDir;
-    FUnitInstallDir:=D.FUnitInstallDir;
-    FBinInstallDir:=D.FBinInstallDir;
-    FDocInstallDir:=D.FDocInstallDir;
-    FExamplesInstallDir:=D.FExamplesInstallDir;
-    FRemove:=D.FRemove;
-    FTarget:=D.FTarget;
-    FUnixPaths:=D.FUnixPaths;
-    FSourceExt:=D.SourceExt;
+      D:=ASource as TCustomDefaults;
+      FArchive:=D.Farchive;
+      FCompiler:=D.Compiler;
+      FCopy:=D.FCopy;
+      FCPU:=D.FCPU;
+      FMode:=D.FMode;
+      FMkDir:=D.FMkDir;
+      FMove:=D.FMove;
+      FOptions:=D.FOptions;
+      FOS:=D.FOS;
+      FLocalUnitDir:=D.FLocalUnitDir;
+      FGlobalUnitDir:=D.FGlobalUnitDir;
+      FPrefix:=D.FPrefix;
+      FBaseInstallDir:=D.FBaseInstallDir;
+      FUnitInstallDir:=D.FUnitInstallDir;
+      FBinInstallDir:=D.FBinInstallDir;
+      FDocInstallDir:=D.FDocInstallDir;
+      FExamplesInstallDir:=D.FExamplesInstallDir;
+      FRemove:=D.FRemove;
+      FTarget:=D.FTarget;
+      FUnixPaths:=D.FUnixPaths;
+      FSourceExt:=D.SourceExt;
     end
   else
     Inherited;
@@ -2391,30 +2415,34 @@ var
 begin
   inherited CompilerDefaults;
 
-  if (FBaseInstallDir='') and (FPrefix='') then
-    begin
-      // Use the same algorithm as the compiler, see options.pas
+  // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
-      BD:=FixPath(GetEnvironmentVariable('FPCDIR'));
-      if BD='' then
-        begin
-          BD:='/usr/local/lib/fpc/'+FCompilerVersion;
-          if not DirectoryExists(BD) and
-             DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
-            BD:='/usr/lib/fpc/'+FCompilerVersion;
-        end;
-{$else unix}
-      BD:=FixPath(GetEnvironmentVariable('FPCDIR'));
-      if BD='' then
-        begin
-          BD:=ExtractFilePath(FCompiler)+'..';
-          if not(DirectoryExists(BD+'/units')) and
-             not(DirectoryExists(BD+'/rtl')) then
-            BD:=FBaseInstallDir+'..';
-        end;
-{$endif unix}
-      BaseInstallDir:=BD;
+  BD:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  if BD='' then
+    begin
+      BD:='/usr/local/lib/fpc/'+FCompilerVersion;
+      if not DirectoryExists(BD) and
+         DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
+        BD:='/usr/lib/fpc/'+FCompilerVersion;
     end;
+{$else unix}
+  BD:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  if BD='' then
+    begin
+      BD:=ExtractFilePath(FCompiler)+'..';
+      if not(DirectoryExists(BD+'/units')) and
+         not(DirectoryExists(BD+'/rtl')) then
+        BD:=FBaseInstallDir+'..';
+    end;
+{$endif unix}
+
+  // Where to install by default
+  if (FBaseInstallDir='') and (FPrefix='') then
+    BaseInstallDir:=BD;
+
+  // Where to find the units by default
+  if (FGlobalUnitDir='') then
+    GlobalUnitDir:=IncludeTrailingPathDelimiter(BD)+'units'+PathDelim+Target;
 end;
 
 
@@ -2662,18 +2690,12 @@ Var
 begin
   I:=0;
   FListMode:=False;
-  FLogLevels := [vlError,vlWarning,vlInfo];
+  FLogLevels:=DefaultMessages;
   While (I<ParamCount) do
     begin
     Inc(I);
     if CheckOption(I,'v','verbose') then
-      begin
-        Try
-          FLogLevels:=TVerboseLevels(StringToSet(PtypeInfo(TypeInfo(TVerboseLevels)),OptionArg(I)));
-        except
-          FLogLevels:=AllMessages;
-        end;
-      end
+      FLogLevels:=AllMessages
     else if CheckOption(I,'d','debug') then
       FLogLevels:=AllMessages+[vlDebug]
     else if CheckCommand(I,'m','compile') then
@@ -2720,10 +2742,8 @@ begin
   If DefaultsFileName<>'' then
     Defaults.LocalInit(DefaultsFileName);
   Defaults.CompilerDefaults;
-{$ifdef debug}
-  FLogLevels:=AllMessages;
-{$endif}
 end;
+
 
 procedure TCustomInstaller.Usage(const FMT: String; Args: array of const);
 
@@ -2804,7 +2824,7 @@ Var
 begin
   L:=TStringList.Create;
   Try
-    Log(vlCommand, Format(SCmdGenerating, [ManifestFile]));
+    Log(vlDebug, Format(SDbgGenerating, [ManifestFile]));
     L.Add('<?xml version="1.0"?>');
     BuildEngine.GetManifest(FPackages,L);
     L.SaveToFile(ManifestFile);
@@ -2934,23 +2954,42 @@ Var
   E : Integer;
 
 begin
-  Log(vlCommand,SLogExecutingCommand,[Cmd,Args]);
+  Log(vlInfo,SInfoExecutingCommand,[Cmd,Args]);
   // We should check cmd for spaces, and move all after first space to args.
   E:=ExecuteProcess(cmd,args);
   If (E<>0) and (not IgnoreError) then
     Error(SErrExternalCommandFailed,[Cmd,E]);
 end;
 
-procedure TBuildEngine.SysCopyFile(Const Src,Dest : String);
 
+Function TBuildEngine.SysDirectoryExists(const ADir:string):Boolean;
+begin
+  result:=SysUtils.DirectoryExists(ADir);
+  if result then
+    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])
+  else
+    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
+end;
+
+
+Function TBuildEngine.SysFileExists(const AFileName:string):Boolean;
+begin
+  result:=SysUtils.FileExists(AFileName);
+  if result then
+    Log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
+  else
+    Log(vlDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
+end;
+
+
+procedure TBuildEngine.SysCopyFile(Const Src,Dest : String);
 Var
   D,S : String;
   Fin,FOut : TFileStream;
   Count : Int64;
   A : Integer;
-
 begin
-  Log(vlCommand,SLogCopyingFile,[Src,Dest]);
+  Log(vlInfo,SInfoCopyingFile,[Src,Dest]);
   FIn:=TFileStream.Create(Src,fmopenRead);
   Try
     D:=IncludeTrailingPathDelimiter(Dest);
@@ -2977,11 +3016,10 @@ begin
   end;
 end;
 
-procedure TBuildEngine.SysMoveFile(Const Src,Dest : String);
 
+procedure TBuildEngine.SysMoveFile(Const Src,Dest : String);
 Var
   S : String;
-
 begin
     If DirectoryExists(IncludeTrailingPathDelimiter(Dest)) then
       S:=IncludeTrailingPathDelimiter(Dest)+ExtractFileName(Src)
@@ -2999,8 +3037,8 @@ begin
     end;
 end;
 
-procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 
+procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 begin
   if not FileExists(AFileName) then
     Log(vlWarning,SWarnFileDoesNotExist,[AFileName])
@@ -3018,6 +3056,7 @@ begin
   else
     OnArchiveFiles(AFileName,List);
 end;
+
 
 procedure TBuildEngine.Log(Level: TVerboseLevel; const Msg: String);
 begin
@@ -3039,7 +3078,7 @@ Var
 begin
   D:=FStartDir;
   D:=D+ADir;
-  Log(vlInfo,SLogEnterDir,[D]);
+  Log(vlInfo,SInfoEnterDir,[D]);
   If Not SetCurrentDir(D) then
     Error(SErrChangeDirFailed,[D]);
 end;
@@ -3141,10 +3180,10 @@ begin
   DD:=FileAge(Dest);
   D1:=FileDateToDateTime(DS);
   D2:=FileDateToDateTime(DD);
-  Log(vlDebug,SLogCompilingFileTimes,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
+  Log(vlDebug,SDbgComparingFileTimes,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
   Result:=D1>=D2;
   If Result then
-    Log(vlCompare,SLogSourceNewerDest,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
+    Log(vlInfo,SInfoSourceNewerDest,[Src,DateTimeToStr(D1),Dest,DateTimeToStr(D2)]);
 end;
 
 
@@ -3246,7 +3285,7 @@ begin
       if SD<>'' then
         SD:=IncludeTrailingPathDelimiter(SD);
       Target.FFullSourceFileName:=SD+Target.SourceFileName;
-      Log(vlDebug,SDebugResolvedSourceFile,[Target.SourceFileName,Target.FFullSourceFileName]);
+      Log(vlDebug,SDbgResolvedSourceFile,[Target.SourceFileName,Target.FFullSourceFileName]);
 
       // Include files
       for j:=0 to Target.Dependencies.Count-1 do
@@ -3263,7 +3302,7 @@ begin
                if SD<>'' then
                  SD:=IncludeTrailingPathDelimiter(SD);
                D.FFullFileName:=SD+D.Value;
-               Log(vlDebug,SDebugResolvedIncludeFile,[D.Value,D.FFullFileName]);
+               Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.FFullFileName]);
              end;
         end;
     end;
@@ -3289,7 +3328,7 @@ begin
       exit;
   end;
 
-  Log(vlDebug, Format(SDebugConsideringTarget, [Target.Name]));
+  Log(vlDebug, Format(SDbgConsideringTarget, [Target.Name]));
 
   if Target.TargetType in ProgramTargets then
     OD:=GetBinOutputDir(FCurrentPackage, True)
@@ -3301,7 +3340,7 @@ begin
 
   Result:=Not FileExists(OFN);
   if Result then
-    Log(vlDebug,SDebugOutputNotYetAvailable,[OFN]);
+    Log(vlDebug,SDbgOutputNotYetAvailable,[OFN]);
 
   // Check main source
   If not Result then
@@ -3327,10 +3366,10 @@ begin
                     If (T=Nil) then
                       Error(SErrDepUnknownTarget,[Target.Name,D.Value]);
                     // If a dependent package is compiled we always need to recompile
-                    Log(vldebug, SDebugDependencyOnUnit, [Target.Name,T.Name]);
+                    Log(vldebug, SDbgDependencyOnUnit, [Target.Name,T.Name]);
                     Result:=(T.State in [tsNeedCompile,tsCompiled]) or NeedsCompile(T);
                     if Result then
-                      Log(vldebug, SDebugDependencyUnitRecompiled, [T.Name]);
+                      Log(vldebug, SDbgDependencyUnitRecompiled, [T.Name]);
                   end;
                 depInclude :
                   begin
@@ -3348,7 +3387,7 @@ begin
   if result then
     begin
       Target.FTargetState:=tsNeedCompile;
-      Log(vlDebug,SDebugMustCompile,[Target.Name]);
+      Log(vlDebug,SDbgMustCompile,[Target.Name]);
     end
   else
     Target.FTargetState:=tsNoCompile;
@@ -3361,13 +3400,13 @@ begin
      (Defaults.LocalUnitDir<>'') then
     begin
       APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.LocalUnitDir)+APackage.Name;
-      if not DirectoryExists(APackage.UnitDir) then
+      if not SysDirectoryExists(APackage.UnitDir) then
         APackage.UnitDir:='';
     end;
   if APackage.UnitDir='' then
     begin
       APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.GlobalUnitDir)+APackage.Name;
-      if not DirectoryExists(APackage.UnitDir) then
+      if not SysDirectoryExists(APackage.UnitDir) then
         APackage.UnitDir:=DirNotFound;
     end;
   // Special error marker to prevent searches in case of error
@@ -3486,7 +3525,7 @@ Var
 begin
   if Target.State in [tsNeutral,tsNeedCompile] then
     begin
-      Log(vlInfo,SLogCompilingTarget,[Target.Name]);
+      Log(vlInfo,SInfoCompilingTarget,[Target.Name]);
       ExecuteCommands(Target.Commands,caBeforeCompile);
       If Assigned(Target.BeforeCompile) then
         Target.BeforeCompile(Target);
@@ -3510,7 +3549,7 @@ Var
 begin
   if Target.State in [tsCompiled,tsNoCompile] then
     exit;
-  Log(vlDebug, Format(SDebugCompilingDependenciesOfTarget, [Target.Name]));
+  Log(vlDebug, Format(SDbgCompilingDependenciesOfTarget, [Target.Name]));
   For I:=0 to Target.Dependencies.Count-1 do
     begin
       D:=Target.Dependencies[i];
@@ -3596,11 +3635,9 @@ Var
 begin
   //create a units directory
   D:=GetUnitsOutputDir(APackage,True);
-  If DirectoryExists(D) then
-    Log(vlInfo,SLogOutputDirExists,[D])
-  else
+  If not SysDirectoryExists(D) then
     begin
-      Log(vlInfo,SLogCreatingOutputDir,[D]);
+      Log(vlInfo,SInfoCreatingOutputDir,[D]);
       CmdCreateDir(D);
     end;
 
@@ -3610,14 +3647,11 @@ begin
     if APackage.Targets.TargetItems[i].TargetType in ProgramTargets then
     begin
       D:=GetBinOutputDir(APackage,True);
-      If DirectoryExists(D) then
-        Log(vlInfo,SLogOutputDirExists,[D])
-      else
-      begin
-        Log(vlInfo,SLogCreatingOutputDir,[D]);
-        CmdCreateDir(D);
-      end;
-
+      If not SysDirectoryExists(D) then
+        begin
+          Log(vlInfo,SInfoCreatingOutputDir,[D]);
+          CmdCreateDir(D);
+        end;
       exit; //do not continue loop, directory is made anyway
     end;
   end;
@@ -3663,7 +3697,7 @@ Var
   T : TTarget;
   I : Integer;
 begin
-  Log(vlInfo,SLogCompilingPackage,[APackage.Name]);
+  Log(vlInfo,SInfoCompilingPackage,[APackage.Name]);
   FCurrentPackage:=APackage;
   FCurrentOutputDir:=GetUnitsOutputDir(APackage,True);
   Try
@@ -3687,13 +3721,13 @@ begin
               else
                 begin
                   if not(Defaults.CPU in T.CPUs) then
-                    Log(vldebug, Format(SDebugTargetHasWrongCPU, [CPUsToString(T.CPUs)]));
+                    Log(vldebug, Format(SDbgTargetHasWrongCPU, [CPUsToString(T.CPUs)]));
                   if not(Defaults.OS in T.OSes) then
-                    Log(vldebug, Format(SDebugTargetHasWrongOS, [OSesToString(T.OSes)]));
+                    Log(vldebug, Format(SDbgTargetHasWrongOS, [OSesToString(T.OSes)]));
                 end;
             end
           else
-            log(vldebug, SDebugTargetIsNotAUnitOrProgram,[T.Name]);
+            log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
         end;
       DoAfterCompile(APackage);
     Finally
@@ -3726,12 +3760,13 @@ begin
   S:=GetUnitDir(Result);
   if S<>'' then
     begin
-      Log(vldebug, SDebugExternalDependency, [APackageName,S]);
+      Log(vldebug, SDbgExternalDependency, [APackageName,S]);
       Result.FTargetState:=tsInstalled;
       // Load unit config if it exists
       S:=IncludeTrailingPathDelimiter(S)+UnitConfigFile;
       if FileExists(S) then
         begin
+          Log(vlDebug, Format(SDbgLoading, [S]));
           Result.LoadUnitConfigFromFile(S);
         end;
       // Check recursive implicit dependencies
@@ -3765,19 +3800,23 @@ begin
 end;
 
 
-Procedure TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Src,Dest : String);
+Function TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Dest : String):Boolean;
 Var
   List : TStringList;
-  UnitsDir: string;
-  BinDir: string;
+  PD,UD,BD : string;
 begin
+  Result:=False;
   List:=TStringList.Create;
   Try
-    UnitsDir := GetUnitsOutputDir(APackage);
-    BinDir := GetBinOutputDir(APackage);
-    APackage.GetInstallFiles(List,[tt],Src, UnitsDir, BinDir, Defaults.CPU, Defaults.OS);
+    UD:=GetUnitsOutputDir(APackage);
+    BD:=GetBinOutputDir(APackage);
+    PD:=GetPackageDir(APackage);
+    APackage.GetInstallFiles(List,[tt],PD, UD, BD, Defaults.CPU, Defaults.OS);
     if (List.Count>0) then
-      CmdCopyFiles(List,Dest);
+      begin
+        Result:=True;
+        CmdCopyFiles(List,Dest);
+      end;
   Finally
     List.Free;
   end;
@@ -3802,21 +3841,30 @@ end;
 
 procedure TBuildEngine.Install(APackage: TPackage);
 Var
-  PD,D,O : String;
+  UC,D : String;
+  B : Boolean;
 begin
   If (Apackage.State<>tsCompiled) then
     Compile(APackage);
-  Log(vlInfo,SLogInstallingPackage,[APackage.Name]);
+  Log(vlInfo,SInfoInstallingPackage,[APackage.Name]);
   DoBeforeInstall(APackage);
-  O:=GetUnitsOutputDir(APAckage);
-  PD:=GetPackageDir(APackage);
   // units
+  B:=false;
   D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackage.Name;
-  InstallPackageFiles(APAckage,ttUnit,O,D);
-  InstallPackageFiles(APAckage,ttImplicitUnit,O,D);
+  if InstallPackageFiles(APAckage,ttUnit,D) then
+    B:=true;
+  if InstallPackageFiles(APAckage,ttImplicitUnit,D) then
+    B:=true;
+  // Unit (dependency) configuration if there were units installed
+  if B then
+    begin
+      UC:=IncludeTrailingPathDelimiter(D)+UnitConfigFile;
+      Log(vlInfo, Format(SDbgGenerating, [UC]));
+      APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);
+    end;
   // Programs
   D:=IncludeTrailingPathDelimiter(Defaults.BinInstallDir);
-  InstallPackageFiles(APAckage,ttProgram,PD,D);
+  InstallPackageFiles(APAckage,ttProgram,D);
   // Done.
   APackage.FTargetState:=tsInstalled;
   DoAfterInstall(APackage);
@@ -3847,7 +3895,7 @@ Var
   ICPU : TCPU;
   IOS  : TOS;
 begin
-  Log(vlInfo,SLogArchivingPackage,[APackage.Name]);
+  Log(vlInfo,SInfoArchivingPackage,[APackage.Name]);
   DoBeforeArchive(Apackage);
   L:=TStringList.Create;
   L.Sorted:=true;
@@ -3860,7 +3908,7 @@ begin
     //get all files from all targets
     for ICPU:=Low(TCPU) to high(TCPU) do
       for IOS:=Low(TOS) to high(TOS) do
-        if OSCpuPOSesible[IOS,ICPU] then
+        if OSCpupossible[IOS,ICPU] then
           begin
             ResolveFileNames(APackage,ICPU,IOS);
             APackage.GetArchiveFiles(L, ICPU, IOS);
@@ -3871,7 +3919,7 @@ begin
 
     //show all files
     for i := 0 to L.Count-1 do
-      Log(vlInfo, Format(SInfoArchiving, [L[i]]));
+      Log(vlInfo, Format(SInfoArchivingFile, [L[i]]));
 
     A:=APackage.FileName + ZipExt;
 
@@ -3918,7 +3966,7 @@ Var
   OB : String;
   List : TStringList;
 begin
-  Log(vlInfo,SLogCleaningPackage,[APackage.Name]);
+  Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);
   DoBeforeClean(Apackage);
   OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(APAckage));
   OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(APAckage));
@@ -3997,6 +4045,7 @@ begin
       If PackageOK(P) then
         If (P.State=tsNeutral) then
           begin
+            Log(vlDebug,SDbgConsideringPackage,[P.Name]);
             if FForceCompile then
               P.FTargetState:=tsNeedCompile;
             ResolveDependencies(P.Dependencies,(P.Collection as TPackages));
@@ -4023,9 +4072,9 @@ begin
     BeforeInstall(Self);
   For I:=0 to Packages.Count-1 do
     begin
-    P:=Packages.PackageItems[i];
-    If PackageOK(P) then
-      Install(P);
+      P:=Packages.PackageItems[i];
+      If PackageOK(P) then
+        Install(P);
     end;
   If Assigned(AfterInstall) then
     AfterInstall(Self);
@@ -4039,7 +4088,7 @@ Var
 begin
   If Assigned(BeforeArchive) then
     BeforeArchive(Self);
-  Log(vlDebug, SDebugBuildEngineArchiving);
+  Log(vlDebug, SDbgBuildEngineArchiving);
   For I:=0 to Packages.Count-1 do
     begin
     P:=Packages.PackageItems[i];
@@ -4058,7 +4107,7 @@ Var
 begin
   If Assigned(BeforeClean) then
     BeforeClean(Self);
-  Log(vldebug, SDebugBuildEngineCleaning);
+  Log(vldebug, SDbgBuildEngineCleaning);
   For I:=0 to Packages.Count-1 do
     begin
     P:=Packages.PackageItems[i];
