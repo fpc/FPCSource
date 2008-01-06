@@ -1070,7 +1070,7 @@ implementation
       begin
         { Need to use a hack here to prevent the parameters from being copied.
           The parameters must be copied between callinitblock/callcleanupblock because
-          the can reference methodpointer }
+          they can reference methodpointer }
         oldleft:=left;
         left:=nil;
         n:=tcallnode(inherited dogetcopy);
@@ -2661,10 +2661,17 @@ implementation
          gen_hidden_parameters;
 
          { Remove useless nodes from init/final blocks }
+         { (simplify depends on typecheck info)        }
          if assigned(callinitblock) then
-           dosimplify(callinitblock);
+           begin
+             typecheckpass(callinitblock);
+             dosimplify(callinitblock);
+           end;
          if assigned(callcleanupblock) then
-           dosimplify(callcleanupblock);
+           begin
+             typecheckpass(callcleanupblock);
+             dosimplify(callcleanupblock);
+           end;
 
          { Continue with checking a normal call or generate the inlined code }
          if cnf_do_inline in callnodeflags then
@@ -3167,6 +3174,7 @@ implementation
         { consider it must not be inlined if called
           again inside the args or itself }
         exclude(procdefinition.procoptions,po_inline);
+        typecheckpass(inlineblock);
         dosimplify(inlineblock);
         firstpass(inlineblock);
         include(procdefinition.procoptions,po_inline);
