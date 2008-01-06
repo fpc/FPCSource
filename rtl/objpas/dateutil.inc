@@ -1976,7 +1976,16 @@ end;
     Julian and Modified Julian Date conversion support
   ---------------------------------------------------------------------}
 
-{$warnings off}
+{$ifopt R+}
+{$define RangeCheckWasOn}
+{$R-}
+{$endif opt R+}
+
+{$ifopt Q+}
+{$define OverflowCheckWasOn}
+{$Q-}
+{$endif opt Q+}
+
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
 begin
   DateTimeToJulianDate := AValue - JulianEpoch;
@@ -2015,7 +2024,16 @@ Function TryModifiedJulianDateToDateTime(const AValue: Double; var ADateTime: TD
 begin
   NotYetImplemented('TryModifiedJulianDateToDateTime');
 end;
-{$warnings on}
+
+{$ifdef RangeCheckWasOn}
+{$R+}
+{$undef RangeCheckWasOn}
+{$endif}
+
+{$ifdef OverflowCheckWasOn}
+{$Q+}
+{$undef OverflowCheckWasOn}
+{$endif}
 
 { ---------------------------------------------------------------------
     Unix timestamp support.
@@ -2064,7 +2082,7 @@ end;
 
 Function MacTimeStampToUnix(const AValue: Int64): Int64;
 const
-  Epoch=24107 * 24 * 3600; 
+  Epoch=24107 * 24 * 3600;
 begin
   Result:=AValue - Epoch;
 end;
