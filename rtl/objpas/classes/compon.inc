@@ -24,6 +24,24 @@ begin
     Result:=TComponent(FComponents.Items[Aindex]);
 end;
 
+function TComponent.IsImplementorOf (const Intf:IInterface):boolean;
+var ref : IInterfaceComponentReference;
+begin
+ result:=assigned(intf) and supports(intf,IInterfaceComponentReference,ref);
+ if result then
+   result:=ref.getcomponent=self;
+end;
+
+procedure TComponent.ReferenceInterface(const intf:IInterface;op:TOperation);
+var ref : IInterfaceComponentReference;
+    comp : TComponent;
+begin
+ if assigned(intf) and supports(intf,IInterfaceComponentReference,ref) then
+   begin
+    comp:=ref.getcomponent;
+    comp.notification(self,op); 
+   end;
+end;
 
 Function  TComponent.GetComponentCount: Integer;
 
