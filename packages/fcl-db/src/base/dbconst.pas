@@ -91,6 +91,8 @@ Resourcestring
   SNoUpdateFields          = 'There are no fields found to include in the update- or insert-clause';
   SNotSupported            = 'Operation is not supported by this type of database';
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
+  SMaxIndexes              = 'The maximum amount of indexes is reached';
+  SMinIndexes              = 'The minimum amount of indexes is 1';
 // These are added for Delphi-compatilility, but not used by the fcl:
   SFieldIndexError         = 'Field index out of range';
   SIndexFieldMissing       = 'Cannot access index field ''%s''';

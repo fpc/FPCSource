@@ -160,7 +160,7 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
-    procedure BuildIndex(AIndex : TBufIndex);
+    procedure BuildIndex(var AIndex : TBufIndex);
     function GetIndexDefs : TIndexDefs;
 {$IFDEF ARRAYBUF}
     procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: pchar);
@@ -175,6 +175,9 @@ type
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer : boolean;
     procedure SetIndexName(const AValue: String);
+{$IFNDEF ARRAYBUF}
+    procedure SetMaxIndexesCount(const AValue: Integer);
+{$ENDIF}
     procedure SetPacketRecords(aValue : integer);
     function  IntAllocRecordBuffer: PChar;
     procedure DoFilterRecord(var Acceptable: Boolean);
@@ -239,6 +242,9 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure AddIndex(const AName, AFields : string); virtual;
     property ChangeCount : Integer read GetChangeCount;
+{$IFNDEF ARRAYBUF}
+    property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount;
+{$ENDIF ARRAYBUF}
   published
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
@@ -314,13 +320,38 @@ begin
   inherited destroy;
 end;
 
-procedure TBufDataset.BuildIndex(AIndex: TBufIndex);
+procedure TBufDataset.BuildIndex(var AIndex: TBufIndex);
 var PCurRecLinkItem : PBufRecLinkItem;
+    p,l,q           : PBufRecLinkItem;
+    i,k,psize,qsize : integer;
+    MergeAmount     : integer;
+    PlaceQRec       : boolean;
+
+  procedure PlaceNewRec(var e: PBufRecLinkItem; var esize: integer);
+  begin
+    if AIndex.FFirstRecBuf=nil then
+     begin
+     AIndex.FFirstRecBuf:=e;
+     e[AIndex.IndNr].prior:=nil;
+     l:=e;
+     end
+   else
+     begin
+     l[AIndex.IndNr].next:=e;
+     e[AIndex.IndNr].prior:=l;
+     l:=e;
+     end;
+   e := e[AIndex.IndNr].next;
+   dec(esize);
+  end;
+
 begin
 // This simply copies the index...
 {$IFNDEF ARRAYBUF}
   PCurRecLinkItem:=FIndexes[0].FFirstRecBuf;
-  
+  PCurRecLinkItem[AIndex.IndNr].next := PCurRecLinkItem[0].next;
+  PCurRecLinkItem[AIndex.IndNr].prior := PCurRecLinkItem[0].prior;
+
   if PCurRecLinkItem <> FIndexes[0].FLastRecBuf then
     begin
     while PCurRecLinkItem^.next<>FIndexes[0].FLastRecBuf do
@@ -332,12 +363,106 @@ begin
       end;
     end;
 
-  // Set FirstRecBuf and FCurrentRecBuf
+// Set FirstRecBuf and FCurrentRecBuf
   AIndex.FFirstRecBuf:=FIndexes[0].FFirstRecBuf;
-  AIndex.FCurrentRecBuf:=FIndexes[0].FCurrentRecBuf;
-  // Link in the FLastRecBuf that belongs to this index
+  AIndex.FCurrentRecBuf:=AIndex.FFirstRecBuf;
+// Link in the FLastRecBuf that belongs to this index
   PCurRecLinkItem[AIndex.IndNr].next:=AIndex.FLastRecBuf;
-  AIndex.FLastRecBuf:=PCurRecLinkItem;
+  AIndex.FLastRecBuf[AIndex.IndNr].prior:=PCurRecLinkItem;
+
+// Mergesort. Used the algorithm as described here by Simon Tatham
+// http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+// The comments in the code are from this website.
+
+// In each pass, we are merging lists of size K into lists of size 2K.
+// (Initially K equals 1.)
+  k:=1;
+
+  repeat
+
+// So we start by pointing a temporary pointer p at the head of the list,
+// and also preparing an empty list L which we will add elements to the end
+// of as we finish dealing with them.
+
+  p := AIndex.FFirstRecBuf;
+  AIndex.ffirstRecBuf := nil;
+  q := p;
+  MergeAmount := 0;
+
+// Then:
+//    * If p is null, terminate this pass.
+  while p <> AIndex.FLastRecBuf do
+    begin
+
+//    * Otherwise, there is at least one element in the next pair of length-K
+//      lists, so increment the number of merges performed in this pass.
+
+    inc(MergeAmount);
+
+//    * Point another temporary pointer, q, at the same place as p. Step q along
+//      the list by K places, or until the end of the list, whichever comes
+//      first. Let psize be the number of elements you managed to step q past.
+
+    i:=0;
+    while (i<k) and (q<>AIndex.FLastRecBuf) do
+      begin
+      inc(i);
+      q := q[AIndex.IndNr].next;
+      end;
+    psize :=i;
+
+//    * Let qsize equal K. Now we need to merge a list starting at p, of length
+//      psize, with a list starting at q of length at most qsize.
+
+    qsize:=k;
+
+//    * So, as long as either the p-list is non-empty (psize > 0) or the q-list
+//      is non-empty (qsize > 0 and q points to something non-null):
+
+    while (psize>0) or ((qsize>0) and (q <> AIndex.FLastRecBuf)) do
+      begin
+//          o Choose which list to take the next element from. If either list
+//            is empty, we must choose from the other one. (By assumption, at
+//            least one is non-empty at this point.) If both lists are
+//            non-empty, compare the first element of each and choose the lower
+//            one. If the first elements compare equal, choose from the p-list.
+//            (This ensures that any two elements which compare equal are never
+//            swapped, so stability is guaranteed.)
+      if (psize=0)  then
+        PlaceQRec := true
+      else if (qsize=0) or (q = AIndex.FLastRecBuf) then
+        PlaceQRec := False
+      else if CompareText0(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],pchar(q)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],length(pchar(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1])),[]) <= 0 then
+        PlaceQRec := False
+      else
+        PlaceQRec := True;
+        
+//          o Remove that element, e, from the start of its list, by advancing
+//            p or q to the next element along, and decrementing psize or qsize.
+//          o Add e to the end of the list L we are building up.
+      if PlaceQRec then
+        PlaceNewRec(q,qsize)
+      else
+        PlaceNewRec(p,psize);
+      end;
+//    * Now we have advanced p until it is where q started out, and we have
+//      advanced q until it is pointing at the next pair of length-K lists to
+//      merge. So set p to the value of q, and go back to the start of this loop.
+    p:=q;
+    end;
+
+// As soon as a pass like this is performed and only needs to do one merge, the
+// algorithm terminates, and the output list L is sorted. Otherwise, double the
+// value of K, and go back to the beginning.
+
+  l[AIndex.IndNr].next:=AIndex.FLastRecBuf;
+
+  k:=k*2;
+
+  until MergeAmount = 1;
+  AIndex.FLastRecBuf[AIndex.IndNr].next:=nil;
+  AIndex.FLastRecBuf[AIndex.IndNr].prior:=l;
+
 {$ENDIF}
 end;
 
@@ -702,6 +827,17 @@ begin
       exit;
       end;
 end;
+
+{$IFNDEF ARRAYBUF}
+procedure TBufDataset.SetMaxIndexesCount(const AValue: Integer);
+begin
+  CheckInactive;
+  if AValue > 1 then
+    FMaxIndexesCount:=AValue
+  else
+    DatabaseError(SMinIndexes);
+end;
+{$ENDIF}
 
 procedure TBufDataset.InternalSetToRecord(Buffer: PChar);
 begin
@@ -1738,6 +1874,12 @@ end;
 procedure TBufDataset.AddIndex(const AName, AFields: string);
 begin
   if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
+  
+{$IFNDEF ARRAYBUF}
+  if active and (FIndexesCount=FMaxIndexesCount-1) then
+    DatabaseError(SMaxIndexes);
+{$ENDIF}
+
   InternalAddIndex(AName,AFields);
   // If not all packets are fetched, you can not sort properly.
   FPacketRecords:=-1;
@@ -1767,7 +1909,11 @@ begin
     FIndexes[FIndexesCount-1].FLastRecBuf := FIndexes[FIndexesCount-1].FFirstRecBuf;
     FIndexes[FIndexesCount-1].FCurrentRecBuf := FIndexes[FIndexesCount-1].FLastRecBuf;
     BuildIndex(FIndexes[FIndexesCount-1]);
-    end;
+    end
+{$IFNDEF ARRAYBUF}
+  else if FIndexesCount>FMaxIndexesCount then
+    FMaxIndexesCount := FIndexesCount;
+{$ENDIF}
 end;
 
 procedure TBufDataset.DoFilterRecord(var Acceptable: Boolean);
