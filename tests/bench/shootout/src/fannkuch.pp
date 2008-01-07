@@ -20,7 +20,7 @@ type
 
 var
    permu, permu_copy, count: TIntegerArray;
-   r, n, answer : longint;
+   r, n, answer: longint;
 
 procedure swap(var a, b: longint); inline;
 var  tmp: longint;
@@ -40,34 +40,7 @@ begin
   end;
 end;
 
-function NextPermutation: boolean;
-var
-  r0: longint;
-  tmp: LongInt;
-  i : longint;
-begin
-  r0 := r; // use local variable
-  NextPermutation := true;
-  repeat
-    if r0 = n then
-    begin
-      NextPermutation := false;
-      break;
-    end;
-    tmp := permu[0];
-    for i := 1 to r0 do
-      permu[i-1] := permu[i];
-    permu[r0] := tmp;
-
-    dec(count[r0]);
-    if count[r0] > 0 then
-      break;
-    inc(r0);
-  until false;
-  r := r0;
-end;
-
-function countflips: integer; inline;
+function countflips: longint; inline;
 var
   last: LongInt;
   tmp: LongInt;
@@ -77,11 +50,36 @@ begin
   repeat
     // Reverse part of the array.
     reverse(last);
-    tmp := permu_copy[ last ];
-    permu_copy[ last ] := last;
+
+    tmp := permu_copy[last];
+    permu_copy[last] := last;
     last := tmp;
     inc(countflips);
   until last = 0;
+end;
+
+function NextPermutation: boolean;
+var
+  tmp: LongInt;
+  i : longint;
+begin
+  NextPermutation := true;
+  repeat
+    if r = n then
+    begin
+      NextPermutation := false;
+      break;
+    end;
+    tmp := permu[0];
+    for i := 1 to r do
+      permu[i-1] := permu[i];
+    permu[r] := tmp;
+
+    dec(count[r]);
+    if count[r] > 0 then
+      break;
+    inc(r);
+  until false;
 end;
 
 function fannkuch: longint;
