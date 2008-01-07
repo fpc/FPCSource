@@ -1243,7 +1243,7 @@ begin
         2. For resizing to greater size first check if the size fits in the fixed block range to prevent
            "truncating" the size by the fixedsizemask }
       if ((size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr))) and
-          ((size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and sizemask <= currsize)) then
+          ((size+(sizeof(tmemchunk_fixed_hdr)+(blocksize-1))) and sizemask <= currsize)) then
         begin
           systryresizemem:=true;
           exit;
@@ -1264,7 +1264,7 @@ begin
   size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
 
   { is the allocated block still correct? }
-  if (currsize>=size) and (size>(currsize-blocksize)) then
+  if (currsize>=size) and (size>ptruint(currsize-blocksize)) then
     begin
       SysTryResizeMem := true;
       exit;
