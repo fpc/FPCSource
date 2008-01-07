@@ -1095,7 +1095,7 @@ end;
 {****************************************************************************
                                  Str()
 ****************************************************************************}
-{ $ifdef disabled}
+{$ifdef disabled}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1132,6 +1132,7 @@ asm
   negl %edx
 str_int_shortcut:
   {Calculate amount of digits in ecx.}
+  xorl %ecx,%ecx
   bsrl %eax,%ecx
   incl %ecx
   imul $1233,%ecx
@@ -1170,7 +1171,7 @@ str_int_shortcut:
   popl %ebx
   popl %edi
 end;
-{ $endif}
+{$endif}
 {****************************************************************************
                                Bounds Check
 ****************************************************************************}
