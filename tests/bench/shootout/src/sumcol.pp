@@ -1,19 +1,23 @@
-{ The Great Computer Language Shootout
+{ The Computer Language Benchmarks Game
   http://shootout.alioth.debian.org
 
   contributed by Ales Katona
+  modified by Daniel Mantione
+  modified by Steve Fisher
 }
 
-program sumcol;
+{$iochecks off}
 
-{$mode objfpc}
-
-var num, tot: longint;
+var
+  num, tot: longint;
+  textbuf: array[0..8191] of char;
 
 begin
-  while not Eof(input) do begin
-    ReadLn(input, num);
-    tot := tot + num;
-  end;
-  WriteLn(tot);
+  settextbuf(input, textbuf);
+  repeat
+    readLn( num );
+    tot += num
+  until eof;
+  writeLn(tot)
 end.
+
