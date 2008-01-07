@@ -7355,6 +7355,7 @@ tests/test/units/strings/tstrcopy.pp svneol=native#text/plain
 tests/test/units/strings/tstrings1.pp svneol=native#text/plain
 tests/test/units/system/interlocked1.pp svneol=native#text/plain
 tests/test/units/system/tabs.pp svneol=native#text/plain
+tests/test/units/system/talign.pp svneol=native#text/plain
 tests/test/units/system/targs.pp svneol=native#text/plain
 tests/test/units/system/tassert1.pp svneol=native#text/plain
 tests/test/units/system/tassert2.pp svneol=native#text/plain

@@ -1507,20 +1507,20 @@ procedure inclocked(var l:int64);
 
 
 function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  var
+    tmp: PtrUInt;
   begin
-    if addr mod alignment<>0 then
-      result:=addr+(alignment-(addr mod alignment))
-    else
-      result:=addr;
+    tmp:=addr+alignment-1;
+    result:=tmp-(tmp mod alignment)
   end;
 
 
 function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+  var
+    tmp: PtrUInt;
   begin
-    if PtrUInt(addr) mod alignment<>0 then
-      result:=pointer(addr+(alignment-(PtrUInt(addr) mod alignment)))
-    else
-      result:=addr;
+    tmp:=PtrUInt(addr)+alignment-1;
+    result:=pointer(tmp-(tmp mod alignment));
   end;
 
 
