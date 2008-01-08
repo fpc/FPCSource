@@ -751,28 +751,15 @@ Type
   TCustomInstaller = Class(TComponent)
   private
     FBuildEngine: TBuildEngine;
-    FDefaultPackage: TPackage;
     FPackages: TPackages;
     FRunMode: TRunMode;
     FListMode : Boolean;
     FLogLevels : TVerboseLevels;
-    function GetBaseInstallDir: string;
-    Function GetPackageString(Index : Integer) : String;
-    Procedure SetPackageString(Index : Integer; const AValue : String);
-    function GetConditionalStrings(AIndex : Integer): TConditionalStrings;
-    function GetOSes: TOSes;
-    function GetTargets: TTargets;
-    function GetSources: TSources;
-    procedure SetBaseInstallDir(const AValue: string);
-    procedure SetDefaultPackage(const AValue: TPackage);
-    procedure SetConditionalStrings(AIndex : Integer; const AValue: TConditionalStrings);
-    procedure SeTOSes(const AValue: TOSes);
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
     Procedure CheckPackages; virtual;
     Procedure CreateBuildEngine; virtual;
-    Procedure CheckDefaultPackage;
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; Args : Array of const);
     Procedure AnalyzeOptions;
@@ -786,35 +773,12 @@ Type
   Public
     Constructor Create(AOwner : TComponent); virtual;
     Destructor destroy; override;
-    Function StartPackage(Const AName : String) : TPackage;
-    Procedure EndPackage;
+    Function AddPackage(Const AName : String) : TPackage;
     Function Run : Boolean;
-    Function AddTarget(const AName : String) : TTarget;
-    Procedure AddDependency(const AName : String);
     //files in package
-    Property DefaultPackage : TPackage read FDefaultPackage write SetDefaultPackage;
     Property Packages : TPackages Read FPackages;
-    Property Dependencies : TConditionalStrings Index 0 Read GetConditionalStrings Write SetConditionalStrings;
-    Property InstallFiles : TConditionalStrings Index 1 Read GetConditionalStrings Write SetConditionalStrings;
-    Property CleanFiles : TConditionalStrings Index 2 Read GetConditionalStrings Write SetConditionalStrings;
-    Property ArchiveFiles : TConditionalStrings Index 3 Read GetConditionalStrings Write SetConditionalStrings;
     Property RunMode : TRunMode Read FRunMode;
     Property ListMode : Boolean Read FListMode;
-    Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
-    // Default Package redirects.
-    Property Targets : TTargets Read GetTargets;
-    Property Sources : TSources Read GetSources;
-    Property OS: TOSes Read GetOSes Write SetOSes;
-    Property Author : String Index 0 Read GetPackageString Write SetPackageString;
-    Property Directory : String Index 1 Read GetPackageString Write SetPackageString;
-    Property License : String Index 2 Read GetPackageString Write SetPackageString;
-    Property Options : String Index 3 Read GetPackageString Write SetPackageString;
-    Property ExternalURL : String Index 4 Read GetPackageString Write SetPackageString;
-    Property Email : String Index 5 Read GetPackageString Write SetPackageString;
-    Property Description: String Index 6 Read GetPackageString Write SetPackageString;
-    Property DescriptionFileName: String Index 7 Read GetPackageString Write SetPackageString;
-    Property Version : String Index 8 Read GetPackageString Write SetPackageString;
-    Property FileName : String Index 9 Read GetPackageString Write SetPackageString;
   end;
 
   { TFPCInstaller }
@@ -913,7 +877,6 @@ ResourceString
   SErrInvalidTarget     = 'Invalid compiler target "%s"';
   SErrNameExists        = 'Name "%s" already exists in the collection.';
   SErrNoSuchName        = 'Could not find item with name "%s" in the collection.';
-  SErrNoPackage         = 'No package available. Add package with StartPackage Call';
   SErrInValidArgument   = 'Invalid command-line argument at position %d: %s';
   SErrNeedArgument      = 'Option at position %d (%s) needs an argument';
   SErrNoPackagesDefined = 'No action possible: No packages were defined.';
@@ -2466,120 +2429,6 @@ begin
 end;
 
 
-function TCustomInstaller.GetConditionalStrings(AIndex : Integer): TConditionalStrings;
-begin
-  CheckDefaultPackage;
-  Case AIndex of
-    0:  Result:=DefaultPackage.Dependencies;
-    1:  Result:=DefaultPackage.InstallFiles;
-    2:  Result:=DefaultPackage.CleanFiles;
-    3:  Result:=DefaultPackage.ArchiveFiles;
-  end;
-end;
-
-
-function TCustomInstaller.GetBaseInstallDir: string;
-begin
-  Result := Defaults.BaseInstallDir;
-end;
-
-
-Function TCustomInstaller.GetPackageString(Index : Integer) : String;
-Var
-  P : TPackage;
-begin
-  CheckDefaultPackage;
-  P:=DefaultPackage;
-  Case Index of
-    0 : Result:=P.Author;
-    1 : Result:=P.Directory;
-    2 : Result:=P.License;
-    3 : Result:=P.Options;
-    4 : Result:=P.ExternalURL;
-    5 : Result:=P.Email;
-    6 : Result:=P.Description;
-    7 : Result:=P.DescriptionFile;
-    8 : Result:=P.Version;
-    9 : Result:=P.FileName + ZipExt;
-  end;
-end;
-
-
-Procedure TCustomInstaller.SetPackageString(Index : Integer; const AValue : String);
-Var
-  P : TPackage;
-begin
-  CheckDefaultPackage;
-  P:=DefaultPackage;
-  Case Index of
-    0 : P.Author:=AValue;
-    1 : P.Directory:=AValue;
-    2 : P.License:=AValue;
-    3 : P.Options:=AValue;
-    4 : P.ExternalURL:=AValue;
-    5 : P.Email:=AValue;
-    6 : P.Description:=AValue;
-    7 : P.DescriptionFile:=AValue;
-    8 : P.Version:=AValue;
-    9 : P.FileName:=AValue;
-  end;
-end;
-
-
-function TCustomInstaller.GetOSes: TOSes;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.OSes;
-end;
-
-
-function TCustomInstaller.GetTargets: TTargets;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.Targets;
-end;
-
-function TCustomInstaller.GetSources: TSources;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.Sources;
-end;
-
-procedure TCustomInstaller.SetBaseInstallDir(const AValue: string);
-begin
-  if AValue <> Defaults.BaseInstallDir then
-    Defaults.BaseInstallDir := AValue;
-end;
-
-procedure TCustomInstaller.SetDefaultPackage(const AValue: TPackage);
-begin
-  if FDefaultPackage=AValue then exit;
-  FDefaultPackage:=AValue;
-end;
-
-procedure TCustomInstaller.SetConditionalStrings(AIndex : Integer; const AValue: TConditionalStrings);
-
-Var
-  Res : TConditionalStrings;
-
-begin
-  CheckDefaultPackage;
-  Case AIndex of
-    0:  Res:=DefaultPackage.Dependencies;
-    1:  Res:=DefaultPackage.InstallFiles;
-    2:  Res:=DefaultPackage.CleanFiles;
-    3:  Res:=DefaultPackage.ArchiveFiles;
-  end;
-  Res.Assign(Avalue);
-end;
-
-procedure TCustomInstaller.SetOSes(const AValue: TOSes);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.OSes:=AValue;
-end;
-
-
 procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
 begin
   If Level in FLogLevels then
@@ -2602,13 +2451,6 @@ begin
 end;
 
 
-procedure TCustomInstaller.CheckDefaultPackage;
-begin
-  If (FDefaultPackage=Nil) then
-    Raise EInstallerError.Create(SErrNoPackage);
-end;
-
-
 procedure TCustomInstaller.Error(const Msg: String);
 begin
   Raise EInstallerError.Create(Msg);
@@ -2621,16 +2463,11 @@ begin
 end;
 
 
-Function TCustomInstaller.StartPackage(const AName: String) : TPackage;
+Function TCustomInstaller.AddPackage(const AName: String) : TPackage;
 begin
-  FDefaultPackage:=FPackages.AddPackage(AName);
-  Result:=FDefaultPackage;
+  result:=FPackages.AddPackage(AName);
 end;
 
-procedure TCustomInstaller.EndPackage;
-begin
-  FDefaultPackage:=Nil;
-end;
 
 procedure TCustomInstaller.AnalyzeOptions;
 
@@ -2868,19 +2705,6 @@ begin
   if not Result then
     ExitCode:=1;
 end;
-
-function TCustomInstaller.AddTarget(const AName: String): TTarget;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.AddTarget(AName);
-end;
-
-procedure TCustomInstaller.AddDependency(const AName: String);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.AddDependency(AName);
-end;
-
 
 
 {****************************************************************************
