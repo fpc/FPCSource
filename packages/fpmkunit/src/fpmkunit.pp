@@ -404,10 +404,14 @@ Type
     function GetSourceItem(Index : Integer): TSource;
     procedure SetSourceItem(Index : Integer; const AValue: TSource);
   public
-    Function AddDocFiles(const AFiles : String) : TSource;
-    Function AddSrcFiles(const AFiles : String) : TSource;
-    Function AddExampleFiles(const AFiles : String) : TSource;
-    Function AddTestFiles(const AFiles : String) : TSource;
+    Function AddDoc(const AFiles : String) : TSource;
+    Function AddSrc(const AFiles : String) : TSource;
+    Function AddExample(const AFiles : String) : TSource;
+    Function AddTest(const AFiles : String) : TSource;
+    procedure AddDocFiles(const AFileMask: string; Recursive: boolean = False);
+    procedure AddSrcFiles(const AFileMask: string; Recursive: boolean = False);
+    procedure AddExampleFiles(const AFileMask: string; Recursive: boolean = False);
+    procedure AddTestFiles(const AFileMask: string; Recursive: boolean = False);
     Property SourceItems[Index : Integer] : TSource Read GetSourceItem Write SetSourceItem;default;
   end;
 
@@ -464,13 +468,6 @@ Type
   Public
     constructor Create(ACollection: TCollection); override;
     destructor destroy; override;
-    Function AddTarget(AName : String) : TTarget;
-    Procedure AddDependency(AName : String);
-    Procedure AddInstallFile(AFileName : String);
-    procedure AddDocFiles(const AFileMask: string; Recursive: boolean = False);
-    procedure AddSrcFiles(const AFileMask: string; Recursive: boolean = False);
-    procedure AddExampleFiles(const AFileMask: string; Recursive: boolean = False);
-    procedure AddTestFiles(const AFileMask: string; Recursive: boolean = False);
     Procedure GetCleanFiles(List : TStrings; Const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix, APrefixU, APrefixB: String; ACPU:TCPU; AOS : TOS);
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
@@ -1559,7 +1556,7 @@ begin
 end;
 
 
-function TSources.AddDocFiles(const AFiles : String) : TSource;
+function TSources.AddDoc (const AFiles : String) : TSource;
 begin
   Result:=Add as TSource;
   Result.Name:=AFiles;
@@ -1567,7 +1564,7 @@ begin
 end;
 
 
-function TSources.AddSrcFiles(const AFiles : String) : TSource;
+function TSources.AddSrc(const AFiles : String) : TSource;
 begin
   Result:=Add as TSource;
   Result.Name:=AFiles;
@@ -1575,7 +1572,7 @@ begin
 end;
 
 
-function TSources.AddExampleFiles(const AFiles : String) : TSource;
+function TSources.AddExample(const AFiles : String) : TSource;
 begin
   Result:=Add as TSource;
   Result.Name:=AFiles;
@@ -1583,11 +1580,63 @@ begin
 end;
 
 
-function TSources.AddTestFiles(const AFiles : String) : TSource;
+function TSources.AddTest(const AFiles : String) : TSource;
 begin
   Result:=Add as TSource;
   Result.Name:=AFiles;
   Result.FSourceType:=stTest;
+end;
+
+
+procedure TSources.AddDocFiles(const AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+  for i:= 0 to Pred(List.Count) do
+    AddDoc(List[i]);
+  List.Free;
+end;
+
+
+procedure TSources.AddSrcFiles(const AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+  for i:= 0 to Pred(List.Count) do
+    AddSrc(List[i]);
+  List.Free;
+end;
+
+
+procedure TSources.AddExampleFiles(const AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+  for i:= 0 to Pred(List.Count) do
+    AddExample(List[i]);
+  List.Free;
+end;
+
+
+procedure TSources.AddTestFiles(const AFileMask: string; Recursive: boolean);
+var
+  List : TStrings;
+  i: integer;
+begin
+  List := TStringList.Create;
+  SearchFiles(AFileMask, Recursive, List);
+  for i:= 0 to Pred(List.Count) do
+    AddTest(List[i]);
+  List.Free;
 end;
 
 
@@ -1677,25 +1726,6 @@ begin
 end;
 
 
-function TPackage.AddTarget(AName: String): TTarget;
-begin
-  Result:=Targets.Add as TTarget;
-  Result.Name:=AName;
-end;
-
-
-procedure TPackage.AddDependency(AName: String);
-begin
-  FDependencies.Add(AName);
-end;
-
-
-procedure TPackage.AddInstallFile(AFileName: String);
-begin
-  FInstallFiles.add(AFileName);
-end;
-
-
 procedure TPackage.GetCleanFiles(List: TStrings; Const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS);
 Var
   I : Integer;
@@ -1769,66 +1799,6 @@ begin
       Result := Name + '-' + Version
     else
       Result := Name;
-end;
-
-
-procedure TPackage.AddDocFiles(const AFileMask: string; Recursive: boolean);
-var
-  List : TStrings;
-  i: integer;
-begin
-  List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
-
-  for i:= 0 to Pred(List.Count) do
-    Sources.AddDocFiles(List[i]);
-
-  List.Free;
-end;
-
-
-procedure TPackage.AddSrcFiles(const AFileMask: string; Recursive: boolean);
-var
-  List : TStrings;
-  i: integer;
-begin
-  List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
-
-  for i:= 0 to Pred(List.Count) do
-    Sources.AddSrcFiles(List[i]);
-
-  List.Free;
-end;
-
-
-procedure TPackage.AddExampleFiles(const AFileMask: string; Recursive: boolean);
-var
-  List : TStrings;
-  i: integer;
-begin
-  List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
-
-  for i:= 0 to Pred(List.Count) do
-    Sources.AddExampleFiles(List[i]);
-
-  List.Free;
-end;
-
-
-procedure TPackage.AddTestFiles(const AFileMask: string; Recursive: boolean);
-var
-  List : TStrings;
-  i: integer;
-begin
-  List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
-
-  for i:= 0 to Pred(List.Count) do
-    Sources.AddTestFiles(List[i]);
-
-  List.Free;
 end;
 
 
