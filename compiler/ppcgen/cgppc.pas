@@ -532,9 +532,7 @@ unit cgppc;
        var
          op: tasmop;
          ref2: treference;
-{$ifndef cpu64bit}
          reg2: tregister;
-{$endif cpu64bit}
 
        begin
          if not(fromsize in [OS_F32,OS_F64]) or
@@ -543,17 +541,17 @@ unit cgppc;
          ref2 := ref;
          fixref(list,ref2);
          op := fpustoreinstr[tosize,ref2.index <> NR_NO,false];
-{$ifndef cpu64bit}
-         { some ppc's have a bug whereby storing a double to memory }
+
+         { some PPCs have a bug whereby storing a double to memory  }
          { as single corrupts the value -> convert double to single }
-         { first                                                    }
-         if (tosize < fromsize) then
+         { first (bug confirmed on some G4s, but not on G5s)        }
+         if (tosize < fromsize) and
+            (current_settings.cputype < cpu_PPC970) then
            begin
              reg2:=getfpuregister(list,tosize);
              a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg2);
              reg:=reg2;
            end;
-{$endif not cpu64bit}
          a_load_store(list,op,reg,ref2);
        end;
 
