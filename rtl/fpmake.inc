@@ -3,8 +3,8 @@ Const
   GraphDir = 'inc/graph/';
   SysUtilsDir = 'objpas/sysutils/';
   Unixes = [darwin,freebsd,linux,netbsd,openbsd];
-  
- 
+
+
 Function CurrentOS : String;
 
 begin
@@ -25,8 +25,8 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(CurrentOS);
 end;
-  
-  
+
+
 Function CPUDir : String;
 
 begin
@@ -69,16 +69,16 @@ Procedure AddCurrentOS(T : TTarget = Nil);
 Var
   I : Integer;
   O : TOSes;
-  
+
 begin
-  If (T<>Nil) then  
+  If (T<>Nil) then
     begin
     O:=T.OS;
     If (O<>[]) then
       Include(O,Defaults.OS)
     else
       // Don't do anything.  If empty, all will be compiled.
-    T.OS:=O;  
+    T.OS:=O;
     end
   else
     With Installer.Targets do
@@ -91,15 +91,15 @@ Procedure ExcludeCurrentOS(T : TTarget = Nil);
 Var
   I : Integer;
   O : TOSes;
-  
+
 begin
-  If (T<>Nil) then  
+  If (T<>Nil) then
     begin
     O:=T.OS;
     If (O=[]) then
       O:=AllOSs;
     Exclude(O,Defaults.OS);
-    T.OS:=O;  
+    T.OS:=O;
     end
   else
     With Installer.Targets do
@@ -115,54 +115,7 @@ Var
 begin
   With Installer.Targets do
     begin
-    DefaultOS:=AllOSs;
-    DefaultCPU:=AllCPUs;
-    { System unit. For all platforms. }
-    T:=AddUnit(OSDIR(False)+'system.pp');
-    With T.Dependencies do
-      begin
-      // Headers
-      Add(CPUDir+'setjumph.inc');
-      Add('inc/systemh.inc');
-      Add('inc/objpash.inc');
-      Add('inc/dynarrh.inc');
-      Add('inc/compproc.inc');
-      Add('inc/heaph.inc');
-      Add('inc/threadh.inc');
-      Add('inc/varianth.inc');
-      // Implementations
-      Add(CPUDir+CurrentCPU+'.inc');
-      Add(CPUDir+'set.inc');
-      Add(CPUDir+'math.inc');
-      Add(CPUDir+'int64p.inc');
-      Add(CPUDir+'setjump.inc');
-      Add(OSDir+'systhrd.inc');
-      Add(OSDir(False)+'sysos.inc');
-      Add(OSDir+'sysheap.inc');
-      Add(OSDir+'sysdir.inc');
-      Add('inc/filerec.inc');
-      Add('inc/textrec.inc');
-      Add('inc/generic.inc');
-      Add('inc/genset.inc');
-      Add('inc/genmath.inc');
-      Add('inc/sstrings.inc');
-      Add('inc/int64.inc');
-      Add('inc/astrings.inc');
-      Add('inc/wstrings.inc');
-      Add('inc/aliases.inc');
-      Add('inc/dynarr.inc');
-      Add('inc/objpas.inc');
-      Add('inc/variant.inc');
-      Add('inc/rtti.inc');
-      Add('inc/heap.inc');
-      Add('inc/thread.inc');
-      Add('inc/text.inc');
-      Add('inc/file.inc');
-      Add('inc/typefile.inc');
-      end;
-    T:=AddUnit('objpas/objpas.pp');
-    T:=AddUnit('inc/macpas.pp');
-    
+
     { Turbo Pascal RTL units }
     T:=AddUnit(OSDir+'dos.pp');
     T.Dependencies.Add('inc/dosh.inc');
@@ -190,7 +143,8 @@ begin
       Add('inc/genstr.inc');
       Add('inc/genstrs.inc');
       Add('inc/stringsi.inc');
-      end; 
+      end;
+
     { Delphi RTL units }
     T:=AddUnit('objpas/rtlconsts.pp');
     T.Resourcestrings:=True;
@@ -270,7 +224,7 @@ begin
       Add('inc/mouse.inc');
       end;
     T:=AddUnit(OSDir+'video.pp');
-    With T.Dependencies do 
+    With T.Dependencies do
       begin
       Add('inc/video.inc');
       Add('inc/videoh.inc');
@@ -279,8 +233,8 @@ begin
     T.Dependencies.Add('inc/mmatimp.inc');
     T:=AddUnit('inc/dynlibs.pp');
     T.Dependencies.Add(OSDir+'dynlibs.inc');
-    T:=AddUnit('inc/getopts.pp');    
-    T:=AddUnit('inc/cmem.pp');    
+    T:=AddUnit('inc/getopts.pp');
+    T:=AddUnit('inc/cmem.pp');
     T:=AddUnit('inc/ctypes.pp');
     T:=AddUnit('inc/softfpu.pp');
     T:=AddUnit('inc/ucomplex.pp');
@@ -290,5 +244,5 @@ begin
     T:=AddUnit('inc/charset.pp');
     // T:=AddUnit('inc/pagemem.pp');
     end;
-  AddSystemDependencies(Installer.Targets);  
-end; 
+  AddSystemDependencies(Installer.Targets);
+end;
