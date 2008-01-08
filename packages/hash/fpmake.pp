@@ -23,7 +23,7 @@ begin
     T:=Targets.AddUnit('src/uuid.pas');
     T:=Targets.AddUnit('src/unixcrypt.pas');
       T.OSes:=[Linux];
-    T:=Targets.AddExampleunit('tests/mdtest.pas');
+    T:=Targets.AddExampleunit('examples/mdtest.pas');
     EndPackage;
 
 {$ifndef ALLPACKAGES}
