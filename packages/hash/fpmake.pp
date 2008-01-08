@@ -5,26 +5,25 @@ program fpmake;
 uses fpmkunit;
 
 Var
+  P : TPackage;
   T : TTarget;
-
 begin
   With Installer do
     begin
 {$endif ALLPACKAGES}
 
-    StartPackage('hash');
+    P:=AddPackage('hash');
 {$ifdef ALLPACKAGES}
-    Directory:='hash';
+    P.Directory:='hash';
 {$endif ALLPACKAGES}
-    Version:='2.0.0';
-    T:=Targets.AddUnit('src/md5.pp');
-    T:=Targets.AddUnit('src/crc.pas');
-    T:=Targets.AddUnit('src/ntlm.pas');
-    T:=Targets.AddUnit('src/uuid.pas');
-    T:=Targets.AddUnit('src/unixcrypt.pas');
+    P.Version:='2.0.0';
+    T:=P.Targets.AddUnit('src/md5.pp');
+    T:=P.Targets.AddUnit('src/crc.pas');
+    T:=P.Targets.AddUnit('src/ntlm.pas');
+    T:=P.Targets.AddUnit('src/uuid.pas');
+    T:=P.Targets.AddUnit('src/unixcrypt.pas');
       T.OSes:=[Linux];
-    T:=Targets.AddExampleunit('examples/mdtest.pas');
-    EndPackage;
+    T:=P.Targets.AddExampleunit('examples/mdtest.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

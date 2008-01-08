@@ -12,7 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=StartPackage('paszlib');
+    P:=AddPackage('paszlib');
 {$ifdef ALLPACKAGES}
     P.Directory:='paszlib';
 {$endif ALLPACKAGES}
@@ -20,7 +20,7 @@ begin
     P.Dependencies.Add('hash');
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
-    T:=Targets.AddUnit('paszlib.pas');
+    T:=P.Targets.AddUnit('paszlib.pas');
       T.Dependencies.AddUnit('adler');
       T.Dependencies.AddUnit('gzio');
       T.Dependencies.AddUnit('infblock');
@@ -34,35 +34,34 @@ begin
       T.Dependencies.AddUnit('zdeflate');
       T.Dependencies.AddUnit('zinflate');
       T.Dependencies.AddUnit('zuncompr');
-    T:=Targets.AddUnit('zip.pas');
+    T:=P.Targets.AddUnit('zip.pas');
       T.Dependencies.AddUnit('paszlib');
       T.Dependencies.AddUnit('ziputils');
-    T:=Targets.AddUnit('unzip.pas');
+    T:=P.Targets.AddUnit('unzip.pas');
       T.Dependencies.AddUnit('paszlib');
       T.Dependencies.AddUnit('ziputils');
-    T:=Targets.AddUnit('zipper.pp');
+    T:=P.Targets.AddUnit('zipper.pp');
       T.Dependencies.AddUnit('paszlib');
-    T:=Targets.AddImplicitUnit('adler.pas');
+    T:=P.Targets.AddImplicitUnit('adler.pas');
       T.Dependencies.AddInclude('zconf.inc');
-    T:=Targets.AddImplicitUnit('gzio.pas');
-    T:=Targets.AddImplicitUnit('infblock.pas');
-    T:=Targets.AddImplicitUnit('infcodes.pas');
-    T:=Targets.AddImplicitUnit('inffast.pas');
-    T:=Targets.AddImplicitUnit('inftrees.pas');
-    T:=Targets.AddImplicitUnit('infutil.pas');
-    T:=Targets.AddImplicitUnit('trees.pas');
-    T:=Targets.AddImplicitUnit('zbase.pas');
-    T:=Targets.AddImplicitUnit('zcompres.pas');
-    T:=Targets.AddImplicitUnit('zdeflate.pas');
-    T:=Targets.AddImplicitUnit('zinflate.pas');
-    T:=Targets.AddImplicitUnit('zuncompr.pas');
-    T:=Targets.AddImplicitUnit('ziputils.pas');
-    T:=Targets.AddImplicitUnit('zstream.pp');
-    T:=Targets.AddExampleProgram('examples/example.pas');
-    T:=Targets.AddExampleProgram('examples/minigzip.pas');
-    T:=Targets.AddExampleProgram('examples/miniunz.pas');
-    T:=Targets.AddExampleProgram('examples/minizip.pas');
-    EndPackage;
+    T:=P.Targets.AddImplicitUnit('gzio.pas');
+    T:=P.Targets.AddImplicitUnit('infblock.pas');
+    T:=P.Targets.AddImplicitUnit('infcodes.pas');
+    T:=P.Targets.AddImplicitUnit('inffast.pas');
+    T:=P.Targets.AddImplicitUnit('inftrees.pas');
+    T:=P.Targets.AddImplicitUnit('infutil.pas');
+    T:=P.Targets.AddImplicitUnit('trees.pas');
+    T:=P.Targets.AddImplicitUnit('zbase.pas');
+    T:=P.Targets.AddImplicitUnit('zcompres.pas');
+    T:=P.Targets.AddImplicitUnit('zdeflate.pas');
+    T:=P.Targets.AddImplicitUnit('zinflate.pas');
+    T:=P.Targets.AddImplicitUnit('zuncompr.pas');
+    T:=P.Targets.AddImplicitUnit('ziputils.pas');
+    T:=P.Targets.AddImplicitUnit('zstream.pp');
+    T:=P.Targets.AddExampleProgram('examples/example.pas');
+    T:=P.Targets.AddExampleProgram('examples/minigzip.pas');
+    T:=P.Targets.AddExampleProgram('examples/miniunz.pas');
+    T:=P.Targets.AddExampleProgram('examples/minizip.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
