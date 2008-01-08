@@ -58,10 +58,10 @@ begin
     T:=Targets.AddImplicitUnit('zuncompr.pas');
     T:=Targets.AddImplicitUnit('ziputils.pas');
     T:=Targets.AddImplicitUnit('zstream.pp');
-    T:=Targets.AddExampleProgram('tests/example.pas');
-    T:=Targets.AddExampleProgram('tests/minigzip.pas');
-    T:=Targets.AddExampleProgram('tests/miniunz.pas');
-    T:=Targets.AddExampleProgram('tests/minizip.pas');
+    T:=Targets.AddExampleProgram('examples/example.pas');
+    T:=Targets.AddExampleProgram('examples/minigzip.pas');
+    T:=Targets.AddExampleProgram('examples/miniunz.pas');
+    T:=Targets.AddExampleProgram('examples/minizip.pas');
     EndPackage;
 
 {$ifndef ALLPACKAGES}
