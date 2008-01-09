@@ -5975,7 +5975,6 @@ tests/bench/shootout/src/mandelbrot.pp svneol=native#text/plain
 tests/bench/shootout/src/message.pp svneol=native#text/plain
 tests/bench/shootout/src/meteorshower.pp svneol=native#text/x-pascal
 tests/bench/shootout/src/n_body.pp svneol=native#text/plain
-tests/bench/shootout/src/nbody.pp svneol=native#text/plain
 tests/bench/shootout/src/nsieve.pp svneol=native#text/plain
 tests/bench/shootout/src/partialsums.pp svneol=native#text/plain
 tests/bench/shootout/src/recursive.lpi svneol=native#text/plain
