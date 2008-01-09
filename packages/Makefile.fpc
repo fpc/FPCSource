@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+dirs=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process fcl-res
 dirs_freebsd=fcl-web fcl-async
 dirs_darwin=fcl-web fcl-async
 dirs_solaris=fcl-web fcl-async
