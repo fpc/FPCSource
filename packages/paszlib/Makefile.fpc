@@ -12,7 +12,7 @@ packages=hash
 [target]
 units=paszlib zip unzip zipper 
 implicitunits=adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr ziputils zstream
-exampledirs=tests
+exampledirs=examples
 
 [install]
 fpcpackage=y
