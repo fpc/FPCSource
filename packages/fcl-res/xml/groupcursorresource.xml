@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    groupcursorresource
+  ====================================================================
+-->
+
+<module name="groupcursorresource">
+<short>Contains a group cursor resource type</short>
+<descr>
+<p>This unit contains <link id="TGroupCursorResource"/>, a <link id="resource.TAbstractResource">TAbstractResource</link> descendant specialized in handling resource of type <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link>.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TGroupCursorResource"/> for type <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link> with <link id="resfactory.TResourceFactory">TResourceFactory</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="groupresource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TGroupCursorResource">
+<short>Group cursor resource type</short>
+<descr>
+<p>This class represents a resource of type <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link>.</p>
+<p>Resources of this type are strictly related to .cur files: typically a resource compiler creates resources of this type when it is instructed to insert a cursor from a .cur file.</p>
+<p>There is although a big difference between .cur files and cursor resources: a .cur file contains a cursor, which is made of several different images (for different sizes and color depth), but while a file of this type is self-contained, when it comes to resources data is scattered over several different resources: an <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link> resource only contains information about the single images, which are contained each in a different resource of type <link id="resource.RT_CURSOR">RT_CURSOR</link>. The single resources are pretty unuseful alone, since they only consist of raw image data: they must be accessed in the contest of the <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link> resource, which provides information about them.</p>
+<p><link id="TGroupCursorResource"/> provides a way to handle a cursor as if it was a .cur file, via <link id="groupresource.TGroupResource.ItemData">ItemData</link> property. Single cursor resources are automatically created or destroyed as needed.</p>
+<remark>This class doesn't allow its type to be changed to anything else than <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link>. Attempts to do so result in a <link id="resource.EResourceDescChangeNotAllowedException">EResourceDescChangeNotAllowedException</link>.</remark>
+</descr>
+<seealso>
+<link id="groupresource.TGroupResource.ItemData">TGroupResource.ItemData</link>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TGroupCursorResource.Create">
+<short>Creates a new group cursor resource</short>
+<descr>
+<p>Please note that <var>aType</var> parameter is not used, since this class always uses <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link> as type.</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TGroupCursorResource.Create.aType">
+<short>Ignored. Can be <var>nil</var>.</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TGroupCursorResource.Create.aName">
+<short>The name of the resource</short>
+</element>
+
+</module> <!-- groupcursorresource -->
+
+</package>
+</fpdoc-descriptions>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    machoreader
+  ====================================================================
+-->
+
+<module name="machoreader">
+<short>Contains a resource reader for Mach-O files</short>
+<descr>
+<p>This unit contains <link id="TMachOResourceReader"/>, a <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link> descendant that is able to read Mach-O object files containing resources.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TMachOResourceReader"/> with <link id="resource.TResources">TResources</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="machotypes">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TMachOResourceReader">
+<short>Mach-O resource reader</short>
+<descr>
+<p>This class provides a reader for Mach-O object files and images containing resources.</p>
+<p>Mach-O is the file format used by Darwin and Mac OS X for object files and image files (executables, dynamic libraries and so on). Free Pascal can store resources in Mach-O files in its own format.</p>
+<p>After an object file has been read, <link id="TMachOResourceReader.MachineType">MachineType</link> property holds the machine type the object file was built for.</p>
+<remark>This reader can't read multiple-architecture Mach-O files (like universal binary). To read a particular Mach-O file in a multiple-architecture file, extract it with lipo command.</remark>
+</descr>
+<seealso>
+<link id="TMachOResourceReader.MachineType"/>
+<link id="resource.TAbstractResourceReader">TAbstractResourceReader</link>
+<link id="machowriter.TMachOResourceWriter">TMachOResourceWriter</link>
+<link id="Format of resources in object files"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TMachOResourceReader.MachineType">
+<short>The machine type of the object file</short>
+<descr>
+<p>This property holds the machine type of the object file that has been read.</p>
+<remark>Obviously, this property is meaningful only after an object file has been read.</remark>
+</descr>
+<seealso>
+<link id="machotypes.TMachOMachineType">TMachOMachineType</link>
+</seealso>
+</element>
+
+</module> <!-- machoreader -->
+
+</package>
+</fpdoc-descriptions>

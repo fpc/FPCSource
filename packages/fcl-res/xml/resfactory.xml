@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    resfactory
+  ====================================================================
+-->
+
+<module name="resfactory">
+<short>Contains a factory class for resources</short>
+<descr>
+<p>This unit contains a factory class that provides an easy way to create resources of the right class.</p>
+<p>Resource classes can be registered with <link id="TResourceFactory"/> so that the class knows how to create a resource of a specific type.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceFactoryException">
+<short>Base class for resource factory-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceClassAlreadyRegisteredException">
+<short>A resource class for a given type has already been registered</short>
+<descr>
+<p>This exception is raised by class method <link id="TResourceFactory.RegisterResourceClass">RegisterResourceClass</link> of <link id="TResourceFactory"/> when an attempt is made to register a class for an already registered type.</p>
+</descr>
+<seealso>
+<link id="TResourceFactory.RegisterResourceClass"/>
+</seealso>
+</element>
+
+<!-- resource string Visibility: default -->
+<element name="SAlreadyRegistered">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TResourceFactory">
+<short>Factory class for resources</short>
+<descr>
+<p>Resources are represented by descendants of <link id="resource.TAbstractResource">TAbstractResource</link>. Some applications don't need specialized resource classes, and a <link id="resource.TGenericResource">TGenericResource</link> can be enough. On the other hand, sometimes it is required that a resource of a specific type is created with a more specialized class. This class provides a centralized point for the creation of resources.</p>
+<p><link id="TResourceFactory"/> holds a list of registered classes with an associated resource type. When it is requested to create a resource for a given type, it creates a resource of the class associated with that type. If no class matching that type is found, <link id="resource.TGenericResource">TGenericResource</link> is used.</p>
+<p>Usually each resource class registers itself in the <var>initialization</var> section of the unit in which it is implemented.</p>
+</descr>
+<seealso>
+<link id="TResourceFactory.RegisterResourceClass"/>
+<link id="TResourceFactory.CreateResource"/>
+<link id="resource.TAbstractResource">TAbstractResource</link>
+<link id="resource.TGenericResource">TGenericResource</link>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResourceFactory.RegisterResourceClass">
+<short>Registers a resource class</short>
+<descr>
+<p>This class method registers a resource class for the given resource type.</p>
+</descr>
+<errors>
+<p>If a class has already been registered for the given resource type, an <link id="EResourceClassAlreadyRegisteredException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TResourceFactory"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceFactory.RegisterResourceClass.aType">
+<short>The type associated to the resource class</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceFactory.RegisterResourceClass.aClass">
+<short>The resource class to register</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceFactory.CreateResource">
+<short>Creates a new resource</short>
+<descr>
+<p>This class method creates a new resource of the class associated with the given type, and sets its name and type based on the values passed as parameters.</p>
+<p>If no class matching the given type is found, the resource is created with <link id="resource.TGenericResource">TGenericResource</link> class.</p>
+</descr>
+<seealso>
+<link id="TResourceFactory"/>
+<link id="TResourceFactory.RegisterResourceClass"/>
+<link id="resource.TGenericResource">TGenericResource</link>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceFactory.CreateResource.Result">
+<short>A new resource</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceFactory.CreateResource.aType">
+<short>The type of the resource to create</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceFactory.CreateResource.aName">
+<short>The name of the resource to create</short>
+</element>
+
+</module> <!-- resfactory -->
+
+</package>
+</fpdoc-descriptions>

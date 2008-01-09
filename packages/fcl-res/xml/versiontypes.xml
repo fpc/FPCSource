@@ -1,0 +1,665 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    versiontypes
+  ====================================================================
+-->
+
+<module name="versiontypes">
+<short>Contains classes used by version information resource</short>
+<descr>
+<p>This unit contains classes used by <link id="versionresource.TVersionResource">TVersionResource</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="EVersionStringTableException">
+<short>Base class for version string table - related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="ENameNotAllowedException">
+<short>String table name not allowed error</short>
+<descr>
+<p>This exception is raised when an attempt is made to set <link id="TVersionStringTable.Name">Name</link> property of <link id="TVersionStringTable"/>
+ with a string that isn't an 8-cipher hexadecimal string.</p>
+</descr>
+<seealso>
+<link id="TVersionStringTable.Create"/>
+<link id="TVersionStringTable.Name"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EKeyNotFoundException">
+<short>Key not found error</short>
+<descr>
+<p>This exception is raised when the specified key is not found in the <link id="TVersionStringTable"/> object.</p>
+</descr>
+<seealso>
+<link id="TVersionStringTable.Delete"/>
+<link id="TVersionStringTable.Values"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EDuplicateKeyException">
+<short>Duplicate key error</short>
+<descr>
+<p>This exception is raised when an attempt is made to add an item to a <link id="TVersionStringTable"/> object and the specified key is already present.</p>
+</descr>
+<seealso>
+<link id="TVersionStringTable.Add"/>
+</seealso>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="TFileProductVersion">
+<short>File or Product version type</short>
+<descr>
+<p>This type is a 4-element array of words that is used to represent a file or product version.</p>
+<p>Major version number is stored in the lowest word</p>
+<p><b>Example</b></p>
+<p>Product version 4.2.1.1200 can be represented this way</p>
+<code>
+const
+  myver : TFileProductVersion = (4,2,1,1200);
+</code>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TVerTranslationInfo">
+<short>A language - codepage pair</short>
+<descr>
+<p>This record represents a language id - codepage pair that is used by <link id="TVersionVarFileInfo"/>.</p>
+</descr>
+<seealso>
+<link id="TVersionVarFileInfo"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TVerTranslationInfo.language">
+<short>The language id</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TVerTranslationInfo.codepage">
+<short>The codepage</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PVerTranslationInfo">
+<short>Pointer to a TVerTranslationInfo</short>
+<seealso>
+<link id="TVerTranslationInfo"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TVersionFixedInfo">
+<short>Language independent part of version information</short>
+<descr>
+<p>This class represents the language independent part of version information, and is always present in a version information resource.</p>
+</descr>
+<seealso>
+<link id="versionresource.TVersionResource">TVersionResource</link>
+<link id="versionresource.TVersionResource.FixedInfo">TVersionResource.FixedInfo</link>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.FileVersion">
+<short>The file version</short>
+<seealso>
+<link id="TFileProductVersion"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.ProductVersion">
+<short>The product version</short>
+<seealso>
+<link id="TFileProductVersion"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.FileFlagsMask">
+<short>Mask for FileFlags</short>
+<descr>
+<p>This property specifies which bits of <link id="TVersionFixedInfo.FileFlags">FileFlags</link> are valid.</p>
+<p>Usually it is <link id="versionconsts.VS_FFI_FILEFLAGSMASK">VS_FFI_FILEFLAGSMASK</link>.</p>
+</descr>
+<seealso>
+<link id="TVersionFixedInfo.FileFlags"/>	
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.FileFlags">
+<short>The file flags</short>
+<descr>
+<p>It is a combination of the following values:</p>
+<ul>
+<li><link id="versionconsts.VS_FF_DEBUG">VS_FF_DEBUG</link>.</li>
+<li><link id="versionconsts.VS_FF_INFOINFERRED">VS_FF_INFOINFERRED</link>.</li>
+<li><link id="versionconsts.VS_FF_PATCHED">VS_FF_PATCHED</link>.</li>
+<li><link id="versionconsts.VS_FF_PRERELEASE">VS_FF_PRERELEASE</link>.</li>
+<li><link id="versionconsts.VS_FF_PRIVATEBUILD">VS_FF_PRIVATEBUILD</link>.</li>
+<li><link id="versionconsts.VS_FF_SPECIALBUILD">VS_FF_SPECIALBUILD</link>.</li>
+</ul>
+</descr>
+<seealso>
+<link id="TVersionFixedInfo.FileFlagsMask"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.FileOS">
+<short>The operating system the file was designed to run on</short>
+<descr>
+<p>It is one of the following values:</p>
+<ul>
+<li><link id="versionconsts.VOS_UNKNOWN">VOS_UNKNOWN</link></li>
+<li><link id="versionconsts.VOS_DOS">VOS_DOS</link></li>
+<li><link id="versionconsts.VOS_OS216">VOS_OS216</link></li>
+<li><link id="versionconsts.VOS_OS232">VOS_OS232</link></li>
+<li><link id="versionconsts.VOS_NT">VOS_NT</link></li>
+</ul>
+<p>combined with one of the following values:</p>
+<ul>
+<li><link id="versionconsts.VOS__WINDOWS16">VOS__WINDOWS16</link></li>
+<li><link id="versionconsts.VOS__WINDOWS32">VOS__WINDOWS32</link></li>
+<li><link id="versionconsts.VOS__PM16">VOS__PM16</link></li>
+<li><link id="versionconsts.VOS__PM32">VOS__PM32</link></li>
+</ul>
+<p>Note: some predefined combinations do exist:</p>
+<ul>
+<li><link id="versionconsts.VOS_DOS_WINDOWS16">VOS_DOS_WINDOWS16</link></li>
+<li><link id="versionconsts.VOS_DOS_WINDOWS32">VOS_DOS_WINDOWS32</link></li>
+<li><link id="versionconsts.VOS_OS216_PM16">VOS_OS216_PM16</link></li>
+<li><link id="versionconsts.VOS_OS232_PM32">VOS_OS232_PM32</link></li>
+<li><link id="versionconsts.VOS_NT_WINDOWS32">VOS_NT_WINDOWS32</link></li>
+</ul>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.FileType">
+<short>The type of the file</short>
+<descr>
+<p>It can be one of the following values:</p>
+<ul>
+<li><link id="versionconsts.VFT_UNKNOWN">VFT_UNKNOWN</link></li>
+<li><link id="versionconsts.VFT_APP">VFT_APP</link></li>
+<li><link id="versionconsts.VFT_DLL">VFT_DLL</link></li>
+<li><link id="versionconsts.VFT_DRV">VFT_DRV</link></li>
+<li><link id="versionconsts.VFT_FONT">VFT_FONT</link></li>
+<li><link id="versionconsts.VFT_VXD">VFT_VXD</link></li>
+<li><link id="versionconsts.VFT_STATIC_LIB">VFT_STATIC_LIB</link></li>
+</ul>
+</descr>
+<seealso>
+<link id="TVersionFixedInfo.FileSubType"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.FileSubType">
+<short>Additional type information</short>
+<descr>
+<p>This property is meaningful only for some values of <link id="TVersionFixedInfo.FileSubType">FileSubType</link>. For all other types, this property must be zero.</p>
+<p>If <link id="TVersionFixedInfo.FileSubType">FileSubType</link> is <link id="versionconsts.VFT_DRV">VFT_DRV</link>:</p>
+<ul>
+<li><link id="versionconsts.VFT2_UNKNOWN">VFT2_UNKNOWN</link></li>
+<li><link id="versionconsts.VFT2_DRV_COMM">VFT2_DRV_COMM</link></li>
+<li><link id="versionconsts.VFT2_DRV_PRINTER">VFT2_DRV_PRINTER</link></li>
+<li><link id="versionconsts.VFT2_DRV_KEYBOARD">VFT2_DRV_KEYBOARD</link></li>
+<li><link id="versionconsts.VFT2_DRV_LANGUAGE">VFT2_DRV_LANGUAGE</link></li>
+<li><link id="versionconsts.VFT2_DRV_DISPLAY">VFT2_DRV_DISPLAY</link></li>
+<li><link id="versionconsts.VFT2_DRV_MOUSE">VFT2_DRV_MOUSE</link></li>
+<li><link id="versionconsts.VFT2_DRV_NETWORK">VFT2_DRV_NETWORK</link></li>
+<li><link id="versionconsts.VFT2_DRV_SYSTEM">VFT2_DRV_SYSTEM</link></li>
+<li><link id="versionconsts.VFT2_DRV_INSTALLABLE">VFT2_DRV_INSTALLABLE</link></li>
+<li><link id="versionconsts.VFT2_DRV_SOUND">VFT2_DRV_SOUND</link></li>
+</ul>
+<p>If <link id="TVersionFixedInfo.FileSubType">FileSubType</link> is <link id="versionconsts.VFT_FONT">VFT_FONT</link>:</p>
+<ul>
+<li><link id="versionconsts.VFT2_UNKNOWN">VFT2_UNKNOWN</link></li>
+<li><link id="versionconsts.VFT2_FONT_RASTER">VFT2_FONT_RASTER</link></li>
+<li><link id="versionconsts.VFT2_FONT_VECTOR">VFT2_FONT_VECTOR</link></li>
+<li><link id="versionconsts.VFT2_FONT_TRUETYPE">VFT2_FONT_TRUETYPE</link></li>
+</ul>
+</descr>
+<seealso>
+<link id="TVersionFixedInfo.FileType"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionFixedInfo.FileDate">
+<short>The file creation timestamp.</short>
+<descr>
+<p>It is a 64 bit timestamp.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TVersionStringTable">
+<short>Version information for a specific language-codepage combination</short>
+<descr>
+<p>This class represents version information for a specific language-codepage combination.</p>
+<p>It is contained in a <link id="TVersionStringFileInfo"/> object.</p>
+<p>Information is stored as key-value pairs. The name of the string table specifies the language id - codepage to which the object applies.</p>
+<p>There are some predefined keys that Microsoft Windows searches for. They are:</p>
+<ul>
+<li><var>Comments</var></li>
+<li><var>CompanyName</var></li>
+<li><var>FileDescription</var></li>
+<li><var>FileVersion</var></li>
+<li><var>InternalName</var></li>
+<li><var>LegalCopyright</var></li>
+<li><var>LegalTrademarks</var></li>
+<li><var>OriginalFilename</var></li>
+<li><var>PrivateBuild</var> (only if <link id="versionconsts.VS_FF_PRIVATEBUILD">VS_FF_PRIVATEBUILD</link> is set in <link id="TVersionFixedInfo.FileFlags"/>)</li>
+<li><var>ProductName</var></li>
+<li><var>ProductVersion</var></li>
+<li><var>SpecialBuild</var> (only if <link id="versionconsts.VS_FF_SPECIALBUILD">VS_FF_SPECIALBUILD</link> is set in <link id="TVersionFixedInfo.FileFlags"/>)</li>
+</ul>
+</descr>
+<seealso>
+<link id="TVersionStringFileInfo"/>
+<link id="TVersionStringTable.Name"/>
+<link id="TVersionStringTable.Keys"/>
+<link id="TVersionStringTable.Values"/>
+<link id="TVersionStringTable.ValuesByIndex"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TVersionStringTable.Create">
+<short>Creates a new string table</short>
+<descr>
+<p>Creates a new string table with the name passed as <var>aName</var> parameter.</p>
+<p><var>aName</var> must be a hex representation of a 4-bytes unsigned number: first 4 ciphers represent the language id, and last 4 the codepage.</p>
+<p><b>Sample code</b></p>
+<p>This code creates a string table for Italian, with unicode codepage.</p>
+<code>
+var
+  st : TVersionStringTable;
+begin
+  //0410 = Italian
+  //04B0 = unicode codepage
+  st:=TVersionStringTable.Create('041004B0');
+
+  //do something useful...
+
+  st.Free;
+end;
+</code>
+</descr>
+<errors>
+<p>If name is not a valid 8-cipher hexadecimal string, an <link id ="ENameNotAllowedException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TVersionStringTable.Name"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.Create.aName">
+<short>The name of the string table</short>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TVersionStringTable.Destroy">
+<short>Destroys the string table</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionStringTable.Add">
+<short>Adds a new item to the string table</short>
+<descr>
+<p>This methods adds a new key-value pair to the string table.</p>
+<p>Note that some predefined keys do exist. See <link id="TVersionStringTable"/> for further information.</p>
+</descr>
+<errors>
+<p>If an item with the same key already exists, an <link id="EDuplicateKeyException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TVersionStringTable"/>
+<link id="TVersionStringTable.Keys"/>
+<link id="TVersionStringTable.Values"/>
+<link id="TVersionStringTable.ValuesByIndex"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.Add.aKey">
+<short>The key of the item to add</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.Add.aValue">
+<short>The value of the item to add</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionStringTable.Clear">
+<short>Deletes all items</short>
+<descr>
+<p>This method empties the object deleting all items.</p>
+</descr>
+<seealso>
+<link id="TVersionStringTable.Delete"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionStringTable.Delete">
+<short>Deletes an item</short>
+<descr>
+<p>The item to delete can be specified by its index or by its key.</p>
+</descr>
+<errors>
+<p>If <var>aKey</var> is not found, an <link id="EKeyNotFoundException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TVersionStringTable.Keys"/>
+<link id="TVersionStringTable.Values"/>
+<link id="TVersionStringTable.ValuesByIndex"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.Delete.aIndex">
+<short>The index of the item to delete</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.Delete.aKey">
+<short>The key of the item to delete</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionStringTable.Name">
+<short>The name of the string table</short>
+<descr>
+<p>Name must be a hex representation of a 4-bytes unsigned number: first 4 ciphers represent the language id, and last 4 the codepage.</p>
+</descr>
+<errors>
+<p>If an attempt is made to set Name with a string that isn't an 8-cipher hexadecimal string, an <link id ="ENameNotAllowedException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TVersionStringTable.Create"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionStringTable.Count">
+<short>The number of items in the object</short>
+<seealso>
+<link id="TVersionStringTable.ValuesByIndex"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionStringTable.Keys">
+<short>Indexed array of keys in the object</short>
+<descr>
+<p>This property can be used to access all keys in the object.</p>
+<p>Values associated to keys are stored in <link id="TVersionStringTable.ValuesByIndex">ValuesByIndex</link> property: a key and its value have the same index in the two properties.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TVersionStringTable.Count">Count</link>-1.</remark>
+<p>Note that some predefined keys do exist. See <link id="TVersionStringTable"/> for further information.</p>
+</descr>
+<seealso>
+<link id="TVersionStringTable"/>
+<link id="TVersionStringTable.Values"/>
+<link id="TVersionStringTable.ValuesByIndex"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.Keys.index">
+<short>The index of the key to access.</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionStringTable.ValuesByIndex">
+<short>Indexed array of values in the object</short>
+<descr>
+<p>This property can be used to access all values in the object.</p>
+<p>Keys associated to values are stored in <link id="TVersionStringTable.Keys">Keys</link> property: a key and its value have the same index in the two properties.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TVersionStringTable.Count">Count</link>-1.</remark>
+</descr>
+<seealso>
+<link id="TVersionStringTable.Keys"/>
+<link id="TVersionStringTable.Values"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.ValuesByIndex.index">
+<short>The index of the value to access.</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionStringTable.Values">
+<short>Array of values in the object, accessed by key</short>
+<descr>
+<p>This property can be used to retrieve the value of an item when the corresponding key is known.</p>
+<p>If you need to iterate over all values of the string table, use <link id="TVersionStringTable.ValuesByIndex">ValuesByIndex</link> instead.</p>
+<p>If the key is not found, an <link id="EKeyNotFoundException"/> exception is raised.</p>
+</descr>
+<seealso>
+<link id="TVersionStringTable.Keys"/>
+<link id="TVersionStringTable.ValuesByIndex"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringTable.Values.Key">
+<short>The key of the value to access</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TVersionStringFileInfo">
+<short>Language dependent part of version information</short>
+<descr>
+<p>This class represents the language dependent part of version information.</p>
+<p>It is a list of <link id="TVersionStringTable"/> objects, each representing information for a specific language-codepage combination.</p>
+</descr>
+<seealso>
+<link id="versionresource.TVersionResource">TVersionResource</link>
+<link id="versionresource.TVersionResource.StringFileInfo">TVersionResource.StringFileInfo</link>
+<link id="TVersionStringTable"/>
+</seealso>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TVersionStringFileInfo.Destroy">
+<short>Destroys the object</short>
+<descr>
+<remark>All items are destroyed as well.</remark>
+</descr>
+<seealso>
+<link id="TVersionStringFileInfo.Clear"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionStringFileInfo.Add">
+<short>Adds a new string table</short>
+<seealso>
+<link id="TVersionStringFileInfo.Delete"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringFileInfo.Add.aStrTable">
+<short>The string table to add</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionStringFileInfo.Clear">
+<short>Deletes all string tables in the list</short>
+<descr>
+<p>This method empties the object. All string tables are freed.</p>
+</descr>
+<seealso>
+<link id="TVersionStringFileInfo.Delete"/>
+<link id="TVersionStringFileInfo.Add"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionStringFileInfo.Delete">
+<short>Deletes a string table</short>
+<descr>
+<p>This method removes the string table identified by <var>aIndex</var> from the list. The string table is freed.</p>
+</descr>
+<seealso>
+<link id="TVersionStringFileInfo.Clear"/>
+<link id="TVersionStringFileInfo.Add"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringFileInfo.Delete.aIndex">
+<short>The index of the string table to delete.</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionStringFileInfo.Count">
+<short>The number of string tables in the object</short>
+<seealso>
+<link id="TVersionStringFileInfo.Items"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionStringFileInfo.Items">
+<short>Indexed array of string tables in the object</short>
+<descr>
+<p>This property can be used to access all string tables in the object.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TVersionStringFileInfo.Count">Count</link>-1.</remark>
+</descr>
+<seealso>
+<link id="TVersionStringFileInfo.Count"/>
+<link id="TVersionStringTable"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionStringFileInfo.Items.index">
+<short>The index of the string table to access</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TVersionVarFileInfo">
+<short>List of supported languages</short>
+<descr>
+<p>This class represents the language-codepage pairs that the program or dll supports. It can be used to avoid including several <link id="resource.RT_VERSION">RT_VERSION</link> resources for each language-codepage supported.</p>
+<p>It is a list of <link id="TVerTranslationInfo"/> records.</p>
+</descr>
+<seealso>
+<link id="versionresource.TVersionResource.VarFileInfo">TVersionResource.VarFileInfo</link>
+<link id="TVerTranslationInfo"/>
+</seealso>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TVersionVarFileInfo.Destroy">
+<short>Destroys the object</short>
+<descr>
+<p>All items are destroyed as well.</p>
+</descr>
+<seealso>
+<link id="TVersionVarFileInfo.Clear"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionVarFileInfo.Add">
+<short>Adds a new translation information item</short>
+<seealso>
+<link id="TVersionVarFileInfo.Items"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionVarFileInfo.Add.aInfo">
+<short>The element to add</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionVarFileInfo.Clear">
+<short>Deletes all items</short>
+<descr>
+<p>This method empties the object deleting all items.</p>
+</descr>
+<seealso>
+<link id="TVersionVarFileInfo.Delete"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TVersionVarFileInfo.Delete">
+<short>Deletes an item</short>
+<seealso>
+<link id="TVersionVarFileInfo.Items"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionVarFileInfo.Delete.aIndex">
+<short>The index of the item to delete</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionVarFileInfo.Count">
+<short>The number of items in the object</short>
+<seealso>
+<link id="TVersionVarFileInfo.Items"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionVarFileInfo.Items">
+<short>Indexed array of items in the object</short>
+<descr>
+<p>This property can be used to access all translation information items in the object.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TVersionVarFileInfo.Count">Count</link>-1.</remark>
+</descr>
+<seealso>
+<link id="TVersionVarFileInfo.Count"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionVarFileInfo.Items.index">
+<short>The index of the item to access</short>
+</element>
+
+</module> <!-- versiontypes -->
+
+</package>
+</fpdoc-descriptions>

@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    versionconsts
+  ====================================================================
+-->
+
+<module name="versionconsts">
+<short>Contains constants used by version information resource</short>
+<descr>
+<p>This unit contains constants used by <link id="versionresource.TVersionResource">TVersionResource</link>.</p>
+<p>Constants for <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>:</p>
+<ul>
+<li><link id="VS_FF_DEBUG"/>.</li>
+<li><link id="VS_FF_INFOINFERRED"/>.</li>
+<li><link id="VS_FF_PATCHED"/>.</li>
+<li><link id="VS_FF_PRERELEASE"/>.</li>
+<li><link id="VS_FF_PRIVATEBUILD"/>.</li>
+<li><link id="VS_FF_SPECIALBUILD"/>.</li>
+</ul>
+<p>Constants for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>:</p>
+<ul>
+<li><link id="VOS_UNKNOWN"/></li>
+<li><link id="VOS_DOS"/></li>
+<li><link id="VOS_OS216"/></li>
+<li><link id="VOS_OS232"/></li>
+<li><link id="VOS_NT"/></li>
+<li><link id="VOS__WINDOWS16"/></li>
+<li><link id="VOS__WINDOWS32"/></li>
+<li><link id="VOS__PM16"/></li>
+<li><link id="VOS__PM32"/></li>
+<li><link id="VOS_DOS_WINDOWS16"/></li>
+<li><link id="VOS_DOS_WINDOWS32"/></li>
+<li><link id="VOS_OS216_PM16"/></li>
+<li><link id="VOS_OS232_PM32"/></li>
+<li><link id="VOS_NT_WINDOWS32"/></li>
+</ul>
+<p>Constants for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>:</p>
+<ul>
+<li><link id="VFT_UNKNOWN"/></li>
+<li><link id="VFT_APP"/></li>
+<li><link id="VFT_DLL"/></li>
+<li><link id="VFT_DRV"/></li>
+<li><link id="VFT_FONT"/></li>
+<li><link id="VFT_VXD"/></li>
+<li><link id="VFT_STATIC_LIB"/></li>
+</ul>
+<p>Constants for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>:</p>
+<ul>
+<li><link id="VFT2_UNKNOWN"/></li>
+<li><link id="VFT2_DRV_COMM"/></li>
+<li><link id="VFT2_DRV_PRINTER"/></li>
+<li><link id="VFT2_DRV_KEYBOARD"/></li>
+<li><link id="VFT2_DRV_LANGUAGE"/></li>
+<li><link id="VFT2_DRV_DISPLAY"/></li>
+<li><link id="VFT2_DRV_MOUSE"/></li>
+<li><link id="VFT2_DRV_NETWORK"/></li>
+<li><link id="VFT2_DRV_SYSTEM"/></li>
+<li><link id="VFT2_DRV_INSTALLABLE"/></li>
+<li><link id="VFT2_DRV_SOUND"/></li>
+<li><link id="VFT2_FONT_RASTER"/></li>
+<li><link id="VFT2_FONT_VECTOR"/></li>
+<li><link id="VFT2_FONT_TRUETYPE"/></li>
+</ul>
+</descr>
+
+<!-- constant Visibility: default -->
+<element name="VS_FF_DEBUG">
+<short>The file contains debugging information</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VS_FF_PRERELEASE">
+<short>This file is a development version</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VS_FF_PATCHED">
+<short>This file is not the original shipped one</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VS_FF_PRIVATEBUILD">
+<short>This file is a private build</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>.</p>
+<p>When this flag is set, a <link id="versiontypes.TVersionStringTable">TVersionStringTable</link> in <link id="versionresource.TVersionResource.StringFileInfo">TVersionResource.StringFileInfo</link> should contain an item with <var>PrivateBuild</var> as key.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>
+<link id="versiontypes.TVersionStringTable">TVersionStringTable</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VS_FF_INFOINFERRED">
+<short>This flag should never be used in a resource</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VS_FF_SPECIALBUILD">
+<short>This file is a special build of the standard one</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>.</p>
+<p>When this flag is set, a <link id="versiontypes.TVersionStringTable">TVersionStringTable</link> in <link id="versionresource.TVersionResource.StringFileInfo">TVersionResource.StringFileInfo</link> should contain an item with <var>SpecialBuild</var> as key.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>
+<link id="versiontypes.TVersionStringTable">TVersionStringTable</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VS_FFI_FILEFLAGSMASK">
+<short>The valid bits for file flags</short>
+<descr>
+<p>This constant is used mainly for <link id="versiontypes.TVersionFixedInfo.FileFlagsMask">TVersionFixedInfo.FileFlagsMask</link> to signal which bits are used in <link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link> field.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileFlagsMask">TVersionFixedInfo.FileFlagsMask</link>
+<link id="versiontypes.TVersionFixedInfo.FileFlags">TVersionFixedInfo.FileFlags</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_UNKNOWN">
+<short>This file was designed to run on an unknown operating system</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_DOS">
+<short>This file was designed for MS-DOS</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS__WINDOWS16"/>
+<link id="VOS__WINDOWS32"/>
+<link id="VOS_DOS_WINDOWS16"/>
+<link id="VOS_DOS_WINDOWS32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_OS216">
+<short>This file was designed for 16 bit OS/2</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS__PM16"/>
+<link id="VOS_OS216_PM16"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_OS232">
+<short>This file was designed for 32 bit OS/2</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS__PM32"/>
+<link id="VOS_OS232_PM32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_NT">
+<short>This file was designed for Windows NT</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS__WINDOWS32"/>
+<link id="VOS_NT_WINDOWS32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS__BASE">
+<short>No subsystem specified</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS__WINDOWS16">
+<short>This file was designed for 16-bit Windows</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_DOS"/>
+<link id="VOS_DOS_WINDOWS16"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS__PM16">
+<short>This file was designed for 16-bit Presentation Manager</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_OS216"/>
+<link id="VOS_OS216_PM16"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS__PM32">
+<short>This file was designed for 32-bit Presentation Manager</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_OS232"/>
+<link id="VOS_OS232_PM32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS__WINDOWS32">
+<short>This file was designed for 32-bit Windows</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_DOS"/>
+<link id="VOS_NT"/>
+<link id="VOS_DOS_WINDOWS32"/>
+<link id="VOS_NT_WINDOWS32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_DOS_WINDOWS16">
+<short>This file was designed for 16-bit Windows on MS-DOS</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_DOS"/>
+<link id="VOS__WINDOWS16"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_DOS_WINDOWS32">
+<short>This file was designed for 32-bit Windows on MS-DOS</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_DOS"/>
+<link id="VOS__WINDOWS32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_OS216_PM16">
+<short>This file was designed for 16-bit Presentation Manager on 16-bit OS/2</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_OS216"/>
+<link id="VOS__PM16"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_OS232_PM32">
+<short>This file was designed for 32-bit Presentation Manager on 32-bit OS/2</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_OS232"/>
+<link id="VOS__PM32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VOS_NT_WINDOWS32">
+<short>This file was designed for 32-bit Windows NT</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileOS">TVersionFixedInfo.FileOS</link>
+<link id="VOS_NT"/>
+<link id="VOS__WINDOWS32"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT_UNKNOWN">
+<short>File type is unknown</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT_APP">
+<short>The file is an application</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT_DLL">
+<short>The file is a dynamic link library</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT_DRV">
+<short>The file is a device driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>.</p>
+<p>The device driver type is specified in <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT_FONT">
+<short>The file is a font</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>.</p>
+<p>The font driver type is specified in <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT_VXD">
+<short>The file is a virtual device</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT_STATIC_LIB">
+<short>The file is a static link library</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_UNKNOWN">
+<short>File subtype is unknown</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_PRINTER">
+<short>The file is a printer driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_KEYBOARD">
+<short>The file is a keyboard driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_LANGUAGE">
+<short>The file is a language driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_DISPLAY">
+<short>The file is a display driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_MOUSE">
+<short>The file is a mouse driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_NETWORK">
+<short>The file is a network driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_SYSTEM">
+<short>The file is a system driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_INSTALLABLE">
+<short>The file is an installable driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_SOUND">
+<short>The file is a sound driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_DRV_COMM">
+<short>The file is a communications driver</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_DRV"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_DRV"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_FONT_RASTER">
+<short>The file is a raster font</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_FONT"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_FONT"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_FONT_VECTOR">
+<short>The file is a vector font</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_FONT"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_FONT"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VFT2_FONT_TRUETYPE">
+<short>The file is a TrueType font</short>
+<descr>
+<p>This constant is used for <link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link> when <link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link> is <link id="VFT_FONT"/>.</p>
+</descr>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo.FileSubType">TVersionFixedInfo.FileSubType</link>
+<link id="versiontypes.TVersionFixedInfo.FileType">TVersionFixedInfo.FileType</link>
+<link id="VFT_FONT"/>
+</seealso>
+</element>
+
+</module> <!-- versionconsts -->
+
+</package>
+</fpdoc-descriptions>

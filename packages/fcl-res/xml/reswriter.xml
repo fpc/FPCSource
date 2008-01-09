@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    reswriter
+  ====================================================================
+-->
+
+<module name="reswriter">
+<short>Contains a resource writer for .res files</short>
+<descr>
+<p>This unit contains <link id="TResResourceWriter"/>, a <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link> descendant that is able to write .res resource files.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TResResourceWriter"/> with <link id="resource.TResources">TResources</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TResResourceWriter">
+<short>.res resource writer</short>
+<descr>
+<p>This class provides a writer for .res resource files.</p>
+<p>A .res file is a standard Windows file type that contains resources. This is not an object file format, so it's not suitable for being linked with other object files. For this reason, it is a good choice for a platform-independent format to store resources.</p>
+</descr>
+<seealso>
+<link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>
+<link id="resreader.TResResourceReader">TResResourceReader</link>
+</seealso>
+</element>
+
+</module> <!-- reswriter -->
+
+</package>
+</fpdoc-descriptions>

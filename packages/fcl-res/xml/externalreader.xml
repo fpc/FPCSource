@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    externalreader
+  ====================================================================
+-->
+
+<module name="externalreader">
+<short>Contains a resource reader for external resource files</short>
+<descr>
+<p>This unit contains <link id="TExternalResourceReader"/>, a <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link> descendant that is able to read standalone resource files in a Free Pascal-specific format.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TExternalResourceReader"/> with <link id="resource.TResources">TResources</link>.</p>
+<p><b>See also</b></p>
+<p><link id="externaltypes.Free Pascal external resource file format description">Free Pascal external resource file format description</link></p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resourcetree">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="externaltypes">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TExternalResourceReader">
+<short>External file resource reader</short>
+<descr>
+<p>This class provides a reader for .fpcres files: they are standalone files containing resources.</p>
+<p>Standalone files are files that don't get linked with the final executable. They are used as a
+fallback solution on all those platforms for which an internal resource format is not available.</p>
+<p>At runtime the resource file is read by Free Pascal RTL to provide resource support to the application.</p>
+<p>After an external file has been read, <link id="TExternalResourceReader.Endianess">Endianess</link> property holds the byte order used in the file.</p>
+</descr>
+<seealso>
+<link id="TExternalResourceReader.Endianess"/>
+<link id="resource.TAbstractResourceReader">TAbstractResourceReader</link>
+<link id="externalwriter.TExternalResourceWriter">TExternalResourceWriter</link>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TExternalResourceReader.Endianess">
+<short>The byte order used in the file</short>
+<descr>
+<p>This property holds the byte order (endianess) of the file that has been read.</p>
+<remark>Obviously, this property is meaningful only after a file has been read.</remark>
+</descr>
+<seealso>
+<link id="externaltypes.EXT_ENDIAN_BIG">EXT_ENDIAN_BIG</link>
+<link id="externaltypes.EXT_ENDIAN_LITTLE">EXT_ENDIAN_LITTLE</link>
+</seealso>
+</element>
+
+</module> <!-- externalreader -->
+
+</package>
+</fpdoc-descriptions>

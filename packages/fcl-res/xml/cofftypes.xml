@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    cofftypes
+  ====================================================================
+-->
+
+<module name="cofftypes">
+<short>Contains types used by COFF resource reader and writer</short>
+<descr>
+<p>These types are used internally by <link id="coffwriter.TCoffResourceWriter">TCoffResourceWriter</link> and <link id="coffreader.TCoffResourceReader">TCoffResourceReader</link>.</p>
+<p>The only type of interest for the user is <link id="TCoffMachineType"/>.</p>
+</descr>
+
+<!-- enumeration type Visibility: default -->
+<element name="TCoffMachineType">
+<short>Enumeration for COFF machine type</short>
+<descr>
+<p>This enumeration specifies the COFF machine type.</p>
+<p>It is used by <link id="coffwriter.TCoffResourceWriter">TCoffResourceWriter</link> to specify the machine type of the generated object file and by <link id="coffreader.TCoffResourceReader">TCoffResourceReader</link> to read the machine type of the object file that has been read.</p>
+</descr>
+<seealso>
+<link id="coffwriter.TCoffResourceWriter.MachineType">TCoffResourceWriter.MachineType</link>
+<link id="coffreader.TCoffResourceReader.MachineType">TCoffResourceReader.MachineType</link>
+</seealso>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TCoffMachineType.cmti386">
+<short>Intel i386</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TCoffMachineType.cmtarm">
+<short>ARM</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TCoffMachineType.cmtx8664">
+<short>AMD x86_64</short>
+</element>
+
+</module> <!-- cofftypes -->
+
+</package>
+</fpdoc-descriptions>

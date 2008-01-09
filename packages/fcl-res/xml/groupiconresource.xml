@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="reslib">
+
+<!--
+  ====================================================================
+    groupiconresource
+  ====================================================================
+-->
+
+<module name="groupiconresource">
+<short>Contains a group icon resource type</short>
+<descr>
+<p>This unit contains <link id="TGroupIconResource"/>, a <link id="resource.TAbstractResource">TAbstractResource</link> descendant specialized in handling resource of type <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link>.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TGroupIconResource"/> for type <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> with <link id="resfactory.TResourceFactory">TResourceFactory</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="groupresource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TGroupIconResource">
+<short>Group icon resource type</short>
+<descr>
+<p>This class represents a resource of type <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link>.</p>
+<p>Resources of this type are strictly related to .ico files: typically a resource compiler creates resources of this type when it is instructed to insert an icon from an .ico file.</p>
+<p>There is although a big difference between .ico files and icon resources: an .ico file contains an icon, which is made of several different images (for different sizes and color depth), but while a file of this type is self-contained, when it comes to resources data is scattered over several different resources: an <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> resource only contains information about the single images, which are contained each in a different resource of type <link id="resource.RT_ICON">RT_ICON</link>. The single resources are pretty unuseful alone, since they only consist of raw image data: they must be accessed in the contest of the <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> resource, which provides information about them.</p>
+<p><link id="TGroupIconResource"/> provides a way to handle an icon as if it was a .ico file, via <link id="groupresource.TGroupResource.ItemData">ItemData</link> property. Single icon resources are automatically created or destroyed as needed.</p>
+<remark>This class doesn't allow its type to be changed to anything else than <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link>. Attempts to do so result in a <link id="resource.EResourceDescChangeNotAllowedException">EResourceDescChangeNotAllowedException</link>.</remark>
+</descr>
+<seealso>
+<link id="groupresource.TGroupResource.ItemData">TGroupResource.ItemData</link>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TGroupIconResource.Create">
+<short>Creates a new group icon resource</short>
+<descr>
+<p>Please note that <var>aType</var> parameter is not used, since this class always uses <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> as type.</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TGroupIconResource.Create.aType">
+<short>Ignored. Can be <var>nil</var>.</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TGroupIconResource.Create.aName">
+<short>The name of the resource</short>
+</element>
+
+</module> <!-- groupiconresource -->
+
+</package>
+</fpdoc-descriptions>
