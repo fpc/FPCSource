@@ -9070,6 +9070,12 @@ utils/fpcres/msghandler.pas svneol=native#text/plain
 utils/fpcres/paramparser.pas svneol=native#text/plain
 utils/fpcres/sourcehandler.pas svneol=native#text/plain
 utils/fpcres/target.pas svneol=native#text/plain
+utils/fpcreslipo/Makefile svneol=native#text/plain
+utils/fpcreslipo/Makefile.fpc svneol=native#text/plain
+utils/fpcreslipo/fpcreslipo.pp svneol=native#text/plain
+utils/fpcreslipo/msghandler.pp svneol=native#text/plain
+utils/fpcreslipo/paramparser.pp svneol=native#text/plain
+utils/fpcreslipo/sourcehandler.pp svneol=native#text/plain
 utils/fpdoc/COPYING -text
 utils/fpdoc/Makefile svneol=native#text/plain
 utils/fpdoc/Makefile.fpc svneol=native#text/plain
