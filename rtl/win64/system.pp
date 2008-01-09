@@ -91,7 +91,7 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
-  MainInstance,
+  MainInstance : qword;
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
 type
@@ -107,10 +107,7 @@ const
 implementation
 
 var
-  SysInstance : Longint;public;
-
-{$define HAS_RESOURCES}
-{$i winres.inc}
+  SysInstance : qword;public;
 
 { used by wstrings.inc because wstrings.inc is included before sysos.inc
   this is put here (FK) }
@@ -514,7 +511,7 @@ begin
 end;
 
 
-procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
+procedure _FPC_DLLMainCRTStartup(_hinstance : qword;_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
 begin
   IsConsole:=true;
   sysinstance:=_hinstance;
@@ -524,7 +521,7 @@ begin
 end;
 
 
-procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
+procedure _FPC_DLLWinMainCRTStartup(_hinstance : qword;_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
 begin
   IsConsole:=false;
   sysinstance:=_hinstance;
@@ -1159,7 +1156,7 @@ begin
   hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(GetCommandFile);
-  MainInstance:=HInstance;
+  MainInstance:=SysInstance;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }
   InitHeap;

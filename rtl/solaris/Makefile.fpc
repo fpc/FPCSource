@@ -21,7 +21,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       keyboard variants types dateutils sysconst \
       strutils fmtbcd rtlconsts cthreads \
       dos objects \
-      cwstring
+      cwstring fpintres
 
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconst

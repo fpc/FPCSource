@@ -196,6 +196,7 @@ interface
        compiled_module   : tmodule;     { Current module which is compiled }
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units }
+       unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }
 

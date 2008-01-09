@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2008 by Peter Vreman
 
     This unit implements support information structures for win32
 
@@ -35,7 +35,7 @@ unit i_win;
             flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,tf_smartlink_library
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_winlikewidestring,tf_no_pic_supported,
-                            tf_no_generic_stackcheck];
+                            tf_no_generic_stackcheck,tf_has_resources];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -96,7 +96,7 @@ unit i_win;
             shortname    : 'Win64';
             flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,
                             tf_smartlink_sections,tf_smartlink_library,tf_winlikewidestring,tf_no_pic_supported,
-                            tf_no_generic_stackcheck];
+                            tf_no_generic_stackcheck,tf_has_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'WIN64UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -156,7 +156,8 @@ unit i_win;
             name         : 'WinCE for ARM';
             shortname    : 'WinCE';
             flags        : [tf_files_case_aware,tf_use_function_relative_addresses{,tf_winlikewidestring},
-                            tf_smartlink_sections,tf_requires_proper_alignment,tf_no_pic_supported];
+                            tf_smartlink_sections,tf_requires_proper_alignment,tf_no_pic_supported,
+                            tf_has_resources];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;UNICODE';
@@ -186,7 +187,7 @@ unit i_win;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar_scripted;
-            res          : res_gnu_wince_windres;
+            res          : res_gnu_windres;
             dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;
@@ -216,7 +217,8 @@ unit i_win;
             name         : 'WinCE for i386';
             shortname    : 'WinCE';
             flags        : [tf_files_case_aware,tf_use_function_relative_addresses
-                            {,tf_winlikewidestring},tf_smartlink_sections,tf_no_pic_supported];
+                            {,tf_winlikewidestring},tf_smartlink_sections,tf_no_pic_supported,
+                            tf_has_resources];
             cpu          : cpu_i386;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;UNICODE';

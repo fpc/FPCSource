@@ -19,10 +19,6 @@
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
-{$ifdef CPUI386}
-{$DEFINE ELFRES32}
-{$endif}
-
 Unit System;
 
 {*****************************************************************************}
@@ -55,13 +51,6 @@ property cmdline:Pchar read get_cmdline;
 {$if defined(CPUI386) and not defined(FPC_USE_LIBC)}
 var
   sysenter_supported: LongInt = 0;
-{$endif}
-
-{ Include ELF resources }
-
-{$ifdef ELFRES32}
-{$define HAS_RESOURCES}
-{$i elfres32.inc}
 {$endif}
 
 const calculated_cmdline:Pchar=nil;

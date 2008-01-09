@@ -68,6 +68,8 @@ implementation
          loaded_units:=TLinkedList.Create;
 
          usedunits:=TLinkedList.Create;
+         
+         unloaded_units:=TLinkedList.Create;
 
          { global switches }
          current_settings.globalswitches:=init_settings.globalswitches;
@@ -148,6 +150,11 @@ implementation
            begin
              usedunits.free;
              usedunits:=nil;
+           end;
+         if assigned(unloaded_units) then
+           begin
+             unloaded_units.free;
+             unloaded_units:=nil;
            end;
 
          { if there was an error in the scanner, the scanner is
@@ -492,6 +499,8 @@ implementation
                    end;
                  hp:=hp2;
                end;
+              { free also unneeded units we didn't free before }
+              unloaded_units.Clear;
              end;
            dec(compile_level);
            set_current_module(olddata^.old_current_module);

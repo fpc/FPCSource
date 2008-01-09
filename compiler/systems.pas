@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2008 by Florian Klaempfl
 
     This unit contains information about the target systems supported
     (these are not processor specific)
@@ -183,9 +183,10 @@ interface
             ,res_gnu_windres,res_emxbind
             ,res_m68k_palmos,res_m68k_mpw
             ,res_powerpc_mpw,res_elf
-            ,res_gnu_wince_windres
-            ,res_win64_gorc
+            ,res_win64_gorc, res_macho, res_ext
        );
+       
+       tresinfoflags = (res_external_file,res_arch_in_file_name);
 
        tdbg = (dbg_none
             ,dbg_stabs,dbg_dwarf2,dbg_dwarf3
@@ -273,13 +274,14 @@ interface
        tresinfo = record
           id      : tres;
           { Compiler for resource (.rc or .res) to obj }
-          resbin  : string[8];
+          resbin  : string[10];
           rescmd  : string[50];
           { Optional compiler for resource script (.rc) to binary resource (.res). }
           { If it is not provided resbin and rescmd will be used.                 }
-          rcbin   : string[8];
+          rcbin   : string[10];
           rccmd   : string[50];
           resourcefileclass : TAbstractResourceFileClass;
+          resflags : set of tresinfoflags;
        end;
 
        pdbginfo = ^tdbginfo;
@@ -315,7 +317,8 @@ interface
             tf_no_pic_supported,
             tf_pic_default,
             { the os does some kind of stack checking and it can be converted into a rte 202 }
-            tf_no_generic_stackcheck
+            tf_no_generic_stackcheck,
+            tf_has_resources
        );
 
        psysteminfo = ^tsysteminfo;
@@ -336,8 +339,8 @@ interface
           unitlibext,
           asmext,
           objext,
-          resext,
-          resobjext    : string[4];
+          resext       : string[4];
+          resobjext    : string[7];
           sharedlibext : string[10];
           staticlibext,
           staticlibprefix : string[4];
@@ -696,9 +699,7 @@ var
   t : tres;
 begin
   t:=r.id;
-  if assigned(resinfos[t]) then
-    writeln('Warning: resourcecompiler is already registered!')
-  else
+  if not assigned(resinfos[t]) then
     Getmem(resinfos[t],sizeof(tresinfo));
   resinfos[t]^:=r;
   resinfos[t]^.resourcefileclass:=rcf;

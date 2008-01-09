@@ -202,10 +202,7 @@ function argv: ppchar;
 implementation
 
 var
-  SysInstance : Longint;
-
-{$define HAS_RESOURCES}
-{$i winres.inc}
+  SysInstance : Longint;public name '_FPC_SysInstance';
 
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    cdecl; external 'coredll' name 'MessageBoxW';

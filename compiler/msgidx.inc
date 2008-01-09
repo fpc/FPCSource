@@ -628,6 +628,8 @@ const
   exec_e_unit_not_smart_or_static_linkable=09026;
   exec_e_unit_not_shared_or_static_linkable=09027;
   exec_d_resbin_params=09028;
+  exec_e_error_while_compiling_resources=09029;
+  exec_e_cant_call_resource_compiler=09030;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -693,6 +695,7 @@ const
   unit_u_registering_new_unit=10057;
   unit_u_reresolving_unit=10058;
   unit_u_skipping_reresolving_unit=10059;
+  unit_u_unload_resunit=10060;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -734,9 +737,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 45492;
+  MsgTxtSize = 45878;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,86,238,84,63,50,108,22,135,60,
+    24,86,238,84,63,50,108,22,135,61,
     42,1,1,1,1,1,1,1,1,1
   );

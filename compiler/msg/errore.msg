@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2006 by the Free Pascal Development team
+#   Copyright (c) 1999-2008 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -1998,7 +1998,7 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
 #
 # Executing linker/assembler
 #
-# 09028 is the last used one
+# 09030 is the last used one
 #
 # BeginOfTeX
 %
@@ -2078,6 +2078,12 @@ exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or sta
 % Shared or static linking was requested, but a unit which cannot be used for either  was used.
 exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command line
 % An informational message showing which command-line is used for the resource compiler.
+exec_e_error_while_compiling_resources=09029_E_Error while compiling resources
+% The resource compiler or converter returned an error
+exec_e_cant_call_resource_compiler=09030_E_Can't call the resource compiler, switching to external mode
+% An error occurred when calling a resource compiler, the compiler will produce
+% a script that can be used to assemble, compile resources and link or
+% postprocess the program.
 %\end{description}
 # EndOfTeX
 
@@ -2111,7 +2117,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Unit loading
 #
-# 10059 is the last used one
+# 10060 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2301,6 +2307,9 @@ unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still lo
 % When you use the \var{-vu} flag, the compiler warns that it
 % skips to recalculate the internal data of the unit because there
 % is no data to recalculate
+unit_u_unload_resunit=10060_U_Unloading resource unit $1 (not needed) 
+% When you use the \var{-vu} flag, the compiler warns that it is unloading the 
+% resource handling unit, since no resources are used.
 % \end{description}
 # EndOfTeX
 
@@ -2673,10 +2682,16 @@ A*2WC_Specify console type application (Windows)
 P*2WC_Specify console type application (Classic Mac OS)
 3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
 A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
+3*2We_Use external resources (Darwin)
+P*2We_Use external resources (Darwin)
+p*2We_Use external resources (Darwin)
 3*2WF_Specify full-screen type application (EMX, OS/2)
 3*2WG_Specify graphic type application (EMX, OS/2, Windows)
 A*2WG_Specify graphic type application (Windows)
 P*2WG_Specify graphic type application (Classic Mac OS)
+3*2Wi_Use internal resources (Darwin)
+P*2Wi_Use internal resources (Darwin)
+p*2Wi_Use internal resources (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
 3*2WR_Generate relocation code (Windows)

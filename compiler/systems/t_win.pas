@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2008 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) Win32 target
@@ -90,12 +90,6 @@ interface
         function Scan(const binname:string):boolean;override;
       end;
 
-
-      TWinResourceFile = class(TWinLikeResourceFile)
-        procedure PostProcessResourcefile(const s : ansistring);override;
-      end;
-
-
 implementation
 
   uses
@@ -109,32 +103,23 @@ implementation
     res_gnu_windres_info : tresinfo =
         (
           id     : res_gnu_windres;
-          resbin : 'windres';
-          rescmd : '--include $INC -O coff -o $OBJ $RES';
+          resbin : 'fpcres';
+          rescmd : '-o $OBJ -a $ARCH -of coff $DBG';
           rcbin  : 'windres';
           rccmd  : '--include $INC -O res -o $RES $RC';
           resourcefileclass : nil;
+          resflags : [];
         );
-
-    res_gnu_wince_windres_info : tresinfo =
-        (
-          id     : res_gnu_wince_windres;
-          resbin : 'windres';
-          rescmd : '--include $INC -O coff -o $OBJ $RES';
-          rcbin  : 'windres';
-          rccmd  : '--include $INC -O res -o $RES $RC';
-          resourcefileclass : nil;
-        );
-
 {$ifdef x86_64}
     res_win64_gorc_info : tresinfo =
         (
           id     : res_win64_gorc;
-          resbin : 'gorc';
-          rescmd : '/machine x64 /nw /ni /o /fo $OBJ $RES';
+          resbin : 'fpcres';
+          rescmd : '-o $OBJ -a $ARCH -of coff $DBG';
           rcbin  : 'gorc';
           rccmd  : '/machine x64 /nw /ni /r /fo $RES $RC';
           resourcefileclass : nil;
+          resflags : [];
         );
 {$endif x86_64}
 
@@ -1757,28 +1742,6 @@ implementation
         result:=importfound;
       end;
 
-
-{****************************************************************************
-                            TWinResourceFile
-****************************************************************************}
-
-procedure TWinResourceFile.PostProcessResourcefile(const s : ansistring);
-{$ifdef arm}
-var
-  f : file;
-  w : word;
-{$endif arm}
-begin
-{$ifdef arm}
-  assign(f,s);
-  reset(f,1);
-  w:=COFF_MAGIC;
-  blockwrite(f,w,2);
-  close(f);
-{$endif arm}
-end;
-
-
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
@@ -1791,7 +1754,7 @@ initialization
   RegisterImport(system_i386_win32,TImportLibWin);
   RegisterExport(system_i386_win32,TExportLibWin);
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin);
-  RegisterRes(res_gnu_windres_info,TWinResourceFile);
+  RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);
   RegisterTarget(system_i386_win32_info);
   { WinCE }
   RegisterExternalLinker(system_i386_wince_info,TExternalLinkerWin);
@@ -1806,7 +1769,7 @@ initialization
   RegisterImport(system_x86_64_win64,TImportLibWin);
   RegisterExport(system_x86_64_win64,TExportLibWin);
   RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin);
-  RegisterRes(res_win64_gorc_info,TWinResourceFile);
+  RegisterRes(res_win64_gorc_info,TWinLikeResourceFile);
   RegisterTarget(system_x64_win64_info);
 {$endif x86_64}
 {$ifdef arm}
@@ -1814,7 +1777,7 @@ initialization
   RegisterInternalLinker(system_arm_wince_info,TInternalLinkerWin);
   RegisterImport(system_arm_wince,TImportLibWin);
   RegisterExport(system_arm_wince,TExportLibWin);
-  RegisterRes(res_gnu_wince_windres_info,TWinResourceFile);
+  RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);
   RegisterTarget(system_arm_wince_info);
 {$endif arm}
 end.

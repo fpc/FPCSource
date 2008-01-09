@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2008 by Florian Klaempfl and Peter Vreman
 
     Reads command line options and config files
 
@@ -76,7 +76,8 @@ uses
   version,
   cutils,cmsgs,
   comphook,
-  symtable,scanner,rabase
+  symtable,scanner,rabase,
+  i_bsd
   ;
 
 const
@@ -1318,6 +1319,17 @@ begin
                         UseDeffileForExports:=not UnsetBool(More, j);
                         UseDeffileForExportsSetExplicitly:=true;
                       end;
+                    'e':
+                      begin
+                        if (target_info.system in systems_darwin) then
+                          begin
+                            RegisterRes(res_macosx_ext_info,TWinLikeResourceFile);
+                            set_target_res(res_ext);
+                            target_info.resobjext:='.fpcres';
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
                     'F':
                       begin
                         if UnsetBool(More, j) then
@@ -1336,6 +1348,17 @@ begin
                       begin
                         GenerateImportSection:=not UnsetBool(More,j);
                         GenerateImportSectionSetExplicitly:=true;
+                      end;
+                    'i':
+                      begin
+                        if (target_info.system in systems_darwin) then
+                          begin
+                            set_target_res(res_macho);
+                            target_info.resobjext:=
+                              targetinfos[target_info.system]^.resobjext;
+                          end
+                        else
+                          IllegalPara(opt);
                       end;
                     'N':
                       begin
@@ -1996,6 +2019,13 @@ begin
     include(init_settings.moduleswitches,cs_create_pic)
   else
     exclude(init_settings.moduleswitches,cs_create_pic);
+    
+  { Resources support }
+  if (tf_has_resources in target_info.flags) then
+    if def then
+      def_system_macro('FPC_HAS_RESOURCES')
+    else
+      undef_system_macro('FPC_HAS_RESOURCES');
 end;
 
 
@@ -2186,7 +2216,6 @@ begin
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
   def_system_macro('FPC_HAS_TYPE_DOUBLE');
   def_system_macro('FPC_HAS_TYPE_SINGLE');
-  def_system_macro('FPC_HAS_RESOURCES');
 {$endif}
 {$ifdef m68k}
   def_system_macro('CPU68');

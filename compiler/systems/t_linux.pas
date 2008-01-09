@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2008 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) Linux target
@@ -57,7 +57,6 @@ interface
       procedure InitSysInitUnitName;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
-      function  postprocessexecutable(const fn : string;isdll:boolean):boolean;
       procedure LoadPredefinedLibraryOrder; override;
     end;
 
@@ -73,7 +72,7 @@ implementation
     aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
     comprsrc,
-    i_linux
+    rescmn, i_linux
     ;
 
 {*****************************************************************************
@@ -1063,10 +1062,6 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 
-  if (success) then
-    success:=PostProcessExecutable(current_module.exefilename^,false);
-
-
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
@@ -1119,21 +1114,6 @@ begin
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
 
-
-function tlinkerLinux.postprocessexecutable(const fn : string;isdll:boolean):boolean;
-var
-  cmdstr: string;
-begin
-  result:=True;
-  if HasResources and
-     (target_res.id=res_elf) then
-    begin
-      cmdstr:=' -f -i '+maybequoted(fn);
-      result:=DoExec(FindUtil(utilsprefix+'fpcres'),cmdstr,false,false);
-    end;
-end;
-
-
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
@@ -1144,7 +1124,6 @@ initialization
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
-  RegisterRes(res_elf32_info,TWinLikeResourceFile);
 
   RegisterExternalLinker(system_x86_6432_linux_info,TLinkerLinux);
   RegisterImport(system_x86_6432_linux,timportliblinux);
@@ -1180,7 +1159,6 @@ initialization
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
-  RegisterRes(res_elf64_info,TWinLikeResourceFile);
 {$endif x86_64}
 {$ifdef SPARC}
   RegisterExternalLinker(system_sparc_linux_info,TLinkerLinux);
@@ -1194,4 +1172,5 @@ initialization
   RegisterExport(system_arm_linux,texportliblinux);
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
+  RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

@@ -36,7 +36,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_bsd,
+    import,export,link,comprsrc,rescmn,i_bsd,
     cgutils,cgbase,cgobj,cpuinfo,ogbase;
 
   type
@@ -780,4 +780,7 @@ initialization
   RegisterExport(system_powerpc64_darwin,texportlibbsd);
   RegisterTarget(system_powerpc64_darwin_info);
 {$endif powerpc64}
+
+  RegisterRes(res_elf_info,TWinLikeResourceFile);
+  RegisterRes(res_macho_info,TWinLikeResourceFile);
 end.

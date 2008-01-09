@@ -205,7 +205,7 @@ threadvar
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleFileName' + ApiSuffix;
-   function GetModuleHandle(p : pointer) : longint;
+   function GetModuleHandle(p : pointer) : PtrUInt;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleHandle' + ApiSuffix;
 
    { file functions }

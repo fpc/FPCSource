@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2008 by Florian Klaempfl
 
     Handles the parsing and loading of the modules (ppufiles)
 
@@ -226,47 +226,46 @@ implementation
       end;
 
 
-    Procedure InsertResourceInfo;
-
+    Function CheckResourcesUsed : boolean;
     var
       hp           : tused_unit;
       found        : Boolean;
+    begin
+      CheckResourcesUsed:=tf_has_resources in target_info.flags;
+      if not CheckResourcesUsed then exit;
+
+      hp:=tused_unit(usedunits.first);
+      found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+      If not found then
+        While Assigned(hp) and not found do
+          begin
+          Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+          hp:=tused_unit(hp.next);
+          end;
+      CheckResourcesUsed:=found;
+    end;
+
+    Procedure InsertResourceInfo(ResourcesUsed : boolean);
+
+    var
       I            : Integer;
       ResourceInfo : TAsmList;
 
     begin
-      if target_res.id=res_elf then
+      if (target_res.id in [res_elf,res_macho]) then
         begin
-        hp:=tused_unit(usedunits.first);
-        found:=false;
-        Found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-        If not found then
-          While Assigned(hp) and not Found do
-            begin
-            Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-            hp:=tused_unit(hp.next);
-            end;
         ResourceInfo:=TAsmList.Create;
-        if found then
-          begin
+        ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
+        if ResourcesUsed then
           { Valid pointer to resource information }
-          ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
-          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0));
-{$ifdef EXTERNALRESPTRS}
-          current_module.linkotherofiles.add('resptrs.o',link_always);
-{$else EXTERNALRESPTRS}
-          new_section(ResourceInfo,sec_fpc,'resptrs',4);
-          ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESSYMBOL',AT_DATA,0));
-          For I:=1 to 32 do
-            ResourceInfo.Concat(Tai_const.Create_32bit(0));
-{$endif EXTERNALRESPTRS}
-          end
+          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
         else
-          begin
           { Nil pointer to resource information }
-          ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
+          {$IFDEF CPU32}
           ResourceInfo.Concat(Tai_const.Create_32bit(0));
-          end;
+          {$ELSE}
+          ResourceInfo.Concat(Tai_const.Create_64bit(0));
+          {$ENDIF}
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
         current_asmdata.asmlists[al_globals].concatlist(ResourceInfo);
         ResourceInfo.free;
@@ -450,6 +449,58 @@ implementation
       end;
 
 
+    function MaybeRemoveResUnit : boolean;
+      var
+        resources_used : boolean;
+        hp : tmodule;
+        uu : tused_unit;
+        unitname : shortstring;
+      begin
+        { We simply remove the unit from:
+           - usedunit list, so that things like init/finalization table won't
+              contain references to this unit
+           - loaded_units list, so that the unit object file doesn't get linked
+             with the executable. }
+        { Note: on windows we always need resources! }
+        resources_used:=(target_info.system in system_all_windows)
+                         or CheckResourcesUsed;
+        if (not resources_used) and (tf_has_resources in target_info.flags) then
+          begin
+            { resources aren't used, so we don't need this unit }
+            if target_res.id=res_ext then
+              unitname:='FPEXTRES'
+            else
+              unitname:='FPINTRES';
+            Message1(unit_u_unload_resunit,unitname);
+            { find the module }
+            hp:=tmodule(loaded_units.first);
+            while assigned(hp) do
+              begin
+                if hp.is_unit and (hp.modulename^=unitname) then break;
+                hp:=tmodule(hp.next);
+              end;
+            if not assigned(hp) then
+              internalerror(200801071);
+            { find its tused_unit in the global list }
+            uu:=tused_unit(usedunits.first);
+            while assigned(uu) do
+              begin
+                if uu.u=hp then break;
+                uu:=tused_unit(uu.next);
+              end;
+            if not assigned(uu) then
+              internalerror(200801072);
+           { remove the tused_unit }
+            usedunits.Remove(uu);
+            uu.Free;
+           { remove the module }
+            loaded_units.Remove(hp);
+            unloaded_units.Concat(hp);
+          end;
+        MaybeRemoveResUnit:=resources_used;
+      end;
+
+
     procedure loaddefaultunits;
       begin
         { we are going to rebuild the symtablestack, clear it first }
@@ -507,6 +558,14 @@ implementation
              AddUnit('softfpu');
            }
 {$endif cpufpemu}
+           { Which kind of resource support?
+             Note: if resources aren't used this unit will be removed later,
+             otherwise we need it here since it must be loaded quite early }
+           if (tf_has_resources in target_info.flags) then
+             if target_res.id=res_ext then
+               AddUnit('fpextres')
+             else
+               AddUnit('fpintres');
          end;
         { Objpas unit? }
         if m_objpas in current_settings.modeswitches then
@@ -1769,6 +1828,7 @@ implementation
          init_procinfo,
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
+         resources_used : boolean;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -1778,6 +1838,7 @@ implementation
          main_procinfo:=nil;
          init_procinfo:=nil;
          finalize_procinfo:=nil;
+         resources_used:=false;
 
          { DLL defaults to create reloc info }
          if islibrary then
@@ -1983,7 +2044,7 @@ implementation
              exit;
            end;
 
-         { remove all unused units, this happends when units are removed
+         { remove all unused units, this happens when units are removed
            from the uses clause in the source and the ppu was already being loaded }
          hp:=tmodule(loaded_units.first);
          while assigned(hp) do
@@ -1992,11 +2053,18 @@ implementation
             hp:=tmodule(hp.next);
             if hp2.is_unit and
                not assigned(hp2.globalsymtable) then
-              loaded_units.remove(hp2);
+                begin
+                  loaded_units.remove(hp2);
+                  unloaded_units.concat(hp2);
+                end;
           end;
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
+
+         { Now that everything has been compiled we know if we need resource
+           support. If not, remove the unit. }
+         resources_used:=MaybeRemoveResUnit;
 
          linker.initsysinitunitname;
          if target_info.system in system_internal_sysinit then
@@ -2048,7 +2116,7 @@ implementation
          insertmemorysizes;
 
          { Insert symbol to resource info }
-         InsertResourceInfo;
+         InsertResourceInfo(resources_used);
 
          { create dwarf debuginfo }
          create_dwarf;
@@ -2101,6 +2169,9 @@ implementation
                       end;
                     hp:=hp2;
                   end;
+                 { free also unneeded units we didn't free before }
+                 if not needsymbolinfo then
+                   unloaded_units.Clear;
                  { finally we can create a executable }
                  if DLLSource then
                    linker.MakeSharedLibrary

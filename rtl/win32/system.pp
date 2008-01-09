@@ -116,11 +116,6 @@ var
   EntryInformation : TEntryInformation;
   SysInstance : Longint;public name '_FPC_SysInstance';
 
-{$ifdef CPUI386}
-{$define HAS_RESOURCES}
-{$i winres.inc}
-{$endif}
-
 { used by wstrings.inc because wstrings.inc is included before sysos.inc
   this is put here (FK) }
 
@@ -1179,7 +1174,7 @@ type
      DataDirectory : array[1..$80] of byte;
   end;
 begin
-  result:=tpeheader((pointer(HInstance)+(tdosheader(pointer(HInstance)^).e_lfanew))^).SizeOfStackReserve;
+  result:=tpeheader((pointer(SysInstance)+(tdosheader(pointer(SysInstance)^).e_lfanew))^).SizeOfStackReserve;
 end;
 
 {
@@ -1201,7 +1196,7 @@ begin
   if not IsLibrary then
     SysInstance:=getmodulehandle(GetCommandFile);
 
-  MainInstance:=HInstance;
+  MainInstance:=SysInstance;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
