@@ -7623,7 +7623,15 @@ tests/test/units/system/tres.pp -text
 tests/test/units/system/tres1.rc -text
 tests/test/units/system/tres1.res -text
 tests/test/units/system/tres1.txt -text
+tests/test/units/system/tres1_it.txt svneol=native#text/plain
+tests/test/units/system/tres2.pp svneol=native#text/plain
 tests/test/units/system/tres2.txt -text
+tests/test/units/system/tres2ext.pp svneol=native#text/plain
+tests/test/units/system/tres3.pp svneol=native#text/plain
+tests/test/units/system/tres3ext.pp svneol=native#text/plain
+tests/test/units/system/tresb.rc svneol=native#text/plain
+tests/test/units/system/tresb.res -text
+tests/test/units/system/tresext.pp svneol=native#text/plain
 tests/test/units/system/tround.pp svneol=native#text/plain
 tests/test/units/system/tseg.pp svneol=native#text/plain
 tests/test/units/system/tsetstr.pp svneol=native#text/plain
