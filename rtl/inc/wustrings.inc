@@ -1652,7 +1652,7 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; S
             inc(i);
           end;
 
-        if j>MaxDestBytes-1 then
+        if j>SizeUInt(MaxDestBytes-1) then
           j:=MaxDestBytes-1;
 
         Dest[j]:=#0;

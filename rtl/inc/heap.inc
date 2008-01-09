@@ -828,7 +828,7 @@ begin
         maximum of $ffff elements are allowed, otherwise
         there will be an overflow }
       chunksize := chunkindex shl blockshift;
-      if size-chunksize>maxsize then
+      if ptruint(size-chunksize)>maxsize then
         HandleError(204);
       { we need to align the user pointers to 8 byte at least for
         mmx/sse and doubles on sparc, align to 16 bytes }
@@ -839,7 +839,7 @@ begin
       repeat
         pmc^.size := fixedsizeflag or chunksize or (i shl fixedoffsetshift);
         inc(i, chunksize);
-        if i > size - chunksize then break;
+        if i > ptruint(size - chunksize) then break;
         pmc_next := pmemchunk_fixed(pointer(pmc)+chunksize);
         pmc^.next_fixed := pmc_next;
         pmc_next^.prev_fixed := pmc;
@@ -858,7 +858,7 @@ begin
         mmx/sse and doubles on sparc, align to 16 bytes }
       result := pointer(poc)+varfirstoffset;
       pmcv := pmemchunk_var(result);
-      pmcv^.size := ((size-varfirstoffset) and sizemask) or (firstblockflag or lastblockflag);
+      pmcv^.size := (ptruint(size-varfirstoffset) and sizemask) or (firstblockflag or lastblockflag);
       pmcv^.prevsize := 0;
       pmcv^.freelists := loc_freelists;
       append_to_list_var(pmcv);
