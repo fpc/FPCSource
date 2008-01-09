@@ -729,36 +729,40 @@ begin
     maxsize := 1 shl (32-fixedoffsetshift)
   else
     maxsize := high(ptruint);
-  { blocks available in freelist? }
-  poc := find_free_oschunk(loc_freelists, minsize, maxsize, size);
-  if not assigned(poc) and (assigned(orphaned_freelists.waitfixed) 
-      or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
+  poc:=nil;
+  if (loc_freelists^.oscount>=MaxKeptOSChunks) then
     begin
-      entercriticalsection(heap_lock);
-      finish_waitfixedlist(@orphaned_freelists);
-      finish_waitvarlist(@orphaned_freelists);
-      if orphaned_freelists.oscount > 0 then
+      { blocks available in freelist? }
+      poc := find_free_oschunk(loc_freelists, minsize, maxsize, size);
+      if not assigned(poc) and (assigned(orphaned_freelists.waitfixed) 
+          or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
         begin
-          { blocks available in orphaned freelist ? }
-          poc := find_free_oschunk(@orphaned_freelists, minsize, maxsize, size);
-          if assigned(poc) then
+          entercriticalsection(heap_lock);
+          finish_waitfixedlist(@orphaned_freelists);
+          finish_waitvarlist(@orphaned_freelists);
+          if orphaned_freelists.oscount > 0 then
             begin
-              { adopt this os chunk }
-              poc^.freelists := loc_freelists;
-              if assigned(poc^.prev_any) then
-                poc^.prev_any^.next_any := poc^.next_any
-              else
-                orphaned_freelists.oslist_all := poc^.next_any;
-              if assigned(poc^.next_any) then
-                poc^.next_any^.prev_any := poc^.prev_any;
-              poc^.next_any := loc_freelists^.oslist_all;
-              if assigned(loc_freelists^.oslist_all) then
-                loc_freelists^.oslist_all^.prev_any := poc;
-              poc^.prev_any := nil;
-              loc_freelists^.oslist_all := poc;
+              { blocks available in orphaned freelist ? }
+              poc := find_free_oschunk(@orphaned_freelists, minsize, maxsize, size);
+              if assigned(poc) then
+                begin
+                  { adopt this os chunk }
+                  poc^.freelists := loc_freelists;
+                  if assigned(poc^.prev_any) then
+                    poc^.prev_any^.next_any := poc^.next_any
+                  else
+                    orphaned_freelists.oslist_all := poc^.next_any;
+                  if assigned(poc^.next_any) then
+                    poc^.next_any^.prev_any := poc^.prev_any;
+                  poc^.next_any := loc_freelists^.oslist_all;
+                  if assigned(loc_freelists^.oslist_all) then
+                    loc_freelists^.oslist_all^.prev_any := poc;
+                  poc^.prev_any := nil;
+                  loc_freelists^.oslist_all := poc;
+                end;
             end;
+          leavecriticalsection(heap_lock);
         end;
-      leavecriticalsection(heap_lock);
     end;
   if poc = nil then
     begin
@@ -1050,7 +1054,7 @@ begin
   end;
 
   dec(loc_freelists^.internal_status.currheapused, chunksize);
-  { insert the block in it's freelist }
+  { insert the block in its freelist }
   chunkindex := chunksize shr blockshift;
   pmc_next := loc_freelists^.fixedlists[chunkindex];
   pmc^.prev_fixed := nil;
