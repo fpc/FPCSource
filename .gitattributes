@@ -5069,7 +5069,6 @@ rtl/inc/dosh.inc svneol=native#text/plain
 rtl/inc/dynarr.inc svneol=native#text/plain
 rtl/inc/dynarrh.inc svneol=native#text/plain
 rtl/inc/dynlibs.pas svneol=native#text/plain
-rtl/inc/elfres32.inc svneol=native#text/plain
 rtl/inc/except.inc svneol=native#text/plain
 rtl/inc/extres.inc svneol=native#text/plain
 rtl/inc/fexpand.inc svneol=native#text/plain
