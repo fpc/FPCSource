@@ -255,6 +255,9 @@ implementation
       if (target_res.id in [res_elf,res_macho]) then
         begin
         ResourceInfo:=TAsmList.Create;
+
+        maybe_new_object_file(ResourceInfo);
+        new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
         ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
         if ResourcesUsed then
           { Valid pointer to resource information }
