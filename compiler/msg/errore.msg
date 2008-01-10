@@ -1998,7 +1998,7 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
 #
 # Executing linker/assembler
 #
-# 09030 is the last used one
+# 09032 is the last used one
 #
 # BeginOfTeX
 %
@@ -2061,7 +2061,7 @@ exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not suppor
 % not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Closing script $1
 % Informational message showing when the external assembling an linking script is finished.
-exec_e_res_not_found=09021_E_resource compiler not found, switching to external mode
+exec_e_res_not_found=09021_E_resource compiler "$1" not found, switching to external mode
 % An external resource compiler was not found, the compiler will produce a script that
 % can be used to assemble, compile resources and link or postprocess the program.
 exec_i_compilingresource=09022_I_Compiling resource $1
@@ -2071,7 +2071,7 @@ exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 can't be statica
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart linked, switching to static linking
 % Smart linking was requested, but a unit which is not smart-linkable was used.
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 can't be shared linked, switching to static linking
-% Shared linking was requested, but a unit which is not shared-linkable  was used.
+% Shared linking was requested, but a unit which is not shared-linkable was used.
 exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 can't be smart or static linked
 % Smart or static linking was requested, but a unit which cannot be used for either  was used.
 exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or static linked
@@ -2080,10 +2080,14 @@ exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command
 % An informational message showing which command-line is used for the resource compiler.
 exec_e_error_while_compiling_resources=09029_E_Error while compiling resources
 % The resource compiler or converter returned an error
-exec_e_cant_call_resource_compiler=09030_E_Can't call the resource compiler, switching to external mode
+exec_e_cant_call_resource_compiler=09030_E_Can't call the resource compiler "$1", switching to external mode
 % An error occurred when calling a resource compiler, the compiler will produce
 % a script that can be used to assemble, compile resources and link or
 % postprocess the program.
+exec_e_cant_open_resource_file=09031_E_Can't open resource file "$1"
+% An error occurred resource file can not be opened
+exec_e_cant_write_resource_file=09032_E_Can't write resource file "$1"
+% An error occurred resource file can not be written
 %\end{description}
 # EndOfTeX
 

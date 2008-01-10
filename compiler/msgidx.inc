@@ -630,6 +630,8 @@ const
   exec_d_resbin_params=09028;
   exec_e_error_while_compiling_resources=09029;
   exec_e_cant_call_resource_compiler=09030;
+  exec_e_cant_open_resource_file=09031;
+  exec_e_cant_write_resource_file=09032;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -737,7 +739,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 45878;
+  MsgTxtSize = 45965;
 
   MsgIdxMax : array[1..20] of longint=(
     24,86,238,84,63,50,108,22,135,61,

@@ -170,7 +170,7 @@ begin
   respath:=ExtractFilePath(resbin);
   if (not resfound) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
-     Message(exec_e_res_not_found);
+     Message1(exec_e_res_not_found, bin);
      current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
      Result:=false;
    end;
@@ -194,7 +194,7 @@ begin
        on E:EOSError do
        begin
          if not (cs_link_nolink in current_settings.globalswitches) then
-           Message(exec_e_cant_call_resource_compiler);
+           Message1(exec_e_cant_call_resource_compiler, resbin);
          current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
          Result:=false;
        end
@@ -272,7 +272,7 @@ begin
   if respath='' then
     respath:='.';
   Replace(s,'$INC',maybequoted(respath));
-  if (output=roRes) and (target_res.resbin='windres') then
+  if (output=roRes) and (target_res.rcbin='windres') then
   begin
     if (srcfilepath<>'') then
       s:=s+' --include '+maybequoted(srcfilepath);
@@ -358,6 +358,7 @@ var
   resourcefile : tresourcefile;
   res: TCmdStrListItem;
   p,s : TCmdStr;
+  src,dst : TCFileStream;
   outfmt : tresoutput;
 begin
   { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage).
@@ -373,9 +374,40 @@ begin
       s:=res.FPStr;
       if not path_absolute(s) then
         s:=p+s;
+      if not FileExists(s, True) then
+        begin
+          Message1(exec_e_cant_open_resource_file, s);
+          Include(current_settings.globalswitches, cs_link_nolink);
+          exit;
+        end;
       resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass.create(s));
       if resourcefile.IsCompiled(s) then
-        resourcefile.free
+        begin
+          resourcefile.free;
+          if AnsiCompareText(current_module.outputpath^, p) <> 0 then
+            begin
+              { Copy .res file to units output dir. Otherwise .res file will not be found
+                when only compiled units path is available }
+              res.FPStr:=ExtractFileName(res.FPStr);
+              src:=TCFileStream.Create(s,fmOpenRead or fmShareDenyNone);
+              if CStreamError<>0 then
+                begin
+                  Message1(exec_e_cant_open_resource_file, src.FileName);
+                  Include(current_settings.globalswitches, cs_link_nolink);
+                  exit;
+                end;
+              dst:=TCFileStream.Create(current_module.outputpath^+res.FPStr,fmCreate);
+              if CStreamError<>0 then
+                begin
+                  Message1(exec_e_cant_write_resource_file, dst.FileName);
+                  Include(current_settings.globalswitches, cs_link_nolink);
+                  exit;
+                end;
+              dst.CopyFrom(src,src.Size);
+              dst.Free;
+              src.Free;
+            end;
+        end
       else
         begin
           res.FPStr:=ExtractFileName(res.FPStr);
