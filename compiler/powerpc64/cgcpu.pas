@@ -737,8 +737,11 @@ begin
       if (ref2.base<>NR_NO) and
          (ref2.index<>NR_NO) then
         begin
+	  // althoug fixref above makes sure that the location ref points to can be
+	  // accessed using the existing opcode restrictions, ref+4 still may be too
+	  // large to encode
           tmpreg:=getintregister(list,OS_64);
-          a_op_reg_reg_reg(list,OP_SHR,OS_64,ref2.base,ref2.index,tmpreg);
+          a_op_reg_reg_reg(list,OP_ADD,OS_64,ref2.base,ref2.index,tmpreg);
           ref2.base:=tmpreg;
           ref2.index:=NR_NO;
         end;
