@@ -72,6 +72,7 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function simplify : tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
@@ -472,6 +473,22 @@ implementation
       end;
 
 
+    function tassignmentnode.simplify : tnode;
+      begin
+        result:=nil;
+        { assignment nodes can perform several floating point }
+        { type conversions directly, so no typeconversions    }
+        { are inserted in those cases. When inlining, a       }
+        { variable may be replaced by a constant which can be }
+        { converted at compile time, so check for this case   }
+        if is_real(left.resultdef) and
+           is_real(right.resultdef) and
+           is_constrealnode(right) and
+           not equal_defs(right.resultdef,left.resultdef) then
+          inserttypeconv(right,left.resultdef);
+      end;
+
+
     function tassignmentnode.pass_typecheck:tnode;
       var
         hp : tnode;
@@ -553,6 +570,21 @@ implementation
                exit;
             end
          end
+        { floating point assignments can also perform the conversion directly }
+        else if is_real(left.resultdef) and is_real(right.resultdef) and
+                not is_constrealnode(right)
+         
+{$ifdef x86}
+                { the assignment node code can't convert a double in an }
+                { sse register to an extended value in memory more      }
+                { efficiently than a type conversion node, so don't     }
+                { bother implementing support for that                  }
+                and (use_sse(left.resultdef) or not(use_sse(right.resultdef)))
+{$endif}
+        then
+          begin
+            check_ranges(fileinfo,right,left.resultdef);
+          end
         else
           begin
             { check if the assignment may cause a range check error }
