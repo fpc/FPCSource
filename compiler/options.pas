@@ -2148,6 +2148,7 @@ begin
   def_system_macro('FPC_REAL2REAL_FIXED');
   def_system_macro('FPC_STRTOCHARARRAYPROC');
   def_system_macro('FPC_STRTOSHORTSTRINGPROC');
+  def_system_macro('FPC_OBJFPC_EXTENDED_IF');
 
 {$ifdef SUPPORT_UNALIGNED}
   def_system_macro('FPC_SUPPORTS_UNALIGNED');
