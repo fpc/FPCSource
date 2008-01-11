@@ -401,7 +401,11 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 # Used to avoid unnecessary steps
 ifdef DIFF
 ifdef OLDFPC
+ifneq ($(OS_TARGET),darwin)
 DIFFRESULT:=$(shell $(DIFF) $(OLDFPC) $(FPC))
+else
+DIFFRESULT:=$(shell cp $(OLDFPC) $(OLDFPC).tmp; cp $(FPC) $(FPC).tmp; strip -no_uuid $(OLDFPC).tmp; strip -no_uuid $(FPC).tmp; $(DIFF) $(OLDFPC).tmp $(FPC).tmp; rm $(OLDFPC).tmp $(FPC).tmp)
+endif
 else
 DIFFRESULT=Not equal
 endif
