@@ -1228,6 +1228,7 @@ begin
         PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
       end;
    end;
+  fpc_widestr_decr_ref(Pointer(fpc_widestr_copy));
   Pointer(fpc_widestr_Copy):=ResultAddress;
 end;
 

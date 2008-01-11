@@ -139,7 +139,7 @@ implementation
       begin
          ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
            (def.typ=recorddef) or
-           ((def.typ=stringdef) and (tstringdef(def).stringtype in [st_shortstring,st_longstring])) or
+           (def.typ=stringdef) or
            ((def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
            { interfaces are also passed by reference to be compatible with delphi and COM }
            ((def.typ=objectdef) and (is_object(def) or is_interface(def))) or

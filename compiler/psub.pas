@@ -501,6 +501,7 @@ implementation
             { must be the return value finalized before reraising the exception? }
             if (not is_void(current_procinfo.procdef.returndef)) and
                (current_procinfo.procdef.returndef.needs_inittable) and
+               (not paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption)) and
                (not is_class(current_procinfo.procdef.returndef)) then
               addstatement(newstatement,finalize_data_node(load_result_node));
           end;

@@ -737,6 +737,7 @@ begin
         PByte(ResultAddress+Size)^:=0;
       end;
    end;
+   fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
   Pointer(fpc_ansistr_Copy):=ResultAddress;
 end;
 
