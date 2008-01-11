@@ -486,7 +486,7 @@ begin
     aStream.Position,fDataAlignment*aResources.Count,fDataAlignment);
   fSections.Add('.text',SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,aStream.Position,0,4);
   fSections.Add('.data',SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,aStream.Position,0,4);
-  fSections.Add('.bss', SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,aStream.Position,0,4);
+  fSections.Add('.bss', SHT_NOBITS,SHF_ALLOC or SHF_WRITE,aStream.Position,0,4);
 end;
 
 procedure TAbstractElfSubWriter.WriteStrTab(aStream: TStream);
