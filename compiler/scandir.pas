@@ -1346,9 +1346,9 @@ implementation
         AddDirective('PACKRECORDS',directive_all, @dir_packrecords);
         AddDirective('PACKSET',directive_all, @dir_packset);
         AddDirective('PIC',directive_all, @dir_pic);
-        AddDirective('POP',directive_mac, @dir_pop);
+        AddDirective('POP',directive_all, @dir_pop);
         AddDirective('PROFILE',directive_all, @dir_profile);
-        AddDirective('PUSH',directive_mac, @dir_push);
+        AddDirective('PUSH',directive_all, @dir_push);
         AddDirective('R',directive_all, @dir_resource);
         AddDirective('RANGECHECKS',directive_all, @dir_rangechecks);
         AddDirective('REFERENCEINFO',directive_all, @dir_referenceinfo);
