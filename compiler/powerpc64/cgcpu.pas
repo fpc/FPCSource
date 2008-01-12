@@ -745,12 +745,15 @@ begin
 
   if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090904);
-  ref2 := ref;
-  fixref(list, ref2);
+
   { the caller is expected to have adjusted the reference already
    in this case }
   if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
     fromsize := tosize;
+
+  ref2 := ref;
+  fixref(list, ref2);
+
   op := loadinstr[fromsize, ref2.index <> NR_NO, false];
   { there is no LWAU instruction, simulate using ADDI and LWA }
   if (op = A_NOP) then begin
