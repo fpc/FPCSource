@@ -1,5 +1,5 @@
 #!/bin/bash
-fpdoc --package=reslib --format=html \
+fpdoc --package=fcl-res --format=html \
   --input=../src/resource.pp --descr=resource.xml \
   --input=../src/resourcetree.pp --descr=resourcetree.xml \
   --input=../src/resdatastream.pp --descr=resdatastream.xml \

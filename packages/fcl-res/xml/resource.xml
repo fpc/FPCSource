@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <fpdoc-descriptions>
-<package name="reslib">
+<package name="fcl-res">
 
 <topic name="Format of resources in object files">
 <short>Format of resources in object files</short>
@@ -918,7 +918,7 @@ end.
 <p><b>Other resource types</b></p>
 <p>There are other resource types that allow to easily deal with resource data. E.g. <link id="versionresource.TVersionResource">TVersionResource</link> makes it easy to create and read version information for Windows executables and dlls, <link id="stringtableresource.TStringTableResource">TStringTableResource</link> deals with string tables, and so on.</p>
 <p><b>Data caching</b></p>
-<p>Whenever possible, reslib tries to avoid to duplicate data. Generally a reader doesn't copy resource data from the original stream to <link id="resource.TAbstractResource.RawData">RawData</link> stream: instead, it only informs the resource about where its raw data is in the original stream. <link id="resource.TAbstractResource.RawData">RawData</link> uses a caching system so that it appears as a stream while it only redirects operations to its underlying stream, with a copy-on-write mechanism. Of course this behaviour can be controlled by the user. For further information, see <link id="resource.TAbstractResource">TAbstractResource</link> and <link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>.</p>
+<p>Whenever possible, fcl-res tries to avoid to duplicate data. Generally a reader doesn't copy resource data from the original stream to <link id="resource.TAbstractResource.RawData">RawData</link> stream: instead, it only informs the resource about where its raw data is in the original stream. <link id="resource.TAbstractResource.RawData">RawData</link> uses a caching system so that it appears as a stream while it only redirects operations to its underlying stream, with a copy-on-write mechanism. Of course this behaviour can be controlled by the user. For further information, see <link id="resource.TAbstractResource">TAbstractResource</link> and <link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>.</p>
 </descr>
 
 </topic>
@@ -929,7 +929,7 @@ end.
 <p>This package contains a library to easily work with Microsoft Windows resources in a cross-platform way.</p>
 <p>Classes are provided to create, load and write resources from/to different file formats in a transparent way, and to handle most common resource types without having to deal with their internal format.</p>
 <p>Whenever possible data caching is performed, helped by a copy-on-write mechanism. This improves performance especially when converting big resources from a file format to another.</p>
-<p>Since Reslib architecture is extensible, it's always possible to extend the library with custom resource types or new file readers/writers.</p>
+<p>Since fcl-res architecture is extensible, it's always possible to extend the library with custom resource types or new file readers/writers.</p>
 <p>Please note that resources aren't limited to Windows platform: Free Pascal can use them also on ELF and Mach-O targets. Moreover, this library can be useful for cross-compilation purposes even on other targets.</p>
 <p>It is highly recommended to read <link id="Basic Usage"/> topic if you are approaching this library for the first time.</p>
 </descr>
