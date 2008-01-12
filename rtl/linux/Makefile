@@ -264,6 +264,9 @@ endif
 ifeq ($(CPU_TARGET),x86_64)
 SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
+ifeq ($(CPU_TARGET),arm)
+override LOADERS+=ucprt0
+endif
 SYSTEMUNIT=system
 ifdef RELEASE
 override FPCOPT+=-Ur
@@ -2692,6 +2695,8 @@ cprt21$(OEXT) : $(CPU_TARGET)/cprt21.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
 gprt21$(OEXT) : $(CPU_TARGET)/gprt21.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
+ucprt0$(OEXT) : $(CPU_TARGET)/ucprt0.as
+	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
