@@ -277,6 +277,7 @@ implementation
         srsym : tsym;
         srsymtable : TSymtable;
         s,sorg : TIDString;
+        t : ttoken;
       begin
          s:=pattern;
          sorg:=orgpattern;
@@ -299,8 +300,8 @@ implementation
            parameters }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
-         is_unit_specific:=try_consume_unitsym(srsym,srsymtable);
-         consume(_ID);
+         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t);
+         consume(t);
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
            give an error. Only check for typesyms in the current symbol
