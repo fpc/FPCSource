@@ -2203,7 +2203,6 @@ implementation
         variantstringdef_cl: array[tstringtype] of tvariantequaltype =
           (tve_sstring,tve_astring,tve_astring,tve_wstring,tve_unicodestring);
       begin
-        result:=tve_incompatible;
         case def.typ of
           orddef:
             begin
@@ -2222,7 +2221,9 @@ implementation
               result:=tve_boolformal;
             end;
           else
-            internalerror(2006122804);
+            begin
+              result:=tve_incompatible;
+            end;
         end
       end;
 
@@ -2387,6 +2388,11 @@ implementation
         { if both are the same, there is a conflict }
         if (currvcl=bestvcl) then
           result:=0
+        { if one of the two cannot be used as variant, the other is better }
+        else if (bestvcl=tve_incompatible) then
+          result:=1
+        else if (currvcl=tve_incompatible) then
+          result:=-1
         { boolean and formal are better than chari64str, but conflict with }
         { everything else                                                  }
         else if (currvcl=tve_boolformal) or
@@ -2417,7 +2423,7 @@ implementation
           result:=calculate_relation(currvcl,bestvcl,tve_smallint,[tve_cardinal])
         { cardinal conflicts with each longint and is better than everything }
         { which has not yet been tested                                      }
-        else if (currvcl = tve_cardinal) or
+        else if (currvcl=tve_cardinal) or
                 (bestvcl=tve_cardinal) then
           result:=calculate_relation(currvcl,bestvcl,tve_cardinal,[tve_longint])
         { longint is better than everything which has not yet been tested }
