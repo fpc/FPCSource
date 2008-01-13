@@ -25,7 +25,7 @@ implicitunits= jwawintype jwawinbase jwawinnt \
  jwaprsht jwapsapi jwadsadmin jwadsclient jwadsgetdc jwadskquota \
  jwadsquery jwadsrole jwaqos jwaqossp jwaerrorrep jwarpc jwasddl \
  jwafaxdev jwafaxext jwafaxmmc jwafaxroute jwagpedit jwahherror \
- jwahtmlGuid jwahtmlhelp jwaiaccess jwaiadmext jwaicmpapi jwaiiscnfg \
+ jwahtmlguid jwahtmlhelp jwaiaccess jwaiadmext jwaicmpapi jwaiiscnfg \
  jwaimagehlp jwalmdfs jwaimapierror jwasens jwasfc jwaioevent \
  jwaipexport jwaiphlpapi jwaipifcons jwaipinfoid jwaiprtrmib \
  jwaiptypes jwaisguids jwaissper16 jwalmaccess jwalmalert jwalmapibuf \
@@ -34,7 +34,7 @@ implicitunits= jwawintype jwawinbase jwawinnt \
  jwamciavi jwamprerror jwawsvns jwaimapi jwamsidefs jwamsiquery \
  jwamstask jwamstcpip jwamswsock jwanspapi jwantddpar jwantdsapi \
  jwantdsbcli jwantdsbmsg jwantldap jwantquery jwantsecapi jwantstatus \
- jwaObjsel jwapatchapi jwapatchwiz jwapdhmsg jwapowrprof jwaprofinfo \
+ jwaobjsel jwapatchapi jwapatchwiz jwapdhmsg jwapowrprof jwaprofinfo \
  jwaprotocol jwaqosname jwaqospol jwareason jwaregstr jwarpcasync \
  jwarpcdce jwarpcnsi jwarpcnterr jwarpcssl jwascesvc jwaschedule \
  jwaschemadef jwasecext jwasecurity jwasensapi jwashlguid jwasisbkup \
