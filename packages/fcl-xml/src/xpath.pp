@@ -239,6 +239,7 @@ type
     FIsAbsolutePath: Boolean;
   public
     constructor Create(AIsAbsolutePath: Boolean);
+    destructor destroy;override;
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
@@ -439,6 +440,7 @@ type
     { CompleteExpresion specifies wether the parser should check for gargabe
       after the recognised part. True => Throw exception if there is garbage }
     constructor Create(AScanner: TXPathScanner; CompleteExpression: Boolean);
+    destructor destroy;override;
     function Evaluate(AContextNode: TDOMNode): TXPathVariable;
     function Evaluate(AContextNode: TDOMNode;
       AEnvironment: TXPathEnvironment): TXPathVariable;
@@ -893,7 +895,7 @@ begin
   for i := 0 to Predicates.Count - 1 do
     TXPathExprNode(Predicates[i]).Free;
   Predicates.Free;
-  inherited Free;
+  inherited destroy;
 end;
 
 constructor TXPathLocationPathNode.Create(AIsAbsolutePath: Boolean);
@@ -1163,6 +1165,15 @@ begin
   Result := TXPathNodeSetVariable.Create(ResultNodeSet);
 end;
 
+destructor TXPathLocationPathNode.destroy;
+var tmp:TStep;
+begin
+ while FFirstStep<>nil do begin
+  tmp:=FFirstStep.NextStep;
+  FFirstStep.free;
+  FFirstStep:=tmp;
+ end;
+end;
 
 { Exceptions }
 
@@ -2481,6 +2492,11 @@ begin
   finally
     Environment.Free;
   end;
+end;
+
+destructor TXPathExpression.destroy;
+begin
+ FRootNode.free;
 end;
 
 function TXPathExpression.Evaluate(AContextNode: TDOMNode;

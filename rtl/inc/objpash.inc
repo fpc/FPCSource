@@ -242,7 +242,7 @@
           property Controller : IUnknown read GetController;
        end;
 
-       TContainedObject = class(TObject)
+       TContainedObject = class(TAggregatedObject,IInterface)
          protected 
            function QueryInterface(const iid : tguid;out obj) : longint;virtual; stdcall;
          end;
