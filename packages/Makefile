@@ -247,7 +247,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web
+override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
@@ -364,7 +364,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web
+override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
@@ -1530,6 +1530,8 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
+TARGET_DIRS_WINUNITS-BASE=1
+TARGET_DIRS_WINUNITS-JEDI=1
 TARGET_DIRS_FCL-WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
@@ -2231,6 +2233,8 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
+TARGET_DIRS_WINUNITS-BASE=1
+TARGET_DIRS_WINUNITS-JEDI=1
 TARGET_DIRS_FCL-WEB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
@@ -3192,6 +3196,96 @@ fcl-async:
 	$(MAKE) -C fcl-async all
 .PHONY: fcl-async_all fcl-async_debug fcl-async_smart fcl-async_release fcl-async_units fcl-async_examples fcl-async_shared fcl-async_install fcl-async_sourceinstall fcl-async_exampleinstall fcl-async_distinstall fcl-async_zipinstall fcl-async_zipsourceinstall fcl-async_zipexampleinstall fcl-async_zipdistinstall fcl-async_clean fcl-async_distclean fcl-async_cleanall fcl-async_info fcl-async_makefiles fcl-async
 endif
+ifdef TARGET_DIRS_WINUNITS-BASE
+winunits-base_all:
+	$(MAKE) -C winunits-base all
+winunits-base_debug:
+	$(MAKE) -C winunits-base debug
+winunits-base_smart:
+	$(MAKE) -C winunits-base smart
+winunits-base_release:
+	$(MAKE) -C winunits-base release
+winunits-base_units:
+	$(MAKE) -C winunits-base units
+winunits-base_examples:
+	$(MAKE) -C winunits-base examples
+winunits-base_shared:
+	$(MAKE) -C winunits-base shared
+winunits-base_install:
+	$(MAKE) -C winunits-base install
+winunits-base_sourceinstall:
+	$(MAKE) -C winunits-base sourceinstall
+winunits-base_exampleinstall:
+	$(MAKE) -C winunits-base exampleinstall
+winunits-base_distinstall:
+	$(MAKE) -C winunits-base distinstall
+winunits-base_zipinstall:
+	$(MAKE) -C winunits-base zipinstall
+winunits-base_zipsourceinstall:
+	$(MAKE) -C winunits-base zipsourceinstall
+winunits-base_zipexampleinstall:
+	$(MAKE) -C winunits-base zipexampleinstall
+winunits-base_zipdistinstall:
+	$(MAKE) -C winunits-base zipdistinstall
+winunits-base_clean:
+	$(MAKE) -C winunits-base clean
+winunits-base_distclean:
+	$(MAKE) -C winunits-base distclean
+winunits-base_cleanall:
+	$(MAKE) -C winunits-base cleanall
+winunits-base_info:
+	$(MAKE) -C winunits-base info
+winunits-base_makefiles:
+	$(MAKE) -C winunits-base makefiles
+winunits-base:
+	$(MAKE) -C winunits-base all
+.PHONY: winunits-base_all winunits-base_debug winunits-base_smart winunits-base_release winunits-base_units winunits-base_examples winunits-base_shared winunits-base_install winunits-base_sourceinstall winunits-base_exampleinstall winunits-base_distinstall winunits-base_zipinstall winunits-base_zipsourceinstall winunits-base_zipexampleinstall winunits-base_zipdistinstall winunits-base_clean winunits-base_distclean winunits-base_cleanall winunits-base_info winunits-base_makefiles winunits-base
+endif
+ifdef TARGET_DIRS_WINUNITS-JEDI
+winunits-jedi_all:
+	$(MAKE) -C winunits-jedi all
+winunits-jedi_debug:
+	$(MAKE) -C winunits-jedi debug
+winunits-jedi_smart:
+	$(MAKE) -C winunits-jedi smart
+winunits-jedi_release:
+	$(MAKE) -C winunits-jedi release
+winunits-jedi_units:
+	$(MAKE) -C winunits-jedi units
+winunits-jedi_examples:
+	$(MAKE) -C winunits-jedi examples
+winunits-jedi_shared:
+	$(MAKE) -C winunits-jedi shared
+winunits-jedi_install:
+	$(MAKE) -C winunits-jedi install
+winunits-jedi_sourceinstall:
+	$(MAKE) -C winunits-jedi sourceinstall
+winunits-jedi_exampleinstall:
+	$(MAKE) -C winunits-jedi exampleinstall
+winunits-jedi_distinstall:
+	$(MAKE) -C winunits-jedi distinstall
+winunits-jedi_zipinstall:
+	$(MAKE) -C winunits-jedi zipinstall
+winunits-jedi_zipsourceinstall:
+	$(MAKE) -C winunits-jedi zipsourceinstall
+winunits-jedi_zipexampleinstall:
+	$(MAKE) -C winunits-jedi zipexampleinstall
+winunits-jedi_zipdistinstall:
+	$(MAKE) -C winunits-jedi zipdistinstall
+winunits-jedi_clean:
+	$(MAKE) -C winunits-jedi clean
+winunits-jedi_distclean:
+	$(MAKE) -C winunits-jedi distclean
+winunits-jedi_cleanall:
+	$(MAKE) -C winunits-jedi cleanall
+winunits-jedi_info:
+	$(MAKE) -C winunits-jedi info
+winunits-jedi_makefiles:
+	$(MAKE) -C winunits-jedi makefiles
+winunits-jedi:
+	$(MAKE) -C winunits-jedi all
+.PHONY: winunits-jedi_all winunits-jedi_debug winunits-jedi_smart winunits-jedi_release winunits-jedi_units winunits-jedi_examples winunits-jedi_shared winunits-jedi_install winunits-jedi_sourceinstall winunits-jedi_exampleinstall winunits-jedi_distinstall winunits-jedi_zipinstall winunits-jedi_zipsourceinstall winunits-jedi_zipexampleinstall winunits-jedi_zipdistinstall winunits-jedi_clean winunits-jedi_distclean winunits-jedi_cleanall winunits-jedi_info winunits-jedi_makefiles winunits-jedi
+endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
 smart: $(addsuffix _smart,$(TARGET_DIRS))
@@ -3226,11 +3320,27 @@ extra_debug: base_debug fcl-xml_debug
 extra_smart: base_smart fcl-xml_smart
 extra_release: base_release fcl-xml_release
 extra_shared: base_shared fcl-xml_shared
+ifeq ($(OS_TARGET),win32)
+fcl-base_all: base_all winunits-base_all winunits-jedi_all
+fcl-base_debug: base_debug winunits-base_debug winunits-jedi_debug
+fcl-base_smart: base_smart winunits-base_smart winunits-jedi_smart
+fcl-base_release: base_release winunits-base_release winunits-jedi_release
+fcl-base_shared: base_shared winunits-base_shared winunits-jedi_shared
+else
+ifeq ($(OS_TARGET),win64)
+fcl-base_all: base_all winunits-base_all winunits-jedi_all
+fcl-base_debug: base_debug winunits-base_debug winunits-jedi_debug
+fcl-base_smart: base_smart winunits-base_smart winunits-jedi_smart
+fcl-base_release: base_release winunits-base_release winunits-jedi_release
+fcl-base_shared: base_shared winunits-base_shared winunits-jedi_shared
+else
 fcl-base_all: base_all
 fcl-base_debug: base_debug
 fcl-base_smart: base_smart
 fcl-base_release: base_release
 fcl-base_shared: base_shared
+endif
+endif
 fcl-xml_all: fcl-base_all
 fcl-xml_debug: fcl-base_debug
 fcl-xml_smart: fcl-base_smart

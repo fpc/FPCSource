@@ -6,8 +6,8 @@
 dirs=pasjpeg regexpr netdb
 dirs_i386_linux=libc
 dirs_linux=gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
-dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle imagemagick httpd winunits
-dirs_win64=mysql ibase odbc sqlite postgres oracle winunits
+dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle imagemagick httpd 
+dirs_win64=mysql ibase odbc sqlite postgres oracle 
 dirs_wince=ibase sqlite postgres
 dirs_go32v2=gdbint
 dirs_netbsd=gdbint mysql ibase postgres oracle odbc imagemagick httpd

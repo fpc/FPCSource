@@ -3,13 +3,16 @@
 #
 
 [package]
-name=winunits
-version=2.2.1
+name=winunits-jedi
+version=2.2.0
+
+[require]
+packages_win32=winunits-base
+packages_win64=winunits-base
 
 [target]
 units=buildjwa
-implicitunits=flatsb winver mmsystem comobj comconst commctrl ole2 activex shellapi shlobj oleserver \
- jwawintype jwawinbase jwawinnt \
+implicitunits= jwawintype jwawinbase jwawinnt \
  jwalmerr jwalmmsg jwaaclui jwaadsdb jwalmerrlog jwalmjoin jwaauthz  \
  jwabits jwalmremutl jwalmrepl jwalmserver jwalmshare jwalmsname \
  jwalmstats jwaaccctrl jwaaclapi jwacderr jwacpl jwaactiveds jwadbt jwadde \
@@ -45,23 +48,26 @@ implicitunits=flatsb winver mmsystem comobj comconst commctrl ole2 activex shell
  jwawpcrsmsg jwawpftpmsg jwawppstmsg jwawpspihlp jwawptypes \
  jwawpwizmsg jwaws2atm jwaws2bth jwaws2dnet jwaws2spi jwaws2tcpip \
  jwawshisotp jwawsnetbs jwawsnwlink jwawtsapi32 jwazmouse jwasensevts \
- jwaadstlb jwanative shfolder richedit jwawindows jwacarderr jwaactivex \
+ jwaadstlb jwanative jwawindows jwacarderr jwaactivex \
  jwawindllnames jwawinternl jwawinsta jwavista
 
 
 examples=examples
 
-rsts = jwawintype comconst
+rsts = jwawintype 
 
 [install]
 buildunit=buildjwa
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [compiler]
 options=-Ur
+sourcedir=src
+includedir=src
+unitdir=units
 
 [rules]
 .NOTPARALLEL:

@@ -21,8 +21,7 @@ unit buildjwa;
 interface
 
 uses
-    flatsb, winver, mmsystem, comconst, commctrl, comobj, ole2, activex, shellapi, shlobj, oleserver,
-    jwawintype, jwawinbase, jwawinnt, shfolder, richedit,
+    jwawintype, jwawinbase, jwawinnt, 
     jwalmerr, jwalmmsg, jwaaclui, jwaadsdb, jwalmerrlog, jwalmjoin, jwaauthz,
     jwabits, jwalmremutl, jwalmrepl, jwalmserver, jwalmshare, jwalmsname,
     jwalmstats, jwaaccctrl, jwaaclapi, jwacderr, jwacpl, jwaactiveds, jwadbt, jwadde,
@@ -58,7 +57,7 @@ uses
     jwawpcrsmsg, jwawpftpmsg, jwawppstmsg, jwawpspihlp, jwawptypes,
     jwawpwizmsg, jwaws2atm, jwaws2bth, jwaws2dnet, jwaws2spi, jwaws2tcpip,
     jwawshisotp, jwawsnetbs, jwawsnwlink, jwawtsapi32, jwazmouse, jwasensevts,
-    jwaadstlb, jwanative, jwawindows, jwacarderr,jwawinsta, jwavista;
+    jwaadstlb, jwanative, jwawindows, jwacarderr,jwawinsta, jwavista,jwawinternl;
 
 implementation
 
