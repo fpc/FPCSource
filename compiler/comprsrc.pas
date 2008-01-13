@@ -203,7 +203,7 @@ begin
   { Update asmres when externmode is set and resource compiling failed }
   if (not Result) and (cs_link_nolink in current_settings.globalswitches) then
     AsmRes.AddLinkCommand(resbin,s,OutName);
-  if (output=roOBJ) and ObjUsed then
+  if Result and (output=roOBJ) and ObjUsed then
     current_module.linkunitofiles.add(OutName,link_always);
 end;
 
@@ -459,6 +459,10 @@ var
   hp : tused_unit;
   s : TCmdStr;
 begin
+  { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage).
+    same with MacOS}
+  if target_info.system in [system_i386_os2,system_i386_emx,system_powerpc_macos] then exit;
+
   if (target_info.res=res_none) or ((target_res.resbin='')
     and (ResCompiler='')) then
       exit;
