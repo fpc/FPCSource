@@ -213,6 +213,7 @@ unit comobj;
       CoReleaseServerProcess : TCoReleaseServerProcessProc = nil;
       CoResumeClassObjects : TCoResumeClassObjectsProc = nil;
       CoSuspendClassObjects : TCoSuspendClassObjectsProc = nil;
+      CoInitFlags : Longint = -1;
 
 implementation
 
@@ -1044,7 +1045,11 @@ initialization
     end;
 
   if not(IsLibrary) then
-    Initialized:=Succeeded(CoInitialize(nil));
+    if (CoInitFlags=-1) or not(assigned(comobj.CoInitializeEx)) then
+      Initialized:=Succeeded(CoInitialize(nil))
+    else
+      Initialized:=Succeeded(comobj.CoInitializeEx(nil, CoInitFlags));
+
   SafeCallErrorProc:=@SafeCallErrorHandler;
   VarDispProc:=@ComObjDispatchInvoke;
   DispCallByIDProc:=@DoDispCallByID;
