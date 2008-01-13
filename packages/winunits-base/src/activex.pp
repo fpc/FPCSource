@@ -486,6 +486,14 @@ Const
     SYS_MAC                     = 2;
     SYS_WIN64                   = 3;
 
+    REGKIND_DEFAULT		= 0;
+    REGKIND_REGISTER		= 1;
+    REGKIND_NONE		= 2;
+
+    INTERFACESAFE_FOR_UNTRUSTED_CALLER = $00000001;	// Caller of interface may be untrusted
+    INTERFACESAFE_FOR_UNTRUSTED_DATA   = $00000002;	// Data passed into interface may be untrusted
+    INTERFACE_USES_DISPEX              = $00000004;	// Object knows to use IDispatchEx
+    INTERFACE_USES_SECURITY_MANAGER    = $00000008;	// Object knows to use IInternetHostSecurityManager
 
     LIBFLAG_FRESTRICTED         = $01;
     LIBFLAG_FCONTROL            = $02;
@@ -722,6 +730,9 @@ TYPE
     VARKIND             = DWord;
     DESCKIND            = DWord;
     SYSKIND             = DWord;
+    TSYSKIND		= SYSKIND;
+    REGKIND		= DWord;
+    TREGKIND		= REGKIND;
     FUNCKIND            = DWord;
     CHANGEKIND          = DWord;
     CALLCONV            = DWord;
@@ -1464,6 +1475,7 @@ TYPE
 
   TLIBATTR                       = tagTLIBATTR;
   LPTLIBATTR                     = ^tagTLIBATTR;
+  PTLIBAttr			 = LPTLIBATTR;
 
   LPFUNCDESC                     = ^FUNCDESC;
 
@@ -2838,7 +2850,7 @@ type
 
   type
     WINOLEAPI = HResult;
-    TLCID = DWORD;
+    TLCID = DWORD; // is this needed (duplicate from windows?)
 
   const
      OLEIVERB_PRIMARY = 0;
@@ -2862,11 +2874,11 @@ type
   { helper functions  }
   function ReadClassStg(pStg:IStorage; pclsid:PCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'ReadClassStg';
 
-  function WriteClassStg(pStg:IStorage;const rclsid:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStg';
+  function WriteClassStg(pStg:IStorage;const rclsid:TCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStg';
 
   function ReadClassStm(pStm:IStream; pclsid:PCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'ReadClassStm';
 
-  function WriteClassStm(pStm:IStream;const rclsid:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStm';
+  function WriteClassStm(pStm:IStream;const rclsid:TCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStm';
 
   function WriteFmtUserTypeStg(pstg:IStorage; cf:CLIPFORMAT; lpszUserType:LPOLESTR):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteFmtUserTypeStg';
 
@@ -2883,12 +2895,12 @@ type
 
   function OleQueryCreateFromData(pSrcDataObject:IDataObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleQueryCreateFromData';
 
-  { Object creation APIs  } function OleCreate(const rclsid:TLCID; const riid:TIID;
+  { Object creation APIs  } function OleCreate(const rclsid:TCLSID; const riid:TIID;
   renderopt:DWORD; pFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
   pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name
   'OleCreate';
 
-  function OleCreateEx(const rclsid:TLCID; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
+  function OleCreateEx(const rclsid:TCLSID; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
              pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateEx';
 
@@ -2923,10 +2935,10 @@ type
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
              pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLinkToFileEx';
 
-  function OleCreateFromFile(const rclsid:TLCID; lpszFileName:POleStr; const riid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC;
+  function OleCreateFromFile(const rclsid:TCLSID; lpszFileName:POleStr; const riid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC;
              pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromFile';
 
-  function OleCreateFromFileEx(const rclsid:TLCID; lpszFileName:POleStr; const riid:TIID; dwFlags:DWORD; renderopt:DWORD;
+  function OleCreateFromFileEx(const rclsid:TCLSID; lpszFileName:POleStr; const riid:TIID; dwFlags:DWORD; renderopt:DWORD;
              cFormats:ULONG; rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD;
              pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromFileEx';
 
@@ -2985,9 +2997,9 @@ type
 
   function CreateOleAdviseHolder(out ppOAHolder:IOleAdviseHolder):WINOLEAPI;stdcall;external 'ole32.dll' name 'CreateOleAdviseHolder';
 
-  function OleCreateDefaultHandler(const clsid:TLCID; pUnkOuter:IUnknown; const riid:TIID; out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateDefaultHandler';
+  function OleCreateDefaultHandler(const clsid:TCLSID; pUnkOuter:IUnknown; const riid:TIID; out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateDefaultHandler';
 
-  function OleCreateEmbeddingHelper(const clsid:TLCID; pUnkOuter:IUnknown; flags:DWORD; pCF:IClassFactory; const riid:TIID;
+  function OleCreateEmbeddingHelper(const clsid:TCLSID; pUnkOuter:IUnknown; flags:DWORD; pCF:IClassFactory; const riid:TIID;
              out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateEmbeddingHelper';
 
   function IsAccelerator(hAccel:HACCEL; cAccelEntries:longint; lpMsg:LPMSG; lpwCmd:PWORD):BOOL;stdcall;external 'ole32.dll' name 'IsAccelerator';
@@ -2995,18 +3007,18 @@ type
   { Icon extraction Helper APIs  }
   function OleGetIconOfFile(lpszPath:LPOLESTR; fUseFileAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfFile';
 
-  function OleGetIconOfClass(const rclsid:TLCID; lpszLabel:LPOLESTR; fUseTypeAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfClass';
+  function OleGetIconOfClass(const rclsid:TCLSID; lpszLabel:LPOLESTR; fUseTypeAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfClass';
 
   function OleMetafilePictFromIconAndLabel(hIcon:HICON; lpszLabel:LPOLESTR; lpszSourceFile:LPOLESTR; iIconIndex:UINT):HGLOBAL;stdcall;external 'ole32.dll' name 'OleMetafilePictFromIconAndLabel';
 
   { Registration Database Helper APIs  }
-  function OleRegGetUserType(const clsid:TLCID; dwFormOfType:DWORD;out pszUserType:POleStr):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetUserType';
+  function OleRegGetUserType(const clsid:TCLSID; dwFormOfType:DWORD;out pszUserType:POleStr):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetUserType';
 
-  function OleRegGetMiscStatus(const clsid:TLCID; dwAspect:DWORD; pdwStatus:PDWORD):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetMiscStatus';
+  function OleRegGetMiscStatus(const clsid:TCLSID; dwAspect:DWORD; pdwStatus:PDWORD):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetMiscStatus';
 
-  function OleRegEnumFormatEtc(const clsid:TLCID; dwDirection:DWORD;out ppenum:IEnumFormatEtc):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumFormatEtc';
+  function OleRegEnumFormatEtc(const clsid:TCLSID; dwDirection:DWORD;out ppenum:IEnumFormatEtc):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumFormatEtc';
 
-  function OleRegEnumVerbs(const clsid:TLCID;out ppenum:IEnumOLEVERB):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumVerbs';
+  function OleRegEnumVerbs(const clsid:TCLSID;out ppenum:IEnumOLEVERB):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumVerbs';
 
 {$ifdef _MAC}
   { WlmOLE helper APIs  }
@@ -3070,9 +3082,9 @@ type
   { ConvertTo APIS  }
   function OleDoAutoConvert(pStg:IStorage; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleDoAutoConvert';
 
-  function OleGetAutoConvert(const clsidOld:TLCID; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleGetAutoConvert';
+  function OleGetAutoConvert(const clsidOld:TCLSID; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleGetAutoConvert';
 
-  function OleSetAutoConvert(const clsidOld:TLCID; clsidNew:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetAutoConvert';
+  function OleSetAutoConvert(const clsidOld:TCLSID; clsidNew:TCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetAutoConvert';
 
   function GetConvertStg(pStg:IStorage):WINOLEAPI;stdcall;external 'ole32.dll' name 'GetConvertStg';
 
