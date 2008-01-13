@@ -151,6 +151,7 @@ implementation
       symnot,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
+      cpuinfo,
       ncon,ninl,ncnv,nmem,ncal,nutils,nbas,
       cgobj,cgbase
       ;
@@ -573,7 +574,11 @@ implementation
         { floating point assignments can also perform the conversion directly }
         else if is_real(left.resultdef) and is_real(right.resultdef) and
                 not is_constrealnode(right)
-         
+{$ifdef cpufpemu}
+                { the emulator can't do this obviously }
+                and not(current_settings.fputype in [fpu_libgcc,fpu_soft])
+{$endif cpufpemu}
+
 {$ifdef x86}
                 { the assignment node code can't convert a double in an }
                 { sse register to an extended value in memory more      }
