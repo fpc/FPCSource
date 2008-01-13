@@ -258,8 +258,6 @@ Const
     MSHCTX_INPROC               = 3;   // unmarshal context is on different thread
     MSHCTX_CROSSCTX             = 4;   // unmarshal context is on different context
 
-
-
 // #########################################################################
 //
 //  VARTYPE
@@ -462,7 +460,6 @@ Const
     DISPATCH_PROPERTYGET    = $2;
     DISPATCH_PROPERTYPUT    = $4;
     DISPATCH_PROPERTYPUTREF = $8;
-
 
 // The range -500 through -999 is reserved for Controls
 // The range 0x80010000 through 0x8001FFFF is reserved for Controls
@@ -1800,9 +1797,6 @@ TYPE
        Function Reset:HResult; StdCall;
        Function Clone(Out penum:IEnumStatSTG):HResult; StdCall;
        End;
-
-
-
 
     IStorage = Interface (IUnknown)
        ['{0000000b-0000-0000-C000-000000000046}']
@@ -3344,12 +3338,12 @@ type
   const
     oleaut32dll   = 'oleaut32.dll';
 
-  function  SysAllocString(psz: pointer): Integer; external oleaut32dll name 'SysAllocString';
-  function  SysAllocStringLen(psz: pointer; len:dword): Integer; external oleaut32dll name 'SysAllocStringLen';
-  procedure SysFreeString(bstr:pointer); external oleaut32dll name 'SysFreeString';
-  function  SysStringLen(bstr:pointer):UINT; external oleaut32dll name 'SysStringLen';
-  function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; external oleaut32dll name 'SysReAllocString';
-  function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; external oleaut32dll name 'SysReAllocStringLen';
+  function  SysAllocString(psz: pointer): Integer; stdcall; external oleaut32dll name 'SysAllocString';
+  function  SysAllocStringLen(psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysAllocStringLen';
+  procedure SysFreeString(bstr:pointer); stdcall; external oleaut32dll name 'SysFreeString';
+  function  SysStringLen(bstr:pointer):UINT; stdcall; external oleaut32dll name 'SysStringLen';
+  function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; stdcall; external oleaut32dll name 'SysReAllocString';
+  function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysReAllocStringLen';
 
 	{ Active object registration API }
 	const
@@ -3366,6 +3360,16 @@ function ResultCode(Res: HResult) : Longint;inline;
 function ResultFacility(Res: HResult): Longint;inline;
 function ResultSeverity(Res: HResult): Longint;inline;
 function MakeResult(Severity, Facility, Code: Longint): HResult;inline;
+
+function LoadTypeLib(szfile : lpolestr; var pptlib: ITypelib):HResult; stdcall; external oleaut32dll name 'LoadTypeLib';
+function LoadTypeLibEx(szfile : lpolestr; regk:tregkind; var pptlib: ITypelib):HResult; stdcall; external oleaut32dll name 'LoadTypeLibEx';
+function LoadRegTypeLib(const rguid:TGUID;wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;out pptlib:ITypeLib):HResult; stdcall; external oleaut32dll name 'LoadRegTypeLib';
+function QueryPathOfRegTypeLib(const guid:TGUID;wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;lpbstr:LPolestr):HResult; stdcall; external oleaut32dll name 'QueryPathOfRegTypeLib';
+function RegisterTypeLib(const ptrlib :ITypeLib;szfullpath:lpolestr;szhelpdir:lpolestr):HResult; stdcall; external oleaut32dll name 'RegisterTypeLib';
+function UnRegisterTypeLib(const libid:TGUID; wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;sysk:TSysKind):HResult; stdcall; external oleaut32dll name 'UnRegisterTypeLib';
+function CreateTypeLib(sysk:TSysKind;szfile:lpolestr;out ppctlib:ICreateTypeLib):HResult; stdcall; external oleaut32dll name 'CreateTypeLib';
+function CreateTypeLib2(sysk:TSysKind;szfile:lpolestr;out ppctlib:ICreateTypeLib2):HResult; stdcall; external oleaut32dll name 'CreateTypeLib2';
+function DispInvoke(this:pointer;const ptinfo: ITypeInfo;dispidMember:TDISPID;wflags:ushort;pparams:pDISPParams;var pvarresult:OLEVARIANT;pexcepinfo:EXCEPINFO;puArgErr:puint):HRESULT; stdcall; external oleaut32dll name 'CreateTypeLib2';
 
 implementation
 
