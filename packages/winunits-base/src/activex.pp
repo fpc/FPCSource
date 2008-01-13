@@ -461,6 +461,10 @@ Const
     DISPATCH_PROPERTYPUT    = $4;
     DISPATCH_PROPERTYPUTREF = $8;
 
+    USERCLASSTYPE_FULL      = 1;
+    USERCLASSTYPE_SHORT     = 2;
+    USERCLASSTYPE_APPNAME   = 3;
+
 // The range -500 through -999 is reserved for Controls
 // The range 0x80010000 through 0x8001FFFF is reserved for Controls
 // The range -5000 through -5499 is reserved for ActiveX Accessability
@@ -1744,9 +1748,9 @@ TYPE
       Function Inverse(out mk : IMoniker):HResult; StdCall;
       Function CommonPrefixWith (Const mkOther:IMoniker):HResult; StdCall;
       Function RelativePathTo(Const mkother:IMoniker; Out mkRelPath : IMoniker):HResult;StdCall;
-      Function GetDisplayName(Const bc:IMoniker;const mktoleft:IMoniker;Out szDisplayName: pOleStr):HResult; StdCall;
+      Function GetDisplayName(Const bc:IBindCtx;const mktoleft:IMoniker;Out szDisplayName: pOleStr):HResult; StdCall;
       Function ParseDisplayName(Const bc:IBindCtx;Const mkToLeft:IMoniker;szDisplayName:POleStr;out cheaten:ULong;out mkOut:IMoniker):HResult; StdCall;
-      Function IsSystemMonitor(Out dwMkSys:DWord):HResult;StdCall;
+      Function IsSystemMoniker(Out dwMkSys:DWord):HResult;StdCall;
       End;
 
     IROTData = Interface (IUnknown)
@@ -1856,8 +1860,8 @@ TYPE
 
    IEnumFORMATETC = Interface (IUnknown)
      ['{00000103-0000-0000-C000-000000000046}']
-     Function Next(Celt:ULong;Out Rgelt:FormatEtc;Out pceltFetched:ULong):HResult; StdCall;
-//     Function RemoteNext(Celt:ULong;Out Rgelt:FormatEtc;Out pceltFetched:ULong):HResult; StdCall;
+     Function Next(Celt:ULong;Out Rgelt:FormatEtc;pceltFetched:pULong=nil):HResult; StdCall;
+//     Function RemoteNext(Celt:ULong;Out Rgelt:FormatEtc; pceltFetched:pULong=nil):HResult; StdCall;
      Function Skip(Celt:ULong):HResult;StdCall;
      Function Reset:HResult;StdCall;
      Function Clone(out penum:IEnumFORMATETC):HResult;StdCall;
@@ -1865,7 +1869,7 @@ TYPE
 
     IEnumSTATDATA = Interface (IUnknown)
         ['{00000105-0000-0000-C000-000000000046}']
-        Function Next(Celt:ULong;Out Rgelt:statdata;Out pceltFetched:ULong):HResult; StdCall;
+        Function Next(Celt:ULong;Out Rgelt:statdata; pceltFetched:pULong=nil):HResult; StdCall;
 //      Function RemoteNext(Celt:ULong;Out Rgelt:statdata;Out pceltFetched:ULong):HResult; StdCall;
         Function Skip(Celt:ULong):HResult;StdCall;
         Function Reset:HResult;StdCall;
@@ -2076,7 +2080,7 @@ TYPE
 
     IEnumConnections = Interface (IUnknown)
        ['{B196B287-BAB4-101A-B69C-00AA00341D07}']
-       Function Next(cConnections : ULong; Out rgcd : ConnectData;Out lpcFetched : ULong):HResult;StdCall;
+       Function Next(cConnections : ULong; Out rgcd : ConnectData; lpcFetched : pULong=nil):HResult;StdCall;
        Function Skip(cConnections : ULong):HResult;StdCall;
        Function Reset:HResult;StdCall;
        Function Clone(Out pEnum : IEnumConnections):HResult; StdCall;
@@ -2085,7 +2089,7 @@ TYPE
 
     IEnumConnectionPoints = Interface (IUnknown)
        ['{B196B285-BAB4-101A-B69C-00AA00341D07}']
-       Function Next(cConnections : ULong; Out rgpcm : IConnectionPoint;Out lpcFetched : ULong):HResult;StdCall;
+       Function Next(cConnections : ULong; Out rgpcm : IConnectionPoint; lpcFetched : pULong=nil):HResult;StdCall;
        Function Skip(cConnections : ULong):HResult;StdCall;
        Function Reset:HResult;StdCall;
        Function Clone(Out pEnum : IEnumConnectionPoints):HResult;StdCall;
@@ -2407,9 +2411,9 @@ TYPE
    IEnumVARIANT = Interface (IUnknown)
      ['{00020404-0000-0000-C000-000000000046}']
      {$ifndef Call_as}
-      Function  Next(celt: ULONG; OUT rgVar: VARIANT; OUT pCeltFetched: ULONG):HResult;StdCall;
+      Function  Next(celt: ULONG; OUT rgVar: VARIANT;  pCeltFetched: pULONG=nil):HResult;StdCall;
      {$else}
-      Function  Next(celt: ULONG; OUT rgVar: VARIANT; OUT pCeltFetched: ULONG):HResult;StdCall;
+      Function  Next(celt: ULONG; OUT rgVar: VARIANT;  pCeltFetched: pULONG=nil):HResult;StdCall;
      {$endif}
      Function  Skip(celt: ULONG):HResult;StdCall;
      Function  Reset():HResult;StdCall;
@@ -2664,7 +2668,7 @@ TYPE
 
    IEnumGUID = interface(IUnknown)
      ['{0002E000-0000-0000-C000-000000000046}']
-     Function Next(celt: UINT; OUT rgelt: TGUID; OUT pceltFetched: UINT):HResult;StdCall;
+     Function Next(celt: UINT; OUT rgelt: TGUID;  pceltFetched: pUINT=nil):HResult;StdCall;
      Function Skip(celt:UINT):HResult;StdCall;
      Function Reset: HResult;StdCall;
      Function Clone(out ppenum: IEnumGUID):HResult;StdCall;
@@ -2756,7 +2760,7 @@ type
 
   IEnumOLEVERB = interface(IUnknown)
     ['{00000104-0000-0000-C000-000000000046}']
-    function Next(celt: ULONG; out elt; pceltFetched: PULONG): HResult;StdCall;
+    function Next(celt: ULONG; out elt; pceltFetched: PULONG=nil): HResult;StdCall;
     function Skip(celt: ULONG): HResult;StdCall;
     function Reset: HResult;StdCall;
     function Clone(out ppenum: IEnumOLEVERB): HResult;StdCall;
@@ -2828,6 +2832,22 @@ type
     function EnableModeless(fEnable: BOOL): HResult;StdCall;
     function TranslateAccelerator(var msg: TMsg; wID: Word): HResult;StdCall;
   end;
+
+ 
+  IOleLink = interface(IUnknown) 
+     ['{0000011d-0000-0000-C000-000000000046}']
+    function SetUpdateOptions(dwupdateopt:dword):HResult;   
+    function GetUpdateOptions(dwupdateopt:pdword):HResult;
+    function SetSourceMoniker(pmk : IMoniker;const clsid: TCLSID):HRESULT;
+    function GetSourceMoniker(out pmk : IMoniker):HRESULT;              
+    function SetSourceDisplayName(ppszDisplayName:lpolestr):HResult;  
+    function GetSourceDisplayName(out ppszDisplayName:lpolestr):HResult;
+    function BindToSource(bindflags:DWord;pbc: IBindCTX):HResult;
+    function BindIfRunning:HResult;
+    function GetBoundSource(out ppunk: IUnKnown):HResult;
+    function UnbindSource:HResult;
+    function Update(pbc:IBindCtx):HResult;
+    end;
 
   tagOIFI = record
     cb: UINT;
