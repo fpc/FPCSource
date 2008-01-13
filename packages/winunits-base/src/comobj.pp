@@ -1035,12 +1035,12 @@ initialization
   Ole32Dll:=GetModuleHandle('ole32.dll');
   if Ole32Dll<>0 then
     begin
-      Pointer(CoCreateInstanceEx):=GetProcAddress(Ole32Dll,'CoCreateInstanceExProc');
-      Pointer(CoInitializeEx):=GetProcAddress(Ole32Dll,'CoInitializeExProc');
-      Pointer(CoAddRefServerProcess):=GetProcAddress(Ole32Dll,'CoAddRefServerProcessProc');
-      Pointer(CoReleaseServerProcess):=GetProcAddress(Ole32Dll,'CoReleaseServerProcessProc');
-      Pointer(CoResumeClassObjects):=GetProcAddress(Ole32Dll,'CoResumeClassObjectsProc');
-      Pointer(CoSuspendClassObjects):=GetProcAddress(Ole32Dll,'CoSuspendClassObjectsProc');
+      Pointer(CoCreateInstanceEx):=GetProcAddress(Ole32Dll,'CoCreateInstanceEx');
+      Pointer(CoInitializeEx):=GetProcAddress(Ole32Dll,'CoInitializeEx');
+      Pointer(CoAddRefServerProcess):=GetProcAddress(Ole32Dll,'CoAddRefServerProcess');
+      Pointer(CoReleaseServerProcess):=GetProcAddress(Ole32Dll,'CoReleaseServerProcess');
+      Pointer(CoResumeClassObjects):=GetProcAddress(Ole32Dll,'CoResumeClassObjects');
+      Pointer(CoSuspendClassObjects):=GetProcAddress(Ole32Dll,'CoSuspendClassObjects');
     end;
 
   if not(IsLibrary) then
