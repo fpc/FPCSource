@@ -736,8 +736,6 @@ begin
       {$I+}
       ioresult;
       s:=CurrDir+SplitFileName(TestExe);
-      if RemotePath<>'' then
-        s:='-R '+RemotePath+' '+s;
       execres:=ExecuteEmulated(EmulatorName,s);
       {$I-}
        ChDir(OldDir);
