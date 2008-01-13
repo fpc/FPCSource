@@ -321,6 +321,9 @@ interface
     function int_cgsize(const a: aint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
     function int_float_cgsize(const a: aint): tcgsize;
 
+    { returns true if s is a size handled by the fpu }
+    function isfloatsize(s : tcgsize) : boolean;{$ifdef USEINLINE}inline;{$endif}
+
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
 
@@ -669,6 +672,13 @@ implementation
           exit;
         for i:=1 to shuffle.len do
           shuffle.shuffles[i]:=(shuffle.shuffles[i] and $f) or ((shuffle.shuffles[i] and $f0) shr 4);
+      end;
+
+
+    { returns true if s is a size handled by the fpu }
+    function isfloatsize(s : tcgsize) : boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=s in [OS_F32,OS_F64,OS_F80,OS_C64,OS_F128]
       end;
 
 

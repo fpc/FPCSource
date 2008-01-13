@@ -692,8 +692,8 @@ implementation
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-                        if (left.resultdef.typ=floatdef) and
-                           (right.resultdef.typ=floatdef) and
+                        if isfloatsize(left.location.size) and
+                           isfloatsize(right.location.size) and
                            (left.location.size<>right.location.size) then
                           begin
                             cg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
