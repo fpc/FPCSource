@@ -705,10 +705,13 @@ Const
     SMEXF_SERVER                = $01;     // server side aggregated std marshaler
     SMEXF_HANDLER               = $02;     // client side (handler) agg std marshaler
 
-
-
     COWAIT_WAITALL              = 1;
     COWAIT_ALERTABLE            = 2;
+
+    DOCMISC_CANCREATEMULTIPLEVIEWS     = 1;
+    DOCMISC_SUPPORTCOMPLEXRECTANGLES   = 2;
+    DOCMISC_CANTOPENEDIT               = 4;        // fails the IOleDocumentView::Open  method
+    DOCMISC_NOFILESUPPORT              = 8;        //  does not support read/writing to a file
 
 TYPE
     VARTYPE             = USHORT;
@@ -2735,6 +2738,19 @@ TYPE
                                                           stuff from objbase.h
   ****************************************************************************************************************** }
 
+  tagOIFI = record
+    cb: UINT;
+    fMDIApp: BOOL;
+    hwndFrame: HWND;
+    haccel: HAccel;
+    cAccelEntries: UINT;
+  end;
+  TOleInPlaceFrameInfo = tagOIFI;
+  POleInPlaceFrameInfo = ^TOleInPlaceFrameInfo;
+  LPOleInPlaceFrameInfo = POleInPlaceFrameInfo;
+  OLEINPLACEFRAMEINFO = tagOIFI;
+
+
 { redefinitions }
   function CoCreateGuid(out _para1:TGUID):HRESULT;stdcall;external 'ole32.dll' name 'CoCreateGuid';
 
@@ -2833,38 +2849,92 @@ type
     function TranslateAccelerator(var msg: TMsg; wID: Word): HResult;StdCall;
   end;
 
- 
   IOleLink = interface(IUnknown) 
      ['{0000011d-0000-0000-C000-000000000046}']
-    function SetUpdateOptions(dwupdateopt:dword):HResult;   
-    function GetUpdateOptions(dwupdateopt:pdword):HResult;
-    function SetSourceMoniker(pmk : IMoniker;const clsid: TCLSID):HRESULT;
-    function GetSourceMoniker(out pmk : IMoniker):HRESULT;              
-    function SetSourceDisplayName(ppszDisplayName:lpolestr):HResult;  
-    function GetSourceDisplayName(out ppszDisplayName:lpolestr):HResult;
-    function BindToSource(bindflags:DWord;pbc: IBindCTX):HResult;
-    function BindIfRunning:HResult;
-    function GetBoundSource(out ppunk: IUnKnown):HResult;
-    function UnbindSource:HResult;
-    function Update(pbc:IBindCtx):HResult;
+    function SetUpdateOptions(dwupdateopt:dword):HResult; stdcall;
+    function GetUpdateOptions(dwupdateopt:pdword):HResult; stdcall;
+    function SetSourceMoniker(pmk : IMoniker;const clsid: TCLSID):HRESULT; stdcall;
+    function GetSourceMoniker(out pmk : IMoniker):HRESULT; stdcall;           
+    function SetSourceDisplayName(ppszDisplayName:lpolestr):HResult; stdcall;
+    function GetSourceDisplayName(out ppszDisplayName:lpolestr):HResult; stdcall;
+    function BindToSource(bindflags:DWord;pbc: IBindCTX):HResult; stdcall;
+    function BindIfRunning:HResult; stdcall;
+    function GetBoundSource(out ppunk: IUnKnown):HResult; stdcall;
+    function UnbindSource:HResult; stdcall;
+    function Update(pbc:IBindCtx):HResult; stdcall;
     end;
 
-  tagOIFI = record
-    cb: UINT;
-    fMDIApp: BOOL;
-    hwndFrame: HWND;
-    haccel: HAccel;
-    cAccelEntries: UINT;
-  end;
-  TOleInPlaceFrameInfo = tagOIFI;
-  POleInPlaceFrameInfo = ^TOleInPlaceFrameInfo;
-  OLEINPLACEFRAMEINFO = tagOIFI;
+   IOleInPlaceSite = interface(IOleWindow)
+      ['{00000119-0000-0000-C000-000000000046}']
+      function CanInPlaceActivate : HResult;
+      function OnInPlaceActivate : HResult;
+      function OnUIActivate : HResult;
+      function GetWindowContext(out ppframe:IOleInPlaceFrame;out ppdoc:IOleInPlaceUIWindow;lprcposrect:LPRECT;lprccliprect:LPRECT;lpframeinfo:LPOLEINPLACEFRAMEINFO):hresult; stdcall;
+      function Scroll(scrollExtant:TSIZE):hresult; stdcall;
+      function OnUIDeactivate(fUndoable:BOOL):hresult; stdcall;
+      function OnInPlaceDeactivate :hresult; stdcall;
+      function DiscardUndoState :hresult; stdcall;
+      function DeactivateAndUndo :hresult; stdcall;
+      function OnPosRectChange(lprcPosRect:LPRect):hresult; stdcall;   
+      end;
+
+    IOleInPlaceObject = interface(IOleWindow)
+      ['{00000113-0000-0000-C000-000000000046}']
+      function InPlaceDeactivate : HResult;
+      function UIDeactivate : HResult;
+      function SetObjectRects(lprcPosRect:LPRect;lprcClipRect:LPRect):hresult; stdcall;
+      function ReactivateAndUndo : HResult;
+     end;
+  
+    IOleDocumentView = interface(IUnknown)
+        ['{b722bcc6-4e68-101b-a2bc-00aa00404770}']
+        function SetInPlaceSite(ppipsite:IOleInPlaceSite):hresult; stdcall;
+        function GetInPlaceSite(out ppipsite:IOleInPlaceSite):hresult; stdcall;
+        function GetDocument(out ppipsite:Iunknown):hresult; stdcall;
+        function SetRect(prcview:LPRect):hresult; stdcall;
+        function Getrect(prcView:LPRect):hresult; stdcall;
+        function SetRectComplex(prcview:LPRect;prcHScroll:LPRect;prcVScroll:LPRect;prcSizeBox:LPRect):hresult; stdcall;
+        function Show(fshow:Bool) :hresult; stdcall;
+        function UIActivate(fUIActive :BOOL): HResult;
+        function Open :hresult; stdcall;
+        function Closeview(dwreserved:DWORD):hresult; stdcall;
+        function SaveViewState(pstm:IStream):hresult; stdcall;
+        function ApplyViewState(pstm:IStream):hresult; stdcall;
+        function Clone(pipsitenew: IOleInPlaceSite;out ppviewNew:IOleDocumentView):HResult;
+        end;
+
+    IEnumOleDocumentViews = Interface(IUnknown)
+        ['{b722bcc8-4e68-101b-a2bc-00aa00404770}']
+        function Next (CViews:ULONG; out rgpview:IOleDocumentView;pcfetched:pulong):hresult; stdcall;
+        function Skip (CViews:ULong):hresult; stdcall;
+        function Reset:HResult; stdcall;
+        function Clone (out ppenum :IEnumOleDocumentViews)  :HResult; stdcall;
+       end;
+
+    IOleDocument = interface(IUnknown)
+      ['{b722bcc5-4e68-101b-a2bc-00aa00404770}']
+        function CreateView(pipsite:IOleInPlaceSite;pstm:IStream;dwReserved:DWord;out ppview : IOleDocumentView):hresult; stdcall;
+        function GetDocMiscStatus(pdwstatus:PDWord):hresult; stdcall;
+        function EnumViews(out ppenum:IEnumOleDocumentViews;out ppview:IOleDocumentView):hresult; stdcall;
+       end;
+
+    IOleDocumentSite = interface(IUnknown)
+       ['{b722bcc7-4e68-101b-a2bc-00aa00404770}']
+       function ActivateMe(pviewtoactivate:IOleDocumentView):hresult; stdcall;
+       end;
+
+    IContinueCallback = interface(IUnknown)
+       ['{b722bcca-4e68-101b-a2bc-00aa00404770}']
+        function FContinue:HResult;Stdcall;
+        function FContinuePrinting( nCntPrinted:LONG;nCurPage:Long;pwzprintstatus:polestr):HResult;Stdcall;
+      end;
+
 
 { ObjSafe.idl}
   IObjectSafety = interface(IUnknown)
     ['{CB5BDC81-93C1-11cf-8F20-00805F2CD064}']             
-    function GetInterfaceSafetyOptions(const riid:Tiid; out pdwsupportedoptions: dword;out pdwenabledoptions: dword):HRESULT;
-    function SetInterfaceSafetyOptions(const riid:Tiid; const dwoptionsetmask: dword;const dwenabledoptions : dword):HRESULT;
+    function GetInterfaceSafetyOptions(const riid:Tiid; out pdwsupportedoptions: dword;out pdwenabledoptions: dword):HRESULT; stdcall;
+    function SetInterfaceSafetyOptions(const riid:Tiid; const dwoptionsetmask: dword;const dwenabledoptions : dword):HRESULT; stdcall;
     end;
 
 { ole2.h }
