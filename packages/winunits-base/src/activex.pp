@@ -2846,6 +2846,13 @@ type
   POleInPlaceFrameInfo = ^TOleInPlaceFrameInfo;
   OLEINPLACEFRAMEINFO = tagOIFI;
 
+{ ObjSafe.idl}
+  IObjectSafety = interface(IUnknown)
+    ['{CB5BDC81-93C1-11cf-8F20-00805F2CD064}']             
+    function GetInterfaceSafetyOptions(const riid:Tiid; out pdwsupportedoptions: dword;out pdwenabledoptions: dword):HRESULT;
+    function SetInterfaceSafetyOptions(const riid:Tiid; const dwoptionsetmask: dword;const dwenabledoptions : dword):HRESULT;
+    end;
+
 { ole2.h }
 
   type
