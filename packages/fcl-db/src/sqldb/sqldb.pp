@@ -454,6 +454,8 @@ begin
     if Assigned(Value) then
       Value.Database := Self;
     FTransaction := Value;
+    If Assigned(FTransaction) and (FTransaction.Database=Nil) then
+      FTransaction.Database:=Self;
     end;
 end;
 
@@ -726,6 +728,9 @@ begin
       with TSQLConnection(DataBase) do
         if Transaction = self then Transaction := nil;
     inherited SetDatabase(Value);
+    If Assigned(Database) then
+      If (TSQLConnection(DataBase).Transaction=Nil) then
+        TSQLConnection(DataBase).Transaction:=Self;
     end;
 end;
 
@@ -759,6 +764,8 @@ Procedure TCustomSQLQuery.SetTransaction(Value : TDBTransaction);
 begin
   UnPrepare;
   inherited;
+  If (Transaction<>Nil) and (Database=Nil) then
+    Database:=TSQLTransaction(Transaction).Database;
 end;
 
 procedure TCustomSQLQuery.SetDatabase(Value : TDatabase);
