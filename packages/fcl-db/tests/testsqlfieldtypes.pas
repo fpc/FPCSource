@@ -27,10 +27,10 @@ type
     procedure RunTest; override;
   published
     procedure TestInsertLargeStrFields; // bug 9600
+    procedure Test11Params;
     procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
     procedure TestCircularParams;
-    procedure Test11Params;
     procedure TestBug9744;
     procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;

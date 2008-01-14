@@ -106,7 +106,7 @@ begin
   if SQLDbType = sqlite3 then
     begin
     Fconnection := TSQLite3Connection.Create(nil);
-    FieldtypeDefinitions[ftCurrency] := '';
+    FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
     FieldtypeDefinitions[ftFixedChar] := '';
     end;
   if SQLDbType = POSTGRESQL then
