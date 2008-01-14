@@ -7,7 +7,7 @@ name=fpc
 version=2.3.1
 
 [target]
-dirs=compiler rtl utils fv packages ide installer
+dirs=compiler rtl utils packages ide installer
 
 [require]
 nortl=y
@@ -143,23 +143,13 @@ CLEANOPTS=FPC=$(PPNEW)
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
-# Not compile FV for following target(s)
-ifneq ($(wildcard fv),)
-NOFVTARGETS=wince
-ifeq ($(findstring $(OS_TARGET),$(NOFVTARGETS)),)
-FV=1
-endif
-endif
-
 # Compile also IDE (check for ide and fv dir)
 # Skipped by default for cross compiles, because it depends on libc
 ifndef CROSSCOMPILE
 ifneq ($(wildcard ide),)
-ifneq ($(wildcard fv),)
 IDETARGETS=go32v2 win32 linux freebsd os2 emx
 ifneq ($(findstring $(OS_TARGET),$(IDETARGETS)),)
 IDE=1
-endif
 endif
 endif
 endif
@@ -205,41 +195,6 @@ compiler_cycle:
         $(MAKE) -C compiler cycle
 
 
-#######################################
-# Packages
-#######################################
-
-.PHONY: packages_base_all packages_base_smart packages_base_shared \
-        packages_fcl_all packages_fcl_smart packages_fcl_shared \
-        packages_extra_all packages_extra_smart packages_extra_shared
-
-packages_base_all:
-        $(MAKE) -C packages base_all
-
-packages_base_smart:
-        $(MAKE) -C packages base_smart
-
-packages_base_shared:
-        $(MAKE) -C packages base_shared
-
-packages_fcl_all:
-        $(MAKE) -C packages fcl_all
-
-packages_fcl_smart:
-        $(MAKE) -C packages fcl_smart
-
-packages_fcl_shared:
-        $(MAKE) -C packages fcl_shared
-
-packages_extra_all:
-        $(MAKE) -C packages extra_all
-
-packages_extra_smart:
-        $(MAKE) -C packages extra_smart
-
-packages_extra_shared:
-        $(MAKE) -C packages extra_shared
-
 ##########################################################################
 # Packaging
 ##########################################################################
@@ -262,9 +217,6 @@ $(BUILDSTAMP):
 # clean
         $(MAKE) rtl_clean $(CLEANOPTS)
         $(MAKE) packages_clean $(CLEANOPTS)
-ifdef FV
-        $(MAKE) fv_clean $(CLEANOPTS)
-endif
         $(MAKE) utils_clean $(CLEANOPTS)
 ifdef IDE
         $(MAKE) ide_clean $(CLEANOPTS)
@@ -272,12 +224,7 @@ ifdef IDE
 endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) packages_base_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) packages_fcl_$(ALLTARGET) $(BUILDOPTS)
-ifdef FV
-        $(MAKE) fv_$(ALLTARGET) $(BUILDOPTS)
-endif
-        $(MAKE) packages_extra_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
         $(MAKE) ide_all $(BUILDOPTS)
@@ -295,9 +242,6 @@ installbase:
 
 installother:
         $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
-ifdef FV
-        $(MAKE) fv_$(INSTALLTARGET) $(INSTALLOPTS)
-endif
         $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
         $(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
@@ -308,9 +252,6 @@ zipinstallbase:
 
 zipinstallother:
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
-ifdef FV
-        $(MAKE) fv_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
-endif
         $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
         $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)

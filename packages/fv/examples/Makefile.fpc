@@ -9,4 +9,4 @@ programs=testapp
 packages=fv
 
 [default]
-fpcdir=../..
+fpcdir=../../..

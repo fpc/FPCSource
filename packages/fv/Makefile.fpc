@@ -11,23 +11,23 @@ units=buildfv
 implicitunits=app colortxt dialogs drivers editors \
               fvcommon fvconsts gadgets histlist inplong memory \
               menus msgbox statuses stddlg tabs time validate \
-              views sysmsg asciitab timeddlg
-exampledirs=test
+              views sysmsg asciitab timeddlg outline
+exampledirs=examples
+rsts=app dialogs editors msgbox stddlg
 
 [libs]
 libname=libfpfv.so
 libversion=2.0.0
 
 [compiler]
-targetdir=.
+sourcedir=src
 
 [install]
 buildunit=buildfv
 fpcpackage=y
 
 [default]
-fpcdir=..
+fpcdir=../..
 
 [rules]
-buildfv$(PPUEXT): $(wildcard *.pas *.inc)
-
+.NOTPARALLEL:
