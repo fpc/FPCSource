@@ -2937,6 +2937,24 @@ type
     function SetInterfaceSafetyOptions(const riid:Tiid; const dwoptionsetmask: dword;const dwenabledoptions : dword):HRESULT; stdcall;
     end;
 
+  TContinueCallback = function (dwcontinue:ULONG_PTR):BOOL; stdcall;
+
+
+  IViewObject = interface(IUnknown)
+    ['{0000010d-0000-0000-C000-000000000046}']
+    function Draw(dwDrawAspect:DWord;LIndex:Long;pvaspect:pointer;ptd:PDVTARGETDEVICE;hdcTargetDev:HDC; hdcDraw:HDC;lprcBounds:PRECTL;lprcWBounds:PRECTL;pfncontinue:TContinueCallback;dwcontinue:ULONG_PTR):HResult; stdcall;
+    function GetColorSet(wDrawAspect:DWord;LIndex:Long;pvaspect:pointer;ptd:PDVTARGETDEVICE;hdcTargetDev:HDC;var ppcolorset:PLogPalette):HREsult; stdcall;
+    function Freeze(dwDrawAspect:DWord;LIndex:Long;pvaspect:pointer;pdwfreeze:pdword):HResult;stdcall;
+    function Unfreeze(dwfreeze:dword):HResult; stdcall;
+    function SetAdvise(aspects:DWORD;advf:DWORD;padvSink:IAdviseSink):HRESULT;stdcall;
+    function Getadvise(paspects:pdword;padvf:pdword;out ppadvsink: IADviseSink):HRESULT;stdcall;
+    end;     
+        
+  IViewObject2 = interface(IViewObject)
+    ['{00000127-0000-0000-C000-000000000046}']
+    function GetExtent(dwDrawAspect:dword;lindex:DWord;ptd:pDVTARGETDEVICE;lpsizel:LPSIZEL):HRESULT;stdcall;
+    end;
+
 { ole2.h }
 
   type
@@ -3215,8 +3233,6 @@ type
   TBorderWidths = TRect;
   PBorderWidths = PRect;
 
-
-
   function CoBuildVersion:DWORD;stdcall; external  'ole32.dll' name 'CoBuildVersion';
 
   function CoInitialize(_para1:PVOID):HRESULT;stdcall; external  'ole32.dll' name 'CoInitialize';
@@ -3358,6 +3374,8 @@ type
 
   function StgSetTimes(_para1:POLESTR; _para2:PFILETIME; _para3:PFILETIME; _para4:PFILETIME):HRESULT;stdcall; external  'ole32.dll' name 'StgSetTimes';
 
+  function CoGetObject(pszname:lpwstr; bndop:PBind_Opts; const riid:TIID; out ppv):HRESULT; stdcall; external  'ole32.dll' name 'CoGetObject';
+
   function BindMoniker(_para1:IMoniker; _para2:DWORD; _para3:TIID; out _para4):HRESULT;stdcall; external  'ole32.dll' name 'BindMoniker';
 
   function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; out _para3:PULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
@@ -3460,6 +3478,12 @@ function UnRegisterTypeLib(const libid:TGUID; wVerMajor:ushort;wVerMinor:ushort;
 function CreateTypeLib(sysk:TSysKind;szfile:lpolestr;out ppctlib:ICreateTypeLib):HResult; stdcall; external oleaut32dll name 'CreateTypeLib';
 function CreateTypeLib2(sysk:TSysKind;szfile:lpolestr;out ppctlib:ICreateTypeLib2):HResult; stdcall; external oleaut32dll name 'CreateTypeLib2';
 function DispInvoke(this:pointer;const ptinfo: ITypeInfo;dispidMember:TDISPID;wflags:ushort;pparams:pDISPParams;var pvarresult:OLEVARIANT;pexcepinfo:EXCEPINFO;puArgErr:puint):HRESULT; stdcall; external oleaut32dll name 'CreateTypeLib2';
+
+function DosDateTimeToVariantTime( wDosDate: ushort; wDosTime:ushort;pvtime:pdouble):longint; stdcall; external oleaut32dll name 'DosDateTimeToVariantTime';
+function VariantTimeToDosDateTime( vtime:DOUBLE;pwdosdate:PUSHORT;pwDosTime:PUSHORT):longint; stdcall; external oleaut32dll name 'VariantTimeToDosDateTime';
+
+function SystemTimeToVariantTime(LPSYSTEMTIME:lpSystemTime;pvtime: PDOUBLE):LONGINT; stdcall; external oleaut32dll name 'SystemTimeToVariantTime';
+function VariantTimeToSystemTime(vtime:DOUBLE; lpsystemtime: LPSYSTEMTIME):LONGINT; stdcall; external oleaut32dll name 'VariantTimeToSystemTime';
 
 implementation
 
