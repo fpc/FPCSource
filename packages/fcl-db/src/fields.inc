@@ -380,7 +380,7 @@ end;
 procedure TField.FocusControl;
 
 begin
-  FDataSet.DataEvent(deFocusControl,ptrint(Self));
+  FDataSet.DataEvent(deFocusControl,ptrint(@Self));
 end;
 
 procedure TField.FreeBuffers;

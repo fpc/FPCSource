@@ -91,7 +91,7 @@ type
     function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
@@ -162,7 +162,7 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
+  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqQuoteFieldnames];
   FBLobSegmentSize := 80;
   FDialect := -1;
   FDBDialect := -1;
@@ -995,7 +995,7 @@ begin
 end;
 
 
-procedure TIBConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+procedure TIBConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
 var qry : TSQLQuery;
 

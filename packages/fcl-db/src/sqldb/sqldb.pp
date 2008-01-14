@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, DB, bufdataset;
 
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
-     TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
+     TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat,sqQuoteFieldnames);
      TConnOptions= set of TConnOption;
 
      TRowsCount = LargeInt;
@@ -104,7 +104,7 @@ type
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
@@ -185,7 +185,6 @@ type
     FParams              : TParams;
     FusePrimaryKeyAsKey  : Boolean;
     FSQLBuf              : String;
-    FFromPart            : String;
     FWhereStartPos       : integer;
     FWhereStopPos        : integer;
     FParseSQL            : boolean;
@@ -200,10 +199,8 @@ type
     FInsertQry           : TCustomSQLQuery;
 
     procedure FreeFldBuffers;
-    procedure InitUpdates(ASQL : string);
     function GetIndexDefs : TIndexDefs;
     function GetStatementType : TStatementType;
-    procedure SetIndexDefs(AValue : TIndexDefs);
     procedure SetReadOnly(AValue : Boolean);
     procedure SetParseSQL(AValue : Boolean);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
@@ -338,7 +335,6 @@ type
     property Params;
     property UpdateMode;
     property UsePrimaryKeyAsKey;
-    property StatementType;
     property ParseSQL;
     Property DataSource;
     property ServerFilter;
@@ -405,7 +401,7 @@ type
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     Property Proxy : TSQLConnection Read FProxy;
@@ -461,7 +457,7 @@ begin
     end;
 end;
 
-procedure TSQLConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+procedure TSQLConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
 begin
 // Empty abstract
@@ -888,10 +884,7 @@ begin
       Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
 
     if (FCursor.FStatementType = stSelect) then
-      begin
       FCursor.FInitFieldDef := True;
-      if not ReadOnly then InitUpdates(FSQLBuf);
-      end;
     end;
 end;
 
@@ -988,6 +981,7 @@ Var
   EndOfComment            : Boolean;
   BracketCount            : Integer;
   ConnOptions             : TConnOptions;
+  FFromPart               : String;
 
 begin
   PSQL:=Pchar(ASQL);
@@ -1072,9 +1066,21 @@ begin
                          ParsePart := ppBogus;
                          StrLength := CurrentP-PStatementPart;
                          end;
-                       Setlength(FFromPart,StrLength);
-                       Move(PStatementPart^,FFromPart[1],(StrLength));
-                       FFrompart := trim(FFrompart);
+                       if FCursor.FStatementType = stSelect then
+                         begin
+                         Setlength(FFromPart,StrLength);
+                         Move(PStatementPart^,FFromPart[1],(StrLength));
+                         FFrompart := trim(FFrompart);
+                       
+                         if pos(',',FFromPart) > 0 then
+                           FUpdateable := False // select-statements from more then one table are not updateable
+                         else
+                           begin
+                           FUpdateable := True;
+                           FTableName := FFromPart;
+                           end;
+                         end;
+
                        FWhereStartPos := PStatementPart-PSQL+StrLength+1;
                        PStatementPart := CurrentP;
                        end;
@@ -1102,20 +1108,6 @@ begin
     inc(FWhereStopPos);
     system.insert(')',ASQL,FWhereStopPos);
     end
-end;
-
-procedure TCustomSQLQuery.InitUpdates(ASQL : string);
-
-
-begin
-  if pos(',',FFromPart) > 0 then
-    FUpdateable := False // select-statements from more then one table are not updateable
-  else
-    begin
-    FUpdateable := True;
-    FTableName := FFromPart;
-    end;
-
 end;
 
 procedure TCustomSQLQuery.InternalOpen;
@@ -1289,11 +1281,13 @@ end;
 Procedure TCustomSQLQuery.UpdateIndexDefs;
 
 begin
-  if assigned(DataBase) then
+  if assigned(DataBase) and (FTableName<>'') then
     TSQLConnection(DataBase).UpdateIndexDefs(FIndexDefs,FTableName);
 end;
 
 Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
+
+var FieldNamesQuoteChar : char;
 
   procedure UpdateWherePart(var sql_where : string;x : integer);
 
@@ -1301,7 +1295,7 @@ Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
     if (pfInKey in Fields[x].ProviderFlags) or
        ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
        ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (fields[x].value <> fields[x].oldvalue)) then
-      sql_where := sql_where + '(' + fields[x].FieldName + '= :OLD_' + fields[x].FieldName + ') and ';
+      sql_where := sql_where + '(' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + '= :OLD_' + fields[x].FieldName + ') and ';
   end;
 
   function ModifyRecQuery : string;
@@ -1318,7 +1312,7 @@ Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
       UpdateWherePart(sql_where,x);
 
       if (pfInUpdate in Fields[x].ProviderFlags) then
-        sql_set := sql_set + fields[x].FieldName + '=:' + fields[x].FieldName + ',';
+        sql_set := sql_set +FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar +'=:' + fields[x].FieldName + ',';
       end;
 
     if length(sql_set) = 0 then DatabaseError(sNoUpdateFields,self);
@@ -1342,7 +1336,7 @@ Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
       begin
       if (not fields[x].IsNull) and (pfInUpdate in Fields[x].ProviderFlags) then
         begin
-        sql_fields := sql_fields + fields[x].FieldName + ',';
+        sql_fields := sql_fields + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + ',';
         sql_values := sql_values + ':' + fields[x].FieldName + ',';
         end;
       end;
@@ -1374,6 +1368,10 @@ var qry : TCustomSQLQuery;
     Fld : TField;
     
 begin
+  if sqQuoteFieldnames in TSQLConnection(DataBase).ConnOptions then
+    FieldNamesQuoteChar := '"'
+  else
+    FieldNamesQuoteChar := ' ';
     case UpdateKind of
       ukModify : begin
                  qry := FUpdateQry;
@@ -1419,12 +1417,6 @@ function TCustomSQLQuery.GetIndexDefs : TIndexDefs;
 
 begin
   Result := FIndexDefs;
-end;
-
-procedure TCustomSQLQuery.SetIndexDefs(AValue : TIndexDefs);
-
-begin
-  FIndexDefs := AValue;
 end;
 
 procedure TCustomSQLQuery.SetUpdateMode(AValue : TUpdateMode);
@@ -1919,7 +1911,7 @@ begin
   FProxy.RollBackRetaining(trans);
 end;
 
-procedure TSQLConnector.UpdateIndexDefs(var IndexDefs: TIndexDefs;
+procedure TSQLConnector.UpdateIndexDefs(IndexDefs: TIndexDefs;
   TableName: string);
 begin
   CheckProxy;

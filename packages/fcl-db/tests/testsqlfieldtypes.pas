@@ -27,6 +27,7 @@ type
     procedure RunTest; override;
   published
     procedure TestInsertLargeStrFields; // bug 9600
+    procedure TestNumericNames; // Bug9661
     procedure Test11Params;
     procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
@@ -896,6 +897,47 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestNumericNames;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    if sqQuoteFieldnames in Connection.ConnOptions then
+      Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                                '  "2ID" INT NOT NULL            , ' +
+                                '  "3TEST" VARCHAR(10),     ' +
+                                '  PRIMARY KEY ("2ID")           ' +
+                                ')                            ')
+    else
+      Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                                '  2ID INT NOT NULL            , ' +
+                                '  3TEST VARCHAR(10),     ' +
+                                '  PRIMARY KEY (2ID)           ' +
+                                ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    with query do
+      begin
+      SQL.Text:='select * from FPDEV2';
+      Open;
+      Edit;
+      fieldbyname('2ID').AsInteger:=1;
+      fieldbyname('3TEST').AsString:='3test';
+      Post;
+      ApplyUpdates(0);
+      close;
+      open;
+      AssertEquals('3test',FieldByName('3TEST').AsString);
+      Edit;
+      fieldbyname('3TEST').AsString:='test3';
+      Post;
+      ApplyUpdates(0);
+      open;
+      AssertEquals('test3',FieldByName('3TEST').AsString);
+      close;
+      end;
+    end;
+end;
+
 procedure TTestFieldTypes.TestRowsAffected;
 begin
   with TSQLDBConnector(DBConnector) do
@@ -921,8 +963,11 @@ begin
     Query.Open;
     AssertTrue(query.RowsAffected<>0); // It should return -1 or the number of selected rows.
     query.Close;
-    AssertEquals(-1,query.RowsAffected);
-    Query.SQL.Text := 'delete from FPDEV2';
+    AssertTrue(query.RowsAffected<>0); // It should return -1 or the same as the last time it was called.
+    if (SQLDbType = sqlite3) then  // sqlite doesn't count the rowsaffected if there is no where-clause
+      Query.SQL.Text := 'delete from FPDEV2 where 1'
+    else
+      Query.SQL.Text := 'delete from FPDEV2';
     Query.ExecSQL;
     AssertEquals(2,query.RowsAffected);
     Query.SQL.Text := 'delete from FPDEV2';

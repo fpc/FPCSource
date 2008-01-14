@@ -116,7 +116,7 @@ Type
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   Public
     constructor Create(AOwner : TComponent); override;
@@ -825,7 +825,7 @@ begin
   Result := True;
 end;
 
-procedure TConnectionName.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+procedure TConnectionName.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
 var qry : TSQLQuery;
 
@@ -838,7 +838,7 @@ begin
   qry.database := Self;
   with qry do
     begin
-    ReadOnly := True;
+    ParseSQL := False;
     sql.clear;
     sql.add('show index from ' +  TableName);
     open;
