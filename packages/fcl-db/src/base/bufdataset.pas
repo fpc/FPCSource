@@ -160,6 +160,7 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
+    procedure FetchAll;
     procedure BuildIndex(var AIndex : TBufIndex);
     function GetIndexDefs : TIndexDefs;
 {$IFDEF ARRAYBUF}
@@ -373,6 +374,12 @@ begin
   inherited destroy;
 end;
 
+procedure TBufDataset.FetchAll;
+begin
+  repeat
+  until (getnextpacket < FPacketRecords) or (FPacketRecords = -1);
+end;
+
 procedure TBufDataset.BuildIndex(var AIndex: TBufIndex);
 var PCurRecLinkItem : PBufRecLinkItem;
     p,l,q           : PBufRecLinkItem;
@@ -401,6 +408,8 @@ var PCurRecLinkItem : PBufRecLinkItem;
 
 begin
 // This simply copies the index...
+  if not assigned(AIndex.Fields) then
+    AIndex.Fields := FieldByName(AIndex.FieldsName);
 {$IFNDEF ARRAYBUF}
   case AIndex.Fields.DataType of
     ftString : Comparefunc := @DBCompareText;
@@ -695,8 +704,7 @@ end;
 
 procedure TBufDataset.InternalLast;
 begin
-  repeat
-  until (getnextpacket < FPacketRecords) or (FPacketRecords = -1);
+  FetchAll;
   with FCurrentIndex^ do
 {$IFDEF ARRAYBUF}
     if FLastRecInd <> 0 then FCurrentRecInd := FLastRecInd;
@@ -1069,18 +1077,12 @@ begin
       FRecordArray[FLastRecInd]:=IntAllocRecordBuffer;
       end;
 
-    for IndexNr:= 1 to FIndexesCount-1 do
-      AddRecordToIndex(FIndexes[IndexNr],pb);
-
     pb := pchar(FCurrentIndex^.FRecordArray[FCurrentIndex^.FLastRecInd]);
 {$ELSE}
     with FIndexes[0] do
       begin
       FLastRecBuf^.next := pointer(IntAllocRecordBuffer);
       FLastRecBuf^.next^.prior := FLastRecBuf;
-
-      for IndexNr:= 1 to FIndexesCount-1 do
-        AddRecordToIndex(FIndexes[IndexNr],FLastRecBuf);
 
       FLastRecBuf := FLastRecBuf^.next;
 
@@ -1139,6 +1141,8 @@ begin
     begin
     Result := grEOF;
     FAllPacketsFetched := True;
+    if FIndexesCount>0 then for x := 1 to FIndexesCount-1 do
+      BuildIndex(FIndexes[x]);
     Exit;
     end;
 
@@ -1949,14 +1953,16 @@ begin
     DatabaseError(SMaxIndexes);
 {$ENDIF}
 
-  InternalAddIndex(AName,AFields);
   // If not all packets are fetched, you can not sort properly.
-  FPacketRecords:=-1;
+  if not active then
+    FPacketRecords:=-1;
+  InternalAddIndex(AName,AFields);
 end;
 
 procedure TBufDataset.InternalAddIndex(const AName, AFields: string);
 var StoreIndNr : Integer;
 begin
+  if Active then FetchAll;
   if FIndexesCount>0 then
     StoreIndNr:=FCurrentIndex^.IndNr
   else
