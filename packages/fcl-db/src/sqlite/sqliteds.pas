@@ -104,14 +104,13 @@ end;
 procedure TSqliteDataset.InternalInitFieldDefs;
 var
   ColumnCount,i:Integer;
-  FieldSize:Word;
   AType:TFieldType;
   vm:Pointer;
   ColumnNames,ColumnValues:PPChar;
   ColumnStr:String;
 begin
   FieldDefs.Clear;
-  FAutoIncFieldNo:=-1;
+  FAutoIncFieldNo := -1;
   sqlite_compile(FSqliteHandle,PChar(FSql),nil,@vm,nil);
   sqlite_step(vm,@ColumnCount,@ColumnValues,@ColumnNames);
   //Prepare the array of pchar2sql functions
@@ -123,72 +122,62 @@ begin
   // exactly what is in Create Table statement
   // here is a trick to get the datatype.
   // If the field contains another type, may have problems
-  for i:= 0 to ColumnCount - 1 do
+  for i := 0 to ColumnCount - 1 do
   begin
-    ColumnStr:= UpperCase(StrPas(ColumnNames[i + ColumnCount]));
+    ColumnStr := UpperCase(StrPas(ColumnNames[i + ColumnCount]));
     if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
     begin
       if AutoIncrementKey and
            (UpperCase(StrPas(ColumnNames[i])) = UpperCase(PrimaryKey)) then
       begin
-        AType:= ftAutoInc;
-        FAutoIncFieldNo:=i;
+        AType := ftAutoInc;
+        FAutoIncFieldNo := i;
       end
       else
-        AType:= ftInteger;
-      FieldSize:=SizeOf(LongInt);
+        AType := ftInteger;
     end else if Pos('VARCHAR',ColumnStr) = 1 then
     begin
-      AType:= ftString;
-      FieldSize:=0;
+      AType := ftString;
     end else if Pos('BOOL',ColumnStr) = 1 then
     begin
-      AType:= ftBoolean;
-      FieldSize:=SizeOf(WordBool);
+      AType := ftBoolean;
     end else if Pos('AUTOINC',ColumnStr) = 1 then
     begin
-      AType:= ftAutoInc;
-      FieldSize:=SizeOf(LongInt);
+      AType := ftAutoInc;
       if FAutoIncFieldNo = -1 then
-        FAutoIncFieldNo:= i;
+        FAutoIncFieldNo := i;
     end else if (Pos('FLOAT',ColumnStr)=1) or (Pos('NUMERIC',ColumnStr)=1) then
     begin
-      AType:= ftFloat;
-      FieldSize:=SizeOf(Double);
+      AType := ftFloat;
     end else if (ColumnStr = 'DATETIME') then
     begin
-      AType:= ftDateTime;
-      FieldSize:=SizeOf(TDateTime);
+      AType := ftDateTime;
     end else if (ColumnStr = 'DATE') then
     begin
-      AType:= ftDate;
-      FieldSize:=SizeOf(TDateTime);
+      AType := ftDate;
     end else if (ColumnStr = 'TIME') then
     begin
-      AType:= ftTime;
-      FieldSize:=SizeOf(TDateTime);
+      AType := ftTime;
     end else if (ColumnStr = 'LARGEINT') then
     begin
-      AType:= ftLargeInt;
-      FieldSize:=SizeOf(LargeInt);
+      AType := ftLargeInt;
     end else if (ColumnStr = 'TEXT') then
     begin
-      AType:= ftMemo;
-      FieldSize:=0;
+      AType := ftMemo;
     end else if (ColumnStr = 'CURRENCY') then
     begin
-      AType:= ftCurrency;
-      FieldSize:=SizeOf(Double);
+      AType := ftCurrency;
     end else if (ColumnStr = 'WORD') then
     begin
-      AType:= ftWord;
-      FieldSize:=SizeOf(Word);
+      AType := ftWord;
     end else
     begin
-      AType:=ftString;
-      FieldSize:=0;
-    end;
-    FieldDefs.Add(StrPas(ColumnNames[i]), AType, FieldSize, False);
+      AType := ftString;
+    end;    
+    if AType = ftString then
+      FieldDefs.Add(StrPas(ColumnNames[i]), AType, dsMaxStringSize)
+    else
+      FieldDefs.Add(StrPas(ColumnNames[i]), AType);  
     //Set the pchar2sql function
     if AType in [ftString,ftMemo] then
       FGetSqlStr[i]:=@Char2SqlStr
