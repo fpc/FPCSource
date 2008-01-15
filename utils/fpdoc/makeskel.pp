@@ -29,16 +29,23 @@ resourcestring
   SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
   SNoPackageNameProvided = 'Please specify a package name with --package=<name>';
   SOutputMustNotBeDescr = 'Output file must be different from description filenames.';
+  SCreatingNewNode = 'Creating documentation for new node : %s';
+  SNodeNotReferenced = 'Documentation node "%s" no longer used';
   SDone = 'Done.';
 
 type
   TCmdLineAction = (actionHelp, actionConvert);
 
   TSkelEngine = class(TFPDocEngine)
+    FModules : TStringList;
+    Procedure  DoWriteUnReferencedNodes(N : TDocNode; NodePath : String);
   public
+    Destructor Destroy; override;
+    function FindModule(const AName: String): TPasModule; override;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility :TPasMemberVisibility;
       const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement; override;
+    procedure WriteUnReferencedNodes;
   end;
 
 const
@@ -49,7 +56,7 @@ const
   FPCDate: String = {$I %FPCDATE%};
 
 var
-  EmittedList,InputFiles, DescrFiles: TStringList;
+  EmittedList, InputFiles, DescrFiles: TStringList;
   DocLang: String;
   Engine: TSkelEngine;
   UpdateMode,
@@ -64,12 +71,51 @@ var
   PackageName, OutputName: String;
   f: Text;
 
+function TSkelEngine.FindModule(const AName: String): TPasModule; 
+
+Var
+  I : Integer;
+
+begin
+  Result:=Inherited FindModule(AName);
+  If (Result=Nil) then
+    begin // Create dummy list and search in that.
+    If (FModules=Nil) then
+      begin
+      FModules:=TStringList.Create;
+      FModules.Sorted:=True;
+      end;
+    I:=FModules.IndexOf(AName);
+    IF (I=-1) then
+      begin
+      Result:=TPasModule.Create(AName,Nil);
+      FModules.AddObject(AName,Result);
+      end
+    else
+      Result:=FModules.Objects[i] as TPasModule;  
+    end;  
+end;
+
+Destructor TSkelEngine.Destroy; 
+
+Var
+  I : Integer;
+
+begin
+  If Assigned(FModules) then 
+    begin
+    For I:=0 to FModules.Count-1 do
+      FModules.Objects[i].Free;
+    FreeAndNil(FModules);    
+    end;
+end;
+
 
 function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility : TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 
-  Function WriteThisNode(APasElement : TPasElement)  : Boolean;
+  Function WriteThisNode(APasElement : TPasElement; DocNode : TDocNode)  : Boolean;
 
   Var
     ParentVisible:Boolean;
@@ -103,9 +149,9 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
             (Not Assigned(EmittedList) or (EmittedList.IndexOf(APasElement.FullName)=-1));
     If Result and updateMode then
       begin
-      Result:=FindDocNode(APasElement)=Nil;
+      Result:=DocNode=Nil;
       If Result then
-        Writeln(stderr,'Creating documentation for new node ',APasElement.PathName);
+        Writeln(stderr,Format(ScreatingNewNode,[APasElement.PathName]));
       end;
   end;
 
@@ -127,8 +173,19 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 
   end;
 
+Var
+  DN : TDocNode;
+
 begin
   Result := AClass.Create(AName, AParent);
+  If UpdateMode then
+    begin
+    DN:=FindDocNode(Result);    
+    If Assigned(DN) then
+      DN.IncRefCount;
+    end
+  else
+    DN:=Nil;  
   Result.Visibility:=AVisibility;
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
@@ -149,7 +206,7 @@ begin
       WriteLn(f, '</descr>');
       end;
     end
-  else if WriteThisNode(Result) then
+  else if WriteThisNode(Result,DN) then
     begin
     EmittedList.Add(Result.FullName); // So we don't emit again.
     WriteLn(f);
@@ -184,6 +241,28 @@ begin
     end;
 end;
 
+Procedure  TSkelEngine.DoWriteUnReferencedNodes(N : TDocNode; NodePath : String);
+
+begin
+  If (N<>Nil) then
+    begin
+    If (NodePath<>'') then
+      NodePath:=NodePath+'.';
+    DoWriteUnReferencedNodes(N.FirstChild,NodePath+N.Name);
+    While (N<>Nil) do
+      begin
+      if (N.RefCount=0) and (N.Node<>Nil) and (Not N.TopicNode) then
+        Writeln(stderr,Format(SNodeNotReferenced,[NodePath+N.Name]));
+      N:=N.NextSibling;
+      end;
+    end;
+end;
+
+procedure TSkelEngine.WriteUnReferencedNodes;
+
+begin
+  DoWriteUnReferencedNodes(RootDocNode,'');
+end;
 
 procedure InitOptions;
 begin
@@ -197,6 +276,7 @@ procedure FreeOptions;
 begin
   DescrFiles.Free;
   InputFiles.Free;
+  EmittedList.Free;
 end;
 
 Procedure Usage;
@@ -332,6 +412,7 @@ end;
 var
   i,j: Integer;
   Module: TPasModule;
+  N : TDocNode;
 
 begin
   InitOptions;
@@ -376,6 +457,12 @@ begin
            For J:=0 to DescrFiles.Count-1 do
              Engine.AddDocFile(DescrFiles[J]);
          Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
+         If UpdateMode then
+           begin
+           N:=Engine.FindDocNode(Module);
+           If Assigned(N) then
+             N.IncRefCount;
+           end;
          WriteLn(f, '');
          WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
          WriteLn(f, '');
@@ -393,7 +480,8 @@ begin
              Halt(1);
            end;
        end;
-
+        If UpdateMode then
+          Engine.WriteUnReferencedNodes;
       finally
         Engine.Free;
        end;
