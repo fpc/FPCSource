@@ -1,0 +1,34 @@
+#
+# Makefile.fpc for SQL FCL db units
+#
+
+[package]
+main=fcl-db
+
+[target]
+units=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport
+rsts=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+#fpdbexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpcsvexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpfixedexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpsqlexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpsimplexmlexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpsimplejsonexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpdbfexport$(PPUEXT): fpdbexport$(PPEXT)
