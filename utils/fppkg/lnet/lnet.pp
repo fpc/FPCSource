@@ -1,6 +1,6 @@
-{ lNet v0.5.6
+{ lNet v0.5.8
 
-  CopyRight (C) 2004-2006 Ales Katona
+  CopyRight (C) 2004-2007 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -91,6 +91,7 @@ type
    protected
     FAddress: TInetSockAddr;
     FPeerAddress: TInetSockAddr;
+    FReuseAddress: Boolean;
     FConnected: Boolean;
     FConnecting: Boolean;
     FNextSock: TLSocket;
@@ -117,9 +118,10 @@ type
     function CanSend: Boolean; virtual;
     function CanReceive: Boolean; virtual;
     
-    procedure SetBlocking(const aValue: Boolean);
     procedure SetOptions; virtual;
-    
+    procedure SetBlocking(const aValue: Boolean);
+    procedure SetReuseAddress(const aValue: Boolean);
+
     function Bail(const msg: string; const ernum: Integer): Boolean;
     
     procedure LogError(const msg: string; const ernum: Integer); virtual;
@@ -150,6 +152,7 @@ type
     property PeerPort: Word read GetPeerPort;
     property LocalAddress: string read GetLocalAddress;
     property LocalPort: Word read GetLocalPort;
+    property ReuseAddress: Boolean read FReuseAddress write SetReuseAddress;
     property NextSock: TLSocket read FNextSock write FNextSock;
     property PrevSock: TLSocket read FPrevSock write FPrevSock;
     property Creator: TLComponent read FCreator;
@@ -230,7 +233,7 @@ type
     FID: Integer; // internal number for server
     FEventer: TLEventer;
     FEventerClass: TLEventerClass;
-    FTimeout: DWord;
+    FTimeout: Integer;
     FListenBacklog: Integer;
    protected
     function InitSocket(aSocket: TLSocket): TLSocket; virtual;
@@ -239,8 +242,8 @@ type
     function GetCount: Integer; virtual;
     function GetItem(const i: Integer): TLSocket;
     
-    function GetTimeout: DWord;
-    procedure SetTimeout(const AValue: DWord);
+    function GetTimeout: Integer;
+    procedure SetTimeout(const AValue: Integer);
     
     procedure SetEventer(Value: TLEventer);
     
@@ -289,7 +292,7 @@ type
     property Connected: Boolean read GetConnected;
     property ListenBacklog: Integer read FListenBacklog write FListenBacklog;
     property Iterator: TLSocket read FIterator;
-    property Timeout: DWord read GetTimeout write SetTimeout;
+    property Timeout: Integer read GetTimeout write SetTimeout;
     property Eventer: TLEventer read FEventer write SetEventer;
     property EventerClass: TLEventerClass read FEventerClass write FEventerClass;
   end;
@@ -341,11 +344,14 @@ type
   TLTcp = class(TLConnection)
    protected
     FCount: Integer;
+    FReuseAddress: Boolean;
     function InitSocket(aSocket: TLSocket): TLSocket; override;
 
     function GetConnected: Boolean; override;
     function GetConnecting: Boolean;
     function GetCount: Integer; override;
+
+    procedure SetReuseAddress(const aValue: Boolean);
 
     procedure ConnectAction(aSocket: TLHandle); override;
     procedure AcceptAction(aSocket: TLHandle); override;
@@ -378,6 +384,7 @@ type
     property Connecting: Boolean read GetConnecting;
     property OnAccept: TLSocketEvent read FOnAccept write FOnAccept;
     property OnConnect: TLSocketEvent read FOnConnect write FOnConnect;
+    property ReuseAddress: Boolean read FReuseAddress write SetReuseAddress;
   end;
   
 implementation
@@ -429,6 +436,10 @@ begin
     if (FSocketType = SOCK_STREAM) and (not FIgnoreShutdown) and WasConnected then
       if fpShutDown(FHandle, 2) <> 0 then
         LogError('Shutdown error', LSocketError);
+        
+    if Assigned(FEventer) then
+      FEventer.UnregisterHandle(Self);
+        
     if CloseSocket(FHandle) <> 0 then
       LogError('Closesocket error', LSocketError);
     FHandle := INVALID_SOCKET;
@@ -482,6 +493,11 @@ begin
   Result := FCanReceive and FConnected;
 end;
 
+procedure TLSocket.SetOptions;
+begin
+  SetBlocking(FBlocking);
+end;
+
 procedure TLSocket.SetBlocking(const aValue: Boolean);
 begin
   FBlocking := aValue;
@@ -490,9 +506,10 @@ begin
       Bail('Error on SetBlocking', LSocketError);
 end;
 
-procedure TLSocket.SetOptions;
+procedure TLSocket.SetReuseAddress(const aValue: Boolean);
 begin
-  SetBlocking(FBlocking);
+  if not FConnected then
+    FReuseAddress := aValue;
 end;
 
 function TLSocket.GetMessage(out msg: string): Integer;
@@ -514,8 +531,13 @@ begin
       Result := sockets.fpRecv(FHandle, @aData, aSize, LMSG)
     else
       Result := sockets.fpRecvfrom(FHandle, @aData, aSize, LMSG, @FPeerAddress, @AddressLength);
+      
     if Result = 0 then
-      Disconnect;
+      if FSocketType = SOCK_STREAM then
+        Disconnect
+      else
+        Bail('Receive Error [0 on recvfrom with UDP]', 0);
+      
     if Result = SOCKET_ERROR then begin
       LastError := LSocketError;
       if IsBlockError(LastError) then begin
@@ -542,7 +564,7 @@ end;
 function TLSocket.SetupSocket(const APort: Word; const Address: string): Boolean;
 var
   Done: Boolean;
-  Arg: Integer;
+  Arg, Opt: Integer;
 begin
   Result := false;
   if not FConnected and not FConnecting then begin
@@ -551,11 +573,26 @@ begin
     if FHandle = INVALID_SOCKET then
       Exit(Bail('Socket error', LSocketError));
     SetOptions;
+
+    Arg := 1;
     if FSocketType = SOCK_DGRAM then begin
-      Arg := 1;
       if fpsetsockopt(FHandle, SOL_SOCKET, SO_BROADCAST, @Arg, Sizeof(Arg)) = SOCKET_ERROR then
         Exit(Bail('SetSockOpt error', LSocketError));
+    end else if FReuseAddress then begin
+      Opt := SO_REUSEADDR;
+      {$ifdef WIN32} // I expect 64 has it oddly, so screw them for now
+      if (Win32Platform = 2) and (Win32MajorVersion >= 5) then
+        Opt := Integer(not Opt);
+      {$endif}
+      if fpsetsockopt(FHandle, SOL_SOCKET, Opt, @Arg, Sizeof(Arg)) = SOCKET_ERROR then
+        Exit(Bail('SetSockOpt error', LSocketError));
     end;
+    
+    {$ifdef darwin}
+    Arg := 1;
+    if fpsetsockopt(FHandle, SOL_SOCKET, SO_NOSIGPIPE, @Arg, Sizeof(Arg)) = SOCKET_ERROR then
+      Exit(Bail('SetSockOpt error', LSocketError));
+    {$endif}
     
     FillAddressInfo(FAddress, AF_INET, Address, aPort);
     FillAddressInfo(FPeerAddress, AF_INET, LADDR_BR, aPort);
@@ -730,7 +767,7 @@ begin
     Result := Tmp;
 end;
 
-function TLConnection.GetTimeout: DWord;
+function TLConnection.GetTimeout: Integer;
 begin
   if Assigned(FEventer) then
     Result := FEventer.Timeout
@@ -794,7 +831,7 @@ begin
     FOnError(msg, TLSocket(aSocket));
 end;
 
-procedure TLConnection.SetTimeout(const AValue: DWord);
+procedure TLConnection.SetTimeout(const AValue: Integer);
 begin
   if Assigned(FEventer) then
     FEventer.Timeout := aValue;
@@ -824,7 +861,7 @@ begin
   if Assigned(FRootSock) then
     FEventer.AddHandle(FRootSock);
 
-  if (FEventer.Timeout = 0) and (FTimeout > 0) then
+  if (FEventer.Timeout = 0) and (FTimeout <> 0) then
     FEventer.Timeout := FTimeout
   else
     FTimeout := FEventer.Timeout;
@@ -838,6 +875,7 @@ begin
   while Assigned(Tmp) do begin
     Tmp2 := Tmp;
     Tmp := Tmp.NextSock;
+    Tmp2.Disconnect;
     Tmp2.Free;
   end;
 end;
@@ -1062,10 +1100,12 @@ begin
   
   FRootSock := InitSocket(SocketClass.Create);
   FRootSock.FIgnoreShutdown := True;
+  FRootSock.SetReuseAddress(FReuseAddress);
   if FRootSock.Listen(APort, AIntf) then begin
     FRootSock.FConnected := True;
     FRootSock.FServerSocket := True;
     FIterator := FRootSock;
+    Inc(FCount);
     RegisterWithEventer;
     Result := true;
   end;
@@ -1100,6 +1140,7 @@ begin
     aSocket.PrevSock.NextSock := aSocket.NextSock;
   if Assigned(aSocket.NextSock) then
     aSocket.NextSock.PrevSock := aSocket.PrevSock;
+    
   Dec(FCount);
 end;
 
@@ -1238,6 +1279,13 @@ end;
 function TLTcp.GetCount: Integer;
 begin
   Result := FCount;
+end;
+
+procedure TLTcp.SetReuseAddress(const aValue: Boolean);
+begin
+  if not Assigned(FRootSock)
+  or not FRootSock.Connected then
+    FReuseAddress := aValue;
 end;
 
 function TLTcp.Get(var aData; const aSize: Integer; aSocket: TLSocket): Integer;

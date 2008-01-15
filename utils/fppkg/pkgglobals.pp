@@ -18,6 +18,31 @@ Const
 {$endif unix}
 
 Type
+  TFPMKUnitDep=record
+    package : string[12];
+    reqver  : string[8];
+    undef   : string[16];
+  end;
+
+Const
+  // Dependencies for compiling the fpmkunit unit
+  FPMKUnitDepCount=4;
+  FPMKUnitDeps : array[1..4] of TFPMKUnitDep = (
+    (package: 'hash';
+     reqver : '2.0.0';
+     undef  : 'NO_UNIT_ZIPPER'),
+    (package: 'paszlib';
+     reqver : '2.2.0';
+     undef  : 'NO_UNIT_ZIPPER'),
+    (package: 'fcl-process';
+     reqver : '2.0.0';
+     undef  : 'NO_UNIT_PROCESS'),
+    (package: 'fpmkunit';
+     reqver : '2.2.0';
+     undef  : '')
+  );
+
+Type
   TVerbosity = (vError,vWarning,vInfo,vCommands,vDebug);
   TVerbosities = Set of TVerbosity;
 
@@ -34,38 +59,40 @@ Procedure Error(Fmt : String; const Args : array of const);
 // Utils
 function maybequoted(const s:string):string;
 Function FixPath(const S : String) : string;
+Function DirectoryExistsLog(const ADir:string):Boolean;
+Function FileExistsLog(const AFileName:string):Boolean;
+procedure BackupFile(const AFileName: String);
 Procedure DeleteDir(const ADir:string);
 Procedure SearchFiles(SL:TStringList;const APattern:string);
 Function GetCompilerInfo(const ACompiler,AOptions:string):string;
+function IsSuperUser:boolean;
 
 var
   Verbosity : TVerbosities;
+  FPMKUnitDepAvailable : array[1..FPMKUnitDepCount] of boolean;
 
 
 Implementation
 
 // define use_shell to use sysutils.executeprocess
 //  as alternate to using 'process' in getcompilerinfo
-{$IFDEF GO32v2}
+{$IF defined(GO32v2) or defined(WATCOM) or defined(OS2)}
  {$DEFINE USE_SHELL}
-{$ENDIF GO32v2}
+{$ENDIF GO32v2 or WATCOM or OS2}
 
-{$IFDEF WATCOM}
- {$DEFINE USE_SHELL}
-{$ENDIF WATCOM}
-
-{$IFDEF OS2}
- {$DEFINE USE_SHELL}
-{$ENDIF OS2}
 
 uses
   typinfo,
+{$ifdef unix}
+  baseunix,
+{$endif}
 {$IFNDEF USE_SHELL}
   process,
 {$ENDIF USE_SHELL}
   contnrs,
   uriparser,
   pkgmessages;
+
 
 function StringToVerbosity(S: String): TVerbosity;
 Var
@@ -77,6 +104,7 @@ begin
   else
     Raise EPackagerError.CreateFmt(SErrInvalidVerbosity,[S]);
 end;
+
 
 Function VerbosityToString (V : TVerbosity): String;
 begin
@@ -92,8 +120,18 @@ begin
   if not(Level in Verbosity) then
     exit;
   Prefix:='';
-  if Level=vWarning then
-    Prefix:=SWarning;
+  case Level of
+    vWarning :
+      Prefix:=SWarning;
+    vError :
+      Prefix:=SError;
+{    vInfo :
+      Prefix:='I: ';
+    vCommands :
+      Prefix:='C: ';
+    vDebug :
+      Prefix:='D: '; }
+  end;
   Writeln(stdErr,Prefix,Msg);
 end;
 
@@ -169,10 +207,44 @@ begin
 end;
 
 
+Function DirectoryExistsLog(const ADir:string):Boolean;
+begin
+  result:=SysUtils.DirectoryExists(ADir);
+  if result then
+    Log(vDebug,SDbgDirectoryExists,[ADir,SDbgFound])
+  else
+    Log(vDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
+end;
+
+
+Function FileExistsLog(const AFileName:string):Boolean;
+begin
+  result:=SysUtils.FileExists(AFileName);
+  if result then
+    Log(vDebug,SDbgFileExists,[AFileName,SDbgFound])
+  else
+    Log(vDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
+end;
+
+
+procedure BackupFile(const AFileName: String);
+Var
+  BFN : String;
+begin
+  BFN:=AFileName+'.bak';
+  Log(vDebug,SDbgBackupFile,[BFN]);
+  If not RenameFile(AFileName,BFN) then
+    Error(SErrBackupFailed,[AFileName,BFN]);
+end;
+
+
 Procedure DeleteDir(const ADir:string);
 var
   Info : TSearchRec;
 begin
+  // Prevent accidently deleting all files in current or root dir
+  if (ADir='') or (ADir=PathDelim) then
+    exit;
   if FindFirst(ADir+PathDelim+AllFiles,faAnyFile, Info)=0 then
     try
       repeat
@@ -187,6 +259,7 @@ begin
     finally
       FindClose(Info);
     end;
+  RemoveDir(Adir);
 end;
 
 
@@ -253,5 +326,16 @@ begin
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
 end;
+
+
+function IsSuperUser:boolean;
+begin
+{$ifdef unix}
+  result:=(fpGetUID=0);
+{$else unix}
+  result:=true;
+{$endif unix}
+end;
+
 
 end.

@@ -1,4 +1,4 @@
-unit pkgdownload;
+unit pkgDownload;
 
 {$mode objfpc}{$H+}
 
@@ -15,7 +15,6 @@ Type
   Private
     FBackupFile : Boolean;
   Protected
-    Procedure BackupFile(Const FileName : String);
     // Needs overriding.
     Procedure FTPDownload(Const URL : String; Dest : TStream); Virtual;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); Virtual;
@@ -34,8 +33,8 @@ Type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
-Var
-  DownloaderClass : TBaseDownloaderClass;
+procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
+function GetDownloader(const AName:string):TBaseDownloaderClass;
 
 procedure DownloadFile(const RemoteFile,LocalFile:String);
 
@@ -43,13 +42,39 @@ procedure DownloadFile(const RemoteFile,LocalFile:String);
 implementation
 
 uses
+  contnrs,
   uriparser,
   pkgglobals,
+  pkgoptions,
   pkgmessages;
+
+var
+  DownloaderList  : TFPHashList;
+
+procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
+begin
+  if DownloaderList.Find(AName)<>nil then
+    begin
+      Error('Downloader already registered');
+      exit;
+    end;
+  DownloaderList.Add(AName,Downloaderclass);
+end;
+
+
+function GetDownloader(const AName:string):TBaseDownloaderClass;
+begin
+  result:=TBaseDownloaderClass(DownloaderList.Find(AName));
+  if result=nil then
+    Error('Downloader %s not supported',[AName]);
+end;
 
 
 procedure DownloadFile(const RemoteFile,LocalFile:String);
+var
+  DownloaderClass : TBaseDownloaderClass;
 begin
+  DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
   with DownloaderClass.Create(nil) do
     try
       Download(RemoteFile,LocalFile);
@@ -60,15 +85,6 @@ end;
 
 
 { TBaseDownloader }
-
-procedure TBaseDownloader.BackupFile(const FileName: String);
-Var
-  BFN : String;
-begin
-  BFN:=FileName+'.bak';
-  If not RenameFile(FileName,BFN) then
-    Error(SErrBackupFailed,[FileName,BFN]);
-end;
 
 procedure TBaseDownloader.FTPDownload(const URL: String; Dest: TStream);
 begin
@@ -104,14 +120,18 @@ Var
   F : TFileStream;
 
 begin
-  Log(vCommands,SLogDownloading,[URL,DestFileName]);
   If FileExists(DestFileName) and BackupFiles then
     BackupFile(DestFileName);
-  F:=TFileStream.Create(DestFileName,fmCreate);
-  Try
-    Download(URL,F);
-  Finally
-    F.Free;
+  try
+    F:=TFileStream.Create(DestFileName,fmCreate);
+    try
+      Download(URL,F);
+    finally
+      F.Free;
+    end;
+  except
+    DeleteFile(DestFileName);
+    raise;
   end;
 end;
 
@@ -138,9 +158,13 @@ end;
 { TDownloadPackage }
 
 function TDownloadPackage.Execute(const Args:TActionArgs):boolean;
+var
+  DownloaderClass : TBaseDownloaderClass;
 begin
+  DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
   with DownloaderClass.Create(nil) do
     try
+      Log(vCommands,SLogDownloading,[PackageRemoteArchive,PackageLocalArchive]);
       Download(PackageRemoteArchive,PackageLocalArchive);
     finally
       Free;
@@ -149,9 +173,10 @@ end;
 
 
 initialization
-  // Default value.
-  DownloaderClass := TBaseDownloader;
-
+  DownloaderList:=TFPHashList.Create;
+  RegisterDownloader('base',TBaseDownloader);
   RegisterPkgHandler('downloadpackage',TDownloadPackage);
+finalization
+  FreeAndNil(DownloaderList);
 end.
 

@@ -13,10 +13,11 @@ uses
   pkgmessages, pkgglobals, pkgoptions, pkgrepos,
   // Package Handler components
   pkghandler,pkgmkconv, pkgdownload,
-  pkgarchive, pkgfpmake, pkgcommands
+  pkgfpmake, pkgcommands
   // Downloaders
 {$if defined(unix) or defined(windows)}
   ,pkgwget
+  ,pkglnet
 {$endif}
   ;
 
@@ -25,10 +26,9 @@ Type
 
   TMakeTool = Class(TCustomApplication)
   Private
-    ActionStack : TActionStack;
-    ParaAction : string;
+    ActionStack  : TActionStack;
+    ParaAction   : string;
     ParaPackages : TStringList;
-    procedure GenerateParaActions;
     procedure MaybeCreateLocalDirs;
     procedure ShowUsage;
   Public
@@ -75,20 +75,20 @@ begin
   GeneratedConfig:=false;
   // Load file or create new default configuration
   if FileExists(cfgfile) then
-    Defaults.LoadGlobalFromFile(cfgfile)
+    GlobalOptions.LoadGlobalFromFile(cfgfile)
   else
     begin
       ForceDirectories(ExtractFilePath(cfgfile));
-      Defaults.SaveGlobalToFile(cfgfile);
+      GlobalOptions.SaveGlobalToFile(cfgfile);
       GeneratedConfig:=true;
     end;
   // Load default verbosity from config
   SL:=TStringList.Create;
-  SL.CommaText:=Defaults.DefaultVerbosity;
+  SL.CommaText:=GlobalOptions.DefaultVerbosity;
   for i:=0 to SL.Count-1 do
     Include(Verbosity,StringToVerbosity(SL[i]));
   SL.Free;
-  Defaults.CurrentCompilerConfig:=Defaults.DefaultCompilerConfig;
+  GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
     Log(vDebug,SLogGeneratingGlobalConfig,[cfgfile])
@@ -99,9 +99,9 @@ end;
 
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
-  ForceDirectories(Defaults.BuildDir);
-  ForceDirectories(Defaults.PackagesDir);
-  ForceDirectories(Defaults.CompilerConfigDir);
+  ForceDirectories(GlobalOptions.BuildDir);
+  ForceDirectories(GlobalOptions.PackagesDir);
+  ForceDirectories(GlobalOptions.CompilerConfigDir);
 end;
 
 
@@ -109,18 +109,34 @@ procedure TMakeTool.LoadCompilerDefaults;
 var
   S : String;
 begin
-  S:=Defaults.CompilerConfigDir+Defaults.CurrentCompilerConfig;
+  // Load default compiler config
+  S:=GlobalOptions.CompilerConfigDir+GlobalOptions.CompilerConfig;
   if FileExists(S) then
     begin
       Log(vDebug,SLogLoadingCompilerConfig,[S]);
-      Defaults.LoadCompilerFromFile(S)
+      CompilerOptions.LoadCompilerFromFile(S)
     end
   else
     begin
-      Log(vDebug,SLogGeneratingCompilerConfig,[S]);
-      Defaults.InitCompilerDefaults;
-      Defaults.SaveCompilerToFile(S);
+      // Generate a default configuration if it doesn't exists
+      if GlobalOptions.CompilerConfig='default' then
+        begin
+          Log(vDebug,SLogGeneratingCompilerConfig,[S]);
+          CompilerOptions.InitCompilerDefaults;
+          CompilerOptions.SaveCompilerToFile(S);
+        end
+      else
+        Error(SErrMissingCompilerConfig,[S]);
     end;
+  // Load FPMake compiler config, this is normally the same config as above
+  S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
+  if FileExists(S) then
+    begin
+      Log(vDebug,SLogLoadingFPMakeCompilerConfig,[S]);
+      FPMakeCompilerOptions.LoadCompilerFromFile(S)
+    end
+  else
+    Error(SErrMissingCompilerConfig,[S]);
 end;
 
 
@@ -131,13 +147,18 @@ begin
   Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Set verbosity');
+  Writeln('  -g --global        Force installation to global (system-wide) directory');
+  Writeln('  -f --force         Force installation also if the package is already installed');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
   Writeln('  avail              List available packages');
   Writeln('  build              Build package');
+  Writeln('  compile            Compile package');
   Writeln('  install            Install package');
+  Writeln('  archive            Create archive of package');
   Writeln('  download           Download package');
   Writeln('  convertmk          Convert Makefile.fpc to fpmake.pp');
+//  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
   Halt(0);
 end;
 
@@ -207,9 +228,11 @@ begin
       Inc(I);
       // Check options.
       if CheckOption(I,'c','config') then
-        Defaults.CurrentCompilerConfig:=OptionArg(I)
+        GlobalOptions.CompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         Include(Verbosity,StringToVerbosity(OptionArg(I)))
+      else if CheckOption(I,'g','global') then
+        GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
@@ -234,60 +257,54 @@ begin
 end;
 
 
-procedure TMakeTool.GenerateParaActions;
-var
-  ActionPackage : TFPPackage;
-  i : integer;
-begin
-  if GetPkgHandler(ParaAction)<>nil then
-    begin
-      if ParaPackages.Count=0 then
-        begin
-          Log(vDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
-          ActionStack.Push(nil,ParaAction,[]);
-        end
-      else
-        begin
-          for i:=0 to ParaPackages.Count-1 do
-            begin
-              ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
-              Log(vDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
-              ActionStack.Push(ActionPackage,ParaAction,[]);
-            end;
-        end;
-    end
-  else
-    Raise EMakeToolError.CreateFmt(SErrInvalidCommand,[ParaAction]);
-end;
-
-
 procedure TMakeTool.DoRun;
 var
-  Action : string;
   ActionPackage : TFPPackage;
-  Args   : TActionArgs;
   OldCurrDir : String;
+  Res    : Boolean;
+  i      : Integer;
 begin
   OldCurrDir:=GetCurrentDir;
-  LoadGlobalDefaults;
   Try
+    LoadGlobalDefaults;
     ProcessCommandLine;
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
-    LoadLocalRepository;
-    GenerateParaActions;
 
-    repeat
-      if not ActionStack.Pop(ActionPackage,Action,Args) then
-        break;
-      pkghandler.ExecuteAction(ActionPackage,Action,Args);
-    until false;
+    // Load local repository, update first if this is a new installation
+    if not FileExists(GlobalOptions.LocalPackagesFile) then
+      pkghandler.ExecuteAction(nil,'update');
+    LoadLocalRepository;
+    LoadFPMakeLocalStatus;
+    // We only need to reload the status when we use a different
+    // configuration for compiling fpmake
+    if GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig then
+      LoadLocalStatus;
+
+    if ParaPackages.Count=0 then
+      begin
+        Log(vDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
+        res:=pkghandler.ExecuteAction(nil,ParaAction);
+      end
+    else
+      begin
+        // Process packages
+        for i:=0 to ParaPackages.Count-1 do
+          begin
+            ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
+            Log(vDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
+            res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
+            if not res then
+              break;
+          end;
+      end;
+
     Terminate;
 
   except
     On E : Exception do
       begin
-        Writeln(StdErr,SErrRunning);
+        Writeln(StdErr,SErrException);
         Writeln(StdErr,E.Message);
         Halt(1);
       end;

@@ -64,7 +64,7 @@ type
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
+function ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil):Boolean;
 
 
 Implementation
@@ -76,7 +76,8 @@ uses
   pkgmessages;
 
 var
-  PkgHandlerList : TFPHashList;
+  PkgHandlerList  : TFPHashList;
+  ExecutedActions : TFPHashList;
 
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 begin
@@ -97,12 +98,27 @@ begin
 end;
 
 
-procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
+function ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil):Boolean;
 var
   pkghandlerclass : TPackageHandlerClass;
   i : integer;
   logargs : string;
+  FullActionName : string;
 begin
+  result:=false;
+  // Check if we have already executed or are executing the action
+  if assigned(Apackage) then
+    FullActionName:=APackage.Name+AAction
+  else
+    FullActionName:=AAction;
+  if ExecutedActions.Find(FullActionName)<>nil then
+    begin
+      Log(vDebug,'Already executed or executing action '+FullActionName);
+      result:=true;
+      exit;
+    end;
+  ExecutedActions.Add(FullActionName,Pointer(PtrUInt(1)));
+  // Create action handler class
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackage) do
     try
@@ -114,8 +130,9 @@ begin
           else
             logargs:=logargs+','+Args[i];
         end;
-      Log(vDebug,SLogRunAction,[AAction,logargs]);
-      Execute(Args);
+      Log(vDebug,SLogRunAction+' start',[AAction,logargs]);
+      result:=Execute(Args);
+      Log(vDebug,SLogRunAction+' end',[AAction,logargs]);
     finally
       Free;
     end;
@@ -150,7 +167,7 @@ begin
   if CurrentPackage=nil then
     Result:='.'
   else
-    Result:=Defaults.BuildDir+CurrentPackage.Name;
+    Result:=GlobalOptions.BuildDir+CurrentPackage.Name;
 end;
 
 function TPackageHandler.PackageRemoteArchive: String;
@@ -160,14 +177,14 @@ begin
   if CurrentPackage.ExternalURL<>'' then
     Result:=CurrentPackage.ExternalURL
   else
-    Result:=Defaults.RemoteRepository+CurrentPackage.FileName;
+    Result:=GlobalOptions.RemoteRepository+CurrentPackage.FileName;
 end;
 
 function TPackageHandler.PackageLocalArchive: String;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
-  Result:=Defaults.PackagesDir+CurrentPackage.FileName;
+  Result:=GlobalOptions.PackagesDir+CurrentPackage.FileName;
 end;
 
 
@@ -182,7 +199,8 @@ begin
   if assigned(CurrentPackage) then
     Result:='['+CurrentPackage.Name+'] '
   else
-    Result:='[<currentdir>] ';
+//    Result:='[<currentdir>] ';
+    Result:='';
 end;
 
 
@@ -277,6 +295,8 @@ end;
 
 initialization
   PkgHandlerList:=TFPHashList.Create;
+  ExecutedActions:=TFPHashList.Create;
 finalization
   FreeAndNil(PkgHandlerList);
+  FreeAndNil(ExecutedActions);
 end.

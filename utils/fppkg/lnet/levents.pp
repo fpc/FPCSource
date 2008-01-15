@@ -1,6 +1,6 @@
 { lNet Events abstration
 
-  CopyRight (C) 2006 Ales Katona
+  CopyRight (C) 2006-2007 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -158,6 +158,7 @@ type
     function CallAction: Boolean; virtual;
     procedure RemoveHandle(aHandle: TLHandle); virtual;
     procedure UnplugHandle(aHandle: TLHandle); virtual;
+    procedure UnregisterHandle(aHandle: TLHandle); virtual;
     procedure LoadFromEventer(aEventer: TLEventer); virtual;
     procedure Clear;
     procedure AddRef;
@@ -424,6 +425,11 @@ begin
   end;
 end;
 
+procedure TLEventer.UnregisterHandle(aHandle: TLHandle);
+begin
+  // do nothing, specific to win32 LCLEventer crap (windows is shit)
+end;
+
 procedure TLEventer.LoadFromEventer(aEventer: TLEventer);
 begin
   Clear;
@@ -499,6 +505,9 @@ var
   MaxHandle, n: Integer;
   TempTime: TTimeVal;
 begin
+  if FInLoop then
+    Exit;
+
   if not Assigned(FRoot) then begin
     Sleep(FTimeout.tv_sec * 1000 + FTimeout.tv_usec div 1000);
     Exit;

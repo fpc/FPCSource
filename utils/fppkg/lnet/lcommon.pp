@@ -1,6 +1,6 @@
 { lCommon
 
-  CopyRight (C) 2004-2006 Ales Katona
+  CopyRight (C) 2004-2007 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -61,6 +61,10 @@ const
       {$ELSE}
         LMSG = 0;
       {$ENDIF}
+    {$ENDIF}
+    
+    {$IFDEF DARWIN}
+    SO_NOSIGPIPE = $1022; // for fpc 2.0.4
     {$ENDIF}
   {$ENDIF}
   { Default Values }
