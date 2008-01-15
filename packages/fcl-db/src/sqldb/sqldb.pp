@@ -423,7 +423,6 @@ Procedure UnRegisterConnection(Def : TConnectionDefClass);
 Procedure UnRegisterConnection(ConnectionName : String);
 Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
 Procedure GetConnectionList(List : TSTrings);
-function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 
 implementation
 
@@ -1645,68 +1644,6 @@ procedure GetConnectionList(List: TSTrings);
 begin
   CheckDefs;
   List.Text:=ConnDefs.Text;
-end;
-
-function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
-
-var pc,pcc,lastpc : pchar;
-    strcount      : integer;
-    ResStr,
-    CompStr       : string;
-    Found         : Boolean;
-    sc            : integer;
-
-
-begin
-  sc := length(OldPattern);
-  if sc <> length(NewPattern) then
-    raise exception.Create(SErrAmountStrings);
-
-  dec(sc);
-
-  if rfIgnoreCase in Flags then
-    begin
-    CompStr:=AnsiUpperCase(S);
-    for strcount := 0 to sc do
-      OldPattern[strcount] := AnsiUpperCase(OldPattern[strcount]);
-    end
-  else
-    CompStr := s;
-
-  ResStr := '';
-  pc := @CompStr[1];
-  pcc := @s[1];
-  lastpc := pc+Length(S);
-
-  while pc < lastpc do
-    begin
-    Found := False;
-    for strcount := 0 to sc do
-      begin
-      if (length(OldPattern[strcount])>0) and
-         (OldPattern[strcount][1]=pc^) and
-         (Length(OldPattern[strcount]) <= (lastpc-pc)) and
-         (CompareByte(OldPattern[strcount][1],pc^,Length(OldPattern[strcount]))=0) then
-        begin
-        ResStr := ResStr + NewPattern[strcount];
-        pc := pc+Length(OldPattern[strcount]);
-        pcc := pcc+Length(OldPattern[strcount]);
-        Found := true;
-        end
-      end;
-    if not found then
-      begin
-      ResStr := ResStr + pcc^;
-      inc(pc);
-      inc(pcc);
-      end
-    else if not (rfReplaceAll in Flags) then
-      begin
-      ResStr := ResStr + StrPas(pcc);
-      break;
-      end;
-    end;
-  Result := ResStr;
 end;
 
 { TSQLConnector }
