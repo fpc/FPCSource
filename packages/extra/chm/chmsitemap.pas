@@ -39,6 +39,7 @@ type
     FComment: String;
     FImageNumber: Integer;
     FIncreaseImageIndex: Boolean;
+    FKeyWord: String;
     FLocal: String;
     FOwner: TChmSiteMapItems;
     FSeeAlso: String;
@@ -50,6 +51,7 @@ type
     destructor Destroy; override;
     property Children: TChmSiteMapItems read FChildren write SetChildren;
     property Text: String read FText write FText; // Name for TOC; KeyWord for index
+    property KeyWord: String read FKeyWord write FKeyWord;
     property Local: String read FLocal write FLocal;
     property URL: String read FURL write FURL;
     property SeeAlso: String read FSeeAlso write FSeeAlso;
@@ -81,6 +83,7 @@ type
     function NewItem: TChmSiteMapItem;
     function Insert(AItem: TChmSiteMapItem; AIndex: Integer): Integer;
     procedure Clear;
+    procedure Sort(Compare: TListSortCompare);
     property Item[AIndex: Integer]: TChmSiteMapItem read GetItem write SetItem;
     property Count: Integer read GetCount;
     property ParentItem: TChmSiteMapItem read FParentItem;
@@ -338,15 +341,15 @@ var
     Item: TChmSiteMapItem;
   begin
     for I := 0 to AItems.Count-1 do begin
-
-      
       Item := AItems.Item[I];
       WriteString('<LI> <OBJECT type="text/sitemap">');
       Inc(Indent, 8);
-      //Merge
-      //if (SiteMapType = stIndex) and (Item.Text <> '') then WriteParam('Keyword', Item.Text);
+
+      if (SiteMapType = stIndex) and (Item.Children.Count > 0) then
+         WriteParam('Keyword', Item.Text);
+      //if Item.KeyWord <> '' then WriteParam('Keyword', Item.KeyWord);
       if Item.Text <> '' then WriteParam('Name', Item.Text);
-      if Item.Local <> '' then WriteParam('Local', Item.Local);
+      if (Item.Local <> '') or (SiteMapType = stIndex) then WriteParam('Local', Item.Local);
       if Item.URL <> '' then WriteParam('URL', Item.URL);
       if (SiteMapType = stIndex) and (Item.SeeAlso <> '') then WriteParam('See Also', Item.SeeAlso);
       //if Item.FrameName <> '' then WriteParam('FrameName', Item.FrameName);
@@ -367,9 +370,6 @@ var
         Dec(Indent, 8);
         WriteString('</UL>');
       end;
-      
-
-
     end;
   end;
 begin
@@ -496,6 +496,11 @@ var
   I: LongInt;
 begin
   for I := Count-1 downto 0 do Delete(I);
+end;
+
+procedure TChmSiteMapItems.Sort(Compare: TListSortCompare);
+begin
+  FList.Sort(Compare);
 end;
 
 end.

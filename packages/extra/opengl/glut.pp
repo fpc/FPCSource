@@ -326,7 +326,7 @@ const
 {$IFDEF GLUT_EXCLUSIVE_FPUMODE}
 var
 OLD_glutInit:procedure(argcp: PInteger; argv: PPChar); extdecl;
-OLD_glutInitDisplayMode:procedure(mode: Word); extdecl;
+OLD_glutInitDisplayMode:procedure(mode: Cardinal); extdecl;
 OLD_glutInitDisplayString:procedure(const str: PChar); extdecl;
 OLD_glutInitWindowPosition:procedure(x, y: Integer); extdecl;
 OLD_glutInitWindowSize:procedure(width, height: Integer); extdecl;
@@ -378,7 +378,7 @@ OLD_glutPassiveMotionFunc:procedure(f: TGlut2IntCallback); extdecl;
 OLD_glutEntryFunc:procedure(f: TGlut1IntCallback); extdecl;
 OLD_glutVisibilityFunc:procedure(f: TGlut1IntCallback); extdecl;
 OLD_glutIdleFunc:procedure(f: TGlutVoidCallback); extdecl;
-OLD_glutTimerFunc:procedure(millis: Word; f: TGlut1IntCallback; value: Integer); extdecl;
+OLD_glutTimerFunc:procedure(millis: Cardinal; f: TGlut1IntCallback; value: Integer); extdecl;
 OLD_glutMenuStateFunc:procedure(f: TGlut1IntCallback); extdecl;
 OLD_glutSpecialFunc:procedure(f: TGlut3IntCallback); extdecl;
 OLD_glutSpaceballMotionFunc:procedure(f: TGlut3IntCallback); extdecl;
@@ -441,7 +441,7 @@ OLD_glutLeaveGameMode:procedure; extdecl;
 OLD_glutGameModeGet:function(mode : GLenum): integer; extdecl;
 
 procedure glutInit(argcp: PInteger; argv: PPChar); mode_inline;
-procedure glutInitDisplayMode(mode: Word); mode_inline;
+procedure glutInitDisplayMode(mode: Cardinal); mode_inline;
 procedure glutInitDisplayString(const str: PChar); mode_inline;
 procedure glutInitWindowPosition(x, y: Integer); mode_inline;
 procedure glutInitWindowSize(width, height: Integer); mode_inline;
@@ -493,7 +493,7 @@ procedure glutPassiveMotionFunc(f: TGlut2IntCallback); mode_inline;
 procedure glutEntryFunc(f: TGlut1IntCallback); mode_inline;
 procedure glutVisibilityFunc(f: TGlut1IntCallback); mode_inline;
 procedure glutIdleFunc(f: TGlutVoidCallback); mode_inline;
-procedure glutTimerFunc(millis: Word; f: TGlut1IntCallback; value: Integer); mode_inline;
+procedure glutTimerFunc(millis: Cardinal; f: TGlut1IntCallback; value: Integer); mode_inline;
 procedure glutMenuStateFunc(f: TGlut1IntCallback); mode_inline;
 procedure glutSpecialFunc(f: TGlut3IntCallback); mode_inline;
 procedure glutSpaceballMotionFunc(f: TGlut3IntCallback); mode_inline;
@@ -560,7 +560,7 @@ function glutGameModeGet(mode : GLenum): integer; mode_inline;
 var
 // GLUT initialization sub-API.
   glutInit: procedure(argcp: PInteger; argv: PPChar); extdecl;
-  glutInitDisplayMode: procedure(mode: Word); extdecl;
+  glutInitDisplayMode: procedure(mode: Cardinal); extdecl;
   glutInitDisplayString: procedure(const str: PChar); extdecl;
   glutInitWindowPosition: procedure(x, y: Integer); extdecl;
   glutInitWindowSize: procedure(width, height: Integer); extdecl;
@@ -620,7 +620,7 @@ var
   glutEntryFunc: procedure(f: TGlut1IntCallback); extdecl;
   glutVisibilityFunc: procedure(f: TGlut1IntCallback); extdecl;
   glutIdleFunc: procedure(f: TGlutVoidCallback); extdecl;
-  glutTimerFunc: procedure(millis: Word; f: TGlut1IntCallback; value: Integer); extdecl;
+  glutTimerFunc: procedure(millis: Cardinal; f: TGlut1IntCallback; value: Integer); extdecl;
   glutMenuStateFunc: procedure(f: TGlut1IntCallback); extdecl;
   glutSpecialFunc: procedure(f: TGlut3IntCallback); extdecl;
   glutSpaceballMotionFunc: procedure(f: TGlut3IntCallback); extdecl;
@@ -1285,7 +1285,7 @@ begin
   switch_to_FPC_fpumode;
 end;
 
-procedure glutInitDisplayMode(mode: Word);
+procedure glutInitDisplayMode(mode: Cardinal);
 begin
   switch_to_glut_fpumode;
   OLD_glutInitDisplayMode(mode);
@@ -1649,7 +1649,7 @@ begin
   switch_to_FPC_fpumode;
 end;
 
-procedure glutTimerFunc(millis: Word; f: TGlut1IntCallback; value: Integer);
+procedure glutTimerFunc(millis: Cardinal; f: TGlut1IntCallback; value: Integer);
 begin
   switch_to_glut_fpumode;
   OLD_glutTimerFunc(millis,f,value);

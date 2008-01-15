@@ -2191,6 +2191,8 @@ var
         'F':
           if s[3] = 'i' then
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
+        'I':
+          FileResolver.AddIncludePath(Copy(s, 3, Length(s)));    
         'S':
           if s[3]='d' then
             begin

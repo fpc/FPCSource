@@ -5,23 +5,21 @@ program fpmake;
 uses fpmkunit;
 
 Var
-  T : TTarget;
-
+  P : TPackage;
 begin
   With Installer do
     begin
 {$endif ALLPACKAGES}
 
-    StartPackage('fpmkunit');
+    P:=AddPackage('fpmkunit');
 {$ifdef ALLPACKAGES}
-    Directory:='fpmkunit';
+    P.Directory:='fpmkunit';
 {$endif ALLPACKAGES}
-    AddDependency('paszlib');
-    AddDependency('fcl-process');
-    Version:='2.2.0';
-    Description:='Free Pascal Make Tool';
-    T:=Targets.AddUnit('src/fpmkunit.pp');
-    EndPackage;
+    P.Version:='2.2.0';
+    P.Description:='Free Pascal Make Tool';
+    P.Dependencies.Add('paszlib');
+    P.Dependencies.Add('fcl-process');
+    P.Targets.AddUnit('src/fpmkunit.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

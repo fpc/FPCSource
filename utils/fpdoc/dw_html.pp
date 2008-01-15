@@ -15,11 +15,14 @@
 {$mode objfpc}
 {$H+}
 
+{$DEFINE FPDOC_CHM}
+
 unit dw_HTML;
 
 interface
 
-uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter;
+uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter
+    {$IFDEF FPDOC_CHM},ChmWriter, ChmBase{$ENDIF};
 
 const
   // Subpage indices for modules
@@ -233,7 +236,7 @@ type
       ASubpageIndex: Integer): TXMLDocument;
 
     // For producing complete package documentation
-    procedure WriteHTMLPages;
+    procedure WriteHTMLPages; virtual;
     procedure WriteXHTMLPages;
 
     SearchPage: String;
@@ -252,10 +255,17 @@ type
     Procedure CreateAllocator; override;
   end;
 
+{$DEFINE FPDOC_CHM}
+
+{$IFDEF FPDOC_CHM}
+  {$DEFINE chmInterface}
+  {$I dw_htmlchm.inc}
+  {$UNDEF chmInterface}
+{$ENDIF}
 
 implementation
 
-uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas;
+uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas {$IFDEF FPDOC_CHM},chmsitemap{$ENDIF};
 
 
 Function FixHTMLpath(S : String) : STring;
@@ -263,6 +273,8 @@ Function FixHTMLpath(S : String) : STring;
 begin
   Result:=StringReplace(S,'\','/',[rfReplaceAll]);
 end;
+
+{$I dw_htmlchm.inc}
 
 procedure TFileAllocator.AllocFilename(AElement: TPasElement;
   ASubindex: Integer);
@@ -652,7 +664,7 @@ var
   i: Integer;
   PageDoc: TXMLDocument;
   Filename: String;
-begin
+begin WriteLn('!!!!!!!!!!!!!!!!!!!!!!1');
   if Engine.Output <> '' then
     Engine.Output := IncludeTrailingBackSlash(Engine.Output);
   for i := 0 to PageInfos.Count - 1 do
@@ -3007,7 +3019,13 @@ initialization
   // Do not localize.
   RegisterWriter(THTMLWriter,'html','HTML output using fpdoc.css stylesheet.');
   RegisterWriter(THTMWriter,'htm','HTM (8.3 filenames) output using fpdoc.css stylesheet.');
+  {$IFDEF FPDOC_CHM}
+  RegisterWriter(TCHMHTMLWriter,'chm','Compressed HTML file output using fpdoc.css stylesheet.');
+  {$ENDIF}
 finalization
   UnRegisterWriter('html');
   UnRegisterWriter('htm');
+  {$IFDEF FPDOC_CHM}
+  UnRegisterWriter('chm');
+  {$ENDIF}
 end.

@@ -34,7 +34,7 @@ uses
   function WriteSpanInfoToStream(const AStream: TStream; UncompressedSize: QWord): Integer;
   function WriteTransformListToStream(const AStream: TStream): Integer;
   function WriteResetTableToStream(const AStream: TStream; ResetTableStream: TMemoryStream): Integer;
-  function WriteContentToStream(const AStream: TStream; ContentStream: TMemoryStream): Integer;
+  function WriteContentToStream(const AStream: TStream; ContentStream: TStream): Integer;
   
 implementation
 
@@ -120,7 +120,7 @@ begin
   Result := AStream.CopyFrom(ResetTableStream, ResetTableStream.Size-SizeOf(QWord));
 end;
 
-function WriteContentToStream(const AStream: TStream; ContentStream: TMemoryStream): Integer;
+function WriteContentToStream(const AStream: TStream; ContentStream: TStream): Integer;
 begin
   //  ::DataSpace/Storage/MSCompressed/Content
   ContentStream.Position := 0;

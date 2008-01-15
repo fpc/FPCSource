@@ -7,7 +7,7 @@ name=fpdoc
 version=2.2.1
 
 [require]
-packages=fcl-xml fcl-passrc
+packages=fcl-xml fcl-passrc chm
 
 [target]
 programs=fpdoc makeskel unitdiff

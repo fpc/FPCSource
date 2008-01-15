@@ -36,6 +36,7 @@ type
 
   TChmProject = class
   private
+    FWriter: TChmWriter;
     FAutoFollowLinks: Boolean;
     FDefaultFont: String;
     FDefaultPage: String;
@@ -49,6 +50,7 @@ type
     FTitle: String;
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
+    procedure LastFileAdded(Sender: TObject);
   public
     constructor Create;
     destructor Destroy; override;
@@ -91,6 +93,25 @@ begin
   
   PathInChm := '/'+ExtractFilePath(DataName);
   if Assigned(FOnProgress) then FOnProgress(Self, DataName);
+end;
+
+procedure TChmProject.LastFileAdded(Sender: TObject);
+var
+  IndexStream: TFileStream;
+  TOCStream: TFileStream;
+begin
+  // Assign the TOC and index files
+  if (IndexFileName <> '') and FileExists(IndexFileName) then begin
+    IndexStream := TFileStream.Create(IndexFileName, fmOpenRead);
+    FWriter.AppendIndex(IndexStream);
+    IndexStream.Free;
+  end;
+  if (TableOfContentsFileName <> '') and FileExists(TableOfContentsFileName) then begin
+    TOCStream := TFileStream.Create(TableOfContentsFileName, fmOpenRead);
+    FWriter.AppendTOC(TOCStream);
+    TOCStream.Free;
+  end;
+
 end;
 
 constructor TChmProject.Create;
@@ -174,20 +195,11 @@ begin
   Writer := TChmWriter.Create(AOutStream, False);
   // our callback to get data
   Writer.OnGetFileData := @GetData;
+  Writer.OnLastFile    := @LastFileAdded;
   
   // give it the list of files
   Writer.FilesToCompress.AddStrings(Files);
 
-  // Assign the TOC and index files
-  if (IndexFileName <> '') and FileExists(IndexFileName) then begin
-    IndexStream := TFileStream.Create(IndexFileName, fmOpenRead);
-    Writer.IndexStream := IndexStream;
-  end;
-  if (TableOfContentsFileName <> '') and FileExists(TableOfContentsFileName) then begin
-    TOCStream := TFileStream.Create(TableOfContentsFileName, fmOpenRead);
-    Writer.TOCStream := TOCStream;
-  end;
-  
   // now some settings in the chm
   Writer.DefaultPage := DefaultPage;
   Writer.Title := Title;

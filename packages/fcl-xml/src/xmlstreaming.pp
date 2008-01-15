@@ -52,19 +52,20 @@ type
     procedure EndList; override;
     procedure BeginProperty(const PropName: String); override;
     procedure EndProperty; override;
-
+    procedure Write(const Buffer; Count: LongInt); override;
     procedure WriteBinary(const Buffer; Count: Longint); override;
     procedure WriteBoolean(Value: Boolean); override;
     // procedure WriteChar(Value: Char);
     procedure WriteFloat(const Value: Extended); override;
     procedure WriteSingle(const Value: Single); override;
-    {!!!: procedure WriteCurrency(const Value: Currency); override;}
+    procedure WriteCurrency(const Value: Currency); override;
     procedure WriteDate(const Value: TDateTime); override;
     procedure WriteIdent(const Ident: string); override;
     procedure WriteInteger(Value: Int64); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
     procedure WriteString(const Value: String); override;
+    procedure WriteWideString(const Value: WideString); override;
   end;
 
 
@@ -188,6 +189,10 @@ procedure TXMLObjectWriter.WriteBinary(const Buffer; Count: Longint);
 begin
   WriteLn('WriteBinary (', Count, ' Bytes)');
 end;
+procedure TXMLObjectWriter.Write(const Buffer; Count: Longint);
+begin
+  WriteLn('WriteBinary (', Count, ' Bytes)');
+end;
 
 procedure TXMLObjectWriter.WriteBoolean(Value: Boolean);
 begin
@@ -214,6 +219,11 @@ begin
   GetPropertyElement('ident')['value'] := Ident;
 end;
 
+procedure TXMLObjectWriter.WriteCurrency(const Value : Currency);
+begin
+  Writeln('WriteCurrency',Value);
+end;
+
 procedure TXMLObjectWriter.WriteInteger(Value: Int64);
 begin
   GetPropertyElement('integer')['value'] := IntToStr(Value);
@@ -232,6 +242,11 @@ end;
 procedure TXMLObjectWriter.WriteString(const Value: String);
 begin
   GetPropertyElement('string')['value'] := Value;
+end;
+
+procedure TXMLObjectWriter.WriteWideString(const Value: WideString);
+begin
+  GetPropertyElement('widestring')['value'] := Value;
 end;
 
 

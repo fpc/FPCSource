@@ -1573,6 +1573,11 @@ procedure FreeOpenGL;
 
 implementation
 
+{$if defined(cpui386) or defined(cpux86_64)}
+uses
+  math;
+{$endif}
+
 {$ifdef windows}
 function WinChoosePixelFormat(DC: HDC; p2: PPixelFormatDescriptor): Integer; extdecl; external 'gdi32' name 'ChoosePixelFormat';
 {$endif}
@@ -2315,9 +2320,10 @@ initialization
 
   { according to bug 7570, this is necessary on all x86 platforms,
     maybe we've to fix the sse control word as well }
-  {$ifdef x86}
-  Set8087CW($133F);
-  {$endif x86}
+  { Yes, at least for darwin/x86_64 (JM) }
+  {$if defined(cpui386) or defined(cpux86_64)}
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,exOverflow, exUnderflow, exPrecision]);
+  {$endif}
 
   {$IFDEF Windows}
   LoadOpenGL('opengl32.dll');

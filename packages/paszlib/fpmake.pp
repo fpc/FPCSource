@@ -5,68 +5,28 @@ program fpmake;
 uses fpmkunit;
 
 Var
-  T : TTarget;
   P : TPackage;
+  T : TTarget;
 begin
   With Installer do
     begin
 {$endif ALLPACKAGES}
 
-    P:=StartPackage('paszlib');
+    P:=AddPackage('hash');
 {$ifdef ALLPACKAGES}
-    P.Directory:='paszlib';
+    P.Directory:='hash';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.0';
-    P.Dependencies.Add('hash');
-    P.SourcePath.Add('src');
-    P.IncludePath.Add('src');
-    T:=Targets.AddUnit('paszlib.pas');
-      T.Dependencies.AddUnit('adler');
-      T.Dependencies.AddUnit('gzio');
-      T.Dependencies.AddUnit('infblock');
-      T.Dependencies.AddUnit('infcodes');
-      T.Dependencies.AddUnit('inffast');
-      T.Dependencies.AddUnit('inftrees');
-      T.Dependencies.AddUnit('infutil');
-      T.Dependencies.AddUnit('trees');
-      T.Dependencies.AddUnit('zbase');
-      T.Dependencies.AddUnit('zcompres');
-      T.Dependencies.AddUnit('zdeflate');
-      T.Dependencies.AddUnit('zinflate');
-      T.Dependencies.AddUnit('zuncompr');
-    T:=Targets.AddUnit('zip.pas');
-      T.Dependencies.AddUnit('paszlib');
-      T.Dependencies.AddUnit('ziputils');
-    T:=Targets.AddUnit('unzip.pas');
-      T.Dependencies.AddUnit('paszlib');
-      T.Dependencies.AddUnit('ziputils');
-    T:=Targets.AddUnit('zipper.pp');
-      T.Dependencies.AddUnit('paszlib');
-    T:=Targets.AddImplicitUnit('adler.pas');
-      T.Dependencies.AddInclude('zconf.inc');
-    T:=Targets.AddImplicitUnit('gzio.pas');
-    T:=Targets.AddImplicitUnit('infblock.pas');
-    T:=Targets.AddImplicitUnit('infcodes.pas');
-    T:=Targets.AddImplicitUnit('inffast.pas');
-    T:=Targets.AddImplicitUnit('inftrees.pas');
-    T:=Targets.AddImplicitUnit('infutil.pas');
-    T:=Targets.AddImplicitUnit('trees.pas');
-    T:=Targets.AddImplicitUnit('zbase.pas');
-    T:=Targets.AddImplicitUnit('zcompres.pas');
-    T:=Targets.AddImplicitUnit('zdeflate.pas');
-    T:=Targets.AddImplicitUnit('zinflate.pas');
-    T:=Targets.AddImplicitUnit('zuncompr.pas');
-    T:=Targets.AddImplicitUnit('ziputils.pas');
-    T:=Targets.AddImplicitUnit('zstream.pp');
-    T:=Targets.AddExampleProgram('tests/example.pas');
-    T:=Targets.AddExampleProgram('tests/minigzip.pas');
-    T:=Targets.AddExampleProgram('tests/miniunz.pas');
-    T:=Targets.AddExampleProgram('tests/minizip.pas');
-    EndPackage;
+    P.Version:='2.0.0';
+    T:=P.Targets.AddUnit('src/md5.pp');
+    T:=P.Targets.AddUnit('src/crc.pas');
+    T:=P.Targets.AddUnit('src/ntlm.pas');
+    T:=P.Targets.AddUnit('src/uuid.pas');
+    T:=P.Targets.AddUnit('src/unixcrypt.pas');
+      T.OSes:=[Linux];
+    T:=P.Targets.AddExampleunit('examples/mdtest.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
-
