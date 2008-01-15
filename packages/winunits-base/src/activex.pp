@@ -258,8 +258,6 @@ Const
     MSHCTX_INPROC               = 3;   // unmarshal context is on different thread
     MSHCTX_CROSSCTX             = 4;   // unmarshal context is on different context
 
-
-
 // #########################################################################
 //
 //  VARTYPE
@@ -463,6 +461,9 @@ Const
     DISPATCH_PROPERTYPUT    = $4;
     DISPATCH_PROPERTYPUTREF = $8;
 
+    USERCLASSTYPE_FULL      = 1;
+    USERCLASSTYPE_SHORT     = 2;
+    USERCLASSTYPE_APPNAME   = 3;
 
 // The range -500 through -999 is reserved for Controls
 // The range 0x80010000 through 0x8001FFFF is reserved for Controls
@@ -486,6 +487,14 @@ Const
     SYS_MAC                     = 2;
     SYS_WIN64                   = 3;
 
+    REGKIND_DEFAULT		= 0;
+    REGKIND_REGISTER		= 1;
+    REGKIND_NONE		= 2;
+
+    INTERFACESAFE_FOR_UNTRUSTED_CALLER = $00000001;	// Caller of interface may be untrusted
+    INTERFACESAFE_FOR_UNTRUSTED_DATA   = $00000002;	// Data passed into interface may be untrusted
+    INTERFACE_USES_DISPEX              = $00000004;	// Object knows to use IDispatchEx
+    INTERFACE_USES_SECURITY_MANAGER    = $00000008;	// Object knows to use IInternetHostSecurityManager
 
     LIBFLAG_FRESTRICTED         = $01;
     LIBFLAG_FCONTROL            = $02;
@@ -696,10 +705,13 @@ Const
     SMEXF_SERVER                = $01;     // server side aggregated std marshaler
     SMEXF_HANDLER               = $02;     // client side (handler) agg std marshaler
 
-
-
     COWAIT_WAITALL              = 1;
     COWAIT_ALERTABLE            = 2;
+
+    DOCMISC_CANCREATEMULTIPLEVIEWS     = 1;
+    DOCMISC_SUPPORTCOMPLEXRECTANGLES   = 2;
+    DOCMISC_CANTOPENEDIT               = 4;        // fails the IOleDocumentView::Open  method
+    DOCMISC_NOFILESUPPORT              = 8;        //  does not support read/writing to a file
 
 TYPE
     VARTYPE             = USHORT;
@@ -722,6 +734,9 @@ TYPE
     VARKIND             = DWord;
     DESCKIND            = DWord;
     SYSKIND             = DWord;
+    TSYSKIND		= SYSKIND;
+    REGKIND		= DWord;
+    TREGKIND		= REGKIND;
     FUNCKIND            = DWord;
     CHANGEKIND          = DWord;
     CALLCONV            = DWord;
@@ -1464,6 +1479,7 @@ TYPE
 
   TLIBATTR                       = tagTLIBATTR;
   LPTLIBATTR                     = ^tagTLIBATTR;
+  PTLIBAttr			 = LPTLIBATTR;
 
   LPFUNCDESC                     = ^FUNCDESC;
 
@@ -1735,9 +1751,9 @@ TYPE
       Function Inverse(out mk : IMoniker):HResult; StdCall;
       Function CommonPrefixWith (Const mkOther:IMoniker):HResult; StdCall;
       Function RelativePathTo(Const mkother:IMoniker; Out mkRelPath : IMoniker):HResult;StdCall;
-      Function GetDisplayName(Const bc:IMoniker;const mktoleft:IMoniker;Out szDisplayName: pOleStr):HResult; StdCall;
+      Function GetDisplayName(Const bc:IBindCtx;const mktoleft:IMoniker;Out szDisplayName: pOleStr):HResult; StdCall;
       Function ParseDisplayName(Const bc:IBindCtx;Const mkToLeft:IMoniker;szDisplayName:POleStr;out cheaten:ULong;out mkOut:IMoniker):HResult; StdCall;
-      Function IsSystemMonitor(Out dwMkSys:DWord):HResult;StdCall;
+      Function IsSystemMoniker(Out dwMkSys:DWord):HResult;StdCall;
       End;
 
     IROTData = Interface (IUnknown)
@@ -1788,9 +1804,6 @@ TYPE
        Function Reset:HResult; StdCall;
        Function Clone(Out penum:IEnumStatSTG):HResult; StdCall;
        End;
-
-
-
 
     IStorage = Interface (IUnknown)
        ['{0000000b-0000-0000-C000-000000000046}']
@@ -1850,8 +1863,8 @@ TYPE
 
    IEnumFORMATETC = Interface (IUnknown)
      ['{00000103-0000-0000-C000-000000000046}']
-     Function Next(Celt:ULong;Out Rgelt:FormatEtc;Out pceltFetched:ULong):HResult; StdCall;
-//     Function RemoteNext(Celt:ULong;Out Rgelt:FormatEtc;Out pceltFetched:ULong):HResult; StdCall;
+     Function Next(Celt:ULong;Out Rgelt:FormatEtc;pceltFetched:pULong=nil):HResult; StdCall;
+//     Function RemoteNext(Celt:ULong;Out Rgelt:FormatEtc; pceltFetched:pULong=nil):HResult; StdCall;
      Function Skip(Celt:ULong):HResult;StdCall;
      Function Reset:HResult;StdCall;
      Function Clone(out penum:IEnumFORMATETC):HResult;StdCall;
@@ -1859,7 +1872,7 @@ TYPE
 
     IEnumSTATDATA = Interface (IUnknown)
         ['{00000105-0000-0000-C000-000000000046}']
-        Function Next(Celt:ULong;Out Rgelt:statdata;Out pceltFetched:ULong):HResult; StdCall;
+        Function Next(Celt:ULong;Out Rgelt:statdata; pceltFetched:pULong=nil):HResult; StdCall;
 //      Function RemoteNext(Celt:ULong;Out Rgelt:statdata;Out pceltFetched:ULong):HResult; StdCall;
         Function Skip(Celt:ULong):HResult;StdCall;
         Function Reset:HResult;StdCall;
@@ -2070,7 +2083,7 @@ TYPE
 
     IEnumConnections = Interface (IUnknown)
        ['{B196B287-BAB4-101A-B69C-00AA00341D07}']
-       Function Next(cConnections : ULong; Out rgcd : ConnectData;Out lpcFetched : ULong):HResult;StdCall;
+       Function Next(cConnections : ULong; Out rgcd : ConnectData; lpcFetched : pULong=nil):HResult;StdCall;
        Function Skip(cConnections : ULong):HResult;StdCall;
        Function Reset:HResult;StdCall;
        Function Clone(Out pEnum : IEnumConnections):HResult; StdCall;
@@ -2079,7 +2092,7 @@ TYPE
 
     IEnumConnectionPoints = Interface (IUnknown)
        ['{B196B285-BAB4-101A-B69C-00AA00341D07}']
-       Function Next(cConnections : ULong; Out rgpcm : IConnectionPoint;Out lpcFetched : ULong):HResult;StdCall;
+       Function Next(cConnections : ULong; Out rgpcm : IConnectionPoint; lpcFetched : pULong=nil):HResult;StdCall;
        Function Skip(cConnections : ULong):HResult;StdCall;
        Function Reset:HResult;StdCall;
        Function Clone(Out pEnum : IEnumConnectionPoints):HResult;StdCall;
@@ -2401,9 +2414,9 @@ TYPE
    IEnumVARIANT = Interface (IUnknown)
      ['{00020404-0000-0000-C000-000000000046}']
      {$ifndef Call_as}
-      Function  Next(celt: ULONG; OUT rgVar: VARIANT; OUT pCeltFetched: ULONG):HResult;StdCall;
+      Function  Next(celt: ULONG; OUT rgVar: VARIANT;  pCeltFetched: pULONG=nil):HResult;StdCall;
      {$else}
-      Function  Next(celt: ULONG; OUT rgVar: VARIANT; OUT pCeltFetched: ULONG):HResult;StdCall;
+      Function  Next(celt: ULONG; OUT rgVar: VARIANT;  pCeltFetched: pULONG=nil):HResult;StdCall;
      {$endif}
      Function  Skip(celt: ULONG):HResult;StdCall;
      Function  Reset():HResult;StdCall;
@@ -2658,7 +2671,7 @@ TYPE
 
    IEnumGUID = interface(IUnknown)
      ['{0002E000-0000-0000-C000-000000000046}']
-     Function Next(celt: UINT; OUT rgelt: TGUID; OUT pceltFetched: UINT):HResult;StdCall;
+     Function Next(celt: UINT; OUT rgelt: TGUID;  pceltFetched: pUINT=nil):HResult;StdCall;
      Function Skip(celt:UINT):HResult;StdCall;
      Function Reset: HResult;StdCall;
      Function Clone(out ppenum: IEnumGUID):HResult;StdCall;
@@ -2725,6 +2738,19 @@ TYPE
                                                           stuff from objbase.h
   ****************************************************************************************************************** }
 
+  tagOIFI = record
+    cb: UINT;
+    fMDIApp: BOOL;
+    hwndFrame: HWND;
+    haccel: HAccel;
+    cAccelEntries: UINT;
+  end;
+  TOleInPlaceFrameInfo = tagOIFI;
+  POleInPlaceFrameInfo = ^TOleInPlaceFrameInfo;
+  LPOleInPlaceFrameInfo = POleInPlaceFrameInfo;
+  OLEINPLACEFRAMEINFO = tagOIFI;
+
+
 { redefinitions }
   function CoCreateGuid(out _para1:TGUID):HRESULT;stdcall;external 'ole32.dll' name 'CoCreateGuid';
 
@@ -2750,7 +2776,7 @@ type
 
   IEnumOLEVERB = interface(IUnknown)
     ['{00000104-0000-0000-C000-000000000046}']
-    function Next(celt: ULONG; out elt; pceltFetched: PULONG): HResult;StdCall;
+    function Next(celt: ULONG; out elt; pceltFetched: PULONG=nil): HResult;StdCall;
     function Skip(celt: ULONG): HResult;StdCall;
     function Reset: HResult;StdCall;
     function Clone(out ppenum: IEnumOLEVERB): HResult;StdCall;
@@ -2823,22 +2849,117 @@ type
     function TranslateAccelerator(var msg: TMsg; wID: Word): HResult;StdCall;
   end;
 
-  tagOIFI = record
-    cb: UINT;
-    fMDIApp: BOOL;
-    hwndFrame: HWND;
-    haccel: HAccel;
-    cAccelEntries: UINT;
-  end;
-  TOleInPlaceFrameInfo = tagOIFI;
-  POleInPlaceFrameInfo = ^TOleInPlaceFrameInfo;
-  OLEINPLACEFRAMEINFO = tagOIFI;
+  IOleLink = interface(IUnknown) 
+     ['{0000011d-0000-0000-C000-000000000046}']
+    function SetUpdateOptions(dwupdateopt:dword):HResult; stdcall;
+    function GetUpdateOptions(dwupdateopt:pdword):HResult; stdcall;
+    function SetSourceMoniker(pmk : IMoniker;const clsid: TCLSID):HRESULT; stdcall;
+    function GetSourceMoniker(out pmk : IMoniker):HRESULT; stdcall;           
+    function SetSourceDisplayName(ppszDisplayName:lpolestr):HResult; stdcall;
+    function GetSourceDisplayName(out ppszDisplayName:lpolestr):HResult; stdcall;
+    function BindToSource(bindflags:DWord;pbc: IBindCTX):HResult; stdcall;
+    function BindIfRunning:HResult; stdcall;
+    function GetBoundSource(out ppunk: IUnKnown):HResult; stdcall;
+    function UnbindSource:HResult; stdcall;
+    function Update(pbc:IBindCtx):HResult; stdcall;
+    end;
+
+   IOleInPlaceSite = interface(IOleWindow)
+      ['{00000119-0000-0000-C000-000000000046}']
+      function CanInPlaceActivate : HResult;
+      function OnInPlaceActivate : HResult;
+      function OnUIActivate : HResult;
+      function GetWindowContext(out ppframe:IOleInPlaceFrame;out ppdoc:IOleInPlaceUIWindow;lprcposrect:LPRECT;lprccliprect:LPRECT;lpframeinfo:LPOLEINPLACEFRAMEINFO):hresult; stdcall;
+      function Scroll(scrollExtant:TSIZE):hresult; stdcall;
+      function OnUIDeactivate(fUndoable:BOOL):hresult; stdcall;
+      function OnInPlaceDeactivate :hresult; stdcall;
+      function DiscardUndoState :hresult; stdcall;
+      function DeactivateAndUndo :hresult; stdcall;
+      function OnPosRectChange(lprcPosRect:LPRect):hresult; stdcall;   
+      end;
+
+    IOleInPlaceObject = interface(IOleWindow)
+      ['{00000113-0000-0000-C000-000000000046}']
+      function InPlaceDeactivate : HResult;
+      function UIDeactivate : HResult;
+      function SetObjectRects(lprcPosRect:LPRect;lprcClipRect:LPRect):hresult; stdcall;
+      function ReactivateAndUndo : HResult;
+     end;
+  
+    IOleDocumentView = interface(IUnknown)
+        ['{b722bcc6-4e68-101b-a2bc-00aa00404770}']
+        function SetInPlaceSite(ppipsite:IOleInPlaceSite):hresult; stdcall;
+        function GetInPlaceSite(out ppipsite:IOleInPlaceSite):hresult; stdcall;
+        function GetDocument(out ppipsite:Iunknown):hresult; stdcall;
+        function SetRect(prcview:LPRect):hresult; stdcall;
+        function Getrect(prcView:LPRect):hresult; stdcall;
+        function SetRectComplex(prcview:LPRect;prcHScroll:LPRect;prcVScroll:LPRect;prcSizeBox:LPRect):hresult; stdcall;
+        function Show(fshow:Bool) :hresult; stdcall;
+        function UIActivate(fUIActive :BOOL): HResult;
+        function Open :hresult; stdcall;
+        function Closeview(dwreserved:DWORD):hresult; stdcall;
+        function SaveViewState(pstm:IStream):hresult; stdcall;
+        function ApplyViewState(pstm:IStream):hresult; stdcall;
+        function Clone(pipsitenew: IOleInPlaceSite;out ppviewNew:IOleDocumentView):HResult;
+        end;
+
+    IEnumOleDocumentViews = Interface(IUnknown)
+        ['{b722bcc8-4e68-101b-a2bc-00aa00404770}']
+        function Next (CViews:ULONG; out rgpview:IOleDocumentView;pcfetched:pulong):hresult; stdcall;
+        function Skip (CViews:ULong):hresult; stdcall;
+        function Reset:HResult; stdcall;
+        function Clone (out ppenum :IEnumOleDocumentViews)  :HResult; stdcall;
+       end;
+
+    IOleDocument = interface(IUnknown)
+      ['{b722bcc5-4e68-101b-a2bc-00aa00404770}']
+        function CreateView(pipsite:IOleInPlaceSite;pstm:IStream;dwReserved:DWord;out ppview : IOleDocumentView):hresult; stdcall;
+        function GetDocMiscStatus(pdwstatus:PDWord):hresult; stdcall;
+        function EnumViews(out ppenum:IEnumOleDocumentViews;out ppview:IOleDocumentView):hresult; stdcall;
+       end;
+
+    IOleDocumentSite = interface(IUnknown)
+       ['{b722bcc7-4e68-101b-a2bc-00aa00404770}']
+       function ActivateMe(pviewtoactivate:IOleDocumentView):hresult; stdcall;
+       end;
+
+    IContinueCallback = interface(IUnknown)
+       ['{b722bcca-4e68-101b-a2bc-00aa00404770}']
+        function FContinue:HResult;Stdcall;
+        function FContinuePrinting( nCntPrinted:LONG;nCurPage:Long;pwzprintstatus:polestr):HResult;Stdcall;
+      end;
+
+
+{ ObjSafe.idl}
+  IObjectSafety = interface(IUnknown)
+    ['{CB5BDC81-93C1-11cf-8F20-00805F2CD064}']             
+    function GetInterfaceSafetyOptions(const riid:Tiid; out pdwsupportedoptions: dword;out pdwenabledoptions: dword):HRESULT; stdcall;
+    function SetInterfaceSafetyOptions(const riid:Tiid; const dwoptionsetmask: dword;const dwenabledoptions : dword):HRESULT; stdcall;
+    end;
+
+  TContinueCallback = function (dwcontinue:ULONG_PTR):BOOL; stdcall;
+
+
+  IViewObject = interface(IUnknown)
+    ['{0000010d-0000-0000-C000-000000000046}']
+    function Draw(dwDrawAspect:DWord;LIndex:Long;pvaspect:pointer;ptd:PDVTARGETDEVICE;hdcTargetDev:HDC; hdcDraw:HDC;lprcBounds:PRECTL;lprcWBounds:PRECTL;pfncontinue:TContinueCallback;dwcontinue:ULONG_PTR):HResult; stdcall;
+    function GetColorSet(wDrawAspect:DWord;LIndex:Long;pvaspect:pointer;ptd:PDVTARGETDEVICE;hdcTargetDev:HDC;var ppcolorset:PLogPalette):HREsult; stdcall;
+    function Freeze(dwDrawAspect:DWord;LIndex:Long;pvaspect:pointer;pdwfreeze:pdword):HResult;stdcall;
+    function Unfreeze(dwfreeze:dword):HResult; stdcall;
+    function SetAdvise(aspects:DWORD;advf:DWORD;padvSink:IAdviseSink):HRESULT;stdcall;
+    function Getadvise(paspects:pdword;padvf:pdword;out ppadvsink: IADviseSink):HRESULT;stdcall;
+    end;     
+        
+  IViewObject2 = interface(IViewObject)
+    ['{00000127-0000-0000-C000-000000000046}']
+    function GetExtent(dwDrawAspect:dword;lindex:DWord;ptd:pDVTARGETDEVICE;lpsizel:LPSIZEL):HRESULT;stdcall;
+    end;
 
 { ole2.h }
 
   type
     WINOLEAPI = HResult;
-    TLCID = DWORD;
+    TLCID = DWORD; // is this needed (duplicate from windows?)
 
   const
      OLEIVERB_PRIMARY = 0;
@@ -2862,11 +2983,11 @@ type
   { helper functions  }
   function ReadClassStg(pStg:IStorage; pclsid:PCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'ReadClassStg';
 
-  function WriteClassStg(pStg:IStorage;const rclsid:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStg';
+  function WriteClassStg(pStg:IStorage;const rclsid:TCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStg';
 
   function ReadClassStm(pStm:IStream; pclsid:PCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'ReadClassStm';
 
-  function WriteClassStm(pStm:IStream;const rclsid:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStm';
+  function WriteClassStm(pStm:IStream;const rclsid:TCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStm';
 
   function WriteFmtUserTypeStg(pstg:IStorage; cf:CLIPFORMAT; lpszUserType:LPOLESTR):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteFmtUserTypeStg';
 
@@ -2883,12 +3004,12 @@ type
 
   function OleQueryCreateFromData(pSrcDataObject:IDataObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleQueryCreateFromData';
 
-  { Object creation APIs  } function OleCreate(const rclsid:TLCID; const riid:TIID;
+  { Object creation APIs  } function OleCreate(const rclsid:TCLSID; const riid:TIID;
   renderopt:DWORD; pFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
   pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name
   'OleCreate';
 
-  function OleCreateEx(const rclsid:TLCID; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
+  function OleCreateEx(const rclsid:TCLSID; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
              pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateEx';
 
@@ -2923,10 +3044,10 @@ type
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
              pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLinkToFileEx';
 
-  function OleCreateFromFile(const rclsid:TLCID; lpszFileName:POleStr; const riid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC;
+  function OleCreateFromFile(const rclsid:TCLSID; lpszFileName:POleStr; const riid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC;
              pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromFile';
 
-  function OleCreateFromFileEx(const rclsid:TLCID; lpszFileName:POleStr; const riid:TIID; dwFlags:DWORD; renderopt:DWORD;
+  function OleCreateFromFileEx(const rclsid:TCLSID; lpszFileName:POleStr; const riid:TIID; dwFlags:DWORD; renderopt:DWORD;
              cFormats:ULONG; rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD;
              pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromFileEx';
 
@@ -2985,9 +3106,9 @@ type
 
   function CreateOleAdviseHolder(out ppOAHolder:IOleAdviseHolder):WINOLEAPI;stdcall;external 'ole32.dll' name 'CreateOleAdviseHolder';
 
-  function OleCreateDefaultHandler(const clsid:TLCID; pUnkOuter:IUnknown; const riid:TIID; out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateDefaultHandler';
+  function OleCreateDefaultHandler(const clsid:TCLSID; pUnkOuter:IUnknown; const riid:TIID; out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateDefaultHandler';
 
-  function OleCreateEmbeddingHelper(const clsid:TLCID; pUnkOuter:IUnknown; flags:DWORD; pCF:IClassFactory; const riid:TIID;
+  function OleCreateEmbeddingHelper(const clsid:TCLSID; pUnkOuter:IUnknown; flags:DWORD; pCF:IClassFactory; const riid:TIID;
              out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateEmbeddingHelper';
 
   function IsAccelerator(hAccel:HACCEL; cAccelEntries:longint; lpMsg:LPMSG; lpwCmd:PWORD):BOOL;stdcall;external 'ole32.dll' name 'IsAccelerator';
@@ -2995,18 +3116,18 @@ type
   { Icon extraction Helper APIs  }
   function OleGetIconOfFile(lpszPath:LPOLESTR; fUseFileAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfFile';
 
-  function OleGetIconOfClass(const rclsid:TLCID; lpszLabel:LPOLESTR; fUseTypeAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfClass';
+  function OleGetIconOfClass(const rclsid:TCLSID; lpszLabel:LPOLESTR; fUseTypeAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfClass';
 
   function OleMetafilePictFromIconAndLabel(hIcon:HICON; lpszLabel:LPOLESTR; lpszSourceFile:LPOLESTR; iIconIndex:UINT):HGLOBAL;stdcall;external 'ole32.dll' name 'OleMetafilePictFromIconAndLabel';
 
   { Registration Database Helper APIs  }
-  function OleRegGetUserType(const clsid:TLCID; dwFormOfType:DWORD;out pszUserType:POleStr):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetUserType';
+  function OleRegGetUserType(const clsid:TCLSID; dwFormOfType:DWORD;out pszUserType:POleStr):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetUserType';
 
-  function OleRegGetMiscStatus(const clsid:TLCID; dwAspect:DWORD; pdwStatus:PDWORD):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetMiscStatus';
+  function OleRegGetMiscStatus(const clsid:TCLSID; dwAspect:DWORD; pdwStatus:PDWORD):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetMiscStatus';
 
-  function OleRegEnumFormatEtc(const clsid:TLCID; dwDirection:DWORD;out ppenum:IEnumFormatEtc):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumFormatEtc';
+  function OleRegEnumFormatEtc(const clsid:TCLSID; dwDirection:DWORD;out ppenum:IEnumFormatEtc):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumFormatEtc';
 
-  function OleRegEnumVerbs(const clsid:TLCID;out ppenum:IEnumOLEVERB):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumVerbs';
+  function OleRegEnumVerbs(const clsid:TCLSID;out ppenum:IEnumOLEVERB):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumVerbs';
 
 {$ifdef _MAC}
   { WlmOLE helper APIs  }
@@ -3070,9 +3191,9 @@ type
   { ConvertTo APIS  }
   function OleDoAutoConvert(pStg:IStorage; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleDoAutoConvert';
 
-  function OleGetAutoConvert(const clsidOld:TLCID; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleGetAutoConvert';
+  function OleGetAutoConvert(const clsidOld:TCLSID; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleGetAutoConvert';
 
-  function OleSetAutoConvert(const clsidOld:TLCID; clsidNew:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetAutoConvert';
+  function OleSetAutoConvert(const clsidOld:TCLSID; clsidNew:TCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetAutoConvert';
 
   function GetConvertStg(pStg:IStorage):WINOLEAPI;stdcall;external 'ole32.dll' name 'GetConvertStg';
 
@@ -3111,8 +3232,6 @@ type
 
   TBorderWidths = TRect;
   PBorderWidths = PRect;
-
-
 
   function CoBuildVersion:DWORD;stdcall; external  'ole32.dll' name 'CoBuildVersion';
 
@@ -3254,6 +3373,8 @@ type
 
   function StgSetTimes(_para1:POLESTR; _para2:PFILETIME; _para3:PFILETIME; _para4:PFILETIME):HRESULT;stdcall; external  'ole32.dll' name 'StgSetTimes';
 
+  function CoGetObject(pszname:lpwstr; bndop:PBind_Opts; const riid:TIID; out ppv):HRESULT; stdcall; external  'ole32.dll' name 'CoGetObject';
+
   function BindMoniker(_para1:IMoniker; _para2:DWORD; _para3:TIID; out _para4):HRESULT;stdcall; external  'ole32.dll' name 'BindMoniker';
 
   function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; out _para3:PULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
@@ -3324,12 +3445,12 @@ type
   const
     oleaut32dll   = 'oleaut32.dll';
 
-  function  SysAllocString(psz: pointer): Integer; external oleaut32dll name 'SysAllocString';
-  function  SysAllocStringLen(psz: pointer; len:dword): Integer; external oleaut32dll name 'SysAllocStringLen';
-  procedure SysFreeString(bstr:pointer); external oleaut32dll name 'SysFreeString';
-  function  SysStringLen(bstr:pointer):UINT; external oleaut32dll name 'SysStringLen';
-  function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; external oleaut32dll name 'SysReAllocString';
-  function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; external oleaut32dll name 'SysReAllocStringLen';
+  function  SysAllocString(psz: pointer): Integer; stdcall; external oleaut32dll name 'SysAllocString';
+  function  SysAllocStringLen(psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysAllocStringLen';
+  procedure SysFreeString(bstr:pointer); stdcall; external oleaut32dll name 'SysFreeString';
+  function  SysStringLen(bstr:pointer):UINT; stdcall; external oleaut32dll name 'SysStringLen';
+  function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; stdcall; external oleaut32dll name 'SysReAllocString';
+  function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysReAllocStringLen';
 
 	{ Active object registration API }
 	const
@@ -3346,6 +3467,22 @@ function ResultCode(Res: HResult) : Longint;inline;
 function ResultFacility(Res: HResult): Longint;inline;
 function ResultSeverity(Res: HResult): Longint;inline;
 function MakeResult(Severity, Facility, Code: Longint): HResult;inline;
+
+function LoadTypeLib(szfile : lpolestr; var pptlib: ITypelib):HResult; stdcall; external oleaut32dll name 'LoadTypeLib';
+function LoadTypeLibEx(szfile : lpolestr; regk:tregkind; var pptlib: ITypelib):HResult; stdcall; external oleaut32dll name 'LoadTypeLibEx';
+function LoadRegTypeLib(const rguid:TGUID;wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;out pptlib:ITypeLib):HResult; stdcall; external oleaut32dll name 'LoadRegTypeLib';
+function QueryPathOfRegTypeLib(const guid:TGUID;wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;lpbstr:LPolestr):HResult; stdcall; external oleaut32dll name 'QueryPathOfRegTypeLib';
+function RegisterTypeLib(const ptrlib :ITypeLib;szfullpath:lpolestr;szhelpdir:lpolestr):HResult; stdcall; external oleaut32dll name 'RegisterTypeLib';
+function UnRegisterTypeLib(const libid:TGUID; wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;sysk:TSysKind):HResult; stdcall; external oleaut32dll name 'UnRegisterTypeLib';
+function CreateTypeLib(sysk:TSysKind;szfile:lpolestr;out ppctlib:ICreateTypeLib):HResult; stdcall; external oleaut32dll name 'CreateTypeLib';
+function CreateTypeLib2(sysk:TSysKind;szfile:lpolestr;out ppctlib:ICreateTypeLib2):HResult; stdcall; external oleaut32dll name 'CreateTypeLib2';
+function DispInvoke(this:pointer;const ptinfo: ITypeInfo;dispidMember:TDISPID;wflags:ushort;pparams:pDISPParams;var pvarresult:OLEVARIANT;pexcepinfo:EXCEPINFO;puArgErr:puint):HRESULT; stdcall; external oleaut32dll name 'CreateTypeLib2';
+
+function DosDateTimeToVariantTime( wDosDate: ushort; wDosTime:ushort;pvtime:pdouble):longint; stdcall; external oleaut32dll name 'DosDateTimeToVariantTime';
+function VariantTimeToDosDateTime( vtime:DOUBLE;pwdosdate:PUSHORT;pwDosTime:PUSHORT):longint; stdcall; external oleaut32dll name 'VariantTimeToDosDateTime';
+
+function SystemTimeToVariantTime(LPSYSTEMTIME:lpSystemTime;pvtime: PDOUBLE):LONGINT; stdcall; external oleaut32dll name 'SystemTimeToVariantTime';
+function VariantTimeToSystemTime(vtime:DOUBLE; lpsystemtime: LPSYSTEMTIME):LONGINT; stdcall; external oleaut32dll name 'VariantTimeToSystemTime';
 
 implementation
 
