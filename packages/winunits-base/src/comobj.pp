@@ -213,6 +213,7 @@ unit comobj;
       CoReleaseServerProcess : TCoReleaseServerProcessProc = nil;
       CoResumeClassObjects : TCoResumeClassObjectsProc = nil;
       CoSuspendClassObjects : TCoSuspendClassObjectsProc = nil;
+      CoInitFlags : Longint = -1;
 
 implementation
 
@@ -1035,16 +1036,20 @@ initialization
   Ole32Dll:=GetModuleHandle('ole32.dll');
   if Ole32Dll<>0 then
     begin
-      Pointer(CoCreateInstanceEx):=GetProcAddress(Ole32Dll,'CoCreateInstanceExProc');
-      Pointer(CoInitializeEx):=GetProcAddress(Ole32Dll,'CoInitializeExProc');
-      Pointer(CoAddRefServerProcess):=GetProcAddress(Ole32Dll,'CoAddRefServerProcessProc');
-      Pointer(CoReleaseServerProcess):=GetProcAddress(Ole32Dll,'CoReleaseServerProcessProc');
-      Pointer(CoResumeClassObjects):=GetProcAddress(Ole32Dll,'CoResumeClassObjectsProc');
-      Pointer(CoSuspendClassObjects):=GetProcAddress(Ole32Dll,'CoSuspendClassObjectsProc');
+      Pointer(CoCreateInstanceEx):=GetProcAddress(Ole32Dll,'CoCreateInstanceEx');
+      Pointer(CoInitializeEx):=GetProcAddress(Ole32Dll,'CoInitializeEx');
+      Pointer(CoAddRefServerProcess):=GetProcAddress(Ole32Dll,'CoAddRefServerProcess');
+      Pointer(CoReleaseServerProcess):=GetProcAddress(Ole32Dll,'CoReleaseServerProcess');
+      Pointer(CoResumeClassObjects):=GetProcAddress(Ole32Dll,'CoResumeClassObjects');
+      Pointer(CoSuspendClassObjects):=GetProcAddress(Ole32Dll,'CoSuspendClassObjects');
     end;
 
   if not(IsLibrary) then
-    Initialized:=Succeeded(CoInitialize(nil));
+    if (CoInitFlags=-1) or not(assigned(comobj.CoInitializeEx)) then
+      Initialized:=Succeeded(CoInitialize(nil))
+    else
+      Initialized:=Succeeded(comobj.CoInitializeEx(nil, CoInitFlags));
+
   SafeCallErrorProc:=@SafeCallErrorHandler;
   VarDispProc:=@ComObjDispatchInvoke;
   DispCallByIDProc:=@DoDispCallByID;
