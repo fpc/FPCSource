@@ -6,8 +6,8 @@
 main=fcl-db
 
 [target]
-units=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport
-rsts=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport
+units=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports 
+rsts=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
 
 [compiler]
 options=-S2h
@@ -32,3 +32,5 @@ fpcdir=../../../..
 #fpsimplejsonexport$(PPUEXT): fpdbexport$(PPEXT)
 
 #fpdbfexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpstdexports$(PPUEXT): $(addsufficx t$(PPEXT), pdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport)

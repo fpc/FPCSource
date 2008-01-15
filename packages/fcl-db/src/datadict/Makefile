@@ -243,316 +243,316 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fcl-db
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_UNITS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)

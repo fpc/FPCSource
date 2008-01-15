@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="6"/>
+    <General>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+    </General>
+    <VersionInfo>
+      <ProjectVersion Value=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <Units Count="13">
+      <Unit0>
+        <Filename Value="buildd.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="buildd"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="fpddsqldb.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddsqldb"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="fpdatadict.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpdatadict"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="fpdddbf.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddDbf"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="fpddfb.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddfb"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="fpddmysql40.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddmysql40"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="fpddmysql41.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddmysql41"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="fpddmysql50.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddmysql50"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="fpddpq.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddpq"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="fpddodbc.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddodbc"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="fpddoracle.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddoracle"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="fpddsqlite3.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddsqlite3"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="fpddregstd.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddregstd"/>
+      </Unit12>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+</CONFIG>
