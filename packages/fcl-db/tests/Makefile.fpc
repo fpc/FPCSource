@@ -7,6 +7,7 @@ main=fcl
 
 [target]
 examples=dbtestframework
+units=toolsunit dbftoolsunit memdstoolsunit sqldbtoolsunit
 
 [install]
 fpcpackage=y
@@ -14,6 +15,8 @@ fpcpackage=y
 [default]
 fpcdir=../../..
 
+[require]
+packages=fcl-fpcunit fcl-db
 
 [rules]
 .NOTPARALLEL:

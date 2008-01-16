@@ -8,15 +8,15 @@ version=2.2.1
 
 [target]
 dirs=src/sdf src/memds src/sqldb src/base 
-dirs_linux=src/dbase src/sqlite src/export src/datadict
-dirs_freebsd=src/dbase src/sqlite
+dirs_linux=src/dbase src/sqlite src/export src/datadict src/codegen
+dirs_freebsd=src/dbase src/sqlite src/export src/datadict src/codegen
 dirs_darwin=src/dbase src/sqlite
 dirs_solaris=src/dbase src/sqlite
 dirs_netbsd=src/dbase src/sqlite
 dirs_openbsd=src/dbase src/sqlite
-dirs_win32=src/dbase src/sqlite src/export src/datadict
-dirs_win64=src/dbase src/export src/datadict
-dirs_wince=src/dbase src/sqlite src/export src/datadict
+dirs_win32=src/dbase src/sqlite src/export src/datadict src/codegen 
+dirs_win64=src/dbase src/export src/datadict src/codegen 
+dirs_wince=src/dbase src/sqlite src/export src/datadict src/codegen
 
 [require]
 packages=fcl-base

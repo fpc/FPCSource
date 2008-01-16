@@ -243,19 +243,19 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fcl-db
 override PACKAGE_VERSION=2.2.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
@@ -291,7 +291,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
@@ -300,10 +300,10 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
@@ -324,7 +324,7 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
@@ -345,7 +345,7 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
@@ -357,28 +357,28 @@ ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
@@ -393,7 +393,7 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
@@ -2376,6 +2376,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_SRC/SDF=1
@@ -2392,6 +2393,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_SRC/SDF=1
@@ -2406,6 +2408,9 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
+TARGET_DIRS_SRC/EXPORT=1
+TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_SRC/SDF=1
@@ -2490,6 +2495,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_SRC/SDF=1
@@ -2512,6 +2518,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2520,6 +2527,9 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
+TARGET_DIRS_SRC/EXPORT=1
+TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2570,6 +2580,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2620,6 +2631,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2652,6 +2664,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2660,6 +2673,9 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
+TARGET_DIRS_SRC/EXPORT=1
+TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_SRC/SDF=1
@@ -2677,6 +2693,7 @@ TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_SRC/SDF=1
@@ -2693,6 +2710,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_SRC/SDF=1
@@ -2709,6 +2727,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_SRC/SDF=1
@@ -2743,6 +2762,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_SRC/SDF=1
@@ -3117,6 +3137,51 @@ src/datadict_makefiles:
 src/datadict:
 	$(MAKE) -C src/datadict all
 .PHONY: src/datadict_all src/datadict_debug src/datadict_smart src/datadict_release src/datadict_units src/datadict_examples src/datadict_shared src/datadict_install src/datadict_sourceinstall src/datadict_exampleinstall src/datadict_distinstall src/datadict_zipinstall src/datadict_zipsourceinstall src/datadict_zipexampleinstall src/datadict_zipdistinstall src/datadict_clean src/datadict_distclean src/datadict_cleanall src/datadict_info src/datadict_makefiles src/datadict
+endif
+ifdef TARGET_DIRS_SRC/CODEGEN
+src/codegen_all:
+	$(MAKE) -C src/codegen all
+src/codegen_debug:
+	$(MAKE) -C src/codegen debug
+src/codegen_smart:
+	$(MAKE) -C src/codegen smart
+src/codegen_release:
+	$(MAKE) -C src/codegen release
+src/codegen_units:
+	$(MAKE) -C src/codegen units
+src/codegen_examples:
+	$(MAKE) -C src/codegen examples
+src/codegen_shared:
+	$(MAKE) -C src/codegen shared
+src/codegen_install:
+	$(MAKE) -C src/codegen install
+src/codegen_sourceinstall:
+	$(MAKE) -C src/codegen sourceinstall
+src/codegen_exampleinstall:
+	$(MAKE) -C src/codegen exampleinstall
+src/codegen_distinstall:
+	$(MAKE) -C src/codegen distinstall
+src/codegen_zipinstall:
+	$(MAKE) -C src/codegen zipinstall
+src/codegen_zipsourceinstall:
+	$(MAKE) -C src/codegen zipsourceinstall
+src/codegen_zipexampleinstall:
+	$(MAKE) -C src/codegen zipexampleinstall
+src/codegen_zipdistinstall:
+	$(MAKE) -C src/codegen zipdistinstall
+src/codegen_clean:
+	$(MAKE) -C src/codegen clean
+src/codegen_distclean:
+	$(MAKE) -C src/codegen distclean
+src/codegen_cleanall:
+	$(MAKE) -C src/codegen cleanall
+src/codegen_info:
+	$(MAKE) -C src/codegen info
+src/codegen_makefiles:
+	$(MAKE) -C src/codegen makefiles
+src/codegen:
+	$(MAKE) -C src/codegen all
+.PHONY: src/codegen_all src/codegen_debug src/codegen_smart src/codegen_release src/codegen_units src/codegen_examples src/codegen_shared src/codegen_install src/codegen_sourceinstall src/codegen_exampleinstall src/codegen_distinstall src/codegen_zipinstall src/codegen_zipsourceinstall src/codegen_zipexampleinstall src/codegen_zipdistinstall src/codegen_clean src/codegen_distclean src/codegen_cleanall src/codegen_info src/codegen_makefiles src/codegen
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))

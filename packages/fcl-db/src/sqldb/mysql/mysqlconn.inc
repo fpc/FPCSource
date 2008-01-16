@@ -150,7 +150,7 @@ Type
 
 implementation
 
-uses dbconst,ctypes;
+uses dbconst,ctypes,strutils;
 
 { TConnectionName }
 

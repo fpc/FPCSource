@@ -89,7 +89,7 @@ type
 
 implementation
 
-uses math;
+uses math, strutils;
 
 ResourceString
   SErrRollbackFailed = 'Rollback transaction failed';
