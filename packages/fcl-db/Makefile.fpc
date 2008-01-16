@@ -8,16 +8,16 @@ version=2.2.1
 
 [target]
 dirs=src/sdf src/memds src/sqldb 
-dirs_linux=src/dbase src/sqlite
+dirs_linux=src/dbase src/sqlite src/export src/datadict
 dirs_freebsd=src/dbase src/sqlite src/export src/datadict
-dirs_darwin=src/sqlite
-dirs_solaris=src/sqlite
-dirs_netbsd=src/sqlite
-dirs_openbsd=src/sqlite
-dirs_win32=src/dbase src/sqlite
-dirs_win64=src/dbase
-dirs_wince=src/dbase src/sqlite
-units=dbconst db dbwhtml bufdataset_parser bufdataset
+dirs_darwin=src/sqlite src/export src/datadict
+dirs_solaris=src/sqlite src/export src/datadict
+dirs_netbsd=src/sqlite src/export src/datadict
+dirs_openbsd=src/sqlite src/export src/datadict
+dirs_win32=src/dbase src/sqlite src/export src/datadict
+dirs_win64=src/dbase src/export src/datadict
+dirs_wince=src/dbase src/sqlite src/export src/datadict
+units=dbconst db dbwhtml bufdataset_parser bufdataset 
 rsts=dbwhtml dbconst
 
 [require]
