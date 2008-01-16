@@ -7,26 +7,22 @@ name=fcl-db
 version=2.2.1
 
 [target]
-dirs=src/sdf src/memds src/sqldb 
+dirs=src/sdf src/memds src/sqldb src/base 
 dirs_linux=src/dbase src/sqlite src/export src/datadict
-dirs_freebsd=src/dbase src/sqlite src/export src/datadict
-dirs_darwin=src/sqlite src/export src/datadict
-dirs_solaris=src/sqlite src/export src/datadict
-dirs_netbsd=src/sqlite src/export src/datadict
-dirs_openbsd=src/sqlite src/export src/datadict
+dirs_freebsd=src/dbase src/sqlite
+dirs_darwin=src/dbase src/sqlite
+dirs_solaris=src/dbase src/sqlite
+dirs_netbsd=src/dbase src/sqlite
+dirs_openbsd=src/dbase src/sqlite
 dirs_win32=src/dbase src/sqlite src/export src/datadict
 dirs_win64=src/dbase src/export src/datadict
 dirs_wince=src/dbase src/sqlite src/export src/datadict
-units=dbconst db dbwhtml bufdataset_parser bufdataset 
-rsts=dbwhtml dbconst
 
 [require]
 packages=fcl-base
 
 [compiler]
 options=-S2h
-unitdir=src/dbase
-sourcedir=src
 
 [install]
 fpcpackage=y
@@ -37,3 +33,21 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
+
+src/export_all: src/base_all src/dbase_all
+src/export_debug: src/base_debug src/dbase_debug
+src/export_smart: src/base_smart src/dbase_smart
+src/export_release: src/base_release src/dbase_release
+src/export_shared: src/base_shared src/dbase_shared
+
+src/sdf_all: src/base_all
+src/sdf_debug: src/base_debug
+src/sdf_smart: src/base_smart
+src/sdf_release: src/base_release
+src/sdf_shared: src/base_shared
+
+src/dbase_all: src/base_all
+src/dbase_debug: src/base_debug
+src/dbase_smart: src/base_smart
+src/dbase_release: src/base_release
+src/dbase_shared: src/base_shared

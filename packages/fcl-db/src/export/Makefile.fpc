@@ -6,8 +6,11 @@
 main=fcl-db
 
 [target]
-units=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports 
-rsts=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fpstdexports
+units=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fprtfexport fpstdexports 
+rsts=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fprtfexport fpstdexports
+
+[require]
+packages=fcl-base
 
 [compiler]
 options=-S2h
@@ -19,6 +22,7 @@ fpcpackage=y
 fpcdir=../../../..
 
 [rules]
+.NOTPARALLEL:
 #fpdbexport$(PPUEXT): fpdbexport$(PPEXT)
 
 #fpcsvexport$(PPUEXT): fpdbexport$(PPEXT)

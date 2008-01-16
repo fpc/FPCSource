@@ -83,9 +83,16 @@ type
 
   TBufDataset = class(TDBDataSet)
   private
+    FIndexesCount   : integer;
+    FCurrentIndex   : integer;
+  
     FCurrentRecBuf  : PBufRecLinkItem;
     FLastRecBuf     : PBufRecLinkItem;
     FFirstRecBuf    : PBufRecLinkItem;
+
+    FLastRecBufs    : array of PBufRecLinkItem;
+    FFirstRecBufs   : array of PBufRecLinkItem;
+
     FFilterBuffer   : pchar;
     FBRecordCount   : integer;
 
@@ -154,6 +161,8 @@ type
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
 
   public
+    procedure AddSecondIndex;
+  
     constructor Create(AOwner: TComponent); override;
     function GetFieldData(Field: TField; Buffer: Pointer;
       NativeFormat: Boolean): Boolean; override;
@@ -185,6 +194,12 @@ uses variants, dbconst;
 constructor TBufDataset.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
+  FIndexesCount:=2;
+  FCurrentIndex:=0;
+  
+  setlength(FFirstRecBufs,FIndexesCount);
+  SetLength(FLastRecBufs,FIndexesCount);
+
   SetLength(FUpdateBuffer,0);
   SetLength(FBlobBuffers,0);
   SetLength(FUpdateBlobBuffers,0);
@@ -212,7 +227,7 @@ end;
 function TBufDataset.intAllocRecordBuffer: PChar;
 begin
   // Note: Only the internal buffers of TDataset provide bookmark information
-  result := AllocMem(FRecordsize+sizeof(TBufRecLinkItem));
+  result := AllocMem(FRecordsize+sizeof(TBufRecLinkItem)*FIndexesCount);
 end;
 
 function TBufDataset.AllocRecordBuffer: PChar;
@@ -335,13 +350,13 @@ begin
   Acceptable := True;
   case GetMode of
     gmPrior :
-      if not assigned(PBufRecLinkItem(FCurrentRecBuf)^.prior) then
+      if not assigned(FCurrentRecBuf[FCurrentIndex].prior) then
         begin
         Result := grBOF;
         end
       else
         begin
-        FCurrentRecBuf := PBufRecLinkItem(FCurrentRecBuf)^.prior;
+        FCurrentRecBuf := FCurrentRecBuf[FCurrentIndex].prior;
         end;
     gmCurrent :
       if FCurrentRecBuf = FLastRecBuf then
@@ -352,11 +367,11 @@ begin
         if getnextpacket = 0 then result := grEOF;
         end
       else if FCurrentRecBuf = nil then FCurrentRecBuf := FFirstRecBuf
-      else if (PBufRecLinkItem(FCurrentRecBuf)^.next = FLastRecBuf) then
+      else if (FCurrentRecBuf[FCurrentIndex].next = FLastRecBuf) then
         begin
         if getnextpacket > 0 then
           begin
-          FCurrentRecBuf := PBufRecLinkItem(FCurrentRecBuf)^.next;
+          FCurrentRecBuf := FCurrentRecBuf[FCurrentIndex].next;
           end
         else
           begin
@@ -365,7 +380,7 @@ begin
         end
       else
         begin
-        FCurrentRecBuf := PBufRecLinkItem(FCurrentRecBuf)^.next;
+        FCurrentRecBuf := FCurrentRecBuf[FCurrentIndex].next;
         end;
   end;
 
@@ -377,7 +392,7 @@ begin
       BookmarkData := FCurrentRecBuf;
       BookmarkFlag := bfCurrent;
       end;
-    move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem))^,buffer^,FRecordSize);
+    move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount)^,buffer^,FRecordSize);
     GetCalcFields(Buffer);
 
     if Filtered then
@@ -459,13 +474,13 @@ begin
     exit;
     end;
   i := 0;
-  pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
+  pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount);
   while ((i < FPacketRecords) or (FPacketRecords = -1)) and (loadbuffer(pb) = grOk) do
     begin
     FLastRecBuf^.next := pointer(IntAllocRecordBuffer);
     FLastRecBuf^.next^.prior := FLastRecBuf;
     FLastRecBuf := FLastRecBuf^.next;
-    pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
+    pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount);
     inc(i);
     end;
   FBRecordCount := FBRecordCount + i;
@@ -568,7 +583,7 @@ begin
       result := false;
       exit;
       end;
-    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem);
+    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem)*FIndexesCount;
     end
   else
     begin
@@ -624,7 +639,7 @@ begin
     exit;
     end;
   if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
-    CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)
+    CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)*FIndexesCount
   else
     CurrBuff := GetCurrentBuffer;
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
@@ -715,7 +730,7 @@ begin
         begin
         if UpdateKind = ukModify then
           begin
-          move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem))^,pchar(BookmarkData+sizeof(TBufRecLinkItem))^,FRecordSize);
+          move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem)*FIndexesCount)^,pchar(BookmarkData+sizeof(TBufRecLinkItem)*FIndexesCount)^,FRecordSize);
           FreeRecordBuffer(OldValuesBuffer);
           end
         else if UpdateKind = ukDelete then
@@ -931,7 +946,7 @@ begin
       begin
       // Update the oldvalues-buffer
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := intAllocRecordBuffer;
-      move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize+sizeof(TBufRecLinkItem));
+      move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize+sizeof(TBufRecLinkItem)*FIndexesCount);
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukModify;
       end
     else
@@ -939,7 +954,7 @@ begin
     end;
 
   CurrBuff := pchar(FCurrentRecBuf);
-  inc(Currbuff,sizeof(TBufRecLinkItem));
+  inc(Currbuff,sizeof(TBufRecLinkItem)*FIndexesCount);
   move(ActiveBuffer^,CurrBuff^,FRecordSize);
 end;
 
@@ -1221,6 +1236,41 @@ begin
     Refresh;
 end;
 
+procedure TBufDataset.AddSecondIndex;
+
+var ALinkItem,
+    ANewLinkItem : PBufRecLinkItem;
+
+begin
+  ALinkItem:=FLastRecBuf[0].prior;
+  ANewLinkItem:=FLastRecBuf[0].prior;
+
+  FFirstRecBufs[1]:=ANewLinkItem;
+
+  while ALinkItem<>FFirstRecBuf do
+    begin
+    ANewLinkItem[1].next:=ALinkItem[0].prior;
+    ANewLinkItem[1].prior:=ALinkItem[0].next;
+    ALinkItem:=ALinkItem[0].prior;
+    ANewLinkItem:=ANewLinkItem[1].next;
+    end;
+    
+  FLastRecBufs[1]:=FLastRecBuf;
+  ANewLinkItem[1].next:=FLastRecBufs[1];
+  FLastRecBufs[1][1].prior:=ANewLinkItem;
+  FFirstRecBufs[1][1].prior:=nil;
+  FLastRecBufs[1][1].next:=nil;
+  
+// Stel in op tweede index:
+  FCurrentIndex:=1;
+  FLastRecBuf:=FLastRecBufs[FCurrentIndex];
+  FFirstRecBuf:=FFirstRecBufs[FCurrentIndex];
+  FCurrentRecBuf:=FFirstRecBuf;
+
+  Resync([rmExact,rmCenter]);
+end;
+
+
 procedure TBufDataset.ParseFilter(const AFilter: string);
 begin
   // parser created?
@@ -1303,7 +1353,7 @@ begin
     FieldBufPos := FFieldBufPositions[keyfield.FieldNo-1];
     VBLength := keyfield.DataSize;
     ValueBuffer := AllocMem(VBLength);
-    currbuff := pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)+FieldBufPos;
+    currbuff := pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)*FIndexesCount+FieldBufPos;
     move(currbuff^,ValueBuffer^,VBLength);
     end;
 
@@ -1312,7 +1362,7 @@ begin
   if CheckNull then
     begin
     repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FIndexesCount;
     if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       result := True;
@@ -1325,7 +1375,7 @@ begin
   else if keyfield.DataType = ftString then
     begin
     repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FIndexesCount;
     if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       inc(CurrBuff,FieldBufPos);
@@ -1342,7 +1392,7 @@ begin
   else
     begin
     repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FIndexesCount;
     if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       inc(CurrBuff,FieldBufPos);

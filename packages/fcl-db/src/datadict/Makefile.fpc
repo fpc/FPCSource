@@ -5,6 +5,17 @@
 [package]
 main=fcl-db
 
+[require]
+packages=fcl-base
+packages_linux=ibase mysql oracle sqlite odbc postgres
+packages_freebsd=ibase mysql oracle sqlite odbc postgres
+packages_darwin=ibase mysql oracle sqlite odbc postgres
+packages_netbsd=ibase mysql oracle sqlite odbc postgres
+packages_openbsd=ibase mysql oracle sqlite odbc postgres
+packages_win32=ibase mysql oracle sqlite odbc postgres
+packages_wince=sqlite
+packages_win64=sqlite odbc
+
 [target]
 units=fpdatadict fpdddbf fpddsqldb
 units_linux=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
@@ -35,3 +46,4 @@ fpcpackage=y
 fpcdir=../../../..
 
 [rules]
+.NOTPARALLEL:

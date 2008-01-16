@@ -243,481 +243,163 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fcl-db
 override PACKAGE_VERSION=2.2.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb  src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=dbwhtml dbconst
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=dbwhtml dbconst
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -878,324 +560,6 @@ override COMPILER_OPTIONS+=-S2h
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_UNITDIR+=src/dbase
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_SOURCEDIR+=src
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_SOURCEDIR+=src
 endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1975,9 +1339,8 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl-base
+override REQUIRE_PACKAGES=fcl-base
 ifeq ($(FULL_TARGET),i386-linux)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -1987,11 +1350,9 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_WINUNITS-BASE=1
 REQUIRE_PACKAGES_WINUNITS-JEDI=1
 REQUIRE_PACKAGES_FCL-BASE=1
@@ -2003,11 +1364,9 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2017,11 +1376,9 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2031,20 +1388,16 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2054,11 +1407,9 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2068,34 +1419,27 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2105,7 +1449,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2115,7 +1458,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2125,15 +1467,12 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2143,15 +1482,12 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2161,7 +1497,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2171,15 +1506,12 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2189,15 +1521,12 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2207,7 +1536,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2217,16 +1545,13 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2236,7 +1561,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2246,7 +1570,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2256,7 +1579,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_WINUNITS-BASE=1
 REQUIRE_PACKAGES_WINUNITS-JEDI=1
 REQUIRE_PACKAGES_FCL-BASE=1
@@ -2266,11 +1588,9 @@ REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2280,34 +1600,27 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2317,7 +1630,6 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2327,34 +1639,7 @@ REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
-endif
-ifdef REQUIRE_PACKAGES_RTL
-PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_RTL),)
-ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)),)
-UNITDIR_RTL=$(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)
-else
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_RTL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_RTL) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_RTL)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_RTL=
-UNITDIR_RTL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /rtl/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_RTL),)
-UNITDIR_RTL:=$(firstword $(UNITDIR_RTL))
-else
-UNITDIR_RTL=
-endif
-endif
-ifdef UNITDIR_RTL
-override COMPILER_UNITDIR+=$(UNITDIR_RTL)
-endif
 endif
 ifdef REQUIRE_PACKAGES_FCL-BASE
 PACKAGEDIR_FCL-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Makefile.fpc,$(PACKAGESDIR))))))
@@ -2749,92 +2034,9 @@ EXECPPAS:=@$(PPAS)
 endif
 endif
 endif
-.PHONY: fpc_units
-ifneq ($(TARGET_UNITS),)
-override ALLTARGET+=fpc_units
-override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
-override IMPLICITUNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_IMPLICITUNITS))
-override INSTALLPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-override CLEANPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-endif
-fpc_units: $(COMPILER_UNITTARGETDIR) $(UNITPPUFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
-endif
-.PHONY: fpc_all fpc_smart fpc_debug fpc_release fpc_shared
-$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
-	@$(ECHOREDIR) Compiled > $(FPCMADE)
-fpc_all: $(FPCMADE)
-fpc_smart:
-	$(MAKE) all LINKSMART=1 CREATESMART=1
-fpc_debug:
-	$(MAKE) all DEBUG=1
-fpc_release:
-	$(MAKE) all RELEASE=1
-.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .lpr .dpr .pp .rc .res
-$(COMPILER_UNITTARGETDIR):
-	$(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-$(COMPILER_TARGETDIR):
-	$(MKDIRTREE) $(COMPILER_TARGETDIR)
-%$(PPUEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(PPUEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.lpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.dpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%.res: %.rc
-	windres -i $< -o $@
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.lpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.inc $(COMPILER_INCLUDEDIR)
-vpath %$(OEXT) $(COMPILER_UNITTARGETDIR)
-vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
-.PHONY: fpc_shared
-override INSTALLTARGET+=fpc_shared_install
-ifndef SHARED_LIBVERSION
-SHARED_LIBVERSION=$(FPC_VERSION)
-endif
-ifndef SHARED_LIBNAME
-SHARED_LIBNAME=$(PACKAGE_NAME)
-endif
-ifndef SHARED_FULLNAME
-SHARED_FULLNAME=$(SHAREDLIBPREFIX)$(SHARED_LIBNAME)-$(SHARED_LIBVERSION)$(SHAREDLIBEXT)
-endif
-ifndef SHARED_LIBUNITS
-SHARED_LIBUNITS:=$(TARGET_UNITS) $(TARGET_IMPLICITUNITS)
-override SHARED_LIBUNITS:=$(filter-out $(INSTALL_BUILDUNIT),$(SHARED_LIBUNITS))
-endif
-fpc_shared:
-ifdef HASSHAREDLIB
-	$(MAKE) all CREATESHARED=1 LINKSHARED=1 CREATESMART=1
-ifneq ($(SHARED_BUILD),n)
-	$(PPUMOVE) -q $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME) -d$(COMPILER_UNITTARGETDIR)
-endif
-else
-	@$(ECHO) Shared Libraries not supported
-endif
-fpc_shared_install:
-ifneq ($(SHARED_BUILD),n)
-ifneq ($(SHARED_LIBUNITS),)
-ifneq ($(wildcard $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME)),)
-	$(INSTALL) $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME) $(INSTALL_SHAREDDIR)
-endif
-endif
 endif
 .PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
 ifdef INSTALL_UNITS
@@ -3169,6 +2371,7 @@ ifeq ($(FULL_TARGET),i386-linux)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3178,11 +2381,13 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3192,87 +2397,95 @@ ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3282,16 +2495,19 @@ ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3301,51 +2517,55 @@ ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3355,42 +2575,47 @@ ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3400,27 +2625,29 @@ ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3430,23 +2657,23 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
@@ -3455,11 +2682,13 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3469,11 +2698,13 @@ ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3483,26 +2714,31 @@ ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3512,14 +2748,15 @@ ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
+TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
-TARGET_DIRS_SRC/EXPORT=1
-TARGET_DIRS_SRC/DATADICT=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 TARGET_DIRS_SRC/SDF=1
 TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
+TARGET_DIRS_SRC/BASE=1
 endif
 ifdef TARGET_DIRS_SRC/SDF
 src/sdf_all:
@@ -3655,6 +2892,51 @@ src/sqldb_makefiles:
 src/sqldb:
 	$(MAKE) -C src/sqldb all
 .PHONY: src/sqldb_all src/sqldb_debug src/sqldb_smart src/sqldb_release src/sqldb_units src/sqldb_examples src/sqldb_shared src/sqldb_install src/sqldb_sourceinstall src/sqldb_exampleinstall src/sqldb_distinstall src/sqldb_zipinstall src/sqldb_zipsourceinstall src/sqldb_zipexampleinstall src/sqldb_zipdistinstall src/sqldb_clean src/sqldb_distclean src/sqldb_cleanall src/sqldb_info src/sqldb_makefiles src/sqldb
+endif
+ifdef TARGET_DIRS_SRC/BASE
+src/base_all:
+	$(MAKE) -C src/base all
+src/base_debug:
+	$(MAKE) -C src/base debug
+src/base_smart:
+	$(MAKE) -C src/base smart
+src/base_release:
+	$(MAKE) -C src/base release
+src/base_units:
+	$(MAKE) -C src/base units
+src/base_examples:
+	$(MAKE) -C src/base examples
+src/base_shared:
+	$(MAKE) -C src/base shared
+src/base_install:
+	$(MAKE) -C src/base install
+src/base_sourceinstall:
+	$(MAKE) -C src/base sourceinstall
+src/base_exampleinstall:
+	$(MAKE) -C src/base exampleinstall
+src/base_distinstall:
+	$(MAKE) -C src/base distinstall
+src/base_zipinstall:
+	$(MAKE) -C src/base zipinstall
+src/base_zipsourceinstall:
+	$(MAKE) -C src/base zipsourceinstall
+src/base_zipexampleinstall:
+	$(MAKE) -C src/base zipexampleinstall
+src/base_zipdistinstall:
+	$(MAKE) -C src/base zipdistinstall
+src/base_clean:
+	$(MAKE) -C src/base clean
+src/base_distclean:
+	$(MAKE) -C src/base distclean
+src/base_cleanall:
+	$(MAKE) -C src/base cleanall
+src/base_info:
+	$(MAKE) -C src/base info
+src/base_makefiles:
+	$(MAKE) -C src/base makefiles
+src/base:
+	$(MAKE) -C src/base all
+.PHONY: src/base_all src/base_debug src/base_smart src/base_release src/base_units src/base_examples src/base_shared src/base_install src/base_sourceinstall src/base_exampleinstall src/base_distinstall src/base_zipinstall src/base_zipsourceinstall src/base_zipexampleinstall src/base_zipdistinstall src/base_clean src/base_distclean src/base_cleanall src/base_info src/base_makefiles src/base
 endif
 ifdef TARGET_DIRS_SRC/DBASE
 src/dbase_all:
@@ -3836,13 +3118,13 @@ src/datadict:
 	$(MAKE) -C src/datadict all
 .PHONY: src/datadict_all src/datadict_debug src/datadict_smart src/datadict_release src/datadict_units src/datadict_examples src/datadict_shared src/datadict_install src/datadict_sourceinstall src/datadict_exampleinstall src/datadict_distinstall src/datadict_zipinstall src/datadict_zipsourceinstall src/datadict_zipexampleinstall src/datadict_zipdistinstall src/datadict_clean src/datadict_distclean src/datadict_cleanall src/datadict_info src/datadict_makefiles src/datadict
 endif
-all: fpc_all $(addsuffix _all,$(TARGET_DIRS))
-debug: fpc_debug
-smart: fpc_smart
-release: fpc_release
-units: fpc_units $(addsuffix _units,$(TARGET_DIRS))
+all: $(addsuffix _all,$(TARGET_DIRS))
+debug: $(addsuffix _debug,$(TARGET_DIRS))
+smart: $(addsuffix _smart,$(TARGET_DIRS))
+release: $(addsuffix _release,$(TARGET_DIRS))
+units: $(addsuffix _units,$(TARGET_DIRS))
 examples: $(addsuffix _examples,$(TARGET_DIRS))
-shared: fpc_shared
+shared: $(addsuffix _shared,$(TARGET_DIRS))
 install: fpc_install $(addsuffix _install,$(TARGET_DIRS))
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(TARGET_DIRS))
@@ -3851,9 +3133,9 @@ zipinstall: fpc_zipinstall
 zipsourceinstall: fpc_zipsourceinstall
 zipexampleinstall: fpc_zipexampleinstall $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
 zipdistinstall: fpc_zipdistinstall
-clean: fpc_clean $(addsuffix _clean,$(TARGET_DIRS))
-distclean: fpc_distclean $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: fpc_cleanall $(addsuffix _cleanall,$(TARGET_DIRS))
+clean: $(addsuffix _clean,$(TARGET_DIRS))
+distclean: $(addsuffix _distclean,$(TARGET_DIRS))
+cleanall: $(addsuffix _cleanall,$(TARGET_DIRS))
 info: fpc_info
 makefiles: fpc_makefiles
 .PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
@@ -3861,3 +3143,18 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
+src/export_all: src/base_all src/dbase_all
+src/export_debug: src/base_debug src/dbase_debug
+src/export_smart: src/base_smart src/dbase_smart
+src/export_release: src/base_release src/dbase_release
+src/export_shared: src/base_shared src/dbase_shared
+src/sdf_all: src/base_all
+src/sdf_debug: src/base_debug
+src/sdf_smart: src/base_smart
+src/sdf_release: src/base_release
+src/sdf_shared: src/base_shared
+src/dbase_all: src/base_all
+src/dbase_debug: src/base_debug
+src/dbase_smart: src/base_smart
+src/dbase_release: src/base_release
+src/dbase_shared: src/base_shared

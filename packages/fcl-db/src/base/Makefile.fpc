@@ -1,0 +1,26 @@
+#
+# Makefile.fpc for SQL FCL db units
+#
+
+[package]
+main=fcl-db
+
+[target]
+units=dbconst db dbwhtml bufdataset_parser bufdataset 
+rsts=dbwhtml dbconst
+
+[require]
+packages=fcl-base
+
+[compiler]
+options=-S2h
+unitdir=../dbase
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:

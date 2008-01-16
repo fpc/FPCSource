@@ -265,8 +265,5 @@ begin
   inherited Assign(Source);
 end;
 
-initialization
-//Function RegisterExportFormat(Const AName,ADescription,AExtensions : String; AClass : TCustomDatasetExporterClass) : TExportFormatItem;
-  RegisterDBFExportFormat;
 end.
 

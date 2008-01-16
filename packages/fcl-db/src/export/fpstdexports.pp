@@ -36,11 +36,11 @@ uses
   Classes, SysUtils, fpDBExport;
   
 Type
-  TStdExportformat = (sefCSV,sefFixedLength,sefSimpleXMl,sefSimpleJSON,sefSQL,seTeX,sefDBF);
+  TStdExportformat = (sefCSV,sefFixedLength,sefSimpleXMl,sefSimpleJSON,sefSQL,seTeX,seRTF,sefDBF);
   TStdExportformats = Set of TStdExportFormat;
 
 Const
-  AllStdExportFormats = [sefCSV,sefFixedLength,sefSimpleXMl,sefSimpleJSON,sefSQL,seTeX,sefDBF];
+  AllStdExportFormats = [sefCSV,sefFixedLength,sefSimpleXMl,sefSimpleJSON,sefSQL,seTeX,seRTF,sefDBF];
 
 Type
 
@@ -76,20 +76,21 @@ uses
   fpsimplejsonexport,
   fpsqlexport,
   fptexexport,
+  fprtfexport,
   fpdbfexport;
 
 Const
   StdExportNames : Array[TStdExportFormat] of string
                  = (SCSVExport,SFixedLengthExport,SSimpleXML,
-                    SSimpleJSON,SSQLExport,STexExport,SDBFExport);
+                    SSimpleJSON,SSQLExport,STexExport,SRTFExport,SDBFExport);
   StdExportRegProcs : Array[TStdExportFormat] of Procedure
                  = (@RegisterCSVExportFormat,@RegisterFixedExportFormat,@RegisterSimpleXMLExportFormat,
                     @RegisterSimpleJSONExportFormat,@RegisterSQLExportFormat,@RegisterTexExportFormat
-                    ,@RegisterDBFExportFormat);
+                    ,@RegisterRTFExporter,@RegisterDBFExportFormat);
   StdExportUnRegProcs : Array[TStdExportFormat] of Procedure
                  = (@UnRegisterCSVExportFormat,@UNRegisterFixedExportFormat,@UnRegisterSimpleXMLExportFormat,
                     @UnRegisterSimpleJSONExportFormat,@UnRegisterSQLExportFormat,@UnRegisterTexExportFormat,
-                    @UnRegisterDBFExportFormat);
+                    @UnRegisterRTFExporter,@UnRegisterDBFExportFormat);
 
 Function RegisterStdFormats : TStdExportFormats;
 
