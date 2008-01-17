@@ -25,9 +25,7 @@ Unit fpccrc;
 
 Interface
 
-Function Crc32(Const HStr:String):cardinal;
 Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:integer):cardinal;
-Function UpdCrc32(InitCrc:cardinal;b:byte):cardinal;
 
 
 Implementation
@@ -57,21 +55,6 @@ begin
 end;
 
 
-Function Crc32(Const HStr:String):cardinal;
-var
-  i : integer;
-  InitCrc : cardinal;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  InitCrc:=cardinal($ffffffff);
-  for i:=1 to Length(Hstr) do
-   InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(Hstr[i])] xor (InitCrc shr 8);
-  Crc32:=InitCrc;
-end;
-
-
-
 Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:Integer):cardinal;
 var
   i : integer;
@@ -80,21 +63,14 @@ begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
   p:=@InBuf;
+  result:=not InitCrc;
   for i:=1 to InLen do
    begin
-     InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
+     result:=Crc32Tbl[byte(result) xor byte(p^)] xor (result shr 8);
      inc(p);
    end;
-  UpdateCrc32:=InitCrc;
+  result:=not result;
 end;
 
-
-
-Function UpdCrc32(InitCrc:cardinal;b:byte):cardinal;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  UpdCrc32:=Crc32Tbl[byte(InitCrc) xor b] xor (InitCrc shr 8);
-end;
 
 end.

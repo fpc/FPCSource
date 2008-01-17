@@ -786,8 +786,8 @@ begin
   bufstart:=sizeof(tppuheader);
   bufidx:=0;
 {reset}
-  crc:=cardinal($ffffffff);
-  interface_crc:=cardinal($ffffffff);
+  crc:=0;
+  interface_crc:=0;
   do_interface_crc:=true;
   Error:=false;
   do_crc:=true;

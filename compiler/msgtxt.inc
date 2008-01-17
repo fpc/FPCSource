@@ -1071,19 +1071,22 @@ const msgtxt : array[0..000189,1..240] of char=(
   '**2Xd_Do not use standard library search path (needed for cross compil'+
   'e)'#010+
   '**2Xe_Use external linker'#010+
-  '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
+  'to executable'#010+
+  '**2XD_Try to link units dynam','ically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
-  '**2Xm_Generate link',' map'#010+
+  '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
   '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
-  '**2Xr<x>_Set library search path to <x> (needed for cross compile) (Be'+
-  'OS, Linux)'#010+
-  '**2XR<x>_Prepend <x> to al','l linker search paths (BeOS, Darwin, FreeB'+
-  'SD, Linux, Mac OS, Solaris)'#010+
+  '**2Xr<x>_Set library se','arch path to <x> (needed for cross compile) ('+
+  'BeOS, Linux)'#010+
+  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
+  ', Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
-  '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
-  '**2Xt_Link with static libraries (-static is passed to linke','r)'#010+
+  '**2XS_Try to link units statically (default, d','efines FPC_LINK_STATIC'+
+  ')'#010+
+  '**2Xt_Link with static libraries (-static is passed to linker)'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+

@@ -2686,6 +2686,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not use standard library search path (needed for cross compile)
 **2Xe_Use external linker
+**2Xg_Create debuginfo in a separate file and add a debuglink section to executable
 **2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xi_Use internal linker
 **2Xm_Generate link map
