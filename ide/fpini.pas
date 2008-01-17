@@ -430,7 +430,8 @@ begin
   AltMouseAction:=INIFile^.GetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
   {Keyboard}
-  case crc32(upcase(INIFile^.GetEntry(secKeyboard,ieEditKeys,''))) of
+  S:=upcase(INIFile^.GetEntry(secKeyboard,ieEditKeys,''));
+  case UpdateCrc32(0,s[1],Length(s)) of
     $86a4c898: {crc32 for 'MICROSOFT'}
       EditKeys:=ekm_microsoft;
     $b20b87b3: {crc32 for 'BORLAND'}
