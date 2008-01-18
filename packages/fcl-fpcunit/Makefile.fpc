@@ -9,7 +9,7 @@ version=2.0.0
 [target]
 units=testregistry testreport testdecorator ubmockobject xmlreporter \
       fpcunitreport latextestreport xmltestreport plaintestreport fpcunit \
-      testutils
+      testutils digesttestreport
 #exampledirs=exampletests
 
 [require]

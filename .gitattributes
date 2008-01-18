@@ -4139,6 +4139,7 @@ packages/fcl-fpcunit/src/DUnitCompatibleInterface.inc svneol=native#text/plain
 packages/fcl-fpcunit/src/README.txt svneol=native#text/plain
 packages/fcl-fpcunit/src/demo/consolerunner/suiteconfig.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/demo/consolerunner/testrunner.pp svneol=native#text/plain
+packages/fcl-fpcunit/src/digesttestreport.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/example_output/results.pdf -text
 packages/fcl-fpcunit/src/example_output/results.txt svneol=native#text/plain
 packages/fcl-fpcunit/src/example_xsl/fpcunit.css svneol=native#text/plain
