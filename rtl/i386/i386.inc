@@ -1095,7 +1095,6 @@ end;
 {****************************************************************************
                                  Str()
 ****************************************************************************}
-{$ifdef disabled}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1105,6 +1104,7 @@ label str_int_shortcut;
 procedure int_str(l:longword;out s:string);assembler;nostackframe;
 
 asm
+  pushl %esi
   pushl %edi
   pushl %ebx
   mov %edx,%edi
@@ -1121,6 +1121,7 @@ const digits:array[0..9] of cardinal=(0,10,100,1000,10000,
                                       100000000,1000000000);
 
 asm
+  push %esi
   push %edi
   push %ebx
   movl %edx,%edi
@@ -1131,6 +1132,7 @@ asm
   subl %edx,%eax
   negl %edx
 str_int_shortcut:
+  movl %ecx,%esi
   {Calculate amount of digits in ecx.}
   xorl %ecx,%ecx
   bsrl %eax,%ecx
@@ -1138,9 +1140,15 @@ str_int_shortcut:
   imul $1233,%ecx
   shr $12,%ecx
 {$ifdef FPC_PIC}
-  call fpc_geteipasebx
+  call .Lpic
+.Lpic:
+  pop  %ebx
+  {$ifdef darwin}
+  movl digits-.LPIC(%ebx),%ebx
+  {$else}
   addl $_GLOBAL_OFFSET_TABLE_,%ebx
   movl digits@GOT(%ebx),%ebx
+  {$endif}
   cmpl (%ebx,%ecx,4),%eax
 {$else}
   cmpl digits(,%ecx,4),%eax
@@ -1153,8 +1161,26 @@ str_int_shortcut:
   movb $45,%bh               {movb $'-,%bh   Not supported by our ATT reader.}
   movw %bx,(%edi)
   addl %edx,%edi
+  subl %edx,%esi
+
+  {Skip digits beyond string length.}
+  subl %ecx,%esi
+  jae .Lwrite_out
+  movl %eax,%edx
+.Lloop_skip:
+  movl $0xcccccccd,%eax     {Divide by 10 using mul+shr}
+  {Pre-add '0'}
+  leal 48(%edx),%ebx         {leal $'0(,%edx),%ebx Not supported by our ATT reader.}
+  mull %edx
+  shrl $3,%edx
+  decl %ecx
+  jz .Ldone                  {If (l<0) and (high(s)=1) this jump is taken.}
+  incl %esi
+  jnz .Lloop_skip
+  movl %edx,%eax
 
   {Write out digits.}
+.Lwrite_out:
   movl %eax,%edx
 .Lloop:
   movl $0xcccccccd,%eax      {Divide by 10 using mul+shr}
@@ -1168,10 +1194,11 @@ str_int_shortcut:
   movb %bl,(%edi,%ecx)
   decl %ecx
   jnz .Lloop
+.Ldone:
   popl %ebx
   popl %edi
+  popl %esi
 end;
-{$endif}
 {****************************************************************************
                                Bounds Check
 ****************************************************************************}
