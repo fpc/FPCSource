@@ -14,6 +14,7 @@ units=system strings objpas macpas heaptrc getopts macostp macutils \
 #      lineinfo lnfodwrf  graph \
 #      sysutils math typinfo
 # rsts=math
+# implicitunits=exeinfo
 
 [require]
 nortl=y

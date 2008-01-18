@@ -12,6 +12,7 @@ units=system objpas macpas strings watcom dos crt objects \
       cpu charset types getopts heaptrc lnfodwrf lineinfo ctypes fgl \
       math typinfo mmx ucomplex \
       varutils variants sysutils
+implicitunits=exeinfo
 
 # dpmiexcp initc ports profile dxeload emu387 \
 # printer graph classes \

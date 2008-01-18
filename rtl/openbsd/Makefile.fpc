@@ -19,6 +19,7 @@ units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       video mouse keyboard  serial variants types systhrds sysctl sysconst
 units_netbsd_i386=mmx cpu
 rsts=math varutils typinfo variants classes sysconst
+implicitunits=exeinfo
 
 [require]
 nortl=y

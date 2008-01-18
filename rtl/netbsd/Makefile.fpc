@@ -20,6 +20,7 @@ units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       # ipc
 
 rsts=math varutils typinfo variants classes sysconst fpmkunit
+implicitunits=exeinfo
 
 [require]
 nortl=y

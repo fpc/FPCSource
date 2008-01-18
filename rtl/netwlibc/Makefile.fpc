@@ -18,6 +18,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       mouse video keyboard cmem sockets ctypes
 
 rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconsts system
+implicitunits=exeinfo
 
 [require]
 nortl=y

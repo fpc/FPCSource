@@ -23,6 +23,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       dos objects \
       cwstring
 
+implicitunits=exeinfo
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconst
 

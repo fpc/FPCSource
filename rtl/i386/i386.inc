@@ -1095,6 +1095,8 @@ end;
 {****************************************************************************
                                  Str()
 ****************************************************************************}
+{$ifdef disabled}
+
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1196,6 +1198,8 @@ str_int_shortcut:
   popl %edi
   popl %esi
 end;
+
+{$endif disabled}
 
 {****************************************************************************
                                Bounds Check

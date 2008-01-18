@@ -14,6 +14,7 @@ units=system objpas macpas strings \
       video mouse keyboard variants vesamode types fmtbcd \
       sysconst rtlconst dateutil convutil strutils
 rsts=math varutils typinfo classes variants dateutil sysconst
+implicitunits=exeinfo
 [require]
 nortl=y
 [install]
