@@ -1164,9 +1164,9 @@ str_int_shortcut:
   subl %edx,%esi
 
   {Skip digits beyond string length.}
-  subl %ecx,%esi
-  jae .Lwrite_out
   movl %eax,%edx
+  subl %ecx,%esi
+  jae .Lloop_write
 .Lloop_skip:
   movl $0xcccccccd,%eax     {Divide by 10 using mul+shr}
   {Pre-add '0'}
@@ -1177,12 +1177,9 @@ str_int_shortcut:
   jz .Ldone                  {If (l<0) and (high(s)=1) this jump is taken.}
   incl %esi
   jnz .Lloop_skip
-  movl %edx,%eax
 
   {Write out digits.}
-.Lwrite_out:
-  movl %eax,%edx
-.Lloop:
+.Lloop_write:
   movl $0xcccccccd,%eax      {Divide by 10 using mul+shr}
   {Pre-add '0'}
   leal 48(%edx),%ebx         {leal $'0(,%edx),%ebx Not supported by our ATT reader.}
@@ -1193,12 +1190,13 @@ str_int_shortcut:
   subl %eax,%ebx
   movb %bl,(%edi,%ecx)
   decl %ecx
-  jnz .Lloop
+  jnz .Lloop_write
 .Ldone:
   popl %ebx
   popl %edi
   popl %esi
 end;
+
 {****************************************************************************
                                Bounds Check
 ****************************************************************************}
