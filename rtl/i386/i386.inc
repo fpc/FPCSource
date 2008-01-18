@@ -1095,8 +1095,8 @@ end;
 {****************************************************************************
                                  Str()
 ****************************************************************************}
-{$ifdef disabled}
 
+{$ifndef darwin}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1146,7 +1146,7 @@ str_int_shortcut:
 .Lpic:
   pop  %ebx
   {$ifdef darwin}
-  movl digits-.LPIC(%ebx),%ebx
+  movl digits-.Lpic(%ebx),%ebx
   {$else}
   addl $_GLOBAL_OFFSET_TABLE_,%ebx
   movl digits@GOT(%ebx),%ebx
@@ -1198,8 +1198,7 @@ str_int_shortcut:
   popl %edi
   popl %esi
 end;
-
-{$endif disabled}
+{$endif not darwin}
 
 {****************************************************************************
                                Bounds Check
