@@ -13,7 +13,7 @@ units=testregistry testreport testdecorator ubmockobject xmlreporter \
 #exampledirs=exampletests
 
 [require]
-packages=fcl-xml
+packages=paszlib fcl-xml
 
 [compiler]
 options=-S2h
