@@ -556,7 +556,9 @@ end;
 function TLinkerBSD.MakeExecutable:boolean;
 var
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  extdbgbinstr,
+  extdbgcmdstr: TCmdStr;
   linkscript: TAsmScript;
   DynLinkStr : string[60];
   GCSectionsStr,
@@ -592,7 +594,6 @@ begin
     if not(target_info.system in systems_darwin) then
       GCSectionsStr:='--gc-sections'
     else
-      // warning: this option only exists for 32 bit under Mac OS X, maybe the default for 64 bit?
       GCSectionsStr:='-dead_strip';
 
    if(not(target_info.system in systems_darwin) and
@@ -621,12 +622,25 @@ begin
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   BinStr:=FindUtil(utilsprefix+BinStr);
 
+  { create dsym file? }
+  extdbgbinstr:='';
+  extdbgcmdstr:='';
+  if (target_info.system in systems_darwin) and
+     (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
+     (cs_link_separate_dbg_file in current_settings.globalswitches) then
+    begin
+      extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
+      extdbgcmdstr:=maybequoted(current_module.exefilename^);
+    end;
+
   if (LdSupportsNoResponseFile) and
      not(cs_link_nolink in current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
       linkscript:=TAsmScriptUnix.create(outputexedir+'ppaslink');
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
+      if (extdbgcmdstr<>'') then
+        linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
@@ -635,6 +649,10 @@ begin
     end;
 
   success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile);
+  if (success and
+      (extdbgbinstr<>'') and
+      (cs_link_nolink in current_settings.globalswitches)) then
+    success:=DoExec(extdbgbinstr,extdbgcmdstr,false,LdSupportsNoResponseFile);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
@@ -658,7 +676,9 @@ var
   SoNameStr : string[80];
   linkscript: TAsmScript;
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  extdbgbinstr,
+  extdbgcmdstr  : TCmdStr;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
@@ -686,12 +706,25 @@ begin
   Replace(cmdstr,'$SONAME',SoNameStr);
   BinStr:=FindUtil(utilsprefix+BinStr);
 
+  { create dsym file? }
+  extdbgbinstr:='';
+  extdbgcmdstr:='';
+  if (target_info.system in systems_darwin) and
+     (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
+     (cs_link_separate_dbg_file in current_settings.globalswitches) then
+    begin
+      extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
+      extdbgcmdstr:=maybequoted(current_module.sharedlibfilename^);
+    end;
+
   if (LdSupportsNoResponseFile) and
      not(cs_link_nolink in current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
       linkscript:=TAsmScriptUnix.create(outputexedir+'ppaslink');
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
+      if (extdbgbinstr<>'') then
+        linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
@@ -700,13 +733,17 @@ begin
     end;
 
   success:=DoExec(BinStr,cmdstr,true,LdSupportsNoResponseFile);
+  if (success and
+      (extdbgbinstr<>'') and
+      (cs_link_nolink in current_settings.globalswitches)) then
+    success:=DoExec(extdbgbinstr,extdbgcmdstr,false,LdSupportsNoResponseFile);
 
 { Strip the library ? }
   if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
-     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
    end;
 
 { Remove ReponseFile }
