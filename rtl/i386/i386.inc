@@ -1142,9 +1142,7 @@ str_int_shortcut:
   imul $1233,%ecx
   shr $12,%ecx
 {$ifdef FPC_PIC}
-  call .Lpic
-.Lpic:
-  pop  %ebx
+  call fpc_geteipasebx
   {$ifdef darwin}
   movl digits-.Lpic(%ebx),%ebx
   {$else}
