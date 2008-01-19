@@ -713,8 +713,11 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(outputexedir+Info.ResName);
-//      DeleteFile(linkscript.fn);
-      linkscript.free
+      if LdSupportsNoResponseFile Then
+        begin
+          DeleteFile(linkscript.fn);
+          linkscript.free
+        end;
     end;     
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
