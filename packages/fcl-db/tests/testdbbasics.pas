@@ -794,7 +794,7 @@ begin
 
     open;
     
-    AddSecondIndex;
+//    AddSecondIndex;
 
     while not eof do
       begin
