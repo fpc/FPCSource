@@ -1069,23 +1069,6 @@ asm
 .Lgnf_null:
 end;
 
-{****************************************************************************
-                                 Math
-****************************************************************************}
-
-{$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-{$ifdef SYSTEMINLINE}
-       movl     l,%eax
-{$else}
-{$ifndef REGCALL}
-       movl     l,%eax
-{$endif}
-{$endif}
-        imull   %eax,%eax
-end;
-
 
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
