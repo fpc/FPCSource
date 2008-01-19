@@ -1170,9 +1170,7 @@ str_int_shortcut:
   subl %ecx,%esi
   jae .Lloop_write
 .Lloop_skip:
-  movl $0xcccccccd,%eax     {Divide by 10 using mul+shr}
-  {Pre-add '0'}
-  leal 48(%edx),%ebx         {leal $'0(,%edx),%ebx Not supported by our ATT reader.}
+  movl $0xcccccccd,%eax      {Divide by 10 using mul+shr}
   mull %edx
   shrl $3,%edx
   decl %ecx
