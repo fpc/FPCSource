@@ -877,7 +877,10 @@ implementation
     function tcglabelnode.getasmlabel : tasmlabel;
       begin
         if not(assigned(asmlabel)) then
-          current_asmdata.getjumplabel(asmlabel);
+          if labsym.nonlocal then
+            current_asmdata.getglobaljumplabel(asmlabel)
+          else
+            current_asmdata.getjumplabel(asmlabel);
         result:=asmlabel
       end;
 

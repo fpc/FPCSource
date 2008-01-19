@@ -1700,6 +1700,8 @@ implementation
                         consume(_COLON);
                         if tlabelsym(srsym).defined then
                           Message(sym_e_label_already_defined);
+                        if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+                          tlabelsym(srsym).nonlocal:=true;
                         tlabelsym(srsym).defined:=true;
                         p1:=clabelnode.create(nil,tlabelsym(srsym));
                         tlabelsym(srsym).code:=p1;

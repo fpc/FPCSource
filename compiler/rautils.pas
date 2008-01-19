@@ -1419,13 +1419,18 @@ Begin
   case sym.typ of
     labelsym :
       begin
+        if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+          Tlabelsym(sym).nonlocal:=true;
         if not(assigned(tlabelsym(sym).asmblocklabel)) then
-          current_asmdata.getjumplabel(tlabelsym(sym).asmblocklabel);
+          if Tlabelsym(sym).nonlocal then
+            current_asmdata.getglobaljumplabel(tlabelsym(sym).asmblocklabel)
+          else
+            current_asmdata.getjumplabel(tlabelsym(sym).asmblocklabel);
         hl:=tlabelsym(sym).asmblocklabel;
         if emit then
-         tlabelsym(sym).defined:=true
+          tlabelsym(sym).defined:=true
         else
-         tlabelsym(sym).used:=true;
+          tlabelsym(sym).used:=true;
         SearchLabel:=true;
       end;
   end;
