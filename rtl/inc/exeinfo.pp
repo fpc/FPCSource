@@ -21,6 +21,8 @@ interface
 type
   TExeFile=record
     f : file;
+    // cached filesize
+    size      : longint;
     isopen    : boolean;
     nsects    : longint;
     sechdrofs,
@@ -245,7 +247,7 @@ begin
   stabofs:=-1;
   stabstrofs:=-1;
   { read and check header }
-  if filesize(f)<2048+sizeof(tcoffheader) then
+  if e.size<2048+sizeof(tcoffheader) then
    exit;
   seek(f,2048);
   blockread(f,coffheader,sizeof(tcoffheader));
@@ -354,7 +356,7 @@ var
 begin
   result:=false;
   { read and check header }
-  if filesize(e.f)<sizeof(dosheader) then
+  if e.size<sizeof(dosheader) then
     exit;
   blockread(e.f,dosheader,sizeof(tdosheader));
   seek(e.f,dosheader.e_lfanew);
@@ -364,7 +366,7 @@ begin
   e.sechdrofs:=filepos(e.f);
   e.nsects:=peheader.NumberOfSections;
   e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
-  if e.secstrofs>filesize(e.f) then
+  if e.secstrofs>e.size then
     exit;
   result:=true;
 end;
@@ -525,7 +527,7 @@ begin
   e.sechdrofs:=filepos(e.f);
   e.nsects:=peheader.NumberOfSections;
   e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
-  if e.secstrofs>filesize(e.f) then
+  if e.secstrofs>e.size then
     exit;
   result:=true;
 end;
@@ -696,7 +698,7 @@ var
 begin
   result:=false;
   { read and check header }
-  if filesize(e.f)<sizeof(telfheader) then
+  if e.size<sizeof(telfheader) then
    exit;
   blockread(e.f,elfheader,sizeof(telfheader));
  if elfheader.magic0123<>{$ifdef ENDIAN_LITTLE}$464c457f{$else}$7f454c46{$endif} then
@@ -709,6 +711,7 @@ begin
   e.secstrofs:=elfsec.sh_offset;
   e.sechdrofs:=elfheader.e_shoff;
   e.nsects:=elfheader.e_shnum;
+  result:=true;
 end;
 
 function FindSectionElf(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
@@ -924,11 +927,12 @@ var
    mh:MachoHeader;
 begin
   result:= false;
-  if filesize(e.f)<sizeof(mh) then
+  if e.size<sizeof(mh) then
     exit;
   blockread (e.f, mh, sizeof(mh));
   e.sechdrofs:=filepos(e.f);
   e.nsects:=mh.ncmds;
+  result:=true;
 end;
 
 
@@ -1021,6 +1025,8 @@ begin
   if ioresult<>0 then
    exit;
   e.isopen:=true;
+  // cache filesize
+  e.size:=filesize(e.f);
   if ExeProcs.OpenProc<>nil then
     result:=ExeProcs.OpenProc(e);
 end;
