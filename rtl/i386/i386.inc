@@ -593,6 +593,7 @@ asm
         je      .LFound
         xorl    %ecx,%ecx       // zero index in Buf
         xorl    %eax,%eax       // To make DWord compares possible
+        .balign 4
 .LLoop:
         movb    (%esi),%al      // Load byte
         cmpb    %al,%bl
@@ -1167,6 +1168,7 @@ str_int_shortcut:
   movl %eax,%edx
   subl %ecx,%esi
   jae .Lloop_write
+	.balign 4
 .Lloop_skip:
   movl $0xcccccccd,%eax      {Divide by 10 using mul+shr}
   mull %edx
@@ -1177,6 +1179,7 @@ str_int_shortcut:
   jnz .Lloop_skip
 
   {Write out digits.}
+	.balign 4
 .Lloop_write:
   movl $0xcccccccd,%eax      {Divide by 10 using mul+shr}
   {Pre-add '0'}
