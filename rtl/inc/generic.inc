@@ -1533,39 +1533,40 @@ function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLIN
 procedure int_str(l:longint;out s:string);
 var
   m,m1 : longword;
+  pcstart,
+  pc2start,
   pc,pc2 : pchar;
   hs : string[32];
-  b : longint;
+  overflow : longint;
 begin
-  pc2:=@s[1];
+  pc2start:=@s[1];
+  pc2:=pc2start;
   if (l<0) then
     begin
-      b:=1;
       pc2^:='-';
       inc(pc2);
       m:=longword(-l);
     end
   else
-    begin
-      b:=0;
-      m:=longword(l);
-    end;
-  pc:=@hs[0];
+    m:=longword(l);
+  pcstart:=pchar(@hs[0]);
+  pc:=pcstart;
   repeat
-    inc(pc);
     m1:=m div 10;
+    inc(pc);
     pc^:=char(m-(m1*10)+byte('0'));
     m:=m1;
   until m=0;
-  while (pc>pchar(@hs[0])) and
-        (b<high(s)) do
+  overflow:=(pc-pcstart)+(pc2-pc2start)-high(s);
+  if overflow>0 then
+    inc(pcstart,overflow);
+  while (pc>pcstart) do
     begin
       pc2^:=pc^;
-      dec(pc);
       inc(pc2);
-      inc(b);
+      dec(pc);
     end;
-  s[0]:=chr(b);
+  s[0]:=char(pc2-pc2start);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
@@ -1575,28 +1576,32 @@ end;
 procedure int_str(l:longword;out s:string);
 var
   m1 : longword;
-  b: longint;
+  pcstart,
+  pc2start,
   pc,pc2 : pchar;
   hs : string[32];
+  overflow : longint;
 begin
-  pc2:=@s[1];
-  pc:=@hs[0];
+  pc2start:=@s[1];
+  pc2:=pc2start;
+  pcstart:=pchar(@hs[0]);
+  pc:=pcstart;
   repeat
     inc(pc);
     m1:=l div 10;
     pc^:=char(l-(m1*10)+byte('0'));
     l:=m1;
   until l=0;
-  b:=0;
-  while (pc>pchar(@hs[0])) and
-        (b<high(s)) do
+  overflow:=(pc-pcstart)-high(s);
+  if overflow>0 then
+    inc(pcstart,overflow);
+  while (pc>pcstart) do
     begin
       pc2^:=pc^;
-      dec(pc);
       inc(pc2);
-      inc(b);
+      dec(pc);
     end;
-  s[0]:=chr(b);
+  s[0]:=char(pc2-pc2start);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
@@ -1606,39 +1611,40 @@ end;
 procedure int_str(l:int64;out s:string);
 var
   m,m1 : qword;
+  pcstart,
+  pc2start,
   pc,pc2 : pchar;
-  b: longint;
-  hs : string[64];
+  hs : string[32];
+  overflow : longint;
 begin
-  pc2:=@s[1];
+  pc2start:=@s[1];
+  pc2:=pc2start;
   if (l<0) then
     begin
-      b:=1;
       pc2^:='-';
       inc(pc2);
       m:=qword(-l);
     end
   else
-    begin
-      b:=0;
-      m:=qword(l);
-    end;
-  pc:=@hs[0];
+    m:=qword(l);
+  pcstart:=pchar(@hs[0]);
+  pc:=pcstart;
   repeat
-    inc(pc);
     m1:=m div 10;
+    inc(pc);
     pc^:=char(m-(m1*10)+byte('0'));
     m:=m1;
   until m=0;
-  while (pc>pchar(@hs[0])) and
-        (b < high(s)) do
+  overflow:=(pc-pcstart)+(pc2-pc2start)-high(s);
+  if overflow>0 then
+    inc(pcstart,overflow);
+  while (pc>pcstart) do
     begin
       pc2^:=pc^;
-      dec(pc);
       inc(pc2);
-      inc(b);
+      dec(pc);
     end;
-  s[0]:=chr(b);
+  s[0]:=char(pc2-pc2start);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
@@ -1648,28 +1654,32 @@ end;
 procedure int_str(l:qword;out s:string);
 var
   m1 : qword;
+  pcstart,
+  pc2start,
   pc,pc2 : pchar;
-  b: longint;
   hs : string[64];
+  overflow : longint;
 begin
-  pc2:=@s[1];
-  pc:=@hs[0];
+  pc2start:=@s[1];
+  pc2:=pc2start;
+  pcstart:=pchar(@hs[0]);
+  pc:=pcstart;
   repeat
     inc(pc);
     m1:=l div 10;
     pc^:=char(l-(m1*10)+byte('0'));
     l:=m1;
   until l=0;
-  b:=0;
-  while (pc>pchar(@hs[0])) and
-        (b<high(s)) do
+  overflow:=(pc-pcstart)-high(s);
+  if overflow>0 then
+    inc(pcstart,overflow);
+  while (pc>pcstart) do
     begin
       pc2^:=pc^;
-      dec(pc);
       inc(pc2);
-      inc(b);
+      dec(pc);
     end;
-  s[0]:=chr(b);
+  s[0]:=char(pc2-pc2start);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
