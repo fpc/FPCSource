@@ -1080,8 +1080,7 @@ end;
                                  Str()
 ****************************************************************************}
 
-{$ifndef darwin}
-{$if not (defined(VER2_0) or defined(VER2_2))}
+{$ifdef disabled}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1181,8 +1180,7 @@ str_int_shortcut:
   popl %edi
   popl %esi
 end;
-{$endif not (defined(VER2_0) or defined(VER2_2))}
-{$endif not darwin}
+{$endif}
 
 {****************************************************************************
                                Bounds Check
