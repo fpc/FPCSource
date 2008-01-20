@@ -1701,7 +1701,10 @@ implementation
                         if tlabelsym(srsym).defined then
                           Message(sym_e_label_already_defined);
                         if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
-                          tlabelsym(srsym).nonlocal:=true;
+                          begin
+                            tlabelsym(srsym).nonlocal:=true;
+                            exclude(current_procinfo.procdef.procoptions,po_inline);
+                          end;
                         tlabelsym(srsym).defined:=true;
                         p1:=clabelnode.create(nil,tlabelsym(srsym));
                         tlabelsym(srsym).code:=p1;

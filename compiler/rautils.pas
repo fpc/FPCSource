@@ -1420,7 +1420,11 @@ Begin
     labelsym :
       begin
         if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
-          Tlabelsym(sym).nonlocal:=true;
+          begin
+            Tlabelsym(sym).nonlocal:=true;
+            if emit then
+              exclude(current_procinfo.procdef.procoptions,po_inline);
+          end;
         if not(assigned(tlabelsym(sym).asmblocklabel)) then
           if Tlabelsym(sym).nonlocal then
             current_asmdata.getglobaljumplabel(tlabelsym(sym).asmblocklabel)
