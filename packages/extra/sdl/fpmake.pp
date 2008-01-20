@@ -17,8 +17,6 @@ begin
     P.Directory:='sdl';
 {$endif ALLPACKAGES}
     P.Version:='1.2.12';
-    T:=P.Targets.AddUnit('jedi-sdl.inc');
-    T:=P.Targets.AddUnit('powersdl.inc');
     T:=P.Targets.AddUnit('sdl.pas');
     T:=P.Targets.AddUnit('sdl_gfx.pas');
     T:=P.Targets.AddUnit('sdl_image.pas');
@@ -29,6 +27,8 @@ begin
     T:=P.Targets.AddUnit('sdlutils.pas');
     T:=P.Targets.AddUnit('smpeg.pas');
     T:=P.Targets.AddUnit('logger.pas');
+      T.Dependencies.AddInclude('jedi-sdl.inc');
+      T.Dependencies.AddInclude('powersdl.inc');
       T.OSes:=[linux,freebsd,win32,win64,darwin];
 
 {$ifndef ALLPACKAGES}
