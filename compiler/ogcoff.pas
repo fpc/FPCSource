@@ -1548,6 +1548,8 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_RELATIVE_4;
              IMAGE_REL_AMD64_REL32_5:
                rel_type:=RELOC_RELATIVE_5;
+             IMAGE_REL_AMD64_SECREL:
+               rel_type:=RELOC_SECREL32;
 {$endif x86_64}
            else
              begin
