@@ -71,12 +71,20 @@ var
 
 
 function OpenStabs:boolean;
+var
+  dbgfn : string;
 begin
   result:=false;
   if staberr then
     exit;
   if not OpenExeFile(e,paramstr(0)) then
     exit;
+  if ReadDebugLink(e,dbgfn) then
+    begin
+      CloseExeFile(e);
+      if not OpenExeFile(e,dbgfn) then
+        exit;
+    end;
   StabsFunctionRelative := E.FunctionRelative;
   if FindExeSection(e,'.stab',stabofs,stablen) and
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then

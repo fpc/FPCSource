@@ -128,12 +128,20 @@ var
   index : SizeInt;
 
 function Opendwarf:boolean;
+var
+  dbgfn : string;
 begin
   result:=false;
   if dwarferr then
     exit;
   if not OpenExeFile(e,paramstr(0)) then
     exit;
+  if ReadDebugLink(e,dbgfn) then
+    begin
+      CloseExeFile(e);
+      if not OpenExeFile(e,dbgfn) then
+        exit;
+    end;
   if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
     result:=true
   else

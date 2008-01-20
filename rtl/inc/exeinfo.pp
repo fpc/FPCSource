@@ -29,11 +29,17 @@ type
     secstrofs : ptruint;
     processaddress : ptruint;
     FunctionRelative: boolean;
+    filename  : string;
+    // Allocate static buffer for reading data
+    buf       : array[0..4095] of byte;
+    bufsize,
+    bufcnt    : longint;
   end;
 
 function OpenExeFile(out e:TExeFile;const fn:string):boolean;
 function FindExeSection(var e:TExeFile;const secname:string;out secofs,seclen:longint):boolean;
 function CloseExeFile(var e:TExeFile):boolean;
+function ReadDebugLink(var e:TExeFile;out dbgfn:string):boolean;
 
 
 implementation
@@ -1015,6 +1021,49 @@ end;
 
 
 {****************************************************************************
+                                   CRC
+****************************************************************************}
+
+var
+  Crc32Tbl : array[0..255] of cardinal;
+
+procedure MakeCRC32Tbl;
+var
+  crc : cardinal;
+  i,n : integer;
+begin
+  for i:=0 to 255 do
+   begin
+     crc:=i;
+     for n:=1 to 8 do
+      if (crc and 1)<>0 then
+       crc:=(crc shr 1) xor cardinal($edb88320)
+      else
+       crc:=crc shr 1;
+     Crc32Tbl[i]:=crc;
+   end;
+end;
+
+
+Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:Integer):cardinal;
+var
+  i : integer;
+  p : pchar;
+begin
+  if Crc32Tbl[1]=0 then
+   MakeCrc32Tbl;
+  p:=@InBuf;
+  result:=not InitCrc;
+  for i:=1 to InLen do
+   begin
+     result:=Crc32Tbl[byte(result) xor byte(p^)] xor (result shr 8);
+     inc(p);
+   end;
+  result:=not result;
+end;
+
+
+{****************************************************************************
                          Generic Executable Open/Close
 ****************************************************************************}
 
@@ -1069,6 +1118,8 @@ var
 begin
   result:=false;
   fillchar(e,sizeof(e),0);
+  e.bufsize:=sizeof(e.buf);
+  e.filename:=fn;
   assign(e.f,fn);
   {$I-}
    ofm:=filemode;
@@ -1106,6 +1157,79 @@ begin
     exit;
   if ExeProcs.FindProc<>nil then
     result:=ExeProcs.FindProc(e,secname,secofs,seclen);
+end;
+
+
+
+function CheckDbgFile(var e:TExeFile;const fn:string;dbgcrc:cardinal):boolean;
+var
+  c      : cardinal;
+  ofm    : word;
+  g      : file;
+begin
+  result:=false;
+  assign(g,fn);
+  {$I-}
+   ofm:=filemode;
+   filemode:=$40;
+   reset(g,1);
+   filemode:=ofm;
+  {$I+}
+  if ioresult<>0 then
+   exit;
+  { We reuse the buffer from e here to prevent too much stack allocation }
+  c:=0;
+  repeat
+    blockread(g,e.buf,e.bufsize,e.bufcnt);
+    c:=UpdateCrc32(c,e.buf,e.bufcnt);
+  until e.bufcnt<e.bufsize;
+  close(g);
+  result:=(dbgcrc=c);
+end;
+
+
+function ReadDebugLink(var e:TExeFile;out dbgfn:string):boolean;
+var
+  dbglink : array[0..255] of char;
+  i,
+  dbglinklen,
+  dbglinkofs : longint;
+  dbgcrc     : cardinal;
+begin
+  result:=false;
+  if not FindExeSection(e,'.gnu_debuglink',dbglinkofs,dbglinklen) then
+    exit;
+  if dbglinklen>sizeof(dbglink)-1 then
+    exit;
+  fillchar(dbglink,sizeof(dbglink),0);
+  seek(e.f,dbglinkofs);
+  blockread(e.f,dbglink,dbglinklen);
+  dbgfn:=strpas(dbglink);
+  if length(dbgfn)=0 then
+    exit;
+  i:=align(length(dbgfn)+1,4);
+  if i>dbglinklen then
+    exit;
+  move(dbglink[i],dbgcrc,4);
+  { current dir }
+  if CheckDbgFile(e,dbgfn,dbgcrc) then
+    begin
+      result:=true;
+      exit;
+    end;
+  { executable dir }
+  i:=length(e.filename);
+  while (i>0) and not(e.filename[i] in ['/','\']) do
+    dec(i);
+  if i>0 then
+    begin
+      dbgfn:=copy(e.filename,1,i)+dbgfn;
+      if CheckDbgFile(e,dbgfn,dbgcrc) then
+        begin
+          result:=true;
+          exit;
+        end;
+    end;
 end;
 
 
