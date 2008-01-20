@@ -36,9 +36,11 @@ const
   N_IncludeFile = $84;
 
   maxstabs = 40; { size of the stabs buffer }
+
+var
   { GDB after 4.18 uses offset to function begin
     in text section but OS/2 version still uses 4.16 PM }
-  StabsFunctionRelative : boolean = true;
+  StabsFunctionRelative: boolean;
 
 type
   pstab=^tstab;
@@ -73,8 +75,12 @@ begin
   result:=false;
   if staberr then
     exit;
+  { GDB after 4.18 uses offset to function begin
+    in text section but OS/2 version still uses 4.16 PM }
+  E.FunctionRelative := true;
   if not OpenExeFile(e,paramstr(0)) then
     exit;
+  StabsFunctionRelative := E.FunctionRelative;
   if FindExeSection(e,'.stab',stabofs,stablen) and
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then
     begin
