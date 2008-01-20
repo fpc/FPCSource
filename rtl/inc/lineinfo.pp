@@ -75,9 +75,6 @@ begin
   result:=false;
   if staberr then
     exit;
-  { GDB after 4.18 uses offset to function begin
-    in text section but OS/2 version still uses 4.16 PM }
-  E.FunctionRelative := true;
   if not OpenExeFile(e,paramstr(0)) then
     exit;
   StabsFunctionRelative := E.FunctionRelative;

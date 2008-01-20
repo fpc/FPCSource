@@ -1072,6 +1072,8 @@ begin
   e.isopen:=true;
   // cache filesize
   e.size:=filesize(e.f);
+
+  E.FunctionRelative := true;
   if ExeProcs.OpenProc<>nil then
     result:=ExeProcs.OpenProc(e);
 end;
@@ -1099,4 +1101,3 @@ end;
 
 
 end.
-
