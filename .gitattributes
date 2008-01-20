@@ -1588,6 +1588,8 @@ packages/extra/bzip2/pasbzip.pas svneol=native#text/plain
 packages/extra/cairo/Makefile svneol=native#text/plain
 packages/extra/cairo/Makefile.fpc svneol=native#text/plain
 packages/extra/cairo/cairo.pp svneol=native#text/plain
+packages/extra/cairo/fpmake.inc svneol=native#text/plain
+packages/extra/cairo/fpmake.pp svneol=native#text/plain
 packages/extra/cdrom/Makefile svneol=native#text/plain
 packages/extra/cdrom/Makefile.fpc svneol=native#text/plain
 packages/extra/cdrom/README -text
