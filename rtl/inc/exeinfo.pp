@@ -22,7 +22,7 @@ type
   TExeFile=record
     f : file;
     // cached filesize
-    size      : longint;
+    size      : int64;
     isopen    : boolean;
     nsects    : longint;
     sechdrofs,
