@@ -1409,6 +1409,8 @@ packages/extra/Makefile.fpc svneol=native#text/plain
 packages/extra/a52/Makefile svneol=native#text/plain
 packages/extra/a52/Makefile.fpc svneol=native#text/plain
 packages/extra/a52/a52.pas svneol=native#text/plain
+packages/extra/a52/fpmake.inc svneol=native#text/plain
+packages/extra/a52/fpmake.pp svneol=native#text/plain
 packages/extra/amunits/Makefile svneol=native#text/plain
 packages/extra/amunits/Makefile.fpc svneol=native#text/plain
 packages/extra/amunits/README -text
