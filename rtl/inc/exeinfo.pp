@@ -512,6 +512,15 @@ type
     lineno2  : word;
     flags    : longint;
   end;
+  coffsymbol=packed record
+    name    : array[0..3] of char; { real is [0..7], which overlaps the strofs ! }
+    strofs  : longint;
+    value   : longint;
+    section : smallint;
+    empty   : word;
+    typ     : byte;
+    aux     : byte;
+  end;
 var
   dosheader  : tdosheader;
   peheader   : tpeheader;
