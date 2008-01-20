@@ -872,7 +872,7 @@ begin
   stabofs:=-1;
   stabstrofs:=-1;
   { read and check header }
-  if filesize(f)<sizeof(telf32header) then
+  if E.Size<sizeof(telf32header) then
    exit;
   blockread(f,elfheader,sizeof(telf32header));
 {$ifdef ENDIAN_LITTLE}
