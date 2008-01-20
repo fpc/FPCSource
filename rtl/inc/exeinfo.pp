@@ -28,6 +28,7 @@ type
     sechdrofs,
     secstrofs : ptruint;
     processaddress : ptruint;
+    FunctionRelative: boolean;
   end;
 
 function OpenExeFile(out e:TExeFile;const fn:string):boolean;
@@ -535,7 +536,6 @@ end;
 
 
 {$IFDEF EMX}
-function LoadEMXaout: boolean;
 type
   TDosHeader = packed record
      e_magic : word;
@@ -558,12 +558,14 @@ type
      e_res2 : array[0..9] of word;
      e_lfanew : longint;
   end;
+
   TEmxHeader = packed record
      Version: array [1..16] of char;
      Bound: word;
      AoutOfs: longint;
      Options: array [1..42] of char;
   end;
+
   TAoutHeader = packed record
      Magic: word;
      Machine: byte;
@@ -576,45 +578,70 @@ type
      TextRelocSize: longint;
      DataRelocSize: longint;
   end;
+
 const
  StartPageSize = $1000;
+
 var
  DosHeader: TDosHeader;
  EmxHeader: TEmxHeader;
  AoutHeader: TAoutHeader;
+ StabOfs: PtrUInt;
  S4: string [4];
+
+function OpenEMXaout (var E: TExeFile): boolean;
 begin
- processaddress := 0;
- LoadEMXaout := false;
- StabOfs := -1;
- StabStrOfs := -1;
+ OpenEMXaout := false;
+{ GDB after 4.18 uses offset to function begin
+  in text section but OS/2 version still uses 4.16 PM }
+ E.FunctionRelative := false;
 { read and check header }
- if FileSize (F) > SizeOf (DosHeader) then
+ if E.Size > SizeOf (DosHeader) then
  begin
-  BlockRead (F, DosHeader, SizeOf (TDosHeader));
-  Seek (F, DosHeader.e_cparhdr shl 4);
-  BlockRead (F, EmxHeader, SizeOf (TEmxHeader));
+  BlockRead (E.F, DosHeader, SizeOf (TDosHeader));
+  if E.Size > DosHeader.e_cparhdr shl 4 + SizeOf (TEmxHeader) then
+  begin
+   Seek (E.F, DosHeader.e_cparhdr shl 4);
+   BlockRead (E.F, EmxHeader, SizeOf (TEmxHeader));
   S4 [0] := #4;
   Move (EmxHeader.Version, S4 [1], 4);
-  if S4 = 'emx ' then
-  begin
-   Seek (F, EmxHeader.AoutOfs);
-   BlockRead (F, AoutHeader, SizeOf (TAoutHeader));
-
-   if AOutHeader.Magic=$10B then
-     StabOfs :=   StartPageSize
+   if (S4 = 'emx ') and
+                       (E.Size > EmxHeader.AoutOfs + SizeOf (TAoutHeader)) then
+   begin
+    Seek (E.F, EmxHeader.AoutOfs);
+    BlockRead (E.F, AoutHeader, SizeOf (TAoutHeader));
+   if AOutHeader.Magic = $10B then
+     StabOfs := StartPageSize
    else
-     StabOfs :=EmxHeader.AoutOfs + SizeOf (TAoutHeader);
-   StabOfs :=   StabOfs
+     StabOfs := EmxHeader.AoutOfs + SizeOf (TAoutHeader);
+   StabOfs := StabOfs
                 + AoutHeader.TextSize
                 + AoutHeader.DataSize
                 + AoutHeader.TextRelocSize
                 + AoutHeader.DataRelocSize;
-   StabCnt := AoutHeader.SymbSize div SizeOf (TStab);
-   StabStrOfs := StabOfs + AoutHeader.SymbSize;
-   StabsFunctionRelative:=false;
-   LoadEMXaout := (StabOfs <> -1) and (StabStrOfs <> -1);
+    if E.Size > StabOfs + AoutHeader.SymbSize then
+     OpenEMXaout := true;
+   end;
   end;
+ end;
+end;
+
+
+function FindSectionEMXaout (var E: TExeFile; const ASecName: string;
+                                         out SecOfs, SecLen: longint): boolean;
+begin
+ FindSectionEMXaout := false;
+ if ASecName = '.stab' then
+ begin
+  SecOfs := StabOfs;
+  SecLen := AoutHeader.SymbSize;
+  FindSectionEMXaout := true;
+ end else
+ if ASecName = '.stabstr' then
+ begin
+  SecOfs := StabOfs + AoutHeader.SymbSize;
+  SecLen := E.Size - Pred (SecOfs);
+  FindSectionEMXaout := true;
  end;
 end;
 {$ENDIF EMX}
@@ -980,8 +1007,8 @@ const
      findproc : @FindSectionGo32Coff;
 {$endif}
 {$IFDEF EMX}
-     openproc : @OpenEMX;
-     findproc : @FindSectionEMX;
+     openproc : @OpenEMXaout;
+     findproc : @FindSectionEMXaout;
 {$ENDIF EMX}
 {$ifdef PE32}
      openproc : @OpenPeCoff;
@@ -1054,3 +1081,4 @@ end;
 
 
 end.
+
