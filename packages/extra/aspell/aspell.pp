@@ -203,7 +203,8 @@ var
 procedure aspell_done;
  begin
 {$IFDEF Dynamic}
- UnloadLibrary(alib);
+ if aspellpresent then
+   UnloadLibrary(alib);
 {$ENDIF}
  end;
  
