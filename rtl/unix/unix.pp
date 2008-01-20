@@ -151,8 +151,10 @@ procedure SigRaise (sig:integer); deprecated;
 
 Implementation
 
-Uses UnixUtil,  // tzseconds
-     Strings {$ifndef FPC_USE_LIBC},Syscall{$endif};
+Uses 
+  UnixUtil  // tzseconds
+  {$ifndef FPC_USE_LIBC},Syscall{$endif}
+  ;
 
 {$i unxovl.inc}
 
