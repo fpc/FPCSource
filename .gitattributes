@@ -3370,7 +3370,6 @@ packages/extra/sdl/LGPL.addon -text
 packages/extra/sdl/MPL-1.1 -text
 packages/extra/sdl/Makefile.fpc -text
 packages/extra/sdl/README -text
-packages/extra/sdl/fpmake.inc svneol=native#text/plain
 packages/extra/sdl/fpmake.pp svneol=native#text/plain
 packages/extra/sdl/jedi-sdl.inc svneol=native#text/plain
 packages/extra/sdl/libxmlparser.pas svneol=native#text/plain
