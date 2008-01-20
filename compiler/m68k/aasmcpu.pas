@@ -521,7 +521,9 @@ type
             end;
           A_TST,A_CMP,A_CMPI:
             result:=operand_read;
-          A_CLR, A_NEG, A_SXX, A_EXT:
+          A_CLR, A_SXX:
+            result:=operand_write;
+          A_NEG, A_EXT, A_EXTB:
             result:=operand_write;
           else begin
 {$WARNING FIX ME!!! remove ugly debug code ... }
