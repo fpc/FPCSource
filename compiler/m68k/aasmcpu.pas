@@ -523,8 +523,8 @@ type
             result:=operand_read;
           A_CLR, A_SXX:
             result:=operand_write;
-          A_NEG, A_EXT, A_EXTB:
-            result:=operand_write;
+          A_NEG, A_EXT, A_EXTB, A_NOT:
+            result:=operand_readwrite;
           else begin
 {$WARNING FIX ME!!! remove ugly debug code ... }
             writeln('M68K: unknown opcode when spilling: ',gas_op2str[opcode]);
