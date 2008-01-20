@@ -31,7 +31,7 @@ begin
       T.IncludePath.Add('inc');
       T.IncludePath.Add('$(CPU)');
       T.IncludePath.Add('$(OS)');
-      T.IncludePath.Add('$(OS)/$(CPU)',TOSes([Linux]));
+      T.IncludePath.Add('$(OS)/$(CPU)',[Linux]);
       T.IncludePath.Add('unix',AllUnixOSes);
       T.IncludePath.Add('win',AllWindowsOSes);
       With T.Dependencies do
@@ -84,15 +84,18 @@ begin
 
     // Unix units
     T:=P.Targets.AddUnit('unixtype.pp',AllUnixOSes);
-      T.IncludePath.Add('$(OS)/$(CPU)',TOSes([Linux]));
+      T.IncludePath.Add('$(OS)/$(CPU)',[Linux]);
       T.IncludePath.Add('$(OS)');
       T.IncludePath.Add('unix');
       With T.Dependencies do
         begin
           AddUnit('system');
         end;
+    T:=P.Targets.AddUnit('unixutil.pp',AllUnixOSes);
+      T.IncludePath.Add('unix');
+      T.IncludePath.Add('inc');
     T:=P.Targets.AddUnit('baseunix.pp',AllUnixOSes);
-      T.IncludePath.Add('$(OS)/$(CPU)',TOSes([Linux]));
+      T.IncludePath.Add('$(OS)/$(CPU)',[Linux]);
       T.IncludePath.Add('$(OS)');
       T.IncludePath.Add('unix');
       T.IncludePath.Add('inc');
@@ -100,20 +103,45 @@ begin
         begin
           AddUnit('unixtype');
         end;
+    T:=P.Targets.AddUnit('unix.pp',AllUnixOSes);
+      T.IncludePath.Add('$(OS)/$(CPU)',[Linux]);
+      T.IncludePath.Add('$(OS)');
+      T.IncludePath.Add('unix');
+      T.IncludePath.Add('inc');
+      T.Dependencies.AddUnit('baseunix');
+      T.Dependencies.AddUnit('unixutil');
+    T:=P.Targets.AddUnit('termio.pp',AllUnixOSes);
+      T.IncludePath.Add('$(OS)/$(CPU)',[Linux]);
+      T.IncludePath.Add('$(OS)');
+      T.IncludePath.Add('unix');
+      T.IncludePath.Add('inc');
+      T.Dependencies.AddUnit('baseunix');
+    T:=P.Targets.AddUnit('unix/errors.pp',AllUnixOSes);
+      T.IncludePath.Add('$(OS)');
+      T.Dependencies.AddUnit('unixtype');
+      T.Dependencies.AddInclude('errnostr.inc');
+    T:=P.Targets.AddUnit('unix/syscall.pp',AllUnixOSes);
+      T.IncludePath.Add('$(OS)/$(CPU)',[Linux]);
+      T.IncludePath.Add('$(OS)');
+      T.Dependencies.AddInclude('sysnr.inc');
+      T.Dependencies.AddInclude('syscallh.inc');
+    T:=P.Targets.AddUnit('unix/terminfo.pp',AllUnixOSes);
+      T.Dependencies.AddUnit('baseunix');
+
+    // Linux only
+    T:=P.Targets.AddUnit('linux/linux.pp',[Linux]);
+
+{
+    With Targets['sysutils'].dependencies do
+      begin
+      add('unix');
+      add('errors');
+      Add('unixtype');
+      Add('baseunix');
+      end;
+}
 
     // Turbo Pascal RTL units
-    T:=P.Targets.AddUnit('dos.pp');
-      With T.Dependencies do
-        begin
-          AddUnit('baseunix',AllUnixOSes);
-          AddInclude('inc/dosh.inc');
-        end;
-    T:=P.Targets.AddUnit('crt.pp');
-      With T.Dependencies do
-        begin
-          AddUnit('baseunix',AllUnixOSes);
-          AddInclude('inc/crth.inc');
-        end;
     T:=P.Targets.AddUnit('strings.pp');
       T.IncludePath.Add('$(CPU)');
       T.IncludePath.Add('inc');
@@ -125,6 +153,19 @@ begin
           AddInclude('genstr.inc');
           AddInclude('genstrs.inc');
           AddInclude('stringsi.inc');
+        end;
+    T:=P.Targets.AddUnit('dos.pp');
+      With T.Dependencies do
+        begin
+          AddUnit('strings');
+          AddUnit('unix',AllUnixOSes);
+          AddInclude('inc/dosh.inc');
+        end;
+    T:=P.Targets.AddUnit('crt.pp');
+      With T.Dependencies do
+        begin
+          AddUnit('unix',AllUnixOSes);
+          AddInclude('inc/crth.inc');
         end;
 
 {$ifndef ALLPACKAGES}
