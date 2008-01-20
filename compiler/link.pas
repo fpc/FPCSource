@@ -37,7 +37,8 @@ interface
     Type
       TLinkerInfo=record
         ExeCmd,
-        DllCmd        : array[1..3] of string;
+        DllCmd,
+        ExtDbgCmd     : array[1..3] of string;
         ResName       : string[100];
         ScriptName    : string[100];
         ExtraOptions  : TCmdStr;
