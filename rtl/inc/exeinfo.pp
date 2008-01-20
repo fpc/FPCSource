@@ -949,6 +949,15 @@ packed record
 end;
 
 
+  tstab=packed record
+    strpos  : longint;
+    ntype   : byte;
+    nother  : byte;
+    ndesc   : word;
+    nvalue  : dword;
+  end;
+
+
 function OpenMachO32PPC(var e:TExeFile):boolean;
 var
    mh:MachoHeader;
@@ -969,15 +978,24 @@ var
    block:cmdblock;
    symbolsSeg:  symbSeg;
 begin
+  seek(e.f,e.sechdrofs);
   for i:= 1 to e.nsects do
     begin
       blockread (e.f, block, sizeof(block));
       if block.cmd = $2   then
       begin
           blockread (e.f, symbolsSeg, sizeof(symbolsSeg));
-//          stabstrofs:=symbolsSeg.stroff;
-          secofs:=symbolsSeg.symoff;
-//          stabcnt:=symbolsSeg.nsyms;
+          if asecname='.stab' then
+            begin
+              secofs:=symbolsSeg.symoff;
+              { the caller will divide again by sizeof(tstab) }
+              seclen:=symbolsSeg.nsyms*sizeof(tstab);
+            end
+          else if asecname='.stabstr' then
+            begin
+              secofs:=symbolsSeg.stroff;
+              seclen:=symbolsSeg.strsize;
+            end;
           result:=true;
           exit;
       end;
