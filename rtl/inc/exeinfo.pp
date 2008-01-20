@@ -518,11 +518,11 @@ var
 begin
   result:=false;
   { read and check header }
-  if filesize(f)<sizeof(dosheader) then
+  if E.Size<sizeof(dosheader) then
    exit;
-  blockread(f,dosheader,sizeof(tdosheader));
-  seek(f,dosheader.e_lfanew);
-  blockread(f,peheader,sizeof(tpeheader));
+  blockread(E.F,dosheader,sizeof(tdosheader));
+  seek(E.F,dosheader.e_lfanew);
+  blockread(E.F,peheader,sizeof(tpeheader));
   if peheader.pemagic<>$4550 then
    exit;
   e.sechdrofs:=filepos(e.f);
