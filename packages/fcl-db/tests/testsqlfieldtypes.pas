@@ -74,7 +74,7 @@ type
 
 implementation
 
-uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset;
+uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset, strutils;
 
 Type HackedDataset = class(TDataset);
 

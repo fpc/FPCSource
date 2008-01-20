@@ -175,7 +175,7 @@ type
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer : boolean;
-    procedure SetIndexName(const AValue: String);
+    procedure SetIndexName(AValue: String);
 {$IFNDEF ARRAYBUF}
     procedure SetMaxIndexesCount(const AValue: Integer);
 {$ENDIF}
@@ -293,37 +293,37 @@ end;
 function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PByte(aValue)^-PByte(subValue)^;
+  Result := PByte(subValue)^-PByte(aValue)^;
 end;
 
 function DBCompareSmallInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PSmallInt(aValue)^-PSmallInt(subValue)^;
+  Result := PSmallInt(subValue)^-PSmallInt(aValue)^;
 end;
 
 function DBCompareInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PInteger(aValue)^-PInteger(subValue)^;
+  Result := PInteger(subValue)^-PInteger(aValue)^;
 end;
 
 function DBCompareLargeInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PInt64(aValue)^-PInt64(subValue)^;
+  Result := PInt64(subValue)^-PInt64(aValue)^;
 end;
 
 function DBCompareWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PWord(aValue)^-PWord(subValue)^;
+  Result := PWord(subValue)^-PWord(aValue)^;
 end;
 
 function DBCompareQWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PQWord(aValue)^-PQWord(subValue)^;
+  Result := PQWord(subValue)^-PQWord(aValue)^;
 end;
 
 function DBCompareDouble(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
@@ -419,8 +419,9 @@ begin
     ftBoolean : Comparefunc := @DBCompareByte;
     ftFloat : Comparefunc := @DBCompareDouble;
     ftDateTime,ftDate,ftTime : Comparefunc := @DBCompareDouble;
+    ftLargeint : Comparefunc := @DBCompareLargeInt;
   else
-    DatabaseErrorFmt(SErrIndexBasedOnInvField,[aindex.fields.Name]);
+    DatabaseErrorFmt(SErrIndexBasedOnInvField,[aindex.fields.FieldName]);
   end;
 
   PCurRecLinkItem:=FIndexes[0].FFirstRecBuf;
@@ -507,7 +508,7 @@ begin
         PlaceQRec := true
       else if (qsize=0) or (q = AIndex.FLastRecBuf) then
         PlaceQRec := False
-      else if DBCompareText(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],pchar(q)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],[]) <= 0 then
+      else if Comparefunc(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],pchar(q)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],[]) <= 0 then
         PlaceQRec := False
       else
         PlaceQRec := True;
@@ -890,9 +891,10 @@ begin
   Result := (FCurrentUpdateBuffer < length(FUpdateBuffer))  and CompareBuf(FCurrentUpdateBuffer);
 end;
 
-procedure TBufDataset.SetIndexName(const AValue: String);
+procedure TBufDataset.SetIndexName(AValue: String);
 var i : integer;
 begin
+  if AValue='' then AValue := 'DEFAULT_ORDER';
   for i := 0 to FIndexesCount-1 do
     if SameText(FIndexes[i].Name,AValue) then
       begin
@@ -1142,7 +1144,10 @@ begin
     Result := grEOF;
     FAllPacketsFetched := True;
     if FIndexesCount>0 then for x := 1 to FIndexesCount-1 do
+      begin
       BuildIndex(FIndexes[x]);
+      FIndexes[x].FCurrentRecBuf:=FIndexes[x].FFirstRecBuf;
+      end;
     Exit;
     end;
 

@@ -22,6 +22,7 @@ type
 
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
+    procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -38,6 +39,19 @@ type
     procedure TestStringFilter;
 
     procedure TestAddIndex;
+    procedure TestInactSwitchIndex;
+
+    procedure TestAddIndexInteger;
+    procedure TestAddIndexSmallInt;
+    procedure TestAddIndexBoolean;
+    procedure TestAddIndexFloat;
+    procedure TestAddIndexLargeInt;
+    procedure TestAddIndexDateTime;
+    procedure TestAddIndexCurrency;
+    procedure TestAddIndexBCD;
+
+    procedure TestAddIndexActiveDS;
+    procedure TestAddIndexEditDS;
 
     procedure TestNullAtOpen;
 
@@ -783,27 +797,211 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestAddIndex;
-var ds   : TBufDataset;
-    I    : integer;
+procedure TTestDBBasics.TestAddIndexFieldType(AFieldType: TFieldType; ActiveDS : boolean);
+var ds : TBufDataset;
+    FList : TStringList;
+    LastValue : Variant;
 begin
-  ds := DBConnector.GetNDataset(5) as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TBufDataset;
   with ds do
     begin
-    i:=5;
-
-    open;
     
-//    AddSecondIndex;
+    if not ActiveDS then
+      begin
+      AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+      IndexName:='testindex';
+      end
+    else
+      MaxIndexesCount := 3;
 
+    try
+      open;
+    except
+      if not assigned(ds.FindField('F'+FieldTypeNames[AfieldType])) then
+        Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset')
+      else
+        raise;
+    end;
+
+    if ActiveDS then
+      begin
+      if not assigned(ds.FindField('F'+FieldTypeNames[AfieldType])) then
+        Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
+      AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+      IndexName:='testindex';
+      First;
+      end;
+
+    LastValue:=null;
     while not eof do
       begin
-      AssertEquals(i,fields[0].AsInteger);
+      AssertTrue(LastValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
+      LastValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant;
       Next;
-      dec(i);
+      end;
+
+    while not bof do
+      begin
+      AssertTrue(LastValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
+      LastValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant;
+      Prior;
       end;
     end;
 end;
+
+procedure TTestDBBasics.TestAddIndexSmallInt;
+begin
+  TestAddIndexFieldType(ftSmallint,False);
+end;
+
+procedure TTestDBBasics.TestAddIndexBoolean;
+begin
+  TestAddIndexFieldType(ftBoolean,False);
+end;
+
+procedure TTestDBBasics.TestAddIndexFloat;
+begin
+  TestAddIndexFieldType(ftFloat,False);
+end;
+
+procedure TTestDBBasics.TestAddIndexInteger;
+begin
+  TestAddIndexFieldType(ftInteger,False);
+end;
+
+procedure TTestDBBasics.TestAddIndexLargeInt;
+begin
+  TestAddIndexFieldType(ftLargeint,False);
+end;
+
+procedure TTestDBBasics.TestAddIndexDateTime;
+begin
+  TestAddIndexFieldType(ftDateTime,False);
+end;
+
+procedure TTestDBBasics.TestAddIndexCurrency;
+begin
+  TestAddIndexFieldType(ftCurrency,False);
+end;
+
+procedure TTestDBBasics.TestAddIndexBCD;
+begin
+  TestAddIndexFieldType(ftBCD,False);
+end;
+
+procedure TTestDBBasics.TestAddIndex;
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    FList : TStringList;
+    i : integer;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+
+    AFieldType:=ftString;
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    FList := TStringList.Create;
+    FList.Sorted:=true;
+    FList.CaseSensitive:=True;
+    FList.Duplicates:=dupAccept;
+    open;
+
+    while not eof do
+      begin
+      flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Next;
+      end;
+
+    IndexName:='testindex';
+    first;
+    i:=0;
+
+    while not eof do
+      begin
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      inc(i);
+      Next;
+      end;
+
+    while not bof do
+      begin
+      dec(i);
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Prior;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.TestInactSwitchIndex;
+// Test if the default-index is properly build when the active index is not
+// the default-index while opening then dataset
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    i : integer;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+
+    AFieldType:=ftString;
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    IndexName:='testindex';
+    open;
+    IndexName:=''; // This should set the default index (default_order)
+    first;
+    
+    i := 0;
+
+    while not eof do
+      begin
+      AssertEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      inc(i);
+      Next;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.TestAddIndexActiveDS;
+var ds   : TBufDataset;
+    I    : integer;
+begin
+  TestAddIndexFieldType(ftString,true);
+end;
+
+procedure TTestDBBasics.TestAddIndexEditDS;
+var ds        : TBufDataset;
+    I         : integer;
+    LastValue : String;
+begin
+  ds := DBConnector.GetNDataset(True,5) as TBufDataset;
+  with ds do
+    begin
+    MaxIndexesCount:=3;
+    open;
+    edit;
+    FieldByName('name').asstring := 'Zz';
+    post;
+    next;
+    next;
+    edit;
+    FieldByName('name').asstring := 'aA';
+    post;
+
+    AddIndex('test','name');
+
+    first;
+    ds.IndexName:='test';
+    first;
+    LastValue:=FieldByName('name').AsString;
+    while not eof do
+      begin
+      AssertTrue(LastValue<=FieldByName('name').AsString);
+      Next;
+      end;
+    end;
+end;
+
 
 procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 begin
