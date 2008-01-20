@@ -186,6 +186,7 @@ unit comobj;
     procedure OleError(Code: HResult);
 
     function ProgIDToClassID(const id : string) : TGUID;
+    function ClassIDToProgID(const classID: TGUID): string;
 
     procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
        DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
@@ -195,6 +196,7 @@ unit comobj;
       HelpFileName: WideString): HResult;
 
     function ComClassManager : TComClassManager;
+
 
     type
       TCoCreateInstanceExProc = function(const clsid: TCLSID; unkOuter: IUnknown; dwClsCtx: DWORD; ServerInfo: PCoServerInfo;
@@ -360,6 +362,16 @@ implementation
    function ProgIDToClassID(const id : string) : TGUID;
      begin
        OleCheck(CLSIDFromProgID(PWideChar(WideString(id)),result));
+     end;
+
+
+   function ClassIDToProgID(const classID: TGUID): string;
+     var
+       progid : LPOLESTR;
+     begin
+       OleCheck(ProgIDFromCLSID(@classID,progid));
+       result:=progid;
+       CoTaskMemFree(progid);
      end;
 
 

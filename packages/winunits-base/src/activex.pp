@@ -42,7 +42,7 @@ TYPE
      OleChar             = WChar;
      LPOLESTR            = ^OLECHAR;
 
-CONST 
+CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
 
      // bit flags for IExternalConnection
@@ -3313,6 +3313,7 @@ type
 
   function CoIsOle1Class(const _para1:TCLSID):BOOL;stdcall; external  'ole32.dll' name 'CoIsOle1Class';
 
+  function ProgIDFromCLSID(para:PCLSID; out _para2:POLESTR):HRESULT;stdcall; external  'ole32.dll' name 'ProgIDFromCLSID';
   function ProgIDFromCLSID(const _para1:TCLSID; out _para2:POLESTR):HRESULT;stdcall; external  'ole32.dll' name 'ProgIDFromCLSID';
 
   function CLSIDFromProgID(_para1:POLESTR; _para2:LPCLSID):HRESULT;stdcall; external  'ole32.dll' name 'CLSIDFromProgID';

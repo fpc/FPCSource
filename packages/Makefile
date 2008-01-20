@@ -241,163 +241,163 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+override TARGET_DIRS+=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages
@@ -1480,6 +1480,7 @@ fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1499,6 +1500,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1516,6 +1518,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1536,6 +1539,7 @@ TARGET_DIRS_FCL-WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1553,6 +1557,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1572,6 +1577,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1589,6 +1595,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1608,6 +1615,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1627,6 +1635,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1644,6 +1653,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1661,6 +1671,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1680,6 +1691,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1697,6 +1709,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1716,6 +1729,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1733,6 +1747,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1750,6 +1765,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1767,6 +1783,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1785,6 +1802,7 @@ TARGET_DIRS_FCL-WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1802,6 +1820,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1819,6 +1838,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1838,6 +1858,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1857,6 +1878,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1876,6 +1898,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1893,6 +1916,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1910,6 +1934,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1929,6 +1954,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1946,6 +1972,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1963,6 +1990,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -1982,6 +2010,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2001,6 +2030,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2018,6 +2048,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2035,6 +2066,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2054,6 +2086,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2071,6 +2104,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2088,6 +2122,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2107,6 +2142,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2126,6 +2162,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2145,6 +2182,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2162,6 +2200,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2181,6 +2220,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2200,6 +2240,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2219,6 +2260,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2239,6 +2281,7 @@ TARGET_DIRS_FCL-WEB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2256,6 +2299,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2275,6 +2319,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2292,6 +2337,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2310,6 +2356,7 @@ TARGET_DIRS_FCL-WEB=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2327,6 +2374,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2344,6 +2392,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2361,6 +2410,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2378,6 +2428,7 @@ TARGET_DIRS_FCL-PROCESS=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2397,6 +2448,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2416,6 +2468,7 @@ TARGET_DIRS_FCL-ASYNC=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 TARGET_DIRS_BASE=1
+TARGET_DIRS_FV=1
 TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_FPMKUNIT=1
@@ -2475,6 +2528,51 @@ base_makefiles:
 base:
 	$(MAKE) -C base all
 .PHONY: base_all base_debug base_smart base_release base_units base_examples base_shared base_install base_sourceinstall base_exampleinstall base_distinstall base_zipinstall base_zipsourceinstall base_zipexampleinstall base_zipdistinstall base_clean base_distclean base_cleanall base_info base_makefiles base
+endif
+ifdef TARGET_DIRS_FV
+fv_all:
+	$(MAKE) -C fv all
+fv_debug:
+	$(MAKE) -C fv debug
+fv_smart:
+	$(MAKE) -C fv smart
+fv_release:
+	$(MAKE) -C fv release
+fv_units:
+	$(MAKE) -C fv units
+fv_examples:
+	$(MAKE) -C fv examples
+fv_shared:
+	$(MAKE) -C fv shared
+fv_install:
+	$(MAKE) -C fv install
+fv_sourceinstall:
+	$(MAKE) -C fv sourceinstall
+fv_exampleinstall:
+	$(MAKE) -C fv exampleinstall
+fv_distinstall:
+	$(MAKE) -C fv distinstall
+fv_zipinstall:
+	$(MAKE) -C fv zipinstall
+fv_zipsourceinstall:
+	$(MAKE) -C fv zipsourceinstall
+fv_zipexampleinstall:
+	$(MAKE) -C fv zipexampleinstall
+fv_zipdistinstall:
+	$(MAKE) -C fv zipdistinstall
+fv_clean:
+	$(MAKE) -C fv clean
+fv_distclean:
+	$(MAKE) -C fv distclean
+fv_cleanall:
+	$(MAKE) -C fv cleanall
+fv_info:
+	$(MAKE) -C fv info
+fv_makefiles:
+	$(MAKE) -C fv makefiles
+fv:
+	$(MAKE) -C fv all
+.PHONY: fv_all fv_debug fv_smart fv_release fv_units fv_examples fv_shared fv_install fv_sourceinstall fv_exampleinstall fv_distinstall fv_zipinstall fv_zipsourceinstall fv_zipexampleinstall fv_zipdistinstall fv_clean fv_distclean fv_cleanall fv_info fv_makefiles fv
 endif
 ifdef TARGET_DIRS_HASH
 hash_all:
@@ -3320,14 +3418,7 @@ extra_debug: base_debug fcl-xml_debug
 extra_smart: base_smart fcl-xml_smart
 extra_release: base_release fcl-xml_release
 extra_shared: base_shared fcl-xml_shared
-ifeq ($(OS_TARGET),win32)
-fcl-base_all: base_all winunits-base_all winunits-jedi_all
-fcl-base_debug: base_debug winunits-base_debug winunits-jedi_debug
-fcl-base_smart: base_smart winunits-base_smart winunits-jedi_smart
-fcl-base_release: base_release winunits-base_release winunits-jedi_release
-fcl-base_shared: base_shared winunits-base_shared winunits-jedi_shared
-else
-ifeq ($(OS_TARGET),win64)
+ifneq ($(findstring $(OS_TARGET),win32 win64),)
 fcl-base_all: base_all winunits-base_all winunits-jedi_all
 fcl-base_debug: base_debug winunits-base_debug winunits-jedi_debug
 fcl-base_smart: base_smart winunits-base_smart winunits-jedi_smart
@@ -3339,7 +3430,6 @@ fcl-base_debug: base_debug
 fcl-base_smart: base_smart
 fcl-base_release: base_release
 fcl-base_shared: base_shared
-endif
 endif
 fcl-xml_all: fcl-base_all
 fcl-xml_debug: fcl-base_debug

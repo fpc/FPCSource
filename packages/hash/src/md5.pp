@@ -55,7 +55,7 @@ type
     Version : TMDVersion;
     Align   : PtrUInt;
     State   : array[0..3] of Cardinal;
-    BufCnt  : PtrUInt;
+    BufCnt  : QWord;
     Buffer  : array[0..63] of Byte;
     case Integer of
       0: (Length   : PtrUInt);

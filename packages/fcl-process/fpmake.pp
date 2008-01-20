@@ -25,7 +25,7 @@ begin
       T.Dependencies.AddInclude('pipes.inc');
     T:=P.Targets.AddUnit('process.pp');
       T.Dependencies.AddInclude('process.inc');
-      T.ResourceStrings:=True;
+//      T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('simpleipc.pp');
       T.Dependencies.AddInclude('simpleipc.inc');
       T.ResourceStrings:=True;

@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+dirs=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 dirs_freebsd=fcl-web fcl-async
 dirs_darwin=fcl-web fcl-async
 dirs_solaris=fcl-web fcl-async
@@ -34,14 +34,8 @@ extra_smart: base_smart fcl-xml_smart
 extra_release: base_release fcl-xml_release
 extra_shared: base_shared fcl-xml_shared
 
-ifeq ($(OS_TARGET),win32)
-fcl-base_all: base_all winunits-base_all winunits-jedi_all
-fcl-base_debug: base_debug winunits-base_debug winunits-jedi_debug
-fcl-base_smart: base_smart winunits-base_smart winunits-jedi_smart
-fcl-base_release: base_release winunits-base_release winunits-jedi_release
-fcl-base_shared: base_shared winunits-base_shared winunits-jedi_shared
-else
-ifeq ($(OS_TARGET),win64)
+
+ifneq ($(findstring $(OS_TARGET),win32 win64),)
 fcl-base_all: base_all winunits-base_all winunits-jedi_all
 fcl-base_debug: base_debug winunits-base_debug winunits-jedi_debug
 fcl-base_smart: base_smart winunits-base_smart winunits-jedi_smart
@@ -53,7 +47,6 @@ fcl-base_debug: base_debug
 fcl-base_smart: base_smart
 fcl-base_release: base_release
 fcl-base_shared: base_shared
-endif
 endif
 
 fcl-xml_all: fcl-base_all
