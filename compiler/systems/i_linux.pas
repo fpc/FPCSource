@@ -54,7 +54,7 @@ unit i_linux;
             system       : system_i386_LINUX;
             name         : 'Linux for i386';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections},
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections}{,tf_winlikewidestring},
 {$ifdef segment_threadvars}
                             tf_section_threadvars,
 {$endif segment_threadvars}
@@ -532,6 +532,67 @@ unit i_linux;
             abi : abi_default
           );
 
+{$ifdef FPC_ARMEL}
+       system_arm_linux_info : tsysteminfo =
+          (
+            system       : system_arm_Linux;
+            name         : 'Linux for ARMEL';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections,tf_smartlink_library];
+            cpu          : cpu_arm;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            abi : abi_eabi
+          );
+{$else FPC_ARMEL}
        system_arm_linux_info : tsysteminfo =
           (
             system       : system_arm_Linux;
@@ -591,6 +652,7 @@ unit i_linux;
             stacksize    : 262144;
             abi : abi_default
           );
+{$endif FPC_ARMEL}
 
   implementation
 

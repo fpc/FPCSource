@@ -1013,7 +1013,25 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
-{$include strlen.inc}
+
+var
+  saveedi : longint;
+asm
+        movl    %edi,saveedi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+{$else}
+        movl    p,%edi
+{$endif}
+        movl    $0xffffffff,%ecx
+        xorl    %eax,%eax
+        cld
+        repne
+        scasb
+        movl    $0xfffffffe,%eax
+        subl    %ecx,%eax
+        movl    saveedi,%edi
+end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 {$IFNDEF INTERNAL_BACKTRACE}
@@ -1085,7 +1103,79 @@ Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$end
 asm
         movl    %esp,%eax
 end;
+{****************************************************************************
+                                 Str()
+****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
+{$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
+
+label str_int_shortcut;
+
+{$asmmode intel}
+
+procedure int_str(l:longword;var s:string);assembler;nostackframe;
+
+asm
+  push edi
+  push ebx
+  mov edi,edx
+  xor edx,edx
+  jmp str_int_shortcut
+end;
+
+procedure int_str(l:longint;var s:string);assembler;nostackframe;
+
+{Optimized for speed, but balanced with size.}
+
+const digits:array[0..9] of cardinal=(0,10,100,1000,10000,
+                                      100000,1000000,10000000,
+                                      100000000,1000000000);
+
+asm
+  push edi
+  push ebx
+  mov edi,edx
+
+  { Calculate absolute value and put sign in edx}
+  cdq
+  xor eax,edx
+  sub eax,edx
+  neg edx
+str_int_shortcut:
+  {Calculate amount of digits in ecx.}
+  bsr ecx,eax
+  inc ecx
+  imul ecx,1233
+  shr ecx,12
+  cmp eax,[digits+4*ecx]
+  cmc
+  adc ecx,0 {Nr. digits ready in ecx.}
+
+  {Write length & sign.}
+  lea ebx,[edx+ecx]
+  mov bh,'-'
+  mov [edi],bx
+  add edi,edx
+
+  {Write out digits.}
+  mov edx,eax
+@loop:
+  mov eax,$cccccccd    {Divide by 10 using mul+shr}
+  lea ebx,[edx+'0']    {Pre-add '0'}
+  mul edx
+  shr edx,3
+  lea eax,[8*edx+edx]  {x mod 10 = x-10*(x div 10)}
+  sub ebx,edx
+  sub ebx,eax
+  mov [edi+ecx],bl
+  dec ecx
+  jnz @loop
+  pop ebx
+  pop edi
+end;
+
+{$asmmode att}
 
 {****************************************************************************
                                Bounds Check

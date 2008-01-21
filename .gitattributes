@@ -4629,6 +4629,7 @@ rtl/amiga/timerd.inc svneol=native#text/plain
 rtl/amiga/tthread.inc svneol=native#text/plain
 rtl/amiga/varutils.pp svneol=native#text/plain
 rtl/arm/arm.inc svneol=native#text/plain
+rtl/arm/divide.inc svneol=native#text/plain
 rtl/arm/int64p.inc svneol=native#text/plain
 rtl/arm/makefile.cpu -text
 rtl/arm/math.inc svneol=native#text/plain
@@ -4863,7 +4864,6 @@ rtl/i386/setjump.inc svneol=native#text/plain
 rtl/i386/setjumph.inc svneol=native#text/plain
 rtl/i386/strings.inc svneol=native#text/plain
 rtl/i386/stringss.inc svneol=native#text/plain
-rtl/i386/strlen.inc svneol=native#text/plain
 rtl/i386/strpas.inc svneol=native#text/plain
 rtl/inc/aliases.inc svneol=native#text/plain
 rtl/inc/astrings.inc svneol=native#text/plain

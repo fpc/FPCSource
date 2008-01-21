@@ -22,6 +22,30 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
+{$ifdef FPC_ABI_EABI}
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL0'];
+{
+  Perform syscall and set errno variable if needed.
+}
+asm
+  // for now we are lazy
+  mov   r7,r0
+  mov   r0,r1
+  mov   r1,r2
+  mov   r2,r3
+  mov   r3,r4
+  mov   r4,r5
+  mov   r5,r6
+  swi   #0x0
+  cmn   r0,#126
+  movls pc,lr
+  stmfd sp!,{lr}
+  rsb   r0,r0,#0
+  bl    seterrno
+  mvn   r0,#0
+  ldmfd sp!,{pc}
+end;
+{$else FPC_ABI_EABI}
 function FpSysCall(sysnr:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL0'];
 {
   Perform syscall and set errno variable if needed.
@@ -36,6 +60,7 @@ asm
   mvn   r0,#0
   ldmfd sp!,{pc}
 end;
+{$endif FPC_ABI_EABI}
 
 
 procedure FPC_SYSCALL; external name 'FPC_SYSCALL0';

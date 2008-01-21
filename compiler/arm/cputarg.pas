@@ -53,6 +53,9 @@ implementation
     {$ifndef NOTARGETEMBEDDED}
       ,t_embedded
     {$endif}
+    {$ifndef NOTARGETSYMBIAN}
+      ,t_symbian
+    {$endif}
 
 {**************************************
              Assemblers

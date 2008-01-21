@@ -46,10 +46,12 @@ begin
 {$if defined(cpu64)}
   result:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
 {$else}
-  if do_syscall(syscall_nr__llseek,tsysparam(fd),tsysparam(hi(offset)),tsysparam(lo(offset)),
+  if do_syscall(syscall_nr__llseek,tsysparam(fd),
+      {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
+      tsysparam(hi(offset)),tsysparam(lo(offset)),
       tsysparam(@result), tsysparam(whence)) = -1 then
     result:=off_t(-1);
-{$endif}    
+{$endif}
 end;
 
 function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
@@ -65,13 +67,13 @@ begin
 end;
 {
 function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
-   !! check 64 bit off_t sycall 
+   !! check 64 bit off_t sycall
 begin
   Fpread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,offset);
 end;
 
 function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
-   !! check 64 bit off_t sycall 
+   !! check 64 bit off_t sycall
 begin
  Fpwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,offset);
 end;
@@ -95,7 +97,7 @@ begin
   Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
 {$else}
   Fpstat:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
-{$endif}  
+{$endif}
 end;
 
 {*****************************************************************************
@@ -302,9 +304,12 @@ begin
 {$if defined(cpu64)}
  Fpftruncate:=Do_syscall(syscall_nr_ftruncate,TSysParam(fd),TSysParam(flength));
 {$else}
- Fpftruncate:=Do_syscall(syscall_nr_ftruncate64,TSysParam(fd),TSysParam(lo(flength)),
-  TSysParam(hi(flength)));
-{$endif} 
+ Fpftruncate:=Do_syscall(syscall_nr_ftruncate64,TSysParam(fd),
+   {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
+   {$ifdef FPC_BIG_ENDIAN}    tsysparam(hi(flength)),tsysparam(lo(flength)){$endif}
+   {$ifdef FPC_LITTLE_ENDIAN} tsysparam(lo(flength)),tsysparam(hi(flength)){$endif}
+   );
+{$endif}
 end;
 
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
