@@ -61,7 +61,7 @@ implementation
       verbose,systems,globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
-      cgbase,cga,procinfo,pass_2,
+      cgbase,cga,procinfo,pass_1,pass_2,
       ncon,ncal,ncnv,
       cpubase,
       cgutils,cgobj,cgx86,ncgutil,
@@ -185,13 +185,25 @@ implementation
          current_procinfo.CurrFalseLabel:=oldFalseLabel;
        end;
 
+
     function tx86typeconvnode.first_int_to_real : tnode;
 
       begin
         first_int_to_real:=nil;
          if registersfpu<1 then
           registersfpu:=1;
-        expectloc:=LOC_FPUREGISTER;
+
+        if (left.resultdef.size<4) then
+          begin
+            inserttypeconv(left,s32inttype);
+            firstpass(left)
+          end;
+
+        if use_sse(resultdef) and
+           (torddef(left.resultdef).ordtype = s32bit) then
+          expectloc:=LOC_MMREGISTER
+        else
+          expectloc:=LOC_FPUREGISTER;
       end;
 
 
@@ -200,96 +212,133 @@ implementation
       var
          href : treference;
          l1,l2 : tasmlabel;
+         op: tasmop;
+         opsize: topsize;
          signtested : boolean;
       begin
-        if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
-
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).ordtype=u64bit) then
-          begin
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
+          location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
+        if use_sse(resultdef) and
 {$ifdef cpu64bit}
-            emit_const_reg(A_BT,S_Q,63,left.location.register);
+           (torddef(left.resultdef).ordtype in [s32bit,s64bit]) then
 {$else cpu64bit}
-            emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
+           (torddef(left.resultdef).ordtype=s32bit) then
 {$endif cpu64bit}
-            signtested:=true;
+          begin
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            case location.size of
+              OS_F32:
+                op:=A_CVTSI2SS;
+              OS_F64:
+                op:=A_CVTSI2SD;
+              else
+                internalerror(2007120902);
+            end;
+            case left.location.size of
+              OS_S32:
+                opsize:=S_L;
+              OS_S64:
+                opsize:=S_Q;
+              else
+                internalerror(2007120903);
+            end;
+            case left.location.loc of
+              LOC_REFERENCE,
+              LOC_CREFERENCE:
+                begin
+                  href:=left.location.reference;
+                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,opsize,href,location.register));
+                end;
+              LOC_REGISTER,
+              LOC_CREGISTER:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,opsize,left.location.register,location.register));
+            end;
           end
         else
-          signtested:=false;
-
-        { We need to load from a reference }
-        location_force_mem(current_asmdata.CurrAsmList,left.location);
-
-        { For u32bit we need to load it as comp and need to
-          make it 64bits }
-        if (torddef(left.resultdef).ordtype=u32bit) then
           begin
-            tg.GetTemp(current_asmdata.CurrAsmList,8,tt_normal,href);
-            location_freetemp(current_asmdata.CurrAsmList,left.location);
-            cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
-            inc(href.offset,4);
-            cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_32,0,href);
-            dec(href.offset,4);
-            left.location.reference:=href;
-          end;
+            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+            if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).ordtype=u64bit) then
+              begin
+    {$ifdef cpu64bit}
+                emit_const_reg(A_BT,S_Q,63,left.location.register);
+    {$else cpu64bit}
+                emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
+    {$endif cpu64bit}
+                signtested:=true;
+              end
+            else
+              signtested:=false;
 
-        { Load from reference to fpu reg }
-        case torddef(left.resultdef).ordtype of
-          u32bit,
-          scurrency,
-          s64bit:
-            begin
-              href:=left.location.reference;
-              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-              current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,href));
-            end;
-          u64bit:
-            begin
-               { unsigned 64 bit ints are harder to handle:
-                 we load bits 0..62 and then check bit 63:
-                 if it is 1 then we add $80000000 000000000
-                 as double                                  }
-               current_asmdata.getdatalabel(l1);
-               current_asmdata.getjumplabel(l2);
+            { We need to load from a reference }
+            location_force_mem(current_asmdata.CurrAsmList,left.location);
 
-               if not(signtested) then
-                 begin
-                   inc(left.location.reference.offset,4);
-                   emit_const_ref(A_BT,S_L,31,left.location.reference);
-                   dec(left.location.reference.offset,4);
-                 end;
+            { For u32bit we need to load it as comp and need to
+              make it 64bits }
+            if (torddef(left.resultdef).ordtype=u32bit) then
+              begin
+                tg.GetTemp(current_asmdata.CurrAsmList,8,tt_normal,href);
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
+                cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
+                inc(href.offset,4);
+                cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_32,0,href);
+                dec(href.offset,4);
+                left.location.reference:=href;
+              end;
 
-               current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
-               cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
-               current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-               { I got this constant from a test program (FK) }
-               current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
-               current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
-               current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
-               reference_reset_symbol(href,l1,0);
-               tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-               current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
-               current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));
-               cg.a_label(current_asmdata.CurrAsmList,l2);
-            end
-          else
-            begin
-              if left.resultdef.size<4 then
+            { Load from reference to fpu reg }
+            case torddef(left.resultdef).ordtype of
+              u32bit,
+              scurrency,
+              s64bit:
                 begin
-                  tg.GetTemp(current_asmdata.CurrAsmList,4,tt_normal,href);
-                  location_freetemp(current_asmdata.CurrAsmList,left.location);
-                  cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
-                  left.location.reference:=href;
+                  href:=left.location.reference;
+                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,href));
                 end;
-             href:=left.location.reference;
-             tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IL,href));
+              u64bit:
+                begin
+                   { unsigned 64 bit ints are harder to handle:
+                     we load bits 0..62 and then check bit 63:
+                     if it is 1 then we add $80000000 000000000
+                     as double                                  }
+                   current_asmdata.getdatalabel(l1);
+                   current_asmdata.getjumplabel(l2);
+
+                   if not(signtested) then
+                     begin
+                       inc(left.location.reference.offset,4);
+                       emit_const_ref(A_BT,S_L,31,left.location.reference);
+                       dec(left.location.reference.offset,4);
+                     end;
+
+                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                   { I got this constant from a test program (FK) }
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
+                   reference_reset_symbol(href,l1,0);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                   current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
+                   current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));
+                   cg.a_label(current_asmdata.CurrAsmList,l2);
+                end
+              else
+                begin
+                  if left.resultdef.size<4 then
+                    internalerror(2007120901);
+                 href:=left.location.reference;
+                 tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IL,href));
+                end;
             end;
-        end;
+            tcgx86(cg).inc_fpu_stack;
+            location.register:=NR_ST;
+          end;
         location_freetemp(current_asmdata.CurrAsmList,left.location);
-        tcgx86(cg).inc_fpu_stack;
-        location.register:=NR_ST;
       end;
 
 begin

@@ -272,6 +272,10 @@ interface
 
 
     procedure tcgtypeconvnode.second_real_to_real;
+{$ifdef x86}
+      var
+        tr: treference;
+{$endif x86}
       begin
          location_reset(location,expectloc,def_cgsize(resultdef));
 {$ifdef x86}
@@ -284,8 +288,10 @@ interface
              if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
              { round them down to the proper precision }
-             cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,left.location.register);
-             left.location.size:=location.size;
+             tg.gettemp(current_asmdata.currasmlist,resultdef.size,tt_normal,tr);
+             cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
+             location_reset(left.location,LOC_REFERENCE,location.size);
+             left.location.reference:=tr;
            end;
 {$endif x86}
          case left.location.loc of
