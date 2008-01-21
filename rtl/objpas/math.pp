@@ -96,7 +96,7 @@ interface
 
     type
        PFloat = ^Float;
-       PInteger = ^Integer;
+       PInteger = ObjPas.PInteger;
 
        tpaymenttime = (ptendofperiod,ptstartofperiod);
 

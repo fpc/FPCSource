@@ -221,10 +221,20 @@ begin
  Result:=CompareText(S1,S2)=0;
 end;
 
+{$ifndef FPC_NOGENERICANSIROUTINES}
 {==============================================================================}
 {   Ansi string functions                                                      }
 {   these functions rely on the character set loaded by the OS                 }
 {==============================================================================}
+
+type
+  TCaseTranslationTable = array[0..255] of char;
+  
+var
+  { Tables with upper and lowercase forms of character sets.
+    MUST be initialized with the correct code-pages }
+  UpperCaseTable: TCaseTranslationTable;
+  LowerCaseTable: TCaseTranslationTable;
 
 function GenericAnsiUpperCase(const s: string): string;
   var
@@ -280,18 +290,6 @@ begin
     end;
   If Result=0 Then
     Result:=L1-L2;
-end;
-
-function AnsiSameText(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-
-begin
- AnsiSameText:=AnsiCompareText(S1,S2)=0;
-end;
-
-function AnsiSameStr(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-
-begin
-  AnsiSameStr:=AnsiCompareStr(S1,S2)=0;
 end;
 
 function GenericAnsiStrComp(S1, S2: PChar): PtrInt;
@@ -423,6 +421,19 @@ if Str <> Nil then begin
       end ;
    end ;
 end ;
+{$endif FPC_NOGENERICANSIROUTINES}
+
+function AnsiSameText(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
+
+begin
+ AnsiSameText:=AnsiCompareText(S1,S2)=0;
+end;
+
+function AnsiSameStr(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
+
+begin
+  AnsiSameStr:=AnsiCompareStr(S1,S2)=0;
+end;
 
 function AnsiLastChar(const S: string): PChar;
 
@@ -2601,12 +2612,13 @@ begin
 end;
 
 
+{$ifndef FPC_NOGENERICANSIROUTINES}
 {
    Case Translation Tables
    Can be used in internationalization support.
 
    Although these tables can be obtained through system calls
-   it is better to not use those, since most implementation are not 100%
+cd    it is better to not use those, since most implementation are not 100%
    WARNING:
    before modifying a translation table make sure that the current codepage
    of the OS corresponds to the one you make changes to
@@ -2659,6 +2671,7 @@ const
      #240, #241, #242, #243, #244, #245, #246, #247,
      #248, #249, #250, #251, #252, #253, #254, #255 );
 
+{$endif FPC_NOGENERICANSIROUTINES}
 
 function sscanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
   var

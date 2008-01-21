@@ -908,7 +908,7 @@ begin
   Result:=True;
   while Result and (i<=l) do
     begin
-    Result:=Not (S[i] in EmptyChars);
+    Result:=(S[i] in EmptyChars);
     Inc(i);
     end;
 end;

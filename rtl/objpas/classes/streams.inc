@@ -14,6 +14,29 @@
 {*                             TStream                                      *}
 {****************************************************************************}
 
+procedure TStream.ReadNotImplemented;
+begin
+  raise EStreamError.CreateFmt(SStreamNoReading, [ClassName]) at get_caller_addr(get_frame);
+end;
+
+procedure TStream.WriteNotImplemented;
+begin
+  raise EStreamError.CreateFmt(SStreamNoWriting, [ClassName]) at get_caller_addr(get_frame);
+end;
+
+function TStream.Read(var Buffer; Count: Longint): Longint;
+begin
+  ReadNotImplemented;
+  Result := 0;
+end;
+
+function TStream.Write(const Buffer; Count: Longint): Longint;
+begin
+  WriteNotImplemented;
+  Result := 0;
+end;
+
+
   function TStream.GetPosition: Int64;
 
     begin
@@ -340,7 +363,7 @@
      end;
    end;
 
-  Procedure TStream.WriteAnsiString (S : String);
+  Procedure TStream.WriteAnsiString (const S : String);
 
   Var L : Longint;
 
@@ -770,13 +793,6 @@ destructor TResourceStream.Destroy;
     FreeResource(Handle);
     inherited destroy;
   end;
-
-{$warnings off}
-function TResourceStream.Write(const Buffer; Count: Longint): Longint;
-  begin
-    raise EStreamError.Create(SCantWriteResourceStreamError);
-  end;
-{$warnings on}
 
 {****************************************************************************}
 {*                             TOwnerStream                                 *}

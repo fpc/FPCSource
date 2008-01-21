@@ -7820,6 +7820,7 @@ tests/webtbs/tw10454.pp svneol=native#text/plain
 tests/webtbs/tw1046.pp svneol=native#text/plain
 tests/webtbs/tw1050.pp svneol=native#text/plain
 tests/webtbs/tw10519.pp svneol=native#text/plain
+tests/webtbs/tw10540.pp svneol=native#text/plain
 tests/webtbs/tw1061.pp svneol=native#text/plain
 tests/webtbs/tw1066a.pp svneol=native#text/plain
 tests/webtbs/tw1066b.pp svneol=native#text/plain

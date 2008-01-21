@@ -1976,23 +1976,34 @@ end;
     Julian and Modified Julian Date conversion support
   ---------------------------------------------------------------------}
 
-{$warnings off}
+{$ifopt R+}
+{$define RangeCheckWasOn}
+{$R-}
+{$endif opt R+}
+
+{$ifopt Q+}
+{$define OverflowCheckWasOn}
+{$Q-}
+{$endif opt Q+}
+
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
 begin
-  NotYetImplemented('DateTimeToJulianDate');
+  DateTimeToJulianDate := AValue - JulianEpoch;
 end;
 
 
 Function JulianDateToDateTime(const AValue: Double): TDateTime;
 begin
-  NotYetImplemented('JulianDateToDateTime');
+  JulianDateToDateTime := AValue + JulianEpoch;
+  if(AValue <= 0) or (AValue >= 10000)then
+    JulianDateToDateTime := NaN;
 end;
 
 
 Function TryJulianDateToDateTime(const AValue: Double; var ADateTime: TDateTime): Boolean;
-
 begin
-  NotYetImplemented('TryJulianDateToDateTime');
+  ADateTime := JulianDateToDateTime(AValue);
+  TryJulianDateToDateTime := ADateTime <> NaN;
 end;
 
 
@@ -2013,27 +2024,30 @@ Function TryModifiedJulianDateToDateTime(const AValue: Double; var ADateTime: TD
 begin
   NotYetImplemented('TryModifiedJulianDateToDateTime');
 end;
-{$warnings on}
+
+{$ifdef RangeCheckWasOn}
+{$R+}
+{$undef RangeCheckWasOn}
+{$endif}
+
+{$ifdef OverflowCheckWasOn}
+{$Q+}
+{$undef OverflowCheckWasOn}
+{$endif}
 
 { ---------------------------------------------------------------------
     Unix timestamp support.
   ---------------------------------------------------------------------}
 
 Function DateTimeToUnix(const AValue: TDateTime): Int64;
-var
-  Epoch:TDateTime;
 begin
-  Epoch:=EncodeDateTime( 1970, 1, 1, 0, 0, 0, 0 );
-  Result:=SecondsBetween( Epoch, AValue );
+  Result:=SecondsBetween(UnixEpoch, AValue);
 end;
 
 
 Function UnixToDateTime(const AValue: Int64): TDateTime;
-var
-  Epoch:TDateTime;
 begin
-  Epoch:=EncodeDateTime( 1970, 1, 1, 0, 0, 0, 0 );
-  Result:=IncSecond( Epoch, AValue );
+  Result:=IncSecond(UnixEpoch, AValue);
 end;
 
 
@@ -2068,7 +2082,7 @@ end;
 
 Function MacTimeStampToUnix(const AValue: Int64): Int64;
 const
-  Epoch=24107 * 24 * 3600; 
+  Epoch=24107 * 24 * 3600;
 begin
   Result:=AValue - Epoch;
 end;

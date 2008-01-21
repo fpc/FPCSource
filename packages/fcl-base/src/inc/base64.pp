@@ -40,7 +40,6 @@ type
     constructor Create(AOutputStream: TStream);
     destructor Destroy; override;
 
-    function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
@@ -81,7 +80,6 @@ type
     procedure Reset;
 
     function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     
     property EOF: Boolean read fEOF;
@@ -156,11 +154,6 @@ begin
       end;
   end;
   inherited Destroy;
-end;
-
-function TBase64EncodingStream.Read(var Buffer; Count: Longint): Longint;
-begin
-  raise EStreamError.Create('Invalid stream operation');
 end;
 
 function TBase64EncodingStream.Write(const Buffer; Count: Longint): Longint;
@@ -411,11 +404,6 @@ begin
   if (DecodedSize <> -1) and (CurPos >= DecodedSize) then begin
     FEOF := true;
   end;
-end;
-
-function TBase64DecodingStream.Write(const Buffer; Count: Longint): Longint;
-begin
-  raise EStreamError.Create('Invalid stream operation');
 end;
 
 function TBase64DecodingStream.Seek(Offset: Longint; Origin: Word): Longint;

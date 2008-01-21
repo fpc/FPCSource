@@ -63,7 +63,6 @@ Type
   TBlowFishEncryptStream = Class(TBlowFishStream)
   public
     Destructor Destroy; override;
-    function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     procedure Flush;
@@ -72,7 +71,6 @@ Type
   TBlowFishDeCryptStream = Class(TBlowFishStream)
   public
     function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
 
@@ -80,8 +78,6 @@ Implementation
 
 ResourceString
   SNoSeekAllowed  = 'Seek not allowed on encryption streams';
-  SNoReadAllowed  = 'Reading from encryption stream not allowed';
-  SNoWriteAllowed = 'Writing to decryption stream not allowed';
 
 { Blowfish lookup tables }
 
@@ -581,12 +577,6 @@ begin
     end;
 end;
 
-function TBlowFishEncryptStream.Read(var Buffer; Count: Longint): Longint;
-
-begin
-  Raise EBlowFishError.Create(SNoReadAllowed);
-end;
-
 function TBlowFishEncryptStream.Write(const Buffer; Count: Longint): Longint;
 
 Var
@@ -671,11 +661,6 @@ begin
       end;
     end;
   Inc(FPos,Result);
-end;
-
-function TBlowFishDeCryptStream.Write(const Buffer; Count: Longint): Longint;
-begin
-  Raise EBlowFishError.Create(SNoWriteAllowed);
 end;
 
 function TBlowFishDeCryptStream.Seek(Offset: Longint; Origin: Word): Longint;
