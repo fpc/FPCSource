@@ -1,0 +1,20 @@
+/*	This file is part of the software similarity tester SIM.
+	Written by Dick Grune, Vrije Universiteit, Amsterdam.
+	$Id: system.par,v 1.2 2001/09/28 09:03:55 dick Exp $
+*/
+
+/*	Operating-system dependent data */
+
+#ifdef	UNIX
+
+#define	int32		int		/* type of a 32 bits signed int */
+#define	NULLFILE	"/dev/null"
+
+#endif
+
+#ifdef	MSDOS		/* GNU gcc */
+
+#define	int32		int		/* type of a 32 bits signed int */
+#define	NULLFILE	"nul"
+
+#endif

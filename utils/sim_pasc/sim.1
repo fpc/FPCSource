@@ -1,0 +1,176 @@
+.\"	This file is part of the software similarity tester SIM.
+.\"	Written by Dick Grune, Vrije Universiteit, Amsterdam.
+.\"	$Id: sim.1,v 2.6 2004/08/05 09:49:49 dick Exp $
+.\"
+.TH SIM 1 2001/11/13 "Vrije Universiteit"
+.SH NAME
+sim \- find similarities in C, Java, Pascal, Modula-2, Lisp, Miranda or text files
+.SH SYNOPSIS
+.B sim_c
+[
+.B \-[defFnpsS]
+.B \-r
+.I N
+.B \-w
+.I N
+.B \-o
+.I F
+]
+file ... [
+.B /
+[ file ... ] ]
+.br
+.B sim_c
+\&...
+.br
+.B sim_java
+\&...
+.br
+.B sim_pasc
+\&...
+.br
+.B sim_m2
+\&...
+.br
+.B sim_lisp
+\&...
+.br
+.B sim_mira
+\&...
+.br
+.B sim_text
+\&...
+.br
+.SH DESCRIPTION
+.I Sim_c
+reads the C files
+.I file ...
+and looks for pieces of text that are similar; two pieces of program text
+are similar if they only differ in layout, comment, identifiers and
+the contents of numbers, strings and characters.
+If any runs of sufficient length
+are found, they are reported on standard output; the number of significant
+tokens in the run is given between square brackets.
+.PP
+.I Sim_java
+does the same for Java,
+.I sim_pasc
+for Pascal,
+.I sim_m2
+for Modula-2,
+.I sim_lisp
+for Lisp, and
+.I sim_mira
+for Miranda.
+.I Sim_text
+works on arbitrary text; it is occasionally useful on shell scripts.
+.PP
+The program can be used for finding copied pieces of code in
+purportedly unrelated programs (with
+.B \-s
+or
+.BR \-S ),
+or for finding accidentally duplicated code in larger projects (with
+.BR \-f ).
+.PP
+If a
+.B /
+is present between the input files, the latter are divided into a group of
+"new" files (before the
+.BR / )
+and a group of "old" files; if there is no
+.BR / ,
+all files are "new".
+Old files are never compared to each other.
+Since the similarity tester
+reads the files several times, it cannot read from standard input.
+.PP
+There are the following options:
+.TP
+.B \-d
+The output is in a diff(1)-like format instead of the default
+2-column format.
+.TP
+.B \-e
+Each file is compared to each file in isolation; this will find all
+similarities between all texts involved, regardless of duplicates.
+.TP
+.B \-f
+Runs are restricted to pieces with balancing parentheses, to isolate
+potential functions (C, Java, Pascal, Modula-2 and Lisp only).
+.TP
+.B \-F
+The names of functions in calls are required to match exactly
+(C, Java, Pascal, Modula-2 and Lisp only).
+.TP
+.B \-n
+Similarities found are only summarized, not displayed.
+.TP
+.B "\-o F"
+The output is written to the file named
+.I F.
+.TP
+.B \-p
+The output is given in similarity percentages; see below.
+.TP
+.B "\-r N"
+The minimum run length is set to
+.I N
+(default is
+.I N
+= 24).
+.TP
+.B \-s
+The contents of a file are not compared to itself (\-s = not self).
+.TP
+.B \-S
+The contents of the new files are compared to the old files only \- not
+between themselves.
+.TP
+.B "\-w N"
+The page width used is set to
+.I N
+columns (default is
+.I N
+= 80).
+.PP
+The
+.B \-p
+option results in lines of the form
+.DS
+.ft 5
+F consists for x % of G material
+.ft P
+.DE
+meaning that \f5x\fP % of \f5F\fP's text can also be found in \f5G\fP.
+Note that this relation is not symmetric; it is in fact quite possible for one
+file to consist for 100 % of text from another file, while the other file
+consists for only 1 % of text of the first file, if their lengths differ
+enough.
+Note also that the granularity of the recognized text is still governed by the
+.B \-r
+option or its default.
+.PP
+Care has been taken to keep all internal processes linear in the length of the
+input, with the exception of the matching process which is almost linear,
+using a hash table; various other tables are used for speed-up.
+If, however, there is not enough memory for the tables, they are discarded in
+order of unimportance, under which conditions the algorithms revert to their
+quadratic nature.
+.SH AUTHOR
+Dick Grune, Vrije Universiteit, Amsterdam.
+.SH BUGS
+Strong periodicity in the input text (like a table of
+.I N
+almost identical lines) causes problems.
+.I Sim
+tries to cope with this but cannot avoid giving appr.\&
+.I log N
+messages about it.
+The best advice is still to take the offending files out of the game.
+.PP
+Since it uses
+.I lex(1)
+on some systems, it may dump core on any weird construction that overflows
+.IR lex 's
+internal buffers.

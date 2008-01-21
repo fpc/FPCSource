@@ -1,0 +1,57 @@
+		The software and text similarity tester SIM
+
+SIM tests lexical similarity in texts in C, Java, Pascal, Modula-2, Lisp,
+Miranda, and natural language.  It is used
+
+- to detect potentially duplicated code fragments in large software projects,
+	in program text but also in shell scripts and documentation;
+- to detect plagiarism in software projects, educational and otherwise.
+
+SIM is available through ftp.  The directory
+
+	ftp.cs.vu.nl:pub/dick/similarity_tester
+
+contains the sources (in C) and the MSDOS .EXEs.
+
+The software similarity tester is very efficient and allows us to compare
+this year's students' work with that collected from many past years (much to
+the dismay of some, mostly non-CS, students).  Students are told in advance
+that their work is going to be compared, but some are non-believers ...
+
+The output of the similarity tester can be processed by a number of shell
+scripts by Matty Huntjens.  These shell scripts take sim output and produce
+lists of suspect submissions, histograms and the like.
+The present version of these scripts is very much geared to the local situation
+at the Vrije Universiteit, though; they are low on portability.
+Matty Huntjens' email address is matty@cs.vu.nl.
+
+We are not afraid that students would try to tune their work to the
+similarity tester.  We reckon if they can do that they can also do the
+exercise.
+
+Since this piece of handicraft does not qualify as research, there are no
+international papers on it.  A paper, titled `Detecting copied submissions in
+computer science lab work', was published in a local (i.e. Dutch) computer
+science journal:
+
+%A Dick Grune
+%A Matty Huntjens
+%T Het detecteren van kopie\(:en bij informatica-practica
+%J Informatie (in Dutch)
+%V 31
+%N 11
+%D Nov 1989
+%P 864-867
+
+The ftp directory contains a terse technical report about the internal
+working of the program.
+
+					Dick Grune
+					Vrije Universiteit
+					de Boelelaan 1081
+					1081 HV  Amsterdam
+					the Netherlands
+					dick@cs.vu.nl
+					+31 20 444 7744
+----------------------------------------------------------------
+With infinitely many exceptions, what you do makes no difference.
