@@ -30,6 +30,7 @@ function ExtractFileDrive(const FileName: string): string;
 function ExtractFileName(const FileName: string): string;
 function ExtractFileExt(const FileName: string): string;
 function ExtractFileDir(Const FileName : string): string;
+function ExtractShortPathName(Const FileName : String) : String;
 function ExpandFileName (Const FileName : string): String;
 function ExpandUNCFileName (Const FileName : string): String;
 function ExtractRelativepath (Const BaseName,DestNAme : String): String;

@@ -1021,7 +1021,7 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %ebp,%eax
-end ['EAX'];
+end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 
@@ -1035,7 +1035,7 @@ asm
         jz      .Lg_a_null
         movl    4(%eax),%eax
 .Lg_a_null:
-end ['EAX'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
@@ -1048,7 +1048,7 @@ asm
         jz      .Lgnf_null
         movl    (%eax),%eax
 .Lgnf_null:
-end ['EAX'];
+end;
 
 {****************************************************************************
                                  Math
@@ -1063,7 +1063,7 @@ asm
         cltd
         xorl    %edx,%eax
         subl    %edx,%eax
-end ['EAX','EDX'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
@@ -1077,7 +1077,7 @@ asm
 {$endif}
 {$endif}
         imull   %eax,%eax
-end ['EAX'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}

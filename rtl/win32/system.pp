@@ -51,7 +51,7 @@ type
 
 const
 { Default filehandles }
-  UnusedHandle    : THandle = -1;
+  UnusedHandle    : THandle = THandle(-1);
   StdInputHandle  : THandle = 0;
   StdOutputHandle : THandle = 0;
   StdErrorHandle  : THandle = 0;
@@ -446,7 +446,7 @@ function Dll_entry(const info : TEntryInformation) : longbool; [public,alias:'_F
        DLL_THREAD_ATTACH :
          begin
            inclocked(Thread_count);
-{$warning Allocate Threadvars !}
+{ Allocate Threadvars ?!}
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
            Dll_entry:=true; { return value is ignored }
@@ -456,7 +456,7 @@ function Dll_entry(const info : TEntryInformation) : longbool; [public,alias:'_F
            declocked(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
-{$warning Release Threadvars !}
+{ Release Threadvars ?!}
            Dll_entry:=true; { return value is ignored }
          end;
        DLL_PROCESS_DETACH :
@@ -930,6 +930,7 @@ const
   { MultiByteToWideChar  }
      MB_PRECOMPOSED = 1;
      CP_ACP = 0;
+     WC_NO_BEST_FIT_CHARS = $400;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
     stdcall; external 'kernel32' name 'MultiByteToWideChar';
@@ -947,10 +948,10 @@ procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=WideCharToMultiByte(CP_ACP, 0, source, len, nil, 0, nil, nil);
+    destlen:=WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
     // this will null-terminate
     setlength(dest, destlen);
-    WideCharToMultiByte(CP_ACP, 0, source, len, @dest[1], destlen, nil, nil);
+    WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
   end;
 
 procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);

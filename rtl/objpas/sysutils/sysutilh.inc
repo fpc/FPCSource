@@ -237,7 +237,9 @@ Type
 
   function SafeLoadLibrary(const FileName: AnsiString;
     ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
-
+    
+  function GetModuleName(Module: HMODULE): string;
+  
 { some packages and unit related constants for compatibility }
 
 const

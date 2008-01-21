@@ -113,9 +113,19 @@ begin
     Result := '';
 end;
 
+function ExtractShortPathName(Const FileName : String) : String;
 
-  type
-    PathStr=string;
+begin
+{$ifdef MSWINDOWS} 
+  SetLength(Result,Max_Path);
+  SetLength(Result,GetShortPathName(PChar(FileName), Pchar(Result),Length(Result)));
+{$else}
+  Result:=FileName;
+{$endif}
+end;
+
+type
+  PathStr=string;
 
 {$DEFINE FPC_FEXPAND_SYSUTILS}
 
@@ -159,12 +169,12 @@ begin
     Result:=DestName;
     exit;
     end;
-  Source:=ExtractFilePath(BaseName);
-  Dest:=ExtractFilePath(DestName);
+  Source:=ExcludeTrailingPathDelimiter(ExtractFilePath(BaseName));
+  Dest:=ExcludeTrailingPathDelimiter(ExtractFilePath(DestName));
   SC:=GetDirs (Source,SD);
   DC:=GetDirs (Dest,DD);
   I:=1;
-  While (I<DC) and (I<SC) do
+  While (I<=DC) and (I<=SC) do
     begin
     If StrIcomp(DD[i],SD[i])=0 then
       Inc(i)
@@ -172,8 +182,8 @@ begin
       Break;
     end;
   Result:='';
-  For J:=I to SC-1 do Result:=Result+OneLevelBack;
-  For J:=I to DC-1 do Result:=Result+DD[J]+PathDelim;
+  For J:=I to SC do Result:=Result+OneLevelBack;
+  For J:=I to DC do Result:=Result+DD[J]+PathDelim;
   Result:=Result+ExtractFileName(DestNAme);
 end;
 

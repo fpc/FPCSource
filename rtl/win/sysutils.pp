@@ -92,8 +92,8 @@ function CheckWin32Version(Major : Integer): Boolean;
 
 function CheckWin32Version(Major,Minor: Integer): Boolean;
   begin
-    Result:=(Win32MajorVersion>Major) or
-            ((Win32MajorVersion=Major) and (Win32MinorVersion>=Minor));
+    Result:=(Win32MajorVersion>dword(Major)) or
+            ((Win32MajorVersion=dword(Major)) and (Win32MinorVersion>=dword(Minor)));
   end;
 
 
@@ -1103,7 +1103,6 @@ end;
                     Target Dependent WideString stuff
 ****************************************************************************}
 
-
 function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
     SetLastError(0);
@@ -1206,6 +1205,7 @@ function Win32AnsiStrUpper(Str: PChar): PChar;
   are relevant already for the system unit }
 procedure InitWin32Widestrings;
   begin
+//!!!    CharLengthPCharProc : function(const Str: PChar): PtrInt;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;

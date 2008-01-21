@@ -967,6 +967,25 @@ Begin
    end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 End;
+
+
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+procedure DumpExceptionBackTrace(var f:text);
+var
+  FrameNumber,
+  FrameCount   : longint;
+  Frames       : PPointer;
+begin
+  if RaiseList=nil then
+    exit;
+  WriteLn(f,BackTraceStrFunc(RaiseList^.Addr));
+  FrameCount:=RaiseList^.Framecount;
+  Frames:=RaiseList^.Frames;
+  for FrameNumber := 0 to FrameCount-1 do
+    WriteLn(f,BackTraceStrFunc(Frames[FrameNumber]));
+end;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 

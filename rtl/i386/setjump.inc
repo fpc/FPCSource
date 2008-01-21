@@ -13,46 +13,45 @@
 
  **********************************************************************}
 
-Function SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
+Function SetJmp (Var S : Jmp_buf) : longint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP'];
 asm
 {$ifndef REGCALL}
-  movl 8(%ebp),%eax
+  movl 4(%esp),%eax
 {$endif}
-  movl %ebx,(%eax)
-  movl %esi,4(%eax)
-  movl %edi,8(%eax)
-  movl 4(%ebp),%edi
-  movl %edi,20(%eax)
-  movl (%ebp),%edi
-  movl %edi,12(%eax)
+  movl %ebx,Jmp_buf.ebx(%eax)
+  movl %esi,Jmp_buf.esi(%eax)
+  movl %edi,Jmp_buf.edi(%eax)
+  movl %ebp,Jmp_buf.bp(%eax)
 {$ifdef REGCALL}
-  leal 8(%ebp),%edi
+  leal 4(%esp),%edi
 {$else}
-  leal 12(%ebp),%edi
+  leal 8(%esp),%edi
 {$endif}
-  movl %edi,16(%eax)
-  movl 8(%eax),%edi
+  movl %edi,Jmp_buf.sp(%eax)
+  movl (%esp),%edi
+  movl %edi,Jmp_buf.pc(%eax)
+  movl Jmp_buf.edi(%eax),%edi
   xorl %eax,%eax
-end['EAX'];
+end;
 
 
-Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];
+Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP'];
 asm
 {$ifdef REGCALL}
   xchgl %edx,%eax
 {$else}
-  movl 8(%ebp),%edx
-  movl 12(%ebp),%eax
+  movl 4(%esp),%edx
+  movl 8(%esp),%eax
 {$endif}
 
-  movl (%edx),%ebx
-  movl 4(%edx),%esi
-  movl 8(%edx),%edi
-  movl 12(%edx),%ebp
-  movl 16(%edx),%esp
+  movl Jmp_buf.ebx(%edx),%ebx
+  movl Jmp_buf.esi(%edx),%esi
+  movl Jmp_buf.edi(%edx),%edi
+  movl Jmp_buf.bp(%edx),%ebp
+  movl Jmp_buf.sp(%edx),%esp
   // we should also clear the fpu
   // fninit no must be done elsewhere PM
   // or we should reset the control word also
-  jmp 20(%edx)
+  jmp Jmp_buf.pc(%edx)
 end;
 

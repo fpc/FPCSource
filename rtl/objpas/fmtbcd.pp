@@ -16,7 +16,7 @@
 { "Programming is the time between two bugs" }
 {     (last words of the unknown programmer) }
 
-{ this program was a good test for the compiler: some bugs have been found.
+(* this program was a good test for the compiler: some bugs have been found.
 
   1. WITH in inline funcs produces a compiler error AFTER producing an .exe file
      (was already known; I didn't see it in the bug list)
@@ -39,7 +39,7 @@
   6. two range check errors in scanner.pas
      a) array subscripting
      b) value out ouf range
-}
+*)
 
 { $define debug_version}
 
@@ -65,23 +65,23 @@
 { $define BCDgr180} { define this if MCDMaxDigits is greater 180, else undefine! }
 
 {$ifdef BCDgr4}
- {$note BCD Digits > 4}
+ {$hint BCD Digits > 4}
 {$endif}
 
 {$ifdef BCDgr9}
- {$note BCD Digits > 9}
+ {$hint BCD Digits > 9}
 {$endif}
 
 {$ifdef BCDgr18}
- {$note BCD Digits > 18}
+ {$hint BCD Digits > 18}
 {$endif}
 
 {$ifdef BCDgr64}
- {$note BCD Digits > 64}
+ {$hint BCD Digits > 64}
 {$endif}
 
 {$ifdef BCDgr180}
- {$note BCD Digits > 180}
+ {$hint BCD Digits > 180}
 {$endif}
 
 {$ifndef NO_SMART_LINK}
@@ -178,9 +178,9 @@ INTERFACE
 {$endif}
 
 {$ifdef use_ansistring}
-  {$note ansi}
+  {$hint ansi}
 {$else}
-  {$note -ansi}
+  {$hint -ansi}
 {$endif}
 
 {$ifdef integ32}
@@ -791,8 +791,8 @@ INTERFACE
     { in the tBCD_helper the bcd is stored for computations,
       shifted to the right position }
 
-{ {$define __lo_bhb := 1 * ( __lo_bh + __lo_bh ) } }
-{ {$define __hi_bhb := 1 * ( __hi_bh + __hi_bh + 1 ) } }
+// {$define __lo_bhb := 1 * ( __lo_bh + __lo_bh ) }
+// {$define __hi_bhb := 1 * ( __hi_bh + __hi_bh + 1 ) }
   const
     __lo_bhb = __lo_bh + __lo_bh - 1;
     __hi_bhb = __hi_bh + __hi_bh;
@@ -823,14 +823,16 @@ INTERFACE
 IMPLEMENTATION
 
   USES
-    classes;
+    classes {$ifopt r+}, sysconst {$endif};
 
   type
     TFMTBcdFactory = CLASS(TPublishableVarianttype)
     PROTECTED
       function GetInstance(const v : TVarData): tObject; OVERRIDE;
     PUBLIC
-      procedure BinaryOp(var Left: TVarData; const Right: TVarData; const Operation: TVarOp);
+      procedure BinaryOp(var Left: TVarData; const Right: TVarData; const Operation: TVarOp); override;
+      procedure Clear(var V: TVarData); override;
+      procedure Copy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean); override;
     end;
 
     TFMTBcdVarData = CLASS(TPersistent)
@@ -864,9 +866,10 @@ IMPLEMENTATION
     range_fracdigits = 0..pred ( MaxFmtBCDFractionSize );
 
 {$ifopt r+}
-  var
-    rcheck : 0..0;
-    rbad : Byte = 1;
+  procedure RangeError;
+    begin
+      raise ERangeError.Create(SRangeError);
+    end;
 {$endif}
 
 {$ifndef debug_version}
@@ -1563,7 +1566,6 @@ IMPLEMENTATION
       bh : tBCD_helper;
       v : {$ifopt r+} 0..high ( myInttype ) {$else} Integer {$endif};
       p : {$ifopt r+} low ( bh.Singles ) - 1..0 {$else} Integer {$endif};
-      Error,
       exitloop : Boolean;
 
     begin
@@ -1589,7 +1591,6 @@ IMPLEMENTATION
                 else v := +aValue;
               LDig := 0;
               p := 0;
-              Error := False;
               REPEAT
                 Singles[p] := v MOD 10;
                 v := v DIV 10;
@@ -1598,7 +1599,6 @@ IMPLEMENTATION
                 if p < low ( Singles )
                   then begin
                     exitloop := True;
-                    Error := True;
 (* what to do if error occured? *)
                     RAISE eBCDOverflowException.create ( 'in IntegerToBCD' );
                    end;
@@ -1608,12 +1608,13 @@ IMPLEMENTATION
           pack_BCD ( bh, result );
        _endSELECT;
      end;
-
+{$warnings off}
   function VarToBCD ( const aValue : Variant ) : tBCD;
 
     begin
       not_implemented;
      end;
+{$warnings on}
 
   function CurrToBCD ( const Curr : currency;
                          var BCD : tBCD;
@@ -1986,8 +1987,8 @@ IMPLEMENTATION
     begin
       NormalizeBCD := True;
 {$ifopt r+}
-      if ( Prec < 0 ) OR ( Prec > MaxFmtBCDFractionSize ) then rcheck := rbad;
-      if ( Scale < 0 ) OR ( Prec >= MaxFmtBCDFractionSize ) then rcheck := rbad;
+      if ( Prec < 0 ) OR ( Prec > MaxFmtBCDFractionSize ) then RangeError;
+      if ( Scale < 0 ) OR ( Prec >= MaxFmtBCDFractionSize ) then RangeError;
 {$endif}
       if BCDScale ( InBCD ) > Scale
         then begin
@@ -3679,6 +3680,21 @@ procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; con
     else
       RaiseInvalidOp;
     end;
+  end;
+  
+procedure TFMTBcdFactory.Clear(var V: TVarData);
+  begin
+    FreeAndNil(tObject(V.VPointer));
+    V.VType:=varEmpty;
+  end;
+
+procedure TFMTBcdFactory.Copy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean);
+  begin
+    if Indirect then
+      Dest.VPointer:=Source.VPointer
+    else
+      Dest.VPointer:=TFMTBcdVarData.Create(TFMTBcdVarData(Source.VPointer).BCD);
+    Dest.VType:=Vartype;
   end;
 
 {$if declared ( myMinIntBCD ) }

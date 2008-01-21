@@ -948,7 +948,7 @@ begin
   BackTraceStrFunc := @SysBackTraceStr;
   GetLineInfo(ptruint(addr), func, source, line);
   { create string }
-  DwarfBackTraceStr :='  $' + HexStr(ptrint(addr), sizeof(ptrint) * 2);
+  DwarfBackTraceStr :='  $' + HexStr(ptruint(addr), sizeof(ptruint) * 2);
   if func<>'' then
    DwarfBackTraceStr := DwarfBackTraceStr + '  ' + func;
 

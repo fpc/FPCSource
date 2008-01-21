@@ -19,12 +19,6 @@ unit sysinitgprof;
 
   implementation
 
-    {$linklib gmon}
-    {$linklib gcc}
-    {$linklib cygwin}
-    {$linklib user32}
-    {$linklib kernel32}
-
     const
       monstarted : dword = 0;
 
@@ -174,5 +168,12 @@ unit sysinitgprof;
         end;
         Cygwin_crt0(@CMainDLL);
       end;
+
+{$warnings off}
+    {$linklib gmon}
+    {$linklib gcc}
+    {$linklib cygwin}
+    {$linklib user32}
+    {$linklib kernel32}
 
 end.

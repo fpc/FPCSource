@@ -49,7 +49,7 @@ function cotan(x : float) : float;assembler;
   asm
     fldt X
     fptan
-    fdivp
+    fdivp %st,%st(1)
     fwait
   end;
 

@@ -372,15 +372,14 @@ end;
 
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 
-var i,j : SizeUInt;
-    k   : SizeInt;
+var i,j,k : SizeUInt;
 
 begin
   j:=length(ASubText);
   i:=length(AText);
   if AStart>i then 
     aStart:=i+1;
-  k:=i-AStart+1;
+  k:=i+1-AStart;
   if ALength> k then
     ALength:=k;
   SetLength(Result,i+j-ALength);

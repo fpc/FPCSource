@@ -122,7 +122,10 @@ begin
       exit;
     end;
   WaitForSingleObject (newKeyEvent, dword(INFINITE));
-  getKeyEventFromQueueWait := getKeyEventFromQueue (t, false);
+  { force that we read a keyevent }
+  while not(getKeyEventFromQueue (t, false)) do
+    Sleep(0);
+  getKeyEventFromQueueWait:=true;
 end;
 
 { translate win32 shift-state to keyboard shift state }

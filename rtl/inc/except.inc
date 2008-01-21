@@ -213,7 +213,9 @@ begin
   hp:=@ExceptAddrStack;
   If hp^=nil then
     begin
+{$ifdef excdebug}
       writeln ('At end of ExceptionAddresStack');
+{$endif}
       halt (255);
     end
   else
@@ -233,8 +235,10 @@ begin
   _ExceptObjectStack:=ExceptObjectStack;
   If _ExceptObjectStack=nil then
     begin
-    writeln ('At end of ExceptionObjectStack');
-    halt (1);
+{$ifdef excdebug}
+      writeln ('At end of ExceptionObjectStack');
+{$endif}
+      halt (1);
     end
   else
     begin
@@ -266,7 +270,9 @@ begin
   If not(assigned(_ExceptObjectStack)) or
      not(assigned(_ExceptObjectStack^.next)) then
     begin
+{$ifdef excdebug}
       writeln ('At end of ExceptionObjectStack');
+{$endif}
       halt (1);
     end
   else
@@ -307,7 +313,9 @@ begin
   _ExceptObjectStack:=ExceptObjectStack;
   If _ExceptObjectStack=Nil then
    begin
+{$ifdef excdebug}
      Writeln ('Internal error.');
+{$endif}
      halt (255);
    end;
   _Objtype := TExceptObjectClass(Objtype);

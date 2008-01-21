@@ -46,7 +46,7 @@ begin
 {$ifdef use_readwrite}
               r:=fpwrite(handle,bufptr^,bufpos);
 {$else}
-              r:=send(handle,bufptr^,bufpos,0);
+              r:=fpsend(handle,bufptr,bufpos,0);
 {$endif}
             until (r<>-1) or (SocketError <> EsockEINTR);
             bufend:=r;
@@ -58,7 +58,7 @@ begin
 {$ifdef use_readwrite}
               r:=fpread(handle,bufptr^,bufsize);
 {$else}
-              r:=recv(handle,bufptr^,bufsize,0);
+              r:=fprecv(handle,bufptr,bufsize,0);
 {$endif}
             until (r<>-1) or (SocketError <> EsockEINTR);
             bufend:=r;
@@ -169,14 +169,16 @@ Var AddrLen : Longint;
 
 begin
   AddrLEn:=SizeOf(Addr);
-  DoAccept:=Accept(Sock,Addr,AddrLen);
+  DoAccept:=fpaccept(Sock,@Addr,@AddrLen);
 end;
 
 Function DoConnect(Sock:longint;const addr: TInetSockAddr): Boolean;
 
 begin
-  DoConnect:=Connect(Sock,Addr,SizeOF(TInetSockAddr));
+  DoConnect:=fpconnect(Sock,@Addr,SizeOF(TInetSockAddr)) = 0;
 end;
+
+{$warnings off}
 
 Function Connect(Sock:longint;const addr: TInetSockAddr;var SockIn,SockOut:text):Boolean;
 
@@ -221,6 +223,8 @@ begin
   else
    Accept:=false;
 end;
+
+{$warnings on}
 
 type thostaddr= packed array[1..4] of byte;
 

@@ -183,28 +183,36 @@ function CompareText(const S1, S2: string): integer;
 
 var
   i, count, count1, count2: integer; Chr1, Chr2: byte;
+  P1, P2: PChar;
 begin
-  result := 0;
   Count1 := Length(S1);
   Count2 := Length(S2);
   if (Count1>Count2) then
     Count := Count2
   else
     Count := Count1;
+  P1 := @S1[1];
+  P2 := @S2[1];
   i := 0;
-  while (result=0) and (i<count) do
+  while i < Count do
+  begin
+    Chr1 := byte(p1^);
+    Chr2 := byte(p2^);
+    if Chr1 <> Chr2 then
     begin
-    inc (i);
-     Chr1 := byte(s1[i]);
-     Chr2 := byte(s2[i]);
-     if Chr1 in [97..122] then
-       dec(Chr1,32);
-     if Chr2 in [97..122] then
-       dec(Chr2,32);
-     result := Chr1 - Chr2;
-     end ;
-  if (result = 0) then
-    result:=(count1-count2);
+      if Chr1 in [97..122] then
+        dec(Chr1,32);
+      if Chr2 in [97..122] then
+        dec(Chr2,32);
+      if Chr1 <> Chr2 then
+        Break;
+    end;
+    Inc(P1); Inc(P2); Inc(I);
+  end;
+  if i < Count then
+    result := Chr1-Chr2
+  else
+    result := count1-count2;
 end;
 
 function SameText(const s1,s2:String):Boolean;
@@ -2166,7 +2174,7 @@ Var
           End;
       End; { Case }
     End; { While .. Begin }
-    Result:=PtrInt(Buf)-PtrInt(Buffer);
+    Result:=PtrUInt(Buf)-PtrUInt(Buffer);
   End;
 
 Begin
@@ -2378,10 +2386,15 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
 end ;
 
 Function LastDelimiter(const Delimiters, S: string): Integer;
-
+var
+  chs: TSysCharSet;
+  I: LongInt;
 begin
+  chs := [];
+  for I := 1 to Length(Delimiters) do
+    Include(chs, Delimiters[I]);
   Result:=Length(S);
-  While (Result>0) and (Pos(S[Result],Delimiters)=0) do
+  While (Result>0) and not (S[Result] in chs) do
     Dec(Result);
 end;
 

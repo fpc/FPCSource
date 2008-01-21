@@ -180,6 +180,7 @@ function AllocateHWnd(Method: TWndMethod): HWND;
   begin
     { dummy }
     runerror(217);
+    Result:=0;
   end;
 
 

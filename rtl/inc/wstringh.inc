@@ -41,6 +41,8 @@ procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt)
 procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
 
 Type
+  { hooks for internationalization
+    please add new procedures at the end, it makes it easier to detect new procedures }
   TWideStringManager = record
     Wide2AnsiMoveProc : procedure(source:pwidechar;var dest:ansistring;len:SizeInt);
     Ansi2WideMoveProc : procedure(source:pchar;var dest:widestring;len:SizeInt);

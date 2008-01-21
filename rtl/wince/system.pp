@@ -310,6 +310,7 @@ const
      MB_USEGLYPHCHARS = 4;
      CP_ACP = 0;
      CP_OEMCP = 1;
+     WC_NO_BEST_FIT_CHARS = $400;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
      cdecl; external 'coredll' name 'MultiByteToWideChar';
@@ -336,7 +337,7 @@ end;
 
 function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
 begin
-  Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideCharsLen, AnsiBuf, AnsiBufLen, nil, nil);
+  Result := WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, WideBuf, WideCharsLen, AnsiBuf, AnsiBufLen, nil, nil);
   if ((WideCharsLen <> -1) or (Result = 0)) and (AnsiBuf <> nil) then
   begin
     if Result + 1 > AnsiBufLen then
@@ -871,7 +872,7 @@ begin
      DLL_THREAD_ATTACH :
        begin
          inclocked(Thread_count);
-{$note Allocate Threadvars !}
+{ Allocate Threadvars ?!}
          if assigned(Dll_Thread_Attach_Hook) then
            Dll_Thread_Attach_Hook(DllParam);
        end;
@@ -880,7 +881,7 @@ begin
          declocked(Thread_count);
          if assigned(Dll_Thread_Detach_Hook) then
            Dll_Thread_Detach_Hook(DllParam);
-{$note Release Threadvars !}
+{ Release Threadvars ?!}
        end;
      DLL_PROCESS_DETACH :
        begin
@@ -1789,7 +1790,7 @@ begin
 end;
 
 initialization
-  SysResetFPU;    
+  SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);

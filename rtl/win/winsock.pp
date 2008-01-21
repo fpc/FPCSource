@@ -25,6 +25,7 @@ unit winsock;
        windows;
 
     const
+       WINSOCK_VERSION = $0101;
        {
          Default maximium number of sockets.
          this does not

@@ -23,6 +23,7 @@ interface
 
 {$checkpointer off}
 {$goto on}
+{$TYPEDADDRESS on}
 
 {$if defined(win32) or defined(wince)}
   {$define windows}
@@ -422,16 +423,18 @@ begin
   fillchar(p^,size,#255);
   { retrieve backtrace info }
   bp:=get_caller_frame(get_frame);
-  for i:=1 to tracesize do
-   begin
-     { valid bp? }
-     if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+
+  { valid bp? }
+  if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+    for i:=1 to tracesize do
+     begin
        pp^.calls[i]:=get_caller_addr(bp);
-     oldbp:=bp;
-     bp:=get_caller_frame(bp);
-     if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-       bp:=nil;
-   end;
+       oldbp:=bp;
+       bp:=get_caller_frame(bp);
+       if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
+         break;
+     end;
+
   { insert in the linked list }
   if heap_mem_root<>nil then
    heap_mem_root^.next:=pp;
@@ -535,11 +538,14 @@ begin
   else
     begin
        bp:=get_caller_frame(get_frame);
-       for i:=(tracesize div 2)+1 to tracesize do
-        begin
-          pp^.calls[i]:=get_caller_addr(bp);
-          bp:=get_caller_frame(bp);
-        end;
+       if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+         for i:=(tracesize div 2)+1 to tracesize do
+          begin
+            pp^.calls[i]:=get_caller_addr(bp);
+            bp:=get_caller_frame(bp);
+            if not((bp>=StackBottom) and (bp<(StackBottom + StackLength))) then
+              break;
+          end;
     end;
   inc(freemem_cnt);
   { clear the memory }
@@ -755,14 +761,15 @@ begin
   inc(getmem8_size,((size+7) div 8)*8);
   { generate new backtrace }
   bp:=get_caller_frame(get_frame);
-  for i:=1 to tracesize do
-   begin
-     pp^.calls[i]:=get_caller_addr(bp);
-     oldbp:=bp;
-     bp:=get_caller_frame(bp);
-     if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-       bp:=nil;
-   end;
+  if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
+    for i:=1 to tracesize do
+     begin
+       pp^.calls[i]:=get_caller_addr(bp);
+       oldbp:=bp;
+       bp:=get_caller_frame(bp);
+       if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
+         break;
+     end;
   { regenerate signature }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
@@ -819,7 +826,7 @@ type
   area_id   = Longint;
 
 function area_for(addr : Pointer) : area_id;
-            cdecl; external 'root' name 'area_for'; 
+            cdecl; external 'root' name 'area_for';
 {$endif BEOS}
 
 procedure CheckPointer(p : pointer); [public, alias : 'FPC_CHECKPOINTER'];
@@ -915,10 +922,10 @@ begin
   {$endif}
 
 {$ifdef BEOS}
-  // if we find the address in a known area in our current process, 
+  // if we find the address in a known area in our current process,
   // then it is a valid one
   if area_for(p) <> B_ERROR then
-    goto _exit;  
+    goto _exit;
 {$endif BEOS}
 
   { first try valid list faster }

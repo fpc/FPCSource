@@ -71,11 +71,7 @@ Function CFreeMemSize(p:pointer;Size:ptrint):ptrint;
 
 begin
   if size<=0 then
-    begin
-      if size<0 then
-        runerror(204);
-      exit;
-    end;
+    exit;
   if (p <> nil) then
     begin
       if (size <> pptrint(p-sizeof(ptrint))^) then

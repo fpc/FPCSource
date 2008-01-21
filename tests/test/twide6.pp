@@ -5,6 +5,12 @@ uses
  {$endif}
   sysutils;
 
+procedure doerror(i : integer);
+  begin
+    writeln('Error: ',i);
+    halt(i);
+  end;
+
 
 { normal upper case testing }
 procedure testupper;
@@ -21,6 +27,9 @@ begin
   writeln('original upper: ',w2);
 {$endif print}
   s:=w1;
+{$ifdef print}
+  writeln('ansi: ',s);
+{$endif print}
   w3:=s;
   w4:=AnsiUpperCase(s);
   { filter out unsupported characters }
@@ -33,12 +42,13 @@ begin
   w1:=wideuppercase(w1);
 {$ifdef print}
   writeln('wideupper: ',w1);
+  writeln('original upper: ',w2);
   writeln('ansiupper: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(1);
+    doerror(1);
   if (w4 <> w2) then
-    halt(2);
+    doerror(2);
 
   w1:='aéèàł'#$d87e#$dc04;
   w2:='AÉÈÀŁ'#$d87e#$dc04;
@@ -58,9 +68,9 @@ begin
   writeln('ansistrupper: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(1);
+    doerror(21);
   if (w4 <> w2) then
-    halt(2);
+    doerror(22);
 
 end;
 
@@ -95,9 +105,9 @@ begin
   writeln('ansilower: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(3);
+    doerror(3);
   if (w4 <> w2) then
-    halt(4);
+    doerror(4);
 
 
   w1:='AÉÈÀŁ'#$d87e#$dc04;
@@ -118,9 +128,9 @@ begin
   writeln('ansistrlower: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(3);
+    doerror(3);
   if (w4 <> w2) then
-    halt(4);
+    doerror(4);
 end;
 
 
@@ -156,9 +166,9 @@ begin
   writeln('ansiupper: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(5);
+    doerror(5);
   if (w4 <> w2) then
-    halt(6);
+    doerror(6);
 end;
 
 
@@ -193,9 +203,9 @@ begin
   writeln('ansilower: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(7);
+    doerror(7);
   if (w4 <> w2) then
-    halt(8);
+    doerror(8);
 end;
 
 
@@ -231,9 +241,9 @@ begin
   writeln('ansiupper: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(9);
+    doerror(9);
   if (w4 <> w2) then
-    halt(10);
+    doerror(10);
 end;
 
 
@@ -268,9 +278,9 @@ begin
   writeln('ansilower: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(11);
+    doerror(11);
   if (w4 <> w2) then
-    halt(12);
+    doerror(12);
 end;
 
 
@@ -295,8 +305,8 @@ begin
   { adjust checking values for new length due to corruption }
   if length(w3)<>length(w2) then
     begin
-      setlength(w2,length(w3)); 
-      setlength(w1,length(w3)); 
+      setlength(w2,length(w3));
+      setlength(w1,length(w3));
     end;
   w4:=AnsiUpperCase(s);
   { filter out unsupported characters }
@@ -312,9 +322,9 @@ begin
   writeln('ansiupper: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(13);
+    doerror(13);
   if (w4 <> w2) then
-    halt(14);
+    doerror(14);
 end;
 
 
@@ -339,8 +349,8 @@ begin
   { adjust checking values for new length due to corruption }
   if length(w3)<>length(w2) then
     begin
-      setlength(w2,length(w3)); 
-      setlength(w1,length(w3)); 
+      setlength(w2,length(w3));
+      setlength(w1,length(w3));
     end;
   w4:=AnsiLowerCase(s);
   { filter out unsupported characters }
@@ -356,9 +366,9 @@ begin
   writeln('ansilower: ',w4);
 {$endif print}
   if (w1 <> w2) then
-    halt(15);
+    doerror(15);
   if (w4 <> w2) then
-    halt(16);
+    doerror(16);
 end;
 
 

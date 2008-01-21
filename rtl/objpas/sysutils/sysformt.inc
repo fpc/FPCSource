@@ -295,7 +295,7 @@ begin
               end;
         'P' : Begin
               CheckArg(vtpointer,true);
-              ToAdd:=HexStr(ptrint(Args[DoArg].VPointer),sizeof(Ptrint)*2);
+              ToAdd:=HexStr(ptruint(Args[DoArg].VPointer),sizeof(Ptruint)*2);
               // Insert ':'. Is this needed in 32 bit ? No it isn't.
               // Insert(':',ToAdd,5);
               end;

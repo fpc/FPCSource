@@ -51,8 +51,8 @@ end;
 function ComposeDateTime(Date,Time : TDateTime) : TDateTime;
 
 begin
-  if Date < 0 then Result := trunc(Date) - frac(Time)
-  else Result := trunc(Date) + frac(Time);
+  if Date < 0 then Result := trunc(Date) - Abs(frac(Time))
+  else Result := trunc(Date) + Abs(frac(Time));
 end;
 
 {   DateTimeToTimeStamp converts DateTime to a TTimeStamp   }
@@ -264,14 +264,23 @@ end;
 
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDateTime;
 var
-  TempMonth, S: Integer;
   Year, Month, Day : word;
+begin
+  DecodeDate(DateTime, Year, Month, Day);
+  IncAMonth(Year, Month, Day, NumberOfMonths);
+  result := ComposeDateTime(DoEncodeDate(Year, Month, Day), DateTime);
+end ;
+
+{   IncAMonth is the same as IncMonth, but operates on decoded date  }
+
+procedure IncAMonth(var Year, Month, Day: Word; NumberOfMonths: Integer = 1);
+var
+  TempMonth, S: Integer;
 begin
   If NumberOfMonths>=0 then
     s:=1
   else
     s:=-1;
-  DecodeDate(DateTime, Year, Month, Day);
   inc(Year,(NumberOfMonths div 12));
   TempMonth:=Month+(NumberOfMonths mod 12)-1;
   if (TempMonth>11) or
@@ -283,8 +292,7 @@ begin
   Month:=TempMonth+1;          {   Months from 1 to 12   }
   If (Day>MonthDays[IsLeapYear(Year)][Month]) then
     Day:=MonthDays[IsLeapYear(Year)][Month];
-  result := Frac(DateTime) + DoEncodeDate(Year, Month, Day);
-end ;
+end;
 
 {  IsLeapYear returns true if Year is a leap year   }
 
@@ -861,7 +869,7 @@ end;
 
 procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime);inline;
 begin
-  dati:=trunc(dati)+frac(newtime);
+  dati:= ComposeDateTime(dati, newtime);
 end;
 
 procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline;

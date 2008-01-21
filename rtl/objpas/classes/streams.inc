@@ -222,17 +222,21 @@
     end;
 
   procedure TStream.WriteResourceHeader(const ResName: string; {!!!: out} var FixupInfo: Integer);
-
+    var
+      ResType, Flags : word;
     begin
+       ResType:=NtoLE(word($000A));
+       Flags:=NtoLE(word($1030));
+       { Note: This is a Windows 16 bit resource }
        { Numeric resource type }
        WriteByte($ff);
        { Application defined data }
-       WriteWord($0a);
+       WriteWord(ResType);
        { write the name as asciiz }
        WriteBuffer(ResName[1],length(ResName));
        WriteByte(0);
        { Movable, Pure and Discardable }
-       WriteWord($1030);
+       WriteWord(Flags);
        { Placeholder for the resource size }
        WriteDWord(0);
        { Return current stream position so that the resource size can be
@@ -243,35 +247,40 @@
   procedure TStream.FixupResourceHeader(FixupInfo: Integer);
 
     var
-       ResSize : Integer;
+       ResSize,TmpResSize : Integer;
 
     begin
 
       ResSize := Position - FixupInfo;
+      TmpResSize := NtoLE(longword(ResSize));
 
       { Insert the correct resource size into the placeholder written by
         WriteResourceHeader }
       Position := FixupInfo - 4;
-      WriteDWord(ResSize);
+      WriteDWord(TmpResSize);
       { Seek back to the end of the resource }
       Position := FixupInfo + ResSize;
 
     end;
 
   procedure TStream.ReadResHeader;
-
+    var
+      ResType, Flags : word;
     begin
        try
+         { Note: This is a Windows 16 bit resource }
          { application specific resource ? }
          if ReadByte<>$ff then
            raise EInvalidImage.Create(SInvalidImage);
-         if ReadWord<>$000a then
+         ResType:=LEtoN(ReadWord);
+         if ResType<>$000a then
            raise EInvalidImage.Create(SInvalidImage);
          { read name }
          while ReadByte<>0 do
            ;
          { check the access specifier }
-         if ReadWord<>$1030 then
+         Flags:=LEtoN(ReadWord);
+         if Flags<>$1030 then
            raise EInvalidImage.Create(SInvalidImage);
          { ignore the size }
          ReadDWord;
@@ -803,7 +812,7 @@ begin
   inherited Destroy;
 end;
   
-  
+{$warnings off}
 function TStreamAdapter.Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; stdcall;
 begin
   runerror(217);
@@ -868,3 +877,4 @@ function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
 begin
   runerror(217);
 end;
+{$warnings on}

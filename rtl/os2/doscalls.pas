@@ -2912,27 +2912,35 @@ function DosStopSession (Scope, SesID: cardinal): cardinal; cdecl;
 
 ****************************************************************************}
 
-type    TAvailData=record
-            cbPipe,             {Number of bytes in pipe.}
-            cbMessage:word;     {Number of bytes in current message.}
-        end;
+type
+  TAvailData = record
+    cbPipe,              {Number of bytes in pipe.}
+    cbMessage: word;     {Number of bytes in current message.}
+  end;
 
-        TPipeInfo=record
-            cbOut:word;         {Size of outbound data.}
-            cbIn:word;          {Size of inbound data.}
-            MaxInst:byte;       {Maximum number of instances.}
-            CurInst:byte;       {Current number of instances.}
-            Name:string;        {Name of the pipe. You can use @Name[1] if
-                                 you need a PChar to the name; the string is
-                                 always followed by a zero.}
-        end;
+  TPipeInfo = record
+    cbOut: word;         {Size of outbound data.}
+    cbIn: word;          {Size of inbound data.}
+    MaxInst: byte;       {Maximum number of instances.}
+    CurInst: byte;       {Current number of instances.}
+    Name: string;        {Name of the pipe. You can use @Name[1] if
+                          you need a PChar to the name; the string is
+                          always followed by a zero.}
+  end;
 
-        TPipeSemState=record
-            Status:byte;
-            Flag:byte;
-            Key:word;
-            Avail:word;
-        end;
+  TPipeSemState = record
+    case boolean of
+      false: (Status: byte;
+              Flag: byte;
+              Key: word;
+              Avail: word);
+      true:  (fStatus: byte;
+              fFlag: byte;
+              usKey: word;
+              usAvail: word);
+  end;
+  PPipeSemState = ^TPipeSemState;
+  TPipeSemStates = array [0..$FFFF] of TPipeSemState;
 
 {Create an unnamed pipe.
  ReadHandle     = Receives handle for reading from pipe.
@@ -2960,11 +2968,14 @@ const   {np_XXXX constants for openmode.}
                                              stream instead of as a byte
                                              stream.}
         np_ReadMode_Message     = np_ReadMode_Mesg;
+        np_RMesg                = np_ReadMode_Message;
         np_WriteMode_Mesg       = $0400;    {Write the pipe as a message
                                              stream instead of as a byte
                                              stream.}
         np_WriteMode_Message    = np_WriteMode_Mesg;
         np_Type_Message         = np_WriteMode_Mesg;
+        np_WMesg                = np_WriteMode_Mesg;
+        np_Wait                 = 0;        { For compatibility only }
         np_NoWait               = $8000;    {Dosread and Doswrite do not
                                              wait is no data can be read or
                                              written; they return with an
@@ -3061,6 +3072,8 @@ function DosQueryNPipeInfo (Handle: THandle; InfoLevel: cardinal; var Buffer;
  BufSize        = Size of SemArray, in bytes.}
 function DosQueryNPipeSemState (SemHandle: THandle; var SemArray;
                                 BufSize: cardinal): cardinal; cdecl;
+function DosQueryNPipeSemState (SemHandle: THandle; SemArray: PPipeSemState;
+                                           BufSize: cardinal): cardinal; cdecl;
 
 {Resets the blocking mode and state of a named pipe.
  Handle         = Handle to named pipe.
@@ -5085,7 +5098,11 @@ function DosQueryNPipeInfo (Handle: THandle; InfoLevel: cardinal; var Buffer;
 external 'DOSCALLS' index 248;
 
 function DosQueryNPipeSemState (SemHandle: THandle; var SemArray;
-                                BufSize: cardinal): cardinal; cdecl;
+                                           BufSize: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 249;
+
+function DosQueryNPipeSemState (SemHandle: THandle; SemArray: PPipeSemState;
+                                           BufSize: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 249;
 
 function DosSetNPHState (Handle: THandle; State: cardinal):cardinal; cdecl;
