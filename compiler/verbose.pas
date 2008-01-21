@@ -179,8 +179,7 @@ implementation
 
     function CheckVerbosity(v:longint):boolean;
       begin
-        CheckVerbosity:=status.use_bugreport or
-                        ((status.verbosity and (v and V_LevelMask))=(v and V_LevelMask));
+        result:=do_checkverbosity(v);
       end;
 
 

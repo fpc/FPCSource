@@ -123,6 +123,7 @@ var
 Function  def_status:boolean;
 Function  def_comment(Level:Longint;const s:ansistring):boolean;
 function  def_internalerror(i:longint):boolean;
+function  def_CheckVerbosity(v:longint):boolean;
 procedure def_initsymbolinfo;
 procedure def_donesymbolinfo;
 procedure def_extractsymbolinfo;
@@ -134,6 +135,7 @@ type
   tstatusfunction        = function:boolean;
   tcommentfunction       = function(Level:Longint;const s:ansistring):boolean;
   tinternalerrorfunction = function(i:longint):boolean;
+  tcheckverbosityfunction = function(i:longint):boolean;
 
   tinitsymbolinfoproc = procedure;
   tdonesymbolinfoproc = procedure;
@@ -145,6 +147,7 @@ const
   do_status        : tstatusfunction  = @def_status;
   do_comment       : tcommentfunction = @def_comment;
   do_internalerror : tinternalerrorfunction = @def_internalerror;
+  do_checkverbosity : tcheckverbosityfunction = @def_checkverbosity;
 
   do_initsymbolinfo : tinitsymbolinfoproc = @def_initsymbolinfo;
   do_donesymbolinfo : tdonesymbolinfoproc = @def_donesymbolinfo;
@@ -366,6 +369,12 @@ begin
   dump_stack(stdout,get_caller_frame(get_frame));
 {$endif EXTDEBUG}
   def_internalerror:=true;
+end;
+
+function def_CheckVerbosity(v:longint):boolean;
+begin
+  result:=status.use_bugreport or
+          ((status.verbosity and (v and V_LevelMask))=(v and V_LevelMask));
 end;
 
 procedure def_initsymbolinfo;
