@@ -40,21 +40,26 @@ begin
           AddInclude('setjumph.inc');
           AddInclude('systemh.inc');
           AddInclude('objpash.inc');
+          AddInclude('mathh.inc');
+          AddInclude('wstringh.inc');
           AddInclude('dynarrh.inc');
           AddInclude('compproc.inc');
           AddInclude('heaph.inc');
           AddInclude('threadh.inc');
           AddInclude('varianth.inc');
+          AddInclude('sysosh.inc');
+          AddInclude('resh.inc');
           // Implementations
-          AddInclude('$(CPU).inc');
           AddInclude('set.inc');
-          AddInclude('math.inc');
           AddInclude('int64p.inc');
           AddInclude('setjump.inc');
           AddInclude('systhrd.inc');
           AddInclude('sysos.inc');
           AddInclude('sysheap.inc');
           AddInclude('sysdir.inc');
+          AddInclude('sysfile.inc');
+          AddInclude('except.inc');
+          AddInclude('threadvr.inc');
           AddInclude('filerec.inc');
           AddInclude('textrec.inc');
           AddInclude('generic.inc');
@@ -64,6 +69,7 @@ begin
           AddInclude('int64.inc');
           AddInclude('astrings.inc');
           AddInclude('wstrings.inc');
+          AddInclude('wustrings.inc');
           AddInclude('aliases.inc');
           AddInclude('dynarr.inc');
           AddInclude('objpas.inc');
@@ -74,6 +80,28 @@ begin
           AddInclude('text.inc');
           AddInclude('file.inc');
           AddInclude('typefile.inc');
+          AddInclude('innr.inc');
+          AddInclude('$(CPU).inc');
+          AddInclude('fastmove.inc',[i386],AllOSes);
+          AddInclude('real2str.inc');
+          // Unix implementations
+          AddInclude('osdefs.inc',AllUnixOSes);
+          AddInclude('sysunixh.inc',AllUnixOSes);
+          AddInclude('elfres32.inc',AllUnixOSes);
+          AddInclude('system.inc',AllUnixOSes);
+          AddInclude('errno.inc',AllUnixOSes);
+          AddInclude('ostypes.inc',AllUnixOSes);
+          AddInclude('ptypes.inc',AllUnixOSes);
+          AddInclude('ctypes.inc',AllUnixOSes);
+          AddInclude('stat.inc',AllUnixOSes);
+          AddInclude('signal.inc',AllUnixOSes);
+          AddInclude('sighnd.inc',AllUnixOSes);
+          AddInclude('sighndh.inc',AllUnixOSes);
+          AddInclude('syscallh.inc',AllUnixOSes);
+          AddInclude('syscall.inc',AllUnixOSes);
+          AddInclude('sysnr.inc',AllUnixOSes);
+          AddInclude('ossysc.inc',AllUnixOSes);
+          AddInclude('osmacro.inc',AllUnixOSes);
         end;
 
     // Compile mode units
