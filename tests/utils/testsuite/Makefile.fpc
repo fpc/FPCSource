@@ -7,8 +7,14 @@ name=testsuite
 version=2.2.1
 
 [require]
-nortl=fcl
+packages=fcl-base fcl-db
 libc=y
+
+[compiler]
+unitdir=..
 
 [target]
 programs=testsuite
+
+[default]
+fpcdir=../../..

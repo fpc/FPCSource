@@ -1,4 +1,5 @@
 type mitem=array[0..8] of string[16];
+     tstr16=string[16];
 
 const chdiv:array[0..8] of string
       =('Eclipse','Elongation','Occultation','Conjonction',' Lever',
@@ -33,7 +34,7 @@ Procedure affint(const Rr:array of integer);
 End;
 
 
-Procedure affm(Rr:string{$ifdef fpc}[16]{$endif});
+Procedure affm(Rr:tstr16);
 Begin
   writeln(Rr);
 End;
