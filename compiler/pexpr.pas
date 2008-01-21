@@ -2085,7 +2085,24 @@ implementation
                                  end
                                else
                                  p2:=nil;
-                               p1:=translate_disp_call(p1,p2,dispatchstring,0,afterassignment);
+                               { property setter? }
+                               if (token=_ASSIGNMENT) and not(afterassignment) then
+                                 begin
+                                   consume(_ASSIGNMENT);
+                                   { read the expression }
+                                   p3:=comp_expr(true);
+                                   { concat value parameter too }
+                                   p2:=ccallparanode.create(p3,p2);
+                                   { passing p3 here is only for information purposes }
+                                   p1:=translate_disp_call(p1,p2,p3,dispatchstring,0,false);
+                                 end
+                               else
+                                 begin
+                                   p1:=translate_disp_call(p1,p2,nil,dispatchstring,0,
+                                     { this is only an approximation
+                                       setting useresult if not necessary is only a waste of time, no more, no less (FK) }
+                                     afterassignment or in_args or (token<>_SEMICOLON));
+                                 end;
                              end
                            else { Error }
                              Consume(_ID);

@@ -181,7 +181,7 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
+    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
 
     var
       ccallnode : tcallnodeclass;
@@ -233,7 +233,7 @@ implementation
       end;
 
 
-    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
+    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -350,8 +350,10 @@ implementation
 
             para:=tcallparanode(para.nextpara);
           end;
-
-        calldesc.calltype:=DISPATCH_METHOD;
+        if assigned(putvalue) then
+          calldesc.calltype:=DISPATCH_PROPERTYPUT
+        else
+          calldesc.calltype:=DISPATCH_METHOD;
         calldesc.argcount:=paracount;
 
         { allocate space }
@@ -379,8 +381,8 @@ implementation
               end;
 
             dispatchbyref:=para.value.resultdef.typ in [variantdef];
-            { assign the argument/parameter to the temporary location }
 
+            { assign the argument/parameter to the temporary location }
             if para.value.nodetype<>nothingn then
               if dispatchbyref then
                 addstatement(statements,cassignmentnode.create(
@@ -2349,13 +2351,13 @@ implementation
                  converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
                  addstatement(statements,converted_result_data);
                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid,true),
+                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,true),
                    procdefinition.returndef)));
                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
                  addstatement(statements,ctemprefnode.create(converted_result_data));
                end
              else
-               result:=translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid,false);
+               result:=translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,false);
 
              { don't free reused nodes }
              methodpointer:=nil;

@@ -7104,6 +7104,7 @@ tests/test/tclass8.pp svneol=native#text/plain
 tests/test/tclrprop.pp svneol=native#text/plain
 tests/test/tcmp.pp svneol=native#text/plain
 tests/test/tcmp0.pp svneol=native#text/plain
+tests/test/tdispvar1.pp svneol=native#text/plain
 tests/test/tendian1.pp svneol=native#text/plain
 tests/test/tenum1.pp svneol=native#text/plain
 tests/test/tenum2.pp svneol=native#text/plain
@@ -8676,6 +8677,7 @@ tests/webtbs/tw9187.pp svneol=native#text/plain
 tests/webtbs/tw9190.pp svneol=native#text/plain
 tests/webtbs/tw9209.pp svneol=native#text/plain
 tests/webtbs/tw9221.pp svneol=native#text/plain
+tests/webtbs/tw9233.pp svneol=native#text/plain
 tests/webtbs/tw9261.pp svneol=native#text/x-pascal
 tests/webtbs/tw9299.pp -text
 tests/webtbs/tw9306a.pp -text
