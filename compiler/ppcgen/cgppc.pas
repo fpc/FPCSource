@@ -394,19 +394,47 @@ unit cgppc;
 {$endif cpu64bit}
         );
     var
-      op: TAsmOp;
       ref2: TReference;
+      tmpreg: tregister;
+      op: TAsmOp;
     begin
       if not (fromsize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
         internalerror(2002090903);
       if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
         internalerror(2002090905);
 
-      ref2 := ref;
-      fixref(list, ref2);
       if tosize in [OS_S8..OS_SINT] then
         { storing is the same for signed and unsigned values }
         tosize := tcgsize(ord(tosize) - (ord(OS_S8) - ord(OS_8)));
+
+      ref2 := ref;
+      fixref(list, ref2);
+
+      { unaligned 64 bit accesses are much slower than unaligned }
+      { 32 bit accesses because they cause a hardware exception  }
+      { (which isn't handled by linux, so there you even get a   }
+      {  crash)                                                  }
+       if (ref2.alignment<>0) and
+         (tosize in [OS_64,OS_S64]) and
+         (ref.alignment<4) then
+        begin
+          if (ref2.base<>NR_NO) and
+             (ref2.index<>NR_NO) then
+            begin
+              tmpreg:=getintregister(list,OS_64);
+              a_op_reg_reg_reg(list,OP_SHR,OS_64,ref2.base,ref2.index,tmpreg);
+              ref2.base:=tmpreg;
+              ref2.index:=NR_NO;
+            end;
+          tmpreg:=getintregister(list,OS_64);
+          a_op_const_reg_reg(list,OP_SHR,OS_64,32,reg,tmpreg);
+          inc(ref2.offset,4);
+          a_load_reg_ref(list,OS_32,OS_32,reg,ref2);
+          dec(ref2.offset,4);
+          a_load_reg_ref(list,OS_32,OS_32,tmpreg,ref2);
+          exit;
+        end;
+
       op := storeinstr[tcgsize2unsigned[tosize], ref2.index <> NR_NO, false];
       a_load_store(list, op, reg, ref2);
     end;
