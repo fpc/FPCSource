@@ -513,7 +513,7 @@ type
       begin
         case opcode of
           A_MOVE, A_MOVEQ, A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ,
-          A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI:
+          A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI, A_OR:
             if opnr=1 then begin
               result:=operand_write;
             end else begin
@@ -521,8 +521,10 @@ type
             end;
           A_TST,A_CMP,A_CMPI:
             result:=operand_read;
-          A_CLR,A_NEG,A_SXX:
+          A_CLR, A_SXX:
             result:=operand_write;
+          A_NEG, A_EXT, A_EXTB, A_NOT:
+            result:=operand_readwrite;
           else begin
 {$WARNING FIX ME!!! remove ugly debug code ... }
             writeln('M68K: unknown opcode when spilling: ',gas_op2str[opcode]);

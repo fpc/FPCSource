@@ -256,6 +256,7 @@ unit cpubase;
 {$warning FIX ME!!! frame pointer is A5 on Amiga, but A6 on unixes?}
       NR_FRAME_POINTER_REG = NR_A5;
       RS_FRAME_POINTER_REG = RS_A5;
+
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
