@@ -291,9 +291,19 @@ begin
         // Process packages
         for i:=0 to ParaPackages.Count-1 do
           begin
-            ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
+            if FileExists(ParaPackages[i]) then
+              begin
+                ActionPackage:=TFPPackage.Create(nil);
+                ActionPackage.Name:=ChangeFileExt(ExtractFileName(ParaPackages[i]),'');
+                ActionPackage.FileName:=ExpandFileName(ParaPackages[i]);
+                ActionPackage.IsLocalPackage:=true;
+              end
+            else
+              ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
             Log(vDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
             res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
+            if ActionPackage.IsLocalPackage then;
+              FreeAndNil(ActionPackage);
             if not res then
               break;
           end;

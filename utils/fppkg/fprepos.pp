@@ -111,6 +111,7 @@ Type
     FDependencies : TFPDependencies;
     FOSes : TOSES;
     FCPUs : TCPUS;
+    FIsLocalPackage : Boolean;
     function GetDependencies: TFPDependencies;
     function GetHasDependencies: Boolean;
     function GetFileName: String;
@@ -139,6 +140,8 @@ Type
     Property Email : String Read FEmail Write FEmail;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
+    // Manual package from commandline not in official repository
+    Property IsLocalPackage : Boolean Read FIsLocalPackage Write FIsLocalPackage;
   end;
 
   { TFPPackages }

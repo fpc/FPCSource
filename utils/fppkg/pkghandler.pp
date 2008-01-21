@@ -174,6 +174,8 @@ function TPackageHandler.PackageRemoteArchive: String;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
+  if CurrentPackage.IsLocalPackage then
+    Error(SErrPackageIsLocal);
   if CurrentPackage.ExternalURL<>'' then
     Result:=CurrentPackage.ExternalURL
   else
@@ -184,7 +186,10 @@ function TPackageHandler.PackageLocalArchive: String;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
-  Result:=GlobalOptions.PackagesDir+CurrentPackage.FileName;
+  if CurrentPackage.IsLocalPackage then
+    Result:=CurrentPackage.FileName
+  else
+    Result:=GlobalOptions.PackagesDir+CurrentPackage.FileName;
 end;
 
 
