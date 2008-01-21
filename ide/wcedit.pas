@@ -1378,13 +1378,11 @@ begin
               end;
             eaDeleteLine :
               begin
-                SetCurPtr(EndPos.X,EndPos.Y);
-                SetMinMax(EndPos.Y);
                 HadefNoIndent:=(GetFlags and efNoIndent)<>0;
                 WasInserting:=GetInsertMode;
                 SetInsertMode(true);
                 SetFlags(GetFlags or efNoIndent);
-                InsertNewLine;
+                InsertLine(StartPos.Y,'');
                 SetInsertMode(WasInserting);
                 if not HadefNoIndent then
                   SetFlags(GetFlags and not efNoIndent);
@@ -2062,5 +2060,4 @@ begin
 {$endif}
 end;
 
-
-END.
+end.
