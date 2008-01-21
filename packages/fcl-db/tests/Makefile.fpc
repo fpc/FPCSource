@@ -16,7 +16,7 @@ fpcpackage=y
 fpcdir=../../..
 
 [require]
-packages=fcl-fpcunit fcl-db
+packages=fcl-fpcunit fcl-db paszlib
 
 [rules]
 .NOTPARALLEL:
