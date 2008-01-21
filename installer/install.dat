@@ -79,6 +79,12 @@ package=ufcl-webdos.zip[ufclwdos.zip],Free Component Libary (FCL)-Web
 package=ufpmkunitdos.zip[ufpmkdos.zip],Units required for building fpmake.exe
 # Dos 26
 package=ufcl-jsondos.zip[ufcljdos.zip],Free Component Libary (FCL)-JSON interface
+# Dos 27
+package=ufcl-asyncdos.zip[ufclados.zip],Free Component Libary (FCL)-asynchronous events
+# Dos 28
+package=ufcl-processdos.zip[ufclpdos.zip],Free Component Libary (FCL)-process management
+# Dos 29
+package=uchmdos.zip,Support for .chm files handling
 
 
 #
@@ -189,6 +195,12 @@ package=units-fcl-web.i386-win32.zip,Free Component Libary (FCL)-Web
 package=units-fcl-xml.i386-win32.zip,Free Component Libary (FCL)-XML
 # Win32-2 23
 package=units-fcl-json.i386-win32.zip,Free Component Libary (FCL)-JSON interface
+# Win32-2 24
+package=units-fcl-async.i386-win32.zip,Free Component Libary (FCL)-asynchronous events
+# Win32-2 25
+package=units-fcl-process.i386-win32.zip,Free Component Libary (FCL)-process management
+# Win32-2 26
+package=units-chm.i386-win32.zip,Support for .chm files handling
 
 
 #
@@ -284,6 +296,12 @@ package=unetdbos2.zip[undbos2.zip],NetDB units
 package=ufpmkunitos2.zip[ufpmkos2.zip],Units required for building fpmake.exe
 # OS/2-2 18
 package=ufcl-jsonos2.zip[ufcljos2.zip],Free Component Libary (FCL)-JSON interface
+# OS/2-2 19
+package=ufcl-asyncos2.zip[ufclaos2.zip],Free Component Libary (FCL)-asynchronous events
+# OS/2-2 20
+package=ufcl-processos2.zip[ufclpos2.zip],Free Component Libary (FCL)-process management
+# OS/2-2 21
+package=uchmos2.zip,Support for .chm files handling
 
 
 #
@@ -381,6 +399,12 @@ package=unetdbemx.zip[undbemx.zip],NetDB units
 package=ufpmkunitemx.zip[ufpmkemx.zip],Units required for building fpmake.exe
 # EMX-2 18
 package=ufcl-jsonemx.zip[ufcljemx.zip],Free Component Libary (FCL)-JSON interface
+# EMX-2 19
+package=ufcl-asyncemx.zip[ufclaemx.zip],Free Component Libary (FCL)-asynchronous events
+# EMX-2 20
+package=ufcl-processemx.zip[ufclpemx.zip],Free Component Libary (FCL)-process management
+# EMX-2 21
+package=uchmemx.zip,Support for .chm files handling
 
 
 #
@@ -476,6 +500,12 @@ package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
 package=units-fpmkunit.source.zip[ufpmksrc.zip],Units required for building fpmake.exe
 # Source-2 18
 package=fcl-json.source.zip[ufcljsrc.zip],Free Component Libary (FCL)-JSON interface
+# Source-2 19
+package=fcl-async.source.zip[ufclasrc.zip],Free Component Libary (FCL)-asynchronous events
+# Source-2 20
+package=fcl-process.source.zip[ufclpsrc.zip],Free Component Libary (FCL)-process management
+# Source-2 21
+package=units-chm.source.zip[uchmsrc.zip],Support for .chm files handling
 
 #
 # Source packages 3rd part
