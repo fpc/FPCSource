@@ -86,6 +86,8 @@ type
     FTestResult : TTestStatus;
     FOutputDir : String;
     FHostName : String;
+    FComment : String;
+    FCategory : String;
   private
     procedure CreateTar;
   public
@@ -96,6 +98,9 @@ type
     procedure EndTest(ATest: TTest); override;
     procedure StartTestSuite(ATestSuite: TTestSuite); override;
     procedure EndTestSuite(ATestSuite: TTestSuite); override;
+    
+    property Comment: string read FComment write FComment;
+    property Category: string read FCategory write FCategory;
   end;
   
 implementation
@@ -306,7 +311,6 @@ end;
 
 procedure TDigestResultsWriter.EndTestSuite(ATestSuite: TTestSuite);
 var DigestFileName : String;
-    Comment        : String;
     i              : byte;
 begin
   if ATestSuite.TestName='' then
@@ -319,13 +323,10 @@ begin
     AddLog(DigestFileName,'Submitter='+sysutils.GetEnvironmentVariable('USER'));
     FHostName:=sysutils.GetEnvironmentVariable('HOSTNAME');
     if pos('.',FHostName)>0 then
-      FHostName:=system.Copy(FHostName,1,pos('.',FHostName));
+      FHostName:=system.Copy(FHostName,1,pos('.',FHostName)-1);
     AddLog(DigestFileName,'Machine='+FHostName);
-    
-    Comment:='';
-    for i := 1 to Paramcount do
-      Comment:=Comment+ParamStr(i)+' ';
-    AddLog(DigestFileName,'Comment='+Comment);
+    AddLog(DigestFileName,'Comment='+FComment);
+    AddLog(DigestFileName,'Category='+FCategory);
 // Create .tar.gz file
     CreateTar;
     end;
