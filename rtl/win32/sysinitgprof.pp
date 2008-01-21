@@ -30,6 +30,11 @@ unit sysinitgprof;
 
     var
       SysInstance : Longint;external name '_FPC_SysInstance';
+      EntryInformation : TEntryInformation;
+
+      InitFinalTable : record end; external name 'INITFINAL';
+      ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
+      valgrind_used : boolean;external name '__fpc_valgrind';
       stext : record end;external name '__text_start__';
       etext : record end;external name 'etext';
 
@@ -50,6 +55,26 @@ unit sysinitgprof;
 
     function GetStdHandle(nStdHandle:DWORD) : THandle; stdcall; external 'kernel32' name 'GetStdHandle';
     function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
+
+    procedure EXE_Entry(const info : TEntryInformation); external name '_FPC_EXE_Entry';
+    function DLL_entry(const info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
+    procedure PascalMain;stdcall;external name 'PASCALMAIN';
+
+    procedure asm_exit;stdcall;public name 'asm_exit';
+      begin
+        _mcleanup;
+      end;
+
+
+    procedure SetupEntryInformation;
+      begin
+        EntryInformation.InitFinalTable:=@InitFinalTable;
+        EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
+        EntryInformation.asm_exit:=@asm_exit;
+        EntryInformation.PascalMain:=@PascalMain;
+        EntryInformation.valgrind_used:=valgrind_used;
+      end;
+
 
     procedure EXEgmon_start;
       begin
@@ -79,7 +104,8 @@ unit sysinitgprof;
         end;
         EXEgmon_start;
         __main;
-        EXE_Entry;
+        SetupEntryInformation;
+        EXE_Entry(EntryInformation);
       end;
 
 
@@ -91,7 +117,8 @@ unit sysinitgprof;
         end;
         DLLgmon_start;
         __main;
-        DLL_Entry;
+        SetupEntryInformation;
+        DLL_Entry(EntryInformation);
       end;
 
 
@@ -148,11 +175,4 @@ unit sysinitgprof;
         Cygwin_crt0(@CMainDLL);
       end;
 
-
-    procedure asm_exit;stdcall;public name 'asm_exit';
-      begin
-        _mcleanup;
-      end;
-
 end.
-

@@ -44,7 +44,11 @@ const
 var
   { widechar, because also used by widestring -> pwidechar conversions }
   emptychar : widechar;public name 'FPC_EMPTYCHAR';
+{$ifndef FPC_NO_GENERIC_STACK_CHECK}
+  { if the OS does the stack checking, we don't need any stklen from the
+    main program }
   initialstklen : SizeUint;external name '__stklen';
+{$endif FPC_NO_GENERIC_STACK_CHECK}
 
 { checks whether the given suggested size for the stack of the current
  thread is acceptable. If this is the case, returns it unaltered.
@@ -653,6 +657,11 @@ end;
                          Stack check code
 *****************************************************************************}
 
+{ be compatible with old code }
+{$ifdef FPC_NO_GENERIC_STACK_CHECK}
+{$define NO_GENERIC_STACK_CHECK}
+{$endif FPC_NO_GENERIC_STACK_CHECK}
+
 {$IFNDEF NO_GENERIC_STACK_CHECK}
 
 {$IFOPT S+}
@@ -691,14 +700,19 @@ type
     InitProc,
     FinalProc : TProcedure;
   end;
-  TInitFinalTable=record
+  TInitFinalTable = record
     TableCount,
     InitCount  : longint;
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
+  PInitFinalTable = ^TInitFinalTable;
 
+
+{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
 var
   InitFinalTable : TInitFinalTable;external name 'INITFINAL';
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
@@ -706,7 +720,9 @@ var
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
-  with InitFinalTable do
+  with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+    InitFinalTable
+    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} do
    begin
      for i:=1 to TableCount do
       begin
@@ -722,7 +738,9 @@ end;
 
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
-  with InitFinalTable do
+  with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+    InitFinalTable
+    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} do
    begin
      while (InitCount>0) do
       begin

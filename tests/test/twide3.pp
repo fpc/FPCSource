@@ -1,3 +1,7 @@
+{ %skiptarget=win32,win64,wince }
+{ This test is only usefull if the local codepage is utf-8 which
+  usually not the case on windows
+}
 {$codepage utf-8}
 
 {$mode objfpc}

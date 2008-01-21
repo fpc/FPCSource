@@ -21,6 +21,11 @@ unit sysinitcyg;
 
     var
       SysInstance : Longint;external name '_FPC_SysInstance';
+      EntryInformation : TEntryInformation;
+
+      InitFinalTable : record end; external name 'INITFINAL';
+      ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
+      valgrind_used : boolean;external name '__fpc_valgrind';
 
     procedure EXE_Entry; external name '_FPC_EXE_Entry';
     function DLL_Entry : longbool; external name '_FPC_DLL_Entry';
@@ -34,6 +39,24 @@ unit sysinitcyg;
     function GetStdHandle(nStdHandle:DWORD) : THandle; stdcall; external 'kernel32' name 'GetStdHandle';
     function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
 
+    procedure EXE_Entry(const info : TEntryInformation); external name '_FPC_EXE_Entry';
+    function DLL_entry(const info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
+    procedure PascalMain;stdcall;external name 'PASCALMAIN';
+
+    procedure asm_exit;stdcall;public name 'asm_exit';
+      begin
+      end;
+
+    procedure SetupEntryInformation;
+      begin
+        EntryInformation.InitFinalTable:=@InitFinalTable;
+        EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
+        EntryInformation.asm_exit:=@asm_exit;
+        EntryInformation.PascalMain:=@PascalMain;
+        EntryInformation.valgrind_used:=valgrind_used;
+      end;
+
+
     procedure CMainEXE;cdecl;
       begin
         asm
@@ -41,7 +64,8 @@ unit sysinitcyg;
           andl   $0xfffffff0,%esp
         end;
         __main;
-        EXE_Entry;
+        SetupEntryInformation;
+        EXE_Entry(EntryInformation);
       end;
 
 
@@ -52,7 +76,8 @@ unit sysinitcyg;
           andl   $0xfffffff0,%esp
         end;
         __main;
-        DLL_Entry;
+        SetupEntryInformation;
+        DLL_Entry(EntryInformation);
       end;
 
 
@@ -107,10 +132,6 @@ unit sysinitcyg;
           andl   $0xfffffff0,%esp
         end;
         Cygwin_crt0(@CMainDLL);
-      end;
-
-    procedure asm_exit;stdcall;public name 'asm_exit';
-      begin
       end;
 
 end.

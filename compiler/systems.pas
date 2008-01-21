@@ -312,7 +312,9 @@ interface
             tf_dwarf_only_local_labels,          // only use local labels inside the Dwarf debug_info section (needed for e.g. Darwin)
             tf_requires_proper_alignment,
             tf_no_pic_supported,
-            tf_pic_default
+            tf_pic_default,
+            { the os does some kind of stack checking and it can be converted into a rte 202 }
+            tf_no_generic_stackcheck
        );
 
        psysteminfo = ^tsysteminfo;

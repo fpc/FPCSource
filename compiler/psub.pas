@@ -950,7 +950,8 @@ implementation
 
             { Already reserve all registers for stack checking code and
               generate the call to the helper function }
-            if (cs_check_stack in entryswitches) and
+            if not(tf_no_generic_stackcheck in target_info.flags) and
+               (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
                (procdef.proctypeoption<>potype_proginit) then
               begin
