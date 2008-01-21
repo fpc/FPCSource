@@ -20,9 +20,10 @@ Uses
 Function GetTestID(Name : string) : Integer;
 Function GetOSID(Name : String) : Integer;
 Function GetCPUID(Name : String) : Integer;
+Function GetCategoryID(Name : String) : Integer;
 Function GetVersionID(Name : String) : Integer;
 Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
-Function AddRun(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
+Function AddRun(OSID, CPUID, VERSIONID, CATEGORYID : Integer; Date : TDateTime) : Integer;
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
 Function AddTestResult(TestID,RunID,TestRes : Integer;
@@ -105,7 +106,7 @@ Function RunQuery (Qry : String; Var res : TQueryResult) : Boolean ;
 
 begin
   Verbose(V_DEBUG,'Running query:'+Qry);
-  Result:=mysql_query(@Connection,PChar(qry))>=0;
+  Result:=mysql_query(@Connection,PChar(qry))=0;
   If Not Result then
     Verbose(V_WARNING,'Query : '+Qry+'Failed : '+Strpas(mysql_error(@connection)))
   else
@@ -207,6 +208,14 @@ begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
+Function GetCategoryID(Name : String) : Integer;
+
+Const
+  SFromName = 'SELECT TCAT_ID FROM TESTCATEGORY WHERE (TCAT_NAME="%s")';
+
+begin
+  Result:=IDQuery(Format(SFromName,[Name]));
+end;
 
 Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
 
@@ -222,24 +231,103 @@ begin
   Result:=IDQuery(Format(SFromIDS,[OSID,CPUID,VERSIONID,SQLDate(Date)]));
 end;
 
-Function AddRun(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
+Function AddRun(OSID, CPUID, VERSIONID, CATEGORYID : Integer; Date : TDateTime) : Integer;
 
 Const
   SInsertRun = 'INSERT INTO TESTRUN '+
-               '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_DATE)'+
+               '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_CATEGORY_FK,TU_DATE)'+
                ' VALUES '+
-               '(%d,%d,%d,"%s")';
+               '(%d,%d,%d,%d,"%s")';
 
 Var
   Res : TQueryResult;
 
 begin
-  If RunQuery(Format(SInsertRun,[OSID,CPUID,VERSIONID,SQLDate(Date)]),Res) then
+  If RunQuery(Format(SInsertRun,[OSID,CPUID,VERSIONID,CATEGORYID,SQLDate(Date)]),Res) then
     Result:=mysql_insert_id(@connection)
   else
     Result:=-1;
 end;
 
+function posr(c : Char; const s : AnsiString) : integer;
+var
+  i : integer;
+begin
+  i := length(s);
+  while (i>0) and (s[i] <> c) do dec(i);
+  Result := i;
+end;
+
+function GetUnitTestConfig(const fn : string; var r : TConfig) : Boolean;
+var
+  Path       : string;
+  ClassName  : string;
+  MethodName : string;
+  slashpos   : integer;
+  FileName   : string;
+  s          : string;
+  t          : text;
+begin
+  Result := False;
+  FillChar(r,sizeof(r),0);
+  if pos('.',fn) > 0 then exit; // This is normally not a unit-test
+  slashpos := posr('/',fn);
+  if slashpos < 1 then exit;
+  MethodName := copy(fn,slashpos+1,length(fn));
+  Path := copy(fn,1,slashpos-1);
+  slashpos := posr('/',Path);
+  if slashpos > 0 then
+    begin
+    ClassName := copy(Path,slashpos+1,length(Path));
+    Path := copy(Path,1,slashpos-1);
+    end
+  else
+    begin
+    ClassName := Path;
+    path := '.';
+    end;
+  if upper(ClassName[1])<>'T' then exit;
+  FileName := lowercase(TestSrcDir+Path+DirectorySeparator+copy(ClassName,2,length(classname)));
+  if FileExists(FileName+'.pas') then
+    FileName := FileName + '.pas'
+  else if FileExists(FileName+'.pp') then
+    FileName := FileName + '.pp'
+  else exit;
+  
+  Verbose(V_Debug,'Reading '+FileName);
+  assign(t,FileName);
+  {$I-}
+   reset(t);
+  {$I+}
+  if ioresult<>0 then
+   begin
+     Verbose(V_Error,'Can''t open '+FileName);
+     exit;
+   end;
+  while not eof(t) do
+   begin
+     readln(t,s);
+
+     if s<>'' then
+      begin
+        TrimB(s);
+        if SameText(copy(s,1,9),'PROCEDURE') then
+         begin
+           if pos(';',s)>11 then
+            begin
+              s := copy(s,11,pos(';',s)-11);
+              TrimB(s);
+              if SameText(s,ClassName+'.'+MethodName) then
+               begin
+                 Result := True;
+                 r.Note:= 'unittest';
+               end;
+            end;
+         end;
+      end;
+   end;
+  close(t);
+end;
 
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 
@@ -253,8 +341,9 @@ Var
 
 begin
   Result:=-1;
-  If FileExists(TestSrcDir+Name) and
-     GetConfig(TestSrcDir+Name,Info) then
+  If (FileExists(TestSrcDir+Name) and
+     GetConfig(TestSrcDir+Name,Info)) or
+     GetUnitTestConfig(Name,Info) then
     begin
     If RunQuery(Format(SInsertTest,[Name]),Res) then
       begin

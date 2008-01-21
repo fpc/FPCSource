@@ -68,6 +68,7 @@ TConfigOpt = (
   coLogFile,
   coOS,
   coCPU,
+  coCategory,
   coVersion,
   coDate,
   coSubmitter,
@@ -87,6 +88,7 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'logfile',
   'os',
   'cpu',
+  'category',
   'version',
   'date',
   'submitter',
@@ -97,12 +99,13 @@ ConfigStrings : Array [TConfigOpt] of string = (
 );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','v','t','s','m','C','S','V');
+           = ('d','h','u','p','l','o','c','a','v','t','s','m','C','S','V');
 
 Var
   TestOS,
   TestCPU,
   TestVersion,
+  TestCategory,
   DatabaseName,
   HostName,
   UserName,
@@ -125,6 +128,7 @@ begin
     coLogFile      : LogFileName:=Value;
     coOS           : TestOS:=Value;
     coCPU          : TestCPU:=Value;
+    coCategory     : TestCategory:=Value;
     coVersion      : TestVersion:=Value;
     coDate         : 
       begin
@@ -258,6 +262,7 @@ Var
   TestCPUID : Integer;
   TestOSID  : Integer;
   TestVersionID  : Integer;
+  TestCategoryID : Integer;
   TestRunID : Integer;
 
 Procedure GetIDs;
@@ -269,6 +274,12 @@ begin
   TestOSID  := GetOSID(TestOS);
   If TestOSID=-1 then
     Verbose(V_Error,'NO ID for OS "'+TestOS+'" found.');
+  TestCategoryID := GetCategoryID(TestCategory);
+  If TestCategoryID=-1 then
+    begin
+//    Verbose(V_Error,'NO ID for Category "'+TestCategory+'" found.');
+    TestCategoryID:=1;
+    end;
   TestVersionID  := GetVersionID(TestVersion);
   If TestVersionID=-1 then
     Verbose(V_Error,'NO ID for version "'+TestVersion+'" found.');
@@ -277,7 +288,7 @@ begin
   TestRunID:=GetRunID(TestOSID,TestCPUID,TestVersionID,TestDate);
   If (TestRunID=-1) then
     begin
-    TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestDate);
+    TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestCategoryID,TestDate);
     If TestRUnID=-1 then
       Verbose(V_Error,'Could not insert new testrun record!');
     end
