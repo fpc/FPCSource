@@ -431,7 +431,8 @@ function fpsystem(const Command:string):cint;
 var c:array[0..255] of char;
 
 begin
-  strpcopy(@c,command);
+  move(command[1],c[0],length(command));
+  c[length(command)]:=#0;
   fpsystem:=xfpsystem(@c);
 end;
 
