@@ -75,9 +75,12 @@ const
   UID_SOURCE_FILENAME = 'QUID.cpp';
   UID_OBJECT_FILENAME = 'QUID.o';
   
+  STR_ASSEMBLER_EXT = '.S';
+  STR_OBJECT_EXT = '.o';
+
   STR_RESOURCE_TMP_EXT = '.pprsc';
   STR_RESOURCE_EXT = '.rsc';
-  
+
 { Strings from the project file }
 const
   { Sections }

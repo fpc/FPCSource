@@ -84,6 +84,10 @@ interface
         '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64'
       );
 
+      ppcSuffix : array[TCpu] of string=(
+        '386','m68k','ppc','sparc','x86_64','arm','ppc64'
+      );
+
       OSStr : array[TOS] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
         'amiga','atari','solaris', 'qnx', 'netware','openbsd','wdosx',
@@ -1147,6 +1151,7 @@ implementation
 
     procedure TFPCMake.AddFPCDefaultVariables;
       var
+        cpu : TCpu;
         hs,s : string;
       begin
         { Already set FPCDIR }
@@ -1182,9 +1187,15 @@ implementation
          begin
 {$ifdef UNIX}
 {$ifndef NO_UNIX_UNIT}
-           if FileExists('/usr/local/bin/ppc386') then
+           cpu := low(TCpu);
+           while(cpuStr[cpu] <> {$I %FPCTARGETCPU%}) do begin
+             Inc(cpu);
+             if cpu > high(TCpu) then
+               raise Exception.Create('Internal error');
+           end;
+           if FileExists('/usr/local/bin/ppc' + ppcSuffix[cpu]) then
             begin
-              s:=ExtractFilePath({$ifdef ver1_0}ReadLink{$else}fpReadlink{$endif}('/usr/local/bin/ppc386'));
+              s:=ExtractFilePath({$ifdef ver1_0}ReadLink{$else}fpReadlink{$endif}('/usr/local/bin/ppc' + ppcSuffix[cpu]));
               if s<>'' then
                begin
                  if s[length(s)]='/' then
@@ -1194,9 +1205,9 @@ implementation
             end;
            if hs='' then
             begin
-              if FileExists('/usr/bin/ppc386') then
+              if FileExists('/usr/bin/ppc' + ppcSuffix[cpu]) then
                begin
-                 s:=ExtractFilePath({$ifdef ver1_0}ReadLink{$else}fpReadLink{$endif}('/usr/bin/ppc386'));
+                 s:=ExtractFilePath({$ifdef ver1_0}ReadLink{$else}fpReadLink{$endif}('/usr/bin/ppc' + ppcSuffix[cpu]));
                  if s<>'' then
                   begin
                     if s[length(s)]='/' then

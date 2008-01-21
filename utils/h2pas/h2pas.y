@@ -3063,15 +3063,10 @@ begin
   if createdynlib then
     begin
       writeln(outfile,'  uses');
-      writeln(outfile,'    SysUtils,');
-      writeln(outfile,'{$ifdef Win32}');
-      writeln(outfile,'    Windows;');
-      writeln(outfile,'{$else}');
-      writeln(outfile,'    DLLFuncs;');
-      writeln(outfile,'{$endif win32}');
+      writeln(outfile,'    SysUtils, dynlibs;');
       writeln(outfile);
       writeln(outfile,'  var');
-      writeln(outfile,'    hlib : thandle;');
+      writeln(outfile,'    hlib : tlibhandle;');
       writeln(outfile);
       writeln(outfile);
       writeln(outfile,'  procedure Free',unitname,';');
