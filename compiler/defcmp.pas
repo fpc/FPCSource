@@ -34,7 +34,7 @@ interface
      type
        { if acp is cp_all the var const or nothing are considered equal }
        tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
-       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue);
+       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue,cpo_openequalisexact);
        tcompare_paras_options = set of tcompare_paras_option;
 
        tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter);
@@ -1509,7 +1509,7 @@ implementation
                 { both must be hidden }
                 if (vo_is_hidden_para in currpara1.varoptions)<>(vo_is_hidden_para in currpara2.varoptions) then
                   exit;
-                eq:=te_equal;
+                eq:=te_exact;
                 if not(vo_is_self in currpara1.varoptions) and
                    not(vo_is_self in currpara2.varoptions) then
                  begin
@@ -1558,6 +1558,16 @@ implementation
               { check type }
               if eq=te_incompatible then
                 exit;
+              { open arrays can never match exactly, since you cannot define }
+              { a separate "open array" type -> we have to be able to        }
+              { consider those as exact when resolving forward definitions.  }
+              { The same goes for openstrings and array of const             }
+              if (is_open_array(currpara1.vardef) or
+                  is_array_of_const(currpara1.vardef) or
+                  is_open_string(currpara1.vardef)) and
+                 (eq=te_equal) and
+                 (cpo_openequalisexact in cpoptions) then
+                eq:=te_exact;
               if eq<lowesteq then
                 lowesteq:=eq;
               { also check default value if both have it declared }

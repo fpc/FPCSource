@@ -39,7 +39,7 @@ unit cgobj;
        cclasses,globtype,
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       symconst,symbase,symtype,symdef,symtable,rgobj
+       symconst,symtype,symdef,rgobj
        ;
 
     type
@@ -462,24 +462,24 @@ unit cgobj;
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_save_standard_registers(list:TAsmList);virtual;
+          procedure g_save_registers(list:TAsmList);virtual;
           {# This routine is called when generating the code for the exit point
              of a routine. It should restore all registers which were previously
              saved in @var(g_save_standard_registers).
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_restore_standard_registers(list:TAsmList);virtual;
+          procedure g_restore_registers(list:TAsmList);virtual;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual;
 
           function g_indirect_sym_load(list:TAsmList;const symname: string): tregister;virtual;
-          { generate a stub which only purpose is to pass control the given external method, 
+          { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
           The default implementation issues a jump instruction to the external name. }
           procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
-          
+
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
         protected
@@ -3594,7 +3594,7 @@ implementation
       end;
 
 
-    procedure tcg.g_save_standard_registers(list:TAsmList);
+    procedure tcg.g_save_registers(list:TAsmList);
       var
         href : treference;
         size : longint;
@@ -3605,12 +3605,27 @@ implementation
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             inc(size,sizeof(aint));
+
+        { mm registers }
+        if uses_registers(R_MMREGISTER) then
+          begin
+            { Make sure we reserve enough space to do the alignment based on the offset
+              later on. We can't use the size for this, because the alignment of the start
+              of the temp is smaller than needed for an OS_VECTOR }
+            inc(size,tcgsize2size[OS_VECTOR]);
+
+            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+              if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                inc(size,tcgsize2size[OS_VECTOR]);
+          end;
+
         if size>0 then
           begin
             tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
+            include(current_procinfo.flags,pi_has_saved_regs);
+
             { Copy registers to temp }
             href:=current_procinfo.save_regs_ref;
-
             for r:=low(saved_standard_registers) to high(saved_standard_registers) do
               begin
                 if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
@@ -3620,19 +3635,30 @@ implementation
                   end;
                 include(rg[R_INTREGISTER].preserved_by_proc,saved_standard_registers[r]);
               end;
+
+            if uses_registers(R_MMREGISTER) then
+              for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+                begin
+                  if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                    begin
+                      a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
+                      inc(href.offset,tcgsize2size[OS_VECTOR]);
+                    end;
+                  include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
+                end;
           end;
       end;
 
 
-    procedure tcg.g_restore_standard_registers(list:TAsmList);
+    procedure tcg.g_restore_registers(list:TAsmList);
       var
         href     : treference;
         r        : integer;
         hreg     : tregister;
-        freetemp : boolean;
       begin
+        if not(pi_has_saved_regs in current_procinfo.flags) then
+          exit;
         { Copy registers from temp }
-        freetemp:=false;
         href:=current_procinfo.save_regs_ref;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
@@ -3642,10 +3668,26 @@ implementation
               a_reg_alloc(list,hreg);
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
               inc(href.offset,sizeof(aint));
-              freetemp:=true;
             end;
-        if freetemp then
-          tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+
+        if uses_registers(R_MMREGISTER) then
+          begin
+            if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
+              inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
+
+            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+              begin
+                if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                  begin
+                    hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE);
+                    { Allocate register so the optimizer does not remove the load }
+                    a_reg_alloc(list,hreg);
+                    a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
+                    inc(href.offset,tcgsize2size[OS_VECTOR]);
+                  end;
+              end;
+          end;
+        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;
 
 

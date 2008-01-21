@@ -35,6 +35,8 @@ unit cgcpu;
     type
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
+
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
@@ -65,24 +67,24 @@ unit cgcpu;
         if target_info.system=system_x86_64_win64 then
           begin
             SetLength(saved_standard_registers,Length(win64_saved_std_regs));
-            SetLength(saved_xmm_registers,Length(win64_saved_xmm_regs));
+            SetLength(saved_mm_registers,Length(win64_saved_xmm_regs));
 
             for i:=low(win64_saved_std_regs) to high(win64_saved_std_regs) do
               saved_standard_registers[i]:=win64_saved_std_regs[i];
 
             for i:=low(win64_saved_xmm_regs) to high(win64_saved_xmm_regs) do
-              saved_xmm_registers[i]:=win64_saved_xmm_regs[i];
+              saved_mm_registers[i]:=win64_saved_xmm_regs[i];
           end
         else
           begin
             SetLength(saved_standard_registers,Length(others_saved_std_regs));
-            SetLength(saved_xmm_registers,0);
+            SetLength(saved_mm_registers,0);
 
             for i:=low(others_saved_std_regs) to high(others_saved_std_regs) do
               saved_standard_registers[i]:=others_saved_std_regs[i];
           end;
         if assigned(current_procinfo) then
-          framepointer:=getsupreg(current_procinfo.framepointer) 
+          framepointer:=getsupreg(current_procinfo.framepointer)
         else
           { in intf. wrapper code generation }
           framepointer:=RS_FRAME_POINTER_REG;
@@ -91,6 +93,14 @@ unit cgcpu;
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
+      end;
+
+
+    procedure Tcgx86_64.done_register_allocators;
+      begin
+        inherited done_register_allocators;
+        setlength(saved_standard_registers,0);
+        setlength(saved_mm_registers,0);
       end;
 
 

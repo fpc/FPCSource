@@ -159,6 +159,8 @@
          GCC source.
       }
       saved_standard_registers : array[0..2] of tsuperregister = (RS_EBX,RS_ESI,RS_EDI);
+
+      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.

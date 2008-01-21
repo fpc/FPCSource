@@ -660,7 +660,8 @@ unit rgobj;
         begin
           if movelist=nil then
             begin
-              getmem(movelist,sizeof(tmovelistheader)+60*sizeof(pointer));
+              { don't use sizeof(tmovelistheader), because that ignores alignment }
+              getmem(movelist,ptrint(@movelist^.data)-ptrint(movelist)+60*sizeof(pointer));
               movelist^.header.maxcount:=60;
               movelist^.header.count:=0;
               movelist^.header.sorted_until:=0;
@@ -670,7 +671,8 @@ unit rgobj;
               if movelist^.header.count>=movelist^.header.maxcount then
                 begin
                   movelist^.header.maxcount:=movelist^.header.maxcount*2;
-                  reallocmem(movelist,sizeof(tmovelistheader)+movelist^.header.maxcount*sizeof(pointer));
+                  { don't use sizeof(tmovelistheader), because that ignores alignment }
+                  reallocmem(movelist,ptrint(@movelist^.data)-ptrint(movelist)+movelist^.header.maxcount*sizeof(pointer));
                 end;
             end;
           movelist^.data[movelist^.header.count]:=data;
@@ -1657,9 +1659,11 @@ unit rgobj;
                               if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                                 with ref^ do
                                   begin
-                                    if base<>NR_NO then
+                                    if (base<>NR_NO) and
+                                       (getregtype(base)=regtype) then
                                       setsupreg(base,reginfo[getsupreg(base)].colour);
-                                    if index<>NR_NO then
+                                    if (index<>NR_NO) and
+                                       (getregtype(index)=regtype) then
                                       setsupreg(index,reginfo[getsupreg(index)].colour);
                                   end;
                             end;
@@ -1669,7 +1673,8 @@ unit rgobj;
                               if regtype=R_INTREGISTER then
                                 begin
                                   so:=shifterop;
-                                  if so^.rs<>NR_NO then
+                                  if (so^.rs<>NR_NO) and
+                                     (getregtype(so^.rs)=regtype) then
                                     setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
                                 end;
                             end;

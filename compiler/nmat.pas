@@ -634,7 +634,8 @@ implementation
            exit;
 
          resultdef:=left.resultdef;
-         if (left.resultdef.typ=floatdef) then
+         if (left.resultdef.typ=floatdef) or
+            is_currency(left.resultdef) then
            begin
            end
 {$ifdef SUPPORT_MMX}
@@ -653,14 +654,14 @@ implementation
 {$ifndef cpu64bit}
          else if is_64bit(left.resultdef) then
            begin
+             inserttypeconv(left,s64inttype);
+             resultdef:=left.resultdef
            end
 {$endif cpu64bit}
          else if (left.resultdef.typ=orddef) then
            begin
-              if (torddef(left.resultdef).ordtype <> scurrency) then begin
-                inserttypeconv(left,sinttype);
-                resultdef:=left.resultdef;
-              end;
+             inserttypeconv(left,sinttype);
+             resultdef:=left.resultdef
            end
          else
            begin

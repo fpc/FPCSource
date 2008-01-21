@@ -2138,7 +2138,7 @@ implementation
 
         { oldfpccall expects all registers to be destroyed }
         if current_procinfo.procdef.proccalloption<>pocall_oldfpccall then
-          cg.g_save_standard_registers(list);
+            cg.g_save_registers(list);
       end;
 
 
@@ -2150,7 +2150,7 @@ implementation
 
         { oldfpccall expects all registers to be destroyed }
         if current_procinfo.procdef.proccalloption<>pocall_oldfpccall then
-          cg.g_restore_standard_registers(list);
+          cg.g_restore_registers(list);
       end;
 
 

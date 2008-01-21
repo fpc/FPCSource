@@ -238,8 +238,11 @@ interface
       end;
     end;
 
-    function branchmode(o: tasmop): string[4];
-      var tempstr: string[4];
+    type
+      topstr = string[4];
+
+    function branchmode(o: tasmop): topstr;
+      var tempstr: topstr;
       begin
         tempstr := '';
         case o of
@@ -663,12 +666,6 @@ interface
       AsmLn;
     end;
 
-    var
-      LasTSec : TAsmSectiontype;
-      lastfileinfo : tfileposinfo;
-      infile,
-      lastinfile   : tinputfile;
-
     const
       ait_const2str:array[aitconst_32bit..aitconst_8bit] of string[8]=
         (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
@@ -765,8 +762,8 @@ interface
               ;
             ait_section:
               begin
-                 {if LasTSec<>sec_none then
-                  AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');}
+                 {if LastSecType<>sec_none then
+                  AsmWriteLn('_'+target_asm.secnames[LastSecType]+#9#9'ENDS');}
 
                  if tai_section(hp).sectype<>sec_none then
                   begin
@@ -786,7 +783,7 @@ interface
                     AsmLn;
                     AsmWriteLn(#9+secnames[tai_section(hp).sectype]+' '+cur_CSECT_name+cur_CSECT_class);
                   end;
-                 LasTSec:=tai_section(hp).sectype;
+                 LastSecType:=tai_section(hp).sectype;
                end;
             ait_align:
               begin
@@ -1231,7 +1228,6 @@ interface
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource^);
 {$endif}
-      LasTSec:=sec_none;
 
       WriteAsmFileHeader;
       WriteExternals;

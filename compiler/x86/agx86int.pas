@@ -342,13 +342,6 @@ implementation
       end;
     end;
 
-
-    var
-      LasTSectype : TAsmSectiontype;
-      lastfileinfo : tfileposinfo;
-      infile,
-      lastinfile   : tinputfile;
-
     const
       ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
         #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
@@ -547,6 +540,7 @@ implementation
                        else
                          s:=tostr(tai_const(hp).value);
                        AsmWrite(s);
+                       inc(l,length(s));
                        if (l>line_length) or
                           (hp.next=nil) or
                           (tai(hp.next).typ<>ait_const) or
@@ -569,7 +563,7 @@ implementation
            ait_real_80bit :
              AsmWriteLn(#9#9'DT'#9+extended2str(tai_real_80bit(hp).value));
            ait_comp_64bit :
-             AsmWriteLn(#9#9'DQ'#9+comp2str(tai_real_80bit(hp).value));
+             AsmWriteLn(#9#9'DQ'#9+extended2str(tai_comp_64bit(hp).value));
            ait_string :
              begin
                counter := 0;
@@ -883,7 +877,6 @@ implementation
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource^);
 {$endif}
-      LasTSecType:=sec_none;
       if target_asm.id<>as_x86_64_masm then
         begin
           AsmWriteLn(#9'.386p');
@@ -905,6 +898,14 @@ implementation
           writetree(current_asmdata.asmlists[hal]);
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
         end;
+
+      { better do this at end of WriteTree, but then there comes a trouble with
+        al_const which does not have leading ait_section and thus goes out of segment }
+        
+      { TODO: probably ml64 needs 'closing' last section, too }
+      if LastSecType <> sec_none then
+        AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+      LastSecType := sec_none;
 
       AsmWriteLn(#9'END');
       AsmLn;

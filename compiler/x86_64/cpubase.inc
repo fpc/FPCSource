@@ -123,7 +123,7 @@ const
     const
       { these arrays differ between unix and win64 }
       saved_standard_registers : array of tsuperregister = nil;
-      saved_xmm_registers : array of tsuperregister = nil;
+      saved_mm_registers : array of tsuperregister = nil;
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -132,4 +132,3 @@ const
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
       std_param_align = 8;
-

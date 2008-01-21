@@ -224,7 +224,7 @@ interface
         function def_dwarf_class_struct_lab(def:tobjectdef) : tasmsymbol;
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:TSymtable);
-	function relative_dwarf_path(const s:tcmdstr):tcmdstr;
+        function relative_dwarf_path(const s:tcmdstr):tcmdstr;
       protected
         // set if we should use 64bit headers (dwarf3 and up)
         _use_64bit_headers: Boolean;
@@ -753,6 +753,8 @@ implementation
       begin
         dirlist.Free;
         dirlist := nil;
+        asmline.free;
+        asmline:=nil;
         loclist.Free;
         loclist := nil;
         inherited Destroy;
@@ -780,7 +782,13 @@ implementation
         if afile.path^ = '' then
           dirname := '.'
         else
-          dirname := afile.path^;
+          begin
+            { add the canonical form here already to avoid problems with }
+            { paths such as './' etc                                     }
+            dirname := relative_dwarf_path(afile.path^);
+            if dirname = '' then
+              dirname := '.';
+          end;
         diritem := TDirIndexItem(dirlist.Find(dirname));
         if diritem = nil then
           diritem := TDirIndexItem.Create(dirlist,dirname, dirlist.Count);
@@ -2331,8 +2339,9 @@ implementation
             ditem := TDirIndexItem(dirlist[n]);
             if ditem.Name = '.' then
               Continue;
-            { Write without trailing path delimiter and also don't prefix with ./ for current dir }
-            linelist.concat(tai_string.create(relative_dwarf_path(ditem.Name)+#0));
+            { Write without trailing path delimiter and also don't prefix with ./ for current dir (already done while adding to dirlist }
+            
+            linelist.concat(tai_string.create(ditem.Name+#0));
           end;
         linelist.concat(tai_const.create_8bit(0));
 
@@ -2361,6 +2370,8 @@ implementation
 
         { end of debug line table }
         linelist.concat(tai_symbol.createname(target_asm.labelprefix+'edebug_line0',AT_DATA,0));
+        
+        flist.free;
       end;
 
 
@@ -2539,7 +2550,7 @@ implementation
     function TDebugInfoDwarf.symname(sym: tsym): String;
       begin
         if (sym.typ=paravarsym) and
-           (vo_is_self in tlocalvarsym(sym).varoptions) then
+           (vo_is_self in tparavarsym(sym).varoptions) then
           result:='this'
         else
           result := sym.Name;

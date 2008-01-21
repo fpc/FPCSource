@@ -98,8 +98,8 @@ unit cgcpu;
         procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
         procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);override;
 
-        procedure g_save_standard_registers(list : TAsmList);override;
-        procedure g_restore_standard_registers(list : TAsmList);override;
+        procedure g_save_registers(list : TAsmList);override;
+        procedure g_restore_registers(list : TAsmList);override;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : TAsmList;var ref : treference);
@@ -1823,13 +1823,13 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_save_standard_registers(list : TAsmList);
+    procedure tcgarm.g_save_registers(list : TAsmList);
       begin
         { this work is done in g_proc_entry }
       end;
 
 
-    procedure tcgarm.g_restore_standard_registers(list : TAsmList);
+    procedure tcgarm.g_restore_registers(list : TAsmList);
       begin
         { this work is done in g_proc_exit }
       end;

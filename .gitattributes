@@ -201,8 +201,6 @@ compiler/m68k/r68ksup.inc svneol=native#text/plain
 compiler/m68k/ra68k.pas svneol=native#text/plain
 compiler/m68k/ra68kmot.pas svneol=native#text/plain
 compiler/m68k/rgcpu.pas svneol=native#text/plain
-compiler/make_old.cmd -text
-compiler/mdppc386.bat -text
 compiler/mips/aasmcpu.pas svneol=native#text/plain
 compiler/mips/cpubase.pas svneol=native#text/plain
 compiler/mips/cpuinfo.pas svneol=native#text/plain
@@ -221,9 +219,6 @@ compiler/mips/rmipssri.inc svneol=native#text/plain
 compiler/mips/rmipssta.inc svneol=native#text/plain
 compiler/mips/rmipsstd.inc svneol=native#text/plain
 compiler/mips/rmipssup.inc svneol=native#text/plain
-compiler/mppc386.bat -text
-compiler/mppc68k.bat -text
-compiler/mppcsparc -text
 compiler/msg/errorct.msg svneol=native#text/plain
 compiler/msg/errord.msg svneol=native#text/plain
 compiler/msg/errorda.msg svneol=native#text/plain
@@ -6886,6 +6881,7 @@ tests/test/cg/ttryfin1.pp svneol=native#text/plain
 tests/test/cg/ttryfin2.pp svneol=native#text/plain
 tests/test/cg/ttryfin3.pp svneol=native#text/plain
 tests/test/cg/ttryfin4.pp svneol=native#text/plain
+tests/test/cg/tumin.pp svneol=native#text/plain
 tests/test/cg/tvec.pp svneol=native#text/plain
 tests/test/cg/uprintf3.pp svneol=native#text/plain
 tests/test/cg/variants/ivarol10.pp svneol=native#text/plain
@@ -7182,6 +7178,7 @@ tests/test/tint2str2.pp svneol=native#text/plain
 tests/test/tint641.pp svneol=native#text/plain
 tests/test/tint642.pp svneol=native#text/plain
 tests/test/tint643.pp svneol=native#text/plain
+tests/test/tint644.pp svneol=native#text/plain
 tests/test/tinterface1.pp svneol=native#text/plain
 tests/test/tinterface2.pp svneol=native#text/plain
 tests/test/tinterface3.pp svneol=native#text/plain
@@ -7494,6 +7491,8 @@ tests/webtbf/tw0890a.pp svneol=native#text/plain
 tests/webtbf/tw0893.pp svneol=native#text/plain
 tests/webtbf/tw0896.pp svneol=native#text/plain
 tests/webtbf/tw0896a.pp svneol=native#text/plain
+tests/webtbf/tw10425a.pp svneol=native#text/plain
+tests/webtbf/tw10457.pp svneol=native#text/plain
 tests/webtbf/tw1157a.pp svneol=native#text/plain
 tests/webtbf/tw1238.pp svneol=native#text/plain
 tests/webtbf/tw1251a.pp svneol=native#text/plain
@@ -7655,6 +7654,8 @@ tests/webtbf/tw6420.pp svneol=native#text/plain
 tests/webtbf/tw6631.pp svneol=native#text/plain
 tests/webtbf/tw6686.pp svneol=native#text/plain
 tests/webtbf/tw6796.pp svneol=native#text/plain
+tests/webtbf/tw6797a.pp svneol=native#text/plain
+tests/webtbf/tw6797b.pp svneol=native#text/plain
 tests/webtbf/tw6922.pp svneol=native#text/plain
 tests/webtbf/tw6957.pp -text
 tests/webtbf/tw6970.pp svneol=native#text/plain
@@ -7802,11 +7803,14 @@ tests/webtbs/tw10002.pp svneol=native#text/plain
 tests/webtbs/tw10009.pp svneol=native#text/plain
 tests/webtbs/tw10013.pp svneol=native#text/plain
 tests/webtbs/tw10072.pp svneol=native#text/plain
+tests/webtbs/tw10203.pp svneol=native#text/plain
 tests/webtbs/tw1021.pp svneol=native#text/plain
 tests/webtbs/tw1023.pp svneol=native#text/plain
 tests/webtbs/tw10320.pp svneol=native#text/plain
 tests/webtbs/tw10350.pp svneol=native#text/plain
+tests/webtbs/tw10371.pp svneol=native#text/plain
 tests/webtbs/tw1041.pp svneol=native#text/plain
+tests/webtbs/tw10425.pp svneol=native#text/plain
 tests/webtbs/tw1044.pp svneol=native#text/plain
 tests/webtbs/tw10454.pp svneol=native#text/plain
 tests/webtbs/tw1046.pp svneol=native#text/plain

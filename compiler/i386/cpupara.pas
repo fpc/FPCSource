@@ -173,12 +173,10 @@ unit cpupara;
             result:=true;
           recorddef :
             begin
-              { Win32 stdcall passes small records on the stack for call by
-                value }
+              { Delphi stdcall passes records on the stack for call by value }
               if (target_info.system=system_i386_win32) and
                  (calloption=pocall_stdcall) and
-                 (varspez=vs_value) and
-                 (def.size<=16) then
+                 (varspez=vs_value) then
                 result:=false
               else
                 result:=
@@ -189,19 +187,11 @@ unit cpupara;
             end;
           arraydef :
             begin
-              { Win32 stdcall passes arrays on the stack for call by
-                value }
-              if (target_info.system=system_i386_win32) and
-                 (calloption=pocall_stdcall) and
-                 (varspez=vs_value) and
-                 (tarraydef(def).highrange>=tarraydef(def).lowrange) then
-                result:=false
-              else
               { array of const values are pushed on the stack as
                 well as dyn. arrays }
-                if (calloption in [pocall_cdecl,pocall_cppdecl]) then
-                  result:=not(is_array_of_const(def) or
-                    is_dynamic_array(def))
+              if (calloption in [pocall_cdecl,pocall_cppdecl]) then
+                result:=not(is_array_of_const(def) or
+                        is_dynamic_array(def))
               else
                 begin
                   result:=(

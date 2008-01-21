@@ -90,8 +90,8 @@ type
       boolean); override;
     procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe:
       boolean); override;
-    procedure g_save_standard_registers(list: TAsmList); override;
-    procedure g_restore_standard_registers(list: TAsmList); override;
+    procedure g_save_registers(list: TAsmList); override;
+    procedure g_restore_registers(list: TAsmList); override;
 
     procedure a_loadaddr_ref_reg(list: TAsmList; const ref: treference; r:
       tregister); override;
@@ -1278,13 +1278,13 @@ end;
 
 { *********** entry/exit code and address loading ************ }
 
-procedure tcgppc.g_save_standard_registers(list: TAsmList);
+procedure tcgppc.g_save_registers(list: TAsmList);
 begin
   { this work is done in g_proc_entry; additionally it is not safe
   to use it because it is called at some weird time }
 end;
 
-procedure tcgppc.g_restore_standard_registers(list: TAsmList);
+procedure tcgppc.g_restore_registers(list: TAsmList);
 begin
   { this work is done in g_proc_exit; mainly because it is not safe to
   put the register restore code here because it is called at some weird time }

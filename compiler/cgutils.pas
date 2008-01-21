@@ -139,6 +139,9 @@ unit cgutils;
     { allocate room for parameters on the stack in the entry code? }
     function use_fixed_stack: boolean;
 
+    { returns r with the given alignment }
+    function setalignment(const r : treference;b : byte) : treference;
+
 implementation
 
 uses
@@ -178,6 +181,13 @@ uses
         references_equal:=CompareByte(sref,dref,sizeof(treference))=0;
       end;
 
+
+    { returns r with the given alignment }
+    function setalignment(const r : treference;b : byte) : treference;
+      begin
+        result:=r;
+        result.alignment:=b;
+      end;
 
 {****************************************************************************
                                   TLocation

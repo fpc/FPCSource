@@ -39,6 +39,7 @@ interface
        tcallnodeflag = (
          cnf_typedefset,
          cnf_return_value_used,
+         cnf_do_inline,
          cnf_inherited,
          cnf_anon_inherited,
          cnf_new_call,
@@ -47,6 +48,7 @@ interface
          cnf_uses_varargs,       { varargs are used in the declaration }
          cnf_create_failed       { exception thrown in constructor -> don't call beforedestruction }
        );
+
        tcallnodeflags = set of tcallnodeflag;
 
        tcallnode = class(tbinarynode)
@@ -70,6 +72,7 @@ interface
           procedure createinlineparas(var createstatement, deletestatement: tstatementnode);
           function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
           procedure createlocaltemps(p:TObject;arg:pointer);
+          procedure check_inlining;
           function  pass1_inline:tnode;
           function  getfuncretassignment(inlineblock: tblocknode): tnode;
        protected
@@ -169,7 +172,7 @@ interface
           procedure printnodetree(var t:text);override;
           { returns whether a parameter contains a type conversion from }
           { a refcounted into a non-refcounted type                     }
-          function contains_unsafe_typeconversion: boolean;
+          function can_be_inlined: boolean;
 
           property value : tnode read left write left;
           property nextpara : tnode read right write right;
@@ -1103,11 +1106,12 @@ implementation
       end;
 
 
-    function tcallparanode.contains_unsafe_typeconversion: boolean;
+    function tcallparanode.can_be_inlined: boolean;
       var
         n: tnode;
       begin
         n:=left;
+        result:=false;
         while assigned(n) and
               (n.nodetype=typeconvn) do
           begin
@@ -1117,13 +1121,21 @@ implementation
                 is_class(n.resultdef)) and
                (ttypeconvnode(n).left.resultdef.needs_inittable and
                 not is_class(ttypeconvnode(n).left.resultdef)) then
-              begin
-                result:=true;
-                exit;
-              end;
+              exit;
             n:=ttypeconvnode(n).left;
           end;
-        result:=false;
+        { also check for dereferencing constant pointers, like }
+        { tsomerecord(nil^) passed to a const r: tsomerecord   }
+        { parameter                                           }
+        if (n.nodetype=derefn) then
+          begin
+            repeat
+              n:=tunarynode(n).left;
+            until (n.nodetype<>typeconvn);
+            if (n.nodetype in [niln,pointerconstn]) then
+              exit
+          end;
+        result:=true;
       end;
 
 
@@ -2797,7 +2809,7 @@ implementation
         if not(assigned(hp)) or
            (hp.left.nodetype <> tempdeleten) then
           exit;
-        
+
         { the function result once more }
         hp:=tstatementnode(hp.right);
         if not(assigned(hp)) or
@@ -2902,46 +2914,56 @@ implementation
       end;
 
 
+    procedure tcallnode.check_inlining;
+      var
+        st   : tsymtable;
+        para : tcallparanode;
+      begin
+        { Can we inline the procedure? }
+        if ([po_inline,po_has_inlininginfo] <= procdefinition.procoptions) then
+          begin
+             include(callnodeflags,cnf_do_inline);
+            { Check if we can inline the procedure when it references proc/var that
+              are not in the globally available }
+            st:=procdefinition.owner;
+            if (st.symtabletype=ObjectSymtable) then
+              st:=st.defowner.owner;
+            if (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
+               (st.symtabletype=globalsymtable) and
+               (not st.iscurrentunit) then
+              begin
+                Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references static symtable');
+                exclude(callnodeflags,cnf_do_inline);
+              end;
+            para:=tcallparanode(parameters);
+            while assigned(para) do
+              begin
+                if not para.can_be_inlined then
+                  begin
+                    Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", invocation parameter contains an unsafe/unsupported construct');
+                    exclude(callnodeflags,cnf_do_inline);
+                    break;
+                  end;
+                para:=tcallparanode(para.nextpara);
+              end;
+          end;
+      end;
+
+
     function tcallnode.pass_1 : tnode;
       var
         st : TSymtable;
         n: tcallparanode;
-        do_inline: boolean;
       begin
          result:=nil;
 
-         { Can we inline the procedure? }
-         if ([po_inline,po_has_inlininginfo] <= procdefinition.procoptions) then
+         { Check if the call can be inlined, sets the cnf_do_inline flag }
+         check_inlining;
+
+         if cnf_do_inline in callnodeflags then
            begin
-             { Check if we can inline the procedure when it references proc/var that
-               are not in the globally available }
-             st:=procdefinition.owner;
-             if (st.symtabletype=ObjectSymtable) then
-               st:=st.defowner.owner;
-             do_inline:=true;
-             if (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
-                (st.symtabletype=globalsymtable) and
-                (not st.iscurrentunit) then
-               begin
-                 Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references static symtable');
-                 do_inline:=false;
-               end;
-             n:=tcallparanode(parameters);
-             while assigned(n) do
-               begin
-                 if n.contains_unsafe_typeconversion then
-                   begin
-                     Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", invocation parameter contains unsafe type conversion');
-                     do_inline:=false;
-                     break;
-                   end;
-                 n:=tcallparanode(n.nextpara);
-               end;
-             if do_inline then
-               begin
-                 result:=pass1_inline;
-                 exit;
-               end;
+             result:=pass1_inline;
+             exit;
            end;
 
          { calculate the parameter info for the procdef }

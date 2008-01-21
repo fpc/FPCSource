@@ -504,10 +504,10 @@ implementation
                   begin
                     if (target_info.endian = endian_little) then
                       cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,(tordconstnode(right).value shl 8) or 1,
-                          left.location.reference)
+                          setalignment(left.location.reference,1))
                     else
                       cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,tordconstnode(right).value or (1 shl 8),
-                          left.location.reference);
+                          setalignment(left.location.reference,1));
                   end
                 else
                   begin

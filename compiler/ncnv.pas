@@ -1341,7 +1341,11 @@ implementation
     function ttypeconvnode.typecheck_interface_to_guid : tnode;
       begin
         if assigned(tobjectdef(left.resultdef).iidguid) then
-          result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
+          begin
+            if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
+              CGMessage1(type_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+            result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
+          end;
       end;
 
 
@@ -3135,6 +3139,8 @@ implementation
              begin
                if assigned(tobjectdef(right.resultdef).iidguid) then
                  begin
+                   if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                     CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
                    hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
                    right.free;
                    right:=hp;

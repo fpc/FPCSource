@@ -1079,7 +1079,7 @@ implementation
              { blockn support because a read/write is changed into a blocknode }
              { with a separate statement for each read/write operation (JM)    }
              { the same is true for val() if the third parameter is not 32 bit }
-             if not(p.nodetype in [nothingn,calln,ifn,assignn,breakn,inlinen,
+             if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
                                    continuen,labeln,blockn,exitn]) or
                 ((p.nodetype=inlinen) and
                  not is_void(p.resultdef)) then

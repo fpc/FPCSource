@@ -742,12 +742,20 @@ unit cgcpu;
         op1,op2 : TAsmOp;
         tempref : treference;
       begin
-        get_64bit_ops(op,op1,op2);
-        tempref:=ref;
-        tcgx86(cg).make_simple_ref(list,tempref);
-        list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
-        inc(tempref.offset,4);
-        list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+        if not(op in [OP_NEG,OP_NOT]) then
+          begin
+            get_64bit_ops(op,op1,op2);
+            tempref:=ref;
+            tcgx86(cg).make_simple_ref(list,tempref);
+            list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
+            inc(tempref.offset,4);
+            list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+          end
+        else
+          begin
+            a_load64_ref_reg(list,ref,reg);
+            a_op64_reg_reg(list,op,size,reg,reg);
+          end;
       end;
 
 

@@ -339,6 +339,10 @@ unit cpubase;
       }
       saved_standard_registers : array[0..6] of tsuperregister =
         (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
+
+      { this is only for the generic code which is not used for this architecture }
+      saved_mm_registers : array[0..0] of tsuperregister = (RS_NO);
+
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.

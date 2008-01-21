@@ -100,10 +100,6 @@ implementation
       line_length = 70;
 
     var
-      CurrSecType  : TAsmSectiontype; { last section type written }
-      lastfileinfo : tfileposinfo;
-      infile,
-      lastinfile   : tinputfile;
       symendcount  : longint;
 
     type
@@ -388,7 +384,7 @@ implementation
             end;
         end;
         AsmLn;
-        CurrSecType:=atype;
+        LastSecType:=atype;
       end;
 
 
@@ -571,7 +567,7 @@ implementation
                          AsmWrite(','+tostr(tai_align_abstract(hp).fillop))
 {$ifdef x86}
                        { force NOP as alignment op code }
-                       else if CurrSecType=sec_code then
+                       else if LastSecType=sec_code then
                          AsmWrite(',0x90');
 {$endif x86}
                      end
@@ -618,8 +614,8 @@ implementation
                        asmwrite('.zerofill __DATA, __common, ');
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
-                       if not(CurrSecType in [sec_data,sec_none]) then
-                         writesection(CurrSecType,'',secorder_default);
+                       if not(LastSecType in [sec_data,sec_none]) then
+                         writesection(LastSecType,'',secorder_default);
                      end
                    else
                      begin
@@ -737,7 +733,7 @@ implementation
                            { Values with symbols are written on a single line to improve
                              reading of the .s file (PFV) }
                            if assigned(tai_const(hp).sym) or
-                              not(CurrSecType in [sec_data,sec_rodata,sec_rodata_norel]) or
+                              not(LastSecType in [sec_data,sec_rodata,sec_rodata_norel]) or
                               (l>line_length) or
                               (hp.next=nil) or
                               (tai(hp.next).typ<>ait_const) or
@@ -997,11 +993,11 @@ implementation
                   while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                    begin
                      if tai(hp.next).typ=ait_section then
-                       CurrSecType:=tai_section(hp.next).sectype;
+                       LastSecType:=tai_section(hp.next).sectype;
                      hp:=tai(hp.next);
                    end;
-                  if CurrSecType<>sec_none then
-                    WriteSection(CurrSecType,'',secorder_default);
+                  if LastSecType<>sec_none then
+                    WriteSection(LastSecType,'',secorder_default);
                   AsmStartSize:=AsmSize;
                 end;
              end;
@@ -1048,10 +1044,6 @@ implementation
       if assigned(current_module.mainsource) then
        Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif}
-
-      CurrSecType:=sec_none;
-      FillChar(lastfileinfo,sizeof(lastfileinfo),0);
-      LastInfile:=nil;
 
       if assigned(current_module.mainsource) then
         n:=ExtractFileName(current_module.mainsource^)

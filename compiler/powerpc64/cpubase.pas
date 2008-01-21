@@ -348,6 +348,9 @@ const
     RS_R26, RS_R27, RS_R28, RS_R29, RS_R30, RS_R31
     );
 
+  { this is only for the generic code which is not used for this architecture }
+  saved_mm_registers : array[0..0] of tsuperregister = (RS_NO);  
+  
   {# Required parameter alignment when calling a routine declared as
      stdcall and cdecl. The alignment value should be the one defined
      by GCC or the target ABI.

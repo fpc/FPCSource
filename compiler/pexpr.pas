@@ -1785,6 +1785,13 @@ implementation
                     until not try_to_consume(_COMMA);
                     consume(_RECKKLAMMER);
                   end
+                else if try_to_consume(_LKLAMMER) then
+                  begin
+                    repeat
+                      comp_expr(true);
+                    until not try_to_consume(_COMMA);
+                    consume(_RKLAMMER);
+                  end
                 else
                   break;
             until false;

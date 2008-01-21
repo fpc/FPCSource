@@ -337,7 +337,9 @@ interface
          { calls itself recursive }
          pi_is_recursive,
          { stack frame optimization not possible (only on x86 probably) }
-         pi_needs_stackframe
+         pi_needs_stackframe,
+         { set if the procedure has at least one register saved on the stack }
+         pi_has_saved_regs
        );
        tprocinfoflags=set of tprocinfoflag;
 
