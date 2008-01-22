@@ -6377,6 +6377,7 @@ tests/tbs/tb0168.pp svneol=native#text/plain
 tests/tbs/tb0169.pp svneol=native#text/plain
 tests/tbs/tb0170.pp svneol=native#text/plain
 tests/tbs/tb0172.pp svneol=native#text/plain
+tests/tbs/tb0172a.pp svneol=native#text/plain
 tests/tbs/tb0173.pp svneol=native#text/plain
 tests/tbs/tb0174.pp svneol=native#text/plain
 tests/tbs/tb0175.pp svneol=native#text/plain

@@ -1072,6 +1072,17 @@ implementation
                       if report_errors then
                         CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
                   end;
+                  
+                 { when typecasting to the same size but changing the signdness of
+                   an ordinal, the value cannot be in a register if it's < sizeof(aint).
+                   The reason is that a tc_int_2_int type conversion changing the sign
+                   of a such value in a register also has to modify this register (JM)   }
+                 if is_ordinal(fromdef) and is_ordinal(todef) and
+                    (fromdef.size=todef.size) and
+                    (fromdef.size<sizeof(aint)) and
+                    (is_signed(fromdef) xor is_signed(todef)) then
+                   make_not_regable(hp,[ra_addr_regable]);
+
                  { don't allow assignments to typeconvs that need special code }
                  if not(gotsubscript or gotvec or gotderef) and
                     not(ttypeconvnode(hp).assign_allowed) then
