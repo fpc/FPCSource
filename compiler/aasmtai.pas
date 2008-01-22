@@ -96,7 +96,22 @@ interface
           aitconst_rva_symbol,
           aitconst_secrel32_symbol,
           { darwin only }
-          aitconst_indirect_symbol
+          aitconst_indirect_symbol,
+          { From gcc/config/darwin.c (darwin_asm_output_dwarf_delta):
+            ***
+            Output a difference of two labels that will be an assembly time
+            constant if the two labels are local.  (.long lab1-lab2 will be
+            very different if lab1 is at the boundary between two sections; it
+            will be relocated according to the second section, not the first,
+            so one ends up with a difference between labels in different
+            sections, which is bad in the dwarf2 eh context for instance.)
+            ***
+            We cannot use this everywhere, because older versions of the
+            darwin assembler don't support the construct used for these
+            relsyms (nor do they support dwarf, for that matter)
+          }
+          aitconst_darwin_dwarf_delta64,
+          aitconst_darwin_dwarf_delta32
         );
 
     const

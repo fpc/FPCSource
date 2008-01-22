@@ -259,6 +259,7 @@ unit cgobj;
           procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize:tcgsize; reg1, reg2: tregister); virtual; abstract;
           procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
           procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
+          procedure a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tcgsize; const ref1,ref2: treference);
           procedure a_loadfpu_loc_reg(list: TAsmList; tosize: tcgsize; const loc: tlocation; const reg: tregister);
           procedure a_loadfpu_reg_loc(list: TAsmList; fromsize: tcgsize; const reg: tregister; const loc: tlocation);
           procedure a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
@@ -2463,6 +2464,21 @@ implementation
           else
             internalerror(48991);
          end;
+      end;
+
+
+    procedure tcg.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tcgsize; const ref1,ref2: treference);
+      var
+        reg: tregister;
+        regsize: tcgsize;
+      begin
+        if (fromsize>=tosize) then
+          regsize:=fromsize
+        else
+          regsize:=tosize;
+        reg:=getfpuregister(list,regsize);
+        a_loadfpu_ref_reg(list,fromsize,regsize,ref1,reg);
+        a_loadfpu_reg_ref(list,regsize,tosize,reg,ref2);
       end;
 
 

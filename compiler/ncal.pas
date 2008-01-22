@@ -2874,6 +2874,7 @@ implementation
           again inside the args or itself }
         exclude(procdefinition.procoptions,po_inline);
 
+        typecheckpass(createblock);
         dosimplify(createblock);
         firstpass(createblock);
         include(procdefinition.procoptions,po_inline);

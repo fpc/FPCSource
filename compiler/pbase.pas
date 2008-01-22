@@ -88,7 +88,7 @@ interface
     function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
     function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume : ttoken):boolean;
 
     function try_consume_hintdirective(var symopt:tsymoptions):boolean;
 
@@ -100,7 +100,7 @@ interface
 implementation
 
     uses
-       globtype,htypechk,scanner,systems,verbose;
+       globtype,htypechk,scanner,systems,verbose,fmodule;
 
 {****************************************************************************
                                Token Parsing
@@ -177,6 +177,8 @@ implementation
       must be changed as well (FK)
     }
     function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
+      var
+        t : ttoken;
       begin
         { first check for identifier }
         if token<>_ID then
@@ -189,7 +191,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym(srsym,srsymtable);
+        try_consume_unitsym(srsym,srsymtable,t);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions)
@@ -199,7 +201,7 @@ implementation
             srsym:=generrorsym;
             srsymtable:=nil;
           end;
-        consume(_ID);
+        consume(t);
         result:=assigned(srsym);
       end;
 
@@ -208,6 +210,8 @@ implementation
       if required and returns the id with it's original casing
     }
     function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
+      var
+        t : ttoken;
       begin
         { first check for identifier }
         if token<>_ID then
@@ -220,7 +224,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym(srsym,srsymtable);
+        try_consume_unitsym(srsym,srsymtable,t);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions)
@@ -231,13 +235,15 @@ implementation
             srsymtable:=nil;
           end;
         s:=orgpattern;
-        consume(_ID);
+        consume(t);
         result:=assigned(srsym);
       end;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable):boolean;
+
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume : ttoken):boolean;
       begin
         result:=false;
+        tokentoconsume:=_ID;
         if assigned(srsym) and
            (srsym.typ=unitsym) then
           begin
@@ -249,7 +255,22 @@ implementation
               begin
                 consume(_ID);
                 consume(_POINT);
-                searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                case token of
+                  _ID:
+                     searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                  _STRING:
+                    begin
+                      { system.string? }
+                      if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
+                        begin
+                          if cs_ansistrings in current_settings.localswitches then
+                            searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
+                          else
+                            searchsym_in_module(tunitsym(srsym).module,'SHORTSTRING',srsym,srsymtable);
+                          tokentoconsume:=_STRING;
+                        end;
+                    end
+                  end;
               end
             else
               begin

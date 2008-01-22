@@ -1138,7 +1138,7 @@ parser_w_register_list_ignored=03237_W_Register list is ignored for pure assembl
 #
 # Type Checking
 #
-# 04082 is the last used one
+# 04083 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1412,7 +1412,7 @@ type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may resu
 % allocate memory above \$80000000, for example both Windows and Linux allow pointers in the range \$0000000 to \$bfffffff.
 % If you convert pointers to signed types, this can cause overflow and range check errors, but also \$80000000 < \$7fffffff.
 % This can cause random errors in code like "if p>q".
-type_interface_has_no_guid=04084_E_Interface type $1 has no valid GUID
+type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 % When applying the as-operator to an interface or class, the desired interface, i.e. the right operand of the
 % as-operator must have a valid GUID
 % \end{description}
@@ -1958,7 +1958,7 @@ asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), access may cause a cr
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
 asmr_e_no_vmtoffset_possible=07106_E_VMTOffset must be used in combination with a virtual method, and "$1" is not virtual
-% Only virtul methods have a VMT offset
+% Only virtual methods have VMT offsets
 asmr_e_need_pic_ref=07107_E_Generating PIC, but reference is not PIC-safe
 % The compiler has been configured to generate position-independent code
 % (PIC), but there are position-dependent references in the current

@@ -1367,6 +1367,7 @@ implementation
            orgstoredpattern,
            storedpattern : string;
            len   : longint;
+           t : ttoken;
          begin
            { allow post fix operators }
            again:=true;
@@ -1383,10 +1384,10 @@ implementation
                searchsym(pattern,srsym,srsymtable);
 
                { handle unit specification like System.Writeln }
-               unit_found:=try_consume_unitsym(srsym,srsymtable);
+               unit_found:=try_consume_unitsym(srsym,srsymtable,t);
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
-               consume(_ID);
+               consume(t);
 
                { named parameter support }
                found_arg_name:=false;

@@ -572,27 +572,57 @@ implementation
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-{$warning HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
-                        { Use unaligned copy when the offset is not aligned }
-                        len:=left.resultdef.size;
-                        if (right.location.reference.offset mod sizeof(aint)<>0) or
-                          (left.location.reference.offset mod sizeof(aint)<>0) or
-                          (right.resultdef.alignment<sizeof(aint)) or
-                          ((right.location.reference.alignment<>0) and
-                           (right.location.reference.alignment<sizeof(aint))) or
-                          ((left.location.reference.alignment<>0) and
-                           (left.location.reference.alignment<sizeof(aint))) then
-                          cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
+                        if (left.resultdef.typ=floatdef) and
+                           (right.resultdef.typ=floatdef) and
+                           (left.location.size<>right.location.size) then
+                          begin
+                            cg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
+                              right.location.size,left.location.size,
+                              right.location.reference,left.location.reference)
+                          end
                         else
-                          cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);
+                          begin
+{$warning HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
+                            { Use unaligned copy when the offset is not aligned }
+                            len:=left.resultdef.size;
+                            if (right.location.reference.offset mod sizeof(aint)<>0) or
+                              (left.location.reference.offset mod sizeof(aint)<>0) or
+                              (right.resultdef.alignment<sizeof(aint)) or
+                              ((right.location.reference.alignment<>0) and
+                               (right.location.reference.alignment<sizeof(aint))) or
+                              ((left.location.reference.alignment<>0) and
+                               (left.location.reference.alignment<sizeof(aint))) then
+                              cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
+                            else
+                              cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);
+                          end;
                       end;
                     LOC_MMREGISTER,
                     LOC_CMMREGISTER:
-                      cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
-                        right.location.size,
-                        left.location.size,
-                        right.location.reference,
-                        left.location.register,mms_movescalar);
+                      begin
+{$ifdef x86}
+                        if not use_sse(right.resultdef) then
+                          begin
+                            { perform size conversion if needed (the mm-code cannot }
+                            { convert an extended into a double/single, since sse   }
+                            { doesn't support extended)                             }
+                            r:=cg.getfpuregister(current_asmdata.CurrAsmList,right.location.size);
+                            tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,tt_normal,href);
+                            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,right.location.size,right.location.size,right.location.reference,r);
+                            cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,r,href);
+                            if releaseright then
+                              location_freetemp(current_asmdata.CurrAsmList,right.location);
+                            releaseright:=true;
+                            location_reset(right.location,LOC_REFERENCE,left.location.size);
+                            right.location.reference:=href;
+                          end;
+{$endif}
+                        cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,
+                          right.location.size,
+                          left.location.size,
+                          right.location.reference,
+                          left.location.register,mms_movescalar);
+                      end;
                     LOC_SUBSETREG,
                     LOC_CSUBSETREG:
                       cg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sreg);
@@ -649,6 +679,17 @@ implementation
                   { we can't do direct moves between fpu and mm registers }
                   if left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
                     begin
+{$ifdef x86}
+                      if not use_sse(right.resultdef) then
+                        begin
+                          { perform size conversion if needed (the mm-code cannot convert an   }
+                          { extended into a double/single, since sse doesn't support extended) }
+                          tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,tt_normal,href);
+                          cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
+                          location_reset(right.location,LOC_REFERENCE,left.location.size);
+                          right.location.reference:=href;
+                        end;
+{$endif}
                       location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,false);
                       cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
                           right.location.size,left.location.size,

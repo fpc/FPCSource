@@ -1780,6 +1780,8 @@ implementation
                  begin
                    oldcurrent_filepos:=current_filepos;
                    current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+                   { use the index the module got from the current compilation process }
+                   current_filepos.moduleindex:=hmodule.unit_index;
                    current_tokenpos:=current_filepos;
                    current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
                    read_proc_body(nil,tprocdef(hp));

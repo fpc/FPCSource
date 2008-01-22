@@ -96,13 +96,50 @@ unit cgppc;
                          C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
 
 
+{$ifdef extdebug}
+     function ref2string(const ref : treference) : string;
+     function cgsize2string(const size : TCgSize) : string;
+     function cgop2string(const op : TOpCg) : String;
+{$endif extdebug}
+
   implementation
 
     uses
+       {$ifdef extdebug}sysutils,{$endif}
        globals,verbose,systems,cutils,
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
+{$ifdef extdebug}
+     function ref2string(const ref : treference) : string;
+       begin
+         result := 'base : ' + inttostr(ord(ref.base)) + ' index : ' + inttostr(ord(ref.index)) + ' refaddr : ' + inttostr(ord(ref.refaddr)) + ' offset : ' + inttostr(ref.offset) + ' symbol : ';
+         if (assigned(ref.symbol)) then
+           result := result + ref.symbol.name;
+       end;
+     
+     function cgsize2string(const size : TCgSize) : string;
+       const
+         cgsize_strings : array[TCgSize] of string[8] = (
+           'OS_NO', 'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128', 'OS_S8', 'OS_S16', 'OS_S32',
+           'OS_S64', 'OS_S128', 'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
+           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_MS8', 'OS_MS16', 'OS_MS32',
+           'OS_MS64', 'OS_MS128');
+       begin
+         result := cgsize_strings[size];
+       end;
+     
+     function cgop2string(const op : TOpCg) : String;
+       const
+         opcg_strings : array[TOpCg] of string[6] = (
+           'None', 'Move', 'Add', 'And', 'Div', 'IDiv', 'IMul', 'Mul',
+           'Neg', 'Not', 'Or', 'Sar', 'Shl', 'Shr', 'Sub', 'Xor'
+         );
+       begin
+         result := opcg_strings[op];
+       end;
+{$endif extdebug}
+    
 
     function tcgppcgen.hasLargeOffset(const ref : TReference) : Boolean;
       begin

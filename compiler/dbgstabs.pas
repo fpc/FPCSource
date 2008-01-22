@@ -1573,9 +1573,10 @@ implementation
                 currfileinfo:=tailineinfo(hp).fileinfo;
                 { file changed ? (must be before line info) }
                 if (currfileinfo.fileindex<>0) and
-                   (lastfileinfo.fileindex<>currfileinfo.fileindex) then
+                   ((lastfileinfo.fileindex<>currfileinfo.fileindex) or
+                    (lastfileinfo.moduleindex<>currfileinfo.moduleindex)) then
                   begin
-                    infile:=current_module.sourcefiles.get_file(currfileinfo.fileindex);
+                    infile:=get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
                         current_asmdata.getlabel(hlabel,alt_dbgfile);

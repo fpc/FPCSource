@@ -397,7 +397,7 @@ const
   type_h_convert_sub_operands_to_prevent_overflow=04080;
   type_h_convert_mul_operands_to_prevent_overflow=04081;
   type_w_pointer_to_signed=04082;
-  type_interface_has_no_guid=04084;
+  type_interface_has_no_guid=04083;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -737,6 +737,6 @@ const
   MsgTxtSize = 45480;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,86,238,85,63,50,108,22,135,60,
+    24,86,238,84,63,50,108,22,135,60,
     42,1,1,1,1,1,1,1,1,1
   );

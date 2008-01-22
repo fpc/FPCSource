@@ -643,11 +643,17 @@ implementation
                offsetabstype:=aitconst_secrel32_symbol
              else
                offsetabstype:=aitconst_32bit;
-             offsetreltype:=aitconst_32bit;
+             if (target_info.system in systems_darwin) then
+                offsetreltype:=aitconst_darwin_dwarf_delta32
+              else
+                offsetreltype:=aitconst_32bit;
            end
          else
            begin
-             offsetreltype:=aitconst_64bit;
+             if (target_info.system in systems_darwin) then
+                offsetreltype:=aitconst_darwin_dwarf_delta64
+             else
+               offsetreltype:=aitconst_64bit;
              offsetabstype:=aitconst_64bit;
            end;
       end;
@@ -1548,7 +1554,7 @@ implementation
               files for debugging and also that gdb only loads in the
               debug info of a particular object file once you step into
               or over a procedure in it.
-              
+
               To solve this, there is a tool called dsymutil which can
               extract all the dwarf info from a program's object files.
               This utility however performs "smart linking" on the dwarf
@@ -1556,7 +1562,7 @@ implementation
               variables' types always point to the dwarfino for a tdef
               and never to that for a typesym, this means all debug
               entries generated for typesyms are thrown away.
-              
+
               The problem with that is that we translate typesyms into
               DW_TAG_typedef, and gdb's dwarf-2 reader only makes types
               globally visibly if they are defined using a DW_TAG_typedef.
@@ -1567,7 +1573,7 @@ implementation
               tdef dwarf info is still available, but you cannot typecast
               anything outside the declaring units because the type names
               are not known there).
-              
+
               The solution: if a tdef has an associated typesym, let the
               debug label for the tdef point to a DW_TAG_typedef instead
               of directly to the tdef itself. And don't write anything
@@ -2340,7 +2346,7 @@ implementation
             if ditem.Name = '.' then
               Continue;
             { Write without trailing path delimiter and also don't prefix with ./ for current dir (already done while adding to dirlist }
-            
+
             linelist.concat(tai_string.create(ditem.Name+#0));
           end;
         linelist.concat(tai_const.create_8bit(0));
@@ -2370,7 +2376,7 @@ implementation
 
         { end of debug line table }
         linelist.concat(tai_symbol.createname(target_asm.labelprefix+'edebug_line0',AT_DATA,0));
-        
+
         flist.free;
       end;
 
@@ -2604,9 +2610,10 @@ implementation
                 currfileinfo:=tailineinfo(hp).fileinfo;
                 { file changed ? (must be before line info) }
                 if (currfileinfo.fileindex<>0) and
-                   (lastfileinfo.fileindex<>currfileinfo.fileindex) then
+                   ((lastfileinfo.fileindex<>currfileinfo.fileindex) or
+                    (lastfileinfo.moduleindex<>currfileinfo.moduleindex)) then
                   begin
-                    infile:=current_module.sourcefiles.get_file(currfileinfo.fileindex);
+                    infile:=get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
                         currfileidx := get_file_index(infile);

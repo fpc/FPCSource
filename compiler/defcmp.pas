@@ -697,7 +697,10 @@ implementation
                              { open array -> open array }
                              if is_open_array(def_from) and
                                 equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
-                               eq:=te_equal
+                               if tarraydef(def_from).elementdef=tarraydef(def_to).elementdef then
+                                 eq:=te_exact
+                               else
+                                 eq:=te_equal
                             else
                              { array -> open array }
                              if not(cdo_parameter in cdoptions) and
@@ -1558,12 +1561,13 @@ implementation
               { check type }
               if eq=te_incompatible then
                 exit;
-              { open arrays can never match exactly, since you cannot define }
-              { a separate "open array" type -> we have to be able to        }
-              { consider those as exact when resolving forward definitions.  }
-              { The same goes for openstrings and array of const             }
-              if (is_open_array(currpara1.vardef) or
-                  is_array_of_const(currpara1.vardef) or
+              { open strings can never match exactly, since you cannot define }
+              { a separate "open string" type -> we have to be able to        }
+              { consider those as exact when resolving forward definitions.   }
+              { The same goes for array of const. Open arrays are handled     }
+              { already (if their element types match exactly, they are       }
+              { considered to be an exact match)                              }
+              if (is_array_of_const(currpara1.vardef) or
                   is_open_string(currpara1.vardef)) and
                  (eq=te_equal) and
                  (cpo_openequalisexact in cpoptions) then
