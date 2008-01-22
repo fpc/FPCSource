@@ -8,7 +8,7 @@ version=2.0.0
 
 [target]
 programs=fppkg
-implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 implicitunits_linux=pkgwget  pkglnet
 implicitunits_beos=pkgwget pkglnet
 implicitunits_freebsd=pkgwget pkglnet
@@ -26,7 +26,7 @@ unitdir=lnet
 includedir=lnet/sys
 
 [clean]
-units=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+units=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 
 [install]
 fpcpackage=y

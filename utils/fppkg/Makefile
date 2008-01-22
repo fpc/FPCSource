@@ -402,163 +402,163 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_PROGRAMS+=fppkg
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget  pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget  pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget  pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget  pkglnet
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget  pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget  pkglnet
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget  pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget  pkglnet
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget  pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget  pkglnet
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget  pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget  pkglnet
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget  pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget  pkglnet
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands  pkgwget pkglnet
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload  pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=fprepos fpxmlrep pkgmessages
@@ -720,163 +720,163 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_RSTS+=fprepos fpxmlrep pkgmessages
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override CLEAN_UNITS+=lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
+override CLEAN_UNITS+=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
