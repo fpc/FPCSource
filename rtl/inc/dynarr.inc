@@ -169,6 +169,8 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      { not assigned yet? }
      if not(assigned(p)) then
        begin
+          if dims[dimcount-1]<0 then
+            HandleErrorFrame(201,get_frame);
           { do we have to allocate memory? }
           if dims[dimcount-1] = 0 then
             exit;

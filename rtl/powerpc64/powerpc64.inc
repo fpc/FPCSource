@@ -540,45 +540,6 @@ asm
 .Lcaller_frame_null:
 end;
 
-{$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
-asm
-  srawi   r0,r3,31
-  add     r3,r0,r3
-  xor     r3,r3,r0
-end;
-
-
-{****************************************************************************
-                                 Math
-****************************************************************************}
-
-{$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
-asm
-  rldicl r3, r3, 0, 63
-end;
-
-
-{$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
-asm
-  mullw   r3,r3,r3
-end;
-
-{$define FPC_SYSTEM_HAS_ODD_INT64}
-function odd(l:int64):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
-asm
-  rldicl r3, r3, 0, 63
-end;
-
-
-{$define FPC_SYSTEM_HAS_SQR_INT64}
-function sqr(l:int64):int64;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
-asm
-  mulld   r3,r3,r3
-end;
-
 
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
