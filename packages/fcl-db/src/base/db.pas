@@ -494,6 +494,7 @@ type
     FDisplayFormat : String;
     FEditFormat : String;
   protected
+    class procedure CheckTypeSize(AValue: Longint); override;
     procedure RangeError(AValue, Min, Max: Double);
     procedure SetDisplayFormat(const AValue: string);
     procedure SetEditFormat(const AValue: string);
