@@ -100,12 +100,14 @@ Defaults can be found in pkgropts
 Helpfull commands for building packages:
 ----------------------------------------
 
-* Generate AddInclude lines from an existing PPU file:
+* Generate AddInclude and AddUnit lines from an existing PPU file:
 
-ppudump $1 | awk "/^Source/ { printf(\"AddInclude('%s');\\n\",\$5); }"
-
+ppudump <unit> | awk "/^Source/ { printf(\"AddInclude('%s');\\n\",\$5); } /^Uses unit/ { printf(\"AddUnit('%s');\\n\",tolower(\$3)); }"
 
 * Testing if building a package from archive works:
 
 fpc fpmake && fpmake archive && fppkg build *.zip
 
+* Comparing units directories and generate AddUnit lines for missing .ppu files in <newunitdir>:
+
+diff -q <oldunitdir> <newunitdir> | awk "/^Only.*ppu/ { gsub(\".ppu\",\".pp\"); printf(\"T:=P.Targets.AddUnit('%s');\n\",\$NF); }"
