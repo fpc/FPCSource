@@ -77,7 +77,7 @@ Type
   TSourceType = (stDoc,stSrc,stExample,stTest);
   TSourceTypes = set of TSourceType;
 
-  TVerboseLevel = (vlError,vlWarning,vlInfo,vldebug);
+  TVerboseLevel = (vlError,vlWarning,vlInfo,vldebug,vlCommand);
   TVerboseLevels = Set of TVerboseLevel;
 
   TCommandAt = (caBeforeCompile,caAfterCompile,
@@ -163,8 +163,8 @@ Const
   UnitTargets = [ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit];
   ProgramTargets = [ttProgram,ttExampleProgram];
 
-  DefaultMessages = [vlError,vlWarning];
-  AllMessages = [vlError,vlWarning,vlInfo];
+  DefaultMessages = [vlError,vlWarning,vlCommand];
+  AllMessages = [vlError,vlWarning,vlCommand,vlInfo];
 
 
 Type
@@ -279,14 +279,12 @@ Type
     FDependencyType : TDependencyType;
     // Package, Unit
     FTarget : TObject;
-    // Includes and implicit/external packages
-    FDirectory : String;
-    Procedure SetDirectory(const AValue:String);
+    // Filenames, Includes
+    FTargetFileName : String;
   Public
-    Function FullFileName: String;
     Property Target : TObject Read FTarget Write FTarget;
     Property DependencyType : TDependencyType Read FDependencyType;
-    Property Directory: String Read FDirectory write SetDirectory;
+    Property TargetFileName : String Read FTargetFileName Write FTargetFileName;
   end;
 
   TDependencies = Class(TConditionalStrings)
@@ -929,8 +927,8 @@ ResourceString
   SErrInvalidArgumentToSubstitute = 'Invalid number of arguments to Substitute';
   SErrNoArchiveSupport  = 'This binary contains no archive support. Please recompile with archive support';
   SErrNoDictionaryItem  = 'No item called "%s" in the dictionary';
-  SErrNoDictionaryValue = 'The item "%s" in the dictionary is not a value.';
-  SErrNoDictionaryFunc  = 'The item "%s" in the dictionary is not a function.';
+  SErrNoDictionaryValue = 'The item "%s" in the dictionary is not a value';
+  SErrNoDictionaryFunc  = 'The item "%s" in the dictionary is not a function';
   SErrInvalidFPCInfo    = 'Compiler returns invalid information, check if fpc -iV works';
   SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s"';
   SErrAlreadyInitialized = 'Installer can only be initialized once';
@@ -939,7 +937,8 @@ ResourceString
   SWarnFailedToSetTime    = 'Warning: Failed to set timestamp on file "%s"';
   SWarnFailedToGetTime    = 'Warning: Failed to get timestamp from file "%s"';
   SWarnFileDoesNotExist   = 'Warning: File "%s" does not exist';
-  SWarnAttemptingToCompileNonNeutralTarget = 'Attempting to compile non-neutral target %s';
+  SWarnAttemptingToCompileNonNeutralTarget = 'Warning: Attempting to compile non-neutral target %s';
+  SWarnIncludeFileNotFound = 'Warning: Include File "%s" not found';
 
   SInfoEnterDir           = 'Entering directory "%s"';
   SInfoCompilingPackage   = 'Compiling package %s';
@@ -2888,7 +2887,7 @@ Var
 begin
   Log(vlInfo,SInfoExecutingCommand,[Cmd,Args]);
   if ListMode then
-    Log(vlError,'%s %s',[Cmd,Args])
+    Log(vlCommand,'%s %s',[Cmd,Args])
   else
     begin
       // We should check cmd for spaces, and move all after first space to args.
@@ -3010,7 +3009,12 @@ end;
 procedure TBuildEngine.Log(Level: TVerboseLevel; const Msg: String);
 begin
   If Assigned(FOnLog) then
-    FOnLog(Level,FLogPrefix+Msg);
+    begin
+      if Level in [vlInfo,vlDebug] then
+        FOnLog(Level,FLogPrefix+Msg)
+      else
+        FOnLog(Level,Msg);
+    end;
 end;
 
 
@@ -3265,21 +3269,21 @@ begin
           D:=T.Dependencies[j];
           if (D.DependencyType=depInclude) and DependencyOK(D)  then
             begin
-              SD:=Dictionary.ReplaceStrings(D.Directory);
-              SF:=Dictionary.ReplaceStrings(D.Value);
-              if SD='' then
+              if D.TargetFileName='' then
                 begin
+                  SF:=Dictionary.ReplaceStrings(D.Value);
+                  SD:='';
                   // first check the target specific path
                   if not FindFileInPath(T.IncludePath,SF,SD,ACPU,AOS,APackage.Directory) then
                     FindFileInPath(APackage.IncludePath,SF,SD,ACPU,AOS,APackage.Directory);
-                end
-              else
-                if APackage.Directory<>'' then
-                  SD:=IncludeTrailingPathDelimiter(APackage.Directory)+SD;
-               if SD<>'' then
-                 SD:=IncludeTrailingPathDelimiter(SD);
-               D.Directory:=SD;
-               Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.FullFileName]);
+                   if SD<>'' then
+                     SD:=IncludeTrailingPathDelimiter(SD);
+                   D.TargetFileName:=SD+SF;
+                 end;
+               if FileExists(D.TargetFileName) then
+                 Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
+               else
+                 Log(vlWarning,SWarnIncludeFileNotFound,[D.Value])
              end;
         end;
 
@@ -3315,6 +3319,7 @@ procedure TBuildEngine.AddDependencyIncludePaths(L:TStrings;ATarget: TTarget);
 Var
   I : Integer;
   D : TDependency;
+  SD : String;
 begin
   For I:=0 to ATarget.Dependencies.Count-1 do
     begin
@@ -3322,7 +3327,9 @@ begin
       if (D.DependencyType=depInclude) and
          (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
         begin
-          L.Add(D.Directory);
+          SD:=ExcludeTrailingPathDelimiter(ExtractFilePath(D.TargetFileName));
+          if SD<>'' then
+            L.Add(SD);
         end;
     end;
 end;
@@ -3620,8 +3627,8 @@ begin
                   end;
                 depInclude :
                   begin
-                    if FileExists(D.FullFileName) then
-                      Result:=FileNewer(D.FullFileName,OFN)
+                    if FileExists(D.TargetFileName) then
+                      Result:=FileNewer(D.TargetFileName,OFN)
                   end;
               end;
               if result then
@@ -4311,7 +4318,7 @@ begin
       D:=Dependencies[i];
       if (D.DependencyType=depInclude) and
          (ACPU in D.CPUs) and (AOS in D.OSes) then
-        List.Add(D.FullFileName);
+        List.Add(D.TargetFileName);
     end;
 end;
 
@@ -4448,22 +4455,6 @@ end;
 
 
 {****************************************************************************
-                                 TDependency
-****************************************************************************}
-
-Function TDependency.FullFileName: String;
-begin
-  Result:=FDirectory+Value;
-end;
-
-
-Procedure TDependency.SetDirectory(const AValue:String);
-begin
-  FDirectory:=IncludeTrailingPathDelimiter(AValue);
-end;
-
-
-{****************************************************************************
                                 TDependencies
 ****************************************************************************}
 
@@ -4565,7 +4556,8 @@ begin
   if ExtractFileExt(N)='' then
     ChangeFileExt(N,IncExt);
   Result:=inherited Add(N,CPUs,OSes) as TDependency;
-  Result.FDirectory:=D;
+  if D<>'' then
+    Result.TargetFileName:=D+N;
   Result.FDependencyType:=depInclude;
 end;
 
