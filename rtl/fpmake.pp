@@ -109,7 +109,7 @@ begin
         end;
 
     // Startup
-    T:=P.Targets.AddUnit('si_c21g.pp');
+    T:=P.Targets.AddUnit('si_c21g.pp',[Linux]);
       With T.Dependencies do
         begin
           AddUnit('system');
@@ -117,7 +117,7 @@ begin
           AddInclude('sysnr.inc');
           AddInclude('si_c21g.inc');
         end;
-    T:=P.Targets.AddUnit('si_c21.pp');
+    T:=P.Targets.AddUnit('si_c21.pp',[Linux]);
       With T.Dependencies do
         begin
           AddUnit('system');
@@ -125,7 +125,7 @@ begin
           AddInclude('sysnr.inc');
           AddInclude('si_c21.inc');
         end;
-    T:=P.Targets.AddUnit('si_c.pp');
+    T:=P.Targets.AddUnit('si_c.pp',[Linux]);
       With T.Dependencies do
         begin
           AddUnit('system');
@@ -133,7 +133,7 @@ begin
           AddInclude('sysnr.inc');
           AddInclude('si_c.inc');
         end;
-    T:=P.Targets.AddUnit('si_dll.pp');
+    T:=P.Targets.AddUnit('si_dll.pp',[Linux]);
       With T.Dependencies do
         begin
           AddUnit('system');
@@ -141,7 +141,7 @@ begin
           AddInclude('sysnr.inc');
           AddInclude('si_dll.inc');
         end;
-    T:=P.Targets.AddUnit('si_prc.pp');
+    T:=P.Targets.AddUnit('si_prc.pp',[Linux]);
       With T.Dependencies do
         begin
           AddUnit('system');
@@ -149,7 +149,7 @@ begin
           AddInclude('sysnr.inc');
           AddInclude('si_prc.inc');
         end;
-    T:=P.Targets.AddUnit('si_uc.pp');
+    T:=P.Targets.AddUnit('si_uc.pp',[Linux]);
       With T.Dependencies do
         begin
           AddUnit('system');
@@ -163,7 +163,7 @@ begin
       T.Dependencies.AddUnit('system');
     T:=P.Targets.AddUnit('macpas.pp');
       T.Dependencies.AddUnit('system');
-    T:=P.Targets.AddUnit('fpcylix.pp');
+    T:=P.Targets.AddUnit('fpcylix.pp',AllUnixOSes);
       With T.Dependencies do
         begin
           AddUnit('cthreads');
@@ -178,6 +178,12 @@ begin
           AddUnit('system');
         end;
     T:=P.Targets.AddUnit('unixutil.pp',AllUnixOSes);
+      with T.Dependencies do
+        begin
+          AddInclude('textrec.inc');
+          AddInclude('filerec.inc');
+          AddUnit('system');
+        end;
     T:=P.Targets.AddUnit('baseunix.pp',AllUnixOSes);
       With T.Dependencies do
         begin
@@ -240,8 +246,9 @@ begin
       T.Dependencies.AddInclude('sysnr.inc');
       T.Dependencies.AddInclude('syscallh.inc');
     T:=P.Targets.AddUnit('unix/terminfo.pp',AllUnixOSes);
-      T.Dependencies.AddUnit('baseunix');
+      T.Dependencies.AddUnit('baseunix',AllUnixOSes);
     T:=P.Targets.AddUnit('unix/dl.pp',AllUnixOSes);
+      T.Dependencies.AddUnit('system');
     T:=P.Targets.AddUnit('unix/ipc.pp',AllUnixOSes);
       With T.Dependencies do
         begin
@@ -252,6 +259,11 @@ begin
 
     // Linux units
     T:=P.Targets.AddUnit('linux/linux.pp',[Linux]);
+      with T.Dependencies do
+        begin
+          AddUnit('baseunix');
+          AddUnit('syscall');
+        end;
     T:=P.Targets.AddUnit('linux/gpm.pp',[Linux]);
       With T.Dependencies do
         begin
@@ -260,8 +272,12 @@ begin
           AddUnit('strings');
           AddUnit('unix');
         end;
-
     T:=P.Targets.AddUnit('linux/linuxvcs.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('baseunix');
+          AddUnit('strings');
+        end;
 
     // Turbo Pascal RTL units
     T:=P.Targets.AddUnit('strings.pp');
@@ -289,11 +305,27 @@ begin
       With T.Dependencies do
         begin
           AddUnit('unix',AllUnixOSes);
-          AddInclude('inc/crth.inc');
+          AddUnit('termio',AllUnixOSes);
+          AddInclude('crth.inc');
+          AddInclude('textrec.inc');
         end;
     T:=P.Targets.AddUnit('objects.pp');
-    T:=P.Targets.AddUnit('ports.pp');
+      T.Dependencies.AddUnit('dos');
+    T:=P.Targets.AddUnit('ports.pp',[i386,x86_64],AllOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('objpas');
+          AddUnit('x86');
+        end;
     T:=P.Targets.AddUnit('printer.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('printerh.inc');
+          AddInclude('printer.inc');
+          AddInclude('textrec.inc');
+          AddUnit('unix',AllUnixOSes);
+          AddUnit('strings');
+        end;
 
     // Object Pascal RTL units
     T:=P.Targets.AddUnit('rtlconsts.pp');
@@ -452,7 +484,7 @@ begin
           AddUnit('dl');
           AddInclude('pthread.inc');
         end;
-    T:=P.Targets.AddUnit('cwstring');
+    T:=P.Targets.AddUnit('cwstring',AllUnixOSes);
       With T.Dependencies do
         begin
           AddUnit('objpas');
@@ -463,29 +495,107 @@ begin
 
     // Misc units
     T:=P.Targets.AddUnit('charset.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('system');
+          AddUnit('objpas');
+        end;
     T:=P.Targets.AddUnit('ucomplex.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('system');
+          AddUnit('math');
+        end;
     T:=P.Targets.AddUnit('matrix.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('system');
+          AddInclude('mvecimp.inc');
+          AddInclude('mmatimp.inc');
+        end;
     T:=P.Targets.AddUnit('getopts.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('system');
+        end;
     T:=P.Targets.AddUnit('dynlibs.pas');
       With T.Dependencies do
         begin
           AddUnit('objpas');
-          AddUnit('dl');
+          AddUnit('dl',AllUnixOSes);
           AddInclude('dynlibs.inc');
         end;
 
     // Debugging units
     T:=P.Targets.AddUnit('exeinfo.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('objpas');
+          AddUnit('strings');
+        end;
     T:=P.Targets.AddUnit('heaptrc.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('system');
+        end;
     T:=P.Targets.AddUnit('lineinfo.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('exeinfo');
+        end;
     T:=P.Targets.AddUnit('lnfodwrf.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('exeinfo');
+        end;
 
     // IO units
-    T:=P.Targets.AddUnit('mouse');
-    T:=P.Targets.AddUnit('video');
-    T:=P.Targets.AddUnit('keyboard');
-    T:=P.Targets.AddUnit('sockets');
-    T:=P.Targets.AddUnit('serial');
+    T:=P.Targets.AddUnit('mouse.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('video');
+          AddUnit('gpm',[Linux]);
+          AddInclude('mouseh.inc');
+          AddInclude('mouse.inc');
+        end;
+    T:=P.Targets.AddUnit('video.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('baseunix',AllUnixOSes);
+          AddUnit('termio',AllUnixOSes);
+          AddUnit('strings');
+          AddUnit('linuxvcs',[Linux]);
+          AddInclude('videoh.inc');
+          AddInclude('video.inc');
+          AddInclude('convert.inc');
+        end;
+    T:=P.Targets.AddUnit('keyboard.pp');
+       with T.Dependencies do
+         begin
+           AddInclude('keybrdh.inc');
+           AddInclude('keyboard.inc');
+           AddInclude('keyscan.inc');
+           AddUnit('mouse');
+         end;
+    T:=P.Targets.AddUnit('sockets.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('socketsh.inc');
+          AddInclude('filerec.inc');
+          AddInclude('textrec.inc');
+          AddInclude('sockovl.inc');
+          AddInclude('sockets.inc');
+          AddInclude('unxsockh.inc',AllUnixOSes);
+          AddInclude('unixsock.inc',AllUnixOSes);
+          AddUnit('baseunix',AllUnixOSes);
+        end;
+    T:=P.Targets.AddUnit('serial.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('objpas');
+          AddUnit('termio',AllUnixOSes);
+          AddUnit('unix',AllUnixOSes);
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
