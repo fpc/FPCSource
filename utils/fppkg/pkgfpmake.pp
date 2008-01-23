@@ -236,8 +236,8 @@ begin
   if vInfo in Verbosity then
     OOptions:=OOptions+' --verbose';
   OOptions:=OOptions+' --compiler='+CompilerOptions.Compiler;
-  OOptions:=OOptions+' --CPU='+CPUToString(CompilerOptions.CompilerCPU);
-  OOptions:=OOptions+' --OS='+OSToString(CompilerOptions.CompilerOS);
+  OOptions:=OOptions+' --cpu='+CPUToString(CompilerOptions.CompilerCPU);
+  OOptions:=OOptions+' --os='+OSToString(CompilerOptions.CompilerOS);
   if IsSuperUser or GlobalOptions.InstallGlobal then
     OOptions:=OOptions+' --baseinstalldir='+CompilerOptions.GlobalInstallDir
   else
