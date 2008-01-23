@@ -997,6 +997,7 @@ begin
   FWhereStopPos := 0;
   
   ConnOptions := TSQLConnection(DataBase).ConnOptions;
+  FUpdateable := False;
 
   repeat
     begin
@@ -1074,10 +1075,9 @@ begin
                          Setlength(FFromPart,StrLength);
                          Move(PStatementPart^,FFromPart[1],(StrLength));
                          FFrompart := trim(FFrompart);
-                       
-                         if ExtractStrings([',',' '],[],pchar(FFromPart),nil) > 1 then
-                           FUpdateable := False // select-statements from more then one table are not updateable
-                         else
+
+                         // select-statements from more then one table are not updateable
+                         if ExtractStrings([',',' '],[],pchar(FFromPart),nil) = 1 then
                            begin
                            FUpdateable := True;
                            FTableName := FFromPart;
