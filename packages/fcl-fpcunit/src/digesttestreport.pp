@@ -88,7 +88,7 @@ type
     FHostName : String;
     FComment : String;
     FCategory : String;
-  private
+    FRelSrcDir: string;
     procedure CreateTar;
   public
   {ITestListener}
@@ -101,6 +101,7 @@ type
     
     property Comment: string read FComment write FComment;
     property Category: string read FCategory write FCategory;
+    property RelSrcDir: string read FRelSrcDir write FRelSrcDir;
   end;
   
 implementation
@@ -327,6 +328,7 @@ begin
     AddLog(DigestFileName,'Machine='+FHostName);
     AddLog(DigestFileName,'Comment='+FComment);
     AddLog(DigestFileName,'Category='+FCategory);
+    AddLog(DigestFileName,'RelSrcDir='+FRelSrcDir);
 // Create .tar.gz file
     CreateTar;
     end;
