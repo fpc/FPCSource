@@ -50,8 +50,9 @@ Function  EscapeSQL( S : String) : String;
 Function SQLDate(D : TDateTime) : String;
 
 var
+  RelSrcDir,
   TestSrcDir : string;
-  
+
 Implementation
 
 Uses
@@ -287,7 +288,7 @@ begin
     path := '.';
     end;
   if upper(ClassName[1])<>'T' then exit;
-  FileName := lowercase(TestSrcDir+Path+DirectorySeparator+copy(ClassName,2,length(classname)));
+  FileName := lowercase(TestSrcDir+RelSrcDir+Path+DirectorySeparator+copy(ClassName,2,length(classname)));
   if FileExists(FileName+'.pas') then
     FileName := FileName + '.pas'
   else if FileExists(FileName+'.pp') then
@@ -341,8 +342,8 @@ Var
 
 begin
   Result:=-1;
-  If (FileExists(TestSrcDir+Name) and
-     GetConfig(TestSrcDir+Name,Info)) or
+  If (FileExists(TestSrcDir+RelSrcDir+Name) and
+     GetConfig(TestSrcDir+RelSrcDir+Name,Info)) or
      GetUnitTestConfig(Name,Info) then
     begin
     If RunQuery(Format(SInsertTest,[Name]),Res) then

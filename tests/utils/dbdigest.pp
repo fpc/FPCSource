@@ -75,6 +75,7 @@ TConfigOpt = (
   coMachine,
   coComment,
   coTestSrcDir,
+  coRelSrcDir,
   coVerbose
  );
 
@@ -95,11 +96,12 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'machine',
   'comment',
   'testsrcdir',
+  'relsrcdir',
   'verbose'
 );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','a','v','t','s','m','C','S','V');
+           = ('d','h','u','p','l','o','c','a','v','t','s','m','C','S','r','V');
 
 Var
   TestOS,
@@ -154,7 +156,15 @@ begin
         TestSrcDir:=Value;
 	if (TestSrcDir<>'') and (TestSrcDir[length(TestSrcDir)]<>'/') then
 	  TestSrcDir:=TestSrcDir+'/';
-      end;	  
+      end;
+    coRelSrcDir   :
+      begin
+        RelSrcDir:=Value;
+	if (RelSrcDir<>'') and (RelSrcDir[length(RelSrcDir)]<>'/') then
+	  RelSrcDir:=RelSrcDir+'/';
+	if (RelSrcDir<>'') and (RelSrcDir[1]='/') then
+	  RelSrcDir:=copy(RelSrcDir,2,length(RelSrcDir)-1);
+      end;
   end;
 end;
 
@@ -194,6 +204,9 @@ Var
   I : Integer;
 
 begin
+  // Set the default value for old digests without RelSrcDir to the rtl/compiler
+  // testsuite
+  RelSrcDir:='tests/';
   If Not FileExists(FN) Then
     Exit;
   Verbose(V_DEBUG,'Parsing config file: '+FN);
