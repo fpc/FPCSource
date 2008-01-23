@@ -611,7 +611,6 @@ Type
   Public
     Constructor Create;
     Procedure InitDefaults;
-    Procedure Assign(ASource : TPersistent);override;
     procedure CompilerDefaults; virtual;
     Procedure LocalInit(Const AFileName : String);
     Procedure LoadFromFile(Const AFileName : String);
@@ -2251,47 +2250,15 @@ end;
 
 procedure TCustomDefaults.InitDefaults;
 begin
-  {$ifdef unix}
+{$ifdef unix}
   UnixPaths:=True;
-  {$else}
+{$else}
   UnixPaths:=False;
-  {$endif}
+{$endif}
   FSourceExt:=PPExt;
   FNoFPCCfg:=False;
-end;
-
-
-procedure TCustomDefaults.Assign(ASource: TPersistent);
-Var
-  d : TCustomDefaults;
-begin
-  If ASource is TCustomDefaults then
-    begin
-      D:=ASource as TCustomDefaults;
-      FArchive:=D.Farchive;
-      FCompiler:=D.Compiler;
-      FCopy:=D.FCopy;
-      FCPU:=D.FCPU;
-      FMode:=D.FMode;
-      FMkDir:=D.FMkDir;
-      FMove:=D.FMove;
-      FOptions:=D.FOptions;
-      FOS:=D.FOS;
-      FLocalUnitDir:=D.FLocalUnitDir;
-      FGlobalUnitDir:=D.FGlobalUnitDir;
-      FPrefix:=D.FPrefix;
-      FBaseInstallDir:=D.FBaseInstallDir;
-      FUnitInstallDir:=D.FUnitInstallDir;
-      FBinInstallDir:=D.FBinInstallDir;
-      FDocInstallDir:=D.FDocInstallDir;
-      FExamplesInstallDir:=D.FExamplesInstallDir;
-      FRemove:=D.FRemove;
-      FTarget:=D.FTarget;
-      FUnixPaths:=D.FUnixPaths;
-      FSourceExt:=D.SourceExt;
-    end
-  else
-    Inherited;
+  FCPU:=cpuNone;
+  FOS:=osNone;
 end;
 
 
@@ -2333,24 +2300,31 @@ var
   infoSL : TStringList;
 {$endif HAS_UNIT_PROCESS}
 begin
+  if (CPU=cpuNone) or (OS=osNone) or (FCompilerVersion='') then
+    begin
 {$ifdef HAS_UNIT_PROCESS}
-  // Detect compiler version/target from -i option
-  infosl:=TStringList.Create;
-  infosl.Delimiter:=' ';
-  infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO');
-  if infosl.Count<>3 then
-    Raise EInstallerError.Create(SErrInvalidFPCInfo);
-  FCompilerVersion:=infosl[0];
-  CPU:=StringToCPU(infosl[1]);
-  OS:=StringToOS(infosl[2]);
+      // Detect compiler version/target from -i option
+      infosl:=TStringList.Create;
+      infosl.Delimiter:=' ';
+      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO');
+      if infosl.Count<>3 then
+        Raise EInstallerError.Create(SErrInvalidFPCInfo);
+      if FCompilerVersion='' then
+        FCompilerVersion:=infosl[0];
+      if CPU=cpuNone then
+        CPU:=StringToCPU(infosl[1]);
+      if OS=osNone then
+        OS:=StringToOS(infosl[2]);
 {$else HAS_UNIT_PROCESS}
-  if CPU=cpuNone then
-    CPU:=StringToCPU({$I %FPCTARGETCPU%});
-  if OS=osNone then
-    OS:=StringToOS({$I %FPCTARGETOS%});
-  if FCompilerVersion='' then
-    FCompilerVersion:={$I %FPCVERSION%};
+      // Defaults taken from compiler used to build fpmake
+      if CPU=cpuNone then
+        CPU:=StringToCPU({$I %FPCTARGETCPU%});
+      if OS=osNone then
+        OS:=StringToOS({$I %FPCTARGETOS%});
+      if FCompilerVersion='' then
+        FCompilerVersion:={$I %FPCVERSION%};
 {$endif HAS_UNIT_PROCESS}
+    end;
 end;
 
 
