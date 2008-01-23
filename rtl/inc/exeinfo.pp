@@ -76,6 +76,41 @@ uses
   {$DEFINE EMX}
 {$ENDIF OS2}
 
+
+{****************************************************************************
+                              DOS Stub
+****************************************************************************}
+
+{$if defined(EMX) or defined(PE32) or defined(PE32PLUS)}
+type
+  tdosheader = packed record
+     e_magic : word;
+     e_cblp : word;
+     e_cp : word;
+     e_crlc : word;
+     e_cparhdr : word;
+     e_minalloc : word;
+     e_maxalloc : word;
+     e_ss : word;
+     e_sp : word;
+     e_csum : word;
+     e_ip : word;
+     e_cs : word;
+     e_lfarlc : word;
+     e_ovno : word;
+     e_res : array[0..3] of word;
+     e_oemid : word;
+     e_oeminfo : word;
+     e_res2 : array[0..9] of word;
+     e_lfanew : longint;
+  end;
+{$endif EMX or PE32 or PE32PLUS}
+
+
+{****************************************************************************
+                                  NLM
+****************************************************************************}
+
 {$ifdef netware}
 
 const SIZE_OF_NLM_INTERNAL_FIXED_HEADER = 130;
@@ -219,19 +254,13 @@ begin
 end;
 {$endif}
 
-{$ifdef go32v2}
-function LoadGo32Coff:boolean;
+
+{****************************************************************************
+                               COFF
+****************************************************************************}
+
+{$if defined(PE32) or defined(PE32PLUS) or defined(GO32V2)}
 type
-  tcoffheader=packed record
-    mach   : word;
-    nsects : word;
-    time   : longint;
-    sympos : longint;
-    syms   : longint;
-    opthdr : word;
-    flag   : word;
-    other  : array[0..27] of byte;
-  end;
   tcoffsechdr=packed record
     name     : array[0..7] of char;
     vsize    : longint;
@@ -243,110 +272,6 @@ type
     nrelocs  : word;
     lineno2  : word;
     flags    : longint;
-  end;
-var
-  coffheader : tcoffheader;
-  coffsec    : tcoffsechdr;
-  i : longint;
-begin
-  processaddress := 0;
-  LoadGo32Coff:=false;
-  stabofs:=-1;
-  stabstrofs:=-1;
-  { read and check header }
-  if e.size<2048+sizeof(tcoffheader) then
-   exit;
-  seek(f,2048);
-  blockread(f,coffheader,sizeof(tcoffheader));
-  if coffheader.mach<>$14c then
-   exit;
-  { read section info }
-  for i:=1to coffheader.nSects do
-   begin
-     blockread(f,coffsec,sizeof(tcoffsechdr));
-     if (coffsec.name[4]='b') and
-        (coffsec.name[1]='s') and
-        (coffsec.name[2]='t') then
-      begin
-        if (coffsec.name[5]='s') and
-           (coffsec.name[6]='t') then
-         stabstrofs:=coffsec.datapos+2048
-        else
-         begin
-           stabofs:=coffsec.datapos+2048;
-           stabcnt:=coffsec.datalen div sizeof(tstab);
-         end;
-      end;
-   end;
-  LoadGo32Coff:=(stabofs<>-1) and (stabstrofs<>-1);
-end;
-{$endif Go32v2}
-
-
-{$ifdef PE32}
-function OpenPeCoff(var e:TExeFile):boolean;
-type
-  tdosheader = packed record
-     e_magic : word;
-     e_cblp : word;
-     e_cp : word;
-     e_crlc : word;
-     e_cparhdr : word;
-     e_minalloc : word;
-     e_maxalloc : word;
-     e_ss : word;
-     e_sp : word;
-     e_csum : word;
-     e_ip : word;
-     e_cs : word;
-     e_lfarlc : word;
-     e_ovno : word;
-     e_res : array[0..3] of word;
-     e_oemid : word;
-     e_oeminfo : word;
-     e_res2 : array[0..9] of word;
-     e_lfanew : longint;
-  end;
-  tpeheader = packed record
-     PEMagic : longint;
-     Machine : word;
-     NumberOfSections : word;
-     TimeDateStamp : longint;
-     PointerToSymbolTable : longint;
-     NumberOfSymbols : longint;
-     SizeOfOptionalHeader : word;
-     Characteristics : word;
-     Magic : word;
-     MajorLinkerVersion : byte;
-     MinorLinkerVersion : byte;
-     SizeOfCode : longint;
-     SizeOfInitializedData : longint;
-     SizeOfUninitializedData : longint;
-     AddressOfEntryPoint : longint;
-     BaseOfCode : longint;
-     BaseOfData : longint;
-     ImageBase : longint;
-     SectionAlignment : longint;
-     FileAlignment : longint;
-     MajorOperatingSystemVersion : word;
-     MinorOperatingSystemVersion : word;
-     MajorImageVersion : word;
-     MinorImageVersion : word;
-     MajorSubsystemVersion : word;
-     MinorSubsystemVersion : word;
-     Reserved1 : longint;
-     SizeOfImage : longint;
-     SizeOfHeaders : longint;
-     CheckSum : longint;
-     Subsystem : word;
-     DllCharacteristics : word;
-     SizeOfStackReserve : longint;
-     SizeOfStackCommit : longint;
-     SizeOfHeapReserve : longint;
-     SizeOfHeapCommit : longint;
-     LoaderFlags : longint;
-     NumberOfRvaAndSizes : longint;
-     DataDirectory : array[1..$80] of byte;
   end;
   coffsymbol=packed record
     name    : array[0..3] of char; { real is [0..7], which overlaps the strofs ! }
@@ -357,44 +282,8 @@ type
     typ     : byte;
     aux     : byte;
   end;
-var
-  dosheader  : tdosheader;
-  peheader   : tpeheader;
-begin
-  result:=false;
-  { read and check header }
-  if e.size<sizeof(dosheader) then
-    exit;
-  blockread(e.f,dosheader,sizeof(tdosheader));
-  seek(e.f,dosheader.e_lfanew);
-  blockread(e.f,peheader,sizeof(tpeheader));
-  if peheader.pemagic<>$4550 then
-    exit;
-  e.sechdrofs:=filepos(e.f);
-  e.nsects:=peheader.NumberOfSections;
-  e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
-  if e.secstrofs>e.size then
-    exit;
-  result:=true;
-end;
-{$endif PE32}
 
-
-{$if defined(PE32) or defined(PE32PLUS)}
-function FindSectionPECoff(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
-type
-  tcoffsechdr=packed record
-    name     : array[0..7] of char;
-    vsize    : longint;
-    rvaofs   : longint;
-    datalen  : longint;
-    datapos  : longint;
-    relocpos : longint;
-    lineno1  : longint;
-    nrelocs  : word;
-    lineno2  : word;
-    flags    : longint;
-  end;
+function FindSectionCoff(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
 var
   i : longint;
   sechdr     : tcoffsechdr;
@@ -438,33 +327,113 @@ begin
        end;
    end;
 end;
-{$endif PE32 or PE32PLUS}
+{$endif PE32 or PE32PLUS or GO32V2}
+
+
+{$ifdef go32v2}
+function OpenGo32Coff(var e:TExeFile):boolean;
+type
+  tgo32coffheader=packed record
+    mach   : word;
+    nsects : word;
+    time   : longint;
+    sympos : longint;
+    syms   : longint;
+    opthdr : word;
+    flag   : word;
+    other  : array[0..27] of byte;
+  end;
+var
+  coffheader : tgo32coffheader;
+begin
+  result:=false;
+  { read and check header }
+  if e.size<2048+sizeof(coffheader) then
+   exit;
+  seek(e.f,2048);
+  blockread(e.f,coffheader,sizeof(coffheader));
+  if coffheader.mach<>$14c then
+    exit;
+  e.sechdrofs:=filepos(e.f);
+  e.nsects:=coffheader.nsects;
+  e.secstrofs:=coffheader.sympos+coffheader.syms*sizeof(coffsymbol)+4;
+  if e.secstrofs>e.size then
+    exit;
+  result:=true;
+end;
+{$endif Go32v2}
+
+
+{$ifdef PE32}
+function OpenPeCoff(var e:TExeFile):boolean;
+type
+  tpeheader = packed record
+     PEMagic : longint;
+     Machine : word;
+     NumberOfSections : word;
+     TimeDateStamp : longint;
+     PointerToSymbolTable : longint;
+     NumberOfSymbols : longint;
+     SizeOfOptionalHeader : word;
+     Characteristics : word;
+     Magic : word;
+     MajorLinkerVersion : byte;
+     MinorLinkerVersion : byte;
+     SizeOfCode : longint;
+     SizeOfInitializedData : longint;
+     SizeOfUninitializedData : longint;
+     AddressOfEntryPoint : longint;
+     BaseOfCode : longint;
+     BaseOfData : longint;
+     ImageBase : longint;
+     SectionAlignment : longint;
+     FileAlignment : longint;
+     MajorOperatingSystemVersion : word;
+     MinorOperatingSystemVersion : word;
+     MajorImageVersion : word;
+     MinorImageVersion : word;
+     MajorSubsystemVersion : word;
+     MinorSubsystemVersion : word;
+     Reserved1 : longint;
+     SizeOfImage : longint;
+     SizeOfHeaders : longint;
+     CheckSum : longint;
+     Subsystem : word;
+     DllCharacteristics : word;
+     SizeOfStackReserve : longint;
+     SizeOfStackCommit : longint;
+     SizeOfHeapReserve : longint;
+     SizeOfHeapCommit : longint;
+     LoaderFlags : longint;
+     NumberOfRvaAndSizes : longint;
+     DataDirectory : array[1..$80] of byte;
+  end;
+var
+  dosheader  : tdosheader;
+  peheader   : tpeheader;
+begin
+  result:=false;
+  { read and check header }
+  if e.size<sizeof(dosheader) then
+    exit;
+  blockread(e.f,dosheader,sizeof(tdosheader));
+  seek(e.f,dosheader.e_lfanew);
+  blockread(e.f,peheader,sizeof(tpeheader));
+  if peheader.pemagic<>$4550 then
+    exit;
+  e.sechdrofs:=filepos(e.f);
+  e.nsects:=peheader.NumberOfSections;
+  e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
+  if e.secstrofs>e.size then
+    exit;
+  result:=true;
+end;
+{$endif PE32}
 
 
 {$ifdef PE32PLUS}
 function OpenPePlusCoff(var e:TExeFile):boolean;
 type
-  tdosheader = packed record
-     e_magic : word;
-     e_cblp : word;
-     e_cp : word;
-     e_crlc : word;
-     e_cparhdr : word;
-     e_minalloc : word;
-     e_maxalloc : word;
-     e_ss : word;
-     e_sp : word;
-     e_csum : word;
-     e_ip : word;
-     e_cs : word;
-     e_lfarlc : word;
-     e_ovno : word;
-     e_res : array[0..3] of word;
-     e_oemid : word;
-     e_oeminfo : word;
-     e_res2 : array[0..9] of word;
-     e_lfanew : longint;
-  end;
   tpeheader = packed record
      PEMagic : longint;
      Machine : word;
@@ -506,27 +475,6 @@ type
      NumberOfRvaAndSizes : longint;
      DataDirectory : array[1..$80] of byte;
   end;
-  tcoffsechdr=packed record
-    name     : array[0..7] of char;
-    vsize    : longint;
-    rvaofs   : longint;
-    datalen  : longint;
-    datapos  : longint;
-    relocpos : longint;
-    lineno1  : longint;
-    nrelocs  : word;
-    lineno2  : word;
-    flags    : longint;
-  end;
-  coffsymbol=packed record
-    name    : array[0..3] of char; { real is [0..7], which overlaps the strofs ! }
-    strofs  : longint;
-    value   : longint;
-    section : smallint;
-    empty   : word;
-    typ     : byte;
-    aux     : byte;
-  end;
 var
   dosheader  : tdosheader;
   peheader   : tpeheader;
@@ -550,30 +498,12 @@ end;
 {$endif PE32PLUS}
 
 
+{****************************************************************************
+                                 AOUT
+****************************************************************************}
+
 {$IFDEF EMX}
 type
-  TDosHeader = packed record
-     e_magic : word;
-     e_cblp : word;
-     e_cp : word;
-     e_crlc : word;
-     e_cparhdr : word;
-     e_minalloc : word;
-     e_maxalloc : word;
-     e_ss : word;
-     e_sp : word;
-     e_csum : word;
-     e_ip : word;
-     e_cs : word;
-     e_lfarlc : word;
-     e_ovno : word;
-     e_res : array[0..3] of word;
-     e_oemid : word;
-     e_oeminfo : word;
-     e_res2 : array[0..9] of word;
-     e_lfanew : longint;
-  end;
-
   TEmxHeader = packed record
      Version: array [1..16] of char;
      Bound: word;
@@ -662,6 +592,10 @@ end;
 {$ENDIF EMX}
 
 
+{****************************************************************************
+                                 ELF
+****************************************************************************}
+
 {$if defined(ELF32) or defined(BEOS)}
 type
   telfheader=packed record
@@ -696,7 +630,7 @@ type
       sh_addralign      : longword;
       sh_entsize        : longword;
     end;
-{$endif ELF32 or BEOS}  
+{$endif ELF32 or BEOS}
 {$ifdef ELF64}
 type
   telfheader=packed record
@@ -851,41 +785,35 @@ end;
 {$endif beos}
 
 
+{****************************************************************************
+                                 MACHO
+****************************************************************************}
+
 {$ifdef darwin}
 type
-MachoFatHeader=
-packed record
+  MachoFatHeader= packed record
     magic: longint;
     nfatarch: longint;
-end;
-
-MachoHeader=
-packed record
-     magic: longword;
-     cpu_type_t: longint;
-     cpu_subtype_t: longint;
-     filetype: longint;
-     ncmds: longint;
-     sizeofcmds: longint;
-     flags: longint;
-
-end;
-
-cmdblock=
-packed record
-   cmd: longint;
-   cmdsize: longint;
-end;
-
-symbSeg=
-packed record
- symoff :      longint;
- nsyms  :      longint;
- stroff :      longint;
- strsize:      longint;
-end;
-
-
+  end;
+  MachoHeader=packed record
+    magic: longword;
+    cpu_type_t: longint;
+    cpu_subtype_t: longint;
+    filetype: longint;
+    ncmds: longint;
+    sizeofcmds: longint;
+    flags: longint;
+  end;
+  cmdblock=packed record
+    cmd: longint;
+    cmdsize: longint;
+  end;
+  symbSeg=packed record
+    symoff :      longint;
+    nsyms  :      longint;
+    stroff :      longint;
+    strsize:      longint;
+  end;
   tstab=packed record
     strpos  : longint;
     ntype   : byte;
@@ -1002,19 +930,15 @@ const
   ExeProcs : TExeProcRec = (
 {$ifdef go32v2}
      openproc : @OpenGo32Coff;
-     findproc : @FindSectionGo32Coff;
+     findproc : @FindSectionCoff;
 {$endif}
-{$IFDEF EMX}
-     openproc : @OpenEMXaout;
-     findproc : @FindSectionEMXaout;
-{$ENDIF EMX}
 {$ifdef PE32}
      openproc : @OpenPeCoff;
-     findproc : @FindSectionPeCoff;
+     findproc : @FindSectionCoff;
 {$endif}
 {$ifdef PE32PLUS}
      openproc : @OpenPePlusCoff;
-     findproc : @FindSectionPeCoff;
+     findproc : @FindSectionCoff;
 {$endif PE32PLUS}
 {$if defined(ELF32) or defined(ELF64)}
      openproc : @OpenElf;
@@ -1028,6 +952,10 @@ const
      openproc : @OpenMachO32PPC;
      findproc : @FindSectionMachO32PPC;
 {$endif darwin}
+{$IFDEF EMX}
+     openproc : @OpenEMXaout;
+     findproc : @FindSectionEMXaout;
+{$ENDIF EMX}
 {$ifdef netware}
      openproc : @OpenNetwareNLM;
      findproc : @FindSectionNetwareNLM;
