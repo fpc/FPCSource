@@ -250,17 +250,17 @@ interface
   {$LINKLIB bfd}
   {$LINKLIB readline}
   {$LINKLIB opcodes}
-  {$LINKLIB history}
+  { $ LINKLIB history}
   {$LINKLIB iberty}
   {$LINKLIB ncurses}
-  {$LINKLIB m}
-  {$LINKLIB iberty}
+  { $ LINKLIB m} // include in libroot under BeOS
   {$LINKLIB intl}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
   { does not seem to exist on netbsd LINKLIB dl}
-  {$LINKLIB c}
+  { $ LINKLIB c} // This is libroot under BeOS, and always linked
+  {$LINKLIB debug}
   {$LINKLIB gcc}
 {$endif beos}
 

@@ -45,13 +45,15 @@ end;
 
 Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
 begin
-// BeOS  tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
+  // field unused under BeOS
+  tios.c_ixxxxx:=speed; 
 end;
 
 
 Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
 begin
-// BeOS   tios.c_ospeed:=speed;
+  // field unused under BeOS
+  tios.c_oxxxxx:=speed;
 end;
 
 
@@ -78,36 +80,38 @@ begin
   TCSendBreak:=fpIOCtl(fd,TIOCSBRK,nil);
 end;
 
+Function be_tcsetpgrp(fd, pgrpid : pid_t) : cint; cdecl; external 'root' name 'tcsetpgrp';
+Function be_tcgetpgrp(fd : cint) : pid_t; cdecl; external 'root' name 'tcgetpgrp';
+Function be_tcdrain(fd : cint) : cint; cdecl; external 'root' name 'tcdrain';
+Function be_tcflow(fd, action : cint) : cint; cdecl; external 'root' name 'tcflow';
+Function be_tcflush(fd, queue_selector : cint) : cint; cdecl; external 'root' name 'tcflush';
+
 
 Function TCSetPGrp(fd,id:cint):cint;
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
+  TCSetPGrp := be_tcsetpgrp(fd, id);
 end;
 
 
 Function TCGetPGrp(fd:cint;var id:cint):cint;
 begin
-  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
+  id := be_tcgetpgrp(fd);
 end;
 
 Function TCDrain(fd:cint):cint;
 begin
-  TCDrain:=fpIOCtl(fd,TIOCDRAIN,nil); {Should set timeout to 1 first?}
+  TCDrain := be_tcdrain(fd);
 end;
 
 
 Function TCFlow(fd,act:cint):cint;
 begin
-    case act OF
-     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,nil);
-     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,nil);
-     TCIOFF :  {N/I}
-    end;
+  TCFlow := be_tcflow(fd, act);
 end;
 
 Function TCFlush(fd,qsel:cint):cint;
 begin
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
+  TCFlush := be_tcflush(fd, qsel);
 end;
 
 Function BeOSIsATTY (Handle:cint):cint; cdecl; external 'root' name 'isatty';

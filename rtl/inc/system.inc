@@ -92,10 +92,15 @@ function do_isdevice(handle:thandle):boolean;forward;
 ****************************************************************************}
 
 {$ifdef FPC_USE_LIBC}
+{ Under Haiku, bcopy cause a problem when searching for include file 
+  in the compiler. So, we use the internal implementation for now
+  under BeOS and Haiku.  }
+{$ifndef BEOS}
 { prefer libc implementations over our own, as they're most likely faster }
 {$i cgeneric.inc}
 { is now declared as external reference to another routine in the interface }
 {$i cgenstr.inc}
+{$endif}
 {$endif FPC_USE_LIBC}
 
 {$ifdef cpui386}

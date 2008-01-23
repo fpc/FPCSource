@@ -662,9 +662,8 @@ end;
 {$ENDIF EMX}
 
 
-{$if defined(ELF32) or defined(ELF64)}
+{$if defined(ELF32) or defined(BEOS)}
 type
-{$ifdef ELF32}
   telfheader=packed record
       magic0123         : longint;
       file_class        : byte;
@@ -697,8 +696,9 @@ type
       sh_addralign      : longword;
       sh_entsize        : longword;
     end;
-{$endif ELF32}
+{$endif ELF32 or BEOS}  
 {$ifdef ELF64}
+type
   telfheader=packed record
       magic0123         : longint;
       file_class        : byte;
@@ -719,6 +719,7 @@ type
       e_shnum           : word;             // 0..e_shnum-1 of entrys
       e_shstrndx        : word;             // index of string section header
   end;
+type
   telfsechdr=packed record
       sh_name           : longword;
       sh_type           : longword;
@@ -733,6 +734,8 @@ type
     end;
 {$endif ELF64}
 
+
+{$if defined(ELF32) or defined(ELF64) or defined(BEOS)}
 function OpenElf(var e:TExeFile):boolean;
 var
   elfheader : telfheader;
@@ -755,6 +758,7 @@ begin
   e.nsects:=elfheader.e_shnum;
   result:=true;
 end;
+
 
 function FindSectionElf(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
 var
@@ -784,15 +788,12 @@ begin
        end;
    end;
 end;
-{$endif ELF32}
-
+{$endif ELF32 or ELF64 or BEOS}
 
 
 {$ifdef beos}
 
 {$i ptypes.inc}
-
-{ ------------------------- Images --------------------------- }
 
 type
   // Descriptive formats
@@ -832,102 +833,23 @@ type
 
 function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root' name '_get_next_image_info';
 
-function LoadElf32Beos:boolean;
-type
-  telf32header=packed record
-      magic0123         : longint;
-      file_class        : byte;
-      data_encoding     : byte;
-      file_version      : byte;
-      padding           : array[$07..$0f] of byte;
-      e_type            : word;
-      e_machine         : word;
-      e_version         : longword;
-      e_entry           : longword;                  // entrypoint
-      e_phoff           : longword;                  // program header offset
-      e_shoff           : longword;                  // sections header offset
-      e_flags           : longword;
-      e_ehsize          : word;             // elf header size in bytes
-      e_phentsize       : word;             // size of an entry in the program header array
-      e_phnum           : word;             // 0..e_phnum-1 of entrys
-      e_shentsize       : word;             // size of an entry in sections header array
-      e_shnum           : word;             // 0..e_shnum-1 of entrys
-      e_shstrndx        : word;             // index of string section header
-  end;
-  telf32sechdr=packed record
-      sh_name           : longword;
-      sh_type           : longword;
-      sh_flags          : longword;
-      sh_addr           : longword;
-      sh_offset         : longword;
-      sh_size           : longword;
-      sh_link           : longword;
-      sh_info           : longword;
-      sh_addralign      : longword;
-      sh_entsize        : longword;
-    end;
+function OpenElf32Beos(var e:TExeFile):boolean;
 var
-  elfheader : telf32header;
-  elfsec    : telf32sechdr;
-  secnames  : array[0..255] of char;
-  pname     : pchar;
-  i : longint;
   cookie    : longint;
   info      : image_info;
-  result    : status_t;
 begin
+  // The only BeOS specific part is setting the processaddress
   cookie := 0;
   fillchar(info, sizeof(image_info), 0);
   get_next_image_info(0,cookie,info,sizeof(info));
   if (info._type = B_APP_IMAGE) then
-     processaddress := cardinal(info.text)
+     e.processaddress := cardinal(info.text)
   else
-     processaddress := 0;
-  LoadElf32Beos:=false;
-  stabofs:=-1;
-  stabstrofs:=-1;
-  { read and check header }
-  if E.Size<sizeof(telf32header) then
-   exit;
-  blockread(f,elfheader,sizeof(telf32header));
-{$ifdef ENDIAN_LITTLE}
- if elfheader.magic0123<>$464c457f then
-   exit;
-{$endif ENDIAN_LITTLE}
-{$ifdef ENDIAN_BIG}
- if elfheader.magic0123<>$7f454c46 then
-   exit;
-{$endif ENDIAN_BIG}
-  if elfheader.e_shentsize<>sizeof(telf32sechdr) then
-   exit;
-  { read section names }
-  seek(f,elfheader.e_shoff+elfheader.e_shstrndx*cardinal(sizeof(telf32sechdr)));
-  blockread(f,elfsec,sizeof(telf32sechdr));
-  seek(f,elfsec.sh_offset);
-  blockread(f,secnames,sizeof(secnames));
-  { read section info }
-  seek(f,elfheader.e_shoff);
-  for i:=1to elfheader.e_shnum do
-   begin
-     blockread(f,elfsec,sizeof(telf32sechdr));
-     pname:=@secnames[elfsec.sh_name];
-     if (pname[4]='b') and
-        (pname[1]='s') and
-        (pname[2]='t') then
-      begin
-        if (pname[5]='s') and
-           (pname[6]='t') then
-         stabstrofs:=elfsec.sh_offset
-        else
-         begin
-           stabofs:=elfsec.sh_offset;
-           stabcnt:=elfsec.sh_size div sizeof(tstab);
-         end;
-      end;
-   end;
-  LoadElf32Beos:=(stabofs<>-1) and (stabstrofs<>-1);
+     e.processaddress := 0;
+  Result := OpenElf(e);
 end;
 {$endif beos}
+
 
 {$ifdef darwin}
 type
@@ -1097,11 +1019,11 @@ const
 {$if defined(ELF32) or defined(ELF64)}
      openproc : @OpenElf;
      findproc : @FindSectionElf;
-{$endif}
-{$ifdef Beos}
+{$endif ELF32 or ELF64}
+{$ifdef BEOS}
      openproc : @OpenElf32Beos;
-     findproc : @FindSectionElf32Beos;
-{$endif}
+     findproc : @FindSectionElf;
+{$endif BEOS}
 {$ifdef darwin}
      openproc : @OpenMachO32PPC;
      findproc : @FindSectionMachO32PPC;

@@ -90,10 +90,10 @@ CONST
         INLCR           =      $40;     { map NL into CR }
         IGNCR           =      $80;     { ignore CR }
         ICRNL           =     $100;     { map CR to NL (ala CRMOD) }
-        IUCLC			=		$200;	{ maps all upper case to lower }
+        IUCLC			=	  $200;		{ maps all upper case to lower }
         IXON            =     $400;     { enable output flow control }
         IXANY           =     $800;     { enable input flow control }
-        IXOFF           =     $1000;     { any char will restart after stop }
+        IXOFF           =    $1000;	    { any char will restart after stop }
 
 {
  * Output flags - software output processing
@@ -188,7 +188,7 @@ CRTSCTS		= RTSFLOW or CTSFLOW;
 }
 
 ISIG		= $01;			{ enable signals }
-ICANON	=	$02;			{ Canonical input }
+ICANON		= $02;			{ Canonical input }
 XCASE		= $04;			{ Canonical u/l case }
 ECHO		= $08;			{ Enable echo }
 ECHOE		= $10;			{ Echo erase as bs-sp-bs }
@@ -212,19 +212,21 @@ EV_CARRIERLOST	= $0008;
 
 CONST
 
-        TCSANOW         =0;             { make change immediate }
-        TCSADRAIN       =1;             { drain output, then change }
-        TCSAFLUSH       =2;             { drain output, flush input }
-        TCSASOFT        =$10;           { flag - don't alter h.w. state }
+        TCSANOW         = $01;             { make change immediate }
+        TCSADRAIN       = $02;             { drain output, then change }
+        TCSAFLUSH       = $04;             { drain output, flush input }
+        
+        // TCASOFT undefined under BeOS
+        TCSASOFT        = $10;           { flag - don't alter h.w. state }
 
 
-        TCIFLUSH        =1;
-        TCOFLUSH        =2;
-        TCIOFLUSH       =3;
-        TCOOFF          =1;
-        TCOON           =2;
-        TCIOFF          =3;
-        TCION           =4;
+        TCIFLUSH        = $01;
+        TCOFLUSH        = $02;
+        TCIOFLUSH       = (TCIFLUSH or TCOFLUSH);
+        TCOOFF          = $01;
+        TCOON           = $02;
+        TCIOFF          = $04;
+        TCION           = $08;
 
 {
 #include <sys/cdefs.h>
@@ -259,7 +261,7 @@ struct winsize {
 };
 
 }
-       IOCTLREAD        = $40000000;
+(*       IOCTLREAD        = $40000000;
        IOCTLWRITE       = $80000000;
        IOCTLVOID        = $20000000;
 
@@ -279,19 +281,41 @@ struct winsize {
                                                 { 8-10 compat }
         TIOCEXCL         =IOCTLVOID+$7400+ 13;          { set exclusive use of tty }
         TIOCNXCL         =IOCTLVOID+$7400+ 14;          { reset exclusive use of tty }
-                                                { 15 unused }
-        TIOCFLUSH        =IOCTLWRITE+$47400+ 16;        { flush buffers }
+*)                                                { 15 unused }
+//        TIOCFLUSH        =IOCTLWRITE+$47400+ 16;        { flush buffers }
                                                 { 17-18 compat }
-        TIOCGETA         =IOCTLREAD+$2C7400+ 19; { get termios struct }
-        TIOCSETA         =IOCTLWRITE+$2C7400+ 20; { set termios struct }
-        TIOCSETAW        =IOCTLWRITE+$2C7400+ 21; { drain output, set }
-        TIOCSETAF        =IOCTLWRITE+$2C7400+ 22; { drn out, fls in, set }
-        TIOCGETD         =IOCTLREAD+$47400+ 26; { get line discipline }
-        TIOCSETD         =IOCTLWRITE+$47400+ 27;        { set line discipline }
-                                                { 127-124 compat }
-        TIOCSBRK         =IOCTLVOID+$7400+ 123;         { set break bit }
+//        TIOCGETA         =IOCTLREAD+$2C7400+ 19; { get termios struct }
+//        TIOCSETA         =IOCTLWRITE+$2C7400+ 20; { set termios struct }
+//        TIOCSETAW        =IOCTLWRITE+$2C7400+ 21; { drain output, set }
+//        TIOCSETAF        =IOCTLWRITE+$2C7400+ 22; { drn out, fls in, set }
+//        TIOCGETD         =IOCTLREAD+$47400+ 26; { get line discipline }
+//        TIOCSETD         =IOCTLWRITE+$47400+ 27;        { set line discipline }
+	                                                { 127-124 compat }
+
+// BeOS values
+		TIOCGETA		= $8000;		
+		TIOCSETA		= TIOCGETA + 1;
+		TIOCSETAF		= TIOCGETA + 2;
+		TIOCSETAW		= TIOCGETA + 3;
+		TCWAITEVENT		= TIOCGETA + 4;
+		TIOCSBRK		= TIOCGETA + 5;
+		TIOCFLUSH		= TIOCGETA + 6;
+		TCXONC			= TIOCGETA + 7;
+		TCQUERYCONNECTED= TIOCGETA + 8;
+		TCGETBITS		= TIOCGETA + 9;
+		TIOCSDTR		= TIOCGETA + 10;
+		TCSETRTS		= TIOCGETA + 11;
+		TIOCGWINSZ		= TIOCGETA + 12;
+		TIOCSWINSZ		= TIOCGETA + 13;
+		TCVTIME			= TIOCGETA + 14;
+		
+		
+//		TIOCTIMESTAMP 	= TCVTIME;
+// end BeOS values
+(*		      
+//        TIOCSBRK         =IOCTLVOID+$7400+ 123;         { set break bit }
         TIOCCBRK         =IOCTLVOID+$7400+ 122;         { clear break bit }
-        TIOCSDTR         =IOCTLVOID+$7400+ 121;         { set data terminal ready }
+//        TIOCSDTR         =IOCTLVOID+$7400+ 121;         { set data terminal ready }
         TIOCCDTR         =IOCTLVOID+$7400+ 120;         { clear data terminal ready }
         TIOCGPGRP        =IOCTLREAD+$47400+ 119;        { get pgrp of tty }
         TIOCSPGRP        =IOCTLWRITE+$47400+ 118;       { set pgrp of tty }
@@ -315,8 +339,8 @@ struct winsize {
         TIOCMBIC         =IOCTLWRITE+$47400+ 107;       { bic modem bits }
         TIOCMGET         =IOCTLREAD+$47400+ 106;        { get all modem bits }
         TIOCREMOTE       =IOCTLWRITE+$47400+ 105;       { remote input editing }
-        TIOCGWINSZ       =IOCTLREAD+$87400+ 104;        { get window size }
-        TIOCSWINSZ       =IOCTLWRITE+$87400+ 103;       { set window size }
+//        TIOCGWINSZ       =IOCTLREAD+$87400+ 104;        { get window size }
+//        TIOCSWINSZ       =IOCTLWRITE+$87400+ 103;       { set window size }
         TIOCUCNTL        =IOCTLWRITE+$47400+ 102;       { pty: set/clr usr cntl mode }
         TIOCSTAT         =IOCTLVOID+$7400+ 101;         { simulate ^T status message }
   //                       UIOCCMD(n)   _IO('u', n)     { usr cntl op "n" }
@@ -327,8 +351,8 @@ struct winsize {
         TIOCDRAIN        =IOCTLVOID+$7400+ 94;          { wait till output drained }
         TIOCMSDTRWAIT    =IOCTLWRITE+$47400+ 91;        { modem: set wait on close }
         TIOCMGDTRWAIT    =IOCTLREAD+$47400+ 90; { modem: get wait on close }
-        TIOCTIMESTAMP    =IOCTLREAD+$87400+ 89;         { enable/get timestamp
-                                                 * of last input event }
+//        TIOCTIMESTAMP    =IOCTLREAD+$87400+ 89;         { enable/get timestamp
+//                                                 * of last input event }
         TIOCDCDTIMESTAMP =IOCTLREAD+$87400+ 88; { enable/get timestamp
                                                  * of last DCd rise }
         TIOCSDRAINWAIT   =IOCTLWRITE+$47400+ 87;        { set ttywait timeout }
@@ -344,7 +368,7 @@ struct winsize {
 		// Maybe, it should not work but it compile at least...
 		TIOCLINUX        = $541C;
 
-
+*)
 {
  * Defaults on "first" open.
  }
@@ -359,7 +383,7 @@ struct winsize {
 {
  * Control Character Defaults
  }
-        CtrlMask        = $1f;  {\037}
+(*        CtrlMask        = $1f;  {\037}
         CEOF            =chr( ORD('d') and CtrlMask);
         CEOL            =chr( $ff and CtrlMask);{ XXX avoid _POSIX_VDISABLE }
         CERASE          =chr( $7F and CtrlMask);
@@ -382,14 +406,11 @@ struct winsize {
         CBRK            =CEOL;
         CRPRNT          =CREPRINT;
         CFLUSH          =CDISCARD;
-
+*)
 
 {
  *        TTYDEFCHARS to include an array of default control characters.
 }
-{    ttydefchars : array[0..NCCS-1] OF char =(
-        Chr(VINTR), Chr(VQUIT), Chr(VERASE), Chr(VKILL), Chr(VEOF), Chr(VEOL),
-        Chr(VEOL2), Chr(VSWTCH), Chr(VSTART), Chr(VSTOP), Chr(VSUSP));}
     ttydefchars : array[0..NCCS-1] OF char =(
         Chr(VINTR), Chr(VQUIT), Chr(VERASE), Chr(VKILL), Chr(VEOF), Chr(VEOL),
         Chr(VEOL2), Chr(VSWTCH), Chr(VSTART), Chr(VSTOP), Chr(VSUSP));
