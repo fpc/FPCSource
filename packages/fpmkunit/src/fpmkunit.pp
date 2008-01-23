@@ -50,13 +50,13 @@ Type
                ftSharedLibrary);
   TFileTypes = set of TFileType;
 
-  // Please keep this order, see OSCPUpossible below
+  // Please keep this order, see OSCPUSupported below
   TCpu=(cpuNone,
     i386,m68k,powerpc,sparc,x86_64,arm,powerpc64
   );
   TCPUS = Set of TCPU;
 
-  // Please keep this order, see OSCPUpossible below
+  // Please keep this order, see OSCPUSupported below
   TOS=(osNone,
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
@@ -108,26 +108,26 @@ Const
   AllWindowsOSes  = [Win32,Win64,WinCE];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
-  OSCpupossible : array[TOS,TCpu] of boolean = (
+  OSCPUSupported : array[TOS,TCpu] of boolean = (
     { os          none   i386   m68k   ppc    sparc  x86_64 arm    ppc64}
     { none  }   ( false, false, false, false, false, false, false, false),
-    { linux }   ( false, true,  true,  true,  true,  true,  true,  true),
+    { linux }   ( false, true,  true,  true,  true,  true,  true,  true ),
     { go32v2 }  ( false, true,  false, false, false, false, false, false),
     { win32 }   ( false, true,  false, false, false, false, false, false),
     { os2 }     ( false, true,  false, false, false, false, false, false),
     { freebsd } ( false, true,  true,  false, false, true,  false, false),
     { beos }    ( false, true,  false, false, false, false, false, false),
-    { netbsd }  ( false, true,  true,  true,  true,  false, false, false),
+    { netbsd }  ( false, false, false, false, false, false, false, false),
     { amiga }   ( false, false, true,  true,  false, false, false, false),
-    { atari }   ( false, false, true,  false, false, false, false, false),
+    { atari }   ( false, false, false, false, false, false, false, false),
     { solaris } ( false, true,  false, false, true,  false, false, false),
-    { qnx }     ( false, true,  false, false, false, false, false, false),
+    { qnx }     ( false, false, false, false, false, false, false, false),
     { netware } ( false, true,  false, false, false, false, false, false),
-    { openbsd } ( false, true,  true,  false, false, false, false, false),
+    { openbsd } ( false, false, false, false, false, false, false, false),
     { wdosx }   ( false, true,  false, false, false, false, false, false),
     { palmos }  ( false, false, true,  false, false, false, true,  false),
     { macos }   ( false, false, false, true,  false, false, false, false),
-    { darwin }  ( false, true,  false, true,  false, false, false, true),
+    { darwin }  ( false, true,  false, true,  false, true,  false, true ),
     { emx }     ( false, true,  false, false, false, false, false, false),
     { watcom }  ( false, true,  false, false, false ,false, false, false),
     { morphos } ( false, false, false, true,  false ,false, false, false),
@@ -136,7 +136,7 @@ Const
     { wince    }( false, true,  false, false, false, false, true,  false),
     { gba    }  ( false, false, false, false, false, false, true,  false),
     { nds    }  ( false, false, false, false, false, false, true,  false),
-    { embedded }( false, true,  true,  true,  true,  true,  true,  true),
+    { embedded }( false, false, false, false, false, false, true,  false),
     { symbian } ( false, true,  false, false, false, false, true,  false)
   );
 
@@ -332,7 +332,7 @@ Type
     FCommands : TCommands;
     FDirectory: String;
     FExtension: String;
-    FFullSourceFileName : String;
+    FTargetSourceFileName : String;
     FFileType: TFileType;
     FOptions: String;
     FFPCTarget: String;
@@ -370,7 +370,7 @@ Type
     Property Directory : String Read FDirectory Write FDirectory;
     Property ResourceStrings : Boolean Read FResourceStrings Write FResourceStrings;
     Property Install : Boolean Read FInstall Write FInstall;
-    Property FullSourceFileName: String Read FFullSourceFileName;
+    Property TargetSourceFileName: String Read FTargetSourceFileName;
     Property ObjectPath : TConditionalStrings Read FObjectPath;
     Property UnitPath : TConditionalStrings Read FUnitPath;
     Property IncludePath : TConditionalStrings Read FIncludePath;
@@ -937,7 +937,9 @@ ResourceString
   SWarnFailedToGetTime    = 'Warning: Failed to get timestamp from file "%s"';
   SWarnFileDoesNotExist   = 'Warning: File "%s" does not exist';
   SWarnAttemptingToCompileNonNeutralTarget = 'Warning: Attempting to compile non-neutral target %s';
-  SWarnIncludeFileNotFound = 'Warning: Include File "%s" not found';
+  SWarnSourceFileNotFound  = 'Warning: Source file "%s" not found for %s';
+  SWarnIncludeFileNotFound = 'Warning: Include file "%s" not found for %s';
+  SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
 
   SInfoEnterDir           = 'Entering directory "%s"';
   SInfoCompilingPackage   = 'Compiling package %s';
@@ -953,15 +955,15 @@ ResourceString
 
   SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
   SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target %s';
-  SDbgResolvingSourcesOfTarget = 'Resolving filenames of target %s';
+  SDbgResolvingSourcesOfTarget = 'Resolving filenames of target %s for %s';
   SDbgResolvedSourceFile    = 'Resolved source file %s to "%s"';
   SDbgResolvedIncludeFile   = 'Resolved include file %s to "%s"';
   SDbgOutputNotYetAvailable = 'Output file %s not available';
   SDbgDependencyOnUnit      = 'Dependency of %s on unit %s';
   SDbgDependencyUnitRecompiled = 'Dependent unit %s is being recompiled';
   SDbgMustCompile           = 'Must compile %s';
-  SDbgTargetHasWrongOS      = 'Target has wrong OS: %s';
-  SDbgTargetHasWrongCPU     = 'Target has wrong CPU: %s';
+  SDbgSkippingTargetWrongCPU = 'Skipping target %s, different CPU (%s)';
+  SDbgSkippingTargetWrongOS  = 'Skipping target %s, different OS (%s)';
   SDbgTargetIsNotAUnitOrProgram = 'Skipping Target %s, not an unit or program';
   SDbgConsideringTarget     = 'Considering target %s';
   SDbgConsideringPackage    = 'Considering package %s';
@@ -2514,7 +2516,12 @@ end;
 procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
 begin
   If Level in FLogLevels then
-    Writeln(StdErr,Msg);
+    begin
+      if Level in [vlError,vlWarning] then
+        Writeln(StdErr,Msg)
+      else
+        Writeln(StdOut,Msg);
+    end;
 end;
 
 
@@ -2624,9 +2631,9 @@ begin
       FRunMode:=rmManifest
     else if CheckOption(I,'h','help') then
       Usage('',[])
-    else if Checkoption(I,'C','CPU') then
+    else if Checkoption(I,'C','cpu') then
       Defaults.CPU:=StringToCPU(OptionArg(I))
-    else if Checkoption(I,'O','OS') then
+    else if Checkoption(I,'O','os') then
       Defaults.OS:=StringToOS(OptionArg(I))
     else if Checkoption(I,'t','target') then
       Defaults.Target:=OptionArg(I)
@@ -2692,8 +2699,8 @@ begin
   LogOption('l','list-commands',SHelpList);
   LogOption('n','nofpccfg',SHelpNoFPCCfg);
   LogOption('v','verbose',SHelpVerbose);
-  LogArgOption('C','CPU',SHelpCPU);
-  LogArgOption('O','OS',SHelpOS);
+  LogArgOption('C','cpu',SHelpCPU);
+  LogArgOption('O','os',SHelpOS);
   LogArgOption('t','target',SHelpTarget);
   LogArgOption('P','prefix',SHelpPrefix);
   LogArgOption('B','baseinstalldir',SHelpBaseInstalldir);
@@ -3157,7 +3164,7 @@ end;
 
 Procedure TBuildEngine.LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS;Const PathPrefix :String='');
 var
-  Prefix : String;
+  S,Prefix : String;
   I : Integer;
   C : TConditionalString;
 begin
@@ -3165,12 +3172,19 @@ begin
     Prefix:=IncludeTrailingPathDelimiter(PathPrefix)
   else
     Prefix:='';
+  S:='';
   for i:=0 to Path.Count-1 do
     begin
       C:=Path[I];
       if (ACPU in C.CPUs) and (AOS in C.OSes) then
-        Log(vlDebug,SDbgSearchPath,[ASearchPathName,Dictionary.ReplaceStrings(Prefix+C.Value)]);
+        begin
+          if S<>'' then
+            S:=S+PathSeparator;
+          S:=S+Dictionary.ReplaceStrings(Prefix+C.Value)
+        end;
     end;
+  if S<>'' then
+    Log(vlDebug,SDbgSearchPath,[ASearchPathName,S]);
 end;
 
 
@@ -3214,54 +3228,71 @@ begin
   For I:=0 to APackage.Targets.Count-1 do
     begin
       T:=APackage.FTargets.TargetItems[I];
-
-      // Debug information
-      Log(vlDebug,SDbgResolvingSourcesOfTarget,[T.Name]);
-      LogIndent;
-
-      // Log Search paths
-      LogSearchPath('Source',APackage.SourcePath,ACPU,AOS,APackage.Directory);
-      LogSearchPath('Include',T.IncludePath,ACPU,AOS,APackage.Directory);
-      LogSearchPath('Include',APackage.IncludePath,ACPU,AOS,APackage.Directory);
-
-      // Main source file
-      SD:=Dictionary.ReplaceStrings(T.Directory);
-      SF:=Dictionary.ReplaceStrings(T.SourceFileName);
-      if SD='' then
-        FindFileInPath(APackage.SourcePath,SF,SD,ACPU,AOS,APackage.Directory)
-      else
-        if APackage.Directory<>'' then
-          SD:=IncludeTrailingPathDelimiter(APackage.Directory)+SD;
-      if SD<>'' then
-        SD:=IncludeTrailingPathDelimiter(SD);
-      T.FFullSourceFileName:=SD+SF;
-      Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.FFullSourceFileName]);
-
-      // Include files
-      for j:=0 to T.Dependencies.Count-1 do
+      if (ACPU in T.CPUs) and (AOS in T.OSes) then
         begin
-          D:=T.Dependencies[j];
-          if (D.DependencyType=depInclude) and DependencyOK(D)  then
-            begin
-              if D.TargetFileName='' then
-                begin
-                  SF:=Dictionary.ReplaceStrings(D.Value);
-                  SD:='';
-                  // first check the target specific path
-                  if not FindFileInPath(T.IncludePath,SF,SD,ACPU,AOS,APackage.Directory) then
-                    FindFileInPath(APackage.IncludePath,SF,SD,ACPU,AOS,APackage.Directory);
-                   if SD<>'' then
-                     SD:=IncludeTrailingPathDelimiter(SD);
-                   D.TargetFileName:=SD+SF;
-                 end;
-               if FileExists(D.TargetFileName) then
-                 Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
-               else
-                 Log(vlWarning,SWarnIncludeFileNotFound,[D.Value])
-             end;
-        end;
+          // Debug information
+          Log(vlDebug,SDbgResolvingSourcesOfTarget,[T.Name,MakeTargetString(ACPU,AOS)]);
+          LogIndent;
 
-      LogUnIndent;
+          // Log Search paths
+          LogSearchPath('package source',APackage.SourcePath,ACPU,AOS,APackage.Directory);
+          LogSearchPath('target include',T.IncludePath,ACPU,AOS,APackage.Directory);
+          LogSearchPath('package include',APackage.IncludePath,ACPU,AOS,APackage.Directory);
+
+          // Main source file
+          SD:=Dictionary.ReplaceStrings(T.Directory);
+          SF:=Dictionary.ReplaceStrings(T.SourceFileName);
+          if SD='' then
+            FindFileInPath(APackage.SourcePath,SF,SD,ACPU,AOS,APackage.Directory)
+          else
+            if APackage.Directory<>'' then
+              SD:=IncludeTrailingPathDelimiter(APackage.Directory)+SD;
+          if SD<>'' then
+            SD:=IncludeTrailingPathDelimiter(SD);
+          T.FTargetSourceFileName:=SD+SF;
+          if FileExists(T.TargetSourceFileName) then
+            Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
+          else
+            begin
+              Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
+              T.FTargetSourceFileName:='';
+            end;
+
+          // Include files
+          for j:=0 to T.Dependencies.Count-1 do
+            begin
+              D:=T.Dependencies[j];
+              if (D.DependencyType=depInclude) then
+                begin
+                  D.TargetFileName:='';
+                  if (ACPU in D.CPUs) and (AOS in D.OSes) then
+                    begin
+                      if ExtractFilePath(D.Value)='' then
+                        begin
+                          SF:=Dictionary.ReplaceStrings(D.Value);
+                          SD:='';
+                          // first check the target specific path
+                          if not FindFileInPath(T.IncludePath,SF,SD,ACPU,AOS,APackage.Directory) then
+                            FindFileInPath(APackage.IncludePath,SF,SD,ACPU,AOS,APackage.Directory);
+                           if SD<>'' then
+                             SD:=IncludeTrailingPathDelimiter(SD);
+                           D.TargetFileName:=SD+SF;
+                        end
+                      else
+                        D.TargetFileName:=D.Value;
+                      if FileExists(D.TargetFileName) then
+                        Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
+                      else
+                        begin
+                          Log(vlWarning,SWarnIncludeFileNotFound,[D.Value,MakeTargetString(ACPU,AOS)]);
+                          D.TargetFileName:='';
+                        end;
+                    end;
+                end;
+            end;
+
+          LogUnIndent;
+        end;
     end;
 end;
 
@@ -3326,8 +3357,8 @@ begin
           If Assigned(P) then
             begin
               // Already processed?
-              S:=GetUnitDir(APackage);
-              if L.IndexOf(S)<>-1 then
+              S:=GetUnitDir(P);
+              if L.IndexOf(S)=-1 then
                 begin
                   // Add this package and then dependencies
                   L.Add(S);
@@ -3352,6 +3383,9 @@ begin
   //compiler configuration
   if Defaults.NoFPCCfg then
     Result := '-n';
+
+  // Target OS
+  Result:=Result+' -T'+OSToString(Defaults.OS);
 
   // Compile mode
   If ATarget.Mode<>cmFPC then
@@ -3403,7 +3437,7 @@ begin
   If (ATarget.Options<>'') then
     Result:=Result+' '+ATarget.Options;
   // Add Filename to compile
-  Result:=Result+' '+ExtractRelativePath(PD, ExpandFileName(ATarget.FullSourceFileName));
+  Result:=Result+' '+ExtractRelativePath(PD, ExpandFileName(ATarget.TargetSourceFileName));
 end;
 
 
@@ -3573,8 +3607,8 @@ begin
   // Check main source
   If not Result then
     begin
-      if FileExists(ATarget.FullSourceFileName) then
-        Result:=FileNewer(ATarget.FullSourceFileName,OFN)
+      if FileExists(ATarget.TargetSourceFileName) then
+        Result:=FileNewer(ATarget.TargetSourceFileName,OFN)
     end;
 
   // Check unit and include dependencies
@@ -3601,7 +3635,7 @@ begin
                   end;
                 depInclude :
                   begin
-                    if FileExists(D.TargetFileName) then
+                    if D.TargetFileName<>'' then
                       Result:=FileNewer(D.TargetFileName,OFN)
                   end;
               end;
@@ -3664,16 +3698,21 @@ begin
          (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
         begin
           T:=TTarget(D.Target);
-          If Assigned(T) and (T<>ATarget) then
+          if Assigned(T) and (T<>ATarget) then
             begin
-              // We don't need to compile implicit units, they are only
-              // used for dependency checking
-              if (T.TargetType<>ttImplicitUnit) then
+              if TargetOK(T) then
                 begin
-                  if T.State=tsCompiling then
-                    Log(vlWarning,SWarnCircularDependency,[ATarget.Name,T.Name]);
-                  MaybeCompile(APackage,T);
-                end;
+                  // We don't need to compile implicit units, they are only
+                  // used for dependency checking
+                  if (T.TargetType<>ttImplicitUnit) then
+                    begin
+                      if T.State=tsCompiling then
+                        Log(vlWarning,SWarnCircularDependency,[ATarget.Name,T.Name]);
+                      MaybeCompile(APackage,T);
+                    end;
+                end
+              else
+                Log(vlWarning, Format(SWarnDepUnitNotFound, [T.Name, MakeTargetString(Defaults.CPU,Defaults.OS)]));
             end
           else
             Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);
@@ -3789,9 +3828,9 @@ begin
             else
               begin
                 if not(Defaults.CPU in T.CPUs) then
-                  Log(vldebug, Format(SDbgTargetHasWrongCPU, [CPUsToString(T.CPUs)]));
+                  Log(vldebug, Format(SDbgSkippingTargetWrongCPU, [T.Name, CPUsToString(T.CPUs)]));
                 if not(Defaults.OS in T.OSes) then
-                  Log(vldebug, Format(SDbgTargetHasWrongOS, [OSesToString(T.OSes)]));
+                  Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSesToString(T.OSes)]));
               end;
           end
         else
@@ -3988,7 +4027,7 @@ begin
     //get all files from all targets
     for ICPU:=Low(TCPU) to high(TCPU) do
       for IOS:=Low(TOS) to high(TOS) do
-        if OSCpupossible[IOS,ICPU] then
+        if OSCPUSupported[IOS,ICPU] then
           begin
             ResolveFileNames(APackage,ICPU,IOS);
             APackage.GetArchiveFiles(L, ICPU, IOS);
@@ -4285,13 +4324,14 @@ begin
   If not(ACPU in CPUs) or not(AOS in OSes) then
     exit;
   // Main source
-  List.Add(FullSourceFileName);
+  if TargetSourceFileName<>'' then
+    List.Add(TargetSourceFileName);
   // Includes
   for i:=0 to Dependencies.Count-1 do
     begin
       D:=Dependencies[i];
       if (D.DependencyType=depInclude) and
-         (ACPU in D.CPUs) and (AOS in D.OSes) then
+         (D.TargetFileName<>'') then
         List.Add(D.TargetFileName);
     end;
 end;
@@ -4522,16 +4562,12 @@ end;
 
 Function TDependencies.AddInclude(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TDependency;
 Var
-  D,N : String;
+  N : String;
 begin
   N:=FixPath(Value);
-  D:=ExtractFilePath(N);
-  N:=ExtractFileName(N);
   if ExtractFileExt(N)='' then
     ChangeFileExt(N,IncExt);
   Result:=inherited Add(N,CPUs,OSes) as TDependency;
-  if D<>'' then
-    Result.TargetFileName:=D+N;
   Result.FDependencyType:=depInclude;
 end;
 
