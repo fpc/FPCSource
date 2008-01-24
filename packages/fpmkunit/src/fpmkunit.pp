@@ -3305,6 +3305,8 @@ var
   T : TTarget;
   i : Integer;
 begin
+  if not((ACPU in APackage.CPUs) and (AOS in APackage.OSes)) then
+    exit;
   Dictionary.AddVariable('CPU',CPUToString(ACPU));
   Dictionary.AddVariable('OS',OSToString(AOS));
   For I:=0 to APackage.Targets.Count-1 do
