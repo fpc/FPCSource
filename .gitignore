@@ -291,13 +291,6 @@ packages/base/oracle/example/fpcmade.*
 packages/base/oracle/example/units
 packages/base/oracle/fpcmade.*
 packages/base/oracle/units
-packages/base/pasjpeg/*.bak
-packages/base/pasjpeg/*.exe
-packages/base/pasjpeg/*.o
-packages/base/pasjpeg/*.ppu
-packages/base/pasjpeg/*.s
-packages/base/pasjpeg/fpcmade.*
-packages/base/pasjpeg/units
 packages/base/postgres/*.bak
 packages/base/postgres/*.exe
 packages/base/postgres/*.o

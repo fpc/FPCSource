@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 dirs_freebsd=fcl-web fcl-async
 dirs_darwin=fcl-web fcl-async
 dirs_solaris=fcl-web fcl-async
@@ -61,11 +61,11 @@ fcl-json_smart: fcl-base_smart
 fcl-json_release: fcl-base_release
 fcl-json_shared: fcl-base_shared
 
-fcl-image_all: fcl-base_all paszlib_all
-fcl-image_debug: fcl-base_debug paszlib_debug
-fcl-image_smart: fcl-base_smart paszlib_smart
-fcl-image_release: fcl-base_release paszlib_release
-fcl-image_shared: fcl-base_shared paszlib_shared
+fcl-image_all: fcl-base_all paszlib_all pasjpeg_all
+fcl-image_debug: fcl-base_debug paszlib_debug pasjpeg_debug
+fcl-image_smart: fcl-base_smart paszlib_smart pasjpeg_smart
+fcl-image_release: fcl-base_release paszlib_release pasjpeg_release
+fcl-image_shared: fcl-base_shared paszlib_shared pasjpeg_shared
 
 fcl-fpcunit_all: fcl-xml_all paszlib_all
 fcl-fpcunit_debug: fcl-xml_debug paszlib_debug

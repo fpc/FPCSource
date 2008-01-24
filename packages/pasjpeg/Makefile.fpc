@@ -20,8 +20,11 @@ examples=cjpeg demo djpeg jpegtran rdjpgcom
 [install]
 fpcpackage=y
 
+[compiler]
+sourcedir=src
+
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
