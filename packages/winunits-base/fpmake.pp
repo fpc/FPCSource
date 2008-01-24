@@ -23,6 +23,22 @@ begin
 
     T:=P.Targets.AddUnit('buildwinutilsbase.pp');
       T.Install:=False;
+      with T.Dependencies do
+        begin
+          AddUnit('flatsb');
+          AddUnit('winver');
+          AddUnit('mmsystem');
+          AddUnit('comconst');
+          AddUnit('commctrl');
+          AddUnit('comobj');
+          AddUnit('ole2');
+          AddUnit('activex');
+          AddUnit('shellapi');
+          AddUnit('shlobj');
+          AddUnit('oleserver');
+          AddUnit('shfolder');
+          AddUnit('richedit');
+        end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
     T:=P.Targets.AddImplicitUnit('commctrl.pp');
