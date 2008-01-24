@@ -4229,8 +4229,6 @@ packages/fcl-xml/Makefile.fpc svneol=native#text/plain
 packages/fcl-xml/src/README -text
 packages/fcl-xml/src/dom.pp svneol=native#text/plain
 packages/fcl-xml/src/dom_html.pp svneol=native#text/plain
-packages/fcl-xml/src/fpmake.inc svneol=native#text/plain
-packages/fcl-xml/src/fpmake.pp svneol=native#text/plain
 packages/fcl-xml/src/htmldefs.pp svneol=native#text/plain
 packages/fcl-xml/src/htmlelements.pp svneol=native#text/plain
 packages/fcl-xml/src/htmlwriter.pp svneol=native#text/plain

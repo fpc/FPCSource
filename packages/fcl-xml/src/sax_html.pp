@@ -24,6 +24,8 @@
   * Entity references in attribute values don't get parsed.
 }
 
+{$mode objfpc}
+{$H+}
 
 unit SAX_HTML;
 

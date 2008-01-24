@@ -17,6 +17,8 @@
 { Please note that this is a very early version, most properties and methods
   are not implemented yet. }
 
+{$mode objfpc}
+{$H+}
 
 unit DOM_HTML;
 
