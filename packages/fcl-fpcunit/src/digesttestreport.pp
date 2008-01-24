@@ -229,7 +229,7 @@ var TarWriter : TTarWriter;
 
 
 begin
-  TarFileName:= FHostName+FormatDateTime('yyyymmddhhmm',Now)+'.tar.gz';
+  TarFileName:= FHostName+'-'+FormatDateTime('yyyymmddhhmm',Now)+'.tar.gz';
   getdir(0,OldDir);
   Chdir(FOutputDir);
   
