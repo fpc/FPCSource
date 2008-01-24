@@ -1992,7 +1992,18 @@ Var
         Placehold[1]:=1;
       Decimals := Placehold[3] + Placehold[4];
       Width:=Placehold[1]+Placehold[2]+Decimals;
+      { depending on the maximally supported precision, the exponent field }
+      { is longer/shorter                                                  }
+{$ifdef FPC_HAS_TYPE_EXTENDED}
       Str(Value:Width+8,Digits);
+{$else FPC_HAS_TYPE_EXTENDED}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+      Str(Value:Width+7,Digits);
+{$else FPC_HAS_TYPE_DOUBLE}
+      Str(Value:Width+6,Digits);
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$endif FPC_HAS_TYPE_EXTENDED}
+
       { Find and cut out exponent. Always the
         last 6 characters in the string.
         -> 0000E+0000                         
