@@ -79,7 +79,10 @@ type
 
 implementation
 
-uses {$ifdef win32} windows, {$endif}dos;
+{$ifdef Windows}
+uses
+   windows;
+{$endif}
 
 
 constructor TMOFile.Create(AStream: TStream);
@@ -256,13 +259,13 @@ end;
 
 procedure GetLanguageIDs(var Lang, FallbackLang: string);
 begin
-  lang := GetEnv('LC_ALL');
+  lang := GetEnvironmentVariable('LC_ALL');
   if Length(lang) = 0 then
   begin
-    lang := GetEnv('LC_MESSAGES');
+    lang := GetEnvironmentVariable('LC_MESSAGES');
     if Length(lang) = 0 then
     begin
-      lang := GetEnv('LANG');
+      lang := GetEnvironmentVariable('LANG');
       if Length(lang) = 0 then
         exit;   // no language defined via environment variables
     end;
