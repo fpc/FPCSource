@@ -3803,6 +3803,7 @@ packages/extra/zlib/fpmake.pp svneol=native#text/plain
 packages/extra/zlib/zlib.pp svneol=native#text/plain
 packages/fcl-async/Makefile svneol=native#text/plain
 packages/fcl-async/Makefile.fpc svneol=native#text/plain
+packages/fcl-async/fpmake.pp svneol=native#text/plain
 packages/fcl-async/src/fpasync.pp svneol=native#text/plain
 packages/fcl-async/src/libasync.inc svneol=native#text/plain
 packages/fcl-async/src/libasynch.inc svneol=native#text/plain
