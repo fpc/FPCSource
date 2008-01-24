@@ -1879,7 +1879,7 @@ begin
   For I:=0 to FTargets.Count-1 do
     begin
       T:=FTargets.TargetItems[I];
-      if (T.TargetType in Types)  then
+      if (T.TargetType in Types) and (T.Install) then
         T.GetInstallFiles(List, APrefixU, APrefixB, ACPU, AOS);
     end;
 end;
