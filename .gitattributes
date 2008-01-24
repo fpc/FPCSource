@@ -4353,6 +4353,7 @@ packages/pasjpeg/examples/wrbmp.pas svneol=native#text/plain
 packages/pasjpeg/examples/wrjpgcom.pas svneol=native#text/plain
 packages/pasjpeg/examples/wrppm.pas svneol=native#text/plain
 packages/pasjpeg/examples/wrtarga.pas svneol=native#text/plain
+packages/pasjpeg/fpmake.pp svneol=native#text/plain
 packages/pasjpeg/readme.txt svneol=native#text/plain
 packages/pasjpeg/src/buildpasjpeg.pp svneol=native#text/plain
 packages/pasjpeg/src/jcapimin.pas svneol=native#text/plain
