@@ -1,4 +1,4 @@
-unit TestSQLFieldTypes;
+unit TestFieldTypes;
 
 {$mode objfpc}{$H+}
 
