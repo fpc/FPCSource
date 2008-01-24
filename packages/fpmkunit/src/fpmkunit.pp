@@ -471,7 +471,6 @@ Type
     FExamplePath,
     FTestPath,
     FCleanFiles,
-    FArchiveFiles,
     FInstallFiles : TConditionalStrings;
     FDependencies : TDependencies;
     FCPUs: TCPUs;
@@ -531,7 +530,6 @@ Type
     // Targets and dependencies
     Property InstallFiles : TConditionalStrings Read FInstallFiles;
     Property CleanFiles : TConditionalStrings Read FCleanFiles;
-    Property ArchiveFiles : TConditionalStrings Read FArchiveFiles;
     Property Dependencies : TDependencies Read FDependencies;
     Property Commands : TCommands Read FCommands;
     Property State : TTargetState Read FTargetState;
@@ -1360,7 +1358,7 @@ begin
 
   CurrDir:=GetCurrentDir;
   for i := 0 to Pred(List.Count) do
-    List[i] := ExtractRelativepath(CurrDir, List[i]);
+    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(CurrDir), List[i]);
 end;
 
 
@@ -1781,7 +1779,6 @@ begin
   FDependencies:=TDependencies.Create(TDependency);
   FInstallFiles:=TConditionalStrings.Create(TConditionalString);
   FCleanFiles:=TConditionalStrings.Create(TConditionalString);
-  FArchiveFiles:=TConditionalStrings.Create(TConditionalString);
   FUnitPath:=TConditionalStrings.Create(TConditionalString);
   FObjectPath:=TConditionalStrings.Create(TConditionalString);
   FIncludePath:=TConditionalStrings.Create(TConditionalString);
@@ -1801,7 +1798,6 @@ begin
   FreeAndNil(FDependencies);
   FreeAndNil(FInstallFiles);
   FreeAndNil(FCleanFiles);
-  FreeAndNil(FArchiveFiles);
   FreeAndNil(FIncludePath);
   FreeAndNil(FSourcePath);
   FreeAndNil(FExamplePath);
@@ -1896,8 +1892,6 @@ begin
   // Targets only
   For I:=0 to FTargets.Count-1 do
     FTargets.TargetItems[I].GetArchiveFiles(List,ACPU,AOS);
-  // Additional archive files
-  AddConditionalStrings(List,ArchiveFiles,ACPU,AOS);
 end;
 
 
