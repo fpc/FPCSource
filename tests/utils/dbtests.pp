@@ -288,7 +288,7 @@ begin
     path := '.';
     end;
   if upper(ClassName[1])<>'T' then exit;
-  FileName := lowercase(TestSrcDir+RelSrcDir+Path+DirectorySeparator+copy(ClassName,2,length(classname)));
+  FileName := TestSrcDir+RelSrcDir+Path+DirectorySeparator+copy(lowercase(ClassName),2,length(classname));
   if FileExists(FileName+'.pas') then
     FileName := FileName + '.pas'
   else if FileExists(FileName+'.pp') then
