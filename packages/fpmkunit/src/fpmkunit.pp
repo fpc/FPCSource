@@ -3211,11 +3211,99 @@ end;
 
 
 Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS);
+
+  procedure FindMainSource(T:TTarget);
+  var
+    SD,SF  : String;
+  begin
+    LogSearchPath('package source',APackage.SourcePath,ACPU,AOS,APackage.Directory);
+    SD:=Dictionary.ReplaceStrings(T.Directory);
+    SF:=Dictionary.ReplaceStrings(T.SourceFileName);
+    if SD='' then
+      FindFileInPath(APackage.SourcePath,SF,SD,ACPU,AOS,APackage.Directory)
+    else
+      if APackage.Directory<>'' then
+        SD:=IncludeTrailingPathDelimiter(APackage.Directory)+SD;
+    if SD<>'' then
+      SD:=IncludeTrailingPathDelimiter(SD);
+    T.FTargetSourceFileName:=SD+SF;
+    if FileExists(T.TargetSourceFileName) then
+      Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
+    else
+      begin
+        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
+        T.FTargetSourceFileName:='';
+      end;
+  end;
+
+  procedure FindIncludeSources(T:TTarget);
+  var
+    SD,SF  : String;
+    D : TDependency;
+    j : integer;
+  begin
+    LogSearchPath('target include',T.IncludePath,ACPU,AOS,APackage.Directory);
+    LogSearchPath('package include',APackage.IncludePath,ACPU,AOS,APackage.Directory);
+    for j:=0 to T.Dependencies.Count-1 do
+      begin
+        D:=T.Dependencies[j];
+        if (D.DependencyType=depInclude) then
+          begin
+            D.TargetFileName:='';
+            if (ACPU in D.CPUs) and (AOS in D.OSes) then
+              begin
+                if ExtractFilePath(D.Value)='' then
+                  begin
+                    SF:=Dictionary.ReplaceStrings(D.Value);
+                    SD:='';
+                    // first check the target specific path
+                    if not FindFileInPath(T.IncludePath,SF,SD,ACPU,AOS,APackage.Directory) then
+                      FindFileInPath(APackage.IncludePath,SF,SD,ACPU,AOS,APackage.Directory);
+                     if SD<>'' then
+                       SD:=IncludeTrailingPathDelimiter(SD);
+                     D.TargetFileName:=SD+SF;
+                  end
+                else
+                  D.TargetFileName:=D.Value;
+                if FileExists(D.TargetFileName) then
+                  Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
+                else
+                  begin
+                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value,MakeTargetString(ACPU,AOS)]);
+                    D.TargetFileName:='';
+                  end;
+              end;
+          end;
+      end;
+  end;
+
+  procedure FindExampleSource(T:TTarget);
+  var
+    SD,SF  : String;
+  begin
+    LogSearchPath('package example',APackage.ExamplePath,ACPU,AOS,APackage.Directory);
+    SD:=Dictionary.ReplaceStrings(T.Directory);
+    SF:=Dictionary.ReplaceStrings(T.SourceFileName);
+    if SD='' then
+      FindFileInPath(APackage.ExamplePath,SF,SD,ACPU,AOS,APackage.Directory)
+    else
+      if APackage.Directory<>'' then
+        SD:=IncludeTrailingPathDelimiter(APackage.Directory)+SD;
+    if SD<>'' then
+      SD:=IncludeTrailingPathDelimiter(SD);
+    T.FTargetSourceFileName:=SD+SF;
+    if FileExists(T.TargetSourceFileName) then
+      Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
+    else
+      begin
+        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
+        T.FTargetSourceFileName:='';
+      end;
+  end;
+
 var
-  SD,SF  : String;
-  D   : TDependency;
   T : TTarget;
-  i,j : Integer;
+  i : Integer;
 begin
   Dictionary.AddVariable('CPU',CPUToString(ACPU));
   Dictionary.AddVariable('OS',OSToString(AOS));
@@ -3228,62 +3316,21 @@ begin
           Log(vlDebug,SDbgResolvingSourcesOfTarget,[T.Name,MakeTargetString(ACPU,AOS)]);
           LogIndent;
 
-          // Log Search paths
-          LogSearchPath('package source',APackage.SourcePath,ACPU,AOS,APackage.Directory);
-          LogSearchPath('target include',T.IncludePath,ACPU,AOS,APackage.Directory);
-          LogSearchPath('package include',APackage.IncludePath,ACPU,AOS,APackage.Directory);
-
-          // Main source file
-          SD:=Dictionary.ReplaceStrings(T.Directory);
-          SF:=Dictionary.ReplaceStrings(T.SourceFileName);
-          if SD='' then
-            FindFileInPath(APackage.SourcePath,SF,SD,ACPU,AOS,APackage.Directory)
-          else
-            if APackage.Directory<>'' then
-              SD:=IncludeTrailingPathDelimiter(APackage.Directory)+SD;
-          if SD<>'' then
-            SD:=IncludeTrailingPathDelimiter(SD);
-          T.FTargetSourceFileName:=SD+SF;
-          if FileExists(T.TargetSourceFileName) then
-            Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
-          else
-            begin
-              Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
-              T.FTargetSourceFileName:='';
-            end;
-
-          // Include files
-          for j:=0 to T.Dependencies.Count-1 do
-            begin
-              D:=T.Dependencies[j];
-              if (D.DependencyType=depInclude) then
-                begin
-                  D.TargetFileName:='';
-                  if (ACPU in D.CPUs) and (AOS in D.OSes) then
-                    begin
-                      if ExtractFilePath(D.Value)='' then
-                        begin
-                          SF:=Dictionary.ReplaceStrings(D.Value);
-                          SD:='';
-                          // first check the target specific path
-                          if not FindFileInPath(T.IncludePath,SF,SD,ACPU,AOS,APackage.Directory) then
-                            FindFileInPath(APackage.IncludePath,SF,SD,ACPU,AOS,APackage.Directory);
-                           if SD<>'' then
-                             SD:=IncludeTrailingPathDelimiter(SD);
-                           D.TargetFileName:=SD+SF;
-                        end
-                      else
-                        D.TargetFileName:=D.Value;
-                      if FileExists(D.TargetFileName) then
-                        Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
-                      else
-                        begin
-                          Log(vlWarning,SWarnIncludeFileNotFound,[D.Value,MakeTargetString(ACPU,AOS)]);
-                          D.TargetFileName:='';
-                        end;
-                    end;
-                end;
-            end;
+          case T.TargetType of
+            ttProgram,
+            ttUnit,
+            ttImplicitUnit :
+              begin
+                FindMainSource(T);
+                if T.Dependencies.Count>0 then
+                  FindIncludeSources(T);
+              end;
+            ttExampleUnit,
+            ttExampleProgram :
+              begin
+                FindExampleSource(T);
+              end;
+          end;
 
           LogUnIndent;
         end;
