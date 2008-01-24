@@ -4434,7 +4434,6 @@ packages/paszlib/src/zstream.pp svneol=native#text/plain
 packages/paszlib/src/zuncompr.pas svneol=native#text/plain
 packages/winunits-base/Makefile svneol=native#text/plain
 packages/winunits-base/Makefile.fpc svneol=native#text/plain
-packages/winunits-base/fpmake.inc svneol=native#text/plain
 packages/winunits-base/fpmake.pp svneol=native#text/plain
 packages/winunits-base/src/activex.pp svneol=native#text/plain
 packages/winunits-base/src/buildwinutilsbase.pp svneol=native#text/plain
