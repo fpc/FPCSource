@@ -17,6 +17,9 @@ begin
     P.Directory:='fcl-base';
 {$endif ALLPACKAGES}
     P.Version:='2.2.1';
+
+    P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
+
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/win',AllWindowsOSes);
@@ -25,6 +28,7 @@ begin
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);
     P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
+
     T:=P.Targets.AddUnit('avl_tree.pp');
     T:=P.Targets.AddUnit('base64.pp');
     T:=P.Targets.AddUnit('blowfish.pp');
