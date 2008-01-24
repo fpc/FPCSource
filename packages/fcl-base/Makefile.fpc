@@ -45,7 +45,7 @@ includedir_emx=src/os2
 includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/win
-sourcedir=src/$(OS_TARGET) src/inc
+sourcedir=src/$(OS_TARGET) src
 
 [install]
 fpcpackage=y
