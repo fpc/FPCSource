@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=regexpr netdb
+dirs=regexpr
 dirs_i386_linux=libc
 dirs_linux=gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle imagemagick httpd 

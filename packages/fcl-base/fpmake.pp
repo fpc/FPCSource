@@ -88,6 +88,7 @@ begin
     T:=P.Targets.AddUnit('streamex.pp');
     T:=P.Targets.AddUnit('streamio.pp');
     T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,OS2,EMX]);
+    T:=P.Targets.AddUnit('uriparser.pp');
     T:=P.Targets.AddUnit('wformat.pp');
     T:=P.Targets.AddUnit('whtml.pp');
       with T.Dependencies do

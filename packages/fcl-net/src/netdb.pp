@@ -27,8 +27,6 @@ unit netdb;
 
 Interface
 
-{ i hsh.inc} // disappears if part of resolve.pp !!
-
 Uses Sockets;
 
 Type

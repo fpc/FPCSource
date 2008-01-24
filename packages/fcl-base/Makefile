@@ -243,163 +243,163 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fcl-base
 override PACKAGE_VERSION=2.0.0
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs daemonapp ServiceManager fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs daemonapp ServiceManager fptimer
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs fptimer
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs daemonapp ServiceManager fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs daemonapp ServiceManager fptimer
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  fileinfo syncobjs fptimer
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils  syncobjs daemonapp fptimer
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+override TARGET_UNITS+=contnrs inifiles ezcgi rtfpars idea base64 gettext iostream cachecls avl_tree uriparser eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=cachecls custapp cgiapp eventlog registry streamcoll inicol

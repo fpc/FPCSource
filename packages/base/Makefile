@@ -241,163 +241,163 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd libc
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd libc
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=regexpr netdb  gdbint
+override TARGET_DIRS+=regexpr  gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase odbc sqlite postgres oracle imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase odbc sqlite postgres oracle imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres odbc sqlite pthreads imagemagick
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres odbc sqlite pthreads imagemagick
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=regexpr netdb  ibase sqlite postgres
+override TARGET_DIRS+=regexpr  ibase sqlite postgres
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=regexpr netdb  mysql ibase odbc sqlite postgres oracle
+override TARGET_DIRS+=regexpr  mysql ibase odbc sqlite postgres oracle
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=regexpr netdb  ibase sqlite postgres
+override TARGET_DIRS+=regexpr  ibase sqlite postgres
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=regexpr netdb  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint mysql ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=regexpr netdb  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=regexpr netdb
+override TARGET_DIRS+=regexpr
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/base
@@ -1480,7 +1480,6 @@ fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1496,12 +1495,10 @@ TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1514,11 +1511,9 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1532,7 +1527,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1544,7 +1538,6 @@ TARGET_DIRS_IMAGEMAGICK=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1556,7 +1549,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1569,15 +1561,12 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1589,11 +1578,9 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1606,34 +1593,27 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1648,7 +1628,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1662,7 +1641,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1674,15 +1652,12 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1694,15 +1669,12 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1717,7 +1689,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1729,15 +1700,12 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1750,15 +1718,12 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1773,7 +1738,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1785,7 +1749,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1798,11 +1761,9 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1817,7 +1778,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1831,7 +1791,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1844,7 +1803,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_ODBC=1
@@ -1854,11 +1812,9 @@ TARGET_DIRS_ORACLE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1873,34 +1829,27 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1915,7 +1864,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_POSTGRES=1
@@ -1928,7 +1876,6 @@ TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 TARGET_DIRS_REGEXPR=1
-TARGET_DIRS_NETDB=1
 endif
 ifdef TARGET_DIRS_REGEXPR
 regexpr_all:
@@ -1974,51 +1921,6 @@ regexpr_makefiles:
 regexpr:
 	$(MAKE) -C regexpr all
 .PHONY: regexpr_all regexpr_debug regexpr_smart regexpr_release regexpr_units regexpr_examples regexpr_shared regexpr_install regexpr_sourceinstall regexpr_exampleinstall regexpr_distinstall regexpr_zipinstall regexpr_zipsourceinstall regexpr_zipexampleinstall regexpr_zipdistinstall regexpr_clean regexpr_distclean regexpr_cleanall regexpr_info regexpr_makefiles regexpr
-endif
-ifdef TARGET_DIRS_NETDB
-netdb_all:
-	$(MAKE) -C netdb all
-netdb_debug:
-	$(MAKE) -C netdb debug
-netdb_smart:
-	$(MAKE) -C netdb smart
-netdb_release:
-	$(MAKE) -C netdb release
-netdb_units:
-	$(MAKE) -C netdb units
-netdb_examples:
-	$(MAKE) -C netdb examples
-netdb_shared:
-	$(MAKE) -C netdb shared
-netdb_install:
-	$(MAKE) -C netdb install
-netdb_sourceinstall:
-	$(MAKE) -C netdb sourceinstall
-netdb_exampleinstall:
-	$(MAKE) -C netdb exampleinstall
-netdb_distinstall:
-	$(MAKE) -C netdb distinstall
-netdb_zipinstall:
-	$(MAKE) -C netdb zipinstall
-netdb_zipsourceinstall:
-	$(MAKE) -C netdb zipsourceinstall
-netdb_zipexampleinstall:
-	$(MAKE) -C netdb zipexampleinstall
-netdb_zipdistinstall:
-	$(MAKE) -C netdb zipdistinstall
-netdb_clean:
-	$(MAKE) -C netdb clean
-netdb_distclean:
-	$(MAKE) -C netdb distclean
-netdb_cleanall:
-	$(MAKE) -C netdb cleanall
-netdb_info:
-	$(MAKE) -C netdb info
-netdb_makefiles:
-	$(MAKE) -C netdb makefiles
-netdb:
-	$(MAKE) -C netdb all
-.PHONY: netdb_all netdb_debug netdb_smart netdb_release netdb_units netdb_examples netdb_shared netdb_install netdb_sourceinstall netdb_exampleinstall netdb_distinstall netdb_zipinstall netdb_zipsourceinstall netdb_zipexampleinstall netdb_zipdistinstall netdb_clean netdb_distclean netdb_cleanall netdb_info netdb_makefiles netdb
 endif
 ifdef TARGET_DIRS_GDBINT
 gdbint_all:

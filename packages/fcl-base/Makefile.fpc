@@ -12,7 +12,7 @@ packages_win64=winunits-base winunits-jedi
 
 [target]
 units=contnrs inifiles ezcgi rtfpars idea base64 gettext \
-      iostream cachecls avl_tree \
+      iostream cachecls avl_tree uriparser \
       eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
       streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 units_beos=syncobjs 

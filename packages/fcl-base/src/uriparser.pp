@@ -334,7 +334,7 @@ begin
       HasAuthority := Base.HasAuthority;
       if (Path = '') or (Path[1] <> '/') then  // path is empty or relative
         Path := Base.Path + Path;
-      RemoveDotSegments(Path);      
+      RemoveDotSegments(Path);
     end;
   end; // with
   ResultUri := EncodeUri(Rel);
