@@ -493,6 +493,7 @@ implementation
                       readfunctype:=s64currencytype;
                       is_real:=true;
                     end;
+                  pasbool,
                   bool8bit,
                   bool16bit,
                   bool32bit,
@@ -1508,30 +1509,41 @@ implementation
                     orddef :
                       begin
                         case torddef(left.resultdef).ordtype of
-                          bool8bit,
+                          pasbool,
                           uchar:
                             begin
                               { change to byte() }
                               result:=ctypeconvnode.create_internal(left,u8inttype);
                               left:=nil;
                             end;
-                          bool16bit,
                           uwidechar :
                             begin
                               { change to word() }
                               result:=ctypeconvnode.create_internal(left,u16inttype);
                               left:=nil;
                             end;
+                          bool8bit:
+                            begin
+                              { change to shortint() }
+                              result:=ctypeconvnode.create_internal(left,s8inttype);
+                              left:=nil;
+                            end;
+                          bool16bit :
+                            begin
+                              { change to smallint() }
+                              result:=ctypeconvnode.create_internal(left,s16inttype);
+                              left:=nil;
+                            end;
                           bool32bit :
                             begin
-                              { change to dword() }
-                              result:=ctypeconvnode.create_internal(left,u32inttype);
+                              { change to longint() }
+                              result:=ctypeconvnode.create_internal(left,s32inttype);
                               left:=nil;
                             end;
                           bool64bit :
                             begin
-                              { change to qword() }
-                              result:=ctypeconvnode.create_internal(left,u64inttype);
+                              { change to int64() }
+                              result:=ctypeconvnode.create_internal(left,s64inttype);
                               left:=nil;
                             end;
                           uvoid :

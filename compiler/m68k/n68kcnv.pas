@@ -161,15 +161,32 @@ implementation
         opsize   : tcgsize;
       begin
          secondpass(left);
-         { byte(boolean) or word(wordbool) or longint(longbool) must }
-         { be accepted for var parameters                            }
+
+{$warning needs LOC_JUMP support, because called for bool_to_bool from ncgcnv }
+
+         { bytebool(byte) or wordbool(word) or longbool(longint) must }
+         { be accepted for var parameters, and must not change the    }
+         { the ordinal value                                          }
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
+            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
+            is_cbool(resultdef) and
+            not is_pasbool(left.resultdef) then
            begin
               location_copy(location,left.location);
+              location.size:=def_cgsize(resultdef);
+              { change of sign? Then we have to sign/zero-extend in }
+              { case of a loc_(c)register                           }
+              if (location.size<>left.location.size) and
+                 (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                location_force_reg(current_asmdata.CurrAsmList,location,location.size,true);
+{   ACTIVATE when loc_jump support is added 
+              current_procinfo.CurrTrueLabel:=oldTrueLabel;
+              current_procinfo.CurrFalseLabel:=oldFalseLabel;
+}
               exit;
            end;
+
          location_reset(location,LOC_REGISTER,def_cgsize(left.resultdef));
          opsize := def_cgsize(left.resultdef);
          case left.location.loc of
@@ -210,6 +227,8 @@ implementation
              internalerror(200512182);
          end;
          cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
+         if (is_cbool(resultdef)) then
+           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
          location.register := hreg1;
       end;
 

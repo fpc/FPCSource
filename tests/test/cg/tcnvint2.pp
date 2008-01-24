@@ -103,8 +103,6 @@ begin
  fromword := $1000;
  lb1 := longbool(fromword);
  Test('word -> longbool : Value should be TRUE...',lb1);
- if not lb1 then
-  failed:=true;
  { ------------------------------------------------------------   }
  { WARNING : This test fails under Borland Pascal v7, but         }
  { works under Delphi 3.0 (normally it should give TRUE).         }
@@ -161,9 +159,8 @@ begin
  lb1 := longbool(getint64_2);
  Test('int64 -> longbool : Value should be TRUE...',lb1);
 {$endif}
-(* CURRENTLY NEVER GOES INTO THE LOC_FLAGS LOCATION!
  { left : LOC_FLAGS  }
- Test('Testing LOC_FLAGS...');
+ Writeln('Testing LOC_FLAGS...');
  frombyte := 10;
  fromword := 2;
  bb1 := bytebool(frombyte > fromword);
@@ -183,14 +180,13 @@ begin
  fromword := $1000;
  fromlong := $0100;
  lb1 := longbool(fromlong > fromword);
- Test('Value should be FALSE...',lb1);
+ Test('Value should be TRUE...',not lb1);
 {$ifndef tp}
  fromint64 := $10000000;
  fromlong := $02;
  lb1 := longbool(fromint64 > fromlong);
  Test('Value should be TRUE...',lb1);
 {$endif}
-*)
   if failed then
    begin
      Writeln('Some tests failed!');

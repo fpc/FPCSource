@@ -132,10 +132,11 @@ implementation
         s32inttype:=torddef.create(s32bit,int64(low(longint)),int64(high(longint)));
         u64inttype:=torddef.create(u64bit,low(qword),high(qword));
         s64inttype:=torddef.create(s64bit,low(int64),high(int64));
-        booltype:=torddef.create(bool8bit,0,1);
-        bool16type:=torddef.create(bool16bit,0,1);
-        bool32type:=torddef.create(bool32bit,0,1);
-        bool64type:=torddef.create(bool64bit,0,1);
+        booltype:=torddef.create(pasbool,0,1);
+        bool8type:=torddef.create(bool8bit,low(int64),high(int64));
+        bool16type:=torddef.create(bool16bit,low(int64),high(int64));
+        bool32type:=torddef.create(bool32bit,low(int64),high(int64));
+        bool64type:=torddef.create(bool64bit,low(int64),high(int64));
         cchartype:=torddef.create(uchar,0,255);
         cwidechartype:=torddef.create(uwidechar,0,65535);
         cshortstringtype:=tstringdef.createshort(255);
@@ -250,7 +251,7 @@ implementation
         addtype('UnicodeString',cunicodestringtype);
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',booltype);
-        addtype('ByteBool',booltype);
+        addtype('ByteBool',bool8type);
         addtype('WordBool',bool16type);
         addtype('LongBool',bool32type);
         addtype('QWordBool',bool64type);
@@ -290,6 +291,7 @@ implementation
         addtype('$unicodestring',cwidestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',booltype);
+        addtype('$boolean8',bool8type);
         addtype('$boolean16',bool16type);
         addtype('$boolean32',bool32type);
         addtype('$boolean64',bool64type);
@@ -386,6 +388,7 @@ implementation
         loadtype('s80real',s80floattype);
         loadtype('s64currency',s64currencytype);
         loadtype('boolean',booltype);
+        loadtype('boolean8',bool8type);
         loadtype('boolean16',bool16type);
         loadtype('boolean32',bool32type);
         loadtype('boolean64',bool64type);

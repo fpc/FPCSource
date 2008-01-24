@@ -2205,7 +2205,7 @@ implementation
         variantorddef_cl: array[tordtype] of tvariantequaltype =
           (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,
            tve_shortint,tve_smallint,tve_longint,tve_chari64,
-           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
+           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_chari64,tve_chari64,tve_dblcurrency);
 {$warning fixme for 128 bit floats }
         variantfloatdef_cl: array[tfloattype] of tvariantequaltype =

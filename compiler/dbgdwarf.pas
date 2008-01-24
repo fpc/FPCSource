@@ -1099,6 +1099,7 @@ implementation
                 ]);
               finish_entry;
             end;
+          pasbool,
           bool8bit :
             begin
               append_entry(DW_TAG_base_type,false,[

@@ -233,17 +233,27 @@ implementation
         if codegenerror then
           exit;
 
-        { byte(boolean) or word(wordbool) or longint(longbool) must }
-        { be accepted for var parameters                            }
-        if (nf_explicit in flags)and
-           (left.resultdef.size=resultdef.size)and
-           (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-          begin
-            location_copy(location,left.location);
-            current_procinfo.CurrTrueLabel:=oldTrueLabel;
-            current_procinfo.CurrFalseLabel:=oldFalseLabel;
-            exit;
-          end;
+         { bytebool(byte) or wordbool(word) or longbool(longint) must }
+         { be accepted for var parameters, and must not change the    }
+         { the ordinal value                                          }
+         if (nf_explicit in flags) and
+            (left.resultdef.size=resultdef.size) and
+            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
+            is_cbool(resultdef) and
+            not is_pasbool(left.resultdef) then
+           begin
+              location_copy(location,left.location);
+              location.size:=def_cgsize(resultdef);
+              { change of sign? Then we have to sign/zero-extend in }
+              { case of a loc_(c)register                           }
+              if (location.size<>left.location.size) and
+                 (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                location_force_reg(current_asmdata.CurrAsmList,location,location.size,true);
+              current_procinfo.CurrTrueLabel:=oldTrueLabel;
+              current_procinfo.CurrFalseLabel:=oldFalseLabel;
+              exit;
+           end;
+
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         opsize:=def_cgsize(left.resultdef);
         case left.location.loc of
@@ -260,27 +270,35 @@ implementation
               if left.location.size in [OS_64,OS_S64] then
                 begin
                   hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg2,tregister(succ(longint(hreg2))),hreg1);
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg2,left.location.register64.reghi,hreg1);
                   hreg2:=hreg1;
                   opsize:=OS_32;
                 end;
 {$endif cpu64bit}
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
               hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_ADDX,NR_G0,0,hreg1));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
+              if is_pasbool(resultdef) then
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADDX,NR_G0,NR_G0,hreg1))
+              else
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBX,NR_G0,NR_G0,hreg1));
             end;
           LOC_FLAGS :
             begin
               hreg1:=cg.GetIntRegister(current_asmdata.CurrAsmList,location.size);
               resflags:=left.location.resflags;
               cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
+              if (is_cbool(resultdef)) then
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
             end;
           LOC_JUMP :
             begin
               hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               current_asmdata.getjumplabel(hlabel);
               cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
-              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hreg1);
+              if not(is_cbool(resultdef)) then
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hreg1)
+              else
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,-1,hreg1);
               cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
               cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hreg1);
@@ -289,10 +307,21 @@ implementation
           else
             internalerror(10062);
         end;
-        location.register:=hreg1;
-
-         if location.size in [OS_64, OS_S64] then
-           internalerror(200408241);
+{$ifndef cpu64bit}
+         if (location.size in [OS_64,OS_S64]) then
+           begin
+             location.register64.reglo:=hreg1;
+             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             if (is_cbool(resultdef)) then
+               { reglo is either 0 or -1 -> reghi has to become the same }
+               cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+             else
+               { unsigned }
+               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+           end
+         else
+{$endif cpu64bit}
+           location.register:=hreg1;
 
         current_procinfo.CurrTrueLabel:=oldTrueLabel;
         current_procinfo.CurrFalseLabel:=oldFalseLabel;

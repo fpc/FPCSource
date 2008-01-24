@@ -85,6 +85,9 @@ implementation
 
     procedure tx86typeconvnode.second_int_to_bool;
       var
+{$ifndef cpu64bit}
+        hreg2,
+{$endif cpu64bit}
         hregister : tregister;
 {$ifndef cpu64bit}
         href      : treference;
@@ -99,13 +102,22 @@ implementation
          secondpass(left);
          if codegenerror then
           exit;
-         { byte(boolean) or word(wordbool) or longint(longbool) must }
-         { be accepted for var parameters                            }
+         { bytebool(byte) or wordbool(word) or longbool(longint) must }
+         { be accepted for var parameters, and must not change the    }
+         { the ordinal value                                          }
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
+            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
+            is_cbool(resultdef) and
+            not is_pasbool(left.resultdef) then
            begin
               location_copy(location,left.location);
+              location.size:=def_cgsize(resultdef);
+              { change of sign? Then we have to sign/zero-extend in }
+              { case of a loc_(c)register                           }
+              if (location.size<>left.location.size) and
+                 (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                location_force_reg(current_asmdata.CurrAsmList,location,location.size,true);
               current_procinfo.CurrTrueLabel:=oldTrueLabel;
               current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
@@ -156,23 +168,51 @@ implementation
               end;
             LOC_JUMP :
               begin
-                hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+                location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                 current_asmdata.getjumplabel(hlabel);
                 cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hregister);
+                if not(is_cbool(resultdef)) then
+                  cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,1,location.register)
+                else
+                  cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,-1,location.register);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
                 cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hregister);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,0,location.register);
                 cg.a_label(current_asmdata.CurrAsmList,hlabel);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,hregister,hregister);
               end;
             else
               internalerror(10062);
          end;
-         { load flags to register }
-         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+         if (left.location.loc<>LOC_JUMP) then
+           begin
+             { load flags to register }
+             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+{$ifndef cpu64bit}
+              if (location.size in [OS_64,OS_S64]) then
+                begin
+                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,resflags,hreg2);
+                  if (is_cbool(resultdef)) then
+                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_32,hreg2,hreg2);
+                  location.register64.reglo:=hreg2;
+                  location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  if (is_cbool(resultdef)) then
+                    { reglo is either 0 or -1 -> reghi has to become the same }
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+                  else
+                    { unsigned }
+                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+                end
+             else
+{$endif cpu64bit}
+               begin
+                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                 cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+                 if (is_cbool(resultdef)) then
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,location.register,location.register);
+               end
+           end;
          current_procinfo.CurrTrueLabel:=oldTrueLabel;
          current_procinfo.CurrFalseLabel:=oldFalseLabel;
        end;

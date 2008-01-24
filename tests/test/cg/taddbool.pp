@@ -25,7 +25,8 @@ end;
 
 procedure BoolTestAnd;
 var
- bb1, bb2: boolean;
+ b1, b2: boolean;
+ bb1, bb2: bytebool;
  wb1, wb2: wordbool;
  lb1, lb2: longbool;
  result : boolean;
@@ -33,6 +34,36 @@ begin
  result := true;
  { BOOLEAN AND BOOLEAN }
  Write('boolean AND boolean test...');
+ b1 := true;
+ b2 := false;
+ if b1 and b2 then
+   result := false;
+ if b2 then
+   result := false;
+ b1 := false;
+ b2 := false;
+ if b1 and b2 then
+   result := false;
+
+ b1 := b1 and b2;
+ if b1 then
+   result := false;
+ if b1 and FALSE then
+   result := false;
+ b1 := true;
+ b2 := true;
+ if b1 and b2 then
+  begin
+    if result then
+      WriteLn('Success.')
+    else
+      Fail;
+  end
+ else
+   Fail;
+
+ { BYTEBOOL AND BYTEBOOL }
+ Write('bytebool AND bytebool test...');
  bb1 := true;
  bb2 := false;
  if bb1 and bb2 then
@@ -129,7 +160,8 @@ end;
 
 procedure BoolTestOr;
 var
- bb1, bb2: boolean;
+ b1, b2: boolean;
+ bb1, bb2: bytebool;
  wb1, wb2: wordbool;
  lb1, lb2: longbool;
  result : boolean;
@@ -137,6 +169,36 @@ begin
  result := false;
  { BOOLEAN AND BOOLEAN }
  Write('boolean OR boolean test...');
+ b1 := true;
+ b2 := false;
+ if b1 or b2 then
+   result := true;
+ b1 := false;
+ b2 := false;
+ if b1 or b2 then
+   result := false;
+
+ b1 := b1 or b2;
+ if b1 then
+   result := false;
+ if b1 or FALSE then
+   result := false;
+
+
+ b1 := true;
+ b2 := true;
+ if b1 or b2 then
+  begin
+    if result then
+      WriteLn('Success.')
+    else
+      Fail;
+  end
+ else
+   Fail;
+
+ { BYTEBOOL AND BYTEBOOL }
+ Write('bytebool OR bytebool test...');
  bb1 := true;
  bb2 := false;
  if bb1 or bb2 then
@@ -231,7 +293,8 @@ end;
 
 Procedure BoolTestXor;
 var
- bb1, bb2: boolean;
+ b1, b2: boolean;
+ bb1, bb2: bytebool;
  wb1, wb2: wordbool;
  lb1, lb2: longbool;
  result : boolean;
@@ -239,6 +302,38 @@ begin
  result := false;
  { BOOLEAN XOR BOOLEAN }
  Write('boolean XOR boolean test...');
+ b1 := true;
+ b2 := false;
+ if b1 xor b2 then
+   result := true;
+ b1 := false;
+ b2 := false;
+ if b1 xor b2 then
+   result := false;
+
+ b1 := b1 xor b2;
+ if b1 then
+   result := false;
+ if b1 xor FALSE then
+   result := false;
+
+
+ b1 := true;
+ b2 := true;
+ if b1 xor b2 then
+  begin
+     Fail;
+  end
+ else
+  begin
+    if result then
+      WriteLn('Success.')
+    else
+      Fail;
+  end;
+
+ { BYTEBOOL XOR BYTEBOOL }
+ Write('bytebool XOR bytebool test...');
  bb1 := true;
  bb2 := false;
  if bb1 xor bb2 then
@@ -338,7 +433,8 @@ end;
 
 Procedure BoolTestEqual;
 var
- bb1, bb2, bb3: boolean;
+ b1, b2, b3: boolean;
+ bb1, bb2, bb3: bytebool;
  wb1, wb2, wb3: wordbool;
  lb1, lb2, lb3: longbool;
  result : boolean;
@@ -348,6 +444,30 @@ Begin
  { BOOLEAN = BOOLEAN }
  result := true;
  Write('boolean = boolean test...');
+ b1 := true;
+ b2 := true;
+ b3 := false;
+ b1 := (b1 = b2) and (b2 and false);
+ if b1 then
+   result := false;
+ b1 := true;
+ b2 := true;
+ b3 := false;
+ b1 := (b1 = b2) and (b2 and true);
+ if not b1 then
+   result := false;
+ if b1 = b2 then
+  begin
+    if result then
+      WriteLn('Success.')
+    else
+      Fail;
+  end
+ else
+   Fail;
+ { BYTEBOOL = BYTEBOOL }
+ result := true;
+ Write('bytebool = bytebool test...');
  bb1 := true;
  bb2 := true;
  bb3 := false;
@@ -440,7 +560,8 @@ end;
 
 Procedure BoolTestNotEqual;
 var
- bb1, bb2, bb3: boolean;
+ b1, b2, b3: boolean;
+ bb1, bb2, bb3: bytebool;
  wb1, wb2, wb3: wordbool;
  lb1, lb2, lb3: longbool;
  result : boolean;
@@ -448,6 +569,34 @@ Begin
  { BOOLEAN <> BOOLEAN }
  result := true;
  Write('boolean <> boolean test...');
+ b1 := true;
+ b2 := true;
+ b3 := false;
+ b1 := (b1 <> b2) and (b2 <> false);
+ if b1 then
+   result := false;
+ b1 := true;
+ b2 := true;
+ b3 := false;
+ b1 := (b1 <> b2) and (b2 <> true);
+ if b1 then
+   result := false;
+ b1 := false;
+ b2 := false;
+ if b1 <> b2 then
+  begin
+      Fail;
+  end
+ else
+  begin
+   if result then
+     WriteLn('Success.')
+   else
+     Fail;
+  end;
+ { BYTEBOOL <> BYTEBOOL }
+ result := true;
+ Write('bytebool <> bytebool test...');
  bb1 := true;
  bb2 := true;
  bb3 := false;

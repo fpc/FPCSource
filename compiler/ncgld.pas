@@ -841,7 +841,10 @@ implementation
                 begin
                   current_asmdata.getjumplabel(hlabel);
                   cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
-                  cg.a_load_const_loc(current_asmdata.CurrAsmList,1,left.location);
+                  if is_pasbool(left.resultdef) then
+                    cg.a_load_const_loc(current_asmdata.CurrAsmList,1,left.location)
+                  else
+                    cg.a_load_const_loc(current_asmdata.CurrAsmList,-1,left.location);
                   cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
                   cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                   cg.a_load_const_loc(current_asmdata.CurrAsmList,0,left.location);
@@ -850,20 +853,29 @@ implementation
 {$ifdef cpuflags}
               LOC_FLAGS :
                 begin
-                  {This can be a wordbool or longbool too, no?}
-                  case left.location.loc of
-                    LOC_REGISTER,LOC_CREGISTER:
-                      cg.g_flags2reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),right.location.resflags,left.location.register);
-                    LOC_REFERENCE:
-                      cg.g_flags2ref(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),right.location.resflags,left.location.reference);
-                    LOC_SUBSETREG,LOC_SUBSETREF:
-                      begin
-                        r:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(left.resultdef));
-                        cg.g_flags2reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),right.location.resflags,r);
-                        cg.a_load_reg_loc(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),r,left.location);
+                  if is_pasbool(left.resultdef) then
+                    begin
+                      case left.location.loc of
+                        LOC_REGISTER,LOC_CREGISTER:
+                          cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.register);
+                        LOC_REFERENCE:
+                          cg.g_flags2ref(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.reference);
+                        LOC_SUBSETREG,LOC_SUBSETREF:
+                          begin
+                            r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
+                            cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
+                            cg.a_load_reg_loc(current_asmdata.CurrAsmList,left.location.size,r,left.location);
+                          end;
+                        else
+                          internalerror(200203273);
                       end;
-                    else
-                      internalerror(200203273);
+                    end
+                  else
+                    begin
+                      r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
+                      cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
+                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,left.location.size,r,r);
+                      cg.a_load_reg_loc(current_asmdata.CurrAsmList,left.location.size,r,left.location);
                     end;
                 end;
 {$endif cpuflags}

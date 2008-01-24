@@ -1817,7 +1817,7 @@ unit cgcpu;
 
               if not((def.typ=pointerdef) or
                     ((def.typ=orddef) and
-                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
+                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,pasbool]))) then
                  ai.SetCondition(C_VC)
               else
                 if TAiCpu(List.Last).opcode in [A_RSB,A_RSC,A_SBC,A_SUB] then

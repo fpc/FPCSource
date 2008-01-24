@@ -510,7 +510,7 @@ implementation
                                def:=torddef.create(uchar,lv,hv)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=torddef.create(bool8bit,lv,hv)
+                                 def:=torddef.create(pasbool,lv,hv)
                                else if is_signed(pt1.resultdef) then
                                  def:=torddef.create(range_to_basetype(lv,hv),lv,hv)
                                else
@@ -614,7 +614,7 @@ implementation
 {$ifdef cpu64bit}
                     u32bit,s64bit,
 {$endif cpu64bit}
-                    bool8bit,bool16bit,bool32bit,bool64bit,
+                    pasbool,bool8bit,bool16bit,bool32bit,bool64bit,
                     uwidechar] then
                     begin
                        lowval:=torddef(def).low;

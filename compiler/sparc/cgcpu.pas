@@ -1010,7 +1010,7 @@ implementation
             begin
               if not((def.typ=pointerdef) or
                     ((def.typ=orddef) and
-                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
+                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,pasbool]))) then
                 begin
                   ai:=TAiCpu.Op_sym(A_Bxx,hl);
                   ai.SetCondition(C_NO);

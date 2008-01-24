@@ -558,6 +558,7 @@ implementation
                 case def.ordtype of
                   uvoid :
                     result:=strpnew(def_stab_number(def));
+                  pasbool,
                   bool8bit,
                   bool16bit,
                   bool32bit,
@@ -580,6 +581,7 @@ implementation
                     result:=strpnew('-20;');
                   uwidechar :
                     result:=strpnew('-30;');
+                  pasbool,
                   bool8bit :
                     result:=strpnew('-21;');
                   bool16bit :

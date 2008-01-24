@@ -62,6 +62,12 @@ interface
     {# Returns true if definition is a boolean }
     function is_boolean(def : tdef) : boolean;
 
+    {# Returns true if definition is a Pascal-style boolean (1 = true, zero = false) }
+    function is_pasbool(def : tdef) : boolean;
+
+    {# Returns true if definition is a C-style boolean (non-zero value = true, zero = false) }
+    function is_cbool(def : tdef) : boolean;
+
     {# Returns true if definition is a char
 
        This excludes the unicode char.
@@ -352,7 +358,7 @@ implementation
                is_ordinal:=dt in [uchar,uwidechar,
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
-                                  bool8bit,bool16bit,bool32bit,bool64bit];
+                                  pasbool,bool8bit,bool16bit,bool32bit,bool64bit];
              end;
            enumdef :
              is_ordinal:=true;
@@ -401,6 +407,20 @@ implementation
 
     { true if p is a boolean }
     function is_boolean(def : tdef) : boolean;
+      begin
+        result:=(def.typ=orddef) and
+                    (torddef(def).ordtype in [pasbool,bool8bit,bool16bit,bool32bit,bool64bit]);
+      end;
+
+
+    function is_pasbool(def : tdef) : boolean;
+      begin
+        result:=(def.typ=orddef) and
+                    (torddef(def).ordtype = pasbool);
+      end;
+
+    { true if def is a C-style boolean (non-zero value = true, zero = false) }
+    function is_cbool(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
                     (torddef(def).ordtype in [bool8bit,bool16bit,bool32bit,bool64bit]);

@@ -430,7 +430,7 @@ implementation
               (otUByte{otNone},
                otUByte,otUWord,otULong,otUByte{otNone},
                otSByte,otSWord,otSLong,otUByte{otNone},
-               otUByte,otUWord,otULong,otUByte,
+               otUByte,otSByte,otSWord,otSLong,otSByte,
                otUByte,otUWord,otUByte);
           begin
             write_rtti_name(def);
@@ -469,7 +469,7 @@ implementation
                 { high }
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.high.svalue));
               end;
-            bool8bit:
+            pasbool:
               begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkBool));
                 dointeger;

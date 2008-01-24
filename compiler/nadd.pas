@@ -987,13 +987,15 @@ implementation
              if (is_boolean(ld) and is_boolean(rd)) or
                 (nf_short_bool in flags) then
               begin
-                if torddef(left.resultdef).size>torddef(right.resultdef).size then
+                if (torddef(left.resultdef).size>torddef(right.resultdef).size) or
+                   (is_cbool(left.resultdef) and not is_cbool(right.resultdef)) then
                  begin
                    right:=ctypeconvnode.create_internal(right,left.resultdef);
                    ttypeconvnode(right).convtype:=tc_bool_2_bool;
                    typecheckpass(right);
                  end
-                else if torddef(left.resultdef).size<torddef(right.resultdef).size then
+                else if (torddef(left.resultdef).size<torddef(right.resultdef).size) or
+                        (not is_cbool(left.resultdef) and is_cbool(right.resultdef)) then
                  begin
                    left:=ctypeconvnode.create_internal(left,right.resultdef);
                    ttypeconvnode(left).convtype:=tc_bool_2_bool;

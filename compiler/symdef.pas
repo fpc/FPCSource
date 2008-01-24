@@ -576,6 +576,7 @@ interface
        cchartype,                 { Char }
        cwidechartype,             { WideChar }
        booltype,                  { boolean type }
+       bool8type,
        bool16type,
        bool32type,
        bool64type,                { implement me }
@@ -1510,7 +1511,7 @@ implementation
           0,
           1,2,4,8,
           1,2,4,8,
-          1,2,4,8,
+          1,1,2,4,8,
           1,2,8
         );
       begin
@@ -1555,7 +1556,7 @@ implementation
           varUndefined,
           varbyte,varqword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
-          varboolean,varboolean,varUndefined,varUndefined,
+          varboolean,varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
         result:=basetype2vardef[ordtype];
@@ -1584,7 +1585,7 @@ implementation
           'untyped',
           'Byte','Word','DWord','QWord',
           'ShortInt','SmallInt','LongInt','Int64',
-          'Boolean','WordBool','LongBool','QWordBool',
+          'Boolean','ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
 
       begin
@@ -3367,7 +3368,7 @@ implementation
              '',
              'Uc','Us','Ui','Us',
              'Sc','s','i','x',
-             'b','b','b','b',
+             'b','b','b','b','b',
              'c','w','x');
 
         var

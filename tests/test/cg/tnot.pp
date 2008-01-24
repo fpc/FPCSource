@@ -41,9 +41,14 @@ begin
  getintres := $7F7F;
 end;
 
-function getbyteboolval : boolean;
+function getbyteboolval : bytebool;
 begin
   getbyteboolval := TRUE;
+end;
+
+function getbooleanval : boolean;
+begin
+  getbooleanval := TRUE;
 end;
 
 procedure test(value, required: longint);
@@ -62,9 +67,11 @@ end;
 var
  longres :  longint;
  intres : smallint;
+ booleanval  : boolean;
  byteboolval : bytebool;
  wordboolval : wordbool;
  longboolval : longbool;
+ booleanres  : boolean;
  byteboolres : bytebool;
  wordboolres : wordbool;
  longboolres : longbool;
@@ -96,6 +103,11 @@ Begin
    { CURRENT NODE : LOC_REGISTER }
    { LEFT NODE :  LOC_REFERENCE  }
    WriteLn('(current) : LOC_REGISTER; (left) : LOC_REFERENCE');
+   booleanval := TRUE;
+   booleanres := not booleanval;
+   Write('Value should be FALSE...');
+   test(ord(booleanres),0);
+
    byteboolval := TRUE;
    byteboolres := not byteboolval;
    Write('Value should be FALSE...');
@@ -121,6 +133,12 @@ Begin
    { CURRENT NODE : LOC_FLAGS }
    { LEFT NODE :  LOC_FLAGS  }
    WriteLn('(current) : LOC_FLAGS; (left) : LOC_FLAGS');
+   intres := 1;
+   booleanres := TRUE;
+   booleanres:= not ((intres = 1));
+   Write('Value should be FALSE...');
+   test(ord(booleanres),0);
+
    intres := 1;
    byteboolres := TRUE;
    byteboolres:= not ((intres = 1));

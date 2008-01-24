@@ -2135,7 +2135,21 @@ implementation
                    else
                      { no longer an ordconst with an explicit typecast }
                      exclude(left.flags, nf_explicit);
-                   testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags));
+                   { when converting from one boolean type to another, force }
+                   { booleans to 0/1, and byte/word/long/qwordbool to 0/-1   }
+                   { (Delphi-compatibile)                                    }
+                   if is_boolean(left.resultdef) and
+                      is_boolean(resultdef) and
+                      (is_cbool(left.resultdef) or
+                       is_cbool(resultdef)) then
+                     begin
+                       if is_pasbool(resultdef) then
+                         tordconstnode(left).value:=ord(tordconstnode(left).value<>0)
+                       else
+                         tordconstnode(left).value:=-ord(tordconstnode(left).value<>0);
+                     end
+                   else
+                     testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags));
                    left.resultdef:=resultdef;
                    result:=left;
                    left:=nil;
@@ -2464,7 +2478,7 @@ implementation
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
          if resultdef.size > sizeof(aint) then
            begin
-             result := ctypeconvnode.create_internal(left,u32inttype);
+             result := ctypeconvnode.create_internal(left,s32inttype);
              result := ctypeconvnode.create(result,resultdef);
              left := nil;
              firstpass(result);

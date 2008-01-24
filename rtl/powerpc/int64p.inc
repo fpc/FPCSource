@@ -152,7 +152,7 @@
 
         or.     r10,r3,r5    // are both msw's 0?
         mulhwu  r8,r4,r6    // msw of product of lsw's
-        subi    r0,r7,1     // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
+        not     r0,r7       // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
         beq     .LDone      // if both msw's are zero, skip cross products
         mullw   r9,r4,r5    // lsw of first cross-product
         cntlzw  r11,r3      // count leading zeroes of msw1

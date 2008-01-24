@@ -394,6 +394,7 @@ interface
 
     procedure tcgtypeconvnode.second_bool_to_int;
       var
+         newsize: tcgsize;
          oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
          oldTrueLabel:=current_procinfo.CurrTrueLabel;
@@ -402,12 +403,26 @@ interface
          current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
          location_copy(location,left.location);
-         { byte(boolean) or word(wordbool) or longint(longbool) must }
-         { be accepted for var parameters                            }
-         if not((nf_explicit in flags) and
-                (left.resultdef.size=resultdef.size) and
-                (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])) then
-           location_force_reg(current_asmdata.CurrAsmList,location,def_cgsize(resultdef),false);
+         newsize:=def_cgsize(resultdef);
+         { byte(bytebool) or word(wordbool) or longint(longbool) must be }
+         { accepted for var parameters and assignments, and must not     }
+         { change the ordinal value or value location.                   }
+         { htypechk.valid_for_assign ensures that such locations with a  }
+         { size<sizeof(register) cannot be LOC_CREGISTER (they otherwise }
+         { could be in case of a plain assignment), and LOC_REGISTER can }
+         { never be an assignment target. The remaining LOC_REGISTER/    }
+         { LOC_CREGISTER locations do have to be sign/zero-extended.     }
+         if not(nf_explicit in flags) or
+            (location.loc in [LOC_FLAGS,LOC_JUMP]) or
+            { change of size/signedness? Then we have to sign/ }
+            { zero-extend in case of a loc_(c)register         }
+            ((newsize<>left.location.size) and
+             ((left.resultdef.size<>resultdef.size) or
+              not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]))) then
+           location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+         else
+           { may differ in sign, e.g. bytebool -> byte   }
+           location.size:=newsize;
          current_procinfo.CurrTrueLabel:=oldTrueLabel;
          current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
@@ -429,11 +444,12 @@ interface
               internalerror(20060409);
             location_copy(location,left.location);
           end
+         else if (resultdef.size=left.resultdef.size) and
+                 not(is_cbool(resultdef) xor
+                     is_cbool(left.resultdef)) then
+           second_bool_to_int
          else
-           if resultdef.size<left.resultdef.size then
-             second_int_to_bool
-           else
-             second_bool_to_int;
+           second_int_to_bool
       end;
 
 

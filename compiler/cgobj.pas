@@ -3276,7 +3276,10 @@ implementation
       begin
         { range checking on and range checkable value? }
         if not(cs_check_range in current_settings.localswitches) or
-           not(fromdef.typ in [orddef,enumdef]) then
+           not(fromdef.typ in [orddef,enumdef]) or
+           { C-style booleans can't really fail range checks, }
+           { all values are always valid                      }
+           is_cbool(todef) then
           exit;
 {$ifndef cpu64bit}
         { handle 64bit rangechecks separate for 32bit processors }
@@ -3296,7 +3299,6 @@ implementation
         { (only change now, since getrange needs the arraydef)   }
         if (todef.typ = arraydef) then
           todef := tarraydef(todef).rangedef;
-        { no range check if from and to are equal and are both longint/dword }
         { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }
         { operations can at most cause overflows (JM)                        }

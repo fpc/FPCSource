@@ -25,9 +25,11 @@ var
 {$ifndef tp}
  toint64 : int64;
 {$endif}
+ b1  : boolean;
  bb1 : bytebool;
  wb1 : wordbool;
  lb1 : longbool;
+ b2  : boolean;
  bb2 : bytebool;
  wb2 : wordbool;
  lb2 : longbool;
@@ -35,40 +37,70 @@ begin
  { left : LOC_REGISTER  }
  { from : LOC_REFERENCE/LOC_REGISTER }
  WriteLn('Testing LOC_REFERENCE...');
- bb1 := TRUE;
- tobyte := byte(bb1);
+ b1 := TRUE;
+ tobyte := byte(b1);
  WriteLn('boolean->byte : value should be 1...',tobyte);
  if tobyte <> 1 then 
    halt(1);
+ b1 := FALSE;
+ tobyte := byte(b1);
+ WriteLn('boolean->byte : value should be 0...',tobyte);
+ if tobyte <> 0 then 
+   halt(1);
+ b1 := TRUE;
+ toword := word(b1);
+ WriteLn('boolean->word : value should be 1...',toword);
+ if toword <> 1 then 
+   halt(1);
+ b1 := FALSE;
+ toword := word(b1);
+ WriteLn('boolean->word : value should be 0...',toword);
+ if toword <> 0 then 
+   halt(1);
+ b1 := TRUE;
+ tolong := longint(b1);
+ WriteLn('boolean->longint : value should be 1...',tolong);
+ if tolong <> 1 then 
+   halt(1);
+ b1 := FALSE;
+ tolong := longint(b1);
+ WriteLn('boolean->longint : value should be 0...',tolong);
+ if tolong <> 0 then 
+   halt(1);
+ bb1 := TRUE;
+ tobyte := byte(bb1);
+ WriteLn('bytebool->byte : value should be 255...',tobyte);
+ if tobyte <> 255 then 
+   halt(1);
  bb1 := FALSE;
  tobyte := byte(bb1);
- WriteLn('boolean->byte : value should be 0...',tobyte);
+ WriteLn('bytebool->byte : value should be 0...',tobyte);
  if tobyte <> 0 then 
    halt(1);
  bb1 := TRUE;
  toword := word(bb1);
- WriteLn('boolean->word : value should be 1...',toword);
- if toword <> 1 then 
+ WriteLn('bytebool->word : value should be 65535...',toword);
+ if toword <> 65535 then 
    halt(1);
  bb1 := FALSE;
  toword := word(bb1);
- WriteLn('boolean->word : value should be 0...',toword);
+ WriteLn('bytebool->word : value should be 0...',toword);
  if toword <> 0 then 
    halt(1);
  bb1 := TRUE;
  tolong := longint(bb1);
- WriteLn('boolean->longint : value should be 1...',tolong);
- if tolong <> 1 then 
+ WriteLn('bytebool->longint : value should be -1...',tolong);
+ if tolong <> -1 then 
    halt(1);
  bb1 := FALSE;
  tolong := longint(bb1);
- WriteLn('boolean->longint : value should be 0...',tolong);
+ WriteLn('bytebool->longint : value should be 0...',tolong);
  if tolong <> 0 then 
    halt(1);
  wb1 := TRUE;
  tobyte := byte(wb1);
- WriteLn('wordbool->byte : value should be 1...',tobyte);
- if tobyte <> 1 then 
+ WriteLn('wordbool->byte : value should be 255...',tobyte);
+ if tobyte <> 255 then 
    halt(1);
  wb1 := FALSE;
  tobyte := byte(wb1);
@@ -77,8 +109,8 @@ begin
    halt(1);
  wb1 := TRUE;
  toword := word(wb1);
- WriteLn('wordbool->word : value should be 1...',toword);
- if toword <> 1 then 
+ WriteLn('wordbool->word : value should be 65535...',toword);
+ if toword <> 65535 then 
    halt(1);
  wb1 := FALSE;
  toword := word(wb1);
@@ -87,8 +119,8 @@ begin
    halt(1);
  wb1 := TRUE;
  tolong := longint(wb1);
- WriteLn('wordbool->longint : value should be 1...',tolong);
- if tolong <> 1 then 
+ WriteLn('wordbool->longint : value should be -1...',tolong);
+ if tolong <> -1 then 
    halt(1);
  wb1 := FALSE;
  tolong := longint(wb1);
@@ -96,20 +128,30 @@ begin
  if tolong <> 0 then 
    halt(1);
 {$ifndef tp}
- bb1 := TRUE;
- toint64 :=int64(bb1);
+ b1 := TRUE;
+ toint64 :=int64(b1);
  WriteLn('boolean->int64 : value should be 1...',toint64);
  if toint64 <> 1 then 
    halt(1);
+ b1 := FALSE;
+ toint64 :=int64(b1);
+ WriteLn('boolean->int64 : value should be 0...',toint64);
+ if toint64 <> 0 then 
+   halt(1);
+ bb1 := TRUE;
+ toint64 :=int64(bb1);
+ WriteLn('bytebool->int64 : value should be -1...',toint64);
+ if toint64 <> -1 then 
+   halt(1);
  bb1 := FALSE;
  toint64 :=int64(bb1);
- WriteLn('boolean->int64 : value should be 0...',toint64);
+ WriteLn('bytebool->int64 : value should be 0...',toint64);
  if toint64 <> 0 then 
    halt(1);
  wb1 := TRUE;
  toint64 :=int64(wb1);
- WriteLn('wordbool->int64 : value should be 1...',toint64);
- if toint64 <> 1 then 
+ WriteLn('wordbool->int64 : value should be -1...',toint64);
+ if toint64 <> -1 then 
    halt(1);
  wb1 := FALSE;
  toint64 :=int64(wb1);
@@ -119,8 +161,8 @@ begin
 {$endif}
  lb1 := TRUE;
  tobyte := byte(lb1);
- WriteLn('longbool->byte : value should be 1...',tobyte);
- if tobyte <> 1 then 
+ WriteLn('longbool->byte : value should be 255...',tobyte);
+ if tobyte <> 255 then 
    halt(1);
  lb1 := FALSE;
  tobyte := byte(lb1);
@@ -129,8 +171,8 @@ begin
    halt(1);
  lb1 := TRUE;
  toword := word(lb1);
- WriteLn('longbool->word : value should be 1...',toword);
- if toword <> 1 then 
+ WriteLn('longbool->word : value should be 65535...',toword);
+ if toword <> 65535 then 
    halt(1);
  lb1 := FALSE;
  toword := word(lb1);
@@ -139,8 +181,8 @@ begin
    halt(1);
  lb1 := TRUE;
  tolong := longint(lb1);
- WriteLn('longbool->longint : value should be 1...',tolong);
- if tolong <> 1 then 
+ WriteLn('longbool->longint : value should be -1...',tolong);
+ if tolong <> -1 then 
    halt(1);
  lb1 := FALSE;
  tolong := longint(lb1);
@@ -150,33 +192,64 @@ begin
  { left : LOC_REGISTER }
  { from : LOC_REFERENCE }
  wb1 := TRUE;
+ b2 := wb1;
+ WriteLn('wordbool->boolean : value should be TRUE...',b2);
+ if not b2 then 
+   halt(1);
+ wb1 := FALSE;
+ b2 := wb1;
+ WriteLn('wordbool->boolean : value should be FALSE...',b2);
+ if b2 then 
+   halt(1);
+ lb1 := TRUE;
+ b2 := lb1;
+ WriteLn('longbool->boolean : value should be TRUE...',b2);
+ if not b2 then 
+   halt(1);
+ lb1 := FALSE;
+ b2 := lb1;
+ WriteLn('longbool->boolean : value should be FALSE...',b2);
+ if b2 then 
+   halt(1);
+
+ wb1 := TRUE;
  bb2 := wb1;
- WriteLn('wordbool->boolean : value should be TRUE...',bb2);
+ WriteLn('wordbool->bytebool : value should be TRUE...',bb2);
  if not bb2 then 
    halt(1);
  wb1 := FALSE;
  bb2 := wb1;
- WriteLn('wordbool->boolean : value should be FALSE...',bb2);
+ WriteLn('wordbool->bytebool : value should be FALSE...',bb2);
  if bb2 then 
    halt(1);
  lb1 := TRUE;
  bb2 := lb1;
- WriteLn('longbool->boolean : value should be TRUE...',bb2);
+ WriteLn('longbool->bytebool : value should be TRUE...',bb2);
  if not bb2 then 
    halt(1);
  lb1 := FALSE;
  bb2 := lb1;
- WriteLn('longbool->boolean : value should be FALSE...',bb2);
+ WriteLn('longbool->bytebool : value should be FALSE...',bb2);
  if bb2 then 
+   halt(1);
+ b1 := TRUE;
+ lb2 := b1;
+ WriteLn('boolean->longbool : value should be TRUE...',lb2);
+ if not lb2 then 
+   halt(1);
+ b1 := FALSE;
+ lb2 := b1;
+ WriteLn('boolean->longbool : value should be FALSE...',lb2);
+ if lb2 then 
    halt(1);
  bb1 := TRUE;
  lb2 := bb1;
- WriteLn('boolean->longbool : value should be TRUE...',lb2);
+ WriteLn('bytebool->longbool : value should be TRUE...',lb2);
  if not lb2 then 
    halt(1);
  bb1 := FALSE;
  lb2 := bb1;
- WriteLn('boolean->longbool : value should be FALSE...',lb2);
+ WriteLn('bytebool->longbool : value should be FALSE...',lb2);
  if lb2 then 
    halt(1);
  { left : LOC_REGISTER }
@@ -237,61 +310,61 @@ begin
  WriteLn('Testing LOC_FLAGS...');
  wb1 := TRUE;
  bb1 := FALSE;
- bb1 := (wb1 > bb1);
+ bb1 := (wb1 <> bb1);
  WriteLn('Value should be TRUE...',bb1);
  if not bb1 then 
    halt(1);
  wb1 := FALSE;
  bb1 := FALSE;
- bb1 := (wb1 > bb1);
+ bb1 := (wb1 <> bb1);
  WriteLn('Value should be FALSE...',bb1);
  if bb1 then 
    halt(1);
  lb1 := TRUE;
  bb1 := FALSE;
- bb1 := (bb1 > lb1);
+ bb1 := (bb1 = lb1);
  WriteLn('Value should be FALSE...',bb1);
  if bb1 then 
    halt(1);
  lb1 := FALSE;
  bb1 := TRUE;
- bb1 := (bb1 > lb1);
+ bb1 := (bb1 <> lb1);
  WriteLn('Value should be TRUE...',bb1);
  if not bb1 then 
    halt(1);
  lb1 := TRUE;
  bb1 := FALSE;
- wb1 := (bb1 > lb1);
+ wb1 := (bb1 = lb1);
  WriteLn('Value should be FALSE...',wb1);
  if wb1 then 
    halt(1);
- lb1 := FALSE;
+ lb1 := TRUE;
  bb1 := TRUE;
- wb1 := (bb1 > lb1);
+ wb1 := (bb1 = lb1);
  WriteLn('Value should be TRUE...',wb1);
  if not wb1 then 
    halt(1);
  lb1 := TRUE;
  bb1 := FALSE;
- lb1 := (bb1 > lb1);
+ lb1 := (bb1 = lb1);
  WriteLn('Value should be FALSE...',lb1);
  if lb1 then 
    halt(1);
  lb1 := FALSE;
- bb1 := TRUE;
- lb1 := (bb1 > lb1);
+ bb1 := FALSE;
+ lb1 := (bb1 = lb1);
  WriteLn('Value should be TRUE...',lb1);
  if not lb1 then 
    halt(1);
  bb1 := TRUE;
  bb2 := FALSE;
- lb1 := (bb1 > bb2);
+ lb1 := (bb1 <> bb2);
  WriteLn('Value should be TRUE...',lb1);
  if not lb1 then 
    halt(1);
  bb1 := FALSE;
  bb2 := TRUE;
- lb1 := (bb1 > bb2);
+ lb1 := (bb1 = bb2);
  WriteLn('Value should be FALSE...',lb1);
  if lb1 then 
    halt(1);

@@ -601,8 +601,7 @@ unit cgppc;
       current_asmdata.getjumplabel(hl);
       if not ((def.typ=pointerdef) or
              ((def.typ=orddef) and
-              (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                        bool8bit,bool16bit,bool32bit,bool64bit]))) then
+              (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,pasbool]))) then
         begin
           if (current_settings.optimizecputype >= cpu_ppc970) or
              (current_settings.cputype >= cpu_ppc970) then

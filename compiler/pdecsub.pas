@@ -1103,7 +1103,7 @@ implementation
                      single_type(pd.returndef,false);
                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
                         ((pd.returndef.typ<>orddef) or
-                         (torddef(pd.returndef).ordtype<>bool8bit)) then
+                         (torddef(pd.returndef).ordtype<>pasbool)) then
                         Message(parser_e_comparative_operator_return_boolean);
                      if (optoken=_ASSIGNMENT) and
                         equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) then

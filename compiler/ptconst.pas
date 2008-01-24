@@ -184,7 +184,11 @@ implementation
 
         begin
            n:=comp_expr(true);
+           { for C-style booleans, true=-1 and false=0) }
+           if is_cbool(def) then
+             inserttypeconv(n,def);
            case def.ordtype of
+              pasbool,
               bool8bit :
                 begin
                    if is_constboolnode(n) then

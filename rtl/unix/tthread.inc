@@ -247,7 +247,7 @@ begin
   if FThreadID = GetCurrentThreadID then
     begin
       if not FSuspended and
-         (InterLockedExchange(longint(FSuspended),ord(true)) = ord(false)) then
+         (InterLockedExchange(longint(FSuspended),longint(longbool(true))) = longint(longbool(false))) then
         CurrentTM.SemaphoreWait(FSem)
     end
   else
@@ -264,7 +264,9 @@ begin
   if (not FSuspendedExternal) then
     begin
       if FSuspended and
-         (InterLockedExchange(longint(FSuspended),ord(false)) = ord(true)) then
+         { don't compare with ord(true) or ord(longbool(true)), }
+         { becaue a longbool's "true" value is anyting <> false }
+         (InterLockedExchange(longint(FSuspended),longint(false)) <> longint(longbool(false))) then
         begin
           WRITE_DEBUG('resuming ',ptruint(self));
           CurrentTM.SemaphorePost(FSem);

@@ -247,7 +247,7 @@ implementation
              }
              if  (
                    (left.resultdef.typ = orddef) and not
-                   (torddef(left.resultdef).ordtype in [s8bit,u8bit,uchar,bool8bit])
+                   (torddef(left.resultdef).ordtype in [s8bit,u8bit,uchar,pasbool,bool8bit])
                  )
                 or
                  (
