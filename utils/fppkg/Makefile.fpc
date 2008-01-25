@@ -35,7 +35,7 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl-base fcl-xml fcl-process paszlib libcurl
+packages=fcl-base fcl-xml fcl-process fcl-net paszlib libcurl
 tools=data2inc
 
 [rules]
