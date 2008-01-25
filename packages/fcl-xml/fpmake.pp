@@ -20,7 +20,6 @@ begin
 
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('fcl-xml');
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
