@@ -4196,8 +4196,7 @@ begin
   Log(vlDebug, SDbgBuildEngineArchiving);
   For I:=0 to Packages.Count-1 do
     begin
-    P:=Packages.PackageItems[i];
-    If PackageOK(P) then
+      P:=Packages.PackageItems[i];
       Archive(P);
     end;
   If Assigned(AfterArchive) then
