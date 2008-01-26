@@ -4,12 +4,12 @@
 
 [target]
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process 
-dirs_freebsd=fcl-web fcl-async ibase mysql
-dirs_darwin=fcl-web fcl-async ibase mysql
-dirs_solaris=fcl-web fcl-async ibase mysql
-dirs_netbsd=fcl-web fcl-async ibase mysql
-dirs_openbsd=fcl-web fcl-async ibase mysql
-dirs_linux=fcl-web fcl-async ibase mysql 
+dirs_freebsd=fcl-web fcl-async ibase mysql ncurses
+dirs_darwin=fcl-web fcl-async ibase mysql ncurses
+dirs_solaris=fcl-web fcl-async ibase mysql ncurses
+dirs_netbsd=fcl-web fcl-async ibase mysql ncurses
+dirs_openbsd=fcl-web fcl-async ibase mysql ncurses
+dirs_linux=fcl-web fcl-async ibase mysql ncurses
 dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql
 dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql
 dirs_wince=fcl-web ibase mysql

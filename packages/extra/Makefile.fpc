@@ -6,7 +6,7 @@ dirs=chm
 dirs_linux=unzip zlib fftw \
            x11 opengl gtk gtk2 syslog \
            forms svgalib ggi libpng libgd \
-           utmp bfd gdbm ncurses tcl cdrom \
+           utmp bfd gdbm  tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
            ldap openal mad oggvorbis a52 \
            modplug dts openssl pcap libcurl cairo aspell
@@ -20,17 +20,17 @@ dirs_m68k_linux=graph
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
-            utmp bfd gdbm ncurses fpgtk \
+            utmp bfd gdbm  fpgtk \
             tcl imlib gnome1 openssl pcap libcurl cairo aspell
 dirs_freebsd=unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd gdbm ncurses fpgtk \
+             utmp bfd gdbm  fpgtk \
              tcl imlib gnome1 openssl pcap libcurl cairo sdl graph aspell
 dirs_openbsd=unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd gdbm ncurses fpgtk \
+             utmp bfd gdbm  fpgtk \
              tcl imlib gnome1 openssl pcap libcurl cairo aspell
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
 dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk fftw \
@@ -59,14 +59,14 @@ dirs_netwlibc=unzip zlib
 dirs_darwin= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms libpng libgd \
-             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
+             utmp bfd gdbm  fpgtk tcl imlib gnome1 \
              openssl libcurl cairo aspell
 dirs_powerpc_darwin=univint sdl graph
 dirs_i386_darwin=univint sdl graph
 dirs_solaris= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
+             utmp bfd gdbm  fpgtk tcl imlib gnome1 \
              openssl pcap libcurl cairo
 dirs_beos=graph
 
