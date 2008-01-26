@@ -3606,10 +3606,8 @@ packages/extra/x11/xutil.pp svneol=native#text/plain
 packages/extra/x11/xv.pp svneol=native#text/plain
 packages/extra/x11/xvlib.pp svneol=native#text/plain
 packages/extra/zlib/Makefile svneol=native#text/plain
-packages/extra/zlib/Makefile.fpc svneol=native#text/plain
 packages/extra/zlib/fpmake.inc svneol=native#text/plain
 packages/extra/zlib/fpmake.pp svneol=native#text/plain
-packages/extra/zlib/zlib.pp svneol=native#text/plain
 packages/fcl-async/Makefile svneol=native#text/plain
 packages/fcl-async/Makefile.fpc svneol=native#text/plain
 packages/fcl-async/fpmake.pp svneol=native#text/plain
@@ -4684,6 +4682,9 @@ packages/winunits-jedi/src/jwawsrm.pas svneol=native#text/plain
 packages/winunits-jedi/src/jwawsvns.pas svneol=native#text/plain
 packages/winunits-jedi/src/jwawtsapi32.pas svneol=native#text/plain
 packages/winunits-jedi/src/jwazmouse.pas svneol=native#text/plain
+packages/zlib/Makefile.fpc svneol=native#text/plain
+packages/zlib/fpmake.pp svneol=native#text/plain
+packages/zlib/src/zlib.pp svneol=native#text/plain
 rtl/COPYING -text
 rtl/COPYING.FPC -text
 rtl/Makefile svneol=native#text/plain
