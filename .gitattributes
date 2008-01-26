@@ -3532,6 +3532,7 @@ packages/gtk2/examples/scribble_simple/Makefile svneol=native#text/plain
 packages/gtk2/examples/scribble_simple/Makefile.fpc svneol=native#text/plain
 packages/gtk2/examples/scribble_simple/scribble_simple.pas svneol=native#text/plain
 packages/gtk2/fpmake.pp svneol=native#text/plain
+packages/gtk2/gtk2forlazarus.lpk svneol=native#text/plain
 packages/gtk2/src/atk/atk.inc svneol=native#text/plain
 packages/gtk2/src/atk/atk.pas svneol=native#text/plain
 packages/gtk2/src/atk/atkaction.inc svneol=native#text/plain
