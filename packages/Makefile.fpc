@@ -6,17 +6,17 @@
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 dirs_linux_i386=libc  unixutil 
 dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo
 dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo
 dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo
 dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo
 dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo
 dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl
+               gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo
 dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl
 dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
@@ -142,3 +142,14 @@ opengl_smart: x11_smart
 opengl_release: x11_release
 opengl_shared: x11_shared
 
+gtk1_all: x11_all
+gtk1_debug: x11_debug
+gtk1_smart: x11_smart
+gtk1_release: x11_release
+gtk1_shared: x11_shared   
+
+airo_all: x11_all fcl-image_all
+cairo_debug: x11_debug fcl-image_debug
+cairo_smart: x11_smart fcl-image_smart
+cairo_release: x11_release fcl-image_release
+cairo_shared: x11_shared fcl-image_shared

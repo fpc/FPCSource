@@ -4,12 +4,12 @@
 [target]
 dirs=chm
 dirs_linux= fftw \
-             gtk gtk2  \
+            gtk2  \
            forms svgalib ggi  libgd \
            utmp bfd    cdrom \
            imlib gnome1 fpgtk newt  \
           openal  oggvorbis a52 \
-            openssl pcap  cairo aspell
+            openssl pcap   aspell
 dirs_i386_linux= lua sdl graph
 dirs_x86_64_linux=sdl graph
 dirs_powerpc_linux=sdl graph
@@ -18,48 +18,48 @@ dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
 dirs_netbsd= \
-              gtk  \
+              \
             forms svgalib ggi  libgd \
             utmp bfd   fpgtk \
-             imlib gnome1 openssl pcap  cairo aspell
+             imlib gnome1 openssl pcap  aspell
 dirs_freebsd= fftw \
-               gtk gtk2  \
+              gtk2  \
              forms svgalib ggi  libgd \
              utmp bfd   fpgtk \
-              imlib gnome1 openssl pcap  cairo sdl graph aspell
+              imlib gnome1 openssl pcap   sdl graph aspell
 dirs_openbsd= \
-               gtk  \
+               \
              forms svgalib ggi  libgd \
              utmp bfd   fpgtk \
-              imlib gnome1 openssl pcap  cairo aspell
+              imlib gnome1 openssl pcap   aspell
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
-dirs_win32=  gtk gtk2  cdrom fpgtk fftw \
+dirs_win32= gtk2  cdrom fpgtk fftw \
               openal oggvorbis a52  openssl pcap sdl lua graph
-dirs_win64=  gtk gtk2  cdrom fpgtk fftw openssl sdl
+dirs_win64= gtk2  cdrom fpgtk fftw openssl sdl
 dirs_wince=  fftw
 dirs_os2=os2units \
          rexx \
-          gtk \
+         \
          imlib fpgtk
 dirs_emx=os2units \
          rexx \
-          gtk \
+         \
          imlib fpgtk
 dirs_go32v2= graph
 dirs_amiga=amunits
 dirs_palmos=palmunits
 dirs_darwin=  fftw \
-               gtk gtk2  \
+              gtk2  \
              forms  libgd \
              utmp bfd   fpgtk  imlib gnome1 \
-             openssl  cairo aspell
+             openssl   aspell
 dirs_powerpc_darwin=univint sdl graph
 dirs_i386_darwin=univint sdl graph
 dirs_solaris= fftw \
-               gtk gtk2  \
+              gtk2  \
              forms svgalib ggi  libgd \
              utmp bfd   fpgtk  imlib gnome1 \
-             openssl pcap  cairo
+             openssl pcap  
 dirs_beos=graph
 
 [install]
