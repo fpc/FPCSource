@@ -1734,7 +1734,6 @@ packages/extra/lua/fpmake.pp svneol=native#text/plain
 packages/extra/lua/lauxlib.pas svneol=native#text/plain
 packages/extra/lua/lua.pas svneol=native#text/plain
 packages/extra/lua/lualib.pas svneol=native#text/plain
-packages/extra/matroska/Makefile svneol=native#text/plain
 packages/extra/newt/Makefile svneol=native#text/plain
 packages/extra/newt/Makefile.fpc svneol=native#text/plain
 packages/extra/newt/README -text
