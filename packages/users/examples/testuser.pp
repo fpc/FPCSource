@@ -1,5 +1,5 @@
 program testuser;
-
+{$mode delphi}
 uses users,classes;
 
 var

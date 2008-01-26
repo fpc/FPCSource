@@ -1,8 +1,8 @@
 unit users;
 
 Interface
-
-uses pwd,shadow,grp,Linux,SysUtils,Classes;
+{$mode delphi}
+uses baseunix,pwd,shadow,grp,SysUtils,Classes;
 
 Type
   EUserLookupError = Class(Exception);
@@ -306,7 +306,7 @@ Var
 begin
   P:=getspnam(UserName);
   If P=Nil then
-    If (GetUID<>0) and (GetEUID<>0) then
+    If (fpGetUID<>0) and (fpGetEUID<>0) then
       Raise EShadowLookupError.Create(EShadowNotPermitted)
     else
       Raise EShadowLookupError.CreateFmt(ENoShadowEntry,[UserName])

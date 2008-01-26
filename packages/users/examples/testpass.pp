@@ -3,7 +3,7 @@ Program TestPass;
 {Test the user's password}
 {$DEFINE DEBUG}
 
-uses shadow, pwd, strings, crypt_h, cmem;
+uses shadow, pwd, strings, {crypt_h,} cmem;
 
 Var
   strUserName, Password : String;
