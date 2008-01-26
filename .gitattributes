@@ -888,10 +888,6 @@ packages/base/mysql/ver323/mysqls.pp svneol=native#text/plain
 packages/base/mysql/ver40/mysql.pp svneol=native#text/plain
 packages/base/mysql/ver40/mysql_com.pp svneol=native#text/plain
 packages/base/mysql/ver40/mysql_version.pp svneol=native#text/plain
-packages/base/oracle/Makefile svneol=native#text/plain
-packages/base/oracle/example/Makefile svneol=native#text/plain
-packages/base/oracle/fpmake.inc svneol=native#text/plain
-packages/base/oracle/fpmake.pp svneol=native#text/plain
 packages/base/postgres/Makefile svneol=native#text/plain
 packages/base/postgres/Makefile.fpc svneol=native#text/plain
 packages/base/postgres/README -text
