@@ -1132,13 +1132,6 @@ packages/fpgtk/src/def/*.ppu
 packages/fpgtk/src/def/*.s
 packages/fpgtk/src/def/fpcmade.*
 packages/fpgtk/src/def/units
-packages/fpgtk/src/demo/*.bak
-packages/fpgtk/src/demo/*.exe
-packages/fpgtk/src/demo/*.o
-packages/fpgtk/src/demo/*.ppu
-packages/fpgtk/src/demo/*.s
-packages/fpgtk/src/demo/fpcmade.*
-packages/fpgtk/src/demo/units
 packages/fpgtk/src/editor/*.bak
 packages/fpgtk/src/editor/*.exe
 packages/fpgtk/src/editor/*.o
