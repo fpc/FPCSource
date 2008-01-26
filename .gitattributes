@@ -3688,6 +3688,7 @@ packages/fcl-net/examples/testnet.pp svneol=native#text/plain
 packages/fcl-net/examples/testproto.pp svneol=native#text/plain
 packages/fcl-net/examples/testsvc.pp svneol=native#text/plain
 packages/fcl-net/examples/testuri.pp svneol=native#text/plain
+packages/fcl-net/fpmake.pp svneol=native#text/plain
 packages/fcl-net/src/fpsock.pp svneol=native#text/plain
 packages/fcl-net/src/httpbase.pp svneol=native#text/plain
 packages/fcl-net/src/httpclient.pp svneol=native#text/plain
