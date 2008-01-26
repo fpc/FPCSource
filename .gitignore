@@ -729,14 +729,6 @@ packages/extra/graph/inc/*.s
 packages/extra/graph/inc/fpcmade.*
 packages/extra/graph/inc/units
 packages/extra/graph/units
-packages/extra/hermes/*.bak
-packages/extra/hermes/*.exe
-packages/extra/hermes/*.o
-packages/extra/hermes/*.ppu
-packages/extra/hermes/*.s
-packages/extra/hermes/.gdbinit
-packages/extra/hermes/fpcmade.*
-packages/extra/hermes/units
 packages/extra/libgd/*.bak
 packages/extra/libgd/*.exe
 packages/extra/libgd/*.o
