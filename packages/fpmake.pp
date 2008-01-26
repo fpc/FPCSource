@@ -12,6 +12,12 @@ begin
   With Installer do
     begin
 
+(*
+The include lines below are generated with the following command:
+
+/bin/ls -1 */fpmake.pp | sed 's+\(.*\)+{$include \1}+'
+*)
+
 {$include dbus/fpmake.pp}
 {$include fcl-async/fpmake.pp}
 {$include fcl-base/fpmake.pp}
