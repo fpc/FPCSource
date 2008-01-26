@@ -241,163 +241,163 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  winunits-base winunits-jedi fcl-web
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web ibase mysql
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  winunits-base winunits-jedi fcl-web
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  winunits-base winunits-jedi fcl-web ibase mysql
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web ibase mysql
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql  fcl-web fcl-async
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process  fcl-web fcl-async ibase mysql
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process mysql
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages
@@ -1496,9 +1496,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_BASE=1
@@ -1518,7 +1519,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_BASE=1
@@ -1538,10 +1538,11 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_WINUNITS-BASE=1
 TARGET_DIRS_WINUNITS-JEDI=1
 TARGET_DIRS_FCL-WEB=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_BASE=1
@@ -1561,7 +1562,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_BASE=1
@@ -1581,9 +1581,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_BASE=1
@@ -1603,7 +1604,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_BASE=1
@@ -1623,9 +1623,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_BASE=1
@@ -1645,9 +1646,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 TARGET_DIRS_BASE=1
@@ -1667,7 +1669,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_BASE=1
@@ -1687,7 +1688,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_BASE=1
@@ -1707,9 +1707,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_BASE=1
@@ -1729,7 +1730,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_BASE=1
@@ -1749,9 +1749,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_BASE=1
@@ -1771,7 +1772,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_BASE=1
@@ -1791,7 +1791,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_BASE=1
@@ -1811,7 +1810,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_BASE=1
@@ -1831,8 +1829,9 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_BASE=1
@@ -1852,7 +1851,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 TARGET_DIRS_BASE=1
@@ -1872,7 +1870,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_BASE=1
@@ -1892,9 +1889,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_BASE=1
@@ -1914,9 +1912,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_BASE=1
@@ -1936,9 +1935,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_BASE=1
@@ -1958,7 +1958,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_BASE=1
@@ -1978,7 +1977,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_BASE=1
@@ -1998,9 +1996,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_BASE=1
@@ -2020,7 +2019,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 TARGET_DIRS_BASE=1
@@ -2040,7 +2038,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_BASE=1
@@ -2060,9 +2057,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_BASE=1
@@ -2082,9 +2080,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_BASE=1
@@ -2104,7 +2103,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_BASE=1
@@ -2124,7 +2122,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_BASE=1
@@ -2144,9 +2141,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_BASE=1
@@ -2166,7 +2164,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 TARGET_DIRS_BASE=1
@@ -2186,7 +2183,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_BASE=1
@@ -2206,9 +2202,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_BASE=1
@@ -2228,9 +2225,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_BASE=1
@@ -2250,9 +2248,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 TARGET_DIRS_BASE=1
@@ -2272,7 +2271,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_BASE=1
@@ -2292,9 +2290,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_BASE=1
@@ -2314,9 +2313,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_BASE=1
@@ -2336,9 +2336,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_BASE=1
@@ -2358,10 +2359,11 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_WINUNITS-BASE=1
 TARGET_DIRS_WINUNITS-JEDI=1
 TARGET_DIRS_FCL-WEB=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_BASE=1
@@ -2381,7 +2383,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_BASE=1
@@ -2401,9 +2402,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_BASE=1
@@ -2423,7 +2425,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 TARGET_DIRS_BASE=1
@@ -2443,8 +2444,9 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_BASE=1
@@ -2464,7 +2466,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 TARGET_DIRS_BASE=1
@@ -2484,7 +2485,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 TARGET_DIRS_BASE=1
@@ -2504,7 +2504,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 TARGET_DIRS_BASE=1
@@ -2524,7 +2523,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_BASE=1
@@ -2544,9 +2542,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_BASE=1
@@ -2566,9 +2565,10 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-ASYNC=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 TARGET_DIRS_BASE=1
@@ -2588,7 +2588,6 @@ TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_FCL-JSON=1
 TARGET_DIRS_EXTRA=1
 TARGET_DIRS_FCL-PROCESS=1
-TARGET_DIRS_MYSQL=1
 endif
 ifdef TARGET_DIRS_BASE
 base_all:
@@ -3355,51 +3354,6 @@ fcl-process:
 	$(MAKE) -C fcl-process all
 .PHONY: fcl-process_all fcl-process_debug fcl-process_smart fcl-process_release fcl-process_units fcl-process_examples fcl-process_shared fcl-process_install fcl-process_sourceinstall fcl-process_exampleinstall fcl-process_distinstall fcl-process_zipinstall fcl-process_zipsourceinstall fcl-process_zipexampleinstall fcl-process_zipdistinstall fcl-process_clean fcl-process_distclean fcl-process_cleanall fcl-process_info fcl-process_makefiles fcl-process
 endif
-ifdef TARGET_DIRS_MYSQL
-mysql_all:
-	$(MAKE) -C mysql all
-mysql_debug:
-	$(MAKE) -C mysql debug
-mysql_smart:
-	$(MAKE) -C mysql smart
-mysql_release:
-	$(MAKE) -C mysql release
-mysql_units:
-	$(MAKE) -C mysql units
-mysql_examples:
-	$(MAKE) -C mysql examples
-mysql_shared:
-	$(MAKE) -C mysql shared
-mysql_install:
-	$(MAKE) -C mysql install
-mysql_sourceinstall:
-	$(MAKE) -C mysql sourceinstall
-mysql_exampleinstall:
-	$(MAKE) -C mysql exampleinstall
-mysql_distinstall:
-	$(MAKE) -C mysql distinstall
-mysql_zipinstall:
-	$(MAKE) -C mysql zipinstall
-mysql_zipsourceinstall:
-	$(MAKE) -C mysql zipsourceinstall
-mysql_zipexampleinstall:
-	$(MAKE) -C mysql zipexampleinstall
-mysql_zipdistinstall:
-	$(MAKE) -C mysql zipdistinstall
-mysql_clean:
-	$(MAKE) -C mysql clean
-mysql_distclean:
-	$(MAKE) -C mysql distclean
-mysql_cleanall:
-	$(MAKE) -C mysql cleanall
-mysql_info:
-	$(MAKE) -C mysql info
-mysql_makefiles:
-	$(MAKE) -C mysql makefiles
-mysql:
-	$(MAKE) -C mysql all
-.PHONY: mysql_all mysql_debug mysql_smart mysql_release mysql_units mysql_examples mysql_shared mysql_install mysql_sourceinstall mysql_exampleinstall mysql_distinstall mysql_zipinstall mysql_zipsourceinstall mysql_zipexampleinstall mysql_zipdistinstall mysql_clean mysql_distclean mysql_cleanall mysql_info mysql_makefiles mysql
-endif
 ifdef TARGET_DIRS_FCL-WEB
 fcl-web_all:
 	$(MAKE) -C fcl-web all
@@ -3489,6 +3443,96 @@ fcl-async_makefiles:
 fcl-async:
 	$(MAKE) -C fcl-async all
 .PHONY: fcl-async_all fcl-async_debug fcl-async_smart fcl-async_release fcl-async_units fcl-async_examples fcl-async_shared fcl-async_install fcl-async_sourceinstall fcl-async_exampleinstall fcl-async_distinstall fcl-async_zipinstall fcl-async_zipsourceinstall fcl-async_zipexampleinstall fcl-async_zipdistinstall fcl-async_clean fcl-async_distclean fcl-async_cleanall fcl-async_info fcl-async_makefiles fcl-async
+endif
+ifdef TARGET_DIRS_IBASE
+ibase_all:
+	$(MAKE) -C ibase all
+ibase_debug:
+	$(MAKE) -C ibase debug
+ibase_smart:
+	$(MAKE) -C ibase smart
+ibase_release:
+	$(MAKE) -C ibase release
+ibase_units:
+	$(MAKE) -C ibase units
+ibase_examples:
+	$(MAKE) -C ibase examples
+ibase_shared:
+	$(MAKE) -C ibase shared
+ibase_install:
+	$(MAKE) -C ibase install
+ibase_sourceinstall:
+	$(MAKE) -C ibase sourceinstall
+ibase_exampleinstall:
+	$(MAKE) -C ibase exampleinstall
+ibase_distinstall:
+	$(MAKE) -C ibase distinstall
+ibase_zipinstall:
+	$(MAKE) -C ibase zipinstall
+ibase_zipsourceinstall:
+	$(MAKE) -C ibase zipsourceinstall
+ibase_zipexampleinstall:
+	$(MAKE) -C ibase zipexampleinstall
+ibase_zipdistinstall:
+	$(MAKE) -C ibase zipdistinstall
+ibase_clean:
+	$(MAKE) -C ibase clean
+ibase_distclean:
+	$(MAKE) -C ibase distclean
+ibase_cleanall:
+	$(MAKE) -C ibase cleanall
+ibase_info:
+	$(MAKE) -C ibase info
+ibase_makefiles:
+	$(MAKE) -C ibase makefiles
+ibase:
+	$(MAKE) -C ibase all
+.PHONY: ibase_all ibase_debug ibase_smart ibase_release ibase_units ibase_examples ibase_shared ibase_install ibase_sourceinstall ibase_exampleinstall ibase_distinstall ibase_zipinstall ibase_zipsourceinstall ibase_zipexampleinstall ibase_zipdistinstall ibase_clean ibase_distclean ibase_cleanall ibase_info ibase_makefiles ibase
+endif
+ifdef TARGET_DIRS_MYSQL
+mysql_all:
+	$(MAKE) -C mysql all
+mysql_debug:
+	$(MAKE) -C mysql debug
+mysql_smart:
+	$(MAKE) -C mysql smart
+mysql_release:
+	$(MAKE) -C mysql release
+mysql_units:
+	$(MAKE) -C mysql units
+mysql_examples:
+	$(MAKE) -C mysql examples
+mysql_shared:
+	$(MAKE) -C mysql shared
+mysql_install:
+	$(MAKE) -C mysql install
+mysql_sourceinstall:
+	$(MAKE) -C mysql sourceinstall
+mysql_exampleinstall:
+	$(MAKE) -C mysql exampleinstall
+mysql_distinstall:
+	$(MAKE) -C mysql distinstall
+mysql_zipinstall:
+	$(MAKE) -C mysql zipinstall
+mysql_zipsourceinstall:
+	$(MAKE) -C mysql zipsourceinstall
+mysql_zipexampleinstall:
+	$(MAKE) -C mysql zipexampleinstall
+mysql_zipdistinstall:
+	$(MAKE) -C mysql zipdistinstall
+mysql_clean:
+	$(MAKE) -C mysql clean
+mysql_distclean:
+	$(MAKE) -C mysql distclean
+mysql_cleanall:
+	$(MAKE) -C mysql cleanall
+mysql_info:
+	$(MAKE) -C mysql info
+mysql_makefiles:
+	$(MAKE) -C mysql makefiles
+mysql:
+	$(MAKE) -C mysql all
+.PHONY: mysql_all mysql_debug mysql_smart mysql_release mysql_units mysql_examples mysql_shared mysql_install mysql_sourceinstall mysql_exampleinstall mysql_distinstall mysql_zipinstall mysql_zipsourceinstall mysql_zipexampleinstall mysql_zipdistinstall mysql_clean mysql_distclean mysql_cleanall mysql_info mysql_makefiles mysql
 endif
 ifdef TARGET_DIRS_WINUNITS-BASE
 winunits-base_all:
@@ -3670,11 +3714,11 @@ fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
 fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
 fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
 fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
-fcl-db_all: fcl-base_all mysql_all
-fcl-db_debug: fcl-base_debug mysql_debug
-fcl-db_smart: fcl-base_smart mysql_smart
-fcl-db_release: fcl-base_release mysql_release
-fcl-db_shared: fcl-base_shared mysql_shared
+fcl-db_all: fcl-base_all mysql_all ibase_all
+fcl-db_debug: fcl-base_debug mysql_debug ibase_debug
+fcl-db_smart: fcl-base_smart mysql_smart ibase_smart
+fcl-db_release: fcl-base_release mysql_release ibase_release
+fcl-db_shared: fcl-base_shared mysql_shared ibase_shared
 fcl_all: fcl-base_all fcl-xml_all fcl-fpcunit_all fcl-db_all fcl-web_all fcl-registry_all fcl-passrc_all fcl-image_all fcl-net_all fcl-json_all
 fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_debug fcl-registry_debug fcl-passrc_debug fcl-image_debug fcl-net_debug fcl-json_debug
 fcl_smart: fcl-base_smart fcl-xml_smart fcl-fpcunit_smart fcl-db_smart fcl-web_smart fcl-registry_smart fcl-passrc_smart fcl-image_smart fcl-net_smart fcl-json_smart

@@ -4263,6 +4263,7 @@ packages/hash/src/md5.pp svneol=native#text/plain
 packages/hash/src/ntlm.pas svneol=native#text/plain
 packages/hash/src/unixcrypt.pas svneol=native#text/plain
 packages/hash/src/uuid.pas svneol=native#text/plain
+packages/ibase/Makefile svneol=native#text/plain
 packages/ibase/Makefile.fpc svneol=native#text/plain
 packages/ibase/README svneol=native#text/plain
 packages/ibase/scripts/mkdb svneol=native#text/plain
