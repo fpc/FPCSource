@@ -3759,6 +3759,7 @@ packages/fcl-registry/tests/regtestframework.pp -text
 packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
 packages/fcl-web/Makefile svneol=native#text/plain
 packages/fcl-web/Makefile.fpc svneol=native#text/plain
+packages/fcl-web/fpmake.pp svneol=native#text/plain
 packages/fcl-web/src/README svneol=native#text/plain
 packages/fcl-web/src/cgiapp.pp svneol=native#text/plain
 packages/fcl-web/src/custcgi.pp svneol=native#text/plain
