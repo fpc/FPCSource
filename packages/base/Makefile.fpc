@@ -3,15 +3,15 @@
 #
 
 [target]
-dirs_linux=gdbint        imagemagick  httpd
-dirs_win32=gdbint      imagemagick httpd 
+dirs_linux=gdbint          httpd
+dirs_win32=gdbint       httpd 
 dirs_go32v2=gdbint
-dirs_netbsd=gdbint      imagemagick httpd
-dirs_openbsd=gdbint      imagemagick httpd
-dirs_beos=gdbint       imagemagick
-dirs_freebsd=gdbint        imagemagick httpd
-dirs_darwin=       imagemagick httpd
-dirs_solaris=       imagemagick httpd
+dirs_netbsd=gdbint       httpd
+dirs_openbsd=gdbint       httpd
+dirs_beos=gdbint       
+dirs_freebsd=gdbint         httpd
+dirs_darwin=        httpd
+dirs_solaris=        httpd
 
 
 [rules]
