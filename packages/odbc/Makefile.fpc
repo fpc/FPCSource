@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for odbc bindings
+#
+[package]
+name=odbc
+version=2.0.0
+
+[target]
+units=odbcsql odbcsqldyn
+examples=testodbc
+
+[require]
+libc=n
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+

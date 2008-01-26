@@ -241,28 +241,28 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus  libc
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc  libc
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  winunits-base winunits-jedi fcl-web ibase mysql zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  zlib
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -271,13 +271,13 @@ ifeq ($(FULL_TARGET),i386-netware)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  zlib
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  zlib
@@ -298,13 +298,13 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -313,7 +313,7 @@ ifeq ($(FULL_TARGET),m68k-atari)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -322,10 +322,10 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -334,7 +334,7 @@ ifeq ($(FULL_TARGET),powerpc-macos)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -343,34 +343,34 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  winunits-base winunits-jedi fcl-web ibase mysql zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -391,10 +391,10 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -1506,6 +1506,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_ODBC=1
 TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
@@ -1554,6 +1555,7 @@ TARGET_DIRS_IBASE=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_BASE=1
@@ -1602,6 +1604,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_BASE=1
@@ -1649,6 +1652,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_BASE=1
@@ -1676,6 +1680,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 TARGET_DIRS_BASE=1
@@ -1744,6 +1749,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_BASE=1
@@ -1791,6 +1797,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_BASE=1
@@ -1945,6 +1952,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_BASE=1
@@ -1972,6 +1980,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_BASE=1
@@ -1999,6 +2008,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_BASE=1
@@ -2066,6 +2076,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_BASE=1
@@ -2135,6 +2146,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_BASE=1
@@ -2162,6 +2174,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_BASE=1
@@ -2229,6 +2242,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_BASE=1
@@ -2298,6 +2312,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_BASE=1
@@ -2325,6 +2340,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_BASE=1
@@ -2352,6 +2368,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 TARGET_DIRS_BASE=1
@@ -2401,6 +2418,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_BASE=1
@@ -2428,6 +2446,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_BASE=1
@@ -2455,6 +2474,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_BASE=1
@@ -2482,6 +2502,7 @@ TARGET_DIRS_IBASE=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_BASE=1
@@ -2531,6 +2552,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_BASE=1
@@ -2683,6 +2705,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_BASE=1
@@ -2710,6 +2733,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
+TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 TARGET_DIRS_BASE=1
@@ -3901,6 +3925,51 @@ dbus:
 	$(MAKE) -C dbus all
 .PHONY: dbus_all dbus_debug dbus_smart dbus_release dbus_units dbus_examples dbus_shared dbus_install dbus_sourceinstall dbus_exampleinstall dbus_distinstall dbus_zipinstall dbus_zipsourceinstall dbus_zipexampleinstall dbus_zipdistinstall dbus_clean dbus_distclean dbus_cleanall dbus_info dbus_makefiles dbus
 endif
+ifdef TARGET_DIRS_ODBC
+odbc_all:
+	$(MAKE) -C odbc all
+odbc_debug:
+	$(MAKE) -C odbc debug
+odbc_smart:
+	$(MAKE) -C odbc smart
+odbc_release:
+	$(MAKE) -C odbc release
+odbc_units:
+	$(MAKE) -C odbc units
+odbc_examples:
+	$(MAKE) -C odbc examples
+odbc_shared:
+	$(MAKE) -C odbc shared
+odbc_install:
+	$(MAKE) -C odbc install
+odbc_sourceinstall:
+	$(MAKE) -C odbc sourceinstall
+odbc_exampleinstall:
+	$(MAKE) -C odbc exampleinstall
+odbc_distinstall:
+	$(MAKE) -C odbc distinstall
+odbc_zipinstall:
+	$(MAKE) -C odbc zipinstall
+odbc_zipsourceinstall:
+	$(MAKE) -C odbc zipsourceinstall
+odbc_zipexampleinstall:
+	$(MAKE) -C odbc zipexampleinstall
+odbc_zipdistinstall:
+	$(MAKE) -C odbc zipdistinstall
+odbc_clean:
+	$(MAKE) -C odbc clean
+odbc_distclean:
+	$(MAKE) -C odbc distclean
+odbc_cleanall:
+	$(MAKE) -C odbc cleanall
+odbc_info:
+	$(MAKE) -C odbc info
+odbc_makefiles:
+	$(MAKE) -C odbc makefiles
+odbc:
+	$(MAKE) -C odbc all
+.PHONY: odbc_all odbc_debug odbc_smart odbc_release odbc_units odbc_examples odbc_shared odbc_install odbc_sourceinstall odbc_exampleinstall odbc_distinstall odbc_zipinstall odbc_zipsourceinstall odbc_zipexampleinstall odbc_zipdistinstall odbc_clean odbc_distclean odbc_cleanall odbc_info odbc_makefiles odbc
+endif
 ifdef TARGET_DIRS_LIBC
 libc_all:
 	$(MAKE) -C libc all
@@ -4126,11 +4195,11 @@ fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
 fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
 fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
 fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
-fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all
-fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug
-fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart
-fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release
-fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared
+fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all
+fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug
+fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart
+fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release odbc_release
+fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared odbc_shared
 fcl_all: fcl-base_all fcl-xml_all fcl-fpcunit_all fcl-db_all fcl-web_all fcl-registry_all fcl-passrc_all fcl-image_all fcl-net_all fcl-json_all
 fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_debug fcl-registry_debug fcl-passrc_debug fcl-image_debug fcl-net_debug fcl-json_debug
 fcl_smart: fcl-base_smart fcl-xml_smart fcl-fpcunit_smart fcl-db_smart fcl-web_smart fcl-registry_smart fcl-passrc_smart fcl-image_smart fcl-net_smart fcl-json_smart

@@ -4272,6 +4272,15 @@ packages/ncurses/src/panel.pp svneol=native#text/plain
 packages/ncurses/src/pxpic.inc svneol=native#text/plain
 packages/ncurses/src/pxpic.txt svneol=native#text/plain
 packages/ncurses/tests/testn.pp svneol=native#text/plain
+packages/odbc/Makefile svneol=native#text/plain
+packages/odbc/Makefile.fpc svneol=native#text/plain
+packages/odbc/README svneol=native#text/plain
+packages/odbc/fpmake.pp svneol=native#text/plain
+packages/odbc/src/odbcsql.inc svneol=native#text/plain
+packages/odbc/src/odbcsql.pas svneol=native#text/plain
+packages/odbc/src/odbcsqldyn.pas svneol=native#text/plain
+packages/odbc/tests/testodbc.mdb -text
+packages/odbc/tests/testodbc.pp svneol=native#text/plain
 packages/oracle/Makefile.fpc svneol=native#text/plain
 packages/oracle/README svneol=native#text/plain
 packages/oracle/examples/Makefile.fpc svneol=native#text/plain
