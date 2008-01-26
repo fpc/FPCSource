@@ -913,12 +913,6 @@ packages/base/pthreads/pthrbsd.inc svneol=native#text/plain
 packages/base/pthreads/pthreads.pp svneol=native#text/plain
 packages/base/pthreads/pthrlinux.inc svneol=native#text/plain
 packages/base/pthreads/pthrsnos.inc -text
-packages/base/regexpr/Makefile svneol=native#text/plain
-packages/base/regexpr/Makefile.fpc svneol=native#text/plain
-packages/base/regexpr/fpmake.inc svneol=native#text/plain
-packages/base/regexpr/fpmake.pp svneol=native#text/plain
-packages/base/regexpr/regexpr.pp svneol=native#text/plain
-packages/base/regexpr/testreg1.pp svneol=native#text/plain
 packages/base/sqlite/Makefile svneol=native#text/plain
 packages/base/sqlite/Makefile.fpc svneol=native#text/plain
 packages/base/sqlite/fpmake.inc svneol=native#text/plain

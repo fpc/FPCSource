@@ -263,13 +263,6 @@ packages/base/pthreads/*.ppu
 packages/base/pthreads/*.s
 packages/base/pthreads/fpcmade.*
 packages/base/pthreads/units
-packages/base/regexpr/*.bak
-packages/base/regexpr/*.exe
-packages/base/regexpr/*.o
-packages/base/regexpr/*.ppu
-packages/base/regexpr/*.s
-packages/base/regexpr/fpcmade.*
-packages/base/regexpr/units
 packages/base/sqlite/*.bak
 packages/base/sqlite/*.exe
 packages/base/sqlite/*.o
