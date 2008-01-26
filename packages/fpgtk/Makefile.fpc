@@ -2,7 +2,7 @@
 #   Makefile.fpc for fpgtk
 #
 [require]
-packages=fcl-base gtk
+packages=fcl-base gtk1
 
 [package]
 name=fpgtk
@@ -16,7 +16,11 @@ rsts=fpgtk fpgtkext
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src src/editor src/def src/pgtk tests
 
 [rules]
 .NOTPARALLEL:
