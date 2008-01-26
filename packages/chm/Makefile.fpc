@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for BFD library
+#   Makefile.fpc for chm library
 #
 
 [package]
@@ -19,7 +19,11 @@ packages=rtl fcl-xml
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
 
 [rules]
 .NOTPARALLEL:
