@@ -241,7 +241,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=chm  fftw x11 opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell unixutil lua sdl graph
+override TARGET_DIRS+=chm  fftw x11 opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell lua sdl graph
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=chm  graph
@@ -1512,7 +1512,6 @@ TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
 TARGET_DIRS_CAIRO=1
 TARGET_DIRS_ASPELL=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_LUA=1
 TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
@@ -3722,51 +3721,6 @@ aspell_makefiles:
 aspell:
 	$(MAKE) -C aspell all
 .PHONY: aspell_all aspell_debug aspell_smart aspell_release aspell_units aspell_examples aspell_shared aspell_install aspell_sourceinstall aspell_exampleinstall aspell_distinstall aspell_zipinstall aspell_zipsourceinstall aspell_zipexampleinstall aspell_zipdistinstall aspell_clean aspell_distclean aspell_cleanall aspell_info aspell_makefiles aspell
-endif
-ifdef TARGET_DIRS_UNIXUTIL
-unixutil_all:
-	$(MAKE) -C unixutil all
-unixutil_debug:
-	$(MAKE) -C unixutil debug
-unixutil_smart:
-	$(MAKE) -C unixutil smart
-unixutil_release:
-	$(MAKE) -C unixutil release
-unixutil_units:
-	$(MAKE) -C unixutil units
-unixutil_examples:
-	$(MAKE) -C unixutil examples
-unixutil_shared:
-	$(MAKE) -C unixutil shared
-unixutil_install:
-	$(MAKE) -C unixutil install
-unixutil_sourceinstall:
-	$(MAKE) -C unixutil sourceinstall
-unixutil_exampleinstall:
-	$(MAKE) -C unixutil exampleinstall
-unixutil_distinstall:
-	$(MAKE) -C unixutil distinstall
-unixutil_zipinstall:
-	$(MAKE) -C unixutil zipinstall
-unixutil_zipsourceinstall:
-	$(MAKE) -C unixutil zipsourceinstall
-unixutil_zipexampleinstall:
-	$(MAKE) -C unixutil zipexampleinstall
-unixutil_zipdistinstall:
-	$(MAKE) -C unixutil zipdistinstall
-unixutil_clean:
-	$(MAKE) -C unixutil clean
-unixutil_distclean:
-	$(MAKE) -C unixutil distclean
-unixutil_cleanall:
-	$(MAKE) -C unixutil cleanall
-unixutil_info:
-	$(MAKE) -C unixutil info
-unixutil_makefiles:
-	$(MAKE) -C unixutil makefiles
-unixutil:
-	$(MAKE) -C unixutil all
-.PHONY: unixutil_all unixutil_debug unixutil_smart unixutil_release unixutil_units unixutil_examples unixutil_shared unixutil_install unixutil_sourceinstall unixutil_exampleinstall unixutil_distinstall unixutil_zipinstall unixutil_zipsourceinstall unixutil_zipexampleinstall unixutil_zipdistinstall unixutil_clean unixutil_distclean unixutil_cleanall unixutil_info unixutil_makefiles unixutil
 endif
 ifdef TARGET_DIRS_LUA
 lua_all:

@@ -4,7 +4,7 @@
 
 [target]
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
-dirs_linux_i386=libc  
+dirs_linux_i386=libc  unixutil
 dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng
 dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \

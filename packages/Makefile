@@ -241,7 +241,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng  libc
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng  libc  unixutil
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
@@ -1515,6 +1515,7 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_LIBC=1
+TARGET_DIRS_UNIXUTIL=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_BASE=1
@@ -4525,6 +4526,51 @@ libc_makefiles:
 libc:
 	$(MAKE) -C libc all
 .PHONY: libc_all libc_debug libc_smart libc_release libc_units libc_examples libc_shared libc_install libc_sourceinstall libc_exampleinstall libc_distinstall libc_zipinstall libc_zipsourceinstall libc_zipexampleinstall libc_zipdistinstall libc_clean libc_distclean libc_cleanall libc_info libc_makefiles libc
+endif
+ifdef TARGET_DIRS_UNIXUTIL
+unixutil_all:
+	$(MAKE) -C unixutil all
+unixutil_debug:
+	$(MAKE) -C unixutil debug
+unixutil_smart:
+	$(MAKE) -C unixutil smart
+unixutil_release:
+	$(MAKE) -C unixutil release
+unixutil_units:
+	$(MAKE) -C unixutil units
+unixutil_examples:
+	$(MAKE) -C unixutil examples
+unixutil_shared:
+	$(MAKE) -C unixutil shared
+unixutil_install:
+	$(MAKE) -C unixutil install
+unixutil_sourceinstall:
+	$(MAKE) -C unixutil sourceinstall
+unixutil_exampleinstall:
+	$(MAKE) -C unixutil exampleinstall
+unixutil_distinstall:
+	$(MAKE) -C unixutil distinstall
+unixutil_zipinstall:
+	$(MAKE) -C unixutil zipinstall
+unixutil_zipsourceinstall:
+	$(MAKE) -C unixutil zipsourceinstall
+unixutil_zipexampleinstall:
+	$(MAKE) -C unixutil zipexampleinstall
+unixutil_zipdistinstall:
+	$(MAKE) -C unixutil zipdistinstall
+unixutil_clean:
+	$(MAKE) -C unixutil clean
+unixutil_distclean:
+	$(MAKE) -C unixutil distclean
+unixutil_cleanall:
+	$(MAKE) -C unixutil cleanall
+unixutil_info:
+	$(MAKE) -C unixutil info
+unixutil_makefiles:
+	$(MAKE) -C unixutil makefiles
+unixutil:
+	$(MAKE) -C unixutil all
+.PHONY: unixutil_all unixutil_debug unixutil_smart unixutil_release unixutil_units unixutil_examples unixutil_shared unixutil_install unixutil_sourceinstall unixutil_exampleinstall unixutil_distinstall unixutil_zipinstall unixutil_zipsourceinstall unixutil_zipexampleinstall unixutil_zipdistinstall unixutil_clean unixutil_distclean unixutil_cleanall unixutil_info unixutil_makefiles unixutil
 endif
 ifdef TARGET_DIRS_WINUNITS-BASE
 winunits-base_all:
