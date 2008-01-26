@@ -15,7 +15,11 @@ units=cairo
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
 
 [rules]
 .NOTPARALLEL:
