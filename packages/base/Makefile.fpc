@@ -5,17 +5,17 @@
 [target]
 dirs=regexpr
 dirs_i386_linux=libc
-dirs_linux=gdbint  ibase postgres oracle odbc pthreads sqlite imagemagick dbus httpd
-dirs_win32=gdbint  ibase odbc sqlite postgres oracle imagemagick httpd 
-dirs_win64= ibase odbc sqlite postgres oracle 
-dirs_wince=ibase sqlite postgres
+dirs_linux=gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+dirs_win32=gdbint   odbc sqlite postgres oracle imagemagick httpd 
+dirs_win64=  odbc sqlite postgres oracle 
+dirs_wince= sqlite postgres
 dirs_go32v2=gdbint
-dirs_netbsd=gdbint  ibase postgres oracle odbc imagemagick httpd
-dirs_openbsd=gdbint  ibase postgres oracle odbc imagemagick httpd
-dirs_beos=gdbint  ibase postgres odbc sqlite pthreads imagemagick
-dirs_freebsd=gdbint  ibase postgres oracle odbc sqlite pthreads imagemagick httpd
-dirs_darwin= ibase postgres oracle odbc sqlite pthreads imagemagick httpd
-dirs_solaris= ibase postgres oracle odbc sqlite pthreads imagemagick httpd
+dirs_netbsd=gdbint   postgres oracle odbc imagemagick httpd
+dirs_openbsd=gdbint   postgres oracle odbc imagemagick httpd
+dirs_beos=gdbint   postgres odbc sqlite pthreads imagemagick
+dirs_freebsd=gdbint   postgres oracle odbc sqlite pthreads imagemagick httpd
+dirs_darwin=  postgres oracle odbc sqlite pthreads imagemagick httpd
+dirs_solaris=  postgres oracle odbc sqlite pthreads imagemagick httpd
 
 
 [rules]

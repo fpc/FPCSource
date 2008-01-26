@@ -17,7 +17,11 @@ libc=y
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
 
 [shared]
 build=n
