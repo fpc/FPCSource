@@ -4275,6 +4275,7 @@ packages/ibase/src/ibase60.pp svneol=native#text/plain
 packages/ibase/src/ibase60dyn.pp svneol=native#text/plain
 packages/ibase/tests/testib40.pp svneol=native#text/plain
 packages/ibase/tests/testib60.pp svneol=native#text/plain
+packages/mysql/Makefile svneol=native#text/plain
 packages/mysql/Makefile.fpc svneol=native#text/plain
 packages/mysql/fpmake.pp svneol=native#text/plain
 packages/mysql/scripts/mkdb svneol=native#text/plain
