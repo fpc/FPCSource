@@ -39,6 +39,7 @@ Resourcestring
   SErrChangeDirFailed        = 'Could not change directory to "%s"';
   SErrCorruptPackagesFile    = 'Packages file "%s" is corrupt, delete file manual and retry';
   SErrPackageIsLocal         = 'Operation not supported for local packages';
+  SErrConvertFPMakeExists    = 'Found existing fpmake.pp, aborting conversion';
 
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';

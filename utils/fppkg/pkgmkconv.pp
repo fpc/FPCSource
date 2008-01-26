@@ -126,6 +126,7 @@ begin
     Add('uses fpmkunit;');
     Add('');
     Add('Var');
+    Add('  P : TPackage;');
     Add('  T : TTarget;');
     Add('');
     Add('begin');
@@ -204,21 +205,21 @@ begin
     Add('    { ');
     Add('      '+FPackageName);
     Add('    } ');
-    Add('    StartPackage('''+FPackageName+''');');
+    Add('    P:=AddPackage('''+FPackageName+''');');
     If (Dir<>'') then
-      Add('    Directory:='''+ExcludeTrailingPathDelimiter(Dir)+''';');
+      Add('    P.Directory:='''+ExcludeTrailingPathDelimiter(Dir)+''';');
     If (OS<>'') and (OS<>'all') then
-      Add('    OS:=['+OS+'];');
+      Add('    P.OS:=['+OS+'];');
     If (FPackageVersion<>'') then
-      Add('    Version:='''+FPackageVersion+''';');
+      Add('    P.Version:='''+FPackageVersion+''';');
     If (FPackageOptions<>'') then
-      Add('    Options:='''+FPackageOptions+''';');
+      Add('    P.Options:='''+FPackageOptions+''';');
     If (FPackageDeps<>'') then
       begin
       S:=GetWord(FPackageDeps);
       While S<>'' do
         begin
-        Add('    Dependencies.Add('''+S+''');');
+        Add('    P.Dependencies.Add('''+S+''');');
         S:=GetWord(FPackageDeps);
         end;
       end;
@@ -228,7 +229,6 @@ end;
 procedure TMakeFileConverter.EndPackage(Src : TStrings; Dir,OS : String);
 
 begin
-  Src.add('    EndPackage;');
   FPackageName:='';
   FPackageVersion:='';
   FPackageOptions:='';
@@ -502,7 +502,7 @@ begin
         Res:=R.IndexOfName(N)<>-1;
       GetOSCPU(V,OS,CPU);
       Pre[1]:=Upcase(Pre[1]);
-      Src.Add('    T:=Targets.Add'+Pre+'('''+Prefix+N+''');');
+      Src.Add('    T:=P.Targets.Add'+Pre+'('''+Prefix+N+''');');
       If (CPU<>'') then
         Src.Add('    T.CPU:=['+CPU+'];');
       If (OS<>'') then
@@ -553,7 +553,7 @@ begin
       IFL.GetNamevalue(I,N,V);
       GetOSCPU(V,OS,CPU);
       WriteOSCPUCheck(Src,OS,CPU);
-      Src.add('      InstallFiles.Add('''+N+''');');
+      Src.add('      P.InstallFiles.Add('''+N+''');');
       end;
 end;
 
@@ -571,7 +571,7 @@ begin
       CFL.GetNamevalue(I,N,V);
       GetOSCPU(V,OS,CPU);
       WriteOSCPUCheck(Src,OS,CPU);
-      Src.add('      CleanFiles.Add('''+N+''');');
+      Src.add('      P.CleanFiles.Add('''+N+''');');
       end;
 end;
 
@@ -698,7 +698,10 @@ end;
 
 function TMakeFileConverter.Execute(const Args:TActionArgs):boolean;
 begin
-  ConvertFile('Makefile.fpc','fpmake.pp');
+  if not FileExists('fpmake.pp') then
+    ConvertFile('Makefile.fpc','fpmake.pp')
+  else
+    Error(SErrConvertFPMakeExists);
   result:=true;
 end;
 
