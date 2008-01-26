@@ -3,17 +3,15 @@
 #
 
 [target]
-dirs_linux=gdbint   postgres   pthreads sqlite imagemagick  httpd
-dirs_win32=gdbint   sqlite postgres  imagemagick httpd 
-dirs_win64=   sqlite postgres  
-dirs_wince= sqlite postgres
+dirs_linux=gdbint      pthreads  imagemagick  httpd
+dirs_win32=gdbint      imagemagick httpd 
 dirs_go32v2=gdbint
-dirs_netbsd=gdbint   postgres   imagemagick httpd
-dirs_openbsd=gdbint   postgres   imagemagick httpd
-dirs_beos=gdbint   postgres  sqlite pthreads imagemagick
-dirs_freebsd=gdbint   postgres   sqlite pthreads imagemagick httpd
-dirs_darwin=  postgres   sqlite pthreads imagemagick httpd
-dirs_solaris=  postgres   sqlite pthreads imagemagick httpd
+dirs_netbsd=gdbint      imagemagick httpd
+dirs_openbsd=gdbint      imagemagick httpd
+dirs_beos=gdbint      pthreads imagemagick
+dirs_freebsd=gdbint       pthreads imagemagick httpd
+dirs_darwin=      pthreads imagemagick httpd
+dirs_solaris=      pthreads imagemagick httpd
 
 
 [rules]

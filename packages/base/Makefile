@@ -241,88 +241,79 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint      pthreads  imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=gdbint   sqlite postgres  imagemagick httpd
+override TARGET_DIRS+=gdbint      imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=gdbint   postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=gdbint       pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=gdbint   postgres  sqlite pthreads imagemagick
+override TARGET_DIRS+=gdbint      pthreads imagemagick
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint      imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint      imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=sqlite postgres
+override TARGET_DIRS+=pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint      pthreads  imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=gdbint   postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=gdbint       pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint      imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint      imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint      pthreads  imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint      imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint      pthreads  imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint      imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint      pthreads  imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=gdbint   postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=gdbint       pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=sqlite postgres
+override TARGET_DIRS+=pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=sqlite postgres
+override TARGET_DIRS+=gdbint      pthreads  imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint      pthreads  imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=pthreads imagemagick httpd
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/base
@@ -1405,9 +1396,7 @@ fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
@@ -1416,176 +1405,124 @@ TARGET_DIRS_GDBINT=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_SQLITE=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),i386-wince)
-TARGET_DIRS_SQLITE=1
-TARGET_DIRS_POSTGRES=1
-endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-TARGET_DIRS_SQLITE=1
-TARGET_DIRS_POSTGRES=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),arm-wince)
-TARGET_DIRS_SQLITE=1
-TARGET_DIRS_POSTGRES=1
-endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_GDBINT=1
-TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
@@ -1635,51 +1572,6 @@ gdbint:
 	$(MAKE) -C gdbint all
 .PHONY: gdbint_all gdbint_debug gdbint_smart gdbint_release gdbint_units gdbint_examples gdbint_shared gdbint_install gdbint_sourceinstall gdbint_exampleinstall gdbint_distinstall gdbint_zipinstall gdbint_zipsourceinstall gdbint_zipexampleinstall gdbint_zipdistinstall gdbint_clean gdbint_distclean gdbint_cleanall gdbint_info gdbint_makefiles gdbint
 endif
-ifdef TARGET_DIRS_POSTGRES
-postgres_all:
-	$(MAKE) -C postgres all
-postgres_debug:
-	$(MAKE) -C postgres debug
-postgres_smart:
-	$(MAKE) -C postgres smart
-postgres_release:
-	$(MAKE) -C postgres release
-postgres_units:
-	$(MAKE) -C postgres units
-postgres_examples:
-	$(MAKE) -C postgres examples
-postgres_shared:
-	$(MAKE) -C postgres shared
-postgres_install:
-	$(MAKE) -C postgres install
-postgres_sourceinstall:
-	$(MAKE) -C postgres sourceinstall
-postgres_exampleinstall:
-	$(MAKE) -C postgres exampleinstall
-postgres_distinstall:
-	$(MAKE) -C postgres distinstall
-postgres_zipinstall:
-	$(MAKE) -C postgres zipinstall
-postgres_zipsourceinstall:
-	$(MAKE) -C postgres zipsourceinstall
-postgres_zipexampleinstall:
-	$(MAKE) -C postgres zipexampleinstall
-postgres_zipdistinstall:
-	$(MAKE) -C postgres zipdistinstall
-postgres_clean:
-	$(MAKE) -C postgres clean
-postgres_distclean:
-	$(MAKE) -C postgres distclean
-postgres_cleanall:
-	$(MAKE) -C postgres cleanall
-postgres_info:
-	$(MAKE) -C postgres info
-postgres_makefiles:
-	$(MAKE) -C postgres makefiles
-postgres:
-	$(MAKE) -C postgres all
-.PHONY: postgres_all postgres_debug postgres_smart postgres_release postgres_units postgres_examples postgres_shared postgres_install postgres_sourceinstall postgres_exampleinstall postgres_distinstall postgres_zipinstall postgres_zipsourceinstall postgres_zipexampleinstall postgres_zipdistinstall postgres_clean postgres_distclean postgres_cleanall postgres_info postgres_makefiles postgres
-endif
 ifdef TARGET_DIRS_PTHREADS
 pthreads_all:
 	$(MAKE) -C pthreads all
@@ -1724,51 +1616,6 @@ pthreads_makefiles:
 pthreads:
 	$(MAKE) -C pthreads all
 .PHONY: pthreads_all pthreads_debug pthreads_smart pthreads_release pthreads_units pthreads_examples pthreads_shared pthreads_install pthreads_sourceinstall pthreads_exampleinstall pthreads_distinstall pthreads_zipinstall pthreads_zipsourceinstall pthreads_zipexampleinstall pthreads_zipdistinstall pthreads_clean pthreads_distclean pthreads_cleanall pthreads_info pthreads_makefiles pthreads
-endif
-ifdef TARGET_DIRS_SQLITE
-sqlite_all:
-	$(MAKE) -C sqlite all
-sqlite_debug:
-	$(MAKE) -C sqlite debug
-sqlite_smart:
-	$(MAKE) -C sqlite smart
-sqlite_release:
-	$(MAKE) -C sqlite release
-sqlite_units:
-	$(MAKE) -C sqlite units
-sqlite_examples:
-	$(MAKE) -C sqlite examples
-sqlite_shared:
-	$(MAKE) -C sqlite shared
-sqlite_install:
-	$(MAKE) -C sqlite install
-sqlite_sourceinstall:
-	$(MAKE) -C sqlite sourceinstall
-sqlite_exampleinstall:
-	$(MAKE) -C sqlite exampleinstall
-sqlite_distinstall:
-	$(MAKE) -C sqlite distinstall
-sqlite_zipinstall:
-	$(MAKE) -C sqlite zipinstall
-sqlite_zipsourceinstall:
-	$(MAKE) -C sqlite zipsourceinstall
-sqlite_zipexampleinstall:
-	$(MAKE) -C sqlite zipexampleinstall
-sqlite_zipdistinstall:
-	$(MAKE) -C sqlite zipdistinstall
-sqlite_clean:
-	$(MAKE) -C sqlite clean
-sqlite_distclean:
-	$(MAKE) -C sqlite distclean
-sqlite_cleanall:
-	$(MAKE) -C sqlite cleanall
-sqlite_info:
-	$(MAKE) -C sqlite info
-sqlite_makefiles:
-	$(MAKE) -C sqlite makefiles
-sqlite:
-	$(MAKE) -C sqlite all
-.PHONY: sqlite_all sqlite_debug sqlite_smart sqlite_release sqlite_units sqlite_examples sqlite_shared sqlite_install sqlite_sourceinstall sqlite_exampleinstall sqlite_distinstall sqlite_zipinstall sqlite_zipsourceinstall sqlite_zipexampleinstall sqlite_zipdistinstall sqlite_clean sqlite_distclean sqlite_cleanall sqlite_info sqlite_makefiles sqlite
 endif
 ifdef TARGET_DIRS_IMAGEMAGICK
 imagemagick_all:
