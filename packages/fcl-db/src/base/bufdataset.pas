@@ -170,11 +170,13 @@ type
 {$ENDIF}
     function  GetCurrentBuffer: PChar;
     procedure CalcRecordSize;
+    function GetIndexFieldNames: String;
     function GetIndexName: String;
     procedure InitialiseIndex(AIndex: TBufIndex);
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer : boolean;
+    procedure SetIndexFieldNames(const AValue: String);
     procedure SetIndexName(AValue: String);
 {$IFNDEF ARRAYBUF}
     procedure SetMaxIndexesCount(const AValue: Integer);
@@ -251,6 +253,7 @@ type
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
     property IndexDefs : TIndexDefs read GetIndexDefs;
     property IndexName : String read GetIndexName write SetIndexName;
+    property IndexFieldNames : String read GetIndexFieldNames write SetIndexFieldNames;
   end;
 
 implementation
@@ -350,6 +353,7 @@ begin
 {$ENDIF}
   FIndexesCount:=0;
   InternalAddIndex('DEFAULT_ORDER','');
+  InternalAddIndex('','');
   FCurrentIndex:=@FIndexes[0];
 
   FIndexDefs := TIndexDefs.Create(Self);
@@ -409,7 +413,11 @@ var PCurRecLinkItem : PBufRecLinkItem;
 begin
 // This simply copies the index...
   if not assigned(AIndex.Fields) then
-    AIndex.Fields := FieldByName(AIndex.FieldsName);
+    begin
+    AIndex.Fields := FindField(AIndex.FieldsName);
+    if not assigned(AIndex.Fields) then
+      DatabaseErrorFmt(SErrIndexBasedOnUnkField,[AIndex.FieldsName]);
+    end;
 {$IFNDEF ARRAYBUF}
   case AIndex.Fields.DataType of
     ftString : Comparefunc := @DBCompareText;
@@ -891,6 +899,23 @@ begin
   Result := (FCurrentUpdateBuffer < length(FUpdateBuffer))  and CompareBuf(FCurrentUpdateBuffer);
 end;
 
+procedure TBufDataset.SetIndexFieldNames(const AValue: String);
+begin
+  if AValue<>'' then
+    begin
+    FIndexes[1].Fields := nil;
+    FIndexes[1].FieldsName:=AValue;
+    FCurrentIndex:=@FIndexes[1];
+    if active then
+      begin
+      BuildIndex(FIndexes[1]);
+      Resync([rmCenter]);
+      end;
+    end
+  else
+    SetIndexName('');
+end;
+
 procedure TBufDataset.SetIndexName(AValue: String);
 var i : integer;
 begin
@@ -1145,8 +1170,11 @@ begin
     FAllPacketsFetched := True;
     if FIndexesCount>0 then for x := 1 to FIndexesCount-1 do
       begin
-      BuildIndex(FIndexes[x]);
-      FIndexes[x].FCurrentRecBuf:=FIndexes[x].FFirstRecBuf;
+      if not ((x=1) and (FIndexes[1].FieldsName='')) then
+        begin
+        BuildIndex(FIndexes[x]);
+        FIndexes[x].FCurrentRecBuf:=FIndexes[x].FFirstRecBuf;
+        end;
       end;
     Exit;
     end;
@@ -1702,6 +1730,14 @@ begin
     end;
 end;
 
+function TBufDataset.GetIndexFieldNames: String;
+begin
+  if FCurrentIndex<>@FIndexes[1] then
+    result := ''
+  else
+    result := FCurrentIndex^.FieldsName;
+end;
+
 function TBufDataset.GetIndexName: String;
 begin
   result := FCurrentIndex^.Name;
@@ -1954,7 +1990,7 @@ begin
   if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
   
 {$IFNDEF ARRAYBUF}
-  if active and (FIndexesCount=FMaxIndexesCount-1) then
+  if active and (FIndexesCount=FMaxIndexesCount) then
     DatabaseError(SMaxIndexes);
 {$ENDIF}
 

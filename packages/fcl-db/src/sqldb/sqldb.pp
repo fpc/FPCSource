@@ -1920,7 +1920,7 @@ end;
 constructor TServerIndexDefs.create(ADataset: TDataset);
 begin
   if not (ADataset is TCustomSQLQuery) then
-    DatabaseError(SErrNotASQLQuery);
+    DatabaseErrorFmt(SErrNotASQLQuery,[ADataset.Name]);
   inherited create(ADataset);
 end;
 

@@ -53,6 +53,9 @@ type
     procedure TestAddIndexActiveDS;
     procedure TestAddIndexEditDS;
 
+    procedure TestIndexFieldNames;
+    procedure TestIndexFieldNamesAct;
+
     procedure TestNullAtOpen;
 
     procedure TestSupportIntegerFields;
@@ -999,6 +1002,103 @@ begin
       AssertTrue(LastValue<=FieldByName('name').AsString);
       Next;
       end;
+    end;
+end;
+
+procedure TTestDBBasics.TestIndexFieldNamesAct;
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    FList : TStringList;
+    i : integer;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+    AFieldType:=ftString;
+    FList := TStringList.Create;
+    FList.Sorted:=true;
+    FList.CaseSensitive:=True;
+    FList.Duplicates:=dupAccept;
+    open;
+
+    while not eof do
+      begin
+      flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Next;
+      end;
+
+    IndexFieldNames:='F'+FieldTypeNames[AfieldType];
+    first;
+    i:=0;
+
+    while not eof do
+      begin
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      inc(i);
+      Next;
+      end;
+
+    while not bof do
+      begin
+      dec(i);
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Prior;
+      end;
+
+    AssertEquals('F'+FieldTypeNames[AfieldType],IndexFieldNames);
+
+    IndexFieldNames:='ID';
+    first;
+    i:=0;
+
+    while not eof do
+      begin
+      AssertEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      inc(i);
+      Next;
+      end;
+
+    AssertEquals('ID',IndexFieldNames);
+
+    IndexFieldNames:='';
+    first;
+    i:=0;
+
+    while not eof do
+      begin
+      AssertEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      inc(i);
+      Next;
+      end;
+
+    AssertEquals('',IndexFieldNames);
+
+    end;
+end;
+
+procedure TTestDBBasics.TestIndexFieldNames;
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    PrevValue : String;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+    AFieldType:=ftString;
+    
+    IndexFieldNames:='F'+FieldTypeNames[AfieldType];
+
+    open;
+    PrevValue:='';
+    while not eof do
+      begin
+      AssertTrue(FieldByName('F'+FieldTypeNames[AfieldType]).AsString>=PrevValue);
+      PrevValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
+      Next;
+      end;
+
+    AssertEquals('F'+FieldTypeNames[AfieldType],IndexFieldNames);
+
     end;
 end;
 
