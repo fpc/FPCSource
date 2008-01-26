@@ -1388,7 +1388,6 @@ packages/extra/gtk/examples/statusbar.pp svneol=native#text/plain
 packages/extra/gtk/examples/tictactoe.pp svneol=native#text/plain
 packages/extra/gtk/examples/toolbar.pp svneol=native#text/plain
 packages/extra/gtk/examples/ttt_test.pp svneol=native#text/plain
-packages/extra/gtk/examples/tutorial/Makefile svneol=native#text/plain
 packages/extra/gtk/examples/tutorial/Makefile.fpc svneol=native#text/plain
 packages/extra/gtk/examples/tutorial/info.xpm -text
 packages/extra/gtk/examples/tutorial/tut2_1.pp svneol=native#text/plain
