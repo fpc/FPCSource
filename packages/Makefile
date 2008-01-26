@@ -241,7 +241,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus  libc
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
@@ -1506,6 +1506,7 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_ORACLE=1
 TARGET_DIRS_DBUS=1
+TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_BASE=1
@@ -3899,6 +3900,51 @@ dbus_makefiles:
 dbus:
 	$(MAKE) -C dbus all
 .PHONY: dbus_all dbus_debug dbus_smart dbus_release dbus_units dbus_examples dbus_shared dbus_install dbus_sourceinstall dbus_exampleinstall dbus_distinstall dbus_zipinstall dbus_zipsourceinstall dbus_zipexampleinstall dbus_zipdistinstall dbus_clean dbus_distclean dbus_cleanall dbus_info dbus_makefiles dbus
+endif
+ifdef TARGET_DIRS_LIBC
+libc_all:
+	$(MAKE) -C libc all
+libc_debug:
+	$(MAKE) -C libc debug
+libc_smart:
+	$(MAKE) -C libc smart
+libc_release:
+	$(MAKE) -C libc release
+libc_units:
+	$(MAKE) -C libc units
+libc_examples:
+	$(MAKE) -C libc examples
+libc_shared:
+	$(MAKE) -C libc shared
+libc_install:
+	$(MAKE) -C libc install
+libc_sourceinstall:
+	$(MAKE) -C libc sourceinstall
+libc_exampleinstall:
+	$(MAKE) -C libc exampleinstall
+libc_distinstall:
+	$(MAKE) -C libc distinstall
+libc_zipinstall:
+	$(MAKE) -C libc zipinstall
+libc_zipsourceinstall:
+	$(MAKE) -C libc zipsourceinstall
+libc_zipexampleinstall:
+	$(MAKE) -C libc zipexampleinstall
+libc_zipdistinstall:
+	$(MAKE) -C libc zipdistinstall
+libc_clean:
+	$(MAKE) -C libc clean
+libc_distclean:
+	$(MAKE) -C libc distclean
+libc_cleanall:
+	$(MAKE) -C libc cleanall
+libc_info:
+	$(MAKE) -C libc info
+libc_makefiles:
+	$(MAKE) -C libc makefiles
+libc:
+	$(MAKE) -C libc all
+.PHONY: libc_all libc_debug libc_smart libc_release libc_units libc_examples libc_shared libc_install libc_sourceinstall libc_exampleinstall libc_distinstall libc_zipinstall libc_zipsourceinstall libc_zipexampleinstall libc_zipdistinstall libc_clean libc_distclean libc_cleanall libc_info libc_makefiles libc
 endif
 ifdef TARGET_DIRS_WINUNITS-BASE
 winunits-base_all:
