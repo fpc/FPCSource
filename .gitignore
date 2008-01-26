@@ -849,13 +849,6 @@ packages/extra/sndfile/*.ppu
 packages/extra/sndfile/*.s
 packages/extra/sndfile/fpcmade.*
 packages/extra/sndfile/units
-packages/extra/svgalib/*.bak
-packages/extra/svgalib/*.exe
-packages/extra/svgalib/*.o
-packages/extra/svgalib/*.ppu
-packages/extra/svgalib/*.s
-packages/extra/svgalib/fpcmade.*
-packages/extra/svgalib/units
 packages/extra/units
 packages/extra/utmp/*.bak
 packages/extra/utmp/*.exe
