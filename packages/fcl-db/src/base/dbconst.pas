@@ -40,6 +40,7 @@ Resourcestring
   SErrIndexBasedOnUnkField = 'Index based on unknown field "%s".';
   SErrConnTransactionnSet  = 'Transaction of connection not set';
   SErrNotASQLConnection    = '"%s" is not a TSQLConnection';
+  SErrNotASQLQuery         = '"%s" is not a TCustomSQLQuery';
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';

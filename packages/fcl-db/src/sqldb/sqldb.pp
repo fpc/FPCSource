@@ -60,6 +60,17 @@ const
                   'start','commit','rollback', '?'
                  );
 
+type
+
+  { TServerIndexDefs }
+
+  TServerIndexDefs = class(TIndexDefs)
+  Private
+  public
+    constructor Create(ADataSet: TDataSet); override;
+    procedure Update; override;
+  end;
+
 
 { TSQLConnection }
 type
@@ -192,12 +203,15 @@ type
 
     FServerFilterText    : string;
     FServerFiltered      : Boolean;
+    
+    FServerIndexDefs     : TServerIndexDefs;
 
     FUpdateQry,
     FDeleteQry,
     FInsertQry           : TCustomSQLQuery;
 
     procedure FreeFldBuffers;
+    function GetServerIndexDefs: TServerIndexDefs;
     function GetStatementType : TStatementType;
     procedure SetReadOnly(AValue : Boolean);
     procedure SetParseSQL(AValue : Boolean);
@@ -214,7 +228,7 @@ type
     function Fetch : boolean; override;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     // abstract & virtual methods of TDataset
-    procedure UpdateIndexDefs; override;
+    procedure UpdateServerIndexDefs; virtual;
     procedure SetDatabase(Value : TDatabase); override;
     Procedure SetTransaction(Value : TDBTransaction); override;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override;
@@ -287,6 +301,7 @@ type
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
+    property ServerIndexDefs : TServerIndexDefs read GetServerIndexDefs;
   end;
 
 { TSQLQuery }
@@ -336,6 +351,7 @@ type
     Property DataSource;
     property ServerFilter;
     property ServerFiltered;
+    property ServerIndexDefs;
   end;
 
 { TSQLScript }
@@ -904,6 +920,11 @@ begin
   if assigned(FCursor) then TSQLConnection(Database).FreeFldBuffers(FCursor);
 end;
 
+function TCustomSQLQuery.GetServerIndexDefs: TServerIndexDefs;
+begin
+  Result := FServerIndexDefs;
+end;
+
 function TCustomSQLQuery.Fetch : boolean;
 begin
   if not (Fcursor.FStatementType in [stSelect]) then
@@ -1150,14 +1171,13 @@ begin
           begin
           if FusePrimaryKeyAsKey then
             begin
-            UpdateIndexDefs;
-            for tel := 0 to indexdefs.count-1 do {with indexdefs[tel] do}
+            UpdateServerIndexDefs;
+            for tel := 0 to ServerIndexDefs.count-1 do
               begin
-              if ixPrimary in indexdefs[tel].options then
+              if ixPrimary in ServerIndexDefs[tel].options then
                 begin
-                // Todo: If there is more then one field in the key, that must be parsed
                   IndexFields := TStringList.Create;
-                  ExtractStrings([';'],[' '],pchar(indexdefs[tel].fields),IndexFields);
+                  ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
                   for fieldc := 0 to IndexFields.Count-1 do
                     begin
                     F := Findfield(IndexFields[fieldc]);
@@ -1216,6 +1236,8 @@ begin
   FDeleteSQL := TStringList.Create;
   FDeleteSQL.OnChange := @OnChangeModifySQL;
 
+  FServerIndexDefs := TServerIndexDefs.Create(Self);
+
   FReadOnly := false;
   FParseSQL := True;
   
@@ -1239,6 +1261,7 @@ begin
   FreeAndNil(FInsertSQL);
   FreeAndNil(FDeleteSQL);
   FreeAndNil(FUpdateSQL);
+  FServerIndexDefs.Free;
   inherited Destroy;
 end;
 
@@ -1279,12 +1302,12 @@ begin
     end;
 end;
 
-Procedure TCustomSQLQuery.UpdateIndexDefs;
+Procedure TCustomSQLQuery.UpdateServerIndexDefs;
 
 begin
-  Inherited;
+  FServerIndexDefs.Clear;
   if assigned(DataBase) and (FTableName<>'') then
-    TSQLConnection(DataBase).UpdateIndexDefs(IndexDefs,FTableName);
+    TSQLConnection(DataBase).UpdateIndexDefs(ServerIndexDefs,FTableName);
 end;
 
 Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
@@ -1890,6 +1913,24 @@ procedure TConnectionDef.ApplyParams(Params: TStrings;
   AConnection: TSQLConnection);
 begin
   AConnection.Params.Assign(Params);
+end;
+
+{ TServerIndexDefs }
+
+constructor TServerIndexDefs.create(ADataset: TDataset);
+begin
+  if not (ADataset is TCustomSQLQuery) then
+    DatabaseError(SErrNotASQLQuery);
+  inherited create(ADataset);
+end;
+
+procedure TServerIndexDefs.Update;
+begin
+  if (not updated) and assigned(Dataset) then
+    begin
+    TCustomSQLQuery(Dataset).UpdateServerIndexDefs;
+    updated := True;
+    end;
 end;
 
 Initialization

@@ -1164,14 +1164,14 @@ var ds : TSQLQuery;
 begin
   ds := DBConnector.GetNDataset(1) as TSQLQuery;
   ds.Prepare;
-  ds.IndexDefs.Update;
-  AssertEquals(1,ds.IndexDefs.count);
-  AssertTrue(CompareText('ID',ds.indexdefs[0].Fields)=0);
-  Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
-  ds.IndexDefs.Update;
-  AssertEquals(1,ds.IndexDefs.count);
-  AssertTrue(CompareText('ID',ds.indexdefs[0].Fields)=0);
-  Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
+  ds.ServerIndexDefs.Update;
+  AssertEquals(1,ds.ServerIndexDefs.count);
+  AssertTrue(CompareText('ID',ds.ServerIndexDefs[0].Fields)=0);
+  Asserttrue(ds.ServerIndexDefs[0].Options=[ixPrimary,ixUnique]);
+  ds.ServerIndexDefs.Update;
+  AssertEquals(1,ds.ServerIndexDefs.count);
+  AssertTrue(CompareText('ID',ds.ServerIndexDefs[0].Fields)=0);
+  Asserttrue(ds.ServerIndexDefs[0].Options=[ixPrimary,ixUnique]);
 end;
 
 procedure TTestFieldTypes.TestSetBlobAsMemoParam;
@@ -1227,20 +1227,20 @@ var ds : TSQLQuery;
 begin
   ds := DBConnector.GetNDataset(1) as TSQLQuery;
   ds.Open;
-  AssertEquals(1,ds.IndexDefs.count);
-  inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary]);
+  AssertEquals(1,ds.ServerIndexDefs.count);
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary]);
   AssertEquals(1,inddefs.count);
   AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
   Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
-  inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary,ixUnique]);
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixPrimary,ixUnique]);
   AssertEquals(1,inddefs.count);
   AssertTrue(CompareText('ID',inddefs[0].Fields)=0);
   Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
   inddefs.Free;
 
-  inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixDescending]);
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.ServerIndexDefs,[ixDescending]);
   AssertEquals(0,inddefs.count);
   inddefs.Free;
 end;
