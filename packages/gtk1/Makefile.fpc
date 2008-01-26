@@ -14,7 +14,7 @@ units=glib gmodule gdk gtk gdkpixbuf gtkglarea
 exampledirs=examples
 
 [compiler]
-sourcedir=glib gdk gtk gtkgl
+sourcedir=src/glib src/gdk src/gtk src/gtkgl
 
 [install]
 fpcpackage=y
@@ -27,14 +27,14 @@ build=n
 
 [rules]
 .NOTPARALLEL:
-glib$(PPUEXT): $(wildcard glib/glib*.pp)
+glib$(PPUEXT): $(wildcard src/glib/glib*.pp)
 
-gmodule$(PPUEXT): $(wildcard glib/gmodule*.pp) glib$(PPUEXT)
+gmodule$(PPUEXT): $(wildcard src/glib/gmodule*.pp) glib$(PPUEXT)
 
-gdk$(PPUEXT): $(wildcard gdk/gdk*.pp) glib$(PPUEXT)
+gdk$(PPUEXT): $(wildcard src/gdk/gdk*.pp) glib$(PPUEXT)
 
-gdkpixbuf$(PPUEXT): gdk/gdkpixbuf.pp gdk$(PPUEXT)
+gdkpixbuf$(PPUEXT): src/gdk/gdkpixbuf.pp gdk$(PPUEXT)
 
-gtk$(PPUEXT): $(wildcard gtk/gtk*.pp) gdk$(PPUEXT)
+gtk$(PPUEXT): $(wildcard src/gtk/gtk*.pp) gdk$(PPUEXT)
 
-gtkglarea$(PPUEXT): $(wildcard gtkgl/gtkgla*.pp) gdk$(PPUEXT) gtk$(PPUEXT)
+gtkglarea$(PPUEXT): $(wildcard src/gtkgl/gtkgla*.pp) gdk$(PPUEXT) gtk$(PPUEXT)

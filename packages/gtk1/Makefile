@@ -562,163 +562,163 @@ override TARGET_EXAMPLEDIRS+=examples
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_SOURCEDIR+=glib gdk gtk gtkgl
+override COMPILER_SOURCEDIR+=src/glib src/gdk src/gtk src/gtkgl
 endif
 override SHARED_BUILD=n
 override SHARED_BUILD=n
@@ -2508,9 +2508,9 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
-glib$(PPUEXT): $(wildcard glib/glib*.pp)
-gmodule$(PPUEXT): $(wildcard glib/gmodule*.pp) glib$(PPUEXT)
-gdk$(PPUEXT): $(wildcard gdk/gdk*.pp) glib$(PPUEXT)
-gdkpixbuf$(PPUEXT): gdk/gdkpixbuf.pp gdk$(PPUEXT)
-gtk$(PPUEXT): $(wildcard gtk/gtk*.pp) gdk$(PPUEXT)
-gtkglarea$(PPUEXT): $(wildcard gtkgl/gtkgla*.pp) gdk$(PPUEXT) gtk$(PPUEXT)
+glib$(PPUEXT): $(wildcard src/glib/glib*.pp)
+gmodule$(PPUEXT): $(wildcard src/glib/gmodule*.pp) glib$(PPUEXT)
+gdk$(PPUEXT): $(wildcard src/gdk/gdk*.pp) glib$(PPUEXT)
+gdkpixbuf$(PPUEXT): src/gdk/gdkpixbuf.pp gdk$(PPUEXT)
+gtk$(PPUEXT): $(wildcard src/gtk/gtk*.pp) gdk$(PPUEXT)
+gtkglarea$(PPUEXT): $(wildcard src/gtkgl/gtkgla*.pp) gdk$(PPUEXT) gtk$(PPUEXT)

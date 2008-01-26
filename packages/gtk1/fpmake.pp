@@ -17,10 +17,14 @@ begin
     P.Directory:='gtk1';
 {$endif ALLPACKAGES}
     P.Version:='2.0.0';
-    P.SourcePath.Add('gtk');
-    P.SourcePath.Add('gdk');
-    P.SourcePath.Add('glib');
-    P.SourcePath.Add('gtkgl');
+    P.SourcePath.Add('src/gtk');
+    P.SourcePath.Add('src/gdk');
+    P.SourcePath.Add('src/glib');
+    P.SourcePath.Add('src/gtkgl');
+    P.IncludePath.Add('src/gtk');
+    P.IncludePath.Add('src/gdk');
+    P.IncludePath.Add('src/glib');
+    P.IncludePath.Add('src/gtkgl');
 
     T:=P.Targets.AddUnit('gdkpixbuf.pp');
       with T.Dependencies do
