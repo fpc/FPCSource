@@ -878,7 +878,6 @@ packages/base/imagemagick/wand/magick_image.inc svneol=native#text/plain
 packages/base/imagemagick/wand/magick_wand.pas svneol=native#text/plain
 packages/base/imagemagick/wand/pixel_iterator.inc svneol=native#text/plain
 packages/base/imagemagick/wand/pixel_wand.inc svneol=native#text/plain
-packages/base/libc/Makefile svneol=native#text/plain
 packages/base/mysql/ver322/mysql.pp svneol=native#text/plain
 packages/base/mysql/ver322/mysql_com.pp svneol=native#text/plain
 packages/base/mysql/ver322/mysql_version.pp svneol=native#text/plain

@@ -221,13 +221,6 @@ packages/base/gdbint/*.ppu
 packages/base/gdbint/*.s
 packages/base/gdbint/fpcmade.*
 packages/base/gdbint/units
-packages/base/libc/*.bak
-packages/base/libc/*.exe
-packages/base/libc/*.o
-packages/base/libc/*.ppu
-packages/base/libc/*.s
-packages/base/libc/fpcmade.*
-packages/base/libc/units
 packages/base/mysql/*.bak
 packages/base/mysql/*.exe
 packages/base/mysql/*.o
