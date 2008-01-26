@@ -17,10 +17,14 @@ libc=y
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [shared]
 build=n
+
+[compiler]
+includedir=src 
+sourcedir=src tests
 
 [rules]
 .NOTPARALLEL:
