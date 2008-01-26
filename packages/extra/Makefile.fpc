@@ -2,14 +2,11 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 [target]
-dirs=chm
-dirs_linux= fftw \
-            gtk2  \
-           forms svgalib ggi  libgd \
-           utmp bfd    cdrom \
+dirs_linux= fftw forms svgalib ggi  libgd \
+           utmp  cdrom \
            imlib gnome1 fpgtk newt  \
-          openal  oggvorbis a52 \
-            openssl pcap   aspell
+          openal  oggvorbis  \
+            openssl pcap   
 dirs_i386_linux= lua sdl graph
 dirs_x86_64_linux=sdl graph
 dirs_powerpc_linux=sdl graph
@@ -17,48 +14,40 @@ dirs_powerpc64_linux=graph
 dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
-dirs_netbsd= \
-              \
-            forms svgalib ggi  libgd \
-            utmp bfd   fpgtk \
-             imlib gnome1 openssl pcap  aspell
+dirs_netbsd= forms svgalib ggi  libgd \
+            utmp    fpgtk \
+             imlib gnome1 openssl pcap  
 dirs_freebsd= fftw \
-              gtk2  \
              forms svgalib ggi  libgd \
-             utmp bfd   fpgtk \
-              imlib gnome1 openssl pcap   sdl graph aspell
+             utmp    fpgtk \
+              imlib gnome1 openssl pcap   sdl graph 
 dirs_openbsd= \
-               \
              forms svgalib ggi  libgd \
-             utmp bfd   fpgtk \
-              imlib gnome1 openssl pcap   aspell
+             utmp    fpgtk \
+              imlib gnome1 openssl pcap   
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
-dirs_win32= gtk2  cdrom fpgtk fftw \
-              openal oggvorbis a52  openssl pcap sdl lua graph
-dirs_win64= gtk2  cdrom fpgtk fftw openssl sdl
+dirs_win32=   cdrom fpgtk fftw \
+              openal oggvorbis   openssl pcap sdl lua graph
+dirs_win64=   cdrom fpgtk fftw openssl sdl
 dirs_wince=  fftw
 dirs_os2=os2units \
          rexx \
-         \
          imlib fpgtk
 dirs_emx=os2units \
          rexx \
-         \
          imlib fpgtk
 dirs_go32v2= graph
 dirs_amiga=amunits
 dirs_palmos=palmunits
 dirs_darwin=  fftw \
-              gtk2  \
              forms  libgd \
-             utmp bfd   fpgtk  imlib gnome1 \
-             openssl   aspell
+             utmp    fpgtk  imlib gnome1 \
+             openssl   
 dirs_powerpc_darwin=univint sdl graph
 dirs_i386_darwin=univint sdl graph
 dirs_solaris= fftw \
-              gtk2  \
              forms svgalib ggi  libgd \
-             utmp bfd   fpgtk  imlib gnome1 \
+             utmp    fpgtk  imlib gnome1 \
              openssl pcap  
 dirs_beos=graph
 
