@@ -241,76 +241,70 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=gdbint          httpd
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=gdbint
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=gdbint       httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=gdbint         httpd
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=gdbint
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=gdbint       httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=gdbint       httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=gdbint          httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=gdbint         httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=gdbint       httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=gdbint       httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=gdbint          httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=gdbint       httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=gdbint          httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=gdbint       httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=gdbint          httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=gdbint         httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=gdbint          httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=gdbint          httpd
+override TARGET_DIRS+=httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=httpd
@@ -1395,141 +1389,73 @@ fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIR
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-TARGET_DIRS_GDBINT=1
-endif
 ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),i386-beos)
-TARGET_DIRS_GDBINT=1
-endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-TARGET_DIRS_GDBINT=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_HTTPD=1
-endif
-ifdef TARGET_DIRS_GDBINT
-gdbint_all:
-	$(MAKE) -C gdbint all
-gdbint_debug:
-	$(MAKE) -C gdbint debug
-gdbint_smart:
-	$(MAKE) -C gdbint smart
-gdbint_release:
-	$(MAKE) -C gdbint release
-gdbint_units:
-	$(MAKE) -C gdbint units
-gdbint_examples:
-	$(MAKE) -C gdbint examples
-gdbint_shared:
-	$(MAKE) -C gdbint shared
-gdbint_install:
-	$(MAKE) -C gdbint install
-gdbint_sourceinstall:
-	$(MAKE) -C gdbint sourceinstall
-gdbint_exampleinstall:
-	$(MAKE) -C gdbint exampleinstall
-gdbint_distinstall:
-	$(MAKE) -C gdbint distinstall
-gdbint_zipinstall:
-	$(MAKE) -C gdbint zipinstall
-gdbint_zipsourceinstall:
-	$(MAKE) -C gdbint zipsourceinstall
-gdbint_zipexampleinstall:
-	$(MAKE) -C gdbint zipexampleinstall
-gdbint_zipdistinstall:
-	$(MAKE) -C gdbint zipdistinstall
-gdbint_clean:
-	$(MAKE) -C gdbint clean
-gdbint_distclean:
-	$(MAKE) -C gdbint distclean
-gdbint_cleanall:
-	$(MAKE) -C gdbint cleanall
-gdbint_info:
-	$(MAKE) -C gdbint info
-gdbint_makefiles:
-	$(MAKE) -C gdbint makefiles
-gdbint:
-	$(MAKE) -C gdbint all
-.PHONY: gdbint_all gdbint_debug gdbint_smart gdbint_release gdbint_units gdbint_examples gdbint_shared gdbint_install gdbint_sourceinstall gdbint_exampleinstall gdbint_distinstall gdbint_zipinstall gdbint_zipsourceinstall gdbint_zipexampleinstall gdbint_zipdistinstall gdbint_clean gdbint_distclean gdbint_cleanall gdbint_info gdbint_makefiles gdbint
 endif
 ifdef TARGET_DIRS_HTTPD
 httpd_all:

@@ -3,13 +3,11 @@
 #
 
 [target]
-dirs_linux=gdbint          httpd
-dirs_win32=gdbint       httpd 
-dirs_go32v2=gdbint
-dirs_netbsd=gdbint       httpd
-dirs_openbsd=gdbint       httpd
-dirs_beos=gdbint       
-dirs_freebsd=gdbint         httpd
+dirs_linux=          httpd
+dirs_win32=       httpd 
+dirs_netbsd=       httpd
+dirs_openbsd=       httpd
+dirs_freebsd=         httpd
 dirs_darwin=        httpd
 dirs_solaris=        httpd
 

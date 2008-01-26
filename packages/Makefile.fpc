@@ -5,14 +5,22 @@
 [target]
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 dirs_linux_i386=libc  
-dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick
-dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick
-dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick
-dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick
-dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick
-dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick
-dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick
-dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick 
+dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+               gdbint
+dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+               gdbint
+dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+               gdbint
+dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+               gdbint
+dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
+               gdbint
+dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
+               gdbint
+dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
+               gdbint
+dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
+               gdbint 
 dirs_wince=fcl-web ibase mysql
 dirs_os2=zlib
 dirs_emx=zlib
