@@ -1164,7 +1164,6 @@ packages/extra/forms/fd2pascal.pp svneol=native#text/plain
 packages/extra/forms/fpmake.inc svneol=native#text/plain
 packages/extra/forms/fpmake.pp svneol=native#text/plain
 packages/extra/forms/xforms.pp svneol=native#text/plain
-packages/extra/fpgtk/fpmake.inc svneol=native#text/plain
 packages/extra/gbaunits/Makefile -text
 packages/extra/gbaunits/Makefile.fpc -text
 packages/extra/gbaunits/bios_asm.as -text
@@ -1557,15 +1556,6 @@ packages/extra/lua/fpmake.pp svneol=native#text/plain
 packages/extra/lua/lauxlib.pas svneol=native#text/plain
 packages/extra/lua/lua.pas svneol=native#text/plain
 packages/extra/lua/lualib.pas svneol=native#text/plain
-packages/extra/newt/Makefile svneol=native#text/plain
-packages/extra/newt/Makefile.fpc svneol=native#text/plain
-packages/extra/newt/README -text
-packages/extra/newt/fpmake.inc svneol=native#text/plain
-packages/extra/newt/fpmake.pp svneol=native#text/plain
-packages/extra/newt/newt.pp svneol=native#text/plain
-packages/extra/newt/newt1.pas svneol=native#text/plain
-packages/extra/newt/newt2.pas svneol=native#text/plain
-packages/extra/newt/newt3.pas svneol=native#text/plain
 packages/extra/numlib/Makefile svneol=native#text/plain
 packages/extra/numlib/Makefile.fpc svneol=native#text/plain
 packages/extra/numlib/det.pas svneol=native#text/plain
@@ -4139,7 +4129,7 @@ packages/ncurses/src/pxpic.txt svneol=native#text/plain
 packages/ncurses/tests/testn.pp svneol=native#text/plain
 packages/newt/Makefile svneol=native#text/plain
 packages/newt/Makefile.fpc svneol=native#text/plain
-packages/newt/examples/README svneol=native#text/plain
+packages/newt/README svneol=native#text/plain
 packages/newt/examples/newt1.pas svneol=native#text/plain
 packages/newt/examples/newt2.pas svneol=native#text/plain
 packages/newt/examples/newt3.pas svneol=native#text/plain

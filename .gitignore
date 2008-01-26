@@ -622,13 +622,6 @@ packages/extra/forms/fd2pascal
 packages/extra/forms/fpcmade.*
 packages/extra/forms/units
 packages/extra/fpcmade.*
-packages/extra/fpgtk/*.bak
-packages/extra/fpgtk/*.exe
-packages/extra/fpgtk/*.o
-packages/extra/fpgtk/*.ppu
-packages/extra/fpgtk/*.s
-packages/extra/fpgtk/fpcmade.*
-packages/extra/fpgtk/units
 packages/extra/gbaunits/*.bat
 packages/extra/ggi/*.bak
 packages/extra/ggi/*.exe
@@ -772,13 +765,6 @@ packages/extra/libgd/*.ppu
 packages/extra/libgd/*.s
 packages/extra/libgd/fpcmade.*
 packages/extra/libgd/units
-packages/extra/newt/*.bak
-packages/extra/newt/*.exe
-packages/extra/newt/*.o
-packages/extra/newt/*.ppu
-packages/extra/newt/*.s
-packages/extra/newt/fpcmade.*
-packages/extra/newt/units
 packages/extra/numlib/*.bak
 packages/extra/numlib/*.exe
 packages/extra/numlib/*.o
