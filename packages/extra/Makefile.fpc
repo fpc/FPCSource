@@ -3,7 +3,7 @@
 #
 [target]
 dirs=chm
-dirs_linux=unzip zlib fftw \
+dirs_linux= zlib fftw \
            x11 opengl gtk gtk2 syslog \
            forms svgalib ggi libpng libgd \
            utmp bfd gdbm  tcl cdrom \
@@ -17,53 +17,53 @@ dirs_powerpc64_linux=graph
 dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
-dirs_netbsd=unzip zlib \
+dirs_netbsd= zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
             utmp bfd gdbm  fpgtk \
             tcl imlib gnome1 openssl pcap libcurl cairo aspell
-dirs_freebsd=unzip zlib fftw \
+dirs_freebsd= zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm  fpgtk \
              tcl imlib gnome1 openssl pcap libcurl cairo sdl graph aspell
-dirs_openbsd=unzip zlib \
+dirs_openbsd= zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm  fpgtk \
              tcl imlib gnome1 openssl pcap libcurl cairo aspell
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
-dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk fftw \
+dirs_win32= opengl gtk gtk2 zlib tcl cdrom fpgtk fftw \
              mad openal oggvorbis a52 libpng openssl pcap sdl lua graph
-dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk fftw openssl sdl
-dirs_wince=unzip zlib tcl fftw
+dirs_win64= opengl gtk gtk2 zlib tcl cdrom fpgtk fftw openssl sdl
+dirs_wince= zlib tcl fftw
 dirs_os2=os2units \
          rexx \
-         unzip zlib \
+          zlib \
          x11 gtk \
          libpng \
          tcl \
          imlib fpgtk
 dirs_emx=os2units \
          rexx \
-         unzip zlib \
+          zlib \
          x11 gtk \
          libpng \
          tcl \
          imlib fpgtk
-dirs_go32v2=unzip graph
+dirs_go32v2= graph
 dirs_amiga=amunits
 dirs_palmos=palmunits
-dirs_netware=unzip zlib
-dirs_netwlibc=unzip zlib
-dirs_darwin= unzip zlib fftw \
+dirs_netware= zlib
+dirs_netwlibc= zlib
+dirs_darwin=  zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms libpng libgd \
              utmp bfd gdbm  fpgtk tcl imlib gnome1 \
              openssl libcurl cairo aspell
 dirs_powerpc_darwin=univint sdl graph
 dirs_i386_darwin=univint sdl graph
-dirs_solaris= unzip zlib fftw \
+dirs_solaris=  zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm  fpgtk tcl imlib gnome1 \

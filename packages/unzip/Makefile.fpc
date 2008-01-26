@@ -11,11 +11,15 @@ units=ziptypes unzip
 units_emx=unzipdll
 units_os2=unzipdll
 
+[compiler]
+includedir=src
+sourcedir=src tests
+
 [install]
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
