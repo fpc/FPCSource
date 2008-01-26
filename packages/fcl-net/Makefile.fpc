@@ -8,7 +8,7 @@ version=2.0.0
 
 [target]
 units=servlets
-units_linux=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_linux=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
 units_freebsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
 units_netbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
 units_openbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
@@ -16,11 +16,11 @@ units_darwin=netdb resolve ssockets
 units_solaris=netdb resolve ssockets 
 units_qnx=netdb resolve ssockets 
 units_beos=netdb resolve ssockets 
-units_emx=netdb resolve ssockets 
-units_os2=netdb resolve ssockets 
-units_win32=netdb resolve ssockets 
-units_win64=netdb resolve ssockets 
-units_wince=netdb resolve ssockets 
+units_emx=resolve ssockets 
+units_os2=resolve ssockets 
+units_win32=resolve ssockets 
+units_win64=resolve ssockets 
+units_wince=resolve ssockets 
 programs_linux=mkxmlrpc
 programs_freebsd=mkxmlrpc
 programs_darwin=mkxmlrpc
