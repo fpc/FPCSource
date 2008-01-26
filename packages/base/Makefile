@@ -241,163 +241,88 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=regexpr  gdbint
+override TARGET_DIRS+=gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=regexpr  gdbint   sqlite postgres  imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=gdbint   sqlite postgres  imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=gdbint   postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=regexpr  gdbint   postgres  sqlite pthreads imagemagick
+override TARGET_DIRS+=gdbint   postgres  sqlite pthreads imagemagick
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=regexpr  postgres   sqlite pthreads imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=regexpr  postgres   sqlite pthreads imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=regexpr  sqlite postgres
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=sqlite postgres
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=gdbint   postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=regexpr  postgres   sqlite pthreads imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   imagemagick httpd
+override TARGET_DIRS+=gdbint   postgres   imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=regexpr  postgres   sqlite pthreads imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=gdbint   postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=regexpr  postgres   sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=regexpr  sqlite postgres
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=sqlite postgres
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres   pthreads sqlite imagemagick  httpd
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=regexpr  sqlite postgres
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=regexpr
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=sqlite postgres
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres   pthreads sqlite imagemagick  httpd
+override TARGET_DIRS+=gdbint   postgres   pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=regexpr  postgres   sqlite pthreads imagemagick httpd
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=regexpr
+override TARGET_DIRS+=postgres   sqlite pthreads imagemagick httpd
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/base
@@ -1479,7 +1404,6 @@ fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIR
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
@@ -1488,22 +1412,16 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),i386-os2)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
@@ -1512,7 +1430,6 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
@@ -1520,66 +1437,36 @@ TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),i386-qnx)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),i386-darwin)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),i386-emx)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),i386-wince)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),m68k-linux)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
@@ -1588,7 +1475,6 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
@@ -1597,33 +1483,18 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-TARGET_DIRS_REGEXPR=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
@@ -1632,34 +1503,19 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),sparc-linux)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
@@ -1668,25 +1524,19 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
@@ -1695,7 +1545,6 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
@@ -1704,7 +1553,6 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1712,15 +1560,10 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
@@ -1728,28 +1571,11 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),arm-wince)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 endif
-ifeq ($(FULL_TARGET),arm-gba)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-TARGET_DIRS_REGEXPR=1
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-TARGET_DIRS_REGEXPR=1
-endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_PTHREADS=1
@@ -1758,60 +1584,11 @@ TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-TARGET_DIRS_REGEXPR=1
-endif
-ifdef TARGET_DIRS_REGEXPR
-regexpr_all:
-	$(MAKE) -C regexpr all
-regexpr_debug:
-	$(MAKE) -C regexpr debug
-regexpr_smart:
-	$(MAKE) -C regexpr smart
-regexpr_release:
-	$(MAKE) -C regexpr release
-regexpr_units:
-	$(MAKE) -C regexpr units
-regexpr_examples:
-	$(MAKE) -C regexpr examples
-regexpr_shared:
-	$(MAKE) -C regexpr shared
-regexpr_install:
-	$(MAKE) -C regexpr install
-regexpr_sourceinstall:
-	$(MAKE) -C regexpr sourceinstall
-regexpr_exampleinstall:
-	$(MAKE) -C regexpr exampleinstall
-regexpr_distinstall:
-	$(MAKE) -C regexpr distinstall
-regexpr_zipinstall:
-	$(MAKE) -C regexpr zipinstall
-regexpr_zipsourceinstall:
-	$(MAKE) -C regexpr zipsourceinstall
-regexpr_zipexampleinstall:
-	$(MAKE) -C regexpr zipexampleinstall
-regexpr_zipdistinstall:
-	$(MAKE) -C regexpr zipdistinstall
-regexpr_clean:
-	$(MAKE) -C regexpr clean
-regexpr_distclean:
-	$(MAKE) -C regexpr distclean
-regexpr_cleanall:
-	$(MAKE) -C regexpr cleanall
-regexpr_info:
-	$(MAKE) -C regexpr info
-regexpr_makefiles:
-	$(MAKE) -C regexpr makefiles
-regexpr:
-	$(MAKE) -C regexpr all
-.PHONY: regexpr_all regexpr_debug regexpr_smart regexpr_release regexpr_units regexpr_examples regexpr_shared regexpr_install regexpr_sourceinstall regexpr_exampleinstall regexpr_distinstall regexpr_zipinstall regexpr_zipsourceinstall regexpr_zipexampleinstall regexpr_zipdistinstall regexpr_clean regexpr_distclean regexpr_cleanall regexpr_info regexpr_makefiles regexpr
 endif
 ifdef TARGET_DIRS_GDBINT
 gdbint_all:

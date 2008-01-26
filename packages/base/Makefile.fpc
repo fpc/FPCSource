@@ -3,7 +3,6 @@
 #
 
 [target]
-dirs=regexpr
 dirs_linux=gdbint   postgres   pthreads sqlite imagemagick  httpd
 dirs_win32=gdbint   sqlite postgres  imagemagick httpd 
 dirs_win64=   sqlite postgres  
