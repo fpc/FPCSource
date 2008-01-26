@@ -5,16 +5,46 @@ program fpmake;
 uses fpmkunit;
 
 Var
-  T : TTarget;
-
+  TBuild,T : TTarget;
+  P : TPackage;
+  I : Integer;
 begin
-  With Installer do 
+  With Installer do
     begin
-    { Base packages }
-    {$i base/fpmake.inc}
 
-    { Extra packages}
-    {$i extra/fpmake.inc}
+{$include dbus/fpmake.pp}
+{$include fcl-async/fpmake.pp}
+{$include fcl-base/fpmake.pp}
+{$include fcl-fpcunit/fpmake.pp}
+{$include fcl-image/fpmake.pp}
+{$include fcl-json/fpmake.pp}
+{$include fcl-net/fpmake.pp}
+{$include fcl-passrc/fpmake.pp}
+{$include fcl-process/fpmake.pp}
+{$include fcl-web/fpmake.pp}
+{$include fcl-xml/fpmake.pp}
+{$include fpmkunit/fpmake.pp}
+{$include gdbint/fpmake.pp}
+{$include hash/fpmake.pp}
+{$include ibase/fpmake.pp}
+{$include imagemagick/fpmake.pp}
+{$include libc/fpmake.pp}
+{$include libpng/fpmake.pp}
+{$include mysql/fpmake.pp}
+{$include ncurses/fpmake.pp}
+{$include odbc/fpmake.pp}
+{$include oracle/fpmake.pp}
+{$include pasjpeg/fpmake.pp}
+{$include paszlib/fpmake.pp}
+{$include postgres/fpmake.pp}
+{$include pthreads/fpmake.pp}
+{$include regexpr/fpmake.pp}
+{$include sqlite/fpmake.pp}
+{$include unzip/fpmake.pp}
+{$include winunits-base/fpmake.pp}
+{$include winunits-jedi/fpmake.pp}
+{$include zlib/fpmake.pp}
+
     Run;
     end;
 end.
