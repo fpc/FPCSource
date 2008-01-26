@@ -241,7 +241,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell lua sdl graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell lua sdl graph
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=chm  graph
@@ -298,7 +298,7 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo sdl graph aspell
@@ -322,7 +322,7 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell sdl graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell sdl graph
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=chm  opengl gtk syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo aspell
@@ -343,7 +343,7 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=chm  opengl gtk syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo aspell
@@ -355,7 +355,7 @@ ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell sdl graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell sdl graph
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo sdl graph aspell
@@ -370,7 +370,7 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=chm  palmunits
@@ -391,7 +391,7 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt uuid ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  ldap openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl libcurl cairo aspell
@@ -1498,7 +1498,6 @@ TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
-TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
@@ -1723,7 +1722,6 @@ TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
-TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
@@ -1842,7 +1840,6 @@ TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
-TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
@@ -1937,7 +1934,6 @@ TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
-TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
@@ -2020,7 +2016,6 @@ TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
-TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
@@ -2118,7 +2113,6 @@ TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
-TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
@@ -2174,7 +2168,6 @@ TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
-TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
@@ -3067,51 +3060,6 @@ newt_makefiles:
 newt:
 	$(MAKE) -C newt all
 .PHONY: newt_all newt_debug newt_smart newt_release newt_units newt_examples newt_shared newt_install newt_sourceinstall newt_exampleinstall newt_distinstall newt_zipinstall newt_zipsourceinstall newt_zipexampleinstall newt_zipdistinstall newt_clean newt_distclean newt_cleanall newt_info newt_makefiles newt
-endif
-ifdef TARGET_DIRS_UUID
-uuid_all:
-	$(MAKE) -C uuid all
-uuid_debug:
-	$(MAKE) -C uuid debug
-uuid_smart:
-	$(MAKE) -C uuid smart
-uuid_release:
-	$(MAKE) -C uuid release
-uuid_units:
-	$(MAKE) -C uuid units
-uuid_examples:
-	$(MAKE) -C uuid examples
-uuid_shared:
-	$(MAKE) -C uuid shared
-uuid_install:
-	$(MAKE) -C uuid install
-uuid_sourceinstall:
-	$(MAKE) -C uuid sourceinstall
-uuid_exampleinstall:
-	$(MAKE) -C uuid exampleinstall
-uuid_distinstall:
-	$(MAKE) -C uuid distinstall
-uuid_zipinstall:
-	$(MAKE) -C uuid zipinstall
-uuid_zipsourceinstall:
-	$(MAKE) -C uuid zipsourceinstall
-uuid_zipexampleinstall:
-	$(MAKE) -C uuid zipexampleinstall
-uuid_zipdistinstall:
-	$(MAKE) -C uuid zipdistinstall
-uuid_clean:
-	$(MAKE) -C uuid clean
-uuid_distclean:
-	$(MAKE) -C uuid distclean
-uuid_cleanall:
-	$(MAKE) -C uuid cleanall
-uuid_info:
-	$(MAKE) -C uuid info
-uuid_makefiles:
-	$(MAKE) -C uuid makefiles
-uuid:
-	$(MAKE) -C uuid all
-.PHONY: uuid_all uuid_debug uuid_smart uuid_release uuid_units uuid_examples uuid_shared uuid_install uuid_sourceinstall uuid_exampleinstall uuid_distinstall uuid_zipinstall uuid_zipsourceinstall uuid_zipexampleinstall uuid_zipdistinstall uuid_clean uuid_distclean uuid_cleanall uuid_info uuid_makefiles uuid
 endif
 ifdef TARGET_DIRS_LDAP
 ldap_all:

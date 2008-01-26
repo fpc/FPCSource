@@ -1,0 +1,32 @@
+#
+#   Makefile.fpc for gdbm bindings
+#
+
+[package]
+name=uuid
+version=2.0.0
+
+[target]
+units=macuuid libuuid
+examples=testuid testlibuid
+
+[require]
+package=rtl
+
+[install]
+examplesubdir=tests
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+unitdir=units/$(OS_TARGET)
+
+[rules]
+.NOTPARALLEL:
+#testuid$(EXEEXT): testuid.pp uuid$(PPUEXT)
+
+testlibuid$(EXEEXT): testlibuid.pp libuuid$(PPUEXT)
