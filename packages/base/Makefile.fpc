@@ -5,7 +5,7 @@
 [target]
 dirs=regexpr
 dirs_i386_linux=libc
-dirs_linux=gdbint   postgres  odbc pthreads sqlite imagemagick dbus httpd
+dirs_linux=gdbint   postgres  odbc pthreads sqlite imagemagick  httpd
 dirs_win32=gdbint   odbc sqlite postgres  imagemagick httpd 
 dirs_win64=  odbc sqlite postgres  
 dirs_wince= sqlite postgres

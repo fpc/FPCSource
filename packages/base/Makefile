@@ -241,28 +241,28 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd libc
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc pthreads sqlite imagemagick  httpd libc
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=regexpr  gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=regexpr  gdbint   odbc sqlite postgres oracle imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   odbc sqlite postgres  imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=regexpr  gdbint   postgres odbc sqlite pthreads imagemagick
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=regexpr  postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 override TARGET_DIRS+=regexpr
@@ -271,13 +271,13 @@ ifeq ($(FULL_TARGET),i386-netware)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=regexpr  postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 override TARGET_DIRS+=regexpr
@@ -298,13 +298,13 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=regexpr
@@ -313,7 +313,7 @@ ifeq ($(FULL_TARGET),m68k-atari)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=regexpr
@@ -322,10 +322,10 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_DIRS+=regexpr
@@ -334,7 +334,7 @@ ifeq ($(FULL_TARGET),powerpc-macos)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=regexpr  postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_DIRS+=regexpr
@@ -343,34 +343,34 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=regexpr  postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=regexpr  postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=regexpr  odbc sqlite postgres oracle
+override TARGET_DIRS+=regexpr  odbc sqlite postgres
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=regexpr
@@ -391,10 +391,10 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=regexpr  gdbint   postgres oracle odbc pthreads sqlite imagemagick dbus httpd
+override TARGET_DIRS+=regexpr  gdbint   postgres  odbc pthreads sqlite imagemagick  httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=regexpr  postgres oracle odbc sqlite pthreads imagemagick httpd
+override TARGET_DIRS+=regexpr  postgres  odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_DIRS+=regexpr
@@ -1482,12 +1482,10 @@ ifeq ($(FULL_TARGET),i386-linux)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
-TARGET_DIRS_DBUS=1
 TARGET_DIRS_HTTPD=1
 TARGET_DIRS_LIBC=1
 endif
@@ -1501,7 +1499,6 @@ TARGET_DIRS_GDBINT=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
 endif
@@ -1512,7 +1509,6 @@ ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1532,7 +1528,6 @@ ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
@@ -1540,7 +1535,6 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1557,7 +1551,6 @@ ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
@@ -1568,7 +1561,6 @@ endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1599,19 +1591,16 @@ ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
-TARGET_DIRS_DBUS=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1622,7 +1611,6 @@ ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
@@ -1637,7 +1625,6 @@ ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
@@ -1652,19 +1639,16 @@ ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
-TARGET_DIRS_DBUS=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
@@ -1678,7 +1662,6 @@ endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1695,19 +1678,16 @@ ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
-TARGET_DIRS_DBUS=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_HTTPD=1
@@ -1715,7 +1695,6 @@ endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1729,19 +1708,16 @@ ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
-TARGET_DIRS_DBUS=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1751,7 +1727,6 @@ endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1763,7 +1738,6 @@ TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_REGEXPR=1
@@ -1772,12 +1746,10 @@ ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
-TARGET_DIRS_DBUS=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
@@ -1804,18 +1776,15 @@ ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
-TARGET_DIRS_DBUS=1
 TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
@@ -1959,51 +1928,6 @@ postgres_makefiles:
 postgres:
 	$(MAKE) -C postgres all
 .PHONY: postgres_all postgres_debug postgres_smart postgres_release postgres_units postgres_examples postgres_shared postgres_install postgres_sourceinstall postgres_exampleinstall postgres_distinstall postgres_zipinstall postgres_zipsourceinstall postgres_zipexampleinstall postgres_zipdistinstall postgres_clean postgres_distclean postgres_cleanall postgres_info postgres_makefiles postgres
-endif
-ifdef TARGET_DIRS_ORACLE
-oracle_all:
-	$(MAKE) -C oracle all
-oracle_debug:
-	$(MAKE) -C oracle debug
-oracle_smart:
-	$(MAKE) -C oracle smart
-oracle_release:
-	$(MAKE) -C oracle release
-oracle_units:
-	$(MAKE) -C oracle units
-oracle_examples:
-	$(MAKE) -C oracle examples
-oracle_shared:
-	$(MAKE) -C oracle shared
-oracle_install:
-	$(MAKE) -C oracle install
-oracle_sourceinstall:
-	$(MAKE) -C oracle sourceinstall
-oracle_exampleinstall:
-	$(MAKE) -C oracle exampleinstall
-oracle_distinstall:
-	$(MAKE) -C oracle distinstall
-oracle_zipinstall:
-	$(MAKE) -C oracle zipinstall
-oracle_zipsourceinstall:
-	$(MAKE) -C oracle zipsourceinstall
-oracle_zipexampleinstall:
-	$(MAKE) -C oracle zipexampleinstall
-oracle_zipdistinstall:
-	$(MAKE) -C oracle zipdistinstall
-oracle_clean:
-	$(MAKE) -C oracle clean
-oracle_distclean:
-	$(MAKE) -C oracle distclean
-oracle_cleanall:
-	$(MAKE) -C oracle cleanall
-oracle_info:
-	$(MAKE) -C oracle info
-oracle_makefiles:
-	$(MAKE) -C oracle makefiles
-oracle:
-	$(MAKE) -C oracle all
-.PHONY: oracle_all oracle_debug oracle_smart oracle_release oracle_units oracle_examples oracle_shared oracle_install oracle_sourceinstall oracle_exampleinstall oracle_distinstall oracle_zipinstall oracle_zipsourceinstall oracle_zipexampleinstall oracle_zipdistinstall oracle_clean oracle_distclean oracle_cleanall oracle_info oracle_makefiles oracle
 endif
 ifdef TARGET_DIRS_ODBC
 odbc_all:
@@ -2184,51 +2108,6 @@ imagemagick_makefiles:
 imagemagick:
 	$(MAKE) -C imagemagick all
 .PHONY: imagemagick_all imagemagick_debug imagemagick_smart imagemagick_release imagemagick_units imagemagick_examples imagemagick_shared imagemagick_install imagemagick_sourceinstall imagemagick_exampleinstall imagemagick_distinstall imagemagick_zipinstall imagemagick_zipsourceinstall imagemagick_zipexampleinstall imagemagick_zipdistinstall imagemagick_clean imagemagick_distclean imagemagick_cleanall imagemagick_info imagemagick_makefiles imagemagick
-endif
-ifdef TARGET_DIRS_DBUS
-dbus_all:
-	$(MAKE) -C dbus all
-dbus_debug:
-	$(MAKE) -C dbus debug
-dbus_smart:
-	$(MAKE) -C dbus smart
-dbus_release:
-	$(MAKE) -C dbus release
-dbus_units:
-	$(MAKE) -C dbus units
-dbus_examples:
-	$(MAKE) -C dbus examples
-dbus_shared:
-	$(MAKE) -C dbus shared
-dbus_install:
-	$(MAKE) -C dbus install
-dbus_sourceinstall:
-	$(MAKE) -C dbus sourceinstall
-dbus_exampleinstall:
-	$(MAKE) -C dbus exampleinstall
-dbus_distinstall:
-	$(MAKE) -C dbus distinstall
-dbus_zipinstall:
-	$(MAKE) -C dbus zipinstall
-dbus_zipsourceinstall:
-	$(MAKE) -C dbus zipsourceinstall
-dbus_zipexampleinstall:
-	$(MAKE) -C dbus zipexampleinstall
-dbus_zipdistinstall:
-	$(MAKE) -C dbus zipdistinstall
-dbus_clean:
-	$(MAKE) -C dbus clean
-dbus_distclean:
-	$(MAKE) -C dbus distclean
-dbus_cleanall:
-	$(MAKE) -C dbus cleanall
-dbus_info:
-	$(MAKE) -C dbus info
-dbus_makefiles:
-	$(MAKE) -C dbus makefiles
-dbus:
-	$(MAKE) -C dbus all
-.PHONY: dbus_all dbus_debug dbus_smart dbus_release dbus_units dbus_examples dbus_shared dbus_install dbus_sourceinstall dbus_exampleinstall dbus_distinstall dbus_zipinstall dbus_zipsourceinstall dbus_zipexampleinstall dbus_zipdistinstall dbus_clean dbus_distclean dbus_cleanall dbus_info dbus_makefiles dbus
 endif
 ifdef TARGET_DIRS_HTTPD
 httpd_all:
