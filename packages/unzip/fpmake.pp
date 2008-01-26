@@ -25,7 +25,7 @@ begin
           AddUnit('ziptypes');
         end;
     T:=P.Targets.AddUnit('ziptypes.pp');
-//    T:=P.Targets.AddUnit('unzipdll.pp',[emx,os2]);
+    T:=P.Targets.AddUnit('unzipdll.pp',[emx,os2]);
 {$ifndef ALLPACKAGES}
     Run;
     end;
