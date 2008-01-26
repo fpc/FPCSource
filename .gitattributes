@@ -4266,6 +4266,7 @@ packages/hash/src/uuid.pas svneol=native#text/plain
 packages/ibase/Makefile svneol=native#text/plain
 packages/ibase/Makefile.fpc svneol=native#text/plain
 packages/ibase/README svneol=native#text/plain
+packages/ibase/fpmake.pp svneol=native#text/plain
 packages/ibase/scripts/mkdb svneol=native#text/plain
 packages/ibase/scripts/mkdb.bat svneol=native#text/plain
 packages/ibase/scripts/mkdb.sqd svneol=native#text/plain
