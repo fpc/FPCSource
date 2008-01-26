@@ -1385,12 +1385,6 @@ packages/extra/hermes/p_i8.inc -text
 packages/extra/hermes/p_muhmu.inc -text
 packages/extra/hermes/palette.inc -text
 packages/extra/hermes/utility.inc -text
-packages/extra/imlib/Makefile svneol=native#text/plain
-packages/extra/imlib/Makefile.fpc svneol=native#text/plain
-packages/extra/imlib/fpmake.inc svneol=native#text/plain
-packages/extra/imlib/fpmake.pp svneol=native#text/plain
-packages/extra/imlib/gdk_imlib/gdk_imlib.pp svneol=native#text/plain
-packages/extra/imlib/imlib/imlib.pp svneol=native#text/plain
 packages/extra/libgd/Makefile svneol=native#text/plain
 packages/extra/libgd/Makefile.fpc svneol=native#text/plain
 packages/extra/libgd/README -text
