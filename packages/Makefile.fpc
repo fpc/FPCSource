@@ -4,14 +4,14 @@
 
 [target]
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip
-dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib
-dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib
-dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib
-dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib
-dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib
-dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib
-dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib
-dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib
+dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle
+dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle
+dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle
+dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle
+dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle
+dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle
+dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle
+dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle
 dirs_wince=fcl-web ibase mysql
 dirs_os2=zlib
 dirs_emx=zlib
@@ -98,17 +98,17 @@ fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 
-fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all
+fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all 
 fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
 fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
 fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
 fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
 
-fcl-db_all: fcl-base_all mysql_all ibase_all
-fcl-db_debug: fcl-base_debug mysql_debug ibase_debug
-fcl-db_smart: fcl-base_smart mysql_smart ibase_smart
-fcl-db_release: fcl-base_release mysql_release ibase_release
-fcl-db_shared: fcl-base_shared mysql_shared ibase_shared
+fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all
+fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug
+fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart
+fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release
+fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared
 
 fcl_all: fcl-base_all fcl-xml_all fcl-fpcunit_all fcl-db_all fcl-web_all fcl-registry_all fcl-passrc_all fcl-image_all fcl-net_all fcl-json_all
 fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_debug fcl-registry_debug fcl-passrc_debug fcl-image_debug fcl-net_debug fcl-json_debug

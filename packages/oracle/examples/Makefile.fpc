@@ -13,7 +13,7 @@ packages=oracle fcl-base fcl-db fcl-xml
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 # in libdir variable must be path to libraries
 # libclntsh.*,libnlsrtl3.*

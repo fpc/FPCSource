@@ -8,7 +8,7 @@ version=2.0.0
 
 [target]
 units=oci ocidyn oratypes oraoci
-exampledirs=example
+exampledirs=examples
 
 [require]
 libc=y
@@ -17,7 +17,11 @@ libc=y
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
 
 # in libdir variable must be path to libraries
 # libclntsh.*,libnlsrtl3.*
