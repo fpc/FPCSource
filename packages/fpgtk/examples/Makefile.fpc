@@ -15,7 +15,7 @@ units=lister
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 [rules]
 .NOTPARALLEL:
