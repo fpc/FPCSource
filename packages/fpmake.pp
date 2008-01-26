@@ -6,7 +6,8 @@ uses fpmkunit;
 
 Var
   TBuild,T : TTarget;
-  P : TPackage;
+  PBuild,P : TPackage;
+  D : TDependency;
   I : Integer;
 begin
   With Installer do
@@ -50,6 +51,14 @@ The include lines below are generated with the following command:
 {$include winunits-base/fpmake.pp}
 {$include winunits-jedi/fpmake.pp}
 {$include zlib/fpmake.pp}
+
+    // Create fpc-all package
+    PBuild:=AddPackage('fpc-all');
+    for i:=0 to Packages.Count-1 do
+      begin
+        P:=Packages.PackageItems[i];
+        D:=PBuild.Dependencies.Add(P.Name);
+      end;
 
     Run;
     end;
