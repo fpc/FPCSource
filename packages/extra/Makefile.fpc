@@ -4,7 +4,7 @@
 [target]
 dirs=chm
 dirs_linux= fftw \
-           x11 opengl gtk gtk2 syslog \
+            opengl gtk gtk2 syslog \
            forms svgalib ggi  libgd \
            utmp bfd gdbm  tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
@@ -18,17 +18,17 @@ dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
 dirs_netbsd= \
-            x11 opengl gtk syslog \
+             opengl gtk syslog \
             forms svgalib ggi  libgd \
             utmp bfd gdbm  fpgtk \
             tcl imlib gnome1 openssl pcap libcurl cairo aspell
 dirs_freebsd= fftw \
-             x11 opengl gtk gtk2 syslog \
+              opengl gtk gtk2 syslog \
              forms svgalib ggi  libgd \
              utmp bfd gdbm  fpgtk \
              tcl imlib gnome1 openssl pcap libcurl cairo sdl graph aspell
 dirs_openbsd= \
-             x11 opengl gtk syslog \
+              opengl gtk syslog \
              forms svgalib ggi  libgd \
              utmp bfd gdbm  fpgtk \
              tcl imlib gnome1 openssl pcap libcurl cairo aspell
@@ -39,26 +39,26 @@ dirs_win64= opengl gtk gtk2 tcl cdrom fpgtk fftw openssl sdl
 dirs_wince= tcl fftw
 dirs_os2=os2units \
          rexx \
-         x11 gtk \
+          gtk \
          tcl \
          imlib fpgtk
 dirs_emx=os2units \
          rexx \
-         x11 gtk \
+          gtk \
          tcl \
          imlib fpgtk
 dirs_go32v2= graph
 dirs_amiga=amunits
 dirs_palmos=palmunits
 dirs_darwin=  fftw \
-             x11 opengl gtk gtk2 syslog \
+              opengl gtk gtk2 syslog \
              forms  libgd \
              utmp bfd gdbm  fpgtk tcl imlib gnome1 \
              openssl libcurl cairo aspell
 dirs_powerpc_darwin=univint sdl graph
 dirs_i386_darwin=univint sdl graph
 dirs_solaris= fftw \
-             x11 opengl gtk gtk2 syslog \
+              opengl gtk gtk2 syslog \
              forms svgalib ggi  libgd \
              utmp bfd gdbm  fpgtk tcl imlib gnome1 \
              openssl pcap libcurl cairo
