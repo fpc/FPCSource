@@ -214,13 +214,6 @@ packages/base/*.o
 packages/base/*.ppu
 packages/base/*.s
 packages/base/fpcmade.*
-packages/base/gdbint/*.bak
-packages/base/gdbint/*.exe
-packages/base/gdbint/*.o
-packages/base/gdbint/*.ppu
-packages/base/gdbint/*.s
-packages/base/gdbint/fpcmade.*
-packages/base/gdbint/units
 packages/base/mysql/*.bak
 packages/base/mysql/*.exe
 packages/base/mysql/*.o
@@ -1024,13 +1017,6 @@ packages/extra/libgd/*.ppu
 packages/extra/libgd/*.s
 packages/extra/libgd/fpcmade.*
 packages/extra/libgd/units
-packages/extra/libpng/*.bak
-packages/extra/libpng/*.exe
-packages/extra/libpng/*.o
-packages/extra/libpng/*.ppu
-packages/extra/libpng/*.s
-packages/extra/libpng/fpcmade.*
-packages/extra/libpng/units
 packages/extra/newt/*.bak
 packages/extra/newt/*.exe
 packages/extra/newt/*.o
