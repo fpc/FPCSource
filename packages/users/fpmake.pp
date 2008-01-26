@@ -12,25 +12,23 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('ibase');
+    P:=AddPackage('users');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ibase';
+    P.Directory:='users';
 {$endif ALLPACKAGES}
     P.Version:='2.0.0';
     P.SourcePath.Add('src');
 
-    T:=P.Targets.AddUnit('ibase40.pp');
-    T:=P.Targets.AddUnit('ibase60dyn.pp');
+    T:=P.Targets.AddUnit('grp.pp');
+    T:=P.Targets.AddUnit('pwd.pp');
+    T:=P.Targets.AddUnit('shadow.pp');
+    T:=P.Targets.AddUnit('users.pp');
       with T.Dependencies do
         begin
-          AddInclude('ibase60.inc');
+          AddUnit('pwd');
+          AddUnit('shadow');
+          AddUnit('grp');
         end;
-    T:=P.Targets.AddUnit('ibase60.pp');
-      with T.Dependencies do
-        begin
-          AddInclude('ibase60.inc');
-        end;
-
 
 {$ifndef ALLPACKAGES}
     Run;
