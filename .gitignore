@@ -857,13 +857,6 @@ packages/extra/svgalib/*.s
 packages/extra/svgalib/fpcmade.*
 packages/extra/svgalib/units
 packages/extra/units
-packages/extra/users/*.bak
-packages/extra/users/*.exe
-packages/extra/users/*.o
-packages/extra/users/*.ppu
-packages/extra/users/*.s
-packages/extra/users/fpcmade.*
-packages/extra/users/units
 packages/extra/utmp/*.bak
 packages/extra/utmp/*.exe
 packages/extra/utmp/*.o
