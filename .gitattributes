@@ -3792,6 +3792,7 @@ packages/gtk1/examples/tutorial/tut6_2.pp svneol=native#text/plain
 packages/gtk1/examples/tutorial/tut6_3.pp svneol=native#text/plain
 packages/gtk1/examples/tutorial/tut6_4.pp svneol=native#text/plain
 packages/gtk1/examples/tutorial/tut8_5.pp svneol=native#text/plain
+packages/gtk1/fpmake.pp svneol=native#text/plain
 packages/gtk1/gdk/gdk.pp svneol=native#text/plain
 packages/gtk1/gdk/gdkkeysyms.pp svneol=native#text/plain
 packages/gtk1/gdk/gdkmain.pp svneol=native#text/plain
