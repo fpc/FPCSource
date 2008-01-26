@@ -920,7 +920,6 @@ packages/dts/fpmake.pp svneol=native#text/plain
 packages/dts/src/dts.pas svneol=native#text/plain
 packages/extra/Makefile svneol=native#text/plain
 packages/extra/Makefile.fpc svneol=native#text/plain
-packages/extra/a52/fpmake.inc svneol=native#text/plain
 packages/extra/amunits/Makefile svneol=native#text/plain
 packages/extra/amunits/Makefile.fpc svneol=native#text/plain
 packages/extra/amunits/README -text
@@ -1076,8 +1075,6 @@ packages/extra/amunits/utilunits/tagsarray.pas svneol=native#text/plain
 packages/extra/amunits/utilunits/timerutils.pas svneol=native#text/plain
 packages/extra/amunits/utilunits/vartags.pas svneol=native#text/plain
 packages/extra/amunits/utilunits/wbargs.pas svneol=native#text/plain
-packages/extra/aspell/fpmake.inc svneol=native#text/plain
-packages/extra/bfd/fpmake.inc svneol=native#text/plain
 packages/extra/cdrom/Makefile svneol=native#text/plain
 packages/extra/cdrom/Makefile.fpc svneol=native#text/plain
 packages/extra/cdrom/README -text
@@ -1520,9 +1517,6 @@ packages/extra/gtk/gtk/gtkwindow.pp svneol=native#text/plain
 packages/extra/gtk/gtkgl/Makefile.fpc svneol=native#text/plain
 packages/extra/gtk/gtkgl/gtkglarea.pp svneol=native#text/plain
 packages/extra/gtk/gtkgl/gtkgldemo.pp svneol=native#text/plain
-packages/extra/gtk2/fpmake.inc svneol=native#text/plain
-packages/extra/gtk2/fpmake.pp svneol=native#text/plain
-packages/extra/gtk2/gtk2forlazarus.lpk -text
 packages/extra/hermes/Makefile -text
 packages/extra/hermes/Makefile.fpc -text
 packages/extra/hermes/clear.inc -text
