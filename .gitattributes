@@ -875,6 +875,7 @@ packages/cairo/Makefile.fpc svneol=native#text/plain
 packages/cairo/src/cairo.pp svneol=native#text/plain
 packages/cdrom/Makefile svneol=native#text/plain
 packages/cdrom/Makefile.fpc svneol=native#text/plain
+packages/cdrom/README svneol=native#text/plain
 packages/cdrom/examples/getdiscid.pp svneol=native#text/plain
 packages/cdrom/examples/showcds.pp svneol=native#text/plain
 packages/cdrom/fpmake.pp svneol=native#text/plain
