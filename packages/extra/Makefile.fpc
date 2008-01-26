@@ -7,8 +7,8 @@ dirs_linux= fftw \
             opengl gtk gtk2 syslog \
            forms svgalib ggi  libgd \
            utmp bfd gdbm  tcl cdrom \
-           imlib gnome1 fpgtk newt uuid \
-           ldap openal mad oggvorbis a52 \
+           imlib gnome1 fpgtk newt  \
+          openal mad oggvorbis a52 \
            modplug dts openssl pcap libcurl cairo aspell
 dirs_i386_linux= lua sdl graph
 dirs_x86_64_linux=sdl graph
