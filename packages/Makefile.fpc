@@ -6,21 +6,21 @@
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 dirs_linux_i386=libc  unixutil 
 dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl
 dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl
 dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl
 dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl
 dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl
 dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl
+               gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl
 dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-               gdbint libpng  mad tcl
+               gdbint libpng mad tcl opengl
 dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-               gdbint  tcl
+               gdbint tcl opengl
 dirs_wince=fcl-web ibase mysql tcl
 dirs_os2=zlib libpng x11 tcl
 dirs_emx=zlib  libpng x11 tcl
@@ -135,3 +135,10 @@ libpng_debug: zlib_debug
 libpng_smart: zlib_smart
 libpng_release: zlib_release
 libpng_shared: zlib_shared
+
+opengl_all: x11_all
+opengl_debug: x11_debug
+opengl_smart: x11_smart
+opengl_release: x11_release
+opengl_shared: x11_shared
+

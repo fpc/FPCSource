@@ -1,0 +1,46 @@
+  glunits.zip
+***************
+
+These are the Delphi conversions of gl.h, glu.h, glut.h and
+glext.h. Copy them to your Delphi\Lib directory or somewhere else
+in your compiler's search path and you're all set!
+
+To use these units with OpenGL drivers other than Microsoft's,
+you need to manually initialize three DLL libraries. For example:
+
+  LoadOpenGL('opengl.dll');
+  LoadGLu('glu.dll');
+  LoadGlut('glut.dll');  // Optional
+
+If you do this, make sure to free the previously loaded library
+first:
+
+  FreeOpenGL;
+  FreeGLu;
+  FreeGlut;
+
+If the DLLs the application is trying to load cannot be found, an
+exception will be raised. By default, the units will try to load
+OpenGL32.dll, GLu32.dll and Glut32.dll. No exception will be
+thrown if they are not found, so if you want to support multiple
+OpenGL implementations in your app, it's probably best to
+explicitly load the DLLs explicitly as shown above. This way, you
+can properly trap errors.
+
+A final note: if you have a 3D card with an OpenGL ICD, you do NOT
+need to load the driver yourself. Microsoft's OpenGL32.dll will
+automatically detect and use your 3D card's drivers, so the
+default settings in these units will work perfectly.
+
+The fourth file in this archive, glext.pas, contains declarations
+of constants and function prototypes of most OpenGL extensions.
+To use an extension, you just need to check if it's supported, and
+load it's functions with wglGetProcAddress() if it is. You can
+check the presence of an extension with the included function
+glext_ExtensionSupported(). By using glext.pas, you no longer have
+to copy/paste/translate declarations from the extension specs. If
+you should come across an extension that isn't yet included in
+glext.pas, I'd appreciate it if you could drop me a line so I can
+add it ASAP.
+
+  Tom Nuydens (tom@delphi3d.net)
