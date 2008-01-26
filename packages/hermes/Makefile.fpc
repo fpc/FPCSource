@@ -1,0 +1,48 @@
+#
+#   Makefile.fpc for Hermes
+#
+
+[package]
+name=hermes
+version=0.99.5
+
+[target]
+units=hermes
+loaders=$(CPU_LOADERS)
+
+[compiler]
+unitdir=
+targetdir=.
+includedir=src
+sourcedir=src tests
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+mmx_clr$(OEXT):src/$(CPU_TARGET)/mmx_clr.as
+        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmx_clr$(OEXT) src/$(CPU_TARGET)/mmx_clr.as
+
+mmxp_32$(OEXT):src/$(CPU_TARGET)/mmxp_32.as
+        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmxp_32$(OEXT) src/$(CPU_TARGET)/mmxp_32.as
+
+mmx_main$(OEXT):src/$(CPU_TARGET)/mmx_main.as
+        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmx_main$(OEXT) src/$(CPU_TARGET)/mmx_main.as
+
+mmxp2_32$(OEXT):src/$(CPU_TARGET)/mmxp2_32.as
+        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmxp2_32$(OEXT) src/$(CPU_TARGET)/mmxp2_32.as
+
+hm_i386$(OEXT): $(I386_LOADERSSRC)
+        $(AS) --32 -o $(UNITTARGETDIRPREFIX)hm_i386$(OEXT) $(I386_LOADERSSRC)
+
+[prerules]
+I386_LOADERSSRC=src/i386/x86_main.as src/i386/x86p_cpy.as \
+        src/i386/x86pscpy.as src/i386/x86p_16.as \
+        src/i386/x86p_i8.as src/i386/x86_clr.as \
+        src/i386/x86p_32.as src/i386/x86p_s32.as
+ifeq ($(CPU_TARGET),i386)
+CPU_LOADERS=mmx_clr mmxp_32 mmx_main mmxp2_32 hm_i386
+else
+CPU_LOADERS=
+endif
