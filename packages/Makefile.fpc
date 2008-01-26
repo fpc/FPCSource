@@ -16,9 +16,9 @@ dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqli
 dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
                gdbint libpng x11
 dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 uuid ldap
+               gdbint libpng x11 uuid ldap modplug dts mad
 dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-               gdbint libpng 
+               gdbint libpng  mad
 dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint 
 dirs_wince=fcl-web ibase mysql

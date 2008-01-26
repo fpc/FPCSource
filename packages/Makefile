@@ -241,13 +241,13 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap  libc  unixutil
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  libc  unixutil
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng  mad
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  zlib libpng x11
@@ -298,7 +298,7 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11
@@ -322,7 +322,7 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11
@@ -343,7 +343,7 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11
@@ -355,7 +355,7 @@ ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11
@@ -370,7 +370,7 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
@@ -391,7 +391,7 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap
+override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr  fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11
@@ -1517,6 +1517,9 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_MODPLUG=1
+TARGET_DIRS_DTS=1
+TARGET_DIRS_MAD=1
 TARGET_DIRS_LIBC=1
 TARGET_DIRS_UNIXUTIL=1
 endif
@@ -1574,6 +1577,7 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBPNG=1
+TARGET_DIRS_MAD=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_BASE=1
@@ -2036,6 +2040,9 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_MODPLUG=1
+TARGET_DIRS_DTS=1
+TARGET_DIRS_MAD=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_BASE=1
@@ -2268,6 +2275,9 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_MODPLUG=1
+TARGET_DIRS_DTS=1
+TARGET_DIRS_MAD=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_BASE=1
@@ -2464,6 +2474,9 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_MODPLUG=1
+TARGET_DIRS_DTS=1
+TARGET_DIRS_MAD=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_BASE=1
@@ -2597,6 +2610,9 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_MODPLUG=1
+TARGET_DIRS_DTS=1
+TARGET_DIRS_MAD=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_BASE=1
@@ -2763,6 +2779,9 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_MODPLUG=1
+TARGET_DIRS_DTS=1
+TARGET_DIRS_MAD=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_BASE=1
@@ -2932,6 +2951,9 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_MODPLUG=1
+TARGET_DIRS_DTS=1
+TARGET_DIRS_MAD=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_BASE=1
@@ -4654,6 +4676,141 @@ ldap_makefiles:
 ldap:
 	$(MAKE) -C ldap all
 .PHONY: ldap_all ldap_debug ldap_smart ldap_release ldap_units ldap_examples ldap_shared ldap_install ldap_sourceinstall ldap_exampleinstall ldap_distinstall ldap_zipinstall ldap_zipsourceinstall ldap_zipexampleinstall ldap_zipdistinstall ldap_clean ldap_distclean ldap_cleanall ldap_info ldap_makefiles ldap
+endif
+ifdef TARGET_DIRS_MODPLUG
+modplug_all:
+	$(MAKE) -C modplug all
+modplug_debug:
+	$(MAKE) -C modplug debug
+modplug_smart:
+	$(MAKE) -C modplug smart
+modplug_release:
+	$(MAKE) -C modplug release
+modplug_units:
+	$(MAKE) -C modplug units
+modplug_examples:
+	$(MAKE) -C modplug examples
+modplug_shared:
+	$(MAKE) -C modplug shared
+modplug_install:
+	$(MAKE) -C modplug install
+modplug_sourceinstall:
+	$(MAKE) -C modplug sourceinstall
+modplug_exampleinstall:
+	$(MAKE) -C modplug exampleinstall
+modplug_distinstall:
+	$(MAKE) -C modplug distinstall
+modplug_zipinstall:
+	$(MAKE) -C modplug zipinstall
+modplug_zipsourceinstall:
+	$(MAKE) -C modplug zipsourceinstall
+modplug_zipexampleinstall:
+	$(MAKE) -C modplug zipexampleinstall
+modplug_zipdistinstall:
+	$(MAKE) -C modplug zipdistinstall
+modplug_clean:
+	$(MAKE) -C modplug clean
+modplug_distclean:
+	$(MAKE) -C modplug distclean
+modplug_cleanall:
+	$(MAKE) -C modplug cleanall
+modplug_info:
+	$(MAKE) -C modplug info
+modplug_makefiles:
+	$(MAKE) -C modplug makefiles
+modplug:
+	$(MAKE) -C modplug all
+.PHONY: modplug_all modplug_debug modplug_smart modplug_release modplug_units modplug_examples modplug_shared modplug_install modplug_sourceinstall modplug_exampleinstall modplug_distinstall modplug_zipinstall modplug_zipsourceinstall modplug_zipexampleinstall modplug_zipdistinstall modplug_clean modplug_distclean modplug_cleanall modplug_info modplug_makefiles modplug
+endif
+ifdef TARGET_DIRS_DTS
+dts_all:
+	$(MAKE) -C dts all
+dts_debug:
+	$(MAKE) -C dts debug
+dts_smart:
+	$(MAKE) -C dts smart
+dts_release:
+	$(MAKE) -C dts release
+dts_units:
+	$(MAKE) -C dts units
+dts_examples:
+	$(MAKE) -C dts examples
+dts_shared:
+	$(MAKE) -C dts shared
+dts_install:
+	$(MAKE) -C dts install
+dts_sourceinstall:
+	$(MAKE) -C dts sourceinstall
+dts_exampleinstall:
+	$(MAKE) -C dts exampleinstall
+dts_distinstall:
+	$(MAKE) -C dts distinstall
+dts_zipinstall:
+	$(MAKE) -C dts zipinstall
+dts_zipsourceinstall:
+	$(MAKE) -C dts zipsourceinstall
+dts_zipexampleinstall:
+	$(MAKE) -C dts zipexampleinstall
+dts_zipdistinstall:
+	$(MAKE) -C dts zipdistinstall
+dts_clean:
+	$(MAKE) -C dts clean
+dts_distclean:
+	$(MAKE) -C dts distclean
+dts_cleanall:
+	$(MAKE) -C dts cleanall
+dts_info:
+	$(MAKE) -C dts info
+dts_makefiles:
+	$(MAKE) -C dts makefiles
+dts:
+	$(MAKE) -C dts all
+.PHONY: dts_all dts_debug dts_smart dts_release dts_units dts_examples dts_shared dts_install dts_sourceinstall dts_exampleinstall dts_distinstall dts_zipinstall dts_zipsourceinstall dts_zipexampleinstall dts_zipdistinstall dts_clean dts_distclean dts_cleanall dts_info dts_makefiles dts
+endif
+ifdef TARGET_DIRS_MAD
+mad_all:
+	$(MAKE) -C mad all
+mad_debug:
+	$(MAKE) -C mad debug
+mad_smart:
+	$(MAKE) -C mad smart
+mad_release:
+	$(MAKE) -C mad release
+mad_units:
+	$(MAKE) -C mad units
+mad_examples:
+	$(MAKE) -C mad examples
+mad_shared:
+	$(MAKE) -C mad shared
+mad_install:
+	$(MAKE) -C mad install
+mad_sourceinstall:
+	$(MAKE) -C mad sourceinstall
+mad_exampleinstall:
+	$(MAKE) -C mad exampleinstall
+mad_distinstall:
+	$(MAKE) -C mad distinstall
+mad_zipinstall:
+	$(MAKE) -C mad zipinstall
+mad_zipsourceinstall:
+	$(MAKE) -C mad zipsourceinstall
+mad_zipexampleinstall:
+	$(MAKE) -C mad zipexampleinstall
+mad_zipdistinstall:
+	$(MAKE) -C mad zipdistinstall
+mad_clean:
+	$(MAKE) -C mad clean
+mad_distclean:
+	$(MAKE) -C mad distclean
+mad_cleanall:
+	$(MAKE) -C mad cleanall
+mad_info:
+	$(MAKE) -C mad info
+mad_makefiles:
+	$(MAKE) -C mad makefiles
+mad:
+	$(MAKE) -C mad all
+.PHONY: mad_all mad_debug mad_smart mad_release mad_units mad_examples mad_shared mad_install mad_sourceinstall mad_exampleinstall mad_distinstall mad_zipinstall mad_zipsourceinstall mad_zipexampleinstall mad_zipdistinstall mad_clean mad_distclean mad_cleanall mad_info mad_makefiles mad
 endif
 ifdef TARGET_DIRS_LIBC
 libc_all:

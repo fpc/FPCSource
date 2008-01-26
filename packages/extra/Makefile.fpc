@@ -8,8 +8,8 @@ dirs_linux= fftw \
            forms svgalib ggi  libgd \
            utmp bfd gdbm  tcl cdrom \
            imlib gnome1 fpgtk newt  \
-          openal mad oggvorbis a52 \
-           modplug dts openssl pcap libcurl cairo aspell
+          openal  oggvorbis a52 \
+            openssl pcap libcurl cairo aspell
 dirs_i386_linux= lua sdl graph
 dirs_x86_64_linux=sdl graph
 dirs_powerpc_linux=sdl graph
@@ -34,7 +34,7 @@ dirs_openbsd= \
              tcl imlib gnome1 openssl pcap libcurl cairo aspell
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
 dirs_win32= opengl gtk gtk2 tcl cdrom fpgtk fftw \
-             mad openal oggvorbis a52  openssl pcap sdl lua graph
+              openal oggvorbis a52  openssl pcap sdl lua graph
 dirs_win64= opengl gtk gtk2 tcl cdrom fpgtk fftw openssl sdl
 dirs_wince= tcl fftw
 dirs_os2=os2units \

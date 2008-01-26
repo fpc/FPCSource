@@ -241,13 +241,13 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell lua sdl graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal  oggvorbis a52 openssl pcap libcurl cairo aspell lua sdl graph
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=chm  graph
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=chm  opengl gtk gtk2 tcl cdrom fpgtk fftw mad openal oggvorbis a52  openssl pcap sdl lua graph
+override TARGET_DIRS+=chm  opengl gtk gtk2 tcl cdrom fpgtk fftw openal oggvorbis a52  openssl pcap sdl lua graph
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=chm  os2units rexx gtk tcl imlib fpgtk
@@ -298,7 +298,7 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal  oggvorbis a52 openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo sdl graph aspell
@@ -322,7 +322,7 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell sdl graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal  oggvorbis a52 openssl pcap libcurl cairo aspell sdl graph
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=chm  opengl gtk syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo aspell
@@ -343,7 +343,7 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal  oggvorbis a52 openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=chm  opengl gtk syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo aspell
@@ -355,7 +355,7 @@ ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell sdl graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal  oggvorbis a52 openssl pcap libcurl cairo aspell sdl graph
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl pcap libcurl cairo sdl graph aspell
@@ -370,7 +370,7 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal  oggvorbis a52 openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=chm  palmunits
@@ -391,7 +391,7 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=chm
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal mad oggvorbis a52 modplug dts openssl pcap libcurl cairo aspell graph
+override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms svgalib ggi  libgd utmp bfd gdbm  tcl cdrom imlib gnome1 fpgtk newt  openal  oggvorbis a52 openssl pcap libcurl cairo aspell graph
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=chm  fftw opengl gtk gtk2 syslog forms  libgd utmp bfd gdbm  fpgtk tcl imlib gnome1 openssl libcurl cairo aspell
@@ -1499,11 +1499,8 @@ TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
-TARGET_DIRS_MODPLUG=1
-TARGET_DIRS_DTS=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
@@ -1526,7 +1523,6 @@ TARGET_DIRS_TCL=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_FFTW=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
@@ -1722,11 +1718,8 @@ TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
-TARGET_DIRS_MODPLUG=1
-TARGET_DIRS_DTS=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
@@ -1839,11 +1832,8 @@ TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
-TARGET_DIRS_MODPLUG=1
-TARGET_DIRS_DTS=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
@@ -1932,11 +1922,8 @@ TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
-TARGET_DIRS_MODPLUG=1
-TARGET_DIRS_DTS=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
@@ -2013,11 +2000,8 @@ TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
-TARGET_DIRS_MODPLUG=1
-TARGET_DIRS_DTS=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
@@ -2109,11 +2093,8 @@ TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
-TARGET_DIRS_MODPLUG=1
-TARGET_DIRS_DTS=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
@@ -2163,11 +2144,8 @@ TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
-TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
-TARGET_DIRS_MODPLUG=1
-TARGET_DIRS_DTS=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 TARGET_DIRS_LIBCURL=1
@@ -3099,51 +3077,6 @@ openal:
 	$(MAKE) -C openal all
 .PHONY: openal_all openal_debug openal_smart openal_release openal_units openal_examples openal_shared openal_install openal_sourceinstall openal_exampleinstall openal_distinstall openal_zipinstall openal_zipsourceinstall openal_zipexampleinstall openal_zipdistinstall openal_clean openal_distclean openal_cleanall openal_info openal_makefiles openal
 endif
-ifdef TARGET_DIRS_MAD
-mad_all:
-	$(MAKE) -C mad all
-mad_debug:
-	$(MAKE) -C mad debug
-mad_smart:
-	$(MAKE) -C mad smart
-mad_release:
-	$(MAKE) -C mad release
-mad_units:
-	$(MAKE) -C mad units
-mad_examples:
-	$(MAKE) -C mad examples
-mad_shared:
-	$(MAKE) -C mad shared
-mad_install:
-	$(MAKE) -C mad install
-mad_sourceinstall:
-	$(MAKE) -C mad sourceinstall
-mad_exampleinstall:
-	$(MAKE) -C mad exampleinstall
-mad_distinstall:
-	$(MAKE) -C mad distinstall
-mad_zipinstall:
-	$(MAKE) -C mad zipinstall
-mad_zipsourceinstall:
-	$(MAKE) -C mad zipsourceinstall
-mad_zipexampleinstall:
-	$(MAKE) -C mad zipexampleinstall
-mad_zipdistinstall:
-	$(MAKE) -C mad zipdistinstall
-mad_clean:
-	$(MAKE) -C mad clean
-mad_distclean:
-	$(MAKE) -C mad distclean
-mad_cleanall:
-	$(MAKE) -C mad cleanall
-mad_info:
-	$(MAKE) -C mad info
-mad_makefiles:
-	$(MAKE) -C mad makefiles
-mad:
-	$(MAKE) -C mad all
-.PHONY: mad_all mad_debug mad_smart mad_release mad_units mad_examples mad_shared mad_install mad_sourceinstall mad_exampleinstall mad_distinstall mad_zipinstall mad_zipsourceinstall mad_zipexampleinstall mad_zipdistinstall mad_clean mad_distclean mad_cleanall mad_info mad_makefiles mad
-endif
 ifdef TARGET_DIRS_OGGVORBIS
 oggvorbis_all:
 	$(MAKE) -C oggvorbis all
@@ -3233,96 +3166,6 @@ a52_makefiles:
 a52:
 	$(MAKE) -C a52 all
 .PHONY: a52_all a52_debug a52_smart a52_release a52_units a52_examples a52_shared a52_install a52_sourceinstall a52_exampleinstall a52_distinstall a52_zipinstall a52_zipsourceinstall a52_zipexampleinstall a52_zipdistinstall a52_clean a52_distclean a52_cleanall a52_info a52_makefiles a52
-endif
-ifdef TARGET_DIRS_MODPLUG
-modplug_all:
-	$(MAKE) -C modplug all
-modplug_debug:
-	$(MAKE) -C modplug debug
-modplug_smart:
-	$(MAKE) -C modplug smart
-modplug_release:
-	$(MAKE) -C modplug release
-modplug_units:
-	$(MAKE) -C modplug units
-modplug_examples:
-	$(MAKE) -C modplug examples
-modplug_shared:
-	$(MAKE) -C modplug shared
-modplug_install:
-	$(MAKE) -C modplug install
-modplug_sourceinstall:
-	$(MAKE) -C modplug sourceinstall
-modplug_exampleinstall:
-	$(MAKE) -C modplug exampleinstall
-modplug_distinstall:
-	$(MAKE) -C modplug distinstall
-modplug_zipinstall:
-	$(MAKE) -C modplug zipinstall
-modplug_zipsourceinstall:
-	$(MAKE) -C modplug zipsourceinstall
-modplug_zipexampleinstall:
-	$(MAKE) -C modplug zipexampleinstall
-modplug_zipdistinstall:
-	$(MAKE) -C modplug zipdistinstall
-modplug_clean:
-	$(MAKE) -C modplug clean
-modplug_distclean:
-	$(MAKE) -C modplug distclean
-modplug_cleanall:
-	$(MAKE) -C modplug cleanall
-modplug_info:
-	$(MAKE) -C modplug info
-modplug_makefiles:
-	$(MAKE) -C modplug makefiles
-modplug:
-	$(MAKE) -C modplug all
-.PHONY: modplug_all modplug_debug modplug_smart modplug_release modplug_units modplug_examples modplug_shared modplug_install modplug_sourceinstall modplug_exampleinstall modplug_distinstall modplug_zipinstall modplug_zipsourceinstall modplug_zipexampleinstall modplug_zipdistinstall modplug_clean modplug_distclean modplug_cleanall modplug_info modplug_makefiles modplug
-endif
-ifdef TARGET_DIRS_DTS
-dts_all:
-	$(MAKE) -C dts all
-dts_debug:
-	$(MAKE) -C dts debug
-dts_smart:
-	$(MAKE) -C dts smart
-dts_release:
-	$(MAKE) -C dts release
-dts_units:
-	$(MAKE) -C dts units
-dts_examples:
-	$(MAKE) -C dts examples
-dts_shared:
-	$(MAKE) -C dts shared
-dts_install:
-	$(MAKE) -C dts install
-dts_sourceinstall:
-	$(MAKE) -C dts sourceinstall
-dts_exampleinstall:
-	$(MAKE) -C dts exampleinstall
-dts_distinstall:
-	$(MAKE) -C dts distinstall
-dts_zipinstall:
-	$(MAKE) -C dts zipinstall
-dts_zipsourceinstall:
-	$(MAKE) -C dts zipsourceinstall
-dts_zipexampleinstall:
-	$(MAKE) -C dts zipexampleinstall
-dts_zipdistinstall:
-	$(MAKE) -C dts zipdistinstall
-dts_clean:
-	$(MAKE) -C dts clean
-dts_distclean:
-	$(MAKE) -C dts distclean
-dts_cleanall:
-	$(MAKE) -C dts cleanall
-dts_info:
-	$(MAKE) -C dts info
-dts_makefiles:
-	$(MAKE) -C dts makefiles
-dts:
-	$(MAKE) -C dts all
-.PHONY: dts_all dts_debug dts_smart dts_release dts_units dts_examples dts_shared dts_install dts_sourceinstall dts_exampleinstall dts_distinstall dts_zipinstall dts_zipsourceinstall dts_zipexampleinstall dts_zipdistinstall dts_clean dts_distclean dts_cleanall dts_info dts_makefiles dts
 endif
 ifdef TARGET_DIRS_OPENSSL
 openssl_all:
