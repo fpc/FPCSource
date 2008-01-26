@@ -11,9 +11,11 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-
-
 program MkXMLRPC;
+
+{$mode objfpc}
+{$H+}
+
 uses SysUtils, Classes, PParser, PasTree, PasWrite;
 
 resourcestring

@@ -12,6 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$mode objfpc}
+{$H+}
+
 unit fpSock;
 
 interface
