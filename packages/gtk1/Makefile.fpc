@@ -1,0 +1,40 @@
+#
+#   Makefile.fpc for Free Pascal GTK 1.2.x Bindings
+#
+
+[package]
+name=gtk1
+version=2.0.0
+
+[require]
+libc=y
+
+[target]
+units=glib gmodule gdk gtk gdkpixbuf gtkglarea
+exampledirs=examples
+
+[compiler]
+sourcedir=glib gdk gtk gtkgl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+glib$(PPUEXT): $(wildcard glib/glib*.pp)
+
+gmodule$(PPUEXT): $(wildcard glib/gmodule*.pp) glib$(PPUEXT)
+
+gdk$(PPUEXT): $(wildcard gdk/gdk*.pp) glib$(PPUEXT)
+
+gdkpixbuf$(PPUEXT): gdk/gdkpixbuf.pp gdk$(PPUEXT)
+
+gtk$(PPUEXT): $(wildcard gtk/gtk*.pp) gdk$(PPUEXT)
+
+gtkglarea$(PPUEXT): $(wildcard gtkgl/gtkgla*.pp) gdk$(PPUEXT) gtk$(PPUEXT)
