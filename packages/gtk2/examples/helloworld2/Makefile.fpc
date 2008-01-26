@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=plugin main
+programs=helloworld2
 
 [require]
 packages=gtk2
@@ -12,7 +12,7 @@ packages=gtk2
 fpcpackage=y
 
 [default]
-fpcdir=../../../../..
+fpcdir=../../../..
 
 [rules]
 .NOTPARALLEL:

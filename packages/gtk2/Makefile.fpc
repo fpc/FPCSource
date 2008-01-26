@@ -16,12 +16,12 @@ packages_netbsd=x11
 packages_darwin=x11
 
 [target]
-units=buildgtk2 
+units=src/buildgtk2 
 exampledirs=examples
 implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext $(GDK2X)
 
 [compiler]
-unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade gtkglext $(GTK2X11)
+unitdir=src src/glib src/atk src/pango src/gtk+/gdk-pixbuf src/gtk+/gdk src/gtk+/gtk src/libglade src/gtkglext src/$(GTK2X11)
 includedir=$(GTK2X11INCLUDE)
 
 [install]
@@ -32,13 +32,13 @@ fpcpackage=y
 build=n
 
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [prerules]
 ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin ),)
 GDK2X=gdk2x
 GTK2X11=gtk2x11
-GTK2X11INCLUDE=gtk2x11/include
+GTK2X11INCLUDE=src/gtk2x11/include
 endif
 
 [rules]

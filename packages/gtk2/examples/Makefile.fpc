@@ -3,7 +3,8 @@
 #
 
 [target]
-programs=simple glade
+dirs=helloworld helloworld2 gtk_demo gettingstarted plugins scribble_simple gtkglext
+#filechooser - doesn't work yet
 
 [require]
 packages=gtk2
@@ -12,7 +13,7 @@ packages=gtk2
 fpcpackage=y
 
 [default]
-fpcdir=../../../../..
+fpcdir=../../..
 
 [rules]
 .NOTPARALLEL:

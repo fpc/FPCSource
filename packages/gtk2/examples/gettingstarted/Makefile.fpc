@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=helloworld
+programs=gettingstarted
 
 [require]
 packages=gtk2
@@ -12,7 +12,7 @@ packages=gtk2
 fpcpackage=y
 
 [default]
-fpcdir=../../../../..
+fpcdir=../../../..
 
 [rules]
 .NOTPARALLEL:

@@ -3,11 +3,10 @@
 #
 
 [target]
-dirs=helloworld helloworld2 gtk_demo gettingstarted plugins scribble_simple gtkglext
-#filechooser - doesn't work yet
+programs=gears
 
 [require]
-packages=gtk2
+packages=gtk2 opengl
 
 [install]
 fpcpackage=y

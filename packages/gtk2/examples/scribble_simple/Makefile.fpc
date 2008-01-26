@@ -3,16 +3,16 @@
 #
 
 [target]
-programs=gears
+programs=scribble_simple
 
 [require]
-packages=gtk2 opengl
+packages=gtk2
 
 [install]
 fpcpackage=y
 
 [default]
-fpcdir=../../../../..
+fpcdir=../../../..
 
 [rules]
 .NOTPARALLEL:
