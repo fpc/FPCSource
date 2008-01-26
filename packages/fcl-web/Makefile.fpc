@@ -8,8 +8,8 @@ version=2.0.0
 
 [target]
 units=httpdefs fphttp custcgi fpcgi fptemplate fphtml websession fpweb \
-      webutil fpdatasetform
-rsts=fpcgi fphtml fpweb websession
+      webutil fpdatasetform cgiapp ezcgi
+rsts=fpcgi fphtml fpweb websession cgiapp
 
 [require]
 packages=fcl-base fcl-xml fcl-db fcl-process
