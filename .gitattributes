@@ -888,16 +888,6 @@ packages/base/mysql/ver323/mysqls.pp svneol=native#text/plain
 packages/base/mysql/ver40/mysql.pp svneol=native#text/plain
 packages/base/mysql/ver40/mysql_com.pp svneol=native#text/plain
 packages/base/mysql/ver40/mysql_version.pp svneol=native#text/plain
-packages/base/odbc/Makefile svneol=native#text/plain
-packages/base/odbc/Makefile.fpc svneol=native#text/plain
-packages/base/odbc/README -text
-packages/base/odbc/fpmake.inc svneol=native#text/plain
-packages/base/odbc/fpmake.pp svneol=native#text/plain
-packages/base/odbc/odbcsql.inc svneol=native#text/plain
-packages/base/odbc/odbcsql.pas svneol=native#text/plain
-packages/base/odbc/odbcsqldyn.pas svneol=native#text/plain
-packages/base/odbc/testodbc.mdb -text
-packages/base/odbc/testodbc.pp svneol=native#text/plain
 packages/base/oracle/Makefile svneol=native#text/plain
 packages/base/oracle/example/Makefile svneol=native#text/plain
 packages/base/oracle/fpmake.inc svneol=native#text/plain

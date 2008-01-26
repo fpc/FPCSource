@@ -249,13 +249,6 @@ packages/base/mysql/ver40/*.ppu
 packages/base/mysql/ver40/*.s
 packages/base/mysql/ver40/fpcmade.*
 packages/base/mysql/ver40/units
-packages/base/odbc/*.bak
-packages/base/odbc/*.exe
-packages/base/odbc/*.o
-packages/base/odbc/*.ppu
-packages/base/odbc/*.s
-packages/base/odbc/fpcmade.*
-packages/base/odbc/units
 packages/base/oracle/*.bak
 packages/base/oracle/*.exe
 packages/base/oracle/*.o
