@@ -3734,6 +3734,7 @@ packages/fv/examples/Makefile.fpc svneol=native#text/plain
 packages/fv/examples/platform.inc svneol=native#text/plain
 packages/fv/examples/testapp.lpi svneol=native#text/plain
 packages/fv/examples/testapp.pas svneol=native#text/plain
+packages/fv/fpmake.pp svneol=native#text/plain
 packages/fv/src/app.pas svneol=native#text/plain
 packages/fv/src/asciitab.pas svneol=native#text/plain
 packages/fv/src/buildfv.pas svneol=native#text/plain
