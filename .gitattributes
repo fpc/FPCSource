@@ -4275,6 +4275,7 @@ packages/hash/src/ntlm.pas svneol=native#text/plain
 packages/hash/src/unixcrypt.pas svneol=native#text/plain
 packages/hash/src/uuid.pas svneol=native#text/plain
 packages/mysql/Makefile.fpc svneol=native#text/plain
+packages/mysql/fpmake.pp svneol=native#text/plain
 packages/mysql/scripts/mkdb svneol=native#text/plain
 packages/mysql/scripts/rmdb svneol=native#text/plain
 packages/mysql/src/my4_sys.pp svneol=native#text/plain
