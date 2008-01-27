@@ -410,7 +410,9 @@ end;
 
 
 initialization
+{$ifndef VER2_2}
   OnGetVendorName:=@FPPkgGetVendorName;
+{$endif}
   OnGetApplicationName:=@FPPkgGetApplicationName;
 
 end.

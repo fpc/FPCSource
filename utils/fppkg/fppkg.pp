@@ -275,8 +275,18 @@ begin
     LoadCompilerDefaults;
 
     // Load local repository, update first if this is a new installation
+    // errors will only be reported as warning. The user can be bootstrapping
+    // and do an update later
     if not FileExists(GlobalOptions.LocalPackagesFile) then
-      pkghandler.ExecuteAction(nil,'update');
+      begin
+        try
+          pkghandler.ExecuteAction(nil,'update');
+        except
+          on E: Exception do
+            Log(vlWarning,E.Message);
+        end;
+      end;
+    LoadLocalMirrors;
     LoadLocalRepository;
     LoadFPMakeLocalStatus;
     // We only need to reload the status when we use a different

@@ -32,7 +32,7 @@ Resourcestring
   SErrBackupFailed           = 'Backup of file "%s" to file "%s" failed.';
   SErrUnknownProtocol        = 'Unknown download protocol: "%s"';
   SErrNoSuchFile             = 'File "%s" does not exist.';
-  SErrDownloadFailed         = '%s Download failed: %s';
+  SErrDownloadFailed         = '%s Download of "%s" failed: %s';
   SErrInvalidLogLevels       = 'Invalid verbosity string: "%s"';
   SErrInvalidCommand         = 'Invalid command: %s';
   SErrChangeDirFailed        = 'Could not change directory to "%s"';

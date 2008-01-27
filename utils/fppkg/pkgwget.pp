@@ -53,7 +53,7 @@ begin
           Dest.WriteBuffer(Buffer,Count);
         end;
       If (ExitStatus<>0) then
-        Error(SErrDownloadFailed,['WGET',Format('exit status %d',[ExitStatus])]);
+        Error(SErrDownloadFailed,['WGET',URL,Format('exit status %d',[ExitStatus])]);
     finally
       Free;
     end;

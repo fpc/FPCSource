@@ -82,26 +82,30 @@ var
   M : TFPMirror;
 begin
   Result:='';
-  // Create array for selection
-  BucketCnt:=0;
-  for i:=0 to CurrentMirrors.Count-1 do
-    inc(BucketCnt,CurrentMirrors[i].Weight);
-  // Select random entry
-  Bucket:=Random(BucketCnt);
   M:=nil;
-  for i:=0 to CurrentMirrors.Count-1 do
-    begin
-      for j:=0 to CurrentMirrors[i].Weight-1 do
-        begin
-          if Bucket=0 then
-            begin
-              M:=CurrentMirrors[i];
-              break;
-            end;
-          Dec(Bucket);
-        end;
-      if assigned(M) then
-        break;
+  if assigned(CurrentMirrors) then
+   begin
+     // Create array for selection
+     BucketCnt:=0;
+     for i:=0 to CurrentMirrors.Count-1 do
+       inc(BucketCnt,CurrentMirrors[i].Weight);
+     // Select random entry
+     Bucket:=Random(BucketCnt);
+     M:=nil;
+     for i:=0 to CurrentMirrors.Count-1 do
+       begin
+         for j:=0 to CurrentMirrors[i].Weight-1 do
+           begin
+             if Bucket=0 then
+               begin
+                 M:=CurrentMirrors[i];
+                 break;
+               end;
+             Dec(Bucket);
+           end;
+         if assigned(M) then
+           break;
+       end;
     end;
   if assigned(M) then
     begin
@@ -114,8 +118,6 @@ end;
 
 
 function GetRemoteRepositoryURL(const AFileName:string):string;
-var
-  i : integer;
 begin
   if CurrentRemoteRepositoryURL='' then
     begin
