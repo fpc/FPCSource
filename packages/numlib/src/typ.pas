@@ -462,8 +462,8 @@ begin
    for i:=1 to n do
     begin
      s := s + p1^*p2^;
-     Inc(longint(p1), i1);
-     Inc(longint(p2), i2)
+     Inc(ptrint(p1), i1);
+     Inc(ptrint(p2), i2)
     end;
     Inprod := s
 end;
