@@ -256,14 +256,6 @@ packages/extra/*.o
 packages/extra/*.ppu
 packages/extra/*.s
 packages/extra/fpcmade.*
-packages/extra/ptc/*.bak
-packages/extra/ptc/*.exe
-packages/extra/ptc/*.o
-packages/extra/ptc/*.ppu
-packages/extra/ptc/*.s
-packages/extra/ptc/.gdbinit
-packages/extra/ptc/fpcmade.*
-packages/extra/ptc/units
 packages/extra/units
 packages/fcl-base/examples/*.bak
 packages/fcl-base/examples/*.exe

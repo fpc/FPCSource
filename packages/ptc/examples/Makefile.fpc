@@ -7,14 +7,16 @@ name=ptc-examples
 version=0.99.5
 
 [target]
-programs=area buffer clear clip con_info console hicolor image keyboard \
-         keybrd2 modes palette pixel random save stretch timer
+programs=area buffer clear clip con_info console fire  \
+         flower hicolor image keyboard keybrd2 land \
+         lights modes mojo palette pixel random save \
+         stretch texwarp timer tunnel3d tunnel  
 
 [compiler]
 unitdir=../$(UNITTARGETDIRPREFIX)
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 [require]
 packages=hermes ptc
