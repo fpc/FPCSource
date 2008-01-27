@@ -78,6 +78,15 @@ end;
     Application name
   ---------------------------------------------------------------------}
 
+Function VendorName : String;
+
+begin
+  If Assigned(OnGetVendorName) then
+    Result:=OnGetVendorName()
+  else
+    Result:='';
+end;
+
 Function ApplicationName : String;
 
 begin
@@ -100,9 +109,9 @@ end;
 Function DGetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
-  Result:=ExtractFilePath(ParamStr(0));
-  If SubDir then
-    Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
+  Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(Global));
+  if SubDir then
+    Result:=IncludeTrailingPathDelimiter(Result+'Config');
   Result:=Result+ApplicationName+ConfigExtension;
 end;
 

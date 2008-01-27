@@ -1037,23 +1037,25 @@ begin
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;
-
 begin
   If Global then
-    Result:=GetSpecialDir(CSIDL_COMMON_APPDATA)+ApplicationName
+    Result:=GetSpecialDir(CSIDL_COMMON_APPDATA)
   else
-    Result:=GetSpecialDir(CSIDL_LOCAL_APPDATA)+ApplicationName;
-  If (Result='') then
+    Result:=GetSpecialDir(CSIDL_LOCAL_APPDATA);
+  If (Result<>'') then
+    begin
+      if VendorName<>'' then
+        Result:=IncludeTrailingPathDelimiter(Result+VendorName);
+      Result:=Result+ApplicationName;
+    end
+  else
     Result:=DGetAppConfigDir(Global);
 end;
 
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
-  Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(Global));
-  if SubDir then
-    Result:=IncludeTrailingPathDelimiter(Result+'Config');
-  Result:=Result+ApplicationName+ConfigExtension;
+  result:=DGetAppConfigFile(Global,SubDir);
 end;
 
 Procedure InitSysConfigDir;
