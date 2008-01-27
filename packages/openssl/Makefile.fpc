@@ -13,7 +13,11 @@ units=openssl
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
 
 [rules]
 .NOTPARALLEL:
