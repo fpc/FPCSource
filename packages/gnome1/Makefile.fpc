@@ -3,11 +3,12 @@
 #
 
 [package]
-name=os2units
+name=gnome1
 version=1.0.0
 
 [require]
 libc=y
+packages=gtk1
 
 [target]
 units=libgnomeui libzvt libart libgnome gconfclient gconf
