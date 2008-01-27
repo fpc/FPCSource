@@ -923,6 +923,7 @@ begin
   for i := 0 to FIndexesCount-1 do
     if SameText(FIndexes[i].Name,AValue) then
       begin
+      FIndexes[i].FCurrentRecBuf := FCurrentIndex^.FCurrentRecBuf;
       FCurrentIndex:=@FIndexes[i];
       if active then Resync([rmCenter]);
       exit;

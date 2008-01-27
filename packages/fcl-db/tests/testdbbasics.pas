@@ -55,6 +55,8 @@ type
 
     procedure TestIndexFieldNames;
     procedure TestIndexFieldNamesAct;
+    
+    procedure TestIndexCurRecord;
 
     procedure TestNullAtOpen;
 
@@ -1073,6 +1075,54 @@ begin
 
     AssertEquals('',IndexFieldNames);
 
+    end;
+end;
+
+procedure TTestDBBasics.TestIndexCurRecord;
+// Test if the currentrecord stays the same after an index change
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    i : integer;
+    OldID : Integer;
+    OldStringValue : string;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+    AFieldType:=ftString;
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    open;
+
+    for i := 0 to (testValuesCount div 3) do
+      Next;
+
+    OldID:=FieldByName('id').AsInteger;
+    OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
+
+    IndexName:='testindex';
+
+    AssertEquals(OldID,FieldByName('id').AsInteger);
+    AssertEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+
+    next;
+    AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    prior;
+    prior;
+    AssertTrue(OldStringValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+
+    OldID:=FieldByName('id').AsInteger;
+    OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
+
+    IndexName:='';
+
+    AssertEquals(OldID,FieldByName('id').AsInteger);
+    AssertEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    
+    next;
+    AssertEquals(OldID+1,FieldByName('ID').AsInteger);
+    prior;
+    prior;
+    AssertEquals(OldID-1,FieldByName('ID').AsInteger);
     end;
 end;
 
