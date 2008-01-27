@@ -36,26 +36,26 @@ units_i386_darwin=sdlgraph
 
 [compiler]
 options=-S2
-includedir=$(OS_TARGET) inc
-includedir_linux=unix
-includedir_freebsd=unix
-includedir_darwin=unix
-includedir_netbsd=unix
-includedir_openbsd=unix
-sourcedir=$(OS_TARGET) inc
+includedir=src/$(OS_TARGET) src/inc
+includedir_linux=src/unix
+includedir_freebsd=src/unix
+includedir_darwin=src/unix
+includedir_netbsd=src/unix
+includedir_openbsd=src/unix
+sourcedir=src/$(OS_TARGET) src/inc tests examples
 
 [install]
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [shared]
 build=n
 
 [prerules]
-GRAPHDIR=inc
-UNIXINC=unix
+GRAPHDIR=src/inc
+UNIXINC=src/unix
 
 ifndef USELIBGGI
 USELIBGGI=NO
@@ -66,7 +66,7 @@ GRAPH_UNIT=graph
 GRAPHUNIT_DIR=$(OS_TARGET)
 
 ifeq ($(OS_TARGET),linux)
-GRAPHUNIT_DIR=unix
+GRAPHUNIT_DIR=src/unix
 UNIXINCDEPS=$(UNIXINC)/graph16.inc
 
 ifeq ($(CPU_TARGET),powerpc64)
@@ -79,12 +79,12 @@ endif
 endif
 
 ifeq ($(OS_TARGET),freebsd)
-GRAPHUNIT_DIR=unix
+GRAPHUNIT_DIR=src/unix
 UNIXINCDEPS=$(UNIXINC)/graph16.inc
 endif
 
 [rules]
-include inc/makefile.inc
+include src/inc/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES)) $(UNIXINCDEPS)
 
 graph$(PPUEXT) : graph.pp $(GRAPHINCDEPS)
@@ -93,14 +93,14 @@ graph$(PPUEXT) : graph.pp $(GRAPHINCDEPS)
 ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp $(GRAPHINCDEPS)
         $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp
 
-winmouse$(PPUEXT) : win32/winmouse.pp graph$(PPUEXT)
-	$(COMPILER) win32/winmouse.pp
+winmouse$(PPUEXT) : src/win32/winmouse.pp graph$(PPUEXT)
+	$(COMPILER) src/win32/winmouse.pp
 
-wincrt$(PPUEXT) : win32/wincrt.pp graph$(PPUEXT)
-        $(COMPILER) win32/wincrt.pp
+wincrt$(PPUEXT) : src/win32/wincrt.pp graph$(PPUEXT)
+        $(COMPILER) src/win32/wincrt.pp
 
-sdlgraph$(PPUEXT) : sdlgraph/sdlgraph.pp $(GRAPHINCDEPS)
-        $(COMPILER) -I$(GRAPHDIR) sdlgraph/sdlgraph.pp
+sdlgraph$(PPUEXT) : src/sdlgraph/sdlgraph.pp $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) src/sdlgraph/sdlgraph.pp
 
 .NOTPARALLEL:
 
