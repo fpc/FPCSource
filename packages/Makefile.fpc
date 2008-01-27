@@ -64,17 +64,16 @@ fpmkunit_shared: fcl-base_shared fcl-process_shared paszlib_shared
 
 
 ifneq ($(findstring $(OS_TARGET),win32 win64),)
-fcl-base_all: base_all winunits-base_all winunits-jedi_all
-fcl-base_debug: base_debug winunits-base_debug winunits-jedi_debug
-fcl-base_smart: base_smart winunits-base_smart winunits-jedi_smart
-fcl-base_release: base_release winunits-base_release winunits-jedi_release
-fcl-base_shared: base_shared winunits-base_shared winunits-jedi_shared
-else
-fcl-base_all: base_all
-fcl-base_debug: base_debug
-fcl-base_smart: base_smart
-fcl-base_release: base_release
-fcl-base_shared: base_shared
+fcl-base_all: paszlib_all winunits-base_all winunits-jedi_all
+fcl-base_debug: paszlib_debug winunits-base_debug winunits-jedi_debug
+fcl-base_smart: paszlib_smart winunits-base_smart winunits-jedi_smart
+fcl-base_release: paszlib_release winunits-base_release winunits-jedi_release
+fcl-base_shared: paszlib_shared winunits-base_shared winunits-jedi_shared
+fcl-base_all: paszlib_all
+fcl-base_debug: paszlib_debug
+fcl-base_smart: paszlib_smart
+fcl-base_release: paszlib_release
+fcl-base_shared: paszlib_shared
 endif
 
 fcl-xml_all: fcl-base_all
