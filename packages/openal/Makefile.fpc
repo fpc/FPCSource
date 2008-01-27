@@ -15,8 +15,12 @@ exampledirs=examples
 [install]
 fpcpackage=y
 
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [rules]
 .NOTPARALLEL:

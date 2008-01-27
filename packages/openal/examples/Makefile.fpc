@@ -12,7 +12,7 @@ packages=openal mad oggvorbis a52 dts modplug matroska
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 
 [rules]
