@@ -174,7 +174,7 @@ fpgtk_smart: fcl-base_smart gtk1_smart
 fpgtk_debug: fcl-base_debug gtk1_debug
 fpgtk_release: fcl-base_release gtk1_release
 
-ifneq ($(findstring $(OS_TARGET),go32v2),)
+ifeq ($(findstring $(OS_TARGET),go32v2),)
 graph_all: sdl_all 
 graph_shared: sdl_shared 
 graph_smart: sdl_smart 
