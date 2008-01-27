@@ -1,0 +1,390 @@
+Unit Symbolic
+------------
+
+Unit Symbolic is something I wrote to take care of all my needs in the fields
+of simple expression parsing and evaluating, and to act as base for more
+complex manipulation.
+
+This doc originally was a notes file for myself. If it is unreadable, then
+sorry. Rewrite of docs will have to wait until FCL doc-making practices
+are clear.
+
+Author:
+-------
+
+Marco van de Voort (Marco@freepascal.org)
+
+Target/Compiler:
+------
+
+FreePascal 1.1 (post 1.0 development). www.freepascal.org
+
+Should run on Delphi 4 with minimal changes. (and any Delphi that supports
+overloading). If you remove the overloading it should run on D2..D5. I never
+programmed 16-bit Object Pascal, so I don't know the D1 status
+
+I tested with D4, but forgot to merge all changes.
+I fixed the more difficult Delphi problems see the ifdef near
+the pvliwevalword definition) Probably replacing all Upcase() functions with
+ansiuppercase and commenting the runerror msgs should get it to compile under
+Delphi.
+
+Key features:
+--------------
+(for the meaning of abbreviations, see the glossary
+               at the end of this document)
+
+General:
+      - 32-bit. Probably close to being 64-bit clean. (no integer <->
+         pointer casts). D1 status unknown, since I never used it, and can't
+         tell easily. Biggest problem for ports is probably that it doesn't
+         account for aligned arrays. It also assumes pointer arithmic.
+      - OOP interface design, but sometimes uses procedures internally for
+         speed.
+      - Doesn't use (co)processor dependant features atm. An alternate method
+         in TEvaluator will have to take care of that.
+      - Optimised (algorithm) with high speed repeated evaluations in mind.
+         Parsing is NOT optimised, but not particulary dumb either.
+         If parsing is a speed problem, one should eliminate the parsetree
+         generation and conversion to back VLIWRPN, and generate VLIWRPN
+         directly
+
+- Expression parsing and conversion:
+      - Infix to RPN
+      - infix to Parsetree
+      - Parsetree to infix
+      - Parsetree to RPN
+
+- Symbolic Expression handling.
+   - Simple operators on expressions + / * - ^
+   - Derivation of simple functions (all operators + most functions in math
+     unit)
+   - taylor polynomal.
+   - Precalculate Newton. (almost non-feature :-)
+   - Primitives for rearranging
+                - Identifying of terms.
+                - Simple simplying (2*2*x -> 4*x)
+                - (de)factoring (*)
+                - Rearrange so that when converted to RPN, maximal stack depth
+                  for evaluation is 4. This also needs a detector routine
+                  (determine required RPN stack room)
+   - Operator overloading possible?
+
+- High speed evaluating. (parse once, evaluate often principle)
+   - Infinite variables
+   - Infinite (symbolic) constants.
+   - Fast (hopefully)
+   - Structure designed so that a lowlevel (processor dependant) version of
+      the core evaluating routine is possible.
+
+TO DO, problems, missing features.
+------
+
+The biggest feature missing for me (at the moment) is the possibility to use
+user defined (other TExpression) functions in my expressions. Only built in
+functions are allowed. A procedure variable system as seen in some freeware
+examples could be done too. Procedure variables would be faster. However they
+would be compiletime (while texpressions can be changed runtime)
+(one can workaround this for the evaluator by applying some substitutions)
+
+Another problem can be seen both as bug and as missing feature: 5+x+7 doesn't
+get simplified to x+13 or 13+x. Only 5+7+x gets optimised. This also goes for
+the other infix operators.
+
+- (Symbolic) Integration. At least the parts that *can* be done. Hard, there is
+  no foolproof approach, and even determining *if* integration is possible is
+  hard.
+  User assisted? (e.g. let the user identify the partial integration terms)
+  Integration further opens the door to Laplace and Fourier.
+- Equation support? Or Equation is an equity operator and 2 TExpressions?
+- Other mathematical symbolic functions.
+- The RPNCalc example is 90% of a simple (symbolic!) RPN calculator. It looks
+  and feels awfull, but the base functionality is all there, and more important
+  easy to use and extend.
+  Maybe for the GUI freaks it is nice to have some GUI RPNcalc widget. Same for
+   TUI (TV/FV/IDE)
+- Polynomal to (Jedi's or other) vector/Matrix type conversion.
+   Would create entanglement between the units though. Maybe better via
+   ^array of arbfloat. Could need an import method in target unit somewhere.
+- Rearranging of the parsetree so that it requires maximally 4 stack
+   positions to evaluate the expression (which according to RPN theory
+   is possible?)
+  This would allow to run the evaluator purely on the i386 coprocessor
+   stack, which probably would mean an enormous speed increase.
+- As first step: inline math functions in assembler in evaluator
+  (with conditional)
+- Other "smart" rearranging of expressions. Since this is not always possible
+   without user intervention, this will boil down in creating the support
+   methods for user assisted symbolic rearraning.
+- Clean up, real docs. I waited with real docs because Jedi and FPC use
+  different document formats and philosophies with it. Personally I prefer the
+  FPC way of course. A PDF loads as fast as such a html-hlp, and looks ten
+  times better. AND can generate html if necessary, and get used for real books.
+- Complex?
+- Predefined symbolic constants? pi, G, h, e(logaritm), e(elementary charge)
+   (comment: Essentially not necessary anymore.)
+- Some more experienced classes programmer must decide which methods to make
+   virtual, and maybe rework the current inheritance between the classes.
+- Support in TEvaluator for constant substitution followed by an
+   TExpression.Simplify BEFORE vliwarr generation. This to avoid recalculating
+   things like h/(2*pi) in each evaluation. Will need to copy exprtree for
+   this?
+- Changing parser to allow foreign characters. (anything not in a certain
+   set is appended to token). Important for people using other codepages.
+- Common subexpression elimination? (probably needed in some form for some
+   rearrangements)
+- XML / HTML 4.0 / \Latex formatted output expression :-)
+- (Delphi) Controls that allow you to enter mathematical expressions in
+  numerical fields?
+- Graphical viewing of expressions? How to do it graph library (graph,
+  graphiX,GTK,QT,directx etc etc) independant?
+  (I have some idea for an algoritm for this from a LaTeX tutorial. Basically
+    parse the tree and assign all end nodes a size. Parents size can be
+    calculated from children. Then another pass for rendering to coordinates,
+    followed by the plot. Will have to be parameterized and with callbacks for
+    flexibility and system independance)
+- Doesn't check for bounderies. (treats e.g. x/x=1 but if x=0 then officially
+   it isn't defined) I hope to implement a TExpression method for this
+   someday. (that checks a function for continuety problem spots)
+
+Class overview.
+-------------
+
+1. TBaseExpression.                 Very basic support for creating parsetrees.
+2. TBaseExprParser(TBaseExpression) Parser class. Most basic conversion
+                                    between the three expression types
+                                    (infix, RPN, parsetree)
+3. TExpression(TBaseExprParser)     Main class. An expression and the operations
+                                    you can do on them.
+                                    Can do some simple evaluation.
+4. TEvaluator                       Plugin evaluation class. Operates
+                                    on a parsetree.
+
+
+Evaluating an expression.
+-------------------------
+
+There are two ways of evaluating a simple expression, the method
+TExpression.SimplifyConstants and the class TEvaluator. The differences are:
+
+- TExpression.SimplifyConstants is actually not written for evaluations but
+   for flexible combining constants after derivation. (  deriv(2x^2) returns
+   2*2*x, calling SimplifyConstants changes it to 4*x)
+   It can be used for simple evaluations too, but it is probably too slow for
+   repeated iterations. So in case of repeated iterations use TEvaluator.
+   For one simple evaluation: use simplify, unless you have symbolic
+   constants.
+
+- TEvaluator is written for speed. More specifically for high speed *repeated*
+   evaluations. So setting up the evaluation (creating the TEvaluator class),
+   is a parsing process and relatively slow. Each iteration after that however
+   is about as fast as I can imagine without using processor specific lowlevel
+   features in a HLL. (like internal compilation, FP assembler etc)
+
+- TEvaluator requires you to subst all values for symbolic constants/variables.
+  Simplify doesn't allow to subst values for symbolic constants/variables.
+
+TEvaluator algoritm and internals.
+--------------------
+
+TEvaluator had two design requirements:
+1 High speed for repeated evaluations of the same function with slightly
+  different values. (read: plot a graph reasonably fast)
+2 Must be usable to evaluate TExpressions, but not inherit directly from
+  TExpression. Since TEvaluate only needs the parsetree from TExpression,
+  this was easily possible.
+
+The reason for requirement 1 is that on modern computers the application's
+speed won't be affected by a little more parsing overhead for a single
+evaluation, while repeated evaluations can still slow down any system.
+(people who object to this, please calculate the Wave function for all known
+organic compounds:-)
+This is implemented by moving as much as possible to the (single) parsing
+stage, and keeping the repeated part as lean and fast as possible.
+
+As an application for the repeated evaluations I mainly had numerical searching
+for roots and drawing graphs in mind.
+
+
+The TEvaluator class generates something what I named VLIW-RPN array.
+- RPN because the array's elemental operations are equivalent to RPN stack
+  operations (very comparable to a Hewlett Packard RPN calculator).
+  This is mainly important because RPN is
+       - parsed linearly, and
+       - each operation is very simple, which is both fast.
+- VLIW because all operations are of uniform size. This makes sure that
+  finding the next item is equivalent to one pointer addition instruction.
+  Also looking ahead and back is easy. Contrary to "real" VLIW, only one
+  instruction per word exists.
+- Array vs linked list or OOP thingy like tlist: Same reasons as VLIW.
+
+In TEvaluator, symbolic values are subdivided into symbolic constants and
+variables. There is no mathematical difference (you define what a constant,
+and what is a variable. If you choose "wrong", there is a speed penalty, but
+no failure). The difference between constants and variables is that constants
+are embedded in the VLIW-RPN array before each evaluation, while variables are
+passed as parameters to each evaluation.
+Constants can be changed between each evaluation. If a variable only changes
+each 50 or more evaluations, make it a constant, and change it after 50
+evaluations.
+
+Example:
+
+ somefunc(x,y,pi,h)=h/(2*pi)*x^2+5*x+y
+
+Obviously, it is smart to choose pi and h for constants, since they won't
+change each evaluation again. (even smarter would be to evaluate h/2*pi  :-)
+
+
+A VLIW record basically can be 4 or 5 things atm:
+
+- a floating point value.
+- an integer value.
+- a RPN operator or function (which isn't a difference in RPN), though
+   this routine makes a difference between one and two parameter
+   functions/operators for speed. Two types:
+       - An operator or a function which takes two arguments. (there is no
+          difference in RPN, an operator is a function and vice versa)
+       - A function that takes one argument.
+- (administrative value, no mathematical meaning) placeholder for a symbolic
+  constant, to be able to to detect a constant/variable which wasn't given a
+  value, and raise an exception.
+
+- Symbolic variables. The variables in the expression are identified by an
+   integer sequential value (first var=1, second 2 etc). Variable values ARE
+   looked up each occurance during evaluation, and the only data used from
+   outside the RPN-VLIW array in a standard evaluation.
+
+The symbolic constants initially get the "placeholder" value, and when the
+user sets the constants via the SetConstant method, it gets a "floating point
+value" or "integer value" type.
+The class stores all references to all occurances of a constant in the VLIW
+array in a tlist.
+
+The Parser
+----------
+
+The parser is based on a PD stack RPN based non symbolic constant evaluator, I
+found in SWAG. It is practically rewritten, and only the elegant principle
+stands. The parser is NOT recursive-descent. It purely parses from left to
+right and creates for each token it finds a parsetree record.
+Parsetree records that can't be added to the parsetree yet, are pushed on an
+argument or separate operator stack.
+When an operator is found, then the operator stack is evaluated (popping arguments
+of the argument stack) until an operator with higher precendence than the new
+one is found. Only then the new operator is pushed on the operator stack.
+
+I don't know if this is the fastest way, but it is simple, quite elegant and
+probably not very bug-sensitive. If somebody has sensible reasons to change it
+to recur. descent, please mail me.
+
+Exceptions
+-------------
+
+I'm still working on the errorhandling (exceptions) of the classes.
+Besides some more specific cases, there are two or three basic exception groups:
+
+- (RPN)Stack under/overflow exceptions. This is not necessarily a fault
+  in the program, but more likely a fault in the passed (infix) expression.
+  (specially if they occur in the parser). Smartest is to log the expression
+  passed to parser somewhere in such cases.
+  Note: These signal problems with internal RPN stacks,
+  not the processor stack. Do not mix these up. (by reraising a processor
+  stack exception). The fault is not necessarily in the program.
+
+- Internal errors. (IE) These are mosttimes problems in the class, and logging
+  the "message" gives some information about the location of the problem.
+  Most IE's are ELSE clauses that shouldn't occur, or datacorruption that
+  is not acceptable.  Probably they only occur if one part of the package
+  is out of sync with another part, with dangling pointers etc.
+  E.g. Parser is updated to support function "x", but TEvaluator.Evaluate
+  wasn't. The CASE node for "x" doesn't exist, so it ends up in the ELSE
+  clause which triggers the exception.
+  If you use FPC, and your application is compiled with -gl, you'll probably
+  get a nice backtrace with sourcename and line of the exception.
+
+- Division by zero might be the third. This is NOT the processor division
+   trap by zero, but a RPN stack one.
+
+Glossary
+---------
+Some often used abbreviations and terms:
+
+FPC  : Free Pascal Compiler, the one that I use. Has a 32-bit Delphi mode.
+       Misses dynamic arrays, interfaces, and nearly the entire VCL in 
+       production version 1.0.x. (Meanwhile, most of the language is
+       already in 1.1.x development version)
+        http://www.freepascal.org
+
+IE   : Internal error. Under FPC we try to append an ELSE clause to all
+       CASE statements, even if the ELSE shouldn't occur. In such CASE
+       statement the ELSE calls an internal error procedure.
+       This is also used for other important decisions with situations that
+       shouldn't occur. (e.g. enumerations with values that aren't defined,
+       placed there by casts, circular references in linked lists etc.)
+       I use the same system in these units, but with Exceptions.
+       See "Exceptions" paragraph for more information about IEs.
+       A good generic IE routine should be able to obtain the name of the class
+       in string form.
+
+Infix: The way poeple usually write down expressions. An operator between its
+       operands. (5+2 operates on 5 and 2. Could also be written as add(5,2)
+       or 5 2 +
+       Has some advantages, but is complicated and slow to parse. However
+       users(except some Hewlett Packard calculator users like me) seem to
+       prefer it.
+
+RPN : Reverse Polish Notation, an alternate notation of expression.
+       Any operator appears AFTER its operands.
+       e.g. 1+2+3*sin(4)  could be written as 1 2 + 3 4 sin * +
+       Biggest advantage: Linear parsing from left to right.
+       Being able to convert a parsetree to RPN is also a good debugging aid.
+       (since it can be simply printed instead of having to browse a
+       parsetree runtime)
+       You can also think of it as replacing the infix operators in an infix
+       expression by functions (so add(x,y) instead of x+y), and then parse
+       from end to start (the "Reverse" of RPN)
+       This also displays another feature of RPN: There is no difference between
+       operators and functions. There are only functions that take different
+       amounts of parameters.
+
+Parsetree:
+      The way an expression (or even an entire program) is stored
+       after parsing in compilers. Often, the main type is a variant record
+       (see treenode, pnode in the source) in which an operator or a function
+       has pointers to each operand. Parsetrees are often visualised as below.
+       Each operation, function or constant is a record, the lines made with
+       slashes are the pointers between the records. (so the top "+" has a
+       pointer to  another "+" record, and one to a "*" record)
+
+
+                    +
+                   / \
+                  +   \
+                 / \   \
+                1   2   \
+                         *
+                        / \
+                       3   SIN
+                             \
+                              4
+
+                        Fig 1.  1+2+3*sin(4)
+
+       Parsetrees are the easiest way to operate on (transform, derive etc)
+        expressions. Mainly because you don't have to move much data to move one
+	part of the expression to another place. Parsetrees are kinda slow though)
+	(compared to RPN), or VLIWRPN
+
+VLIW:  Very Large Instruction Word. Acronym from the RISC world that simply
+          boils down to "a linear sequence (array,stream) of uniform sized
+          "items" is the simplest and fastest way to parse something."
+          The RISC people are of course talking about instructions to process
+          and schedule. I'm using the analogy to evaluate an array of
+          elementary RPN instructions.
+          This principle is used to get the expression evaluator fast per
+          iteration. The main difference is that in VLIW processors more than
+          one operation can be packed in a VLI-Word. (which must be independant
+          then). This unit doesn't :-)
+
+
