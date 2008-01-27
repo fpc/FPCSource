@@ -3909,6 +3909,7 @@ packages/symbolic/examples/Makefile svneol=native#text/plain
 packages/symbolic/examples/Makefile.fpc svneol=native#text/plain
 packages/symbolic/examples/evaltest.pas svneol=native#text/plain
 packages/symbolic/examples/rpnthing.pas svneol=native#text/plain
+packages/symbolic/fpmake.pp svneol=native#text/plain
 packages/symbolic/src/exprstrs.inc svneol=native#text/plain
 packages/symbolic/src/parsexpr.inc svneol=native#text/plain
 packages/symbolic/src/rearrang.inc svneol=native#text/plain
