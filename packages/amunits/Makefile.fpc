@@ -1,0 +1,34 @@
+#
+#   Makefile.fpc for Free Pascal Amiga units Bindings
+#
+
+[package]
+name=amunits
+version=2.0.0
+
+[target]
+units= msgbox amigautils wbargs vartags pastoc tagsarray systemvartags         \
+       deadkeys consoleio pcq longarray linklist hisoft timerutils easyasl     \
+       doublebuffer intuition graphics amigalib nonvolatile iffparse hardware  \
+       expansion diskfont conunit amigados configvars keyboard bootblock icon  \
+       cd realtime rexx translator scsidisk lowlevel configregs prefs parallel \ 
+       gadtools prtgfx romboot_base trackdisk expansionbase amigaguide         \
+       amigaprinter bullet clipboard keymap utility timer workbench colorwheel \
+       prtbase console locale tapedeck serial gameport gradientslider input    \
+       audio datatypes asl commodities hardblocks layers inputevent identify   \
+       gtlayout tritonmacros render mui picasso96api guigfx preferences        \
+       xadmaster cybergraphics ptreplay reqtools amarquee ttengine triton zlib \
+       mysticview ahi lucyplay ahi_sub 
+
+[compiler]
+includedir=src
+sourcedir=src src/otherlibs src/utilunits src/coreunits tests
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
