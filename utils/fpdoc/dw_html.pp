@@ -657,7 +657,7 @@ var
   i: Integer;
   PageDoc: TXMLDocument;
   Filename: String;
-begin WriteLn('!!!!!!!!!!!!!!!!!!!!!!1');
+begin 
   if Engine.Output <> '' then
     Engine.Output := IncludeTrailingBackSlash(Engine.Output);
   for i := 0 to PageInfos.Count - 1 do
@@ -1647,7 +1647,10 @@ var
 begin
   if not (Element.Parent is TPasVariant) then
     if Element.IsPacked then
-      AppendKw(CodeEl, 'packed record')
+      If Element.IsBitPacked then
+        AppendKw(CodeEl, 'bitpacked record')
+      else
+        AppendKW(CodeEl, 'packed record')  
     else
       AppendKw(CodeEl, 'record');
 
