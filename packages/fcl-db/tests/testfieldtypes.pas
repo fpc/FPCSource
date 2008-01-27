@@ -21,6 +21,7 @@ type
     procedure CreateTableWithFieldType(ADatatype : TFieldType; ASQLTypeDecl : string);
     procedure TestFieldDeclaration(ADatatype: TFieldType; ADataSize: integer);
     procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
+    procedure TestSetBlobAsParam(asWhat : integer);
   protected
     procedure SetUp; override; 
     procedure TearDown; override;
@@ -40,6 +41,7 @@ type
     procedure TestGetTables;
     procedure TestUpdateIndexDefs;
     procedure TestSetBlobAsMemoParam;
+    procedure TestSetBlobAsBlobParam;
     procedure TestSetBlobAsStringParam;
     procedure TestGetIndexDefs;
     procedure TestDblQuoteEscComments;
@@ -472,30 +474,8 @@ end;
 
 procedure TTestFieldTypes.TestSetBlobAsStringParam;
 
-var
-  i             : byte;
-  ASQL          : TSQLQuery;
-
 begin
-  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
-//  CreateTableWithFieldType(ftBlob,'TEXT');
-  TestFieldDeclaration(ftBlob,0);
-
-  ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
-  with ASql  do
-    begin
-    sql.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
-    Params.ParamByName('blobParam').AsString := 'Test deze BLob';
-    ExecSQL;
-    end;
-
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    Open;
-    if not eof then
-      AssertEquals('Test deze BLob',fields[0].AsString);
-    close;
-    end;
+  TestSetBlobAsParam(1);
 end;
 
 
@@ -794,6 +774,36 @@ begin
     close;
     end;
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+end;
+
+procedure TTestFieldTypes.TestSetBlobAsParam(asWhat: integer);
+var
+  i             : byte;
+  ASQL          : TSQLQuery;
+
+begin
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
+  TestFieldDeclaration(ftBlob,0);
+
+  ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
+  with ASql  do
+    begin
+    sql.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
+    case asWhat of
+      0: Params.ParamByName('blobParam').AsMemo := 'Test deze BLob';
+      1: Params.ParamByName('blobParam').AsString := 'Test deze BLob';
+      2: Params.ParamByName('blobParam').AsBlob := 'Test deze BLob';
+    end;
+    ExecSQL;
+    end;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    if not eof then
+      AssertEquals('Test deze BLob',fields[0].AsString);
+    close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestAggregates;
@@ -1175,30 +1185,13 @@ begin
 end;
 
 procedure TTestFieldTypes.TestSetBlobAsMemoParam;
-var
-  i             : byte;
-  ASQL          : TSQLQuery;
-
 begin
-  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
-  TestFieldDeclaration(ftBlob,0);
+  TestSetBlobAsParam(0);
+end;
 
-  ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
-  with ASql  do
-    begin
-    sql.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
-    Params.ParamByName('blobParam').AsMemo := 'Test deze BLob';
-    ExecSQL;
-    end;
-
-  with TSQLDBConnector(DBConnector).Query do
-    begin
-    Open;
-    if not eof then
-      AssertEquals('Test deze BLob',fields[0].AsString);
-    close;
-    end;
-
+procedure TTestFieldTypes.TestSetBlobAsBlobParam;
+begin
+  TestSetBlobAsParam(2);
 end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
