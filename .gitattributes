@@ -1091,12 +1091,6 @@ packages/extra/amunits/utilunits/tagsarray.pas svneol=native#text/plain
 packages/extra/amunits/utilunits/timerutils.pas svneol=native#text/plain
 packages/extra/amunits/utilunits/vartags.pas svneol=native#text/plain
 packages/extra/amunits/utilunits/wbargs.pas svneol=native#text/plain
-packages/extra/fftw/Makefile -text
-packages/extra/fftw/Makefile.fpc -text
-packages/extra/fftw/example.pas -text
-packages/extra/fftw/fftw_s.pas -text
-packages/extra/fftw/readme.txt -text
-packages/extra/forms/fpmake.inc svneol=native#text/plain
 packages/extra/gbaunits/Makefile -text
 packages/extra/gbaunits/Makefile.fpc -text
 packages/extra/gbaunits/bios_asm.as -text
@@ -2903,6 +2897,12 @@ packages/fcl-xml/src/xpath.pp svneol=native#text/plain
 packages/fcl-xml/tests/README svneol=native#text/plain
 packages/fcl-xml/tests/template.xml svneol=native#text/plain
 packages/fcl-xml/tests/xmlts.pp svneol=native#text/plain
+packages/fftw/Makefile svneol=native#text/plain
+packages/fftw/Makefile.fpc svneol=native#text/plain
+packages/fftw/examples/example.pas svneol=native#text/plain
+packages/fftw/fpmake.pp svneol=native#text/plain
+packages/fftw/readme.txt svneol=native#text/plain
+packages/fftw/src/fftw_s.pas svneol=native#text/plain
 packages/fpgtk/Makefile svneol=native#text/plain
 packages/fpgtk/Makefile.fpc svneol=native#text/plain
 packages/fpgtk/examples/Makefile svneol=native#text/plain

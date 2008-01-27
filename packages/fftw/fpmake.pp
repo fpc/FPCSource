@@ -12,21 +12,15 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('xforms');
+    P:=AddPackage('fftw');
 {$ifdef ALLPACKAGES}
-    P.Directory:='xforms';
+    P.Directory:='fftw';
 {$endif ALLPACKAGES}
     P.Version:='2.0.0';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
 
-    T:=P.Targets.AddUnit('xforms.pp');
-      with T.Dependencies do
-        begin
-          AddInclude('cursorfont.inc');
-          AddUnit('xlib');
-          AddUnit('xresource');
-        end;
+    T:=P.Targets.AddUnit('fftw_s.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
