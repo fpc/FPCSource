@@ -777,13 +777,6 @@ packages/extra/ptc/*.s
 packages/extra/ptc/.gdbinit
 packages/extra/ptc/fpcmade.*
 packages/extra/ptc/units
-packages/extra/sndfile/*.bak
-packages/extra/sndfile/*.exe
-packages/extra/sndfile/*.o
-packages/extra/sndfile/*.ppu
-packages/extra/sndfile/*.s
-packages/extra/sndfile/fpcmade.*
-packages/extra/sndfile/units
 packages/extra/units
 packages/extra/utmp/*.bak
 packages/extra/utmp/*.exe

@@ -1770,13 +1770,6 @@ packages/extra/ptc/x11/x11modesi.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11windowdisplayd.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11windowdisplayi.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/xunikey.inc svneol=native#text/x-pascal
-packages/extra/sndfile/Makefile svneol=native#text/plain
-packages/extra/sndfile/Makefile.fpc svneol=native#text/plain
-packages/extra/sndfile/README -text
-packages/extra/sndfile/fpmake.pp svneol=native#text/plain
-packages/extra/sndfile/sfplay.pp svneol=native#text/plain
-packages/extra/sndfile/sndfile.pp svneol=native#text/plain
-packages/extra/sndfile/testc.c -text
 packages/extra/univint/ABActions.pas svneol=native#text/plain
 packages/extra/univint/ABAddressBook.pas svneol=native#text/plain
 packages/extra/univint/ABGlobals.pas svneol=native#text/plain
@@ -4253,6 +4246,13 @@ packages/sdl/src/sdl_net.pas svneol=native#text/plain
 packages/sdl/src/sdl_ttf.pas svneol=native#text/plain
 packages/sdl/src/sdlutils.pas svneol=native#text/plain
 packages/sdl/src/smpeg.pas svneol=native#text/plain
+packages/sndfile/Makefile svneol=native#text/plain
+packages/sndfile/Makefile.fpc svneol=native#text/plain
+packages/sndfile/README svneol=native#text/plain
+packages/sndfile/examples/sfplay.pp svneol=native#text/plain
+packages/sndfile/fpmake.pp svneol=native#text/plain
+packages/sndfile/scripts/testc.c svneol=native#text/plain
+packages/sndfile/src/sndfile.pp svneol=native#text/plain
 packages/sqlite/Makefile svneol=native#text/plain
 packages/sqlite/Makefile.fpc svneol=native#text/plain
 packages/sqlite/fpmake.pp svneol=native#text/plain
