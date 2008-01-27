@@ -4,7 +4,7 @@
 
 [target]
 dirs= fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm numlib
-dirs_linux_i386=libc  unixutil graph 
+dirs_linux_i386=libc  unixutil graph
 dirs_i386_linux= graph
 dirs_x86_64_linux= graph
 dirs_powerpc_linux= graph
@@ -22,7 +22,7 @@ dirs_i386_darwin=graph univint sdl
 dirs_powerpc_darwin=graph univint sdl
 dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd22 
+               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd22
 dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd22
@@ -107,7 +107,7 @@ fcl-registry_release: fcl-xml_release
 fcl-registry_shared: fcl-xml_shared
 
 ifeq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
-fcl-net_all: fcl-passrc_all fcl-xml_all 
+fcl-net_all: fcl-passrc_all fcl-xml_all
 fcl-net_debug: fcl-passrc_debug fcl-xml_debug
 fcl-net_smart: fcl-passrc_smart fcl-xml_smart
 fcl-net_release: fcl-passrc_release fcl-xml_release
@@ -120,7 +120,7 @@ fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 
-fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all 
+fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all
 fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
 fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
 fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
@@ -150,12 +150,6 @@ libpng_smart: zlib_smart
 libpng_release: zlib_release
 libpng_shared: zlib_shared
 
-gtk1_all: x11_all
-gtk1_debug: x11_debug
-gtk1_smart: x11_smart
-gtk1_release: x11_release
-gtk1_shared: x11_shared   
-
 cairo_all: x11_all fcl-image_all
 cairo_debug: x11_debug fcl-image_debug
 cairo_smart: x11_smart fcl-image_smart
@@ -175,18 +169,26 @@ fpgtk_debug: fcl-base_debug gtk1_debug
 fpgtk_release: fcl-base_release gtk1_release
 
 ifeq ($(findstring $(OS_TARGET),go32v2),)
-graph_all: sdl_all 
-graph_shared: sdl_shared 
-graph_smart: sdl_smart 
-graph_debug: sdl_debug 
-graph_release: sdl_release 
+graph_all: sdl_all
+graph_shared: sdl_shared
+graph_smart: sdl_smart
+graph_debug: sdl_debug
+graph_release: sdl_release
 endif
 
-gtk2_all: x11_all 
-gtk2_shared: x11_shared 
-gtk2_smart: x11_smart 
-gtk2_debug: x11_debug 
-gtk2_release: x11_release 
+ifneq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
+gtk1_all: x11_all
+gtk1_debug: x11_debug
+gtk1_smart: x11_smart
+gtk1_release: x11_release
+gtk1_shared: x11_shared
+
+gtk2_all: x11_all
+gtk2_shared: x11_shared
+gtk2_smart: x11_smart
+gtk2_debug: x11_debug
+gtk2_release: x11_release
+endif
 
 imlib_all: gtk1_all x11_all
 imlib_shared: gtk1_shared x11_shared
@@ -238,11 +240,11 @@ unixutil_smart: libc_smart fcl-base_smart
 unixutil_debug: libc_debug fcl-base_debug
 unixutil_release: libc_release fcl-base_release
 
-winunits-jedi_all: winunits-base_all 
-winunits-jedi_shared: winunits-base_shared 
-winunits-jedi_smart: winunits-base_smart 
-winunits-jedi_debug: winunits-base_debug 
-winunits-jedi_release: winunits-base_release 
+winunits-jedi_all: winunits-base_all
+winunits-jedi_shared: winunits-base_shared
+winunits-jedi_smart: winunits-base_smart
+winunits-jedi_debug: winunits-base_debug
+winunits-jedi_release: winunits-base_release
 
 xforms_all: x11_all
 xforms_shared: x11_shared
@@ -252,13 +254,13 @@ xforms_release: x11_release
 
 gnome1_all: gtk1_all imlib_all
 gnome1_shared: gtk1_shared imlib_shared
-gnome1_smart: gtk1_smart imlib_smart   
-gnome1_debug: gtk1_debug imlib_debug   
+gnome1_smart: gtk1_smart imlib_smart
+gnome1_debug: gtk1_debug imlib_debug
 gnome1_release: gtk1_release imlib_release
 
 ptc_all: hermes_all x11_all
-ptc_shared: hermes_shared x11_shared 
-ptc_smart: hermes_smart x11_smart 
-ptc_debug: hermes_debug x11_debug 
-ptc_release: hermes_release x11_release 
+ptc_shared: hermes_shared x11_shared
+ptc_smart: hermes_smart x11_smart
+ptc_debug: hermes_debug x11_debug
+ptc_release: hermes_release x11_release
 
