@@ -250,13 +250,6 @@ packages/base/mysql/ver40/*.s
 packages/base/mysql/ver40/fpcmade.*
 packages/base/mysql/ver40/units
 packages/base/units
-packages/extra/*.bak
-packages/extra/*.exe
-packages/extra/*.o
-packages/extra/*.ppu
-packages/extra/*.s
-packages/extra/fpcmade.*
-packages/extra/units
 packages/fcl-base/examples/*.bak
 packages/fcl-base/examples/*.exe
 packages/fcl-base/examples/*.o

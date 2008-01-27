@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr chm numlib
+dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm numlib
 dirs_linux_i386=libc  unixutil graph 
 dirs_i386_linux= graph
 dirs_x86_64_linux= graph
@@ -62,11 +62,6 @@ fpmkunit_smart: fcl-base_smart fcl-process_smart paszlib_smart
 fpmkunit_release: fcl-base_release fcl-process_release paszlib_release
 fpmkunit_shared: fcl-base_shared fcl-process_shared paszlib_shared
 
-extra_all: base_all fcl-xml_all
-extra_debug: base_debug fcl-xml_debug
-extra_smart: base_smart fcl-xml_smart
-extra_release: base_release fcl-xml_release
-extra_shared: base_shared fcl-xml_shared
 
 ifneq ($(findstring $(OS_TARGET),win32 win64),)
 fcl-base_all: base_all winunits-base_all winunits-jedi_all
@@ -113,7 +108,7 @@ fcl-registry_release: fcl-xml_release
 fcl-registry_shared: fcl-xml_shared
 
 ifeq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
-fcl-net_all: fcl-passrc_all fcl-xml_all
+fcl-net_all: fcl-passrc_all fcl-xml_all 
 fcl-net_debug: fcl-passrc_debug fcl-xml_debug
 fcl-net_smart: fcl-passrc_smart fcl-xml_smart
 fcl-net_release: fcl-passrc_release fcl-xml_release
@@ -186,17 +181,17 @@ fpgtk_smart: fcl-base_smart gtk1_smart
 fpgtk_debug: fcl-base_debug gtk1_debug
 fpgtk_release: fcl-base_release gtk1_release
 
-graph_all: sdl_all sdl_all sdl_all sdl_all sdl_all sdl_all
-graph_shared: sdl_shared sdl_shared sdl_shared sdl_shared sdl_shared sdl_shared
-graph_smart: sdl_smart sdl_smart sdl_smart sdl_smart sdl_smart sdl_smart
-graph_debug: sdl_debug sdl_debug sdl_debug sdl_debug sdl_debug sdl_debug
-graph_release: sdl_release sdl_release sdl_release sdl_release sdl_release sdl_release
+graph_all: sdl_all 
+graph_shared: sdl_shared 
+graph_smart: sdl_smart 
+graph_debug: sdl_debug 
+graph_release: sdl_release 
 
-gtk2_all: x11_all x11_all x11_all x11_all x11_all x11_all
-gtk2_shared: x11_shared x11_shared x11_shared x11_shared x11_shared x11_shared
-gtk2_smart: x11_smart x11_smart x11_smart x11_smart x11_smart x11_smart
-gtk2_debug: x11_debug x11_debug x11_debug x11_debug x11_debug x11_debug
-gtk2_release: x11_release x11_release x11_release x11_release x11_release x11_release
+gtk2_all: x11_all 
+gtk2_shared: x11_shared 
+gtk2_smart: x11_smart 
+gtk2_debug: x11_debug 
+gtk2_release: x11_release 
 
 imlib_all: gtk1_all x11_all
 imlib_shared: gtk1_shared x11_shared
@@ -257,4 +252,16 @@ xforms_shared: x11_shared
 xforms_smart: x11_smart
 xforms_debug: x11_debug
 xforms_release: x11_release
+
+gnome1_all: gtk1_all imlib_all
+gnome1_shared: gtk1_shared imlib_shared
+gnome1_smart: gtk1_smart imlib_smart   
+gnome1_debug: gtk1_debug imlib_debug   
+gnome1_release: gtk1_release imlib_release
+
+ptc_all: hermes_all x11_all
+ptc_shared: hermes_shared x11_shared 
+ptc_smart: hermes_smart x11_smart 
+ptc_debug: hermes_debug x11_debug 
+ptc_release: hermes_release x11_release 
 
