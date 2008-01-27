@@ -241,106 +241,97 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap lua sdl graph
+override TARGET_DIRS+=gnome1 graph
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=graph
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=fftw openal oggvorbis   openssl pcap sdl lua graph
+override TARGET_DIRS+=graph
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=os2units rexx
+override TARGET_DIRS+=os2units
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openssl pcap   sdl graph
+override TARGET_DIRS+=gnome1   graph
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=graph
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=fftw forms  ggi   gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=forms  ggi   gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=fftw forms   gnome1 openssl univint sdl graph
+override TARGET_DIRS+=gnome1 univint  graph
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=os2units rexx
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=fftw
+override TARGET_DIRS+=os2units
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
+override TARGET_DIRS+=gnome1 graph
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openssl pcap   sdl graph
+override TARGET_DIRS+=gnome1   graph
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=amunits
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=forms  ggi   gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=palmunits
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap sdl graph
+override TARGET_DIRS+=gnome1 graph
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_DIRS+=amunits
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=fftw forms   gnome1 openssl univint sdl graph
+override TARGET_DIRS+=gnome1 univint  graph
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
+override TARGET_DIRS+=gnome1 graph
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=fftw forms  ggi   gnome1 openssl pcap
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap sdl graph
+override TARGET_DIRS+=gnome1 graph
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openssl pcap   sdl graph
+override TARGET_DIRS+=gnome1   graph
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=fftw forms   gnome1 openssl
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=fftw openssl sdl
+override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
+override TARGET_DIRS+=gnome1 graph
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=palmunits
 endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=fftw
-endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
+override TARGET_DIRS+=gnome1 graph
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=fftw forms   gnome1 openssl
+override TARGET_DIRS+=gnome1
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1422,385 +1413,111 @@ fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIR
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
-TARGET_DIRS_LUA=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
-TARGET_DIRS_SDL=1
-TARGET_DIRS_LUA=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_OS2UNITS=1
-TARGET_DIRS_REXX=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_UNIVINT=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_OS2UNITS=1
-TARGET_DIRS_REXX=1
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-TARGET_DIRS_FFTW=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_AMUNITS=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_PALMUNITS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_AMUNITS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_UNIVINT=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
-TARGET_DIRS_SDL=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_SDL=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_PALMUNITS=1
 endif
-ifeq ($(FULL_TARGET),arm-wince)
-TARGET_DIRS_FFTW=1
-endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
-TARGET_DIRS_GGI=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENAL=1
-TARGET_DIRS_OGGVORBIS=1
-TARGET_DIRS_OPENSSL=1
-TARGET_DIRS_PCAP=1
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-TARGET_DIRS_FFTW=1
-TARGET_DIRS_FORMS=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_OPENSSL=1
-endif
-ifdef TARGET_DIRS_FFTW
-fftw_all:
-	$(MAKE) -C fftw all
-fftw_debug:
-	$(MAKE) -C fftw debug
-fftw_smart:
-	$(MAKE) -C fftw smart
-fftw_release:
-	$(MAKE) -C fftw release
-fftw_units:
-	$(MAKE) -C fftw units
-fftw_examples:
-	$(MAKE) -C fftw examples
-fftw_shared:
-	$(MAKE) -C fftw shared
-fftw_install:
-	$(MAKE) -C fftw install
-fftw_sourceinstall:
-	$(MAKE) -C fftw sourceinstall
-fftw_exampleinstall:
-	$(MAKE) -C fftw exampleinstall
-fftw_distinstall:
-	$(MAKE) -C fftw distinstall
-fftw_zipinstall:
-	$(MAKE) -C fftw zipinstall
-fftw_zipsourceinstall:
-	$(MAKE) -C fftw zipsourceinstall
-fftw_zipexampleinstall:
-	$(MAKE) -C fftw zipexampleinstall
-fftw_zipdistinstall:
-	$(MAKE) -C fftw zipdistinstall
-fftw_clean:
-	$(MAKE) -C fftw clean
-fftw_distclean:
-	$(MAKE) -C fftw distclean
-fftw_cleanall:
-	$(MAKE) -C fftw cleanall
-fftw_info:
-	$(MAKE) -C fftw info
-fftw_makefiles:
-	$(MAKE) -C fftw makefiles
-fftw:
-	$(MAKE) -C fftw all
-.PHONY: fftw_all fftw_debug fftw_smart fftw_release fftw_units fftw_examples fftw_shared fftw_install fftw_sourceinstall fftw_exampleinstall fftw_distinstall fftw_zipinstall fftw_zipsourceinstall fftw_zipexampleinstall fftw_zipdistinstall fftw_clean fftw_distclean fftw_cleanall fftw_info fftw_makefiles fftw
-endif
-ifdef TARGET_DIRS_FORMS
-forms_all:
-	$(MAKE) -C forms all
-forms_debug:
-	$(MAKE) -C forms debug
-forms_smart:
-	$(MAKE) -C forms smart
-forms_release:
-	$(MAKE) -C forms release
-forms_units:
-	$(MAKE) -C forms units
-forms_examples:
-	$(MAKE) -C forms examples
-forms_shared:
-	$(MAKE) -C forms shared
-forms_install:
-	$(MAKE) -C forms install
-forms_sourceinstall:
-	$(MAKE) -C forms sourceinstall
-forms_exampleinstall:
-	$(MAKE) -C forms exampleinstall
-forms_distinstall:
-	$(MAKE) -C forms distinstall
-forms_zipinstall:
-	$(MAKE) -C forms zipinstall
-forms_zipsourceinstall:
-	$(MAKE) -C forms zipsourceinstall
-forms_zipexampleinstall:
-	$(MAKE) -C forms zipexampleinstall
-forms_zipdistinstall:
-	$(MAKE) -C forms zipdistinstall
-forms_clean:
-	$(MAKE) -C forms clean
-forms_distclean:
-	$(MAKE) -C forms distclean
-forms_cleanall:
-	$(MAKE) -C forms cleanall
-forms_info:
-	$(MAKE) -C forms info
-forms_makefiles:
-	$(MAKE) -C forms makefiles
-forms:
-	$(MAKE) -C forms all
-.PHONY: forms_all forms_debug forms_smart forms_release forms_units forms_examples forms_shared forms_install forms_sourceinstall forms_exampleinstall forms_distinstall forms_zipinstall forms_zipsourceinstall forms_zipexampleinstall forms_zipdistinstall forms_clean forms_distclean forms_cleanall forms_info forms_makefiles forms
-endif
-ifdef TARGET_DIRS_GGI
-ggi_all:
-	$(MAKE) -C ggi all
-ggi_debug:
-	$(MAKE) -C ggi debug
-ggi_smart:
-	$(MAKE) -C ggi smart
-ggi_release:
-	$(MAKE) -C ggi release
-ggi_units:
-	$(MAKE) -C ggi units
-ggi_examples:
-	$(MAKE) -C ggi examples
-ggi_shared:
-	$(MAKE) -C ggi shared
-ggi_install:
-	$(MAKE) -C ggi install
-ggi_sourceinstall:
-	$(MAKE) -C ggi sourceinstall
-ggi_exampleinstall:
-	$(MAKE) -C ggi exampleinstall
-ggi_distinstall:
-	$(MAKE) -C ggi distinstall
-ggi_zipinstall:
-	$(MAKE) -C ggi zipinstall
-ggi_zipsourceinstall:
-	$(MAKE) -C ggi zipsourceinstall
-ggi_zipexampleinstall:
-	$(MAKE) -C ggi zipexampleinstall
-ggi_zipdistinstall:
-	$(MAKE) -C ggi zipdistinstall
-ggi_clean:
-	$(MAKE) -C ggi clean
-ggi_distclean:
-	$(MAKE) -C ggi distclean
-ggi_cleanall:
-	$(MAKE) -C ggi cleanall
-ggi_info:
-	$(MAKE) -C ggi info
-ggi_makefiles:
-	$(MAKE) -C ggi makefiles
-ggi:
-	$(MAKE) -C ggi all
-.PHONY: ggi_all ggi_debug ggi_smart ggi_release ggi_units ggi_examples ggi_shared ggi_install ggi_sourceinstall ggi_exampleinstall ggi_distinstall ggi_zipinstall ggi_zipsourceinstall ggi_zipexampleinstall ggi_zipdistinstall ggi_clean ggi_distclean ggi_cleanall ggi_info ggi_makefiles ggi
 endif
 ifdef TARGET_DIRS_GNOME1
 gnome1_all:
@@ -1846,276 +1563,6 @@ gnome1_makefiles:
 gnome1:
 	$(MAKE) -C gnome1 all
 .PHONY: gnome1_all gnome1_debug gnome1_smart gnome1_release gnome1_units gnome1_examples gnome1_shared gnome1_install gnome1_sourceinstall gnome1_exampleinstall gnome1_distinstall gnome1_zipinstall gnome1_zipsourceinstall gnome1_zipexampleinstall gnome1_zipdistinstall gnome1_clean gnome1_distclean gnome1_cleanall gnome1_info gnome1_makefiles gnome1
-endif
-ifdef TARGET_DIRS_OPENAL
-openal_all:
-	$(MAKE) -C openal all
-openal_debug:
-	$(MAKE) -C openal debug
-openal_smart:
-	$(MAKE) -C openal smart
-openal_release:
-	$(MAKE) -C openal release
-openal_units:
-	$(MAKE) -C openal units
-openal_examples:
-	$(MAKE) -C openal examples
-openal_shared:
-	$(MAKE) -C openal shared
-openal_install:
-	$(MAKE) -C openal install
-openal_sourceinstall:
-	$(MAKE) -C openal sourceinstall
-openal_exampleinstall:
-	$(MAKE) -C openal exampleinstall
-openal_distinstall:
-	$(MAKE) -C openal distinstall
-openal_zipinstall:
-	$(MAKE) -C openal zipinstall
-openal_zipsourceinstall:
-	$(MAKE) -C openal zipsourceinstall
-openal_zipexampleinstall:
-	$(MAKE) -C openal zipexampleinstall
-openal_zipdistinstall:
-	$(MAKE) -C openal zipdistinstall
-openal_clean:
-	$(MAKE) -C openal clean
-openal_distclean:
-	$(MAKE) -C openal distclean
-openal_cleanall:
-	$(MAKE) -C openal cleanall
-openal_info:
-	$(MAKE) -C openal info
-openal_makefiles:
-	$(MAKE) -C openal makefiles
-openal:
-	$(MAKE) -C openal all
-.PHONY: openal_all openal_debug openal_smart openal_release openal_units openal_examples openal_shared openal_install openal_sourceinstall openal_exampleinstall openal_distinstall openal_zipinstall openal_zipsourceinstall openal_zipexampleinstall openal_zipdistinstall openal_clean openal_distclean openal_cleanall openal_info openal_makefiles openal
-endif
-ifdef TARGET_DIRS_OGGVORBIS
-oggvorbis_all:
-	$(MAKE) -C oggvorbis all
-oggvorbis_debug:
-	$(MAKE) -C oggvorbis debug
-oggvorbis_smart:
-	$(MAKE) -C oggvorbis smart
-oggvorbis_release:
-	$(MAKE) -C oggvorbis release
-oggvorbis_units:
-	$(MAKE) -C oggvorbis units
-oggvorbis_examples:
-	$(MAKE) -C oggvorbis examples
-oggvorbis_shared:
-	$(MAKE) -C oggvorbis shared
-oggvorbis_install:
-	$(MAKE) -C oggvorbis install
-oggvorbis_sourceinstall:
-	$(MAKE) -C oggvorbis sourceinstall
-oggvorbis_exampleinstall:
-	$(MAKE) -C oggvorbis exampleinstall
-oggvorbis_distinstall:
-	$(MAKE) -C oggvorbis distinstall
-oggvorbis_zipinstall:
-	$(MAKE) -C oggvorbis zipinstall
-oggvorbis_zipsourceinstall:
-	$(MAKE) -C oggvorbis zipsourceinstall
-oggvorbis_zipexampleinstall:
-	$(MAKE) -C oggvorbis zipexampleinstall
-oggvorbis_zipdistinstall:
-	$(MAKE) -C oggvorbis zipdistinstall
-oggvorbis_clean:
-	$(MAKE) -C oggvorbis clean
-oggvorbis_distclean:
-	$(MAKE) -C oggvorbis distclean
-oggvorbis_cleanall:
-	$(MAKE) -C oggvorbis cleanall
-oggvorbis_info:
-	$(MAKE) -C oggvorbis info
-oggvorbis_makefiles:
-	$(MAKE) -C oggvorbis makefiles
-oggvorbis:
-	$(MAKE) -C oggvorbis all
-.PHONY: oggvorbis_all oggvorbis_debug oggvorbis_smart oggvorbis_release oggvorbis_units oggvorbis_examples oggvorbis_shared oggvorbis_install oggvorbis_sourceinstall oggvorbis_exampleinstall oggvorbis_distinstall oggvorbis_zipinstall oggvorbis_zipsourceinstall oggvorbis_zipexampleinstall oggvorbis_zipdistinstall oggvorbis_clean oggvorbis_distclean oggvorbis_cleanall oggvorbis_info oggvorbis_makefiles oggvorbis
-endif
-ifdef TARGET_DIRS_OPENSSL
-openssl_all:
-	$(MAKE) -C openssl all
-openssl_debug:
-	$(MAKE) -C openssl debug
-openssl_smart:
-	$(MAKE) -C openssl smart
-openssl_release:
-	$(MAKE) -C openssl release
-openssl_units:
-	$(MAKE) -C openssl units
-openssl_examples:
-	$(MAKE) -C openssl examples
-openssl_shared:
-	$(MAKE) -C openssl shared
-openssl_install:
-	$(MAKE) -C openssl install
-openssl_sourceinstall:
-	$(MAKE) -C openssl sourceinstall
-openssl_exampleinstall:
-	$(MAKE) -C openssl exampleinstall
-openssl_distinstall:
-	$(MAKE) -C openssl distinstall
-openssl_zipinstall:
-	$(MAKE) -C openssl zipinstall
-openssl_zipsourceinstall:
-	$(MAKE) -C openssl zipsourceinstall
-openssl_zipexampleinstall:
-	$(MAKE) -C openssl zipexampleinstall
-openssl_zipdistinstall:
-	$(MAKE) -C openssl zipdistinstall
-openssl_clean:
-	$(MAKE) -C openssl clean
-openssl_distclean:
-	$(MAKE) -C openssl distclean
-openssl_cleanall:
-	$(MAKE) -C openssl cleanall
-openssl_info:
-	$(MAKE) -C openssl info
-openssl_makefiles:
-	$(MAKE) -C openssl makefiles
-openssl:
-	$(MAKE) -C openssl all
-.PHONY: openssl_all openssl_debug openssl_smart openssl_release openssl_units openssl_examples openssl_shared openssl_install openssl_sourceinstall openssl_exampleinstall openssl_distinstall openssl_zipinstall openssl_zipsourceinstall openssl_zipexampleinstall openssl_zipdistinstall openssl_clean openssl_distclean openssl_cleanall openssl_info openssl_makefiles openssl
-endif
-ifdef TARGET_DIRS_PCAP
-pcap_all:
-	$(MAKE) -C pcap all
-pcap_debug:
-	$(MAKE) -C pcap debug
-pcap_smart:
-	$(MAKE) -C pcap smart
-pcap_release:
-	$(MAKE) -C pcap release
-pcap_units:
-	$(MAKE) -C pcap units
-pcap_examples:
-	$(MAKE) -C pcap examples
-pcap_shared:
-	$(MAKE) -C pcap shared
-pcap_install:
-	$(MAKE) -C pcap install
-pcap_sourceinstall:
-	$(MAKE) -C pcap sourceinstall
-pcap_exampleinstall:
-	$(MAKE) -C pcap exampleinstall
-pcap_distinstall:
-	$(MAKE) -C pcap distinstall
-pcap_zipinstall:
-	$(MAKE) -C pcap zipinstall
-pcap_zipsourceinstall:
-	$(MAKE) -C pcap zipsourceinstall
-pcap_zipexampleinstall:
-	$(MAKE) -C pcap zipexampleinstall
-pcap_zipdistinstall:
-	$(MAKE) -C pcap zipdistinstall
-pcap_clean:
-	$(MAKE) -C pcap clean
-pcap_distclean:
-	$(MAKE) -C pcap distclean
-pcap_cleanall:
-	$(MAKE) -C pcap cleanall
-pcap_info:
-	$(MAKE) -C pcap info
-pcap_makefiles:
-	$(MAKE) -C pcap makefiles
-pcap:
-	$(MAKE) -C pcap all
-.PHONY: pcap_all pcap_debug pcap_smart pcap_release pcap_units pcap_examples pcap_shared pcap_install pcap_sourceinstall pcap_exampleinstall pcap_distinstall pcap_zipinstall pcap_zipsourceinstall pcap_zipexampleinstall pcap_zipdistinstall pcap_clean pcap_distclean pcap_cleanall pcap_info pcap_makefiles pcap
-endif
-ifdef TARGET_DIRS_LUA
-lua_all:
-	$(MAKE) -C lua all
-lua_debug:
-	$(MAKE) -C lua debug
-lua_smart:
-	$(MAKE) -C lua smart
-lua_release:
-	$(MAKE) -C lua release
-lua_units:
-	$(MAKE) -C lua units
-lua_examples:
-	$(MAKE) -C lua examples
-lua_shared:
-	$(MAKE) -C lua shared
-lua_install:
-	$(MAKE) -C lua install
-lua_sourceinstall:
-	$(MAKE) -C lua sourceinstall
-lua_exampleinstall:
-	$(MAKE) -C lua exampleinstall
-lua_distinstall:
-	$(MAKE) -C lua distinstall
-lua_zipinstall:
-	$(MAKE) -C lua zipinstall
-lua_zipsourceinstall:
-	$(MAKE) -C lua zipsourceinstall
-lua_zipexampleinstall:
-	$(MAKE) -C lua zipexampleinstall
-lua_zipdistinstall:
-	$(MAKE) -C lua zipdistinstall
-lua_clean:
-	$(MAKE) -C lua clean
-lua_distclean:
-	$(MAKE) -C lua distclean
-lua_cleanall:
-	$(MAKE) -C lua cleanall
-lua_info:
-	$(MAKE) -C lua info
-lua_makefiles:
-	$(MAKE) -C lua makefiles
-lua:
-	$(MAKE) -C lua all
-.PHONY: lua_all lua_debug lua_smart lua_release lua_units lua_examples lua_shared lua_install lua_sourceinstall lua_exampleinstall lua_distinstall lua_zipinstall lua_zipsourceinstall lua_zipexampleinstall lua_zipdistinstall lua_clean lua_distclean lua_cleanall lua_info lua_makefiles lua
-endif
-ifdef TARGET_DIRS_SDL
-sdl_all:
-	$(MAKE) -C sdl all
-sdl_debug:
-	$(MAKE) -C sdl debug
-sdl_smart:
-	$(MAKE) -C sdl smart
-sdl_release:
-	$(MAKE) -C sdl release
-sdl_units:
-	$(MAKE) -C sdl units
-sdl_examples:
-	$(MAKE) -C sdl examples
-sdl_shared:
-	$(MAKE) -C sdl shared
-sdl_install:
-	$(MAKE) -C sdl install
-sdl_sourceinstall:
-	$(MAKE) -C sdl sourceinstall
-sdl_exampleinstall:
-	$(MAKE) -C sdl exampleinstall
-sdl_distinstall:
-	$(MAKE) -C sdl distinstall
-sdl_zipinstall:
-	$(MAKE) -C sdl zipinstall
-sdl_zipsourceinstall:
-	$(MAKE) -C sdl zipsourceinstall
-sdl_zipexampleinstall:
-	$(MAKE) -C sdl zipexampleinstall
-sdl_zipdistinstall:
-	$(MAKE) -C sdl zipdistinstall
-sdl_clean:
-	$(MAKE) -C sdl clean
-sdl_distclean:
-	$(MAKE) -C sdl distclean
-sdl_cleanall:
-	$(MAKE) -C sdl cleanall
-sdl_info:
-	$(MAKE) -C sdl info
-sdl_makefiles:
-	$(MAKE) -C sdl makefiles
-sdl:
-	$(MAKE) -C sdl all
-.PHONY: sdl_all sdl_debug sdl_smart sdl_release sdl_units sdl_examples sdl_shared sdl_install sdl_sourceinstall sdl_exampleinstall sdl_distinstall sdl_zipinstall sdl_zipsourceinstall sdl_zipexampleinstall sdl_zipdistinstall sdl_clean sdl_distclean sdl_cleanall sdl_info sdl_makefiles sdl
 endif
 ifdef TARGET_DIRS_GRAPH
 graph_all:
@@ -2206,51 +1653,6 @@ os2units_makefiles:
 os2units:
 	$(MAKE) -C os2units all
 .PHONY: os2units_all os2units_debug os2units_smart os2units_release os2units_units os2units_examples os2units_shared os2units_install os2units_sourceinstall os2units_exampleinstall os2units_distinstall os2units_zipinstall os2units_zipsourceinstall os2units_zipexampleinstall os2units_zipdistinstall os2units_clean os2units_distclean os2units_cleanall os2units_info os2units_makefiles os2units
-endif
-ifdef TARGET_DIRS_REXX
-rexx_all:
-	$(MAKE) -C rexx all
-rexx_debug:
-	$(MAKE) -C rexx debug
-rexx_smart:
-	$(MAKE) -C rexx smart
-rexx_release:
-	$(MAKE) -C rexx release
-rexx_units:
-	$(MAKE) -C rexx units
-rexx_examples:
-	$(MAKE) -C rexx examples
-rexx_shared:
-	$(MAKE) -C rexx shared
-rexx_install:
-	$(MAKE) -C rexx install
-rexx_sourceinstall:
-	$(MAKE) -C rexx sourceinstall
-rexx_exampleinstall:
-	$(MAKE) -C rexx exampleinstall
-rexx_distinstall:
-	$(MAKE) -C rexx distinstall
-rexx_zipinstall:
-	$(MAKE) -C rexx zipinstall
-rexx_zipsourceinstall:
-	$(MAKE) -C rexx zipsourceinstall
-rexx_zipexampleinstall:
-	$(MAKE) -C rexx zipexampleinstall
-rexx_zipdistinstall:
-	$(MAKE) -C rexx zipdistinstall
-rexx_clean:
-	$(MAKE) -C rexx clean
-rexx_distclean:
-	$(MAKE) -C rexx distclean
-rexx_cleanall:
-	$(MAKE) -C rexx cleanall
-rexx_info:
-	$(MAKE) -C rexx info
-rexx_makefiles:
-	$(MAKE) -C rexx makefiles
-rexx:
-	$(MAKE) -C rexx all
-.PHONY: rexx_all rexx_debug rexx_smart rexx_release rexx_units rexx_examples rexx_shared rexx_install rexx_sourceinstall rexx_exampleinstall rexx_distinstall rexx_zipinstall rexx_zipsourceinstall rexx_zipexampleinstall rexx_zipdistinstall rexx_clean rexx_distclean rexx_cleanall rexx_info rexx_makefiles rexx
 endif
 ifdef TARGET_DIRS_UNIVINT
 univint_all:
