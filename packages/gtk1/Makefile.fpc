@@ -8,6 +8,7 @@ version=2.0.0
 
 [require]
 libc=y
+packages=opengl
 
 [target]
 units=glib gmodule gdk gtk gdkpixbuf gtkglarea
