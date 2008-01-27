@@ -778,13 +778,6 @@ packages/extra/ptc/.gdbinit
 packages/extra/ptc/fpcmade.*
 packages/extra/ptc/units
 packages/extra/units
-packages/extra/utmp/*.bak
-packages/extra/utmp/*.exe
-packages/extra/utmp/*.o
-packages/extra/utmp/*.ppu
-packages/extra/utmp/*.s
-packages/extra/utmp/fpcmade.*
-packages/extra/utmp/units
 packages/fcl-base/examples/*.bak
 packages/fcl-base/examples/*.exe
 packages/fcl-base/examples/*.o
