@@ -1321,7 +1321,7 @@ begin
   with x_cmds do
   begin
     name := 'Example';
-    func := @cmd_example;
+    func.func_no_args := @cmd_example;
     cmd_data := nil;
     req_override := OR_OPTIONS;
     args_how := NO_ARGS; // Or RAW_ARGS ?

@@ -31,7 +31,7 @@ const
 *******************************************************************}
 {$ifdef WINDOWS}
 exports
-  speling_module name 'speling_module';
+  speling_module name 'spelling_module';
 {$endif}
 
 {#include "apr.h"
@@ -304,7 +304,7 @@ begin
   end;
 
   { Not a file request }
-  if (r^.proxyreq or not r^.filename) then
+  if (r^.proxyreq>0) or not assigned(r^.filename) then
   begin
     Result := DECLINED;
     Exit;
