@@ -14,7 +14,11 @@ units=typ omv dsl mdt det eig eigh1 eigh2 int inv iom ipf ode roo sle spe spl nu
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
 
 [rules]
 .NOTPARALLEL:
