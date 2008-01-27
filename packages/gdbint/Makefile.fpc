@@ -89,7 +89,7 @@ gdbver.inc: gdbver$(EXEEXT)
         ./gdbver$(EXEEXT) -o gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Using GDB $(GDBVER)
-	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc gdbint.pp
+	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
 	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
 endif
 
