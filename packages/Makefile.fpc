@@ -4,36 +4,48 @@
 
 [target]
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr chm numlib
-dirs_linux_i386=libc  unixutil 
+dirs_linux_i386=libc  unixutil graph gnome1
+dirs_i386_linux= graph
+dirs_x86_64_linux= graph
+dirs_powerpc_linux= graph
+dirs_powerpc64_linux=graph
+dirs_sparc_linux=graph
+dirs_arm_linux=graph
+dirs_m68k_linux=graph
 dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
-               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl
+               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl graph gnome1
 dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
-               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl
+               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl gnome1
+dirs_i386_darwin=graph
+dirs_powerpc_darwin=graph
 dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
-               imlib utmp hermes fpgtk xforms fftw pcap ggi  openssl
+               imlib utmp hermes fpgtk xforms fftw pcap ggi  openssl gnome1
 dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
-               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl
+               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl gnome1
 dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
-               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl
+               imlib utmp hermes fpgtk xforms fftw pcap ggi sdl openssl gnome1
 dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk2 \
                a52 bfd aspell svgalib newt cdrom users hermes \
-               imlib utmp hermes fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl
+               imlib utmp hermes fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1
 dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl gtk2 a52 cdrom fpgtk openal fftw lua \
-               oggvorbis sdl openssl openssl
+               oggvorbis sdl openssl openssl graph
 dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint tcl opengl gtk2 fpgtk fftw sdl openssl
 dirs_wince=fcl-web ibase mysql tcl fftw
-dirs_os2=zlib libpng x11 tcl fpgtk rexx
-dirs_emx=zlib  libpng x11 tcl fpgtk rexx
+dirs_os2=zlib libpng x11 tcl fpgtk rexx os2units
+dirs_emx=zlib  libpng x11 tcl fpgtk rexx os2units
 dirs_netware=zlib
 dirs_netwlibc= zlib
+dirs_palmos=palmunits
+dirs_go32v2=graph
+dirs_beos=graph
 
 [install]
 fpcpackage=y
@@ -54,7 +66,6 @@ extra_debug: base_debug fcl-xml_debug
 extra_smart: base_smart fcl-xml_smart
 extra_release: base_release fcl-xml_release
 extra_shared: base_shared fcl-xml_shared
-
 
 ifneq ($(findstring $(OS_TARGET),win32 win64),)
 fcl-base_all: base_all winunits-base_all winunits-jedi_all
@@ -156,8 +167,93 @@ gtk1_smart: x11_smart
 gtk1_release: x11_release
 gtk1_shared: x11_shared   
 
-airo_all: x11_all fcl-image_all
+cairo_all: x11_all fcl-image_all
 cairo_debug: x11_debug fcl-image_debug
 cairo_smart: x11_smart fcl-image_smart
 cairo_release: x11_release fcl-image_release
 cairo_shared: x11_shared fcl-image_shared
+
+chm_all:  fcl-xml_all
+chm_shared:  fcl-xml_shared
+chm_smart:  fcl-xml_smart
+chm_debug:  fcl-xml_debug
+chm_release:  fcl-xml_release
+
+fpgtk_all: fcl-base_all gtk1_all
+fpgtk_shared: fcl-base_shared gtk1_shared
+fpgtk_smart: fcl-base_smart gtk1_smart
+fpgtk_debug: fcl-base_debug gtk1_debug
+fpgtk_release: fcl-base_release gtk1_release
+
+graph_all: sdl_all sdl_all sdl_all sdl_all sdl_all sdl_all
+graph_shared: sdl_shared sdl_shared sdl_shared sdl_shared sdl_shared sdl_shared
+graph_smart: sdl_smart sdl_smart sdl_smart sdl_smart sdl_smart sdl_smart
+graph_debug: sdl_debug sdl_debug sdl_debug sdl_debug sdl_debug sdl_debug
+graph_release: sdl_release sdl_release sdl_release sdl_release sdl_release sdl_release
+
+gtk2_all: x11_all x11_all x11_all x11_all x11_all x11_all
+gtk2_shared: x11_shared x11_shared x11_shared x11_shared x11_shared x11_shared
+gtk2_smart: x11_smart x11_smart x11_smart x11_smart x11_smart x11_smart
+gtk2_debug: x11_debug x11_debug x11_debug x11_debug x11_debug x11_debug
+gtk2_release: x11_release x11_release x11_release x11_release x11_release x11_release
+
+imlib_all: gtk1_all x11_all
+imlib_shared: gtk1_shared x11_shared
+imlib_smart: gtk1_smart x11_smart
+imlib_debug: gtk1_debug x11_debug
+imlib_release: gtk1_release x11_release
+
+ldap_all: hash_all
+ldap_shared: hash_shared
+ldap_smart: hash_smart
+ldap_debug: hash_debug
+ldap_release: hash_release
+
+libpng_all: zlib_all
+libpng_shared: zlib_shared
+libpng_smart: zlib_smart
+libpng_debug: zlib_debug
+libpng_release: zlib_release
+
+opengl_all: x11_all x11_all x11_all x11_all x11_all
+opengl_shared: x11_shared x11_shared x11_shared x11_shared x11_shared
+opengl_smart: x11_smart x11_smart x11_smart x11_smart x11_smart
+opengl_debug: x11_debug x11_debug x11_debug x11_debug x11_debug
+opengl_release: x11_release x11_release x11_release x11_release x11_release
+
+paszlib_all: hash_all
+paszlib_shared: hash_shared
+paszlib_smart: hash_smart
+paszlib_debug: hash_debug
+paszlib_release: hash_release
+
+sdl_all: pthreads_all x11_all
+sdl_shared: pthreads_shared x11_shared
+sdl_smart: pthreads_smart x11_smart
+sdl_debug: pthreads_debug x11_debug
+sdl_release: pthreads_release x11_release
+
+tcl_all: fcl-base_all
+tcl_shared: fcl-base_shared
+tcl_smart: fcl-base_smart
+tcl_debug: fcl-base_debug
+tcl_release: fcl-base_release
+
+unixutil_all: libc_all fcl-base_all
+unixutil_shared: libc_shared fcl-base_shared
+unixutil_smart: libc_smart fcl-base_smart
+unixutil_debug: libc_debug fcl-base_debug
+unixutil_release: libc_release fcl-base_release
+
+winunits-jedi_all: winunits-base_all 
+winunits-jedi_shared: winunits-base_shared 
+winunits-jedi_smart: winunits-base_smart 
+winunits-jedi_debug: winunits-base_debug 
+winunits-jedi_release: winunits-base_release 
+
+xforms_all: x11_all
+xforms_shared: x11_shared
+xforms_smart: x11_smart
+xforms_debug: x11_debug
+xforms_release: x11_release
+

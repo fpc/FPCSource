@@ -240,98 +240,17 @@ ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=gnome1 graph
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=graph
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=graph
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=os2units
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=gnome1   graph
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=graph
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=gnome1
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=gnome1
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=gnome1
-endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=gnome1 univint  graph
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=os2units
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=gnome1 graph
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=gnome1   graph
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=gnome1
+override TARGET_DIRS+=univint
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=amunits
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=gnome1
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=palmunits
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=gnome1 graph
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=gnome1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_DIRS+=amunits
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=gnome1 univint  graph
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=gnome1 graph
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=gnome1
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=gnome1
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=gnome1 graph
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=gnome1   graph
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=gnome1
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=gnome1 graph
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=palmunits
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=gnome1 graph
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=gnome1
+override TARGET_DIRS+=univint
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1412,247 +1331,17 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-ifeq ($(FULL_TARGET),i386-linux)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-TARGET_DIRS_OS2UNITS=1
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-TARGET_DIRS_GNOME1=1
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-TARGET_DIRS_GNOME1=1
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_GNOME1=1
-endif
 ifeq ($(FULL_TARGET),i386-darwin)
-TARGET_DIRS_GNOME1=1
 TARGET_DIRS_UNIVINT=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-TARGET_DIRS_OS2UNITS=1
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-TARGET_DIRS_GNOME1=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_AMUNITS=1
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_GNOME1=1
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-TARGET_DIRS_PALMUNITS=1
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-TARGET_DIRS_GNOME1=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_AMUNITS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_GNOME1=1
 TARGET_DIRS_UNIVINT=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-TARGET_DIRS_GNOME1=1
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-TARGET_DIRS_GNOME1=1
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-TARGET_DIRS_GNOME1=1
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-TARGET_DIRS_PALMUNITS=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-TARGET_DIRS_GNOME1=1
-TARGET_DIRS_GRAPH=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-TARGET_DIRS_GNOME1=1
-endif
-ifdef TARGET_DIRS_GNOME1
-gnome1_all:
-	$(MAKE) -C gnome1 all
-gnome1_debug:
-	$(MAKE) -C gnome1 debug
-gnome1_smart:
-	$(MAKE) -C gnome1 smart
-gnome1_release:
-	$(MAKE) -C gnome1 release
-gnome1_units:
-	$(MAKE) -C gnome1 units
-gnome1_examples:
-	$(MAKE) -C gnome1 examples
-gnome1_shared:
-	$(MAKE) -C gnome1 shared
-gnome1_install:
-	$(MAKE) -C gnome1 install
-gnome1_sourceinstall:
-	$(MAKE) -C gnome1 sourceinstall
-gnome1_exampleinstall:
-	$(MAKE) -C gnome1 exampleinstall
-gnome1_distinstall:
-	$(MAKE) -C gnome1 distinstall
-gnome1_zipinstall:
-	$(MAKE) -C gnome1 zipinstall
-gnome1_zipsourceinstall:
-	$(MAKE) -C gnome1 zipsourceinstall
-gnome1_zipexampleinstall:
-	$(MAKE) -C gnome1 zipexampleinstall
-gnome1_zipdistinstall:
-	$(MAKE) -C gnome1 zipdistinstall
-gnome1_clean:
-	$(MAKE) -C gnome1 clean
-gnome1_distclean:
-	$(MAKE) -C gnome1 distclean
-gnome1_cleanall:
-	$(MAKE) -C gnome1 cleanall
-gnome1_info:
-	$(MAKE) -C gnome1 info
-gnome1_makefiles:
-	$(MAKE) -C gnome1 makefiles
-gnome1:
-	$(MAKE) -C gnome1 all
-.PHONY: gnome1_all gnome1_debug gnome1_smart gnome1_release gnome1_units gnome1_examples gnome1_shared gnome1_install gnome1_sourceinstall gnome1_exampleinstall gnome1_distinstall gnome1_zipinstall gnome1_zipsourceinstall gnome1_zipexampleinstall gnome1_zipdistinstall gnome1_clean gnome1_distclean gnome1_cleanall gnome1_info gnome1_makefiles gnome1
-endif
-ifdef TARGET_DIRS_GRAPH
-graph_all:
-	$(MAKE) -C graph all
-graph_debug:
-	$(MAKE) -C graph debug
-graph_smart:
-	$(MAKE) -C graph smart
-graph_release:
-	$(MAKE) -C graph release
-graph_units:
-	$(MAKE) -C graph units
-graph_examples:
-	$(MAKE) -C graph examples
-graph_shared:
-	$(MAKE) -C graph shared
-graph_install:
-	$(MAKE) -C graph install
-graph_sourceinstall:
-	$(MAKE) -C graph sourceinstall
-graph_exampleinstall:
-	$(MAKE) -C graph exampleinstall
-graph_distinstall:
-	$(MAKE) -C graph distinstall
-graph_zipinstall:
-	$(MAKE) -C graph zipinstall
-graph_zipsourceinstall:
-	$(MAKE) -C graph zipsourceinstall
-graph_zipexampleinstall:
-	$(MAKE) -C graph zipexampleinstall
-graph_zipdistinstall:
-	$(MAKE) -C graph zipdistinstall
-graph_clean:
-	$(MAKE) -C graph clean
-graph_distclean:
-	$(MAKE) -C graph distclean
-graph_cleanall:
-	$(MAKE) -C graph cleanall
-graph_info:
-	$(MAKE) -C graph info
-graph_makefiles:
-	$(MAKE) -C graph makefiles
-graph:
-	$(MAKE) -C graph all
-.PHONY: graph_all graph_debug graph_smart graph_release graph_units graph_examples graph_shared graph_install graph_sourceinstall graph_exampleinstall graph_distinstall graph_zipinstall graph_zipsourceinstall graph_zipexampleinstall graph_zipdistinstall graph_clean graph_distclean graph_cleanall graph_info graph_makefiles graph
-endif
-ifdef TARGET_DIRS_OS2UNITS
-os2units_all:
-	$(MAKE) -C os2units all
-os2units_debug:
-	$(MAKE) -C os2units debug
-os2units_smart:
-	$(MAKE) -C os2units smart
-os2units_release:
-	$(MAKE) -C os2units release
-os2units_units:
-	$(MAKE) -C os2units units
-os2units_examples:
-	$(MAKE) -C os2units examples
-os2units_shared:
-	$(MAKE) -C os2units shared
-os2units_install:
-	$(MAKE) -C os2units install
-os2units_sourceinstall:
-	$(MAKE) -C os2units sourceinstall
-os2units_exampleinstall:
-	$(MAKE) -C os2units exampleinstall
-os2units_distinstall:
-	$(MAKE) -C os2units distinstall
-os2units_zipinstall:
-	$(MAKE) -C os2units zipinstall
-os2units_zipsourceinstall:
-	$(MAKE) -C os2units zipsourceinstall
-os2units_zipexampleinstall:
-	$(MAKE) -C os2units zipexampleinstall
-os2units_zipdistinstall:
-	$(MAKE) -C os2units zipdistinstall
-os2units_clean:
-	$(MAKE) -C os2units clean
-os2units_distclean:
-	$(MAKE) -C os2units distclean
-os2units_cleanall:
-	$(MAKE) -C os2units cleanall
-os2units_info:
-	$(MAKE) -C os2units info
-os2units_makefiles:
-	$(MAKE) -C os2units makefiles
-os2units:
-	$(MAKE) -C os2units all
-.PHONY: os2units_all os2units_debug os2units_smart os2units_release os2units_units os2units_examples os2units_shared os2units_install os2units_sourceinstall os2units_exampleinstall os2units_distinstall os2units_zipinstall os2units_zipsourceinstall os2units_zipexampleinstall os2units_zipdistinstall os2units_clean os2units_distclean os2units_cleanall os2units_info os2units_makefiles os2units
 endif
 ifdef TARGET_DIRS_UNIVINT
 univint_all:
@@ -1743,51 +1432,6 @@ amunits_makefiles:
 amunits:
 	$(MAKE) -C amunits all
 .PHONY: amunits_all amunits_debug amunits_smart amunits_release amunits_units amunits_examples amunits_shared amunits_install amunits_sourceinstall amunits_exampleinstall amunits_distinstall amunits_zipinstall amunits_zipsourceinstall amunits_zipexampleinstall amunits_zipdistinstall amunits_clean amunits_distclean amunits_cleanall amunits_info amunits_makefiles amunits
-endif
-ifdef TARGET_DIRS_PALMUNITS
-palmunits_all:
-	$(MAKE) -C palmunits all
-palmunits_debug:
-	$(MAKE) -C palmunits debug
-palmunits_smart:
-	$(MAKE) -C palmunits smart
-palmunits_release:
-	$(MAKE) -C palmunits release
-palmunits_units:
-	$(MAKE) -C palmunits units
-palmunits_examples:
-	$(MAKE) -C palmunits examples
-palmunits_shared:
-	$(MAKE) -C palmunits shared
-palmunits_install:
-	$(MAKE) -C palmunits install
-palmunits_sourceinstall:
-	$(MAKE) -C palmunits sourceinstall
-palmunits_exampleinstall:
-	$(MAKE) -C palmunits exampleinstall
-palmunits_distinstall:
-	$(MAKE) -C palmunits distinstall
-palmunits_zipinstall:
-	$(MAKE) -C palmunits zipinstall
-palmunits_zipsourceinstall:
-	$(MAKE) -C palmunits zipsourceinstall
-palmunits_zipexampleinstall:
-	$(MAKE) -C palmunits zipexampleinstall
-palmunits_zipdistinstall:
-	$(MAKE) -C palmunits zipdistinstall
-palmunits_clean:
-	$(MAKE) -C palmunits clean
-palmunits_distclean:
-	$(MAKE) -C palmunits distclean
-palmunits_cleanall:
-	$(MAKE) -C palmunits cleanall
-palmunits_info:
-	$(MAKE) -C palmunits info
-palmunits_makefiles:
-	$(MAKE) -C palmunits makefiles
-palmunits:
-	$(MAKE) -C palmunits all
-.PHONY: palmunits_all palmunits_debug palmunits_smart palmunits_release palmunits_units palmunits_examples palmunits_shared palmunits_install palmunits_sourceinstall palmunits_exampleinstall palmunits_distinstall palmunits_zipinstall palmunits_zipsourceinstall palmunits_zipexampleinstall palmunits_zipdistinstall palmunits_clean palmunits_distclean palmunits_cleanall palmunits_info palmunits_makefiles palmunits
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
