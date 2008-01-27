@@ -93,8 +93,12 @@ libversion=2.0.0
 buildunit=MacOS
 fpcpackage=y
 
+[compiler]
+includedir=src
+sourcedir=src tests
+
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [rules]
 FPCMacOSAll$(PPUEXT): $(filter-out MacOS.pas GPCStrings.pas,$(wildcard *.pas))

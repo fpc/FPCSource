@@ -16,7 +16,7 @@ units=controldemo
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 [rules]
 .NOTPARALLEL:
