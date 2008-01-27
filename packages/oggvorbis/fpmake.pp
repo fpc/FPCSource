@@ -12,13 +12,20 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('xforms');
+    P:=AddPackage('oggvorbis');
 {$ifdef ALLPACKAGES}
-    P.Directory:='xforms';
+    P.Directory:='oggvorbis';
 {$endif ALLPACKAGES}
     P.Version:='2.0.0';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
+
+   T:=P.Targets.AddUnit('ogg.pas');
+   T:=P.Targets.AddUnit('vorbis.pas');
+   with T.Dependencies do
+     begin
+       AddUnit('ogg');
+     end;
 
 {$ifndef ALLPACKAGES}
     Run;
