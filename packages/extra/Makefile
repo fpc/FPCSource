@@ -240,18 +240,6 @@ ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=univint
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=amunits
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=amunits
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=univint
-endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
 ifdef REQUIRE_UNITSDIR
@@ -1331,128 +1319,26 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-ifeq ($(FULL_TARGET),i386-darwin)
-TARGET_DIRS_UNIVINT=1
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-TARGET_DIRS_AMUNITS=1
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-TARGET_DIRS_AMUNITS=1
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_UNIVINT=1
-endif
-ifdef TARGET_DIRS_UNIVINT
-univint_all:
-	$(MAKE) -C univint all
-univint_debug:
-	$(MAKE) -C univint debug
-univint_smart:
-	$(MAKE) -C univint smart
-univint_release:
-	$(MAKE) -C univint release
-univint_units:
-	$(MAKE) -C univint units
-univint_examples:
-	$(MAKE) -C univint examples
-univint_shared:
-	$(MAKE) -C univint shared
-univint_install:
-	$(MAKE) -C univint install
-univint_sourceinstall:
-	$(MAKE) -C univint sourceinstall
-univint_exampleinstall:
-	$(MAKE) -C univint exampleinstall
-univint_distinstall:
-	$(MAKE) -C univint distinstall
-univint_zipinstall:
-	$(MAKE) -C univint zipinstall
-univint_zipsourceinstall:
-	$(MAKE) -C univint zipsourceinstall
-univint_zipexampleinstall:
-	$(MAKE) -C univint zipexampleinstall
-univint_zipdistinstall:
-	$(MAKE) -C univint zipdistinstall
-univint_clean:
-	$(MAKE) -C univint clean
-univint_distclean:
-	$(MAKE) -C univint distclean
-univint_cleanall:
-	$(MAKE) -C univint cleanall
-univint_info:
-	$(MAKE) -C univint info
-univint_makefiles:
-	$(MAKE) -C univint makefiles
-univint:
-	$(MAKE) -C univint all
-.PHONY: univint_all univint_debug univint_smart univint_release univint_units univint_examples univint_shared univint_install univint_sourceinstall univint_exampleinstall univint_distinstall univint_zipinstall univint_zipsourceinstall univint_zipexampleinstall univint_zipdistinstall univint_clean univint_distclean univint_cleanall univint_info univint_makefiles univint
-endif
-ifdef TARGET_DIRS_AMUNITS
-amunits_all:
-	$(MAKE) -C amunits all
-amunits_debug:
-	$(MAKE) -C amunits debug
-amunits_smart:
-	$(MAKE) -C amunits smart
-amunits_release:
-	$(MAKE) -C amunits release
-amunits_units:
-	$(MAKE) -C amunits units
-amunits_examples:
-	$(MAKE) -C amunits examples
-amunits_shared:
-	$(MAKE) -C amunits shared
-amunits_install:
-	$(MAKE) -C amunits install
-amunits_sourceinstall:
-	$(MAKE) -C amunits sourceinstall
-amunits_exampleinstall:
-	$(MAKE) -C amunits exampleinstall
-amunits_distinstall:
-	$(MAKE) -C amunits distinstall
-amunits_zipinstall:
-	$(MAKE) -C amunits zipinstall
-amunits_zipsourceinstall:
-	$(MAKE) -C amunits zipsourceinstall
-amunits_zipexampleinstall:
-	$(MAKE) -C amunits zipexampleinstall
-amunits_zipdistinstall:
-	$(MAKE) -C amunits zipdistinstall
-amunits_clean:
-	$(MAKE) -C amunits clean
-amunits_distclean:
-	$(MAKE) -C amunits distclean
-amunits_cleanall:
-	$(MAKE) -C amunits cleanall
-amunits_info:
-	$(MAKE) -C amunits info
-amunits_makefiles:
-	$(MAKE) -C amunits makefiles
-amunits:
-	$(MAKE) -C amunits all
-.PHONY: amunits_all amunits_debug amunits_smart amunits_release amunits_units amunits_examples amunits_shared amunits_install amunits_sourceinstall amunits_exampleinstall amunits_distinstall amunits_zipinstall amunits_zipsourceinstall amunits_zipexampleinstall amunits_zipdistinstall amunits_clean amunits_distclean amunits_cleanall amunits_info amunits_makefiles amunits
-endif
-all: $(addsuffix _all,$(TARGET_DIRS))
-debug: $(addsuffix _debug,$(TARGET_DIRS))
-smart: $(addsuffix _smart,$(TARGET_DIRS))
-release: $(addsuffix _release,$(TARGET_DIRS))
-units: $(addsuffix _units,$(TARGET_DIRS))
-examples: $(addsuffix _examples,$(TARGET_DIRS))
-shared: $(addsuffix _shared,$(TARGET_DIRS))
-install: $(addsuffix _install,$(TARGET_DIRS))
-sourceinstall: $(addsuffix _sourceinstall,$(TARGET_DIRS))
-exampleinstall: $(addsuffix _exampleinstall,$(TARGET_DIRS))
-distinstall: $(addsuffix _distinstall,$(TARGET_DIRS))
-zipinstall: $(addsuffix _zipinstall,$(TARGET_DIRS))
-zipsourceinstall: $(addsuffix _zipsourceinstall,$(TARGET_DIRS))
-zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
-zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
-clean: $(addsuffix _clean,$(TARGET_DIRS))
-distclean: $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: $(addsuffix _cleanall,$(TARGET_DIRS))
+all:
+debug:
+smart:
+release:
+units:
+examples:
+shared:
+install:
+sourceinstall:
+exampleinstall:
+distinstall:
+zipinstall:
+zipsourceinstall:
+zipexampleinstall:
+zipdistinstall:
+clean:
+distclean:
+cleanall:
 info: fpc_info
-makefiles: fpc_makefiles $(addsuffix _makefiles,$(TARGET_DIRS))
+makefiles: fpc_makefiles
 .PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
