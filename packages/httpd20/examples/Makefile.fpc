@@ -1,5 +1,5 @@
 #
-#  Makefile.fpc for dbus units example
+#  Makefile.fpc for apache2.0 units example
 #
 
 [target]
@@ -13,7 +13,7 @@ packages=httpd/httpd-2.2
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 [rules]
 .NOTPARALLEL:

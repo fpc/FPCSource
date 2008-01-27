@@ -3,8 +3,8 @@
 #
 
 [package]
-name=httpd-1.3
-version=2.0.4
+name=httpd13
+version=2.2.0
 
 [target]
 units=httpd
@@ -15,8 +15,12 @@ libc=y
 [install]
 fpcpackage=y
 
+[compiler]
+includedir=src
+sourcedir=src tests
+
 [default]
-fpcdir=../../../..
+fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
