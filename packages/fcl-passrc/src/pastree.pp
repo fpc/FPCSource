@@ -250,6 +250,7 @@ type
     function GetDeclaration(full : boolean) : string; override;
   public
     IsPacked: Boolean;
+    IsBitPacked : Boolean;
     Members: TList;     // array of TPasVariable elements
     VariantName: string;
     VariantType: TPasType;
