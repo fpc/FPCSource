@@ -17,7 +17,7 @@ packages_darwin_i386=sdl
 
 # clean package units
 [clean]
-units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT) 
+units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT)
 
 [target]
 dirs=
@@ -63,7 +63,7 @@ endif
 
 GGIGRAPH_UNIT=ggigraph
 GRAPH_UNIT=graph
-GRAPHUNIT_DIR=$(OS_TARGET)
+GRAPHUNIT_DIR=src/$(OS_TARGET)
 
 ifeq ($(OS_TARGET),linux)
 GRAPHUNIT_DIR=src/unix
