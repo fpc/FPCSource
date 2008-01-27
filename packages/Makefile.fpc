@@ -17,9 +17,9 @@ dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sql
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2
 dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1
-dirs_i386_darwin=graph univint
-dirs_powerpc_darwin=graph univint
+               imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1
+dirs_i386_darwin=graph univint sdl
+dirs_powerpc_darwin=graph univint sdl
 dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1
@@ -151,12 +151,6 @@ libpng_smart: zlib_smart
 libpng_release: zlib_release
 libpng_shared: zlib_shared
 
-opengl_all: x11_all
-opengl_debug: x11_debug
-opengl_smart: x11_smart
-opengl_release: x11_release
-opengl_shared: x11_shared
-
 gtk1_all: x11_all
 gtk1_debug: x11_debug
 gtk1_smart: x11_smart
@@ -181,11 +175,13 @@ fpgtk_smart: fcl-base_smart gtk1_smart
 fpgtk_debug: fcl-base_debug gtk1_debug
 fpgtk_release: fcl-base_release gtk1_release
 
+ifneq ($(findstring $(OS_TARGET),go32v2),)
 graph_all: sdl_all 
 graph_shared: sdl_shared 
 graph_smart: sdl_smart 
 graph_debug: sdl_debug 
 graph_release: sdl_release 
+endif
 
 gtk2_all: x11_all 
 gtk2_shared: x11_shared 
@@ -211,23 +207,25 @@ libpng_smart: zlib_smart
 libpng_debug: zlib_debug
 libpng_release: zlib_release
 
-opengl_all: x11_all x11_all x11_all x11_all x11_all
-opengl_shared: x11_shared x11_shared x11_shared x11_shared x11_shared
-opengl_smart: x11_smart x11_smart x11_smart x11_smart x11_smart
-opengl_debug: x11_debug x11_debug x11_debug x11_debug x11_debug
-opengl_release: x11_release x11_release x11_release x11_release x11_release
-
 paszlib_all: hash_all
 paszlib_shared: hash_shared
 paszlib_smart: hash_smart
 paszlib_debug: hash_debug
 paszlib_release: hash_release
 
+ifneq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
 sdl_all: pthreads_all x11_all
 sdl_shared: pthreads_shared x11_shared
 sdl_smart: pthreads_smart x11_smart
 sdl_debug: pthreads_debug x11_debug
 sdl_release: pthreads_release x11_release
+
+opengl_all: x11_all
+opengl_shared: x11_shared
+opengl_smart: x11_smart
+opengl_debug: x11_debug
+opengl_release: x11_release
+endif
 
 tcl_all: fcl-base_all
 tcl_shared: fcl-base_shared
