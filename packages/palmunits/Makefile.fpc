@@ -21,14 +21,17 @@ slotdrvrlib smslib soundmgr stringmgr sysevent sysevtmgr systemmgr \
 systemresources sysutil table telephonymgr telephonymgrtypes telephonymgrui \
 textmgr textservicesmgr timemgr udamgr uicolor uicontrols uiresources vfsmgr window
 
-
 exampledirs=
 
 [install]
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
 
 [rules]
 .NOTPARALLEL:

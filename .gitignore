@@ -761,13 +761,6 @@ packages/extra/os2units/wpstk/*.ppu
 packages/extra/os2units/wpstk/*.s
 packages/extra/os2units/wpstk/fpcmade.*
 packages/extra/os2units/wpstk/units
-packages/extra/palmunits/*.bak
-packages/extra/palmunits/*.exe
-packages/extra/palmunits/*.o
-packages/extra/palmunits/*.ppu
-packages/extra/palmunits/*.s
-packages/extra/palmunits/fpcmade.*
-packages/extra/palmunits/units
 packages/extra/ptc/*.bak
 packages/extra/ptc/*.exe
 packages/extra/ptc/*.o
