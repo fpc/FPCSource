@@ -8,7 +8,7 @@ version=1.0.0
 
 [require]
 libc=y
-packages=gtk1
+packages=gtk1 imlib
 
 [target]
 units=libgnomeui libzvt libart libgnome gconfclient gconf
