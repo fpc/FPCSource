@@ -190,7 +190,7 @@ begin
   if CurrentPackage.IsLocalPackage then
     Result:=CurrentPackage.FileName
   else
-    Result:=GlobalOptions.PackagesDir+CurrentPackage.FileName;
+    Result:=GlobalOptions.ArchivesDir+CurrentPackage.FileName;
 end;
 
 

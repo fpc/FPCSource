@@ -47,20 +47,11 @@ Type
 { TMakeTool }
 
 function TMakeTool.GetConfigFileName: String;
-var
-  G : Boolean;
 begin
   if HasOption('C','config-file') then
     Result:=GetOptionValue('C','config-file')
   else
-    begin
-{$ifdef unix}
-      g:=(fpgetuid=0);
-{$else}
-      g:=true;
-{$endif}
-      Result:=GetAppConfigFile(G,False);
-    end
+    Result:=GetAppConfigFile(IsSuperUser,False);
 end;
 
 
@@ -105,7 +96,7 @@ end;
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
   ForceDirectories(GlobalOptions.BuildDir);
-  ForceDirectories(GlobalOptions.PackagesDir);
+  ForceDirectories(GlobalOptions.ArchivesDir);
   ForceDirectories(GlobalOptions.CompilerConfigDir);
 end;
 

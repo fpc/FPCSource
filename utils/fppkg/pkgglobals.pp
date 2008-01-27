@@ -53,6 +53,11 @@ const
 type
   EPackagerError = class(Exception);
 
+{$if defined(VER2_2) and defined(WINDOWS)}
+Function GetAppConfigDir(Global : Boolean) : String;
+Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
+{$endif VER2_2 AND WINDOWS}
+
 // Logging
 Function StringToLogLevels (S : String) : TLogLevels;
 Function LogLevelsToString (V : TLogLevels): String;
@@ -98,6 +103,64 @@ uses
   uriparser,
   pkgmessages;
 
+
+function FPPkgGetVendorName:string;
+begin
+{$ifdef unix}
+  result:='fpc';
+{$else}
+  result:='FreePascal'
+{$endif}
+end;
+
+
+function FPPkgGetApplicationName:string;
+begin
+{$ifdef unix}
+  result:='fppkg';
+{$else}
+  result:='Packages'
+{$endif}
+end;
+
+
+{$if defined(VER2_2) and defined(WINDOWS)}
+Function SHGetFolderPath(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: PChar): HRESULT;
+  stdcall;external 'shfolder' name 'SHGetFolderPathA';
+
+Function GetAppConfigDir(Global : Boolean) : String;
+Const
+  CSIDL_LOCAL_APPDATA           = $001C; { %USERPROFILE%\Local Settings\Application Data (non roaming)      }
+  CSIDL_COMMON_APPDATA          = $0023; { %PROFILESPATH%\All Users\Application Data                        }
+  CSIDL_FLAG_CREATE             = $8000; { (force creation of requested folder if it doesn't exist yet)     }
+Var
+  APath : Array[0..MAX_PATH] of char;
+  ID : integer;
+begin
+  If Global then
+    ID:=CSIDL_COMMON_APPDATA
+  else
+    ID:=CSIDL_LOCAL_APPDATA;
+  if SHGetFolderPath(0,ID or CSIDL_FLAG_CREATE,0,0,@APATH[0])=S_OK then
+    Result:=IncludeTrailingPathDelimiter(StrPas(@APath[0]))
+  If (Result<>'') then
+    begin
+      if FPPkgGetVendorName<>'' then
+        Result:=IncludeTrailingPathDelimiter(Result+FPPkgGetVendorName);
+      Result:=Result+ApplicationName;
+    end
+  else
+    Result:=DGetAppConfigDir(Global);
+end;
+
+Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
+begin
+  Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(Global));
+  if SubDir then
+    Result:=IncludeTrailingPathDelimiter(Result+'Config');
+  Result:=Result+ApplicationName+ConfigExtension;
+end;
+{$endif VER2_2 AND WINDOWS}
 
 function StringToLogLevels(S: String): TLogLevels;
 Var
@@ -341,9 +404,13 @@ begin
 {$ifdef unix}
   result:=(fpGetUID=0);
 {$else unix}
-  result:=true;
+  result:=false;
 {$endif unix}
 end;
 
+
+initialization
+  OnGetVendorName:=@FPPkgGetVendorName;
+  OnGetApplicationName:=@FPPkgGetApplicationName;
 
 end.

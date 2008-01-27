@@ -23,7 +23,7 @@ Const
   MirrorsFileName      = 'mirrors.xml';
   PackagesFileName     = 'packages.xml';
   VersionsFileName     = 'versions-%s.dat';
-  CurrentConfigVersion = 2;
+  CurrentConfigVersion = 3;
 
 Type
 
@@ -37,7 +37,7 @@ Type
     FRemoteRepository,
     FLocalRepository,
     FCompilerConfigDir,
-    FPackagesDir,
+    FArchivesDir,
     FBuildDir,
     FDownloader,
     FDefaultCompilerConfig,
@@ -63,7 +63,7 @@ Type
     Property RemoteRepository : String Index 2 Read GetOptString Write SetOptString;
     Property LocalRepository : String Index 3 Read GetOptString Write SetOptString;
     Property BuildDir : String Index 4 Read GetOptString Write SetOptString;
-    Property PackagesDir : String Index 5 Read GetOptString Write SetOptString;
+    Property ArchivesDir : String Index 5 Read GetOptString Write SetOptString;
     Property CompilerConfigDir : String Index 6 Read GetOptString Write SetOptString;
     Property DefaultCompilerConfig : String Index 8 Read GetOptString Write SetOptString;
     Property FPMakeCompilerConfig : String Index 9 Read GetOptString Write SetOptString;
@@ -139,7 +139,7 @@ Const
   KeyRemoteMirrorsURL = 'RemoteMirrors';
   KeyRemoteRepository      = 'RemoteRepository';
   KeyLocalRepository       = 'LocalRepository';
-  KeyPackagesDir           = 'PackagesDir';
+  KeyArchivesDir           = 'ArchivesDir';
   KeyBuildDir              = 'BuildDir';
   KeyCompilerConfigDir     = 'CompilerConfigDir';
   KeyCompilerConfig        = 'CompilerConfig';
@@ -172,7 +172,7 @@ begin
     2 : Result:=FRemoteRepository;
     3 : Result:=FLocalRepository;
     4 : Result:=FBuildDir;
-    5 : Result:=FPackagesDir;
+    5 : Result:=FArchivesDir;
     6 : Result:=FCompilerConfigDir;
     8 : Result:=FDefaultCompilerConfig;
     9 : Result:=FFPMakeCompilerConfig;
@@ -191,7 +191,7 @@ begin
     2 : FRemoteRepository:=AValue;
     3 : FLocalRepository:=AValue;
     4 : FBuildDir:=FixPath(AValue);
-    5 : FPackagesDir:=FixPath(AValue);
+    5 : FArchivesDir:=FixPath(AValue);
     6 : FCompilerConfigDir:=FixPath(AValue);
     8 : FDefaultCompilerConfig:=AValue;
     9 : FFPMakeCompilerConfig:=AValue;
@@ -222,8 +222,6 @@ end;
 
 
 Procedure TGlobalOptions.InitGlobalDefaults;
-var
-  LocalDir : String;
 begin
   FConfigVersion:=CurrentConfigVersion;
   // Retrieve Local fppkg directory
@@ -231,21 +229,19 @@ begin
   if IsSuperUser then
     begin
       if DirectoryExists('/usr/local/lib/fpc') then
-        LocalDir:='/usr/local/lib/fpc/fppkg/'
+        FLocalRepository:='/usr/local/lib/fpc/fppkg/'
       else
-        LocalDir:='/usr/lib/fpc/fppkg/';
+        FLocalRepository:='/usr/lib/fpc/fppkg/';
     end
   else
-    LocalDir:=IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME'))+'.fppkg/';
+    FLocalRepository:=IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME'))+'.fppkg/';
 {$else}
-  // Change as needed on all OS-es...
-  LocalDir:=ExtractFilePath(Paramstr(0))+'fppkg'+PathDelim;
+  FLocalRepository:=IncludeTrailingPathDelimiter(GetAppConfigDir(IsSuperUser));
 {$endif}
   // Directories
-  FBuildDir:=LocalDir+'build'+PathDelim;
-  FPackagesDir:=LocalDir+'packages'+PathDelim;
-  FCompilerConfigDir:=LocalDir+'config'+PathDelim;
-  FLocalRepository:=LocalDir;
+  FBuildDir:=FLocalRepository+'build'+PathDelim;
+  FArchivesDir:=FLocalRepository+'archives'+PathDelim;
+  FCompilerConfigDir:=FLocalRepository+'config'+PathDelim;
   // Remote
   FRemoteMirrorsURL:=DefaultMirrorsURL;
   FRemoteRepository:=DefaultRemoteRepository;
@@ -281,6 +277,13 @@ begin
               begin
                 FRemoteRepository:='auto';
               end;
+            if FConfigVersion<3 then
+              begin
+                // Directories
+                FBuildDir:=FLocalRepository+'build'+PathDelim;
+                FArchivesDir:=FLocalRepository+'archives'+PathDelim;
+                FCompilerConfigDir:=FLocalRepository+'config'+PathDelim;
+              end;
             if (FConfigVersion>CurrentConfigVersion) then
               Error(SErrUnsupportedConfigVersion,[AFileName]);
           end;
@@ -290,7 +293,7 @@ begin
           FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
         FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
         FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir));
-        FPackagesDir:=FixPath(ReadString(SDefaults,KeyPackagesDir,FPackagesDir));
+        FArchivesDir:=FixPath(ReadString(SDefaults,KeyArchivesDir,FArchivesDir));
         FCompilerConfigDir:=FixPath(ReadString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir));
         FDefaultCompilerConfig:=ReadString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
         FFPMakeCompilerConfig:=ReadString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
@@ -314,7 +317,7 @@ begin
       begin
         WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);
         WriteString(SDefaults,KeyBuildDir,FBuildDir);
-        WriteString(SDefaults,KeyPackagesDir,FPackagesDir);
+        WriteString(SDefaults,KeyArchivesDir,FArchivesDir);
         WriteString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir);
         WriteString(SDefaults,KeyLocalRepository,FLocalRepository);
         WriteString(SDefaults,KeyRemoteMirrorsURL,FRemoteMirrorsURL);
