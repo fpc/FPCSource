@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm numlib
+dirs= fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm numlib
 dirs_linux_i386=libc  unixutil graph 
 dirs_i386_linux= graph
 dirs_x86_64_linux= graph
@@ -14,28 +14,28 @@ dirs_arm_linux=graph
 dirs_m68k_linux=graph
 dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd22
 dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1
+               imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd22
 dirs_i386_darwin=graph univint sdl
 dirs_powerpc_darwin=graph univint sdl
 dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1
+               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd22 
 dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd22
 dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd22
 dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  \
                a52 bfd aspell svgalib newt cdrom users  \
-               imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1
+               imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd22
 dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl gtk1 gtk2  a52 cdrom fpgtk openal fftw lua \
-               oggvorbis sdl openssl openssl graph pcap 
+               oggvorbis sdl openssl openssl graph pcap httpd22
 dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                 tcl opengl gtk1 gtk2  fpgtk fftw sdl openssl cdrom
 dirs_wince=fcl-web ibase mysql tcl fftw unzip zlib sqlite
