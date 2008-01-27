@@ -2,9 +2,6 @@
 # Makefile.fpc for Free Pascal Packages
 #
 [target]
-dirs_amiga=amunits
-dirs_powerpc_darwin=univint  
-dirs_i386_darwin=univint  
 
 [install]
 fpcpackage=y

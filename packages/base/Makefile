@@ -240,75 +240,6 @@ ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=httpd
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=httpd
-endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/base
 ifdef REQUIRE_UNITSDIR
@@ -1388,147 +1319,27 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-ifeq ($(FULL_TARGET),i386-linux)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-TARGET_DIRS_HTTPD=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-TARGET_DIRS_HTTPD=1
-endif
-ifdef TARGET_DIRS_HTTPD
-httpd_all:
-	$(MAKE) -C httpd all
-httpd_debug:
-	$(MAKE) -C httpd debug
-httpd_smart:
-	$(MAKE) -C httpd smart
-httpd_release:
-	$(MAKE) -C httpd release
-httpd_units:
-	$(MAKE) -C httpd units
-httpd_examples:
-	$(MAKE) -C httpd examples
-httpd_shared:
-	$(MAKE) -C httpd shared
-httpd_install:
-	$(MAKE) -C httpd install
-httpd_sourceinstall:
-	$(MAKE) -C httpd sourceinstall
-httpd_exampleinstall:
-	$(MAKE) -C httpd exampleinstall
-httpd_distinstall:
-	$(MAKE) -C httpd distinstall
-httpd_zipinstall:
-	$(MAKE) -C httpd zipinstall
-httpd_zipsourceinstall:
-	$(MAKE) -C httpd zipsourceinstall
-httpd_zipexampleinstall:
-	$(MAKE) -C httpd zipexampleinstall
-httpd_zipdistinstall:
-	$(MAKE) -C httpd zipdistinstall
-httpd_clean:
-	$(MAKE) -C httpd clean
-httpd_distclean:
-	$(MAKE) -C httpd distclean
-httpd_cleanall:
-	$(MAKE) -C httpd cleanall
-httpd_info:
-	$(MAKE) -C httpd info
-httpd_makefiles:
-	$(MAKE) -C httpd makefiles
-httpd:
-	$(MAKE) -C httpd all
-.PHONY: httpd_all httpd_debug httpd_smart httpd_release httpd_units httpd_examples httpd_shared httpd_install httpd_sourceinstall httpd_exampleinstall httpd_distinstall httpd_zipinstall httpd_zipsourceinstall httpd_zipexampleinstall httpd_zipdistinstall httpd_clean httpd_distclean httpd_cleanall httpd_info httpd_makefiles httpd
-endif
-all: $(addsuffix _all,$(TARGET_DIRS))
-debug: $(addsuffix _debug,$(TARGET_DIRS))
-smart: $(addsuffix _smart,$(TARGET_DIRS))
-release: $(addsuffix _release,$(TARGET_DIRS))
-units: $(addsuffix _units,$(TARGET_DIRS))
-examples: $(addsuffix _examples,$(TARGET_DIRS))
-shared: $(addsuffix _shared,$(TARGET_DIRS))
-install: $(addsuffix _install,$(TARGET_DIRS))
-sourceinstall: $(addsuffix _sourceinstall,$(TARGET_DIRS))
-exampleinstall: $(addsuffix _exampleinstall,$(TARGET_DIRS))
-distinstall: $(addsuffix _distinstall,$(TARGET_DIRS))
-zipinstall: $(addsuffix _zipinstall,$(TARGET_DIRS))
-zipsourceinstall: $(addsuffix _zipsourceinstall,$(TARGET_DIRS))
-zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
-zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
-clean: $(addsuffix _clean,$(TARGET_DIRS))
-distclean: $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: $(addsuffix _cleanall,$(TARGET_DIRS))
+all:
+debug:
+smart:
+release:
+units:
+examples:
+shared:
+install:
+sourceinstall:
+exampleinstall:
+distinstall:
+zipinstall:
+zipsourceinstall:
+zipexampleinstall:
+zipdistinstall:
+clean:
+distclean:
+cleanall:
 info: fpc_info
-makefiles: fpc_makefiles $(addsuffix _makefiles,$(TARGET_DIRS))
+makefiles: fpc_makefiles
 .PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-paszlib_all: hash_all
-paszlib_debug: hash_debug
-paszlib_smart: hash_smart
-paszlib_release: hash_release
-paszlib_shared: hash_shared
-paszlib_examples: hash_examples

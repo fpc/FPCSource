@@ -3,22 +3,6 @@
 #
 
 [target]
-dirs_linux=          httpd
-dirs_win32=       httpd 
-dirs_netbsd=       httpd
-dirs_openbsd=       httpd
-dirs_freebsd=         httpd
-dirs_darwin=        httpd
-dirs_solaris=        httpd
-
-
-[rules]
-paszlib_all: hash_all
-paszlib_debug: hash_debug
-paszlib_smart: hash_smart
-paszlib_release: hash_release
-paszlib_shared: hash_shared
-paszlib_examples: hash_examples
 
 [install]
 fpcpackage=y
