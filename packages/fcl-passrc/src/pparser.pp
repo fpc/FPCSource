@@ -357,7 +357,7 @@ begin
   Result := nil;         // !!!: Remove in the future
   HadPackedModifier := False;     { Assume not present }
   NextToken;
-  if CurToken = tkPacked then     { If PACKED modifier }
+  if CurToken in [tkPacked,tkbitpacked] then     { If PACKED modifier }
      begin                        { Handle PACKED modifier for all situations }
      NextToken;                   { Move to next token for rest of parse }
      if CurToken in [tkArray, tkRecord, tkObject, tkClass] then  { If allowed }
@@ -943,7 +943,7 @@ begin
   ExpectToken(tkEqual);
   NextToken;
   HadPackedModifier := False;     { Assume not present }
-  if CurToken = tkPacked then     { If PACKED modifier }
+  if CurToken in [tkPacked,tkbitpacked] then     { If PACKED modifier }
      begin                        { Handle PACKED modifier for all situations }
      NextToken;                   { Move to next token for rest of parse }
      if CurToken in [tkArray, tkRecord, tkObject, tkClass] then  { If allowed }
