@@ -593,13 +593,6 @@ packages/extra/amunits/utilunits/fpcmade.*
 packages/extra/amunits/utilunits/units
 packages/extra/fpcmade.*
 packages/extra/gbaunits/*.bat
-packages/extra/ggi/*.bak
-packages/extra/ggi/*.exe
-packages/extra/ggi/*.o
-packages/extra/ggi/*.ppu
-packages/extra/ggi/*.s
-packages/extra/ggi/fpcmade.*
-packages/extra/ggi/units
 packages/extra/gnome1/*.bak
 packages/extra/gnome1/*.exe
 packages/extra/gnome1/*.o
