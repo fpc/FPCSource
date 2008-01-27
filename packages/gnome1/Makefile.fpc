@@ -11,10 +11,10 @@ libc=y
 packages=gtk1 imlib
 
 [target]
-units=libzvt libart libgnome gconfclient gconf libgnomeui  
+units=libzvt libart libgnome gconf gconfclient libgnomeui  
 
 [compiler]
-includedir=src src/gnome src/zvt src/gconf src/gconfclient src/libgnomeui
+includedir=src src/libgnome src/zvt src/gconf src/gconfclient src/libgnomeui 
 sourcedir=src tests examples src src/zvt src/libgnome src/gconfclient src/gconf src/libgnomeui
 
 [install]
@@ -25,3 +25,4 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
+
