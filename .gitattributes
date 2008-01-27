@@ -1770,25 +1770,6 @@ packages/extra/ptc/x11/x11modesi.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11windowdisplayd.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/x11windowdisplayi.inc svneol=native#text/x-pascal
 packages/extra/ptc/x11/xunikey.inc svneol=native#text/x-pascal
-packages/extra/sdl/LGPL -text
-packages/extra/sdl/LGPL.addon -text
-packages/extra/sdl/MPL-1.1 -text
-packages/extra/sdl/Makefile.fpc -text
-packages/extra/sdl/README -text
-packages/extra/sdl/fpmake.pp svneol=native#text/plain
-packages/extra/sdl/jedi-sdl.inc svneol=native#text/plain
-packages/extra/sdl/libxmlparser.pas svneol=native#text/plain
-packages/extra/sdl/logger.pas svneol=native#text/plain
-packages/extra/sdl/powersdl.inc -text
-packages/extra/sdl/sdl.pas svneol=native#text/plain
-packages/extra/sdl/sdl_gfx.pas -text svneol=unset#text/plain
-packages/extra/sdl/sdl_image.pas -text svneol=unset#text/plain
-packages/extra/sdl/sdl_mixer.pas -text svneol=unset#text/plain
-packages/extra/sdl/sdl_mixer_nosmpeg.pas -text svneol=unset#text/plain
-packages/extra/sdl/sdl_net.pas svneol=native#text/plain
-packages/extra/sdl/sdl_ttf.pas svneol=native#text/plain
-packages/extra/sdl/sdlutils.pas svneol=native#text/plain
-packages/extra/sdl/smpeg.pas svneol=native#text/plain
 packages/extra/sndfile/Makefile svneol=native#text/plain
 packages/extra/sndfile/Makefile.fpc svneol=native#text/plain
 packages/extra/sndfile/README -text
@@ -4252,6 +4233,26 @@ packages/rexx/examples/callrexx.pas svneol=native#text/plain
 packages/rexx/fpmake.pp svneol=native#text/plain
 packages/rexx/readme.txt svneol=native#text/plain
 packages/rexx/src/rexxsaa.pp svneol=native#text/plain
+packages/sdl/LGPL svneol=native#text/plain
+packages/sdl/LGPL.addon svneol=native#text/plain
+packages/sdl/MPL-1.1 svneol=native#text/plain
+packages/sdl/Makefile svneol=native#text/plain
+packages/sdl/Makefile.fpc svneol=native#text/plain
+packages/sdl/README svneol=native#text/plain
+packages/sdl/fpmake.pp svneol=native#text/plain
+packages/sdl/src/jedi-sdl.inc svneol=native#text/plain
+packages/sdl/src/libxmlparser.pas svneol=native#text/plain
+packages/sdl/src/logger.pas svneol=native#text/plain
+packages/sdl/src/powersdl.inc svneol=native#text/plain
+packages/sdl/src/sdl.pas svneol=native#text/plain
+packages/sdl/src/sdl_gfx.pas svneol=native#text/plain
+packages/sdl/src/sdl_image.pas svneol=native#text/plain
+packages/sdl/src/sdl_mixer.pas svneol=native#text/plain
+packages/sdl/src/sdl_mixer_nosmpeg.pas svneol=native#text/plain
+packages/sdl/src/sdl_net.pas svneol=native#text/plain
+packages/sdl/src/sdl_ttf.pas svneol=native#text/plain
+packages/sdl/src/sdlutils.pas svneol=native#text/plain
+packages/sdl/src/smpeg.pas svneol=native#text/plain
 packages/sqlite/Makefile svneol=native#text/plain
 packages/sqlite/Makefile.fpc svneol=native#text/plain
 packages/sqlite/fpmake.pp svneol=native#text/plain

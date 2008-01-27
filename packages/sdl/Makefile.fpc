@@ -23,7 +23,11 @@ units_i386_darwin=sdlutils
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
 
 [rules]
 .NOTPARALLEL:
