@@ -4034,6 +4034,11 @@ packages/odbc/src/odbcsql.pas svneol=native#text/plain
 packages/odbc/src/odbcsqldyn.pas svneol=native#text/plain
 packages/odbc/tests/testodbc.mdb -text
 packages/odbc/tests/testodbc.pp svneol=native#text/plain
+packages/oggvorbis/Makefile svneol=native#text/plain
+packages/oggvorbis/Makefile.fpc svneol=native#text/plain
+packages/oggvorbis/fpmake.pp svneol=native#text/plain
+packages/oggvorbis/ogg.pas svneol=native#text/plain
+packages/oggvorbis/vorbis.pas svneol=native#text/plain
 packages/openal/Makefile svneol=native#text/plain
 packages/openal/Makefile.fpc svneol=native#text/plain
 packages/openal/examples/Makefile svneol=native#text/plain
