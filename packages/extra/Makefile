@@ -241,94 +241,94 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp  cdrom imlib gnome1 fpgtk newt  openal  oggvorbis  openssl pcap lua sdl graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap lua sdl graph
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=graph
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=cdrom fpgtk fftw openal oggvorbis   openssl pcap sdl lua graph
+override TARGET_DIRS+=fftw openal oggvorbis   openssl pcap sdl lua graph
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=os2units rexx imlib fpgtk
+override TARGET_DIRS+=os2units rexx
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap   sdl graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openssl pcap   sdl graph
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=graph
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap
+override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp    fpgtk  imlib gnome1 openssl pcap
+override TARGET_DIRS+=fftw forms  ggi   gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap
+override TARGET_DIRS+=forms  ggi   gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=fftw forms  libgd utmp    fpgtk  imlib gnome1 openssl univint sdl graph
+override TARGET_DIRS+=fftw forms   gnome1 openssl univint sdl graph
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=os2units rexx imlib fpgtk
+override TARGET_DIRS+=os2units rexx
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_DIRS+=fftw
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp  cdrom imlib gnome1 fpgtk newt  openal  oggvorbis  openssl pcap graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap   sdl graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openssl pcap   sdl graph
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap
+override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=amunits
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap
+override TARGET_DIRS+=forms  ggi   gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=palmunits
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp  cdrom imlib gnome1 fpgtk newt  openal  oggvorbis  openssl pcap sdl graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap sdl graph
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap
+override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_DIRS+=amunits
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=fftw forms  libgd utmp    fpgtk  imlib gnome1 openssl univint sdl graph
+override TARGET_DIRS+=fftw forms   gnome1 openssl univint sdl graph
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp  cdrom imlib gnome1 fpgtk newt  openal  oggvorbis  openssl pcap graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap
+override TARGET_DIRS+=forms  ggi gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp    fpgtk  imlib gnome1 openssl pcap
+override TARGET_DIRS+=fftw forms  ggi   gnome1 openssl pcap
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp  cdrom imlib gnome1 fpgtk newt  openal  oggvorbis  openssl pcap sdl graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap sdl graph
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp    fpgtk imlib gnome1 openssl pcap   sdl graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openssl pcap   sdl graph
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=fftw forms  libgd utmp    fpgtk  imlib gnome1 openssl
+override TARGET_DIRS+=fftw forms   gnome1 openssl
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=cdrom fpgtk fftw openssl sdl
+override TARGET_DIRS+=fftw openssl sdl
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp  cdrom imlib gnome1 fpgtk newt  openal  oggvorbis  openssl pcap graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=palmunits
@@ -337,10 +337,10 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=fftw
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=fftw forms svgalib ggi  libgd utmp  cdrom imlib gnome1 fpgtk newt  openal  oggvorbis  openssl pcap graph
+override TARGET_DIRS+=fftw forms  ggi gnome1 openal  oggvorbis openssl pcap graph
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=fftw forms  libgd utmp    fpgtk  imlib gnome1 openssl
+override TARGET_DIRS+=fftw forms   gnome1 openssl
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1424,15 +1424,8 @@ fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_OPENSSL=1
@@ -1445,8 +1438,6 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_FPGTK=1
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
@@ -1459,18 +1450,11 @@ endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_OS2UNITS=1
 TARGET_DIRS_REXX=1
-TARGET_DIRS_IMLIB=1
-TARGET_DIRS_FPGTK=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1482,12 +1466,7 @@ TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1495,24 +1474,14 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1520,10 +1489,6 @@ endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_UNIVINT=1
@@ -1533,8 +1498,6 @@ endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_OS2UNITS=1
 TARGET_DIRS_REXX=1
-TARGET_DIRS_IMLIB=1
-TARGET_DIRS_FPGTK=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_FFTW=1
@@ -1542,15 +1505,8 @@ endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_OPENSSL=1
@@ -1560,12 +1516,7 @@ endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1574,12 +1525,7 @@ TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1589,12 +1535,7 @@ TARGET_DIRS_AMUNITS=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1605,15 +1546,8 @@ endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_OPENSSL=1
@@ -1623,12 +1557,7 @@ TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1639,10 +1568,6 @@ endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_UNIVINT=1
@@ -1652,15 +1577,8 @@ endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_OPENSSL=1
@@ -1669,12 +1587,7 @@ TARGET_DIRS_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1682,12 +1595,7 @@ endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1695,15 +1603,8 @@ endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_OPENSSL=1
@@ -1714,12 +1615,7 @@ endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_PCAP=1
@@ -1729,16 +1625,10 @@ endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_FPGTK=1
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_OPENSSL=1
 TARGET_DIRS_SDL=1
@@ -1746,15 +1636,8 @@ endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_OPENSSL=1
@@ -1770,15 +1653,8 @@ endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_CDROM=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_NEWT=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_OPENSSL=1
@@ -1788,10 +1664,6 @@ endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_FORMS=1
-TARGET_DIRS_LIBGD=1
-TARGET_DIRS_UTMP=1
-TARGET_DIRS_FPGTK=1
-TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_OPENSSL=1
 endif
@@ -1885,51 +1757,6 @@ forms:
 	$(MAKE) -C forms all
 .PHONY: forms_all forms_debug forms_smart forms_release forms_units forms_examples forms_shared forms_install forms_sourceinstall forms_exampleinstall forms_distinstall forms_zipinstall forms_zipsourceinstall forms_zipexampleinstall forms_zipdistinstall forms_clean forms_distclean forms_cleanall forms_info forms_makefiles forms
 endif
-ifdef TARGET_DIRS_SVGALIB
-svgalib_all:
-	$(MAKE) -C svgalib all
-svgalib_debug:
-	$(MAKE) -C svgalib debug
-svgalib_smart:
-	$(MAKE) -C svgalib smart
-svgalib_release:
-	$(MAKE) -C svgalib release
-svgalib_units:
-	$(MAKE) -C svgalib units
-svgalib_examples:
-	$(MAKE) -C svgalib examples
-svgalib_shared:
-	$(MAKE) -C svgalib shared
-svgalib_install:
-	$(MAKE) -C svgalib install
-svgalib_sourceinstall:
-	$(MAKE) -C svgalib sourceinstall
-svgalib_exampleinstall:
-	$(MAKE) -C svgalib exampleinstall
-svgalib_distinstall:
-	$(MAKE) -C svgalib distinstall
-svgalib_zipinstall:
-	$(MAKE) -C svgalib zipinstall
-svgalib_zipsourceinstall:
-	$(MAKE) -C svgalib zipsourceinstall
-svgalib_zipexampleinstall:
-	$(MAKE) -C svgalib zipexampleinstall
-svgalib_zipdistinstall:
-	$(MAKE) -C svgalib zipdistinstall
-svgalib_clean:
-	$(MAKE) -C svgalib clean
-svgalib_distclean:
-	$(MAKE) -C svgalib distclean
-svgalib_cleanall:
-	$(MAKE) -C svgalib cleanall
-svgalib_info:
-	$(MAKE) -C svgalib info
-svgalib_makefiles:
-	$(MAKE) -C svgalib makefiles
-svgalib:
-	$(MAKE) -C svgalib all
-.PHONY: svgalib_all svgalib_debug svgalib_smart svgalib_release svgalib_units svgalib_examples svgalib_shared svgalib_install svgalib_sourceinstall svgalib_exampleinstall svgalib_distinstall svgalib_zipinstall svgalib_zipsourceinstall svgalib_zipexampleinstall svgalib_zipdistinstall svgalib_clean svgalib_distclean svgalib_cleanall svgalib_info svgalib_makefiles svgalib
-endif
 ifdef TARGET_DIRS_GGI
 ggi_all:
 	$(MAKE) -C ggi all
@@ -1975,186 +1802,6 @@ ggi:
 	$(MAKE) -C ggi all
 .PHONY: ggi_all ggi_debug ggi_smart ggi_release ggi_units ggi_examples ggi_shared ggi_install ggi_sourceinstall ggi_exampleinstall ggi_distinstall ggi_zipinstall ggi_zipsourceinstall ggi_zipexampleinstall ggi_zipdistinstall ggi_clean ggi_distclean ggi_cleanall ggi_info ggi_makefiles ggi
 endif
-ifdef TARGET_DIRS_LIBGD
-libgd_all:
-	$(MAKE) -C libgd all
-libgd_debug:
-	$(MAKE) -C libgd debug
-libgd_smart:
-	$(MAKE) -C libgd smart
-libgd_release:
-	$(MAKE) -C libgd release
-libgd_units:
-	$(MAKE) -C libgd units
-libgd_examples:
-	$(MAKE) -C libgd examples
-libgd_shared:
-	$(MAKE) -C libgd shared
-libgd_install:
-	$(MAKE) -C libgd install
-libgd_sourceinstall:
-	$(MAKE) -C libgd sourceinstall
-libgd_exampleinstall:
-	$(MAKE) -C libgd exampleinstall
-libgd_distinstall:
-	$(MAKE) -C libgd distinstall
-libgd_zipinstall:
-	$(MAKE) -C libgd zipinstall
-libgd_zipsourceinstall:
-	$(MAKE) -C libgd zipsourceinstall
-libgd_zipexampleinstall:
-	$(MAKE) -C libgd zipexampleinstall
-libgd_zipdistinstall:
-	$(MAKE) -C libgd zipdistinstall
-libgd_clean:
-	$(MAKE) -C libgd clean
-libgd_distclean:
-	$(MAKE) -C libgd distclean
-libgd_cleanall:
-	$(MAKE) -C libgd cleanall
-libgd_info:
-	$(MAKE) -C libgd info
-libgd_makefiles:
-	$(MAKE) -C libgd makefiles
-libgd:
-	$(MAKE) -C libgd all
-.PHONY: libgd_all libgd_debug libgd_smart libgd_release libgd_units libgd_examples libgd_shared libgd_install libgd_sourceinstall libgd_exampleinstall libgd_distinstall libgd_zipinstall libgd_zipsourceinstall libgd_zipexampleinstall libgd_zipdistinstall libgd_clean libgd_distclean libgd_cleanall libgd_info libgd_makefiles libgd
-endif
-ifdef TARGET_DIRS_UTMP
-utmp_all:
-	$(MAKE) -C utmp all
-utmp_debug:
-	$(MAKE) -C utmp debug
-utmp_smart:
-	$(MAKE) -C utmp smart
-utmp_release:
-	$(MAKE) -C utmp release
-utmp_units:
-	$(MAKE) -C utmp units
-utmp_examples:
-	$(MAKE) -C utmp examples
-utmp_shared:
-	$(MAKE) -C utmp shared
-utmp_install:
-	$(MAKE) -C utmp install
-utmp_sourceinstall:
-	$(MAKE) -C utmp sourceinstall
-utmp_exampleinstall:
-	$(MAKE) -C utmp exampleinstall
-utmp_distinstall:
-	$(MAKE) -C utmp distinstall
-utmp_zipinstall:
-	$(MAKE) -C utmp zipinstall
-utmp_zipsourceinstall:
-	$(MAKE) -C utmp zipsourceinstall
-utmp_zipexampleinstall:
-	$(MAKE) -C utmp zipexampleinstall
-utmp_zipdistinstall:
-	$(MAKE) -C utmp zipdistinstall
-utmp_clean:
-	$(MAKE) -C utmp clean
-utmp_distclean:
-	$(MAKE) -C utmp distclean
-utmp_cleanall:
-	$(MAKE) -C utmp cleanall
-utmp_info:
-	$(MAKE) -C utmp info
-utmp_makefiles:
-	$(MAKE) -C utmp makefiles
-utmp:
-	$(MAKE) -C utmp all
-.PHONY: utmp_all utmp_debug utmp_smart utmp_release utmp_units utmp_examples utmp_shared utmp_install utmp_sourceinstall utmp_exampleinstall utmp_distinstall utmp_zipinstall utmp_zipsourceinstall utmp_zipexampleinstall utmp_zipdistinstall utmp_clean utmp_distclean utmp_cleanall utmp_info utmp_makefiles utmp
-endif
-ifdef TARGET_DIRS_CDROM
-cdrom_all:
-	$(MAKE) -C cdrom all
-cdrom_debug:
-	$(MAKE) -C cdrom debug
-cdrom_smart:
-	$(MAKE) -C cdrom smart
-cdrom_release:
-	$(MAKE) -C cdrom release
-cdrom_units:
-	$(MAKE) -C cdrom units
-cdrom_examples:
-	$(MAKE) -C cdrom examples
-cdrom_shared:
-	$(MAKE) -C cdrom shared
-cdrom_install:
-	$(MAKE) -C cdrom install
-cdrom_sourceinstall:
-	$(MAKE) -C cdrom sourceinstall
-cdrom_exampleinstall:
-	$(MAKE) -C cdrom exampleinstall
-cdrom_distinstall:
-	$(MAKE) -C cdrom distinstall
-cdrom_zipinstall:
-	$(MAKE) -C cdrom zipinstall
-cdrom_zipsourceinstall:
-	$(MAKE) -C cdrom zipsourceinstall
-cdrom_zipexampleinstall:
-	$(MAKE) -C cdrom zipexampleinstall
-cdrom_zipdistinstall:
-	$(MAKE) -C cdrom zipdistinstall
-cdrom_clean:
-	$(MAKE) -C cdrom clean
-cdrom_distclean:
-	$(MAKE) -C cdrom distclean
-cdrom_cleanall:
-	$(MAKE) -C cdrom cleanall
-cdrom_info:
-	$(MAKE) -C cdrom info
-cdrom_makefiles:
-	$(MAKE) -C cdrom makefiles
-cdrom:
-	$(MAKE) -C cdrom all
-.PHONY: cdrom_all cdrom_debug cdrom_smart cdrom_release cdrom_units cdrom_examples cdrom_shared cdrom_install cdrom_sourceinstall cdrom_exampleinstall cdrom_distinstall cdrom_zipinstall cdrom_zipsourceinstall cdrom_zipexampleinstall cdrom_zipdistinstall cdrom_clean cdrom_distclean cdrom_cleanall cdrom_info cdrom_makefiles cdrom
-endif
-ifdef TARGET_DIRS_IMLIB
-imlib_all:
-	$(MAKE) -C imlib all
-imlib_debug:
-	$(MAKE) -C imlib debug
-imlib_smart:
-	$(MAKE) -C imlib smart
-imlib_release:
-	$(MAKE) -C imlib release
-imlib_units:
-	$(MAKE) -C imlib units
-imlib_examples:
-	$(MAKE) -C imlib examples
-imlib_shared:
-	$(MAKE) -C imlib shared
-imlib_install:
-	$(MAKE) -C imlib install
-imlib_sourceinstall:
-	$(MAKE) -C imlib sourceinstall
-imlib_exampleinstall:
-	$(MAKE) -C imlib exampleinstall
-imlib_distinstall:
-	$(MAKE) -C imlib distinstall
-imlib_zipinstall:
-	$(MAKE) -C imlib zipinstall
-imlib_zipsourceinstall:
-	$(MAKE) -C imlib zipsourceinstall
-imlib_zipexampleinstall:
-	$(MAKE) -C imlib zipexampleinstall
-imlib_zipdistinstall:
-	$(MAKE) -C imlib zipdistinstall
-imlib_clean:
-	$(MAKE) -C imlib clean
-imlib_distclean:
-	$(MAKE) -C imlib distclean
-imlib_cleanall:
-	$(MAKE) -C imlib cleanall
-imlib_info:
-	$(MAKE) -C imlib info
-imlib_makefiles:
-	$(MAKE) -C imlib makefiles
-imlib:
-	$(MAKE) -C imlib all
-.PHONY: imlib_all imlib_debug imlib_smart imlib_release imlib_units imlib_examples imlib_shared imlib_install imlib_sourceinstall imlib_exampleinstall imlib_distinstall imlib_zipinstall imlib_zipsourceinstall imlib_zipexampleinstall imlib_zipdistinstall imlib_clean imlib_distclean imlib_cleanall imlib_info imlib_makefiles imlib
-endif
 ifdef TARGET_DIRS_GNOME1
 gnome1_all:
 	$(MAKE) -C gnome1 all
@@ -2199,96 +1846,6 @@ gnome1_makefiles:
 gnome1:
 	$(MAKE) -C gnome1 all
 .PHONY: gnome1_all gnome1_debug gnome1_smart gnome1_release gnome1_units gnome1_examples gnome1_shared gnome1_install gnome1_sourceinstall gnome1_exampleinstall gnome1_distinstall gnome1_zipinstall gnome1_zipsourceinstall gnome1_zipexampleinstall gnome1_zipdistinstall gnome1_clean gnome1_distclean gnome1_cleanall gnome1_info gnome1_makefiles gnome1
-endif
-ifdef TARGET_DIRS_FPGTK
-fpgtk_all:
-	$(MAKE) -C fpgtk all
-fpgtk_debug:
-	$(MAKE) -C fpgtk debug
-fpgtk_smart:
-	$(MAKE) -C fpgtk smart
-fpgtk_release:
-	$(MAKE) -C fpgtk release
-fpgtk_units:
-	$(MAKE) -C fpgtk units
-fpgtk_examples:
-	$(MAKE) -C fpgtk examples
-fpgtk_shared:
-	$(MAKE) -C fpgtk shared
-fpgtk_install:
-	$(MAKE) -C fpgtk install
-fpgtk_sourceinstall:
-	$(MAKE) -C fpgtk sourceinstall
-fpgtk_exampleinstall:
-	$(MAKE) -C fpgtk exampleinstall
-fpgtk_distinstall:
-	$(MAKE) -C fpgtk distinstall
-fpgtk_zipinstall:
-	$(MAKE) -C fpgtk zipinstall
-fpgtk_zipsourceinstall:
-	$(MAKE) -C fpgtk zipsourceinstall
-fpgtk_zipexampleinstall:
-	$(MAKE) -C fpgtk zipexampleinstall
-fpgtk_zipdistinstall:
-	$(MAKE) -C fpgtk zipdistinstall
-fpgtk_clean:
-	$(MAKE) -C fpgtk clean
-fpgtk_distclean:
-	$(MAKE) -C fpgtk distclean
-fpgtk_cleanall:
-	$(MAKE) -C fpgtk cleanall
-fpgtk_info:
-	$(MAKE) -C fpgtk info
-fpgtk_makefiles:
-	$(MAKE) -C fpgtk makefiles
-fpgtk:
-	$(MAKE) -C fpgtk all
-.PHONY: fpgtk_all fpgtk_debug fpgtk_smart fpgtk_release fpgtk_units fpgtk_examples fpgtk_shared fpgtk_install fpgtk_sourceinstall fpgtk_exampleinstall fpgtk_distinstall fpgtk_zipinstall fpgtk_zipsourceinstall fpgtk_zipexampleinstall fpgtk_zipdistinstall fpgtk_clean fpgtk_distclean fpgtk_cleanall fpgtk_info fpgtk_makefiles fpgtk
-endif
-ifdef TARGET_DIRS_NEWT
-newt_all:
-	$(MAKE) -C newt all
-newt_debug:
-	$(MAKE) -C newt debug
-newt_smart:
-	$(MAKE) -C newt smart
-newt_release:
-	$(MAKE) -C newt release
-newt_units:
-	$(MAKE) -C newt units
-newt_examples:
-	$(MAKE) -C newt examples
-newt_shared:
-	$(MAKE) -C newt shared
-newt_install:
-	$(MAKE) -C newt install
-newt_sourceinstall:
-	$(MAKE) -C newt sourceinstall
-newt_exampleinstall:
-	$(MAKE) -C newt exampleinstall
-newt_distinstall:
-	$(MAKE) -C newt distinstall
-newt_zipinstall:
-	$(MAKE) -C newt zipinstall
-newt_zipsourceinstall:
-	$(MAKE) -C newt zipsourceinstall
-newt_zipexampleinstall:
-	$(MAKE) -C newt zipexampleinstall
-newt_zipdistinstall:
-	$(MAKE) -C newt zipdistinstall
-newt_clean:
-	$(MAKE) -C newt clean
-newt_distclean:
-	$(MAKE) -C newt distclean
-newt_cleanall:
-	$(MAKE) -C newt cleanall
-newt_info:
-	$(MAKE) -C newt info
-newt_makefiles:
-	$(MAKE) -C newt makefiles
-newt:
-	$(MAKE) -C newt all
-.PHONY: newt_all newt_debug newt_smart newt_release newt_units newt_examples newt_shared newt_install newt_sourceinstall newt_exampleinstall newt_distinstall newt_zipinstall newt_zipsourceinstall newt_zipexampleinstall newt_zipdistinstall newt_clean newt_distclean newt_cleanall newt_info newt_makefiles newt
 endif
 ifdef TARGET_DIRS_OPENAL
 openal_all:

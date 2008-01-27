@@ -6,25 +6,31 @@
 dirs=base fv hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process unzip regexpr chm
 dirs_linux_i386=libc  unixutil 
 dirs_freebsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
+               imlib utmp hermes fpgtk
 dirs_darwin=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
+               imlib utmp hermes fpgtk
 dirs_solaris=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
+               imlib utmp hermes fpgtk
 dirs_netbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
+               imlib utmp hermes fpgtk
 dirs_openbsd=fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk2 bfd aspell svgalib \
+               imlib utmp hermes fpgtk
 dirs_linux=fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk2 \
-               a52 bfd aspell
+               a52 bfd aspell svgalib newt cdrom users hermes \
+               imlib utmp hermes fpgtk
 dirs_win32=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-               gdbint libpng mad tcl opengl gtk2 a52
+               gdbint libpng mad tcl opengl gtk2 a52 cdrom fpgtk
 dirs_win64=winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-               gdbint tcl opengl gtk2
+               gdbint tcl opengl gtk2 fpgtk
 dirs_wince=fcl-web ibase mysql tcl
-dirs_os2=zlib libpng x11 tcl
-dirs_emx=zlib  libpng x11 tcl
+dirs_os2=zlib libpng x11 tcl fpgtk
+dirs_emx=zlib  libpng x11 tcl fpgtk
 dirs_netware=zlib
 dirs_netwlibc= zlib
 

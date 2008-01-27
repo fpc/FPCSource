@@ -2,11 +2,7 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 [target]
-dirs_linux= fftw forms svgalib ggi  libgd \
-           utmp  cdrom \
-           imlib gnome1 fpgtk newt  \
-          openal  oggvorbis  \
-            openssl pcap   
+dirs_linux= fftw forms  ggi gnome1 openal  oggvorbis openssl pcap   
 dirs_i386_linux= lua sdl graph
 dirs_x86_64_linux=sdl graph
 dirs_powerpc_linux=sdl graph
@@ -14,41 +10,22 @@ dirs_powerpc64_linux=graph
 dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
-dirs_netbsd= forms svgalib ggi  libgd \
-            utmp    fpgtk \
-             imlib gnome1 openssl pcap  
-dirs_freebsd= fftw \
-             forms svgalib ggi  libgd \
-             utmp    fpgtk \
-              imlib gnome1 openssl pcap   sdl graph 
-dirs_openbsd= \
-             forms svgalib ggi  libgd \
-             utmp    fpgtk \
-              imlib gnome1 openssl pcap   
+dirs_netbsd= forms  ggi gnome1 openssl pcap  
+dirs_freebsd= fftw forms  ggi gnome1 openssl pcap   sdl graph 
+dirs_openbsd= forms  ggi   gnome1 openssl pcap   
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
-dirs_win32=   cdrom fpgtk fftw \
-              openal oggvorbis   openssl pcap sdl lua graph
-dirs_win64=   cdrom fpgtk fftw openssl sdl
+dirs_win32=     fftw openal oggvorbis   openssl pcap sdl lua graph
+dirs_win64=     fftw openssl sdl
 dirs_wince=  fftw
-dirs_os2=os2units \
-         rexx \
-         imlib fpgtk
-dirs_emx=os2units \
-         rexx \
-         imlib fpgtk
+dirs_os2=os2units rexx 
+dirs_emx=os2units rexx 
 dirs_go32v2= graph
 dirs_amiga=amunits
 dirs_palmos=palmunits
-dirs_darwin=  fftw \
-             forms  libgd \
-             utmp    fpgtk  imlib gnome1 \
-             openssl   
+dirs_darwin=  fftw forms   gnome1 openssl   
 dirs_powerpc_darwin=univint sdl graph
 dirs_i386_darwin=univint sdl graph
-dirs_solaris= fftw \
-             forms svgalib ggi  libgd \
-             utmp    fpgtk  imlib gnome1 \
-             openssl pcap  
+dirs_solaris= fftw forms  ggi   gnome1 openssl pcap  
 dirs_beos=graph
 
 [install]
