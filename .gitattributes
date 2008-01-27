@@ -1584,11 +1584,6 @@ packages/extra/palmunits/uicontrols.pp svneol=native#text/plain
 packages/extra/palmunits/uiresources.pp svneol=native#text/plain
 packages/extra/palmunits/vfsmgr.pp svneol=native#text/plain
 packages/extra/palmunits/window.pp svneol=native#text/plain
-packages/extra/pcap/Makefile svneol=native#text/plain
-packages/extra/pcap/Makefile.fpc svneol=native#text/plain
-packages/extra/pcap/fpmake.inc svneol=native#text/plain
-packages/extra/pcap/fpmake.pp svneol=native#text/plain
-packages/extra/pcap/pcap.pp svneol=native#text/plain
 packages/extra/ptc/Makefile -text
 packages/extra/ptc/Makefile.fpc -text
 packages/extra/ptc/aread.inc svneol=native#text/x-pascal
@@ -4226,6 +4221,10 @@ packages/paszlib/src/zipper.pp svneol=native#text/plain
 packages/paszlib/src/ziputils.pas svneol=native#text/plain
 packages/paszlib/src/zstream.pp svneol=native#text/plain
 packages/paszlib/src/zuncompr.pas svneol=native#text/plain
+packages/pcap/Makefile svneol=native#text/plain
+packages/pcap/Makefile.fpc svneol=native#text/plain
+packages/pcap/fpmake.pp svneol=native#text/plain
+packages/pcap/src/pcap.pp svneol=native#text/plain
 packages/postgres/Makefile svneol=native#text/plain
 packages/postgres/Makefile.fpc svneol=native#text/plain
 packages/postgres/README svneol=native#text/plain

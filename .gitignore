@@ -699,13 +699,6 @@ packages/extra/graph/inc/*.s
 packages/extra/graph/inc/fpcmade.*
 packages/extra/graph/inc/units
 packages/extra/graph/units
-packages/extra/numlib/*.bak
-packages/extra/numlib/*.exe
-packages/extra/numlib/*.o
-packages/extra/numlib/*.ppu
-packages/extra/numlib/*.s
-packages/extra/numlib/fpcmade.*
-packages/extra/numlib/units
 packages/extra/os2units/*.bak
 packages/extra/os2units/*.exe
 packages/extra/os2units/*.o
