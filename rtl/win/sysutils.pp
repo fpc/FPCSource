@@ -1040,32 +1040,20 @@ Function GetAppConfigDir(Global : Boolean) : String;
 
 begin
   If Global then
-    Result:=DGetAppConfigDir(Global) // or use windows dir ??
+    Result:=GetSpecialDir(CSIDL_COMMON_APPDATA)+ApplicationName
   else
-    begin
     Result:=GetSpecialDir(CSIDL_LOCAL_APPDATA)+ApplicationName;
-    If (Result='') then
-      Result:=DGetAppConfigDir(Global);
-    end;
+  If (Result='') then
+    Result:=DGetAppConfigDir(Global);
 end;
 
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
-  if Global then
-    begin
-    Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
-    if SubDir then
-      Result:=IncludeTrailingPathDelimiter(Result+'Config');
-    Result:=Result+ApplicationName+ConfigExtension;
-    end
-  else
-    begin
-    Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(False));
-    if SubDir then
-      Result:=Result+'Config\';
-    Result:=Result+ApplicationName+ConfigExtension;
-    end;
+  Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(Global));
+  if SubDir then
+    Result:=IncludeTrailingPathDelimiter(Result+'Config');
+  Result:=Result+ApplicationName+ConfigExtension;
 end;
 
 Procedure InitSysConfigDir;
