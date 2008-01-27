@@ -32,14 +32,16 @@ Resourcestring
   SErrBackupFailed           = 'Backup of file "%s" to file "%s" failed.';
   SErrUnknownProtocol        = 'Unknown download protocol: "%s"';
   SErrNoSuchFile             = 'File "%s" does not exist.';
-  SErrWGetDownloadFailed     = 'Download failed: wget reported exit status %d.';
-  SErrDownloadFailed         = 'Download failed: %s';
-  SErrInvalidVerbosity       = 'Invalid verbosity string: "%s"';
+  SErrDownloadFailed         = '%s Download failed: %s';
+  SErrInvalidLogLevels       = 'Invalid verbosity string: "%s"';
   SErrInvalidCommand         = 'Invalid command: %s';
   SErrChangeDirFailed        = 'Could not change directory to "%s"';
   SErrCorruptPackagesFile    = 'Packages file "%s" is corrupt, delete file manual and retry';
+  SErrCorruptMirrorsFile     = 'Mirrors file "%s" is corrupt, delete file manual and retry';
   SErrPackageIsLocal         = 'Operation not supported for local packages';
   SErrConvertFPMakeExists    = 'Found existing fpmake.pp, aborting conversion';
+  SErrFailedToSelectMirror   = 'Could not select a mirror, run update and retry';
+  SErrUnsupportedConfigVersion = 'Configuration file "%s" is too old, delete file manual and retry';
 
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';
@@ -63,10 +65,13 @@ Resourcestring
   SLogDetectedFPCDIR         = 'Detected %s FPCDIR "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
+  SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
   SLogLoadingStatusFile      = 'Loading local status from "%s"';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
   SLogFPMKUnitDepVersion     = 'Checking for %s %s, installed %s, available %s';
   SLogFPMKUnitDepTooOld      = 'Minimum version of %s is not installed, using internal fpmkunit with limited functionality';
+  SLogSelectedMirror         = 'Selected mirror "%s"';
+  SLogUpgradingConfig        = 'Configuration file "%s" is updated with new configuration settings';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
@@ -74,7 +79,6 @@ Resourcestring
   SDbgFileExists             = 'File "%s" %s';
   SDbgBackupFile             = 'Creating Backup File "%s"';
   SDbgPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
-
 
 implementation
 

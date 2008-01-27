@@ -95,7 +95,7 @@ procedure TLNetDownloader.OnFTPFailure(aSocket: TLSocket;
   const aStatus: TLFTPStatus);
 begin
   FFTP.Disconnect;
-  Error('Retrieve failed');
+  Error(SErrDownloadFailed,['FTP','']);
   FQuit:=True;
 end;
 
@@ -148,6 +148,8 @@ begin
     FQuit:=False;
     while not FQuit do
       FHTTP.CallAction;
+    if FHTTP.Response.Status<>HSOK then
+      Error(SErrDownloadFailed,['HTTP',FHTTP.Response.Reason]);
   Finally
     FOutStream:=nil; // to be sure
   end;

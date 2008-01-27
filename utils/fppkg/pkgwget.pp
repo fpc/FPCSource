@@ -22,7 +22,7 @@ Type
 implementation
 
 uses
-  process,
+  sysutils,process,
   pkgglobals,
   pkgmessages;
 
@@ -53,7 +53,7 @@ begin
           Dest.WriteBuffer(Buffer,Count);
         end;
       If (ExitStatus<>0) then
-        Error(SErrWGetDownloadFailed,[ExitStatus]);
+        Error(SErrDownloadFailed,['WGET',Format('exit status %d',[ExitStatus])]);
     finally
       Free;
     end;

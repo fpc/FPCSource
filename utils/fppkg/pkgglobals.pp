@@ -43,16 +43,21 @@ Const
   );
 
 Type
-  TVerbosity = (vError,vWarning,vInfo,vCommands,vDebug);
-  TVerbosities = Set of TVerbosity;
+  TLogLevel = (vlError,vlWarning,vlInfo,vlCommands,vlDebug);
+  TLogLevels = Set of TLogLevel;
 
+const
+  DefaultLogLevels = [vlError,vlWarning];
+  AllLogLevels = [vlError,vlWarning,vlCommands,vlInfo];
+
+type
   EPackagerError = class(Exception);
 
 // Logging
-Function StringToVerbosity (S : String) : TVerbosity;
-Function VerbosityToString (V : TVerbosity): String;
-Procedure Log(Level: TVerbosity;Msg : String);
-Procedure Log(Level: TVerbosity;Fmt : String; const Args : array of const);
+Function StringToLogLevels (S : String) : TLogLevels;
+Function LogLevelsToString (V : TLogLevels): String;
+Procedure Log(Level: TLogLevel;Msg : String);
+Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
 Procedure Error(Msg : String);
 Procedure Error(Fmt : String; const Args : array of const);
 
@@ -68,7 +73,7 @@ Function GetCompilerInfo(const ACompiler,AOptions:string):string;
 function IsSuperUser:boolean;
 
 var
-  Verbosity : TVerbosities;
+  LogLevels : TLogLevels;
   FPMKUnitDepAvailable : array[1..FPMKUnitDepCount] of boolean;
 
 
@@ -94,49 +99,52 @@ uses
   pkgmessages;
 
 
-function StringToVerbosity(S: String): TVerbosity;
+function StringToLogLevels(S: String): TLogLevels;
 Var
   I : integer;
 begin
-  I:=GetEnumValue(TypeInfo(TVerbosity),'v'+S);
+  I:=GetEnumValue(TypeInfo(TLogLevels),'v'+S);
   If (I<>-1) then
-    Result:=TVerbosity(I)
+    Result:=TLogLevels(I)
   else
-    Raise EPackagerError.CreateFmt(SErrInvalidVerbosity,[S]);
+    Raise EPackagerError.CreateFmt(SErrInvalidLogLevels,[S]);
 end;
 
 
-Function VerbosityToString (V : TVerbosity): String;
+Function LogLevelsToString (V : TLogLevels): String;
 begin
-  Result:=GetEnumName(TypeInfo(TVerbosity),Integer(V));
+  Result:=GetEnumName(TypeInfo(TLogLevels),Integer(V));
   Delete(Result,1,1);// Delete 'v'
 end;
 
 
-procedure Log(Level:TVerbosity;Msg: String);
+procedure Log(Level:TLogLevel;Msg: String);
 var
   Prefix : string;
 begin
-  if not(Level in Verbosity) then
+  if not(Level in LogLevels) then
     exit;
   Prefix:='';
   case Level of
-    vWarning :
+    vlWarning :
       Prefix:=SWarning;
-    vError :
+    vlError :
       Prefix:=SError;
-{    vInfo :
+{    vlInfo :
       Prefix:='I: ';
-    vCommands :
+    vlCommands :
       Prefix:='C: ';
-    vDebug :
+    vlDebug :
       Prefix:='D: '; }
   end;
-  Writeln(stdErr,Prefix,Msg);
+  if Level in [vlError,vlWarning] then
+    Writeln(stdErr,Prefix,Msg)
+  else
+    Writeln(stdOut,Prefix,Msg);
 end;
 
 
-Procedure Log(Level:TVerbosity; Fmt:String; const Args:array of const);
+Procedure Log(Level:TLogLevel; Fmt:String; const Args:array of const);
 begin
   Log(Level,Format(Fmt,Args));
 end;
@@ -211,9 +219,9 @@ Function DirectoryExistsLog(const ADir:string):Boolean;
 begin
   result:=SysUtils.DirectoryExists(ADir);
   if result then
-    Log(vDebug,SDbgDirectoryExists,[ADir,SDbgFound])
+    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])
   else
-    Log(vDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
+    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
 end;
 
 
@@ -221,9 +229,9 @@ Function FileExistsLog(const AFileName:string):Boolean;
 begin
   result:=SysUtils.FileExists(AFileName);
   if result then
-    Log(vDebug,SDbgFileExists,[AFileName,SDbgFound])
+    Log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
   else
-    Log(vDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
+    Log(vlDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
 end;
 
 
@@ -232,7 +240,7 @@ Var
   BFN : String;
 begin
   BFN:=AFileName+'.bak';
-  Log(vDebug,SDbgBackupFile,[BFN]);
+  Log(vlDebug,SDbgBackupFile,[BFN]);
   If not RenameFile(AFileName,BFN) then
     Error(SErrBackupFailed,[AFileName,BFN]);
 end;

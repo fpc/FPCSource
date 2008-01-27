@@ -197,7 +197,7 @@ begin
       // Compile options
       //   -- default is to optimize, smartlink and strip to reduce
       //      the executable size (there can be 100's of fpmake's on a system)
-      if vInfo in Verbosity then
+      if vlInfo in LogLevels then
         OOptions:=OOptions+' -vi';
       OOptions:=OOptions+' -O2 -XXs';
       // Create fpmkunit.pp if needed
@@ -210,7 +210,7 @@ begin
       DeleteDir(TempBuildDir);
     end
   else
-    Log(vCommands,SLogNotCompilingFPMake);
+    Log(vlCommands,SLogNotCompilingFPMake);
 end;
 
 
@@ -233,7 +233,7 @@ begin
   ExecuteAction(CurrentPackage,'compilefpmake');
   { Create options }
   OOptions:=' --nofpccfg';
-  if vInfo in Verbosity then
+  if vlInfo in LogLevels then
     OOptions:=OOptions+' --verbose';
   OOptions:=OOptions+' --compiler='+CompilerOptions.Compiler;
   OOptions:=OOptions+' --cpu='+CPUToString(CompilerOptions.CompilerCPU);

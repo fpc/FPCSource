@@ -80,7 +80,7 @@ begin
   Result:=Pos(lowercase(S)+',','i386,powerpc,arm,alpha,sparc,x86_64,powerpc64,')<>0
 end;
 
-Function GetOSCPU(L : String; var OS,CPU : String) : String;
+Procedure GetOSCPU(L : String; var OS,CPU : String);
 
   Procedure Add(Var A : String; ad : String);
 
@@ -543,8 +543,8 @@ end;
 procedure TMakeFileConverter.DoInstalls(Src,IFL : TStrings);
 
 Var
-  I,J,P : Integer;
-  Pre,N,V,D,DOS,OS,CPU : String;
+  I : Integer;
+  N,V,OS,CPU : String;
 
 begin
   If Assigned(IFL) then
@@ -560,8 +560,8 @@ end;
 procedure TMakeFileConverter.DoCleans(Src,CFL : TStrings);
 
 Var
-  I,J,P : Integer;
-  N,V,DOS,OS,CPU : String;
+  I : Integer;
+  N,V,OS,CPU : String;
 
 
 begin
@@ -598,7 +598,7 @@ Var
   B : Boolean;
 
 begin
-  Log(vDebug,'Converting '+AFileName);
+  Log(vlDebug,'Converting '+AFileName);
   T:=Nil;
   D:=Nil;
   S:=Nil;
@@ -684,7 +684,7 @@ Var
   L : TStrings;
 
 begin
-  Log(vInfo,SLogGeneratingFPMake);
+  Log(vlInfo,SLogGeneratingFPMake);
   L:=TStringList.Create;
   Try
     StartInstaller(L);
