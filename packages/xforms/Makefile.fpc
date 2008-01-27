@@ -3,13 +3,13 @@
 #
 
 [package]
-name=forms
+name=xforms
 version=2.0.0
 
 [target]
 units=xforms
 programs=fd2pascal
-exampledirs=demo
+exampledirs=examples
 
 [require]
 packages=x11
@@ -19,7 +19,11 @@ libc=y
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
 
 [shared]
 build=n

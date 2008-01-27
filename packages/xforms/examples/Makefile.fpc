@@ -11,13 +11,13 @@ programs=pushme yesno pushbutton touchbutton minput inputall choice butttypes \
          objinactive objpos newbutton multilabel objreturn
 
 [require]
-packages=forms
+packages=xforms
 
 [install]
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 [rules]
 .NOTPARALLEL:
