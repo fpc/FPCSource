@@ -11,10 +11,10 @@ libc=y
 packages=gtk1 imlib
 
 [target]
-units=libgnomeui libzvt libart libgnome gconfclient gconf
+units=libzvt libart libgnome gconfclient gconf libgnomeui  
 
 [compiler]
-includedir=src
+includedir=src src/gnome src/zvt src/gconf src/gconfclient src/libgnomeui
 sourcedir=src tests examples src src/zvt src/libgnome src/gconfclient src/gconf src/libgnomeui
 
 [install]
