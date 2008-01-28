@@ -203,7 +203,7 @@ begin
   for i:=1 to FPMKUnitDepCount do
     begin
       FPMKUnitDepAvailable[i]:=false;
-      P:=CurrentRepository.PackageByName(FPMKUnitDeps[i].package);
+      P:=CurrentRepository.FindPackage(FPMKUnitDeps[i].package);
       if P<>nil then
         begin
           ReqVer:=TFPVersion.Create;
