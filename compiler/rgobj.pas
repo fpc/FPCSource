@@ -1052,8 +1052,7 @@ unit rgobj;
         i,n,p,q:cardinal;
         t : tsuperregister;
         searched:Tlinkedlistitem;
-
-    label l1;
+        found : boolean;
 
     begin
       if not freezeworklist.delete(v) then
@@ -1086,7 +1085,6 @@ unit rgobj;
           with reginfo[u].movelist^ do
             if header.count<8*(header.count-header.sorted_until) then
               sort_movelist(reginfo[u].movelist);
-
           if assigned(reginfo[v].movelist) then
             begin
               for n:=0 to reginfo[v].movelist^.header.count-1 do
@@ -1108,12 +1106,15 @@ unit rgobj;
                     if searched<>data[i] then
                       begin
                         {Linear search the unsorted part of the list.}
+                        found:=false;
                         for i:=header.sorted_until+1 to header.count-1 do
                           if searched=data[i] then
-                            goto l1;
-                        {Not found -> add}
-                        add_to_movelist(u,searched);
-                      l1:
+                            begin
+                              found:=true;
+                              break;
+                            end;
+                        if not found then
+                          add_to_movelist(u,searched);
                       end;
                 end;
             end;
