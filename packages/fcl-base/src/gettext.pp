@@ -231,7 +231,7 @@ begin
 end;
 
 
-{$ifdef win32}
+{$ifdef windows}
 procedure GetLanguageIDs(var Lang, FallbackLang: string);
 var
   Buffer: array[1..4] of char;
