@@ -231,6 +231,7 @@ implementation
              dispose(pst);
              right.free;
              right:=t;
+             typecheckpass(right);
            end;
 
          typecheckpass(left);
