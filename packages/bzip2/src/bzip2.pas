@@ -24,6 +24,8 @@ Please do not contact Julian about this Pascal library, he didn't wrote it.
 ****************************************************************************}
 interface
 
+{$goto on}
+
 uses objects;
 
 const max_groups=6;
