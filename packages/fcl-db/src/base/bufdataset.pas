@@ -104,7 +104,14 @@ type
     BlobBuffer     : PBlobBuffer;
   end;
 
+  TCompareFunc = function(subValue, aValue: pointer; options: TLocateOptions): int64;
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
+
+  TDBCompareRec = record
+                   Comparefunc : TCompareFunc;
+                   Off1,Off2   : PtrInt;
+                  end;
+  TDBCompareStruct = array of TDBCompareRec;
 
   PBufIndex = ^TBufIndex;
   TBufIndex = record
@@ -113,6 +120,7 @@ type
     FieldsName      : String;
     CaseinsFields   : String;
     DescFields      : String;
+    DBCompareStrucs : TDBCompareStruct;
 {$IFDEF ARRAYBUF}
     FCurrentRecInd  : integer;
     FRecordArray    : array of Pointer;
@@ -260,8 +268,6 @@ implementation
 
 uses variants, dbconst;
 
-type TCompareFunc = function(subValue, aValue: pointer; options: TLocateOptions): int64;
-
 function DBCompareTextLen(substr, astr: pchar; len : integer; options: TLocateOptions): int64;
 
 var
@@ -385,12 +391,29 @@ begin
 end;
 
 procedure TBufDataset.BuildIndex(var AIndex: TBufIndex);
+
 var PCurRecLinkItem : PBufRecLinkItem;
     p,l,q           : PBufRecLinkItem;
     i,k,psize,qsize : integer;
     MergeAmount     : integer;
     PlaceQRec       : boolean;
-    Comparefunc     : TCompareFunc;
+
+    IndexFields     : TStrings;
+    FieldsAmount    : Integer;
+    FieldNr         : integer;
+    AField          : TField;
+
+
+  function CompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : array of TDBCompareRec) : LargeInt;
+  var IndexFieldNr : Integer;
+  begin
+    for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
+      begin
+      Result := Comparefunc(Rec1+Off1,Rec2+Off2,[]);
+      if Result <> 0 then break;
+      end;
+  end;
+
 
   procedure PlaceNewRec(var e: PBufRecLinkItem; var esize: integer);
   begin
@@ -411,27 +434,45 @@ var PCurRecLinkItem : PBufRecLinkItem;
   end;
 
 begin
-// This simply copies the index...
-  if not assigned(AIndex.Fields) then
+  // Build the DBCompareStructure
+  with AIndex do
     begin
-    AIndex.Fields := FindField(AIndex.FieldsName);
-    if not assigned(AIndex.Fields) then
-      DatabaseErrorFmt(SErrIndexBasedOnUnkField,[AIndex.FieldsName]);
-    end;
-{$IFNDEF ARRAYBUF}
-  case AIndex.Fields.DataType of
-    ftString : Comparefunc := @DBCompareText;
-    ftSmallint : Comparefunc := @DBCompareSmallInt;
-    ftInteger,ftCurrency,ftBCD : Comparefunc := @DBCompareInt;
-    ftWord : Comparefunc := @DBCompareWord;
-    ftBoolean : Comparefunc := @DBCompareByte;
-    ftFloat : Comparefunc := @DBCompareDouble;
-    ftDateTime,ftDate,ftTime : Comparefunc := @DBCompareDouble;
-    ftLargeint : Comparefunc := @DBCompareLargeInt;
-  else
-    DatabaseErrorFmt(SErrIndexBasedOnInvField,[aindex.fields.FieldName]);
-  end;
+    IndexFields := TStringList.Create;
+    try
+      FieldsAmount:=ExtractStrings([','],[' '],pchar(FieldsName),IndexFields);
+      if FieldsAmount=0 then
+        DatabaseError(SNoIndexFieldNameGiven);
+      SetLength(DBCompareStrucs,FieldsAmount);
+      for FieldNr:=0 to FieldsAmount-1 do
+        begin
+        AField := FindField(IndexFields[FieldNr]);
+        if not assigned(AField) then
+          DatabaseErrorFmt(SErrIndexBasedOnUnkField,[IndexFields[FieldNr]]);
 
+        case AField.DataType of
+          ftString : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareText;
+          ftSmallint : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareSmallInt;
+          ftInteger,ftCurrency,ftBCD : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareInt;
+          ftWord : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareWord;
+          ftBoolean : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareByte;
+          ftFloat : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareDouble;
+          ftDateTime,ftDate,ftTime : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareDouble;
+          ftLargeint : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareLargeInt;
+        else
+          DatabaseErrorFmt(SErrIndexBasedOnInvField,[AField.FieldName]);
+        end;
+
+        DBCompareStrucs[FieldNr].Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AField.FieldNo-1];
+        DBCompareStrucs[FieldNr].Off2:=DBCompareStrucs[FieldNr].Off1;
+        
+        end;
+    finally
+      IndexFields.Free;
+    end;
+    end;
+
+// This simply copies the index...
+{$IFNDEF ARRAYBUF}
   PCurRecLinkItem:=FIndexes[0].FFirstRecBuf;
   PCurRecLinkItem[AIndex.IndNr].next := PCurRecLinkItem[0].next;
   PCurRecLinkItem[AIndex.IndNr].prior := PCurRecLinkItem[0].prior;
@@ -516,7 +557,7 @@ begin
         PlaceQRec := true
       else if (qsize=0) or (q = AIndex.FLastRecBuf) then
         PlaceQRec := False
-      else if Comparefunc(pchar(p)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],pchar(q)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],[]) <= 0 then
+      else if CompareRecords(p,q,aindex.DBCompareStrucs) <= 0 then
         PlaceQRec := False
       else
         PlaceQRec := True;
@@ -903,7 +944,6 @@ procedure TBufDataset.SetIndexFieldNames(const AValue: String);
 begin
   if AValue<>'' then
     begin
-    FIndexes[1].Fields := nil;
     FIndexes[1].FieldsName:=AValue;
     FCurrentIndex:=@FIndexes[1];
     if active then
@@ -2013,15 +2053,18 @@ begin
   setlength(FIndexes,FIndexesCount); // This invalidates the currentindex!
   FCurrentIndex:=@FIndexes[StoreIndNr];
   InitialiseIndex(FIndexes[FIndexesCount-1]);
-  FIndexes[FIndexesCount-1].Name:=AName;
-  FIndexes[FIndexesCount-1].FieldsName:=AFields;
-  FIndexes[FIndexesCount-1].IndNr:=FIndexesCount-1;
+  with FIndexes[FIndexesCount-1] do
+    begin
+    Name:=AName;
+    FieldsName:=AFields;
+    IndNr:=FIndexesCount-1;
+    end;
+
 {$IFDEF ARRAYBUF}
   setlength(FIndexes[FIndexesCount-1].FRecordArray,FInitialBuffers);
 {$ENDIF}
   if Active then
     begin
-    FIndexes[FIndexesCount-1].Fields := FieldByName(AFields);
     FIndexes[FIndexesCount-1].FFirstRecBuf := pointer(IntAllocRecordBuffer);
     FIndexes[FIndexesCount-1].FLastRecBuf := FIndexes[FIndexesCount-1].FFirstRecBuf;
     FIndexes[FIndexesCount-1].FCurrentRecBuf := FIndexes[FIndexesCount-1].FLastRecBuf;

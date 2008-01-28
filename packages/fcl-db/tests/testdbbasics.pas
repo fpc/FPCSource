@@ -58,6 +58,9 @@ type
     
     procedure TestIndexCurRecord;
 
+    procedure TestAddDblIndex;
+    procedure TestIndexEditRecord;
+
     procedure TestNullAtOpen;
 
     procedure TestSupportIntegerFields;
@@ -1123,6 +1126,88 @@ begin
     prior;
     prior;
     AssertEquals(OldID-1,FieldByName('ID').AsInteger);
+    end;
+end;
+
+procedure TTestDBBasics.TestAddDblIndex;
+var ds : TBufDataset;
+    FList : TStringList;
+    i : integer;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+
+    AddIndex('testindex','F'+FieldTypeNames[ftString]+', F'+FieldTypeNames[ftInteger]);
+    FList := TStringList.Create;
+    FList.Sorted:=true;
+    FList.CaseSensitive:=True;
+    FList.Duplicates:=dupAccept;
+    open;
+
+    while not eof do
+      begin
+      // If the first field of the index is null then the compound string in
+      // FList isn't sorted right...
+      if FieldByName('F'+FieldTypeNames[ftString]).IsNull then
+        flist.Add('         -'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]))
+      else
+        flist.Add(FieldByName('F'+FieldTypeNames[ftString]).AsString+'-'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]));
+      Next;
+      end;
+
+    IndexName:='testindex';
+    first;
+    i:=0;
+
+    while not eof do
+      begin
+      if (not FieldByName('F'+FieldTypeNames[ftString]).IsNull) then
+        AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[ftString]).AsString+'-'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]));
+      inc(i);
+      Next;
+      end;
+    while not bof do
+      begin
+      dec(i);
+      if not FieldByName('F'+FieldTypeNames[ftString]).IsNull then
+        AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[ftString]).AsString+'-'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]));
+      Prior;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.TestIndexEditRecord;
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    i : integer;
+    OldID : Integer;
+    OldStringValue : string;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+    AFieldType:=ftString;
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    IndexName:='testindex';
+    open;
+    OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
+    next;
+    AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
+    next;
+    AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    prior;
+    
+    edit;
+    FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ';
+    post;
+    prior;
+    AssertTrue('ZZZ'>=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    next;
+    next;
+    AssertTrue('ZZZ'<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    close;
     end;
 end;
 
