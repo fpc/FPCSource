@@ -18,6 +18,8 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.0.0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
+
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('symbolic.pas');
