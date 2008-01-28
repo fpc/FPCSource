@@ -55,6 +55,7 @@ type
     procedure SetOpenParams;
     procedure SetTableName(const AValue: String);
     procedure SetTargetEncoding(const AValue: String);
+    function GetLibStored : Boolean;
   protected
     // Mandatory
     procedure SetFilterText(const Value: String); override; {virtual;}
@@ -98,7 +99,7 @@ type
     constructor Create(AOwner:tComponent); override;
     destructor Destroy; override;
   published
-    Property PXLibrary : String Read FPXLibrary Write FPXLibrary;
+    Property PXLibrary : String Read FPXLibrary Write FPXLibrary Stored GetLibStored;
     Property FileName : String Read FFileName Write SetFileName;
     Property BlobFileName : String Read FBlobFileName Write SetBlobFileName;
     Property TableName : String Read GetTableName Write SetTableName;
@@ -251,6 +252,12 @@ Procedure TParadox.RaiseError(Fmt : String; Args : Array of const);
 
 begin
   Raise EParadox.CreateFmt(Fmt,Args);
+end;
+
+Function TParadox.GetLibStored : boolean;
+
+begin
+  Result:=(FPXLibrary<>pxlibraryname);
 end;
 
 procedure TParadox.SetBlobFileName(const AValue: String);
