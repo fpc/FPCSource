@@ -588,7 +588,6 @@ Type
     FTarget: String;
     FUnixPaths: Boolean;
     FNoFPCCfg: Boolean;
-    FSourceExt : String;
     function GetLocalUnitDir: String;
     function GetGlobalUnitDir: String;
     function GetBaseInstallDir: String;
@@ -622,7 +621,6 @@ Type
     Property Mode : TCompilerMode Read FMode Write FMode;
     Property UnixPaths : Boolean Read FUnixPaths Write FUnixPaths;
     Property Options : String Read FOptions Write FOptions;    // Default compiler options.
-    Property SourceExt : String Read FSourceExt Write FSourceExt;
     Property NoFPCCfg : Boolean Read FNoFPCCfg Write FNoFPCCfg;
     // paths etc.
     Property LocalUnitDir : String Read GetLocalUnitDir Write SetLocalUnitDir;
@@ -1024,7 +1022,6 @@ Const
   KeyBinInstallDir      = 'BinInstallDir';
   KeyDocInstallDir      = 'DocInstallDir';
   KeyExamplesInstallDir = 'ExamplesInstallDir';
-  KeySourceExt = 'SourceExt';
   // Keys for unit config
   KeyName     = 'Name';
   KeyVersion  = 'Version';
@@ -2251,7 +2248,6 @@ begin
 {$else}
   UnixPaths:=False;
 {$endif}
-  FSourceExt:=PPExt;
   FNoFPCCfg:=False;
   FCPU:=cpuNone;
   FOS:=osNone;
@@ -2377,7 +2373,6 @@ begin
       Values[KeyExamplesInstallDir]:=FExamplesInstallDir;
       Values[KeyRemove]:=FRemove;
       Values[KeyTarget]:=FTarget;
-      Values[KeySourceExt]:=FSourceExt;
       if FNoFPCCfg then
         Values[KeyNoFPCCfg]:='Y';
       end;
@@ -2435,9 +2430,6 @@ begin
       FBinInstallDir:=Values[KeyBinInstallDir];
       FDocInstallDir:=Values[KeyDocInstallDir];
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
-      FSourceExt:=Values[KeySourceExt];
-      If (FSourceExt='') then
-        FSourceExt:=PPExt;
       FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
       end;
   Finally
@@ -4317,11 +4309,7 @@ begin
   D:=ExtractFilePath(N);
   E:=ExtractFileExt(N);
   N:=ExtractFileName(N);
-  If (E<>'') then
-    N:=Copy(N,1,Length(N)-Length(E))
-  else
-    E:=Defaults.SourceExt;
-  inherited SetName(N);
+  inherited SetName(Copy(N,1,Length(N)-Length(E)));
   FExtension:=E;
   FDirectory:=D;
 end;
