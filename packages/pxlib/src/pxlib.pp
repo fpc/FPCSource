@@ -15,7 +15,11 @@ uses
   MVC : Heavily edited after generation. C is a mess :( }
 
 const
+{$ifdef windows}
+  pxlibraryname='pxlib.dll';
+{$else}
   pxlibraryname='libpx.so.0'; { Default name }
+{$endif}  
 
 const
 
