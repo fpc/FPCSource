@@ -21,7 +21,7 @@ unit paradox;
 interface
 
 uses
-  sysutils, classes, db, pxlib;
+  sysutils, classes, db, pxlib, bufdataset_parser;
 
 type
   EParadox=class(Exception);
@@ -40,6 +40,7 @@ type
     FTableName : String;
     FInputEncoding : String;
     FTargetEncoding : String;
+    FParser         : TBufDatasetParser;
     function GetInputEncoding: String;
     function GetTableName: String;
     function GetTargetEncoding: String;
@@ -56,7 +57,10 @@ type
     procedure SetTargetEncoding(const AValue: String);
   protected
     // Mandatory
-    
+    procedure SetFilterText(const Value: String); override; {virtual;}
+    procedure SetFiltered(Value: Boolean); override; {virtual;}
+    procedure ParseFilter(const AFilter: string);
+
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
@@ -263,12 +267,15 @@ var
 
 begin
   Result:=True;
-  if not Assigned(OnFilterRecord) then
+  if not Assigned(OnFilterRecord) and Not Filtered then
     Exit;
   SaveState:=SetTempState(dsFilter);
   Try
     FFilterBuffer:=Buffer;
-    OnFilterRecord(Self,Result);
+    If Assigned(OnFilterRecord) then
+      OnFilterRecord(Self,Result);
+    If Result and Filtered and (Filter<>'') then
+      Result:=Boolean((FParser.ExtractFromBuffer(FFilterBuffer))^);
   Finally
     RestoreState(SaveState);
   end;
@@ -343,6 +350,28 @@ begin
     SetParam(SParamTargetEncoding,AVAlue);
   FTargetEncoding:=AValue;
 end;
+
+procedure TParadox.SetFilterText(const Value: String);
+begin
+  if (Value<>Filter) then
+    begin
+    ParseFilter(Value);
+    inherited;
+    if IsCursorOpen and Filtered then
+      Refresh;
+    end;
+end;
+
+procedure TParadox.SetFiltered(Value: Boolean);
+begin
+  if (Value<>Filtered) then
+    begin
+    inherited;
+    if IsCursorOpen then
+      Refresh;
+    end;
+end;
+
 
 //Abstract Overrides
 function TParadox.AllocRecordBuffer: PChar;
@@ -481,11 +510,38 @@ begin
       end;
     Raise;
   end;
+  try
+    ParseFilter(Filter);
+  except
+    On E : Exception do
+      Filter:='';
+  end;
 end;
 
+procedure TParadox.ParseFilter(const AFilter: string);
+begin
+  // parser created?
+  if Length(AFilter) > 0 then
+  begin
+    if (FParser = nil) and IsCursorOpen then
+    begin
+      FParser := TBufDatasetParser.Create(Self);
+    end;
+    // have a parser now?
+    if FParser <> nil then
+    begin
+      // set options
+      FParser.PartialMatch := not (foNoPartialCompare in FilterOptions);
+      FParser.CaseInsensitive := foCaseInsensitive in FilterOptions;
+      // parse expression
+      FParser.ParseExpression(AFilter);
+    end;
+  end;
+end;
 procedure TParadox.InternalClose;
 
 begin
+  FreeAndNil(FParser);
   FreeMem(FOffsets);
   FOffSets:=Nil;
   FCurrRecNo:=-1;
