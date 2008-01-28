@@ -104,6 +104,7 @@ type
     Property TableName : String Read GetTableName Write SetTableName;
     Property TargetEncoding : String Read GetTargetEncoding Write SetTargetEncoding;
     Property InputEncoding : String Read GetInputEncoding Write SetInputEncoding;
+    property filter;
     property Filtered;
     Property Active;
     Property FieldDefs;
