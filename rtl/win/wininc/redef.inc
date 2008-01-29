@@ -626,7 +626,7 @@ function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelec
 function GetThreadTimes(hThread: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetThreadTimes';
 function GetTimeZoneInformation(var lpTimeZoneInformation: TTimeZoneInformation): DWORD; external 'kernel32' name 'GetTimeZoneInformation';
 //function GetTitleBarInfo(hwnd: HWND; var pti: TTitleBarInfo): BOOL;external 'user32' name 'GetTitleBarInfo';
-//function GetTokenInformation(TokenHandle: THandle; TokenInformationClass: TTokenInformationClass; TokenInformation: Pointer; TokenInformationLength: DWORD; var ReturnLength: DWORD): BOOL; external 'advapi32' name 'GetTokenInformation';
+function GetTokenInformation(TokenHandle: THandle; TokenInformationClass: TTokenInformationClass; TokenInformation: Pointer; TokenInformationLength: DWORD; var ReturnLength: DWORD): BOOL; external 'advapi32' name 'GetTokenInformation';
 function GetUpdateRect(hWnd: HWND; var lpRect: TRect; bErase: BOOL): BOOL; external 'user32' name 'GetUpdateRect';
 function GetUserName(lpBuffer: PChar; var nSize: DWORD): BOOL;external 'advapi32' name 'GetUserNameA';
 function GetUserNameA(lpBuffer: LPCSTR; var nSize: DWORD): BOOL; external 'advapi32' name 'GetUserNameA';
