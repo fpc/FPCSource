@@ -17,7 +17,7 @@ libc=y
 fpcpackage=y
 
 [default]
-fpcdir=../../
+fpcdir=../..
 
 [compiler]
 includedir=src src/apr src/apriconv src/aprutil
