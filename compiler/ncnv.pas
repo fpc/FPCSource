@@ -1984,7 +1984,7 @@ implementation
               (tordconstnode(n).value<=high(cardinal))));
         end;
 
-    
+
       begin
         result:=false;
         if wasoriginallyuint32(n) then
@@ -2146,7 +2146,12 @@ implementation
                        if is_pasbool(resultdef) then
                          tordconstnode(left).value:=ord(tordconstnode(left).value<>0)
                        else
+{$ifdef VER2_2}
+                         tordconstnode(left).value:=ord(tordconstnode(left).value<>0);
+                         tordconstnode(left).value:=-tordconstnode(left).value;
+{$else}
                          tordconstnode(left).value:=-ord(tordconstnode(left).value<>0);
+{$endif VER2_2}
                      end
                    else
                      testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags));
@@ -2184,7 +2189,7 @@ implementation
                 end;
             end;
         end;
-        
+
 {$ifndef cpu64bit}
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
