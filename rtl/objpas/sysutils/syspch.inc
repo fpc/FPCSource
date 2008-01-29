@@ -23,7 +23,6 @@
 {  PChar functions  }
 
 type
-   pbyte = ^byte;
    CharArray = array[0..0] of char;
 
 { Processor dependent part, shared withs strings unit }
