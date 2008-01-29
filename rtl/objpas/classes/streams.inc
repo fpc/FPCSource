@@ -346,8 +346,7 @@ end;
     end;
 
   Function TStream.ReadAnsiString : String;
-  Type
-    PByte = ^Byte;
+
   Var
     TheSize : Longint;
     P : PByte ;
