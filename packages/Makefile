@@ -7310,7 +7310,6 @@ gtk1_debug:  opengl_debug
 gtk1_smart:  opengl_smart
 gtk1_release:  opengl_release
 gtk1_shared:  opengl_shared
-endif
 imlib_all: gtk1_all x11_all
 imlib_shared: gtk1_shared x11_shared
 imlib_smart: gtk1_smart x11_smart
