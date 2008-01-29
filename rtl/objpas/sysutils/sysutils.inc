@@ -40,7 +40,7 @@
             Result:=Temp;
             Temp:='';
           end;
-        If (Length(Result)>0) and (result[length(result)]<>DirectorySeparator) then
+        If (Length(Result)>0) and (result[length(result)] in AllowDirectorySeparators) then
           Result:=Result+DirectorySeparator;
         Result:=Result+name;
         If not FileExists(Result) Then
@@ -551,7 +551,7 @@ begin
       E.ErrorCode:=3;
       Raise E;
     end;
-  Result := DoForceDirectories(Dir);
+  Result := DoForceDirectories(SetDirSeparators(Dir));
 end;
 
 Procedure GetRandomBytes(Var Buf; NBytes : Integer);
@@ -632,7 +632,7 @@ begin
 {$ifdef MSWINDOWS}
   SetLength(Result,MAX_PATH);
   SetLength(Result,GetModuleFileName(Module, Pchar(Result),Length(Result)));
-{$ELSE}  
+{$ELSE}
   Result:='';
-{$ENDIF}  
+{$ENDIF}
 end;
