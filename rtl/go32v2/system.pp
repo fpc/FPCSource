@@ -39,7 +39,10 @@ const
 { LFNSupport is a variable here, defined below!!! }
  DirectorySeparator = '\';
  DriveSeparator = ':';
+ ExtensionSeparator = '.';
  PathSeparator = ';';
+ AllowDirectorySeparators : set of char = ['\','/'];
+ AllowDriveSeparators : set of char = [':'];
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;

@@ -26,7 +26,7 @@ interface
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
-function IsARM9(): boolean; 
+function IsARM9(): boolean;
 
 const
   LineEnding = #10;
@@ -34,7 +34,10 @@ const
   CtrlZMarksEOF: boolean = false;
   DirectorySeparator = '/';
   DriveSeparator = ':';
+  ExtensionSeparator = '.';
   PathSeparator = ';';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
   FileNameCaseSensitive = false;
   maxExitCode = 255;
   MaxPathLen = 255;
@@ -54,7 +57,7 @@ var
   argv: PPChar;
   envp: PPChar;
   errno: integer;
-  fake_heap_end: ^byte; cvar; 
+  fake_heap_end: ^byte; cvar;
 
 implementation
 
@@ -78,19 +81,19 @@ implementation
 {$i ndsbios.inc}
 
 
-{ 
-  NDS CPU detecting function (thanks to 21o6): 
+{
+  NDS CPU detecting function (thanks to 21o6):
   --------------------------------------------
-   "You see, the ARM7 can't write to bank A of VRAM, but it doesn't give any 
-    error ... it just doesn't write there... so it's easily determinable what 
+   "You see, the ARM7 can't write to bank A of VRAM, but it doesn't give any
+    error ... it just doesn't write there... so it's easily determinable what
     CPU is running the code"
-   
-   ARM946E-S processor can handle dsp extensions extensions, but ARM7TDMI does 
+
+   ARM946E-S processor can handle dsp extensions extensions, but ARM7TDMI does
    not. FPC can't retrieve the CPU target at compiling time, so this small
    function takes care to check if the code is running on an ARM9 or on an ARM7
    CPU. It works on Nintendo DS only, I guess :)
 }
-function IsARM9(): boolean; 
+function IsARM9(): boolean;
 var
   Dummy : pword absolute $06800000;
   tmp: word;
@@ -163,9 +166,9 @@ begin
 { OS specific startup }
 
 { Set up signals handlers }
-  if IsARM9 then 
+  if IsARM9 then
     fpc_cpucodeinit;
-    
+
 { Setup heap }
   InitHeap;
   SysInitExceptions;

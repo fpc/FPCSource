@@ -28,8 +28,11 @@ const
  LineEnding = #10;
  LFNSupport = true;
  DirectorySeparator = '/';
- DriveSeparator = ':';
+ DriveSeparator = '/';
+ ExtensionSeparator = '.';
  PathSeparator = ':';
+ AllowDirectorySeparators : set of char = ['\','/'];
+ AllowDriveSeparators : set of char = [];
 { FileNameCaseSensitive is defined below! }
  maxExitCode = 255;
  {$ifdef LINUX}
@@ -38,7 +41,7 @@ const
  MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
  {$endif}
  AllFilesMask = '*';
- 
+
 const
   UnusedHandle    = -1;
   StdInputHandle  = 0;

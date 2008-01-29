@@ -35,7 +35,10 @@ const
   LFNSupport = True;
   DirectorySeparator = '/';
   DriveSeparator = ':';
+  ExtensionSeparator = '.';
   PathSeparator = ';';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
   maxExitCode = 255;
   MaxPathLen = 256;
   AllFilesMask = '*';
@@ -363,7 +366,7 @@ end;
 begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
-  SysResetFPU;    
+  SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);

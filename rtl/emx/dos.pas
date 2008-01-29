@@ -180,8 +180,7 @@ begin
             else
                 begin
                     { allow slash as backslash }
-                    for i:=1 to length(dirlist) do
-                       if dirlist[i]='/' then dirlist[i]:='\';
+                    DoDirSeparators(dirlist);
                     repeat
                         p1:=pos(';',dirlist);
                         if p1<>0 then
@@ -195,8 +194,8 @@ begin
                                 dirlist:='';
                             end;
                         if (newdir<>'') and
-                         not (newdir[length(newdir)] in ['\',':']) then
-                            newdir:=newdir+'\';
+                         not (newdir[length(newdir)] in AllowDirectorySeparators+AllowDriveSeparators) then
+                            newdir:=newdir+DirectorySeparator;
                         if CheckFile (NewDir + Path + #0) then
                             NewDir := NewDir + Path
                         else

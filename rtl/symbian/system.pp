@@ -32,7 +32,10 @@ const
   LFNSupport = true;
   DirectorySeparator = '\';
   DriveSeparator = ':';
+  ExtensionSeparator = '.';
   PathSeparator = ';';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
   { FileNameCaseSensitive is defined separately below }
   maxExitCode = 65535;
   MaxPathLen = 260;
@@ -185,7 +188,7 @@ begin
 
   { if we pass here there was no error }
   system_exit;
-  
+
   Result := KErrNone;
 end;
 

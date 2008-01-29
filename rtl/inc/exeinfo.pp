@@ -1069,7 +1069,7 @@ begin
     end;
   { executable dir }
   i:=length(e.filename);
-  while (i>0) and not(e.filename[i] in ['/','\']) do
+  while (i>0) and not(e.filename[i] in AllowDirectorySeparators) do
     dec(i);
   if i>0 then
     begin

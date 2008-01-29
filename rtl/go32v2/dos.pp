@@ -217,9 +217,7 @@ begin
 { create path }
   p:=path;
 { allow slash as backslash }
-  for i:=1 to length(p) do
-   if p[i]='/' then
-    p[i]:='\';
+  DoDirSeparators(p);
   if LFNSupport then
     GetShortName(p);
 { create buffer }
@@ -232,7 +230,6 @@ begin
    paste_to_dos(envstr(i),false,1);
   {the behaviour is still suboptimal because variable COMMAND is stripped out}
   paste_to_dos(chr(0),false,1); { adds a double zero at the end }
-{ allow slash as backslash }
   la_p:=current_dos_buffer_pos;
   paste_to_dos(p,false,0);
   la_c:=current_dos_buffer_pos;
@@ -472,8 +469,7 @@ var
   w : LFNSearchRec;
 begin
   { allow slash as backslash }
-  for i:=0 to strlen(path) do
-    if path[i]='/' then path[i]:='\';
+  DoDirSeparators(path);
   dosregs.si:=1; { use ms-dos time }
   { don't include the label if not asked for it, needed for network drives }
   if attr=$8 then
@@ -571,8 +567,7 @@ var
    i : longint;
 begin
   { allow slash as backslash }
-  for i:=0 to strlen(path) do
-    if path[i]='/' then path[i]:='\';
+  DoDirSeparators(path);
   copytodos(f,sizeof(searchrec));
   dosregs.edx:=tb_offset;
   dosregs.ds:=tb_segment;
@@ -683,8 +678,7 @@ begin
   else
     begin
        { allow slash as backslash }
-       for i:=1 to length(dirlist) do
-         if dirlist[i]='/' then dirlist[i]:='\';
+       DoDirSeparators(dirlist);
        repeat
          p1:=pos(';',dirlist);
          if p1<>0 then

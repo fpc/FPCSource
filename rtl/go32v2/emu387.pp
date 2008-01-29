@@ -187,7 +187,7 @@ begin
             if length(cp)=0 then
               begin
                  for i:=length(prog_name) downto 1 do
-                   if (prog_name[i]='\') or (prog_name[i]='/') then
+                   if prog_name[i] in AllowDirectorySeparators then
                      break;
                  if i>1 then
                    cp:=copy(prog_name,1,i);

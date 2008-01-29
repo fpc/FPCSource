@@ -16,9 +16,14 @@
 
  **********************************************************************}
 
-(* Everywhere the same now, but prepared for potential difference. *)
-const
- ExtensionSeparator = '.';
+procedure DoDirSeparators(var p:shortstring);
+var
+  i : longint;
+begin
+  for i:=1 to length(p) do
+    if p[i] in AllowDirectorySeparators then
+      p[i]:=DirectorySeparator;
+end;
 
 {$IFNDEF HAS_DOSEXITCODE}
 threadvar
@@ -219,18 +224,8 @@ Procedure FSplit (Path: PathStr; var Dir: DirStr; var Name: NameStr; var Ext: Ex
 var
   DirEnd, ExtStart: Longint;
 begin
-  if DirectorySeparator = '/' then
-  { allow backslash as slash }
-    for DirEnd := 1 to Length (Path) do
-      begin
-        if Path [DirEnd] = '\' then Path [DirEnd] := DirectorySeparator
-      end
-  else
-    if DirectorySeparator = '\' then
-    { allow slash as backslash }
-      for DirEnd := 1 to Length (Path) do
-        if Path [DirEnd] = '/' then Path [DirEnd] := DirectorySeparator;
-
+  { allow slash and backslash }
+  DoDirSeparators(Path);
 { Find the first DirectorySeparator or DriveSeparator from the end. }
   DirEnd := Length (Path);
 { Avoid problems with platforms having DriveSeparator = DirectorySeparator. }
@@ -239,8 +234,8 @@ begin
     Dec (DirEnd)
   else
    while (DirEnd > 0) and
-                 (Path [DirEnd] <> DirectorySeparator) and
-                                           (Path [DirEnd] <> DriveSeparator) do
+         (Path [DirEnd] <> DirectorySeparator) and
+         (Path [DirEnd] <> DriveSeparator) do
     Dec (DirEnd);
 
 { The first "extension" should be returned if LFN }

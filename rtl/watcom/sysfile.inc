@@ -13,15 +13,6 @@
                         Low level File Routines
  ****************************************************************************}
 
-procedure AllowSlash(p:pchar);
-var
-  i : longint;
-begin
-{ allow slash as backslash }
-  for i:=0 to strlen(p) do
-   if p[i]='/' then p[i]:='\';
-end;
-
 procedure do_close(handle : longint);
 var
   regs : trealregs;
@@ -50,7 +41,7 @@ procedure do_erase(p : pchar);
 var
   regs : trealregs;
 begin
-  AllowSlash(p);
+  DoDirSeparators(p);
   syscopytodos(longint(p),strlen(p)+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
@@ -69,8 +60,8 @@ procedure do_rename(p1,p2 : pchar);
 var
   regs : trealregs;
 begin
-  AllowSlash(p1);
-  AllowSlash(p2);
+  DoDirSeparators(p1);
+  DoDirSeparators(p2);
   if strlen(p1)+strlen(p2)+3>tb_size then
    HandleError(217);
   sysseg_move(get_ds,sizeuint(p2),dos_selector,tb,strlen(p2)+1);
@@ -282,7 +273,7 @@ var
   action : longint;
   Avoid6c00 : boolean;
 begin
-  AllowSlash(p);
+  DoDirSeparators(p);
 { check if Extended Open/Create API is safe to use }
   Avoid6c00 := lo(dos_version) < 7;
 { close first if opened }

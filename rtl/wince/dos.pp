@@ -80,7 +80,7 @@ type
   Longrec=packed record
     lo,hi : word;
   end;
-  
+
 Function DosToWinTime (DTime:longint; var Wtime : TFileTime):longbool;
 var
   FatDate, FatTime: WORD;
@@ -247,7 +247,7 @@ begin
     GetMem(DriveNames[1], 2*SizeOf(WideChar));
     DriveNames[1][0]:='\';
     DriveNames[1][1]:=#0;
-    
+
     // Other drives are found dinamically
     h:=FindFirstFile('\*', @fd);
     if h <> 0 then
@@ -424,8 +424,7 @@ begin
   else
     begin
        { allow slash as backslash }
-       for i:=1 to length(dirlist) do
-         if dirlist[i]='/' then dirlist[i]:='\';
+       DoDirSeparators(dirlist);
        repeat
          p1:=pos(';',dirlist);
          if p1<>0 then
@@ -487,13 +486,13 @@ var
   l : cardinal;
   buf: array[0..MaxPathLen] of WideChar;
 begin
-  if filerec(f).name[1] = #0 then 
+  if filerec(f).name[1] = #0 then
     begin
       doserror:=3;
       attr:=0;
     end
   else
-    begin  
+    begin
       doserror:=0;
       AnsiToWideBuf(@filerec(f).name, -1, buf, SizeOf(buf));
       l:=GetFileAttributes(buf);
@@ -504,7 +503,7 @@ begin
        end
       else
        attr:=l and $ffff;
-    end;   
+    end;
 end;
 
 
@@ -522,7 +521,7 @@ begin
         doserror:=0
       else
         doserror:=Last2DosError(GetLastError);
-    end;  
+    end;
 end;
 
 {******************************************************************************

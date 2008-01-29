@@ -27,7 +27,10 @@ const
  LFNSupport = false;
  DirectorySeparator = '/';
  DriveSeparator = ':';
+ ExtensionSeparator = '.';
  PathSeparator = ';';
+ AllowDirectorySeparators : set of char = ['\','/'];
+ AllowDriveSeparators : set of char = [':'];
  FileNameCaseSensitive = false;
  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
  maxExitCode = 255; {$ERROR TODO: CONFIRM THIS}

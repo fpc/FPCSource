@@ -92,7 +92,7 @@ function do_isdevice(handle:thandle):boolean;forward;
 ****************************************************************************}
 
 {$ifdef FPC_USE_LIBC}
-{ Under Haiku, bcopy cause a problem when searching for include file 
+{ Under Haiku, bcopy cause a problem when searching for include file
   in the compiler. So, we use the internal implementation for now
   under BeOS and Haiku.  }
 {$ifndef BEOS}
@@ -1246,6 +1246,25 @@ end;
 {*****************************************************************************
                             File Handling
 *****************************************************************************}
+
+{ Allow slash and backslash as separators }
+procedure DoDirSeparators(p:Pchar);
+var
+  i : longint;
+begin
+  for i:=0 to strlen(p) do
+    if p[i] in AllowDirectorySeparators then
+      p[i]:=DirectorySeparator;
+end;
+
+procedure DoDirSeparators(var p:shortstring);
+var
+  i : longint;
+begin
+  for i:=1 to length(p) do
+    if p[i] in AllowDirectorySeparators then
+      p[i]:=DirectorySeparator;
+end;
 
 { OS dependent low level file functions }
 {$ifdef FPC_HAS_FEATURE_FILEIO}

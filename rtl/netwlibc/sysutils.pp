@@ -258,7 +258,7 @@ begin
   end;
   Rslt.FindData._attr := attr;
   p := length (path);
-  while (p > 0) and (not (path[p] in ['\','/'])) do
+  while (p > 0) and (not (path[p] in AllowDirectorySeparators)) do
     dec (p);
   if p > 0 then
   begin

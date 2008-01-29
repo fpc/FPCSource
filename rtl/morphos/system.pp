@@ -32,11 +32,14 @@ const
   LFNSupport = True;
   DirectorySeparator = '/';
   DriveSeparator = ':';
+  ExtensionSeparator = '.';
   PathSeparator = ';';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
   maxExitCode = 255;
   MaxPathLen = 256;
   AllFilesMask = '*';
-  
+
 const
   UnusedHandle    : LongInt = -1;
   StdInputHandle  : LongInt = 0;
@@ -266,7 +269,7 @@ begin
         while tmpbuf[counter]<>#0 do counter+=1;
         tmpbuf[0]:=Char(counter-1);
         GetArgv0Ambient:=tmpbuf;
-        { Append slash,if we're not in root directory of a volume }            
+        { Append slash,if we're not in root directory of a volume }
         if tmpbuf[counter-1]<>':' then GetArgv0Ambient+='/';
       end;
     end;
@@ -276,9 +279,9 @@ begin
     if progname<>nil then begin
       FillDWord(tmpbuf,256 div 4,0);
       counter:=0;
-      while (progname[counter]<>#0) do begin 
-        tmpbuf[counter+1]:=progname[counter]; 
-        counter+=1; 
+      while (progname[counter]<>#0) do begin
+        tmpbuf[counter+1]:=progname[counter];
+        counter+=1;
       end;
       tmpbuf[0]:=Char(counter);
       GetArgv0Ambient+=tmpbuf;
@@ -309,11 +312,11 @@ var
 begin
   paramstr:='';
   if MOS_ambMsg<>nil then begin
-    if l=0 then begin 
-      paramstr:=GetArgv0Ambient; 
-      exit; 
-    end else 
-      exit; 
+    if l=0 then begin
+      paramstr:=GetArgv0Ambient;
+      exit;
+    end else
+      exit;
   end;
 
   if l=0 then begin

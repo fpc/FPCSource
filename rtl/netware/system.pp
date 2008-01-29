@@ -39,7 +39,10 @@ const
  LFNSupport : boolean = false;
  DirectorySeparator = '/';
  DriveSeparator = ':';
+ ExtensionSeparator = '.';
  PathSeparator = ';';
+ AllowDirectorySeparators : set of char = ['\','/'];
+ AllowDriveSeparators : set of char = [':'];
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
@@ -216,8 +219,7 @@ begin
     paramstr:=strpas(argv[l]);
     if l = 0 then  // fix nlm path
     begin
-      for l := 1 to length (paramstr) do
-        if paramstr[l] = '\' then paramstr[l] := '/';
+      DoDirSeparators(paramstr);
     end;
   end else
    paramstr:='';

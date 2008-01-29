@@ -26,7 +26,7 @@ var
   EndSep : Set of Char;
 begin
   i := Length(FileName);
-  EndSep:=DirSeparators+[':','.'];
+  EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
   while (I > 0) and not(FileName[I] in EndSep) do
     Dec(I);
   if (I = 0) or (FileName[I] <> '.') then
@@ -40,7 +40,7 @@ var
   EndSep : Set of Char;
 begin
   i := Length(FileName);
-  EndSep:=DirSeparators+[':'];
+  EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (i > 0) and not (FileName[i] in EndSep) do
     Dec(i);
   If I>0 then
@@ -55,10 +55,10 @@ var
   EndSep : Set of Char;
 begin
   I := Length(FileName);
-  EndSep:=DirSeparators+[':'];
+  EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (I > 0) and not (FileName[I] in EndSep) do
     Dec(I);
-  if (I > 1) and (FileName[I] in DirSeparators) and
+  if (I > 1) and (FileName[I] in AllowDirectorySeparators) and
      not (FileName[I - 1] in EndSep) then
     Dec(I);
   Result := Copy(FileName, 1, I);
@@ -74,13 +74,13 @@ begin
   l:=Length(FileName);
   if (L<2) then
     exit;
-  If (FileName[2]=':') then
+  If (FileName[2] in AllowDriveSeparators) then
     result:=Copy(FileName,1,2)
-  else if (FileName[1] in DirSeparators) and
-          (FileName[2] in DirSeparators) then
+  else if (FileName[1] in AllowDirectorySeparators) and
+          (FileName[2] in AllowDirectorySeparators) then
     begin
       i := 2;
-      While (i<L) and Not (Filename[i+1] in DirSeparators) do
+      While (i<L) and Not (Filename[i+1] in AllowDirectorySeparators) do
         inc(i);
       Result:=Copy(FileName,1,i);
     end;
@@ -92,7 +92,7 @@ var
   EndSep : Set of Char;
 begin
   I := Length(FileName);
-  EndSep:=DirSeparators+[':'];
+  EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
   while (I > 0) and not (FileName[I] in EndSep) do
     Dec(I);
   Result := Copy(FileName, I + 1, MaxInt);
@@ -104,7 +104,7 @@ var
   EndSep : Set of Char;
 begin
   I := Length(FileName);
-  EndSep:=DirSeparators+['.', ':'];
+  EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (I > 0) and not (FileName[I] in EndSep) do
     Dec(I);
   if (I > 0) and (FileName[I] = '.') then
@@ -116,7 +116,7 @@ end;
 function ExtractShortPathName(Const FileName : String) : String;
 
 begin
-{$ifdef MSWINDOWS} 
+{$ifdef MSWINDOWS}
   SetLength(Result,Max_Path);
   SetLength(Result,GetShortPathName(PChar(FileName), Pchar(Result),Length(Result)));
 {$else}
@@ -161,7 +161,7 @@ Var Source, Dest : String;
     Sc,Dc,I,J    : Longint;
     SD,DD        : Array[1..MaxDirs] of PChar;
 
-Const OneLevelBack = '..'+PathDelim;
+Const OneLevelBack = '..'+DirectorySeparator;
 
 begin
   If Uppercase(ExtractFileDrive(BaseName))<>Uppercase(ExtractFileDrive(DestName)) Then
@@ -183,7 +183,7 @@ begin
     end;
   Result:='';
   For J:=I to SC do Result:=Result+OneLevelBack;
-  For J:=I to DC do Result:=Result+DD[J]+PathDelim;
+  For J:=I to DC do Result:=Result+DD[J]+DirectorySeparator;
   Result:=Result+ExtractFileName(DestNAme);
 end;
 
@@ -193,8 +193,8 @@ VAr I : longint;
 
 begin
   For I:=1 to Length(FileName) do
-    If FileName[I] in DirSeparators then
-      FileName[i]:=PathDelim;
+    If FileName[I] in AllowDirectorySeparators then
+      FileName[i]:=DirectorySeparator;
 end;
 
 
@@ -210,7 +210,6 @@ end;
   Dirs is an array of pchars, pointing to these directory names.
   The function returns the number of directories found, or -1
   if none were found.
-  DirName must contain only PathDelim as Directory separator chars.
 }
 
 Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
@@ -222,13 +221,13 @@ begin
   Result:=-1;
   While I<=Length(DirName) do
     begin
-    If (DirName[i]=PathDelim) and
+    If (DirName[i] in AllowDirectorySeparators) and
        { avoid error in case last char=pathdelim }
        (length(dirname)>i) then
       begin
-      DirName[i]:=#0;
-      Inc(Result);
-      Dirs[Result]:=@DirName[I+1];
+        DirName[i]:=#0;
+        Inc(Result);
+        Dirs[Result]:=@DirName[I+1];
       end;
     Inc(I);
     end;
@@ -243,8 +242,8 @@ Var
 begin
   Result:=Path;
   l:=Length(Result);
-  If (L=0) or not(Result[l] in DirSeparators) then
-    Result:=Result+PathDelim;
+  If (L=0) or not(Result[l] in AllowDirectorySeparators) then
+    Result:=Result+DirectorySeparator;
 end;
 
 function IncludeTrailingBackslash(Const Path : String) : String;
@@ -266,7 +265,7 @@ Var
 
 begin
   L:=Length(Path);
-  If (L>0) and (Path[L] in DirSeparators) then
+  If (L>0) and (Path[L] in AllowDirectorySeparators) then
     Dec(L);
   Result:=Copy(Path,1,L);
 end;
@@ -274,7 +273,7 @@ end;
 function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
 
 begin
-  Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index] in DirSeparators);
+  Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index] in AllowDirectorySeparators);
 end;
 
 Function GetFileHandle(var f : File):Longint;

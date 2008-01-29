@@ -35,7 +35,10 @@ const
  CtrlZMarksEOF: boolean = false;
  DirectorySeparator = '/';
  DriveSeparator = ':';
+ ExtensionSeparator = '.';
  PathSeparator = ';';
+ AllowDirectorySeparators : set of char = ['\','/'];
+ AllowDriveSeparators : set of char = [':'];
  FileNameCaseSensitive = false;
  maxExitCode = 255;
  MaxPathLen = 255;
