@@ -29,7 +29,7 @@ begin
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
   while (I > 0) and not(FileName[I] in EndSep) do
     Dec(I);
-  if (I = 0) or (FileName[I] <> '.') then
+  if (I = 0) or (FileName[I] <> ExtensionSeparator) then
     I := Length(FileName)+1;
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
@@ -104,10 +104,10 @@ var
   EndSep : Set of Char;
 begin
   I := Length(FileName);
-  EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
+  EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
   while (I > 0) and not (FileName[I] in EndSep) do
     Dec(I);
-  if (I > 0) and (FileName[I] = '.') then
+  if (I > 0) and (FileName[I] = ExtensionSeparator) then
     Result := Copy(FileName, I, MaxInt)
   else
     Result := '';
