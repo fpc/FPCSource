@@ -28,10 +28,11 @@ begin
     P.SourcePath.Add('objpas');
 
     // Where to find the include files using firstmatch
-    P.IncludePath.Add('$(OS)/$(CPU)',[Linux,Darwin]);
+    P.IncludePath.Add('$(OS)/$(CPU)',[Linux]+AllBSDOSes);
     P.IncludePath.Add('$(OS)');
     P.IncludePath.Add('$(CPU)');
     P.IncludePath.Add('bsd',AllBSDOSes);
+    P.IncludePath.Add('bsd/$(CPU)',AllBSDOSes-[Darwin]);
     P.IncludePath.Add('unix',AllUnixOSes);
     P.IncludePath.Add('win',AllWindowsOSes);
     P.IncludePath.Add('inc');
@@ -100,7 +101,7 @@ begin
           AddInclude('ostypes.inc',AllUnixOSes);
           AddInclude('ptypes.inc',AllUnixOSes);
           AddInclude('ctypes.inc',AllUnixOSes);
-          AddInclude('stat.inc',AllUnixOSes);
+          AddInclude('stat.inc',[Linux]);
           AddInclude('signal.inc',AllUnixOSes);
           AddInclude('sighnd.inc',AllUnixOSes);
           AddInclude('sighndh.inc',AllUnixOSes);
@@ -141,7 +142,7 @@ begin
           AddInclude('aliasctp.inc');
           AddInclude('errno.inc');
           AddInclude('ostypes.inc');
-          AddInclude('stat.inc');
+          AddInclude('stat.inc',[Linux]);
           AddInclude('signal.inc');
           AddInclude('sighndh.inc');
           AddInclude('bunxh.inc');
@@ -202,7 +203,8 @@ begin
         begin
           AddUnit('baseunix');
           AddUnit('syscall');
-          AddInclude('ipccall.inc');
+          AddInclude('ipccall.inc',[Linux]);
+          AddInclude('ipcbsd.inc',[FreeBSD]);
         end;
 
     // Linux units
