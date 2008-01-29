@@ -92,7 +92,7 @@ var
   EndSep : Set of Char;
 begin
   I := Length(FileName);
-  EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
+  EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
   while (I > 0) and not (FileName[I] in EndSep) do
     Dec(I);
   Result := Copy(FileName, I + 1, MaxInt);
