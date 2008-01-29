@@ -177,17 +177,24 @@ graph_release: sdl_release
 endif
 
 ifneq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
-gtk1_all: x11_all
-gtk1_debug: x11_debug
-gtk1_smart: x11_smart
-gtk1_release: x11_release
-gtk1_shared: x11_shared
+gtk1_all: x11_all opengl_all
+gtk1_debug: x11_debug opengl_debug
+gtk1_smart: x11_smart opengl_smart
+gtk1_release: x11_release opengl_release
+gtk1_shared: x11_shared opengl_shared
 
-gtk2_all: x11_all
+gtk2_all: 
 gtk2_shared: x11_shared
 gtk2_smart: x11_smart
 gtk2_debug: x11_debug
 gtk2_release: x11_release
+#else
+gtk1_all:  opengl_all
+gtk1_debug:  opengl_debug
+gtk1_smart:  opengl_smart
+gtk1_release:  opengl_release
+gtk1_shared:  opengl_shared
+
 endif
 
 imlib_all: gtk1_all x11_all
