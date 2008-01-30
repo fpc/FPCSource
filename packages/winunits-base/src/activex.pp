@@ -2955,6 +2955,56 @@ type
     function GetExtent(dwDrawAspect:dword;lindex:DWord;ptd:pDVTARGETDEVICE;lpsizel:LPSIZEL):HRESULT;stdcall;
     end;
 
+
+
+{ COMCAT}
+
+Const CATDESC_MAX = 128;
+
+Type 
+    CATID  = TGUID;
+    TCATID = TGUID;
+    PCATID = PGUID;
+    tagCATEGORYINFO = packed record
+	catid : CATID;
+	LCID  : lcid;
+        szDescription : array[0..CATDESC_MAX-1] of WideChar;
+        end;
+  
+   CATEGORYINFO   = tagCATEGORYINFO;
+   TCATEGORYINFO  = tagCATEGORYINFO;
+   LPCATEGORYINFO = ^tagCATEGORYINFO;
+   PCATEGORYINFO  = LPCATEGORYINFO;
+
+   IEnumCLSID = IEnumGUID;
+   IEnumCategoryInfo = interface(IUnknown)
+          ['{0002E011-0000-0000-C000-000000000046}'] 
+          function Next(celt: ULONG; out rgelt: TCategoryInfo; out pceltFetched: ULONG): HResult; stdcall;      
+          function Skip(celt:ULONG):HResult; StdCall;
+          function Reset:HResult; StdCall;
+          function CLone(Out ppenum : IEnumCategoryInfo):HResult;StdCall;
+          end;
+
+   ICatRegister = interface (IUnknown)
+     ['{0002E012-0000-0000-C000-000000000046}']
+     function RegisterCategories   (cCategories:ULONG;rgCategoryInfo : PCategoryInfo):HResult;Stdcall;
+     function UnRegisterCategories (cCategories:ULONG;PCatid :PCATID):HResult;Stdcall;
+     function RegisterClassImplCategories (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;     
+     function UnRegisterClassImplCategories (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;       
+     function RegisterClassReqCategories  (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;     
+     function UnRegisterClassReqCategories  (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;       
+    end;
+         
+   ICatInformation = interface(IUnknown)
+     ['{0002E013-0000-0000-C000-000000000046}']
+     function EnumCategories(lcid:lcid;out ppenumCategoryInfo : ICatInformation):HResult; StdCall;
+     function GetCategoryDesc(rcatid:PCATID;lcid:LCID;out pszdesc:lpwstr):HResult; StdCall;
+     function EnumClassesOfCategories(cImplemented : ULong; rgcatidImpl:PCATID;cRequired:ULong; rgcatidreq:PCATID; out ppenumclsid : IEnumClsID):HResult; StdCall;
+     function ISClassOfCategories(rclsid:pclsid;cImplemented:ULong;rgcatidimpl:PCATID;CRequired:ULONG;rgcatidreq : pcatid):HResult; StdCall;
+     function EnumImplCategoriesOfClass(rclsid:pclsid;out ppenumclsid : IEnumClsID):HResult; StdCall;
+     function EnumReqCategoriesOfClass(rclsid:pclsid;out ppenumclsid : IEnumClsID):HResult; StdCall;
+     end;
+
 { ole2.h }
 
   type
