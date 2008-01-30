@@ -178,6 +178,7 @@
 {$endif}
 
      LRESULT = LONG_PTR;
+     PLRESULT= ^LRESULT;
 
      LPVOID  = pointer;
      LPCVOID = pointer;
