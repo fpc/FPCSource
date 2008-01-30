@@ -866,16 +866,19 @@ end;
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
 
-Var
-  CommandLine : AnsiString;
-  i : Integer;
+var
+  CommandLine: AnsiString;
+  I: integer;
 
-Begin
-  Commandline:='';
-  For i:=0 to high(ComLine) Do
-   Commandline:=CommandLine+' '+Comline[i];
-  ExecuteProcess:=ExecuteProcess(Path,CommandLine);
-End;
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
 
 Procedure Sleep(Milliseconds : Cardinal);
 
