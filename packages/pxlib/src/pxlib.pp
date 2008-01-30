@@ -7,7 +7,10 @@ unit pxlib;
 interface
 
 uses
-  ctypes,unixtype;
+{$ifdef unix}
+  unixtype,
+{$endif}  
+  ctypes;
 
 { Automatically converted by H2Pas 1.0.0 from pxlib.h
   The following command line parameters were used:
@@ -35,7 +38,7 @@ const
   
   { IO Stream types  }
  
-  pxfIOFile = 1;      { pxfIOGsf is defined as 2 in paradox-gsf.h  }
+  pxfIOFile   = 1;      { pxfIOGsf is defined as 2 in paradox-gsf.h  }
   pxfIOStream = 3;   
   
   { Field types  }
@@ -82,6 +85,10 @@ Type
   PDWord    = ^DWord;
   PDouble   = ^Double;
   Pcchar    = pchar;
+
+{$ifndef unix}
+  size_t    = Integer;
+{$endif}
 
   PFILE  = ^FILE;
   iconv_t = pointer;
