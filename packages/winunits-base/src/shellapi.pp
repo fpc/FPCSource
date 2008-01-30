@@ -39,12 +39,76 @@ Unit ShellApi;
 
 Interface
 
-Uses Windows;
+Uses Windows, ActiveX;
   {
     shellapi.h -  SHELL.DLL functions, types, and definitions
     Copyright (c) Microsoft Corporation. All rights reserved.             }
 
-  Type   
+Const 
+    SHGDN_NORMAL             = $0000;  // default (display purpose)
+    SHGDN_INFOLDER           = $0001;  // displayed under a folder (relative)
+    SHGDN_FOREDITING         = $1000;  // for in-place editing
+    SHGDN_FORADDRESSBAR      = $4000;  // UI friendly parsing name (remove ugly stuff)
+    SHGDN_FORPARSING         = $8000;  // parsing name for ParseDisplayName()
+
+    SHCONTF_FOLDERS             = $0020;   // only want folders enumerated (SFGAO_FOLDER)
+    SHCONTF_NONFOLDERS          = $0040;   // include non folders
+    SHCONTF_INCLUDEHIDDEN       = $0080;   // show items normally hidden
+    SHCONTF_INIT_ON_FIRST_NEXT  = $0100;   // allow EnumObject() to return before validating enum
+    SHCONTF_NETPRINTERSRCH      = $0200;   // hint that client is looking for printers
+    SHCONTF_SHAREABLE           = $0400;   // hint that client is looking sharable resources (remote shares)
+    SHCONTF_STORAGE             = $0800;   // include all items with accessible storage and their ancestors
+
+    SHCIDS_ALLFIELDS        = $80000000;
+    SHCIDS_CANONICALONLY    = $10000000;
+    SHCIDS_BITMASK          = $FFFF0000;
+    SHCIDS_COLUMNMASK       = $0000FFFF;
+    SFGAO_CANCOPY           = DROPEFFECT_COPY; // Objects can be copied    (= $1)
+    SFGAO_CANMOVE           = DROPEFFECT_MOVE; // Objects can be moved     (= $2)
+    SFGAO_CANLINK           = DROPEFFECT_LINK; // Objects can be linked    (= $4)
+    SFGAO_STORAGE           = $00000008;     // supports BindToObject(IID_IStorage)
+    SFGAO_CANRENAME         = $00000010;     // Objects can be renamed
+    SFGAO_CANDELETE         = $00000020;     // Objects can be deleted
+    SFGAO_HASPROPSHEET      = $00000040;     // Objects have property sheets
+    SFGAO_DROPTARGET        = $00000100;     // Objects are drop target
+    SFGAO_CAPABILITYMASK    = $00000177;
+    SFGAO_ENCRYPTED         = $00002000;     // object is encrypted (use alt color)
+    SFGAO_ISSLOW            = $00004000;     // 'slow' object
+    SFGAO_GHOSTED           = $00008000;     // ghosted icon
+    SFGAO_LINK              = $00010000;     // Shortcut (link)
+    SFGAO_SHARE             = $00020000;     // shared
+    SFGAO_READONLY          = $00040000;     // read-only
+    SFGAO_HIDDEN            = $00080000;     // hidden object
+    SFGAO_DISPLAYATTRMASK   = $000FC000;
+    SFGAO_FILESYSANCESTOR   = $10000000;     // may contain children with SFGAO_FILESYSTEM
+    SFGAO_FOLDER            = $20000000;     // support BindToObject(IID_IShellFolder)
+    SFGAO_FILESYSTEM        = $40000000;     // is a win32 file system object (file/folder/root)
+    SFGAO_HASSUBFOLDER      = $80000000;     // may contain children with SFGAO_FOLDER
+    SFGAO_CONTENTSMASK      = $80000000;
+    SFGAO_VALIDATE          = $01000000;     // invalidate cached information
+    SFGAO_REMOVABLE         = $02000000;     // is this removeable media?
+    SFGAO_COMPRESSED        = $04000000;     // Object is compressed (use alt color)
+    SFGAO_BROWSABLE         = $08000000;     // supports IShellFolder, but only implements CreateViewObject() (non-folder view)
+    SFGAO_NONENUMERATED     = $00100000;     // is a non-enumerated object
+    SFGAO_NEWCONTENT        = $00200000;     // should show bold in explorer tree
+    SFGAO_CANMONIKER        = $00400000;     // defunct
+    SFGAO_HASSTORAGE        = $00400000;     // defunct
+    SFGAO_STREAM            = $00400000;     // supports BindToObject(IID_IStream)
+    SFGAO_STORAGEANCESTOR   = $00800000;     // may contain children with SFGAO_STORAGE or SFGAO_STREAM
+    SFGAO_STORAGECAPMASK    = $70C50008;     // for determining storage capabilities, ie for open/save semantics
+    
+    SHCOLSTATE_TYPE_STR	        =  $1;
+    SHCOLSTATE_TYPE_INT	        =  $2;
+    SHCOLSTATE_TYPE_DATE	=  $3;
+    SHCOLSTATE_TYPEMASK	        =  $f;
+    SHCOLSTATE_ONBYDEFAULT	= $10;
+    SHCOLSTATE_SLOW	        = $20;
+    SHCOLSTATE_EXTENDED	        = $40;
+    SHCOLSTATE_SECONDARYUI	= $80;
+    SHCOLSTATE_HIDDEN 	        = $100;
+    SHCOLSTATE_PREFER_VARCMP	= $200;
+
+Type   
      HDROP    = THandle;
      PHIcon   = ^HIcon;
 
