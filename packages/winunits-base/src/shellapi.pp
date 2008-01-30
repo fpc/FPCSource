@@ -287,7 +287,7 @@ Type
 Type
 
        _SHFILEOPSTRUCTA         = Record
-                                   hwnd              : HWND;
+                                   wnd               : HWND;
                                    wFunc             : UINT;
                                    pFrom             : LPCSTR;
                                    pTo               : LPCSTR;
@@ -302,7 +302,7 @@ Type
 
 
        _SHFILEOPSTRUCTW         = record
-                                   hwnd              : HWND;
+                                   wnd               : HWND;
                                    wFunc             : UINT;
                                    pFrom             : LPCWSTR;
                                    pTo               : LPCWSTR;
@@ -325,9 +325,11 @@ Type
 {$endif}
 
 Function SHFileOperationA(lpFileOp:LPSHFILEOPSTRUCTA ):Longint;external 'shell32.dll' name 'SHFileOperationA';
+
 Function SHFileOperationW(lpFileOp:LPSHFILEOPSTRUCTW ):Longint;external 'shell32.dll' name 'SHFileOperationW';
 
 Function SHFileOperation(lpFileOp:LPSHFILEOPSTRUCTA ):Longint;external 'shell32.dll' name 'SHFileOperationA';
+Function SHFileOperation(var lpFileOp:SHFILEOPSTRUCTA ):Longint;external 'shell32.dll' name 'SHFileOperationA';
 Function SHFileOperation(lpFileOp:LPSHFILEOPSTRUCTW ):Longint;external 'shell32.dll' name 'SHFileOperationW';
 
 Procedure SHFreeNameMappings(hNameMappings : THandle);external 'shell32.dll' name 'SHFreeNameMappings';
