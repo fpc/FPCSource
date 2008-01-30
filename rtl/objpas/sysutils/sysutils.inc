@@ -25,11 +25,9 @@
 
     begin
       Result:='';
-      temp:=Dirlist;
+			temp:=SetDirSeparators(DirList);
       repeat
-        While (Length(Temp)>0) and (Temp[1]=PathSeparator) do
-          Delete(Temp,1,1);
-        I:=pos(PathSep,Temp);
+        I:=pos(PathSeparator,Temp);
         If I<>0 then
           begin
             Result:=Copy (Temp,1,i-1);
@@ -40,12 +38,14 @@
             Result:=Temp;
             Temp:='';
           end;
-        If (Length(Result)>0) and (result[length(result)] in AllowDirectorySeparators) then
-          Result:=Result+DirectorySeparator;
-        Result:=Result+name;
-        If not FileExists(Result) Then
-         Result:='';
-      until (length(temp)=0) or (length(result)<>0);
+			  if Result<>'' then
+				  begin		
+            Result:=IncludeTrailingPathDelimiter(Result)+name;
+            If FileExists(Result) Then
+				      exit;
+ 				  end;			
+      until temp='';
+			result:='';
     end;
 
   {$ifndef OS_FILEISREADONLY}
