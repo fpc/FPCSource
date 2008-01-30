@@ -19,7 +19,7 @@ unit shlobj;
   interface
 
     uses
-      windows,activex;
+      windows,activex,shellapi;
 
     type
       IEnumIDList = interface(IUnknown)
@@ -70,6 +70,49 @@ unit shlobj;
         function GetOptions(var dwFlag: DWORD): HRESULT; stdcall;
       end;
 
-  implementation
+     PCMINVOKECOMMANDINFO = ^TCMINVOKECOMMANDINFO;
+     TCMINVOKECOMMANDINFO = packed record
+          cbSize : DWORD;
+          fMask  : DWORD;
+          hwnd   : HWND;
+          lpVerb : LPCSTR;
+          lpParameters : LPCSTR;
+          lpDirectory : LPCSTR;
+          nShow  :  longint;
+          dwHotKey: DWORD;
+          hIcon  : THANDLE;
+       end;
+     LPCMINVOKECOMMANDINFO = PCMINVOKECOMMANDINFO;
+
+    IContextMenu = interface(IUnknown)
+         ['{000214E4-0000-0000-c000-000000000046}']
+         function QueryContextMenu(hmenu:HMENU;indexMenu:UINT;idCmdFirst:UINT;idCmdLast:UINT;UFlags:uint):HRESULT;StdCall;
+         function InvokeCommand(lpici : LPCMINVOKECOMMANDINFO):HResult; StdCall;         
+         function GetCommandString(idcmd:UINT_Ptr;uType:UINT;pwreserved:puint;pszName:LPStr;cchMax:uint):HResult;StdCall;
+       end;
+    IContextMenu2 = interface(IContextMenu)
+         ['{000214f4-0000-0000-c000-000000000046}']
+         function HandleMenuMsg(uMsg:UINT;wParam:WPARAM;lParam:WPARAM):HResult;StdCall;
+         end;
+    IContextMenu3 = interface(IContextMenu2)
+         ['{bcfce0a0-ec17-11d0-8d10-00a0c90f2719}']
+         function HandleMenuMsg2(uMsg:UINT;wParam:WPARAM;lParam:WPARAM;presult:PLRESULT):HResult;StdCall;
+         end;
+    IEXtractIconA = interface(IUNknown)
+         ['{000214eb-0000-0000-c000-000000000046}']
+         function GetIconLocation(uFlags:UINT;szIconFIle:LPSTR;cchMax:UINT;piIndex : pint; pwflags:puint):HResult;StdCall;
+         function Extract(pszFile:LPCStr;nIconIndex:UINT;phiconLarge:PHICON;phiconSmall:PHICON;nIconSize:UINT):HResult;StdCall;
+         end;
+
+    IEXtractIconW = interface(IUNknown)
+         ['{000214fa-0000-0000-c000-000000000046}']
+         function GetIconLocation(uFlags:UINT;szIconFIle:LPWSTR;cchMax:UINT;piIndex : pint; pwflags:puint):HResult;StdCall;
+         function Extract(pszFile:LPCWStr;nIconIndex:UINT;phiconLarge:PHICON;phiconSmall:PHICON;nIconSize:UINT):HResult;StdCall;
+         end;
+    IEXtractIcon=IExtractIconA;
+
+function SHGetMalloc(out ppmalloc: IMalloc):HResult;StdCall; external 'shell32' name 'SHGetMalloc';
+
+implementation
 
 end.
