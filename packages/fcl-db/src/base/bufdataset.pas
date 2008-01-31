@@ -120,7 +120,7 @@ type
     FieldsName      : String;
     CaseinsFields   : String;
     DescFields      : String;
-    DBCompareStrucs : TDBCompareStruct;
+    DBCompareStruct : TDBCompareStruct;
 {$IFDEF ARRAYBUF}
     FCurrentRecInd  : integer;
     FRecordArray    : array of Pointer;
@@ -344,6 +344,16 @@ begin
   else result := 0;
 end;
 
+function IndexCompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : TDBCompareStruct) : LargeInt;
+var IndexFieldNr : Integer;
+begin
+  for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
+    begin
+    Result := Comparefunc(Rec1+Off1,Rec2+Off2,[]);
+    if Result <> 0 then break;
+    end;
+end;
+
 { ---------------------------------------------------------------------
     TBufDataSet
   ---------------------------------------------------------------------}
@@ -403,18 +413,6 @@ var PCurRecLinkItem : PBufRecLinkItem;
     FieldNr         : integer;
     AField          : TField;
 
-
-  function CompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : array of TDBCompareRec) : LargeInt;
-  var IndexFieldNr : Integer;
-  begin
-    for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
-      begin
-      Result := Comparefunc(Rec1+Off1,Rec2+Off2,[]);
-      if Result <> 0 then break;
-      end;
-  end;
-
-
   procedure PlaceNewRec(var e: PBufRecLinkItem; var esize: integer);
   begin
     if AIndex.FFirstRecBuf=nil then
@@ -442,7 +440,7 @@ begin
       FieldsAmount:=ExtractStrings([','],[' '],pchar(FieldsName),IndexFields);
       if FieldsAmount=0 then
         DatabaseError(SNoIndexFieldNameGiven);
-      SetLength(DBCompareStrucs,FieldsAmount);
+      SetLength(DBCompareStruct,FieldsAmount);
       for FieldNr:=0 to FieldsAmount-1 do
         begin
         AField := FindField(IndexFields[FieldNr]);
@@ -450,20 +448,20 @@ begin
           DatabaseErrorFmt(SErrIndexBasedOnUnkField,[IndexFields[FieldNr]]);
 
         case AField.DataType of
-          ftString : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareText;
-          ftSmallint : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareSmallInt;
-          ftInteger,ftCurrency,ftBCD : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareInt;
-          ftWord : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareWord;
-          ftBoolean : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareByte;
-          ftFloat : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareDouble;
-          ftDateTime,ftDate,ftTime : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareDouble;
-          ftLargeint : DBCompareStrucs[FieldNr].Comparefunc := @DBCompareLargeInt;
+          ftString : DBCompareStruct[FieldNr].Comparefunc := @DBCompareText;
+          ftSmallint : DBCompareStruct[FieldNr].Comparefunc := @DBCompareSmallInt;
+          ftInteger,ftCurrency,ftBCD : DBCompareStruct[FieldNr].Comparefunc := @DBCompareInt;
+          ftWord : DBCompareStruct[FieldNr].Comparefunc := @DBCompareWord;
+          ftBoolean : DBCompareStruct[FieldNr].Comparefunc := @DBCompareByte;
+          ftFloat : DBCompareStruct[FieldNr].Comparefunc := @DBCompareDouble;
+          ftDateTime,ftDate,ftTime : DBCompareStruct[FieldNr].Comparefunc := @DBCompareDouble;
+          ftLargeint : DBCompareStruct[FieldNr].Comparefunc := @DBCompareLargeInt;
         else
           DatabaseErrorFmt(SErrIndexBasedOnInvField,[AField.FieldName]);
         end;
 
-        DBCompareStrucs[FieldNr].Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AField.FieldNo-1];
-        DBCompareStrucs[FieldNr].Off2:=DBCompareStrucs[FieldNr].Off1;
+        DBCompareStruct[FieldNr].Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AField.FieldNo-1];
+        DBCompareStruct[FieldNr].Off2:=DBCompareStruct[FieldNr].Off1;
         
         end;
     finally
@@ -557,7 +555,7 @@ begin
         PlaceQRec := true
       else if (qsize=0) or (q = AIndex.FLastRecBuf) then
         PlaceQRec := False
-      else if CompareRecords(p,q,aindex.DBCompareStrucs) <= 0 then
+      else if IndexCompareRecords(p,q,aindex.DBCompareStruct) <= 0 then
         PlaceQRec := False
       else
         PlaceQRec := True;
@@ -1641,6 +1639,8 @@ Var tmpRecBuffer : PBufRecLinkItem;
     i            : integer;
     blobbuf      : tbufblobfield;
     NullMask     : pbyte;
+    StartInd     : Integer;
+    IndNr        : Integer;
 
 begin
   inherited InternalPost;
@@ -1751,8 +1751,57 @@ begin
     move(ActiveBuffer^,FRecordArray[FCurrentRecInd]^,FRecordSize);
 {$ELSE}
     CurrBuff := pchar(FCurrentRecBuf);
+
+  tmpRecBuffer:=PBufRecLinkItem(CurrBuff);
   inc(Currbuff,sizeof(TBufRecLinkItem)*FMaxIndexesCount);
   move(ActiveBuffer^,CurrBuff^,FRecordSize);
+  CurrBuff:=pchar(tmpRecBuffer);
+
+  if FCurrentIndex=@FIndexes[1] then StartInd := 1 else StartInd := 2;
+  for i := StartInd to FIndexesCount-1 do
+    begin
+    IndNr:=FIndexes[i].IndNr;
+    if (assigned(PBufRecLinkItem(CurrBuff)[IndNr].prior)) and
+       (IndexCompareRecords(CurrBuff,PBufRecLinkItem(CurrBuff)[IndNr].prior,FIndexes[i].DBCompareStruct) < 0) then
+      begin
+      // Remove record from index
+      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior := PBufRecLinkItem(CurrBuff)[IndNr].prior;
+      PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next;
+      // iterate to new position
+      tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].prior;
+      while assigned(tmpRecBuffer[IndNr].prior) and
+           (IndexCompareRecords(CurrBuff,tmpRecBuffer[indnr].prior,FIndexes[i].DBCompareStruct) < 0) do
+        begin
+        tmpRecBuffer:=tmpRecBuffer[IndNr].prior;
+        end;
+      // Place record at new position
+      PBufRecLinkItem(CurrBuff)[IndNr].prior:=tmpRecBuffer[IndNr].prior;
+      PBufRecLinkItem(CurrBuff)[IndNr].Next:=tmpRecBuffer;
+
+      PBufRecLinkItem(CurrBuff)[IndNr].Prior[IndNr].next:=PBufRecLinkItem(CurrBuff);
+      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior:=PBufRecLinkItem(CurrBuff);
+      end
+    else if (PBufRecLinkItem(CurrBuff)[IndNr].next <> FIndexes[i].FLastRecBuf) and
+            (IndexCompareRecords(CurrBuff,PBufRecLinkItem(CurrBuff)[FIndexes[i].IndNr].next,FIndexes[i].DBCompareStruct) > 0) then
+      begin
+      // Remove record from index
+      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior := PBufRecLinkItem(CurrBuff)[IndNr].prior;
+      PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next;
+      // iterate to new position
+      tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].next;
+      while (tmpRecBuffer[IndNr].next<>FIndexes[i].FLastRecBuf) and
+           (IndexCompareRecords(CurrBuff,tmpRecBuffer[indnr].next,FIndexes[i].DBCompareStruct) > 0) do
+        begin
+        tmpRecBuffer:=tmpRecBuffer[IndNr].next;
+        end;
+      // Place record at new position
+      PBufRecLinkItem(CurrBuff)[IndNr].next:=tmpRecBuffer[IndNr].next;
+      PBufRecLinkItem(CurrBuff)[IndNr].prior:=tmpRecBuffer;
+
+      PBufRecLinkItem(CurrBuff)[IndNr].Prior[IndNr].next:=PBufRecLinkItem(CurrBuff);
+      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior:=PBufRecLinkItem(CurrBuff);
+      end;
+    end;
 {$ENDIF}
 end;
 
