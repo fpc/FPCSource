@@ -2,6 +2,10 @@ program fppkg;
 
 {$mode objfpc}{$H+}
 
+{$if defined(VER2_2) and (FPC_PATCH<1)}
+  {$fatal At least FPC 2.2.1 is required to compile fppkg}
+{$endif}
+
 uses
   // General
 {$ifdef unix}

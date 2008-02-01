@@ -114,6 +114,8 @@ end;
 { TFPMakeCompiler }
 
 Procedure TFPMakeCompiler.CompileFPMake;
+var
+  OOptions : string;
 
   function CheckUnitDir(const AUnitName:string;Out AUnitDir:string):boolean;
   begin
@@ -136,17 +138,24 @@ Procedure TFPMakeCompiler.CompileFPMake;
     AUnitDir:='';
   end;
 
+  procedure AddOption(const s:string);
+  begin
+    if OOptions<>'' then
+      OOptions:=OOptions+' ';
+    OOptions:=OOptions+maybequoted(s);
+  end;
+
 const
   TempBuildDir = 'build-fpmake';
 Var
   i : Integer;
-  OOptions,
   DepDir,
   FPMakeBin,
   FPMakeSrc : string;
   NeedFPMKUnitSource,
   HaveFpmake : boolean;
 begin
+  OOptions:='';
   SetCurrentDir(PackageBuildPath);
   // Check for fpmake source
   FPMakeBin:='fpmake'+ExeExt;
@@ -164,13 +173,13 @@ begin
     begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
-      OOptions:='-n';
+      AddOption('-n');
       for i:=1 to FPMKUnitDepCount do
         begin
           if FPMKUnitDepAvailable[i] then
             begin
               if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
-                OOptions:=OOptions+' -Fu'+DepDir
+                AddOption(maybequoted('-Fu'+DepDir))
               else
                 Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
             end
@@ -180,26 +189,27 @@ begin
               if FPMKUnitDeps[i].package='fpmkunit' then
                 begin
                   NeedFPMKUnitSource:=true;
-                  OOptions:=OOptions+' -Fu'+TempBuildDir;
+                  AddOption('-Fu'+TempBuildDir);
                 end;
               if FPMKUnitDeps[i].undef<>'' then
-                OOptions:=OOptions+' -d'+FPMKUnitDeps[i].undef;
+                AddOption('-d'+FPMKUnitDeps[i].undef);
             end;
         end;
       // Add RTL unit dir
       if not CheckUnitDir('rtl',DepDir) then
         Error(SErrMissingInstallPackage,['rtl']);
-      OOptions:=OOptions+' -Fu'+DepDir;
+      AddOption('-Fu'+DepDir);
       // Units in a directory for easy cleaning
       DeleteDir(TempBuildDir);
       ForceDirectories(TempBuildDir);
-      OOptions:=OOptions+' -FU'+TempBuildDir;
+      AddOption('-FU'+TempBuildDir);
       // Compile options
       //   -- default is to optimize, smartlink and strip to reduce
       //      the executable size (there can be 100's of fpmake's on a system)
       if vlInfo in LogLevels then
-        OOptions:=OOptions+' -vi';
-      OOptions:=OOptions+' -O2 -XXs';
+        AddOption('-vi');
+      AddOption('-O2');
+      AddOption('-XXs');
       // Create fpmkunit.pp if needed
       if NeedFPMKUnitSource then
         CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
@@ -228,27 +238,36 @@ Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
   FPMakeBin,
   OOptions : string;
+
+  procedure AddOption(const s:string);
+  begin
+    if OOptions<>'' then
+      OOptions:=OOptions+' ';
+    OOptions:=OOptions+maybequoted(s);
+  end;
+
 begin
+  OOptions:='';
   { Maybe compile fpmake executable? }
   ExecuteAction(CurrentPackage,'compilefpmake');
   { Create options }
-  OOptions:=' --nofpccfg';
+  AddOption('--nofpccfg');
   if vlInfo in LogLevels then
-    OOptions:=OOptions+' --verbose';
-  OOptions:=OOptions+' --compiler='+CompilerOptions.Compiler;
-  OOptions:=OOptions+' --cpu='+CPUToString(CompilerOptions.CompilerCPU);
-  OOptions:=OOptions+' --os='+OSToString(CompilerOptions.CompilerOS);
+    AddOption('--verbose');
+  AddOption('--compiler='+CompilerOptions.Compiler);
+  AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
+  AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
   if IsSuperUser or GlobalOptions.InstallGlobal then
-    OOptions:=OOptions+' --baseinstalldir='+CompilerOptions.GlobalInstallDir
+    AddOption('--baseinstalldir='+CompilerOptions.GlobalInstallDir)
   else
-    OOptions:=OOptions+' --baseinstalldir='+CompilerOptions.LocalInstallDir;
+    AddOption('--baseinstalldir='+CompilerOptions.LocalInstallDir);
   if CompilerOptions.LocalInstallDir<>'' then
-    OOptions:=OOptions+' --localunitdir='+CompilerOptions.LocalUnitDir;
-  OOptions:=OOptions+' --globalunitdir='+CompilerOptions.GlobalUnitDir;
+    AddOption('--localunitdir='+CompilerOptions.LocalUnitDir);
+  AddOption('--globalunitdir='+CompilerOptions.GlobalUnitDir);
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath);
-  Result:=ExecuteProcess(FPMakeBin,Command+OOptions);
+  Result:=ExecuteProcess(FPMakeBin,Command+' '+OOptions);
   if Result<>0 then
     Error(SErrExecutionFPMake,[Command]);
 end;

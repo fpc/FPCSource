@@ -426,6 +426,10 @@ begin
   FCompilerVersion:=infosl[0];
   FCompilerCPU:=StringToCPU(infosl[1]);
   FCompilerOS:=StringToOS(infosl[2]);
+  // Temporary hack to workaround bug in fpc.exe that doesn't support spaces
+  // We retrieve the real binary
+  if FCompilerVersion='2.2.0' then
+    FCompiler:=GetCompilerInfo(FCompiler,'-PB');
   Log(vlDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
   // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
