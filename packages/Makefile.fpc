@@ -3,15 +3,15 @@
 #
 
 [target]
-dirs=base fv hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
-dirs_freebsd=fcl-web fcl-async
-dirs_darwin=fcl-web fcl-async
-dirs_solaris=fcl-web fcl-async
-dirs_netbsd=fcl-web fcl-async
-dirs_openbsd=fcl-web fcl-async
-dirs_linux=fcl-web fcl-async
-dirs_win32=winunits-base winunits-jedi fcl-web
-dirs_win64=winunits-base winunits-jedi fcl-web
+dirs=base hash paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json extra fcl-process
+dirs_freebsd=fv fcl-web fcl-async
+dirs_darwin=fv fcl-web fcl-async
+dirs_solaris=fv fcl-web fcl-async
+dirs_netbsd=fv fcl-web fcl-async
+dirs_openbsd=fv fcl-web fcl-async
+dirs_linux=fv fcl-web fcl-async
+dirs_win32=fv winunits-base winunits-jedi fcl-web
+dirs_win64=fv winunits-base winunits-jedi fcl-web
 dirs_wince=fcl-web
 
 [install]
