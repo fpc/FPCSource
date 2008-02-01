@@ -24,9 +24,12 @@
       Temp : String;
 
     begin
-      Result:='';
-			temp:=SetDirSeparators(DirList);
+      // Start with checking the file in the current directory
+      Result:=Name;
+      temp:=SetDirSeparators(DirList);
       repeat
+        If (Result<>'') and FileExists(Result) Then
+          exit;
         I:=pos(PathSeparator,Temp);
         If I<>0 then
           begin
@@ -38,14 +41,10 @@
             Result:=Temp;
             Temp:='';
           end;
-			  if Result<>'' then
-				  begin		
-            Result:=IncludeTrailingPathDelimiter(Result)+name;
-            If FileExists(Result) Then
-				      exit;
- 				  end;			
+        if Result<>'' then
+          Result:=IncludeTrailingPathDelimiter(Result)+name;
       until temp='';
-			result:='';
+      result:='';
     end;
 
   {$ifndef OS_FILEISREADONLY}
