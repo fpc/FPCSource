@@ -40,7 +40,7 @@
             Result:=Temp;
             Temp:='';
           end;
-        If (Length(Result)>0) and (result[length(result)] in AllowDirectorySeparators) then
+        If (Length(Result)>0) and (result[length(result)] in ['\','/']) then
           Result:=Result+DirectorySeparator;
         Result:=Result+name;
         If not FileExists(Result) Then
