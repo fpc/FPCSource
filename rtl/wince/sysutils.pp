@@ -742,7 +742,7 @@ Function GetAppConfigDir(Global : Boolean) : String;
 
 begin
   If Global then
-    Result:=GetSpecialDir(CSIDL_COMMON_APPDATA)
+    Result:=GetSpecialDir(CSIDL_WINDOWS)
   else
     Result:=GetSpecialDir(CSIDL_APPDATA);
   If (Result<>'') then

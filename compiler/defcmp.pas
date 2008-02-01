@@ -523,8 +523,12 @@ implementation
                        eq:=te_equal
                      else
                        begin
+                         { Delphi does not allow explicit type conversions for float types like:
+                             single_var:=single(double_var);
+                           But if such conversion is inserted by compiler (internal) for some purpose,
+                           it should be allowed even in Delphi mode. }
                          if (fromtreetype=realconstn) or
-                            not((cdo_explicit in cdoptions) and
+                            not((cdoptions*[cdo_explicit,cdo_internal]=[cdo_explicit]) and
                                 (m_delphi in current_settings.modeswitches)) then
                            begin
                              doconv:=tc_real_2_real;

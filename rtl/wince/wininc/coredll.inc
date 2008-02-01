@@ -2173,9 +2173,11 @@ const
   CSIDL_DRIVES             = $0011;
   CSIDL_NETWORK            = $0012;
   CSIDL_NETHOOD            = $0013;
-  CSIDL_FONTS		   = $0014;
+  CSIDL_FONTS		           = $0014;
   CSIDL_TEMPLATES          = $0015;
   CSIDL_APPDATA            = $001a;
+  CSIDL_WINDOWS            = $0024;
+  CSIDL_PROGRAM_FILES      = $0026;
 
 //*****************************************************************************
 // types
