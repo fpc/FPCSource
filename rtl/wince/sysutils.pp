@@ -509,7 +509,7 @@ var
 begin
   if GetLocaleInfo(LID, LT, Buf, 2) > 0 then
   begin
-    WideToAnsiBuf(Buf, -1, Buf2, SizeOf(Buf2));
+    WideToAnsiBuf(Buf, 1, Buf2, SizeOf(Buf2));
     Result := Buf2[0];
   end
   else
