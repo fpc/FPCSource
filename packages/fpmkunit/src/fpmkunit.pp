@@ -1117,6 +1117,50 @@ begin
 end;
 
 
+function maybequoted(const s:string):string;
+const
+  {$IFDEF MSWINDOWS}
+    FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                       '{', '}', '''', '`', '~'];
+  {$ELSE}
+    FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                       '{', '}', '''', ':', '\', '`', '~'];
+  {$ENDIF}
+var
+  s1 : string;
+  i  : integer;
+  quoted : boolean;
+begin
+  quoted:=false;
+  s1:='"';
+  for i:=1 to length(s) do
+   begin
+     case s[i] of
+       '"' :
+         begin
+           quoted:=true;
+           s1:=s1+'\"';
+         end;
+       ' ',
+       #128..#255 :
+         begin
+           quoted:=true;
+           s1:=s1+s[i];
+         end;
+       else begin
+         if s[i] in FORBIDDEN_CHARS then
+           quoted:=True;
+         s1:=s1+s[i];
+       end;
+     end;
+   end;
+  if quoted then
+    maybequoted:=s1+'"'
+  else
+    maybequoted:=s;
+end;
+
+
 // Callback for Sysutils getapplicationname.
 Function GetFPMakeName : String;
 
@@ -3408,33 +3452,37 @@ end;
 Function TBuildEngine.GetCompilerCommand(APackage : TPackage; ATarget : TTarget) : String;
 Var
   PD,OD : String;
-  L : TStringList;
+  L,Args : TStringList;
+
   i : Integer;
 begin
+  Args:=TStringList.Create;
+  Args.Duplicates:=dupIgnore;
+
   PD:=GetPackageDir(APackage,True);
 
   Result := '';
 
   //compiler configuration
   if Defaults.NoFPCCfg then
-    Result := '-n';
+    Args.Add('-n');
 
   // Target OS
   Result:=Result+' -T'+OSToString(Defaults.OS);
 
   // Compile mode
   If ATarget.Mode<>cmFPC then
-    Result:=Result+' -M'+ModeToString(ATarget.Mode)
+    Args.Add('-M'+ModeToString(ATarget.Mode))
   else If Defaults.Mode<>cmFPC then
-    Result:=Result+' -M'+ModeToString(Defaults.Mode);
+    Args.Add('-M'+ModeToString(Defaults.Mode));
   // Output file paths
   If ATarget.TargetType in ProgramTargets then
     begin
       OD:=GetBinOutputDir(APackage,True);
-      Result:=Result+' -FE' + ExtractRelativePath(PD,OD);
+      Args.Add('-FE' + ExtractRelativePath(PD,OD));
     end;
   OD:=GetUnitsOutputDir(APackage,True);
-  Result := Result + ' -FU' + ExtractRelativePath(PD,OD);
+  Args.Add('-FU' + ExtractRelativePath(PD,OD));
   // Object Path
   L:=TStringList.Create;
   L.Sorted:=true;
@@ -3442,7 +3490,7 @@ begin
   AddConditionalStrings(L,APackage.ObjectPath,Defaults.CPU,Defaults.OS);
   AddConditionalStrings(L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
-    Result:=Result+' -Fo'+L[i];
+    Args.Add('-Fo'+L[i]);
   FreeAndNil(L);
   // Unit Dirs
   L:=TStringList.Create;
@@ -3452,7 +3500,7 @@ begin
   AddConditionalStrings(L,APackage.UnitPath,Defaults.CPU,Defaults.OS);
   AddConditionalStrings(L,ATarget.UnitPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
-    Result:=Result+' -Fu'+L[i];
+    Args.Add('-Fu'+L[i]);
   FreeAndNil(L);
   // Include Path
   L:=TStringList.Create;
@@ -3462,17 +3510,23 @@ begin
   AddConditionalStrings(L,APackage.IncludePath,Defaults.CPU,Defaults.OS);
   AddConditionalStrings(L,ATarget.IncludePath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
-    Result:=Result+' -Fi'+L[i];
+    Args.Add('-Fi'+L[i]);
   FreeAndNil(L);
   // Custom Options
   If (Defaults.Options<>'') then
-    Result:=Result+' '+Defaults.Options;
+    Args.Add(Defaults.Options);
   If (APackage.Options<>'') then
-    Result:=Result+' '+APackage.Options;
+    Args.Add(APackage.Options);
   If (ATarget.Options<>'') then
-    Result:=Result+' '+ATarget.Options;
+    Args.Add(ATarget.Options);
   // Add Filename to compile
-  Result:=Result+' '+ExtractRelativePath(PD, ExpandFileName(ATarget.TargetSourceFileName));
+  Args.Add(ExtractRelativePath(PD, ExpandFileName(ATarget.TargetSourceFileName)));
+  // Convert to string
+  Result:='';
+  for i:=0 to Args.Count-1 do
+    Result:=Result+' '+maybequoted(Args[i]);
+  Delete(result,1,1);
+  Args.Free;
 end;
 
 
