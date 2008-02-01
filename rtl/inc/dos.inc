@@ -25,6 +25,15 @@ begin
       p[i]:=DirectorySeparator;
 end;
 
+procedure DoDirSeparators(p:Pchar);
+var
+  i : longint;
+begin
+  for i:=0 to strlen(p) do
+    if p[i] in AllowDirectorySeparators then
+      p[i]:=DirectorySeparator;
+end;
+
 {$IFNDEF HAS_DOSEXITCODE}
 threadvar
   LastDosExitCode: longint;
