@@ -866,16 +866,19 @@ end;
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
 
-Var
-  CommandLine : AnsiString;
-  i : Integer;
+var
+  CommandLine: AnsiString;
+  I: integer;
 
-Begin
-  Commandline:='';
-  For i:=0 to high(ComLine) Do
-   Commandline:=CommandLine+' '+Comline[i];
-  ExecuteProcess:=ExecuteProcess(Path,CommandLine);
-End;
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
 
 Procedure Sleep(Milliseconds : Cardinal);
 
@@ -1037,35 +1040,25 @@ begin
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;
-
 begin
   If Global then
-    Result:=DGetAppConfigDir(Global) // or use windows dir ??
+    Result:=GetSpecialDir(CSIDL_COMMON_APPDATA)
   else
+    Result:=GetSpecialDir(CSIDL_LOCAL_APPDATA);
+  If (Result<>'') then
     begin
-    Result:=GetSpecialDir(CSIDL_LOCAL_APPDATA)+ApplicationName;
-    If (Result='') then
-      Result:=DGetAppConfigDir(Global);
-    end;
+      if VendorName<>'' then
+        Result:=IncludeTrailingPathDelimiter(Result+VendorName);
+      Result:=Result+ApplicationName;
+    end
+  else
+    Result:=DGetAppConfigDir(Global);
 end;
 
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
-  if Global then
-    begin
-    Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
-    if SubDir then
-      Result:=IncludeTrailingPathDelimiter(Result+'Config');
-    Result:=Result+ApplicationName+ConfigExtension;
-    end
-  else
-    begin
-    Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(False));
-    if SubDir then
-      Result:=Result+'Config\';
-    Result:=Result+ApplicationName+ConfigExtension;
-    end;
+  result:=DGetAppConfigFile(Global,SubDir);
 end;
 
 Procedure InitSysConfigDir;

@@ -1009,32 +1009,28 @@ begin
   If Global then
     Result:=SysConfigDir
   else
-    Result:=XdgConfigHome + ApplicationName;
+    Result:=XdgConfigHome;
+  if VendorName<>'' then
+    Result:=IncludeTrailingPathDelimiter(Result+VendorName);
+  Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
 end;
 
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
-  if Global then
-    begin
-    Result:=IncludeTrailingPathDelimiter(SysConfigDir);
-    if SubDir then
-      Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
-    Result:=Result+ApplicationName+ConfigExtension;
-    end
+  If Global then
+    Result:=SysConfigDir
   else
+    Result:=XdgConfigHome;
+  if SubDir then
     begin
-    if SubDir then
-      begin
-      Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(False));
-      Result:=Result+ApplicationName+ConfigExtension;
-      end
-    else
-      begin
-      Result:=XdgConfigHome + ApplicationName + ConfigExtension;
-      end;
+      if VendorName<>'' then
+        Result:=IncludeTrailingPathDelimiter(Result+VendorName);
+      Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
     end;
+  Result:=Result+ApplicationName+ConfigExtension;
 end;
+
 
 {****************************************************************************
                               Initialization code

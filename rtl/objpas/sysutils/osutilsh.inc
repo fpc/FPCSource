@@ -37,6 +37,7 @@ function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar)
 Function GetAppConfigDir(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
+Function VendorName : String;
 Function ApplicationName : String;
 
 Const
@@ -44,11 +45,13 @@ Const
   SysConfigDir    : String = '';
 
 Type
+  TGetVendorNameEvent  = Function : String;
   TGetAppNameEvent  = Function : String;
   TGetTempDirEvent  = Function (Global : Boolean) : String;
   TGetTempFileEvent = Function (Const Dir,Prefix : String) : String;
 
 Var
+  OnGetVendorName      : TGetVendorNameEvent;
   OnGetApplicationName : TGetAppNameEvent;
   OnGetTempDir         : TGetTempDirEvent;
   OnGetTempFile        : TGetTempFileEvent;
