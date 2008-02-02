@@ -461,10 +461,11 @@ begin
         Length := 8 * (Context.Length + Context.BufCnt);
 
         // 2. Append padding bits
-        Pads := (120 - Context.BufCnt) mod 64;
-        if Pads > 0 then
-          MDUpdate(Context, PADDING_MD45, Pads) else
-          MDUpdate(Context, PADDING_MD45, 56);
+        if Context.BufCnt >= 56 then
+          Pads := 120 - Context.BufCnt
+        else
+          Pads := 56 - Context.BufCnt;
+        MDUpdate(Context, PADDING_MD45, Pads);
 
         // 3. Append length of the stream
         Invert(@Length, @Length, 8);
