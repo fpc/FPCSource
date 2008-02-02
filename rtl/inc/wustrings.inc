@@ -716,8 +716,10 @@ Var
   L : SizeInt;
 begin
   if (not assigned(p)) or (p[0]=#0) Then
-    { result is automatically set to '' }
+  begin
+    fpc_pchar_to_widestr := '';
     exit;
+  end;  
   l:=IndexChar(p^,-1,#0);
   widestringmanager.Ansi2WideMoveProc(P,fpc_PChar_To_WideStr,l);
 end;
@@ -730,8 +732,10 @@ begin
   if (zerobased) then
     begin
       if (arr[0]=#0) Then
-        { result is automatically set to '' }
+      begin
+        fpc_chararray_to_widestr := '';
         exit;
+      end;  
       i:=IndexChar(arr,high(arr)+1,#0);
       if i = -1 then
         i := high(arr)+1;

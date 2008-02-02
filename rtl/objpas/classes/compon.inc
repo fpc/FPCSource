@@ -233,6 +233,12 @@ begin
   Exclude(FComponentState,csLoading);
 end;
 
+Procedure TComponent.Loading;
+
+begin
+  Include(FComponentState,csLoading);
+end;
+
 
 Procedure TComponent.Notification(AComponent: TComponent;
   Operation: TOperation);

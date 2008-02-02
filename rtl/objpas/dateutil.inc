@@ -2006,22 +2006,23 @@ begin
   TryJulianDateToDateTime := ADateTime <> NaN;
 end;
 
-
 Function DateTimeToModifiedJulianDate(const AValue: TDateTime): Double;
 begin
+  Result:=0;
   NotYetImplemented('DateTimeToModifiedJulianDate');
 end;
 
 
 Function ModifiedJulianDateToDateTime(const AValue: Double): TDateTime;
 begin
+  Result:=0;
   NotYetImplemented('ModifiedJulianDateToDateTime');
 end;
 
 
 Function TryModifiedJulianDateToDateTime(const AValue: Double; var ADateTime: TDateTime): Boolean;
-
 begin
+  Result:=False;
   NotYetImplemented('TryModifiedJulianDateToDateTime');
 end;
 

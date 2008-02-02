@@ -141,7 +141,7 @@
 
      LP     = ^word;
      LPBOOL = ^WINBOOL;
-     LPBYTE = ^BYTE;
+     LPBYTE = pbyte;
      LPCCH  = PCHAR;
      LPCH   = PCHAR;
 
@@ -178,6 +178,7 @@
 {$endif}
 
      LRESULT = LONG_PTR;
+     PLRESULT= ^LRESULT;
 
      LPVOID  = pointer;
      LPCVOID = pointer;
@@ -190,7 +191,7 @@
      PWINBOOL = ^WINBOOL;
      PBOOLEAN = ^BYTE;
 
-     PBYTE = ^BYTE;
+     PBYTE = System.PByte;
 
      PCCH = PCHAR;
      PCH  = PCHAR;
@@ -200,7 +201,7 @@
      PCWCH  = Pwidechar;
      PCWSTR = Pwidechar;
 
-     PDWORD = ^DWORD;
+     PDWORD = System.PDWORD;
 
      PHANDLE = ^HANDLE;
      PHKEY = ^HKEY;
@@ -228,7 +229,7 @@
      PWCH   = Pwidechar;
      PWCHAR = Pwidechar;
 
-     PWORD   = ^word;
+     PWORD   = System.PWord;
      PUINT   = ^cardinal;
      PULONG  = ^cardinal;
      PUSHORT = ^word;

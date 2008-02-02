@@ -626,7 +626,7 @@ function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelec
 function GetThreadTimes(hThread: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetThreadTimes';
 function GetTimeZoneInformation(var lpTimeZoneInformation: TTimeZoneInformation): DWORD; external 'kernel32' name 'GetTimeZoneInformation';
 //function GetTitleBarInfo(hwnd: HWND; var pti: TTitleBarInfo): BOOL;external 'user32' name 'GetTitleBarInfo';
-//function GetTokenInformation(TokenHandle: THandle; TokenInformationClass: TTokenInformationClass; TokenInformation: Pointer; TokenInformationLength: DWORD; var ReturnLength: DWORD): BOOL; external 'advapi32' name 'GetTokenInformation';
+function GetTokenInformation(TokenHandle: THandle; TokenInformationClass: TTokenInformationClass; TokenInformation: Pointer; TokenInformationLength: DWORD; var ReturnLength: DWORD): BOOL; external 'advapi32' name 'GetTokenInformation';
 function GetUpdateRect(hWnd: HWND; var lpRect: TRect; bErase: BOOL): BOOL; external 'user32' name 'GetUpdateRect';
 function GetUserName(lpBuffer: PChar; var nSize: DWORD): BOOL;external 'advapi32' name 'GetUserNameA';
 function GetUserNameA(lpBuffer: LPCSTR; var nSize: DWORD): BOOL; external 'advapi32' name 'GetUserNameA';
@@ -1004,8 +1004,17 @@ function GetWindowThreadProcessId(hWnd:HWND;var lpdwProcessId:DWORD):DWORD; exte
 function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScrollLines: UINT;
   var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
 function CreateWaitableTimer(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
-function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA'; 
+function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA';
 function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
+
+// windows because of Delphi compat.
+
+function InterLockedIncrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDINCREMENT';
+function InterLockedDecrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDDECREMENT';
+function InterLockedExchange (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGE';
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGEADD';
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
+
 
 {$endif read_interface}
 

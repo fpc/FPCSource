@@ -406,11 +406,12 @@ Var
   L : SizeInt;
 begin
   if (not assigned(p)) or (p[0]=#0) Then
-    { result is automatically set to '' }
-    exit;
-  l:=IndexChar(p^,-1,#0);
+    L := 0
+  else
+    l:=IndexChar(p^,-1,#0);
   SetLength(fpc_PChar_To_AnsiStr,L);
-  Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L)
+  if L > 0 then
+    Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L)
 end;
 
 
@@ -422,16 +423,19 @@ begin
   if (zerobased) then
     begin
       if (arr[0]=#0) Then
-        { result is automatically set to '' }
-        exit;
-      i:=IndexChar(arr,high(arr)+1,#0);
-      if i = -1 then
-        i := high(arr)+1;
+        i := 0
+      else
+      begin  
+        i:=IndexChar(arr,high(arr)+1,#0);
+        if i = -1 then
+          i := high(arr)+1;
+      end;    
     end
   else
     i := high(arr)+1;
   SetLength(fpc_CharArray_To_AnsiStr,i);
-  Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
+  if i > 0 then
+    Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
 end;
 
 {$ifndef FPC_STRTOCHARARRAYPROC}
