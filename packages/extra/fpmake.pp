@@ -1,4 +1,5 @@
 {$mode objfpc}{$H+}
+{$DEFINE EXTRAPACKAGES}
 program fpmake;
 
 uses fpmkunit;
@@ -9,6 +10,7 @@ Var
 begin
   With Installer do 
     begin
+    { Base packages }
     {$i fpmake.inc}
     Run;
     end;
