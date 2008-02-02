@@ -1766,7 +1766,10 @@ begin
       begin
       // Remove record from index
       PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior := PBufRecLinkItem(CurrBuff)[IndNr].prior;
-      PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next;
+      if assigned(PBufRecLinkItem(CurrBuff)[IndNr].prior) then
+        PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next
+      else
+        FIndexes[i].FFirstRecBuf := PBufRecLinkItem(CurrBuff)[IndNr].next;
       // iterate to new position
       tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].prior;
       while assigned(tmpRecBuffer[IndNr].prior) and
@@ -1786,7 +1789,10 @@ begin
       begin
       // Remove record from index
       PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior := PBufRecLinkItem(CurrBuff)[IndNr].prior;
-      PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next;
+      if assigned(PBufRecLinkItem(CurrBuff)[IndNr].prior) then
+        PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next
+      else
+        FIndexes[i].FFirstRecBuf := PBufRecLinkItem(CurrBuff)[IndNr].next;
       // iterate to new position
       tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].next;
       while (tmpRecBuffer[IndNr].next<>FIndexes[i].FLastRecBuf) and
