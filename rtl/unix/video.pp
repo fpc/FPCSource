@@ -71,7 +71,8 @@ type  Tconsole_type=(ttyNetwork
       Tconversion=(cv_none,
                    cv_cp437_to_iso01,
                    cv_cp850_to_iso01,
-                   cv_linuxlowascii_to_vga);
+                   cv_linuxlowascii_to_vga,
+                   cv_cp437_to_UTF8);
 
       Ttermcode=(
         enter_alt_charset_mode,
@@ -174,8 +175,21 @@ const term_codes_ansi:Ttermcodes=
          #$1B#$5B#$3F#$37#$6C,                              {exit_am_mode}
          #$1B#$28#$42#$1B#$29#$30);                         {ena_acs}
 
+      term_codes_beos:Ttermcodes=
+        (nil,//#$0E,                                              {enter_alt_charset_mode}
+         nil,//#$0F,                                              {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$4A,		                    {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         #$1B'[?25h',// nil,//#$1B#$5B#$3F#$31#$32#$6C#$1B#$5B#$3F#$32#$35#$68,  {cursor_normal}
+         nil,//#$1B#$5B#$3F#$31#$32#$3B#$32#$35#$68,              {cursor visible, underline}
+         nil,//#$1B#$5B#$3F#$31#$32#$3B#$32#$35#$68,              {cursor visible, block}
+         #$1B'[?25l',//nil,//#$1B#$5B#$3F#$32#$35#$6C,                          {cursor_invisible}
+         nil,//#$1B#$5B#$3F#$31#$30#$34#$39#$68,                  {enter_ca_mode}
+         nil,//#$1B#$5B#$3F#$31#$30#$34#$39#$6C,                  {exit_ca_mode}
+         nil,//#$1B#$5B#$3F#$37#$6C,                              {exit_am_mode}
+         nil);//#$1B#$28#$42#$1B#$29#$30);                         {ena_acs}
 
-const    terminal_names:array[0..10] of string[7]=(
+const    terminal_names:array[0..11] of string[7]=(
                         'ansi',
                         'cons',
                         'eterm',
@@ -186,8 +200,9 @@ const    terminal_names:array[0..10] of string[7]=(
                         'screen',
                         'vt100',
                         'vt220',
-                        'xterm');
-         terminal_data:array[0..10] of Ptermcodes=(
+                        'xterm',
+                        'beterm');
+         terminal_data:array[0..11] of Ptermcodes=(
                         @term_codes_ansi,
                         @term_codes_freebsd,
                         @term_codes_xterm,
@@ -198,7 +213,8 @@ const    terminal_names:array[0..10] of string[7]=(
                         @term_codes_xterm,
                         @term_codes_vt100,
                         @term_codes_vt220,
-                        @term_codes_xterm);
+                        @term_codes_xterm,
+                        @term_codes_beos);
 
 const convert:Tconversion=cv_none;
 
@@ -284,7 +300,6 @@ begin
       convert_vga_to_acs:=word(ch);
   end;
 end;
-
 
 procedure SendEscapeSeqNdx(ndx:Ttermcode);
 
@@ -596,6 +611,32 @@ var
       end;
   end;
 
+  function transform_cp437_to_UTF8(const st:string): string;
+  var i:byte;
+      c : char;
+      converted : WideChar;
+      s : WideString;
+  begin
+    transform_cp437_to_UTF8 := '';
+    for i:=1 to length(st) do
+      begin
+        c:=st[i];
+        case c of
+          #0..#31:
+            converted:=convert_lowascii_to_UTF8[c];
+          #128..#255:
+            converted:=convert_cp437_to_UTF8[c];
+          else
+          begin
+            converted := #0;
+            converted := c;
+          end;
+        end;
+        s := s + converted;
+      end;
+    transform_cp437_to_UTF8 := Utf8Encode(s);  
+  end;
+  
   function transform(const hstr:string):string;
 
   begin
@@ -606,6 +647,8 @@ var
         transform:=transform_cp437_to_iso01(hstr);
       cv_cp850_to_iso01:
         transform:=transform_cp850_to_iso01(hstr);
+      cv_cp437_to_UTF8:
+      	transform:=transform_cp437_to_UTF8(hstr);
       else
         transform:=hstr;
     end;
@@ -935,6 +978,9 @@ begin
          437 in the hope that the actual font has similarity to codepage 437.}
         internal_codepage:=cp437;
   end;
+  {$ifdef BEOS}
+  convert := cv_cp437_to_UTF8;  
+  {$endif}
 end;
 
 

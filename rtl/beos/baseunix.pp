@@ -139,9 +139,16 @@ begin
   {$warning TODO BeOS fpFlock implementation}  
 end;
 
+function snooze(microseconds : bigtime_t) : status_t; cdecl; external 'root' name 'snooze';
+
 Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
 begin
-  {$warning TODO BeOS FpNanoSleep implementation}  
+  case snooze((req^.tv_nsec div 1000) + (req^.tv_sec * 1000 * 1000)) of
+    B_OK : FpNanoSleep := 0;
+    B_INTERRUPTED : FpNanoSleep := - 1;
+    else
+      FpNanoSleep := - 1;
+  end;
 end;
 
 end.
