@@ -12,7 +12,7 @@
       <MainUnit Value="0"/>
       <IconPath Value=".\"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="4"/>
+      <ActiveEditorIndexAtStart Value="7"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -37,9 +37,9 @@
         <Filename Value="fppkg.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fppkg"/>
-        <CursorPos X="49" Y="280"/>
-        <TopLine Value="270"/>
-        <EditorIndex Value="6"/>
+        <CursorPos X="1" Y="246"/>
+        <TopLine Value="228"/>
+        <EditorIndex Value="7"/>
         <UsageCount Value="86"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -77,7 +77,7 @@
         <UnitName Value="fprepos"/>
         <CursorPos X="1" Y="187"/>
         <TopLine Value="163"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <UsageCount Value="86"/>
         <Loaded Value="True"/>
       </Unit5>
@@ -93,9 +93,11 @@
         <Filename Value="pkghandler.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkghandler"/>
-        <CursorPos X="56" Y="170"/>
-        <TopLine Value="156"/>
+        <CursorPos X="46" Y="219"/>
+        <TopLine Value="200"/>
+        <EditorIndex Value="6"/>
         <UsageCount Value="86"/>
+        <Loaded Value="True"/>
       </Unit7>
       <Unit8>
         <Filename Value="pkgmkconv.pp"/>
@@ -117,8 +119,8 @@
         <Filename Value="pkgmessages.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkgmessages"/>
-        <CursorPos X="96" Y="73"/>
-        <TopLine Value="43"/>
+        <CursorPos X="23" Y="36"/>
+        <TopLine Value="8"/>
         <EditorIndex Value="2"/>
         <UsageCount Value="86"/>
         <Loaded Value="True"/>
@@ -166,8 +168,8 @@
       <Unit17>
         <Filename Value="pkgcommands.pp"/>
         <UnitName Value="pkgcommands"/>
-        <CursorPos X="39" Y="265"/>
-        <TopLine Value="242"/>
+        <CursorPos X="13" Y="110"/>
+        <TopLine Value="110"/>
         <EditorIndex Value="1"/>
         <UsageCount Value="41"/>
         <Loaded Value="True"/>
@@ -203,8 +205,8 @@
       <Unit22>
         <Filename Value="pkgrepos.pp"/>
         <UnitName Value="pkgrepos"/>
-        <CursorPos X="104" Y="109"/>
-        <TopLine Value="82"/>
+        <CursorPos X="17" Y="108"/>
+        <TopLine Value="108"/>
         <EditorIndex Value="4"/>
         <UsageCount Value="32"/>
         <Loaded Value="True"/>
@@ -265,8 +267,8 @@
       <Unit31>
         <Filename Value="pkgfpmake.pp"/>
         <UnitName Value="pkgfpmake"/>
-        <CursorPos X="35" Y="218"/>
-        <TopLine Value="188"/>
+        <CursorPos X="25" Y="236"/>
+        <TopLine Value="217"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -276,15 +278,15 @@
         <UnitName Value="pkglnet"/>
         <CursorPos X="45" Y="32"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
       </Unit32>
       <Unit33>
         <Filename Value="pkgoptions.pp"/>
         <UnitName Value="pkgoptions"/>
-        <CursorPos X="49" Y="230"/>
-        <TopLine Value="210"/>
+        <CursorPos X="24" Y="476"/>
+        <TopLine Value="439"/>
         <EditorIndex Value="3"/>
         <UsageCount Value="19"/>
         <Loaded Value="True"/>
@@ -292,8 +294,8 @@
       <Unit34>
         <Filename Value="pkgglobals.pp"/>
         <UnitName Value="pkgglobals"/>
-        <CursorPos X="1" Y="51"/>
-        <TopLine Value="19"/>
+        <CursorPos X="1" Y="20"/>
+        <TopLine Value="20"/>
         <EditorIndex Value="5"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
@@ -320,127 +322,75 @@
         <UsageCount Value="10"/>
       </Unit37>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="17" HistoryIndex="16">
       <Position1>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="706" Column="21" TopLine="688"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="128" Column="17" TopLine="111"/>
       </Position1>
       <Position2>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="751" Column="28" TopLine="733"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="47" Column="32" TopLine="28"/>
       </Position2>
       <Position3>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="768" Column="25" TopLine="748"/>
+        <Filename Value="pkgfpmake.pp"/>
+        <Caret Line="213" Column="18" TopLine="188"/>
       </Position3>
       <Position4>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="842" Column="25" TopLine="824"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="51" Column="54" TopLine="32"/>
       </Position4>
       <Position5>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="883" Column="17" TopLine="850"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="76" Column="25" TopLine="57"/>
       </Position5>
       <Position6>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="894" Column="32" TopLine="876"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="110" Column="56" TopLine="91"/>
       </Position6>
       <Position7>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="907" Column="59" TopLine="889"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="60" Column="31" TopLine="49"/>
       </Position7>
       <Position8>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="909" Column="18" TopLine="891"/>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="160" Column="16" TopLine="134"/>
       </Position8>
       <Position9>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="914" Column="23" TopLine="896"/>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="44" Column="36" TopLine="24"/>
       </Position9>
       <Position10>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="99" Column="1" TopLine="80"/>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="213" Column="46" TopLine="194"/>
       </Position10>
       <Position11>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="55" Column="1" TopLine="37"/>
+        <Filename Value="pkgfpmake.pp"/>
+        <Caret Line="236" Column="12" TopLine="199"/>
       </Position11>
       <Position12>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="69" Column="26" TopLine="55"/>
+        <Filename Value="pkgfpmake.pp"/>
+        <Caret Line="200" Column="20" TopLine="181"/>
       </Position12>
       <Position13>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="79" Column="21" TopLine="57"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="317" Column="24" TopLine="280"/>
       </Position13>
       <Position14>
-        <Filename Value="fprepos.pp"/>
-        <Caret Line="992" Column="39" TopLine="967"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="159" Column="52" TopLine="147"/>
       </Position14>
       <Position15>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="75" Column="21" TopLine="57"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="74" Column="30" TopLine="55"/>
       </Position15>
       <Position16>
         <Filename Value="fppkg.pp"/>
-        <Caret Line="280" Column="5" TopLine="253"/>
+        <Caret Line="78" Column="32" TopLine="59"/>
       </Position16>
       <Position17>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="91" Column="1" TopLine="57"/>
-      </Position17>
-      <Position18>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="16" Column="17" TopLine="1"/>
-      </Position18>
-      <Position19>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="266" Column="30" TopLine="252"/>
-      </Position19>
-      <Position20>
-        <Filename Value="pkgcommands.pp"/>
-        <Caret Line="223" Column="1" TopLine="205"/>
-      </Position20>
-      <Position21>
         <Filename Value="fppkg.pp"/>
-        <Caret Line="278" Column="26" TopLine="260"/>
-      </Position21>
-      <Position22>
-        <Filename Value="pkgmessages.pp"/>
-        <Caret Line="65" Column="29" TopLine="41"/>
-      </Position22>
-      <Position23>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="36" Column="22" TopLine="29"/>
-      </Position23>
-      <Position24>
-        <Filename Value="pkgmessages.pp"/>
-        <Caret Line="65" Column="87" TopLine="43"/>
-      </Position24>
-      <Position25>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="110" Column="29" TopLine="84"/>
-      </Position25>
-      <Position26>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="96" Column="23" TopLine="85"/>
-      </Position26>
-      <Position27>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="104" Column="32" TopLine="87"/>
-      </Position27>
-      <Position28>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="220" Column="1" TopLine="204"/>
-      </Position28>
-      <Position29>
-        <Filename Value="pkgrepos.pp"/>
-        <Caret Line="98" Column="19" TopLine="82"/>
-      </Position29>
-      <Position30>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="169" Column="51" TopLine="151"/>
-      </Position30>
+        <Caret Line="245" Column="9" TopLine="224"/>
+      </Position17>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

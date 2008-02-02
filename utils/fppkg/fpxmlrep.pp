@@ -21,9 +21,9 @@ uses
 
 Type
 
-  { TFPXMLRepositoryHandler }
+  { TFPXMLHandler }
 
-  TFPXMLRepositoryHandler = Class(TObject)
+  TFPXMLHandler = Class(TObject)
   private
     FIgnoreUnknownNodes: Boolean;
   Protected
@@ -32,6 +32,14 @@ Type
     Function FindNextElement(Start : TDomNode; NodeName : String) : TDomElement;
     Function NodeText(E : TDomElement) : String;
     procedure CheckNodeType(E : TDomElement; NodeName : String);
+  public
+    property IgnoreUnknownNodes : Boolean Read FIgnoreUnknownNodes Write FIgnoreUnknownNodes;
+  end;
+
+  { TFPXMLRepositoryHandler }
+
+  TFPXMLRepositoryHandler = Class(TFPXMLHandler)
+  private
     // The DO versions do not check the node type. They do the actual work
     // for the public XMLtoXYZ versions..
     Function  DoXMLToCPUs(N : TDomElement) : TCPUs; virtual;
@@ -55,11 +63,11 @@ Type
     Procedure SaveToXml(P : TFPPackage; Stream : TStream);
     Procedure SaveToXml(PS : TFPPackages; Stream : TStream);
     Procedure SaveToXml(R : TFPRepository; Stream : TStream);
-    Procedure SaveToXml(D : TFPDependency; FileName : String);
-    Procedure SaveToXml(DS : TFPDependencies; FileName : String);
-    Procedure SaveToXml(P : TFPPackage; FileName : String);
-    Procedure SaveToXml(PS : TFPPackages; FileName : String);
-    Procedure SaveToXml(R : TFPRepository; FileName : String);
+    Procedure SaveToXml(D : TFPDependency; const FileName: String);
+    Procedure SaveToXml(DS : TFPDependencies; const FileName: String);
+    Procedure SaveToXml(P : TFPPackage; const FileName: String);
+    Procedure SaveToXml(PS : TFPPackages; const FileName: String);
+    Procedure SaveToXml(R : TFPRepository; const FileName: String);
     // Loading
     Procedure XMLToVersion(E : TDomElement; V : TFPVersion);
     Procedure XMLToDependency(E : TDomElement; D : TFPDependency);
@@ -72,12 +80,24 @@ Type
     Procedure LoadFromXml(P : TFPPackage; Stream : TStream);
     Procedure LoadFromXml(PS : TFPPackages; Stream : TStream);
     Procedure LoadFromXml(R : TFPRepository; Stream : TStream);
-    Procedure LoadFromXml(D : TFPDependency; FileName : String);
-    Procedure LoadFromXml(DS : TFPDependencies; FileName : String);
-    Procedure LoadFromXml(P : TFPPackage; FileName : String);
-    Procedure LoadFromXml(PS : TFPPackages; FileName : String);
-    Procedure LoadFromXml(R : TFPRepository; FileName : String);
-    property IgnoreUnknownNodes : Boolean Read FIgnoreUnknownNodes Write FIgnoreUnknownNodes;
+    Procedure LoadFromXml(D : TFPDependency; const FileName: String);
+    Procedure LoadFromXml(DS : TFPDependencies; const FileName: String);
+    Procedure LoadFromXml(P : TFPPackage; const FileName: String);
+    Procedure LoadFromXml(PS : TFPPackages; const FileName: String);
+    Procedure LoadFromXml(R : TFPRepository; const FileName: String);
+  end;
+
+  { TFPXMLMirrorHandler }
+
+  TFPXMLMirrorHandler = Class(TFPXMLHandler)
+  private
+    procedure DoXMLToMirror(E: TDomElement; P: TFPMirror);
+    procedure DoXMLToMirrors(E: TDomElement; PS: TFPMirrors);
+  Public
+    // Loading
+    Procedure XMLToMirrors(E : TDomElement; PS: TFPMirrors);
+    Procedure LoadFromXml(PS : TFPMirrors; Stream : TStream);
+    Procedure LoadFromXml(PS : TFPMirrors; const FileName : String);
   end;
 
   EXMLPackage = Class(EPackage);
@@ -104,6 +124,13 @@ Const
   SNodeOS           = 'os';
   SNodeCPU          = 'cpu';
 
+  // Mirrors
+  SNodeURL          = 'url';
+  SNodeContact      = 'contact';
+  SNodeWeight       = 'weight';
+  SNodeMirror       = 'mirror';
+  SNodeMirrors      = 'mirrors';
+
   SAttrName         = 'name';
   SAttrPackageName  = 'packagename';
   SAttrMinVersion   = 'minversion';
@@ -116,8 +143,69 @@ ResourceString
   SErrInvalidXMLDocument = 'Wrong root tag in XML document. Expected "%s", got "%s".';
   SErrUnknownPackageNode = 'Unknown XML tag ("%s") encountered while reading package "%s".';
   SErrInvalidDependencyXML = 'Invalid XMl encountered when reading dependency.';
+  SErrUnknownMirrorNode = 'Unknown XML tag ("%s") encountered while reading mirror "%s".';
 
-{ TFPXMLRepositoryHandler }
+
+{****************************************************************************
+                             TFPXMLHandler
+****************************************************************************}
+
+function TFPXMLHandler.AddTextNode(Const NodeName,NodeContent : String; XML : TXMLDocument; Parent : TDomNode_WithChildren) : TDomElement;
+
+begin
+  Result:=XML.CreateElement(NodeName);
+  Try
+    Result.AppendChild(XML.CreateTextNode(NodeContent));
+    If Assigned(Parent) then
+      Parent.AppendChild(Result);
+  Except
+    Parent.RemoveChild(Result);
+    Result.Free;
+    Raise;
+  end;
+end;
+
+function TFPXMLHandler.GetNextElement(Start: TDomNode): TDomElement;
+
+begin
+  Result:=Nil;
+  While (Start<>Nil) and (Start.NodeType<>ELEMENT_NODE) do
+    Start:=Start.NextSibling;
+  If (Start<>Nil) then
+    Result:=Start as TDomElement;
+end;
+
+function TFPXMLHandler.FindNextElement(Start: TDomNode; NodeName: String): TDomElement;
+begin
+  Result:=GetNextElement(Start);
+  While (Result<>Nil) and (Result.NodeName<>NodeName) do
+    Result:=GetNextElement(Result);
+end;
+
+procedure TFPXMLHandler.CheckNodeType(E : TDomElement; NodeName : String);
+
+begin
+  If (E.NodeName<>NodeName) then
+    Raise EXMLPackage.CreateFmt(SErrInvalidXMLDocument,[NodeName,E.NodeName]);
+end;
+
+Function TFPXMLHandler.NodeText(E : TDomElement) : String;
+
+Var
+  N : TDomNode;
+
+begin
+  N:=E.FirstChild;
+  While (N<>Nil) and (N.NodeType<>TEXT_NODE) do
+    N:=N.NextSibling;
+  If (N<>Nil) then
+    Result:=N.NodeValue;
+end;
+
+
+{****************************************************************************
+                        TFPXMLRepositoryHandler
+****************************************************************************}
 
 function TFPXMLRepositoryHandler.VersionToXML(V : TFPVersion;
   XML: TXMLDocument; Parent : TDomNode_WithChildren): TDomElement;
@@ -184,58 +272,6 @@ begin
       Raise;
     end;
     end;
-end;
-
-function TFPXMLRepositoryHandler.AddTextNode(Const NodeName,NodeContent : String; XML : TXMLDocument; Parent : TDomNode_WithChildren) : TDomElement;
-
-begin
-  Result:=XML.CreateElement(NodeName);
-  Try
-    Result.AppendChild(XML.CreateTextNode(NodeContent));
-    If Assigned(Parent) then
-      Parent.AppendChild(Result);
-  Except
-    Parent.RemoveChild(Result);
-    Result.Free;
-    Raise;
-  end;
-end;
-
-function TFPXMLRepositoryHandler.GetNextElement(Start: TDomNode): TDomElement;
-
-begin
-  Result:=Nil;
-  While (Start<>Nil) and (Start.NodeType<>ELEMENT_NODE) do
-    Start:=Start.NextSibling;
-  If (Start<>Nil) then
-    Result:=Start as TDomElement;
-end;
-
-function TFPXMLRepositoryHandler.FindNextElement(Start: TDomNode; NodeName: String): TDomElement;
-begin
-  Result:=GetNextElement(Start);
-  While (Result<>Nil) and (Result.NodeName<>NodeName) do
-    Result:=GetNextElement(Result);
-end;
-
-procedure TFPXMLRepositoryHandler.CheckNodeType(E : TDomElement; NodeName : String);
-
-begin
-  If (E.NodeName<>NodeName) then
-    Raise EXMLPackage.CreateFmt(SErrInvalidXMLDocument,[NodeName,E.NodeName]);
-end;
-
-Function TFPXMLRepositoryHandler.NodeText(E : TDomElement) : String;
-
-Var
-  N : TDomNode;
-
-begin
-  N:=E.FirstChild;
-  While (N<>Nil) and (N.NodeType<>TEXT_NODE) do
-    N:=N.NextSibling;
-  If (N<>Nil) then
-    Result:=N.NodeValue;
 end;
 
 function TFPXMLRepositoryHandler.PackageToXML(P: TFPPackage;
@@ -420,7 +456,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.SaveToXml(D: TFPDependency; FileName: String);
+procedure TFPXMLRepositoryHandler.SaveToXml(D: TFPDependency; const FileName: String);
 
 Var
   F : TFileStream;
@@ -434,7 +470,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.SaveToXml(DS: TFPDependencies; FileName: String);
+procedure TFPXMLRepositoryHandler.SaveToXml(DS: TFPDependencies; const FileName: String);
 
 Var
   F : TFileStream;
@@ -448,7 +484,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.SaveToXml(P: TFPPackage; FileName: String);
+procedure TFPXMLRepositoryHandler.SaveToXml(P: TFPPackage; const FileName: String);
 
 Var
   F : TFileStream;
@@ -462,7 +498,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.SaveToXml(PS: TFPPackages; FileName: String);
+procedure TFPXMLRepositoryHandler.SaveToXml(PS: TFPPackages; const FileName: String);
 
 Var
   F : TFileStream;
@@ -476,7 +512,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.SaveToXml(R: TFPRepository; FileName: String);
+procedure TFPXMLRepositoryHandler.SaveToXml(R: TFPRepository; const FileName: String);
 
 Var
   F : TFileStream;
@@ -763,7 +799,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.LoadFromXml(D: TFPDependency; FileName: String);
+procedure TFPXMLRepositoryHandler.LoadFromXml(D: TFPDependency; const FileName: String);
 
 Var
   F : TFileStream;
@@ -777,7 +813,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.LoadFromXml(DS: TFPDependencies; FileName: String);
+procedure TFPXMLRepositoryHandler.LoadFromXml(DS: TFPDependencies; const FileName: String);
 
 Var
   F : TFileStream;
@@ -791,7 +827,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.LoadFromXml(P: TFPPackage; FileName: String);
+procedure TFPXMLRepositoryHandler.LoadFromXml(P: TFPPackage; const FileName: String);
 
 Var
   F : TFileStream;
@@ -805,7 +841,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.LoadFromXml(PS: TFPPackages; FileName: String);
+procedure TFPXMLRepositoryHandler.LoadFromXml(PS: TFPPackages; const FileName: String);
 
 Var
   F : TFileStream;
@@ -819,7 +855,7 @@ begin
   end;
 end;
 
-procedure TFPXMLRepositoryHandler.LoadFromXml(R: TFPRepository; FileName: String);
+procedure TFPXMLRepositoryHandler.LoadFromXml(R: TFPRepository; const FileName: String);
 
 Var
   F : TFileStream;
@@ -832,6 +868,86 @@ begin
     F.Free;
   end;
 end;
+
+
+{****************************************************************************
+                           TFPXMLMirrorHandler
+****************************************************************************}
+
+procedure TFPXMLMirrorHandler.DoXMLToMirror(E: TDomElement; P: TFPMirror);
+Var
+  N : TDomElement;
+begin
+  P.Name:=E[sAttrName];
+  N:=GetNextElement(E.FirstChild);
+  While (N<>Nil) do
+    begin
+      if (N.NodeName=sNodeURL) then
+        P.URL:=NodeText(N)
+      else if (N.NodeName=sNodeContact) then
+        P.Contact:=NodeText(N)
+      else if (N.NodeName=sNodeWeight) then
+        P.Weight:=StrToInt(NodeText(N))
+      else if Not IgnoreUnknownNodes then
+        Raise EXMLPackage.CreateFmt(SErrUnknownMirrorNode,[N.NodeName,P.Name]);
+      N:=GetNextElement(N.NextSibling);
+    end;
+end;
+
+
+procedure TFPXMLMirrorHandler.DoXMLToMirrors(E: TDomElement; PS: TFPMirrors);
+Var
+  PN : TDomElement;
+  P : TFPMirror;
+begin
+  PN:=FindNextElement(E.FirstChild,SNodeMirror);
+  While (PN<>Nil) do
+    begin
+    P:=PS.AddMirror('');
+    try
+      DoXMLToMirror(PN,P);
+    except
+      P.Free;
+      Raise;
+    end;
+    PN:=FindNextElement(PN.NextSibling,SNodeMirror);
+    end;
+end;
+
+
+procedure TFPXMLMirrorHandler.XMLToMirrors(E: TDomElement; PS: TFPMirrors);
+begin
+  CheckNodeType(E,SNodeMirrors);
+  DoXMLToMirrors(E,PS);
+end;
+
+
+procedure TFPXMLMirrorHandler.LoadFromXml(PS: TFPMirrors; Stream: TStream);
+Var
+  XML : TXMLDocument;
+begin
+  XML:=TXMLDocument.Create;
+  try
+    xmlread.ReadXMLFile(XML,Stream);
+    XmlToMirrors(XML.DocumentElement,PS);
+  finally
+    XML.Free;
+  end;
+end;
+
+
+procedure TFPXMLMirrorHandler.LoadFromXml(PS: TFPMirrors; const FileName: String);
+Var
+  F : TFileStream;
+begin
+  F:=TFileStream.Create(FileName,fmOpenRead);
+  try
+    LoadFromXMl(PS,F);
+  finally
+    F.Free;
+  end;
+end;
+
 
 end.
 

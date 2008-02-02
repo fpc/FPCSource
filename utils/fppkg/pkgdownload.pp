@@ -164,7 +164,7 @@ begin
   DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
   with DownloaderClass.Create(nil) do
     try
-      Log(vCommands,SLogDownloading,[PackageRemoteArchive,PackageLocalArchive]);
+      Log(vlCommands,SLogDownloading,[PackageRemoteArchive,PackageLocalArchive]);
       Download(PackageRemoteArchive,PackageLocalArchive);
     finally
       Free;

@@ -11,7 +11,7 @@ units=htmldefs sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xm
 rsts=sax xpath htmlwriter xmlconf
 
 [require]
-packages=netdb fcl-base
+packages=fcl-base
 
 [compiler]
 options=-S2h

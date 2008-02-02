@@ -111,6 +111,7 @@ Type
     FDependencies : TFPDependencies;
     FOSes : TOSES;
     FCPUs : TCPUS;
+    FIsLocalPackage : Boolean;
     function GetDependencies: TFPDependencies;
     function GetHasDependencies: Boolean;
     function GetFileName: String;
@@ -139,6 +140,8 @@ Type
     Property Email : String Read FEmail Write FEmail;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
+    // Manual package from commandline not in official repository
+    Property IsLocalPackage : Boolean Read FIsLocalPackage Write FIsLocalPackage;
   end;
 
   { TFPPackages }
@@ -206,7 +209,48 @@ Type
     Property PackageCollection : TFPPackages Read FPackages;
   end;
 
+
+  { TFPMirror }
+
+  TFPMirror = Class(TStreamCollectionItem)
+  private
+    FContact: String;
+    FName: String;
+    FURL: String;
+    FWeight: Integer;
+  Public
+    Constructor Create(ACollection : TCollection); override;
+    Destructor Destroy; override;
+    Procedure LoadFromStream(Stream : TStream; Streamversion : Integer); override;
+    Procedure SaveToStream(Stream : TStream); override;
+    Procedure Assign(Source : TPersistent); override;
+  Published
+    Property Name : String Read FName Write FName;
+    Property URL : String Read FURL Write FURL;
+    Property Contact : String Read FContact Write FContact;
+    Property Weight : Integer Read FWeight Write FWeight;
+  end;
+
+  { TFPMirrors }
+
+  TFPMirrors = Class(TStreamCollection)
+  private
+    FVersion : Integer;
+    function GetMirror(Index : Integer): TFPMirror;
+    procedure SetMirror(Index : Integer; const AValue: TFPMirror);
+  Protected
+    Function CurrentStreamVersion : Integer; override;
+  Public
+    Function IndexOfMirror(const AMirrorName : String) : Integer;
+    Function FindMirror(const AMirrorName : String) : TFPMirror;
+    Function MirrorByName(const AMirrorName : String) : TFPMirror;
+    Function AddMirror(const AMirrorName : string) : TFPMirror;
+    Property StreamVersion : Integer Read FVersion Write FVersion;
+    Property Mirrors [Index : Integer] : TFPMirror Read GetMirror Write SetMirror; default;
+  end;
+
   EPackage = Class(Exception);
+  EMirror = Class(Exception);
 
 Const
   // Max level of dependency searching before we decide it's a circular dependency.
@@ -241,6 +285,7 @@ ResourceString
   SErrNoFileName           = 'No filename for repository specified.';
   SErrDuplicatePackageName = 'Duplicate package name : "%s"';
   SErrMaxLevelExceeded     = 'Maximum number of dependency levels exceeded (%d) at package "%s".';
+  SErrMirrorNotFound       = 'Mirror "%s" not found.';
 
 
 Function OSToString(OS: TOS) : String;
@@ -1016,6 +1061,107 @@ begin
   Result.PackageName:=APackageName;
   If (AMinVersion<>'') then
     Result.MinVersion.AsString:=AMinVersion;
+end;
+
+{ TFPMirror }
+
+constructor TFPMirror.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  Weight:=100;
+end;
+
+
+destructor TFPMirror.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TFPMirror.LoadFromStream(Stream: TStream; Streamversion : Integer);
+begin
+  Name:=ReadString(Stream);
+  URL:=ReadString(Stream);
+  Contact:=ReadString(Stream);
+  Weight:=ReadInteger(Stream);
+end;
+
+procedure TFPMirror.SaveToStream(Stream: TStream);
+begin
+  WriteString(Stream,Name);
+  WriteString(Stream,URL);
+  WriteString(Stream,Contact);
+  WriteInteger(Stream,Weight);
+end;
+
+procedure TFPMirror.Assign(Source: TPersistent);
+Var
+  P : TFPMirror;
+begin
+  if Source is TFPMirror then
+    begin
+    P:=Source as TFPMirror;
+    // This creates trouble if P has the same owning collection !!
+    If P.Collection<>Collection then
+      Name:=P.Name;
+    URL:=P.URL;
+    Contact:=P.Contact;
+    Weight:=P.Weight;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+{ TFPMirrors }
+
+function TFPMirrors.GetMirror(Index : Integer): TFPMirror;
+begin
+  Result:=TFPMirror(Items[Index])
+end;
+
+procedure TFPMirrors.SetMirror(Index : Integer; const AValue: TFPMirror);
+begin
+   Items[Index]:=AValue;
+end;
+
+function TFPMirrors.CurrentStreamVersion: Integer;
+begin
+  Result:=FVersion;
+end;
+
+function TFPMirrors.IndexOfMirror(const AMirrorName: String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and (CompareText(GetMirror(Result).Name,AMirrorName)<>0) do
+    Dec(Result);
+end;
+
+function TFPMirrors.FindMirror(const AMirrorName: String): TFPMirror;
+Var
+  I : Integer;
+begin
+  I:=IndexOfMirror(AMirrorName);
+  If (I=-1) then
+    Result:=Nil
+  else
+    Result:=GetMirror(I);
+end;
+
+function TFPMirrors.MirrorByName(const AMirrorName: String): TFPMirror;
+begin
+  Result:=FindMirror(AMirrorName);
+  If Result=Nil then
+    Raise EMirror.CreateFmt(SErrMirrorNotFound,[AMirrorName]);
+end;
+
+function TFPMirrors.AddMirror(const AMirrorName: string): TFPMirror;
+begin
+  Result:=Add as TFPMirror;
+  Try
+    Result.Name:=AMirrorName;
+  Except
+    Result.Free;
+    Raise;
+  end;
 end;
 
 end.

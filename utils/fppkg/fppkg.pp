@@ -2,6 +2,10 @@ program fppkg;
 
 {$mode objfpc}{$H+}
 
+{$if defined(VER2_2) and (FPC_PATCH<1)}
+  {$fatal At least FPC 2.2.1 is required to compile fppkg}
+{$endif}
+
 uses
   // General
 {$ifdef unix}
@@ -47,60 +51,56 @@ Type
 { TMakeTool }
 
 function TMakeTool.GetConfigFileName: String;
-var
-  G : Boolean;
 begin
   if HasOption('C','config-file') then
     Result:=GetOptionValue('C','config-file')
   else
-    begin
-{$ifdef unix}
-      g:=(fpgetuid=0);
-{$else}
-      g:=true;
-{$endif}
-      Result:=GetAppConfigFile(G,False);
-    end
+    Result:=GetAppConfigFile(IsSuperUser,False);
 end;
 
 
 procedure TMakeTool.LoadGlobalDefaults;
 var
-  SL : TStringList;
   i : integer;
   cfgfile : String;
   GeneratedConfig : boolean;
 begin
+  // Default verbosity
+  LogLevels:=DefaultLogLevels;
+  for i:=1 to ParamCount do
+    if (ParamStr(i)='-d') or (ParamStr(i)='--debug') then
+      begin
+        LogLevels:=AllLogLevels+[vlDebug];
+        break;
+      end;
+  // Load file or create new default configuration
   cfgfile:=GetConfigFileName;
   GeneratedConfig:=false;
-  // Load file or create new default configuration
   if FileExists(cfgfile) then
-    GlobalOptions.LoadGlobalFromFile(cfgfile)
+    begin
+      GlobalOptions.LoadGlobalFromFile(cfgfile);
+      if GlobalOptions.Dirty then
+        GlobalOptions.SaveGlobalToFile(cfgfile);
+    end
   else
     begin
       ForceDirectories(ExtractFilePath(cfgfile));
       GlobalOptions.SaveGlobalToFile(cfgfile);
       GeneratedConfig:=true;
     end;
-  // Load default verbosity from config
-  SL:=TStringList.Create;
-  SL.CommaText:=GlobalOptions.DefaultVerbosity;
-  for i:=0 to SL.Count-1 do
-    Include(Verbosity,StringToVerbosity(SL[i]));
-  SL.Free;
   GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
-    Log(vDebug,SLogGeneratingGlobalConfig,[cfgfile])
+    Log(vlDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
-    Log(vDebug,SLogLoadingGlobalConfig,[cfgfile])
+    Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile])
 end;
 
 
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
   ForceDirectories(GlobalOptions.BuildDir);
-  ForceDirectories(GlobalOptions.PackagesDir);
+  ForceDirectories(GlobalOptions.ArchivesDir);
   ForceDirectories(GlobalOptions.CompilerConfigDir);
 end;
 
@@ -113,7 +113,7 @@ begin
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.CompilerConfig;
   if FileExists(S) then
     begin
-      Log(vDebug,SLogLoadingCompilerConfig,[S]);
+      Log(vlDebug,SLogLoadingCompilerConfig,[S]);
       CompilerOptions.LoadCompilerFromFile(S)
     end
   else
@@ -121,9 +121,11 @@ begin
       // Generate a default configuration if it doesn't exists
       if GlobalOptions.CompilerConfig='default' then
         begin
-          Log(vDebug,SLogGeneratingCompilerConfig,[S]);
+          Log(vlDebug,SLogGeneratingCompilerConfig,[S]);
           CompilerOptions.InitCompilerDefaults;
           CompilerOptions.SaveCompilerToFile(S);
+          if CompilerOptions.Dirty then
+            CompilerOptions.SaveCompilerToFile(S);
         end
       else
         Error(SErrMissingCompilerConfig,[S]);
@@ -132,8 +134,10 @@ begin
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
   if FileExists(S) then
     begin
-      Log(vDebug,SLogLoadingFPMakeCompilerConfig,[S]);
-      FPMakeCompilerOptions.LoadCompilerFromFile(S)
+      Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);
+      FPMakeCompilerOptions.LoadCompilerFromFile(S);
+      if FPMakeCompilerOptions.Dirty then
+        FPMakeCompilerOptions.SaveCompilerToFile(S);
     end
   else
     Error(SErrMissingCompilerConfig,[S]);
@@ -146,7 +150,8 @@ begin
   Writeln('Options:');
   Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
-  Writeln('  -v --verbose       Set verbosity');
+  Writeln('  -v --verbose       Show more information');
+  Writeln('  -d --debug         Show debugging information');
   Writeln('  -g --global        Force installation to global (system-wide) directory');
   Writeln('  -f --force         Force installation also if the package is already installed');
   Writeln('Actions:');
@@ -230,7 +235,9 @@ begin
       if CheckOption(I,'c','config') then
         GlobalOptions.CompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
-        Include(Verbosity,StringToVerbosity(OptionArg(I)))
+        LogLevels:=AllLogLevels
+      else if CheckOption(I,'d','debug') then
+        LogLevels:=AllLogLevels+[vlDebug]
       else if CheckOption(I,'g','global') then
         GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'h','help') then
@@ -272,8 +279,18 @@ begin
     LoadCompilerDefaults;
 
     // Load local repository, update first if this is a new installation
+    // errors will only be reported as warning. The user can be bootstrapping
+    // and do an update later
     if not FileExists(GlobalOptions.LocalPackagesFile) then
-      pkghandler.ExecuteAction(nil,'update');
+      begin
+        try
+          pkghandler.ExecuteAction(nil,'update');
+        except
+          on E: Exception do
+            Log(vlWarning,E.Message);
+        end;
+      end;
+    LoadLocalMirrors;
     LoadLocalRepository;
     LoadFPMakeLocalStatus;
     // We only need to reload the status when we use a different
@@ -283,7 +300,7 @@ begin
 
     if ParaPackages.Count=0 then
       begin
-        Log(vDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
+        Log(vlDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
         res:=pkghandler.ExecuteAction(nil,ParaAction);
       end
     else
@@ -291,9 +308,19 @@ begin
         // Process packages
         for i:=0 to ParaPackages.Count-1 do
           begin
-            ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
-            Log(vDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
+            if FileExists(ParaPackages[i]) then
+              begin
+                ActionPackage:=TFPPackage.Create(nil);
+                ActionPackage.Name:=ChangeFileExt(ExtractFileName(ParaPackages[i]),'');
+                ActionPackage.FileName:=ExpandFileName(ParaPackages[i]);
+                ActionPackage.IsLocalPackage:=true;
+              end
+            else
+              ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
+            Log(vlDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
             res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
+            if ActionPackage.IsLocalPackage then;
+              FreeAndNil(ActionPackage);
             if not res then
               break;
           end;

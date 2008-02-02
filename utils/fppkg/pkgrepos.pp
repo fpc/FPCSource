@@ -8,6 +8,9 @@ uses
   Classes,SysUtils,
   fprepos;
 
+function GetRemoteRepositoryURL(const AFileName:string):string;
+
+procedure LoadLocalMirrors;
 procedure LoadLocalRepository;
 procedure LoadLocalStatus;
 procedure SaveLocalStatus;
@@ -19,6 +22,7 @@ procedure RebuildRemoteRepository;
 procedure SaveRemoteRepository;
 
 var
+  CurrentMirrors    : TFPMirrors;
   CurrentRepository : TFPRepository;
 
 
@@ -30,6 +34,101 @@ uses
   pkgglobals,
   pkgoptions,
   pkgmessages;
+
+{*****************************************************************************
+                           Mirror Selection
+*****************************************************************************}
+
+var
+  CurrentRemoteRepositoryURL : String;
+
+procedure LoadLocalMirrors;
+var
+  S : String;
+  X : TFPXMLMirrorHandler;
+begin
+  if assigned(CurrentMirrors) then
+    CurrentMirrors.Free;
+  CurrentMirrors:=TFPMirrors.Create(TFPMirror);
+
+  // Repository
+  S:=GlobalOptions.LocalMirrorsFile;
+  Log(vlDebug,SLogLoadingMirrorsFile,[S]);
+  if not FileExists(S) then
+    exit;
+  try
+    X:=TFPXMLMirrorHandler.Create;
+    With X do
+      try
+        LoadFromXml(CurrentMirrors,S);
+      finally
+        Free;
+      end;
+  except
+    on E : Exception do
+      begin
+        Log(vlError,E.Message);
+        Error(SErrCorruptMirrorsFile,[S]);
+      end;
+  end;
+end;
+
+
+function SelectRemoteMirror:string;
+var
+  i,j : Integer;
+  Bucket,
+  BucketCnt : Integer;
+  M : TFPMirror;
+begin
+  Result:='';
+  M:=nil;
+  if assigned(CurrentMirrors) then
+   begin
+     // Create array for selection
+     BucketCnt:=0;
+     for i:=0 to CurrentMirrors.Count-1 do
+       inc(BucketCnt,CurrentMirrors[i].Weight);
+     // Select random entry
+     Bucket:=Random(BucketCnt);
+     M:=nil;
+     for i:=0 to CurrentMirrors.Count-1 do
+       begin
+         for j:=0 to CurrentMirrors[i].Weight-1 do
+           begin
+             if Bucket=0 then
+               begin
+                 M:=CurrentMirrors[i];
+                 break;
+               end;
+             Dec(Bucket);
+           end;
+         if assigned(M) then
+           break;
+       end;
+    end;
+  if assigned(M) then
+    begin
+      Log(vlInfo,SLogSelectedMirror,[M.Name]);
+      Result:=M.URL;
+    end
+  else
+    Error(SErrFailedToSelectMirror);
+end;
+
+
+function GetRemoteRepositoryURL(const AFileName:string):string;
+begin
+  if CurrentRemoteRepositoryURL='' then
+    begin
+      if GlobalOptions.RemoteRepository='auto' then
+        CurrentRemoteRepositoryURL:=SelectRemoteMirror
+      else
+        CurrentRemoteRepositoryURL:=GlobalOptions.RemoteRepository;
+    end;
+  Result:=CurrentRemoteRepositoryURL+AFileName;
+end;
+
 
 {*****************************************************************************
                            Local Repository
@@ -45,7 +144,7 @@ begin
   CurrentRepository:=TFPRepository.Create(Nil);
   // Repository
   S:=GlobalOptions.LocalPackagesFile;
-  Log(vDebug,SLogLoadingPackagesFile,[S]);
+  Log(vlDebug,SLogLoadingPackagesFile,[S]);
   if not FileExists(S) then
     exit;
   try
@@ -59,7 +158,7 @@ begin
   except
     on E : Exception do
       begin
-        Log(vError,E.Message);
+        Log(vlError,E.Message);
         Error(SErrCorruptPackagesFile,[S]);
       end;
   end;
@@ -71,7 +170,7 @@ var
   S : String;
 begin
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
-  Log(vDebug,SLogLoadingStatusFile,[S]);
+  Log(vlDebug,SLogLoadingStatusFile,[S]);
   CurrentRepository.ClearStatus;
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
@@ -83,7 +182,7 @@ var
   S : String;
 begin
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
-  Log(vDebug,SLogSavingStatusFile,[S]);
+  Log(vlDebug,SLogSavingStatusFile,[S]);
   CurrentRepository.SaveStatusToFile(S);
 end;
 
@@ -96,7 +195,7 @@ var
   ReqVer : TFPVersion;
 begin
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.FPMakeCompilerConfig);
-  Log(vDebug,SLogLoadingStatusFile,[S]);
+  Log(vlDebug,SLogLoadingStatusFile,[S]);
   CurrentRepository.ClearStatus;
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
@@ -104,19 +203,19 @@ begin
   for i:=1 to FPMKUnitDepCount do
     begin
       FPMKUnitDepAvailable[i]:=false;
-      P:=CurrentRepository.PackageByName(FPMKUnitDeps[i].package);
+      P:=CurrentRepository.FindPackage(FPMKUnitDeps[i].package);
       if P<>nil then
         begin
           ReqVer:=TFPVersion.Create;
           ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
-          Log(vDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.InstalledVersion.AsString,P.Version.AsString]);
+          Log(vlDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.InstalledVersion.AsString,P.Version.AsString]);
           if ReqVer.CompareVersion(P.InstalledVersion)<=0 then
             FPMKUnitDepAvailable[i]:=true
           else
-            Log(vDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+            Log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
         end
       else
-        Log(vDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+        Log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
     end;
 end;
 
@@ -168,7 +267,7 @@ begin
   CurrentRepository:=TFPRepository.Create(Nil);
   try
     ManifestSL:=TStringList.Create;
-    ManifestSL.Add(DefaultManifestFile);
+    ManifestSL.Add(ManifestFileName);
     { Find all archives }
     ArchiveSL:=TStringList.Create;
     SearchFiles(ArchiveSL,'*.zip');
@@ -181,23 +280,23 @@ begin
         { Unzip manifest.xml }
         With TUnZipper.Create do
           try
-            Log(vCommands,SLogUnzippping,[ArchiveSL[i]]);
+            Log(vlCommands,SLogUnzippping,[ArchiveSL[i]]);
             OutputPath:='.';
             UnZipFiles(ArchiveSL[i],ManifestSL);
           Finally
             Free;
           end;
         { Load manifest.xml }
-        if FileExists(DefaultManifestFile) then
+        if FileExists(ManifestFileName) then
           begin
             X:=TFPXMLRepositoryHandler.Create;
             With X do
               try
-                LoadFromXml(CurrentRepository.PackageCollection,DefaultManifestFile);
+                LoadFromXml(CurrentRepository.PackageCollection,ManifestFileName);
               finally
                 Free;
               end;
-            DeleteFile(DefaultManifestFile);
+            DeleteFile(ManifestFileName);
           end
         else
           Writeln('No manifest found in archive ',ArchiveSL[i]);

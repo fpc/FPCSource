@@ -6,6 +6,7 @@ interface
 
 uses
   SysUtils, Classes,
+  uriparser,
   lnet, lftp, lhttp, pkgdownload,pkgoptions, fprepos;
 
 Type
@@ -18,6 +19,7 @@ Type
     FFTP: TLFTPClient;
     FHTTP: TLHTTPClient;
     FOutStream: TStream;
+    URI: TURI;
    protected
     // callbacks
     function OnHttpClientInput(ASocket: TLHTTPClientSocket; ABuffer: pchar;
@@ -39,7 +41,6 @@ Type
 implementation
 
 uses
-  uriparser,
   pkgglobals,
   pkgmessages;
 
@@ -95,13 +96,11 @@ procedure TLNetDownloader.OnFTPFailure(aSocket: TLSocket;
   const aStatus: TLFTPStatus);
 begin
   FFTP.Disconnect;
-  Error('Retrieve failed');
+  Error(SErrDownloadFailed,['FTP',EncodeURI(URI),'']);
   FQuit:=True;
 end;
 
 procedure TLNetDownloader.FTPDownload(const URL: String; Dest: TStream);
-var
-  URI: TURI;
 begin
   FOutStream:=Dest;
   Try
@@ -128,8 +127,6 @@ begin
 end;
 
 procedure TLNetDownloader.HTTPDownload(const URL: String; Dest: TStream);
-var
-  URI: TURI;
 begin
   FOutStream:=Dest;
   Try
@@ -148,6 +145,8 @@ begin
     FQuit:=False;
     while not FQuit do
       FHTTP.CallAction;
+    if FHTTP.Response.Status<>HSOK then
+      Error(SErrDownloadFailed,['HTTP',EncodeURI(URI),FHTTP.Response.Reason]);
   Finally
     FOutStream:=nil; // to be sure
   end;

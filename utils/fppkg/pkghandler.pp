@@ -40,8 +40,8 @@ type
   private
     FCurrentPackage : TFPPackage;
   Protected
-    Procedure Log(Level: TVerbosity;Msg : String);
-    Procedure Log(Level: TVerbosity;Fmt : String; const Args : array of const);
+    Procedure Log(Level: TLogLevel;Msg : String);
+    Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
     Procedure Error(Msg : String);
     Procedure Error(Fmt : String; const Args : array of const);
     procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
@@ -73,6 +73,7 @@ uses
   typinfo,
   contnrs,
   uriparser,
+  pkgrepos,
   pkgmessages;
 
 var
@@ -113,7 +114,7 @@ begin
     FullActionName:=AAction;
   if ExecutedActions.Find(FullActionName)<>nil then
     begin
-      Log(vDebug,'Already executed or executing action '+FullActionName);
+      Log(vlDebug,'Already executed or executing action '+FullActionName);
       result:=true;
       exit;
     end;
@@ -130,9 +131,9 @@ begin
           else
             logargs:=logargs+','+Args[i];
         end;
-      Log(vDebug,SLogRunAction+' start',[AAction,logargs]);
+      Log(vlDebug,SLogRunAction+' start',[AAction,logargs]);
       result:=Execute(Args);
-      Log(vDebug,SLogRunAction+' end',[AAction,logargs]);
+      Log(vlDebug,SLogRunAction+' end',[AAction,logargs]);
     finally
       Free;
     end;
@@ -149,14 +150,14 @@ end;
 
 Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
 begin
-  Log(vCommands,SLogExecute,[Prog,Args]);
+  Log(vlCommands,SLogExecute,[Prog,Args]);
   Result:=SysUtils.ExecuteProcess(Prog,Args);
 end;
 
 
 Procedure TPackageHandler.SetCurrentDir(Const ADir:String);
 begin
-  Log(vCommands,SLogChangeDir,[ADir]);
+  Log(vlCommands,SLogChangeDir,[ADir]);
   if not SysUtils.SetCurrentDir(ADir) then
     Error(SErrChangeDirFailed,[ADir]);
 end;
@@ -174,23 +175,28 @@ function TPackageHandler.PackageRemoteArchive: String;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
+  if CurrentPackage.IsLocalPackage then
+    Error(SErrPackageIsLocal);
   if CurrentPackage.ExternalURL<>'' then
     Result:=CurrentPackage.ExternalURL
   else
-    Result:=GlobalOptions.RemoteRepository+CurrentPackage.FileName;
+    Result:=GetRemoteRepositoryURL(CurrentPackage.FileName);
 end;
 
 function TPackageHandler.PackageLocalArchive: String;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
-  Result:=GlobalOptions.PackagesDir+CurrentPackage.FileName;
+  if CurrentPackage.IsLocalPackage then
+    Result:=CurrentPackage.FileName
+  else
+    Result:=GlobalOptions.ArchivesDir+CurrentPackage.FileName;
 end;
 
 
 function TPackageHandler.PackageManifestFile: String;
 begin
-  Result:=DefaultManifestFile;
+  Result:=ManifestFileName;
 end;
 
 
@@ -204,13 +210,13 @@ begin
 end;
 
 
-Procedure TPackageHandler.Log(Level:TVerbosity; Msg:String);
+Procedure TPackageHandler.Log(Level:TLogLevel; Msg:String);
 begin
   pkgglobals.Log(Level,PackageLogPrefix+Msg);
 end;
 
 
-Procedure TPackageHandler.Log(Level:TVerbosity; Fmt:String; const Args:array of const);
+Procedure TPackageHandler.Log(Level:TLogLevel; Fmt:String; const Args:array of const);
 begin
   pkgglobals.Log(Level,PackageLogPrefix+Fmt,Args);
 end;

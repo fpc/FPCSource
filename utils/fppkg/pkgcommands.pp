@@ -107,7 +107,7 @@ type
 function TCommandAddConfig.Execute(const Args:TActionArgs):boolean;
 begin
 {
-  Log(vInfo,SLogGeneratingCompilerConfig,[S]);
+  Log(vlInfo,SLogGeneratingCompilerConfig,[S]);
   Options.InitCompilerDefaults(Args[2]);
   Options.SaveCompilerToFile(S);
 }
@@ -116,9 +116,17 @@ end;
 
 
 function TCommandUpdate.Execute(const Args:TActionArgs):boolean;
+var
+  PackagesURL :  String;
 begin
-  Log(vCommands,SLogDownloading,[GlobalOptions.RemotePackagesFile,GlobalOptions.LocalPackagesFile]);
-  DownloadFile(GlobalOptions.RemotePackagesFile,GlobalOptions.LocalPackagesFile);
+  // Download mirrors.xml
+  Log(vlCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
+  DownloadFile(GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile);
+  LoadLocalMirrors;
+  // Download packages.xml
+  PackagesURL:=GetRemoteRepositoryURL(PackagesFileName);
+  Log(vlCommands,SLogDownloading,[PackagesURL,GlobalOptions.LocalPackagesFile]);
+  DownloadFile(PackagesURL,GlobalOptions.LocalPackagesFile);
   // Read the repository again
   LoadLocalRepository;
   LoadLocalStatus;
@@ -178,7 +186,7 @@ begin
   { Unzip Archive }
   With TUnZipper.Create do
     try
-      Log(vCommands,SLogUnzippping,[ArchiveFile]);
+      Log(vlCommands,SLogUnzippping,[ArchiveFile]);
       OutputPath:=PackageBuildPath;
       UnZipAllFiles(ArchiveFile);
     Finally
@@ -262,7 +270,7 @@ begin
         end
       else
         status:='OK';
-      Log(vDebug,SDbgPackageDependency,
+      Log(vlDebug,SDbgPackageDependency,
           [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
     end;
   // Install needed updates
