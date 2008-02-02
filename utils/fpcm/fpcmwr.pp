@@ -644,7 +644,7 @@ implementation
 
         { Remove unused sections for targets }
         SkippedSecs:=0;
-        if (not FInput.HasTargetVariable('target_units')) then
+        if (not FInput.HasTargetVariable('target_units')) and (not FInput.HasTargetVariable('target_implicitunits')) then
          begin
            inc(SkippedSecs);
            FHasSection[sec_units]:=false;
