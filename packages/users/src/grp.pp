@@ -1,64 +1,59 @@
 unit grp;
+
 interface
 
-{
-  Automatically converted by H2Pas 0.99.15 from grp.h
-  The following command line parameters were used:
-    -D
-    -l
-    c
-    -p
-    -s
-    -u
-    grp
-    -v
-    grp.h
-}
+uses
+  initc,baseunix,ctypes;
 
-  const
-    External_library='c'; {Setup as you need}
-
-  { Pointers to basic pascal types, inserted by h2pas conversion program.}
-  Type
-    PLongint  = ^Longint;
-    PSmallInt = ^SmallInt;
-    PByte     = ^Byte;
-    PWord     = ^Word;
-    PDWord    = ^DWord;
-    PDouble   = ^Double;
-
+{$IFDEF FPC}
 {$PACKRECORDS C}
+{$ENDIF}
+
+const
+      External_library= clib;  {Setup as you need}
+
+     _PATH_GROUP = '/etc/group';     
+
+Type
+
+     PGroup = ^TGroup;
+     PPGroup = ^PGroup;
+     TGroup = record
+          gr_name   : pchar;                { group name  }
+          gr_passwd : pchar;		     { group password  }	
+          gr_gid    : gid_t;		     { group id  }
+          gr_mem    : ppchar;		     { group members  }
+       end;
 
 
-type
-  PFILE = Pointer;
-  __gid_t = Longint;
-  P__gid_t = ^__gid_t;
-  size_t = longint;
+procedure fpendgrent; cdecl;external External_library name 'endgrent';
+function  fpgetgrent:pgroup; cdecl;external External_library name 'getgrent';
+function  fpgetgrgid (id:gid_t):pgroup; cdecl;external External_library name 'getgrgid';
+function  fpgetgrnam (name:pchar):pgroup; cdecl;external External_library name 'getgrnam';
+{$ifdef BSD}
+function  fpgroup_from_gid (gid:gid_t; nogrup:cint):pchar; cdecl;external External_library name 'group_from_gid';
+{$endif}
 
-  PGroup = ^group;
-  group = record
-    gr_name : Pchar;
-    gr_passwd : Pchar;
-    gr_gid : __gid_t;
-    gr_mem : ^Pchar;
-  end;
-  TGroup = Group;
-  PPGROUP = ^PGroup;
+function  fpsetgrent:cint;cdecl;external External_library name 'setgrent';
 
-procedure setgrent;cdecl;external External_library name 'setgrent';
-procedure endgrent;cdecl;external External_library name 'endgrent';
-function getgrent:Pgroup;cdecl;external External_library name 'getgrent';
-function fgetgrent(__stream:PFILE):Pgroup;cdecl;external External_library name 'fgetgrent';
-function getgrgid(__gid:__gid_t):Pgroup;cdecl;external External_library name 'getgrgid';
-function getgrnam(__name:Pchar):Pgroup;cdecl;external External_library name 'getgrnam';
-function getgrgid_r(__gid:__gid_t; __resultbuf:Pgroup; __buffer:Pchar; __buflen:size_t; __result:PPgroup):longint;cdecl;external External_library name 'getgrgid_r';
-function getgrnam_r(__name:Pchar; __resultbuf:Pgroup; __buffer:Pchar; __buflen:size_t; __result:PPgroup):longint;cdecl;external External_library name 'getgrnam_r';
-function fgetgrent_r(__stream:PFILE; __resultbuf:Pgroup; __buffer:Pchar; __buflen:size_t; __result:PPgroup):longint;cdecl;external External_library name 'fgetgrent_r';
-function setgroups(__n:size_t; __groups:P__gid_t):longint;cdecl;external External_library name 'setgroups';
-function getgrouplist(__user:Pchar; __group:__gid_t; __groups:P__gid_t; __ngroups:Plongint):longint;cdecl;external External_library name 'getgrouplist';
-function initgroups(__user:Pchar; __group:__gid_t):longint;cdecl;external External_library name 'initgroups';
+function  fpgetgrgid_r (id:gid_t; grp:Pgroup; buffer:pchar; buffersize:size_t; grresult:PPgroup):cint;cdecl;external External_library name 'getgrgid_r';
 
+function  fpgetgrnam_r (nam:pchar; grp:Pgroup; buffer:pchar; buffersize:size_t; grresult:PPgroup):cint;cdecl;external External_library name 'getgrnam_r';
+{$ifndef Darwin}
+function  fpgetgrent_r (grp:Pgroup; buffer:pchar; buffersize:size_t; grresult:PPgroup):cint;cdecl;external External_library name 'getgrent_r';
+{$endif}
+
+function  fpsetgroupent (stayopen:cint):cint;cdecl;external External_library name 'setgroupent';
+
+{$ifdef Darwin}
+procedure fpsetgrfile(name:pchar); cdecl; external external_library name 'setgrfile';
+{$endif}
+
+// FreeBSD has these, Linux too if USE_BSD is defined. Darwin too.
+// Darwin uses ints instead of gid's though, except for setgroups.
+function  fpsetgroups(n:size_t;groups:pgid):cint; cdecl; external External_Library name 'setgroups';
+function  fpgetgrouplist(user:pchar;group:tgid;groups:pgid;ngroups:pcint):cint; cdecl; external External_Library name 'getgrouplist';
+function  fpinitgroups(user:pchar;group:tgid):cint;cdecl; external External_Library name 'initgroups';
 
 implementation
 
