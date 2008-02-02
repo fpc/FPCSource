@@ -547,7 +547,7 @@ begin
       T.Dependencies.AddUnit('cpu');
 
     // C Interfacing units
-    T:=P.Targets.AddUnit('ctypes');
+    T:=P.Targets.AddUnit('ctypes.pp');
       With T.Dependencies do
         begin
           AddUnit('system');
@@ -567,7 +567,7 @@ begin
           AddUnit('dl');
           AddInclude('pthread.inc');
         end;
-    T:=P.Targets.AddUnit('cwstring',AllUnixOSes);
+    T:=P.Targets.AddUnit('cwstring.pp',AllUnixOSes);
       With T.Dependencies do
         begin
           AddUnit('objpas');
