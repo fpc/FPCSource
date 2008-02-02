@@ -35,11 +35,7 @@ introduction)
 
 Type
 
-{$ifndef VER_1_0}               // maybe wrong (kernel vs libc)
     dev_t    = cuint64;         { used for device numbers      }
-{$else}
-    dev_t    = int64;
-{$endif}
     TDev     = dev_t;
     pDev     = ^dev_t;
 
@@ -58,7 +54,7 @@ Type
 {$ifdef cpu64}
     mode_t   = cint;         { used for file attributes     }
 {$else cpu64}
-    mode_t   = cushort;      { used for file attributes     }
+    mode_t   = cuint32;      { used for file attributes     }
 {$endif cpu64}
     TMode    = mode_t;
     pMode    = ^mode_t;
@@ -106,13 +102,13 @@ Type
     pwchar_t  = ^wchar_t;
 
 {$ifdef cpu64}
-    uid_t    = cuint;         { used for user ID type        }
-    gid_t    = cuint;         { used for group IDs           }
+    uid_t    = cuint32;         { used for user ID type        }
+    gid_t    = cuint32;         { used for group IDs           }
     ipc_pid_t = cint;
 {$else cpu64}
-    uid_t    = cushort;         { used for user ID type        }
-    gid_t    = cushort;         { used for group IDs           }
-    ipc_pid_t = cushort;
+    uid_t    = cuint32;         { used for user ID type        }
+    gid_t    = cuint32;         { used for group IDs           }
+    ipc_pid_t = cushort;      // still 16-bit
 {$endif cpu64}
     TUid     = uid_t;
     pUid     = ^uid_t;
