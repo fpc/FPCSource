@@ -63,6 +63,7 @@ interface
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
           procedure gen_hidden_parameters;
+          function  funcret_can_be_reused:boolean;
           procedure maybe_create_funcret_node;
           procedure bind_parasym;
           procedure add_init_statement(n:tnode);
@@ -1651,10 +1652,95 @@ implementation
       end;
 
 
+    function check_funcret_used_as_para(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        destsym : tsym absolute arg;
+      begin
+        result := fen_false;
+        if (n.nodetype=loadn) and
+           (tloadnode(n).symtableentry = destsym) then
+          result := fen_norecurse_true;
+      end;
+
+
+    function tcallnode.funcret_can_be_reused:boolean;
+      var
+        realassignmenttarget: tnode;
+      begin
+        result:=false;
+
+        { we are processing an assignment node? }
+        if not(assigned(aktassignmentnode) and
+               (aktassignmentnode.right=self) and
+               (aktassignmentnode.left.resultdef=resultdef)) then
+          exit;
+
+        { destination must be able to be passed as var parameter }
+        if not valid_for_var(aktassignmentnode.left,false) then
+          exit;
+
+        { destination must be a simple load so it doesn't need a temp when
+          it is evaluated }
+        if not is_simple_para_load(aktassignmentnode.left,false) then
+          exit;
+
+        { remove possible typecasts }
+        realassignmenttarget:=aktassignmentnode.left.actualtargetnode;
+
+        { when it is not passed in a parameter it will only be used after the
+          function call }
+        if not paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+          begin
+            result:=true;
+            exit;
+          end;
+
+        { when we substitute a function result inside an inlined function,
+          we may take the address of this function result. Therefore the
+          substituted function result may not be in a register, as we cannot
+          take its address in that case                                      }
+        if (realassignmenttarget.nodetype=temprefn) and
+           not(ti_addr_taken in ttemprefnode(realassignmenttarget).tempinfo^.flags) and
+           not(ti_may_be_in_reg in ttemprefnode(realassignmenttarget).tempinfo^.flags) then
+          begin
+            result:=true;
+            exit;
+          end;
+
+        if (realassignmenttarget.nodetype=loadn) and
+           { nested procedures may access the current procedure's locals }
+           (procdefinition.parast.symtablelevel=normal_function_level) and
+           { must be a local variable, a value para or a hidden function result }
+           { parameter (which can be passed by address, but in that case it got }
+           { through these same checks at the caller side and is thus safe      }
+           (
+            (tloadnode(realassignmenttarget).symtableentry.typ=localvarsym) or
+            (
+             (tloadnode(realassignmenttarget).symtableentry.typ=paravarsym) and
+             ((tparavarsym(tloadnode(realassignmenttarget).symtableentry).varspez = vs_value) or
+              (vo_is_funcret in tparavarsym(tloadnode(realassignmenttarget).symtableentry).varoptions))
+            )
+           ) and
+           { the address may not have been taken of the variable/parameter, because }
+           { otherwise it's possible that the called function can access it via a   }
+           { global variable or other stored state                                  }
+           (
+            not(tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).addr_taken) and
+            (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
+           ) then
+          begin
+            { If the funcret is also used as a parameter we can't optimize becuase the funcret
+              and the parameter will point to the same address. That means that a change of the result variable
+              will result also in a change of the parameter value }
+            result:=not foreachnodestatic(left,@check_funcret_used_as_para,tloadnode(realassignmenttarget).symtableentry);
+            exit;
+          end;
+      end;
+
+
     procedure tcallnode.maybe_create_funcret_node;
       var
         temp : ttempcreatenode;
-        realassignmenttarget: tnode;
       begin
         { For the function result we need to create a temp node for:
             - Inlined functions
@@ -1681,51 +1767,7 @@ implementation
               of the refcount before being assigned. This is all done after the call so there
               is no issue with exceptions and possible use of the old value in the called
               function }
-            if assigned(aktassignmentnode) then
-              realassignmenttarget:=aktassignmentnode.left.actualtargetnode;
-            if assigned(aktassignmentnode) and
-               (aktassignmentnode.right=self) and
-               (aktassignmentnode.left.resultdef=resultdef) and
-               valid_for_var(aktassignmentnode.left,false) and
-               (
-                { when it is not passed in a parameter it will only be used after the
-                  function call, but only do it when it will be a simple parameter node
-                  and doesn't need to be in a temp }
-                (
-                 not paramanager.ret_in_param(resultdef,procdefinition.proccalloption) and
-                 { when we substitute a function result inside an inlined function,
-                   we may take the address of this function result. Therefore the
-                   substituted function result may not be in a register, as we cannot
-                   take its address in that case                                      }
-                 is_simple_para_load(aktassignmentnode.left,false)
-                ) or
-                (
-                 (realassignmenttarget.nodetype=temprefn) and
-                 not(ti_addr_taken in ttemprefnode(realassignmenttarget).tempinfo^.flags) and
-                 not(ti_may_be_in_reg in ttemprefnode(realassignmenttarget).tempinfo^.flags)
-                ) or
-                (
-                 (realassignmenttarget.nodetype=loadn) and
-                 { nested procedures may access the current procedure's locals }
-                 (procdefinition.parast.symtablelevel=normal_function_level) and
-                 { must be a local variable, a value para or a hidden function result }
-                 { parameter (which can be passed by address, but in that case it got }
-                 { through these same checks at the caller side and is thus safe      }
-                 (
-                  (tloadnode(realassignmenttarget).symtableentry.typ=localvarsym) or
-                  (
-                   (tloadnode(realassignmenttarget).symtableentry.typ=paravarsym) and
-                   ((tparavarsym(tloadnode(realassignmenttarget).symtableentry).varspez = vs_value) or
-                    (vo_is_funcret in tparavarsym(tloadnode(realassignmenttarget).symtableentry).varoptions))
-                  )
-                 ) and
-                 { the address may not have been taken of the variable/parameter, because }
-                 { otherwise it's possible that the called function can access it via a   }
-                 { global variable or other stored state                                  }
-                 not(tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).addr_taken) and
-                 (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
-                )
-               ) then
+            if funcret_can_be_reused then
               begin
                 funcretnode:=aktassignmentnode.left.getcopy;
                 include(funcretnode.flags,nf_is_funcret);
