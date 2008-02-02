@@ -150,6 +150,7 @@ interface
           sharedlibfilename,        { fullname of the shared libraryfile }
           mapfilename,              { fullname of the mapfile }
           exefilename,              { fullname of the exefile }
+          dbgfilename,              { fullname of the debug info file }
           mainsource   : pshortstring;   { name of the main sourcefile }
           constructor create(const s:string);
           destructor destroy;override;
@@ -615,6 +616,7 @@ uses
          stringdispose(sharedlibfilename);
          stringdispose(mapfilename);
          stringdispose(exefilename);
+         stringdispose(dbgfilename);
          stringdispose(outputpath);
          stringdispose(path);
          stringdispose(paramfn);
@@ -669,6 +671,7 @@ uses
              sharedlibfilename:=stringdup(p+prefix+n+suffix+target_info.sharedlibext);
            end;
          mapfilename:=stringdup(p+n+'.map');
+         dbgfilename:=stringdup(p+n+'.dbg');
       end;
 
 
@@ -684,6 +687,7 @@ uses
         staticlibfilename:=nil;
         sharedlibfilename:=nil;
         exefilename:=nil;
+        dbgfilename:=nil;
         mapfilename:=nil;
         outputpath:=nil;
         paramfn:=nil;
@@ -710,6 +714,7 @@ uses
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
         stringdispose(exefilename);
+        stringdispose(dbgfilename);
         stringdispose(mapfilename);
         stringdispose(outputpath);
         stringdispose(path);

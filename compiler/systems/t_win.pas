@@ -336,7 +336,7 @@ implementation
                   end;
               end;
           end;
-          
+
         begin
           objdata:=CreateObjData(cut_normal);
           if not isvar then
@@ -1041,7 +1041,7 @@ implementation
             Concat('  OBJSECTION .idata$6*');
             Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
-            secnames:='.edata,.rsrc,.reloc,'+
+            secnames:='.edata,.rsrc,.reloc,.gnu_debuglink,'+
                       '.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
                       '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges';
             repeat

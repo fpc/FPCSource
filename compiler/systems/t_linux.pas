@@ -242,6 +242,9 @@ begin
      ExeCmd[1]:=ExeCmd[1]+' $RES';
      DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
      DllCmd[2]:='strip --strip-unneeded $EXE';
+     ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
+     ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
+     ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
 
 {$ifdef m68k}
      { experimental, is this correct? }
@@ -779,6 +782,7 @@ end;
 
 function TLinkerLinux.MakeExecutable:boolean;
 var
+  i : longint;
   binstr,
   cmdstr  : TCmdStr;
   success : boolean;
@@ -797,7 +801,8 @@ begin
   DynLinkStr:='';
   if (cs_link_staticflag in current_settings.globalswitches) then
    StaticStr:='-static';
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) and
+     not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
    StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
@@ -832,7 +837,22 @@ begin
 
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 
-{ Remove ReponseFile }
+  { Create external .dbg file with debuginfo }
+  if success and (cs_link_separate_dbg_file in current_settings.globalswitches) then
+    begin
+      for i:=1 to 3 do
+        begin
+          SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
+          Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename^)));
+          Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename^));
+          success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+          if not success then
+            break;
+        end;
+    end;
+
+  { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 

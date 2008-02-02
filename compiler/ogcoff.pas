@@ -227,14 +227,16 @@ interface
          nsects    : smallint;
          nsyms,
          sympos    : aint;
+         function  totalheadersize:longint;
          procedure ExeSectionList_pass2_header(p:TObject;arg:pointer);
          procedure write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
          procedure globalsyms_write_symbol(p:TObject;arg:pointer);
          procedure ExeSectionList_write_header(p:TObject;arg:pointer);
          procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
-         procedure CalcPos_Header;override;
-         procedure CalcPos_Symbols;override;
+         procedure MemPos_Header;override;
+         procedure DataPos_Header;override;
+         procedure DataPos_Symbols;override;
          function writedata:boolean;override;
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);override;
        public
@@ -253,7 +255,7 @@ interface
          constructor create;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
          procedure Order_End;override;
-         procedure CalcPos_ExeSection(const aname:string);override;
+         procedure MemPos_ExeSection(const aname:string);override;
        end;
 
        TObjSymbolrec = record
@@ -1699,7 +1701,7 @@ const pemagic : array[0..3] of byte = (
         with TCoffObjSection(p) do
           begin
             { Skip debug sections }
-            if (oso_debug in secoptions)  and
+            if (oso_debug in secoptions) and
                (cs_link_strip in current_settings.globalswitches) and
                not(cs_link_separate_dbg_file in current_settings.globalswitches) then
               exit;
@@ -1990,17 +1992,13 @@ const pemagic : array[0..3] of byte = (
               sechdr.vsize:=Size
             else
               sechdr.vsize:=mempos;
+
             { sechdr.dataSize is size of initilized data. For .bss section it must be zero }
-            if Name <> '.bss' then
-              begin
-                if oso_data in SecOptions then
-                  begin
-                    sechdr.dataSize:=Size;
-                    sechdr.datapos:=datapos;
-                  end
-                else
-                  sechdr.dataSize:=Size;
-              end;
+            if (Name <> '.bss') then
+              sechdr.dataSize:=Size;
+            if (sechdr.dataSize>0) and
+               (oso_data in SecOptions) then
+              sechdr.datapos:=datapos;
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
@@ -2016,6 +2014,10 @@ const pemagic : array[0..3] of byte = (
       begin
         with TExeSection(p) do
           begin
+            { The debuginfo sections should already be stripped }
+{            if (ExeWriteMode=ewm_exeonly) and
+               (oso_debug in SecOptions) then
+              internalerror(200801161); }
             inc(plongint(arg)^);
             secsymidx:=plongint(arg)^;
           end;
@@ -2026,9 +2028,15 @@ const pemagic : array[0..3] of byte = (
       var
         objsec : TObjSection;
         i      : longint;
+        b      : boolean;
       begin
         with texesection(p) do
           begin
+            { don't write normal section if writing only debug info }
+            if (ExeWriteMode=ewm_dbgonly) and
+               not(oso_debug in SecOptions) then
+              exit;
+
             if oso_data in secoptions then
               begin
                 FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
@@ -2050,7 +2058,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure tcoffexeoutput.CalcPos_Header;
+    function tcoffexeoutput.totalheadersize:longint;
       var
         stubsize,
         optheadersize : longint;
@@ -2065,20 +2073,30 @@ const pemagic : array[0..3] of byte = (
             stubsize:=sizeof(go32v2stub);
             optheadersize:=sizeof(coffdjoptheader);
           end;
-        { retrieve amount of ObjSections }
-        nsects:=0;
-        ExeSectionList.ForEachCall(@ExeSectionList_pass2_header,@nsects);
-        { calculate start positions after the headers }
-        currdatapos:=stubsize+optheadersize+sizeof(tcoffsechdr)*nsects;
-        currmempos:=stubsize+optheadersize+sizeof(tcoffsechdr)*nsects;
+        result:=stubsize+sizeof(tcoffheader)+optheadersize;
       end;
 
 
-    procedure tcoffexeoutput.CalcPos_Symbols;
+    procedure tcoffexeoutput.MemPos_Header;
       begin
-        inherited CalcPos_Symbols;
-        nsyms:=0;
-        sympos:=0;
+        { calculate start positions after the headers }
+        currmempos:=totalheadersize+sizeof(tcoffsechdr)*(ExeSectionList.Count-2);
+      end;
+
+
+    procedure tcoffexeoutput.DataPos_Header;
+      begin
+        { retrieve amount of sections }
+        nsects:=0;
+        ExeSectionList.ForEachCall(@ExeSectionList_pass2_header,@nsects);
+        { calculate start positions after the headers }
+        currdatapos:=totalheadersize+sizeof(tcoffsechdr)*nsects;
+      end;
+
+
+    procedure tcoffexeoutput.DataPos_Symbols;
+      begin
+        inherited DataPos_Symbols;
         { Calculating symbols position and size }
         nsyms:=ExeSymbolList.Count;
         sympos:=CurrDataPos;
@@ -2095,6 +2113,7 @@ const pemagic : array[0..3] of byte = (
         textExeSec,
         dataExeSec,
         bssExeSec   : TExeSection;
+        hassymbols  : boolean;
 
         procedure UpdateDataDir(const secname:string;idx:longint);
         var
@@ -2118,6 +2137,12 @@ const pemagic : array[0..3] of byte = (
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
           internalerror(200602231);
+        { do we need to write symbols? }
+        hassymbols:=(ExeWriteMode=ewm_dbgonly) or
+                    (
+                     (ExeWriteMode=ewm_exefull) and
+                     not(cs_link_strip in current_settings.globalswitches)
+                    );
         { Stub }
         if win32 then
           begin
@@ -2126,12 +2151,13 @@ const pemagic : array[0..3] of byte = (
           end
         else
           FWriter.write(go32v2stub,sizeof(go32v2stub));
-        { COFF header }
+        { Initial header, will be updated later }
         fillchar(header,sizeof(header),0);
         header.mach:=COFF_MAGIC;
         header.nsects:=nsects;
         header.sympos:=sympos;
-        header.syms:=nsyms;
+        if hassymbols then
+          header.syms:=nsyms;
         if win32 then
           header.opthdr:=sizeof(tcoffpeoptheader)
         else
@@ -2139,21 +2165,21 @@ const pemagic : array[0..3] of byte = (
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
+            if target_info.system in [system_i386_win32,system_arm_wince,system_i386_wince] then
+              header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
             if IsSharedLibrary then
               header.flag:=header.flag or PE_FILE_DLL;
             if FindExeSection('.reloc')=nil then
               header.flag:=header.flag or PE_FILE_RELOCS_STRIPPED;
-            if FindExeSection('.stab')=nil then
+            if (FindExeSection('.stab')=nil) and
+               (FindExeSection('.debug_info')=nil) and
+               (FindExeSection('.gnu_debuglink')=nil) then
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
-            if (cs_link_strip in current_settings.globalswitches) then
+            if not hassymbols then
               header.flag:=header.flag or PE_FILE_LOCAL_SYMS_STRIPPED;
           end
         else
           header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_EXE or COFF_FLAG_NORELOCS or COFF_FLAG_NOLINES;
-
-        if target_info.system in [system_i386_win32,system_arm_wince,system_i386_wince] then
-          header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
-
         FWriter.write(header,sizeof(header));
         { Optional COFF Header }
         if win32 then
@@ -2226,17 +2252,14 @@ const pemagic : array[0..3] of byte = (
         { Section data }
         ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
         { Optional Symbols }
-        if not(cs_link_strip in current_settings.globalswitches) then
-          begin
-            if SymPos<>FWriter.Size then
-              internalerror(200602252);
-            { ObjSymbols }
-            ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
-            { Strings }
-            i:=FCoffStrs.size+4;
-            FWriter.write(i,4);
-            FWriter.writearray(FCoffStrs);
-          end;
+        if SymPos<>FWriter.Size then
+          internalerror(200602252);
+        if hassymbols then
+          ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
+        { Strings }
+        i:=FCoffStrs.size+4;
+        FWriter.write(i,4);
+        FWriter.writearray(FCoffStrs);
         { Release }
         FCoffStrs.Free;
         FCoffSyms.Free;
@@ -2378,7 +2401,7 @@ const pemagic : array[0..3] of byte = (
           secname,
           num : string;
           absordnr: word;
-          
+
           procedure WriteTableEntry;
           var
             ordint: dword;
@@ -2585,7 +2608,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-      procedure TPECoffexeoutput.CalcPos_ExeSection(const aname:string);
+      procedure TPECoffexeoutput.MemPos_ExeSection(const aname:string);
         begin
           if aname='.reloc' then
             GenerateRelocs;

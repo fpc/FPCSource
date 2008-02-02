@@ -769,7 +769,7 @@ implementation
            if (newlen-oldlen>12) and
               ((newlen+length(prefix)>128) or (newlen-oldlen>32)) then
              begin
-               crc:=$ffffffff;
+               crc:=0;
                for i:=0 to tprocdef(st.defowner).paras.count-1 do
                  begin
                    hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
@@ -3310,7 +3310,7 @@ implementation
         if (newlen-oldlen>12) and
            ((newlen>128) or (newlen-oldlen>64)) then
           begin
-            crc:=$ffffffff;
+            crc:=0;
             for i:=0 to paras.count-1 do
               begin
                 hp:=tparavarsym(paras[i]);

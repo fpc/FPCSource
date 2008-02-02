@@ -37,7 +37,8 @@ interface
     Type
       TLinkerInfo=record
         ExeCmd,
-        DllCmd        : array[1..3] of string;
+        DllCmd,
+        ExtDbgCmd     : array[1..3] of string;
         ResName       : string[100];
         ScriptName    : string[100];
         ExtraOptions  : TCmdStr;
@@ -94,7 +95,8 @@ interface
          procedure Load_ReadStaticLibrary(const para:TCmdStr);
          procedure ParseScript_Load;
          procedure ParseScript_Order;
-         procedure ParseScript_CalcPos;
+         procedure ParseScript_MemPos;
+         procedure ParseScript_DataPos;
          procedure PrintLinkerScript;
          function  RunLinkScript(const outputname:TCmdStr):boolean;
       protected
@@ -127,8 +129,8 @@ interface
 Implementation
 
     uses
-      cutils,cfileutils,
-      script,globals,verbose,comphook,ppu,
+      cutils,cfileutils,cstreams,
+      script,globals,verbose,comphook,ppu,fpccrc,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       owbase,owar,ogmap;
 
@@ -138,6 +140,32 @@ Implementation
 {*****************************************************************************
                                    Helpers
 *****************************************************************************}
+
+    function GetFileCRC(const fn:string):cardinal;
+      var
+        fs : TCStream;
+        bufcount,
+        bufsize  : Integer;
+        buf      : pbyte;
+      begin
+        result:=0;
+        bufsize:=64*1024;
+	      fs:=TCFileStream.Create(fn,fmOpenRead or fmShareDenyNone);
+	      if CStreamError<>0 then
+	        begin
+	          fs.Free;
+	          Comment(V_Error,'Can''t open file: '+fn);
+	          exit;
+	        end;
+        getmem(buf,bufsize);
+        repeat
+          bufcount:=fs.Read(buf^,bufsize);
+          result:=UpdateCrc32(result,buf^,bufcount);
+        until bufcount<bufsize;
+        freemem(buf);
+        fs.Free;
+      end;
+
 
     { searches an object file }
     function FindObjectFile(s:TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
@@ -913,14 +941,14 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.ParseScript_CalcPos;
+    procedure TInternalLinker.ParseScript_MemPos;
       var
         s,
         para,
         keyword : String;
         hp : TCmdStrListItem;
       begin
-        exeoutput.CalcPos_Start;
+        exeoutput.MemPos_Start;
         hp:=TCmdStrListItem(linkscript.first);
         while assigned(hp) do
           begin
@@ -930,13 +958,40 @@ Implementation
             keyword:=Upper(GetToken(s,' '));
             para:=GetToken(s,' ');
             if keyword='EXESECTION' then
-              ExeOutput.CalcPos_ExeSection(para)
+              ExeOutput.MemPos_ExeSection(para)
             else if keyword='ENDEXESECTION' then
-              ExeOutput.CalcPos_EndExeSection
+              ExeOutput.MemPos_EndExeSection
             else if keyword='HEADER' then
-              ExeOutput.CalcPos_Header
+              ExeOutput.MemPos_Header;
+            hp:=TCmdStrListItem(hp.next);
+          end;
+      end;
+
+
+    procedure TInternalLinker.ParseScript_DataPos;
+      var
+        s,
+        para,
+        keyword : String;
+        hp : TCmdStrListItem;
+      begin
+        exeoutput.DataPos_Start;
+        hp:=TCmdStrListItem(linkscript.first);
+        while assigned(hp) do
+          begin
+            s:=hp.str;
+            if (s='') or (s[1]='#') then
+              continue;
+            keyword:=Upper(GetToken(s,' '));
+            para:=GetToken(s,' ');
+            if keyword='EXESECTION' then
+              ExeOutput.DataPos_ExeSection(para)
+            else if keyword='ENDEXESECTION' then
+              ExeOutput.DataPos_EndExeSection
+            else if keyword='HEADER' then
+              ExeOutput.DataPos_Header
             else if keyword='SYMBOLS' then
-              ExeOutput.CalcPos_Symbols;
+              ExeOutput.DataPos_Symbols;
             hp:=TCmdStrListItem(hp.next);
           end;
       end;
@@ -964,7 +1019,8 @@ Implementation
         myexit;
       var
         bsssize : aint;
-        bsssec : TExeSection;
+        bsssec  : TExeSection;
+        dbgname : TCmdStr;
       begin
         result:=false;
 
@@ -999,16 +1055,34 @@ Implementation
         if ErrorCount>0 then
           goto myexit;
 
-        { Calc positions in mem and file }
-        ParseScript_CalcPos;
+        { Calc positions in mem }
+        ParseScript_MemPos;
         exeoutput.FixupRelocations;
         exeoutput.PrintMemoryMap;
         if ErrorCount>0 then
           goto myexit;
 
-        exeoutput.WriteExeFile(outputname);
         if cs_link_separate_dbg_file in current_settings.globalswitches then
-          exeoutput.WriteDbgFile(ChangeFileExt(outputname,'.dbg'));
+          begin
+            { create debuginfo, which is an executable without data on disk }
+            dbgname:=ChangeFileExt(outputname,'.dbg');
+            exeoutput.ExeWriteMode:=ewm_dbgonly;
+            ParseScript_DataPos;
+            exeoutput.WriteExeFile(dbgname);
+            { create executable with link to just created debuginfo file }
+            exeoutput.ExeWriteMode:=ewm_exeonly;
+            exeoutput.RemoveDebugInfo;
+            exeoutput.GenerateDebugLink(dbgname,GetFileCRC(dbgname));
+            ParseScript_MemPos;
+            ParseScript_DataPos;
+            exeoutput.WriteExeFile(outputname);
+          end
+        else
+          begin
+            exeoutput.ExeWriteMode:=ewm_exefull;
+            ParseScript_DataPos;
+            exeoutput.WriteExeFile(outputname);
+          end;
 
 {$warning TODO fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;
