@@ -172,7 +172,7 @@ interface
           function pass_1 : tnode;override;
           procedure get_paratype;
           procedure firstcallparan;
-          procedure insert_typeconv(do_count : boolean);
+          procedure insert_typeconv;
           procedure secondcallparan;virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
@@ -584,7 +584,7 @@ implementation
       end;
 
 
-    procedure tcallparanode.insert_typeconv(do_count : boolean);
+    procedure tcallparanode.insert_typeconv;
       var
         olddef  : tdef;
         hp      : tnode;
@@ -807,21 +807,18 @@ implementation
                    else
                      make_not_regable(left,[ra_addr_regable]);
 
-                 if do_count then
-                  begin
-                    case parasym.varspez of
-                      vs_out :
-                        begin
-                          { first set written separately to avoid false }
-                          { uninitialized warnings (tbs/tb0542)         }
-                          set_varstate(left,vs_written,[]);
-                          set_varstate(left,vs_readwritten,[]);
-                        end;
-                      vs_var :
-                        set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
-                      else
-                        set_varstate(left,vs_read,[vsf_must_be_valid]);
-                    end;
+                  case parasym.varspez of
+                    vs_out :
+                      begin
+                        { first set written separately to avoid false }
+                        { uninitialized warnings (tbs/tb0542)         }
+                        set_varstate(left,vs_written,[]);
+                        set_varstate(left,vs_readwritten,[]);
+                      end;
+                    vs_var :
+                      set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
+                    else
+                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                   end;
                  { must only be done after typeconv PM }
                  resultdef:=parasym.vardef;
@@ -830,7 +827,7 @@ implementation
 
          { process next node }
          if assigned(right) then
-           tcallparanode(right).insert_typeconv(do_count);
+           tcallparanode(right).insert_typeconv;
       end;
 
 
@@ -2418,16 +2415,8 @@ implementation
                  { a constructor will and a method may write something to }
                  { the fields                                             }
                  set_varstate(methodpointer,vs_readwritten,[])
-               else if ((hpt.nodetype=loadn) and
-                     (methodpointer.resultdef.typ=classrefdef)) then
-                   set_varstate(methodpointer,vs_read,[])
                else
                  set_varstate(methodpointer,vs_read,[vsf_must_be_valid]);
-
-               { The object is already used if it is called once }
-               if (hpt.nodetype=loadn) and
-                  (tloadnode(hpt).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
-               set_varstate(hpt,vs_read,[]);
              end;
 
             { if we are calling the constructor check for abstract
@@ -2462,7 +2451,7 @@ implementation
 
          { insert type conversions for parameters }
          if assigned(left) then
-           tcallparanode(left).insert_typeconv(true);
+           tcallparanode(left).insert_typeconv;
 
          { dispinterface methode invoke? }
          if assigned(methodpointer) and is_dispinterface(methodpointer.resultdef) then
