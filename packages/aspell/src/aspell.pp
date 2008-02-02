@@ -8,6 +8,8 @@ unit aspell;
 
 { * Translation to pascal (c) 2008 by Aleš Katona. * }
 
+{$PACKRECORDS C}
+
 interface
 
 uses
