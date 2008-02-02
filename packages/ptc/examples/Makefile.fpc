@@ -1,0 +1,27 @@
+#
+#   Makefile.fpc for PTC examples
+#
+
+[package]
+name=ptc-examples
+version=0.99.5
+
+[target]
+programs=area buffer clear clip con_info console fire  \
+         flower hicolor image keyboard keybrd2 land \
+         lights modes mojo palette pixel random save \
+         stretch texwarp timer tunnel3d tunnel  
+
+[compiler]
+unitdir=../$(UNITTARGETDIRPREFIX)
+
+[default]
+fpcdir=../../..
+
+[require]
+packages=hermes ptc
+packages_linux=x11
+packages_freebsd=x11
+
+[rules]
+.NOTPARALLEL:

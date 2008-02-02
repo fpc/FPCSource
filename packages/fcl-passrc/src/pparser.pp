@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$mode objfpc}
+{$h+}
 
 unit PParser;
 
@@ -351,12 +353,15 @@ var
   EnumValue: TPasEnumValue;
   Ref: TPasElement;
   HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added
+  IsBitPacked : Boolean;
+  
 begin
   Result := nil;         // !!!: Remove in the future
   HadPackedModifier := False;     { Assume not present }
   NextToken;
-  if CurToken = tkPacked then     { If PACKED modifier }
+  if CurToken in [tkPacked,tkbitpacked] then     { If PACKED modifier }
      begin                        { Handle PACKED modifier for all situations }
+     IsBitPacked:=(CurToken=tkBitPacked);
      NextToken;                   { Move to next token for rest of parse }
      if CurToken in [tkArray, tkRecord, tkObject, tkClass] then  { If allowed }
        HadPackedModifier := True  { rememeber for later }
@@ -468,7 +473,9 @@ begin
     tkRecord:
       begin
         Result := TPasRecordType(CreateElement(TPasRecordType, '', Parent));
-        TPasRecordType(Result).IsPacked := HadPackedModifier;
+        TPasRecordType(Result).IsPacked:=HadPackedModifier;
+        If HadPackedModifier then
+            TPasRecordType(Result).IsBitPacked:=IsBitPacked;
 	try
           ParseRecordDecl(TPasRecordType(Result), False);
 	except
@@ -935,14 +942,16 @@ var
   EnumValue: TPasEnumValue;
   Prefix : String;
   HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added
+  IsBitPacked : Boolean;
 
 begin
   TypeName := CurTokenString;
   ExpectToken(tkEqual);
   NextToken;
   HadPackedModifier := False;     { Assume not present }
-  if CurToken = tkPacked then     { If PACKED modifier }
+  if CurToken in [tkPacked,tkbitpacked] then     { If PACKED modifier }
      begin                        { Handle PACKED modifier for all situations }
+     IsBitPacked:=CurToken=tkbitpacked;
      NextToken;                   { Move to next token for rest of parse }
      if CurToken in [tkArray, tkRecord, tkObject, tkClass] then  { If allowed }
        HadPackedModifier := True  { rememeber for later }
@@ -958,6 +967,8 @@ begin
           ParseRecordDecl(TPasRecordType(Result), False);
 	  CheckHint(Result,True);
           TPasRecordType(Result).IsPacked := HadPackedModifier;
+          If HadPackedModifier then
+            TPasRecordType(Result).IsBitPacked:=IsBitPacked;
         except
           Result.Free;
           raise;

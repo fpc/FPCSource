@@ -14,6 +14,9 @@
 
 unit HTTPSvlt;
 
+{$Mode objfpc}
+{$H+}
+
 interface
 
 uses SysUtils, Classes, fpAsync, fpSock, HTTPBase, Servlets;

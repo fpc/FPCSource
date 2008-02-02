@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$mode objfpc}
+{$h+}
 
 unit PasTree;
 
@@ -248,6 +250,7 @@ type
     function GetDeclaration(full : boolean) : string; override;
   public
     IsPacked: Boolean;
+    IsBitPacked : Boolean;
     Members: TList;     // array of TPasVariable elements
     VariantName: string;
     VariantType: TPasType;
@@ -1264,7 +1267,10 @@ begin
   Try
     Temp:='record';
     If IsPacked then
-      Temp:='packed '+Temp;
+      if IsBitPacked then
+        Temp:='bitpacked '+Temp
+      else
+        Temp:='packed '+Temp;
     If Full then
       Temp:=Name+' = '+Temp;
     S.Add(Temp);

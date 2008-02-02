@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$mode objfpc}
+{$h+}
 
 unit PScanner;
 
@@ -72,6 +74,7 @@ type
     tkas,
     tkasm,
     tkbegin,
+    tkbitpacked,
     tkcase,
     tkclass,
     tkconst,
@@ -258,6 +261,7 @@ const
     'as',
     'asm',
     'begin',
+    'bitpacked',
     'case',
     'class',
     'const',

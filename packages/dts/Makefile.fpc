@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for A52DEC bindings
+#
+
+[package]
+name=dts
+version=2.0.0
+
+[target]
+units=dts
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:

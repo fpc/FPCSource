@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for fpgtk
+#
+[require]
+packages=fcl-base gtk1
+
+[package]
+name=fpgtk
+version=2.0.0
+
+[target]
+units=fpglib fpgtk fpgtkext
+rsts=fpgtk fpgtkext
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src src/editor src/def src/pgtk tests
+
+[rules]
+.NOTPARALLEL:

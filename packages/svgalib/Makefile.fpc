@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for SVGALib Bindings
+#
+
+[package]
+name=svgalib
+version=2.0.0
+
+[target]
+units=svgalib vgamouse
+examples=testvga vgatest
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+
+[rules]
+.NOTPARALLEL:

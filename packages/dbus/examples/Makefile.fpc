@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for dbus units example
+#
+
+[target]
+programs=busexample
+
+[require]
+packages=dbus
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

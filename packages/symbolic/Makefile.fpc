@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for Free Pascal ImLib 1.x Packages
+#
+
+[package]
+name=symbolic
+version=2.2.0
+
+[target]
+units=symbolic
+
+[require]
+libc=y
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[install]
+fpcpackage=y
+fpcsubdir=packages
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

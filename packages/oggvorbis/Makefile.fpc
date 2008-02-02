@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for oggvorbis bindings
+#
+
+[package]
+name=oggvorbis
+version=2.0.0
+
+[target]
+units=ogg vorbis
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:

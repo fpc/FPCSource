@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for X11 Bindings
+#
+
+[package]
+name=x11
+version=2.0.0
+
+[target]
+units=x xlib xutil xresource xcms xshm xrender keysym xi xkb xkblib xatom xinerama xv xvlib cursorfont xrandr xf86dga xf86vmode
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

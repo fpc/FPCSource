@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for fpgtk
+#
+
+[target]
+programs=testgtk
+
+[require]
+packages=fpgtk
+
+[clean]
+units=lister
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:

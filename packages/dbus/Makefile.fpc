@@ -1,0 +1,28 @@
+#
+#  Makefile.fpc for dbus unit
+#
+
+[package]
+name=dbus
+version=2.0.4
+
+[target]
+units=dbus
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[rules]
+
+.NOTPARALLEL:

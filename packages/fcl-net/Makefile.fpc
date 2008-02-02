@@ -8,14 +8,14 @@ version=2.2.1
 
 [target]
 units=servlets
-units_linux=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
-units_freebsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
-units_netbsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
-units_openbsd=resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
-units_darwin=resolve ssockets 
-units_solaris=resolve ssockets 
-units_qnx=resolve ssockets 
-units_beos=resolve ssockets 
+units_linux=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_freebsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_netbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_openbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_darwin=netdb resolve ssockets 
+units_solaris=netdb resolve ssockets 
+units_qnx=netdb resolve ssockets 
+units_beos=netdb resolve ssockets 
 units_emx=resolve ssockets 
 units_os2=resolve ssockets 
 units_win32=resolve ssockets 
@@ -34,7 +34,7 @@ rsts_netbsd=fpsock httpsvlt mkxmlrpc
 rsts_openbsd=fpsock httpsvlt mkxmlrpc
 
 [require]
-packages=netdb fcl-base fcl-xml fcl-passrc fcl-async
+packages=fcl-base fcl-xml fcl-passrc fcl-async
 
 [compiler]
 options=-S2h

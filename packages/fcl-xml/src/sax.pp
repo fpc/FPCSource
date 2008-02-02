@@ -17,13 +17,7 @@
 
 unit SAX;
 
-{ $DEFINE UseDynArrays}
-
-{ $IFDEF UseDynArrays}
-  {$MODE objfpc}
-{ $ELSE}
-  { $MODE Delphi}
-{ $ENDIF}
+{$MODE objfpc}
 {$H+}
 
 

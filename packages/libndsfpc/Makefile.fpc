@@ -1,0 +1,32 @@
+#
+#   Makefile.fpc for nds units
+#
+
+[package]
+name=libndsfpc
+version=0.1
+
+[target]
+units=nds9 nds7 dswifi9 dswifi7 fat gbfs mikmod9  mikmod7
+examples=
+
+[compiler]
+options=
+includedir=src src/dswifi src/fat src/libmikmod
+sourcedir=src tests
+
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=arm
+target=nds
+fpcdir=../..
+
+[require]
+nortl=y
+
+[rules]
+.NOTPARALLEL:
+

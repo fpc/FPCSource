@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for LDAP bindings
+#
+
+[package]
+name=ldap
+version=2.0.0
+
+[target]
+units=lber ldap
+
+[require]
+packages=hash
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

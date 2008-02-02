@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for pthreads implementation
+#
+
+[package]
+name=pthreads
+version=2.0.0
+
+[target]
+units=pthreads
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:
+

@@ -1,0 +1,33 @@
+#
+#   Makefile.fpc for chm library
+#
+
+[package]
+name=chm
+version=2.0.0
+
+[target]
+units=fasthtmlparser htmlutil paslzx paslzxcomp paslznonslide chmbase chmtypes \
+      chmspecialfiles chmsitemap chmwriter chmfilewriter chmreader  
+programs=chmcmd chmls
+examples=
+
+[require]
+packages=rtl fcl-xml
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:
+
+cdmcmd$(EXEEXT): chmcmd.lpr
+
+chmls$(EXEEXT): chmls.lpr

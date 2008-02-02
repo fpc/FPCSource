@@ -1,5 +1,3 @@
-{$mode objfpc}
-{$h+}
 {
     This file is part of the Free Component Library
     Copyright (c) 2006 by Michael Van Canneyt.
@@ -15,6 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$mode objfpc}
+{$h+}
 
 unit SAX_XML;
 

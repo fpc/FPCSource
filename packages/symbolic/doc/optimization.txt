@@ -1,0 +1,89 @@
+Simplifications
+----------------
+
+Simplification levels:
+0 Do not simplify.
+1 add real only to real   and  int only to int.
+2 Same as 1, but integers are added to reals. (real1=int+real2)
+3 Convert all integers to real, and then do 1.
+
+SimplifyConstants:
+If Mode=0: only check integrity
+
+
+- Evaluates all real constants, including things like Sin(5.0)
+- Evaluates Real
+
+
+                                  CO
+                                /   \
+                               /     \
+                             A         B
+                           /    \      /  \
+                         /       \   /     \
+                        C         D  E      F
+
+
+Node types:
+
+        Ci constant             (nodetype=iconstnode)
+        Cr real constant,       (nodetype=constnode)
+        Cy expression           (ExprIsConstant IN Flags, things like Sin(5) or even 4 DIV 6 if integer to real is off)
+        Cn is any of the three above constant types
+        CO= Commutative Operator (mul, add)
+        X  Any other expression,
+
+
+        Constants always have to be arranged Ci<Cr<Cy<
+
+if A <> CO then (C and D have no relevance)
+if B <> CO then (E and F have no relevance)
+
+          A   C    D   B    E   F
+action    Cn  -    -   CO   Cn  Cn               (killed in SimplifyConstants}
+          Cn  -    -   CO   X   Cn               (Changed to E=C, F=X in killed in SimplifyConstants)
+          Cn  -    -   CO   Cn   X               (if A=Cx and E=Ci then swap(A,E))
+          X   -    -   CO
+
+----------------
+(from an older version of this doc:)
+
+ A           D                  Action
+Xcomm    <>Xcomm          Process [b c d]
+Xcomm      Xcomm          Process [b c e f]
+<>Xcomm    Xcomm          Process [a e f]
+<>Xcomm  <>Xcoom          Process [a d]
+
+
+How to process:
+
+If Simplicationlevel<>0 then
+ begin
+   if (Simplicationlevel=3) or ((simplicationlevel=2) and (Cr in [])) then
+    {convert all Ci to Cr}
+   If more than one Ci in [] then
+    {addall Ci's to one Ci}
+   If more than one Cr in [] then
+    {addall Crs to one Cr}
+ end;
+{determine how many elements in set left. (in practice kept track of in code
+above)}
+If we have only one xcomm on the right, xchg right and left}
+
+{Rearrange set so that
+Ci < Cr < Cx < X
+
+#nodes     nodes filled:
+0          Not possible.
+1          Root node only, but not possible (cases that could lead to this
+            are covered by the standard simplifications)
+2          A, D
+3          A, e f
+4          b c e f
+
+TreeType:            0    A d
+                     1    b c d
+                     2    A e f
+                     3    b c e f
+
+}

@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for pcap bindings
+#
+
+[package]
+name=aspell
+version=1.0.0
+
+[target]
+units=aspell scheck
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:

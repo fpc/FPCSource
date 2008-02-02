@@ -1,0 +1,18 @@
+#
+#  Makefile.fpc for apache2.0 units example
+#
+
+[target]
+programs=evaltest rpnthing
+
+[require]
+packages=symbolic
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:

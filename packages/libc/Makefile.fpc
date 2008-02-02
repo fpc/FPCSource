@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for libc binding
+#
+
+[package]
+name=libc
+version=2.0.0
+
+[target]
+units=kerneldefs kernelioctl libc
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

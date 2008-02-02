@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for REXX demo program
+#
+
+[target]
+programs=callrexx
+
+[require]
+packages=rexx
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+
+
+[rules]
+.NOTPARALLEL:

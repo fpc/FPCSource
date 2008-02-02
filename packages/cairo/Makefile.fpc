@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for cairo
+#
+[require]
+packages=x11 fcl-image
+
+[package]
+name=cairo
+version=2.0.4
+
+[target]
+units=cairo
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:

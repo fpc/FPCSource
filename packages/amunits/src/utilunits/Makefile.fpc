@@ -1,0 +1,27 @@
+#
+#   Makefile.fpc for Free Pascal Amiga units Bindings
+#
+
+[package]
+name=amunits
+version=2.0.0
+
+[target]
+units=amigautils consoleio deadkeys doublebuffer easyasl hisoft \
+	linklist longarray msgbox pastoc pcq systemvartags \
+	tagsarray timerutils vartags wbargs
+
+
+[compiler]
+sourcedir=.
+includedir=../inc
+unitdir=../units
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../../
+
+[rules]
+.NOTPARALLEL:

@@ -10,7 +10,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$MODE objfpc}
+{$MODE objfpc}{$H+}
 
 unit ssockets;
 

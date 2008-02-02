@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for ZLib (LibC version)
+#
+
+[package]
+name=zlib
+version=2.0.0
+
+[target]
+units=zlib
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

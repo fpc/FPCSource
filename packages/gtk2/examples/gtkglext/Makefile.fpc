@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal GTK 2.x.y Examples
+#
+
+[target]
+programs=gears
+
+[require]
+packages=gtk2 opengl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:

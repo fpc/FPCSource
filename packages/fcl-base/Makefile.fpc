@@ -11,9 +11,9 @@ packages_win32=winunits-base winunits-jedi
 packages_win64=winunits-base winunits-jedi
 
 [target]
-units=contnrs inifiles ezcgi rtfpars idea base64 gettext \
-      iostream cachecls avl_tree \
-      eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
+units=contnrs inifiles rtfpars idea base64 gettext \
+      iostream cachecls avl_tree uriparser \
+      eventlog custapp wformat whtml wtex rttiutils bufstream \
       streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
 units_beos=syncobjs 
 units_freebsd=syncobjs daemonapp fptimer
@@ -32,7 +32,7 @@ rsts=cachecls custapp cgiapp eventlog registry streamcoll inicol
 
 [compiler]
 options=-S2h
-includedir=src/$(OS_TARGET) src/inc
+includedir=src/$(OS_TARGET) src
 includedir_linux=src/unix
 includedir_freebsd=src/unix
 includedir_darwin=src/unix
@@ -45,7 +45,7 @@ includedir_emx=src/os2
 includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/win
-sourcedir=src/$(OS_TARGET) src/inc
+sourcedir=src/$(OS_TARGET) src
 
 [install]
 fpcpackage=y

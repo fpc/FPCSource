@@ -16,6 +16,9 @@ unit HTTPClient;
 
 interface
 
+{$mode objfpc}
+{$H+}
+
 uses Classes, HTTPBase, fpSock, fpAsync;
 
 type

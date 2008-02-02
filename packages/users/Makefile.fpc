@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for Users  bindings
+#
+
+[package]
+name=users
+version=2.0.0
+
+[target]
+units=grp pwd shadow users
+examples=testuser testpass 
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

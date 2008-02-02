@@ -1,0 +1,19 @@
+#
+#  Makefile.fpc for apache2.0 units example
+#
+
+[target]
+units=minimain
+programs=mod_example  mod_hello  mod_spelling  testmodule
+
+[require]
+packages=httpd/httpd-2.2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:

@@ -1,0 +1,32 @@
+#
+#   Makefile.fpc for Forms Bindings
+#
+
+[package]
+name=xforms
+version=2.0.0
+
+[target]
+units=xforms
+programs=fd2pascal
+exampledirs=examples
+
+[require]
+packages=x11
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

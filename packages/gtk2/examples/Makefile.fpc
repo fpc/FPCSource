@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for Free Pascal GTK 2.x.y Examples
+#
+
+[target]
+dirs=helloworld helloworld2 gtk_demo gettingstarted plugins scribble_simple gtkglext
+#filechooser - doesn't work yet
+
+[require]
+packages=gtk2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:
