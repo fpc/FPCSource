@@ -16,10 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+  This unit should not be compiled in objfpc mode, since this would make it
+  dependent on objpas unit.
+}
 unit lnfodwrf;
 interface
 
-{$mode objfpc}
 {$S-}
 
 procedure GetLineInfo(addr:ptruint;var func,source:string;var line:longint);
@@ -131,7 +134,7 @@ function Opendwarf:boolean;
 var
   dbgfn : string;
 begin
-  result:=false;
+  Opendwarf:=false;
   if dwarferr then
     exit;
   if not OpenExeFile(e,paramstr(0)) then
@@ -143,7 +146,7 @@ begin
         exit;
     end;
   if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
-    result:=true
+    Opendwarf:=true
   else
     begin
       dwarferr:=true;
@@ -227,11 +230,11 @@ var
   val : QWord;
 begin
   shift := 0;
-  result := 0;
+  ReadULEB128 := 0;
   data := ReadNext();
   while (data <> -1) do begin
     val := data and $7f;
-    result := result or (val shl shift);
+    ReadULEB128 := ReadULEB128 or (val shl shift);
     inc(shift, 7);
     if ((data and $80) = 0) then
       break;
@@ -247,11 +250,11 @@ var
   val : Int64;
 begin
   shift := 0;
-  result := 0;
+  ReadLEB128 := 0;
   data := ReadNext();
   while (data <> -1) do begin
     val := data and $7f;
-    result := result or (val shl shift);
+    ReadLEB128 := ReadLEB128 or (val shl shift);
     inc(shift, 7);
     if ((data and $80) = 0) then
       break;
@@ -259,15 +262,14 @@ begin
   end;
   { extend sign. Note that we can not use shl/shr since the latter does not
     translate to arithmetic shifting for signed types }
-  result := (not ((result and (1 shl (shift-1)))-1)) or result;
-  ReadLEB128 := result;
+  ReadLEB128 := (not ((ReadLEB128 and (1 shl (shift-1)))-1)) or ReadLEB128;
 end;
 
 
 { Reads an address from the current input stream }
 function ReadAddress() : PtrUInt;
 begin
-  ReadNext(result, sizeof(result));
+  ReadNext(ReadAddress, sizeof(ReadAddress));
 end;
 
 
@@ -282,7 +284,7 @@ begin
   i := 1;
   temp := ReadNext();
   while (temp > 0) do begin
-    result[i] := char(temp);
+    ReadString[i] := char(temp);
     if (i = 255) then begin
       { skip remaining characters }
       repeat
@@ -295,16 +297,16 @@ begin
   end;
   { unexpected end of file occurred? }
   if (temp = -1) then
-    result := ''
+    ReadString := ''
   else
-    Byte(result[0]) := i-1;
+    Byte(ReadString[0]) := i-1;
 end;
 
 
 { Reads an unsigned Half from the current input stream }
 function ReadUHalf() : Word;
 begin
-  ReadNext(result, sizeof(result));
+  ReadNext(ReadUHalf, sizeof(ReadUHalf));
 end;
 
 
@@ -383,7 +385,7 @@ end;
 
 function CalculateAddressIncrement(opcode : Byte; const header : TLineNumberProgramHeader64) : Int64;
 begin
-  result := (Int64(opcode) - header.opcode_base) div header.line_range * header.minimum_instruction_length;
+  CalculateAddressIncrement := (Int64(opcode) - header.opcode_base) div header.line_range * header.minimum_instruction_length;
 end;
 
 function GetFullFilename(const filenameStart, directoryStart : Int64; const file_id : DWord) : ShortString;

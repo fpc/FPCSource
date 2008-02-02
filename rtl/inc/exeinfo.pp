@@ -12,10 +12,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+  This unit should not be compiled in objfpc mode, since this would make it
+  dependent on objpas unit.
+}
 unit exeinfo;
 interface
 
-{$mode objfpc}
 {$S-}
 
 type
@@ -36,10 +39,10 @@ type
     bufcnt    : longint;
   end;
 
-function OpenExeFile(out e:TExeFile;const fn:string):boolean;
-function FindExeSection(var e:TExeFile;const secname:string;out secofs,seclen:longint):boolean;
+function OpenExeFile(var e:TExeFile;const fn:string):boolean;
+function FindExeSection(var e:TExeFile;const secname:string;var secofs,seclen:longint):boolean;
 function CloseExeFile(var e:TExeFile):boolean;
-function ReadDebugLink(var e:TExeFile;out dbgfn:string):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
 
 
 implementation
@@ -283,7 +286,7 @@ type
     aux     : byte;
   end;
 
-function FindSectionCoff(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
+function FindSectionCoff(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
 var
   i : longint;
   sechdr     : tcoffsechdr;
@@ -294,7 +297,7 @@ var
   bufsize    : longint;
   strofs     : cardinal;
 begin
-  result:=false;
+  FindSectionCoff:=false;
   { read section info }
   seek(e.f,e.sechdrofs);
   for i:=1 to e.nsects do
@@ -322,7 +325,7 @@ begin
        begin
          secofs:=sechdr.datapos;
          seclen:=sechdr.datalen;
-         result:=true;
+         FindSectionCoff:=true;
          exit;
        end;
    end;
@@ -346,7 +349,7 @@ type
 var
   coffheader : tgo32coffheader;
 begin
-  result:=false;
+  OpenGo32Coff:=false;
   { read and check header }
   if e.size<2048+sizeof(coffheader) then
    exit;
@@ -359,7 +362,7 @@ begin
   e.secstrofs:=coffheader.sympos+coffheader.syms*sizeof(coffsymbol)+4;
   if e.secstrofs>e.size then
     exit;
-  result:=true;
+  OpenGo32Coff:=true;
 end;
 {$endif Go32v2}
 
@@ -412,7 +415,7 @@ var
   dosheader  : tdosheader;
   peheader   : tpeheader;
 begin
-  result:=false;
+  OpenPeCoff:=false;
   { read and check header }
   if e.size<sizeof(dosheader) then
     exit;
@@ -426,7 +429,7 @@ begin
   e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
   if e.secstrofs>e.size then
     exit;
-  result:=true;
+  OpenPeCoff:=true;
 end;
 {$endif PE32}
 
@@ -479,7 +482,7 @@ var
   dosheader  : tdosheader;
   peheader   : tpeheader;
 begin
-  result:=false;
+  OpenPePlusCoff:=false;
   { read and check header }
   if E.Size<sizeof(dosheader) then
    exit;
@@ -493,7 +496,7 @@ begin
   e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
   if e.secstrofs>e.size then
     exit;
-  result:=true;
+  OpenPePlusCoff:=true;
 end;
 {$endif PE32PLUS}
 
@@ -573,7 +576,7 @@ end;
 
 
 function FindSectionEMXaout (var E: TExeFile; const ASecName: string;
-                                         out SecOfs, SecLen: longint): boolean;
+                                         var SecOfs, SecLen: longint): boolean;
 begin
  FindSectionEMXaout := false;
  if ASecName = '.stab' then
@@ -675,7 +678,7 @@ var
   elfheader : telfheader;
   elfsec    : telfsechdr;
 begin
-  result:=false;
+  OpenElf:=false;
   { read and check header }
   if e.size<sizeof(telfheader) then
    exit;
@@ -690,11 +693,11 @@ begin
   e.secstrofs:=elfsec.sh_offset;
   e.sechdrofs:=elfheader.e_shoff;
   e.nsects:=elfheader.e_shnum;
-  result:=true;
+  OpenElf:=true;
 end;
 
 
-function FindSectionElf(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
+function FindSectionElf(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
 var
   elfsec     : telfsechdr;
   secname    : string;
@@ -702,7 +705,7 @@ var
   oldofs,
   bufsize,i  : longint;
 begin
-  result:=false;
+  FindSectionElf:=false;
   seek(e.f,e.sechdrofs);
   for i:=1 to e.nsects do
    begin
@@ -717,7 +720,7 @@ begin
        begin
          secofs:=elfsec.sh_offset;
          seclen:=elfsec.sh_size;
-         result:=true;
+         FindSectionElf:=true;
          exit;
        end;
    end;
@@ -780,7 +783,7 @@ begin
      e.processaddress := cardinal(info.text)
   else
      e.processaddress := 0;
-  Result := OpenElf(e);
+  OpenElf32Beos := OpenElf(e);
 end;
 {$endif beos}
 
@@ -827,17 +830,17 @@ function OpenMachO32PPC(var e:TExeFile):boolean;
 var
    mh:MachoHeader;
 begin
-  result:= false;
+  OpenMachO32PPC:= false;
   if e.size<sizeof(mh) then
     exit;
   blockread (e.f, mh, sizeof(mh));
   e.sechdrofs:=filepos(e.f);
   e.nsects:=mh.ncmds;
-  result:=true;
+  OpenMachO32PPC:=true;
 end;
 
 
-function FindSectionMachO32PPC(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
+function FindSectionMachO32PPC(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
 var
    i: longint;
    block:cmdblock;
@@ -861,7 +864,7 @@ begin
               secofs:=symbolsSeg.stroff;
               seclen:=symbolsSeg.strsize;
             end;
-          result:=true;
+          FindSectionMachO32PPC:=true;
           exit;
       end;
       Seek(e.f, FilePos (e.f) + block.cmdsize - sizeof(block));
@@ -895,21 +898,21 @@ begin
 end;
 
 
-Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:Integer):cardinal;
+Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:LongInt):cardinal;
 var
-  i : integer;
+  i : LongInt;
   p : pchar;
 begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
   p:=@InBuf;
-  result:=not InitCrc;
+  UpdateCrc32:=not InitCrc;
   for i:=1 to InLen do
    begin
-     result:=Crc32Tbl[byte(result) xor byte(p^)] xor (result shr 8);
+     UpdateCrc32:=Crc32Tbl[byte(UpdateCrc32) xor byte(p^)] xor (UpdateCrc32 shr 8);
      inc(p);
    end;
-  result:=not result;
+  UpdateCrc32:=not UpdateCrc32;
 end;
 
 
@@ -919,7 +922,7 @@ end;
 
 type
   TOpenProc=function(var e:TExeFile):boolean;
-  TFindSectionProc=function(var e:TExeFile;const asecname:string;out secofs,seclen:longint):boolean;
+  TFindSectionProc=function(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
 
   TExeProcRec=record
     openproc : TOpenProc;
@@ -962,11 +965,11 @@ const
 {$endif}
    );
 
-function OpenExeFile(out e:TExeFile;const fn:string):boolean;
+function OpenExeFile(var e:TExeFile;const fn:string):boolean;
 var
   ofm : word;
 begin
-  result:=false;
+  OpenExeFile:=false;
   fillchar(e,sizeof(e),0);
   e.bufsize:=sizeof(e.buf);
   e.filename:=fn;
@@ -985,28 +988,28 @@ begin
 
   E.FunctionRelative := true;
   if ExeProcs.OpenProc<>nil then
-    result:=ExeProcs.OpenProc(e);
+    OpenExeFile:=ExeProcs.OpenProc(e);
 end;
 
 
 function CloseExeFile(var e:TExeFile):boolean;
 begin
-  result:=false;
+  CloseExeFile:=false;
   if not e.isopen then
     exit;
   e.isopen:=false;
   close(e.f);
-  result:=true;
+  CloseExeFile:=true;
 end;
 
 
-function FindExeSection(var e:TExeFile;const secname:string;out secofs,seclen:longint):boolean;
+function FindExeSection(var e:TExeFile;const secname:string;var secofs,seclen:longint):boolean;
 begin
-  result:=false;
+  FindExeSection:=false;
   if not e.isopen then
     exit;
   if ExeProcs.FindProc<>nil then
-    result:=ExeProcs.FindProc(e,secname,secofs,seclen);
+    FindExeSection:=ExeProcs.FindProc(e,secname,secofs,seclen);
 end;
 
 
@@ -1017,7 +1020,7 @@ var
   ofm    : word;
   g      : file;
 begin
-  result:=false;
+  CheckDbgFile:=false;
   assign(g,fn);
   {$I-}
    ofm:=filemode;
@@ -1034,11 +1037,11 @@ begin
     c:=UpdateCrc32(c,e.buf,e.bufcnt);
   until e.bufcnt<e.bufsize;
   close(g);
-  result:=(dbgcrc=c);
+  CheckDbgFile:=(dbgcrc=c);
 end;
 
 
-function ReadDebugLink(var e:TExeFile;out dbgfn:string):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
 var
   dbglink : array[0..255] of char;
   i,
@@ -1046,7 +1049,7 @@ var
   dbglinkofs : longint;
   dbgcrc     : cardinal;
 begin
-  result:=false;
+  ReadDebugLink:=false;
   if not FindExeSection(e,'.gnu_debuglink',dbglinkofs,dbglinklen) then
     exit;
   if dbglinklen>sizeof(dbglink)-1 then
@@ -1064,7 +1067,7 @@ begin
   { current dir }
   if CheckDbgFile(e,dbgfn,dbgcrc) then
     begin
-      result:=true;
+      ReadDebugLink:=true;
       exit;
     end;
   { executable dir }
@@ -1076,7 +1079,7 @@ begin
       dbgfn:=copy(e.filename,1,i)+dbgfn;
       if CheckDbgFile(e,dbgfn,dbgcrc) then
         begin
-          result:=true;
+          ReadDebugLink:=true;
           exit;
         end;
     end;

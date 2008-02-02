@@ -12,10 +12,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+  This unit should not be compiled in objfpc mode, since this would make it
+  dependent on objpas unit.
+}
 unit lineinfo;
 interface
 
-{$mode objfpc}
 {$S-}
 {$Q-}
 
@@ -74,7 +77,7 @@ function OpenStabs:boolean;
 var
   dbgfn : string;
 begin
-  result:=false;
+  OpenStabs:=false;
   if staberr then
     exit;
   if not OpenExeFile(e,paramstr(0)) then
@@ -90,7 +93,7 @@ begin
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then
     begin
       stabcnt:=stablen div sizeof(tstab);
-      result:=true;
+      OpenStabs:=true;
     end
   else
     begin
