@@ -79,11 +79,9 @@ uses
 {$ENDIF MACOS}
 
 const
-{$IFDEF MACOS}
- CC = 'C';
-{$ELSE MACOS}
+{$IFNDEF NODRIVEC}
  CC = 'C:';
-{$ENDIF MACOS}
+{$ENDIF NODRIVEC}
 {$IFNDEF FPC}
  FileNameCaseSensitive = false;
  DirectorySeparator = '\';
@@ -170,7 +168,10 @@ end;
 {$ENDIF DIRECT}
 
 var
- TestDir, TestDir0, OrigDir, OrigTstDir, CurDir, CDir, S: DirStr;
+{$IFNDEF NODRIVEC}
+ CDir,
+{$endif}
+ TestDir, TestDir0, OrigDir, OrigTstDir, CurDir, S: DirStr;
  TestDrive: string [2];
  I: byte;
  IOR: longint;
@@ -257,13 +258,7 @@ begin
 {$ENDIF DIRECT}
 {$I+}
  GetDir (0, CurDir);
-{$IFDEF NODRIVEC}
- {$IFDEF UNIX}
- CDir := CurDir;
- {$ELSE UNIX}
- CDir := 'C:';
- {$ENDIF UNIX}
-{$ELSE NODRIVEC}
+{$IFNDEF NODRIVEC}
  GetDir (3, CDir);
 {$ENDIF NODRIVEC}
  Check (' ', CurDir + DirSep + ' ');
@@ -277,20 +272,17 @@ begin
 {$ELSE MACOS}
  Check ('.', CurDir);
 {$ENDIF MACOS}
-{$IFDEF NODOTS}
- Check ('C:.', 'C:.');
-{$ELSE NODOTS}
- Check ('C:.', CDir);
-{$ENDIF NODOTS}
+
 {$IFNDEF NODRIVEC}
- if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
+if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
                          else Check ('c:anything', CDir + DirSep + 'anything');
-{$ENDIF NODRIVEC}
  Check (CC + DirSep, CDrive + DirSep);
 {$IFDEF NODOTS}
+ Check ('C:.', 'C:.');
  Check (CC + DirSep + '.', CDrive + DirSep + '.');
  Check (CC + DirSep + '..', CDrive + DirSep + '..');
 {$ELSE NODOTS}
+ Check ('C:.', CDir);
  Check (CC + DirSep + '.', CDrive + DirSep);
  Check (CC + DirSep + '..', CDrive + DirSep);
 {$ENDIF NODOTS}
@@ -313,6 +305,8 @@ begin
  Check ('C:' + DirSep + 'DOS' + DirSep + 'TEST' + DirSep + '..' + DirSep,
                                              CDrive + DirSep + 'DOS' + DirSep);
 {$ENDIF NODOTS}
+{$ENDIF NODRIVEC}
+
 {$IFNDEF MACOS}
  Check (DirSep, TestDrive + DirSep);
  Check (DirSep + '.', TestDrive + DirSep);
