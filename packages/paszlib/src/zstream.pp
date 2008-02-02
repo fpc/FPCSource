@@ -217,11 +217,6 @@ var err:smallint;
 begin
   {Compress remaining data still in internal zlib data buffers.}
   repeat
-    err:=deflate(Fstream,Z_FINISH);
-    if err=Z_STREAM_END then
-      break;
-    if err<>Z_OK then
-      raise Ecompressionerror.create(zerror(err));
     if Fstream.avail_out=0 then
       begin
         { Flush the buffer to the stream and update progress }
@@ -232,6 +227,11 @@ begin
         Fstream.next_out:=Fbuffer;
         Fstream.avail_out:=bufsize;
       end;
+    err:=deflate(Fstream,Z_FINISH);
+    if err=Z_STREAM_END then
+      break;
+    if (err<>Z_OK) then
+      raise Ecompressionerror.create(zerror(err));
   until false;
   if Fstream.avail_out<bufsize then
     begin
