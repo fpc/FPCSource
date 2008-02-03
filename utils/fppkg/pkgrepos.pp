@@ -165,15 +165,94 @@ begin
 end;
 
 
+procedure LoadLocalStatus(ACompilerOptions:TCompilerOptions);
+
+  procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
+  Var
+    L,L2 : TStrings;
+    Line : String;
+    I,P,PC : Integer;
+    VOS : TOS;
+    VCPU : TCPU;
+    V : String;
+    F : TFileStream;
+  begin
+    F:=TFileStream.Create(AFileName,fmOpenRead);
+    L:=TStringList.Create;
+    Try
+      L.LoadFromStream(F);
+      // Fix lines.
+      For I:=L.Count-1 downto 0 do
+        begin
+          Line:=L[I];
+          P:=Pos('=',Line);
+          PC:=Pos(';',Line);  // Comment line.
+          If (P=0) or ((PC<>0) and (PC<P)) then
+            L.Delete(I)
+          else
+            L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
+        end;
+{$warning TODO Maybe check also CPU-OS}
+{$warning TODO Add date to check recompile}
+      V:=L.Values['version'];
+writeln(AFileName, ' ',V);
+      APackage.InstalledVersion.AsString:=V;
+    Finally
+      L.Free;
+      F.Free;
+    end;
+  end;
+
+  function CheckUnitDir(const AUnitDir:string):boolean;
+  var
+    SR : TSearchRec;
+    P  : TFPPackage;
+    UD,UF : String;
+  begin
+    Result:=false;
+    if FindFirst(IncludeTrailingPathDelimiter(AUnitDir)+AllFiles,faDirectory,SR)=0 then
+      begin
+        Log(vlDebug,SLogLoadingStatusFile,[AUnitDir]);
+        repeat
+          if (SR.Attr and faDirectory)=faDirectory then
+            begin
+              P:=CurrentRepository.FindPackage(SR.Name);
+              if not assigned(P) then
+                begin
+                  P:=CurrentRepository.AddPackage(SR.Name);
+                  P.IsLocalPackage:=true;
+                end;
+              UD:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(AUnitDir)+SR.Name);
+              UF:=UD+UnitConfigFileName;
+              if FileExists(UF) then
+                begin
+                  LoadUnitConfigFromFile(P,UF);
+                end;
+            end;
+        until FindNext(SR)<>0;
+      end;
+  end;
+
+begin
+  if ACompilerOptions.LocalUnitDir<>'' then
+    CheckUnitDir(ACompilerOptions.LocalUnitDir);
+//  if ACompilerOptions.GlobalUnitDir<>'' then
+//    CheckUnitDir(ACompilerOptions.GlobalUnitDir);
+end;
+
+
 procedure LoadLocalStatus;
 var
   S : String;
 begin
+  LoadLocalStatus(CompilerOptions);
+{
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
   Log(vlDebug,SLogLoadingStatusFile,[S]);
   CurrentRepository.ClearStatus;
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
+}
 end;
 
 
@@ -194,11 +273,15 @@ var
   P : TFPPackage;
   ReqVer : TFPVersion;
 begin
+{
   S:=GlobalOptions.LocalVersionsFile(GlobalOptions.FPMakeCompilerConfig);
   Log(vlDebug,SLogLoadingStatusFile,[S]);
   CurrentRepository.ClearStatus;
   if FileExists(S) then
     CurrentRepository.LoadStatusFromFile(S);
+}
+  LoadLocalStatus(FPMakeCompilerOptions);
+
   // Check for fpmkunit dependencies
   for i:=1 to FPMKUnitDepCount do
     begin

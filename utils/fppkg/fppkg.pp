@@ -310,8 +310,7 @@ begin
           begin
             if FileExists(ParaPackages[i]) then
               begin
-                ActionPackage:=TFPPackage.Create(nil);
-                ActionPackage.Name:=ChangeFileExt(ExtractFileName(ParaPackages[i]),'');
+                ActionPackage:=CurrentRepository.AddPackage(ChangeFileExt(ExtractFileName(ParaPackages[i]),''));
                 ActionPackage.FileName:=ExpandFileName(ParaPackages[i]);
                 ActionPackage.IsLocalPackage:=true;
               end
