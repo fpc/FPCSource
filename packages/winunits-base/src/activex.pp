@@ -1771,7 +1771,7 @@ TYPE
                  72 : ( pvarVal : ^PROPVARIANT );
              end;
      PROPVARIANT=TPROPVARIANT;
-
+     TagPROPVARIANT = TPROPVARIANT;
 // Unknwn.idl
 
 // IUnknown is in classesh.inc
@@ -3723,7 +3723,7 @@ type
   const
     oleaut32dll   = 'oleaut32.dll';
 
-  function  SysAllocString(psz: pointer): Integer; stdcall; external oleaut32dll name 'SysAllocString';
+  function  SysAllocString(psz: pointer): TBStr; stdcall; external oleaut32dll name 'SysAllocString';
   function  SysAllocStringLen(psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysAllocStringLen';
   procedure SysFreeString(bstr:pointer); stdcall; external oleaut32dll name 'SysFreeString';
   function  SysStringLen(bstr:pointer):UINT; stdcall; external oleaut32dll name 'SysStringLen';
