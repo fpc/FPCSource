@@ -924,7 +924,8 @@ implementation
       begin
          result:=nil;
          if (left.nodetype=stringconstn) and
-            ((tstringdef(left.resultdef).stringtype<>st_widestring) or
+            ((not is_widechararray(left.resultdef) and
+              not is_widestring(left.resultdef)) or
              (tstringdef(resultdef).stringtype=st_widestring) or
              { non-ascii chars would be replaced with '?' -> loses info }
              not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str))) then
