@@ -21,7 +21,7 @@ dirs_darwin=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres s
 dirs_i386_darwin=graph univint sdl
 dirs_powerpc_darwin=graph univint sdl
 dirs_solaris=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd aspell svgalib \
+               libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd22
 dirs_netbsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
