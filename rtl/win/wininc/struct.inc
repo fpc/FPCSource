@@ -5950,14 +5950,12 @@
      TSTICKYKEYS = STICKYKEYS;
      PSTICKYKEYS = ^STICKYKEYS;
 
-     STRRET = record
-          uType : UINT;
-          DUMMYUNIONNAME : record
-              case longint of
-                 0 : ( pOleStr : LPWSTR );
-                 1 : ( uOffset : UINT );
-                 2 : ( cStr : array[0..(MAX_PATH)-1] of char );
-              end;
+     STRRET = record 
+          utype : UINT;
+          case longint of 
+           0: ( polestr:LPWSTR);
+           1: ( uOffset : UINT);
+           2: ( cStr : array[0..(MAX_PATH)-1] of char );
        end;
      LPSTRRET = ^STRRET;
      _STRRET = STRRET;

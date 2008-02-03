@@ -35,6 +35,7 @@ Const
    IID_IEnumExtraSearch: TGUID ='{0E700BE1-9DB6-11d1-A1CE-00C04FD75D13}';
    IID_IShellFolder2   : TGUID ='{93F2F68C-1D1B-11d3-A30E-00C04F79ABD1}';
    IID_IEXtractIconW   : TGUID ='{000214fa-0000-0000-c000-000000000046}';
+   IID_IEXtractIconA   : TGUID ='{000214eb-0000-0000-c000-000000000046}';
 
 Const
   SV2GV_CURRENTVIEW  = DWORD(-1);
@@ -1478,14 +1479,14 @@ Type
          end;
     IEXtractIconA = interface(IUNknown)
          ['{000214eb-0000-0000-c000-000000000046}']
-         function GetIconLocation(uFlags:UINT;szIconFIle:LPSTR;cchMax:UINT;piIndex : pint; pwflags:puint):HResult;StdCall;
-         function Extract(pszFile:LPCStr;nIconIndex:UINT;phiconLarge:PHICON;phiconSmall:PHICON;nIconSize:UINT):HResult;StdCall;
+         function GetIconLocation(uFlags:UINT;szIconFIle:LPSTR;cchMax:UINT;piIndex : pint; var pwflags:uint):HResult;StdCall;
+         function Extract(pszFile:LPCStr;nIconIndex:UINT;var phiconLarge:HICON;var phiconSmall:HICON;nIconSize:UINT):HResult;StdCall;
          end;
 
     IEXtractIconW = interface(IUNknown)
          ['{000214fa-0000-0000-c000-000000000046}']
-         function GetIconLocation(uFlags:UINT;szIconFIle:LPWSTR;cchMax:UINT;piIndex : pint; pwflags:puint):HResult;StdCall;
-         function Extract(pszFile:LPCWStr;nIconIndex:UINT;phiconLarge:PHICON;phiconSmall:PHICON;nIconSize:UINT):HResult;StdCall;
+         function GetIconLocation(uFlags:UINT;szIconFIle:LPWSTR;cchMax:UINT;piIndex : pint; var pwflags:uint):HResult;StdCall;
+         function Extract(pszFile:LPCWStr;nIconIndex:UINT;var phiconLarge:HICON;var hiconSmall:HICON;nIconSize:UINT):HResult;StdCall;
          end;
     IEXtractIcon=IExtractIconA;
 

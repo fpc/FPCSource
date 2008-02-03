@@ -1402,7 +1402,7 @@ Type
        _SHELLEXECUTEINFOA       = record
                                    cbSize : DWORD;
                                    fMask : ULONG;
-                                   hwnd : HWND;
+                                   wnd  : HWND;
                                    lpVerb : LPCSTR;
                                    lpFile : LPCSTR;
                                    lpParameters : LPCSTR;
@@ -1429,7 +1429,7 @@ Type
        _SHELLEXECUTEINFOW       = record
                                    cbSize : DWORD;
                                    fMask : ULONG;
-                                   hwnd : HWND;
+                                   wnd : HWND;
                                    lpVerb : lpcwstr;
                                    lpFile : lpcwstr;
                                    lpParameters : lpcwstr;

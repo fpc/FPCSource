@@ -2769,12 +2769,24 @@
      SPIF_SENDCHANGE = 2;
   { TrackPopupMenu, TrackPopMenuEx  }
      TPM_CENTERALIGN = $4;
-     TPM_LEFTALIGN = 0;
-     TPM_RIGHTALIGN = $8;
-     TPM_LEFTBUTTON = 0;
+     TPM_LEFTALIGN   = 0;
+     TPM_RIGHTALIGN  = $8;
+     TPM_LEFTBUTTON  = 0;
      TPM_RIGHTBUTTON = $2;
-     TPM_HORIZONTAL = 0;
-     TPM_VERTICAL = $40;
+     TPM_HORIZONTAL  = 0;
+     TPM_VERTICAL    = $40;
+     TPM_TOPALIGN    = 0;
+     TPM_VCENTERALIGN= $10;
+     TPM_BOOTOMALIGN = $20;
+     TPM_NONOTIFY    = $80;
+     TPM_RETURNCMD   = $100;
+     TPM_RECURSE         = $0001;
+     TPM_HORPOSANIMATION = $0400;
+     TPM_HORNEGANIMATION = $0800;
+     TPM_VERPOSANIMATION = $1000;
+     TPM_VERNEGANIMATION = $2000;
+     TPM_NOANIMATION     = $4000;
+     TPM_LAYOUTRTL       = $8000;
   { TranslateCharsetInfo  }
      TCI_SRCCHARSET = 1;
      TCI_SRCCODEPAGE = 2;
@@ -5541,6 +5553,10 @@ const
   IMAGE_DIRECTORY_ENTRY_IAT            = 12; // Import Address Table
   IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT   = 13; // Delay Load Import Descriptors
   IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR = 14; // COM Runtime descriptor
+
+  STRRET_WSTR	= 0;
+  STRRET_OFFSET	= 1;
+  STRRET_CSTR	= 2;
 
 {$endif read_interface}
 
