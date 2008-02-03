@@ -44,6 +44,11 @@ TYPE
      PROPID = ULONG;
      TPROPID= PROPID;
      PPROPID= ^PROPID;
+     VARIANT_BOOL        = short;
+     _VARIANT_BOOL       = VARIANT_BOOL;
+     CY			 = CURRENCY;
+     DATE		 = DOUBLE;
+     BSTR		 = POLESTR;
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
@@ -1529,8 +1534,145 @@ TYPE
   CUSTDATA                       = tagCUSTDATA;
   LPCUSTDATA                     = ^CUSTDATA;
 
-//  CURRENCY                       = CY;
+  PPROPVARIANT		         = ^TPROPVARIANT;
 
+
+   tagVersionedStream = record
+        guidVersion : TGUID;
+        pStream : pointer; {IStream}
+     end;
+   VERSIONEDSTREAM = tagVersionedStream;
+   TVERSIONEDSTREAM = tagVersionedStream;
+   LPVERSIONEDSTREAM = tagVersionedStream;
+   PVERSIONEDSTREAM = ^TagVersionedStream;
+
+
+   LPSAFEARRAY = ^SAFEARRAY;
+   tagDEC = record //  simpler remoting variant without nested unions. see wtypes.h
+         wReserved : ushort;
+         scale,
+         sign : byte;
+         hi32 : ULONG;
+         lo64 : ULONGLONG;
+         end;
+   TDECIMAL=tagDEC;
+   PDecimal=^TDECIMAL;
+
+   tagCAC = record
+        cElems : ULONG;
+        pElems : pCHAR;
+     end;
+   CAC = tagCAC;
+   tagCAUB = record
+        cElems : ULONG;
+        pElems : pUCHAR;
+     end;
+   CAUB = tagCAUB;
+   tagCAI = record
+        cElems : ULONG;
+        pElems : pSHORT;
+     end;
+   CAI = tagCAI;
+   tagCAUI = record
+        cElems : ULONG;
+        pElems : pUSHORT;
+     end;
+   CAUI = tagCAUI;
+   tagCAL = record
+        cElems : ULONG;
+        pElems : pLONG;
+     end;
+   CAL = tagCAL;
+   tagCAUL = record
+        cElems : ULONG;
+        pElems : pULONG;
+     end;
+   CAUL = tagCAUL;
+   tagCAFLT = record
+        cElems : ULONG;
+        pElems : pSingle;
+     end;
+   CAFLT = tagCAFLT;
+
+   tagCADBL = record
+        cElems : ULONG;
+        pElems : ^DOUBLE;
+     end;
+   CADBL = tagCADBL;
+   tagCACY = record
+        cElems : ULONG;
+        pElems : ^CY;
+     end;
+   CACY = tagCACY;
+   tagCADATE = record
+        cElems : ULONG;
+        pElems : ^DATE;
+     end;
+   CADATE = tagCADATE;
+   tagCABSTR = record
+        cElems : ULONG;
+        pElems : ^BSTR;
+     end;
+   CABSTR = tagCABSTR;
+   tagCABSTRBLOB = record
+        cElems : ULONG;
+        pElems : ^BSTRBLOB;
+     end;
+   CABSTRBLOB = tagCABSTRBLOB;
+   tagCABOOL = record
+        cElems : ULONG;
+        pElems : ^VARIANT_BOOL;
+     end;
+   CABOOL = tagCABOOL;
+   tagCASCODE = record
+        cElems : ULONG;
+        pElems : ^SCODE;
+     end;
+   CASCODE = tagCASCODE;
+   tagCAPROPVARIANT = record
+        cElems : ULONG;
+        pElems : ^PROPVARIANT;
+     end;
+   CAPROPVARIANT = tagCAPROPVARIANT;
+   tagCAH = record
+        cElems : ULONG;
+        pElems : ^LARGE_INTEGER;
+     end;
+   CAH = tagCAH;
+   tagCAUH = record
+        cElems : ULONG;
+        pElems : ^ULARGE_INTEGER;
+     end;
+   CAUH = tagCAUH;
+   tagCALPSTR = record
+        cElems : ULONG;
+        pElems : ^LPSTR;
+     end;
+   CALPSTR = tagCALPSTR;
+   tagCALPWSTR = record
+        cElems : ULONG;
+        pElems : ^LPWSTR;
+     end;
+   CALPWSTR = tagCALPWSTR;
+   tagCAFILETIME = record
+        cElems : ULONG;
+        pElems : ^FILETIME;
+     end;
+   CAFILETIME = tagCAFILETIME;
+   tagCACLIPDATA = record
+        cElems : ULONG;
+        pElems : ^CLIPDATA;
+     end;
+   CACLIPDATA = tagCACLIPDATA;
+   tagCACLSID = record
+        cElems : ULONG;
+        pElems : ^CLSID;
+     end;
+   CACLSID = tagCACLSID;
+
+   PROPVAR_PAD1 = WORD;
+   PROPVAR_PAD2 = WORD;
+   PROPVAR_PAD3 = WORD;
 
 // Forward interfaces.
 
@@ -1547,6 +1689,88 @@ TYPE
    ICallFactory        = Interface;
    ISynchronize        = Interface;
    ITypeLib            = Interface;
+
+   TPROPVARIANT = record
+          vt : VARTYPE;
+          wReserved1 : PROPVAR_PAD1;
+          wReserved2 : PROPVAR_PAD2;
+          wReserved3 : PROPVAR_PAD3;
+          case longint of
+                 0 : ( cVal : CHAR );
+                 1 : ( bVal : UCHAR );
+                 2 : ( iVal : SHORT );
+                 3 : ( uiVal : USHORT );
+                 4 : ( lVal : LONG );
+                 5 : ( ulVal : ULONG );
+                 6 : ( intVal : longINT );
+                 7 : ( uintVal : UINT );
+                 8 : ( hVal : LARGE_INTEGER );
+                 9 : ( uhVal : ULARGE_INTEGER );
+                 10 : ( fltVal : SINGLE );
+                 11 : ( dblVal : DOUBLE );
+                 12 : ( boolVal : VARIANT_BOOL );
+                 13 : ( bool : _VARIANT_BOOL );
+                 14 : ( scode : SCODE );
+                 15 : ( cyVal : CY );
+                 16 : ( date : DATE );
+                 17 : ( filetime : FILETIME );
+                 18 : ( puuid : ^CLSID );
+                 19 : ( pclipdata : ^CLIPDATA );
+                 20 : ( bstrVal : BSTR );
+                 21 : ( bstrblobVal : BSTRBLOB );
+                 22 : ( blob : BLOB );
+                 23 : ( pszVal : LPSTR );
+                 24 : ( pwszVal : LPWSTR );
+                 25 : ( punkVal : pointer; { IUnknown to avoid Data types which require initialization/finalization can't be used in variant records});
+                 26 : ( pdispVal : pointer; {IDispatch} );
+                 27 : ( pStream : pointer {IStream} );
+                 28 : ( pStorage : pointer{IStorage} );
+                 29 : ( pVersionedStream : LPVERSIONEDSTREAM );
+                 30 : ( parray : LPSAFEARRAY );
+                 31 : ( cac : CAC );
+                 32 : ( caub : CAUB );
+                 33 : ( cai : CAI );
+                 34 : ( caui : CAUI );
+                 35 : ( cal : CAL );
+                 36 : ( caul : CAUL );
+                 37 : ( cah : CAH );
+                 38 : ( cauh : CAUH );
+                 39 : ( caflt : CAFLT );
+                 40 : ( cadbl : CADBL );
+                 41 : ( cabool : CABOOL );
+                 42 : ( cascode : CASCODE );
+                 43 : ( cacy : CACY );
+                 44 : ( cadate : CADATE );
+                 45 : ( cafiletime : CAFILETIME );
+                 46 : ( cauuid : CACLSID );
+                 47 : ( caclipdata : CACLIPDATA );
+                 48 : ( cabstr : CABSTR );
+                 49 : ( cabstrblob : CABSTRBLOB );
+                 50 : ( calpstr : CALPSTR );
+                 51 : ( calpwstr : CALPWSTR );
+                 52 : ( capropvar : CAPROPVARIANT );
+                 53 : ( pcVal : pCHAR );
+                 54 : ( pbVal : pUCHAR );
+                 55 : ( piVal : pSHORT );
+                 56 : ( puiVal : pUSHORT );
+                 57 : ( plVal : pLONG );
+                 58 : ( pulVal : pULONG );
+                 59 : ( pintVal : plongint );
+                 60 : ( puintVal : pUINT );
+                 61 : ( pfltVal : psingle );
+                 62 : ( pdblVal : pDOUBLE );
+                 63 : ( pboolVal : ^VARIANT_BOOL );
+                 64 : ( pdecVal : pDECIMAL );
+                 65 : ( pscode : ^SCODE );
+                 66 : ( pcyVal : ^CY );
+                 67 : ( pdate : ^DATE );
+                 68 : ( pbstrVal : ^TBSTR );
+                 69 : ( ppunkVal : ^IUnknown );
+                 70 : ( ppdispVal : ^IDispatch );
+                 71 : ( pparray : ^LPSAFEARRAY );
+                 72 : ( pvarVal : ^PROPVARIANT );
+             end;
+     PROPVARIANT=TPROPVARIANT;
 
 // Unknwn.idl
 

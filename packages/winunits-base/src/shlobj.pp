@@ -1799,7 +1799,7 @@ Type
  
     IShellLinkA  = Interface(IUnknown)
         ['{000214EE-0000-0000-C000-000000000046}']
-        function GetPath(pszFile:LPSTR; cch:longint; pfd:pWIN32_FIND_DATA; fFlags:DWORD):HRESULT;StdCall;
+        function GetPath(pszFile:LPSTR; cch:longint;var  pfd:WIN32_FIND_DATA; fFlags:DWORD):HRESULT;StdCall;
         function GetIDList(var ppidl:LPITEMIDLIST):HRESULT;StdCall;
         function SetIDList(pidl:LPCITEMIDLIST):HRESULT;StdCall;
         function GetDescription(pszName:LPSTR; cch:longint):HRESULT;StdCall;

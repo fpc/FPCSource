@@ -6952,8 +6952,7 @@
 
      TWOHandleArray = array[0..MAXIMUM_WAIT_OBJECTS-1] of HANDLE;
      PWOHandleArray = ^TWOHandleArray;
-
- MMRESULT = Longint;
+     MMRESULT = Longint;
 
 type
   PWaveFormatEx = ^TWaveFormatEx;
@@ -7207,6 +7206,23 @@ type
   GET_FILEEX_INFO_LEVELS = _GET_FILEEX_INFO_LEVELS;
   TGetFileExInfoLevels = GET_FILEEX_INFO_LEVELS;
 
+  tagBSTRBLOB = record
+                  cbsize : ULONG;
+		  pdata  : pbyte;
+                  end;
+  BSTRBLOB=TagBSTRBlob;
+  TBSTRBLOB=BSTRBLOB;
+  PBSTRBLOB=^BSTRBLOB;
+
+  tagCLIPDATA = record
+                  cbsize : ULONG;
+		  ulClipFmt : long;
+		  pclipdata : pbyte;
+                  end;
+  CLIPDATA=TagCLIPDATA;
+  TCLIPDATA=CLIPDATA;
+  PCLIPDATA=^CLIPDATA;
+  
 {$endif read_interface}
 
 
