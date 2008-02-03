@@ -36,6 +36,8 @@ Const
    IID_IShellFolder2   : TGUID ='{93F2F68C-1D1B-11d3-A30E-00C04F79ABD1}';
    IID_IEXtractIconW   : TGUID ='{000214fa-0000-0000-c000-000000000046}';
    IID_IEXtractIconA   : TGUID ='{000214eb-0000-0000-c000-000000000046}';
+   IID_IShellLinkA     : TGUID ='{000214EE-0000-0000-C000-000000000046}';
+   CLSID_ShellLink     : TGUID ='{000214EE-0000-0000-C000-000000000046}';
 
 Const
   SV2GV_CURRENTVIEW  = DWORD(-1);
@@ -443,6 +445,23 @@ Type
       SFGAOF = ULONG;
       TSFGAOF = SFGAOF;
       PSFGAOF = ^SFGAOF;
+      FMTID  =  ^GUID;
+      pFMTID = pGUID;
+      PROPID = ULONG;
+      TPROPID= PROPID;
+      PPROPID= ^PROPID;
+      PROPERTYUI_NAME_FLAGS = DWord; // enum
+      PROPERTYUI_FORMAT_FLAGS = DWord;
+      PROPERTYUI_FLAGS = Dword;
+      CATSORT_FLAGS    = DWORD;
+      CATEGORYINFO_FLAGS = DWord;
+
+      PPROPERTYUI_NAME_FLAGS    = ^PROPERTYUI_NAME_FLAGS;
+      PPROPERTYUI_FORMAT_FLAGS  = ^PROPERTYUI_FORMAT_FLAGS;
+      PPROPERTYUI_FLAGS         = ^PROPERTYUI_FLAGS;
+      PCATSORT_FLAGS            = ^CATSORT_FLAGS;
+      PCATEGORYINFO_FLAGS	= ^CATEGORYINFO_FLAGS;
+
       RESTRICTIONS = DWORD;
       TRESTRICTIONS = RESTRICTIONS;
       PRESTRICTIONS = ^RESTRICTIONS;
@@ -451,6 +470,13 @@ Type
                     fmtid : TGUID;
                     pid   : DWORD;
                    end;
+      CATEGORY_INFO = record
+                         cif : CATEGORYINFO_FLAGS;
+                         wsname: array[0..259] of wchar;
+			 end;
+      TCATEGORY_INFO = CATEGORY_INFO;
+      PCATEGORY_INFO = ^CATEGORY_INFO;
+
       LPSHColumnID = SHColumnID;
       TSHColumnid = SHColumnID;
       pSHColumnID = LPSHColumnID;
@@ -1479,16 +1505,100 @@ Type
          end;
     IEXtractIconA = interface(IUNknown)
          ['{000214eb-0000-0000-c000-000000000046}']
-         function GetIconLocation(uFlags:UINT;szIconFIle:LPSTR;cchMax:UINT;piIndex : pint; var pwflags:uint):HResult;StdCall;
+         function GetIconLocation(uFlags:UINT;szIconFIle:LPSTR;cchMax:UINT;var piIndex : longint; var pwflags:uint):HResult;StdCall;
          function Extract(pszFile:LPCStr;nIconIndex:UINT;var phiconLarge:HICON;var phiconSmall:HICON;nIconSize:UINT):HResult;StdCall;
          end;
 
     IEXtractIconW = interface(IUNknown)
          ['{000214fa-0000-0000-c000-000000000046}']
-         function GetIconLocation(uFlags:UINT;szIconFIle:LPWSTR;cchMax:UINT;piIndex : pint; var pwflags:uint):HResult;StdCall;
+         function GetIconLocation(uFlags:UINT;szIconFIle:LPWSTR;cchMax:UINT;var piIndex : longint; var pwflags:uint):HResult;StdCall;
          function Extract(pszFile:LPCWStr;nIconIndex:UINT;var phiconLarge:HICON;var hiconSmall:HICON;nIconSize:UINT):HResult;StdCall;
          end;
     IEXtractIcon=IExtractIconA;
+
+    SPINITF = DWORD;
+    EXPPS = UINT;
+
+    IProfferService = interface (IUnknown)
+        ['{cb728b20-f786-11ce-92ad-00aa00a74cd0}']
+        function ProfferService(const guid:TGUID;psp:IServiceProvider;var pdwcookie:DWORD):HRESULT;StdCall;
+        function RevokeService(dwCookie:DWORD):HRESULT;StdCall;
+        end;
+{
+    IPropertyUI = interface(IUnknown)
+        ['{757a7d9f-919a-4118-99d7-dbb208c8cc66}']
+        function ParsePropertyName(pszName:LPCWSTR; pfmtid:pFMTID; ppid:pPROPID; pchEaten:pULONG):HRESULT;StdCall;
+        function GetCannonicalName(const fmtid:FMTID; pid:PROPID; pwszText:LPWSTR; cchText:DWORD):HRESULT;StdCall;
+        function GetDisplayName(const fmtid:FMTID; pid:PROPID; flags:PROPERTYUI_NAME_FLAGS; pwszText:LPWSTR; cchText:DWORD):HRESULT;StdCall;
+        function GetPropertyDescription(const fmtid:FMTID; pid:PROPID; pwszText:LPWSTR; cchText:DWORD):HRESULT;StdCall;
+        function GetDefaultWidth(const fmtid:FMTID; pid:PROPID; pcxChars:pULONG):HRESULT;StdCall;
+        function GetFlags(const fmtid:FMTID; pid:PROPID; pFlags:pPROPERTYUI_FLAGS):HRESULT;StdCall;
+        function FormatForDisplay(const fmtid:FMTID; pid:PROPID; pvar:pPROPVARIANT; flags:PROPERTYUI_FORMAT_FLAGS;wszText:LPWSTR;cchText:DWORD):HRESULT;StdCall;
+        function GetHelpInfo(const fmtid:FMTID; pid:PROPID; pwszHelpFile:LPWSTR; cch:DWORD; puHelpID:pUINT):HRESULT;StdCall;   
+        end;
+}
+    ICategoryProvider =interface(IUnknown)
+        ['{9af64809-5864-4c26-a720-c1f78c086ee3}']
+        function CanCategorizeOnSCID(pscid:pSHCOLUMNID):HRESULT;StdCall;
+        function GetDefaultCategory(pguid:pGUID; pscid:pSHCOLUMNID):HRESULT;StdCall;
+        function GetCategoryForSCID(pscid:pSHCOLUMNID; pguid:pGUID):HRESULT;StdCall;
+        function EnumCategories(out penum:IEnumGUID):HRESULT;StdCall;
+        function GetCategoryName(pguid:pGUID; pszName:LPWSTR; cch:UINT):HRESULT;StdCall;
+        function CreateCategory(pguid:pGUID; riid:REFIID; ppv:Ppointer):HRESULT;StdCall;
+        end;
+
+    ICategorizer =Interface(IUnknown)
+        ['{a3b14589-9174-49a8-89a3-06a1ae2b9ba7}']
+        function GetDescription(pszDesc:LPWSTR; cch:UINT):HRESULT;StdCall;
+        function GetCategory(cidl:UINT; var apidl:LPCITEMIDLIST; rgCategoryIds:pDWORD):HRESULT;StdCall;
+        function GetCategoryInfo(dwCategoryId:DWORD; pci:pCATEGORY_INFO):HRESULT;StdCall;
+        function CompareCategory(csfFlags:CATSORT_FLAGS; dwCategoryId1:DWORD; dwCategoryId2:DWORD):HRESULT;StdCall;
+        end;
+ 
+    IShellLinkA  = Interface(IUnknown)
+        ['{000214EE-0000-0000-C000-000000000046}']
+        function GetPath(pszFile:LPSTR; cch:longint; pfd:pWIN32_FIND_DATA; fFlags:DWORD):HRESULT;StdCall;
+        function GetIDList(ppidl:pLPITEMIDLIST):HRESULT;StdCall;
+        function SetIDList(pidl:LPCITEMIDLIST):HRESULT;StdCall;
+        function GetDescription(pszName:LPSTR; cch:longint):HRESULT;StdCall;
+        function SetDescription(pszName:LPCSTR):HRESULT;StdCall;
+        function GetWorkingDirectory(pszDir:LPSTR; cch:longint):HRESULT;StdCall;
+        function SetWorkingDirectory(pszDir:LPCSTR):HRESULT;StdCall;
+        function GetArguments(pszArgs:LPSTR; cch:longint):HRESULT;StdCall;
+        function SetArguments(pszArgs:LPCSTR):HRESULT;StdCall;
+        function GetHotkey(pwHotkey:pWORD):HRESULT;StdCall;
+        function SetHotkey(wHotkey:WORD):HRESULT;StdCall;
+        function GetShowCmd(piShowCmd:plongint):HRESULT;StdCall;
+        function SetShowCmd(iShowCmd:longint):HRESULT;StdCall;
+        function GetIconLocation(pszIconPath:LPSTR; cch:longint; piIcon:plongint):HRESULT;StdCall;
+        function SetIconLocation(pszIconPath:LPCSTR; iIcon:longint):HRESULT;StdCall;
+        function SetRelativePath(pszPathRel:LPCSTR; dwReserved:DWORD):HRESULT;StdCall;
+        function Resolve(hwnd:HWND; fFlags:DWORD):HRESULT;StdCall;
+        function SetPath(pszFile:LPCSTR):HRESULT;StdCall;
+        end; 
+ 
+    IShellLinkW = interface (IUnknown)
+        ['{000214F9-0000-0000-C000-000000000046}']
+        function GetPath(pszFile:LPWSTR; cch:longint; pfd:pWIN32_FIND_DATAW; fFlags:DWORD):HRESULT;StdCall;
+        function GetIDList(ppidl:pLPITEMIDLIST):HRESULT;StdCall;
+        function SetIDList(pidl:LPCITEMIDLIST):HRESULT;StdCall;
+        function GetDescription(pszName:LPWSTR; cch:longint):HRESULT;StdCall;
+        function SetDescription(pszName:LPCWSTR):HRESULT;StdCall;
+        function GetWorkingDirectory(pszDir:LPWSTR; cch:longint):HRESULT;StdCall;
+        function SetWorkingDirectory(pszDir:LPCWSTR):HRESULT;StdCall;
+        function GetArguments(pszArgs:LPWSTR; cch:longint):HRESULT;StdCall;
+        function SetArguments(pszArgs:LPCWSTR):HRESULT;StdCall;
+        function GetHotkey(pwHotkey:pWORD):HRESULT;StdCall;
+        function SetHotkey(wHotkey:WORD):HRESULT;StdCall;
+        function GetShowCmd(piShowCmd:plongint):HRESULT;StdCall;
+        function SetShowCmd(iShowCmd:longint):HRESULT;StdCall;
+        function GetIconLocation(pszIconPath:LPWSTR; cch:longint; piIcon:plongint):HRESULT;StdCall;
+        function SetIconLocation(pszIconPath:LPCWSTR; iIcon:longint):HRESULT;StdCall;
+        function SetRelativePath(pszPathRel:LPCWSTR; dwReserved:DWORD):HRESULT;StdCall;
+        function Resolve(hwnd:HWND; fFlags:DWORD):HRESULT;StdCall;
+        function SetPath(pszFile:LPCWSTR):HRESULT;StdCall;
+        end;
+     IShellLink = IShellLinkA;
 
 function SHGetMalloc(out ppmalloc: IMalloc):HResult;StdCall; external 'shell32' name 'SHGetMalloc';
 function SHGetDesktopFolder(out ppshf:IShellFolder):HResult;StdCall; external 'shell32' name 'SHGetDesktopFolder';
