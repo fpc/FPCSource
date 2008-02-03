@@ -163,8 +163,6 @@ interface
     Procedure OnlyAsm;
 
     procedure RegisterAssembler(const r:tasminfo;c:TAssemblerClass);
-    procedure InitAssembler;
-    procedure DoneAssembler;
 
 
 Implementation
@@ -1476,16 +1474,6 @@ Implementation
           Getmem(asminfos[t],sizeof(tasminfo));
         asminfos[t]^:=r;
         CAssembler[t]:=c;
-      end;
-
-
-    procedure InitAssembler;
-      begin
-      end;
-
-
-    procedure DoneAssembler;
-      begin
       end;
 
 end.

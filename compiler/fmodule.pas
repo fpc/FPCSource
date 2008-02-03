@@ -133,6 +133,7 @@ interface
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
         asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
+        debuginfo     : TObject;
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
@@ -210,7 +211,7 @@ implementation
       SysUtils,
       GlobType,
       verbose,systems,
-      scanner,ppu,
+      scanner,ppu,dbgbase,
       procinfo;
 
 {$ifdef MEMDEBUG}
@@ -252,6 +253,7 @@ implementation
         if assigned(current_module) then
           begin
             current_asmdata:=tasmdata(current_module.asmdata);
+            current_debuginfo:=tdebuginfo(current_module.debuginfo);
             { restore scanner and file positions }
             current_scanner:=tscannerfile(current_module.scanner);
             if assigned(current_scanner) then
@@ -270,6 +272,7 @@ implementation
           begin
             current_asmdata:=nil;
             current_scanner:=nil;
+            current_debuginfo:=nil;
           end;
       end;
 
@@ -501,6 +504,7 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
+        InitDebugInfo(self);
       end;
 
 
@@ -630,6 +634,7 @@ implementation
             asmdata.free;
             asmdata:=nil;
           end;
+        DoneDebugInfo(self);
         if assigned(globalsymtable) then
           begin
             globalsymtable.free;
@@ -675,6 +680,8 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=TAsmData.create(realmodulename^);
+        DoneDebugInfo(self);
+        InitDebugInfo(self);
         _exports.free;
         _exports:=tlinkedlist.create;
         dllscannerinputlist.free;

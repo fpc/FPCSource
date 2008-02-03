@@ -1067,7 +1067,7 @@ implementation
             { insert line debuginfo }
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then
-              debuginfo.insertlineinfo(aktproccode);
+              current_debuginfo.insertlineinfo(aktproccode);
 
             { add the procedure to the al_procedures }
             maybe_new_object_file(current_asmdata.asmlists[al_procedures]);

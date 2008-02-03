@@ -92,7 +92,7 @@ implementation
           to insert n_sourcefile lines }
         if (cs_debuginfo in current_settings.moduleswitches) or
            (cs_use_lineinfo in current_settings.globalswitches) then
-          debuginfo.insertmoduleinfo;
+          current_debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
         GenerateAsm(false);
@@ -1126,7 +1126,7 @@ implementation
 
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
-           debuginfo.inserttypeinfo;
+           current_debuginfo.inserttypeinfo;
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
@@ -1454,14 +1454,14 @@ implementation
 
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
-           debuginfo.inserttypeinfo;
+           current_debuginfo.inserttypeinfo;
 
          if islibrary or (target_info.system in system_unit_program_exports) then
            exportlib.generatelib;
 
          { Reference all DEBUGINFO sections from the main .fpc section }
          if (cs_debuginfo in current_settings.moduleswitches) then
-           debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
+           current_debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
 
          { Resource strings }
          GenerateResourceStrings;

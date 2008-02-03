@@ -772,6 +772,7 @@ const
   );
 var
   defoptions : tdefoptions;
+  defstates  : tdefstates;
   i      : longint;
   first  : boolean;
   tokenbufsize : longint;
@@ -798,8 +799,22 @@ begin
     end;
   writeln;
 
-  if df_unique in defoptions then
-    writeln  (space,'      Unique type symbol');
+  write  (space,'        DefStates : ');
+  ppufile.getsmallset(defstates);
+  if defstates<>[] then
+    begin
+      first:=true;
+      for i:=1to defstateinfos do
+       if (defstate[i].mask in defstates) then
+        begin
+          if first then
+            first:=false
+          else
+            write(', ');
+          write(defstate[i].str);
+        end;
+    end;
+  writeln;
 
   if df_generic in defoptions then
     begin
@@ -1201,6 +1216,7 @@ begin
   readcommonsym(s);
   writeln(space,'         Spez : ',Varspez2Str(ppufile.getbyte));
   writeln(space,'      Regable : ',Varregable2Str(ppufile.getbyte));
+  writeln(space,'   Addr Taken : ',(ppufile.getbyte<>0));
   write  (space,'     Var Type : ');
   readderef;
   ppufile.getsmallset(varoptions);
@@ -1436,7 +1452,7 @@ begin
                  begin
                    write  (space,'  OrdinalType : ');
                    readderef;
-                   writeln(space,'        Value : ',getint64);
+                   writeln(space,'        Value : ',constexp.tostr(getexprint));
                  end;
                constpointer :
                  begin
@@ -1894,7 +1910,10 @@ begin
            end;
 
          ibformaldef :
-           readcommondef('Generic definition (void-typ)');
+           begin
+             readcommondef('Generic definition (void-typ)');
+             writeln(space,'         Is Typed : ',(getbyte<>0));
+           end;
 
          ibundefineddef :
            readcommondef('Undefined definition (generic parameter)');
