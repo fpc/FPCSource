@@ -161,7 +161,8 @@ interface
                 left.location.register := tmpreg;
 {$ifdef x86}
                 { left operand is now on top of the stack, instead of the right one! }
-                toggleflag(nf_swapped);
+                if (right.location.loc=LOC_FPUREGISTER) then
+                  toggleflag(nf_swapped);
 {$endif x86}
               end;
           end;
