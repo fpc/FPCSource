@@ -1452,7 +1452,7 @@ begin
                  begin
                    write  (space,'  OrdinalType : ');
                    readderef;
-                   writeln(space,'        Value : ',constexp.tostr(getexprint));
+                   writeln(space,'        Value : ',getint64);
                  end;
                constpointer :
                  begin
