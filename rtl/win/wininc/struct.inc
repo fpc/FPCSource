@@ -46,6 +46,9 @@
 
 {$ifdef read_interface}
 
+Const 
+  IMAGE_SIZEOF_SHORT_NAME = 8;
+
   type
 
     { WARNING
@@ -6917,6 +6920,7 @@
           e_lfanew : LONG;
        end;
      PIMAGE_DOS_HEADER = ^IMAGE_DOS_HEADER;
+     TIMAGE_DOS_HEADER = IMAGE_DOS_HEADER;
      TIMAGEDOSHEADER = IMAGE_DOS_HEADER;
      PIMAGEDOSHEADER = ^IMAGE_DOS_HEADER;
 
@@ -7038,6 +7042,7 @@ type
     Size: DWORD;
   end;
   IMAGE_DATA_DIRECTORY = _IMAGE_DATA_DIRECTORY;
+  TIMAGE_DATA_DIRECTORY = _IMAGE_DATA_DIRECTORY;
   TImageDataDirectory = IMAGE_DATA_DIRECTORY;
   PImageDataDirectory = PIMAGE_DATA_DIRECTORY;
 
@@ -7106,6 +7111,7 @@ type
     GpValue: DWORD;
   end;
   IMAGE_ROM_OPTIONAL_HEADER = _IMAGE_ROM_OPTIONAL_HEADER;
+  TIMAGE_ROM_OPTIONAL_HEADER = _IMAGE_ROM_OPTIONAL_HEADER;
   TImageRomOptionalHeader = IMAGE_ROM_OPTIONAL_HEADER;
   PImageRomOptionalHeader = PIMAGE_ROM_OPTIONAL_HEADER;
 
@@ -7222,6 +7228,28 @@ type
   CLIPDATA=TagCLIPDATA;
   TCLIPDATA=CLIPDATA;
   PCLIPDATA=^CLIPDATA;
+
+   TImage_Section_SubHeader= record
+            case longint of
+               0 : ( PhysicalAddress : DWORD );
+               1 : ( VirtualSize : DWORD );
+            end;
+
+   _IMAGE_SECTION_HEADER = record
+        Name : array[0..(IMAGE_SIZEOF_SHORT_NAME)-1] of BYTE;
+        Misc : TImage_Section_SubHeader;
+        VirtualAddress : DWORD;
+        SizeOfRawData : DWORD;
+        PointerToRawData : DWORD;
+        PointerToRelocations : DWORD;
+        PointerToLinenumbers : DWORD;
+        NumberOfRelocations : WORD;
+        NumberOfLinenumbers : WORD;
+        Characteristics : DWORD;
+     end;
+   IMAGE_SECTION_HEADER = _IMAGE_SECTION_HEADER;
+   TIMAGE_SECTION_HEADER = _IMAGE_SECTION_HEADER;
+   PIMAGE_SECTION_HEADER = ^_IMAGE_SECTION_HEADER;
   
 {$endif read_interface}
 
