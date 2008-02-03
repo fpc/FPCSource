@@ -657,7 +657,7 @@ function ImageList_GetDragImage(ppt:PPOINT;pptHotspot:PPOINT):HIMAGELIST; stdcal
 Procedure ImageList_RemoveAll(himl:HIMAGELIST);
 
 // Macro 14
-Procedure ImageList_ExtractIcon(hi:longint; himl:HIMAGELIST;i:longint);
+function ImageList_ExtractIcon(hi:longint; himl:HIMAGELIST;i:longint):HICON;
 
 
 // Macro 15
@@ -9152,10 +9152,10 @@ End;
 // Macro 14
 // #define     ImageList_ExtractIcon(hi, himl, i) ImageList_GetIcon(himl, i, 0)
 
-Procedure ImageList_ExtractIcon(hi:longint;  himl:HIMAGELIST;i:longint);
+function  ImageList_ExtractIcon(hi:longint;  himl:HIMAGELIST;i:longint):HICON;
 
 Begin
- ImageList_GetIcon(himl, i,0);
+ result:=ImageList_GetIcon(himl, i,0);
 end;
 
 

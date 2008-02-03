@@ -5425,8 +5425,11 @@
   { e_magic field  }
      IMAGE_DOS_SIGNATURE = $5a4d;
   { nt_signature field  }
-     IMAGE_NT_SIGNATURE = $4550;
+     IMAGE_NT_SIGNATURE = CARDINAL($4550);
 
+    IMAGE_OS2_SIGNATURE       = $454E;      // NE
+    IMAGE_OS2_SIGNATURE_LE    = $454C;      // LE
+    IMAGE_VXD_SIGNATURE       = $454C;      // LE
 
   { Severity values }
     SEVERITY_SUCCESS = 0;
@@ -5519,7 +5522,7 @@ const
   IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER      = 12;
   IMAGE_SUBSYSTEM_EFI_ROM                 = 13;
   IMAGE_SUBSYSTEM_XBOX                    = 14;
-
+  IMAGE_SUBSYSTEM_RESERVED8		  =  IMAGE_SUBSYSTEM_NATIVE_WINDOWS; // older Delphi's? See JCLPEImage
 // DllCharacteristics Entries
 
 //      IMAGE_LIBRARY_PROCESS_INIT           0x0001     // Reserved.
@@ -5558,8 +5561,8 @@ const
   STRRET_OFFSET	= 1;
   STRRET_CSTR	= 2;
 
-{$endif read_interface}
 
+{$endif read_interface}
 
 {$ifdef read_implementation}
 
