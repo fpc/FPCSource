@@ -41,6 +41,9 @@ TYPE
      Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
      OleChar             = WChar;
      LPOLESTR            = ^OLECHAR;
+     PROPID = ULONG;
+     TPROPID= PROPID;
+     PPROPID= ^PROPID;
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';

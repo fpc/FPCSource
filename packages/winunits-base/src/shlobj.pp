@@ -440,6 +440,245 @@ Const
   SHPPFW_IGNOREFILENAME       = $00000004;              // Ignore the last item in pszPath because it's a file.  Example: pszPath="C:\DirA\DirB", only use "C:\DirA".
   SHPPFW_NOWRITECHECK         = $00000008;              // Caller only needs to read from the drive, so don't check if it's READ ONLY.
   SHPPFW_MEDIACHECKONLY       = $00000010;              // do the retrys on the media (or net path), return errors if the file can't be found
+  PUIFNF_DEFAULT          = $00000000;
+  PUIFNF_MNEMONIC         = $00000001;   // include mnemonic in display name
+  PUIF_DEFAULT            = $00000000;
+  PUIF_RIGHTALIGN         = $00000001;   // this property should be right alligned
+  PUIF_NOLABELININFOTIP   = $00000002;   // this property should not display a label in the infotip
+  PUIFFDF_DEFAULT         = $00000000;
+  PUIFFDF_RIGHTTOLEFT     = $00000001;   // BIDI support, right to left caller
+  PUIFFDF_SHORTFORMAT     = $00000002;   // short format version of string
+  PUIFFDF_NOTIME          = $00000004;   // truncate time to days, not hours/mins/sec
+  PUIFFDF_FRIENDLYDATE    = $00000008;   // "Today", "Yesterday", etc
+  PUIFFDF_NOUNITS         = $00000010;   // don't do "KB", "MB", "KHz"
+  CATINFO_NORMAL          = $00000000;   // Apply default properties to this category
+  CATINFO_COLLAPSED       = $00000001;   // This category should appear collapsed. useful for the "None" category. 
+  CATINFO_HIDDEN          = $00000002;   // This category should follow the "Hidden" files setting for being displayed
+  CATSORT_DEFAULT         = $00000000;   // Default Sort order
+  CATSORT_NAME            = $00000001;   // Sort by name
+  SLR_NO_UI               = $0001;   // don't post any UI durring the resolve operation, not msgs are pumped
+  SLR_ANY_MATCH           = $0002;   // no longer used
+  SLR_UPDATE              = $0004;   // save the link back to it's file if the track made it dirty
+  SLR_NOUPDATE            = $0008;
+  SLR_NOSEARCH            = $0010;   // don't execute the search heuristics
+  SLR_NOTRACK             = $0020;   // don't use NT5 object ID to track the link
+  SLR_NOLINKINFO          = $0040;   // don't use the net and volume relative info
+  SLR_INVOKE_MSI          = $0080;   // if we have a darwin link, then call msi to fault in the applicaion
+  SLR_NO_UI_WITH_MSG_PUMP = $0101;   // SLR_NO_UI + requires an enable modeless site or HWND
+  SLGP_SHORTPATH          = $0001;
+  SLGP_UNCPRIORITY        = $0002;
+  SLGP_RAWPATH            = $0004;
+  SPINITF_NORMAL          = $00000000;      // default normal progress behavior
+  SPINITF_MODAL           = $00000001;      // call punkSite->EnableModeless() or EnableWindow()
+  SPINITF_NOMINIMIZE      = $00000008;      // Do not have a minimize button in the caption bar.
+  ARCONTENT_AUTORUNINF    = $00000002; // That's the one we have today, and always had 
+  ARCONTENT_AUDIOCD       = $00000004; // Audio CD (not MP3 and the like, the stuff you buy at the store) 
+  ARCONTENT_DVDMOVIE      = $00000008; // DVD Movie (not MPEGs, the stuff you buy at the store) 
+  ARCONTENT_BLANKCD       = $00000010; // Blank CD-R/CD-RW 
+  ARCONTENT_BLANKDVD      = $00000020; // Blank DVD-R/DVD-RW 
+  ARCONTENT_UNKNOWNCONTENT= $00000040; // Whatever files.  Mean that it's formatted.
+  ARCONTENT_AUTOPLAYPIX   = $00000080; // Whatever files.  Mean that it's formatted.
+  ARCONTENT_AUTOPLAYMUSIC = $00000100; // Whatever files.  Mean that it's formatted.
+  ARCONTENT_AUTOPLAYVIDEO = $00000200; // Whatever files.  Mean that it's formatted.
+  SPBEGINF_NORMAL         = $00000000;      // default normal progress behavior
+  SPBEGINF_AUTOTIME       = $00000002;      // automatically updates the "time remaining" text 
+  SPBEGINF_NOPROGRESSBAR  = $00000010;      // Don't display the progress bar (SetProgress() wont be called)
+  SPBEGINF_MARQUEEPROGRESS= $00000020;      // use marquee progress (comctl32 v6 required)
+  EXPPS_FILETYPES         = $00000001;
+  IEI_PRIORITY_MAX        = ITSAT_MAX_PRIORITY;
+  IEI_PRIORITY_MIN        = ITSAT_MIN_PRIORITY;
+  IEIT_PRIORITY_NORMAL    = ITSAT_DEFAULT_PRIORITY;
+  IEIFLAG_ASYNC           = $0001;      // ask the extractor if it supports ASYNC extract (free threaded)
+  IEIFLAG_CACHE           = $0002;      // returned from the extractor if it does NOT cache the thumbnail
+  IEIFLAG_ASPECT          = $0004;      // passed to the extractor to beg it to render to the aspect ratio of the supplied rect
+  IEIFLAG_OFFLINE         = $0008;      // if the extractor shouldn't hit the net to get any content neede for the rendering
+  IEIFLAG_GLEAM           = $0010;      // does the image have a gleam ? this will be returned if it does
+  IEIFLAG_SCREEN          = $0020;      // render as if for the screen  (this is exlusive with IEIFLAG_ASPECT )
+  IEIFLAG_ORIGSIZE        = $0040;      // render to the approx size passed, but crop if neccessary
+  IEIFLAG_NOSTAMP         = $0080;      // returned from the extractor if it does NOT want an icon stamp on the thumbnail
+  IEIFLAG_NOBORDER        = $0100;      // returned from the extractor if it does NOT want an a border around the thumbnail
+  IEIFLAG_QUALITY         = $0200;      // passed to the Extract method to indicate that a slower, higher quality image is desired, re-compute the thumbnail
+  IEIFLAG_REFRESH         = $0400;      // returned from the extractor if it would like to have Refresh Thumbnail available
+  DBIM_MINSIZE            = $0001;
+  DBIM_MAXSIZE            = $0002;
+  DBIM_INTEGRAL           = $0004;
+  DBIM_ACTUAL             = $0008;
+  DBIM_TITLE              = $0010;
+  DBIM_MODEFLAGS          = $0020;
+  DBIM_BKCOLOR            = $0040;
+  DBIMF_NORMAL            = $0000;
+  DBIMF_FIXED             = $0001;
+  DBIMF_FIXEDBMP          = $0004;   // a fixed background bitmap (if supported)
+  DBIMF_VARIABLEHEIGHT    = $0008;
+  DBIMF_UNDELETEABLE      = $0010;
+  DBIMF_DEBOSSED          = $0020;
+  DBIMF_BKCOLOR           = $0040;
+  DBIMF_USECHEVRON        = $0080;
+  DBIMF_BREAK             = $0100;
+  DBIMF_ADDTOFRONT        = $0200;
+  DBIMF_TOPALIGN          = $0400;
+  DBIF_VIEWMODE_NORMAL    = $0000;
+  DBIF_VIEWMODE_VERTICAL  = $0001;
+  DBIF_VIEWMODE_FLOATING  = $0002;
+  DBIF_VIEWMODE_TRANSPARENT    = $0004;
+  DBID_BANDINFOCHANGED    = 0;
+  DBID_SHOWONLY           = 1;
+  DBID_MAXIMIZEBAND       = 2;      // Maximize the specified band (VT_UI4 == dwID)
+  DBID_PUSHCHEVRON        = 3;
+  DBID_DELAYINIT          = 4;      // Note: _bandsite_ calls _band_ with this code
+  DBID_FINISHINIT         = 5;      // Note: _bandsite_ calls _band_ with this code
+  DBID_SETWINDOWTHEME     = 6;      // Note: _bandsite_ calls _band_ with this code
+  DBID_PERMITAUTOHIDE     = 7;
+  IDD_WIZEXTN_FIRST       = $5000;
+  IDD_WIZEXTN_LAST        = $5100;
+  SHPWHF_NORECOMPRESS     = $00000001;  // don't allow/prompt for recompress of streams
+  SHPWHF_NONETPLACECREATE = $00000002;  // don't create a network place when transfer is complete
+  SHPWHF_NOFILESELECTOR   = $00000004;  // don't show the file selector
+  SHPWHF_VALIDATEVIAWEBFOLDERS    = $00010000;  // enable web folders to validate network places (ANP support)
+
+  CDBE_RET_DEFAULT        = $00000000;
+  CDBE_RET_DONTRUNOTHEREXTS = $00000001;
+  CDBE_RET_STOPWIZARD     = $00000002;
+  CDBE_TYPE_MUSIC         = $00000001;
+  CDBE_TYPE_DATA  	    = $00000002;
+  CDBE_TYPE_ALL   	    = $FFFFFFFF;
+  BSIM_STATE              = $00000001;
+  BSIM_STYLE              = $00000002;
+  BSSF_VISIBLE            = $00000001;
+  BSSF_NOTITLE            = $00000002;
+  BSSF_UNDELETEABLE       = $00001000;
+  BSIS_AUTOGRIPPER        = $00000000;
+  BSIS_NOGRIPPER          = $00000001;
+  BSIS_ALWAYSGRIPPER      = $00000002;
+  BSIS_LEFTALIGN          = $00000004;
+  BSIS_SINGLECLICK        = $00000008;
+  BSIS_NOCONTEXTMENU      = $00000010;
+  BSIS_NODROPTARGET       = $00000020;
+  BSIS_NOCAPTION          = $00000040;
+  BSIS_PREFERNOLINEBREAK  = $00000080;
+  BSIS_LOCKED             = $00000100;
+
+  NSWF_NONE_IMPLIES_ALL   = $00000001;
+  NSWF_ONE_IMPLIES_ALL    = $00000002;
+  NSWF_DONT_TRAVERSE_LINKS= $00000004;
+  NSWF_DONT_ACCUMULATE_RESULT    = $00000008;
+  NSWF_TRAVERSE_STREAM_JUNCTIONS = $00000010;
+  NSWF_FILESYSTEM_ONLY    = $00000020;
+  NSWF_SHOW_PROGRESS      = $00000040;
+  NSWF_FLAG_VIEWORDER     = $00000080;
+  NSWF_IGNORE_AUTOPLAY_HIDA      = $00000100;
+  MPPF_SETFOCUS           = $00000001;    // Menu can take the focus
+  MPPF_INITIALSELECT      = $00000002;    // Select the first item
+  MPPF_NOANIMATE          = $00000004;    // Do not animate this show
+  MPPF_KEYBOARD           = $00000010;    // The menu is activated by keyboard
+  MPPF_REPOSITION         = $00000020;    // Resposition the displayed bar.
+  MPPF_FORCEZORDER        = $00000040;    // internal: Tells menubar to ignore Submenu positions
+  MPPF_FINALSELECT        = $00000080;    // Select the last item
+  MPPF_TOP                = $20000000;    // Popup menu up from point
+  MPPF_LEFT               = $40000000;    // Popup menu left from point
+  MPPF_RIGHT              = $60000000;    // Popup menu right from point
+  MPPF_BOTTOM             = $80000000;    // Popup menu below point
+  MPPF_POS_MASK           = $E0000000;     // Menu Position Mask
+  SIGDN_NORMALDISPLAY             = $00000000;
+  SIGDN_PARENTRELATIVEPARSING     = $80018001;
+  SIGDN_PARENTRELATIVEFORADDRESSBAR = $8001c001;
+  SIGDN_DESKTOPABSOLUTEPARSING    = $80028000;
+  SIGDN_PARENTRELATIVEEDITING     = $80031001;
+  SIGDN_DESKTOPABSOLUTEEDITING    = $8004c000;
+  SIGDN_FILESYSPATH               = $80058000;
+  SIGDN_URL                       = $80068000;
+  SICHINT_DISPLAY         = $00000000;   
+  SICHINT_ALLFIELDS       = $80000000;   
+  SICHINT_CANONICAL       = $10000000;   
+  BFO_NONE                            = $00000000;      // Do nothing.
+  BFO_BROWSER_PERSIST_SETTINGS        = $00000001;      // Does this item want the browser stream? (Same window position as IE browser windows?)
+  BFO_RENAME_FOLDER_OPTIONS_TOINTERNET= $00000002;     // Rename "Folder Options" to "Internet Options" in the Tools or View menu?
+  BFO_BOTH_OPTIONS                    = $00000004;      // Keep both "Folder Options" and "Internet Options" in the Tools or View menu?
+  BIF_PREFER_INTERNET_SHORTCUT        = $00000008;      // NSE would prefer a .url shortcut over a .lnk shortcut
+  BFO_BROWSE_NO_IN_NEW_PROCESS        = $00000010;      // Specify this flag if you don't want the "Browse in New Process" via invoking a shortcut.
+  BFO_ENABLE_HYPERLINK_TRACKING       = $00000020;      // Does this NSE want it's display name tracked to determine when hyperlinks should be tagged as previously used?
+  BFO_USE_IE_OFFLINE_SUPPORT          = $00000040;      // Use "Internet Explorer"'s offline support?
+  BFO_SUBSTITUE_INTERNET_START_PAGE   = $00000080;      // Does this NSE want to use the Start Page support?
+  BFO_USE_IE_LOGOBANDING              = $00000100;      // Use the Brand block in the Toolbar.  (Spinning globe or whatever it is this year)
+  BFO_ADD_IE_TOCAPTIONBAR             = $00000200;      // Should " - Internet Explorer" be appended to display name in the Captionbar
+  BFO_USE_DIALUP_REF                  = $00000400;      // Should the DialUp ref count get a ref while the browse is navigated to this location?  This will also enable the ICW and Software update.
+  BFO_USE_IE_TOOLBAR                  = $00000800;      // Should the IE toolbar be used?
+  BFO_NO_PARENT_FOLDER_SUPPORT        = $00001000;      // Can you NOT navigate to a parent folder?  Used for Backspace button to parent folder or the View.GoTo.ParentFolder feature.
+  BFO_NO_REOPEN_NEXT_RESTART          = $00002000;      // Browser windows are NOT reopened the next time the shell boots if the windows were left open on the previous logoff.  Does this NSE want the same feature?
+  BFO_GO_HOME_PAGE                    = $00004000;      // Add "Home Page" to menu (Go).
+  BFO_PREFER_IEPROCESS                = $00008000;      // prefers to use IEXPLORE.EXE over EXPLORER.EXE
+  BFO_SHOW_NAVIGATION_CANCELLED       = $00010000;      // If navigation is aborted, show the "Action Cancelled" HTML page.
+  BFO_USE_IE_STATUSBAR                = $00020000;      // Use the persisted IE status bar settings
+  BFO_QUERY_ALL                       = $FFFFFFFF;      // Return all values set.
+  NWMF_UNLOADING          = $0001;  // The query is occuring during onBeforeUnload or onUnload
+  NWMF_USERINITED         = $0002;  // The query is occuring in the context of what trident considers to be a user initiated action
+  NWMF_FIRST              = $0004;  // This is the first query since the begining of the last user initiated action
+  NWMF_OVERRIDEKEY        = $0008;  // The override key was pressed at the time the query was made
+  NWMF_SHOWHELP           = $0010;  // New window is an HTML help window
+  NWMF_HTMLDIALOG         = $0020;  // New window is an HTML dialog
+  NWMF_FROMDIALOGCHILD    = $0040;  // Called from an HTML dialog - do not show UI in parent window
+  NWMF_USERREQUESTED      = $0080;  // There is no doubt the user requested this window (from RClick->Open in New Window, or Shift+Clicked a link)
+  NWMF_USERALLOWED        = $0100;  // This popup is the result of the user requesting a replay that resulted in a refresh
+  SMDM_SHELLFOLDER        = $00000001;  // This is for an item in the band
+  SMDM_HMENU              = $00000002;  // This is for the Band itself
+  SMDM_TOOLBAR            = $00000004;  // Plain toolbar, not associated with a shell folder or hmenu
+  SMIM_TYPE               = $00000001;
+  SMIM_FLAGS              = $00000002;
+  SMIM_ICON               = $00000004;
+  SMIT_SEPARATOR          = $00000001;
+  SMIT_STRING             = $00000002;
+  SMIF_ICON               = $00000001;       // Show an icon
+  SMIF_ACCELERATOR        = $00000002;       // Underline the character marked w/ '&'
+  SMIF_DROPTARGET         = $00000004;       // Item is a drop target
+  SMIF_SUBMENU            = $00000008;       // Item has a submenu
+  SMIF_CHECKED            = $00000020;       // Item has a Checkmark
+  SMIF_DROPCASCADE        = $00000040;       // Item can cascade out during drag/drop
+  SMIF_HIDDEN             = $00000080;       // Don't display item
+  SMIF_DISABLED           = $00000100;       // Should be unselectable. Gray.
+  SMIF_TRACKPOPUP         = $00000200;       // Should be unselectable. Gray.
+  SMIF_DEMOTED            = $00000400;       // Display item in "Demoted" state.
+  SMIF_ALTSTATE           = $00000800;       // Displayed in "Altered State"
+  SMIF_DRAGNDROP          = $00001000;       // If item that is being dragged hovers over an item for long enough then it SMC_EXECs that item
+  SMIF_NEW                = $00002000;       // Item is newly-installed or otherwise attractive (XP)
+  SMC_INITMENU            = $00000001;  // The callback is called to init a menuband
+  SMC_CREATE              = $00000002;
+  SMC_EXITMENU            = $00000003;  // The callback is called when menu is collapsing
+  SMC_GETINFO             = $00000005;  // The callback is called to return DWORD values
+  SMC_GETSFINFO           = $00000006;  // The callback is called to return DWORD values
+  SMC_GETOBJECT           = $00000007;  // The callback is called to get some object
+  SMC_GETSFOBJECT         = $00000008;  // The callback is called to get some object
+  SMC_SFEXEC              = $00000009;  // The callback is called to execute an shell folder item
+  SMC_SFSELECTITEM        = $0000000A;  // The callback is called when an item is selected
+  SMC_REFRESH             = $00000010;  // Menus have completely refreshed. Reset your state.
+  SMC_DEMOTE              = $00000011;  // Demote an item
+  SMC_PROMOTE             = $00000012;  // Promote an item, wParam = SMINV_* flag
+  SMC_DEFAULTICON         = $00000016;  // Returns Default icon location in wParam, index in lParam
+  SMC_NEWITEM             = $00000017;  // Notifies item is not in the order stream.
+  SMC_CHEVRONEXPAND       = $00000019;  // Notifies of a expansion via the chevron 
+  SMC_DISPLAYCHEVRONTIP   = $0000002A;  // S_OK display, S_FALSE not. 
+  SMC_SETSFOBJECT         = $0000002D;  // Called to save the passed object
+  SMC_SHCHANGENOTIFY      = $0000002E;  // Called when a Change notify is received. lParam points to SMCSHCHANGENOTIFYSTRUCT
+  SMC_CHEVRONGETTIP       = $0000002F;  // Called to get the chevron tip text. wParam = Tip title, Lparam = TipText Both MAX_PATH
+  SMC_SFDDRESTRICTED      = $00000030;  // Called requesting if it's ok to drop. wParam = IDropTarget.
+  ATTACHMENT_PROMPT_NONE  = $0000;
+  ATTACHMENT_PROMPT_SAVE  = $0001;
+  ATTACHMENT_PROMPT_EXEC  = $0002;             
+  ATTACHMENT_PROMPT_EXEC_OR_SAVE      = $0003;             
+  ATTACHMENT_ACTION_CANCEL= $0000; 
+  ATTACHMENT_ACTION_SAVE  = $0001;
+  ATTACHMENT_ACTION_EXEC  = $0002;             
+  SMINIT_DEFAULT          = $00000000;  // No Options
+  SMINIT_RESTRICT_DRAGDROP= $00000002;  // Don't allow Drag and Drop
+  SMINIT_TOPLEVEL         = $00000004;  // This is the top band.
+  SMINIT_CACHED           = $00000010;
+  SMINIT_VERTICAL         = $10000000;  // This is a vertical menu
+  SMINIT_HORIZONTAL       = $20000000;  // This is a horizontal menu    (does not inherit)
+  ANCESTORDEFAULT         = dword(-1);
+  SMSET_TOP               = $10000000;    // Bias this namespace to the top of the menu
+  SMSET_BOTTOM            = $20000000;    // Bias this namespace to the bottom of the menu
+  SMSET_DONTOWN           = $00000001;    // The Menuband doesn't own the non-ref counted object
+  SMINV_REFRESH           = $00000001;
+  SMINV_ID                = $00000008;
 
 Type
       SFGAOF = ULONG;
@@ -447,9 +686,6 @@ Type
       PSFGAOF = ^SFGAOF;
       FMTID  =  ^GUID;
       pFMTID = pGUID;
-      PROPID = ULONG;
-      TPROPID= PROPID;
-      PPROPID= ^PROPID;
       PROPERTYUI_NAME_FLAGS = DWord; // enum
       PROPERTYUI_FORMAT_FLAGS = DWord;
       PROPERTYUI_FLAGS = Dword;
@@ -1554,11 +1790,17 @@ Type
         function GetCategoryInfo(dwCategoryId:DWORD; pci:pCATEGORY_INFO):HRESULT;StdCall;
         function CompareCategory(csfFlags:CATSORT_FLAGS; dwCategoryId1:DWORD; dwCategoryId2:DWORD):HRESULT;StdCall;
         end;
+
+   IQueryInfo = Interface(IUnknown)
+        ['{00021500-0000-0000-c000-000000000046}']
+        function GetInfoTip (dwFlags:DWord;var pwsztip:pwchar):HResult;StdCall;
+        function GetInfoFlags (var dwflags:dword):HResult;Stdcall;
+        end;
  
     IShellLinkA  = Interface(IUnknown)
         ['{000214EE-0000-0000-C000-000000000046}']
         function GetPath(pszFile:LPSTR; cch:longint; pfd:pWIN32_FIND_DATA; fFlags:DWORD):HRESULT;StdCall;
-        function GetIDList(ppidl:pLPITEMIDLIST):HRESULT;StdCall;
+        function GetIDList(var ppidl:LPITEMIDLIST):HRESULT;StdCall;
         function SetIDList(pidl:LPCITEMIDLIST):HRESULT;StdCall;
         function GetDescription(pszName:LPSTR; cch:longint):HRESULT;StdCall;
         function SetDescription(pszName:LPCSTR):HRESULT;StdCall;
@@ -1566,11 +1808,11 @@ Type
         function SetWorkingDirectory(pszDir:LPCSTR):HRESULT;StdCall;
         function GetArguments(pszArgs:LPSTR; cch:longint):HRESULT;StdCall;
         function SetArguments(pszArgs:LPCSTR):HRESULT;StdCall;
-        function GetHotkey(pwHotkey:pWORD):HRESULT;StdCall;
+        function GetHotkey(var pwHotkey:WORD):HRESULT;StdCall;
         function SetHotkey(wHotkey:WORD):HRESULT;StdCall;
-        function GetShowCmd(piShowCmd:plongint):HRESULT;StdCall;
+        function GetShowCmd(var piShowCmd:longint):HRESULT;StdCall;
         function SetShowCmd(iShowCmd:longint):HRESULT;StdCall;
-        function GetIconLocation(pszIconPath:LPSTR; cch:longint; piIcon:plongint):HRESULT;StdCall;
+        function GetIconLocation(pszIconPath:LPSTR; cch:longint;var iIcon:longint):HRESULT;StdCall;
         function SetIconLocation(pszIconPath:LPCSTR; iIcon:longint):HRESULT;StdCall;
         function SetRelativePath(pszPathRel:LPCSTR; dwReserved:DWORD):HRESULT;StdCall;
         function Resolve(hwnd:HWND; fFlags:DWORD):HRESULT;StdCall;
