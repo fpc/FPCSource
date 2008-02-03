@@ -35,6 +35,10 @@ uses
  const libaspell = '/boot/home/config/lib/libaspell.so';
 {$ENDIF}
 
+{$IFDEF Solaris}
+ const libaspell = '/opt/csw/lib/libpspell.so.15';
+{$ENDIF}
+
 {$IFDEF SkyOS}
  {$DEFINE STATIC_ASPELL}
  {$LINKLIB aspell}
