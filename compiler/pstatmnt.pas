@@ -894,7 +894,11 @@ implementation
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
+{$ifdef cpunofpu}
+             asmstat.used_regs_fpu:=[0..first_int_imreg-1];
+{$else cpunofpu}
              asmstat.used_regs_fpu:=[0..first_fpu_imreg-1];
+{$endif cpunofpu}
              if token<>_RECKKLAMMER then
               begin
                 if po_assembler in current_procinfo.procdef.procoptions then

@@ -661,6 +661,9 @@ interface
 {$ifdef MIPS}
        pbestrealtype : ^tdef = @s64floattype;
 {$endif MIPS}
+{$ifdef AVR}
+       pbestrealtype : ^tdef = @s64floattype;
+{$endif AVR}
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
 
