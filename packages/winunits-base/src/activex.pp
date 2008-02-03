@@ -44,7 +44,7 @@ TYPE
      PROPID = ULONG;
      TPROPID= PROPID;
      PPROPID= ^PROPID;
-     VARIANT_BOOL        = short;
+     VARIANT_BOOL        = wordbool;
      _VARIANT_BOOL       = VARIANT_BOOL;
      CY			 = CURRENCY;
      DATE		 = DOUBLE;
