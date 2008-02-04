@@ -6,6 +6,7 @@ uses fpmkunit;
 
 Var
   P : TPackage;
+  D : TDependency;
 begin
   With Installer do
     begin
@@ -17,8 +18,10 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.1-1';
     P.Description:='Free Pascal Make Tool';
-    P.Dependencies.Add('paszlib');
-    P.Dependencies.Add('fcl-process');
+    D:=P.Dependencies.Add('paszlib');
+      D.Version:='2.2.1-0';
+    D:=P.Dependencies.Add('fcl-process');
+      D.Version:='2.2.1-0';
     P.Targets.AddUnit('src/fpmkunit.pp');
 
 {$ifndef ALLPACKAGES}
