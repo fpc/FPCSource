@@ -110,7 +110,7 @@ gdbver.inc:
         $(CPPROG) gdbver_nogdb.inc gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
-	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc gdbint.pp
+	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
 endif
 
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
