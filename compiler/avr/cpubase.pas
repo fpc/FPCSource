@@ -324,6 +324,7 @@ unit cpubase;
       }
       std_param_align = 4;
 
+      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
 {*****************************************************************************
                                   Helpers

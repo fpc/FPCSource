@@ -419,7 +419,8 @@ implementation
 {$ifdef cpu16bit}
         uinttype:=u16inttype;
         sinttype:=s16inttype;
-        ptrinttype:=u16inttype;
+        ptruinttype:=u16inttype;
+        ptrsinttype:=s16inttype;
 {$endif cpu16bit}
         set_current_module(oldcurrentmodule);
       end;

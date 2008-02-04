@@ -44,17 +44,15 @@ implementation
 **************************************}
 
     {$ifndef NOAGARMGAS}
-      ,agarmgas
+      ,agavrgas
     {$endif}
-
-      ,ogcoff
 
 {**************************************
         Assembler Readers
 **************************************}
 
   {$ifndef NoRaarmgas}
-       ,raarmgas
+       ,raavrgas
   {$endif NoRaarmgas}
 
 {**************************************
