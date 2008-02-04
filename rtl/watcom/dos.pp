@@ -204,9 +204,7 @@ begin
   c[0]:=char(length(comline)+2);
 { create path }
   p:=path;
-  for i:=1 to length(p) do
-   if p[i]='/' then
-    p[i]:='\';
+  DoDirSeparators(p);
   if LFNSupport then
     GetShortName(p);
 { create buffer }
@@ -460,8 +458,7 @@ var
   w : LFNSearchRec;
 begin
   { allow slash as backslash }
-  for i:=0 to strlen(path) do
-    if path[i]='/' then path[i]:='\';
+  DoDirSeparators(path);
   dosregs.si:=1; { use ms-dos time }
   { don't include the label if not asked for it, needed for network drives }
   if attr=$8 then
@@ -540,8 +537,7 @@ var
    i : longint;
 begin
   { allow slash as backslash }
-  for i:=0 to strlen(path) do
-    if path[i]='/' then path[i]:='\';
+  DoDirSeparators(path);
   copytodos(f,sizeof(searchrec));
   dosregs.edx:=tb_offset;
   dosregs.ds:=tb_segment;
@@ -653,8 +649,7 @@ begin
   else
     begin
        { allow slash as backslash }
-       for i:=1 to length(dirlist) do
-         if dirlist[i]='/' then dirlist[i]:='\';
+       DoDirSeparators(dirlist);
        repeat
          p1:=pos(';',dirlist);
          if p1<>0 then

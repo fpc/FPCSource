@@ -24,14 +24,17 @@ const
  LFNSupport = true;
  DirectorySeparator = ':';
  DriveSeparator = ':';
+ ExtensionSeparator = '.';
  PathSeparator = ',';  {Is used in MPW and OzTeX}
+ AllowDirectorySeparators : set of char = [':'];
+ AllowDriveSeparators : set of char = [':'];
  FileNameCaseSensitive = false;
  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
-  
+
  maxExitCode = 65535;
  MaxPathLen = 256;
  AllFilesMask = '*';
-  
+
 const
 { Default filehandles }
   UnusedHandle    : Longint = -1;

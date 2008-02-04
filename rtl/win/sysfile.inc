@@ -18,15 +18,6 @@
                           Low Level File Routines
 *****************************************************************************}
 
-procedure AllowSlash(p:pchar);
-var
-   i : longint;
-begin
-{ allow slash as backslash }
-   for i:=0 to strlen(p) do
-     if p[i]='/' then p[i]:='\';
-end;
-
 function do_isdevice(handle:thandle):boolean;
 begin
 {$ifndef WINCE}
@@ -47,7 +38,7 @@ end;
 
 procedure do_erase(p : pchar);
 begin
-   AllowSlash(p);
+   DoDirSeparators(p);
    if DeleteFile(p)=0 then
     Begin
       errno:=GetLastError;
@@ -63,8 +54,8 @@ end;
 
 procedure do_rename(p1,p2 : pchar);
 begin
-  AllowSlash(p1);
-  AllowSlash(p2);
+  DoDirSeparators(p1);
+  DoDirSeparators(p2);
   if MoveFile(p1,p2)=0 then
    Begin
       errno:=GetLastError;
@@ -214,7 +205,7 @@ Var
   oflags,cd : longint;
   security : TSecurityAttributes;
 begin
-  AllowSlash(p);
+  DoDirSeparators(p);
   { close first if opened }
   if ((flags and $10000)=0) then
    begin

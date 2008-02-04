@@ -554,8 +554,7 @@ begin
   else
     begin
        { allow slash as backslash }
-       for i:=1 to length(dirlist) do
-         if dirlist[i]='/' then dirlist[i]:='\';
+       DoDirSeparators(dirlist);
        repeat
          p1:=pos(';',dirlist);
          if p1<>0 then

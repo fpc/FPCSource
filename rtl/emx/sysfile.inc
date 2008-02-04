@@ -19,16 +19,6 @@
 
 ****************************************************************************}
 
-procedure allowslash(p:Pchar);
-
-{Allow slash as backslash.}
-
-var i:longint;
-
-begin
-    for i:=0 to strlen(p) do
-        if p[i]='/' then p[i]:='\';
-end;
 
 procedure do_close (H: THandle);
 
@@ -53,7 +43,7 @@ end;
 procedure do_erase(p:Pchar);
 
 begin
-    allowslash(p);
+    DoDirSeparators(p);
     asm
         movl P,%edx
         movb $0x41,%ah
@@ -67,8 +57,8 @@ end;
 procedure do_rename(p1,p2:Pchar);
 
 begin
-    allowslash(p1);
-    allowslash(p2);
+    DoDirSeparators(p1);
+    DoDirSeparators(p2);
     asm
         movl P1, %edx
         movl P2, %edi
@@ -277,7 +267,7 @@ procedure do_open(var f;p:pchar;flags:longint);
 var Action: cardinal;
 
 begin
-    allowslash(p);
+    DoDirSeparators(p);
     { close first if opened }
     if ((flags and $10000)=0) then
         begin

@@ -27,7 +27,7 @@ var buffer:array[0..255] of char;
 begin
     move(s[1],buffer,length(s));
     buffer[length(s)]:=#0;
-    allowslash(Pchar(@buffer));
+    DoDirSeparators(Pchar(@buffer));
     asm
         leal buffer,%edx
         movb func,%ah
@@ -51,7 +51,7 @@ begin
     begin
       move(s[1],buffer,length(s));
       buffer[length(s)]:=#0;
-      allowslash(Pchar(@buffer));
+      DoDirSeparators(Pchar(@buffer));
       Rc := DosCreateDir(buffer,nil);
       if Rc <> 0 then
        begin
@@ -81,7 +81,7 @@ begin
     begin
       move(s[1],buffer,length(s));
       buffer[length(s)]:=#0;
-      allowslash(Pchar(@buffer));
+      DoDirSeparators(Pchar(@buffer));
       Rc := DosDeleteDir(buffer);
       if Rc <> 0 then
        begin
@@ -123,7 +123,7 @@ begin
                                     begin
                                         Move (S [1], Buffer, Length (S));
                                         Buffer [Length (S)] := #0;
-                                        AllowSlash (PChar (@Buffer));
+                                        DoDirSeparators (PChar (@Buffer));
                                         RC := DosSetCurrentDir (@Buffer);
                                         if RC <> 0 then
                                          begin
@@ -136,7 +136,7 @@ begin
                         begin
                             Move (S [1], Buffer, Length (S));
                             Buffer [Length (S)] := #0;
-                            AllowSlash (PChar (@Buffer));
+                            DoDirSeparators (PChar (@Buffer));
                             RC := DosSetCurrentDir (@Buffer);
                             if RC <> 0 then
                              begin
@@ -210,8 +210,8 @@ begin
     while (dir[i]<>#0) do
         begin
             { convert path name to DOS }
-            if dir[i]='/' then
-            dir[i]:='\';
+			     if dir[i] in AllowDirectorySeparators then
+			       dir[i]:=DirectorySeparator;
             dir[0]:=char(i);
             inc(i);
         end;

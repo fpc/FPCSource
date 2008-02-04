@@ -637,7 +637,7 @@ begin
   EndIndex := Length(AFilename);
   if EndIndex = 0 then
     exit;
-  while not (AFilename[EndIndex] in DirSeparators) do
+  while not (AFilename[EndIndex] in AllowDirectorySeparators) do
   begin
     Dec(EndIndex);
     if EndIndex = 0 then
@@ -657,7 +657,7 @@ var
   i: Integer;
   PageDoc: TXMLDocument;
   Filename: String;
-begin 
+begin
   if Engine.Output <> '' then
     Engine.Output := IncludeTrailingBackSlash(Engine.Output);
   for i := 0 to PageInfos.Count - 1 do
@@ -1198,8 +1198,8 @@ end;
 
 function THTMLWriter.AppendPasSHFragment(Parent: TDOMNode;
   const AText: String; AShFlags: Byte): Byte;
-  
-  
+
+
 var
   Line, Last, p: PChar;
   IsInSpecial: Boolean;
@@ -1207,37 +1207,37 @@ var
   El: TDOMElement;
 
   Procedure MaybeOutput;
-  
+
   Var
     CurParent: TDomNode;
-  
+
   begin
     If (Last<>Nil) then
       begin
       If (el<>Nil) then
         CurParent:=El
       else
-        CurParent:=Parent;  
+        CurParent:=Parent;
       AppendText(CurParent,Last);
       El:=Nil;
       Last:=Nil;
       end;
   end;
 
-  Function NewEl(Const ElType,Attr,AttrVal : String) : TDomElement; 
-  
+  Function NewEl(Const ElType,Attr,AttrVal : String) : TDomElement;
+
   begin
     Result:=CreateEl(Parent,ElType);
     Result[Attr]:=AttrVal;
   end;
-  
-  Function NewSpan(Const AttrVal : String) : TDomElement; 
-  
+
+  Function NewSpan(Const AttrVal : String) : TDomElement;
+
   begin
     Result:=CreateEl(Parent,'span');
     Result['class']:=AttrVal;
   end;
-  
+
 begin
   GetMem(Line, Length(AText) * 3 + 4);
   Try
@@ -1406,10 +1406,10 @@ end;
 { Returns the new CodeEl, which will be the old CodeEl in most cases }
 function THTMLWriter.AppendType(CodeEl, TableEl: TDOMElement;
   Element: TPasType; Expanded: Boolean; NestingLevel: Integer): TDOMElement;
-  
+
 Var
-  S : String;  
-  
+  S : String;
+
 begin
   Result := CodeEl;
 
@@ -1424,7 +1424,7 @@ begin
     S:='array ';
     If (TPasArrayType(Element).IndexRange<>'') then
       S:=S+'[' + TPasArrayType(Element).IndexRange + '] ';
-    S:=S+'of ';  
+    S:=S+'of ';
     If (TPasArrayType(Element).ElType=Nil) then
       S:=S+'Const';
     AppendPasSHFragment(CodeEl,S,0);
@@ -1446,7 +1446,7 @@ begin
     Result := AppendRecordType(CodeEl, TableEl, TPasRecordType(Element), NestingLevel)
   else if (Element.ClassType = TPasFileType) and (TPasFileType(Element).elType=Nil) then
     AppendPasSHFragment(CodeEl,'file',0)
-  else  
+  else
   // Other types
     AppendHyperlink(CodeEl, Element);
 end;
@@ -1650,7 +1650,7 @@ begin
       If Element.IsBitPacked then
         AppendKw(CodeEl, 'bitpacked record')
       else
-        AppendKW(CodeEl, 'packed record')  
+        AppendKW(CodeEl, 'packed record')
     else
       AppendKw(CodeEl, 'record');
 
@@ -1876,7 +1876,7 @@ begin
             ConvertBaseShortList(AElement, El, True)
           Finally
             PopOutputNode;
-          end;  
+          end;
           end
         else
           AppendText(NewEl,El['id']);
@@ -1906,7 +1906,7 @@ var
 //  TableEl, El, TREl, TDEl, ParaEl, NewEl, DescrEl: TDOMElement;
   fn,s: String;
   f: Text;
-  
+
 begin
   if not (Assigned(DocNode) and Assigned(DocNode.FirstExample)) then
     Exit;
@@ -2010,7 +2010,7 @@ var
 begin
   CurDirectory := Allocator.GetFilename(AElement, ASubpageIndex);
   i := Length(CurDirectory);
-  while (i > 0) and not (CurDirectory[i] in DirSeparators) do
+  while (i > 0) and not (CurDirectory[i] in AllowDirectorySeparators) do
     Dec(i);
   CurDirectory := Copy(CurDirectory, 1, i);
   BaseDirectory := Allocator.GetRelativePathToTop(AElement);

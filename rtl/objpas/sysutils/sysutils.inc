@@ -24,12 +24,13 @@
       Temp : String;
 
     begin
-      Result:='';
-      temp:=Dirlist;
+      // Start with checking the file in the current directory
+      Result:=Name;
+      temp:=SetDirSeparators(DirList);
       repeat
-        While (Length(Temp)>0) and (Temp[1]=PathSeparator) do
-          Delete(Temp,1,1);
-        I:=pos(PathSep,Temp);
+        If (Result<>'') and FileExists(Result) Then
+          exit;
+        I:=pos(PathSeparator,Temp);
         If I<>0 then
           begin
             Result:=Copy (Temp,1,i-1);
@@ -40,12 +41,10 @@
             Result:=Temp;
             Temp:='';
           end;
-        If (Length(Result)>0) and (result[length(result)] in ['\','/']) then
-          Result:=Result+DirectorySeparator;
-        Result:=Result+name;
-        If not FileExists(Result) Then
-         Result:='';
-      until (length(temp)=0) or (length(result)<>0);
+        if Result<>'' then
+          Result:=IncludeTrailingPathDelimiter(Result)+name;
+      until temp='';
+      result:='';
     end;
 
   {$ifndef OS_FILEISREADONLY}

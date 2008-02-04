@@ -213,7 +213,7 @@ end;
             if path[oldPos] = '.' then
               if (oldpos + 1 <= oldlen) and (path[oldPos + 1] = '.') then
                 begin
-                  if (oldpos + 2 > oldlen) or (path[oldPos + 2] in ['/', '\']) then
+                  if (oldpos + 2 > oldlen) or (path[oldPos + 2] in AllowDirectorySeparators) then
                     begin
                       {It is "../" or ".."  translates to ":" }
                       if newPos = maxPos then
@@ -226,7 +226,7 @@ end;
                       continue;  {Start over again}
                     end;
                 end
-              else if (oldpos + 1 > oldlen) or (path[oldPos + 1] in ['/', '\']) then
+              else if (oldpos + 1 > oldlen) or (path[oldPos + 1] in AllowDirectorySeparators) then
                 begin
                   {It is "./" or "."  ignor it }
                   oldPos := oldPos + 2;
@@ -234,7 +234,7 @@ end;
                 end;
 
             {Collect file or dir name}
-            while (oldpos <= oldlen) and not (path[oldPos] in ['/', '\']) do
+            while (oldpos <= oldlen) and not (path[oldPos] in AllowDirectorySeparators) do
               begin
                 if newPos = maxPos then
                   begin {Shouldn't actually happen, but..}

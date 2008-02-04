@@ -9,6 +9,8 @@ program TestExtractDrive;
 uses
   SysUtils;
 
+var
+  err : boolean;
 
 function tiRemoveDrive(pStrPath : string) : string;
 var
@@ -30,7 +32,7 @@ begin
   if expected <> actual then
     begin
       Writeln(Format(c, [msg, expected, actual]));
-      halt(1);
+      err:=true;
     end
   else
     Writeln('...test passed.');
@@ -38,6 +40,10 @@ end;
 
 
 begin
+{$if not(defined(Windows) or defined(go32v2) or defined(os2) or defined(emx))}
+  AllowDirectorySeparators:=['\'];
+  AllowDriveSeparators:=[':'];
+{$endif}
   Writeln('Start tests...');
   { What I use in my application }
   CheckEquals('', tiRemoveDrive('c:'), 'Failed on 1');
@@ -50,5 +56,7 @@ begin
   CheckEquals('c:', ExtractFileDrive('c:\temp\hos.txt'), 'Failed on 6');
   CheckEquals('c:', ExtractFileDrive('c:\Program Files\My Program\run.bat'), 'Failed on 7');
   Writeln('Done.');
+  if err then
+    halt(1);
 end.
 

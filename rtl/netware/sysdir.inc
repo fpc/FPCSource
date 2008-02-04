@@ -70,8 +70,7 @@ begin
   begin
     Move (P, dir[1], i);
     BYTE(dir[0]) := i;
-    For i := 1 to length (dir) do
-      if dir[i] = '\' then dir [i] := '/';
+    DoDirSeparators(dir);
     // fix / after volume, the compiler needs that
     // normaly root of a volumes is SERVERNAME/SYS:, change that
     // to SERVERNAME/SYS:/

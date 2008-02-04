@@ -19,14 +19,6 @@
 
 ****************************************************************************}
 
-procedure allowslash(p:Pchar);
-{Allow slash as backslash.}
-var i:longint;
-begin
-    for i:=0 to strlen(p) do
-        if p[i]='/' then p[i]:='\';
-end;
-
 procedure do_close(h:thandle);
 begin
 { Only three standard handles under real OS/2 }
@@ -41,14 +33,14 @@ end;
 
 procedure do_erase(p:Pchar);
 begin
-  allowslash(p);
+  DoDirSeparators(p);
   inoutres:=DosDelete(p);
 end;
 
 procedure do_rename(p1,p2:Pchar);
 begin
-  allowslash(p1);
-  allowslash(p2);
+  DoDirSeparators(p1);
+  DoDirSeparators(p2);
   inoutres:=DosMove(p1, p2);
 end;
 
@@ -162,7 +154,7 @@ var
   Action, Attrib, OpenFlags, FM: Cardinal;
 begin
   // convert unix slashes to normal slashes
-  allowslash(p);
+  DoDirSeparators(p);
 
   // close first if opened
   if ((flags and $10000)=0) then

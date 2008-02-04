@@ -20,10 +20,6 @@
     System Utilities For Free Pascal
 }
 
-Const
-  DirSeparators : set of char = ['/','\'];
-
-
 function ChangeFileExt(const FileName, Extension: string): string;
 function ExtractFilePath(const FileName: string): string;
 function ExtractFileDrive(const FileName: string): string;

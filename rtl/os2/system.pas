@@ -36,12 +36,15 @@ const
 { LFNSupport is defined separately below!!! }
   DirectorySeparator = '\';
   DriveSeparator = ':';
+  ExtensionSeparator = '.';
   PathSeparator = ';';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
 { FileNameCaseSensitive is defined separately below!!! }
   MaxExitCode = 65535;
   MaxPathLen = 256;
   AllFilesMask = '*';
-  
+
 type    Tos=(osDOS,osOS2,osDPMI);
 
 const   OS_Mode: Tos = osOS2;
@@ -92,7 +95,7 @@ procedure WriteUseHighMem (B: boolean);
 (* underlying OS/2 version, can be overridden by user - heap is allocated  *)
 (* for all threads, so the setting isn't declared as a threadvar and       *)
 (* should be only changed at the beginning of the main thread if needed.   *)
-property 
+property
   UseHighMem: boolean read ReadUseHighMem write WriteUseHighMem;
 (* UseHighMem is provided for compatibility with 2.0.x. *)
 

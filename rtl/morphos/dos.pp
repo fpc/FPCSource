@@ -122,8 +122,8 @@ procedure Amiga2DateStamp(Date : LongInt; var TotalDays,Minutes,Ticks: longint);
 { Converts a value in seconds past 1978 to a value in AMIGA DateStamp format }
 { Taken from SWAG and modified to work with the Amiga format - CEC           }
 var
-  LocalDate : LongInt; 
-  Done : Boolean; 
+  LocalDate : LongInt;
+  Done : Boolean;
   TotDays : Integer;
   Y: Word;
   H: Word;
@@ -183,7 +183,7 @@ begin
 end;
 
 function dosSetFileDate(name: string; p : PDateStamp): Boolean;
-var 
+var
   buffer : array[0..255] of Char;
 begin
   move(name[1],buffer,length(name));
@@ -448,7 +448,7 @@ begin
   DosError:= 0;
   LastDosExitCode:=0;
   tmpPath:=PathConv(Path)+#0+ComLine+#0; // hacky... :)
-    
+
   { Here we must first check if the command we wish to execute }
   { actually exists, because this is NOT handled by the        }
   { _SystemTagList call (program will abort!!)                 }
@@ -727,8 +727,7 @@ begin
     DosError:=0;
     FTime := 0;
     Str := StrPas(filerec(f).name);
-    for i:=1 to length(Str) do
-     if str[i]='\' then str[i]:='/';
+    DoDirSeparators(str);
     FLock := dosLock(Str, SHARED_LOCK);
     IF FLock <> 0 then begin
         New(FInfo);
@@ -759,8 +758,7 @@ end;
   Begin
     new(DateStamp);
     Str := StrPas(filerec(f).name);
-    for i:=1 to length(Str) do
-     if str[i]='\' then str[i]:='/';
+    DoDirSeparators(str);
     { Check first of all, if file exists }
     FLock := dosLock(Str, SHARED_LOCK);
     IF FLock <> 0 then
@@ -792,8 +790,7 @@ begin
     flags:=0;
     New(info);
     Str := StrPas(filerec(f).name);
-    for i:=1 to length(Str) do
-     if str[i]='\' then str[i]:='/';
+    DoDirSeparators(str);
     { open with shared lock to check if file exists }
     MyLock:=dosLock(Str,SHARED_LOCK);
     if MyLock <> 0 then
@@ -854,7 +851,7 @@ end;
                              --- Environment ---
 ******************************************************************************}
 
-var 
+var
   strofpaths : string;
 
 function getpathstring: string;

@@ -35,7 +35,10 @@ const
  LFNSupport = true;
  DirectorySeparator = '/';
  DriveSeparator = ':';
+ ExtensionSeparator = '.';
  PathSeparator = ':';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
 { FileNameCaseSensitive is defined below! }
  maxExitCode = 255;
  MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin

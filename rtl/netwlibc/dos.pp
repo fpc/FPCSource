@@ -380,7 +380,7 @@ begin
   end;
   f._attr := attr;
   p := length (path);
-  while (p > 0) and (not (path[p] in ['\','/'])) do
+  while (p > 0) and (not (path[p] in AllowDirectorySeparators)) do
     dec (p);
   if p > 0 then
   begin
@@ -472,8 +472,7 @@ begin
   else
     begin
        { allow backslash as slash }
-       for i:=1 to length(dirlist) do
-         if dirlist[i]='\' then dirlist[i]:='/';
+       DoDirSeparators(dirlist);
        repeat
          p1:=pos(';',dirlist);
          if p1<>0 then
@@ -659,9 +658,7 @@ begin
       inc (i);
       res := GetSearchPathElement (i, isdosPath, @SearchElement[0]);
     end;
-    for i := 1 to length(GetEnv) do
-      if GetEnv[i] = '\' then
-        GetEnv[i] := '/';
+    DoDirSeparators(getenv);
   end else
   begin
     strpcopy(envvar0,envvar);

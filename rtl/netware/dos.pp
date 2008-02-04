@@ -371,8 +371,7 @@ begin
   else
     begin
        { allow backslash as slash }
-       for i:=1 to length(dirlist) do
-         if dirlist[i]='\' then dirlist[i]:='/';
+       DoDirSeparators(dirlist);
        repeat
          p1:=pos(';',dirlist);
          if p1<>0 then
@@ -486,11 +485,7 @@ begin
 
     end;
 
-    for i := 1 to length(GetEnv) do
-
-      if GetEnv[i] = '\' then
-
-        GetEnv[i] := '/';
+    DoDirSeparators(getenv);
 
   end else
   begin

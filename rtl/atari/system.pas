@@ -41,7 +41,10 @@ const
  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
  DirectorySeparator = '/';
  DriveSeparator = ':';
+ ExtensionSeparator = '.';
  PathSeparator = ';';
+ AllowDirectorySeparators : set of char = ['\','/'];
+ AllowDriveSeparators : set of char = [':'];
  FileNameCaseSensitive = false;
  maxExitCode = 255;
  MaxPathLen = 255;
@@ -284,13 +287,13 @@ end ['D0'];
                           Low Level File Routines
  ****************************************************************************}
 
-procedure AllowSlash(p:pchar);
+procedure DoDirSeparators(p:pchar);
 var
   i : longint;
 begin
 { allow slash as backslash }
   for i:=0 to strlen(p) do
-   if p[i]='/' then p[i]:='\';
+   if p[i] in AllowDirectorySeparators then p[i]:=DirectorySeparator;
 end;
 
 
@@ -310,7 +313,7 @@ end;
 
 procedure do_erase(p : pchar);
 begin
-  AllowSlash(p);
+  DoDirSeparators(p);
   asm
         move.l  d2,d6            { save d2   }
         movem.l d3/a2/a3,-(sp)   { save regs }
@@ -332,8 +335,8 @@ end;
 
 procedure do_rename(p1,p2 : pchar);
 begin
-  AllowSlash(p1);
-  AllowSlash(p2);
+  DoDirSeparators(p1);
+  DoDirSeparators(p2);
   asm
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
@@ -502,7 +505,7 @@ var
   i : word;
   oflags: longint;
 begin
-  AllowSlash(p);
+  DoDirSeparators(p);
  { close first if opened }
   if ((flags and $10000)=0) then
    begin
@@ -625,7 +628,7 @@ var
 begin
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
-  AllowSlash(pchar(@buffer));
+  DoDirSeparators(pchar(@buffer));
   c:=word(func);
   asm
         move.l  d2,d6      { save d2 }
@@ -702,8 +705,8 @@ begin
   i:=0;
   while (temp[i]<>#0) do
    begin
-     if temp[i]='/' then
-      temp[i]:='\';
+     if temp[i] in AllowDirectorySeparators then
+       temp[i]:=DirectorySeparator;
      dir[i+3]:=temp[i];
      inc(i);
    end;

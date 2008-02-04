@@ -127,21 +127,9 @@ begin
 (* Allow both '/' and '\' as directory separators *)
 (* by converting all to the native one.           *)
 {$warnings off}
-    if DirectorySeparator = '\' then
-    {Allow slash as backslash}
-      begin
-        for I := 1 to Length (Pa) do
-          if Pa [I] = '/' then
-            Pa [I] := '\'
-      end
-    else
-      if DirectorySeparator = '/' then
-    {Allow backslash as slash}
-        begin
-          for I := 1 to Length (Pa) do
-            if Pa [I] = '\' then
-              Pa [I] := '/';
-        end;
+	  for I := 1 to Length (Pa) do
+	    if Pa [I] in AllowDirectorySeparators  then
+	      Pa [I] := DirectorySeparator;
 {$warnings on}
 
 (* PathStart is amount of characters to strip to get beginning *)
