@@ -1599,112 +1599,133 @@ TYPE
         pElems : pCHAR;
      end;
    CAC = tagCAC;
+   TCAC = tagCAC;
    tagCAUB = record
         cElems : ULONG;
         pElems : pUCHAR;
      end;
    CAUB = tagCAUB;
+   TCAUB = tagCAUB;
    tagCAI = record
         cElems : ULONG;
         pElems : pSHORT;
      end;
    CAI = tagCAI;
+   TCAI = tagCAI;
    tagCAUI = record
         cElems : ULONG;
         pElems : pUSHORT;
      end;
    CAUI = tagCAUI;
+   TCAUI = tagCAUI;
    tagCAL = record
         cElems : ULONG;
         pElems : pLONG;
      end;
    CAL = tagCAL;
+   TCAL = tagCAL;
    tagCAUL = record
         cElems : ULONG;
         pElems : pULONG;
      end;
    CAUL = tagCAUL;
+   TCAUL = tagCAUL;
    tagCAFLT = record
         cElems : ULONG;
         pElems : pSingle;
      end;
    CAFLT = tagCAFLT;
-
+   TCAFLT = tagCAFLT;
    tagCADBL = record
         cElems : ULONG;
         pElems : ^DOUBLE;
      end;
    CADBL = tagCADBL;
+   TCADBL = tagCADBL;
    tagCACY = record
         cElems : ULONG;
         pElems : ^CY;
      end;
    CACY = tagCACY;
+   TCACY = tagCACY;
    tagCADATE = record
         cElems : ULONG;
         pElems : ^DATE;
      end;
    CADATE = tagCADATE;
+   TCADATE = tagCADATE;
    tagCABSTR = record
         cElems : ULONG;
         pElems : ^BSTR;
      end;
    CABSTR = tagCABSTR;
+   TCABSTR = tagCABSTR;
    tagCABSTRBLOB = record
         cElems : ULONG;
         pElems : ^BSTRBLOB;
      end;
    CABSTRBLOB = tagCABSTRBLOB;
+   TCABSTRBLOB = tagCABSTRBLOB;
    tagCABOOL = record
         cElems : ULONG;
         pElems : ^VARIANT_BOOL;
      end;
    CABOOL = tagCABOOL;
+   TCABOOL = tagCABOOL;
    tagCASCODE = record
         cElems : ULONG;
         pElems : ^SCODE;
      end;
    CASCODE = tagCASCODE;
+   TCASCODE = tagCASCODE;
    tagCAPROPVARIANT = record
         cElems : ULONG;
         pElems : ^PROPVARIANT;
      end;
    CAPROPVARIANT = tagCAPROPVARIANT;
+   TCAPROPVARIANT = tagCAPROPVARIANT;
    tagCAH = record
         cElems : ULONG;
         pElems : ^LARGE_INTEGER;
      end;
    CAH = tagCAH;
+   TCAH = tagCAH;
    tagCAUH = record
         cElems : ULONG;
         pElems : ^ULARGE_INTEGER;
      end;
    CAUH = tagCAUH;
+   TCAUH = tagCAUH;
    tagCALPSTR = record
         cElems : ULONG;
         pElems : ^LPSTR;
      end;
    CALPSTR = tagCALPSTR;
+   TCALPSTR = tagCALPSTR;
    tagCALPWSTR = record
         cElems : ULONG;
         pElems : ^LPWSTR;
      end;
    CALPWSTR = tagCALPWSTR;
+   TCALPWSTR = tagCALPWSTR;
    tagCAFILETIME = record
         cElems : ULONG;
         pElems : ^FILETIME;
      end;
    CAFILETIME = tagCAFILETIME;
+   TCAFILETIME = tagCAFILETIME;
    tagCACLIPDATA = record
         cElems : ULONG;
         pElems : ^CLIPDATA;
      end;
    CACLIPDATA = tagCACLIPDATA;
+   TCACLIPDATA = tagCACLIPDATA;
    tagCACLSID = record
         cElems : ULONG;
         pElems : ^CLSID;
      end;
    CACLSID = tagCACLSID;
+   TCACLSID = tagCACLSID;
 
    PROPVAR_PAD1 = WORD;
    PROPVAR_PAD2 = WORD;
