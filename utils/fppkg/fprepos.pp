@@ -41,14 +41,19 @@ Type
   );
   TOSes = Set of TOS;
 
+const
+  AllOSes = [Low(TOS)..High(TOS)];
+  AllCPUs = [Low(TCPU)..High(TCPU)];
+
+type
   { TFPVersion }
 
   TFPVersion = Class(TPersistent)
   private
-    FMajor: Word;
-    FMinor: Word;
-    FRelease: Word;
-    FSuffix: string;
+    FMajor,
+    FMinor,
+    FMicro,
+    FBuild    : Word;
     function GetAsString: String;
     function GetEmpty: Boolean;
     procedure SetAsString(const AValue: String);
@@ -60,16 +65,18 @@ Type
    Function SameVersion(AVersion : TFPVersion) : Boolean;
    Property Empty : Boolean Read GetEmpty;
   Published
-   Property Release : Word Read FRelease Write FRelease;
    Property Major : Word Read FMajor Write FMajor;
    Property Minor : Word Read FMinor Write FMinor;
-   Property Suffix : string Read FSuffix Write FSuffix;
+   Property Micro : Word Read FMicro Write FMicro;
+   Property Build : Word Read FBuild Write FBuild;
   end;
 
   { TFPDependency }
 
   TFPDependency = Class(TStreamCollectionItem)
   private
+    FOSes : TOSES;
+    FCPUs : TCPUS;
     FMinVersion: TFPVersion;
     FPackageName: String;
     procedure SetMinVersion(const AValue: TFPVersion);
@@ -82,6 +89,8 @@ Type
   Published
     Property PackageName : String Read FPackageName Write FPackageName;
     Property MinVersion : TFPVersion Read FMinVersion Write SetMinVersion;
+    Property OSes : TOSes Read FOSes Write FOses;
+    Property CPUs : TCPUs Read FCPUs Write FCPUs;
   end;
 
   { TFPDepencencies }
@@ -376,16 +385,12 @@ begin
   if Empty then
     Result:='<none>'
   else
-    begin
-      Result:=Format('%d.%d.%d',[Release,Major,Minor]);
-      If (Suffix<>'') then
-        Result:=Result+'-'+Suffix;
-    end;
+    Result:=Format('%d.%d.%d-%d',[Major,Minor,Micro,Build]);
 end;
 
 function TFPVersion.GetEmpty: Boolean;
 begin
-  Result:=(Release=0) and (Major=0) and (Minor=0) and (Suffix='');
+  Result:=(Major=0) and (Minor=0) and (Micro=0) and (Build=0);
 end;
 
 procedure TFPVersion.SetAsString(const AValue: String);
@@ -407,30 +412,25 @@ procedure TFPVersion.SetAsString(const AValue: String);
   end;
 
 Var
-  P : Integer;
   V : String;
-
 begin
   Clear;
   // Special support for empty version string
   if (AValue='') or (AValue='<none>') then
     exit;
   V:=AValue;
-  Release:=NextDigit('.',V);
   Major:=NextDigit('.',V);
-  Minor:=NextDigit('-',V);
-  P:=Pos('-',V);
-  If (P<>0) then
-    Delete(V,1,P);
-  Suffix:=V;
+  Minor:=NextDigit('.',V);
+  Micro:=NextDigit('-',V);
+  Build:=NextDigit(#0,V);
 end;
 
 procedure TFPVersion.Clear;
 begin
-  Release:=0;
+  Micro:=0;
   Major:=0;
   Minor:=0;
-  Suffix:='';
+  Build:=0;
 end;
 
 procedure TFPVersion.Assign(Source: TPersistent);
@@ -442,10 +442,10 @@ begin
   if Source is TFPVersion then
     begin
     V:=Source as TFPVersion;
-    Release:=V.Release;
     Major:=V.Major;
     Minor:=V.Minor;
-    Suffix:=V.Suffix;
+    Micro:=V.Micro;
+    Build:=V.Build;
     end
   else
     inherited Assign(Source);
@@ -453,16 +453,16 @@ end;
 
 function TFPVersion.CompareVersion(AVersion: TFPVersion): Integer;
 begin
-  Result:=Release-AVersion.Release;
+  Result:=Major-AVersion.Major;
   If (Result=0) then
     begin
-    Result:=Major-AVersion.Major;
-    if (Result=0) then
-      begin
       Result:=Minor-AVersion.Minor;
-      If (Result=0) then
-        Result:=CompareText(Suffix,AVersion.Suffix);
-      end;
+      if (Result=0) then
+        begin
+          Result:=Micro-AVersion.Micro;
+          If (Result=0) then
+            Result:=Build-AVersion.Build;
+        end;
     end;
 end;
 
@@ -490,6 +490,8 @@ begin
   inherited Create(ACollection);
   FVersion:=TFPVersion.Create;
   FInstalledVersion:=TFPVersion.Create;
+  FOSes:=AllOSes;
+  FCPUs:=AllCPUs;
 end;
 
 
@@ -1009,6 +1011,8 @@ constructor TFPDependency.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FMinVersion:=TFPVersion.Create;
+  FOSes:=AllOSes;
+  FCPUs:=AllCPUs;
 end;
 
 destructor TFPDependency.Destroy;

@@ -248,6 +248,14 @@ Var
 
 begin
   OOptions:='';
+  // Does the current package support this CPU-OS?
+  if assigned(CurrentPackage) then
+    begin
+      if not(CompilerOptions.CompilerOS in CurrentPackage.OSes) or
+         not(CompilerOptions.CompilerCPU in CurrentPackage.CPUs) then
+        Error(SErrPackageDoesNotSupportTarget,[CurrentPackage.Name,
+            MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+    end;
   { Maybe compile fpmake executable? }
   ExecuteAction(CurrentPackage,'compilefpmake');
   { Create options }

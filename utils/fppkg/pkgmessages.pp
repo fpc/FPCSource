@@ -42,7 +42,7 @@ Resourcestring
   SErrConvertFPMakeExists    = 'Found existing fpmake.pp, aborting conversion';
   SErrFailedToSelectMirror   = 'Could not select a mirror, run update and retry';
   SErrUnsupportedConfigVersion = 'Configuration file "%s" is too old, delete file manual and retry';
-
+  SErrPackageDoesNotSupportTarget = 'Package %s does not support %s';
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';

@@ -254,21 +254,25 @@ begin
   for i:=0 to CurrentPackage.Dependencies.Count-1 do
     begin
       D:=CurrentPackage.Dependencies[i];
-      DepPackage:=CurrentRepository.PackageByName(D.PackageName);
-      // Need installation?
-      if (DepPackage.InstalledVersion.Empty) or
-         (DepPackage.InstalledVersion.CompareVersion(D.MinVersion)<0) then
+      if (CompilerOptions.CompilerOS in D.OSes) and
+         (CompilerOptions.CompilerCPU in D.CPUs) then
         begin
-          if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
-            status:='Not Available!'
+          DepPackage:=CurrentRepository.PackageByName(D.PackageName);
+          // Need installation?
+          if (DepPackage.InstalledVersion.Empty) or
+             (DepPackage.InstalledVersion.CompareVersion(D.MinVersion)<0) then
+            begin
+              if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
+                status:='Not Available!'
+              else
+                status:='Updating';
+              L.Add(DepPackage.Name);
+            end
           else
-            status:='Updating';
-          L.Add(DepPackage.Name);
-        end
-      else
-        status:='OK';
-      Log(vlDebug,SDbgPackageDependency,
-          [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
+            status:='OK';
+          Log(vlDebug,SDbgPackageDependency,
+              [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
+        end;
     end;
   // Install needed updates
   for i:=0 to L.Count-1 do
