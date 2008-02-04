@@ -417,7 +417,7 @@ uses
      * misspelled words, then token.word will be
      * NULL and token.size will be 0  }
 
-    function aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):PAspellToken;cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
+    function aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):AspellToken;cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
 
     { Returns the underlying filter class.  }
 
@@ -822,7 +822,7 @@ var
        * misspelled words, then token.word will be
        * NULL and token.size will be 0  }
 
-  aspell_document_checker_next_misspelling: function(ths:PAspellDocumentChecker):PAspellToken;cdecl;
+  aspell_document_checker_next_misspelling: function(ths:PAspellDocumentChecker):AspellToken;cdecl;
 
       { Returns the underlying filter class.  }
 
