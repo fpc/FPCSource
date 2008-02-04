@@ -279,12 +279,14 @@ Type
     FDependencyType : TDependencyType;
     // Package, Unit
     FTarget : TObject;
+    FVersion : String;
     // Filenames, Includes
     FTargetFileName : String;
   Public
     Property Target : TObject Read FTarget Write FTarget;
     Property DependencyType : TDependencyType Read FDependencyType;
     Property TargetFileName : String Read FTargetFileName Write FTargetFileName;
+    Property Version : String Read FVersion Write FVersion;
   end;
 
   TDependencies = Class(TConditionalStrings)
@@ -498,8 +500,6 @@ Type
     procedure SetName(const AValue: String);override;
     procedure LoadUnitConfigFromFile(Const AFileName: String);
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
-    procedure SaveUnitConfigToStream(S : TStream;ACPU:TCPU;AOS:TOS);
-    procedure LoadUnitConfigFromStream(S: TStream);
   Public
     constructor Create(ACollection: TCollection); override;
     destructor destroy; override;
@@ -740,22 +740,22 @@ Type
     Procedure DoAfterArchive(APackage : TPackage);virtual;
     Procedure DoBeforeClean(APackage : TPackage);virtual;
     Procedure DoAfterClean(APackage : TPackage);virtual;
-    Function NeedsCompile(APackage : TPackage) : Boolean; virtual;
+    Function  NeedsCompile(APackage : TPackage) : Boolean; virtual;
     Procedure Compile(APackage : TPackage);
     Procedure MaybeCompile(APackage:TPackage);
     Procedure Install(APackage : TPackage);
     Procedure Archive(APackage : TPackage);
+    Procedure Manifest(APackage : TPackage);
     Procedure Clean(APackage : TPackage);
     Procedure CompileDependencies(APackage : TPackage);
-    Procedure GetManifest(APackage : TPackage; Manifest : TStrings);
-    Function CheckExternalPackage(Const APackageName : String):TPackage;
+    Function  CheckExternalPackage(Const APackageName : String):TPackage;
     procedure CreateOutputDir(APackage: TPackage);
     // Packages commands
     Procedure Compile(Packages : TPackages);
     Procedure Install(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
+    procedure Manifest(Packages: TPackages);
     Procedure Clean(Packages : TPackages);
-    Procedure GetManifest(Packages : TPackages; Manifest : TStrings);
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
     Property ExternalPackages: TPackages Read FExternalPackages;
@@ -940,8 +940,8 @@ ResourceString
   SInfoCreatingOutputDir  = 'Creating output dir "%s"';
   SInfoInstallingPackage  = 'Installing package %s';
   SInfoArchivingPackage   = 'Archiving package %s';
-  SInfoArchivingFile      = 'Archiving "%s"';
   SInfoCleaningPackage    = 'Cleaning package %s';
+  SInfoManifestPackage    = 'Creating manifest for package %s';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
 
@@ -960,14 +960,16 @@ ResourceString
   SDbgConsideringTarget     = 'Considering target %s';
   SDbgConsideringPackage    = 'Considering package %s';
   SDbgExternalDependency    = 'External dependency %s found in "%s"';
-  SDbgBuildEngineArchiving  = 'Build engine archiving.';
-  SDbgBuildEngineCleaning   = 'Build engine cleaning.';
+  SDbgBuildEngineArchiving  = 'Build engine archiving';
+  SDbgBuildEngineGenerateManifests = 'Build engine generating manifests';
+  SDbgBuildEngineCleaning   = 'Build engine cleaning';
   SDbgGenerating            = 'Generating "%s"';
   SDbgLoading               = 'Loading "%s"';
   SDbgFound                 = 'Found';
   SDbgNotFound              = 'Not Found';
   SDbgDirectoryExists       = 'Directory "%s" %s';
   SDbgFileExists            = 'File "%s" %s';
+  SDbgArchivingFile         = 'Archiving "%s"';
   SDbgSearchPath            = 'Using %s path "%s"';
   SDbgEnterDir              = 'Entering directory "%s"';
 
@@ -1030,7 +1032,7 @@ Const
 ****************************************************************************}
 
 
-Procedure SplitVersion(AValue: String; Var Release,Major,Minor : Word; Var Suffix : String);
+Procedure SplitVersion(AValue: String; Var Major,Minor,Micro,Build : Word);
 
   Function NextDigit(sep : Char; var V : string) : integer;
   Var
@@ -1039,7 +1041,7 @@ Procedure SplitVersion(AValue: String; Var Release,Major,Minor : Word; Var Suffi
     P:=Pos(Sep,V);
     If (P=0) then
       P:=Length(V)+1;
-    Result:=StrToIntDef(Copy(V,1,P-1),-1);
+    Result:=StrToIntDef(Copy(V,1,P-1),0);
     If Result<>-1 then
       Delete(V,1,P)
     else
@@ -1047,21 +1049,17 @@ Procedure SplitVersion(AValue: String; Var Release,Major,Minor : Word; Var Suffi
   end;
 
 Var
-  P : Integer;
   V : String;
 begin
-  Release:=0;
   Major:=0;
   Minor:=0;
-  Suffix:='';
+  Micro:=0;
+  Build:=0;
   V:=AValue;
-  Release:=NextDigit('.',V);
   Major:=NextDigit('.',V);
-  Minor:=NextDigit('-',V);
-  P:=Pos('-',V);
-  If (P<>0) then
-    Delete(V,1,P);
-  Suffix:=V;
+  Minor:=NextDigit('.',V);
+  Micro:=NextDigit('-',V);
+  Build:=NextDigit(#0,V);
 end;
 
 
@@ -1155,6 +1153,32 @@ begin
     maybequoted:=s1+'"'
   else
     maybequoted:=s;
+end;
+
+
+procedure ReadIniFile(Const AFileName: String;L:TStrings);
+Var
+  F : TFileStream;
+  Line : String;
+  I,P,PC : Integer;
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead);
+  Try
+    L.LoadFromStream(F);
+    // Fix lines.
+    For I:=L.Count-1 downto 0 do
+      begin
+        Line:=L[I];
+        P:=Pos('=',Line);
+        PC:=Pos(';',Line);  // Comment line.
+        If (P=0) or ((PC<>0) and (PC<P)) then
+          L.Delete(I)
+        else
+          L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
+      end;
+  Finally
+    F.Free;
+  end;
 end;
 
 
@@ -1950,40 +1974,73 @@ end;
 
 
 Procedure TPackage.GetManifest(Manifest : TStrings);
+
+  procedure AddOSes(const AIndent:string;AOSes:TOSes);
+  var
+    IOS : TOS;
+  begin
+    if (AOSes=AllOSes) then
+      exit;
+    Manifest.Add(AIndent+'<oses>');
+    for IOS:=low(TOSes) to high(TOSes) do
+      if IOS in AOSes then
+        Manifest.Add(Format(AIndent+' <os name="%s"/>',[OSToString(IOS)]));
+    Manifest.Add(AIndent+'</oses>');
+  end;
+
+  procedure AddCPUs(const AIndent:string;ACPUs:TCPUs);
+  var
+    ICPU : TCPU;
+  begin
+    if (ACPUs=AllCPUs) then
+      exit;
+    Manifest.Add(AIndent+'<cpus>');
+    for ICPU:=low(TCPUs) to high(TCPUs) do
+      if ICPU in ACPUs then
+        Manifest.Add(Format(AIndent+' <cpu name="%s"/>',[CPUToString(ICPU)]));
+    Manifest.Add(AIndent+'</cpus>');
+  end;
+
 Var
   S : String;
-  Release,Minor,Major : Word;
+  Micro,Minor,Major,Build : Word;
   i : Integer;
-  D : TConditionalString;
+  D : TDependency;
 begin
   With Manifest do
     begin
     Add(Format('<package name="%s">',[QuoteXml(Name)]));
-    SplitVersion(Version,Release,Minor,Major,S);
-    Add(Format('<version release="%d" major="%d" minor="%d" suffix="%s"/>',[Release,Minor,Major,QuoteXMl(S)]));
-    Add(Format('<filename>%s</filename>',[QuoteXml(FileName + ZipExt)]));
-    Add(Format('<author>%s</author>',[QuoteXml(Author)]));
-    Add(Format('<license>%s</license>',[QuoteXml(License)]));
+    SplitVersion(Version,Major,Minor,Micro,Build);
+    Add(Format(' <version major="%d" minor="%d" micro="%d" build="%d"/>',[Major,Minor,Micro,Build]));
+    AddOSes(' ',OSes);
+    AddCPUs(' ',CPUs);
+    Add(Format(' <filename>%s</filename>',[QuoteXml(FileName + ZipExt)]));
+    Add(Format(' <author>%s</author>',[QuoteXml(Author)]));
+    Add(Format(' <license>%s</license>',[QuoteXml(License)]));
     if ExternalURL<>'' then
-      Add(Format('<externalurl>%s</externalurl>',[QuoteXml(ExternalURL)]));
-    Add(Format('<email>%s</email>',[QuoteXMl(Email)]));
+      Add(Format(' <externalurl>%s</externalurl>',[QuoteXml(ExternalURL)]));
+    Add(Format(' <email>%s</email>',[QuoteXMl(Email)]));
     S:=Description;
     If (S<>'') then
-      Add(Format('<description>%s</description>',[QuoteXML(S)]));
+      Add(Format(' <description>%s</description>',[QuoteXML(S)]));
     If (Dependencies.Count>0) then
       begin
-        Add('<dependencies>');
+        Add(' <dependencies>');
         for I:=0 to Dependencies.Count-1 do
           begin
             D:=Dependencies[i];
-            S:='';
-            if (D.OSes<>AllOSes) then
-              S:=S+' os="'+OSesToString(D.OSes)+'"';
-            if (D.CPUs<>AllCPUs) then
-              S:=S+' cpu="'+CPUsToString(D.CPUs)+'"';
-            Add(Format('<dependency><package%s packagename="%s"/></dependency>',[S,QuoteXML(D.Value)]));
+            Add('  <dependency>');
+            Add(Format('   <package packagename="%s"/>',[QuoteXML(D.Value)]));
+            if D.Version<>'' then
+              begin
+                SplitVersion(D.Version,Major,Minor,Micro,Build);
+                Add(Format('   <version major="%d" minor="%d" micro="%d" build="%d"/>',[Major,Minor,Micro,Build]));
+              end;
+            AddOSes('   ',D.OSes);
+            AddCPUs('   ',D.CPUs);
+            Add('  </dependency>');
           end;
-        Add('</dependencies>');
+        Add(' </dependencies>');
       end;
     Add('</package>');
     end;
@@ -1991,14 +2048,31 @@ end;
 
 
 procedure TPackage.LoadUnitConfigFromFile(Const AFileName: String);
-Var
-  F : TFileStream;
+var
+  L,L2 : TStrings;
+  VOS : TOS;
+  VCPU : TCPU;
+  i : Integer;
 begin
-  F:=TFileStream.Create(AFileName,fmOpenRead);
+  L:=TStringList.Create;
   Try
-    LoadUnitConfigFromStream(F);
+    ReadIniFile(AFileName,L);
+    With L do
+      begin
+        Version:=Values[KeyVersion];
+        VCPU:=StringToCPU(Values[KeyCPU]);
+        VOS:=StringToOS(Values[KeyOS]);
+        OSes:=[VOS];
+        CPUs:=[VCPU];
+        L2:=TStringList.Create;
+        L2.CommaText:=Values[KeyDepends];
+        for i:=0 to L2.Count-1 do
+          Dependencies.Add(L2[i],CPUs,OSes);
+        FreeAndNil(L2);
+        NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
+      end;
   Finally
-    F.Free;
+    L.Free;
   end;
 end;
 
@@ -2006,23 +2080,12 @@ end;
 procedure TPackage.SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
 Var
   F : TFileStream;
-begin
-  F:=TFileStream.Create(AFileName,fmCreate);
-  Try
-    SaveUnitConfigToStream(F,ACPU,AOS);
-  Finally
-    F.Free;
-  end;
-end;
-
-
-procedure TPackage.SaveUnitConfigToStream(S : TStream;ACPU:TCPU;AOS:TOS);
-Var
   L : TStringList;
   Deps : String;
   i : integer;
   D : TDependency;
 begin
+  F:=TFileStream.Create(AFileName,fmCreate);
   L:=TStringList.Create;
   try
     With L do
@@ -2049,53 +2112,13 @@ begin
         else
           Values[KeyNeedLibC]:='N';
       end;
-    L.SaveToStream(S);
+    L.SaveToStream(F);
   Finally
     L.Free;
+    F.Free;
   end;
 end;
 
-
-procedure TPackage.LoadUnitConfigFromStream(S: TStream);
-Var
-  L,L2 : TStrings;
-  Line : String;
-  I,P,PC : Integer;
-  VOS : TOS;
-  VCPU : TCPU;
-begin
-  L:=TStringList.Create;
-  Try
-    L.LoadFromStream(S);
-    // Fix lines.
-    For I:=L.Count-1 downto 0 do
-      begin
-        Line:=L[I];
-        P:=Pos('=',Line);
-        PC:=Pos(';',Line);  // Comment line.
-        If (P=0) or ((PC<>0) and (PC<P)) then
-          L.Delete(I)
-        else
-          L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
-      end;
-    With L do
-      begin
-        Version:=Values[KeyVersion];
-        VCPU:=StringToCPU(Values[KeyCPU]);
-        VOS:=StringToOS(Values[KeyOS]);
-        OSes:=[VOS];
-        CPUs:=[VCPU];
-        L2:=TStringList.Create;
-        L2.CommaText:=Values[KeyDepends];
-        for i:=0 to L2.Count-1 do
-          Dependencies.Add(L2[i],CPUs,OSes);
-        FreeAndNil(L2);
-        NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
-      end;
-  Finally
-    L.Free;
-  end;
-end;
 
 
 {****************************************************************************
@@ -2783,24 +2806,14 @@ end;
 procedure TCustomInstaller.Archive;
 begin
   // Force generation of manifest.xml, this is required for the repository
-  Manifest;
-  FBuildEngine.Archive(FPackages);
+  BuildEngine.Manifest(FPackages);
+  BuildEngine.Archive(FPackages);
 end;
 
 
 procedure TCustomInstaller.Manifest;
-Var
-  L : TStrings;
 begin
-  L:=TStringList.Create;
-  Try
-    Log(vlDebug, Format(SDbgGenerating, [ManifestFile]));
-    L.Add('<?xml version="1.0"?>');
-    BuildEngine.GetManifest(FPackages,L);
-    L.SaveToFile(ManifestFile);
-  Finally
-    L.Free;
-  end;
+  BuildEngine.Manifest(FPackages);
 end;
 
 
@@ -3462,7 +3475,7 @@ begin
     Args.Add('-n');
 
   // Target OS
-  Result:=Result+' -T'+OSToString(Defaults.OS);
+  Args.Add('-T'+OSToString(Defaults.OS));
 
   // Compile mode
   If ATarget.Mode<>cmFPC then
@@ -4091,7 +4104,7 @@ begin
 
       //show all files
       for i := 0 to L.Count-1 do
-        Log(vlInfo, Format(SInfoArchivingFile, [L[i]]));
+        Log(vlDebug, Format(SDbgArchivingFile, [L[i]]));
 
       A:=FStartDir+ APackage.FileName + ZipExt;
 
@@ -4161,9 +4174,28 @@ begin
 end;
 
 
-Procedure TBuildEngine.GetManifest(APackage : TPackage; Manifest : TStrings);
+Procedure TBuildEngine.Manifest(APackage : TPackage);
+Var
+  L : TStrings;
+  PD,
+  MF : String;
 begin
-  APackage.GetManifest(Manifest);
+  L:=TStringList.Create;
+  Try
+    Log(vlInfo, Format(SInfoManifestPackage,[APackage.Name]));
+    PD:=APackage.Directory;
+    if PD<>'' then
+      PD:=IncludeTrailingPathDelimiter(PD);
+    MF:=PD+ManifestFile;
+    Log(vlDebug, Format(SDbgGenerating, [MF]));
+    L.Add('<?xml version="1.0"?>');
+    L.Add('<packages>');
+    APackage.GetManifest(L);
+    L.Add('</packages>');
+    L.SaveToFile(MF);
+  Finally
+    L.Free;
+  end;
 end;
 
 
@@ -4221,6 +4253,24 @@ begin
 end;
 
 
+procedure TBuildEngine.Manifest(Packages: TPackages);
+Var
+  I : Integer;
+  P : TPackage;
+begin
+  If Assigned(BeforeManifest) then
+    BeforeManifest(Self);
+  Log(vlDebug, SDbgBuildEngineGenerateManifests);
+  For I:=0 to Packages.Count-1 do
+    begin
+      P:=Packages.PackageItems[i];
+      Manifest(P);
+    end;
+  If Assigned(AfterManifest) then
+    AfterManifest(Self);
+end;
+
+
 procedure TBuildEngine.Clean(Packages: TPackages);
 Var
   I : Integer;
@@ -4237,21 +4287,6 @@ begin
     end;
   If Assigned(AfterClean) then
     AfterClean(Self);
-end;
-
-
-Procedure TBuildEngine.GetManifest(Packages : TPackages; Manifest : TStrings);
-Var
-  I : Integer;
-begin
-  If Assigned(BeforeManifest) then
-    BeforeManifest(Self);
-  Manifest.Add('<packages>');
-  For I:=0 to Packages.Count-1 do
-    GetManifest(Packages.PackageItems[i],Manifest);
-  Manifest.Add('</packages>');
-  If Assigned(AfterManifest) then
-    AfterManifest(Self);
 end;
 
 
