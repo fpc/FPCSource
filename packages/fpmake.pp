@@ -104,6 +104,7 @@ The include lines below are generated with the following command:
 
     // Create fpc-all package
     PBuild:=AddPackage('fpc-all');
+    PBuild.Version:='2.2.1-1';
     for i:=0 to Packages.Count-1 do
       begin
         P:=Packages.PackageItems[i];
