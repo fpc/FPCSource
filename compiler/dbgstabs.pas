@@ -574,7 +574,8 @@ implementation
             st:=st+GetSymName(p)+':'+tostr(p.value)+',';
             p:=p.nextenum;
           end;
-        st[length(st)]:=';';
+        { the final ',' is required to have a valid stabs }
+        st:=st+';';
         write_def_stabstr(list,def,st);
       end;
 
