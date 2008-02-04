@@ -831,6 +831,7 @@ var
    mh:MachoHeader;
 begin
   OpenMachO32PPC:= false;
+  E.FunctionRelative:=false;
   if e.size<sizeof(mh) then
     exit;
   blockread (e.f, mh, sizeof(mh));
