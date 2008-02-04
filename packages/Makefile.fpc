@@ -191,7 +191,7 @@ gtk1_smart: x11_smart opengl_smart
 gtk1_release: x11_release opengl_release
 gtk1_shared: x11_shared opengl_shared
 
-gtk2_all:
+gtk2_all: x11_all
 gtk2_shared: x11_shared
 gtk2_smart: x11_smart
 gtk2_debug: x11_debug
