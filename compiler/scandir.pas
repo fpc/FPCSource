@@ -980,7 +980,7 @@ implementation
         if target_info.res<>res_none then
           begin
           current_module.flags:=current_module.flags or uf_has_resourcefiles;
-          if (target_info.res = res_emxbind) and
+          if (res_single_file in target_res.resflags) and
                                  not (Current_module.ResourceFiles.Empty) then
             Message(scan_w_only_one_resourcefile_supported)
           else

@@ -353,17 +353,43 @@ begin
 end;
 
 
+function CopyResFile(inf,outf : TCmdStr) : boolean;
+var
+  src,dst : TCFileStream;
+begin
+  { Copy .res file to units output dir. }
+  Result:=false;
+  src:=TCFileStream.Create(inf,fmOpenRead or fmShareDenyNone);
+  if CStreamError<>0 then
+    begin
+      Message1(exec_e_cant_open_resource_file, src.FileName);
+      Include(current_settings.globalswitches, cs_link_nolink);
+      exit;
+    end;
+  dst:=TCFileStream.Create(current_module.outputpath^+outf,fmCreate);
+  if CStreamError<>0 then
+    begin
+      Message1(exec_e_cant_write_resource_file, dst.FileName);
+      Include(current_settings.globalswitches, cs_link_nolink);
+      exit;
+    end;
+  dst.CopyFrom(src,src.Size);
+  dst.Free;
+  src.Free;
+  Result:=true;
+end;
+ 
 procedure CompileResourceFiles;
 var
   resourcefile : tresourcefile;
   res: TCmdStrListItem;
   p,s : TCmdStr;
-  src,dst : TCFileStream;
   outfmt : tresoutput;
 begin
-  { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage).
-    same with MacOS}
-  if target_info.system in [system_i386_os2,system_i386_emx,system_powerpc_macos] then exit;
+  { Don't do anything for systems supporting resources without using resource
+    file classes (e.g. Mac OS). They process resources elsewhere. }
+  if (target_info.res<>res_none) and (target_res.resourcefileclass=nil) then
+    exit;
 
   p:=ExtractFilePath(current_module.mainsource^);
   res:=TCmdStrListItem(current_module.ResourceFiles.First);
@@ -388,24 +414,7 @@ begin
             begin
               { Copy .res file to units output dir. Otherwise .res file will not be found
                 when only compiled units path is available }
-              res.FPStr:=ExtractFileName(res.FPStr);
-              src:=TCFileStream.Create(s,fmOpenRead or fmShareDenyNone);
-              if CStreamError<>0 then
-                begin
-                  Message1(exec_e_cant_open_resource_file, src.FileName);
-                  Include(current_settings.globalswitches, cs_link_nolink);
-                  exit;
-                end;
-              dst:=TCFileStream.Create(current_module.outputpath^+res.FPStr,fmCreate);
-              if CStreamError<>0 then
-                begin
-                  Message1(exec_e_cant_write_resource_file, dst.FileName);
-                  Include(current_settings.globalswitches, cs_link_nolink);
-                  exit;
-                end;
-              dst.CopyFrom(src,src.Size);
-              dst.Free;
-              src.Free;
+              if not CopyResFile(s,ExtractFileName(res.FPStr)) then exit;
             end;
         end
       else
@@ -459,10 +468,6 @@ var
   hp : tused_unit;
   s : TCmdStr;
 begin
-  { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage).
-    same with MacOS}
-  if target_info.system in [system_i386_os2,system_i386_emx,system_powerpc_macos] then exit;
-
   if (target_info.res=res_none) or ((target_res.resbin='')
     and (ResCompiler='')) then
       exit;

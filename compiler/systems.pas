@@ -180,13 +180,14 @@ interface
        );
 
        tres = (res_none
-            ,res_gnu_windres,res_emxbind
+            ,res_gnu_windres,res_watcom_wrc_os2
             ,res_m68k_palmos,res_m68k_mpw
             ,res_powerpc_mpw,res_elf
             ,res_win64_gorc, res_macho, res_ext
        );
        
-       tresinfoflags = (res_external_file,res_arch_in_file_name);
+       tresinfoflags = (res_external_file,res_arch_in_file_name
+            ,res_single_file);
 
        tdbg = (dbg_none
             ,dbg_stabs,dbg_dwarf2,dbg_dwarf3
@@ -570,7 +571,9 @@ begin
      target_res:=resinfos[t]^;
      result:=true;
      exit;
-   end;
+   end
+  else
+   FillByte(target_res,sizeof(target_res),0);
 end;
 
 
