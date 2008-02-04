@@ -35,12 +35,14 @@ type
    LargeUInt = Types.LargeUInt;
    PLargeInt = Types.PLargeInt;
    PLargeUInt = Types.PLargeUInt;
+   FMTID  =  ^GUID;
+   pFMTID = pGUID;
 
 {Glue types, should be linked to the proper windows unit types}
-TYPE
      Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
      OleChar             = WChar;
      LPOLESTR            = ^OLECHAR;
+     PLPOLESTR		 = ^LPOLESTR;
      PROPID = ULONG;
      TPROPID= PROPID;
      PPROPID= ^PROPID;
@@ -1537,6 +1539,40 @@ TYPE
   PPROPVARIANT		         = ^TPROPVARIANT;
 
 
+
+  tagPROPSPEC = record
+                  ulKind : ULONG ;
+                  case boolean of
+                    false : ( propid:propid);
+                    true  :  (lpwstr: LPOLEStr);	   
+                    end; 
+         
+  PROPSPEC= tagPROPSPEC;
+  TPROPSPEC = PROPSPEC;
+  PPROPSPEC = ^TPROPSPEC;
+              
+  tagSTATPROPSTG = record
+                    lpwstrName : LPOLESTR ;
+                    propid:PROPID ;
+                    vt : VARTYPE;
+                    end;
+  STATPROPSTG = tagSTATPROPSTG;
+  TSTATPROPSTG = STATPROPSTG;
+  PSTATPROPSTG = ^TSTATPROPSTG;
+
+      tagSTATPROPSETSTG = record
+          fmtid : FMTID;
+          clsid : CLSID;
+          grfFlags : DWORD;
+          mtime : FILETIME;
+          ctime : FILETIME;
+          atime : FILETIME;
+          dwOSVersion : DWORD;
+       end;
+  STATPROPSETSTG = tagSTATPROPSETSTG;
+  TSTATPROPSETSTG = STATPROPSETSTG;
+  PSTATPROPSETSTG = ^STATPROPSETSTG;
+      
    tagVersionedStream = record
         guidVersion : TGUID;
         pStream : pointer; {IStream}
@@ -1689,6 +1725,8 @@ TYPE
    ICallFactory        = Interface;
    ISynchronize        = Interface;
    ITypeLib            = Interface;
+   IPropertyStorage    = Interface;
+   IEnumSTATPROPSETSTG = interface;
 
    TPROPVARIANT = record
           vt : VARTYPE;
@@ -1775,6 +1813,8 @@ TYPE
 // Unknwn.idl
 
 // IUnknown is in classesh.inc
+
+
 
    AsyncIUnknown = Interface( IUnknown)
       ['{000e0000-0000-0000-C000-000000000046}']
@@ -3230,6 +3270,48 @@ Type
      function ISClassOfCategories(rclsid:pclsid;cImplemented:ULong;rgcatidimpl:PCATID;CRequired:ULONG;rgcatidreq : pcatid):HResult; StdCall;
      function EnumImplCategoriesOfClass(rclsid:pclsid;out ppenumclsid : IEnumClsID):HResult; StdCall;
      function EnumReqCategoriesOfClass(rclsid:pclsid;out ppenumclsid : IEnumClsID):HResult; StdCall;
+     end;
+
+    IPropertySetStorage = Interface(IUnknown)
+     ['{0000013A-0000-0000-C000-000000000046}']
+     function Create(rfmtid:pFMTID; pclsid:pCLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT;
+     function Open(rfmtid:pFMTID; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT; StdCall;
+     function Delete(rfmtid:pFMTID):HRESULT; StdCall;
+     function Enum(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
+     end;
+ 
+   IEnumSTATPROPSTG = interface( IUnknown)
+     ['{00000139-0000-0000-C000-000000000046}']
+     function Next(celt:ULONG; rgelt:pSTATPROPSTG; pceltFetched:pULONG):HRESULT; StdCall;
+     function Skip(celt:ULONG):HRESULT; StdCall;
+     function Reset:HRESULT; StdCall;
+     function Clone(out ppenum:IEnumSTATPROPSTG):HRESULT; StdCall;
+     end;
+
+   IEnumSTATPROPSETSTG = interface( IUnknown)
+     ['{0000013B-0000-0000-C000-000000000046}']
+     function Next(celt:ULONG; rgelt:pSTATPROPSETSTG; pceltFetched:pULONG):HRESULT; StdCall;
+     function Skip(celt:ULONG):HRESULT; StdCall;
+     function Reset:HRESULT; StdCall;
+     function Clone(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
+     end;
+
+
+
+   IPropertyStorage = interface(IUnknown)
+     ['{00000138-0000-0000-C000-000000000046}']
+     function ReadMultiple(cpspec:ULONG; rgpspec:pPROPSPEC; rgpropvar:pPROPVARIANT):HRESULT; StdCall;
+     function WriteMultiple(cpspec:ULONG; rgpspec:pPROPSPEC; rgpropvar:pPROPVARIANT; propidNameFirst:PROPID):HRESULT; StdCall;
+     function DeleteMultiple(cpspec:ULONG; rgpspec:pPROPSPEC):HRESULT; StdCall;
+     function ReadPropertyNames(cpspec:ULONG; rgpropid:pPROPID; rgpropvar:plpolestr):HRESULT; StdCall;
+     function WritePropertyNames(cpspec:ULONG; rgpspec:pPROPID; rgpropvar:plpolestr; rglpwstrName:LPOLESTR):HRESULT; StdCall;
+     function DeletePropertyNames(cpspec:ULONG; rgpspec:pPROPid):HRESULT; StdCall;
+     function Commit(grfCommitFlags:DWORD):HRESULT; StdCall;
+     function Revert:HRESULT; StdCall;
+     function Enum(out ppenum:IEnumSTATPROPSTG):HRESULT; StdCall;
+     function SetTimes(pctime:PFILETIME; patime:PFILETIME; pmtime:PFILETIME):HRESULT; StdCall;
+     function SetClass(clsid:pCLSID):HRESULT; StdCall;
+     function Stat(pstatpsstg:pSTATPROPSETSTG):HRESULT; StdCall;
      end;
 
 { ole2.h }

@@ -684,8 +684,6 @@ Type
       SFGAOF = ULONG;
       TSFGAOF = SFGAOF;
       PSFGAOF = ^SFGAOF;
-      FMTID  =  ^GUID;
-      pFMTID = pGUID;
       PROPERTYUI_NAME_FLAGS = DWord; // enum
       PROPERTYUI_FORMAT_FLAGS = DWord;
       PROPERTYUI_FLAGS = Dword;
