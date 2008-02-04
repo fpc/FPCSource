@@ -15,7 +15,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fpmkunit';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.0';
+    P.Version:='2.2.1-1';
     P.Description:='Free Pascal Make Tool';
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-process');
