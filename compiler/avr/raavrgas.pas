@@ -36,7 +36,6 @@ Unit raavrgas;
         procedure handleopcode;override;
         procedure BuildReference(oper : tavroperand);
         procedure BuildOperand(oper : tavroperand);
-        function TryBuildShifterOp(oper : tavroperand) : boolean;
         procedure BuildOpCode(instr : tavrinstruction);
         procedure ReadSym(oper : tavroperand);
         procedure ConvertCalljmp(instr : tavrinstruction);
@@ -215,8 +214,8 @@ Unit raavrgas;
 
         procedure AddLabelOperand(hl:tasmlabel);
           begin
-            if not(actasmtoken in [AS_PLUS,AS_MINUS,AS_LPAREN]) and
-               is_calljmp(actopcode) then
+            if not(actasmtoken in [AS_PLUS,AS_MINUS,AS_LPAREN]) { and
+               is_calljmp(actopcode) } then
              begin
                oper.opr.typ:=OPR_SYMBOL;
                oper.opr.symbol:=hl;
@@ -472,48 +471,10 @@ Unit raavrgas;
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
-              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM]) then
-                begin
-                  consume(AS_NOT);
-                  oper.opr.typ:=OPR_REFERENCE;
-                  oper.opr.ref.addressmode:=AM_PREINDEXED;
-                  oper.opr.ref.index:=tempreg;
-                end
               else
                 Message(asmr_e_syn_operand);
             end;
 
-          { Registerset }
-          AS_LSBRACKET:
-            begin
-              consume(AS_LSBRACKET);
-              registerset:=[];
-              while true do
-                begin
-                  if actasmtoken=AS_REGISTER then
-                    begin
-                      include(registerset,getsupreg(actasmregister));
-                      tempreg:=actasmregister;
-                      consume(AS_REGISTER);
-                      if actasmtoken=AS_MINUS then
-                        begin
-                          consume(AS_MINUS);
-                          for ireg:=getsupreg(tempreg) to getsupreg(actasmregister) do
-                            include(registerset,ireg);
-                          consume(AS_REGISTER);
-                        end;
-                    end
-                  else
-                    consume(AS_REGISTER);
-                  if actasmtoken=AS_COMMA then
-                    consume(AS_COMMA)
-                  else
-                    break;
-                end;
-              consume(AS_RSBRACKET);
-              oper.opr.typ:=OPR_REGSET;
-              oper.opr.regset:=registerset;
-            end;
           AS_END,
           AS_SEPARATOR,
           AS_COMMA: ;
@@ -546,7 +507,6 @@ Unit raavrgas;
           begin
             Opcode:=ActOpcode;
             condition:=ActCondition;
-            oppostfix:=actoppostfix;
           end;
 
         { We are reading operands, so opcode will be an AS_ID }
@@ -563,22 +523,11 @@ Unit raavrgas;
           case actasmtoken of
             AS_COMMA: { Operand delimiter }
               Begin
-                if ((instr.opcode=A_MOV) and (operandnum=2)) or
-                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA])) then
-                  begin
-                    Consume(AS_COMMA);
-                    if not(TryBuildShifterOp(instr.Operands[operandnum+1] as tavroperand)) then
-                      Message(asmr_e_illegal_shifterop_syntax);
-                    Inc(operandnum);
-                  end
+                if operandnum>Max_Operands then
+                  Message(asmr_e_too_many_operands)
                 else
-                  begin
-                    if operandnum>Max_Operands then
-                      Message(asmr_e_too_many_operands)
-                    else
-                      Inc(operandnum);
-                    Consume(AS_COMMA);
-                  end;
+                  Inc(operandnum);
+                Consume(AS_COMMA);
               end;
             AS_SEPARATOR,
             AS_END : { End of asm operands for this opcode  }
@@ -602,11 +551,6 @@ Unit raavrgas;
           'IA','IB','DA','DB','FD','FA','ED','EA',
           'B','D','E','P','T','H','S');
 
-        postfixsorted : array[1..19] of TOpPostfix = (
-          PF_EP,PF_SB,PF_BT,PF_SH,
-          PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA,
-          PF_B,PF_D,PF_E,PF_P,PF_T,PF_H,PF_S);
-
       var
         len,
         j,
@@ -625,13 +569,13 @@ Unit raavrgas;
         actcondition:=C_None;
 
         { first, handle B else BLS is read wrong }
-        if ((hs[1]='B') and (length(hs)=3)) then
+        if ((copy(hs,1,2)='BR') and (length(hs)=4)) then
           begin
             for icond:=low(tasmcond) to high(tasmcond) do
               begin
                 if copy(hs,2,3)=uppercond2str[icond] then
                   begin
-                    actopcode:=A_B;
+                    actopcode:=A_BRxx;
                     actasmtoken:=AS_OPCODE;
                     actcondition:=icond;
                     is_asmopcode:=true;
@@ -668,20 +612,6 @@ Unit raavrgas;
                   end;
               end;
           end;
-        { check for postfix }
-        if length(hs)>0 then
-          begin
-            for j:=low(postfixsorted) to high(postfixsorted) do
-              begin
-                if copy(hs,1,length(postfix2strsorted[j]))=postfix2strsorted[j] then
-                  begin
-                    actoppostfix:=postfixsorted[j];
-                    { strip postfix }
-                    delete(hs,1,length(postfix2strsorted[j]));
-                    break;
-                  end;
-              end;
-          end;
         { if we stripped all postfixes, it's a valid opcode }
         is_asmopcode:=length(hs)=0;
       end;
@@ -710,8 +640,8 @@ Unit raavrgas;
       begin
         instr:=tavrinstruction.Create(tavroperand);
         BuildOpcode(instr);
-        if is_calljmp(instr.opcode) then
-          ConvertCalljmp(instr);
+{        if is_calljmp(instr.opcode) then
+          ConvertCalljmp(instr); }
         {
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;
@@ -719,7 +649,6 @@ Unit raavrgas;
         }
         instr.ConcatInstruction(curlist);
         instr.Free;
-        actoppostfix:=PF_None;
       end;
 
 
