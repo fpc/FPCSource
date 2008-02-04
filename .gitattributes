@@ -3978,6 +3978,7 @@ packages/univint/Makefile.fpc svneol=native#text/plain
 packages/univint/examples/Makefile svneol=native#text/plain
 packages/univint/examples/Makefile.fpc svneol=native#text/plain
 packages/univint/examples/controldemo.pas svneol=native#text/plain
+packages/univint/fpmake.pp svneol=native#text/plain
 packages/univint/src/ABActions.pas svneol=native#text/plain
 packages/univint/src/ABAddressBook.pas svneol=native#text/plain
 packages/univint/src/ABGlobals.pas svneol=native#text/plain
