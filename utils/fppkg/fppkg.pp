@@ -156,7 +156,8 @@ begin
   Writeln('  -f --force         Force installation also if the package is already installed');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
-  Writeln('  avail              List available packages');
+  Writeln('  showavail          List available packages');
+  Writeln('  showall            Show all (including local) packages');
   Writeln('  build              Build package');
   Writeln('  compile            Compile package');
   Writeln('  install            Install package');
@@ -292,11 +293,12 @@ begin
       end;
     LoadLocalMirrors;
     LoadLocalRepository;
-    LoadFPMakeLocalStatus;
+    FindInstalledPackages(FPMakeCompilerOptions);
+    CheckFPMakeDependencies;
     // We only need to reload the status when we use a different
     // configuration for compiling fpmake
     if GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig then
-      LoadLocalStatus;
+      FindInstalledPackages(CompilerOptions);
 
     if ParaPackages.Count=0 then
       begin

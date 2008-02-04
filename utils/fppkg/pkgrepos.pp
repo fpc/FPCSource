@@ -5,16 +5,15 @@ unit pkgrepos;
 interface
 
 uses
-  Classes,SysUtils,
-  fprepos;
+  SysUtils,Classes,
+  fprepos,pkgoptions;
 
 function GetRemoteRepositoryURL(const AFileName:string):string;
 
 procedure LoadLocalMirrors;
 procedure LoadLocalRepository;
-procedure LoadLocalStatus;
-procedure SaveLocalStatus;
-procedure LoadFPMakeLocalStatus;
+procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions);
+procedure CheckFPMakeDependencies;
 procedure ListLocalRepository(all:boolean=false);
 
 procedure ListRemoteRepository;
@@ -32,7 +31,6 @@ uses
   zipper,
   fpxmlrep,
   pkgglobals,
-  pkgoptions,
   pkgmessages;
 
 {*****************************************************************************
@@ -134,6 +132,32 @@ end;
                            Local Repository
 *****************************************************************************}
 
+procedure ReadIniFile(Const AFileName: String;L:TStrings);
+Var
+  F : TFileStream;
+  Line : String;
+  I,P,PC : Integer;
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead);
+  Try
+    L.LoadFromStream(F);
+    // Fix lines.
+    For I:=L.Count-1 downto 0 do
+      begin
+        Line:=L[I];
+        P:=Pos('=',Line);
+        PC:=Pos(';',Line);  // Comment line.
+        If (P=0) or ((PC<>0) and (PC<P)) then
+          L.Delete(I)
+        else
+          L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
+      end;
+  Finally
+    F.Free;
+  end;
+end;
+
+
 procedure LoadLocalRepository;
 var
   S : String;
@@ -165,41 +189,47 @@ begin
 end;
 
 
-procedure LoadLocalStatus(ACompilerOptions:TCompilerOptions);
+procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions);
+
+  function LoadOrCreatePackage(const AName:string):TFPPackage;
+  begin
+    result:=CurrentRepository.FindPackage(AName);
+    if not assigned(result) then
+      begin
+        result:=CurrentRepository.AddPackage(AName);
+        result.IsLocalPackage:=true;
+      end;
+  end;
 
   procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
   Var
-    L,L2 : TStrings;
-    Line : String;
-    I,P,PC : Integer;
-    VOS : TOS;
-    VCPU : TCPU;
+    L : TStrings;
     V : String;
-    F : TFileStream;
   begin
-    F:=TFileStream.Create(AFileName,fmOpenRead);
     L:=TStringList.Create;
     Try
-      L.LoadFromStream(F);
-      // Fix lines.
-      For I:=L.Count-1 downto 0 do
-        begin
-          Line:=L[I];
-          P:=Pos('=',Line);
-          PC:=Pos(';',Line);  // Comment line.
-          If (P=0) or ((PC<>0) and (PC<P)) then
-            L.Delete(I)
-          else
-            L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
-        end;
+      ReadIniFile(AFileName,L);
 {$warning TODO Maybe check also CPU-OS}
 {$warning TODO Add date to check recompile}
       V:=L.Values['version'];
-writeln(AFileName, ' ',V);
       APackage.InstalledVersion.AsString:=V;
     Finally
       L.Free;
-      F.Free;
+    end;
+  end;
+
+  procedure LoadPackagefpcFromFile(APackage:TFPPackage;const AFileName: String);
+  Var
+    L : TStrings;
+    V : String;
+  begin
+    L:=TStringList.Create;
+    Try
+      ReadIniFile(AFileName,L);
+      V:=L.Values['version'];
+      APackage.InstalledVersion.AsString:=V;
+    Finally
+      L.Free;
     end;
   end;
 
@@ -212,21 +242,27 @@ writeln(AFileName, ' ',V);
     Result:=false;
     if FindFirst(IncludeTrailingPathDelimiter(AUnitDir)+AllFiles,faDirectory,SR)=0 then
       begin
-        Log(vlDebug,SLogLoadingStatusFile,[AUnitDir]);
+        Log(vlDebug,SLogFindInstalledPackages,[AUnitDir]);
         repeat
-          if (SR.Attr and faDirectory)=faDirectory then
+          if ((SR.Attr and faDirectory)=faDirectory) and (SR.Name<>'.') and (SR.Name<>'..') then
             begin
-              P:=CurrentRepository.FindPackage(SR.Name);
-              if not assigned(P) then
-                begin
-                  P:=CurrentRepository.AddPackage(SR.Name);
-                  P.IsLocalPackage:=true;
-                end;
               UD:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(AUnitDir)+SR.Name);
+              // Try new fpunits.conf
               UF:=UD+UnitConfigFileName;
-              if FileExists(UF) then
+              if FileExistsLog(UF) then
                 begin
-                  LoadUnitConfigFromFile(P,UF);
+                  P:=LoadOrCreatePackage(SR.Name);
+                  LoadUnitConfigFromFile(P,UF)
+                end
+              else
+                begin
+                  // Try Old style Package.fpc
+                  UF:=UD+'Package.fpc';
+                  if FileExistsLog(UF) then
+                    begin
+                      P:=LoadOrCreatePackage(SR.Name);
+                      LoadPackagefpcFromFile(P,UF);
+                    end;
                 end;
             end;
         until FindNext(SR)<>0;
@@ -234,54 +270,20 @@ writeln(AFileName, ' ',V);
   end;
 
 begin
+  CurrentRepository.ClearStatus;
   if ACompilerOptions.LocalUnitDir<>'' then
     CheckUnitDir(ACompilerOptions.LocalUnitDir);
-//  if ACompilerOptions.GlobalUnitDir<>'' then
-//    CheckUnitDir(ACompilerOptions.GlobalUnitDir);
+  if ACompilerOptions.GlobalUnitDir<>'' then
+    CheckUnitDir(ACompilerOptions.GlobalUnitDir);
 end;
 
 
-procedure LoadLocalStatus;
-var
-  S : String;
-begin
-  LoadLocalStatus(CompilerOptions);
-{
-  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
-  Log(vlDebug,SLogLoadingStatusFile,[S]);
-  CurrentRepository.ClearStatus;
-  if FileExists(S) then
-    CurrentRepository.LoadStatusFromFile(S);
-}
-end;
-
-
-procedure SaveLocalStatus;
-var
-  S : String;
-begin
-  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
-  Log(vlDebug,SLogSavingStatusFile,[S]);
-  CurrentRepository.SaveStatusToFile(S);
-end;
-
-
-procedure LoadFPMakeLocalStatus;
+procedure CheckFPMakeDependencies;
 var
   i : Integer;
-  S : String;
   P : TFPPackage;
   ReqVer : TFPVersion;
 begin
-{
-  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.FPMakeCompilerConfig);
-  Log(vlDebug,SLogLoadingStatusFile,[S]);
-  CurrentRepository.ClearStatus;
-  if FileExists(S) then
-    CurrentRepository.LoadStatusFromFile(S);
-}
-  LoadLocalStatus(FPMakeCompilerOptions);
-
   // Check for fpmkunit dependencies
   for i:=1 to FPMKUnitDepCount do
     begin

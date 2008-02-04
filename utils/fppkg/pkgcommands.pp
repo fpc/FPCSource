@@ -33,16 +33,16 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
-  { TCommandAllAvail }
+  { TCommandShowAll }
 
-  TCommandAllAvail = Class(TPackagehandler)
+  TCommandShowAll = Class(TPackagehandler)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
-  { TCommandAvail }
+  { TCommandShowAvail }
 
-  TCommandAvail = Class(TPackagehandler)
+  TCommandShowAvail = Class(TPackagehandler)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
@@ -129,19 +129,19 @@ begin
   DownloadFile(PackagesURL,GlobalOptions.LocalPackagesFile);
   // Read the repository again
   LoadLocalRepository;
-  LoadLocalStatus;
+  FindInstalledPackages(CompilerOptions);
   Result:=true;
 end;
 
 
-function TCommandAllAvail.Execute(const Args:TActionArgs):boolean;
+function TCommandShowAll.Execute(const Args:TActionArgs):boolean;
 begin
   ListLocalRepository(true);
   Result:=true;
 end;
 
 
-function TCommandAvail.Execute(const Args:TActionArgs):boolean;
+function TCommandShowAvail.Execute(const Args:TActionArgs):boolean;
 begin
   ListLocalRepository(false);
   Result:=true;
@@ -227,10 +227,7 @@ begin
   ExecuteAction(CurrentPackage,'fpmakeinstall',Args);
   // Update local status file
   if assigned(CurrentPackage) then
-    begin
-      CurrentPackage.InstalledVersion.Assign(CurrentPackage.Version);
-      SaveLocalStatus;
-    end;
+    CurrentPackage.InstalledVersion.Assign(CurrentPackage.Version);
   Result:=true;
 end;
 
@@ -288,8 +285,8 @@ end;
 
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
-  RegisterPkgHandler('allavail',TCommandAllAvail);
-  RegisterPkgHandler('avail',TCommandAvail);
+  RegisterPkgHandler('showall',TCommandShowAll);
+  RegisterPkgHandler('showavail',TCommandShowAvail);
   RegisterPkgHandler('scan',TCommandScanPackages);
   RegisterPkgHandler('download',TCommandDownload);
   RegisterPkgHandler('unzip',TCommandUnzip);
