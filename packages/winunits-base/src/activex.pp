@@ -35,7 +35,7 @@ type
    LargeUInt = Types.LargeUInt;
    PLargeInt = Types.PLargeInt;
    PLargeUInt = Types.PLargeUInt;
-   FMTID  =  ^GUID;
+   FMTID  =  TGUID;
    pFMTID = pGUID;
 
 {Glue types, should be linked to the proper windows unit types}
@@ -3295,15 +3295,15 @@ Type
 
     IPropertySetStorage = Interface(IUnknown)
      ['{0000013A-0000-0000-C000-000000000046}']
-     function Create(rfmtid:pFMTID; pclsid:pCLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT;
-     function Open(rfmtid:pFMTID; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT; StdCall;
-     function Delete(rfmtid:pFMTID):HRESULT; StdCall;
+     function Create(const rfmtid:FMTID; pclsid:pCLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT;
+     function Open(const fmtid:FMTID; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT; StdCall;
+     function Delete(const rfmtid:FMTID):HRESULT; StdCall;
      function Enum(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
      end;
  
    IEnumSTATPROPSTG = interface( IUnknown)
      ['{00000139-0000-0000-C000-000000000046}']
-     function Next(celt:ULONG; rgelt:pSTATPROPSTG; pceltFetched:pULONG):HRESULT; StdCall;
+     function Next(celt:ULONG; var rgelt:STATPROPSTG; pceltFetched:pULONG):HRESULT; StdCall;
      function Skip(celt:ULONG):HRESULT; StdCall;
      function Reset:HRESULT; StdCall;
      function Clone(out ppenum:IEnumSTATPROPSTG):HRESULT; StdCall;
@@ -3311,7 +3311,7 @@ Type
 
    IEnumSTATPROPSETSTG = interface( IUnknown)
      ['{0000013B-0000-0000-C000-000000000046}']
-     function Next(celt:ULONG; rgelt:pSTATPROPSETSTG; pceltFetched:pULONG):HRESULT; StdCall;
+     function Next(celt:ULONG; var rgelt:STATPROPSETSTG; pceltFetched:pULONG):HRESULT; StdCall;
      function Skip(celt:ULONG):HRESULT; StdCall;
      function Reset:HRESULT; StdCall;
      function Clone(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
@@ -3325,7 +3325,7 @@ Type
      function WriteMultiple(cpspec:ULONG; rgpspec:pPROPSPEC; rgpropvar:pPROPVARIANT; propidNameFirst:PROPID):HRESULT; StdCall;
      function DeleteMultiple(cpspec:ULONG; rgpspec:pPROPSPEC):HRESULT; StdCall;
      function ReadPropertyNames(cpspec:ULONG; rgpropid:pPROPID; rgpropvar:plpolestr):HRESULT; StdCall;
-     function WritePropertyNames(cpspec:ULONG; rgpspec:pPROPID; rgpropvar:plpolestr; rglpwstrName:LPOLESTR):HRESULT; StdCall;
+     function WritePropertyNames(cpspec:ULONG; rgpspec:pPROPID; rgpropvar:plpolestr):HRESULT; StdCall;
      function DeletePropertyNames(cpspec:ULONG; rgpspec:pPROPid):HRESULT; StdCall;
      function Commit(grfCommitFlags:DWORD):HRESULT; StdCall;
      function Revert:HRESULT; StdCall;
