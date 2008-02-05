@@ -6917,7 +6917,9 @@ Const
           e_oemid : WORD;
           e_oeminfo : WORD;
           e_res2 : array[0..9] of WORD;
-          e_lfanew : LONG;
+          case boolean of 
+             true : (e_lfanew : LONG);
+             false: (_lfanew : LONG); // delphi naming
        end;
      PIMAGE_DOS_HEADER = ^IMAGE_DOS_HEADER;
      TIMAGE_DOS_HEADER = IMAGE_DOS_HEADER;
