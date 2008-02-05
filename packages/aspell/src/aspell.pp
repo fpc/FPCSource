@@ -1054,6 +1054,12 @@ begin
   {$ENDIF}
 
   LibHandle := LoadLibrary(libname);
+  {$ifdef darwin}
+  if LibHandle = 0 then begin
+    libname := '/sw/lib/libaspell.15.dylib';
+    LibHandle := LoadLibrary(libname);
+  end;
+  {$endif}
 
   if LibHandle = 0 then
     Exit(False);
