@@ -784,8 +784,9 @@ Const
     PRSPEC_INVALID = ULONG($ffffffff);
     PRSPEC_LPWSTR  = ULONG(0);
     PRSPEC_PROPID  = ULONG(1);
-
-
+    PROPSETFLAG_DEFAULT = = DWORD(0);
+    PROPSETFLAG_NONSIMPLE = DWORD(1);
+    PROPSETFLAG_ANSI      = DWORD(2);
 
 TYPE
     VARTYPE             = USHORT;
@@ -3375,7 +3376,7 @@ Type
 
     IPropertySetStorage = Interface(IUnknown)
      ['{0000013A-0000-0000-C000-000000000046}']
-     function Create(const rfmtid:FMTID; pclsid:pCLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT;
+     function Create(const rfmtid:FMTID; const pclsid:CLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT;
      function Open(const fmtid:FMTID; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT; StdCall;
      function Delete(const rfmtid:FMTID):HRESULT; StdCall;
      function Enum(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
@@ -3396,8 +3397,6 @@ Type
      function Reset:HRESULT; StdCall;
      function Clone(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
      end;
-
-
 
    IPropertyStorage = interface(IUnknown)
      ['{00000138-0000-0000-C000-000000000046}']
