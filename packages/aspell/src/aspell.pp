@@ -24,7 +24,7 @@ uses
 {$ENDIF}
 
 {$IFDEF darwin}
- const libaspell = 'libaspell.dylib';
+ const libaspell = '/opt/local/lib/libaspell.15.dylib';
 {$ENDIF}
 
 {$IFDEF windows}
@@ -997,13 +997,42 @@ end;
 
 uses
   {$IFDEF WINDOWS}
-  SysUtils,
+  Windows,
   {$ENDIF}
   dynlibs;
 
 var
   LibHandle: TLibHandle = 0;
   AspellInited_: Boolean;
+
+{$IFDEF WINDOWS}
+function RegistryQueryValue (name,sub:shortstring):shortstring;
+const 
+  maxkeysize=255;
+var
+  buf:string [maxkeysize];
+  bufsize:int32;
+  buftype:int32;
+  res:int32;
+  key,rkey:hkey;
+  p,sp:pchar;
+
+begin
+  RegistryQueryValue:='';
+  name:=name+#0; p:=@name[1];
+  if sub='' then sp:=nil else begin sub:=sub+#0; sp:=@sub[1]; end;
+  bufsize:=maxkeysize;
+  buftype:=REG_SZ;
+  key:=HKEY_LOCAL_MACHINE;
+  res:=RegOpenKeyEx (key,p,0,KEY_QUERY_VALUE,rkey);
+  if res<>ERROR_SUCCESS then exit;
+  res:=RegQueryValueEx (rkey,sp,nil,@buftype,@buf[1],@bufsize);
+  if res<>ERROR_SUCCESS then exit;
+  buf[0]:=chr(bufsize-1);
+  RegCloseKey (rkey);
+  RegistryQueryValue:=buf;
+end;
+{$ENDIF}
 
 function aspell_init(const libn: ansistring): Boolean;
 var
@@ -1017,9 +1046,9 @@ begin
   libname := libn;
   
   {$IFDEF windows}
-  bversion := RegistryQueryValue(regLocalMachine,'SOFTWARE\Aspell','AspellVersion');
+  bversion := RegistryQueryValue('SOFTWARE\Aspell','AspellVersion');
   move(bversion[1], version, 4);
-  path := RegistryQueryValue(regLocalMachine,'SOFTWARE\Aspell','Path');
+  path := RegistryQueryValue('SOFTWARE\Aspell','Path');
   // will work if they passed %s, won't bork if they passed absolute
   libname := path + PathDelim + StringReplace(libn, '%s', IntToStr(Version), [rfReplaceAll]);
   {$ENDIF}
