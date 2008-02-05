@@ -997,7 +997,7 @@ end;
 
 uses
   {$IFDEF WINDOWS}
-  Windows,
+  Windows, SysUtils, Classes,
   {$ENDIF}
   dynlibs;
 
@@ -1011,9 +1011,9 @@ const
   maxkeysize=255;
 var
   buf:string [maxkeysize];
-  bufsize:int32;
-  buftype:int32;
-  res:int32;
+  bufsize:longint;
+  buftype:longint;
+  res:longint;
   key,rkey:hkey;
   p,sp:pchar;
 
