@@ -417,7 +417,8 @@ uses
      * misspelled words, then token.word will be
      * NULL and token.size will be 0  }
 
-    function aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):AspellToken;cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
+    // internal hacky version to go around a bug regarding struct results/cdecl
+    function __aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):QWord;cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
 
     { Returns the underlying filter class.  }
 
@@ -822,7 +823,8 @@ var
        * misspelled words, then token.word will be
        * NULL and token.size will be 0  }
 
-  aspell_document_checker_next_misspelling: function(ths:PAspellDocumentChecker):AspellToken;cdecl;
+  // hack around struct/cdecl problem
+  __aspell_document_checker_next_misspelling: function(ths:PAspellDocumentChecker):QWord;cdecl;
 
       { Returns the underlying filter class.  }
 
@@ -978,6 +980,7 @@ var
 
   function aspell_init(const libn: ansistring): Boolean;
   function aspell_loaded: Boolean;
+  function aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):AspellToken;
 
 implementation
 
@@ -991,6 +994,13 @@ end;
 function aspell_loaded: Boolean;
 begin
   aspell_loaded := True;
+end;
+
+function aspell_document_checker_next_misspelling(ths: PAspellDocumentChecker
+  ): AspellToken;
+begin
+  // yup...
+  aspell_document_checker_next_misspelling := AspellToken(__aspell_document_checker_next_misspelling(ths));
 end;
 
 {$ELSE} // dynamic
@@ -1316,9 +1326,9 @@ begin
   Pointer(aspell_document_checker_process) := GetProcedureAddress(LibHandle, 'aspell_document_checker_process');
   if not Assigned(aspell_document_checker_process) then Exit(False);
 
-  aspell_document_checker_next_misspelling := nil;
-  Pointer(aspell_document_checker_next_misspelling) := GetProcedureAddress(LibHandle, 'aspell_document_checker_next_misspelling');
-  if not Assigned(aspell_document_checker_next_misspelling) then Exit(False);
+  __aspell_document_checker_next_misspelling := nil;
+  Pointer(__aspell_document_checker_next_misspelling) := GetProcedureAddress(LibHandle, 'aspell_document_checker_next_misspelling');
+  if not Assigned(__aspell_document_checker_next_misspelling) then Exit(False);
 
   aspell_document_checker_filter := nil;
   Pointer(aspell_document_checker_filter) := GetProcedureAddress(LibHandle, 'aspell_document_checker_filter');
@@ -1556,6 +1566,13 @@ end;
 function aspell_loaded: Boolean;
 begin
   aspell_loaded := LibHandle <> 0;
+end;
+
+function aspell_document_checker_next_misspelling(ths: PAspellDocumentChecker
+  ): AspellToken;
+begin
+  // yup...
+  aspell_document_checker_next_misspelling := AspellToken(__aspell_document_checker_next_misspelling(ths));
 end;
 
 initialization
