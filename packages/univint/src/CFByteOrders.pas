@@ -3,7 +3,7 @@
 }
 {   Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, April 2006 }
+{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, April 2006, February 2008 }
 {
     Modified for use with Free Pascal
     Version 200
@@ -150,13 +150,13 @@ type
 	end;
 
 function CFConvertFloat32HostToSwapped( arg: Float32 ): CFSwappedFloat32; inline;
-function CFConvertFloat32SwappedToHost( arg: Float32 ): CFSwappedFloat32; inline;
+function CFConvertFloat32SwappedToHost( arg: CFSwappedFloat32 ): Float32; inline;
 function CFConvertFloat64HostToSwapped( arg: Float64 ): CFSwappedFloat64; inline;
-function CFConvertFloat64SwappedToHost( arg: Float64 ): CFSwappedFloat64; inline;
+function CFConvertFloat64SwappedToHost( arg: CFSwappedFloat64 ): Float64; inline;
 function CFConvertFloatHostToSwapped( arg: Float32 ): CFSwappedFloat32; inline;
-function CFConvertFloatSwappedToHost( arg: Float32 ): CFSwappedFloat32; inline;
+function CFConvertFloatSwappedToHost( arg: CFSwappedFloat32 ): Float32; inline;
 function CFConvertDoubleHostToSwapped( arg: Float64 ): CFSwappedFloat64; inline;
-function CFConvertDoubleSwappedToHost( arg: Float64 ): CFSwappedFloat64; inline;
+function CFConvertDoubleSwappedToHost( arg: CFSwappedFloat64 ): Float64; inline;
 
 {$ifc TARGET_RT_LITTLE_ENDIAN}
 
@@ -259,9 +259,9 @@ begin
   CFConvertFloat32HostToSwapped := CFSwappedFloat32(arg);
 end;
 
-function CFConvertFloat32SwappedToHost( arg: Float32 ): CFSwappedFloat32; inline;
+function CFConvertFloat32SwappedToHost( arg: CFSwappedFloat32 ): Float32; inline;
 begin
-  CFConvertFloat32SwappedToHost := CFSwappedFloat32(arg);
+  CFConvertFloat32SwappedToHost := Float32(arg);
 end;
 
 function CFConvertFloat64HostToSwapped( arg: Float64 ): CFSwappedFloat64; inline;
@@ -269,9 +269,9 @@ begin
   CFConvertFloat64HostToSwapped := CFSwappedFloat64(arg);
 end;
 
-function CFConvertFloat64SwappedToHost( arg: Float64 ): CFSwappedFloat64; inline;
+function CFConvertFloat64SwappedToHost( arg: CFSwappedFloat64 ): Float64; inline;
 begin
-  CFConvertFloat64SwappedToHost := CFSwappedFloat64(arg);
+  CFConvertFloat64SwappedToHost := Float64(arg);
 end;
 
 function CFConvertFloatHostToSwapped( arg: Float32 ): CFSwappedFloat32; inline;
@@ -279,19 +279,19 @@ begin
   CFConvertFloatHostToSwapped := CFSwappedFloat32(arg);
 end;
 
-function CFConvertFloatSwappedToHost( arg: Float32 ): CFSwappedFloat32; inline;
+function CFConvertFloatSwappedToHost( arg: CFSwappedFloat32 ): Float32; inline;
 begin
-  CFConvertFloatSwappedToHost := CFSwappedFloat32(arg);
+  CFConvertFloatSwappedToHost := Float32(arg);
 end;
 
-function CFConvertDoubleHostToSwapped( arg: Float64 ): CFSwappedFloat64; inline;
+function CFConvertDoubleHostToSwapped( arg: Float64): CFSwappedFloat64; inline;
 begin
   CFConvertDoubleHostToSwapped := CFSwappedFloat64(arg);
 end;
 
-function CFConvertDoubleSwappedToHost( arg: Float64 ): CFSwappedFloat64; inline;
+function CFConvertDoubleSwappedToHost( arg: CFSwappedFloat64 ): Float64; inline;
 begin
-  CFConvertDoubleSwappedToHost := CFSwappedFloat64(arg);
+  CFConvertDoubleSwappedToHost := Float64(arg);
 end;
 
 {$elsec}
@@ -361,9 +361,9 @@ begin
   CFConvertFloat32HostToSwapped.v := CFSwapInt32(CFSwappedFloat32(arg).v);
 end;
 
-function CFConvertFloat32SwappedToHost( arg: Float32 ): CFSwappedFloat32; inline;
+function CFConvertFloat32SwappedToHost( arg: CFSwappedFloat32 ): Float32; inline;
 begin
-  CFConvertFloat32SwappedToHost.v := CFSwapInt32(CFSwappedFloat32(arg).v);
+  CFConvertFloat32SwappedToHost := Float32(CFSwappedFloat32(CFSwapInt32(arg.v)));
 end;
 
 function CFConvertFloat64HostToSwapped( arg: Float64 ): CFSwappedFloat64; inline;
@@ -371,9 +371,9 @@ begin
   CFConvertFloat64HostToSwapped.v := CFSwapInt64(CFSwappedFloat64(arg).v);
 end;
 
-function CFConvertFloat64SwappedToHost( arg: Float64 ): CFSwappedFloat64; inline;
+function CFConvertFloat64SwappedToHost( arg: CFSwappedFloat64 ): Float64; inline;
 begin
-  CFConvertFloat64SwappedToHost.v := CFSwapInt64(CFSwappedFloat64(arg).v);
+  CFConvertFloat64SwappedToHost := Float64(CFSwappedFloat64(CFSwapInt64(arg.v)));
 end;
 
 function CFConvertFloatHostToSwapped( arg: Float32 ): CFSwappedFloat32; inline;
@@ -381,9 +381,9 @@ begin
   CFConvertFloatHostToSwapped.v := CFSwapInt32(CFSwappedFloat32(arg).v);
 end;
 
-function CFConvertFloatSwappedToHost( arg: Float32 ): CFSwappedFloat32; inline;
+function CFConvertFloatSwappedToHost( arg: CFSwappedFloat32 ): Float32; inline;
 begin
-  CFConvertFloatSwappedToHost.v := CFSwapInt32(CFSwappedFloat32(arg).v);
+  CFConvertFloatSwappedToHost := Float32(CFSwappedFloat32(CFSwapInt32(arg.v)));
 end;
 
 function CFConvertDoubleHostToSwapped( arg: Float64 ): CFSwappedFloat64; inline;
@@ -391,9 +391,9 @@ begin
   CFConvertDoubleHostToSwapped.v := CFSwapInt64(CFSwappedFloat64(arg).v);
 end;
 
-function CFConvertDoubleSwappedToHost( arg: Float64 ): CFSwappedFloat64; inline;
+function CFConvertDoubleSwappedToHost( arg: CFSwappedFloat64 ): Float64; inline;
 begin
-  CFConvertDoubleSwappedToHost.v := CFSwapInt64(CFSwappedFloat64(arg).v);
+  CFConvertDoubleSwappedToHost := Float64(CFSwappedFloat64(CFSwapInt64(arg.v)));
 end;
 {$endc}
 
