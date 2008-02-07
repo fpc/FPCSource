@@ -341,8 +341,49 @@ end;
 
 
 procedure RebuildRemoteRepository;
+
+  procedure AddPackage(const AManifestFN:string);
+  var
+    X : TFPXMLRepositoryHandler;
+    i : integer;
+    DoAdd : Boolean;
+    P,NewP : TFPPackage;
+    NewPackages : TFPPackages;
+  begin
+    NewPackages:=TFPPackages.Create(TFPPackage);
+    X:=TFPXMLRepositoryHandler.Create;
+    try
+      X.LoadFromXml(NewPackages,AManifestFN);
+      DeleteFile(ManifestFileName);
+      // Update or Add packages to repository
+      for i:=0 to NewPackages.Count-1 do
+        begin
+          NewP:=NewPackages[i];
+          DoAdd:=True;
+          P:=CurrentRepository.FindPackage(NewP.Name);
+          if assigned(P) then
+            begin
+              if NewP.Version.CompareVersion(P.Version)<0 then
+                begin
+                  Writeln(Format('Ignoring package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,P.Version.AsString]));
+                  DoAdd:=False;
+                end
+              else
+                Writeln(Format('Updating package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,P.Version.AsString]));
+            end
+          else
+            P:=CurrentRepository.PackageCollection.AddPackage(NewP.Name);
+          // Copy contents
+          if DoAdd then
+            P.Assign(NewP);
+        end;
+    finally
+      X.Free;
+      NewPackages.Free;
+    end;
+  end;
+
 var
-  X : TFPXMLRepositoryHandler;
   i : integer;
   ArchiveSL : TStringList;
   ManifestSL : TStringList;
@@ -373,18 +414,10 @@ begin
           end;
         { Load manifest.xml }
         if FileExists(ManifestFileName) then
-          begin
-            X:=TFPXMLRepositoryHandler.Create;
-            With X do
-              try
-                LoadFromXml(CurrentRepository.PackageCollection,ManifestFileName);
-              finally
-                Free;
-              end;
-            DeleteFile(ManifestFileName);
-          end
+          AddPackage(ManifestFileName)
         else
           Writeln('No manifest found in archive ',ArchiveSL[i]);
+
       end;
   finally
     ArchiveSL.Free;
