@@ -129,7 +129,8 @@ begin
   DownloadFile(PackagesURL,GlobalOptions.LocalPackagesFile);
   // Read the repository again
   LoadLocalRepository;
-  FindInstalledPackages(CompilerOptions);
+  // no need to log errors again
+  FindInstalledPackages(CompilerOptions,False);
   Result:=true;
 end;
 

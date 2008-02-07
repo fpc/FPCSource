@@ -12,7 +12,7 @@ function GetRemoteRepositoryURL(const AFileName:string):string;
 
 procedure LoadLocalMirrors;
 procedure LoadLocalRepository;
-procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions);
+procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 procedure CheckFPMakeDependencies;
 procedure ListLocalRepository(all:boolean=false);
 
@@ -189,7 +189,7 @@ begin
 end;
 
 
-procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions);
+procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 
   function LoadOrCreatePackage(const AName:string):TFPPackage;
   begin
@@ -213,6 +213,12 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions);
 {$warning TODO Add date to check recompile}
       V:=L.Values['version'];
       APackage.InstalledVersion.AsString:=V;
+      // Log packages found in multiple locations (local and global) ?
+      if not APackage.InstalledVersion.Empty then
+        begin
+          if showdups then
+            Log(vlInfo,SLogPackageMultipleLocations,[APackage.Name,ExtractFilePath(AFileName)]);
+        end;
     Finally
       L.Free;
     end;
@@ -271,10 +277,12 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions);
 
 begin
   CurrentRepository.ClearStatus;
-  if ACompilerOptions.LocalUnitDir<>'' then
-    CheckUnitDir(ACompilerOptions.LocalUnitDir);
+  // First scan the global directory
+  // The local directory will overwrite the versions
   if ACompilerOptions.GlobalUnitDir<>'' then
     CheckUnitDir(ACompilerOptions.GlobalUnitDir);
+  if ACompilerOptions.LocalUnitDir<>'' then
+    CheckUnitDir(ACompilerOptions.LocalUnitDir);
 end;
 
 

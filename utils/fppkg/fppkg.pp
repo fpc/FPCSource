@@ -293,12 +293,12 @@ begin
       end;
     LoadLocalMirrors;
     LoadLocalRepository;
-    FindInstalledPackages(FPMakeCompilerOptions);
+    FindInstalledPackages(FPMakeCompilerOptions,true);
     CheckFPMakeDependencies;
     // We only need to reload the status when we use a different
     // configuration for compiling fpmake
     if GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig then
-      FindInstalledPackages(CompilerOptions);
+      FindInstalledPackages(CompilerOptions,true);
 
     if ParaPackages.Count=0 then
       begin

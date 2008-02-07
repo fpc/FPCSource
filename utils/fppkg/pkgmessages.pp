@@ -72,6 +72,7 @@ Resourcestring
   SLogFPMKUnitDepTooOld      = 'Minimum version of %s is not installed, using internal fpmkunit with limited functionality';
   SLogSelectedMirror         = 'Selected mirror "%s"';
   SLogUpgradingConfig        = 'Configuration file "%s" is updated with new configuration settings';
+  SLogPackageMultipleLocations = 'Multiple installations found for package %s, using installation "%s"';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
