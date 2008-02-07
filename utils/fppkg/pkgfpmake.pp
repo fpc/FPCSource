@@ -58,6 +58,13 @@ type
   end;
 
 
+  { TFPMakeRunnerClean }
+
+  TFPMakeRunnerClean = Class(TFPMakeRunner)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
   { TFPMakeRunnerManifest }
 
   TFPMakeRunnerManifest = Class(TFPMakeRunner)
@@ -299,6 +306,12 @@ begin
 end;
 
 
+function TFPMakeRunnerClean.Execute(const Args:TActionArgs):boolean;
+begin
+  result:=(RunFPMake('clean')=0);
+end;
+
+
 function TFPMakeRunnerManifest.Execute(const Args:TActionArgs):boolean;
 begin
   result:=(RunFPMake('manifest')=0);
@@ -318,6 +331,7 @@ initialization
   RegisterPkgHandler('fpmakecompile',TFPMakeRunnerCompile);
   RegisterPkgHandler('fpmakebuild',TFPMakeRunnerBuild);
   RegisterPkgHandler('fpmakeinstall',TFPMakeRunnerInstall);
+  RegisterPkgHandler('fpmakeclean',TFPMakeRunnerClean);
   RegisterPkgHandler('fpmakemanifest',TFPMakeRunnerManifest);
   RegisterPkgHandler('fpmakearchive',TFPMakeRunnerArchive);
 end.
