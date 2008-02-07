@@ -3,7 +3,7 @@
 
     Copyright (c) 2006 by Thomas Schatzl, member of the FreePascal
     Development team
-    Parts (c) 2000 Peter Vreman (adapted from original stabs line
+    Parts (c) 2000 Peter Vreman (adapted from original dwarfs line
     reader)
 
     Dwarf LineInfo Retriever
@@ -16,38 +16,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+  This unit should not be compiled in objfpc mode, since this would make it
+  dependent on objpas unit.
+}
 unit lnfodwrf;
 interface
 
-{ disable stack checking }
 {$S-}
 
 procedure GetLineInfo(addr:ptruint;var func,source:string;var line:longint);
 
 implementation
 
-{ Note to implementors of other OS loaders:
-
-  - add a LoadXXX() function which has no parameters and returns a Boolean
-   in the "OS loaders section" enclosing it using the OS specific define.
-   This method should set the
-
-     DwarfOpened,
-     DwarfOffset and
-     DwarfSize
-
-   global variables properly (see comments at variable definition for more
-   information).
-   Additionally this method should return true if DWARF line info information
-   could be found.
-
-   The file variable which can be used for file I/O is the global "infile"
-   variable.
-
-  - in OpenDwarf(), add a call to this initializer function after the
-   "run OS specific initializer" comment, again enclosed in the system
-   specific define.
-}
+uses
+  exeinfo;
 
 { Current issues:
 
@@ -55,365 +38,29 @@ implementation
   - slow
 }
 
-{ some type definitions }
-type
-{$IFDEF CPU32}
-  UInt = DWord;
-  Int = Longint;
-{$ENDIF}
-{$IFDEF CPU64}
-  UInt = QWord;
-  Int = Int64;
-{$ENDIF}
-  Bool8 = ByteBool;
-
-var
-  { the input file to read DWARF debug info from, i.e. paramstr(0) }
-  infile : File;
-  { size of the current file, cached }
-  DwarfFilesize : Int64;
-
-{ these variables should be set by the LoadXXX() methods for proper function }
-
-  { set to true if DWARF debug info could be found in the file.
-    The DwarfOffset and DwarfSize variables must be valid after setting this }
-  DwarfOpened : Boolean;
-  { the offset to the DWARF debug_line section in the file }
-  DwarfOffset : Int64;
-  { the size of the DWARF .debug_line section in the file in bytes }
-  DwarfSize : SizeInt;
-
 {$MACRO ON}
 
 //{$DEFINE DEBUG_DWARF_PARSER}
 {$ifdef DEBUG_DWARF_PARSER}
-{$define DEBUG_WRITELN := WriteLn}
-{$define DEBUG_COMMENT :=  }
+  {$define DEBUG_WRITELN := WriteLn}
+  {$define DEBUG_COMMENT :=  }
 {$else}
-{$define DEBUG_WRITELN := //}
-{$define DEBUG_COMMENT := //}
+  {$define DEBUG_WRITELN := //}
+  {$define DEBUG_COMMENT := //}
 {$endif}
 
-{---------------------------------------------------------------------------
- I/O utility functions
----------------------------------------------------------------------------}
-
-var
-  base, limit : SizeInt;
-  index : SizeInt;
-
-function Init(aBase, aLimit : Int64) : Boolean;
-begin
-  base := aBase;
-  limit := aLimit;
-  Init := (aBase + limit) <= DwarfFilesize;
-  seek(infile, base);
-  index := 0;
-end;
-
-function Init(aBase : Int64) : Boolean;
-begin
-  Init := Init(aBase, limit - (aBase - base));
-end;
-
-function Pos() : Int64;
-begin
-  Pos := index;
-end;
-
-procedure Seek(const newIndex : Int64);
-begin
-  index := newIndex;
-  system.seek(infile, base + index);
-end;
-
-{ Returns the next Byte from the input stream, or -1 if there has been
-  an error }
-function ReadNext() : Int;
-var
-  bytesread : SizeInt;
-  b : Byte;
-begin
-  ReadNext := -1;
-  if (index < limit) then begin
-    blockread(infile, b, 1, bytesread);
-    ReadNext := b;
-    inc(index);
-  end;
-  if (bytesread <> 1) then
-    ReadNext := -1;
-end;
-
-{ Reads the next size bytes into dest. Returns true if successful,
-  false otherwise. Note that dest may be partially overwritten after
-  returning false. }
-function ReadNext(var dest; size : SizeInt) : Boolean;
-var
-  bytesread : SizeInt;
-begin
-  bytesread := 0;
-  if ((index + size) < limit) then begin
-    blockread(infile, dest, size, bytesread);
-    inc(index, size);
-  end;
-  ReadNext := (bytesread = size);
-end;
-
-
-{---------------------------------------------------------------------------
- OS specific loaders
----------------------------------------------------------------------------}
-
-{$ifdef LINUX}
-{$packrecords c}
-
-{ ELF Header structures types}
+{ some type definitions }
 type
-  Elf32_Half = Word;
-  Elf64_Half = Word;
-  { Types for signed and unsigned 32-bit quantities.   }
-  Elf32_Word = DWord;
-  Elf32_Sword = Longint;
-  Elf64_Word = DWord;
-  Elf64_Sword = Longint;
-  { Types for signed and unsigned 64-bit quantities.   }
-  Elf32_Xword = QWord;
-  Elf32_Sxword = Int64;
-  Elf64_Xword = QWord;
-  Elf64_Sxword = Int64;
-  { Type of addresses.   }
-  Elf32_Addr = DWord;
-  Elf64_Addr = QWord;
-  { Type of file offsets.   }
-  Elf32_Off = DWord;
-  Elf64_Off = QWord;
-  { Type for section indices, which are 16-bit quantities.   }
-  Elf32_Section = Word;
-  Elf64_Section = Word;
-  { Type for version symbol information.   }
-  Elf32_Versym = Elf32_Half;
-  Elf64_Versym = Elf64_Half;
-{ some constants from the corresponding header files }
-const
-  El_NIDENT = 16;
-  { some important indices into the e_ident signature of an ELF file }
-  EI_MAG0 = 0;
-  EI_MAG1 = 1;
-  EI_MAG2 = 2;
-  EI_MAG3 = 3;
-  EI_CLASS = 4;
-  { the first byte of the e_ident array must be of this value }
-  ELFMAG0 = $7f;
-  { the second byte of the e_ident array must be of this value }
-  ELFMAG1 = Byte('E');
-  { the third byte of the e_ident array must be of this value }
-  ELFMAG2 = Byte('L');
-  { the fourth byte of the e_ident array must be of this value }
-  ELFMAG3 = Byte('F');
+  Bool8 = ByteBool;
 
-  { the fifth byte specifies the bitness of the header; all other values are invalid }
-  ELFCLASS32 = 1;
-  ELFCLASS64 = 2;
-
-  ELFCLASS = {$IFDEF CPU32}ELFCLASS32{$ENDIF}{$IFDEF CPU64}ELFCLASS64{$ENDIF};
-
-type
-  { The ELF file header.  This appears at the start of every ELF file, 32 bit version }
-  TElf32_Ehdr = record
-    e_ident : array[0..El_NIDENT-1] of Byte; { file identification }
-    e_type : Elf32_Half; { file type }
-    e_machine : Elf32_Half; { machine architecture }
-    e_version : Elf32_Word; { ELF format version }
-    e_entry : Elf32_Addr; { entry point }
-    e_phoff : Elf32_Off; { program header file offset }
-    e_shoff : Elf32_Off; { section header file offset }
-    e_flags : Elf32_Word; { architecture specific flags }
-    e_ehsize : Elf32_Half; { size of ELF header in bytes }
-    e_phentsize : Elf32_Half; { size of program header entry }
-    e_phnum : Elf32_Half; { number of program header entries }
-    e_shentsize : Elf32_Half; { size of section header entry }
-    e_shnum : Elf32_Half; { number of section header entry }
-    e_shstrndx : Elf32_Half; { section name strings section index }
-  end;
-
-  { ELF32 Section header }
-  TElf32_Shdr = record
-    sh_name : Elf32_Word; { section name }
-    sh_type : Elf32_Word; { section type }
-    sh_flags : Elf32_Word; { section flags }
-    sh_addr : Elf32_Addr; { virtual address }
-    sh_offset : Elf32_Off; { file offset }
-    sh_size : Elf32_Word; { section size }
-    sh_link : Elf32_Word; { misc info }
-    sh_info : Elf32_Word; { misc info }
-    sh_addralign : Elf32_Word; { memory alignment }
-    sh_entsize : Elf32_Word; { entry size if table }
-  end;
-
-  { The ELF file header.  This appears at the start of every ELF file, 64 bit version }
-  TElf64_Ehdr = record
-    e_ident : array[0..El_NIDENT-1] of Byte;
-    e_type : Elf64_Half;
-    e_machine : Elf64_Half;
-    e_version : Elf64_Word;
-    e_entry : Elf64_Addr;
-    e_phoff : Elf64_Off;
-    e_shoff : Elf64_Off;
-    e_flags : Elf64_Word;
-    e_ehsize : Elf64_Half;
-    e_phentsize : Elf64_Half;
-    e_phnum : Elf64_Half;
-    e_shentsize : Elf64_Half;
-    e_shnum : Elf64_Half;
-    e_shstrndx : Elf64_Half;
-  end;
-
-  { ELF64 Section header }
-  TElf64_Shdr = record
-    sh_name : Elf64_Word;
-    sh_type : Elf64_Word;
-    sh_flags : Elf64_Xword;
-    sh_addr : Elf64_Addr;
-    sh_offset : Elf64_Off;
-    sh_size : Elf64_Xword;
-    sh_link : Elf64_Word;
-    sh_info : Elf64_Word;
-    sh_addralign : Elf64_Xword;
-    sh_entsize : Elf64_Xword;
-  end;
-
-  TElf_Shdr = {$ifdef cpu32}TElf32_Shdr{$endif}{$ifdef cpu64}TElf64_Shdr{$endif};
-  TElf_Ehdr = {$ifdef cpu32}TElf32_Ehdr{$endif}{$ifdef cpu64}TElf64_Ehdr{$endif};
-
-{ use globals to save stack space }
 var
-  header : TElf_Ehdr;
-  strtab_header : TElf_Shdr;
-  cursec_header : TElf_Shdr;
+  { the input file to read DWARF debug info from, i.e. paramstr(0) }
+  e : TExeFile;
+  DwarfErr : boolean;
+  { the offset and size of the DWARF debug_line section in the file }
+  DwarfOffset : longint;
+  DwarfSize : longint;
 
-  buf : array[0..20] of char;
-
-function LoadLinux() : Boolean;
-var
-  i : Integer;
-begin
-  LoadLinux := false;
-
-  Init(0, DwarfFilesize);
-
-  if (not ReadNext(header, sizeof(header))) then begin
-    DEBUG_WRITELN('Could not read header');
-    exit;
-  end;
-
-  { more paranoia checks }
-  if ((header.e_ident[EI_MAG0] <> ELFMAG0) or (header.e_ident[EI_MAG1] <> ELFMAG1) or
-    (header.e_ident[EI_MAG2] <> ELFMAG2) or (header.e_ident[EI_MAG3] <> ELFMAG3)) then begin
-    DEBUG_WRITELN('Invalid ELF magic header. Exiting');
-    exit;
-  end;
-
-  if (header.e_ident[EI_CLASS] <> ELFCLASS) then begin
-    DEBUG_WRITELN('Invalid ELF header bitness. Exiting');
-    exit;
-  end;
-
-  { check e_version = , e_shentsize > 0, e_shnum > 0 }
-
-
-  { seek to the start of section headers }
-
-  { first get string section header }
-  Init(header.e_shoff + (header.e_shstrndx * header.e_shentsize));
-  if (not ReadNext(strtab_header, sizeof(strtab_header))) then begin
-    DEBUG_WRITELN('Could not read string section header');
-    exit;
-  end;
-
-  for i := 0 to (header.e_shnum-1) do begin
-    Init(header.e_shoff + (i * header.e_shentsize));
-    if (not ReadNext(cursec_header, sizeof(cursec_header))) then begin
-      DEBUG_WRITELN('Could not read next section header');
-      exit;
-    end;
-    { paranoia TODO: check cursec_header.e_shentsize }
-
-    Init(strtab_header.sh_offset + cursec_header.sh_name);
-    if (not ReadNext(buf, sizeof(buf))) then begin
-      DEBUG_WRITELN('Could not read section name');
-      exit;
-    end;
-    buf[sizeof(buf)-1] := #0;
-
-    DEBUG_WRITELN('This section is "', pchar(@buf[0]), '", offset ', cursec_header.sh_offset, ' size ', cursec_header.sh_size);
-    if (pchar(@buf[0]) = '.debug_line') then begin
-      DEBUG_WRITELN('.debug_line section found');
-      DwarfOffset := cursec_header.sh_offset;
-      DwarfSize := cursec_header.sh_size;
-      { more checks }
-      LoadLinux := (DwarfOffset >= 0) and (DwarfSize > 0);
-    end;
-  end;
-end;
-{$endif LINUX}
-
-
-{---------------------------------------------------------------------------
-
- Generic Dwarf lineinfo reader
-
- The line info reader is based on the information contained in
-
-   DWARF Debugging Information Format Version 3
-   Chapter 6.2 "Line Number Information"
-
- from the
-
-   DWARF Debugging Information Format Workgroup.
-
- For more information on this document see also
-
-   http://dwarf.freestandards.org/
-
----------------------------------------------------------------------------}
-
-procedure CloseDwarf();
-begin
-  if (DwarfOpened) then
-    close(infile);
-  DwarfOpened := false;
-end;
-
-function OpenDwarf() : Boolean;
-var
-  oldfilemode : Word;
-begin
-  OpenDwarf := false;
-  { open input file }
-  assign(infile, paramstr(0));
-  {$I-}
-  oldfilemode := filemode;
-  filemode := $40;
-  reset(infile, 1);
-  filemode := oldfilemode;
-  {$I+}
-  if (ioresult <> 0) then begin
-    DEBUG_WRITELN('Could not open file');
-    exit;
-  end;
-  DwarfFilesize := filesize(infile);
-  DwarfOpened := true;
-  { run OS specific initializer }
-  {$ifdef linux}
-  if (LoadLinux()) then begin
-    OpenDwarf := true;
-    exit;
-  end;
-  {$endif}
-  CloseDwarf();
-end;
-
-{$packrecords default}
 { DWARF 2 default opcodes}
 const
   { Extended opcodes }
@@ -475,6 +122,213 @@ type
     opcode_base : Byte;
   end;
 
+{---------------------------------------------------------------------------
+ I/O utility functions
+---------------------------------------------------------------------------}
+
+var
+  base, limit : SizeInt;
+  index : SizeInt;
+
+function Opendwarf:boolean;
+var
+  dbgfn : string;
+begin
+  Opendwarf:=false;
+  if dwarferr then
+    exit;
+  if not OpenExeFile(e,paramstr(0)) then
+    exit;
+  if ReadDebugLink(e,dbgfn) then
+    begin
+      CloseExeFile(e);
+      if not OpenExeFile(e,dbgfn) then
+        exit;
+    end;
+  if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
+    Opendwarf:=true
+  else
+    begin
+      dwarferr:=true;
+      exit;
+    end;
+end;
+
+
+procedure Closedwarf;
+begin
+  CloseExeFile(e);
+end;
+
+
+function Init(aBase, aLimit : Int64) : Boolean;
+begin
+  base := aBase;
+  limit := aLimit;
+  Init := (aBase + limit) <= e.size;
+  seek(e.f, base);
+  index := 0;
+end;
+
+function Init(aBase : Int64) : Boolean;
+begin
+  Init := Init(aBase, limit - (aBase - base));
+end;
+
+
+function Pos() : Int64;
+begin
+  Pos := index;
+end;
+
+
+procedure Seek(const newIndex : Int64);
+begin
+  index := newIndex;
+  system.seek(e.f, base + index);
+end;
+
+
+{ Returns the next Byte from the input stream, or -1 if there has been
+  an error }
+function ReadNext() : Longint;
+var
+  bytesread : SizeInt;
+  b : Byte;
+begin
+  ReadNext := -1;
+  if (index < limit) then begin
+    blockread(e.f, b, 1, bytesread);
+    ReadNext := b;
+    inc(index);
+  end;
+  if (bytesread <> 1) then
+    ReadNext := -1;
+end;
+
+{ Reads the next size bytes into dest. Returns true if successful,
+  false otherwise. Note that dest may be partially overwritten after
+  returning false. }
+function ReadNext(var dest; size : SizeInt) : Boolean;
+var
+  bytesread : SizeInt;
+begin
+  bytesread := 0;
+  if ((index + size) < limit) then begin
+    blockread(e.f, dest, size, bytesread);
+    inc(index, size);
+  end;
+  ReadNext := (bytesread = size);
+end;
+
+
+{ Reads an unsigned LEB encoded number from the input stream }
+function ReadULEB128() : QWord;
+var
+  shift : Byte;
+  data : PtrInt;
+  val : QWord;
+begin
+  shift := 0;
+  ReadULEB128 := 0;
+  data := ReadNext();
+  while (data <> -1) do begin
+    val := data and $7f;
+    ReadULEB128 := ReadULEB128 or (val shl shift);
+    inc(shift, 7);
+    if ((data and $80) = 0) then
+      break;
+    data := ReadNext();
+  end;
+end;
+
+{ Reads a signed LEB encoded number from the input stream }
+function ReadLEB128() : Int64;
+var
+  shift : Byte;
+  data : PtrInt;
+  val : Int64;
+begin
+  shift := 0;
+  ReadLEB128 := 0;
+  data := ReadNext();
+  while (data <> -1) do begin
+    val := data and $7f;
+    ReadLEB128 := ReadLEB128 or (val shl shift);
+    inc(shift, 7);
+    if ((data and $80) = 0) then
+      break;
+    data := ReadNext();
+  end;
+  { extend sign. Note that we can not use shl/shr since the latter does not
+    translate to arithmetic shifting for signed types }
+  ReadLEB128 := (not ((ReadLEB128 and (1 shl (shift-1)))-1)) or ReadLEB128;
+end;
+
+
+{ Reads an address from the current input stream }
+function ReadAddress() : PtrUInt;
+begin
+  ReadNext(ReadAddress, sizeof(ReadAddress));
+end;
+
+
+{ Reads a zero-terminated string from the current input stream. If the
+  string is larger than 255 chars (maximum allowed number of elements in
+  a ShortString, excess characters will be chopped off. }
+function ReadString() : ShortString;
+var
+  temp : PtrInt;
+  i : PtrUInt;
+begin
+  i := 1;
+  temp := ReadNext();
+  while (temp > 0) do begin
+    ReadString[i] := char(temp);
+    if (i = 255) then begin
+      { skip remaining characters }
+      repeat
+        temp := ReadNext();
+      until (temp <= 0);
+      break;
+    end;
+    inc(i);
+    temp := ReadNext();
+  end;
+  { unexpected end of file occurred? }
+  if (temp = -1) then
+    ReadString := ''
+  else
+    Byte(ReadString[0]) := i-1;
+end;
+
+
+{ Reads an unsigned Half from the current input stream }
+function ReadUHalf() : Word;
+begin
+  ReadNext(ReadUHalf, sizeof(ReadUHalf));
+end;
+
+
+{---------------------------------------------------------------------------
+
+ Generic Dwarf lineinfo reader
+
+ The line info reader is based on the information contained in
+
+   DWARF Debugging Information Format Version 3
+   Chapter 6.2 "Line Number Information"
+
+ from the
+
+   DWARF Debugging Information Format Workgroup.
+
+ For more information on this document see also
+
+   http://dwarf.freestandards.org/
+
+---------------------------------------------------------------------------}
+
 { initializes the line info state to the default values }
 procedure InitStateRegisters(var state : TMachineState; const aIs_Stmt : Bool8);
 begin
@@ -493,101 +347,6 @@ begin
   end;
 end;
 
-{ Reads an unsigned LEB encoded number from the input stream }
-function ReadULEB128() : QWord;
-var
-  shift : Byte;
-  data : Int;
-  val : QWord;
-  result : QWord;
-begin
-  shift := 0;
-  result := 0;
-  data := ReadNext();
-  while (data <> -1) do begin
-    val := data and $7f;
-    result := result or (val shl shift);
-    inc(shift, 7);
-    if ((data and $80) = 0) then
-      break;
-    data := ReadNext();
-  end;
-  ReadULEB128 := result;
-end;
-
-{ Reads a signed LEB encoded number from the input stream }
-function ReadLEB128() : Int64;
-var
-  shift : Byte;
-  data : Int;
-  val : Int64;
-  result : Int64;
-begin
-  shift := 0;
-  result := 0;
-  data := ReadNext();
-  while (data <> -1) do begin
-    val := data and $7f;
-    result := result or (val shl shift);
-    inc(shift, 7);
-    if ((data and $80) = 0) then
-      break;
-    data := ReadNext();
-  end;
-  { extend sign. Note that we can not use shl/shr since the latter does not
-    translate to arithmetic shifting for signed types }
-  result := (not ((result and (1 shl (shift-1)))-1)) or result;
-  ReadLEB128 := result;
-end;
-
-{ Reads an address from the current input stream }
-function ReadAddress() : PtrUInt;
-var
-  result : PtrUInt;
-begin
-  ReadNext(result, sizeof(result));
-  ReadAddress := result;
-end;
-
-{ Reads a zero-terminated string from the current input stream. If the
-  string is larger than 255 chars (maximum allowed number of elements in
-  a ShortString, excess characters will be chopped off. }
-function ReadString() : ShortString;
-var
-  temp : Int;
-  i : UInt;
-  result : ShortString;
-begin
-  i := 1;
-  temp := ReadNext();
-  while (temp > 0) do begin
-    result[i] := char(temp);
-    if (i = 255) then begin
-      { skip remaining characters }
-      repeat
-        temp := ReadNext();
-      until (temp <= 0);
-      break;
-    end;
-    inc(i);
-    temp := ReadNext();
-  end;
-  { unexpected end of file occurred? }
-  if (temp = -1) then
-    result := ''
-  else
-    Byte(result[0]) := i-1;
-  ReadString := result;
-end;
-
-{ Reads an unsigned Half from the current input stream }
-function ReadUHalf() : Word;
-var
-  result : Word;
-begin
-  ReadNext(result, sizeof(result));
-  ReadUHalf := result;
-end;
 
 { Skips all line info directory entries }
 procedure SkipDirectories();
@@ -625,11 +384,8 @@ begin
 end;
 
 function CalculateAddressIncrement(opcode : Byte; const header : TLineNumberProgramHeader64) : Int64;
-var
-  result : Int64;
 begin
-  result := (Int64(opcode) - header.opcode_base) div header.line_range * header.minimum_instruction_length;
-  CalculateAddressIncrement := result;
+  CalculateAddressIncrement := (Int64(opcode) - header.opcode_base) div header.line_range * header.minimum_instruction_length;
 end;
 
 function GetFullFilename(const filenameStart, directoryStart : Int64; const file_id : DWord) : ShortString;
@@ -669,6 +425,7 @@ begin
   GetFullFilename := directory + filename;
 end;
 
+
 function ParseCompilationUnit(const addr : PtrUInt; const file_offset : QWord;
   var source : String; var line : longint; var found : Boolean) : QWord;
 var
@@ -679,10 +436,10 @@ var
 
   adjusted_opcode : Int64;
 
-  opcode : Int;
+  opcode : PtrInt;
   extended_opcode : Byte;
-  extended_opcode_length : Int;
-  i, addrIncrement, lineIncrement : Int;
+  extended_opcode_length : PtrInt;
+  i, addrIncrement, lineIncrement : PtrInt;
 
   {$ifdef DEBUG_DWARF_PARSER}
   s : ShortString;
@@ -921,8 +678,13 @@ begin
   source := '';
   found := false;
 
-  if (not DwarfOpened) and (not OpenDwarf()) then
+  if DwarfErr then
     exit;
+  if not e.isopen then
+   begin
+     if not OpenDwarf then
+      exit;
+   end;
 
   current_offset := DwarfOffset;
   end_offset := DwarfOffset + DwarfSize;
@@ -961,15 +723,15 @@ begin
     end;
     DwarfBackTraceStr := DwarfBackTraceStr + ' of ' + source;
   end;
-  if (DwarfOpened) then
+  if e.IsOpen then
     BackTraceStrFunc := Store;
 end;
 
 
 initialization
-  DwarfOpened := false;
   BackTraceStrFunc := @DwarfBacktraceStr;
 
 finalization
-  CloseDwarf();
+  if e.isopen then
+    CloseDwarf();
 end.
