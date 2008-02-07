@@ -16,127 +16,124 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gtk2';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
-    P.SourcePath.Add('src/glib');
-    P.SourcePath.Add('src/gtk+');
-    P.SourcePath.Add('src/atk');
-    P.SourcePath.Add('src/gtk2x11');
-    P.SourcePath.Add('src/gtkglext');
-    P.SourcePath.Add('src/gtkhtml');
-    P.SourcePath.Add('src/libglade');
-    P.SourcePath.Add('src/pango');
-    P.SourcePath.Add('src/');
+    P.Version:='2.2.1';
+    P.OSes:=AllUnixOSes+[Win32,Win64];
 
-     T:=P.Targets.AddUnit('atk.pas');
-      with T.Dependencies do
-        begin
-          AddInclude('atkincludes.inc');
-          AddInclude('atkobject.inc');
-          AddInclude('atkaction.inc');
-          AddInclude('atkcomponent.inc');
-          AddInclude('atkdocument.inc');
-          AddInclude('atkeditabletext.inc');
-          AddInclude('atkgobjectaccessible.inc');
-          AddInclude('atkhyperlink.inc');
-          AddInclude('atkhypertext.inc');
-          AddInclude('atkimage.inc');
-          AddInclude('atkobjectfactory.inc');
-          AddInclude('atkregistry.inc');
-          AddInclude('atkrelation.inc');
-          AddInclude('atkrelationset.inc');
-          AddInclude('atkselection.inc');
-          AddInclude('atkstate.inc');
-          AddInclude('atkstateset.inc');
-          AddInclude('atkstreamablecontent.inc');
-          AddInclude('atktable.inc');
-          AddInclude('atktext.inc');
-          AddInclude('atkutil.inc');
-          AddInclude('atkvalue.inc');
-          AddInclude('atkincludes.inc');
-          AddInclude('atkobject.inc');
-          AddInclude('atkaction.inc');
-          AddInclude('atkcomponent.inc');
-          AddInclude('atkdocument.inc');
-          AddInclude('atkeditabletext.inc');
-          AddInclude('atkgobjectaccessible.inc');
-          AddInclude('atkhyperlink.inc');
-          AddInclude('atkhypertext.inc');
-          AddInclude('atkimage.inc');
-          AddInclude('atkobjectfactory.inc');
-          AddInclude('atkregistry.inc');
-          AddInclude('atkrelation.inc');
-          AddInclude('atkrelationset.inc');
-          AddInclude('atkselection.inc');
-          AddInclude('atkstate.inc');
-          AddInclude('atkstateset.inc');
-          AddInclude('atkstreamablecontent.inc');
-          AddInclude('atktable.inc');
-          AddInclude('atktext.inc');
-          AddInclude('atkutil.inc');
-          AddInclude('atkvalue.inc');
-          AddInclude('atkincludes.inc');
-          AddInclude('atkobject.inc');
-          AddInclude('atkaction.inc');
-          AddInclude('atkcomponent.inc');
-          AddInclude('atkdocument.inc');
-          AddInclude('atkeditabletext.inc');
-          AddInclude('atkgobjectaccessible.inc');
-          AddInclude('atkhyperlink.inc');
-          AddInclude('atkhypertext.inc');
-          AddInclude('atkimage.inc');
-          AddInclude('atkobjectfactory.inc');
-          AddInclude('atkregistry.inc');
-          AddInclude('atkrelation.inc');
-          AddInclude('atkrelationset.inc');
-          AddInclude('atkselection.inc');
-          AddInclude('atkstate.inc');
-          AddInclude('atkstateset.inc');
-          AddInclude('atkstreamablecontent.inc');
-          AddInclude('atktable.inc');
-          AddInclude('atktext.inc');
-          AddInclude('atkutil.inc');
-          AddInclude('atkvalue.inc');
-          AddInclude('atkincludes.inc');
-          AddInclude('atkobject.inc');
-          AddInclude('atkaction.inc');
-          AddInclude('atkcomponent.inc');
-          AddInclude('atkdocument.inc');
-          AddInclude('atkeditabletext.inc');
-          AddInclude('atkgobjectaccessible.inc');
-          AddInclude('atkhyperlink.inc');
-          AddInclude('atkhypertext.inc');
-          AddInclude('atkimage.inc');
-          AddInclude('atkobjectfactory.inc');
-          AddInclude('atkregistry.inc');
-          AddInclude('atkrelation.inc');
-          AddInclude('atkrelationset.inc');
-          AddInclude('atkselection.inc');
-          AddInclude('atkstate.inc');
-          AddInclude('atkstateset.inc');
-          AddInclude('atkstreamablecontent.inc');
-          AddInclude('atktable.inc');
-          AddInclude('atktext.inc');
-          AddInclude('atkutil.inc');
-          AddInclude('atkvalue.inc');
-          AddUnit('glib2');
-        end;
-    T:=P.Targets.AddUnit('buildgtk2.pp');
+    P.Dependencies.Add('x11',AllUnixOSes);
+
+    T:=P.Targets.AddUnit('src/atk/atk.pas');
+     T.IncludePath.Add('src/atk');
+     with T.Dependencies do
+       begin
+         AddInclude('atkincludes.inc');
+         AddInclude('atkobject.inc');
+         AddInclude('atkaction.inc');
+         AddInclude('atkcomponent.inc');
+         AddInclude('atkdocument.inc');
+         AddInclude('atkeditabletext.inc');
+         AddInclude('atkgobjectaccessible.inc');
+         AddInclude('atkhyperlink.inc');
+         AddInclude('atkhypertext.inc');
+         AddInclude('atkimage.inc');
+         AddInclude('atkobjectfactory.inc');
+         AddInclude('atkregistry.inc');
+         AddInclude('atkrelation.inc');
+         AddInclude('atkrelationset.inc');
+         AddInclude('atkselection.inc');
+         AddInclude('atkstate.inc');
+         AddInclude('atkstateset.inc');
+         AddInclude('atkstreamablecontent.inc');
+         AddInclude('atktable.inc');
+         AddInclude('atktext.inc');
+         AddInclude('atkutil.inc');
+         AddInclude('atkvalue.inc');
+         AddInclude('atkincludes.inc');
+         AddInclude('atkobject.inc');
+         AddInclude('atkaction.inc');
+         AddInclude('atkcomponent.inc');
+         AddInclude('atkdocument.inc');
+         AddInclude('atkeditabletext.inc');
+         AddInclude('atkgobjectaccessible.inc');
+         AddInclude('atkhyperlink.inc');
+         AddInclude('atkhypertext.inc');
+         AddInclude('atkimage.inc');
+         AddInclude('atkobjectfactory.inc');
+         AddInclude('atkregistry.inc');
+         AddInclude('atkrelation.inc');
+         AddInclude('atkrelationset.inc');
+         AddInclude('atkselection.inc');
+         AddInclude('atkstate.inc');
+         AddInclude('atkstateset.inc');
+         AddInclude('atkstreamablecontent.inc');
+         AddInclude('atktable.inc');
+         AddInclude('atktext.inc');
+         AddInclude('atkutil.inc');
+         AddInclude('atkvalue.inc');
+         AddInclude('atkincludes.inc');
+         AddInclude('atkobject.inc');
+         AddInclude('atkaction.inc');
+         AddInclude('atkcomponent.inc');
+         AddInclude('atkdocument.inc');
+         AddInclude('atkeditabletext.inc');
+         AddInclude('atkgobjectaccessible.inc');
+         AddInclude('atkhyperlink.inc');
+         AddInclude('atkhypertext.inc');
+         AddInclude('atkimage.inc');
+         AddInclude('atkobjectfactory.inc');
+         AddInclude('atkregistry.inc');
+         AddInclude('atkrelation.inc');
+         AddInclude('atkrelationset.inc');
+         AddInclude('atkselection.inc');
+         AddInclude('atkstate.inc');
+         AddInclude('atkstateset.inc');
+         AddInclude('atkstreamablecontent.inc');
+         AddInclude('atktable.inc');
+         AddInclude('atktext.inc');
+         AddInclude('atkutil.inc');
+         AddInclude('atkvalue.inc');
+         AddInclude('atkincludes.inc');
+         AddInclude('atkobject.inc');
+         AddInclude('atkaction.inc');
+         AddInclude('atkcomponent.inc');
+         AddInclude('atkdocument.inc');
+         AddInclude('atkeditabletext.inc');
+         AddInclude('atkgobjectaccessible.inc');
+         AddInclude('atkhyperlink.inc');
+         AddInclude('atkhypertext.inc');
+         AddInclude('atkimage.inc');
+         AddInclude('atkobjectfactory.inc');
+         AddInclude('atkregistry.inc');
+         AddInclude('atkrelation.inc');
+         AddInclude('atkrelationset.inc');
+         AddInclude('atkselection.inc');
+         AddInclude('atkstate.inc');
+         AddInclude('atkstateset.inc');
+         AddInclude('atkstreamablecontent.inc');
+         AddInclude('atktable.inc');
+         AddInclude('atktext.inc');
+         AddInclude('atkutil.inc');
+         AddInclude('atkvalue.inc');
+         AddUnit('glib2');
+       end;
+    T:=P.Targets.AddUnit('src/buildgtk2.pp');
       with T.Dependencies do
         begin
           AddUnit('gtk2');
           AddUnit('libglade2');
           AddUnit('gdkglext');
           AddUnit('gtkglext');
-          AddUnit('gdk2x');
+          AddUnit('gdk2x',AllUnixOSes);
         end;
-    T:=P.Targets.AddUnit('gdk2pixbuf.pas');
+    T:=P.Targets.AddUnit('src/gtk+/gdk-pixbuf/gdk2pixbuf.pas');
+      T.IncludePath.Add('src/gtk+/gdk-pixbuf');
       with T.Dependencies do
         begin
           AddInclude('gdk-pixbuf-loader.inc');
           AddInclude('gdk-pixbuf-loader.inc');
           AddUnit('glib2');
         end;
-    T:=P.Targets.AddUnit('gdk2.pas');
+    T:=P.Targets.AddUnit('src/gtk+/gdk/gdk2.pas');
+      T.IncludePath.Add('src/gtk+/gdk');
       with T.Dependencies do
         begin
           AddInclude('gdkincludes.inc');
@@ -243,7 +240,9 @@ begin
           AddUnit('gdk2pixbuf');
           AddUnit('pango');
         end;
-    T:=P.Targets.AddUnit('gdk2x.pas');
+    T:=P.Targets.AddUnit('src/gtk2x11/gdk2x.pas',AllUnixOSes);
+      T.IncludePath.Add('src/gtk2x11');
+      T.IncludePath.Add('src/gtk2x11/include');
       with T.Dependencies do
         begin
           AddInclude('gdk2x11includes.inc');
@@ -287,10 +286,9 @@ begin
           AddInclude('mwmutil.inc');
           AddUnit('glib2');
           AddUnit('gdk2');
-          AddUnit('xlib');
-          AddUnit('xrender');
         end;
-    T:=P.Targets.AddUnit('gdkglext.pas');
+    T:=P.Targets.AddUnit('src/gtkglext/gdkglext.pas');
+      T.IncludePath.Add('src/gtkglext');
       with T.Dependencies do
         begin
           AddInclude('gdkglext_includes.inc');
@@ -341,7 +339,8 @@ begin
           AddUnit('glib2');
           AddUnit('gdk2');
         end;
-    T:=P.Targets.AddUnit('glib2.pas');
+    T:=P.Targets.AddUnit('src/glib/glib2.pas');
+      T.IncludePath.Add('src/glib');
       with T.Dependencies do
         begin
           AddInclude('gtypes.inc');
@@ -415,7 +414,8 @@ begin
           AddInclude('gmodule.inc');
           AddInclude('gmarshal.inc');
         end;
-    T:=P.Targets.AddUnit('gtk2.pas');
+    T:=P.Targets.AddUnit('src/gtk+/gtk/gtk2.pas');
+      T.IncludePath.Add('src/gtk+/gtk');
       with T.Dependencies do
         begin
           AddInclude('gtkincludes.inc');
@@ -1112,7 +1112,8 @@ begin
           AddUnit('gdk2pixbuf');
           AddUnit('gdk2');
         end;
-    T:=P.Targets.AddUnit('gtkglext.pas');
+    T:=P.Targets.AddUnit('src/gtkglext/gtkglext.pas');
+      T.IncludePath.Add('src/gtkglext');
       with T.Dependencies do
         begin
           AddInclude('gtkglext_includes.inc');
@@ -1135,7 +1136,8 @@ begin
           AddUnit('gtk2');
           AddUnit('gdkglext');
         end;
-    T:=P.Targets.AddUnit('libglade2.pas');
+    T:=P.Targets.AddUnit('src/libglade/libglade2.pas');
+      T.IncludePath.Add('src/libglade');
       with T.Dependencies do
         begin
           AddInclude('glade-init.inc');
@@ -1143,7 +1145,8 @@ begin
           AddUnit('glib2');
           AddUnit('gtk2');
         end;
-    T:=P.Targets.AddUnit('pango.pas');
+    T:=P.Targets.AddUnit('src/pango/pango.pas');
+      T.IncludePath.Add('src/pango');
       with T.Dependencies do
         begin
           AddInclude('pangoincludes.inc');
@@ -1205,6 +1208,37 @@ begin
           AddUnit('glib2');
         end;
 
+     T:=P.Targets.AddUnit('src/gtkhtml/gtkhtml.pas');
+       T.IncludePath.Add('src/gtkhtml');
+       with T.Dependencies do
+         begin
+           AddInclude('gtkhtmlincludes.inc');
+           AddInclude('htmlstream.inc');
+           AddInclude('htmlstreambuffer.inc');
+           AddInclude('htmldocument.inc');
+           AddInclude('htmlview.inc');
+           AddInclude('gtkhtmlincludes.inc');
+           AddInclude('htmlstream.inc');
+           AddInclude('htmlstreambuffer.inc');
+           AddInclude('htmldocument.inc');
+           AddInclude('htmlview.inc');
+           AddInclude('gtkhtmlincludes.inc');
+           AddInclude('htmlstream.inc');
+           AddInclude('htmlstreambuffer.inc');
+           AddInclude('htmldocument.inc');
+           AddInclude('htmlview.inc');
+           AddInclude('gtkhtmlincludes.inc');
+           AddInclude('htmlstream.inc');
+           AddInclude('htmlstreambuffer.inc');
+           AddInclude('htmldocument.inc');
+           AddInclude('htmlview.inc');
+           AddUnit('gtk2');
+           AddUnit('glib2');
+           AddUnit('atk');
+           AddUnit('pango');
+           AddUnit('gdk2pixbuf');
+           AddUnit('gdk2');
+         end;
 {$ifndef ALLPACKAGES}
     Run;
     end;

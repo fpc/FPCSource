@@ -16,24 +16,19 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gtk1';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
-    P.SourcePath.Add('src/gtk');
-    P.SourcePath.Add('src/gdk');
-    P.SourcePath.Add('src/glib');
-    P.SourcePath.Add('src/gtkgl');
-    P.IncludePath.Add('src/gtk');
-    P.IncludePath.Add('src/gdk');
-    P.IncludePath.Add('src/glib');
-    P.IncludePath.Add('src/gtkgl');
+    P.Version:='2.2.1';
+    P.OSes:=AllUnixOSes+[Win32,Win64];
+    P.Dependencies.Add('opengl');
 
-    T:=P.Targets.AddUnit('gdkpixbuf.pp');
+    T:=P.Targets.AddUnit('src/gdk/gdkpixbuf.pp');
       with T.Dependencies do
         begin
           AddUnit('glib');
           AddUnit('gdk');
           AddUnit('gtk');
         end;
-    T:=P.Targets.AddUnit('gdk.pp');
+    T:=P.Targets.AddUnit('src/gdk/gdk.pp');
+      T.IncludePath.Add('src/gdk');
       with T.Dependencies do
         begin
           AddInclude('gdktypes.pp');
@@ -50,19 +45,22 @@ begin
           AddInclude('gdkmain.pp');
           AddUnit('glib');
         end;
-    T:=P.Targets.AddUnit('glib.pp');
-    T:=P.Targets.AddUnit('gmodule.pp');
+    T:=P.Targets.AddUnit('src/glib/glib.pp');
+      T.IncludePath.Add('src/glib');
+    T:=P.Targets.AddUnit('src/glib/gmodule.pp');
       with T.Dependencies do
         begin
           AddUnit('glib');
         end;
-    T:=P.Targets.AddUnit('gtkglarea.pp');
+    T:=P.Targets.AddUnit('src/gtkgl/gtkglarea.pp');
+      T.IncludePath.Add('src/gtkgl');
       with T.Dependencies do
         begin
           AddUnit('gdk');
           AddUnit('gtk');
         end;
-    T:=P.Targets.AddUnit('gtk.pp');
+    T:=P.Targets.AddUnit('src/gtk/gtk.pp');
+      T.IncludePath.Add('src/gtk');
       with T.Dependencies do
         begin
           AddInclude('gtkincludes.pp');

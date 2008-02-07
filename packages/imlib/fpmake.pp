@@ -16,38 +16,16 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='imlib';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
-    P.SourcePath.Add('src');
+    P.Version:='2.2.1';
+    P.OSes:=AllUnixOSes;
+    
     P.Dependencies.Add('gtk1');
     P.Dependencies.Add('x11');
 
-    T:=P.Targets.AddUnit('gdk_imlib.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('glib');
-          AddUnit('gdk');
-          AddUnit('gtk');
-        end;
-    T:=P.Targets.AddUnit('imlib.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('xlib');
-        end;
-
+    P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gdk_imlib.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('glib');
-          AddUnit('gdk');
-          AddUnit('gtk');
-        end;
     T:=P.Targets.AddUnit('imlib.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('xlib');
-        end;
-
 
 {$ifndef ALLPACKAGES}
     Run;

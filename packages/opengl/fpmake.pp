@@ -16,19 +16,18 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='opengl';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.1';
+    P.OSes:=AllUnixOSes+[Win32,Win64];
+
+    P.Dependencies.Add('x11',AllUnixOSes);
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('glext.pp');
     T:=P.Targets.AddUnit('gl.pp');
     T:=P.Targets.AddUnit('glu.pp');
     T:=P.Targets.AddUnit('glut.pp');
-    T:=P.Targets.AddUnit('glx.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('xlib');
-        end;
-
+    T:=P.Targets.AddUnit('glx.pp',AllUnixOSes);
 
 {$ifndef ALLPACKAGES}
     Run;
