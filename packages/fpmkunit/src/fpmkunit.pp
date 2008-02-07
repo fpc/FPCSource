@@ -243,6 +243,31 @@ Type
     Property DefaultAt : TCommandAt Read FDefaultAt Write FDefaultAt;
   end;
 
+  { TFPVersion }
+
+  TFPVersion = Class(TPersistent)
+  private
+    FMajor,
+    FMinor,
+    FMicro,
+    FBuild    : Word;
+    function GetAsString: String;
+    function GetEmpty: Boolean;
+    procedure SetAsString(const AValue: String);
+  Public
+   Procedure Clear;
+   Procedure Assign(Source : TPersistent); override;
+   Function CompareVersion(AVersion : TFPVersion) : Integer;
+   Function SameVersion(AVersion : TFPVersion) : Boolean;
+   Property AsString : String Read GetAsString Write SetAsString;
+   Property Empty : Boolean Read GetEmpty;
+  Published
+   Property Major : Word Read FMajor Write FMajor;
+   Property Minor : Word Read FMinor Write FMinor;
+   Property Micro : Word Read FMicro Write FMicro;
+   Property Build : Word Read FBuild Write FBuild;
+  end;
+
   { TConditionalString }
   TConditionalString = Class
   private
@@ -250,20 +275,23 @@ Type
     FCPUs   : TCPUs;
     FValue  : String;
   Public
+    Constructor Create;virtual;
     Property Value : String Read FValue Write FValue;
     Property OSes  : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUS Write FCPUs;
   end;
 
+  TConditionalStringClass = class of TConditionalString;
+
   { TConditionalStrings }
 
   TConditionalStrings = Class(TFPList)
   private
-    FCSClass : TClass;
+    FCSClass : TConditionalStringClass;
     function GetConditionalString(Index : Integer): TConditionalString;
     procedure SetConditionalString(Index : Integer; const AValue: TConditionalString);
   Public
-    Constructor Create(AClass:TClass);
+    Constructor Create(AClass:TConditionalStringClass);
     Function Add(Const Value : String) : TConditionalString;inline;
     Function Add(Const Value : String;const OSes:TOSes) : TConditionalString;inline;
 {$ifdef cpu_only_overloads}
@@ -279,14 +307,18 @@ Type
     FDependencyType : TDependencyType;
     // Package, Unit
     FTarget : TObject;
-    FVersion : String;
+    FVersion : TFPVersion;
     // Filenames, Includes
     FTargetFileName : String;
+    Function GetVersion : string;
+    Procedure SetVersion(const V : string);
   Public
+    Constructor Create;override;
+    Destructor Destroy;override;
     Property Target : TObject Read FTarget Write FTarget;
     Property DependencyType : TDependencyType Read FDependencyType;
     Property TargetFileName : String Read FTargetFileName Write FTargetFileName;
-    Property Version : String Read FVersion Write FVersion;
+    Property Version : String Read GetVersion Write SetVersion;
   end;
 
   TDependencies = Class(TConditionalStrings)
@@ -486,7 +518,7 @@ Type
     FAuthor: String;
     FLicense: String;
     FExternalURL: String;
-    FVersion: String;
+    FVersion: TFPVersion;
     FEmail : String;
     FNeedLibC : Boolean;
     FCommands : TCommands;
@@ -496,6 +528,8 @@ Type
     FUnitDir : String;
     Function GetDescription : string;
     Function GetFileName : string;
+    Function GetVersion : string;
+    Procedure SetVersion(const V : string);
   Protected
     procedure SetName(const AValue: String);override;
     procedure LoadUnitConfigFromFile(Const AFileName: String);
@@ -509,7 +543,7 @@ Type
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS);
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetManifest(Manifest : TStrings);
-    Property Version : String Read FVersion Write FVersion;
+    Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
     Property ExternalURL : String Read FExternalURL Write FExternalURL;
     Property Email : String Read FEmail Write FEmail;
@@ -1030,37 +1064,6 @@ Const
 {****************************************************************************
                                 Helpers
 ****************************************************************************}
-
-
-Procedure SplitVersion(AValue: String; Var Major,Minor,Micro,Build : Word);
-
-  Function NextDigit(sep : Char; var V : string) : integer;
-  Var
-    P : Integer;
-  begin
-    P:=Pos(Sep,V);
-    If (P=0) then
-      P:=Length(V)+1;
-    Result:=StrToIntDef(Copy(V,1,P-1),0);
-    If Result<>-1 then
-      Delete(V,1,P)
-    else
-      Result:=0;
-  end;
-
-Var
-  V : String;
-begin
-  Major:=0;
-  Minor:=0;
-  Micro:=0;
-  Build:=0;
-  V:=AValue;
-  Major:=NextDigit('.',V);
-  Minor:=NextDigit('.',V);
-  Micro:=NextDigit('-',V);
-  Build:=NextDigit(#0,V);
-end;
 
 
 Function QuoteXML(S : String) : string;
@@ -1836,6 +1839,7 @@ end;
 constructor TPackage.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
+  FVersion:=TFPVersion.Create;
   FTargets:=TTargets.Create(TTarget);
   FSources:=TSources.Create(TSource);
   FDependencies:=TDependencies.Create(TDependency);
@@ -1868,6 +1872,7 @@ begin
   FreeAndNil(FUnitPath);
   FreeAndNil(FSources);
   FreeAndNil(FTargets);
+  FreeAndNil(FVersion);
   inherited destroy;
 end;
 
@@ -1961,13 +1966,25 @@ begin
 end;
 
 
+Function TPackage.GetVersion : string;
+begin
+  result:=FVersion.AsString;
+end;
+
+
+Procedure TPackage.SetVersion(const V : string);
+begin
+  FVersion.AsString:=V;
+end;
+
+
 Function TPackage.GetFileName : string;
 begin
   If (FFileName<>'') then
     Result:=FFileName
   else
-    if Version <> '' then
-      Result := Name + '-' + Version
+    if not FVersion.Empty then
+      Result := Name + '-' + FVersion.AsString
     else
       Result := Name;
 end;
@@ -2003,15 +2020,13 @@ Procedure TPackage.GetManifest(Manifest : TStrings);
 
 Var
   S : String;
-  Micro,Minor,Major,Build : Word;
   i : Integer;
   D : TDependency;
 begin
   With Manifest do
     begin
     Add(Format('<package name="%s">',[QuoteXml(Name)]));
-    SplitVersion(Version,Major,Minor,Micro,Build);
-    Add(Format(' <version major="%d" minor="%d" micro="%d" build="%d"/>',[Major,Minor,Micro,Build]));
+    Add(Format(' <version major="%d" minor="%d" micro="%d" build="%d"/>',[FVersion.Major,FVersion.Minor,FVersion.Micro,FVersion.Build]));
     AddOSes(' ',OSes);
     AddCPUs(' ',CPUs);
     Add(Format(' <filename>%s</filename>',[QuoteXml(FileName + ZipExt)]));
@@ -2031,11 +2046,8 @@ begin
             D:=Dependencies[i];
             Add('  <dependency>');
             Add(Format('   <package packagename="%s"/>',[QuoteXML(D.Value)]));
-            if D.Version<>'' then
-              begin
-                SplitVersion(D.Version,Major,Minor,Micro,Build);
-                Add(Format('   <version major="%d" minor="%d" micro="%d" build="%d"/>',[Major,Minor,Micro,Build]));
-              end;
+            if not D.FVersion.Empty then
+              Add(Format('   <version major="%d" minor="%d" micro="%d" build="%d"/>',[D.FVersion.Major,D.FVersion.Minor,D.FVersion.Micro,D.FVersion.Build]));
             AddOSes('   ',D.OSes);
             AddCPUs('   ',D.CPUs);
             Add('  </dependency>');
@@ -4291,6 +4303,102 @@ end;
 
 
 {****************************************************************************
+                               TFPVersion
+****************************************************************************}
+
+function TFPVersion.GetAsString: String;
+begin
+  if Empty then
+    Result:='<none>'
+  else
+    Result:=Format('%d.%d.%d-%d',[Major,Minor,Micro,Build]);
+end;
+
+function TFPVersion.GetEmpty: Boolean;
+begin
+  Result:=(Major=0) and (Minor=0) and (Micro=0) and (Build=0);
+end;
+
+procedure TFPVersion.SetAsString(const AValue: String);
+
+  Function NextDigit(sep : Char; var V : string) : integer;
+
+  Var
+    P : Integer;
+
+  begin
+    P:=Pos(Sep,V);
+    If (P=0) then
+      P:=Length(V)+1;
+    Result:=StrToIntDef(Copy(V,1,P-1),-1);
+    If Result<>-1 then
+      Delete(V,1,P)
+    else
+      Result:=0;
+  end;
+
+Var
+  V : String;
+begin
+  Clear;
+  // Special support for empty version string
+  if (AValue='') or (AValue='<none>') then
+    exit;
+  V:=AValue;
+  Major:=NextDigit('.',V);
+  Minor:=NextDigit('.',V);
+  Micro:=NextDigit('-',V);
+  Build:=NextDigit(#0,V);
+end;
+
+procedure TFPVersion.Clear;
+begin
+  Micro:=0;
+  Major:=0;
+  Minor:=0;
+  Build:=0;
+end;
+
+procedure TFPVersion.Assign(Source: TPersistent);
+
+Var
+  V : TFPVersion;
+
+begin
+  if Source is TFPVersion then
+    begin
+    V:=Source as TFPVersion;
+    Major:=V.Major;
+    Minor:=V.Minor;
+    Micro:=V.Micro;
+    Build:=V.Build;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TFPVersion.CompareVersion(AVersion: TFPVersion): Integer;
+begin
+  Result:=Major-AVersion.Major;
+  If (Result=0) then
+    begin
+      Result:=Minor-AVersion.Minor;
+      if (Result=0) then
+        begin
+          Result:=Micro-AVersion.Micro;
+          If (Result=0) then
+            Result:=Build-AVersion.Build;
+        end;
+    end;
+end;
+
+function TFPVersion.SameVersion(AVersion: TFPVersion): Boolean;
+begin
+  Result:=CompareVersion(AVersion)=0;
+end;
+
+
+{****************************************************************************
                                  TTarget
 ****************************************************************************}
 
@@ -4506,10 +4614,20 @@ end;
 
 
 {****************************************************************************
+                           TConditionalString
+****************************************************************************}
+
+Constructor TConditionalString.Create;
+begin
+  inherited Create;
+end;
+
+
+{****************************************************************************
                            TConditionalStrings
 ****************************************************************************}
 
-Constructor TConditionalStrings.Create(AClass:TClass);
+Constructor TConditionalStrings.Create(AClass:TConditionalStringClass);
 begin
   inherited Create;
   FCSClass:=AClass;
@@ -4550,11 +4668,40 @@ end;
 
 Function TConditionalStrings.Add(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TConditionalString;
 begin
-  Result:=FCSClass.Create as TConditionalString;
+  Result:=FCSClass.Create;
   Result.Value:=Value;
   Result.OSes:=OSes;
   Result.CPUs:=CPUs;
   inherited Add(Result);
+end;
+
+
+{****************************************************************************
+                                TDependency
+****************************************************************************}
+
+Constructor TDependency.Create;
+begin
+  inherited Create;
+  FVersion:=TFPVersion.Create;
+end;
+
+
+Destructor TDependency.Destroy;
+begin
+  FreeAndNil(FVersion);
+end;
+
+
+Function TDependency.GetVersion : string;
+begin
+  result:=FVersion.AsString;
+end;
+
+
+Procedure TDependency.SetVersion(const V : string);
+begin
+  FVersion.AsString:=V;
 end;
 
 
