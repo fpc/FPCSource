@@ -168,6 +168,8 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
+    procedure AddRecordToIndex(ANewRecord, ABeforeRecord: PBufRecLinkItem;
+      var AIndex: TBufIndex);
     procedure FetchAll;
     procedure BuildIndex(var AIndex : TBufIndex);
     function GetIndexDefs : TIndexDefs;
@@ -1686,18 +1688,8 @@ begin
       FRecordArray[FCurrentRecInd]:=pointer(IntAllocRecordBuffer);
 {$ELSE}
     // Create the new record buffer
-      tmpRecBuffer := FCurrentRecBuf^.prior;
-
-      FCurrentRecBuf^.prior := pointer(IntAllocRecordBuffer);
-      FCurrentRecBuf^.prior^.next := FCurrentRecBuf;
+      AddRecordToIndex(PBufRecLinkItem(IntAllocRecordBuffer),FCurrentRecBuf,FCurrentIndex^);
       FCurrentRecBuf := FCurrentRecBuf^.prior;
-      If assigned(tmpRecBuffer) then // if not, it's the first record
-        begin
-        FCurrentRecBuf^.prior := tmpRecBuffer;
-        tmpRecBuffer^.next := FCurrentRecBuf
-        end
-      else
-        FFirstRecBuf := FCurrentRecBuf;
 {$ENDIF}
       end;
 
@@ -1776,11 +1768,7 @@ begin
         tmpRecBuffer:=tmpRecBuffer[IndNr].prior;
         end;
       // Place record at new position
-      PBufRecLinkItem(CurrBuff)[IndNr].prior:=tmpRecBuffer[IndNr].prior;
-      PBufRecLinkItem(CurrBuff)[IndNr].Next:=tmpRecBuffer;
-
-      PBufRecLinkItem(CurrBuff)[IndNr].Prior[IndNr].next:=PBufRecLinkItem(CurrBuff);
-      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior:=PBufRecLinkItem(CurrBuff);
+      AddRecordToIndex(PBufRecLinkItem(CurrBuff),tmpRecBuffer,FIndexes[i]);
       end
     else if (PBufRecLinkItem(CurrBuff)[IndNr].next <> FIndexes[i].FLastRecBuf) and
             (IndexCompareRecords(CurrBuff,PBufRecLinkItem(CurrBuff)[FIndexes[i].IndNr].next,FIndexes[i].DBCompareStruct) > 0) then
@@ -1789,17 +1777,16 @@ begin
       RemoveRecordFromIndex(PBufRecLinkItem(CurrBuff),FIndexes[i]);
       // iterate to new position
       tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].next;
-      while (tmpRecBuffer[IndNr].next<>FIndexes[i].FLastRecBuf) and
+      while (tmpRecBuffer<>FIndexes[i].FLastRecBuf) and
            (IndexCompareRecords(CurrBuff,tmpRecBuffer[indnr].next,FIndexes[i].DBCompareStruct) > 0) do
         begin
         tmpRecBuffer:=tmpRecBuffer[IndNr].next;
         end;
+      // The record should be added _after_ the the current record, not before
+      if (tmpRecBuffer<>FIndexes[i].FLastRecBuf) then
+        tmpRecBuffer:=tmpRecBuffer[IndNr].next;
       // Place record at new position
-      PBufRecLinkItem(CurrBuff)[IndNr].next:=tmpRecBuffer[IndNr].next;
-      PBufRecLinkItem(CurrBuff)[IndNr].prior:=tmpRecBuffer;
-
-      PBufRecLinkItem(CurrBuff)[IndNr].Prior[IndNr].next:=PBufRecLinkItem(CurrBuff);
-      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior:=PBufRecLinkItem(CurrBuff);
+      AddRecordToIndex(PBufRecLinkItem(CurrBuff),tmpRecBuffer,FIndexes[i]);
       end;
     end;
 {$ENDIF}
@@ -2207,6 +2194,23 @@ begin
   else
     AIndex.FFirstRecBuf := ARecord[IndNr].next;
   ARecord[IndNr].next[IndNr].prior := ARecord[IndNr].prior;
+end;
+
+procedure TBufDataset.AddRecordToIndex(ANewRecord, ABeforeRecord: PBufRecLinkItem;
+  var AIndex: TBufIndex);
+// Add a record to the index before the current record.
+begin
+  with AIndex do
+    begin
+    ANewRecord[IndNr].prior:=ABeforeRecord[IndNr].prior;
+    ANewRecord[IndNr].Next:=ABeforeRecord;
+
+    if ABeforeRecord=FFirstRecBuf then
+      FFirstRecBuf:=ANewRecord
+    else
+      ANewRecord[IndNr].Prior[IndNr].next:=ANewRecord;
+    ANewRecord[IndNr].next[IndNr].prior:=ANewRecord;
+    end;
 end;
 
 {$IFDEF ARRAYBUF}
