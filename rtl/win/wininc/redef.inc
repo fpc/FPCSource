@@ -298,11 +298,11 @@ function CallNamedPipeW(lpNamedPipeName: LPWSTR; lpInBuffer: Pointer; nInBufferS
 function CoRegisterClassObject(const _para1:TCLSID; _para2:IUnknown; _para3:DWORD; _para4:DWORD; out_para5:DWORD):HRESULT;external 'ole32.dll' name 'CoRegisterClassObject';
 function ChangeDisplaySettings(var lpDevMode: TDeviceMode; dwFlags: DWORD): Longint;external 'user32' name 'ChangeDisplaySettingsA';
 function ChangeDisplaySettingsA(var lpDevMode: TDeviceModeA; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsA';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function ChangeDisplaySettingsEx(lpszDeviceName: PChar; var lpDevMode: TDeviceMode; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExA';
 function ChangeDisplaySettingsExA(lpszDeviceName: LPCSTR; var lpDevMode: TDeviceModeA; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExA';
 function ChangeDisplaySettingsExW(lpszDeviceName: LPWSTR; var lpDevMode: TDeviceModeW; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExW';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 function ChangeDisplaySettingsW(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsW';
 //function CheckColorsInGamut(DC: HDC; var RGBQuads, Results; Count: DWORD): BOOL; external 'gdi32' name 'CheckColorsInGamut';
 function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
@@ -486,9 +486,9 @@ function GetCPInfo(CodePage: UINT; var lpCPInfo: TCPInfo): BOOL;external 'kernel
 //function GetCurrentHwProfile(var lpHwProfileInfo: THWProfileInfo): BOOL;external 'advapi32' name 'GetCurrentHwProfileA';
 //function GetCurrentHwProfileA(var lpHwProfileInfo: THWProfileInfoA): BOOL;external 'advapi32' name 'GetCurrentHwProfileA';
 //function GetCurrentHwProfileW(var lpHwProfileInfo: THWProfileInfoW): BOOL;external 'advapi32' name 'GetCurrentHwProfileW';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function GetCursorInfo(var pci: TCursorInfo): BOOL;external 'user32' name 'GetCursorInfo';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 function GetCursorPos(var lpPoint: TPoint): BOOL; external 'user32' name 'GetCursorPos';
 function GetDCOrgEx(DC: HDC; var Origin: TPoint): BOOL; external 'gdi32' name 'GetDCOrgEx';
 function GetDefaultCommConfig(lpszName: PChar; var lpCC: TCommConfig; var lpdwSize: DWORD): BOOL;external 'kernel32' name 'GetDefaultCommConfigA';
@@ -573,9 +573,9 @@ function GetPrivateProfileStructW(lpszSection, lpszKey: LPCWSTR; lpStruct: LPVOI
 function GetPrivateProfileStruct(lpszSection, lpszKey: LPCTSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCTSTR): BOOL; external 'kernel32' name 'GetPrivateProfileStructA';
 function GetProcessAffinityMask(hProcess: THandle; var lpProcessAffinityMask, lpSystemAffinityMask: DWORD): BOOL; external 'kernel32' name 'GetProcessAffinityMask';
 function GetProcessHeaps(NumberOfHeaps: DWORD; var ProcessHeaps: THandle): DWORD;external 'kernel32' name 'GetProcessHeaps';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function GetProcessPriorityBoost(hThread: THandle; var DisablePriorityBoost: Bool): BOOL;external 'kernel32' name 'GetProcessPriorityBoost';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 function GetProcessShutdownParameters(var lpdwLevel, lpdwFlags: DWORD): BOOL; external 'kernel32' name 'GetProcessShutdownParameters';
 function GetProcessTimes(hProcess: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetProcessTimes';
 function GetProcessWorkingSetSize(hProcess: THandle; var lpMinimumWorkingSetSize, lpMaximumWorkingSetSize: DWORD): BOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
@@ -619,9 +619,9 @@ function GetTextMetrics(DC: HDC; var TM: TTextMetric): BOOL;external 'gdi32' nam
 //function GetTextMetricsA(DC: HDC; var TM: TTextMetricA): BOOL; external 'gdi32' name 'GetTextMetricsA';
 //function GetTextMetricsW(DC: HDC; var TM: TTextMetricW): BOOL; external 'gdi32' name 'GetTextMetricsW';
 function GetThreadContext(hThread: THandle; var lpContext: TContext): BOOL; external 'kernel32' name 'GetThreadContext';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function GetThreadPriorityBoost(hThread: THandle; var DisablePriorityBoost: Bool): BOOL;external 'kernel32' name 'GetThreadPriorityBoost';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'GetThreadSelectorEntry';
 function GetThreadTimes(hThread: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetThreadTimes';
 function GetTimeZoneInformation(var lpTimeZoneInformation: TTimeZoneInformation): DWORD; external 'kernel32' name 'GetTimeZoneInformation';
@@ -657,9 +657,9 @@ function HeapWalk(hHeap: THandle; var lpEntry: TProcessHeapEntry): BOOL; externa
 function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external 'comctl32' name 'ImageList_GetDragImage';
 function InflateRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'InflateRect';
 function InitializeAcl(var pAcl: TACL; nAclLength, dwAclRevision: DWORD): BOOL; external 'advapi32' name 'InitializeAcl';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function InitializeCriticalSectionAndSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): BOOL;external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 function InitializeSid(Sid: Pointer; const pIdentifierAuthority: TSIDIdentifierAuthority; nSubAuthorityCount: Byte): BOOL; external 'advapi32' name 'InitializeSid';
 function InsertMenuItem(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfo): BOOL;external 'user32' name 'InsertMenuItemA';
 function InsertMenuItemA(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoA): BOOL; external 'user32' name 'InsertMenuItemA';
@@ -702,9 +702,9 @@ function MessageBoxIndirectA(const MsgBoxParams: TMsgBoxParamsA): BOOL; external
 //function MessageBoxIndirectW(const MsgBoxParams: TMsgBoxParamsW): BOOL; external 'user32' name 'MessageBoxIndirectW';
 //function ModifyWorldTransform(DC: HDC; const p2: TXForm; p3: DWORD): BOOL; external 'gdi32' name 'ModifyWorldTransform';
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjects';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function MsgWaitForMultipleObjectsEx(nCount: DWORD; var pHandles; dwMilliseconds, dwWakeMask, dwFlags: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjectsEx';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 // function MultiByteToWideChar(CodePage: UINT; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lLPWSTRStr: LPWSTR; cchWideChar: Integer): Integer; external 'kernel32' name 'MultiByteToWideChar';
 function ObjectOpenAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName: PChar; ObjectName: PChar; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet;
   ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL;external 'advapi32' name 'ObjectOpenAuditAlarmA';
@@ -839,9 +839,9 @@ function SetCommState(hFile: THandle; const lpDCB: TDCB): BOOL; external 'kernel
 function SetCommTimeouts(hFile: THandle; const lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'SetCommTimeouts';
 function SetConsoleCursorInfo(hConsoleOutput: THandle; const lpConsoleCursorInfo: TConsoleCursorInfo): BOOL; external 'kernel32' name 'SetConsoleCursorInfo';
 //function SetConsoleWindowInfo(hConsoleOutput: THandle; bAbsolute: BOOL; const lpConsoleWindow: TSmallRect): BOOL; external 'kernel32' name 'SetConsoleWindowInfo';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function SetCriticalSectionSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): DWORD;external 'kernel32' name 'SetCriticalSectionSpinCount';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 function SetDeviceGammaRamp(DC: HDC; var Ramp): BOOL; external 'gdi32' name 'SetDeviceGammaRamp';
 function SetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadSTructs): UINT; external 'gdi32' name 'SetDIBColorTable';
 function SetDIBits(DC: HDC; Bitmap: HBITMAP; StartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBits';
@@ -897,9 +897,9 @@ function TranslateCharsetInfo(var lpSrc: DWORD; var lpCs: TCharsetInfo; dwFlags:
 function TranslateMDISysAccel(hWndClient: HWND; const lpMsg: TMsg): BOOL; external 'user32' name 'TranslateMDISysAccel';
 function TranslateMessage(const lpMsg: TMsg): BOOL; external 'user32' name 'TranslateMessage';
 //function TransparentDIBits(DC: HDC; p2, p3, p4, p5: Integer; const p6: Pointer; const p7: PBitmapInfo; p8: UINT; p9, p10, p11, p12: Integer; p13: UINT): BOOL;external 'gdi32' name 'TransparentDIBits';
-{$ifdef support_smartlink}
+{$ifndef NO_SMART_LINK}
 function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): BOOL;external 'kernel32' name 'TryEnterCriticalSection';
-{$endif support_smartlink}
+{$endif NO_SMART_LINK}
 function UnhandledExceptionFilter(const ExceptionInfo: TExceptionPointers): Longint; external 'kernel32' name 'UnhandledExceptionFilter';
 function UnionRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external 'user32' name 'UnionRect';
 function UnlockFileEx(hFile: THandle; dwReserved, nNumberOfBytesToUnlockLow: DWORD; nNumberOfBytesToUnlockHigh: DWORD; const lpOverlapped: TOverlapped): BOOL; external 'kernel32' name 'UnlockFileEx';
