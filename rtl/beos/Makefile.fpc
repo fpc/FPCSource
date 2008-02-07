@@ -17,6 +17,7 @@ units=system baseunix unixtype ctypes objpas macpas strings \
       cmem crt video mouse keyboard \
       dateutils fmtbcd sockets dynlibs cwstring
 rsts=math varutils typinfo variants sysconst rtlconsts dateutils
+implicitunits=exeinfo
 
 [require]
 nortl=y

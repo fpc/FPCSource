@@ -18,6 +18,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseun
       errors sockets ipc terminfo bsd freebsd \
       video mouse keyboard console serial dateutils \
       sysconst cthreads strutils convutils stdconvs dos objects cwstring
+implicitunits=exeinfo
 
 rsts=math varutils typinfo classes variants dateutils sysconst
 

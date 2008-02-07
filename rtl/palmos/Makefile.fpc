@@ -22,6 +22,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
 #    winsysut
+implicitunits=exeinfo
 
 # rsts=math varutils typinfo variants classes dateutils sysconst
 

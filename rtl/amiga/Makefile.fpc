@@ -18,6 +18,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \
 rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
+#implicitunits=exeinfo
 
 [require]
 nortl=y

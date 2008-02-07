@@ -25,6 +25,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
 #    winsysut
 
 # rsts=math varutils typinfo variants classes dateutils sysconst
+implicitunits=exeinfo
 
 # fake dll
 # programs=fpcmemdll

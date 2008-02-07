@@ -18,6 +18,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       kvm video keyboard mouse sockets \
 # these can be moved to packages later
       clipboard datatypes asl ahi tinygl get9 muihelper
+#implicitunits=exeinfo
 rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
 
 [require]
