@@ -196,6 +196,7 @@ type
 {$IFDEF ARRAYBUF}
     Function GetRecordFromBookmark(ABookmark: TBufBookmark) : integer;
 {$ENDIF}
+    procedure RemoveRecordFromIndex(ARecord: PBufRecLinkItem; var AIndex: TBufIndex);
   protected
     procedure UpdateIndexDefs; override;
     function GetNewBlobBuffer : PBlobBuffer;
@@ -1355,19 +1356,19 @@ begin
 end;
 
 procedure TBufDataset.InternalDelete;
+var i         : Integer;
+    StartInd  : Integer;
 {$IFDEF ARRAYBUF}
-var ABookmark : TBufBookmark;
+    ABookmark : TBufBookmark;
 {$ENDIF}
 begin
   InternalSetToRecord(ActiveBuffer);
 {$IFNDEF ARRAYBUF}
-  with FCurrentIndex^ do
-    begin
-    if FCurrentRecBuf <> FFirstRecBuf then FCurrentRecBuf^.prior^.next := FCurrentRecBuf^.next
-    else FFirstRecBuf := FCurrentRecBuf^.next;
-
-    FCurrentRecBuf^.next^.prior :=  FCurrentRecBuf^.prior;
-    end;
+  // Remove the record from all active indexes
+  RemoveRecordFromIndex(FIndexes[0].FCurrentRecBuf,FIndexes[0]);
+  if FCurrentIndex=@FIndexes[1] then StartInd := 1 else StartInd := 2;
+  for i := StartInd to FIndexesCount-1 do
+    RemoveRecordFromIndex(FIndexes[i].FCurrentRecBuf,FIndexes[i]);
 {$ENDIF}
 
   if not GetRecordUpdateBuffer then
@@ -1375,7 +1376,7 @@ begin
     FCurrentUpdateBuffer := length(FUpdateBuffer);
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
 
-    with FCurrentIndex^ do
+    with FIndexes[0] do
       begin
 {$IFDEF ARRAYBUF}
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FRecordArray[FCurrentRecInd];
@@ -1385,12 +1386,15 @@ begin
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := pchar(FCurrentRecBuf);
       FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
 
-      FCurrentRecBuf := FCurrentRecBuf^.next;
+      with FCurrentIndex^ do
+        FCurrentRecBuf := FCurrentRecBuf[IndNr].next;
 {$ENDIF}
       end;
     end
-  else with FCurrentIndex^ do
+  else with FIndexes[0] do
     begin
+    with FCurrentIndex^ do
+      FCurrentRecBuf := FCurrentRecBuf[IndNr].next;
     if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukModify then
       begin
 {$IFDEF ARRAYBUF}
@@ -1398,7 +1402,6 @@ begin
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf := nil;
 {$ELSE}
-      FCurrentRecBuf := FCurrentRecBuf^.next;
       FreeRecordBuffer(pchar(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData));
       FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
 {$ENDIF}
@@ -1409,7 +1412,6 @@ begin
       FreeRecordBuffer(pchar(FCurrentIndex^.FRecordArray[GetRecordFromBookmark(FUpdateBuffer[FCurrentUpdateBuffer].Bookmark)]));
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := -1;  //this 'disables' the updatebuffer
 {$ELSE}
-      FCurrentRecBuf := FCurrentRecBuf^.next;
       FreeRecordBuffer(pchar(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData));
       FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := nil;  //this 'disables' the updatebuffer
 {$ENDIF}
@@ -1684,7 +1686,7 @@ begin
       FRecordArray[FCurrentRecInd]:=pointer(IntAllocRecordBuffer);
 {$ELSE}
     // Create the new record buffer
-      tmpRecBuffer := FCurrentIndex^.FCurrentRecBuf^.prior;
+      tmpRecBuffer := FCurrentRecBuf^.prior;
 
       FCurrentRecBuf^.prior := pointer(IntAllocRecordBuffer);
       FCurrentRecBuf^.prior^.next := FCurrentRecBuf;
@@ -1726,7 +1728,7 @@ begin
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf := FRecordArray[FCurrentRecInd];
 {$ELSE}
-    FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
+      FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
 {$ENDIF}
       end;
 
@@ -1765,11 +1767,7 @@ begin
        (IndexCompareRecords(CurrBuff,PBufRecLinkItem(CurrBuff)[IndNr].prior,FIndexes[i].DBCompareStruct) < 0) then
       begin
       // Remove record from index
-      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior := PBufRecLinkItem(CurrBuff)[IndNr].prior;
-      if assigned(PBufRecLinkItem(CurrBuff)[IndNr].prior) then
-        PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next
-      else
-        FIndexes[i].FFirstRecBuf := PBufRecLinkItem(CurrBuff)[IndNr].next;
+      RemoveRecordFromIndex(PBufRecLinkItem(CurrBuff),FIndexes[i]);
       // iterate to new position
       tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].prior;
       while assigned(tmpRecBuffer[IndNr].prior) and
@@ -1788,11 +1786,7 @@ begin
             (IndexCompareRecords(CurrBuff,PBufRecLinkItem(CurrBuff)[FIndexes[i].IndNr].next,FIndexes[i].DBCompareStruct) > 0) then
       begin
       // Remove record from index
-      PBufRecLinkItem(CurrBuff)[IndNr].next[IndNr].prior := PBufRecLinkItem(CurrBuff)[IndNr].prior;
-      if assigned(PBufRecLinkItem(CurrBuff)[IndNr].prior) then
-        PBufRecLinkItem(CurrBuff)[IndNr].prior[IndNr].next := PBufRecLinkItem(CurrBuff)[IndNr].next
-      else
-        FIndexes[i].FFirstRecBuf := PBufRecLinkItem(CurrBuff)[IndNr].next;
+      RemoveRecordFromIndex(PBufRecLinkItem(CurrBuff),FIndexes[i]);
       // iterate to new position
       tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].next;
       while (tmpRecBuffer[IndNr].next<>FIndexes[i].FLastRecBuf) and
@@ -2201,6 +2195,18 @@ begin
       FParser.ParseExpression(AFilter);
     end;
   end;
+end;
+
+procedure TBufDataset.RemoveRecordFromIndex(ARecord: PBufRecLinkItem;
+  var AIndex: TBufIndex);
+var IndNr : Integer;
+begin
+  IndNr:=AIndex.IndNr;
+  if ARecord <> AIndex.FFirstRecBuf then
+    ARecord[IndNr].prior[IndNr].next := ARecord[IndNr].next
+  else
+    AIndex.FFirstRecBuf := ARecord[IndNr].next;
+  ARecord[IndNr].next[IndNr].prior := ARecord[IndNr].prior;
 end;
 
 {$IFDEF ARRAYBUF}
