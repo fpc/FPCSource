@@ -97,8 +97,15 @@ begin
 end;
 
 function TSqliteDataset.InternalGetHandle: Pointer;
+var
+  ErrorStr: PChar;
 begin
-  Result:=sqlite_open(PChar(FFileName),0,nil);
+  Result := sqlite_open(PChar(FFileName), 0, @ErrorStr);
+  if Result = nil then
+  begin
+    DatabaseError('Error opening "' + FFileName +'": ' + StrPas(ErrorStr));
+    sqlite_freemem(ErrorStr);
+  end;
 end;
 
 procedure TSqliteDataset.InternalInitFieldDefs;
@@ -111,7 +118,9 @@ var
 begin
   FieldDefs.Clear;
   FAutoIncFieldNo := -1;
-  sqlite_compile(FSqliteHandle,PChar(FSql),nil,@vm,nil);
+  FReturnCode := sqlite_compile(FSqliteHandle,PChar(FSql),nil,@vm,nil);
+  if FReturnCode <> SQLITE_OK then
+    DatabaseError(ReturnString, Self);
   sqlite_step(vm,@ColumnCount,@ColumnValues,@ColumnNames);
   //Prepare the array of pchar2sql functions
   SetLength(FGetSqlStr,ColumnCount);

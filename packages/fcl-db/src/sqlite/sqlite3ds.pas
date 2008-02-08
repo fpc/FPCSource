@@ -63,6 +63,43 @@ implementation
 
 uses
   sqlite3,db;
+  
+function SqliteCode2Str(Code: Integer): String;
+begin
+  case Code of
+    SQLITE_OK           : Result := 'SQLITE_OK';
+    SQLITE_ERROR        : Result := 'SQLITE_ERROR';
+    SQLITE_INTERNAL     : Result := 'SQLITE_INTERNAL';
+    SQLITE_PERM         : Result := 'SQLITE_PERM';
+    SQLITE_ABORT        : Result := 'SQLITE_ABORT';
+    SQLITE_BUSY         : Result := 'SQLITE_BUSY';
+    SQLITE_LOCKED       : Result := 'SQLITE_LOCKED';
+    SQLITE_NOMEM        : Result := 'SQLITE_NOMEM';
+    SQLITE_READONLY     : Result := 'SQLITE_READONLY';
+    SQLITE_INTERRUPT    : Result := 'SQLITE_INTERRUPT';
+    SQLITE_IOERR        : Result := 'SQLITE_IOERR';
+    SQLITE_CORRUPT      : Result := 'SQLITE_CORRUPT';
+    SQLITE_NOTFOUND     : Result := 'SQLITE_NOTFOUND';
+    SQLITE_FULL         : Result := 'SQLITE_FULL';
+    SQLITE_CANTOPEN     : Result := 'SQLITE_CANTOPEN';
+    SQLITE_PROTOCOL     : Result := 'SQLITE_PROTOCOL';
+    SQLITE_EMPTY        : Result := 'SQLITE_EMPTY';
+    SQLITE_SCHEMA       : Result := 'SQLITE_SCHEMA';
+    SQLITE_TOOBIG       : Result := 'SQLITE_TOOBIG';
+    SQLITE_CONSTRAINT   : Result := 'SQLITE_CONSTRAINT';
+    SQLITE_MISMATCH     : Result := 'SQLITE_MISMATCH';
+    SQLITE_MISUSE       : Result := 'SQLITE_MISUSE';
+    SQLITE_NOLFS        : Result := 'SQLITE_NOLFS';
+    SQLITE_AUTH         : Result := 'SQLITE_AUTH';
+    SQLITE_FORMAT       : Result := 'SQLITE_FORMAT';
+    SQLITE_RANGE        : Result := 'SQLITE_RANGE';
+    SQLITE_ROW          : Result := 'SQLITE_ROW';
+    SQLITE_NOTADB       : Result := 'SQLITE_NOTADB';
+    SQLITE_DONE         : Result := 'SQLITE_DONE';
+  else
+    Result:='Unknown Return Value';
+  end;
+end;
 
 function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
 var
@@ -95,8 +132,23 @@ end;
 
 
 function TSqlite3Dataset.InternalGetHandle: Pointer;
+const
+  CheckFileSql = 'Select Name from sqlite_master LIMIT 1';
+var
+  vm: Pointer;
+  ErrorStr: String;
 begin
-  FReturnCode:=sqlite3_open(PChar(FFileName),@Result);
+  sqlite3_open(PChar(FFileName), @Result);
+  //sqlite3_open returns SQLITE_OK even for invalid files
+  //do additional check here
+  FReturnCode := sqlite3_prepare(Result, CheckFileSql, -1, @vm, nil);
+  if FReturnCode <> SQLITE_OK then
+  begin
+    ErrorStr := SqliteCode2Str(FReturnCode) + ' - ' + sqlite3_errmsg(Result);;
+    sqlite3_close(Result);
+    DatabaseError(ErrorStr, Self);
+  end;
+  sqlite3_finalize(vm);
 end;
 
 procedure TSqlite3Dataset.InternalInitFieldDefs;
@@ -111,7 +163,9 @@ begin
   {$endif}
   FAutoIncFieldNo:=-1;
   FieldDefs.Clear;
-  sqlite3_prepare(FSqliteHandle,PChar(FSql),-1,@vm,nil);
+  FReturnCode := sqlite3_prepare(FSqliteHandle, PChar(FSql), -1, @vm, nil);
+  if FReturnCode <> SQLITE_OK then
+    DatabaseError(ReturnString, Self);
   sqlite3_step(vm);
   ColumnCount:=sqlite3_column_count(vm);
   //Set BufferSize
@@ -256,40 +310,7 @@ end;
 
 function TSqlite3Dataset.ReturnString: String;
 begin
- case FReturnCode of
-      SQLITE_OK           : Result := 'SQLITE_OK';
-      SQLITE_ERROR        : Result := 'SQLITE_ERROR';
-      SQLITE_INTERNAL     : Result := 'SQLITE_INTERNAL';
-      SQLITE_PERM         : Result := 'SQLITE_PERM';
-      SQLITE_ABORT        : Result := 'SQLITE_ABORT';
-      SQLITE_BUSY         : Result := 'SQLITE_BUSY';
-      SQLITE_LOCKED       : Result := 'SQLITE_LOCKED';
-      SQLITE_NOMEM        : Result := 'SQLITE_NOMEM';
-      SQLITE_READONLY     : Result := 'SQLITE_READONLY';
-      SQLITE_INTERRUPT    : Result := 'SQLITE_INTERRUPT';
-      SQLITE_IOERR        : Result := 'SQLITE_IOERR';
-      SQLITE_CORRUPT      : Result := 'SQLITE_CORRUPT';
-      SQLITE_NOTFOUND     : Result := 'SQLITE_NOTFOUND';
-      SQLITE_FULL         : Result := 'SQLITE_FULL';
-      SQLITE_CANTOPEN     : Result := 'SQLITE_CANTOPEN';
-      SQLITE_PROTOCOL     : Result := 'SQLITE_PROTOCOL';
-      SQLITE_EMPTY        : Result := 'SQLITE_EMPTY';
-      SQLITE_SCHEMA       : Result := 'SQLITE_SCHEMA';
-      SQLITE_TOOBIG       : Result := 'SQLITE_TOOBIG';
-      SQLITE_CONSTRAINT   : Result := 'SQLITE_CONSTRAINT';
-      SQLITE_MISMATCH     : Result := 'SQLITE_MISMATCH';
-      SQLITE_MISUSE       : Result := 'SQLITE_MISUSE';
-      SQLITE_NOLFS        : Result := 'SQLITE_NOLFS';
-      SQLITE_AUTH         : Result := 'SQLITE_AUTH';
-      SQLITE_FORMAT       : Result := 'SQLITE_FORMAT';
-      SQLITE_RANGE        : Result := 'SQLITE_RANGE';
-      SQLITE_ROW          : Result := 'SQLITE_ROW';
-      SQLITE_NOTADB       : Result := 'SQLITE_NOTADB';
-      SQLITE_DONE         : Result := 'SQLITE_DONE';
-  else
-    Result:='Unknow Return Value';
- end;
- Result:=Result+' - '+sqlite3_errmsg(FSqliteHandle);
+  Result := SqliteCode2Str(FReturnCode) + ' - ' + sqlite3_errmsg(FSqliteHandle);
 end;
 
 function TSqlite3Dataset.GetSqliteVersion: String;

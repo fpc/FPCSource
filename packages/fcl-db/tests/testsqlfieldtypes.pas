@@ -26,6 +26,7 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestClearUpdateableStatus;
     procedure TestParseJoins; // bug 10148
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
@@ -874,6 +875,26 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestClearUpdateableStatus;
+// Test if CanModify is correctly disabled in case of a select query without
+// a from-statement.
+begin
+  if not (SQLDbType in MySQLdbTypes) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
+  with TSQLDBConnector(DBConnector) do
+    begin
+    with (GetNDataset(false,5) as TSQLQuery) do
+      begin
+      Open;
+      AssertEquals(True,CanModify);
+      Close;
+      SQL.Text:='select last_insert_id();';
+      Open;
+      AssertEquals(False,CanModify);
+      close;
+      end;
+    end;
 end;
 
 procedure TTestFieldTypes.TestParseJoins;

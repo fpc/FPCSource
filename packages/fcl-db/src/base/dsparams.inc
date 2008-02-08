@@ -402,7 +402,8 @@ begin
       BufIndex:=ParamPart[i].Stop;
     end;
     CopyLen:=Length(SQL)+1-BufIndex;
-    Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+    if CopyLen > 0 then
+      Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
   end
   else
     NewQuery:=SQL;

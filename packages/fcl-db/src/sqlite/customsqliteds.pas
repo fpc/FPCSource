@@ -104,6 +104,7 @@ type
     FSqlList:TStrings;
     procedure CopyCacheToItem(AItem: PDataRecord);
     function GetIndexFields(Value: Integer): TField;
+    procedure SetMasterIndexValue;
     procedure UpdateIndexFields;
     function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
   protected
@@ -139,11 +140,11 @@ type
     procedure SetDetailFilter;
     procedure MasterChanged(Sender: TObject);
     procedure MasterDisabled(Sender: TObject);
-    procedure SetMasterFields(Value:String);
+    procedure SetMasterFields(const Value:String);
     function GetMasterFields:String;
     procedure SetMasterSource(Value: TDataSource);
     function GetMasterSource:TDataSource;
-    procedure SetFileName(Value: String);
+    procedure SetFileName(const Value: String);
     function GetRowsAffected:Integer; virtual;abstract;
     //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
@@ -396,21 +397,21 @@ begin
   New(FCacheItem);
   New(FEndItem);
   
-  FBeginItem^.Previous:=nil;
-  FEndItem^.Next:=nil;
+  FBeginItem^.Previous := nil;
+  FEndItem^.Next := nil;
   
-  FBeginItem^.BookMarkFlag:=bfBOF;
-  FEndItem^.BookMarkFlag:=bfEOF;
+  FBeginItem^.BookMarkFlag := bfBOF;
+  FEndItem^.BookMarkFlag := bfEOF;
   
-  FMasterLink:=TMasterDataLink.Create(Self);
-  FMasterLink.OnMasterChange:=@MasterChanged;
-  FMasterLink.OnMasterDisable:=@MasterDisabled;
-  FIndexFieldList:=TList.Create;
+  FMasterLink := TMasterDataLink.Create(Self);
+  FMasterLink.OnMasterChange := @MasterChanged;
+  FMasterLink.OnMasterDisable := @MasterDisabled;
+  FIndexFieldList := TList.Create;
   BookmarkSize := SizeOf(Pointer);
-  FUpdatedItems:= TFPList.Create;
-  FAddedItems:= TFPList.Create;
-  FDeletedItems:= TFPList.Create;
-  FSqlList:=TStringList.Create;
+  FUpdatedItems := TFPList.Create;
+  FAddedItems := TFPList.Create;
+  FDeletedItems := TFPList.Create;
+  FSqlList := TStringList.Create;
   inherited Create(AOwner);
 end;
 
@@ -526,9 +527,15 @@ end;
 
 function TCustomSqliteDataset.GetIndexFields(Value: Integer): TField;
 begin
-  if (Value < 0) or (Value > FIndexFieldList.Count - 1) then
-    DatabaseError('Error acessing IndexFields: Index out of bonds',Self);
-  Result:= TField(FIndexFieldList[Value]);
+  Result := TField(FIndexFieldList[Value]);
+end;
+
+procedure TCustomSqliteDataset.SetMasterIndexValue;
+var
+  i: Integer;
+begin
+  for i := 0 to FIndexFieldList.Count - 1 do
+    TField(FIndexFieldList[i]).AsString := TField(FMasterLink.Fields[i]).AsString;
 end;
 
 procedure TCustomSqliteDataset.DisposeLinkedList;
@@ -695,11 +702,14 @@ var
   NewItem: PDataRecord;
 begin
   {$ifdef DEBUG_SQLITEDS}
-  if PPDataRecord(Buffer)^ <> FCacheItem then
-    DatabaseError('PPDataRecord(Buffer) <> FCacheItem - Problem',Self);
+  if PPDataRecord(ActiveBuffer)^ <> FCacheItem then
+    DatabaseError('PPDataRecord(ActiveBuffer) <> FCacheItem - Problem',Self);
   {$endif}
   New(NewItem);
   GetMem(NewItem^.Row,FRowBufferSize);
+  //if is a detail dataset then set the index value
+  if FMasterLink.Active then
+    SetMasterIndexValue;
   //necessary to nullify the Row before copy the cache
   FillChar(NewItem^.Row^,FRowBufferSize,#0);
   CopyCacheToItem(NewItem);
@@ -750,8 +760,6 @@ var
   TempItem:PDataRecord;
   ValError,TempInteger:Integer;
 begin
-  if FRecordCount = 0 then
-    Exit;
   Dec(FRecordCount);
   TempItem:=PPDataRecord(ActiveBuffer)^;
   TempItem^.Next^.Previous:=TempItem^.Previous;
@@ -824,12 +832,10 @@ procedure TCustomSqliteDataset.InternalOpen;
 var
   i:Integer;
 begin
-  if MasterSource <> nil then
+  if FMasterLink.DataSource <> nil then
   begin
     //todo: retrieve only necessary fields
     FSql := 'Select * from '+FTableName+';'; // forced to obtain all fields
-    FMasterLink.FieldNames:=FMasterLink.FieldNames; //workaround to fill MasterLinks.Fields
-    //if FMasterLink.Fields.Count = 0 MasterChanged will not be called anyway so ignore it
   end;
 
   if FSql = '' then
@@ -876,7 +882,7 @@ end;
 procedure TCustomSqliteDataset.InternalPost;
 begin
   if State <> dsEdit then
-    InternalAddRecord(ActiveBuffer,True)
+    InternalAddRecord(nil, True)
   else
   begin
     CopyCacheToItem(FInternalActiveBuffer);
@@ -897,23 +903,62 @@ begin
    Result := FDataAllocated;
 end;
 
+type
+  TLocateCompareFunction = function (Value, Key: PChar): Boolean;
+  
+  TLocateFieldInfo = record
+    Index: Integer;
+    Key: String;
+    CompFunction: TLocateCompareFunction;
+  end;
+
+function CompInsensitivePartial(Value, Key: PChar): Boolean;
+begin
+  if Value <> nil then
+    Result := StrLIComp(Value, Key, StrLen(Key)) = 0
+  else
+    Result := False;
+end;
+
+function CompSensitivePartial(Value, Key: PChar): Boolean;
+begin
+  if Value <> nil then
+    Result := StrLComp(Value, Key, StrLen(Key)) = 0
+  else
+    Result := False;
+end;
+
+function CompInsensitive(Value, Key: PChar): Boolean;
+begin
+  if Value <> nil then
+    Result := StrIComp(Value, Key) = 0
+  else
+    Result := False;
+end;
+
+function CompSensitive(Value, Key: PChar): Boolean;
+begin
+  if Value <> nil then
+    Result := StrComp(Value, Key) = 0
+  else
+    Result := False;
+end;
+
 function TCustomSqliteDataset.FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
 var
-  ValueArray: array of string;
-  IndexArray: array of integer;
+  LocateFields: array of TLocateFieldInfo;
   AFieldList: TList;
-  i,AFieldCount:Integer;
+  i, AFieldCount: Integer;
   MatchRecord: Boolean;
-  AValue:String;
-  TempItem:PDataRecord;
+  AValue: String;
+  TempItem: PDataRecord;
+  
 begin
-  Result:=nil;
-  CheckBrowseMode;
-  // Currently ignore options
-  AFieldList:=TList.Create;
+  Result := nil;
+  AFieldList := TList.Create;
   try
-    GetFieldList(AFieldList,KeyFields);
-    AFieldCount:=AFieldList.Count;
+    GetFieldList(AFieldList, KeyFields);
+    AFieldCount := AFieldList.Count;
     if AFieldCount > 1 then
     begin
       if VarIsArray(KeyValues) then
@@ -925,75 +970,98 @@ begin
         DatabaseError('Wrong number of values specified: expected an array of variants got a variant',Self);
     end;
     
-    //set the array of values and indexes
-
-    SetLength(ValueArray,AFieldCount);
-    SetLength(IndexArray,AFieldCount);
-    for i:= 0 to AFieldCount - 1 do
+    //set the array of the fields info
+    SetLength(LocateFields, AFieldCount);
+    
+    for i := 0 to AFieldCount - 1 do
       with TField(AFieldList[i]) do
       begin
-        //get float types in appropriate format
         if not (DataType in [ftFloat,ftDateTime,ftTime,ftDate]) then
         begin
-          if VarIsArray(KeyValues) then
-            ValueArray[i]:=keyvalues[i]
+          //the loPartialKey and loCaseInsensitive is ignored in numeric fields
+          if DataType in [ftString, ftMemo] then
+          begin
+            if loPartialKey in Options then
+            begin
+              if loCaseInsensitive in Options then
+                LocateFields[i].CompFunction := @CompInsensitivePartial
+              else
+                LocateFields[i].CompFunction := @CompSensitivePartial;
+            end
+            else
+            begin
+              if loCaseInsensitive in Options then
+                LocateFields[i].CompFunction := @CompInsensitive
+              else
+                LocateFields[i].CompFunction := @CompSensitive;
+            end;
+          end
           else
-            ValueArray[i]:=keyvalues;
+            LocateFields[i].CompFunction := @CompSensitive;
+            
+          if VarIsArray(KeyValues) then
+            LocateFields[i].Key := KeyValues[i]
+          else
+            LocateFields[i].Key := KeyValues;
         end
         else
         begin
+          LocateFields[i].CompFunction := @CompSensitive;
+          //get float types in appropriate format
           if VarIsArray(KeyValues) then
-            Str(VarToDateTime(keyvalues[i]),AValue)
+            Str(VarToDateTime(keyvalues[i]), AValue)
           else
-            Str(VarToDateTime(keyvalues),AValue);
-          ValueArray[i]:=Trim(AValue);
+            Str(VarToDateTime(keyvalues), AValue);
+          LocateFields[i].Key := Trim(AValue);
         end;
-        IndexArray[i]:=FieldNo - 1;
+        LocateFields[i].Index := FieldNo - 1;
       end;
   finally
     AFieldList.Destroy;
   end;
   {$ifdef DEBUG_SQLITEDS}
   writeln('##TCustomSqliteDataset.FindRecordItem##');
-  writeln('  KeyFields: ',keyfields);
-  writeln('  KeyValues: ',keyvalues);
-  writeln('  AValue: ',AValue);
+  writeln('  KeyFields: ', KeyFields);
+  for i := 0 to AFieldCount - 1 do
+  begin
+    writeln('LocateFields[',i,']');
+    writeln('  Key: ', LocateFields[i].Key);
+    writeln('  Index: ', LocateFields[i].Index);
+  end;
   {$endif}        
   //Search the list
-  TempItem:=StartItem;
+  TempItem := StartItem;
   while TempItem <> FEndItem do
   begin
-    MatchRecord:=True;
+    MatchRecord := True;
     for i:= 0 to AFieldCount - 1 do
     begin
-      //todo: handle null values??
-      if (TempItem^.Row[IndexArray[i]] = nil) or
-        (StrComp(TempItem^.Row[IndexArray[i]],PChar(ValueArray[i])) <> 0) then
+      with LocateFields[i] do
+      if not CompFunction(TempItem^.Row[Index], PChar(Key)) then
       begin
-        MatchRecord:= False;
+        MatchRecord := False;
         Break;//for
       end;
     end;
     if MatchRecord then
     begin
-      Result:=TempItem;
+      Result := TempItem;
       if DoResync then
       begin
-        FCurrentItem:=TempItem;
+        FCurrentItem := TempItem;
         Resync([]);
       end;
       Break;//while
     end;
-    TempItem:=TempItem^.Next;
+    TempItem := TempItem^.Next;
   end;      
 end;
 
 procedure TCustomSqliteDataset.GetSqliteHandle;
 begin
   if FFileName = '' then
-    DatabaseError ('Filename not set',Self);
-  //todo:Handle opening non db files
-  FSqliteHandle:=InternalGetHandle;
+    DatabaseError('Filename not set',Self);
+  FSqliteHandle := InternalGetHandle;
 end;
 
 procedure TCustomSqliteDataset.FreeItem(AItem: PDataRecord);
@@ -1008,23 +1076,26 @@ end;
 
 function TCustomSqliteDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
 begin
-  Result:=FindRecordItem(FBeginItem^.Next,KeyFields,KeyValues,Options,True) <> nil;  
+  CheckBrowseMode;
+  Result := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, Options, True) <> nil;
 end;
   
 function TCustomSqliteDataset.LocateNext(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
 begin
-  Result:=FindRecordItem(PPDataRecord(ActiveBuffer)^^.Next,KeyFields,KeyValues,Options,True) <> nil;
+  CheckBrowseMode;
+  Result := FindRecordItem(PPDataRecord(ActiveBuffer)^^.Next, KeyFields, KeyValues, Options, True) <> nil;
 end;
   
 function TCustomSqliteDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
 var
-  TempItem:PDataRecord;
+  TempItem: PDataRecord;
 begin
-  TempItem:=FindRecordItem(FBeginItem^.Next,KeyFields,KeyValues,[],False);
+  CheckBrowseMode;
+  TempItem := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, [], False);
   if TempItem <> nil then
-    Result:=TempItem^.Row[FieldByName(ResultFields).FieldNo - 1]
+    Result := TempItem^.Row[FieldByName(ResultFields).FieldNo - 1]
   else
-    Result:=False;      
+    Result := False;
 end;  
 
 procedure TCustomSqliteDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
@@ -1058,10 +1129,8 @@ var
   TempStr:String;
 begin
   if not (State in [dsEdit, dsInsert]) then
-  begin
     DatabaseErrorFmt(SNotEditing,[Name],Self);
-    Exit;
-  end;
+
   StrDispose(FCacheItem^.Row[Pred(Field.FieldNo)]);
   if Buffer <> nil then
   begin
@@ -1178,7 +1247,7 @@ begin
   RefetchData;
 end;
 
-procedure TCustomSqliteDataset.SetMasterFields(Value: String);
+procedure TCustomSqliteDataset.SetMasterFields(const Value: String);
 begin
   FMasterLink.FieldNames:=Value;
   if Active and FMasterLink.Active then
@@ -1213,7 +1282,7 @@ begin
   Result := FMasterLink.DataSource;
 end;
 
-procedure TCustomSqliteDataset.SetFileName(Value: String);
+procedure TCustomSqliteDataset.SetFileName(const Value: String);
 begin
   if Value <> FFileName then
   begin
@@ -1513,12 +1582,8 @@ end;
 
 function TCustomSqliteDataset.TableExists(const ATableName: String): Boolean;
 begin
-  Result:=False;
-  if not (ATableName = '') and FileExists(FFileName) then
-  begin
-    ExecSql('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ ATableName+ ''';');
-    Result:=FReturnCode = SQLITE_ROW;
-  end;
+  ExecSql('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ ATableName+ ''';');
+  Result := FReturnCode = SQLITE_ROW;
 end;
 
 function TCustomSqliteDataset.UpdatesPending: Boolean;
