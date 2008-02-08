@@ -658,7 +658,7 @@ function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST;
 function InflateRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'InflateRect';
 function InitializeAcl(var pAcl: TACL; nAclLength, dwAclRevision: DWORD): BOOL; external 'advapi32' name 'InitializeAcl';
 {$ifndef NO_SMART_LINK}
-function InitializeCriticalSectionAndSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): BOOL;external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
+//function InitializeCriticalSectionAndSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): BOOL;external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
 {$endif NO_SMART_LINK}
 function InitializeSid(Sid: Pointer; const pIdentifierAuthority: TSIDIdentifierAuthority; nSubAuthorityCount: Byte): BOOL; external 'advapi32' name 'InitializeSid';
 function InsertMenuItem(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfo): BOOL;external 'user32' name 'InsertMenuItemA';
@@ -840,7 +840,7 @@ function SetCommTimeouts(hFile: THandle; const lpCommTimeouts: TCommTimeouts): B
 function SetConsoleCursorInfo(hConsoleOutput: THandle; const lpConsoleCursorInfo: TConsoleCursorInfo): BOOL; external 'kernel32' name 'SetConsoleCursorInfo';
 //function SetConsoleWindowInfo(hConsoleOutput: THandle; bAbsolute: BOOL; const lpConsoleWindow: TSmallRect): BOOL; external 'kernel32' name 'SetConsoleWindowInfo';
 {$ifndef NO_SMART_LINK}
-function SetCriticalSectionSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): DWORD;external 'kernel32' name 'SetCriticalSectionSpinCount';
+//function SetCriticalSectionSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): DWORD;external 'kernel32' name 'SetCriticalSectionSpinCount';
 {$endif NO_SMART_LINK}
 function SetDeviceGammaRamp(DC: HDC; var Ramp): BOOL; external 'gdi32' name 'SetDeviceGammaRamp';
 function SetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadSTructs): UINT; external 'gdi32' name 'SetDIBColorTable';
@@ -898,7 +898,7 @@ function TranslateMDISysAccel(hWndClient: HWND; const lpMsg: TMsg): BOOL; extern
 function TranslateMessage(const lpMsg: TMsg): BOOL; external 'user32' name 'TranslateMessage';
 //function TransparentDIBits(DC: HDC; p2, p3, p4, p5: Integer; const p6: Pointer; const p7: PBitmapInfo; p8: UINT; p9, p10, p11, p12: Integer; p13: UINT): BOOL;external 'gdi32' name 'TransparentDIBits';
 {$ifndef NO_SMART_LINK}
-function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): BOOL;external 'kernel32' name 'TryEnterCriticalSection';
+//function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): BOOL;external 'kernel32' name 'TryEnterCriticalSection';
 {$endif NO_SMART_LINK}
 function UnhandledExceptionFilter(const ExceptionInfo: TExceptionPointers): Longint; external 'kernel32' name 'UnhandledExceptionFilter';
 function UnionRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external 'user32' name 'UnionRect';
