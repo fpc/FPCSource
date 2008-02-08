@@ -293,8 +293,8 @@ begin
   for i:=0 to L.Count-1 do
     begin
       DepPackage:=CurrentRepository.PackageByName(L[i]);
-      if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
-        Error(SErrNoPackageAvailable,[D.PackageName,D.MinVersion.AsString]);
+//      if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
+//        Error(SErrNoPackageAvailable,[D.PackageName,D.MinVersion.AsString]);
       ExecuteAction(DepPackage,'install');
     end;
   FreeAndNil(L);
