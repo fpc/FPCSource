@@ -845,8 +845,9 @@ function FindSectionMachO32PPC(var e:TExeFile;const asecname:string;var secofs,s
 var
    i: longint;
    block:cmdblock;
-   symbolsSeg:  symbSeg;
+   symbolsSeg: symbSeg;
 begin
+  FindSectionMachO32PPC:=false;
   seek(e.f,e.sechdrofs);
   for i:= 1 to e.nsects do
     begin
@@ -859,13 +860,14 @@ begin
               secofs:=symbolsSeg.symoff;
               { the caller will divide again by sizeof(tstab) }
               seclen:=symbolsSeg.nsyms*sizeof(tstab);
+              FindSectionMachO32PPC:=true;
             end
           else if asecname='.stabstr' then
             begin
               secofs:=symbolsSeg.stroff;
               seclen:=symbolsSeg.strsize;
+              FindSectionMachO32PPC:=true;
             end;
-          FindSectionMachO32PPC:=true;
           exit;
       end;
       Seek(e.f, FilePos (e.f) + block.cmdsize - sizeof(block));
