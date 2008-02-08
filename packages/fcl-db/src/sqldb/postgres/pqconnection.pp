@@ -803,7 +803,6 @@ begin
               'ic.relname;');
     open;
     end;
-  IndexDefs.Clear;
   while not qry.eof do with IndexDefs.AddIndexDef do
     begin
     Name := trim(qry.fields[0].asstring);

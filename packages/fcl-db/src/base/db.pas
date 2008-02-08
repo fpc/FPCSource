@@ -936,7 +936,7 @@ type
     Function  GetItem(Index: Integer): TIndexDef;
     Procedure SetItem(Index: Integer; Value: TIndexDef);
   public
-    constructor Create(ADataSet: TDataSet); overload;
+    constructor Create(ADataSet: TDataSet); virtual; overload;
     destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
     Function AddIndexDef: TIndexDef;
@@ -944,7 +944,7 @@ type
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
-    procedure Update; overload;
+    procedure Update; overload; virtual;
     Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
   end;
 

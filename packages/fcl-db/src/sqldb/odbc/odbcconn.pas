@@ -1098,7 +1098,6 @@ begin
       ODBCCheckResult(SQLBindCol(StmtHandle, 10, SQL_C_CHAR  , @AscOrDesc , 1, @AscOrDescIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column ASC_OR_DESC.');
 
       // clear index defs
-      IndexDefs.Clear;
       IndexDef:=nil;
 
       // fetch result

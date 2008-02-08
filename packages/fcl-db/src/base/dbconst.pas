@@ -40,12 +40,14 @@ Resourcestring
   SErrIndexBasedOnUnkField = 'Index based on unknown field "%s".';
   SErrConnTransactionnSet  = 'Transaction of connection not set';
   SErrNotASQLConnection    = '"%s" is not a TSQLConnection';
+  SErrNotASQLQuery         = '"%s" is not a TCustomSQLQuery';
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';
   SInactiveDataset         = 'Operation cannot be performed on an inactive dataset';
   SInvalidDisplayValues    = '"%s" are not valid boolean displayvalues';
   SInvalidFieldKind        = '%s : invalid field kind : ';
+  SInvalidBookmark         = 'Invalid bookmark';
   SInvalidFieldSize        = 'Invalid field size : %d';
   SInvalidTypeConversion   = 'Invalid type conversion to %s in field %s';
   SNeedField               = 'Field %s is required, but not supplied.';
@@ -90,12 +92,15 @@ Resourcestring
   SNoUpdateFields          = 'There are no fields found to include in the update- or insert-clause';
   SNotSupported            = 'Operation is not supported by this type of database';
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
+  SMaxIndexes              = 'The maximum amount of indexes is reached';
+  SMinIndexes              = 'The minimum amount of indexes is 1';
 // These are added for Delphi-compatilility, but not used by the fcl:
   SFieldIndexError         = 'Field index out of range';
   SIndexFieldMissing       = 'Cannot access index field ''%s''';
   SNoFieldIndexes          = 'No index currently active';
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
   SErrUnknownConnectorType = 'Unknown connector type';
+  SNoIndexFieldNameGiven   = 'There are no fields selected to base the index on';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
   
 
