@@ -418,7 +418,7 @@ uses
      * NULL and token.size will be 0  }
 
     // internal hacky version to go around a bug regarding struct results/cdecl
-    function __aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):QWord;cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
+    function __aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):{$IFDEF CPU64}{$IFDEF LINUX}QWord{$ELSE}AspellToken{$ENDIF}{$ELSE}AspellToken{$ENDIF};cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
 
     { Returns the underlying filter class.  }
 
@@ -824,7 +824,7 @@ var
        * NULL and token.size will be 0  }
 
   // hack around struct/cdecl problem
-  __aspell_document_checker_next_misspelling: function(ths:PAspellDocumentChecker):QWord;cdecl;
+  __aspell_document_checker_next_misspelling: function(ths:PAspellDocumentChecker):{$IFDEF CPU64}{$IFDEF LINUX}QWord{$ELSE}AspellToken{$ENDIF}{$ELSE}AspellToken{$ENDIF};cdecl;
 
       { Returns the underlying filter class.  }
 
