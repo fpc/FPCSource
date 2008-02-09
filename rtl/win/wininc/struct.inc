@@ -7017,7 +7017,6 @@ type
 // Debug Format
 //
 
-type
   PIMAGE_DEBUG_DIRECTORY = ^IMAGE_DEBUG_DIRECTORY;
   _IMAGE_DEBUG_DIRECTORY = record
     Characteristics: DWORD;
@@ -7037,7 +7036,7 @@ type
 // Optional header format.
 //
 
-type
+
   PIMAGE_DATA_DIRECTORY = ^IMAGE_DATA_DIRECTORY;
   _IMAGE_DATA_DIRECTORY = record
     VirtualAddress: DWORD;
@@ -7256,7 +7255,66 @@ type
    IMAGESECTIONHEADER = _IMAGE_SECTION_HEADER;
    TIMAGESECTIONHEADER = _IMAGE_SECTION_HEADER;
    PIMAGESECTIONHEADER = ^_IMAGE_SECTION_HEADER;
-  
+
+
+   _IMAGE_FUNCTION_ENTRY = record
+      StartingAddress,
+      EndingAddress,
+      EndOfPrologue     : DWord;
+      end;
+   IMAGE_FUNCTION_ENTRY = _IMAGE_FUNCTION_ENTRY;
+   TIMAGE_FUNCTION_ENTRY= IMAGE_FUNCTION_ENTRY;
+   PIMAGE_FUNCTION_ENTRY= ^IMAGE_FUNCTION_ENTRY;
+   LPIMAGE_FUNCTION_ENTRY= PIMAGE_FUNCTION_ENTRY;
+
+
+   _IMAGE_FUNCTION_ENTRY64 = record
+       StartingAddress,
+       EndingAddress :   ULONGLONG   ;
+       case boolean of 
+         false : (EndOfPrologue : ULONGLONG);
+         true  : (UnwindInfoAddress : ULONGLONG);
+       end;
+   IMAGE_FUNCTION_ENTRY64  =  _IMAGE_FUNCTION_ENTRY64;
+   TIMAGE_FUNCTION_ENTRY64 =  _IMAGE_FUNCTION_ENTRY64;
+   PIMAGE_FUNCTION_ENTRY64 =  ^_IMAGE_FUNCTION_ENTRY64;
+   LPIMAGE_FUNCTION_ENTRY64=  ^_IMAGE_FUNCTION_ENTRY64;
+
+   _IMAGE_COFF_SYMBOLS_HEADER  = record
+      NumberOfSymbols,
+      LvaToFirstSymbol,
+      NumberOfLinenumbers,
+      LvaToFirstLinenumber,
+      RvaToFirstByteOfCode,
+      RvaToLastByteOfCode,
+      RvaToFirstByteOfData,
+      RvaToLastByteOfData    : DWORD;
+    end;
+   TIMAGE_COFF_SYMBOLS_HEADER = _IMAGE_COFF_SYMBOLS_HEADER;
+   IMAGE_COFF_SYMBOLS_HEADER  = _IMAGE_COFF_SYMBOLS_HEADER;
+   PIMAGE_COFF_SYMBOLS_HEADER = ^IMAGE_COFF_SYMBOLS_HEADER;
+   LPIMAGE_COFF_SYMBOLS_HEADER= PIMAGE_COFF_SYMBOLS_HEADER;
+
+
+   _FPO_DATA = record
+    ulOffStart: DWORD;             // offset 1st byte of function code
+    cbProcSize: DWORD;             // # bytes in function
+    cdwLocals : DWORD;             // # bytes in locals/4
+    bitvalues : word;              // 
+{
+    WORD        cdwParams;              // # bytes in params/4
+    WORD        cbProlog : 8;           // # bytes in prolog
+    WORD        cbRegs   : 3;           // # regs saved
+    WORD        fHasSEH  : 1;           // TRUE if SEH in func
+    WORD        fUseBP   : 1;           // TRUE if EBP has been allocated
+    WORD        reserved : 1;           // reserved for future use
+    WORD        cbFrame  : 2;           // frame type
+}
+    end;
+   FPO_DATA   = _FPO_DATA;
+   TFPO_DATA  = _FPO_DATA;
+   PFPO_DATA  = ^_FPO_DATA;
+   LPFPO_DATA = PFPO_DATA;
 {$endif read_interface}
 
 
