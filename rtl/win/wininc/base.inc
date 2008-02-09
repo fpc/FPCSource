@@ -65,6 +65,7 @@
      SHORT = smallint;
      WINT  = longint;
      LONG  = longint;
+     LONG64= int64;
      ULONG64 = qword;     // imagehlp header.
      ULONG32 = cardinal;
      DWORD = cardinal;

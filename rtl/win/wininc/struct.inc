@@ -7252,6 +7252,7 @@ type
    IMAGE_SECTION_HEADER = _IMAGE_SECTION_HEADER;
    TIMAGE_SECTION_HEADER = _IMAGE_SECTION_HEADER;
    PIMAGE_SECTION_HEADER = ^_IMAGE_SECTION_HEADER;
+   PPIMAGE_SECTION_HEADER = ^PIMAGE_SECTION_HEADER;
    IMAGESECTIONHEADER = _IMAGE_SECTION_HEADER;
    TIMAGESECTIONHEADER = _IMAGE_SECTION_HEADER;
    PIMAGESECTIONHEADER = ^_IMAGE_SECTION_HEADER;
@@ -7315,6 +7316,66 @@ type
    TFPO_DATA  = _FPO_DATA;
    PFPO_DATA  = ^_FPO_DATA;
    LPFPO_DATA = PFPO_DATA;
+
+
+     IMAGE_LOAD_CONFIG_DIRECTORY32 = record
+          Size : DWORD;
+          TimeDateStamp : DWORD;
+          MajorVersion : WORD;
+          MinorVersion : WORD;
+          GlobalFlagsClear : DWORD;
+          GlobalFlagsSet : DWORD;
+          CriticalSectionDefaultTimeout : DWORD;
+          DeCommitFreeBlockThreshold : DWORD;
+          DeCommitTotalFreeThreshold : DWORD;
+          LockPrefixTable : DWORD;
+          MaximumAllocationSize : DWORD;
+          VirtualMemoryThreshold : DWORD;
+          ProcessHeapFlags : DWORD;
+          ProcessAffinityMask : DWORD;
+          CSDVersion : WORD;
+          Reserved1 : WORD;
+          EditList : DWORD;
+          SecurityCookie : DWORD;
+          SEHandlerTable : DWORD;
+          SEHandlerCount : DWORD;
+       end;
+     PIMAGE_LOAD_CONFIG_DIRECTORY32 = ^IMAGE_LOAD_CONFIG_DIRECTORY32;
+     TIMAGE_LOAD_CONFIG_DIRECTORY32 = IMAGE_LOAD_CONFIG_DIRECTORY32;
+     IMAGE_LOAD_CONFIG_DIRECTORY64 = record
+          Size : DWORD;
+          TimeDateStamp : DWORD;
+          MajorVersion : WORD;
+          MinorVersion : WORD;
+          GlobalFlagsClear : DWORD;
+          GlobalFlagsSet : DWORD;
+          CriticalSectionDefaultTimeout : DWORD;
+          DeCommitFreeBlockThreshold : ULONGLONG;
+          DeCommitTotalFreeThreshold : ULONGLONG;
+          LockPrefixTable : ULONGLONG;
+          MaximumAllocationSize : ULONGLONG;
+          VirtualMemoryThreshold : ULONGLONG;
+          ProcessAffinityMask : ULONGLONG;
+          ProcessHeapFlags : DWORD;
+          CSDVersion : WORD;
+          Reserved1 : WORD;
+          EditList : ULONGLONG;
+          SecurityCookie : ULONGLONG;
+          SEHandlerTable : ULONGLONG;
+          SEHandlerCount : ULONGLONG;
+       end;
+     PIMAGE_LOAD_CONFIG_DIRECTORY64 = ^IMAGE_LOAD_CONFIG_DIRECTORY64;
+     TIMAGE_LOAD_CONFIG_DIRECTORY64 = IMAGE_LOAD_CONFIG_DIRECTORY64;
+{$ifdef _WIN64}
+     IMAGE_LOAD_CONFIG_DIRECTORY = IMAGE_LOAD_CONFIG_DIRECTORY64;
+     TIMAGE_LOAD_CONFIG_DIRECTORY = TIMAGE_LOAD_CONFIG_DIRECTORY64;
+     PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY64;
+{$else}
+     IMAGE_LOAD_CONFIG_DIRECTORY = IMAGE_LOAD_CONFIG_DIRECTORY32;
+     TIMAGE_LOAD_CONFIG_DIRECTORY = TIMAGE_LOAD_CONFIG_DIRECTORY32;
+     PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY32;
+{$endif}
+
 {$endif read_interface}
 
 
