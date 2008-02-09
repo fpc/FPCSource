@@ -65,6 +65,8 @@
      SHORT = smallint;
      WINT  = longint;
      LONG  = longint;
+     ULONG64 = qword;     // imagehlp header.
+     ULONG32 = cardinal;
      DWORD = cardinal;
 
      PINTEGER = ^longint;
@@ -78,12 +80,16 @@
      DWORD64 = qword;         //
      PDWORD64 = ^DWORD64;     //
 
+
      INT_PTR = PtrInt;
      UINT_PTR = PtrUInt;
      LONG_PTR = PtrInt;
      ULONG_PTR = PtrUInt;
      DWORD_PTR   = ULONG_PTR;
      PDWORD_PTR  = ^DWORD_PTR;
+     PULONG64    = ^ULONG64;
+     PULONG32    = ^ULONG32;
+     PULONG_PTR  = ^ULONG_PTR;
 
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
