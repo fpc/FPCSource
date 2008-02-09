@@ -52,6 +52,7 @@ begin
     T:=P.Targets.AddImplicitUnit('shfolder.pp');
     T:=P.Targets.AddImplicitUnit('shlobj.pp');
     T:=P.Targets.AddImplicitUnit('winver.pp');
+    T:=P.Targets.AddImplicitUnit('imagehlp.pp');
 
 {$ifndef ALLPACKAGES}
     Run;
