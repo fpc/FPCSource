@@ -1,4 +1,4 @@
-unit sCheck;
+unit SpellCheck;
 
 { Simple unit to simplify/OOP-ize pascal-style the aspell interface. Currently
   very limited, will be expanded eventually. Use like you wish. }

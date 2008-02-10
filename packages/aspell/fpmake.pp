@@ -16,16 +16,19 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='aspell';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.1';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('aspell.pp');
-    T:=P.Targets.AddUnit('scheck.pp');
+    T:=P.Targets.AddUnit('spellcheck.pp');
     with T.Dependencies do
       begin
         AddUnit('aspell');
        end;
 
+    P.Sources.AddSrc('LICENSE');
+    P.Sources.AddSrc('LICENSE.ADDON');
+    
 {$ifndef ALLPACKAGES}
     Run;
     end;
