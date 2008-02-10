@@ -72,14 +72,15 @@ Resourcestring
   SLogFPMKUnitDepTooOld      = 'Minimum version of %s is not installed, using internal fpmkunit with limited functionality';
   SLogSelectedMirror         = 'Selected mirror "%s"';
   SLogUpgradingConfig        = 'Configuration file "%s" is updated with new configuration settings';
-  SLogPackageMultipleLocations = 'Multiple installations found for package %s, using installation "%s"';
+  SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
   SDbgDirectoryExists        = 'Directory "%s" %s';
   SDbgFileExists             = 'File "%s" %s';
   SDbgBackupFile             = 'Creating Backup File "%s"';
-  SDbgPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
+  SDbgPackageMultipleLocations = 'Multiple installations found for package %s, using installation "%s"';
+  SDbgPackageDependencyOtherTarget  = 'Dependency on package %s is not for %s';
 
 implementation
 

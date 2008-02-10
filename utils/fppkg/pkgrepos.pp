@@ -12,6 +12,8 @@ function GetRemoteRepositoryURL(const AFileName:string):string;
 
 procedure LoadLocalMirrors;
 procedure LoadLocalRepository;
+function  LoadOrCreatePackage(const AName:string):TFPPackage;
+function  LoadPackageManifest(const AManifestFN:string):TFPPackage;
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 procedure CheckFPMakeDependencies;
 procedure ListLocalRepository(all:boolean=false);
@@ -189,17 +191,60 @@ begin
 end;
 
 
-procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
+function LoadOrCreatePackage(const AName:string):TFPPackage;
+begin
+  result:=CurrentRepository.FindPackage(AName);
+  if not assigned(result) then
+    begin
+      result:=CurrentRepository.AddPackage(AName);
+      result.IsLocalPackage:=true;
+    end;
+end;
 
-  function LoadOrCreatePackage(const AName:string):TFPPackage;
-  begin
-    result:=CurrentRepository.FindPackage(AName);
-    if not assigned(result) then
+
+function LoadPackageManifest(const AManifestFN:string):TFPPackage;
+var
+  X : TFPXMLRepositoryHandler;
+  i : integer;
+  DoAdd : Boolean;
+  NewP : TFPPackage;
+  NewPackages : TFPPackages;
+begin
+  result:=nil;
+  NewPackages:=TFPPackages.Create(TFPPackage);
+  X:=TFPXMLRepositoryHandler.Create;
+  try
+    X.LoadFromXml(NewPackages,AManifestFN);
+    // Update or Add packages to repository
+    for i:=0 to NewPackages.Count-1 do
       begin
-        result:=CurrentRepository.AddPackage(AName);
-        result.IsLocalPackage:=true;
+        NewP:=NewPackages[i];
+        DoAdd:=True;
+        result:=CurrentRepository.FindPackage(NewP.Name);
+        if assigned(result) then
+          begin
+            if NewP.Version.CompareVersion(result.Version)<0 then
+              begin
+                Writeln(Format('Ignoring package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,result.Version.AsString]));
+                DoAdd:=False;
+              end
+            else
+              Writeln(Format('Updating package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,result.Version.AsString]));
+          end
+        else
+          result:=CurrentRepository.PackageCollection.AddPackage(NewP.Name);
+        // Copy contents
+        if DoAdd then
+          result.Assign(NewP);
       end;
+  finally
+    X.Free;
+    NewPackages.Free;
   end;
+end;
+
+
+procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 
   procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
   Var
@@ -217,7 +262,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
       if not APackage.InstalledVersion.Empty then
         begin
           if showdups then
-            Log(vlInfo,SLogPackageMultipleLocations,[APackage.Name,ExtractFilePath(AFileName)]);
+            Log(vlDebug,SDbgPackageMultipleLocations,[APackage.Name,ExtractFilePath(AFileName)]);
         end;
     Finally
       L.Free;
@@ -292,10 +337,16 @@ var
   P : TFPPackage;
   ReqVer : TFPVersion;
 begin
+  // Reset availability
+  for i:=1 to FPMKUnitDepCount do
+    FPMKUnitDepAvailable[i]:=false;
+  // Not version check needed in Recovery mode, we always need to use
+  // the internal bootstrap procedure
+  if GlobalOptions.RecoveryMode then
+    exit;
   // Check for fpmkunit dependencies
   for i:=1 to FPMKUnitDepCount do
     begin
-      FPMKUnitDepAvailable[i]:=false;
       P:=CurrentRepository.FindPackage(FPMKUnitDeps[i].package);
       if P<>nil then
         begin
@@ -350,47 +401,6 @@ end;
 
 procedure RebuildRemoteRepository;
 
-  procedure AddPackage(const AManifestFN:string);
-  var
-    X : TFPXMLRepositoryHandler;
-    i : integer;
-    DoAdd : Boolean;
-    P,NewP : TFPPackage;
-    NewPackages : TFPPackages;
-  begin
-    NewPackages:=TFPPackages.Create(TFPPackage);
-    X:=TFPXMLRepositoryHandler.Create;
-    try
-      X.LoadFromXml(NewPackages,AManifestFN);
-      DeleteFile(ManifestFileName);
-      // Update or Add packages to repository
-      for i:=0 to NewPackages.Count-1 do
-        begin
-          NewP:=NewPackages[i];
-          DoAdd:=True;
-          P:=CurrentRepository.FindPackage(NewP.Name);
-          if assigned(P) then
-            begin
-              if NewP.Version.CompareVersion(P.Version)<0 then
-                begin
-                  Writeln(Format('Ignoring package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,P.Version.AsString]));
-                  DoAdd:=False;
-                end
-              else
-                Writeln(Format('Updating package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,P.Version.AsString]));
-            end
-          else
-            P:=CurrentRepository.PackageCollection.AddPackage(NewP.Name);
-          // Copy contents
-          if DoAdd then
-            P.Assign(NewP);
-        end;
-    finally
-      X.Free;
-      NewPackages.Free;
-    end;
-  end;
-
 var
   i : integer;
   ArchiveSL : TStringList;
@@ -422,7 +432,10 @@ begin
           end;
         { Load manifest.xml }
         if FileExists(ManifestFileName) then
-          AddPackage(ManifestFileName)
+          begin
+            LoadPackageManifest(ManifestFileName);
+            DeleteFile(ManifestFileName);
+          end
         else
           Writeln('No manifest found in archive ',ArchiveSL[i]);
 

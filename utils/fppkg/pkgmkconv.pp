@@ -502,7 +502,7 @@ begin
         Res:=R.IndexOfName(N)<>-1;
       GetOSCPU(V,OS,CPU);
       Pre[1]:=Upcase(Pre[1]);
-      Src.Add('    T:=P.Targets.Add'+Pre+'('''+Prefix+N+''');');
+      Src.Add('    T:=P.Targets.Add'+Pre+'('''+Prefix+N+'.pp'');');
       If (CPU<>'') then
         Src.Add('    T.CPU:=['+CPU+'];');
       If (OS<>'') then

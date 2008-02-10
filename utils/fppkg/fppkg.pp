@@ -154,6 +154,7 @@ begin
   Writeln('  -d --debug         Show debugging information');
   Writeln('  -g --global        Force installation to global (system-wide) directory');
   Writeln('  -f --force         Force installation also if the package is already installed');
+  Writeln('  -r --recovery      Recovery mode, use always internal fpmkunit');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
   Writeln('  showavail          List available packages');
@@ -242,6 +243,8 @@ begin
         LogLevels:=AllLogLevels+[vlDebug]
       else if CheckOption(I,'g','global') then
         GlobalOptions.InstallGlobal:=true
+      else if CheckOption(I,'r','recovery') then
+        GlobalOptions.RecoveryMode:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
@@ -313,16 +316,18 @@ begin
           begin
             if FileExists(ParaPackages[i]) then
               begin
-                ActionPackage:=CurrentRepository.AddPackage(ChangeFileExt(ExtractFileName(ParaPackages[i]),''));
+                ActionPackage:=LoadOrCreatePackage(ChangeFileExt(ExtractFileName(ParaPackages[i]),''));
                 ActionPackage.FileName:=ExpandFileName(ParaPackages[i]);
                 ActionPackage.IsLocalPackage:=true;
+                res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
+                FreeAndNil(ActionPackage);
               end
             else
-              ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
-            Log(vlDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
-            res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
-            if ActionPackage.IsLocalPackage then;
-              FreeAndNil(ActionPackage);
+              begin
+                ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
+                Log(vlDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
+                res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
+              end;
             if not res then
               break;
           end;

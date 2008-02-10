@@ -327,7 +327,7 @@ begin
       OSesToXML(P.OSes,XML,Result);
     if P.CPUs<>AllCPUs then
       CPUsToXML(P.CPUs,XML,Result);
-    If P.HasDependencies then
+    If P.Dependencies.Count>0 then
       DependenciesToXML(P.Dependencies,XML,Result);
   Except
     Parent.RemoveChild(Result);

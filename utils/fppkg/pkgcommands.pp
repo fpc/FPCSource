@@ -208,8 +208,18 @@ function TCommandCompile.Execute(const Args:TActionArgs):boolean;
 begin
   if assigned(CurrentPackage) then
     begin
-      ExecuteAction(CurrentPackage,'installdependencies',Args);
-      ExecuteAction(CurrentPackage,'unzip',Args);
+      // For local files we need the information inside the zip to get the
+      // dependencies
+      if CurrentPackage.IsLocalPackage then
+        begin
+          ExecuteAction(CurrentPackage,'unzip',Args);
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+        end
+      else
+        begin
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+          ExecuteAction(CurrentPackage,'unzip',Args);
+        end;
     end;
   ExecuteAction(CurrentPackage,'fpmakecompile',Args);
   Result:=true;
@@ -220,8 +230,18 @@ function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
   if assigned(CurrentPackage) then
     begin
-      ExecuteAction(CurrentPackage,'installdependencies',Args);
-      ExecuteAction(CurrentPackage,'unzip',Args);
+      // For local files we need the information inside the zip to get the
+      // dependencies
+      if CurrentPackage.IsLocalPackage then
+        begin
+          ExecuteAction(CurrentPackage,'unzip',Args);
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+        end
+      else
+        begin
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+          ExecuteAction(CurrentPackage,'unzip',Args);
+        end;
     end;
   ExecuteAction(CurrentPackage,'fpmakebuild',Args);
   Result:=true;
@@ -257,14 +277,26 @@ end;
 function TCommandInstallDependencies.Execute(const Args:TActionArgs):boolean;
 var
   i : Integer;
+  MissingDependency,
   D : TFPDependency;
+  P,
   DepPackage : TFPPackage;
   L : TStringList;
   status : string;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
-  // List dependencies
+  // Load dependencies for local packages
+  if CurrentPackage.IsLocalPackage then
+    begin
+      ExecuteAction(CurrentPackage,'fpmakemanifest',Args);
+      P:=LoadPackageManifest(ManifestFileName);
+      // Update CurrentPackage
+      CurrentPackage.Assign(P);
+      CurrentPackage.IsLocalPackage:=true;
+    end;
+  // Find and List dependencies
+  MissingDependency:=nil;
   L:=TStringList.Create;
   for i:=0 to CurrentPackage.Dependencies.Count-1 do
     begin
@@ -278,23 +310,31 @@ begin
              (DepPackage.InstalledVersion.CompareVersion(D.MinVersion)<0) then
             begin
               if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
-                status:='Not Available!'
+                begin
+                  status:='Not Available!';
+                  MissingDependency:=D;
+                end
               else
-                status:='Updating';
-              L.Add(DepPackage.Name);
+                begin
+                  status:='Updating';
+                  L.Add(DepPackage.Name);
+                end;
             end
           else
             status:='OK';
-          Log(vlDebug,SDbgPackageDependency,
+          Log(vlInfo,SLogPackageDependency,
               [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
-        end;
+        end
+      else
+        Log(vlDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
     end;
+  // Give error on first missing dependency
+  if assigned(MissingDependency) then
+    Error(SErrNoPackageAvailable,[MissingDependency.PackageName,MissingDependency.MinVersion.AsString]);
   // Install needed updates
   for i:=0 to L.Count-1 do
     begin
       DepPackage:=CurrentRepository.PackageByName(L[i]);
-//      if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
-//        Error(SErrNoPackageAvailable,[D.PackageName,D.MinVersion.AsString]);
       ExecuteAction(DepPackage,'install');
     end;
   FreeAndNil(L);

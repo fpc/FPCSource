@@ -1182,92 +1182,92 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  SInfoExecutingCommand   = '#039'Executing command "%s %s"'#039';'#010+
   '  SInfoCreatingOutputDir  = '#039'Creating output dir "%s"'#039';'#010+
   '  SInfoInstallingPackage  = '#039'Installing package %s'#039';'#010+
-  '  SInfoArchivingPackage   = '#039'Archiving package %s'#039';'#010+
-  '  SI','nfoCleaningPackage    = '#039'Cleaning package %s'#039';'#010+
+  '  SInfoArchivingPackage   = '#039'Archiving package %s in "%s','"'#039';'#010+
+  '  SInfoCleaningPackage    = '#039'Cleaning package %s'#039';'#010+
   '  SInfoManifestPackage    = '#039'Creating manifest for package %s'#039';'+
   #010+
   '  SInfoCopyingFile        = '#039'Copying file "%s" to "%s"'#039';'#010+
-  '  SInfoSourceNewerDest    = '#039'Source file "%s" (%s) is newer than d'+
-  'estina','tion "%s" (%s).'#039';'#010+
+  '  SInfoSourceNewerDest    = '#039'Source file "%s" (%s) is newer than',' '+
+  'destination "%s" (%s).'#039';'#010+
   #010+
   '  SDbgComparingFileTimes    = '#039'Comparing file "%s" time "%s" to "%'+
   's" time "%s".'#039';'#010+
   '  SDbgCompilingDependenciesOfTarget = '#039'Compiling dependencies of t'+
   'arget %s'#039';'#010+
-  '  SDbgResolvingSourcesOfTarget = '#039'Resolving filenames of targe','t '+
+  '  SDbgResolvingSourcesOfTarget = '#039'Resolving filenames ','of target '+
   '%s for %s'#039';'#010+
   '  SDbgResolvedSourceFile    = '#039'Resolved source file %s to "%s"'#039+
   ';'#010+
   '  SDbgResolvedIncludeFile   = '#039'Resolved include file %s to "%s"'#039+
   ';'#010+
   '  SDbgOutputNotYetAvailable = '#039'Output file %s not available'#039';'#010+
-  '  SDbgDependencyOnUnit      = '#039'De','pendency of %s on unit %s'#039';'+
+  '  SDbgDependencyOnUnit   ','   = '#039'Dependency of %s on unit %s'#039';'+
   #010+
   '  SDbgDependencyUnitRecompiled = '#039'Dependent unit %s is being recom'+
   'piled'#039';'#010+
   '  SDbgMustCompile           = '#039'Must compile %s'#039';'#010+
   '  SDbgSkippingTargetWrongCPU = '#039'Skipping target %s, different CPU '+
   '(%s)'#039';'#010+
-  '  SDbgSkippingTa','rgetWrongOS  = '#039'Skipping target %s, different OS'+
+  '  SDbgSk','ippingTargetWrongOS  = '#039'Skipping target %s, different OS'+
   ' (%s)'#039';'#010+
   '  SDbgTargetIsNotAUnitOrProgram = '#039'Skipping Target %s, not an unit'+
   ' or program'#039';'#010+
   '  SDbgConsideringTarget     = '#039'Considering target %s'#039';'#010+
-  '  SDbgConsideringPackage    = '#039'Considering packag','e %s'#039';'#010+
+  '  SDbgConsideringPackage    = '#039'Considerin','g package %s'#039';'#010+
   '  SDbgExternalDependency    = '#039'External dependency %s found in "%s'+
   '"'#039';'#010+
   '  SDbgBuildEngineArchiving  = '#039'Build engine archiving'#039';'#010+
   '  SDbgBuildEngineGenerateManifests = '#039'Build engine generating mani'+
   'fests'#039';'#010+
-  '  SDbgBuildEngineCleaning   = '#039'Bu','ild engine cleaning'#039';'#010+
+  '  SDbgBuildEngineCleaning','   = '#039'Build engine cleaning'#039';'#010+
   '  SDbgGenerating            = '#039'Generating "%s"'#039';'#010+
   '  SDbgLoading               = '#039'Loading "%s"'#039';'#010+
   '  SDbgFound                 = '#039'Found'#039';'#010+
   '  SDbgNotFound              = '#039'Not Found'#039';'#010+
-  '  SDbgDirectoryExists       = '#039'Directory ','"%s" %s'#039';'#010+
+  '  SDbgDirectoryExists       = '#039'Di','rectory "%s" %s'#039';'#010+
   '  SDbgFileExists            = '#039'File "%s" %s'#039';'#010+
   '  SDbgArchivingFile         = '#039'Archiving "%s"'#039';'#010+
   '  SDbgSearchPath            = '#039'Using %s path "%s"'#039';'#010+
   '  SDbgEnterDir              = '#039'Entering directory "%s"'#039';'#010+
   #010+
-  '  // Help messages for usa','ge'#010+
+  '  // Help messages',' for usage'#010+
   '  SValue              = '#039'Value'#039';'#010+
   '  SHelpUsage          = '#039'Usage: %s command [options]'#039';'#010+
   '  SHelpCommand        = '#039'Where command is one of the following:'#039+
   ';'#010+
   '  SHelpCompile        = '#039'Compile all units in the package(s).'#039';'+
   #010+
-  '  SHelpBuild       ','   = '#039'Build all units in the package(s).'#039';'+
+  '  SHelpBuil','d          = '#039'Build all units in the package(s).'#039';'+
   #010+
   '  SHelpInstall        = '#039'Install all units in the package(s).'#039';'+
   #010+
   '  SHelpClean          = '#039'Clean (remove) all units in the package(s'+
   ').'#039';'#010+
-  '  SHelpArchive        = '#039'Create archive (zip) with all units i','n '+
+  '  SHelpArchive        = '#039'Create archive (zip) with all',' units in '+
   'the package(s).'#039';'#010+
   '  SHelpHelp           = '#039'This message.'#039';'#010+
   '  SHelpManifest       = '#039'Create a manifest suitable for import in '+
   'repository.'#039';'#010+
   '  SHelpCmdOptions     = '#039'Where options is one or more of the follo'+
   'wing:'#039';'#010+
-  '  SHelpCPU            = '#039,'Compile for indicated CPU.'#039';'#010+
+  '  SHelpCPU       ','     = '#039'Compile for indicated CPU.'#039';'#010+
   '  SHelpOS             = '#039'Compile for indicated OS'#039';'#010+
   '  SHelpTarget         = '#039'Compile for indicated target'#039';'#010+
   '  SHelpList           = '#039'list commands instead of actually executi'+
   'ng them.'#039';'#010+
-  '  SHelpPrefix         = '#039'U','se indicated prefix directory for all '+
+  '  SHelpPrefix     ','    = '#039'Use indicated prefix directory for all '+
   'commands.'#039';'#010+
   '  SHelpNoFPCCfg       = '#039'Compiler will not use fpc.cfg'#039';'#010+
   '  SHelpBaseInstallDir = '#039'Use indicated directory as base install d'+
   'ir.'#039';'#010+
-  '  SHelpLocalUnitDir   = '#039'Use indicated directory as local (us','er)'+
+  '  SHelpLocalUnitDir   = '#039'Use indicated directory as l','ocal (user)'+
   ' unit dir.'#039';'#010+
   '  SHelpGlobalUnitDir  = '#039'Use indicated directory as global unit di'+
   'r.'#039';'#010+
   '  SHelpCompiler       = '#039'Use indicated binary as compiler'#039';'#010+
   '  SHelpConfig         = '#039'Use indicated config file when compiling.'+
   #039';'#010+
-  '  SHelpVerbose        = ',#039'Be verbose when working.'#039';'#010+
+  '  SHelpVerbose  ','      = '#039'Be verbose when working.'#039';'#010+
   #010+
   #010+
   'Const'#010+
@@ -1277,8 +1277,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  KeyCopy     = '#039'Copy'#039';'#010+
   '  KeyMkDir    = '#039'MkDir'#039';'#010+
   '  KeyMove     = '#039'Move'#039';'#010+
-  '  KeyRemove   = '#039'Remove'#039';'#010+
-  '  Ke','yOptions  = '#039'Options'#039';'#010+
+  '  KeyRemove   = '#039'Remov','e'#039';'#010+
+  '  KeyOptions  = '#039'Options'#039';'#010+
   '  KeyCPU      = '#039'CPU'#039';'#010+
   '  KeyOS       = '#039'OS'#039';'#010+
   '  KeyMode     = '#039'Mode'#039';'#010+
@@ -1286,13 +1286,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  KeyTarget   = '#039'Target'#039';'#010+
   '  KeyNoFPCCfg = '#039'NoFPCCfg'#039';'#010+
   '  KeyLocalUnitDir       = '#039'LocalUnitDir'#039';'#010+
-  '  KeyGlobalUnitDir      = ',#039'GlobalUnitDir'#039';'#010+
+  '  KeyGlobalUnitDir','      = '#039'GlobalUnitDir'#039';'#010+
   '  KeyBaseInstallDir     = '#039'BaseInstallDir'#039';'#010+
   '  KeyUnitInstallDir     = '#039'UnitInstallDir'#039';'#010+
   '  KeyBinInstallDir      = '#039'BinInstallDir'#039';'#010+
   '  KeyDocInstallDir      = '#039'DocInstallDir'#039';'#010+
-  '  KeyExamplesInstallDir = '#039'ExamplesInstallDir'#039';'#010+
-  ' ',' // Keys for unit config'#010+
+  '  KeyExamplesInstallDir = '#039'ExamplesInstal','lDir'#039';'#010+
+  '  // Keys for unit config'#010+
   '  KeyName     = '#039'Name'#039';'#010+
   '  KeyVersion  = '#039'Version'#039';'#010+
   '  KeyNeedLibC = '#039'NeedLibC'#039';'#010+
@@ -1300,7 +1300,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   '{*********************************************************************'+
   '*******'#010+
-  '                              ','  Helpers'#010+
+  '                      ','          Helpers'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
@@ -1311,7 +1311,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Var'#010+
   '    I: integer;'#010+
   '  begin'#010+
-  '    If J+Length(T)>','Length(R) then'#010+
+  '    If J+Le','ngth(T)>Length(R) then'#010+
   '      SetLength(R,J+Length(T));'#010+
   '    For I:=1 to Length(t) do'#010+
   '      begin'#010+
@@ -1324,8 +1324,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'const'#010+
   '  QuotStr = '#039'&quot;'#039';'#010+
   '  AmpStr = '#039'&amp;'#039';'#010+
-  '  ltStr = '#039'&lt;'#039';'#010+
-  '  gtStr',' = '#039'&gt;'#039';'#010+
+  '  ltStr = '#039'&lt;'#039';',#010+
+  '  gtStr = '#039'&gt;'#039';'#010+
   'Var'#010+
   '  I,J : Integer;'#010+
   'begin'#010+
@@ -1337,8 +1337,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    case S[i] of'#010+
   '      '#039'"'#039': W(j,Result,QuotStr);'#010+
   '      '#039'&'#039': W(J,Result,AmpStr);'#010+
-  '      '#039'<'#039': W(J,Result,ltStr);'#010+
-  '    ','  '#039'>'#039': W(J,Result,gtStr);'#010+
+  '      '#039'<'#039': W(J,Result,ltSt','r);'#010+
+  '      '#039'>'#039': W(J,Result,gtStr);'#010+
   '      // Escape whitespace using CharRefs to be consistent with W3 spe'+
   'c X 3.3.3'#010+
   '       #9: w(J,Result,'#039'&#x9;'#039');'#010+
@@ -1346,8 +1346,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '       #13: wrtStr('#039'&#xD;'#039');}'#010+
   '    else'#010+
   '      Result[J]:=S[i];'#010+
-  '    end;'#010+
-  '  ','  If (J=Length(Result)) and (I<Length(S)) then'#010+
+  '   ',' end;'#010+
+  '    If (J=Length(Result)) and (I<Length(S)) then'#010+
   '      SetLength(Result,J+Length(S)-I);'#010+
   '    end;'#010+
   '  If J<>Length(Result) then'#010+
@@ -1358,7 +1358,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function maybequoted(const s:string):string;'#010+
   'const'#010+
   '  {$IFDEF MSWINDOWS}'#010+
-  '    FORBIDDEN','_CHARS = ['#039'!'#039', '#039'@'#039', '#039'#'#039', '#039'$'+
+  '    F','ORBIDDEN_CHARS = ['#039'!'#039', '#039'@'#039', '#039'#'#039', '#039'$'+
   #039', '#039'%'#039', '#039'^'#039', '#039'&'#039', '#039'*'#039', '#039'('#039', '+
   #039')'#039','#010+
   '                       '#039'{'#039', '#039'}'#039', '#039#039#039#039', '#039'`'+
@@ -1367,8 +1367,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    FORBIDDEN_CHARS = ['#039'!'#039', '#039'@'#039', '#039'#'#039', '#039'$'#039+
   ', '#039'%'#039', '#039'^'#039', '#039'&'#039', '#039'*'#039', '#039'('#039', '#039+
   ')'#039','#010+
-  '                       '#039'{'#039', '#039'}'#039', '#039#039#039#039', '#039':'+
-  #039', '#039'\'#039,', '#039'`'#039', '#039'~'#039'];'#010+
+  '                       '#039'{'#039', '#039'}'#039', '#039#039#039#039', ',#039':'+
+  #039', '#039'\'#039', '#039'`'#039', '#039'~'#039'];'#010+
   '  {$ENDIF}'#010+
   'var'#010+
   '  s1 : string;'#010+
@@ -1383,7 +1383,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '       '#039'"'#039' :'#010+
   '         begin'#010+
   '           quoted:=true;'#010+
-  '           s1:=s1+'#039'\','"'#039';'#010+
+  '           s','1:=s1+'#039'\"'#039';'#010+
   '         end;'#010+
   '       '#039' '#039','#010+
   '       #128..#255 :'#010+
@@ -1394,8 +1394,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '       else begin'#010+
   '         if s[i] in FORBIDDEN_CHARS then'#010+
   '           quoted:=True;'#010+
-  '         s1:=s1+s[i];'#010+
-  '      ',' end;'#010+
+  '         s1:=s1+s[i]',';'#010+
+  '       end;'#010+
   '     end;'#010+
   '   end;'#010+
   '  if quoted then'#010+
@@ -1411,7 +1411,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Line : String;'#010+
   '  I,P,PC : Integer;'#010+
   'begin'#010+
-  '  F:=TFileStream','.Create(AFileName,fmOpenRead);'#010+
+  '  F:=TFi','leStream.Create(AFileName,fmOpenRead);'#010+
   '  Try'#010+
   '    L.LoadFromStream(F);'#010+
   '    // Fix lines.'#010+
@@ -1420,7 +1420,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        Line:=L[I];'#010+
   '        P:=Pos('#039'='#039',Line);'#010+
   '        PC:=Pos('#039';'#039',Line);  // Comment line.'#010+
-  '        If (P=0) or ((PC','<>0) and (PC<P)) then'#010+
+  '        If (P=0)',' or ((PC<>0) and (PC<P)) then'#010+
   '          L.Delete(I)'#010+
   '        else'#010+
   '          L[i]:=Trim(System.Copy(Line,1,P-1)+'#039'='#039'+Trim(System.C'+
@@ -1432,7 +1432,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '// Callback for Sysutils getapplicationnam','e.'#010+
+  '// Callback for Sysutils getapplic','ationname.'#010+
   'Function GetFPMakeName : String;'#010+
   #010+
   'begin'#010+
@@ -1452,7 +1452,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result:=CPUToString(Defaults.CPU);'#010+
   'end;'#010+
   #010+
-  'Function OSTo','String(OS: TOS) : String;'#010+
+  'Funct','ion OSToString(OS: TOS) : String;'#010+
   #010+
   'begin'#010+
   '  Result:=LowerCase(GetenumName(TypeInfo(TOS),Ord(OS)));'#010+
@@ -1463,9 +1463,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  Result:=LowerCase(SetToString(PtypeInfo(TypeInfo(TOSes)),Integer(OSe'+
   's),False));'#010+
-  'end;'#010+
+  'en','d;'#010+
   #010+
-  'Func','tion CPUToString(CPU: TCPU) : String;'#010+
+  'Function CPUToString(CPU: TCPU) : String;'#010+
   #010+
   'begin'#010+
   '  Result:=LowerCase(GetenumName(TypeInfo(TCPU),Ord(CPU)));'#010+
@@ -1474,8 +1474,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function CPUSToString(CPUS: TCPUS) : String;'#010+
   #010+
   'begin'#010+
-  '  Result:=LowerCase(SetToString(PTypeInfo(TypeInfo(TCPUS)),Integer(CPU'+
-  'S),False','));'#010+
+  '  Result:=LowerCase(SetToString(PTypeInfo(TypeInfo(TCPUS)),Integer(CPU',
+  'S),False));'#010+
   'end;'#010+
   #010+
   'Function StringToOS(const S : String) : TOS;'#010+
@@ -1491,7 +1491,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function OSesToString(co','nst S : String) : TOSes;'#010+
+  'Function OSesToS','tring(const S : String) : TOSes;'#010+
   #010+
   'begin'#010+
   '  Result:=TOSes(StringToSet(PTypeInfo(TypeInfo(TOSes)),S));'#010+
@@ -1505,7 +1505,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  I:=GetEnumValue(TypeInfo(TCPU),S);'#010+
   '  if (I=-1) then'#010+
-  '    Raise EIns','tallerError.CreateFmt(SErrInvalidCPU,[S]);'#010+
+  '    Ra','ise EInstallerError.CreateFmt(SErrInvalidCPU,[S]);'#010+
   '  Result:=TCPU(I);'#010+
   'end;'#010+
   #010+
@@ -1515,7 +1515,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result:=TCPUS(StringToSet(PTypeInfo(TypeInfo(TCPUS)),S));'#010+
   'end;'#010+
   #010+
-  'Function ModeToString(Mode: TCompilerMode) : Strin','g;'#010+
+  'Function ModeToString(Mode: TCompilerMode)',' : String;'#010+
   #010+
   'begin'#010+
   '  Result:=LowerCase(GetenumName(TypeInfo(TCompilerMode),Ord(Mode)));'#010+
@@ -1528,8 +1528,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   #010+
   'begin'#010+
-  '  I:=GetEnumValue(TypeInfo(TCompilerMode),S);'#010+
-  '  i','f (I=-1) then'#010+
+  '  I:=GetEnumValue(TypeInfo(TCompilerMode)',',S);'#010+
+  '  if (I=-1) then'#010+
   '    Raise EInstallerError.CreateFmt(SErrInvalidMode,[S]);'#010+
   '  Result:=TCompilerMode(I);'#010+
   'end;'#010+
@@ -1541,7 +1541,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result:=CPUToString(CPU)+'#039'-'#039'+OSToString(OS);'#010+
   'end;'#010+
   #010+
-  'Procedure StringT','oCPUOS(const S : String; Var CPU : TCPU; Var OS: TO'+
+  'Procedure',' StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TO'+
   'S);'#010+
   #010+
   'Var'#010+
@@ -1552,7 +1552,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  If (P=0) then'#010+
   '    Raise EInstallerError.CreateFmt(SErrInvalidTarget,[S]);'#010+
   '  CPU:=StringToCPU(Copy(S,1,P-1));'#010+
-  '  OS:=StringToOs(Copy(S,P+1,Le','ngth(S)-P));'#010+
+  '  OS:=StringToOs(Copy(','S,P+1,Length(S)-P));'#010+
   'end;'#010+
   #010+
   #010+
@@ -1566,7 +1566,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    For I:=0 to L.Count-1 do'#010+
   '      begin'#010+
   '        C:=L[i];'#010+
-  '        if C.Dependenc','yType in [depPackage,depUnit] then'#010+
+  '        if C.D','ependencyType in [depPackage,depUnit] then'#010+
   '          begin'#010+
   '            J:=P.IndexOfName(C.Value);'#010+
   '            If J<>-1 then'#010+
@@ -1576,7 +1576,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'function AddConditionalStrings(Dest : TStrings; Src : T','ConditionalSt'+
+  'function AddConditionalStrings(Dest : TStrings;',' Src : TConditionalSt'+
   'rings;ACPU:TCPU;AOS:TOS; Const APrefix : String='#039#039') : Integer ;'#010+
   'Var'#010+
   '  I : Integer;'#010+
@@ -1585,7 +1585,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  Result:=0;'#010+
   '  Dictionary.AddVariable('#039'CPU'#039',CPUToString(ACPU));'#010+
-  '  Dictionary.AddVariable('#039'OS'#039',OSTo','String(AOS));'#010+
+  '  Dictionary.AddVariable('#039,'OS'#039',OSToString(AOS));'#010+
   '  For I:=0 to Src.Count-1 do'#010+
   '    begin'#010+
   '      C:=Src[I];'#010+
@@ -1594,8 +1594,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '          If (APrefix<>'#039#039') then'#010+
   '            S:=APrefix+C.Value'#010+
   '          else'#010+
-  '            S:=C.Value;'#010+
-  '   ','       Dest.Add(Dictionary.ReplaceStrings(S));'#010+
+  '            S:=C.Va','lue;'#010+
+  '          Dest.Add(Dictionary.ReplaceStrings(S));'#010+
   '          Inc(Result);'#010+
   '        end;'#010+
   '    end;'#010+
@@ -1609,7 +1609,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  S : String;'#010+
   'begin'#010+
   '  Result:='#039#039';'#010+
-  '  For I:=0 ','to List.Count-1 do'#010+
+  '  F','or I:=0 to List.Count-1 do'#010+
   '    begin'#010+
   '      If (I>0) then'#010+
   '        Result:=Result+'#039' '#039';'#010+
@@ -1621,7 +1621,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'function FixPath (const APath : String) : Str','ing;'#010+
+  'function FixPath (const APath : Strin','g) : String;'#010+
   'Var'#010+
   '  P : PChar;'#010+
   'begin'#010+
@@ -1634,8 +1634,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '          If P^ in ['#039'/'#039','#039'\'#039'] then'#010+
   '            P^:=PathDelim;'#010+
   '          Inc(P);'#010+
-  '        end;'#010+
-  '    end;',#010+
+  '        end;'#010,
+  '    end;'#010+
   'end;'#010+
   #010+
   #010+
@@ -1646,8 +1646,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure SearchFiles(const AFileName: string; Recursive: boolean; var'+
-  ' List',': TStrings);'#010+
+  'procedure SearchFiles(const AFileName: string; Recursive: boolean; ','v'+
+  'ar List: TStrings);'#010+
   #010+
   '  procedure AddRecursiveFiles(const SearchDir, FileMask: string; Recur'+
   'sive: boolean);'#010+
@@ -1656,22 +1656,22 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  var'#010+
   '    Info : TSearchRec;'#010+
   '  begin'#010+
-  '    if FindFirst(SearchDir+'#039'*'#039',faAnyFil','e and faDirectory,Inf'+
+  '    if FindFirst(SearchDir+'#039'*'#039',','faAnyFile and faDirectory,Inf'+
   'o)=0 then'#010+
   '    begin'#010+
   '      repeat'#010+
   '          if ((Info.Attr and faDirectory) = faDirectory) and (Info.Nam'+
   'e <> '#039'.'#039') and (Info.Name <> '#039'..'#039') and (Recursive) then'+
   #010+
-  '            AddRecursiveFiles(SearchDir + Info.Name + PathDel','im, Fil'+
+  '            AddRecursiveFiles(SearchDir + Info.Name +',' PathDelim, Fil'+
   'eMask, Recursive);'#010+
   '          if ((Info.Attr and faDirectory) <> faDirectory) and IsWild(I'+
   'nfo.Name, FileMask, IgnoreCase) then'#010+
   '            List.Add(SearchDir + Info.Name);'#010+
   '      until FindNext(Info)<>0;'#010+
   '    end;'#010+
-  '    FindClose(Info);'#010+
-  ' ',' end;'#010+
+  '    FindClose(','Info);'#010+
+  '  end;'#010+
   #010+
   'var'#010+
   '  CurrDir,'#010+
@@ -1682,7 +1682,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  AddRecursiveFiles(BasePath, ExtractFileName(AFileName), Recursive);'#010+
   #010+
   '  CurrDir:=GetCurrentDir;'#010+
-  '  for i := 0 to Pred(Li','st.Count) do'#010+
+  '  for i := 0 to',' Pred(List.Count) do'#010+
   '    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(CurrDi'+
   'r), List[i]);'#010+
   'end;'#010+
@@ -1693,7 +1693,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'Const'#010+
   '  WhiteSpace = [#9,#10,#13,'#039' '#039'];'#010+
-  '  QuoteChars = ['#039#039#039#039','#039'"'#039']',';'#010+
+  '  QuoteChars = ['#039,#039#039#039','#039'"'#039'];'#010+
   #010+
   'Var'#010+
   '  I : Integer;'#010+
@@ -1708,7 +1708,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I:=1;'#010+
   '  While (I<=Length(S)) and (Inquote or not (S[I] in whiteSpace)) do'#010+
   '    begin'#010+
-  '    If S[i] in Quot','eChars then'#010+
+  '    If S[i]',' in QuoteChars then'#010+
   '      begin'#010+
   '      InQuote:=Not (S[i]=LastQuote);'#010+
   '      If InQuote then'#010+
@@ -1720,8 +1720,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    end;'#010+
   '  Exe:=Copy(S,1,I-1);'#010+
   '  Delete(S,1,I);'#010+
-  '  Options:=Trim(S);'#010+
-  'end;'#010,
+  '  Options:=Trim(S',');'#010+
+  'end;'#010+
   #010+
   #010+
   '{$ifdef HAS_UNIT_PROCESS}'#010+
@@ -1734,7 +1734,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Count: longint;'#010+
   'begin'#010+
   '  S:=TProcess.Create(Nil);'#010+
-  '  S.Commandli','ne:=ACompiler+'#039' '#039'+AOptions;'#010+
+  '  S.C','ommandline:=ACompiler+'#039' '#039'+AOptions;'#010+
   '  S.Options:=[poUsePipes];'#010+
   '  S.execute;'#010+
   '  Count:=s.output.read(buf,BufSize);'#010+
@@ -1745,7 +1745,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{$endif HAS_UNIT_PROCESS}'#010+
   #010+
   #010+
-  '{***********************************','********************************'+
+  '{***************************','****************************************'+
   '*********'#010+
   '                                TNamedItem'#010+
   '**********************************************************************'+
@@ -1754,7 +1754,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TNamedItem.SetName(const AValue: String);'#010+
   #010+
   'begin'#010+
-  '  if FName=AValue',' then exit;'#010+
+  '  if FNam','e=AValue then exit;'#010+
   '  With TNamedCollection(Collection) do'#010+
   '    If UniqueNames then'#010+
   '      If (IndexOfName(AVAlue)<>-1) then'#010+
@@ -1763,13 +1763,14 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{*********************************','**********************************'+
+  '{*************************','******************************************'+
   '*********'#010+
   '                                TNamedCollection'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
-  'function TNamedCollection.IndexOfName(const AName: String): Integer;',#010+
+  'function TNamedCollection.IndexOfName(const AName: String): ','Integer;'+
+  #010+
   #010+
   'begin'#010+
   '  Result:=Count-1;'#010+
@@ -1785,7 +1786,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   #010+
   'begin'#010+
-  '  I:=Inde','xOfName(AName);'#010+
+  ' ',' I:=IndexOfName(AName);'#010+
   '  If (I=-1) Then'#010+
   '    Raise ECollectionError.CreateFmt(SErrNoSuchName,[AName]);'#010+
   '  Result:=TNamedItem(Items[i]);'#010+
@@ -1794,7 +1795,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   '{*********************************************************************'+
   '*******'#010+
-  '                            ',' TNamedItemList'#010+
+  '                    ','         TNamedItemList'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
@@ -1804,7 +1805,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TNamedItemList.SetN','amedItem(Index : Integer; const AValue:'+
+  'procedure TNamedItemL','ist.SetNamedItem(Index : Integer; const AValue:'+
   ' TNamedItem);'#010+
   'begin'#010+
   '  Items[Index]:=AValue;'#010+
@@ -1814,7 +1815,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function TNamedItemList.IndexOfName(const AName: String): Integer;'#010+
   'begin'#010+
   '  Result:=Count-1;'#010+
-  '  While (Result>=0) and (CompareText(GetNamedItem(Result).','Name,AName'+
+  '  While (Result>=0) and (CompareText(GetNamedItem(','Result).Name,AName'+
   ')<>0) do'#010+
   '    Dec(Result);'#010+
   'end;'#010+
@@ -1826,7 +1827,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  I:=IndexOfName(AName);'#010+
   '  If (I=-1) Then'#010+
-  '    Raise ECollectionError.CreateFmt(SErrNoSuchName,[AName]);',#010+
+  '    Raise ECollectionError.CreateFmt(SErrNoSuchName,[','AName]);'#010+
   '  Result:=TNamedItem(Items[i]);'#010+
   'end;'#010+
   #010+
@@ -1835,9 +1836,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '*******'#010+
   '                                TTargets'#010+
   '**********************************************************************'+
-  '******}'#010+
+  '***','***}'#010+
   #010+
-  'fu','nction TTargets.GetTargetItem(Index : Integer): TTarget;'#010+
+  'function TTargets.GetTargetItem(Index : Integer): TTarget;'#010+
   'begin'#010+
   '  Result:=TTarget(Items[Index]);'#010+
   'end;'#010+
@@ -1849,7 +1850,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TTargets.SetTarg','etItem(Index : Integer; const AValue: TTar'+
+  'procedure TTargets','.SetTargetItem(Index : Integer; const AValue: TTar'+
   'get);'#010+
   'begin'#010+
   '  Items[Index]:=AValue;'#010+
@@ -1862,7 +1863,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TTargets.AddUnit(Const A','UnitName : String;const OSes:TOSes)'+
+  'Function TTargets.AddUnit','(Const AUnitName : String;const OSes:TOSes)'+
   ' : TTarget;'#010+
   'begin'#010+
   '  Result:=AddUnit(AUnitName,AllCPUs,OSes);'#010+
@@ -1873,7 +1874,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TTargets.AddUnit(Const AUnitName : String;const CPUs:TCPUs) :'+
   ' TTarget;'#010+
   'begin'#010+
-  '  Result:=AddUnit(AUnit','Name,CPUs,AllOSes);'#010+
+  '  Result:=AddUn','it(AUnitName,CPUs,AllOSes);'#010+
   'end;'#010+
   '{$endif cpu_only_overloads}'#010+
   #010+
@@ -1883,8 +1884,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  Result:=Add as TTarget;'#010+
   '  Result.Name:=AUnitName;'#010+
-  '  Result.TargetType:=TTUnit;'#010+
-  ' ',' Result.CPUs:=CPUs;'#010+
+  '  Result.TargetType:=T','TUnit;'#010+
+  '  Result.CPUs:=CPUs;'#010+
   '  Result.OSes:=OSes;'#010+
   'end;'#010+
   #010+
@@ -1896,22 +1897,22 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TTargets','.AddImplicitUnit(Const AUnitName : String;const OSe'+
+  'Function ','TTargets.AddImplicitUnit(Const AUnitName : String;const OSe'+
   's:TOSes;InstallUnit:boolean=true) : TTarget;'#010+
   'begin'#010+
   '  Result:=AddImplicitUnit(AUnitName,AllCPUs,OSes,InstallUnit);'#010+
   'end;'#010+
   #010+
   #010+
-  'Function TTargets.AddImplicitUnit(Const AUnitName : String;const CPU','s'+
-  ':TCPUs;InstallUnit:boolean=true) : TTarget;'#010+
+  'Function TTargets.AddImplicitUnit(Const AUnitName : String;c','onst CPU'+
+  's:TCPUs;InstallUnit:boolean=true) : TTarget;'#010+
   'begin'#010+
   '  Result:=AddImplicitUnit(AUnitName,CPUs,AllOSes,InstallUnit);'#010+
   'end;'#010+
   #010+
   #010+
   'Function TTargets.AddImplicitUnit(Const AUnitName : String;const CPUs:'+
-  'TCPUs;const OSes:TOSes;InstallUnit:boolean=true) ',': TTarget;'#010+
+  'TCPUs;const OSes:TOSes;InstallUnit:boolea','n=true) : TTarget;'#010+
   'begin'#010+
   '  Result:=Add as TTarget;'#010+
   '  Result.Name:=AUnitName;'#010+
@@ -1924,7 +1925,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TTarge','ts.AddProgram(Const AProgramName : String) : TTarget;'+
+  'Functio','n TTargets.AddProgram(Const AProgramName : String) : TTarget;'+
   #010+
   'begin'#010+
   '  Result:=AddProgram(AProgramName,AllCPUs,AllOSes);'#010+
@@ -1934,7 +1935,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TTargets.AddProgram(Const AProgramName : String;const OSes:TO'+
   'Ses) : TTarget;'#010+
   'begin'#010+
-  '  Result:=AddProgram(AProgram','Name,AllCPUs,OSes);'#010+
+  '  Result:=AddProgram(','AProgramName,AllCPUs,OSes);'#010+
   'end;'#010+
   #010+
   #010+
@@ -1947,7 +1948,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{$endif cpu_only_overloads}'#010+
   #010+
   #010+
-  'Function ','TTargets.AddProgram(Const AProgramName : String;const CPUs:'+
+  'F','unction TTargets.AddProgram(Const AProgramName : String;const CPUs:'+
   'TCPUs;const OSes:TOSes) : TTarget;'#010+
   'begin'#010+
   '  Result:=Add as TTarget;'#010+
@@ -1955,11 +1956,10 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result.CPUs:=CPUs;'#010+
   '  Result.OSes:=OSes;'#010+
   '  Result.TargetType:=ttProgram;'#010+
-  'end;'#010+
+  'end',';'#010+
   #010+
   #010+
-  'Func','tion TTargets.AddExampleUnit(Const AUnitName : String) : TTarget'+
-  ';'#010+
+  'Function TTargets.AddExampleUnit(Const AUnitName : String) : TTarget;'#010+
   'begin'#010+
   '  Result:=AddExampleUnit(AUnitName,AllCPUs,AllOSes);'#010+
   'end;'#010+
@@ -1968,7 +1968,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TTargets.AddExampleUnit(Const AUnitName : String;const OSes:T'+
   'OSes) : TTarget;'#010+
   'begin'#010+
-  '  Result:=AddEx','ampleUnit(AUnitName,AllCPUs,OSes);'#010+
+  '  Resul','t:=AddExampleUnit(AUnitName,AllCPUs,OSes);'#010+
   'end;'#010+
   #010+
   #010+
@@ -1978,7 +1978,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  Result:=AddExampleUnit(AUnitName,CPUs,AllOSes);'#010+
   'end;'#010+
-  '{$endif cpu_only_overl','oads}'#010+
+  '{$endif cpu_on','ly_overloads}'#010+
   #010+
   #010+
   'Function TTargets.AddExampleUnit(Const AUnitName : String;const CPUs:T'+
@@ -1988,7 +1988,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result.Name:=AUnitName;'#010+
   '  Result.CPUs:=CPUs;'#010+
   '  Result.OSes:=OSes;'#010+
-  '  Result.TargetType:=ttExamp','leUnit;'#010+
+  '  Result.TargetType:','=ttExampleUnit;'#010+
   'end;'#010+
   #010+
   #010+
@@ -1999,8 +1999,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TTargets.AddExampleProgram(Const AProgramName : String;const '+
-  'OSes:TO','Ses) : TTarget;'#010+
+  'Function TTargets.AddExampleProgram(Const AProgramName : String;const',
+  ' OSes:TOSes) : TTarget;'#010+
   'begin'#010+
   '  Result:=AddExampleProgram(AProgramName,AllCPUs,OSes);'#010+
   'end;'#010+
@@ -2010,7 +2010,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TTargets.AddExampleProgram(Const AProgramName : String;const '+
   'CPUs:TCPUs) : TTarget;'#010+
   'begin'#010+
-  '  Result:=AddExampleProgram(','AProgramName,CPUs,AllOSes);'#010+
+  '  Result:=AddExample','Program(AProgramName,CPUs,AllOSes);'#010+
   'end;'#010+
   '{$endif cpu_only_overloads}'#010+
   #010+
@@ -2019,8 +2019,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'CPUs:TCPUs;const OSes:TOSes) : TTarget;'#010+
   'begin'#010+
   '  Result:=Add as TTarget;'#010+
-  '  Result.Name:=AProgramName;'#010+
-  '  Resu','lt.CPUs:=CPUs;'#010+
+  '  Result.Name:=AProgramName',';'#010+
+  '  Result.CPUs:=CPUs;'#010+
   '  Result.OSes:=OSes;'#010+
   '  Result.TargetType:=ttExampleProgram;'#010+
   'end;'#010+
@@ -2029,7 +2029,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{*********************************************************************'+
   '*******'#010+
   '                                TSources'#010+
-  '***************************************','*****************************'+
+  '*******************************','*************************************'+
   '********}'#010+
   #010+
   'function TSources.GetSourceItem(Index : Integer): TSource;'#010+
@@ -2041,7 +2041,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TSources.SetSourceItem(Index : Integer; const AValue: TSourc'+
   'e);'#010+
   'begin'#010+
-  '  Items[Index]:','=AValue;'#010+
+  '  Items','[Index]:=AValue;'#010+
   'end;'#010+
   #010+
   #010+
@@ -2054,8 +2054,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   'function TSources.AddSrc(const AFiles : String) : TSource;'#010+
-  'begin'#010+
-  '  Result',':=Add as TSource;'#010+
+  'begin'#010,
+  '  Result:=Add as TSource;'#010+
   '  Result.Name:=AFiles;'#010+
   '  Result.FSourceType:=stSrc;'#010+
   'end;'#010+
@@ -2066,10 +2066,10 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result:=Add as TSource;'#010+
   '  Result.Name:=AFiles;'#010+
   '  Result.FSourceType:=stExample;'#010+
-  'end;'#010+
+  'end;',#010+
   #010+
   #010+
-  'funct','ion TSources.AddTest(const AFiles : String) : TSource;'#010+
+  'function TSources.AddTest(const AFiles : String) : TSource;'#010+
   'begin'#010+
   '  Result:=Add as TSource;'#010+
   '  Result.Name:=AFiles;'#010+
@@ -2080,7 +2080,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TSources.AddDocFiles(const AFileMask: string; Recursive: boo'+
   'lean);'#010+
   'var'#010+
-  '  List : TSt','rings;'#010+
+  '  Li','st : TStrings;'#010+
   '  i: integer;'#010+
   'begin'#010+
   '  List := TStringList.Create;'#010+
@@ -2091,7 +2091,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TSources.AddSrcFiles(const AFileMask: string; Recursiv','e: b'+
+  'procedure TSources.AddSrcFiles(const AFileMask: string; ','Recursive: b'+
   'oolean);'#010+
   'var'#010+
   '  List : TStrings;'#010+
@@ -2105,7 +2105,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TSources.AddExampleFiles(','const AFileMask: string; Recursiv'+
+  'procedure TSources.AddExamp','leFiles(const AFileMask: string; Recursiv'+
   'e: boolean);'#010+
   'var'#010+
   '  List : TStrings;'#010+
@@ -2115,8 +2115,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  SearchFiles(AFileMask, Recursive, List);'#010+
   '  for i:= 0 to Pred(List.Count) do'#010+
   '    AddExample(List[i]);'#010+
-  '  List.Free;'#010+
-  'end;'#010,
+  '  List.Fre','e;'#010+
+  'end;'#010+
   #010+
   #010+
   'procedure TSources.AddTestFiles(const AFileMask: string; Recursive: bo'+
@@ -2128,7 +2128,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  List := TStringList.Create;'#010+
   '  SearchFiles(AFileMask, Recursive, List);'#010+
   '  for i:= 0 to Pred(List.Count) do'#010+
-  '    AddTe','st(List[i]);'#010+
+  ' ','   AddTest(List[i]);'#010+
   '  List.Free;'#010+
   'end;'#010+
   #010+
@@ -2139,21 +2139,21 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '**********************************************************************'+
   '******}'#010+
   #010+
-  'constructor ','TPackage.Create(ACollection: TCollection);'#010+
+  'cons','tructor TPackage.Create(ACollection: TCollection);'#010+
   'begin'#010+
   '  inherited Create(ACollection);'#010+
   '  FVersion:=TFPVersion.Create;'#010+
   '  FTargets:=TTargets.Create(TTarget);'#010+
   '  FSources:=TSources.Create(TSource);'#010+
-  '  FDependencies:=TDependencies.Create(TDependency);',#010+
+  '  FDependencies:=TDependencies.Create(TDepe','ndency);'#010+
   '  FInstallFiles:=TConditionalStrings.Create(TConditionalString);'#010+
   '  FCleanFiles:=TConditionalStrings.Create(TConditionalString);'#010+
   '  FUnitPath:=TConditionalStrings.Create(TConditionalString);'#010+
-  '  FObjectPath:=TConditionalStrings.Create(TConditi','onalString);'#010+
+  '  FObjectPath:=TConditionalStrings.Create(','TConditionalString);'#010+
   '  FIncludePath:=TConditionalStrings.Create(TConditionalString);'#010+
   '  FSourcePath:=TConditionalStrings.Create(TConditionalString);'#010+
   '  FExamplePath:=TConditionalStrings.Create(TConditionalString);'#010+
-  '  FTestPath:=TConditionalStrings.Cre','ate(TConditionalString);'#010+
+  '  FTestPath:=TConditionalStr','ings.Create(TConditionalString);'#010+
   '  FCommands:=TCommands.Create(TCommand);'#010+
   '  FCPUs:=AllCPUs;'#010+
   '  FOSes:=AllOSes;'#010+
@@ -2164,8 +2164,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'destructor TPackage.destroy;'#010+
   'begin'#010+
-  '  FreeAndNil(FDependencies);'#010+
-  '  FreeA','ndNil(FInstallFiles);'#010+
+  '  FreeAndNil(FDependencies);',#010+
+  '  FreeAndNil(FInstallFiles);'#010+
   '  FreeAndNil(FCleanFiles);'#010+
   '  FreeAndNil(FIncludePath);'#010+
   '  FreeAndNil(FSourcePath);'#010+
@@ -2173,8 +2173,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  FreeAndNil(FTestPath);'#010+
   '  FreeAndNil(FObjectPath);'#010+
   '  FreeAndNil(FUnitPath);'#010+
-  '  FreeAndNil(FSources);'#010+
-  '  FreeA','ndNil(FTargets);'#010+
+  '  FreeAndNil(FSources);',#010+
+  '  FreeAndNil(FTargets);'#010+
   '  FreeAndNil(FVersion);'#010+
   '  inherited destroy;'#010+
   'end;'#010+
@@ -2185,7 +2185,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  inherited SetName(AValue);'#010+
   '  // RTL should not have any dependencies'#010+
   '  if AValue='#039'rtl'#039' then'#010+
-  '    FDependencies.Cle','ar;'#010+
+  '    FDependen','cies.Clear;'#010+
   'end;'#010+
   #010+
   #010+
@@ -2197,7 +2197,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'Function TPackage.GetBinOutputDir(ACPU:TCPU; AOS : TOS) : String;'#010+
   'begin'#010+
-  '  Result:='#039'bin'#039'+PathDe','lim+MakeTargetString(ACPU,AOS);'#010+
+  '  Result:='#039'bin',#039'+PathDelim+MakeTargetString(ACPU,AOS);'#010+
   'end;'#010+
   #010+
   #010+
@@ -2208,17 +2208,17 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   'begin'#010+
   '  OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(Defaults.CPU,Defaul'+
-  'ts.OS));'#010+
-  '  OU:=I','ncludeTrailingPathDelimiter(GetUnitsOutputDir(Defaults.CPU,De'+
-  'faults.OS));'#010+
+  'ts.OS));',#010+
+  '  OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(Defaults.CPU,Defa'+
+  'ults.OS));'#010+
   '  AddConditionalStrings(List,CleanFiles,ACPU,AOS);'#010+
   '  For I:=0 to FTargets.Count-1 do'#010+
   '    FTargets.TargetItems[I].GetCleanFiles(List, OU, OB, ACPU, AOS);'#010+
-  'end;'#010+
+  'end;'#010,
   #010+
   #010+
-  'proced','ure TPackage.GetInstallFiles(List: TStrings;Types : TTargetTyp'+
-  'es;ACPU:TCPU; AOS : TOS);'#010+
+  'procedure TPackage.GetInstallFiles(List: TStrings;Types : TTargetTypes'+
+  ';ACPU:TCPU; AOS : TOS);'#010+
   'Var'#010+
   '  OB,OU : String;'#010+
   '  I : Integer;'#010+
@@ -2226,13 +2226,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(Defaults.CPU,Defaul'+
   'ts.OS));'#010+
-  '  OU:=IncludeTr','ailingPathDelimiter(GetUnitsOutputDir(Defaults.CPU,De'+
+  '  OU:=I','ncludeTrailingPathDelimiter(GetUnitsOutputDir(Defaults.CPU,De'+
   'faults.OS));'#010+
   '  AddConditionalStrings(List,InstallFiles,ACPU,AOS);'#010+
   '  For I:=0 to FTargets.Count-1 do'#010+
   '    begin'#010+
   '      T:=FTargets.TargetItems[I];'#010+
-  '      if (T.TargetType in Types) and (T.Ins','tall) then'#010+
+  '      if (T.TargetType in Types) an','d (T.Install) then'#010+
   '        T.GetInstallFiles(List, OU, OB, ACPU, AOS);'#010+
   '    end;'#010+
   'end;'#010+
@@ -2245,7 +2245,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  // Targets only'#010+
   '  For I:=0 to FTargets.Count-1 do'#010+
-  '    FTarge','ts.TargetItems[I].GetArchiveFiles(List,ACPU,AOS);'#010+
+  '  ','  FTargets.TargetItems[I].GetArchiveFiles(List,ACPU,AOS);'#010+
   'end;'#010+
   #010+
   #010+
@@ -2257,7 +2257,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  If (FDescription<>'#039#039') then'#010+
   '    Result:=FDescription'#010+
   '  else'#010+
-  '    If (FDescriptionFile<>'#039#039') then'#010,
+  '    If (FDescriptionFile<>'#039,#039') then'#010+
   '      begin'#010+
   '        // Always relative to binary name.'#010+
   '        FN:=ExtractFilePath(ParamStr(0));'#010+
@@ -2266,7 +2266,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '          begin'#010+
   '            L:=TStringList.Create;'#010+
   '            Try'#010+
-  '            ','  L.LoadFromFile(FN);'#010+
+  '    ','          L.LoadFromFile(FN);'#010+
   '              Result:=L.Text;'#010+
   '            Finally'#010+
   '              L.Free;'#010+
@@ -2282,7 +2282,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Procedure TPack','age.SetVersion(const V : string);'#010+
+  'Procedu','re TPackage.SetVersion(const V : string);'#010+
   'begin'#010+
   '  FVersion.AsString:=V;'#010+
   'end;'#010+
@@ -2294,7 +2294,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Result:=FFileName'#010+
   '  else'#010+
   '    if not FVersion.Empty then'#010+
-  '      Result := Name + '#039'-'#039' + FVersion','.AsString'#010+
+  '      Result := Name + '#039'-'#039' + ','FVersion.AsString'#010+
   '    else'#010+
   '      Result := Name;'#010+
   'end;'#010+
@@ -2308,7 +2308,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  begin'#010+
   '    if (AOSes=AllOSes) then'#010+
   '      exit;'#010+
-  '    Manifest.A','dd(AIndent+'#039'<oses>'#039');'#010+
+  '    Ma','nifest.Add(AIndent+'#039'<oses>'#039');'#010+
   '    for IOS:=low(TOSes) to high(TOSes) do'#010+
   '      if IOS in AOSes then'#010+
   '        Manifest.Add(Format(AIndent+'#039' <os name="%s"/>'#039',[OSToSt'+
@@ -2316,7 +2316,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Manifest.Add(AIndent+'#039'</oses>'#039');'#010+
   '  end;'#010+
   #010+
-  '  procedure AddCPUs(const AI','ndent:string;ACPUs:TCPUs);'#010+
+  '  procedure AddCPUs(','const AIndent:string;ACPUs:TCPUs);'#010+
   '  var'#010+
   '    ICPU : TCPU;'#010+
   '  begin'#010+
@@ -2325,7 +2325,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Manifest.Add(AIndent+'#039'<cpus>'#039');'#010+
   '    for ICPU:=low(TCPUs) to high(TCPUs) do'#010+
   '      if ICPU in ACPUs then'#010+
-  '        Manifest.Add(Format(AIndent','+'#039' <cpu name="%s"/>'#039',[CPU'+
+  '        Manifest.Add(Format','(AIndent+'#039' <cpu name="%s"/>'#039',[CPU'+
   'ToString(ICPU)]));'#010+
   '    Manifest.Add(AIndent+'#039'</cpus>'#039');'#010+
   '  end;'#010+
@@ -2337,20 +2337,20 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  With Manifest do'#010+
   '    begin'#010+
-  '    Add(Format('#039'<package name="%s">'#039',[QuoteXml(Name)]));'#010+
-  '    Add','(Format('#039' <version major="%d" minor="%d" micro="%d" build'+
-  '="%d"/>'#039',[FVersion.Major,FVersion.Minor,FVersion.Micro,FVersion.Bu'+
-  'ild]));'#010+
+  '    Add(Format('#039'<package name="%s">'#039',[QuoteXml(Name)]));',#010+
+  '    Add(Format('#039' <version major="%d" minor="%d" micro="%d" build="'+
+  '%d"/>'#039',[FVersion.Major,FVersion.Minor,FVersion.Micro,FVersion.Buil'+
+  'd]));'#010+
   '    AddOSes('#039' '#039',OSes);'#010+
   '    AddCPUs('#039' '#039',CPUs);'#010+
-  '    Add(Format('#039' <filename>%s</filename>'#039',[QuoteXml(FileName +'+
-  ' ','ZipExt)]));'#010+
+  '    Add(Format('#039' <filename>%s</filename>'#039',[QuoteXml(Fil','eName'+
+  ' + ZipExt)]));'#010+
   '    Add(Format('#039' <author>%s</author>'#039',[QuoteXml(Author)]));'#010+
   '    Add(Format('#039' <license>%s</license>'#039',[QuoteXml(License)]));'+
   #010+
   '    if ExternalURL<>'#039#039' then'#010+
   '      Add(Format('#039' <externalurl>%s</externalurl>'#039',[QuoteXml(Ex'+
-  'ternalURL)]));'#010,
+  'ternalU','RL)]));'#010+
   '    Add(Format('#039' <email>%s</email>'#039',[QuoteXMl(Email)]));'#010+
   '    S:=Description;'#010+
   '    If (S<>'#039#039') then'#010+
@@ -2358,20 +2358,20 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   ']));'#010+
   '    If (Dependencies.Count>0) then'#010+
   '      begin'#010+
-  '        Add('#039' <dependencies>'#039,');'#010+
+  '        Add('#039' <depend','encies>'#039');'#010+
   '        for I:=0 to Dependencies.Count-1 do'#010+
   '          begin'#010+
   '            D:=Dependencies[i];'#010+
   '            Add('#039'  <dependency>'#039');'#010+
   '            Add(Format('#039'   <package packagename="%s"/>'#039',[Quote'+
   'XML(D.Value)]));'#010+
-  '            if not D.FVersion.E','mpty then'#010+
+  '            if not D.FV','ersion.Empty then'#010+
   '              Add(Format('#039'   <version major="%d" minor="%d" micro='+
   '"%d" build="%d"/>'#039',[D.FVersion.Major,D.FVersion.Minor,D.FVersion.M'+
   'icro,D.FVersion.Build]));'#010+
   '            AddOSes('#039'   '#039',D.OSes);'#010+
-  '            AddCPUs('#039'   '#039',D.CPUs);'#010+
-  '  ','          Add('#039'  </dependency>'#039');'#010+
+  '            AddCPUs('#039'   '#039',D.C','PUs);'#010+
+  '            Add('#039'  </dependency>'#039');'#010+
   '          end;'#010+
   '        Add('#039' </dependencies>'#039');'#010+
   '      end;'#010+
@@ -2383,8 +2383,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TPackage.LoadUnitConfigFromFile(Const AFileName: String);'#010+
   'var'#010+
   '  L,L2 : TStrings;'#010+
-  '  VOS : TOS;'#010+
-  '  VC','PU : TCPU;'#010+
+  '  VOS : T','OS;'#010+
+  '  VCPU : TCPU;'#010+
   '  i : Integer;'#010+
   'begin'#010+
   '  L:=TStringList.Create;'#010+
@@ -2394,15 +2394,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      begin'#010+
   '        Version:=Values[KeyVersion];'#010+
   '        VCPU:=StringToCPU(Values[KeyCPU]);'#010+
-  '        VOS:=StringToOS(Values[KeyOS]);'#010+
-  ' ','       OSes:=[VOS];'#010+
+  '        VOS:=StringToOS(Values[Ke','yOS]);'#010+
+  '        OSes:=[VOS];'#010+
   '        CPUs:=[VCPU];'#010+
   '        L2:=TStringList.Create;'#010+
   '        L2.CommaText:=Values[KeyDepends];'#010+
   '        for i:=0 to L2.Count-1 do'#010+
   '          Dependencies.Add(L2[i],CPUs,OSes);'#010+
   '        FreeAndNil(L2);'#010+
-  '        NeedLibC:=Upc','ase(Values[KeyNeedLibC])='#039'Y'#039';'#010+
+  '        NeedL','ibC:=Upcase(Values[KeyNeedLibC])='#039'Y'#039';'#010+
   '      end;'#010+
   '  Finally'#010+
   '    L.Free;'#010+
@@ -2416,8 +2416,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  F : TFileStream;'#010+
   '  L : TStringList;'#010+
   '  Deps : String;'#010+
-  '  i : integer;'#010+
-  '  D :',' TDependency;'#010+
+  '  i : intege','r;'#010+
+  '  D : TDependency;'#010+
   'begin'#010+
   '  F:=TFileStream.Create(AFileName,fmCreate);'#010+
   '  L:=TStringList.Create;'#010+
@@ -2426,15 +2426,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      begin'#010+
   '        Values[KeyName]:=Name;'#010+
   '        Values[KeyVersion]:=Version;'#010+
-  '        Values[KeyCPU]:=CPUToString(ACPU);'#010+
-  '       ',' Values[KeyOS]:=OSToString(AOS);'#010+
+  '        Values[KeyCPU]:=CPUToString(ACPU);',#010+
+  '        Values[KeyOS]:=OSToString(AOS);'#010+
   '        Deps:='#039#039';'#010+
   '        for i:=0 to Dependencies.Count-1 do'#010+
   '          begin'#010+
   '            D:=Dependencies[i];'#010+
   '            if (ACPU in D.CPUs) and (AOS in D.OSes) then'#010+
   '              begin'#010+
-  '                if D','eps='#039#039' then'#010+
+  '            ','    if Deps='#039#039' then'#010+
   '                  Deps:=D.Value'#010+
   '                else'#010+
   '                  Deps:=Deps+'#039','#039'+D.Value;'#010+
@@ -2442,8 +2442,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '          end;'#010+
   '        Values[KeyDepends]:=Deps;'#010+
   '        if NeedLibC then'#010+
-  '          Values[KeyNeedLibC]:='#039'Y'#039#010+
-  '     ','   else'#010+
+  '          Values[KeyNeedLibC]:='#039,'Y'#039#010+
+  '        else'#010+
   '          Values[KeyNeedLibC]:='#039'N'#039';'#010+
   '      end;'#010+
   '    L.SaveToStream(F);'#010+
@@ -2457,7 +2457,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   '{*********************************************************************'+
   '*******'#010+
-  '                              TPack','ages'#010+
+  '                           ','   TPackages'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
@@ -2466,7 +2466,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result:=TPackage(ItemByName(AName))'#010+
   'end;'#010+
   #010+
-  'function TPackages.GetPackageItem(AIndex : ','Integer): TPackage;'#010+
+  'function TPackages.GetPackageItem(A','Index : Integer): TPackage;'#010+
   'begin'#010+
   '  Result:=TPackage(Items[AIndex]);'#010+
   'end;'#010+
@@ -2479,7 +2479,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'function TPackages.AddPackage(const AName: String): TPac','kage;'#010+
+  'function TPackages.AddPackage(const AName: Strin','g): TPackage;'#010+
   'begin'#010+
   '  Result:=Add as TPackage;'#010+
   '  Result.Name:=AName;'#010+
@@ -2489,7 +2489,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{*********************************************************************'+
   '*******'#010+
   '                             TCustomDefaults'#010+
-  '*************************************************','*******************'+
+  '*****************************************','***************************'+
   '********}'#010+
   #010+
   'procedure TCustomDefaults.SetCPU(const AValue: TCPU);'#010+
@@ -2502,7 +2502,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function TCustomDefaults.GetBaseInstallDir: String;'#010+
   'begin'#010+
   '  If (FBaseInstallDir<>'#039#039') then'#010+
-  '    Result:=FBaseInst','allDir'#010+
+  '    Result:=F','BaseInstallDir'#010+
   '  else'#010+
   '    if UnixPaths then'#010+
   '      Result:=Prefix +'#039'lib'#039' + PathDelim + '#039'fpc'#039' + Path'+
@@ -2515,7 +2515,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function TCustomDefaults.GetBinInstallDir: String;'#010+
   'begin'#010+
   '  If (FBinInstallDir<>'#039#039') then'#010+
-  '    Result:=FBinIn','stallDir'#010+
+  '    Result',':=FBinInstallDir'#010+
   '  else'#010+
   '    If UnixPaths then'#010+
   '      Result:=BaseInstallDir+'#039'bin'#039#010+
@@ -2528,8 +2528,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  If (FCompiler<>'#039#039') then'#010+
   '    Result:=FCompiler'#010+
-  '  else'#010+
-  '    Resu','lt:='#039'fpc'#039';'#010+
+  '  else'#010,
+  '    Result:='#039'fpc'#039';'#010+
   'end;'#010+
   #010+
   #010+
@@ -2541,7 +2541,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    If UnixPaths then'#010+
   '      Result:=Prefix+'#039'share'#039'+PathDelim+'#039'doc'#039#010+
   '    else'#010+
-  '      Result:=BaseInstal','lDir+'#039'docs'#039';'#010+
+  '      Result:=Ba','seInstallDir+'#039'docs'#039';'#010+
   'end;'#010+
   #010+
   #010+
@@ -2551,8 +2551,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Result:=FExamplesInstallDir'#010+
   '  else'#010+
   '    If UnixPaths then'#010+
-  '      Result:=Prefix+'#039'share'#039'+PathDelim+'#039'docs'#039'+PathDeli'+
-  'm+'#039'exam','ples'#039#010+
+  '      Result:=Prefix+'#039'share'#039'+PathDelim+'#039'docs'#039'+PathDel',
+  'im+'#039'examples'#039#010+
   '    else'#010+
   '      Result:=BaseInstallDir+'#039'examples'#039';'#010+
   'end;'#010+
@@ -2564,7 +2564,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Result:=FUnitInstallDir'#010+
   '  else'#010+
   '    If UnixPaths then'#010+
-  '      Result:=BaseInstallDir+'#039,'units'#039'+PathDelim+Target'#010+
+  '      Result:=BaseInst','allDir+'#039'units'#039'+PathDelim+Target'#010+
   '    else'#010+
   '      Result:=BaseInstallDir+'#039'units'#039'+PathDelim+Target;'#010+
   'end;'#010+
@@ -2576,8 +2576,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'function TCustomDefaults.GetGlobalUnitDir: String;'#010+
-  'begin'#010,
+  'function TCustomDefaults.GetGlobalUnitDir: String',';'#010+
+  'begin'#010+
   '  If (FGlobalUnitDir<>'#039#039') then'#010+
   '    Result:=FGlobalUnitDir'#010+
   '  else'#010+
@@ -2588,7 +2588,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TCustomDefaults.SetLocalUnitDir(const AValue: String);'#010+
   'begin'#010+
   '  // Use ExpandFileName to support ~/ expansion'#010+
-  '  if AValue<>'#039#039' then'#010,
+  '  if AValue<>',#039#039' then'#010+
   '    FLocalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue)'+
   ')'#010+
   '  else'#010+
@@ -2599,7 +2599,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TCustomDefaults.SetGlobalUnitDir(const AValue: String);'#010+
   'begin'#010+
   '  // Use ExpandFileName to support ~/ expansion'#010+
-  '  if AValue','<>'#039#039' then'#010+
+  '  i','f AValue<>'#039#039' then'#010+
   '    FGlobalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue'+
   '))'#010+
   '  else'#010+
@@ -2609,7 +2609,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TCustomDefaults.SetBaseInstallDir(const AValue: String);'#010+
   'begin'#010+
-  '  // Use ExpandFileName to support ~/ expansio','n'#010+
+  '  // Use ExpandFileName to support ~/ ','expansion'#010+
   '  if AValue<>'#039#039' then'#010+
   '    FBaseInstallDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValu'+
   'e))'#010+
@@ -2621,7 +2621,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TCustomDefaults.SetOS(con','st AValue: TOS);'#010+
+  'procedure TCustomDefaults.S','etOS(const AValue: TOS);'#010+
   'begin'#010+
   '  FOS:=AValue;'#010+
   '  Recalctarget;'#010+
@@ -2633,10 +2633,10 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if FPrefix=AValue then exit;'#010+
   '  FPrefix:=IncludeTrailingPathDelimiter(AValue);'#010+
   '  BaseInstallDir:='#039#039';'#010+
-  'end;'#010+
+  'end;',#010+
   #010+
   #010+
-  'proce','dure TCustomDefaults.SetTarget(const AValue: String);'#010+
+  'procedure TCustomDefaults.SetTarget(const AValue: String);'#010+
   'Var'#010+
   '  P : Integer;'#010+
   'begin'#010+
@@ -2645,7 +2645,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      P:=Pos('#039'-'#039',AValue);'#010+
   '      If (P<>0) then'#010+
   '        begin'#010+
-  '          FOS:=StringToOS(System.Copy(Avalue,P+1,Length(AValue)-','P));'+
+  '          FOS:=StringToOS(System.Copy(Avalue,P+1,Length(','AValue)-P));'+
   #010+
   '          FCPU:=StringToCPU(System.Copy(Avalue,1,P-1));'#010+
   '        end'#010+
@@ -2658,7 +2658,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TCustomDefaults.RecalcTarget;'#010+
   'begin'#010+
-  '  Ftarget:=CPUToString(FCPU)+'#039'-'#039'+OStoS','tring(FOS);'#010+
+  '  Ftarget:=CPUToString(FCPU)+'#039,'-'#039'+OStoString(FOS);'#010+
   'end;'#010+
   #010+
   #010+
@@ -2676,8 +2676,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  UnixPaths:=False;'#010+
   '{$endif}'#010+
   '  FNoFPCCfg:=False;'#010+
-  '  FCPU:=cpuNone;'#010+
-  '  F','OS:=osNone;'#010+
+  '  FCPU:=cpuN','one;'#010+
+  '  FOS:=osNone;'#010+
   'end;'#010+
   #010+
   #010+
@@ -2690,7 +2690,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    begin'#010+
   '    // Environment variable.'#010+
   '    FN:=GetEnvironmentVariable('#039'FPMAKECFG'#039');'#010+
-  '    If (FN<>'#039#039,') then'#010+
+  '    If',' (FN<>'#039#039') then'#010+
   '      If not FileExists(FN) then'#010+
   '        FN:='#039#039';'#010+
   '    // User config file fpmake.cfg'#010+
@@ -2700,7 +2700,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      If Not FileExists(FN) then'#010+
   '        FN:='#039#039';'#010+
   '      end;'#010+
-  '    // Global config f','ile fpmake.cfg'#010+
+  '    // Global ','config file fpmake.cfg'#010+
   '    If (FN='#039#039') then'#010+
   '      begin'#010+
   '      FN:=GetAppConfigFile(True);'#010+
@@ -2713,7 +2713,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TCustomDefaul','ts.CompilerDefaults;'#010+
+  'procedure TCust','omDefaults.CompilerDefaults;'#010+
   '{$ifdef HAS_UNIT_PROCESS}'#010+
   'var'#010+
   '  infoSL : TStringList;'#010+
@@ -2722,13 +2722,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if (CPU=cpuNone) or (OS=osNone) or (FCompilerVersion='#039#039') then'#010+
   '    begin'#010+
   '{$ifdef HAS_UNIT_PROCESS}'#010+
-  '      // Detect compiler version/','target from -i option'#010+
+  '      // Detect compiler ','version/target from -i option'#010+
   '      infosl:=TStringList.Create;'#010+
   '      infosl.Delimiter:='#039' '#039';'#010+
   '      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'#039'-iVTPTO'#039+
   ');'#010+
   '      if infosl.Count<>3 then'#010+
-  '        Raise EInstallerError.Create(SErrInvalidFPCInfo);',#010+
+  '        Raise EInstallerError.Create(SErrInvalidF','PCInfo);'#010+
   '      if FCompilerVersion='#039#039' then'#010+
   '        FCompilerVersion:=infosl[0];'#010+
   '      if CPU=cpuNone then'#010+
@@ -2736,13 +2736,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      if OS=osNone then'#010+
   '        OS:=StringToOS(infosl[2]);'#010+
   '{$else HAS_UNIT_PROCESS}'#010+
-  '      // Defaults tak','en from compiler used to build fpmake'#010+
+  '      // Defa','ults taken from compiler used to build fpmake'#010+
   '      if CPU=cpuNone then'#010+
   '        CPU:=StringToCPU({$I %FPCTARGETCPU%});'#010+
   '      if OS=osNone then'#010+
   '        OS:=StringToOS({$I %FPCTARGETOS%});'#010+
   '      if FCompilerVersion='#039#039' then'#010+
-  '        FCompilerVersion:={','$I %FPCVERSION%};'#010+
+  '        FCompilerVe','rsion:={$I %FPCVERSION%};'#010+
   '{$endif HAS_UNIT_PROCESS}'#010+
   '    end;'#010+
   'end;'#010+
@@ -2755,7 +2755,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  F:=TFileStream.Create(AFileName,fmOpenRead);'#010+
   '  Try'#010+
   '    LoadFromStream(F);'#010+
-  '  Finally'#010,
+  '  ','Finally'#010+
   '    F.Free;'#010+
   '  end;'#010+
   'end;'#010+
@@ -2774,7 +2774,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TCus','tomDefaults.SaveToStream(S : TStream);'#010+
+  'proced','ure TCustomDefaults.SaveToStream(S : TStream);'#010+
   'Var'#010+
   '  L : TStringList;'#010+
   'begin'#010+
@@ -2785,25 +2785,25 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      Values[KeyArchive]:=FArchive;'#010+
   '      Values[KeyCompiler]:=FCompiler;'#010+
   '      Values[KeyCopy]:=FCopy;'#010+
-  '      Value','s[KeyMkDir]:=FMkDir;'#010+
+  '   ','   Values[KeyMkDir]:=FMkDir;'#010+
   '      Values[KeyMove]:=FMove;'#010+
   '      Values[KeyOptions]:=FOptions;'#010+
   '      Values[KeyCPU]:=CPUToString(FCPU);'#010+
   '      Values[KeyOS]:=OSToString(FOS);'#010+
   '      Values[KeyMode]:=ModeToString(FMode);'#010+
-  '      Values[KeyLocalUnitDir]:','=FLocalUnitDir;'#010+
+  '      Values[KeyLocalU','nitDir]:=FLocalUnitDir;'#010+
   '      Values[KeyGlobalUnitDir]:=FGlobalUnitDir;'#010+
   '      Values[KeyPrefix]:=FPrefix;'#010+
   '      Values[KeyBaseInstallDir]:=FBaseInstallDir;'#010+
   '      Values[KeyUnitInstallDir]:=FUnitInstallDir;'#010+
-  '      Values[KeyBinInstallDir]:=FBinInstal','lDir;'#010+
+  '      Values[KeyBinInstallDir]:=FB','inInstallDir;'#010+
   '      Values[KeyDocInstallDir]:=FDocInstallDir;'#010+
   '      Values[KeyExamplesInstallDir]:=FExamplesInstallDir;'#010+
   '      Values[KeyRemove]:=FRemove;'#010+
   '      Values[KeyTarget]:=FTarget;'#010+
   '      if FNoFPCCfg then'#010+
-  '        Values[KeyNoFPCCfg]:='#039'Y'#039';'#010+
-  '  ','    end;'#010+
+  '        Values[KeyNoFPCCfg]:','='#039'Y'#039';'#010+
+  '      end;'#010+
   '    L.SaveToStream(S);'#010+
   '  Finally'#010+
   '    L.Free;'#010+
@@ -2819,7 +2819,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  L:=TStringList.Create;'#010+
   '  Try'#010+
-  '    L.LoadFromStream(S);',#010+
+  '    L.LoadFromSt','ream(S);'#010+
   '    // Fix lines.'#010+
   '    For I:=L.Count-1 downto 0 do'#010+
   '      begin'#010+
@@ -2829,7 +2829,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      If (P=0) or ((PC<>0) and (PC<P)) then'#010+
   '        L.Delete(I)'#010+
   '      else'#010+
-  '        L[i]:=Tr','im(System.Copy(Line,1,P-1)+'#039'='#039'+Trim(System.C'+
+  '        ','L[i]:=Trim(System.Copy(Line,1,P-1)+'#039'='#039'+Trim(System.C'+
   'opy(Line,P+1,Length(Line)-P)));'#010+
   '      end;'#010+
   '    With L do'#010+
@@ -2837,7 +2837,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      FArchive:=Values[KeyArchive];'#010+
   '      FCompiler:=Values[KeyCompiler];'#010+
   '      FCopy:=Values[KeyCopy];'#010+
-  '      FMkDir:=Values[Ke','yMkDir];'#010+
+  '      FMkDir:=V','alues[KeyMkDir];'#010+
   '      FMove:=Values[KeyMove];'#010+
   '      FRemove:=Values[KeyRemove];'#010+
   '      FOptions:=Values[KeyOptions];'#010+
@@ -2845,19 +2845,19 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      If (Line<>'#039#039') then'#010+
   '        FCPU:=StringToCPU(Line);'#010+
   '      Line:=Values[KeyOS];'#010+
-  '      If (Line<>'#039#039,') then'#010+
+  '      If (','Line<>'#039#039') then'#010+
   '        FOS:=StringToOS(Line);'#010+
   '      Line:=Values[KeyMode];'#010+
   '      If (Line<>'#039#039') then'#010+
   '        FMode:=StringToMode(Line);'#010+
   '      FTarget:=Values[KeyTarget];'#010+
   '      FLocalUnitDir:=Values[KeyLocalUnitDir];'#010+
-  '      FGlobalUnitDir:=Values[KeyG','lobalUnitDir];'#010+
+  '      FGlobalUnitDir:=Val','ues[KeyGlobalUnitDir];'#010+
   '      FPrefix:=Values[KeyPrefix];'#010+
   '      FBaseInstallDir:=Values[KeyBaseInstallDir];'#010+
   '      FUnitInstallDir:=Values[KeyUnitInstallDir];'#010+
   '      FBinInstallDir:=Values[KeyBinInstallDir];'#010+
-  '      FDocInstallDir:=Values[KeyDocInstallD','ir];'#010+
+  '      FDocInstallDir:=Values[KeyDoc','InstallDir];'#010+
   '      FExamplesInstallDir:=Values[KeyExamplesInstallDir];'#010+
   '      FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='#039'Y'#039');'#010+
   '      end;'#010+
@@ -2867,8 +2867,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{*********************************************************************'+
-  '*******'#010,
+  '{*********************************************************************',
+  '*******'#010+
   '                             TFPCDefaults'#010+
   '**********************************************************************'+
   '******}'#010+
@@ -2879,15 +2879,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  inherited CompilerDefaults;'#010+
   #010+
-  '  // Use the same algo','rithm as the compiler, see options.pas'#010+
+  '  // Use the s','ame algorithm as the compiler, see options.pas'#010+
   '{$ifdef Unix}'#010+
   '  BD:=FixPath(GetEnvironmentVariable('#039'FPCDIR'#039'));'#010+
   '  if BD='#039#039' then'#010+
   '    begin'#010+
   '      BD:='#039'/usr/local/lib/fpc/'#039'+FCompilerVersion;'#010+
   '      if not DirectoryExists(BD) and'#010+
-  '         DirectoryExists(',#039'/usr/lib/fpc/'#039'+FCompilerVersion) the'+
-  'n'#010+
+  '         Director','yExists('#039'/usr/lib/fpc/'#039'+FCompilerVersion) t'+
+  'hen'#010+
   '        BD:='#039'/usr/lib/fpc/'#039'+FCompilerVersion;'#010+
   '    end;'#010+
   '{$else unix}'#010+
@@ -2895,7 +2895,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if BD='#039#039' then'#010+
   '    begin'#010+
   '      BD:=ExtractFilePath(FCompiler)+'#039'..'#039';'#010+
-  '      if not(Di','rectoryExists(BD+'#039'/units'#039')) and'#010+
+  '      i','f not(DirectoryExists(BD+'#039'/units'#039')) and'#010+
   '         not(DirectoryExists(BD+'#039'/rtl'#039')) then'#010+
   '        BD:=FBaseInstallDir+'#039'..'#039';'#010+
   '    end;'#010+
@@ -2903,7 +2903,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   '  // Where to install by default'#010+
   '  if (FBaseInstallDir='#039#039') and (FPrefix='#039#039') then'#010+
-  '    BaseInstallDir:=BD;',#010+
+  '    BaseInstall','Dir:=BD;'#010+
   #010+
   '  // Where to find the units by default'#010+
   '  if (FGlobalUnitDir='#039#039') then'#010+
@@ -2913,15 +2913,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   '{*********************************************************************'+
-  '*******'#010+
-  '     ','                       TCustomInstaller'#010+
+  '*****','**'#010+
+  '                            TCustomInstaller'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
   'constructor TCustomInstaller.Create(AOwner: TComponent);'#010+
   'begin'#010+
   '  Dictionary:=DictionaryClass.Create(Nil);'#010+
-  '  AnalyzeOption','s;'#010+
+  '  Analy','zeOptions;'#010+
   '  CreatePackages;'#010+
   'end;'#010+
   #010+
@@ -2937,7 +2937,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String'+
   ');'#010+
   'begin'#010+
-  '  If Level i','n FLogLevels then'#010+
+  '  If',' Level in FLogLevels then'#010+
   '    begin'#010+
   '      if Level in [vlError,vlWarning] then'#010+
   '        Writeln(StdErr,Msg)'#010+
@@ -2949,7 +2949,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TCustomInstaller.CreatePackages;'#010+
   'begin'#010+
-  '  FPAckages:=TPackages.Create(TPacka','ge);'#010+
+  '  FPAckages:=TPackages.Creat','e(TPackage);'#010+
   'end;'#010+
   #010+
   #010+
@@ -2962,7 +2962,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TCustomIns','taller.Error(const Msg: String);'#010+
+  'procedure TC','ustomInstaller.Error(const Msg: String);'#010+
   'begin'#010+
   '  Raise EInstallerError.Create(Msg);'#010+
   'end;'#010+
@@ -2975,7 +2975,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TCustomInstalle','r.AddPackage(const AName: String) : TPackage'+
+  'Function TCustom','Installer.AddPackage(const AName: String) : TPackage'+
   ';'#010+
   'begin'#010+
   '  result:=FPackages.AddPackage(AName);'#010+
@@ -2987,7 +2987,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Function CheckOption(Index : Integer;const Short,Long : String): Boo'+
   'lean;'#010+
   '  var'#010+
-  '    O : String;'#010,
+  '    O : ','String;'#010+
   '  begin'#010+
   '    O:=Paramstr(Index);'#010+
   '    Result:=(O='#039'-'#039'+short) or (O='#039'--'#039'+long) or (copy(O,'+
@@ -2998,8 +2998,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'olean;'#010+
   '  var'#010+
   '    O : String;'#010+
-  '  begin'#010+
-  '   ',' O:=Paramstr(Index);'#010+
+  '  b','egin'#010+
+  '    O:=Paramstr(Index);'#010+
   '    Result:=(O='#039'-'#039'+short) or (O=long);'#010+
   '  end;'#010+
   #010+
@@ -3009,8 +3009,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  begin'#010+
   '    if (Length(ParamStr(Index))>1) and (Paramstr(Index)[2]<>'#039'-'#039+
   ') then'#010+
-  '      begin'#010+
-  '      I','f Index<ParamCount then'#010+
+  '      begin',#010+
+  '      If Index<ParamCount then'#010+
   '        begin'#010+
   '        Inc(Index);'#010+
   '        Result:=Paramstr(Index);'#010+
@@ -3019,8 +3019,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        Error(SErrNeedArgument,[Index,ParamStr(Index)]);'#010+
   '      end'#010+
   '    else If length(ParamStr(Index))>2 then'#010+
-  '      begin'#010+
-  '    ','  P:=Pos('#039'='#039',Paramstr(Index));'#010+
+  '      be','gin'#010+
+  '      P:=Pos('#039'='#039',Paramstr(Index));'#010+
   '      If (P=0) then'#010+
   '        Error(SErrNeedArgument,[Index,ParamStr(Index)])'#010+
   '      else'#010+
@@ -3032,7 +3032,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  end;'#010+
   #010+
   'Var'#010+
-  '  I : Integ','er;'#010+
+  '  I',' : Integer;'#010+
   '  DefaultsFileName : string;'#010+
   'begin'#010+
   '  I:=0;'#010+
@@ -3043,43 +3043,43 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Inc(I);'#010+
   '    if CheckOption(I,'#039'v'#039','#039'verbose'#039') then'#010+
   '      FLogLevels:=AllMessages'#010+
-  '    else if CheckOption','(I,'#039'd'#039','#039'debug'#039') then'#010+
+  '    else if Che','ckOption(I,'#039'd'#039','#039'debug'#039') then'#010+
   '      FLogLevels:=AllMessages+[vlDebug]'#010+
   '    else if CheckCommand(I,'#039'm'#039','#039'compile'#039') then'#010+
   '      FRunMode:=rmCompile'#010+
   '    else if CheckCommand(I,'#039'b'#039','#039'build'#039') then'#010+
   '      FRunMode:=rmBuild'#010+
-  '    else if CheckCommand(I,'#039'i'#039','#039'insta','ll'#039') then'#010+
+  '    else if CheckCommand(I,'#039'i',#039','#039'install'#039') then'#010+
   '      FRunMode:=rmInstall'#010+
   '    else if CheckCommand(I,'#039'c'#039','#039'clean'#039') then'#010+
   '      FRunMode:=rmClean'#010+
   '    else if CheckCommand(I,'#039'a'#039','#039'archive'#039') then'#010+
   '      FRunMode:=rmarchive'#010+
   '    else if CheckCommand(I,'#039'M'#039','#039'manifest'#039') then'#010+
-  '      FRunMode',':=rmManifest'#010+
+  '      ','FRunMode:=rmManifest'#010+
   '    else if CheckOption(I,'#039'h'#039','#039'help'#039') then'#010+
   '      Usage('#039#039',[])'#010+
   '    else if Checkoption(I,'#039'C'#039','#039'cpu'#039') then'#010+
   '      Defaults.CPU:=StringToCPU(OptionArg(I))'#010+
   '    else if Checkoption(I,'#039'O'#039','#039'os'#039') then'#010+
-  '      Defaults.OS:=StringToOS(Option','Arg(I))'#010+
+  '      Defaults.OS:=StringToO','S(OptionArg(I))'#010+
   '    else if Checkoption(I,'#039't'#039','#039'target'#039') then'#010+
   '      Defaults.Target:=OptionArg(I)'#010+
   '    else if CheckOption(I,'#039'l'#039','#039'list-commands'#039') then'#010+
   '      FListMode:=True'#010+
   '    else if Checkoption(I,'#039'P'#039','#039'prefix'#039') then'#010+
-  '      Defaults.Prefix:=OptionArg','(I)'#010+
+  '      Defaults.Prefix:=O','ptionArg(I)'#010+
   '    else if Checkoption(I,'#039'n'#039','#039'nofpccfg'#039') then'#010+
   '      Defaults.NoFPCCfg:=true'#010+
   '    else if CheckOption(I,'#039'B'#039','#039'baseinstalldir'#039') then'#010+
   '      Defaults.BaseInstallDir:=OptionArg(I)'#010+
   '    else if CheckOption(I,'#039'UL'#039','#039'localunitdir'#039') then'#010+
-  '      Defa','ults.LocalUnitDir:=OptionArg(I)'#010+
+  '  ','    Defaults.LocalUnitDir:=OptionArg(I)'#010+
   '    else if CheckOption(I,'#039'UG'#039','#039'globalunitdir'#039') then'#010+
   '      Defaults.GlobalUnitDir:=OptionArg(I)'#010+
   '    else if CheckOption(I,'#039'r'#039','#039'compiler'#039') then'#010+
   '      Defaults.Compiler:=OptionArg(I)'#010+
-  '    else if CheckOption(I,'#039,'f'#039','#039'config'#039') then'#010+
+  '    else if CheckOp','tion(I,'#039'f'#039','#039'config'#039') then'#010+
   '      DefaultsFileName:=OptionArg(I)'#010+
   '    else'#010+
   '      begin'#010+
@@ -3088,7 +3088,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    end;'#010+
   '  If DefaultsFileName<>'#039#039' then'#010+
   '    Defaults.LocalInit(DefaultsFileName);'#010+
-  '  Defaults.CompilerDe','faults;'#010+
+  '  Defaults.Co','mpilerDefaults;'#010+
   'end;'#010+
   #010+
   #010+
@@ -3100,7 +3100,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Log(vlInfo,Format('#039' %-12s %s'#039',[LC,MSG]));'#010+
   '  end;'#010+
   #010+
-  '  Procedure LogOption(const C,LC,Msg : Strin','g);'#010+
+  '  Procedure LogOption(const C,LC,Msg',' : String);'#010+
   '  begin'#010+
   '    Log(vlInfo,Format('#039' -%s --%-16s %s'#039',[C,LC,MSG]));'#010+
   '  end;'#010+
@@ -3112,35 +3112,35 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  end;'#010+
   #010+
   'begin'#010+
-  '  // Force the Usage to be d','isplayed'#010+
+  '  // Force the Usage',' to be displayed'#010+
   '  Include(FLogLevels,vlInfo);'#010+
   '  If (FMT<>'#039#039') then'#010+
   '    Log(vlInfo,Format(Fmt,Args));'#010+
   '  Log(vlInfo,Format(SHelpUsage,[Paramstr(0)]));'#010+
   '  Log(vlInfo,SHelpCommand);'#010+
   '  LogCmd('#039'compile'#039',SHelpCompile);'#010+
-  '  LogCmd('#039'build'#039',SHelpBuild);'#010+
-  '  LogCm','d('#039'install'#039',SHelpInstall);'#010+
+  '  LogCmd('#039'build'#039',SHelpBuild);',#010+
+  '  LogCmd('#039'install'#039',SHelpInstall);'#010+
   '  LogCmd('#039'clean'#039',SHelpClean);'#010+
   '  LogCmd('#039'archive'#039',SHelpArchive);'#010+
   '  LogCmd('#039'manifest'#039',SHelpManifest);'#010+
   '  Log(vlInfo,SHelpCmdOptions);'#010+
   '  LogOption('#039'h'#039','#039'help'#039',SHelpHelp);'#010+
-  '  LogOption('#039'l'#039','#039'list-commands'#039',SHelpList);'#010+
-  '  L','ogOption('#039'n'#039','#039'nofpccfg'#039',SHelpNoFPCCfg);'#010+
+  '  LogOption('#039'l'#039','#039'list-commands'#039',SHelpLi','st);'#010+
+  '  LogOption('#039'n'#039','#039'nofpccfg'#039',SHelpNoFPCCfg);'#010+
   '  LogOption('#039'v'#039','#039'verbose'#039',SHelpVerbose);'#010+
   '  LogArgOption('#039'C'#039','#039'cpu'#039',SHelpCPU);'#010+
   '  LogArgOption('#039'O'#039','#039'os'#039',SHelpOS);'#010+
   '  LogArgOption('#039't'#039','#039'target'#039',SHelpTarget);'#010+
-  '  LogArgOption('#039'P'#039','#039'prefix'#039',SHelpPrefix);'#010+
-  '  Log','ArgOption('#039'B'#039','#039'baseinstalldir'#039',SHelpBaseInstall'+
-  'dir);'#010+
+  '  LogArgOption('#039'P'#039','#039'prefix'#039',SHelpPrefix',');'#010+
+  '  LogArgOption('#039'B'#039','#039'baseinstalldir'#039',SHelpBaseInstalldi'+
+  'r);'#010+
   '  LogArgOption('#039'UL'#039','#039'localunitdir'#039',SHelpLocalUnitdir);'+
   #010+
   '  LogArgOption('#039'UG'#039','#039'globalunitdir'#039',SHelpGlobalUnitdir'+
   ');'#010+
   '  LogArgOption('#039'r'#039','#039'compiler'#039',SHelpCompiler);'#010+
-  '  LogArgOption('#039'f'#039','#039'config'#039',S','HelpConfig);'#010+
+  '  LogArgOption('#039'f'#039','#039'c','onfig'#039',SHelpConfig);'#010+
   '  Log(vlInfo,'#039#039');'#010+
   '  If (FMT<>'#039#039') then'#010+
   '    halt(1)'#010+
@@ -3156,7 +3156,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TCus','tomInstaller.Clean;'#010+
+  'proced','ure TCustomInstaller.Clean;'#010+
   'begin'#010+
   '  BuildEngine.Clean(FPackages);'#010+
   'end;'#010+
@@ -3170,7 +3170,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TCustomInstaller.Archive;'#010+
   'begin'#010+
-  '  // Force generation of manifest.xml, this is req','uired for the repo'+
+  '  // Force generation of manifest.xml, thi','s is required for the repo'+
   'sitory'#010+
   '  BuildEngine.Manifest(FPackages);'#010+
   '  BuildEngine.Archive(FPackages);'#010+
@@ -3184,8 +3184,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   'procedure TCustomInstaller.CheckPackages;'#010+
-  'begin'#010+
-  '  If (','FPackages.Count=0) then'#010+
+  'begi','n'#010+
+  '  If (FPackages.Count=0) then'#010+
   '    Error(SErrNoPackagesDefined);'#010+
   '  // Check for other obvious errors ?'#010+
   'end;'#010+
@@ -3197,8 +3197,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  try'#010+
   '    CheckPackages;'#010+
   '    CreateBuildEngine;'#010+
-  '    Case RunMode of'#010+
-  '      ','rmCompile : Compile(False);'#010+
+  '    Case RunMode o','f'#010+
+  '      rmCompile : Compile(False);'#010+
   '      rmBuild   : Compile(True);'#010+
   '      rmInstall : Install;'#010+
   '      rmArchive : Archive;'#010+
@@ -3208,7 +3208,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  except'#010+
   '    On E : Exception do'#010+
   '      begin'#010+
-  '      Log(vlErro','r,SErrInstaller);'#010+
+  '      Lo','g(vlError,SErrInstaller);'#010+
   '      Log(vlError,E.Message);'#010+
   '      Result:=False;'#010+
   '      end;'#010+
@@ -3219,7 +3219,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{*************************************************************','******'+
+  '{*****************************************************','**************'+
   '*********'#010+
   '                                TFPCInstaller'#010+
   '**********************************************************************'+
@@ -3228,7 +3228,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'constructor TFPCInstaller.Create(AOwner: TComponent);'#010+
   'begin'#010+
   '  if assigned(Defaults) then'#010+
-  '    Error(','SErrAlreadyInitialized);'#010+
+  '  ','  Error(SErrAlreadyInitialized);'#010+
   '  Defaults:=TFPCDefaults.Create;'#010+
   '  inherited Create(AOwner);'#010+
   'end;'#010+
@@ -3237,7 +3237,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{*********************************************************************'+
   '*******'#010+
   '                                 TBasicInstaller'#010+
-  '********************','************************************************'+
+  '************','********************************************************'+
   '********}'#010+
   #010+
   'constructor TBasicInstaller.Create(AOwner: TComponent);'#010+
@@ -3245,7 +3245,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if assigned(Defaults) then'#010+
   '    Error(SErrAlreadyInitialized);'#010+
   '  Defaults:=TBasicDefaults.Create;'#010+
-  '  inherited Create(A','Owner);'#010+
+  '  inherited ','Create(AOwner);'#010+
   'end;'#010+
   #010+
   #010+
@@ -3255,14 +3255,14 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '**********************************************************************'+
   '******}'#010+
   #010+
-  'constructor TBuildEngi','ne.Create(AOwner: TComponent);'#010+
+  'constructor TB','uildEngine.Create(AOwner: TComponent);'#010+
   'begin'#010+
   '  inherited Create(AOwner);'#010+
   '  // Maybe this should be the current directory ?'#010+
   '  // Or have it as a command-line option.'#010+
   '  // Would allow to put all '#039'installers'#039' in one dir and call t'+
   'hem'#010+
-  '  // With --start','-dir=/path/to/sources.'#010+
+  '  // With',' --start-dir=/path/to/sources.'#010+
   '  FStartDir:=includeTrailingPathDelimiter(GetCurrentDir);'#010+
   '  FExternalPackages:=TPackages.Create(TPackage);'#010+
   'end;'#010+
@@ -3272,10 +3272,10 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  FreeAndNil(FExternalPackages);'#010+
   '  inherited Destroy;'#010+
-  'end;'#010+
+  'en','d;'#010+
   #010+
   #010+
-  'pro','cedure TBuildEngine.Error(const Msg: String);'#010+
+  'procedure TBuildEngine.Error(const Msg: String);'#010+
   'begin'#010+
   '  Raise EInstallerError.Create(Msg);'#010+
   'end;'#010+
@@ -3288,7 +3288,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure',' TBuildEngine.ExecuteCommand(const Cmd,Args : String; Ignor'+
+  'p','rocedure TBuildEngine.ExecuteCommand(const Cmd,Args : String; Ignor'+
   'eError : Boolean = False);'#010+
   'Var'#010+
   '  E : Integer;'#010+
@@ -3297,9 +3297,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if ListMode then'#010+
   '    Log(vlCommand,'#039'%s %s'#039',[Cmd,Args])'#010+
   '  else'#010+
-  '    begin'#010+
-  '      /','/ We should check cmd for spaces, and move all after first sp'+
-  'ace to args.'#010+
+  '    begin',#010+
+  '      // We should check cmd for spaces, and move all after first spac'+
+  'e to args.'#010+
   '      E:=ExecuteProcess(cmd,args);'#010+
   '      If (E<>0) and (not IgnoreError) then'#010+
   '        Error(SErrExternalCommandFailed,[Cmd,E]);'#010+
@@ -3307,7 +3307,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TBuildEngine.','SysDirectoryExists(const ADir:string):Boolean;'+
+  'Function TBuil','dEngine.SysDirectoryExists(const ADir:string):Boolean;'+
   #010+
   'begin'#010+
   '  result:=SysUtils.DirectoryExists(ADir);'#010+
@@ -3315,17 +3315,16 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])'#010+
   '  else'#010+
   '    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);'#010+
-  'end;'#010+
+  'e','nd;'#010+
   #010+
   #010+
-  'Fu','nction TBuildEngine.SysFileExists(const AFileName:string):Boolean;'+
-  #010+
+  'Function TBuildEngine.SysFileExists(const AFileName:string):Boolean;'#010+
   'begin'#010+
   '  result:=SysUtils.FileExists(AFileName);'#010+
   '  if result then'#010+
   '    Log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])'#010+
   '  else'#010+
-  '    Log(vlDebug,SDbgFileExists,[AFileName,SDbgN','otFound]);'#010+
+  '    Log(vlDebug,SDbgFileExists,[AFileNa','me,SDbgNotFound]);'#010+
   'end;'#010+
   #010+
   #010+
@@ -3337,7 +3336,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  A : Integer;'#010+
   'begin'#010+
   '  Log(vlInfo,SInfoCopyingFile,[Src,Dest]);'#010+
-  '  FIn:=TFileStream.Create(Src,fmop','enRead);'#010+
+  '  FIn:=TFileStream.Create(','Src,fmopenRead);'#010+
   '  Try'#010+
   '    D:=IncludeTrailingPathDelimiter(Dest);'#010+
   '    If DirectoryExists(D) then'#010+
@@ -3347,7 +3346,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    FOut:=TFileStream.Create(S,fmCreate);'#010+
   '    Try'#010+
   '      Count:=Fout.CopyFrom(FIn,0);'#010+
-  '      If (','Count<>Fin.Size) then'#010+
+  '  ','    If (Count<>Fin.Size) then'#010+
   '        Error(SErrCopyingFile,[Src,S]);'#010+
   '    Finally'#010+
   '      FreeAndNil(Fout);'#010+
@@ -3356,7 +3355,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    If (A=-1) then'#010+
   '      log(vlWarning,SWarnFailedToGetTime,[Src])'#010+
   '    else'#010+
-  '      if FileSetDate(S,A)','<>0 then'#010+
+  '      if FileSetD','ate(S,A)<>0 then'#010+
   '        Log(vlWarning,SWarnFailedToSetTime,[S]);'#010+
   '  finally'#010+
   '    FreeAndNil(Fin);'#010+
@@ -3368,7 +3367,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Var'#010+
   '  S : String;'#010+
   'begin'#010+
-  '  If DirectoryExists(IncludeTrailingPathDelimiter(De','st)) then'#010+
+  '  If DirectoryExists(IncludeTrailingPathDeli','miter(Dest)) then'#010+
   '    S:=IncludeTrailingPathDelimiter(Dest)+ExtractFileName(Src)'#010+
   '  else'#010+
   '    S:=Dest;'#010+
@@ -3378,7 +3377,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        SysCopyFile(Src,S);'#010+
   '        SysDeleteFile(Src);'#010+
   '      Except'#010+
-  '        On E : Exception D','o'#010+
+  '        On E : Exc','eption Do'#010+
   '          Error(SErrMovingFile,[Src,S]);'#010+
   '      end;'#010+
   '    end;'#010+
@@ -3389,7 +3388,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  if not FileExists(AFileName) then'#010+
   '    Log(vlWarning,SWarnFileDoesNotExist,[AFileName])'#010+
-  '  else If N','ot DeleteFile(AFileName) then'#010+
+  '  e','lse If Not DeleteFile(AFileName) then'#010+
   '    Error(SErrDeletingFile,[AFileName]);'#010+
   'end;'#010+
   #010+
@@ -3397,9 +3396,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TBuildEngine.SysArchiveFiles(List: TStrings;Const AFileName:'+
   ' String);'#010+
   'begin'#010+
-  '  If Not (Assigned(OnArchivefiles) or Assigned(ArchiveFilesProc)) then'+
-  #010+
-  '    R','aise EInstallerError.Create(SErrNoArchiveSupport);'#010+
+  '  If Not (Assigned(OnArchivefiles) or Assigned(ArchiveFilesProc)) th','e'+
+  'n'#010+
+  '    Raise EInstallerError.Create(SErrNoArchiveSupport);'#010+
   '  If Assigned(ArchiveFilesProc) then'#010+
   '    ArchiveFilesProc(AFileName,List)'#010+
   '  else'#010+
@@ -3409,7 +3408,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TBuildEngine.LogIndent;'#010+
   'begin'#010+
-  '  FLogPrefix:=FLogPrefix+',#039'  '#039';'#010+
+  '  FLogPrefix:=FLo','gPrefix+'#039'  '#039';'#010+
   'end;'#010+
   #010+
   #010+
@@ -3423,7 +3422,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  If Assigned(FOnLog) then'#010+
   '    begin'#010+
-  '      if Level in [vlInfo,vlDebug] then'#010,
+  '      if Level in [vlInfo,vlDebu','g] then'#010+
   '        FOnLog(Level,FLogPrefix+Msg)'#010+
   '      else'#010+
   '        FOnLog(Level,Msg);'#010+
@@ -3438,7 +3437,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure',' TBuildEngine.EnterDir(ADir: String);'#010+
+  'p','rocedure TBuildEngine.EnterDir(ADir: String);'#010+
   'Var'#010+
   '  D : String;'#010+
   'begin'#010+
@@ -3450,7 +3449,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TBuildEngine.CmdCopyFiles(List: ','TStrings; Const DestDir: S'+
+  'procedure TBuildEngine.CmdCopyFile','s(List: TStrings; Const DestDir: S'+
   'tring);'#010+
   #010+
   'Var'#010+
@@ -3463,7 +3462,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    begin'#010+
   '      Args:=FileListToString(List,'#039#039');'#010+
   '      Args:=Args+'#039' '#039'+DestDir;'#010+
-  '      ExecuteCommand(Default','s.Copy,Args);'#010+
+  '      ExecuteCommand','(Defaults.Copy,Args);'#010+
   '    end'#010+
   '  else'#010+
   '    For I:=0 to List.Count-1 do'#010+
@@ -3474,7 +3473,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TBuildEngine.CmdCreateDir(const DestDir: String);'#010+
   'begin'#010+
   '  If (Defaults.MkDir<>'#039#039') then'#010+
-  '    ExecuteCommand(Defaults.MkDir,DestD','ir)'#010+
+  '    ExecuteCommand(Defaults.MkD','ir,DestDir)'#010+
   '  else'#010+
   '    If not ForceDirectories(DestDir) then'#010+
   '      Error(SErrCreatingDirectory,[DestDir]);'#010+
@@ -3487,7 +3486,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Args : String;'#010+
   '  I : Integer;'#010+
   'begin'#010+
-  '  CmdCreateDir(D','estDir);'#010+
+  '  CmdCre','ateDir(DestDir);'#010+
   '  If (Defaults.Move<>'#039#039') then'#010+
   '    begin'#010+
   '      Args:=FileListToString(List,'#039#039');'#010+
@@ -3496,7 +3495,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    end'#010+
   '  else'#010+
   '    For I:=0 to List.Count-1 do'#010+
-  '      SysMoveFile(List[i],DestDir',');'#010+
+  '      SysMoveFile(List[i]',',DestDir);'#010+
   'end;'#010+
   #010+
   #010+
@@ -3508,8 +3507,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  If (Defaults.Remove<>'#039#039') then'#010+
   '    begin'#010+
   '      Args:=FileListToString(List,'#039#039');'#010+
-  '      ExecuteCommand(Defaults.Remove,Args);'#010+
-  '    end'#010,
+  '      ExecuteCommand(Defaults.Remove,Args);'#010,
+  '    end'#010+
   '  else'#010+
   '    For I:=0 to List.Count-1 do'#010+
   '      SysDeleteFile(List[i]);'#010+
@@ -3522,7 +3521,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  S,C,O : String;'#010+
   'begin'#010+
   '  If (Defaults.Archive='#039#039') then'#010+
-  '    SysArchiveFiles(L','ist,ArchiveFile)'#010+
+  '    SysArchiv','eFiles(List,ArchiveFile)'#010+
   '  else'#010+
   '    begin'#010+
   '      S:=FileListToString(List,'#039#039');'#010+
@@ -3531,8 +3530,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        O:=ArchiveFile+'#039' '#039'+S'#010+
   '      else'#010+
   '        O:=Substitute(O,['#039'ARCHIVE'#039',ArchiveFile,'#039'FILESORDIR'+
-  'S'#039']);'#010+
-  '   ','   ExecuteCommand(C,O);'#010+
+  'S',#039']);'#010+
+  '      ExecuteCommand(C,O);'#010+
   '    end;'#010+
   'end;'#010+
   #010+
@@ -3546,7 +3545,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  DS:=FileAge(Src);'#010+
   '  DD:=FileAge(Dest);'#010+
   '  D1:=FileDateToDateTime(DS);'#010+
-  '  D2:=File','DateToDateTime(DD);'#010+
+  '  ','D2:=FileDateToDateTime(DD);'#010+
   '  Log(vlDebug,SDbgComparingFileTimes,[Src,DateTimeToStr(D1),Dest,DateT'+
   'imeToStr(D2)]);'#010+
   '  Result:=D1>=D2;'#010+
@@ -3554,10 +3553,10 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Log(vlInfo,SInfoSourceNewerDest,[Src,DateTimeToStr(D1),Dest,DateTi'+
   'meToStr(D2)]);'#010+
   'end;'#010+
+  #010,
   #010+
-  #010+
-  'procedu','re TBuildEngine.ExecuteCommands(Commands: TCommands; At: TCom'+
-  'mandAt);'#010+
+  'procedure TBuildEngine.ExecuteCommands(Commands: TCommands; At: TComma'+
+  'ndAt);'#010+
   'Var'#010+
   '  C : TCommand;'#010+
   '  I : Integer;'#010+
@@ -3567,21 +3566,21 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  For I:=0 to Commands.Count-1 do'#010+
   '    begin'#010+
   '      C:=Commands.CommandItems[i];'#010+
-  '      if (C.At=At',') then'#010+
+  '      if ','(C.At=At) then'#010+
   '        begin'#010+
   '          E:=True;'#010+
   '          If (C.SourceFile<>'#039#039') and (C.DestFile<>'#039#039')  then'+
   #010+
   '            E:=FileNewer(C.SourceFile,IncludeTrailingPathDelimiter(Dic'+
   'tionary.GetValue('#039'OUTPUTDIR'#039'))+C.DestFile);'#010+
-  '          If E then'#010+
-  '       ','     begin'#010+
+  '          If E then',#010+
+  '            begin'#010+
   '            If Assigned(C.BeforeCommand) then'#010+
   '              C.BeforeCommand(C);'#010+
   '            O:=Substitute(C.Options,['#039'SOURCE'#039',C.SourceFile,'#039+
   'DEST'#039',C.DestFile]);'#010+
   '            Cmd:=C.Command;'#010+
-  '            If (ExtractFilePath(Cmd)='#039#039') ','then'#010+
+  '            If (ExtractFilePath(C','md)='#039#039') then'#010+
   '              Cmd:=FileSearch(Cmd,GetEnvironmentvariable('#039'PATH'#039+
   '));'#010+
   '            ExecuteCommand(Cmd,O,C.IgnoreResult);'#010+
@@ -3589,8 +3588,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '              C.AfterCommand(C);'#010+
   '            end;'#010+
   '        end;'#010+
-  '    end;'#010+
-  'e','nd;'#010+
+  '  ','  end;'#010+
+  'end;'#010+
   #010+
   #010+
   'Procedure TBuildEngine.LogSearchPath(const ASearchPathName:string;Path'+
@@ -3602,8 +3601,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  S:='#039#039';'#010+
   '  for i:=0 to Path.Count-1 do'#010+
-  '    begin'#010+
-  '      C:','=Path[I];'#010+
+  '    begin'#010,
+  '      C:=Path[I];'#010+
   '      if (ACPU in C.CPUs) and (AOS in C.OSes) then'#010+
   '        begin'#010+
   '          if S<>'#039#039' then'#010+
@@ -3612,7 +3611,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        end;'#010+
   '    end;'#010+
   '  if S<>'#039#039' then'#010+
-  '    Log(vlDebug,SDbgS','earchPath,[ASearchPathName,S]);'#010+
+  '    Log(vlDeb','ug,SDbgSearchPath,[ASearchPathName,S]);'#010+
   'end;'#010+
   #010+
   #010+
@@ -3622,15 +3621,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   '  C : TConditionalString;'#010+
   'begin'#010+
-  '  Result:=false;'#010+
-  '  f','or i:=0 to Path.Count-1 do'#010+
+  '  Result:=fa','lse;'#010+
+  '  for i:=0 to Path.Count-1 do'#010+
   '    begin'#010+
   '      C:=Path[I];'#010+
   '      if (ACPU in C.CPUs) and (AOS in C.OSes) then'#010+
   '        begin'#010+
   '          FoundPath:=IncludeTrailingPathDelimiter(Dictionary.ReplaceSt'+
   'rings(C.Value));'#010+
-  '          if FileExists(FoundPath','+AFileName) then'#010+
+  '          if FileExists(F','oundPath+AFileName) then'#010+
   '            begin'#010+
   '              result:=true;'#010+
   '              exit;'#010+
@@ -3642,7 +3641,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   'Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU'+
-  ';AOS:TOS;DoChangeDir:boo','lean=true);'#010+
+  ';AOS:TOS;DoChang','eDir:boolean=true);'#010+
   #010+
   '  procedure FindMainSource(T:TTarget);'#010+
   '  var'#010+
@@ -3651,21 +3650,21 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    LogSearchPath('#039'package source'#039',APackage.SourcePath,ACPU,AO'+
   'S);'#010+
   '    SD:=Dictionary.ReplaceStrings(T.Directory);'#010+
-  '    SF:=Dictionary.ReplaceStrings(T.Sou','rceFileName);'#010+
+  '    SF:=Dictionary.ReplaceStrin','gs(T.SourceFileName);'#010+
   '    if SD='#039#039' then'#010+
   '      FindFileInPath(APackage.SourcePath,SF,SD,ACPU,AOS);'#010+
   '    if SD<>'#039#039' then'#010+
   '      SD:=IncludeTrailingPathDelimiter(SD);'#010+
   '    T.FTargetSourceFileName:=SD+SF;'#010+
-  '    if FileExists(T.TargetSourceFileName) then'#010+
-  '    ','  Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetS'+
-  'ourceFileName])'#010+
+  '    if FileExists(T.TargetSourceFileName) t','hen'#010+
+  '      Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSou'+
+  'rceFileName])'#010+
   '    else'#010+
   '      begin'#010+
   '        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTa'+
   'rgetString(ACPU,AOS)]);'#010+
-  '        T.FTargetSourceFileName:='#039#039';'#010+
-  '      en','d;'#010+
+  '        T.FTargetSourceFileName:='#039#039';'#010,
+  '      end;'#010+
   '  end;'#010+
   #010+
   '  procedure FindIncludeSources(T:TTarget);'#010+
@@ -3675,7 +3674,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    j : integer;'#010+
   '  begin'#010+
   '    LogSearchPath('#039'target include'#039',T.IncludePath,ACPU,AOS);'#010+
-  '    LogSearchPath('#039'package include'#039',APackage.IncludeP','ath,ACP'+
+  '    LogSearchPath('#039'package include'#039',APackage.','IncludePath,ACP'+
   'U,AOS);'#010+
   '    for j:=0 to T.Dependencies.Count-1 do'#010+
   '      begin'#010+
@@ -3683,32 +3682,32 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        if (D.DependencyType=depInclude) then'#010+
   '          begin'#010+
   '            D.TargetFileName:='#039#039';'#010+
-  '            if (ACPU in D.CPUs) and (AOS in D','.OSes) then'#010+
+  '            if (ACPU in D.CPUs) and (','AOS in D.OSes) then'#010+
   '              begin'#010+
   '                if ExtractFilePath(D.Value)='#039#039' then'#010+
   '                  begin'#010+
   '                    SF:=Dictionary.ReplaceStrings(D.Value);'#010+
   '                    SD:='#039#039';'#010+
-  '                    // first check the targe','t specific path'#010+
+  '                    // first check t','he target specific path'#010+
   '                    if not FindFileInPath(T.IncludePath,SF,SD,ACPU,AOS'+
   ') then'#010+
   '                      FindFileInPath(APackage.IncludePath,SF,SD,ACPU,A'+
   'OS);'#010+
   '                     if SD<>'#039#039' then'#010+
-  '                       SD:=IncludeTr','ailingPathDelimiter(SD);'#010+
+  '                       SD:=I','ncludeTrailingPathDelimiter(SD);'#010+
   '                     D.TargetFileName:=SD+SF;'#010+
   '                  end'#010+
   '                else'#010+
   '                  D.TargetFileName:=D.Value;'#010+
   '                if FileExists(D.TargetFileName) then'#010+
-  '                  Log(vlDebu','g,SDbgResolvedIncludeFile,[D.Value,D.Tar'+
+  '                  Lo','g(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.Tar'+
   'getFileName])'#010+
   '                else'#010+
   '                  begin'#010+
   '                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value,Ma'+
   'keTargetString(ACPU,AOS)]);'#010+
-  '                    D.TargetFileName:='#039#039';'#010+
-  ' ','                 end;'#010+
+  '                    D.TargetFileNam','e:='#039#039';'#010+
+  '                  end;'#010+
   '              end;'#010+
   '          end;'#010+
   '      end;'#010+
@@ -3720,20 +3719,20 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  begin'#010+
   '    LogSearchPath('#039'package example'#039',APackage.ExamplePath,ACPU,'+
   'AOS);'#010+
-  '    SD:=Dictionary.R','eplaceStrings(T.Directory);'#010+
+  '    SD:=Dict','ionary.ReplaceStrings(T.Directory);'#010+
   '    SF:=Dictionary.ReplaceStrings(T.SourceFileName);'#010+
   '    if SD='#039#039' then'#010+
   '      FindFileInPath(APackage.ExamplePath,SF,SD,ACPU,AOS);'#010+
   '    if SD<>'#039#039' then'#010+
   '      SD:=IncludeTrailingPathDelimiter(SD);'#010+
-  '    T.FTargetSource','FileName:=SD+SF;'#010+
+  '    T.FTarg','etSourceFileName:=SD+SF;'#010+
   '    if FileExists(T.TargetSourceFileName) then'#010+
   '      Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSou'+
   'rceFileName])'#010+
   '    else'#010+
   '      begin'#010+
-  '        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTa'+
-  'r','getString(ACPU,AOS)]);'#010+
+  '        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName',',Make'+
+  'TargetString(ACPU,AOS)]);'#010+
   '        T.FTargetSourceFileName:='#039#039';'#010+
   '      end;'#010+
   '  end;'#010+
@@ -3745,13 +3744,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if not((ACPU in APackage.CPUs) and (AOS in APackage.OSes)) then'#010+
   '    exit;'#010+
   '  try'#010+
-  '    if DoChangeDir and (APackage.Direct','ory<>'#039#039') then'#010+
+  '    if DoChangeDir and (APackag','e.Directory<>'#039#039') then'#010+
   '      EnterDir(APackage.Directory);'#010+
   '    Dictionary.AddVariable('#039'CPU'#039',CPUToString(ACPU));'#010+
   '    Dictionary.AddVariable('#039'OS'#039',OSToString(AOS));'#010+
   '    For I:=0 to APackage.Targets.Count-1 do'#010+
   '      begin'#010+
-  '        T:=APackage.FTargets.Ta','rgetItems[I];'#010+
+  '        T:=APackage.FTa','rgets.TargetItems[I];'#010+
   '        if (ACPU in T.CPUs) and (AOS in T.OSes) then'#010+
   '          begin'#010+
   '            // Debug information'#010+
@@ -3759,14 +3758,14 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'tString(ACPU,AOS)]);'#010+
   '            LogIndent;'#010+
   #010+
-  '         ','   case T.TargetType of'#010+
+  ' ','           case T.TargetType of'#010+
   '              ttProgram,'#010+
   '              ttUnit,'#010+
   '              ttImplicitUnit :'#010+
   '                begin'#010+
   '                  FindMainSource(T);'#010+
   '                  if T.Dependencies.Count>0 then'#010+
-  '                    FindInclud','eSources(T);'#010+
+  '                    Fi','ndIncludeSources(T);'#010+
   '                end;'#010+
   '              ttExampleUnit,'#010+
   '              ttExampleProgram :'#010+
@@ -3776,8 +3775,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '            end;'#010+
   #010+
   '            LogUnIndent;'#010+
-  '          end;'#010+
-  '   ','   end;'#010+
+  '          ','end;'#010+
+  '      end;'#010+
   '  finally'#010+
   '    If DoChangeDir and (APackage.Directory<>'#039#039') then'#010+
   '      EnterDir('#039#039');'#010+
@@ -3788,35 +3787,35 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function TBuildEngine.GetUnitDir(APackage:TPackage):String;'#010+
   'begin'#010+
   '  // Retrieve Full directory name where to find the units.'#010+
-  '  // The s','earch order is:'#010+
+  '  ','// The search order is:'#010+
   '  //  - Package in this fpmake.pp'#010+
   '  //  - LocalUnitDir'#010+
   '  //  - GlobalUnitDir'#010+
   '  if (APackage.UnitDir='#039#039') and'#010+
   '     (APackage.State=tsCompiled) then'#010+
   '    begin'#010+
-  '      APackage.UnitDir:=IncludeTrailingPathDelimiter(FStartDir)+Incl','u'+
-  'deTrailingPathDelimiter(APackage.Directory)+APackage.GetUnitsOutputDir'+
-  '(Defaults.CPU,Defaults.OS);'#010+
+  '      APackage.UnitDir:=IncludeTrailingPathDelimiter(FStartD','ir)+Incl'+
+  'udeTrailingPathDelimiter(APackage.Directory)+APackage.GetUnitsOutputDi'+
+  'r(Defaults.CPU,Defaults.OS);'#010+
   '    end;'#010+
   '  if (APackage.UnitDir='#039#039') and'#010+
   '     (Defaults.LocalUnitDir<>'#039#039') then'#010+
   '    begin'#010+
-  '      APackage.UnitDir:=IncludeTrailingPathDelimiter(','Defaults.LocalU'+
+  '      APackage.UnitDir:=IncludeTrailingPathDe','limiter(Defaults.LocalU'+
   'nitDir)+APackage.Name;'#010+
   '      if not SysDirectoryExists(APackage.UnitDir) then'#010+
   '        APackage.UnitDir:='#039#039';'#010+
   '    end;'#010+
   '  if APackage.UnitDir='#039#039' then'#010+
   '    begin'#010+
-  '      APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.Global','U'+
-  'nitDir)+APackage.Name;'#010+
+  '      APackage.UnitDir:=IncludeTrailingPathDelimiter(Default','s.Global'+
+  'UnitDir)+APackage.Name;'#010+
   '      if not SysDirectoryExists(APackage.UnitDir) then'#010+
   '        APackage.UnitDir:=DirNotFound;'#010+
   '    end;'#010+
   '  // Special error marker to prevent searches in case of error'#010+
   '  if APackage.UnitDir=DirNotFound then'#010+
-  '    Result:','='#039#039#010+
+  '   ',' Result:='#039#039#010+
   '  else'#010+
   '    Result:=APackage.UnitDir;'#010+
   'end;'#010+
@@ -3829,15 +3828,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  D : TDependency;'#010+
   '  SD : String;'#010+
   'begin'#010+
-  '  For I:=0 to ATarget.Dependencies.Count-1 do'#010+
-  '    begi','n'#010+
+  '  For I:=0 to ATarget.Dependencies.Count-1 do'#010,
+  '    begin'#010+
   '      D:=ATarget.Dependencies[i];'#010+
   '      if (D.DependencyType=depInclude) and'#010+
   '         (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then'#010+
   '        begin'#010+
   '          SD:=ExcludeTrailingPathDelimiter(ExtractFilePath(D.TargetFil'+
-  'eName));'#010+
-  ' ','         if SD<>'#039#039' then'#010+
+  'eN','ame));'#010+
+  '          if SD<>'#039#039' then'#010+
   '            L.Add(SD);'#010+
   '        end;'#010+
   '    end;'#010+
@@ -3852,21 +3851,21 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  D : TDependency;'#010+
   '  S : String;'#010+
   'begin'#010+
-  '  For I:=0 t','o APackage.Dependencies.Count-1 do'#010+
+  '  Fo','r I:=0 to APackage.Dependencies.Count-1 do'#010+
   '    begin'#010+
   '      D:=APackage.Dependencies[i];'#010+
   '      if (D.DependencyType=depPackage) and'#010+
   '         (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then'#010+
   '        begin'#010+
-  '          P:=TPackage(D.Target);'#010+
-  '   ','       If Assigned(P) then'#010+
+  '          P:=TPackage(D.Targ','et);'#010+
+  '          If Assigned(P) then'#010+
   '            begin'#010+
   '              // Already processed?'#010+
   '              S:=GetUnitDir(P);'#010+
   '              if L.IndexOf(S)=-1 then'#010+
   '                begin'#010+
-  '                  // Add this package and then dependencies'#010+
-  '       ','           L.Add(S);'#010+
+  '                  // Add this package and then dependencies',#010+
+  '                  L.Add(S);'#010+
   '                  AddDependencyUnitPaths(L,P);'#010+
   '                end;'#010+
   '            end;'#010+
@@ -3878,7 +3877,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TBuildEngine.GetCompilerCommand(APackage : TPackage; ATarget '+
   ': TTarget) : String;'#010+
   'Var'#010+
-  '  L,Args :',' TStringList;'#010+
+  '  ','L,Args : TStringList;'#010+
   '  i : Integer;'#010+
   'begin'#010+
   '  Args:=TStringList.Create;'#010+
@@ -3891,7 +3890,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Args.Add('#039'-n'#039');'#010+
   #010+
   '  // Target OS'#010+
-  '  Args.Add('#039'-T'#039'+OSToString(Defaults.OS','));'#010+
+  '  Args.Add('#039'-T'#039'+OSToString(Def','aults.OS));'#010+
   #010+
   '  // Compile mode'#010+
   '  If ATarget.Mode<>cmFPC then'#010+
@@ -3899,7 +3898,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  else If Defaults.Mode<>cmFPC then'#010+
   '    Args.Add('#039'-M'#039'+ModeToString(Defaults.Mode));'#010+
   '  // Output file paths'#010+
-  '  If ATarget.TargetType in Program','Targets then'#010+
+  '  If ATarget.TargetType in',' ProgramTargets then'#010+
   '    Args.Add('#039'-FE'#039'+APackage.GetBinOutputDir(Defaults.CPU,Defau'+
   'lts.OS));'#010+
   '  Args.Add('#039'-FU'#039'+APackage.GetUnitsOutputDir(Defaults.CPU,Defau'+
@@ -3907,7 +3906,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  // Object Path'#010+
   '  L:=TStringList.Create;'#010+
   '  L.Sorted:=true;'#010+
-  '  L.Duplicates:=dupIgno','re;'#010+
+  '  L.Duplicates:','=dupIgnore;'#010+
   '  AddConditionalStrings(L,APackage.ObjectPath,Defaults.CPU,Defaults.OS'+
   ');'#010+
   '  AddConditionalStrings(L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS)'+
@@ -3915,14 +3914,14 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  for i:=0 to L.Count-1 do'#010+
   '    Args.Add('#039'-Fo'#039'+L[i]);'#010+
   '  FreeAndNil(L);'#010+
-  '  // Unit Dirs'#010+
-  '  L:=T','StringList.Create;'#010+
+  '  // Unit Dir','s'#010+
+  '  L:=TStringList.Create;'#010+
   '  L.Sorted:=true;'#010+
   '  L.Duplicates:=dupIgnore;'#010+
   '  AddDependencyUnitPaths(L,APackage);'#010+
   '  AddConditionalStrings(L,APackage.UnitPath,Defaults.CPU,Defaults.OS);'+
   #010+
-  '  AddConditionalStrings(L,ATarget.UnitPath,Defaults.CPU,Defaults.OS',')'+
+  '  AddConditionalStrings(L,ATarget.UnitPath,Defaults.CPU,Def','aults.OS)'+
   ';'#010+
   '  for i:=0 to L.Count-1 do'#010+
   '    Args.Add('#039'-Fu'#039'+L[i]);'#010+
@@ -3932,7 +3931,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  L.Sorted:=true;'#010+
   '  L.Duplicates:=dupIgnore;'#010+
   '  AddDependencyIncludePaths(L,ATarget);'#010+
-  '  AddConditionalStrings(L,APackage.Incl','udePath,Defaults.CPU,Defaults'+
+  '  AddConditionalStrings(L,APack','age.IncludePath,Defaults.CPU,Defaults'+
   '.OS);'#010+
   '  AddConditionalStrings(L,ATarget.IncludePath,Defaults.CPU,Defaults.OS'+
   ');'#010+
@@ -3941,14 +3940,14 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  FreeAndNil(L);'#010+
   '  // Custom Options'#010+
   '  If (Defaults.Options<>'#039#039') then'#010+
-  '    Args.','Add(Defaults.Options);'#010+
+  ' ','   Args.Add(Defaults.Options);'#010+
   '  If (APackage.Options<>'#039#039') then'#010+
   '    Args.Add(APackage.Options);'#010+
   '  If (ATarget.Options<>'#039#039') then'#010+
   '    Args.Add(ATarget.Options);'#010+
   '  // Add Filename to compile'#010+
   '  Args.Add(ATarget.TargetSourceFileName);'#010+
-  '  // Convert to st','ring'#010+
+  '  // Conve','rt to string'#010+
   '  Result:='#039#039';'#010+
   '  for i:=0 to Args.Count-1 do'#010+
   '    Result:=Result+'#039' '#039'+maybequoted(Args[i]);'#010+
@@ -3961,8 +3960,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Var'#010+
   '  S : String;'#010+
   'begin'#010+
-  '  // Cache in FCompiler for speed.'#010+
-  ' ',' If (FCompiler='#039#039') then'#010+
+  '  // Cache in FCompiler for ','speed.'#010+
+  '  If (FCompiler='#039#039') then'#010+
   '    begin'#010+
   '    FCompiler:=Defaults.Compiler;'#010+
   '    If (ExtractFilePath(FCompiler)='#039#039') then'#010+
@@ -3970,8 +3969,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      S:=FileSearch(FCompiler,GetEnvironmentVariable('#039'PATH'#039'));'+
   #010+
   '      If (S<>'#039#039') then'#010+
-  '         FCompiler:=S;'#010+
-  '      en','d;'#010+
+  '         FCompiler:=S;'#010,
+  '      end;'#010+
   '    end;'#010+
   '  Result:=FCompiler;'#010+
   'end;'#010+
@@ -3984,7 +3983,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  //create a units directory'#010+
   '  D:=APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);'#010+
-  '  If not SysDi','rectoryExists(D) then'#010+
+  '  If n','ot SysDirectoryExists(D) then'#010+
   '    begin'#010+
   '      Log(vlInfo,SInfoCreatingOutputDir,[D]);'#010+
   '      CmdCreateDir(D);'#010+
@@ -3993,13 +3992,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  //also create a bin directory for programtargets'#010+
   '  For i := 0 to Pred(APackage.Targets.Count) do'#010+
   '    begin'#010+
-  '      if APackage.Ta','rgets.TargetItems[i].TargetType in ProgramTarget'+
+  '      if APa','ckage.Targets.TargetItems[i].TargetType in ProgramTarget'+
   's then'#010+
   '        begin'#010+
   '          D:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS);'#010+
   '          If not SysDirectoryExists(D) then'#010+
   '            begin'#010+
-  '              Log(vlInfo,SInfoCreatingOutput','Dir,[D]);'#010+
+  '              Log(vlInfo,SInfoCreati','ngOutputDir,[D]);'#010+
   '              CmdCreateDir(D);'#010+
   '            end;'#010+
   '          //do not continue loop, directory is made anyway'#010+
@@ -4009,9 +4008,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TBuildEngine.DependencyOK(ADependency : TDependency) : Boolea'+
-  'n;'#010+
-  'begi','n'#010+
+  'Function TBuildEngine.DependencyOK(ADependency : TDependency) : Boole',
+  'an;'#010+
+  'begin'#010+
   '  Result:=(Defaults.CPU in ADependency.CPUs) and (Defaults.OS in ADepe'+
   'ndency.OSes);'#010+
   'end;'#010+
@@ -4020,8 +4019,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TBuildEngine.TargetOK(ATarget : TTarget) : Boolean;'#010+
   'begin'#010+
   '  Result:=(Defaults.CPU in ATarget.CPUs) and (Defaults.OS in ATarget.O'+
-  'Ses);'#010+
-  'end;',#010+
+  'Se','s);'#010+
+  'end;'#010+
   #010+
   #010+
   'Function TBuildEngine.PackageOK(APackage : TPackage) : Boolean;'#010+
@@ -4033,7 +4032,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TBuildEngine.DoBeforeCompile(APackage: TPackage);'#010+
   'begin'#010+
-  '  ExecuteCommand','s(APackage.Commands,caBeforeCompile);'#010+
+  '  Execut','eCommands(APackage.Commands,caBeforeCompile);'#010+
   '  If Assigned(APackage.BeforeCompile) then'#010+
   '    APackage.BeforeCompile(APackage);'#010+
   'end;'#010+
@@ -4041,8 +4040,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TBuildEngine.DoAfterCompile(APackage: TPackage);'#010+
   'begin'#010+
-  '  If Assigned(APackage.AfterCompile) then'#010+
-  '    APa','ckage.AfterCompile(APackage);'#010+
+  '  If Assigned(APackage.AfterCompile) then',#010+
+  '    APackage.AfterCompile(APackage);'#010+
   '  ExecuteCommands(APackage.Commands,caAfterCompile);'#010+
   'end;'#010+
   #010+
@@ -4053,7 +4052,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   '  D : TDependency;'#010+
   '  T : TTarget;'#010+
-  '  OD,OFN : Strin','g;'#010+
+  '  OD,OFN',' : String;'#010+
   'begin'#010+
   '  Result:=False;'#010+
   '  case ATarget.State of'#010+
@@ -4069,7 +4068,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  end;'#010+
   #010+
   '  // Forced recompile?'#010+
-  '  if FForceCompil','e then'#010+
+  '  if FFor','ceCompile then'#010+
   '    Result:=true;'#010+
   #010+
   '  // Check output file'#010+
@@ -4078,13 +4077,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      if ATarget.TargetType in ProgramTargets then'#010+
   '        OD:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)'#010+
   '      else'#010+
-  '        OD:=APackage.GetUnitsOutput','Dir(Defaults.CPU,Defaults.OS);'#010+
+  '        OD:=APackage.GetUni','tsOutputDir(Defaults.CPU,Defaults.OS);'#010+
   '      If (OD<>'#039#039') then'#010+
   '        OD:=IncludeTrailingPathDelimiter(OD);'#010+
   '      OFN:=OD+ATarget.GetOutPutFileName(Defaults.OS);'#010+
   '      Result:=Not FileExists(OFN);'#010+
   '      if Result then'#010+
-  '        Log(vlDebug,SDbgOutput','NotYetAvailable,[OFN]);'#010+
+  '        Log(vlDebug,SD','bgOutputNotYetAvailable,[OFN]);'#010+
   '    end;'#010+
   #010+
   '  // Check main source'#010+
@@ -4094,7 +4093,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        Result:=FileNewer(ATarget.TargetSourceFileName,OFN)'#010+
   '    end;'#010+
   #010+
-  '  // Check unit and include',' dependencies'#010+
+  '  // Check unit and',' include dependencies'#010+
   '  If not Result then'#010+
   '    begin'#010+
   '      ResolveDependencies(ATarget.Dependencies,ATarget.Collection as T'+
@@ -4102,34 +4101,34 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      I:=0;'#010+
   '      for i:=0 to ATarget.Dependencies.Count-1 do'#010+
   '        begin'#010+
-  '          D:=ATarget.Dependencies[i];'#010+
-  ' ','         if (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) th'+
-  'en'#010+
+  '          D:=ATarget.Dependenci','es[i];'#010+
+  '          if (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then'+
+  #010+
   '            begin'#010+
   '              case D.DependencyType of'#010+
   '                depUnit :'#010+
   '                  begin'#010+
   '                    T:=TTarget(D.Target);'#010+
-  '                    I','f (T=Nil) then'#010+
+  '             ','       If (T=Nil) then'#010+
   '                      Error(SErrDepUnknownTarget,[ATarget.Name,D.Value'+
   ']);'#010+
   '                    // If a dependent package is compiled we always ne'+
   'ed to recompile'#010+
-  '                    Log(vldebug, SDbgDependencyOnUnit, [ATarget.N','ame'+
+  '                    Log(vldebug, SDbgDependencyOnUnit, [A','Target.Name'+
   ',T.Name]);'#010+
   '                    Result:=(T.State in [tsNeedCompile,tsCompiling,tsC'+
   'ompiled]) or NeedsCompile(APackage,T);'#010+
   '                    if Result then'#010+
   '                      Log(vldebug, SDbgDependencyUnitRecompiled, [T.Na'+
-  'me]);'#010+
-  '      ','            end;'#010+
+  'me])',';'#010+
+  '                  end;'#010+
   '                depInclude :'#010+
   '                  begin'#010+
   '                    if D.TargetFileName<>'#039#039' then'#010+
   '                      Result:=FileNewer(D.TargetFileName,OFN)'#010+
   '                  end;'#010+
   '              end;'#010+
-  '              if ','result then'#010+
+  '         ','     if result then'#010+
   '                break;'#010+
   '            end;'#010+
   '        end;'#010+
@@ -4139,7 +4138,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if result then'#010+
   '    begin'#010+
   '      ATarget.FTargetState:=tsNeedCompile;'#010+
-  '      Log(vlDebug,SDbgMustCompile,[ATa','rget.Name]);'#010+
+  '      Log(vlDebug,SDbgMustComp','ile,[ATarget.Name]);'#010+
   '    end'#010+
   '  else'#010+
   '    ATarget.FTargetState:=tsNoCompile;'#010+
@@ -4152,18 +4151,18 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  if ATarget.State in [tsNeutral,tsNeedCompile] then'#010+
   '    begin'#010+
-  '      Log','(vlInfo,SInfoCompilingTarget,[ATarget.Name]);'#010+
+  ' ','     Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);'#010+
   '      LogIndent;'#010+
   '      ATarget.FTargetState:=tsCompiling;'#010+
   '      ExecuteCommands(ATarget.Commands,caBeforeCompile);'#010+
   '      If Assigned(ATarget.BeforeCompile) then'#010+
-  '        ATarget.BeforeCompile(ATa','rget);'#010+
+  '        ATarget.BeforeCom','pile(ATarget);'#010+
   '      S:=GetCompilerCommand(APackage,ATarget);'#010+
   '      ExecuteCommand(GetCompiler,S);'#010+
   '      If Assigned(ATarget.AfterCompile) then'#010+
   '        ATarget.AfterCompile(ATarget);'#010+
   '      ExecuteCommands(ATarget.Commands,caAfterCompile);'#010+
-  '      ATa','rget.FTargetState:=tsCompiled;'#010+
+  ' ','     ATarget.FTargetState:=tsCompiled;'#010+
   '      LogUnIndent;'#010+
   '    end'#010+
   '  else if ATarget.State<>tsCompiled then'#010+
@@ -4172,7 +4171,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TBuildEngine.CompileDependencies(APack','age:TPackage; ATarge'+
+  'procedure TBuildEngine.CompileDependenci','es(APackage:TPackage; ATarge'+
   't: TTarget);'#010+
   'Var'#010+
   '  I : Integer;'#010+
@@ -4181,8 +4180,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  if ATarget.State in [tsCompiled,tsCompiling,tsNoCompile] then'#010+
   '    exit;'#010+
-  '  Log(vlDebug, Format(SDbgCompilingDependenciesOfTarget, [ATarget.Name'+
-  ']));',#010+
+  '  Log(vlDebug, Format(SDbgCompilingDependenciesOfTarget, [ATarget.','Na'+
+  'me]));'#010+
   '  LogIndent;'#010+
   '  For I:=0 to ATarget.Dependencies.Count-1 do'#010+
   '    begin'#010+
@@ -4190,26 +4189,26 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      if (D.DependencyType=depUnit) and'#010+
   '         (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then'#010+
   '        begin'#010+
-  '          T:=TT','arget(D.Target);'#010+
+  '       ','   T:=TTarget(D.Target);'#010+
   '          if Assigned(T) and (T<>ATarget) then'#010+
   '            begin'#010+
   '              if TargetOK(T) then'#010+
   '                begin'#010+
   '                  // We don'#039't need to compile implicit units, they'+
   ' are only'#010+
-  '                  // used ','for dependency checking'#010+
+  '                  ','// used for dependency checking'#010+
   '                  if (T.TargetType<>ttImplicitUnit) then'#010+
   '                    begin'#010+
   '                      if T.State=tsCompiling then'#010+
   '                        Log(vlWarning,SWarnCircularTargetDependency,[A'+
-  'Target.Name,T','.Name]);'#010+
+  'Targe','t.Name,T.Name]);'#010+
   '                      MaybeCompile(APackage,T);'#010+
   '                    end;'#010+
   '                end'#010+
   '              else'#010+
   '                Log(vlWarning, Format(SWarnDepUnitNotFound, [T.Name, M'+
-  'akeTargetString(Defaults.CPU,Defaults.OS)]));'#010+
-  '   ','         end'#010+
+  'akeTargetString(Defaults.CPU,Defaults.OS)',']));'#010+
+  '            end'#010+
   '          else'#010+
   '            Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);'#010+
   '        end;'#010+
@@ -4221,14 +4220,14 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TBuildEngine.MaybeCompile(APackage: TPackage; ATarget: TTarg'+
   'et);'#010+
   'begin'#010+
-  '  if not(ATarget.State ','in [tsNeutral,tsNeedCompile]) then'#010+
+  '  if not(ATarge','t.State in [tsNeutral,tsNeedCompile]) then'#010+
   '    exit;'#010+
   '  Log(vlDebug, Format(SDbgConsideringTarget, [ATarget.Name]));'#010+
   '  LogIndent;'#010+
   '  ResolveDependencies(ATarget.Dependencies,ATarget.Collection as TTarg'+
   'ets);'#010+
-  '  CompileDependencies(APackage, ATarget);'#010+
-  ' ',' if NeedsCompile(APackage, ATarget) then'#010+
+  '  CompileDependencies(APackage, ATa','rget);'#010+
+  '  if NeedsCompile(APackage, ATarget) then'#010+
   '    Compile(APackage,ATarget);'#010+
   '  LogUnIndent;'#010+
   'end;'#010+
@@ -4240,8 +4239,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  P : TPackage;'#010+
   '  D : TDependency;'#010+
   'begin'#010+
-  '  Result:=False;'#010+
-  '  ca','se APackage.State of'#010+
+  '  Result:=Fal','se;'#010+
+  '  case APackage.State of'#010+
   '    tsNeedCompile :'#010+
   '      begin'#010+
   '        result:=true;'#010+
@@ -4256,7 +4255,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  end;'#010+
   #010+
   '  // Forced recompile?'#010+
-  '  if FForceCo','mpile then'#010+
+  '  if ','FForceCompile then'#010+
   '    Result:=true;'#010+
   #010+
   '  // Recompile because of Package Dependencies?'#010+
@@ -4266,18 +4265,18 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '       For I:=0 to APackage.Dependencies.Count-1 do'#010+
   '         begin'#010+
   '           D:=APackage.Dependencies[i];'#010+
-  '           ','if (D.DependencyType=depPackage) and'#010+
+  '   ','        if (D.DependencyType=depPackage) and'#010+
   '              (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) the'+
   'n'#010+
   '             begin'#010+
   '               P:=TPackage(D.Target);'#010+
   '               if Assigned(P) and (P<>APackage) then'#010+
-  '                 begi','n'#010+
+  '             ','    begin'#010+
   '                   If (P.State in [tsCompiling,tsNeedCompile]) then'#010+
   '                     Log(vlWarning,SWarnCircularPackageDependency,[APa'+
   'ckage.Name,P.Name]);'#010+
   '                   Result:=(P.State in [tsCompiled,tsCompiling,tsNeedC'+
-  'ompile]);',#010+
+  'o','mpile]);'#010+
   '                   if Result then'#010+
   '                     break;'#010+
   '                 end;'#010+
@@ -4289,15 +4288,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  If Not Result then'#010+
   '    begin'#010+
   '      try'#010+
-  '        If (APackage.Directory<','>'#039#039') then'#010+
+  '        If (APackage.Di','rectory<>'#039#039') then'#010+
   '          EnterDir(APackage.Directory);'#010+
   '        for i:=0 to APackage.Targets.Count-1 do'#010+
   '          begin'#010+
   '            Result:=NeedsCompile(APackage,APackage.Targets.TargetItems'+
   '[i]);'#010+
   '            if Result then'#010+
-  '              break;'#010+
-  '  ','        end;'#010+
+  '              b','reak;'#010+
+  '          end;'#010+
   '      Finally'#010+
   '        If (APackage.Directory<>'#039#039') then'#010+
   '          EnterDir('#039#039');'#010+
@@ -4307,7 +4306,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  // Upate also target state so a second check is faster'#010+
   '  if result then'#010+
   '    begin'#010+
-  '      APackage.FTargetState:=tsNeedCompile;',#010+
+  '      APackage.FTargetState:=tsNeed','Compile;'#010+
   '      Log(vlDebug,SDbgMustCompile,[APackage.Name]);'#010+
   '    end'#010+
   '  else'#010+
@@ -4321,31 +4320,31 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   'begin'#010+
   '  Try'#010+
-  '    Log(vlInfo,SInfoCompili','ngPackage,[APackage.Name]);'#010+
+  '    Log(vlInfo,SInf','oCompilingPackage,[APackage.Name]);'#010+
   '    APackage.FTargetState:=tsCompiling;'#010+
   '    If (APackage.Directory<>'#039#039') then'#010+
   '      EnterDir(APackage.Directory);'#010+
   '    CreateOutputDir(APackage);'#010+
-  '    Dictionary.AddVariable('#039'UNITSOUTPUTDIR'#039',APackage.GetUnitsO'+
-  'utputD','ir(Defaults.CPU,Defaults.OS));'#010+
+  '    Dictionary.AddVariable('#039'UNITSOUTPUTDIR'#039',APackage.GetUnit','s'+
+  'OutputDir(Defaults.CPU,Defaults.OS));'#010+
   '    Dictionary.AddVariable('#039'BINOUTPUTDIR'#039',APackage.GetBinOutpu'+
   'tDir(Defaults.CPU,Defaults.OS));'#010+
   '    DoBeforeCompile(APackage);'#010+
   '    For I:=0 to APackage.Targets.Count-1 do'#010+
   '      begin'#010+
-  '        T:=APackage.Targets','.TargetItems[i];'#010+
+  '        T:=APackage','.Targets.TargetItems[i];'#010+
   '        if (T.TargetType in [ttUnit,ttProgram]) then'#010+
   '          begin'#010+
   '            if TargetOK(T) then'#010+
   '              MaybeCompile(APackage,T)'#010+
   '            else'#010+
   '              begin'#010+
-  '                if not(Defaults.CPU in T.CPUs)',' then'#010+
+  '                if not(Defaults.CPU in',' T.CPUs) then'#010+
   '                  Log(vldebug, Format(SDbgSkippingTargetWrongCPU, [T.N'+
   'ame, CPUsToString(T.CPUs)]));'#010+
   '                if not(Defaults.OS in T.OSes) then'#010+
   '                  Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Na'+
-  'me, OSesToStr','ing(T.OSes)]));'#010+
+  'me, O','SesToString(T.OSes)]));'#010+
   '              end;'#010+
   '          end'#010+
   '        else'#010+
@@ -4354,7 +4353,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    DoAfterCompile(APackage);'#010+
   '    APackage.FTargetState:=tsCompiled;'#010+
   '  Finally'#010+
-  '    If (APackage.Directo','ry<>'#039#039') then'#010+
+  '    If (APackage','.Directory<>'#039#039') then'#010+
   '      EnterDir('#039#039');'#010+
   '  end;'#010+
   'end;'#010+
@@ -4364,15 +4363,15 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  if not(APackage.State in [tsNeutral,tsNeedCompile]) then'#010+
   '    exit;'#010+
-  '  Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);'#010+
-  '  LogI','ndent;'#010+
+  '  Log(vlDebug,SDbgConsideringPackage,[APackage.Name])',';'#010+
+  '  LogIndent;'#010+
   '  ResolveDependencies(APackage.Dependencies,(APackage.Collection as TP'+
   'ackages));'#010+
   '  CompileDependencies(APackage);'#010+
   '  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS);'#010+
   '  If NeedsCompile(APackage) then'#010+
-  '    Compile(APackage);'#010+
-  '  LogUnI','ndent;'#010+
+  '    Compile(APackage);'#010,
+  '  LogUnIndent;'#010+
   'end;'#010+
   #010+
   #010+
@@ -4385,8 +4384,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  // Already checked?'#010+
   '  I:=ExternalPackages.IndexOfName(APackageName);'#010+
   '  if I<>-1 then'#010+
-  '    begin'#010+
-  '      re','sult:=ExternalPackages.PackageItems[I];'#010+
+  '    begin'#010,
+  '      result:=ExternalPackages.PackageItems[I];'#010+
   '      exit;'#010+
   '    end;'#010+
   '  // Create new external package'#010+
@@ -4394,13 +4393,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result.FTargetState:=tsNotFound;'#010+
   '  // Load unit config'#010+
   '  S:=GetUnitDir(Result);'#010+
-  '  if S<>'#039#039' ','then'#010+
+  '  i','f S<>'#039#039' then'#010+
   '    begin'#010+
   '      Log(vldebug, SDbgExternalDependency, [APackageName,S]);'#010+
   '      Result.FTargetState:=tsInstalled;'#010+
   '      // Load unit config if it exists'#010+
   '      S:=IncludeTrailingPathDelimiter(S)+UnitConfigFile;'#010+
-  '      if FileExists(S) then',#010+
+  '      if FileExists','(S) then'#010+
   '        begin'#010+
   '          Log(vlDebug, Format(SDbgLoading, [S]));'#010+
   '          Result.LoadUnitConfigFromFile(S);'#010+
@@ -4409,7 +4408,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      CompileDependencies(Result);'#010+
   '    end'#010+
   '  else'#010+
-  '    Error(SErrDepende','ncyNotFound,[APackageName]);'#010+
+  '    Error(SEr','rDependencyNotFound,[APackageName]);'#010+
   'end;'#010+
   #010+
   #010+
@@ -4421,13 +4420,13 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  For I:=0 to APackage.Dependencies.Count-1 do'#010+
   '    begin'#010+
-  '      D:=APackage.Depen','dencies[i];'#010+
+  '      D:=APacka','ge.Dependencies[i];'#010+
   '      if (D.DependencyType=depPackage) and'#010+
   '         (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then'#010+
   '        begin'#010+
   '          P:=TPackage(D.Target);'#010+
-  '          // If it already was compiled, then State<>tsNeutral, and it'+
-  ' ','won'#039't be compiled again.'#010+
+  '          // If it already was compiled, then State<>tsNeutral,',' and '+
+  'it won'#039't be compiled again.'#010+
   '          If Assigned(P) and (P<>APackage) then'#010+
   '            MaybeCompile(P)'#010+
   '          else'#010+
@@ -4437,7 +4436,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TBuildEngine.InstallPackageFiles(','APAckage : TPackage; tt : '+
+  'Function TBuildEngine.InstallPacka','geFiles(APAckage : TPackage; tt : '+
   'TTargetType; Const Dest : String):Boolean;'#010+
   'Var'#010+
   '  List : TStringList;'#010+
@@ -4446,7 +4445,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  List:=TStringList.Create;'#010+
   '  Try'#010+
   '    APackage.GetInstallFiles(List,[tt],Defaults.CPU, Defaults.OS);'#010+
-  '    if (List.Count>0)',' then'#010+
+  '    if (List.','Count>0) then'#010+
   '      begin'#010+
   '        Result:=True;'#010+
   '        CmdCopyFiles(List,Dest);'#010+
@@ -4459,7 +4458,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TBuildEngine.DoBeforeInstall(APackage: TPackage);'#010+
   'begin'#010+
-  '  ExecuteCommands(APackage.Commands,caBeforeInstall',');'#010+
+  '  ExecuteCommands(APackage.Commands,caBefor','eInstall);'#010+
   '  If Assigned(APackage.BeforeInstall) then'#010+
   '    APackage.BeforeInstall(APackage);'#010+
   'end;'#010+
@@ -4468,8 +4467,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'procedure TBuildEngine.DoAfterInstall(APackage: TPackage);'#010+
   'begin'#010+
   '  If Assigned(APackage.AfterInstall) then'#010+
-  '    APackage.AfterInstall(APackage);'#010+
-  '  Exe','cuteCommands(APackage.Commands,caAfterInstall);'#010+
+  '    APackage.AfterInstall(APackage',');'#010+
+  '  ExecuteCommands(APackage.Commands,caAfterInstall);'#010+
   'end;'#010+
   #010+
   #010+
@@ -4481,27 +4480,27 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  If (Apackage.State<>tsCompiled) then'#010+
   '    Compile(APackage);'#010+
   '  try'#010+
-  '    Log(vlInfo,SInfoIns','tallingPackage,[APackage.Name]);'#010+
+  '    Log(vlInfo,','SInfoInstallingPackage,[APackage.Name]);'#010+
   '    If (APackage.Directory<>'#039#039') then'#010+
   '      EnterDir(APackage.Directory);'#010+
   '    DoBeforeInstall(APackage);'#010+
   '    // units'#010+
   '    B:=false;'#010+
-  '    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackage.'+
-  'Name;'#010,
+  '    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackag','e'+
+  '.Name;'#010+
   '    if InstallPackageFiles(APAckage,ttUnit,D) then'#010+
   '      B:=true;'#010+
   '    if InstallPackageFiles(APAckage,ttImplicitUnit,D) then'#010+
   '      B:=true;'#010+
   '    // Unit (dependency) configuration if there were units installed'#010+
   '    if B then'#010+
-  '      begin'#010+
-  '     ','   UC:=IncludeTrailingPathDelimiter(D)+UnitConfigFile;'#010+
+  '      beg','in'#010+
+  '        UC:=IncludeTrailingPathDelimiter(D)+UnitConfigFile;'#010+
   '        Log(vlInfo, Format(SDbgGenerating, [UC]));'#010+
   '        APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);'#010+
   '      end;'#010+
   '    // Programs'#010+
-  '    D:=IncludeTrailingPathDelimiter(Def','aults.BinInstallDir);'#010+
+  '    D:=IncludeTrailingPathDelim','iter(Defaults.BinInstallDir);'#010+
   '    InstallPackageFiles(APAckage,ttProgram,D);'#010+
   '    // Done.'#010+
   '    APackage.FTargetState:=tsInstalled;'#010+
@@ -4511,9 +4510,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      EnterDir('#039#039');'#010+
   '  end;'#010+
   'end;'#010+
+  #010,
   #010+
-  #010+
-  'procedu','re TBuildEngine.DoBeforeArchive(APackage: TPackage);'#010+
+  'procedure TBuildEngine.DoBeforeArchive(APackage: TPackage);'#010+
   'begin'#010+
   '  ExecuteCommands(APackage.Commands,caBeforeArchive);'#010+
   '  If Assigned(APackage.BeforeArchive) then'#010+
@@ -4521,7 +4520,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TBuildEngine.DoAfterArchive(A','Package: TPackage);'#010+
+  'procedure TBuildEngine.DoAfterA','rchive(APackage: TPackage);'#010+
   'begin'#010+
   '  If Assigned(APackage.AfterArchive) then'#010+
   '    APackage.AfterArchive(APackage);'#010+
@@ -4531,41 +4530,40 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'procedure TBuildEngine.Archive(APackage: TPackage);'#010+
   'Var'#010+
-  '  L : TStringList;'#010,
+  '  L : TStri','ngList;'#010+
   '  A : String;'#010+
   '  i: integer;'#010+
   '  ICPU : TCPU;'#010+
   '  IOS  : TOS;'#010+
   'begin'#010+
-  '  Log(vlInfo,SInfoArchivingPackage,[APackage.Name]);'#010+
+  '  A:=FStartDir+ APackage.FileName + ZipExt;'#010+
+  '  Log(vlInfo,SInfoArchivingPackage,[APackage.Name,A]);'#010+
   '  try'#010+
   '    If (APackage.Directory<>'#039#039') then'#010+
-  '      EnterDir(APackage.Directory);'#010+
+  '      EnterDir(APackage.Dir','ectory);'#010+
   '    DoBeforeArchive(Apackage);'#010+
-  '    L:=TString','List.Create;'#010+
+  '    L:=TStringList.Create;'#010+
   '    L.Sorted:=true;'#010+
   '    L.Duplicates:=dupIgnore;'#010+
   '    Try'#010+
   '      // Add fpmake.pp & manifest.xml always'#010+
   '      L.Add(FPMakePPFile);'#010+
   '      L.Add(ManifestFile);'#010+
-  '      //get all files from all targets'#010+
-  '      for ICPU:=Low(TCPU) to hig','h(TCPU) do'#010+
+  '      //get all f','iles from all targets'#010+
+  '      for ICPU:=Low(TCPU) to high(TCPU) do'#010+
   '        for IOS:=Low(TOS) to high(TOS) do'#010+
   '          if OSCPUSupported[IOS,ICPU] then'#010+
   '            begin'#010+
   '              ResolveFileNames(APackage,ICPU,IOS,false);'#010+
-  '              APackage.GetArchiveFiles(L, ICPU, IOS);'#010+
-  '            end',';'#010+
+  '              A','Package.GetArchiveFiles(L, ICPU, IOS);'#010+
+  '            end;'#010+
   '      //from sources'#010+
   '      for i := 0 to APackage.Sources.Count-1 do'#010+
   '        L.Add(APackage.Sources[i].Name);'#010+
   #010+
   '      //show all files'#010+
   '      for i := 0 to L.Count-1 do'#010+
-  '        Log(vlDebug, Format(SDbgArchivingFile, [L[i]]));'#010+
-  #010+
-  '      A:=FSta','rtDir+ APackage.FileName + ZipExt;'#010+
+  '        Log(vlDeb','ug, Format(SDbgArchivingFile, [L[i]]));'#010+
   #010+
   '{$ifdef HAS_UNIT_ZIPPER}'#010+
   '      if not Assigned(ArchiveFilesProc) then'#010+
@@ -4574,7 +4572,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '          FZipFile.ZipFiles(A, L);'#010+
   '        end'#010+
   '      else'#010+
-  '{$endif HAS_UNIT_ZIPPER}',#010+
+  '{$endif HAS_UNIT_ZI','PPER}'#010+
   '        CmdArchiveFiles(L,A);'#010+
   '    Finally'#010+
   '      L.Free;'#010+
@@ -4586,7 +4584,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    end;'#010+
   '    DoAfterArchive(Apackage);'#010+
   '  Finally'#010+
-  '    If (','APackage.Directory<>'#039#039') then'#010+
+  '   ',' If (APackage.Directory<>'#039#039') then'#010+
   '      EnterDir('#039#039');'#010+
   '  end;'#010+
   'end;'#010+
@@ -4596,7 +4594,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  ExecuteCommands(APackage.Commands,caBeforeClean);'#010+
   '  If Assigned(APackage.BeforeClean) then'#010+
-  '    APackage.BeforeC','lean(APackage);'#010+
+  '    APackage.Be','foreClean(APackage);'#010+
   'end;'#010+
   #010+
   #010+
@@ -4608,7 +4606,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TBuildEngin','e.Clean(APackage: TPackage);'#010+
+  'procedure TBuild','Engine.Clean(APackage: TPackage);'#010+
   'Var'#010+
   '  List : TStringList;'#010+
   'begin'#010+
@@ -4617,7 +4615,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    If (APackage.Directory<>'#039#039') then'#010+
   '      EnterDir(APackage.Directory);'#010+
   '    DoBeforeClean(Apackage);'#010+
-  '    List:=TStringLi','st.Create;'#010+
+  '    List:=TStr','ingList.Create;'#010+
   '    try'#010+
   '      APackage.GetCleanFiles(List,Defaults.CPU,Defaults.OS);'#010+
   '      if (List.Count>0) then'#010+
@@ -4627,7 +4625,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    end;'#010+
   '    DoAfterClean(Apackage);'#010+
   '  Finally'#010+
-  '    If (APackage.Director','y<>'#039#039') then'#010+
+  '    If (APackage.Dir','ectory<>'#039#039') then'#010+
   '      EnterDir('#039#039');'#010+
   '  end;'#010+
   'end;'#010+
@@ -4641,7 +4639,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  L:=TStringList.Create;'#010+
   '  Try'#010+
-  '    Log(vlInfo, Format(SInfoManifestPackage,[APackage.Name]));',#010+
+  '    Log(vlInfo, Format(SInfoManifestPackage,[APackage.Nam','e]));'#010+
   '    PD:=APackage.Directory;'#010+
   '    if PD<>'#039#039' then'#010+
   '      PD:=IncludeTrailingPathDelimiter(PD);'#010+
@@ -4649,7 +4647,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    Log(vlDebug, Format(SDbgGenerating, [MF]));'#010+
   '    L.Add('#039'<?xml version="1.0"?>'#039');'#010+
   '    L.Add('#039'<packages>'#039');'#010+
-  '    APackage.G','etManifest(L);'#010+
+  '    APack','age.GetManifest(L);'#010+
   '    L.Add('#039'</packages>'#039');'#010+
   '    L.SaveToFile(MF);'#010+
   '  Finally'#010+
@@ -4664,7 +4662,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  P : TPackage;'#010+
   'begin'#010+
   '  If Assigned(BeforeCompile) then'#010+
-  '    BeforeCom','pile(Self);'#010+
+  '    Befo','reCompile(Self);'#010+
   '  For I:=0 to Packages.Count-1 do'#010+
   '    begin'#010+
   '      P:=Packages.PackageItems[i];'#010+
@@ -4676,7 +4674,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TBuildEngine.I','nstall(Packages: TPackages);'#010+
+  'procedure TBuildEng','ine.Install(Packages: TPackages);'#010+
   'Var'#010+
   '  I : Integer;'#010+
   '  P : TPackage;'#010+
@@ -4686,8 +4684,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  For I:=0 to Packages.Count-1 do'#010+
   '    begin'#010+
   '      P:=Packages.PackageItems[i];'#010+
-  '      If PackageOK(P) then'#010+
-  '     ','   Install(P);'#010+
+  '      If PackageOK(P) then'#010,
+  '        Install(P);'#010+
   '    end;'#010+
   '  If Assigned(AfterInstall) then'#010+
   '    AfterInstall(Self);'#010+
@@ -4700,7 +4698,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  P : TPackage;'#010+
   'begin'#010+
   '  If Assigned(BeforeArchive) then'#010+
-  '    BeforeArchive(Self);',#010+
+  '    BeforeArchive(S','elf);'#010+
   '  Log(vlDebug, SDbgBuildEngineArchiving);'#010+
   '  For I:=0 to Packages.Count-1 do'#010+
   '    begin'#010+
@@ -4712,7 +4710,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'procedure TBuildEngine.Mani','fest(Packages: TPackages);'#010+
+  'procedure TBuildEngine','.Manifest(Packages: TPackages);'#010+
   'Var'#010+
   '  I : Integer;'#010+
   '  P : TPackage;'#010+
@@ -4722,7 +4720,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Log(vlDebug, SDbgBuildEngineGenerateManifests);'#010+
   '  For I:=0 to Packages.Count-1 do'#010+
   '    begin'#010+
-  '      P:=Packages','.PackageItems[i];'#010+
+  '      P:=Pac','kages.PackageItems[i];'#010+
   '      Manifest(P);'#010+
   '    end;'#010+
   '  If Assigned(AfterManifest) then'#010+
@@ -4735,8 +4733,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   '  P : TPackage;'#010+
   'begin'#010+
-  '  If Assigned(BeforeClean) then'#010+
-  '    ','BeforeClean(Self);'#010+
+  '  If Assigned(BeforeClean) then',#010+
+  '    BeforeClean(Self);'#010+
   '  Log(vldebug, SDbgBuildEngineCleaning);'#010+
   '  For I:=0 to Packages.Count-1 do'#010+
   '    begin'#010+
@@ -4745,7 +4743,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      Clean(P);'#010+
   '    end;'#010+
   '  If Assigned(AfterClean) then'#010+
-  '    AfterClean(Self);'#010,
+  '    AfterClean(Se','lf);'#010+
   'end;'#010+
   #010+
   #010+
@@ -4755,7 +4753,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '**********************************************************************'+
   '******}'#010+
   #010+
-  'function TFPVersion.GetAsString: S','tring;'#010+
+  'function TFPVersion.GetAsStri','ng: String;'#010+
   'begin'#010+
   '  if Empty then'#010+
   '    Result:='#039'<none>'#039#010+
@@ -4766,9 +4764,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function TFPVersion.GetEmpty: Boolean;'#010+
   'begin'#010+
   '  Result:=(Major=0) and (Minor=0) and (Micro=0) and (Build=0);'#010+
-  'end;'#010+
+  'end',';'#010+
   #010+
-  'pr','ocedure TFPVersion.SetAsString(const AValue: String);'#010+
+  'procedure TFPVersion.SetAsString(const AValue: String);'#010+
   #010+
   '  Function NextDigit(sep : Char; var V : string) : integer;'#010+
   #010+
@@ -4779,7 +4777,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    P:=Pos(Sep,V);'#010+
   '    If (P=0) then'#010+
   '      P:=Length(V)+1;'#010+
-  '    Result:=StrToIntDef(Copy(V,1,','P-1),-1);'#010+
+  '    Result:=StrToIntDef(Copy','(V,1,P-1),-1);'#010+
   '    If Result<>-1 then'#010+
   '      Delete(V,1,P)'#010+
   '    else'#010+
@@ -4794,7 +4792,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if (AValue='#039#039') or (AValue='#039'<none>'#039') then'#010+
   '    exit;'#010+
   '  V:=AValue;'#010+
-  '  Major:','=NextDigit('#039'.'#039',V);'#010+
+  '  M','ajor:=NextDigit('#039'.'#039',V);'#010+
   '  Minor:=NextDigit('#039'.'#039',V);'#010+
   '  Micro:=NextDigit('#039'-'#039',V);'#010+
   '  Build:=NextDigit(#0,V);'#010+
@@ -4808,7 +4806,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Build:=0;'#010+
   'end;'#010+
   #010+
-  'procedure TFPVersion.Assign(Source: TPersistent',');'#010+
+  'procedure TFPVersion.Assign(Source: TPersi','stent);'#010+
   #010+
   'Var'#010+
   '  V : TFPVersion;'#010+
@@ -4826,7 +4824,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    inherited Assign(Source);'#010+
   'end;'#010+
   #010+
-  'functi','on TFPVersion.CompareVersion(AVersion: TFPVersion): Integer;'#010+
+  'f','unction TFPVersion.CompareVersion(AVersion: TFPVersion): Integer;'#010+
   'begin'#010+
   '  Result:=Major-AVersion.Major;'#010+
   '  If (Result=0) then'#010+
@@ -4834,7 +4832,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '      Result:=Minor-AVersion.Minor;'#010+
   '      if (Result=0) then'#010+
   '        begin'#010+
-  '          Result:=Micro-AVersion.Mi','cro;'#010+
+  '          Result:=Micro-AVersi','on.Micro;'#010+
   '          If (Result=0) then'#010+
   '            Result:=Build-AVersion.Build;'#010+
   '        end;'#010+
@@ -4847,21 +4845,21 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{********************','***********************************************'+
+  '{***************','****************************************************'+
   '*********'#010+
   '                                 TTarget'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
   'constructor TTarget.Create(ACollection: TCollection);'#010+
-  'begin'#010+
-  '  i','nherited Create(ACollection);'#010+
+  'begi','n'#010+
+  '  inherited Create(ACollection);'#010+
   '  FInstall:=True;'#010+
   '  FCPUs:=AllCPUs;'#010+
   '  FOSes:=AllOSes;'#010+
   '  FUnitPath:=TConditionalStrings.Create(TConditionalString);'#010+
   '  FIncludePath:=TConditionalStrings.Create(TConditionalString);'#010+
-  '  FObjectPath:=TConditionalStri','ngs.Create(TConditionalString);'#010+
+  '  FObjectPath:=TConditiona','lStrings.Create(TConditionalString);'#010+
   '  FDependencies:=TDependencies.Create(TDependency);'#010+
   '  FCommands:=TCOmmands.Create(TCommand);'#010+
   'end;'#010+
@@ -4871,7 +4869,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  FreeAndNil(FUnitPath);'#010+
   '  FreeAndNil(FObjectPath);'#010+
-  '  FreeAndNil(FIncludeP','ath);'#010+
+  '  FreeAndNil(FInc','ludePath);'#010+
   '  FreeAndNil(FDependencies);'#010+
   '  FreeAndNil(FCommands);'#010+
   '  inherited Destroy;'#010+
@@ -4886,7 +4884,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'function TTarget.GetUnitFileName: String;'#010+
   'begin'#010+
-  '  Result:=Name+UnitE','xt;'#010+
+  '  Result:=Name+','UnitExt;'#010+
   'end;'#010+
   #010+
   #010+
@@ -4904,7 +4902,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'function TTarget.GetProgramFileName(AOS : TOS): String;'#010+
   'begin'#010+
-  '  if AOS i','n [Go32v2,Win32,Win64,OS2] then'#010+
+  '  if ','AOS in [Go32v2,Win32,Win64,OS2] then'#010+
   '    Result:=Name+ExeExt'#010+
   '  else'#010+
   '    Result:=Name;'#010+
@@ -4916,7 +4914,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  if TargetType in UnitTargets then'#010+
   '    Result:=GetUnitFileName'#010+
   '  else'#010+
-  '    Result:=GetProgra','mFileName(AOs);'#010+
+  '    Result:=GetP','rogramFileName(AOs);'#010+
   'end;'#010+
   #010+
   #010+
@@ -4928,7 +4926,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  D:=ExtractFilePath(N);'#010+
   '  E:=ExtractFileExt(N);'#010+
   '  N:=ExtractFileName(N);'#010+
-  '  inherited SetName(Copy(N,1,Length(N)-Lengt','h(E)));'#010+
+  '  inherited SetName(Copy(N,1,Length(N)-','Length(E)));'#010+
   '  FExtension:=E;'#010+
   '  FDirectory:=D;'#010+
   'end;'#010+
@@ -4939,12 +4937,12 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  If not(ACPU in CPUs) or not(AOS in OSes) then'#010+
   '    exit;'#010+
-  '  List.Add(APrefixU ','+ ObjectFileName);'#010+
+  '  List.Add(APre','fixU + ObjectFileName);'#010+
   '  If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit, ttCleanOnlyU'+
   'nit]) then'#010+
   '    List.Add(APrefixU + UnitFileName)'#010+
   '  else If (TargetType in [ttProgram,ttExampleProgram]) then'#010+
-  '    List.Add(APrefixB + GetProgramFileName','(AOS));'#010+
+  '    List.Add(APrefixB + GetProgramFil','eName(AOS));'#010+
   '  If ResourceStrings then'#010+
   '    List.Add(APrefixU + RSTFileName);'#010+
   '  // Maybe add later ?  AddConditionalStrings(List,CleanFiles);'#010+
@@ -4952,19 +4950,19 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   'procedure TTarget.GetInstallFiles(List: TStrings; const APrefixU, APre'+
-  'fixB: String; ACPU: TCPU; A','OS : TOS);'#010+
+  'fixB: String; ACPU: TC','PU; AOS : TOS);'#010+
   'begin'#010+
   '  If not(ACPU in CPUs) or not(AOS in OSes) then'#010+
   '    exit;'#010+
   '  If Not (TargetType in [ttProgram,ttExampleProgram]) then'#010+
   '    List.Add(APrefixU + ObjectFileName);'#010+
-  '  If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then'#010+
-  ' ','   List.Add(APrefixU + UnitFileName)'#010+
+  '  If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) t','hen'#010+
+  '    List.Add(APrefixU + UnitFileName)'#010+
   '  else If (TargetType in [ttProgram,ttExampleProgram]) then'#010+
   '    List.Add(APrefixB + GetProgramFileName(AOS));'#010+
   '  If ResourceStrings then'#010+
   '    List.Add(APrefixU + RSTFileName);'#010+
-  '  // Maybe add later ?  AddCo','nditionalStrings(List,InstallFiles);'#010+
+  '  // Maybe add later ?  ','AddConditionalStrings(List,InstallFiles);'#010+
   'end;'#010+
   #010+
   #010+
@@ -4976,16 +4974,16 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  If not(ACPU in CPUs) or not(AOS in OSes) then'#010+
   '    exit;'#010+
-  '  // Main source'#010+
-  '  i','f TargetSourceFileName<>'#039#039' then'#010+
+  '  // Main sourc','e'#010+
+  '  if TargetSourceFileName<>'#039#039' then'#010+
   '    List.Add(TargetSourceFileName);'#010+
   '  // Includes'#010+
   '  for i:=0 to Dependencies.Count-1 do'#010+
   '    begin'#010+
   '      D:=Dependencies[i];'#010+
   '      if (D.DependencyType=depInclude) and'#010+
-  '         (D.TargetFileName<>'#039#039') then'#010+
-  '    ','    List.Add(D.TargetFileName);'#010+
+  '         (D.TargetFileName<>'#039#039') then',#010+
+  '        List.Add(D.TargetFileName);'#010+
   '    end;'#010+
   'end;'#010+
   #010+
@@ -4993,8 +4991,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{*********************************************************************'+
   '*******'#010+
   '                                 TSource'#010+
-  '**********************************************************************'+
-  '***','***}'#010+
+  '********************************************************************','*'+
+  '*******}'#010+
   #010+
   'constructor TSource.Create(ACollection: TCollection);'#010+
   'begin'#010+
@@ -5008,8 +5006,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{*********************************************************************'+
-  '**','*****'#010+
+  '{******************************************************************','*'+
+  '*********'#010+
   '                                 TCommands'#010+
   '**********************************************************************'+
   '******}'#010+
@@ -5017,8 +5015,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function TCommands.GetCommand(const Dest : String): TCommand;'#010+
   'begin'#010+
   '  Result:=TCommand(ItemByName(Dest));'#010+
-  'end;'#010+
-  #010,
+  'e','nd;'#010+
+  #010+
   'function TCommands.GetCommandItem(Index : Integer): TCommand;'#010+
   'begin'#010+
   '  Result:=TCommand(Items[Index]);'#010+
@@ -5032,7 +5030,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function TCommand','s.AddCommand(const Cmd: String) : TCommand;'#010+
+  'Function TCo','mmands.AddCommand(const Cmd: String) : TCommand;'#010+
   'begin'#010+
   '  Result:=AddCommand(fdefaultAt,Cmd,'#039#039','#039#039','#039#039');'#010+
   'end;'#010+
@@ -5041,11 +5039,11 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'function TCommands.AddCommand(const Cmd, Options: String): TCommand;'#010+
   'begin'#010+
   '  Result:=AddCommand(fdefaultAt,Cmd,Options,'#039#039','#039#039');'#010+
-  'end;'#010+
+  'end;',#010+
   #010+
   #010+
-  'fu','nction TCommands.AddCommand(const Cmd, Options, Dest, Source: Stri'+
-  'ng ): TCommand;'#010+
+  'function TCommands.AddCommand(const Cmd, Options, Dest, Source: String'+
+  ' ): TCommand;'#010+
   'begin'#010+
   '  Result:=AddCommand(fdefaultAt,Cmd,options,Dest,Source);'#010+
   'end;'#010+
@@ -5053,8 +5051,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'Function TCommands.AddCommand(At: TCommandAt; const Cmd: String) : TCo'+
   'mmand;'#010+
-  'begin'#010+
-  '  Re','sult:=AddCommand(At,Cmd,'#039#039','#039#039','#039#039');'#010+
+  'begin',#010+
+  '  Result:=AddCommand(At,Cmd,'#039#039','#039#039','#039#039');'#010+
   'end;'#010+
   #010+
   #010+
@@ -5065,7 +5063,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'function TCommands.AddCommand(At: TCommandAt; const Cm','d, Options, De'+
+  'function TCommands.AddCommand(At: TCommandAt; con','st Cmd, Options, De'+
   'st, Source: String): TCommand;'#010+
   'begin'#010+
   '  Result:=Add as TCommand;'#010+
@@ -5077,7 +5075,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{*********************************','**********************************'+
+  '{****************************','***************************************'+
   '*********'#010+
   '                           TConditionalString'#010+
   '**********************************************************************'+
@@ -5086,8 +5084,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Constructor TConditionalString.Create;'#010+
   'begin'#010+
   '  inherited Create;'#010+
-  'end;'#010+
-  #010,
+  'e','nd;'#010+
+  #010+
   #010+
   '{*********************************************************************'+
   '*******'#010+
@@ -5095,7 +5093,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '**********************************************************************'+
   '******}'#010+
   #010+
-  'Constructor TConditionalStrings.Cre','ate(AClass:TConditionalStringClas'+
+  'Constructor TConditionalString','s.Create(AClass:TConditionalStringClas'+
   's);'#010+
   'begin'#010+
   '  inherited Create;'#010+
@@ -5109,9 +5107,9 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  Result:=TConditionalString(Items[Index]);'#010+
   'end;'#010+
   #010+
-  #010+
-  'proce','dure TConditionalStrings.SetConditionalString(Index : Integer; '+
-  'const AValue: TConditionalString);'#010+
+  #010,
+  'procedure TConditionalStrings.SetConditionalString(Index : Integer; co'+
+  'nst AValue: TConditionalString);'#010+
   'begin'#010+
   '  Items[Index]:=AValue;'#010+
   'end;'#010+
@@ -5120,7 +5118,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TConditionalStrings.Add(Const Value : String) : TConditionalS'+
   'tring;'#010+
   'begin'#010+
-  '  result:=Add(Value,Al','lCPUs,AllOSes);'#010+
+  '  result:=Add(Val','ue,AllCPUs,AllOSes);'#010+
   'end;'#010+
   #010+
   #010+
@@ -5133,7 +5131,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{$endif cpu_only_overloads}'#010+
   #010+
   #010+
-  'Function TCondition','alStrings.Add(Const Value : String;const OSes:TOS'+
+  'Function TCond','itionalStrings.Add(Const Value : String;const OSes:TOS'+
   'es) : TConditionalString;'#010+
   'begin'#010+
   '  result:=Add(Value,AllCPUs,OSes);'#010+
@@ -5142,7 +5140,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'Function TConditionalStrings.Add(Const Value : String;const CPUs:TCPUs'+
   ';const OSes:TOSes) : TConditionalString;'#010+
-  'begin'#010,
+  'b','egin'#010+
   '  Result:=FCSClass.Create;'#010+
   '  Result.Value:=Value;'#010+
   '  Result.OSes:=OSes;'#010+
@@ -5153,7 +5151,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   '{*********************************************************************'+
   '*******'#010+
-  '                                TDepen','dency'#010+
+  '                                T','Dependency'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
@@ -5166,7 +5164,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'Destructor TDependency.Destroy;'#010+
   'begin'#010+
-  '  FreeAndNil(FVersion',');'#010+
+  '  FreeAndNil(FVe','rsion);'#010+
   'end;'#010+
   #010+
   #010+
@@ -5182,7 +5180,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{********************************************************','***********'+
+  '{***************************************************','****************'+
   '*********'#010+
   '                                TDependencies'#010+
   '**********************************************************************'+
@@ -5190,7 +5188,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'function TDependencies.GetDependency(Index : Integer): TDependency;'#010+
   'begin'#010+
-  '  Result:=TDependenc','y(Items[Index]);'#010+
+  '  Result:=TDepe','ndency(Items[Index]);'#010+
   'end;'#010+
   #010+
   #010+
@@ -5203,7 +5201,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'Function TDependencies.Add(Const Value : String) : TDependency;'#010+
   'begin'#010+
-  '  result:=Add(Value,AllCPU','s,AllOSes);'#010+
+  '  result:=Add(Value,A','llCPUs,AllOSes);'#010+
   'end;'#010+
   #010+
   #010+
@@ -5216,7 +5214,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{$endif cpu_only_overloads}'#010+
   #010+
   #010+
-  'Function TDependencies.Add(Const Val','ue : String;const OSes:TOSes) : '+
+  'Function TDependencies.Add(Cons','t Value : String;const OSes:TOSes) : '+
   'TDependency;'#010+
   'begin'#010+
   '  result:=Add(Value,AllCPUs,OSes);'#010+
@@ -5226,7 +5224,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TDependencies.Add(Const Value : String;const CPUs:TCPUs;const'+
   ' OSes:TOSes) : TDependency;'#010+
   'begin'#010+
-  '  Result:=inherited Add(Value,CPUs,OSes) as',' TDependency;'#010+
+  '  Result:=inherited Add(Value,CPUs,OSe','s) as TDependency;'#010+
   '  Result.Target:=nil;'#010+
   '  Result.FDependencyType:=depPackage;'#010+
   'end;'#010+
@@ -5239,7 +5237,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   '{$ifdef cpu_only_overloads}'#010+
-  'Function',' TDependencies.AddUnit(Const Value : String;const CPUs:TCPUs'+
+  'Fun','ction TDependencies.AddUnit(Const Value : String;const CPUs:TCPUs'+
   ') : TDependency;'#010+
   'begin'#010+
   '  result:=AddUnit(Value,CPUs,AllOSes);'#010+
@@ -5248,7 +5246,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   'Function TDependencies.AddUnit(Const Value : String;const OSes:TOSes) '+
-  ': TDependency',';'#010+
+  ': TDepen','dency;'#010+
   'begin'#010+
   '  result:=AddUnit(Value,AllCPUs,OSes);'#010+
   'end;'#010+
@@ -5258,7 +5256,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'onst OSes:TOSes) : TDependency;'#010+
   'begin'#010+
   '  Result:=inherited Add(Value,CPUs,OSes) as TDependency;'#010+
-  '  Result.Target:=nil;',#010+
+  '  Result.Target:','=nil;'#010+
   '  Result.FDependencyType:=depUnit;'#010+
   'end;'#010+
   #010+
@@ -5271,7 +5269,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   #010+
   '{$ifdef cpu_only_overloads}'#010+
-  'Function TDependencies.AddInclude(Const ','Value : String;const CPUs:TC'+
+  'Function TDependencies.AddInclude(C','onst Value : String;const CPUs:TC'+
   'PUs) : TDependency;'#010+
   'begin'#010+
   '  result:=AddInclude(Value,CPUs,AllOSes);'#010+
@@ -5282,7 +5280,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'Function TDependencies.AddInclude(Const Value : String;const OSes:TOSe'+
   's) : TDependency;'#010+
   'begin'#010+
-  '  result:=AddIn','clude(Value,AllCPUs,OSes);'#010+
+  '  result:=','AddInclude(Value,AllCPUs,OSes);'#010+
   'end;'#010+
   #010+
   #010+
@@ -5293,7 +5291,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'begin'#010+
   '  N:=FixPath(Value);'#010+
   '  if ExtractFileExt(N)='#039#039' then'#010+
-  '    ChangeFileExt(N,IncEx','t);'#010+
+  '    ChangeFileExt(N,','IncExt);'#010+
   '  Result:=inherited Add(N,CPUs,OSes) as TDependency;'#010+
   '  Result.FDependencyType:=depInclude;'#010+
   'end;'#010+
@@ -5302,7 +5300,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '{*********************************************************************'+
   '*******'#010+
   '                               TValueItem'#010+
-  '******************','**************************************************'+
+  '*************','*******************************************************'+
   '********}'#010+
   #010+
   'constructor TValueItem.Create(AValue: String);'#010+
@@ -5313,7 +5311,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   '{*********************************************************************'+
   '*******'#010+
-  '                       ','       TFunctionItem'#010+
+  '                  ','            TFunctionItem'#010+
   '**********************************************************************'+
   '******}'#010+
   #010+
@@ -5323,7 +5321,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  '{***************************************************','****************'+
+  '{**********************************************','*********************'+
   '*********'#010+
   '                                 TDictionary'#010+
   '**********************************************************************'+
@@ -5331,8 +5329,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   #010+
   'constructor TDictionary.Create(AOwner: TComponent);'#010+
   'begin'#010+
-  '  inherited Create(AOwner);'#010+
-  '  FL','ist:=TStringList.Create;'#010+
+  '  inherited Create(AOwner);',#010+
+  '  FList:=TStringList.Create;'#010+
   '  FList.Sorted:=True;'#010+
   '  FList.Duplicates:=dupError;'#010+
   'end;'#010+
@@ -5345,7 +5343,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  For I:=0 to Flist.Count-1 do'#010+
   '    FList.Objects[i].Free;'#010+
   '  FreeAndNil(FList);'#010+
-  '  inherited Destroy;',#010+
+  '  inherited Des','troy;'#010+
   'end;'#010+
   #010+
   #010+
@@ -5358,7 +5356,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    I:=FList.Add(Aname)'#010+
   '  else'#010+
   '    Flist.Objects[i].Free;'#010+
-  '  Flist.Objects[i]:=TValueItem.Create(Value)',';'#010+
+  '  Flist.Objects[i]:=TValueItem.Create(V','alue);'#010+
   'end;'#010+
   #010+
   #010+
@@ -5372,7 +5370,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    I:=Flist.Add(AName)'#010+
   '  else'#010+
   '    Flist.Objects[i].Free;'#010+
-  '  Flist.Objects[i]',':=TFunctionItem.Create(FReplacement);'#010+
+  '  Flist.Objec','ts[i]:=TFunctionItem.Create(FReplacement);'#010+
   'end;'#010+
   #010+
   #010+
@@ -5385,8 +5383,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    begin'#010+
   '    FList.Objects[i].Free;'#010+
   '    FList.Delete(I);'#010+
-  '    end;'#010+
-  'end',';'#010+
+  '    end',';'#010+
+  'end;'#010+
   #010+
   #010+
   'function TDictionary.GetValue(const AName: String): String;'#010+
@@ -5400,8 +5398,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  O : TObject;'#010+
   '  I : Integer;'#010+
   'begin'#010+
-  '  I:=Flist.IndexOf(AName);'#010+
-  ' ',' If (I=-1) then'#010+
+  '  I:=Flist.IndexOf(ANam','e);'#010+
+  '  If (I=-1) then'#010+
   '    Raise EDictionaryError.CreateFmt(SErrNoDictionaryItem,[AName]);'#010+
   '  O:=Flist.Objects[I];'#010+
   '  If O is TValueItem then'#010+
@@ -5411,7 +5409,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'function TDi','ctionary.ReplaceStrings(Const ASource: String): String;'#010+
+  'functio','n TDictionary.ReplaceStrings(Const ASource: String): String;'#010+
   'Var'#010+
   '  S,FN,FV : String;'#010+
   '  P: Integer;'#010+
@@ -5423,7 +5421,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    begin'#010+
   '      Result:=Result+Copy(S,1,P-1);'#010+
   '      Delete(S,1,P+1);'#010+
-  '      P',':=Pos('#039')'#039',S);'#010+
+  '  ','    P:=Pos('#039')'#039',S);'#010+
   '      FN:=Copy(S,1,P-1);'#010+
   '      Delete(S,1,P);'#010+
   '      P:=Pos('#039' '#039',FN);'#010+
@@ -5433,8 +5431,8 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '        FN:=Copy(FN,1,P);'#010+
   '        System.Delete(FV,1,P);'#010+
   '        end'#010+
-  '      else'#010+
-  '   ','     FV:='#039#039';'#010+
+  '      els','e'#010+
+  '        FV:='#039#039';'#010+
   '      Result:=Result+GetValue(FN,FV);'#010+
   '      P:=Pos('#039'$('#039',S);'#010+
   '    end;'#010+
@@ -5448,7 +5446,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '  I : Integer;'#010+
   'begin'#010+
   '  I:=0;'#010+
-  '  While I<High(Macr','os) do'#010+
+  '  While I<High','(Macros) do'#010+
   '    begin'#010+
   '      Dictionary.AddVariable(Macros[i],Macros[I+1]);'#010+
   '      Inc(I,2);'#010+
@@ -5458,7 +5456,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '    begin'#010+
   '      Dictionary.RemoveItem(Macros[i]);'#010+
   '      Inc(I,2);'#010+
-  '    end;',#010+
+  '   ',' end;'#010+
   'end;'#010+
   #010+
   #010+
@@ -5469,7 +5467,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   '******}'#010+
   #010+
   'var'#010+
-  '  DefInstaller : TCu','stomInstaller;'#010+
+  '  DefInstaller ',': TCustomInstaller;'#010+
   #010+
   'Function Installer(InstallerClass: TInstallerClass): TCustomInstaller;'+
   #010+
@@ -5480,7 +5478,7 @@ const fpmkunitsrc : array[0..594,1..240] of char=(
   'end;'#010+
   #010+
   #010+
-  'Function Installer: TCustomInstal','ler;'#010+
+  'Function Installer: TCustomI','nstaller;'#010+
   'begin'#010+
   '  Result := Installer(TFPCInstaller);'#010+
   'end;'#010+
