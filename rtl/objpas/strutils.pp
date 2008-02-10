@@ -658,8 +658,24 @@ end;
 
 Function DecodeSoundexInt(AValue: Integer): string;
 
+var
+  I, Len: Integer;
+
 begin
-  // Tainted
+  Result := '';
+  Len := AValue mod 9;
+  AValue := AValue div 9;
+  for I:=Len downto 3 do
+    begin
+    Result:=Chr(Ord0+(AValue mod 7))+Result;
+    AValue:=AValue div 7;
+    end;
+  if Len>1 then
+    begin
+    Result:=Chr(Ord0+(AValue mod 26))+Result;
+    AValue:=AValue div 26;
+    end;
+  Result:=Chr(OrdA+AValue)+Result;
 end;
 
 
