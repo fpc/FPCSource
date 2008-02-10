@@ -24,17 +24,21 @@ The include lines below are generated with the following command:
 {$include aspell/fpmake.pp}
 {$include bfd/fpmake.pp}
 {$include bzip2/fpmake.pp}
+{$include cairo/fpmake.pp}
 {$include cdrom/fpmake.pp}
+{$include chm/fpmake.pp}
 {$include dbus/fpmake.pp}
 {$include dts/fpmake.pp}
 {$include fcl-async/fpmake.pp}
 {$include fcl-base/fpmake.pp}
+{$include fcl-db/fpmake.pp}
 {$include fcl-fpcunit/fpmake.pp}
 {$include fcl-image/fpmake.pp}
 {$include fcl-json/fpmake.pp}
 {$include fcl-net/fpmake.pp}
 {$include fcl-passrc/fpmake.pp}
 {$include fcl-process/fpmake.pp}
+{$include fcl-registry/fpmake.pp}
 {$include fcl-web/fpmake.pp}
 {$include fcl-xml/fpmake.pp}
 {$include fftw/fpmake.pp}
@@ -46,9 +50,11 @@ The include lines below are generated with the following command:
 {$include gdbm/fpmake.pp}
 {$include ggi/fpmake.pp}
 {$include gnome1/fpmake.pp}
+{$include graph/fpmake.pp}
 {$include gtk1/fpmake.pp}
 {$include gtk2/fpmake.pp}
 {$include hash/fpmake.pp}
+{$include hermes/fpmake.pp}
 {$include httpd13/fpmake.pp}
 {$include httpd20/fpmake.pp}
 {$include httpd22/fpmake.pp}
@@ -71,6 +77,7 @@ The include lines below are generated with the following command:
 {$include numlib/fpmake.pp}
 {$include odbc/fpmake.pp}
 {$include oggvorbis/fpmake.pp}
+{$include openal/fpmake.pp}
 {$include opengl/fpmake.pp}
 {$include openssl/fpmake.pp}
 {$include oracle/fpmake.pp}
@@ -80,6 +87,7 @@ The include lines below are generated with the following command:
 {$include paszlib/fpmake.pp}
 {$include pcap/fpmake.pp}
 {$include postgres/fpmake.pp}
+{$include ptc/fpmake.pp}
 {$include pthreads/fpmake.pp}
 {$include pxlib/fpmake.pp}
 {$include regexpr/fpmake.pp}
@@ -91,6 +99,7 @@ The include lines below are generated with the following command:
 {$include symbolic/fpmake.pp}
 {$include syslog/fpmake.pp}
 {$include tcl/fpmake.pp}
+{$include univint/fpmake.pp}
 {$include unixutil/fpmake.pp}
 {$include unzip/fpmake.pp}
 {$include users/fpmake.pp}
@@ -114,4 +123,3 @@ The include lines below are generated with the following command:
     Run;
     end;
 end.
-
