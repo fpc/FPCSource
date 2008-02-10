@@ -890,6 +890,7 @@
      DC_EXTRA = 9;
      DC_FIELDS = 1;
      DC_FILEDEPENDENCIES = 14;
+      
      DC_MAXEXTENT = 5;
      DC_MINEXTENT = 4;
      DC_ORIENTATION = 17;
@@ -934,8 +935,13 @@
      IDANI_OPEN = 1;
      IDANI_CLOSE = 2;
   { DrawCaption  }
-     DC_ACTIVE = 1;
+     DC_ACTIVE   = 1;
      DC_SMALLCAP = 2;
+     DC_ICON     = 4;
+     DC_TEXT     = 8;
+     DC_INBUTTON = 16;
+     DC_GRADIENT = 32;
+     DC_BUTTONS  = $1000;
   { DrawEdge  }
      BDR_RAISEDINNER = 4;
      BDR_SUNKENINNER = 8;
@@ -5616,7 +5622,8 @@ const
   GA_ROOT       = 2;  { The window's root window }
   GA_ROOTOWNER  = 3;  { The window's owner }
 
-
+  AC_SRC_OVER = $00;     
+  AC_SRC_ALPHA = $01;     
 
 {$endif read_interface}
 

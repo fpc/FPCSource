@@ -251,6 +251,7 @@
 
      SERVICE_STATUS_HANDLE = DWORD;
 
+
 {$ifdef UNICODE}
      TBYTE = word;
      TCHAR = widechar;
@@ -271,7 +272,7 @@
      WPARAM = LONG_PTR;
      PLPSTR = ^LPSTR;
      PLPWStr= ^LPWStr;
-
+     COLOR16 = ushort;
 {
   Enumerations
 }

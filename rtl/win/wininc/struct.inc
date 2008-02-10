@@ -7389,6 +7389,37 @@ type
   PComboboxInfo = ^TComboboxInfo;
   LPComboboxInfo = PComboboxInfo;
 
+  _TRIVERTEX = record
+          x : LONG;
+          y : LONG;
+          Red : COLOR16;
+          Green : COLOR16;
+          Blue : COLOR16;
+          Alpha : COLOR16;
+       end;
+  TRIVERTEX = _TRIVERTEX;
+  PTRIVERTEX = ^_TRIVERTEX;
+  LPTRIVERTEX = PTRIVERTEX;
+
+  _GRADIENT_TRIANGLE = record
+          Vertex1 : ULONG;
+          Vertex2 : ULONG;
+          Vertex3 : ULONG;
+       end;
+  GRADIENT_TRIANGLE = _GRADIENT_TRIANGLE;
+  TGRADIENT_TRIANGLE = _GRADIENT_TRIANGLE;
+  PGRADIENT_TRIANGLE = ^_GRADIENT_TRIANGLE;
+  LPGRADIENT_TRIANGLE = PGRADIENT_TRIANGLE;
+
+  _GRADIENT_RECT = record
+          UpperLeft : ULONG;
+          LowerRight : ULONG;
+       end;
+  GRADIENT_RECT = _GRADIENT_RECT;
+  TGRADIENT_RECT = _GRADIENT_RECT;
+  PGRADIENT_RECT = ^_GRADIENT_RECT;
+  LPGRADIENT_RECT = PGRADIENT_RECT;
+
 {$endif read_interface}
 
 
