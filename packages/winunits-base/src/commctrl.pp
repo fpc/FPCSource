@@ -437,6 +437,8 @@ CONST
          CDRF_NOTIFYSUBITEMDRAW         = $00000020;          // flags are the same, we can distinguish by context
 {$ENDIF}
          CDRF_NOTIFYPOSTERASE           = $00000040;
+         CDRF_NOTIFYITEMERASE           = $00000080;  // according to lazarus headers. Can't find in sdk 6.0 (Vista sdk)
+ 
 
 // drawstage flags
 // values under 0x00010000 are reserved for global custom draw values.
@@ -534,6 +536,7 @@ TYPE
                                  crEffect     : COLORREF;
 {$ENDIF}
                                  END;
+         tagIMAGELISTDRAWPARAMS  = _IMAGELISTDRAWPARAMS;
          IMAGELISTDRAWPARAMS  = _IMAGELISTDRAWPARAMS;
          LPIMAGELISTDRAWPARAMS = ^_IMAGELISTDRAWPARAMS;
          TIMAGELISTDRAWPARAMS = _IMAGELISTDRAWPARAMS;

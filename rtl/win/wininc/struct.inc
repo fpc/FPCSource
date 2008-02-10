@@ -7376,6 +7376,19 @@ type
      PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY32;
 {$endif}
 
+ tagCOMBOBOXINFO = record
+    cbSize: DWORD;
+    rcItem: TRect;
+    rcButton: TRect;
+    stateButton: DWORD;
+    hwndCombo: HWND;
+    hwndItem: HWND;
+    hwndList: HWND;
+  end;
+  TComboboxInfo = tagCOMBOBOXINFO;
+  PComboboxInfo = ^TComboboxInfo;
+  LPComboboxInfo = PComboboxInfo;
+
 {$endif read_interface}
 
 

@@ -2528,8 +2528,21 @@ Type
      OCR_SIZEWE = 32644;
      OCR_SIZENS = 32645;
      OCR_SIZEALL = 32646;
+     OCR_ICOCUR  =  32647;   // OBSOLETE: use OIC_WINLOGO 
      OCR_NO = 32648;
      OCR_APPSTARTING = 32650;
+     OCR_HAND = 32649;
+     OIC_SAMPLE         = 32512;
+     OIC_HAND           = 32513;
+     OIC_QUES           = 32514;
+     OIC_BANG           = 32515;
+     OIC_NOTE           = 32516;
+     OIC_WINLOGO        = 32517;
+     OIC_WARNING        = OIC_BANG;
+     OIC_ERROR          = OIC_HAND;
+     OIC_INFORMATION    = OIC_NOTE;
+     OIC_SHIELD         = 32518;
+
   { SetTapePosition  }
      TAPE_ABSOLUTE_BLOCK = $1;
      TAPE_LOGICAL_BLOCK = $2;
@@ -2565,6 +2578,10 @@ Type
      SWP_NOOWNERZORDER = 512;
      SWP_NOREPOSITION = 512;
      SWP_NOSENDCHANGING = 1024;
+     SWP_DEFERERASE     = $2000;
+     SWP_ASYNCWINDOWPOS = $4000;
+     SWP_STATECHANGED   = $8000; // used by windows but not documented (used even in wine)
+
   { SHAddToRecentDocs  }
   { SHAppBarMessage  }
   { SHChangeNotify  }
@@ -4333,32 +4350,41 @@ Type
      SE_PRIVILEGE_USED_FOR_ACCESS = $80000000;
      PRIVILEGE_SET_ALL_NECESSARY = $1;
   { OPENFILENAME structure  }
-     OFN_ALLOWMULTISELECT = $200;
-     OFN_CREATEPROMPT = $2000;
-     OFN_ENABLEHOOK = $20;
-     OFN_ENABLETEMPLATE = $40;
-     OFN_ENABLETEMPLATEHANDLE = $80;
-     OFN_EXPLORER = $80000;
-     OFN_EXTENSIONDIFFERENT = $400;
-     OFN_FILEMUSTEXIST = $1000;
-     OFN_HIDEREADONLY = $4;
-     OFN_LONGNAMES = $200000;
-     OFN_NOCHANGEDIR = $8;
-     OFN_NODEREFERENCELINKS = $100000;
-     OFN_NOLONGNAMES = $40000;
-     OFN_NONETWORKBUTTON = $20000;
-     OFN_NOREADONLYRETURN = $8000;
-     OFN_NOTESTFILECREATE = $10000;
-     OFN_NOVALIDATE = $100;
-     OFN_OVERWRITEPROMPT = $2;
-     OFN_PATHMUSTEXIST = $800;
-     OFN_READONLY = $1;
-     OFN_SHAREAWARE = $4000;
-     OFN_SHOWHELP = $10;
+     
+     
+     OFN_READONLY                 = $1;
+     OFN_OVERWRITEPROMPT          = $2;
+     OFN_HIDEREADONLY             = $4;	 
+     OFN_NOCHANGEDIR              = $8;
+     OFN_SHOWHELP                 = $10;
+     OFN_ENABLEHOOK               = $20;
+     OFN_ENABLETEMPLATE           = $40;
+     OFN_ENABLETEMPLATEHANDLE     = $80;
+     OFN_NOVALIDATE               =      $100;
+     OFN_ALLOWMULTISELECT         =      $200;
+     OFN_EXTENSIONDIFFERENT       =      $400;
+     OFN_PATHMUSTEXIST            =      $800;
+     OFN_FILEMUSTEXIST            =     $1000;
+     OFN_CREATEPROMPT             =     $2000;
+     OFN_SHAREAWARE               =     $4000;
+     OFN_NOREADONLYRETURN         =     $8000;
+     OFN_NOTESTFILECREATE         =    $10000;
+     OFN_NONETWORKBUTTON          =    $20000;
+     OFN_NOLONGNAMES              =    $40000;
+     OFN_EXPLORER                 =    $80000;     
+     OFN_NODEREFERENCELINKS       =   $100000;
+     OFN_LONGNAMES                =   $200000;
+     OFN_ENABLEINCLUDENOTIFY      = $00400000;
+     OFN_ENABLESIZING             = $00800000;
+     OFN_DONTADDTORECENT          = $02000000;
+     OFN_FORCESHOWHIDDEN          = $10000000;    
+          
   { SHAREVISTRING message  }
      OFN_SHAREFALLTHROUGH = $2;
      OFN_SHARENOWARN = $1;
      OFN_SHAREWARN = 0;
+	 
+     OFN_EX_NOPLACESBAR         = $00000001;
   { Open/Save notifications  }
      CDN_INITDONE = $fffffda7;
      CDN_SELCHANGE = $fffffda6;
@@ -5585,6 +5611,11 @@ const
   STRRET_WSTR	= 0;
   STRRET_OFFSET	= 1;
   STRRET_CSTR	= 2;
+
+  GA_PARENT     = 1;  { The window's direct parent window }
+  GA_ROOT       = 2;  { The window's root window }
+  GA_ROOTOWNER  = 3;  { The window's owner }
+
 
 
 {$endif read_interface}
