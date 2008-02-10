@@ -97,6 +97,8 @@ unit cgutils;
             LOC_CREGISTER : (
               case longint of
                 1 : (register : tregister;
+                     { some x86_64 targets require two function result registers }
+                     registerhi : tregister;
 {$ifdef m68k}
                      { some m68k OSes require that the result is returned in d0 and a0
                        the second location must be stored here }

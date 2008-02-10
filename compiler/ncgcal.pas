@@ -509,6 +509,7 @@ implementation
       var
         cgsize    : tcgsize;
         retloc    : tlocation;
+        ref       : treference;
 {$ifndef x86}
         hregister : tregister;
 {$endif not x86}
@@ -546,7 +547,20 @@ implementation
                if cgsize<>OS_NO then
                 begin
                   location_reset(location,LOC_REGISTER,cgsize);
-{$ifndef cpu64bit}
+{$ifdef cpu64bit}
+                  { x86-64 system v abi:
+                    structs with up to 16 bytes are returned in registers }
+                  if cgsize in [OS_128,OS_S128] then
+                    begin
+                      tg.GetTemp(current_asmdata.CurrAsmList,16,tt_normal,ref);
+                      location_reset(location,LOC_REFERENCE,OS_NO);
+                      location.reference:=ref;
+                      cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,procdefinition.funcretloc[callerside].register,ref);
+                      inc(ref.offset,8);
+                      cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,procdefinition.funcretloc[callerside].registerhi,ref);
+                    end
+                  else
+{$else cpu64bit}
                   if cgsize in [OS_64,OS_S64] then
                     begin
                       retloc:=procdefinition.funcretloc[callerside];

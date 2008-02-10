@@ -1267,9 +1267,7 @@ implementation
 
     procedure gen_load_return_value(list:TAsmList);
       var
-{$ifndef cpu64bit}
         href   : treference;
-{$endif cpu64bit}
         ressym : tabstractnormalvarsym;
         resloc,
         restmploc : tlocation;
@@ -1334,7 +1332,51 @@ implementation
             case funcretloc.loc of
               LOC_REGISTER:
                 begin
-{$ifndef cpu64bit}
+{$ifdef cpu64bit}
+                  if current_procinfo.procdef.funcretloc[calleeside].size in [OS_128,OS_S128] then
+                    begin
+                      resloc:=current_procinfo.procdef.funcretloc[calleeside];
+                      if resloc.loc<>LOC_REGISTER then
+                        internalerror(200409141);
+                      { Load low and high register separate to generate better register
+                        allocation info }
+                      if getsupreg(resloc.register)<first_int_imreg then
+                        begin
+                          cg.getcpuregister(list,resloc.register);
+                        end;
+                      case restmploc.loc of
+                        LOC_REFERENCE :
+                          begin
+                            href:=restmploc.reference;
+                            if target_info.endian=ENDIAN_BIG then
+                              inc(href.offset,8);
+                            cg.a_load_ref_reg(list,OS_64,OS_64,href,resloc.register);
+                          end;
+                        LOC_CREGISTER :
+                          cg.a_load_reg_reg(list,OS_64,OS_64,restmploc.register,resloc.register);
+                        else
+                          internalerror(200409203);
+                      end;
+                      if getsupreg(resloc.registerhi)<first_int_imreg then
+                        begin
+                          cg.getcpuregister(list,resloc.registerhi);
+                        end;
+                      case restmploc.loc of
+                        LOC_REFERENCE :
+                          begin
+                            href:=restmploc.reference;
+                            if target_info.endian=ENDIAN_LITTLE then
+                              inc(href.offset,8);
+                            cg.a_load_ref_reg(list,OS_64,OS_64,href,resloc.registerhi);
+                          end;
+                        LOC_CREGISTER :
+                          cg.a_load_reg_reg(list,OS_64,OS_64,restmploc.registerhi,resloc.registerhi);
+                        else
+                          internalerror(200409204);
+                      end;
+                    end
+                  else
+{$else cpu64bit}
                   if current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64] then
                     begin
                       resloc:=current_procinfo.procdef.funcretloc[calleeside];

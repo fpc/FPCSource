@@ -193,12 +193,48 @@ unit cpupara;
 
 
     function tx86_64paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+      var
+        l,loc1,loc2 : tcgloc;
+        i : longint;
       begin
-        if target_info.system=system_x86_64_win64 then
-          result:=(calloption=pocall_safecall) or
-            (def.size>8) or not(def.size in [1,2,4,8])
-        else
-          result:=inherited ret_in_param(def,calloption);
+        case target_info.system of
+          system_x86_64_win64:
+            result:=(calloption=pocall_safecall) or
+              (def.size>8) or not(def.size in [1,2,4,8])
+          else
+            { handle objectdefs by the default code because they have no equivalence in C }
+            if (def.typ in [recorddef {,arraydef }]) and (def.size<=16) then
+              begin
+                case def.typ of
+                  recorddef:
+                    begin
+                      l:=LOC_MMREGISTER;
+                      for i:=0 to tabstractrecorddef(def).symtable.SymList.count-1 do
+                        begin
+                          getvalueparaloc(vs_value,tfieldvarsym(tabstractrecorddef(def).symtable.SymList[i]).vardef,loc1,loc2);
+                          case loc1 of
+                            LOC_REGISTER:
+                              if l<>LOC_REFERENCE then
+                                l:=LOC_REGISTER;
+                            LOC_MMREGISTER:
+                              ;
+                            else
+                              l:=LOC_REFERENCE;
+                          end;
+                        end;
+                    end;
+                  arraydef:
+                    begin
+                      getvalueparaloc(vs_value,tarraydef(def).elementdef,l,loc2);
+                      if not(l in [LOC_MMREGISTER,LOC_REGISTER]) then
+                        l:=LOC_REFERENCE;
+                    end;
+                end;
+                result:=l=LOC_REFERENCE;
+              end
+            else
+              result:=inherited ret_in_param(def,calloption);
+        end;
       end;
 
 
@@ -400,11 +436,20 @@ unit cpupara;
          { Return in register }
           begin
             p.funcretloc[side].loc:=LOC_REGISTER;
-            p.funcretloc[side].size:=retcgsize;
-            if side=callerside then
-              p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+            if p.returndef.size>8 then
+              begin
+                p.funcretloc[side].size:=OS_128;
+                p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
+                p.funcretloc[side].registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
+              end
             else
-              p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+              begin
+                p.funcretloc[side].size:=retcgsize;
+                if side=callerside then
+                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+                else
+                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+              end;
           end;
       end;
 
