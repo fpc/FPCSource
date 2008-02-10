@@ -1358,7 +1358,7 @@ begin
      if Index+Size<=LS then
       begin
         Dec(Index);
-        Move(PWideChar(S)[Index+Size],PWideChar(S)[Index],(LS-Index+1)*sizeof(WideChar));
+        Move(PWideChar(S)[Index+Size],PWideChar(S)[Index],(LS-Index-Size+1)*sizeof(WideChar));
       end;
      Setlength(s,LS-Size);
    end;
