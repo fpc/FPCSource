@@ -8,32 +8,82 @@ unit SpellCheck;
 interface
 
 uses
-  SysUtils, Aspell;
+  SysUtils, Classes, Aspell;
 
 type
   TSuggestionArray = array of string;
   
-  { TSpellCheck }
+  TWordError = record
+    Word: string; // the word itself
+    Pos: LongWord; // word position in line
+    Length: LongWord; // word length
+    Suggestions: TSuggestionArray; // suggestions for the given word
+  end;
+  
+  TLineErrors = array of TWordError;
+  TLineErrorsArray = array of TLineErrors;
 
-  TSpellCheck = class
+  { TSpeller }
+  { Abstract ancestor, don't use directly }
+
+  TSpeller = class // abstract class, basis for all checkers
    protected
-    FSpeller: PAspellSpeller;
     FMode: string;
     FEncoding: string;
     FLanguage: string;
     procedure SetEncoding(const AValue: string);
     procedure SetLanguage(const AValue: string);
     procedure SetMode(const AValue: string);
-    procedure CreateSpeller;
-    procedure FreeSpeller;
+    procedure CreateSpeller; virtual; abstract;
+    procedure FreeSpeller; virtual; abstract;
    public
     constructor Create;
     destructor Destroy; override;
-    function SpellCheck(const Word: string): TSuggestionArray;
    public
     property Mode: string read FMode write SetMode;
     property Encoding: string read FEncoding write SetEncoding;
     property Language: string read FLanguage write SetLanguage;
+  end;
+
+  { TWordSpeller }
+  { Basic spelling class for spelling single words without context }
+  
+  TWordSpeller = class(TSpeller) // class for simple per-word checking
+   private
+    FSpeller: PAspellSpeller;
+   protected
+    procedure CreateSpeller; override;
+    procedure FreeSpeller; override;
+   public
+    function SpellCheck(const Word: string): TSuggestionArray; // use to check single words, parsed out by you
+  end;
+  
+  { TDocumentSpeller }
+  { This speller is used to spellcheck lines or even whole documents.
+    It is usefull when different mode (like "tex") is used so you can pass
+    everything to aspell and let it take care of the context }
+
+  TDocumentSpeller = class(TWordSpeller)
+   private
+    FChecker: PAspellDocumentChecker;
+    FLineErrors: TLineErrorsArray;
+    FNameSuggestions: Boolean;
+    function GetLineErrors(i: Integer): TLineErrors;
+    function GetLineErrorsCount: Integer;
+   protected
+    procedure CreateSpeller; override;
+    procedure FreeSpeller; override;
+    procedure DoNameSuggestions(const Word: string; var aWordError: TWordError);
+   public
+    constructor Create;
+    function CheckLine(const aLine: string): TLineErrors;
+    function CheckDocument(const FileName: string): Integer; // returns number of spelling errors found or -1 for error
+    function CheckDocument(aStringList: TStringList): Integer; // returns number of spelling errors found or -1 for error
+    procedure Reset;
+   public
+    property LineErrors[i: Integer]: TLineErrors read GetLineErrors;
+    property LineErrorsCount: Integer read GetLineErrorsCount;
+    property NameSuggestions: Boolean read FNameSuggestions write FNameSuggestions;
   end;
 
 implementation
@@ -50,27 +100,43 @@ begin
     Result := DEFAULT_LANGUAGE;
 end;
 
-{ TSpellCheck }
+{ TSpeller }
 
-procedure TSpellCheck.SetEncoding(const AValue: string);
+procedure TSpeller.SetEncoding(const AValue: string);
 begin
   FEncoding := aValue;
   CreateSpeller;
 end;
 
-procedure TSpellCheck.SetLanguage(const AValue: string);
+procedure TSpeller.SetLanguage(const AValue: string);
 begin
   FLanguage := aValue;
   CreateSpeller;
 end;
 
-procedure TSpellCheck.SetMode(const AValue: string);
+procedure TSpeller.SetMode(const AValue: string);
 begin
   FMode := aValue;
   CreateSpeller;
 end;
 
-procedure TSpellCheck.CreateSpeller;
+constructor TSpeller.Create;
+begin
+  FEncoding := DEFAULT_ENCODING;
+  FLanguage := GetDefaultLanguage;
+  FMode := DEFAULT_MODE;
+
+  CreateSpeller;
+end;
+
+destructor TSpeller.Destroy;
+begin
+  FreeSpeller;
+end;
+
+{ TWordSpeller }
+
+procedure TWordSpeller.CreateSpeller;
 var
   Config: Paspellconfig;
   Error: Paspellcanhaveerror;
@@ -95,7 +161,7 @@ begin
     FSpeller := to_aspell_speller(Error);
 end;
 
-procedure TSpellCheck.FreeSpeller;
+procedure TWordSpeller.FreeSpeller;
 begin
   if Assigned(FSpeller) then begin
     delete_aspell_speller(FSpeller);
@@ -103,21 +169,7 @@ begin
   end;
 end;
 
-constructor TSpellCheck.Create;
-begin
-  FEncoding := DEFAULT_ENCODING;
-  FLanguage := GetDefaultLanguage;
-  FMode := DEFAULT_MODE;
-
-  CreateSpeller;
-end;
-
-destructor TSpellCheck.Destroy;
-begin
-  FreeSpeller;
-end;
-
-function TSpellCheck.SpellCheck(const Word: string): TSuggestionArray;
+function TWordSpeller.SpellCheck(const Word: string): TSuggestionArray;
 var
   sgs: Paspellwordlist;
   elm: Paspellstringenumeration;
@@ -146,6 +198,122 @@ begin
 
     delete_aspell_string_enumeration(elm);
   end;
+end;
+
+{ TDocumentSpeller }
+
+function TDocumentSpeller.GetLineErrors(i: Integer): TLineErrors;
+begin
+  Result := FLineErrors[i];
+end;
+
+function TDocumentSpeller.GetLineErrorsCount: Integer;
+begin
+  Result := Length(FLineErrors);
+end;
+
+procedure TDocumentSpeller.CreateSpeller;
+var
+  Error: PAspellCanHaveError;
+begin
+  inherited CreateSpeller;
+  
+  Error := new_aspell_document_checker(FSpeller);
+
+  if aspell_error_number(Error) <> 0 then
+    raise Exception.Create('Error on checker creation: ' + aspell_error_message(Error))
+  else
+    FChecker := to_aspell_document_checker(Error);
+end;
+
+procedure TDocumentSpeller.FreeSpeller;
+begin
+  if Assigned(FChecker) then begin
+    delete_aspell_document_checker(FChecker);
+    FChecker := nil;
+  end;
+
+  inherited FreeSpeller;
+end;
+
+procedure TDocumentSpeller.DoNameSuggestions(const Word: string;
+  var aWordError: TWordError);
+begin
+  aWordError.Suggestions := SpellCheck(Word);
+end;
+
+constructor TDocumentSpeller.Create;
+begin
+  inherited Create;
+  
+  FNameSuggestions := True;
+end;
+
+function TDocumentSpeller.CheckLine(const aLine: string): TLineErrors;
+const
+  CHUNK_SIZE = 10;
+var
+  i, Count: Integer;
+  Token: AspellToken;
+begin
+  aspell_document_checker_process(FChecker, pChar(aLine), Length(aLine));
+
+  SetLength(Result, CHUNK_SIZE);
+  i := 0;
+  Count := 0;
+  repeat
+    Token := aspell_document_checker_next_misspelling(FChecker);
+
+    if Token.len > 0 then begin
+      if Length(Result) <= i then
+        SetLength(Result, Length(Result) + CHUNK_SIZE);
+
+      Result[i].Word := Copy(aLine, Token.offset + 1, Token.len);
+      Result[i].Pos := Token.offset + 1; // C goes from 0, we go from 1
+      Result[i].Length := Token.len;
+
+      if FNameSuggestions then
+        DoNameSuggestions(Copy(aLine, Token.offset + 1, Token.len), Result[i]);
+        
+      Inc(Count);
+    end;
+
+    Inc(i);
+  until Token.len = 0;
+  
+  SetLength(Result, Count);
+end;
+
+function TDocumentSpeller.CheckDocument(const FileName: string): Integer;
+var
+  s: TStringList;
+begin
+  Result := 0;
+  if FileExists(FileName) then try
+    s := TStringList.Create;
+    s.LoadFromFile(FileName);
+    Result := CheckDocument(s);
+  finally
+    s.Free;
+  end;
+end;
+
+function TDocumentSpeller.CheckDocument(aStringList: TStringList): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  SetLength(FLineErrors, aStringList.Count);
+
+  for i := 0 to aStringList.Count - 1 do begin
+    FLineErrors[i] := CheckLine(aStringList[i]);
+    Inc(Result, Length(FLineErrors[i]));
+  end;
+end;
+
+procedure TDocumentSpeller.Reset;
+begin
+  aspell_document_checker_reset(FChecker);
 end;
 
 end.
