@@ -127,20 +127,17 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  //s:=FindObjectFile('prt0','',false);
   if prtobj<>'' then
    s:=FindObjectFile(prtobj,'',false);
   LinkRes.AddFileName(s);
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
-   //QUA C'E' LA GUFECCHIA!!!!
      if librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
    end;
   if linklibgcc then
    begin
-   //QUA C'E' LA GUFECCHIA!!!!
      if librarysearchpath.FindFile('crtbegin.o',false,s) then
        LinkRes.AddFileName(s);
    end;
@@ -708,8 +705,8 @@ begin
   StripStr:='';
   DynLinkStr:='';
   case apptype of
-   app_arm9: preName:='.arm9';
-   app_arm7: preName:='.arm7';
+   app_arm9: preName:='.nef';
+   app_arm7: preName:='.nlf';
   end;
 
   GCSectionsStr:='--gc-sections';
@@ -722,24 +719,14 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  if not(cs_link_on_target in current_settings.globalswitches) then
-   begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName+'.nef')))));
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
-    Replace(cmdstr,'$STATIC',StaticStr);
-    Replace(cmdstr,'$STRIP',StripStr);
-    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-    Replace(cmdstr,'$DYNLINK',DynLinkStr);
-   end
-  else
-   begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName+'.nef'))));
-    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
-    Replace(cmdstr,'$STATIC',StaticStr);
-    Replace(cmdstr,'$STRIP',StripStr);
-    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-    Replace(cmdstr,'$DYNLINK',DynLinkStr);
-   end;
+
+  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName)))));
+  Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$STATIC',StaticStr);
+  Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
@@ -750,7 +737,7 @@ begin
   if success then
     begin
       success:=DoExec(FindUtil(utilsprefix + 'objcopy'), '-O binary '+ 
-        ChangeFileExt(current_module.exefilename^, preName+'.nef') + ' ' + 
+        ChangeFileExt(current_module.exefilename^, preName) + ' ' + 
         ChangeFileExt(current_module.exefilename^, preName+target_info.exeext),
         true,false);
     end;

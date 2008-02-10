@@ -1432,7 +1432,6 @@ end;
                                  InitHeap
 *****************************************************************************}
 
-{$if not(defined(gba)) and not(defined(nds))}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 procedure InitHeap;
@@ -1447,7 +1446,6 @@ begin
   fillchar(maxsizeusage,sizeof(sizeusage),0);
 {$endif}
 end;
-{$endif}
 
 procedure FinalizeHeap;
 var

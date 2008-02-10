@@ -19,11 +19,10 @@ interface
 
 {$define __ARM__} (* For future usage! *)
 {$define FPC_IS_SYSTEM}
-{$define USE_NOTHREADMANAGER}
 
 {$i gbabiosh.inc}
 
-{$I systemh.inc}
+{$i systemh.inc}
 
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
@@ -61,8 +60,7 @@ var
   argv: PPChar;
   envp: PPChar;
   errno: integer;
-  fake_heap_start: pchar; cvar;
-  fake_heap_end: pchar; cvar;
+
 
 implementation
 
@@ -82,7 +80,7 @@ implementation
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
-{$I system.inc}
+{$i system.inc}
 
 {$i gbabios.inc}
 
@@ -139,34 +137,11 @@ begin
 end;
 
 
-procedure InitHeap;
-begin
-  FillChar(freelists_fixed,sizeof(tfreelists),0);
-  FillChar(freelists_free_chunk,sizeof(freelists_free_chunk),0);
-
-  freelist_var:=nil;
-  {The GBA has no operating system from which we ask memory, so we
-   initialize the heap with a single block of memory.}
-  freeoslistcount:=1;
-  freeoslist:=pointer($2040000);
-  fillchar(freeoslist^,sizeof(freeoslist^),0);
-  freeoslist^.size:=$40000; {GBA heap is $40000 bytes.}
-  fillchar(internal_status,sizeof(internal_status),0);
-end;
-
-
-
-
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  ///StackBottom := Sptr - StackLength;
   StackBottom := StackTop - StackLength;
 { OS specific startup }
-  fake_heap_start := pchar(0);
-  fake_heap_end := pchar(0);
-{ Set up signals handlers }
 
-  fpc_cpucodeinit;
 { Setup heap }
   InitHeap;
   SysInitExceptions;
@@ -175,7 +150,6 @@ begin
 { Reset IO Error }
   InOutRes:=0;
 { Arguments }
-
   InitSystemThreads;
   initvariantmanager;
 end.
