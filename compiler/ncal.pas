@@ -1188,6 +1188,13 @@ implementation
           callinitblock:=internalstatements(lastinitstatement)
         else
           lastinitstatement:=laststatement(callinitblock);
+        { all these nodes must be immediately typechecked, because this routine }
+        { can be called from pass_1 (i.e., after typecheck has already run) and }
+        { moreover, the entire blocks themselves are also only typechecked in   }
+        { pass_1, while the the typeinfo is already required after the          }
+        { typecheck pass for simplify purposes (not yet perfect, because the    }
+        { statementnodes themselves are not typechecked this way)               }
+        typecheckpass(n);
         addstatement(lastinitstatement,n);
       end;
 
@@ -1200,6 +1207,8 @@ implementation
           callcleanupblock:=internalstatements(lastdonestatement)
         else
           lastdonestatement:=laststatement(callcleanupblock);
+        { see comments in add_init_statement }
+        typecheckpass(n);
         addstatement(lastdonestatement,n);
       end;
 
