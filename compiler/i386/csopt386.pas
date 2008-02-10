@@ -193,13 +193,15 @@ begin
               tmpRef.base := NR_EDI;
               tmpRef.index := NR_EDI;
               for regCounter := RS_EAX to RS_EDI do
-                if writeToMemDestroysContents(RS_INVALID,tmpRef,regCounter,OS_32,c[regCounter],dummy) then
-                  begin
-                    exclude(regsStillValid,regCounter);
-                    modifiesConflictingMemLocation := not(supreg in regsStillValid);
-                 end;
-              if (regcounter = supreg) then
-                invalsmemwrite := invalsmemwrite or dummy;
+                begin
+                  if writeToMemDestroysContents(RS_INVALID,tmpRef,regCounter,OS_32,c[regCounter],dummy) then
+                    begin
+                      exclude(regsStillValid,regCounter);
+                      modifiesConflictingMemLocation := not(supreg in regsStillValid);
+                   end;
+                  if (regcounter = supreg) then
+                    invalsmemwrite := invalsmemwrite or dummy;
+                end;
             end;
         end;
   end;
