@@ -2670,6 +2670,7 @@ implementation
             if (ImplIntf=ImplIntf.VtblImplIntf) and
                assigned(ImplIntf.ProcDefs) then
               begin
+                maybe_new_object_file(list);
                 for j:=0 to ImplIntf.ProcDefs.Count-1 do
                   begin
                     pd:=TProcdef(ImplIntf.ProcDefs[j]);
