@@ -1362,10 +1362,9 @@ unit cgcpu;
 //            writeln('proc exit with stackframe, size:',localsize,' parasize:',parasize);
 {$endif DEBUG_CHARLIE}
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
-	    parasize := parasize - 8; { FIXME: ugly hack to correct the value...
-	                                but the real fun is, that works for now. 
-					i wonder where the extra 8 size comes from.
-					... maybe return address + framepointer size? (KB) }
+	    parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
+	                                                            correct here, but at least it looks less
+								    hacky, and makes some sense (KB) }
             if (parasize<>0) then
               begin
                 { only 68020+ supports RTD, so this needs another code path
@@ -1497,6 +1496,7 @@ unit cgcpu;
                   end
                 else
                   begin
+//    		    list.concat(tai_comment.create(strpnew('sign extend byte')));
                     list.concat(taicpu.op_reg(A_EXTB,S_L,reg));
                   end;
               end;
@@ -1504,15 +1504,18 @@ unit cgcpu;
               begin
                 if (isaddressregister(reg)) then
                    internalerror(20020729);
+//    		list.concat(tai_comment.create(strpnew('sign extend word')));
                 list.concat(taicpu.op_reg(A_EXT,S_L,reg));
               end;
          { zero extend }
          OS_8:
               begin
+//    		list.concat(tai_comment.create(strpnew('zero extend byte')));
                 list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg));
               end;
          OS_16:
               begin
+//    		list.concat(tai_comment.create(strpnew('zero extend word')));
                 list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
               end;
         end; { otherwise the size is already correct }
