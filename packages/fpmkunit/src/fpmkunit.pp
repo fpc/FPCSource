@@ -973,7 +973,7 @@ ResourceString
   SInfoExecutingCommand   = 'Executing command "%s %s"';
   SInfoCreatingOutputDir  = 'Creating output dir "%s"';
   SInfoInstallingPackage  = 'Installing package %s';
-  SInfoArchivingPackage   = 'Archiving package %s';
+  SInfoArchivingPackage   = 'Archiving package %s in "%s"';
   SInfoCleaningPackage    = 'Cleaning package %s';
   SInfoManifestPackage    = 'Creating manifest for package %s';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
@@ -4090,7 +4090,8 @@ Var
   ICPU : TCPU;
   IOS  : TOS;
 begin
-  Log(vlInfo,SInfoArchivingPackage,[APackage.Name]);
+  A:=FStartDir+ APackage.FileName + ZipExt;
+  Log(vlInfo,SInfoArchivingPackage,[APackage.Name,A]);
   try
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
@@ -4117,8 +4118,6 @@ begin
       //show all files
       for i := 0 to L.Count-1 do
         Log(vlDebug, Format(SDbgArchivingFile, [L[i]]));
-
-      A:=FStartDir+ APackage.FileName + ZipExt;
 
 {$ifdef HAS_UNIT_ZIPPER}
       if not Assigned(ArchiveFilesProc) then
