@@ -144,7 +144,6 @@
         faddp       %st,%st(1)
         fscale
         fstp        %st(1)
-        fclex
      end;
 
 
