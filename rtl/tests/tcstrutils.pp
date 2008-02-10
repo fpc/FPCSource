@@ -38,6 +38,7 @@ type
     procedure TestEmptySearchString;
     procedure TestSelstartBeforeBuf;
     procedure testSelstartAfterBuf;
+    Procedure TestDecodeSoundexInt;
   end;
 
 implementation
@@ -155,6 +156,66 @@ end;
 procedure TTestSearchBuf.testSelstartAfterBuf;
 begin
   TestSearch('very',100,[],-1);
+end;
+
+procedure TTestSearchBuf.TestDecodeSoundexInt;
+
+Const
+  OrdA = Ord('A');
+  Ord0 = Ord('0');
+
+  Function CreateInt (Const S : String) : Integer;
+
+  var
+    I, Len : Integer;
+
+  begin
+    Result:=-1;
+    Len:=Length(S);
+    If Len>0 then
+      begin
+      Result:=Ord(S[1])-OrdA;
+      if Len > 1 then
+        begin
+        Result:=Result*26+(Ord(S[2])-Ord0);
+        for I:=3 to Len do
+          Result:=(Ord(S[I])-Ord0)+Result*7;
+        end;
+      Result:=Len+Result*9;
+      end;
+  end;
+
+
+  Procedure TestOneShot(S : String);
+
+  Var
+    R : String;
+
+  begin
+    R:=DecodeSoundexInt(CreateInt(S));
+    AssertEquals('Decoded Soundexint equals original soundex result:',S,R);
+  end;
+
+Var
+  C,J,K : Integer;
+  S : String;
+
+begin
+  For C:=Ord('A') to Ord('Z') do
+    begin
+    S:=Char(C);
+    TestOneShot(S);
+    for J:=1 to 6 do
+      begin
+      S:=Char(C);
+      For K:=1 to 6 do
+        begin
+        S:=S+Char(Ord('0')+k);
+        TestOneShot(S);
+        end;
+      end;
+    end;
+
 end;
 
 procedure TTestSearchBuf.TestSimpleDownPos;
