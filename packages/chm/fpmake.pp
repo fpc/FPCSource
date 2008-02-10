@@ -7,6 +7,7 @@ uses fpmkunit;
 Var
   P : TPackage;
   T : TTarget;
+  D : TDependency;
 begin
   With Installer do
     begin
@@ -16,7 +17,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='chm';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.1';
+
+    D:=P.Dependencies.Add('fcl-xml');
+      D.Version:='2.2.1';
+    
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('chmbase.pas');
@@ -24,7 +29,6 @@ begin
       with T.Dependencies do
         begin
           AddUnit('chmwriter');
-          AddUnit('xmlcfg');
         end;
     T:=P.Targets.AddUnit('chmreader.pas');
       with T.Dependencies do
