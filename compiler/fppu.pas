@@ -765,7 +765,7 @@ uses
                     main_dir:=ExtractFilePath(hs);
                   temp:=' time '+filetimestring(source_time);
                   if (orgfiletime<>-1) and
-                     (source_time>orgfiletime) then
+                     (source_time<>orgfiletime) then
                     begin
                       do_compile:=true;
                       recompile_reason:=rr_sourcenewer;
