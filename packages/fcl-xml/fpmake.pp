@@ -113,6 +113,13 @@ begin
         begin
           AddUnit('dom');
         end;
+    T:=P.Targets.AddUnit('sax_xml.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('sax');
+          AddUnit('dom');
+          AddUnit('htmldefs');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;

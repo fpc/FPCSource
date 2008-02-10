@@ -890,6 +890,7 @@
      DC_EXTRA = 9;
      DC_FIELDS = 1;
      DC_FILEDEPENDENCIES = 14;
+      
      DC_MAXEXTENT = 5;
      DC_MINEXTENT = 4;
      DC_ORIENTATION = 17;
@@ -934,8 +935,13 @@
      IDANI_OPEN = 1;
      IDANI_CLOSE = 2;
   { DrawCaption  }
-     DC_ACTIVE = 1;
+     DC_ACTIVE   = 1;
      DC_SMALLCAP = 2;
+     DC_ICON     = 4;
+     DC_TEXT     = 8;
+     DC_INBUTTON = 16;
+     DC_GRADIENT = 32;
+     DC_BUTTONS  = $1000;
   { DrawEdge  }
      BDR_RAISEDINNER = 4;
      BDR_SUNKENINNER = 8;
@@ -2282,6 +2288,21 @@
      HKEY_CURRENT_CONFIG = HKEY($80000005);	
      HKEY_DYN_DATA = HKEY($80000006);
 
+Type
+    SE_OBJECT_TYPE = (   // enum in Delphi apparantly.
+        SE_UNKNOWN_OBJECT_TYPE	= 0,
+	SE_FILE_OBJECT,	
+	SE_SERVICE,
+	SE_PRINTER,
+	SE_REGISTRY_KEY,
+	SE_LMSHARE,
+	SE_KERNEL_OBJECT,
+	SE_WINDOW_OBJECT,
+	SE_DS_OBJECT,
+	SE_DS_OBJECT_ALL,
+	SE_PROVIDER_DEFINED_OBJECT,
+	SE_WMIGUID_OBJECT,
+	SE_REGISTRY_WOW64_32KEY);
   { RegCreateKeyEx  }
 
   const
@@ -2513,8 +2534,21 @@
      OCR_SIZEWE = 32644;
      OCR_SIZENS = 32645;
      OCR_SIZEALL = 32646;
+     OCR_ICOCUR  =  32647;   // OBSOLETE: use OIC_WINLOGO 
      OCR_NO = 32648;
      OCR_APPSTARTING = 32650;
+     OCR_HAND = 32649;
+     OIC_SAMPLE         = 32512;
+     OIC_HAND           = 32513;
+     OIC_QUES           = 32514;
+     OIC_BANG           = 32515;
+     OIC_NOTE           = 32516;
+     OIC_WINLOGO        = 32517;
+     OIC_WARNING        = OIC_BANG;
+     OIC_ERROR          = OIC_HAND;
+     OIC_INFORMATION    = OIC_NOTE;
+     OIC_SHIELD         = 32518;
+
   { SetTapePosition  }
      TAPE_ABSOLUTE_BLOCK = $1;
      TAPE_LOGICAL_BLOCK = $2;
@@ -2550,6 +2584,10 @@
      SWP_NOOWNERZORDER = 512;
      SWP_NOREPOSITION = 512;
      SWP_NOSENDCHANGING = 1024;
+     SWP_DEFERERASE     = $2000;
+     SWP_ASYNCWINDOWPOS = $4000;
+     SWP_STATECHANGED   = $8000; // used by windows but not documented (used even in wine)
+
   { SHAddToRecentDocs  }
   { SHAppBarMessage  }
   { SHChangeNotify  }
@@ -2769,12 +2807,24 @@
      SPIF_SENDCHANGE = 2;
   { TrackPopupMenu, TrackPopMenuEx  }
      TPM_CENTERALIGN = $4;
-     TPM_LEFTALIGN = 0;
-     TPM_RIGHTALIGN = $8;
-     TPM_LEFTBUTTON = 0;
+     TPM_LEFTALIGN   = 0;
+     TPM_RIGHTALIGN  = $8;
+     TPM_LEFTBUTTON  = 0;
      TPM_RIGHTBUTTON = $2;
-     TPM_HORIZONTAL = 0;
-     TPM_VERTICAL = $40;
+     TPM_HORIZONTAL  = 0;
+     TPM_VERTICAL    = $40;
+     TPM_TOPALIGN    = 0;
+     TPM_VCENTERALIGN= $10;
+     TPM_BOOTOMALIGN = $20;
+     TPM_NONOTIFY    = $80;
+     TPM_RETURNCMD   = $100;
+     TPM_RECURSE         = $0001;
+     TPM_HORPOSANIMATION = $0400;
+     TPM_HORNEGANIMATION = $0800;
+     TPM_VERPOSANIMATION = $1000;
+     TPM_VERNEGANIMATION = $2000;
+     TPM_NOANIMATION     = $4000;
+     TPM_LAYOUTRTL       = $8000;
   { TranslateCharsetInfo  }
      TCI_SRCCHARSET = 1;
      TCI_SRCCODEPAGE = 2;
@@ -3072,7 +3122,14 @@
      VS_FF_PRERELEASE = $2;
      VS_FF_PRIVATEBUILD = $8;
      VS_FF_SPECIALBUILD = $20;
+
+     VOS_WINCE               = $00050000;
+     VOS__WINDOWS16          = $00000001;
+     VOS__PM16               = $00000002;
+     VOS__PM32               = $00000003;
+     VOS__WINDOWS32          = $00000004;
      VOS_UNKNOWN = 0;
+     VOS_BASE = 0;
      VOS_DOS = $10000;
      VOS_OS216 = $20000;
      VOS_OS232 = $30000;
@@ -3099,6 +3156,9 @@
      VFT2_DRV_SYSTEM = $7;
      VFT2_DRV_INSTALLABLE = $8;
      VFT2_DRV_SOUND = $9;
+     VFT2_DRV_COMM             = $0a;
+     VFT2_DRV_INPUTMETHOD      = $0b;
+     VFT2_DRV_VERSIONED_PRINTER= $0c;
      VFT2_FONT_RASTER = $1;
      VFT2_FONT_VECTOR = $2;
      VFT2_FONT_TRUETYPE = $3;
@@ -4296,32 +4356,41 @@
      SE_PRIVILEGE_USED_FOR_ACCESS = $80000000;
      PRIVILEGE_SET_ALL_NECESSARY = $1;
   { OPENFILENAME structure  }
-     OFN_ALLOWMULTISELECT = $200;
-     OFN_CREATEPROMPT = $2000;
-     OFN_ENABLEHOOK = $20;
-     OFN_ENABLETEMPLATE = $40;
-     OFN_ENABLETEMPLATEHANDLE = $80;
-     OFN_EXPLORER = $80000;
-     OFN_EXTENSIONDIFFERENT = $400;
-     OFN_FILEMUSTEXIST = $1000;
-     OFN_HIDEREADONLY = $4;
-     OFN_LONGNAMES = $200000;
-     OFN_NOCHANGEDIR = $8;
-     OFN_NODEREFERENCELINKS = $100000;
-     OFN_NOLONGNAMES = $40000;
-     OFN_NONETWORKBUTTON = $20000;
-     OFN_NOREADONLYRETURN = $8000;
-     OFN_NOTESTFILECREATE = $10000;
-     OFN_NOVALIDATE = $100;
-     OFN_OVERWRITEPROMPT = $2;
-     OFN_PATHMUSTEXIST = $800;
-     OFN_READONLY = $1;
-     OFN_SHAREAWARE = $4000;
-     OFN_SHOWHELP = $10;
+     
+     
+     OFN_READONLY                 = $1;
+     OFN_OVERWRITEPROMPT          = $2;
+     OFN_HIDEREADONLY             = $4;	 
+     OFN_NOCHANGEDIR              = $8;
+     OFN_SHOWHELP                 = $10;
+     OFN_ENABLEHOOK               = $20;
+     OFN_ENABLETEMPLATE           = $40;
+     OFN_ENABLETEMPLATEHANDLE     = $80;
+     OFN_NOVALIDATE               =      $100;
+     OFN_ALLOWMULTISELECT         =      $200;
+     OFN_EXTENSIONDIFFERENT       =      $400;
+     OFN_PATHMUSTEXIST            =      $800;
+     OFN_FILEMUSTEXIST            =     $1000;
+     OFN_CREATEPROMPT             =     $2000;
+     OFN_SHAREAWARE               =     $4000;
+     OFN_NOREADONLYRETURN         =     $8000;
+     OFN_NOTESTFILECREATE         =    $10000;
+     OFN_NONETWORKBUTTON          =    $20000;
+     OFN_NOLONGNAMES              =    $40000;
+     OFN_EXPLORER                 =    $80000;     
+     OFN_NODEREFERENCELINKS       =   $100000;
+     OFN_LONGNAMES                =   $200000;
+     OFN_ENABLEINCLUDENOTIFY      = $00400000;
+     OFN_ENABLESIZING             = $00800000;
+     OFN_DONTADDTORECENT          = $02000000;
+     OFN_FORCESHOWHIDDEN          = $10000000;    
+          
   { SHAREVISTRING message  }
      OFN_SHAREFALLTHROUGH = $2;
      OFN_SHARENOWARN = $1;
      OFN_SHAREWARN = 0;
+	 
+     OFN_EX_NOPLACESBAR         = $00000001;
   { Open/Save notifications  }
      CDN_INITDONE = $fffffda7;
      CDN_SELCHANGE = $fffffda6;
@@ -5413,8 +5482,11 @@
   { e_magic field  }
      IMAGE_DOS_SIGNATURE = $5a4d;
   { nt_signature field  }
-     IMAGE_NT_SIGNATURE = $4550;
+     IMAGE_NT_SIGNATURE = CARDINAL($4550);
 
+    IMAGE_OS2_SIGNATURE       = $454E;      // NE
+    IMAGE_OS2_SIGNATURE_LE    = $454C;      // LE
+    IMAGE_VXD_SIGNATURE       = $454C;      // LE
 
   { Severity values }
     SEVERITY_SUCCESS = 0;
@@ -5507,7 +5579,7 @@ const
   IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER      = 12;
   IMAGE_SUBSYSTEM_EFI_ROM                 = 13;
   IMAGE_SUBSYSTEM_XBOX                    = 14;
-
+  IMAGE_SUBSYSTEM_RESERVED8		  =  IMAGE_SUBSYSTEM_NATIVE_WINDOWS; // older Delphi's? See JCLPEImage
 // DllCharacteristics Entries
 
 //      IMAGE_LIBRARY_PROCESS_INIT           0x0001     // Reserved.
@@ -5542,8 +5614,18 @@ const
   IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT   = 13; // Delay Load Import Descriptors
   IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR = 14; // COM Runtime descriptor
 
-{$endif read_interface}
+  STRRET_WSTR	= 0;
+  STRRET_OFFSET	= 1;
+  STRRET_CSTR	= 2;
 
+  GA_PARENT     = 1;  { The window's direct parent window }
+  GA_ROOT       = 2;  { The window's root window }
+  GA_ROOTOWNER  = 3;  { The window's owner }
+
+  AC_SRC_OVER = $00;     
+  AC_SRC_ALPHA = $01;     
+
+{$endif read_interface}
 
 {$ifdef read_implementation}
 

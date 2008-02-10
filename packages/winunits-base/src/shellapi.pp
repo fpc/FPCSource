@@ -341,6 +341,13 @@ Const
     BFFM_SETSTATUSTEXTW     = (WM_USER + 104);
     BFFM_SETOKTEXT          = (WM_USER + 105); // Unicode only
     BFFM_SETEXPANDED        = (WM_USER + 106); // Unicode only
+    {$IFDEF UNICODE}
+      BFFM_SETSTATUSTEXT    =      BFFM_SETSTATUSTEXTW;
+      BFFM_SETSELECTION     =      BFFM_SETSELECTIONW;
+    {$ELSE}
+      BFFM_SETSTATUSTEXT    =      BFFM_SETSTATUSTEXTA;
+      BFFM_SETSELECTION     =      BFFM_SETSELECTIONA;
+    {$ENDIF}
     ISHCUTCMDID_DOWNLOADICON  = 0;
     ISHCUTCMDID_INTSHORTCUTCREATE = 1;
     ACLO_NONE            = 0;    // don't enumerate anything
@@ -1402,7 +1409,7 @@ Type
        _SHELLEXECUTEINFOA       = record
                                    cbSize : DWORD;
                                    fMask : ULONG;
-                                   hwnd : HWND;
+                                   wnd  : HWND;
                                    lpVerb : LPCSTR;
                                    lpFile : LPCSTR;
                                    lpParameters : LPCSTR;
@@ -1429,7 +1436,7 @@ Type
        _SHELLEXECUTEINFOW       = record
                                    cbSize : DWORD;
                                    fMask : ULONG;
-                                   hwnd : HWND;
+                                   wnd : HWND;
                                    lpVerb : lpcwstr;
                                    lpFile : lpcwstr;
                                    lpParameters : lpcwstr;

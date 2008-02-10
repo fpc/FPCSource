@@ -2,21 +2,23 @@ unit users;
 
 Interface
 {$mode delphi}
-uses baseunix,pwd,shadow,grp,SysUtils,Classes;
+uses BaseUnix,pwd,grp, {$ifdef Linux} shadow{$endif},SysUtils,Classes;
 
 Type
   EUserLookupError = Class(Exception);
   EGroupLookupError = Class(Exception);
   EShadowLookupError = Class(Exception);
+  TPasswordRecord = Tpasswd;
+  PPasswordRecord = ^TPasswordRecord;
 
 { User functions }
 
 Function  getpwnam(Const UserName: String) : PPasswordRecord;
 Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord); overload;
-Procedure GetUserData(Uid : Integer; Var Data : TPasswordRecord); overload;
-function  GetUserName(UID : Integer) : String;
-function  GetUserId(Const UserName : String) : Integer;
-function  GetUserGid(Const UserName : String) : Integer;
+Procedure GetUserData(Uid : TUID; Var Data : TPasswordRecord); overload;
+function  GetUserName(UID : TUID) : String;
+function  GetUserId(Const UserName : String) : TUID;
+function  GetUserGid(Const UserName : String) : TGID;
 function  GetUserDir(Const UserName : String): String;
 function  GetUserDescription(Const UserName : String): String;
 Procedure GetUserList(List : Tstrings);overload;
@@ -26,20 +28,23 @@ Procedure GetUserList(List : TStrings; WithIDs : Boolean);overload;
 
 Function  getgrnam(Const GroupName: String) : PGroup;
 Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
-Procedure GetGroupData(Gid : Integer; Var Data : TGroup); overload;
-function  GetGroupName(GID : Integer) : String;
-function  GetGroupId(Const GroupName : String) : Integer;
+Procedure GetGroupData(Gid : TGID; Var Data : TGroup); overload;
+function  GetGroupName(GID : TGID) : String;
+function  GetGroupId(Const GroupName : String) : TGID;
 Procedure GetGroupList(List : Tstrings);overload;
 Procedure GetGroupList(List : TStrings; WithIDs : Boolean);overload;
-Procedure GetGroupMembers(GID : Integer;List : TStrings);overload;
+Procedure GetGroupMembers(GID : TGID;List : TStrings);overload;
 Procedure GetGroupMembers(Const GroupName : String;List : TStrings);overload;
 
 { Shadow password functions }
 
+{$ifdef Linux}
 function getspnam(UserName : String): PPasswordFileEntry;
 function sgetspent(Line : String): PPasswordFileEntry;
+
 Procedure GetUserShadowData(Const UserName : String; Var Data : TPasswordFileEntry);overload;
-Procedure GetUserShadowData(UID : Integer; Var Data : TPasswordFileEntry);overload;
+Procedure GetUserShadowData(UID : TUID; Var Data : TPasswordFileEntry);overload;
+{$endif}
 
 { Extra functions }
 
@@ -59,7 +64,7 @@ EShadowNotPermitted = 'Not enough permissions to access shadow password file';
 Function getpwnam(Const UserName: String) : PPasswordRecord;
 
 begin
-  Result:=pwd.getpwnam(Pchar(UserName));
+  Result:=pwd.fpgetpwnam(Pchar(UserName));
 end;
 
 Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord);
@@ -67,36 +72,36 @@ Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord);
 Var P : PPasswordRecord;
 
 begin
-  P:=Getpwnam(UserName);
+  P:=fpGetpwnam(pchar(UserName));
   If P<>Nil then
     Data:=P^
   else
     Raise EUserLookupError.CreateFmt(ENoSuchUserName,[UserName]);
 end;
 
-Procedure GetUserData(Uid : Integer; Var Data : TPasswordRecord);
+Procedure GetUserData(Uid : tuid; Var Data : TPasswordRecord);
 
 Var P : PPasswordRecord;
 
 begin
-  P:=Getpwuid(Uid);
+  P:=fpGetpwuid(Uid);
   If P<>Nil then
     Data:=P^
   else
     Raise EUserLookupError.CreateFmt(ENoSuchUserID,[Uid]);
 end;
 
-function GetUserName(UID : Integer) : String;
+function GetUserName(UID : TUID) : String;
 
 Var
   UserData : TPasswordRecord;
 
 begin
   GetuserData(UID,UserData);
-  Result:=strpas(UserData.pw_Name);
+  Result:=UserData.pw_Name;
 end;
 
-function  GetUserId(Const UserName : String) : Integer;
+function  GetUserId(Const UserName : String) : TUID;
 
 Var
   UserData : TPasswordRecord;
@@ -106,7 +111,7 @@ begin
   Result:=UserData.pw_uid;
 end;
 
-function  GetUserGId(Const UserName : String) : Integer;
+function  GetUserGId(Const UserName : String) : TGID;
 
 Var
   UserData : TPasswordRecord;
@@ -123,7 +128,7 @@ Var
 
 begin
   GetUserData(UserName,UserData);
-  Result:=strpas(UserData.pw_dir);
+  Result:=UserData.pw_dir;
 end;
 
 function  GetUserDescription(Const UserName : String): String;
@@ -149,10 +154,10 @@ Var
 
 begin
   List.Clear;
-  setpwent;
+  fpsetpwent;
   try
     Repeat
-      P:=getpwent;
+      P:=fpgetpwent;
       If P<>Nil then
         begin
         If WithIDs then
@@ -162,7 +167,7 @@ begin
         end;
     until (P=Nil);
   finally
-    endpwent;
+    fpendpwent;
   end;
 end;
 
@@ -174,7 +179,7 @@ end;
 Function  getgrnam(Const GroupName: String) : PGroup;
 
 begin
-  Result:=grp.getgrnam(Pchar(GroupName));
+  Result:=grp.fpgetgrnam(Pchar(GroupName));
 end;
 
 Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
@@ -182,36 +187,36 @@ Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
 Var P : PGroup;
 
 begin
-  P:=Getgrnam(GroupName);
+  P:=fpGetgrnam(pchar(GroupName));
   If P<>Nil then
     Data:=P^
   else
     Raise EGroupLookupError.CreateFmt(ENoSuchGroupName,[GroupName]);
 end;
 
-Procedure GetGroupData(Gid : Integer; Var Data : TGroup); overload;
+Procedure GetGroupData(Gid : TGID; Var Data : TGroup); overload;
 
 Var P : PGroup;
 
 begin
-  P:=Getgrgid(gid);
+  P:=fpGetgrgid(gid);
   If P<>Nil then
     Data:=P^
   else
     Raise EGroupLookupError.CreateFmt(ENoSuchGroupID,[Gid]);
 end;
 
-function GetGroupName(GID : Integer) : String;
+function GetGroupName(GID : TGID) : String;
 
 Var
   G : TGroup;
 
 begin
   GetGroupData(Gid,G);
-  Result:=StrPas(G.gr_name);
+  Result:=G.gr_name;
 end;
 
-function  GetGroupId(Const GroupName : String) : Integer;
+function  GetGroupId(Const GroupName : String) : TGID;
 
 Var
   G : TGroup;
@@ -234,10 +239,10 @@ Var
 
 begin
   List.Clear;
-  setgrent;
+  fpsetgrent;
   try
     Repeat
-      G:=getgrent;
+      G:=fpgetgrent;
       If G<>Nil then
         begin
         If WithIDs then
@@ -247,7 +252,7 @@ begin
         end;
     until (G=Nil);
   finally
-    endgrent;
+    fpendgrent;
   end;
 end;
 
@@ -264,7 +269,7 @@ begin
 end;
 
 
-Procedure GetGroupMembers(GID : Integer;List : TStrings);
+Procedure GetGroupMembers(GID : TGID;List : TStrings);
 
 Var
   G : TGroup;
@@ -285,7 +290,7 @@ begin
 end;
 
 { Shadow password functions }
-
+{$ifdef linux}
 function getspnam(UserName : String): PPasswordFileEntry;
 
 begin
@@ -314,12 +319,13 @@ begin
     Data:=P^;
 end;
 
-Procedure GetUserShadowData(UID : Integer; Var Data : TPasswordFileEntry);
+
+Procedure GetUserShadowData(UID : TUID; Var Data : TPasswordFileEntry);
 
 begin
   GetUserShadowData(GetUserName(UID),Data);
 end;
-
+{$endif}
 { Extra functions }
 
 Function GetUserGroup(Const UserName : String) : String;

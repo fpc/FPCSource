@@ -46,6 +46,9 @@
 
 {$ifdef read_interface}
 
+Const 
+  IMAGE_SIZEOF_SHORT_NAME = 8;
+
   type
 
     { WARNING
@@ -5950,14 +5953,12 @@
      TSTICKYKEYS = STICKYKEYS;
      PSTICKYKEYS = ^STICKYKEYS;
 
-     STRRET = record
-          uType : UINT;
-          DUMMYUNIONNAME : record
-              case longint of
-                 0 : ( pOleStr : LPWSTR );
-                 1 : ( uOffset : UINT );
-                 2 : ( cStr : array[0..(MAX_PATH)-1] of char );
-              end;
+     STRRET = record 
+          utype : UINT;
+          case longint of 
+           0: ( polestr:LPWSTR);
+           1: ( uOffset : UINT);
+           2: ( cStr : array[0..(MAX_PATH)-1] of char );
        end;
      LPSTRRET = ^STRRET;
      _STRRET = STRRET;
@@ -6916,9 +6917,12 @@
           e_oemid : WORD;
           e_oeminfo : WORD;
           e_res2 : array[0..9] of WORD;
-          e_lfanew : LONG;
+          case boolean of 
+             true : (e_lfanew : LONG);
+             false: (_lfanew : LONG); // delphi naming
        end;
      PIMAGE_DOS_HEADER = ^IMAGE_DOS_HEADER;
+     TIMAGE_DOS_HEADER = IMAGE_DOS_HEADER;
      TIMAGEDOSHEADER = IMAGE_DOS_HEADER;
      PIMAGEDOSHEADER = ^IMAGE_DOS_HEADER;
 
@@ -6954,8 +6958,7 @@
 
      TWOHandleArray = array[0..MAXIMUM_WAIT_OBJECTS-1] of HANDLE;
      PWOHandleArray = ^TWOHandleArray;
-
- MMRESULT = Longint;
+     MMRESULT = Longint;
 
 type
   PWaveFormatEx = ^TWaveFormatEx;
@@ -7014,7 +7017,6 @@ type
 // Debug Format
 //
 
-type
   PIMAGE_DEBUG_DIRECTORY = ^IMAGE_DEBUG_DIRECTORY;
   _IMAGE_DEBUG_DIRECTORY = record
     Characteristics: DWORD;
@@ -7034,13 +7036,14 @@ type
 // Optional header format.
 //
 
-type
+
   PIMAGE_DATA_DIRECTORY = ^IMAGE_DATA_DIRECTORY;
   _IMAGE_DATA_DIRECTORY = record
     VirtualAddress: DWORD;
     Size: DWORD;
   end;
   IMAGE_DATA_DIRECTORY = _IMAGE_DATA_DIRECTORY;
+  TIMAGE_DATA_DIRECTORY = _IMAGE_DATA_DIRECTORY;
   TImageDataDirectory = IMAGE_DATA_DIRECTORY;
   PImageDataDirectory = PIMAGE_DATA_DIRECTORY;
 
@@ -7109,6 +7112,7 @@ type
     GpValue: DWORD;
   end;
   IMAGE_ROM_OPTIONAL_HEADER = _IMAGE_ROM_OPTIONAL_HEADER;
+  TIMAGE_ROM_OPTIONAL_HEADER = _IMAGE_ROM_OPTIONAL_HEADER;
   TImageRomOptionalHeader = IMAGE_ROM_OPTIONAL_HEADER;
   PImageRomOptionalHeader = PIMAGE_ROM_OPTIONAL_HEADER;
 
@@ -7208,6 +7212,213 @@ type
   _GET_FILEEX_INFO_LEVELS = (GetFileExInfoStandard, GetFileExMaxInfoLevel);
   GET_FILEEX_INFO_LEVELS = _GET_FILEEX_INFO_LEVELS;
   TGetFileExInfoLevels = GET_FILEEX_INFO_LEVELS;
+  TGet_FileEx_Info_Levels = GET_FILEEX_INFO_LEVELS;
+
+  tagBSTRBLOB = record
+                  cbsize : ULONG;
+		  pdata  : pbyte;
+                  end;
+  BSTRBLOB=TagBSTRBlob;
+  TBSTRBLOB=BSTRBLOB;
+  PBSTRBLOB=^BSTRBLOB;
+
+  tagCLIPDATA = record
+                  cbsize : ULONG;
+		  ulClipFmt : long;
+		  pclipdata : pbyte;
+                  end;
+  CLIPDATA=TagCLIPDATA;
+  TCLIPDATA=CLIPDATA;
+  PCLIPDATA=^CLIPDATA;
+
+   TImage_Section_SubHeader= record
+            case longint of
+               0 : ( PhysicalAddress : DWORD );
+               1 : ( VirtualSize : DWORD );
+            end;
+
+   _IMAGE_SECTION_HEADER = record
+        Name : array[0..(IMAGE_SIZEOF_SHORT_NAME)-1] of BYTE;
+        Misc : TImage_Section_SubHeader;
+        VirtualAddress : DWORD;
+        SizeOfRawData : DWORD;
+        PointerToRawData : DWORD;
+        PointerToRelocations : DWORD;
+        PointerToLinenumbers : DWORD;
+        NumberOfRelocations : WORD;
+        NumberOfLinenumbers : WORD;
+        Characteristics : DWORD;
+     end;
+   IMAGE_SECTION_HEADER = _IMAGE_SECTION_HEADER;
+   TIMAGE_SECTION_HEADER = _IMAGE_SECTION_HEADER;
+   PIMAGE_SECTION_HEADER = ^_IMAGE_SECTION_HEADER;
+   PPIMAGE_SECTION_HEADER = ^PIMAGE_SECTION_HEADER;
+   IMAGESECTIONHEADER = _IMAGE_SECTION_HEADER;
+   TIMAGESECTIONHEADER = _IMAGE_SECTION_HEADER;
+   PIMAGESECTIONHEADER = ^_IMAGE_SECTION_HEADER;
+
+
+   _IMAGE_FUNCTION_ENTRY = record
+      StartingAddress,
+      EndingAddress,
+      EndOfPrologue     : DWord;
+      end;
+   IMAGE_FUNCTION_ENTRY = _IMAGE_FUNCTION_ENTRY;
+   TIMAGE_FUNCTION_ENTRY= IMAGE_FUNCTION_ENTRY;
+   PIMAGE_FUNCTION_ENTRY= ^IMAGE_FUNCTION_ENTRY;
+   LPIMAGE_FUNCTION_ENTRY= PIMAGE_FUNCTION_ENTRY;
+
+
+   _IMAGE_FUNCTION_ENTRY64 = record
+       StartingAddress,
+       EndingAddress :   ULONGLONG   ;
+       case boolean of 
+         false : (EndOfPrologue : ULONGLONG);
+         true  : (UnwindInfoAddress : ULONGLONG);
+       end;
+   IMAGE_FUNCTION_ENTRY64  =  _IMAGE_FUNCTION_ENTRY64;
+   TIMAGE_FUNCTION_ENTRY64 =  _IMAGE_FUNCTION_ENTRY64;
+   PIMAGE_FUNCTION_ENTRY64 =  ^_IMAGE_FUNCTION_ENTRY64;
+   LPIMAGE_FUNCTION_ENTRY64=  ^_IMAGE_FUNCTION_ENTRY64;
+
+   _IMAGE_COFF_SYMBOLS_HEADER  = record
+      NumberOfSymbols,
+      LvaToFirstSymbol,
+      NumberOfLinenumbers,
+      LvaToFirstLinenumber,
+      RvaToFirstByteOfCode,
+      RvaToLastByteOfCode,
+      RvaToFirstByteOfData,
+      RvaToLastByteOfData    : DWORD;
+    end;
+   TIMAGE_COFF_SYMBOLS_HEADER = _IMAGE_COFF_SYMBOLS_HEADER;
+   IMAGE_COFF_SYMBOLS_HEADER  = _IMAGE_COFF_SYMBOLS_HEADER;
+   PIMAGE_COFF_SYMBOLS_HEADER = ^IMAGE_COFF_SYMBOLS_HEADER;
+   LPIMAGE_COFF_SYMBOLS_HEADER= PIMAGE_COFF_SYMBOLS_HEADER;
+
+
+   _FPO_DATA = record
+    ulOffStart: DWORD;             // offset 1st byte of function code
+    cbProcSize: DWORD;             // # bytes in function
+    cdwLocals : DWORD;             // # bytes in locals/4
+    bitvalues : word;              // 
+{
+    WORD        cdwParams;              // # bytes in params/4
+    WORD        cbProlog : 8;           // # bytes in prolog
+    WORD        cbRegs   : 3;           // # regs saved
+    WORD        fHasSEH  : 1;           // TRUE if SEH in func
+    WORD        fUseBP   : 1;           // TRUE if EBP has been allocated
+    WORD        reserved : 1;           // reserved for future use
+    WORD        cbFrame  : 2;           // frame type
+}
+    end;
+   FPO_DATA   = _FPO_DATA;
+   TFPO_DATA  = _FPO_DATA;
+   PFPO_DATA  = ^_FPO_DATA;
+   LPFPO_DATA = PFPO_DATA;
+
+
+     IMAGE_LOAD_CONFIG_DIRECTORY32 = record
+          Size : DWORD;
+          TimeDateStamp : DWORD;
+          MajorVersion : WORD;
+          MinorVersion : WORD;
+          GlobalFlagsClear : DWORD;
+          GlobalFlagsSet : DWORD;
+          CriticalSectionDefaultTimeout : DWORD;
+          DeCommitFreeBlockThreshold : DWORD;
+          DeCommitTotalFreeThreshold : DWORD;
+          LockPrefixTable : DWORD;
+          MaximumAllocationSize : DWORD;
+          VirtualMemoryThreshold : DWORD;
+          ProcessHeapFlags : DWORD;
+          ProcessAffinityMask : DWORD;
+          CSDVersion : WORD;
+          Reserved1 : WORD;
+          EditList : DWORD;
+          SecurityCookie : DWORD;
+          SEHandlerTable : DWORD;
+          SEHandlerCount : DWORD;
+       end;
+     PIMAGE_LOAD_CONFIG_DIRECTORY32 = ^IMAGE_LOAD_CONFIG_DIRECTORY32;
+     TIMAGE_LOAD_CONFIG_DIRECTORY32 = IMAGE_LOAD_CONFIG_DIRECTORY32;
+     IMAGE_LOAD_CONFIG_DIRECTORY64 = record
+          Size : DWORD;
+          TimeDateStamp : DWORD;
+          MajorVersion : WORD;
+          MinorVersion : WORD;
+          GlobalFlagsClear : DWORD;
+          GlobalFlagsSet : DWORD;
+          CriticalSectionDefaultTimeout : DWORD;
+          DeCommitFreeBlockThreshold : ULONGLONG;
+          DeCommitTotalFreeThreshold : ULONGLONG;
+          LockPrefixTable : ULONGLONG;
+          MaximumAllocationSize : ULONGLONG;
+          VirtualMemoryThreshold : ULONGLONG;
+          ProcessAffinityMask : ULONGLONG;
+          ProcessHeapFlags : DWORD;
+          CSDVersion : WORD;
+          Reserved1 : WORD;
+          EditList : ULONGLONG;
+          SecurityCookie : ULONGLONG;
+          SEHandlerTable : ULONGLONG;
+          SEHandlerCount : ULONGLONG;
+       end;
+     PIMAGE_LOAD_CONFIG_DIRECTORY64 = ^IMAGE_LOAD_CONFIG_DIRECTORY64;
+     TIMAGE_LOAD_CONFIG_DIRECTORY64 = IMAGE_LOAD_CONFIG_DIRECTORY64;
+{$ifdef _WIN64}
+     IMAGE_LOAD_CONFIG_DIRECTORY = IMAGE_LOAD_CONFIG_DIRECTORY64;
+     TIMAGE_LOAD_CONFIG_DIRECTORY = TIMAGE_LOAD_CONFIG_DIRECTORY64;
+     PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY64;
+{$else}
+     IMAGE_LOAD_CONFIG_DIRECTORY = IMAGE_LOAD_CONFIG_DIRECTORY32;
+     TIMAGE_LOAD_CONFIG_DIRECTORY = TIMAGE_LOAD_CONFIG_DIRECTORY32;
+     PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY32;
+{$endif}
+
+ tagCOMBOBOXINFO = record
+    cbSize: DWORD;
+    rcItem: TRect;
+    rcButton: TRect;
+    stateButton: DWORD;
+    hwndCombo: HWND;
+    hwndItem: HWND;
+    hwndList: HWND;
+  end;
+  TComboboxInfo = tagCOMBOBOXINFO;
+  PComboboxInfo = ^TComboboxInfo;
+  LPComboboxInfo = PComboboxInfo;
+
+  _TRIVERTEX = record
+          x : LONG;
+          y : LONG;
+          Red : COLOR16;
+          Green : COLOR16;
+          Blue : COLOR16;
+          Alpha : COLOR16;
+       end;
+  TRIVERTEX = _TRIVERTEX;
+  PTRIVERTEX = ^_TRIVERTEX;
+  LPTRIVERTEX = PTRIVERTEX;
+
+  _GRADIENT_TRIANGLE = record
+          Vertex1 : ULONG;
+          Vertex2 : ULONG;
+          Vertex3 : ULONG;
+       end;
+  GRADIENT_TRIANGLE = _GRADIENT_TRIANGLE;
+  TGRADIENT_TRIANGLE = _GRADIENT_TRIANGLE;
+  PGRADIENT_TRIANGLE = ^_GRADIENT_TRIANGLE;
+  LPGRADIENT_TRIANGLE = PGRADIENT_TRIANGLE;
+
+  _GRADIENT_RECT = record
+          UpperLeft : ULONG;
+          LowerRight : ULONG;
+       end;
+  GRADIENT_RECT = _GRADIENT_RECT;
+  TGRADIENT_RECT = _GRADIENT_RECT;
+  PGRADIENT_RECT = ^_GRADIENT_RECT;
+  LPGRADIENT_RECT = PGRADIENT_RECT;
 
 {$endif read_interface}
 

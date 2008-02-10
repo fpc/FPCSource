@@ -117,6 +117,7 @@ function QueryDosDevice(lpDeviceName:LPCSTR; lpTargetPath:LPSTR; ucchMax:DWORD):
 function CreateFile(lpFileName:LPCSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileA';
 function SetFileAttributes(lpFileName:LPCSTR; dwFileAttributes:DWORD):WINBOOL; external 'kernel32' name 'SetFileAttributesA';
 function GetFileAttributes(lpFileName:LPCSTR):DWORD; external 'kernel32' name 'GetFileAttributesA';
+function GetFileAttributesEx(lpFileName:LPCSTR; fInfoLevelId:TGET_FILEEX_INFO_LEVELS; lpFileInformation:pointer):BOOL;stdcall; external 'kernel32' name 'GetFileAttributesExA';
 function GetCompressedFileSize(lpFileName:LPCSTR; lpFileSizeHigh:LPDWORD):DWORD; external 'kernel32' name 'GetCompressedFileSizeA';
 function DeleteFile(lpFileName:LPCSTR):WINBOOL; external 'kernel32' name 'DeleteFileA';
 function SearchPath(lpPath:LPCSTR; lpFileName:LPCSTR; lpExtension:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR;lpFilePart:LPSTR):DWORD; external 'kernel32' name 'SearchPathA';

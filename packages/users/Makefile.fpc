@@ -7,8 +7,10 @@ name=users
 version=2.0.0
 
 [target]
-units=grp pwd shadow users
-examples=testuser testpass 
+units=grp pwd users
+units_linux=shadow crypth
+examples=testuser testpass2
+examples_linux=testpass
 
 [require]
 libc=y

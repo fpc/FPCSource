@@ -1,9 +1,10 @@
 Program TestPass;
-
+{$mode delphi}
 {Test the user's password}
 {$DEFINE DEBUG}
 
-uses shadow, pwd, strings, {crypt_h,} cmem;
+// The funcs in shadow are linux only.
+uses {$ifdef linux}shadow, {$endif} pwd  ,crypth ;
 
 Var
   strUserName, Password : String;
@@ -30,7 +31,7 @@ Begin
     {$IFDEF DEBUG}
     Writeln('No shadow entry');
     {$ENDIF}
-    pEntry := getpwnam(A);
+    pEntry := fpgetpwnam(A);
     If pEntry = nil then
     Begin
       {$IFDEF DEBUG}
@@ -78,7 +79,7 @@ Begin
   Writeln('Salt is : ',PCSalt);
   {$ENDIF}
   PCResult := crypt(PCPass, PCSalt);
-  ResultPass := StrPas(PCResult);
+  ResultPass := PCResult;
   {$IFDEF DEBUG}
   Writeln('From passwd/shadow : ',EncPass);
   Writeln('From crypt : ',ResultPass);

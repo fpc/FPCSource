@@ -22,7 +22,7 @@ interface
 
 uses
     flatsb, winver, mmsystem, comconst, commctrl, comobj, 
-    ole2, activex, shellapi, shlobj, oleserver,  shfolder, richedit;
+    ole2, activex, shellapi, shlobj, oleserver,  shfolder, richedit,imagehlp;
 
 implementation
 

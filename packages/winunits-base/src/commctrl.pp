@@ -437,6 +437,8 @@ CONST
          CDRF_NOTIFYSUBITEMDRAW         = $00000020;          // flags are the same, we can distinguish by context
 {$ENDIF}
          CDRF_NOTIFYPOSTERASE           = $00000040;
+         CDRF_NOTIFYITEMERASE           = $00000080;  // according to lazarus headers. Can't find in sdk 6.0 (Vista sdk)
+ 
 
 // drawstage flags
 // values under 0x00010000 are reserved for global custom draw values.
@@ -534,6 +536,7 @@ TYPE
                                  crEffect     : COLORREF;
 {$ENDIF}
                                  END;
+         tagIMAGELISTDRAWPARAMS  = _IMAGELISTDRAWPARAMS;
          IMAGELISTDRAWPARAMS  = _IMAGELISTDRAWPARAMS;
          LPIMAGELISTDRAWPARAMS = ^_IMAGELISTDRAWPARAMS;
          TIMAGELISTDRAWPARAMS = _IMAGELISTDRAWPARAMS;
@@ -657,7 +660,7 @@ function ImageList_GetDragImage(ppt:PPOINT;pptHotspot:PPOINT):HIMAGELIST; stdcal
 Procedure ImageList_RemoveAll(himl:HIMAGELIST);
 
 // Macro 14
-Procedure ImageList_ExtractIcon(hi:longint; {dummy?} himl:HIMAGELIST;i:cint);
+function ImageList_ExtractIcon(hi:longint; himl:HIMAGELIST;i:longint):HICON;
 
 
 // Macro 15
@@ -9152,10 +9155,10 @@ End;
 // Macro 14
 // #define     ImageList_ExtractIcon(hi, himl, i) ImageList_GetIcon(himl, i, 0)
 
-Procedure ImageList_ExtractIcon(hi:longint; {dummy?} himl:HIMAGELIST;i:cint);
+function  ImageList_ExtractIcon(hi:longint;  himl:HIMAGELIST;i:longint):HICON;
 
 Begin
- ImageList_GetIcon(himl, i,0);
+ result:=ImageList_GetIcon(himl, i,0);
 end;
 
 

@@ -35,12 +35,22 @@ type
    LargeUInt = Types.LargeUInt;
    PLargeInt = Types.PLargeInt;
    PLargeUInt = Types.PLargeUInt;
+   FMTID  =  TGUID;
+   pFMTID = pGUID;
 
 {Glue types, should be linked to the proper windows unit types}
-TYPE
      Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
      OleChar             = WChar;
      LPOLESTR            = ^OLECHAR;
+     PLPOLESTR		 = ^LPOLESTR;
+     PROPID = ULONG;
+     TPROPID= PROPID;
+     PPROPID= ^PROPID;
+     VARIANT_BOOL        = wordbool;
+     _VARIANT_BOOL       = VARIANT_BOOL;
+     CY			 = CURRENCY;
+     DATE		 = DOUBLE;
+     BSTR		 = POLESTR;
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
@@ -713,6 +723,71 @@ Const
     DOCMISC_CANTOPENEDIT               = 4;        // fails the IOleDocumentView::Open  method
     DOCMISC_NOFILESUPPORT              = 8;        //  does not support read/writing to a file
 
+    PID_DICTIONARY         = PROPID($00000000);
+    PID_CODEPAGE           = PROPID($00000001);
+    PID_FIRST_USABLE       = PROPID($00000002);
+    PID_FIRST_NAME_DEFAULT = PROPID($00000fff);
+    PID_LOCALE             = PROPID($80000000);
+    PID_MODIFY_TIME        = PROPID($80000001);
+    PID_SECURITY           = PROPID($80000002);
+    PID_BEHAVIOR           = PROPID($80000003);
+    PID_ILLEGAL            = PROPID($ffffffff);
+    PID_MIN_READONLY       = PROPID($80000000);
+    PID_MAX_READONLY       = PROPID($bfffffff);
+    PIDDI_THUMBNAIL        = DWORD($00000002);// VT_BLOB
+    PIDSI_TITLE            = DWORD($00000002); // VT_LPSTR
+    PIDSI_SUBJECT          = DWORD($00000003); // VT_LPSTR
+    PIDSI_AUTHOR           = DWORD($00000004); // VT_LPSTR
+    PIDSI_KEYWORDS         = DWORD($00000005); // VT_LPSTR
+    PIDSI_COMMENTS         = DWORD($00000006); // VT_LPSTR
+    PIDSI_TEMPLATE         = DWORD($00000007); // VT_LPSTR
+    PIDSI_LASTAUTHOR       = DWORD($00000008); // VT_LPSTR
+    PIDSI_REVNUMBER        = DWORD($00000009); // VT_LPSTR
+    PIDSI_EDITTIME         = DWORD($0000000a); // VT_FILETIME
+    PIDSI_LASTPRINTED      = DWORD($0000000b); // VT_FILETIME
+    PIDSI_CREATE_DTM       = DWORD($0000000c); // VT_FILETIME
+    PIDSI_LASTSAVE_DTM     = DWORD($0000000d); // VT_FILETIME
+    PIDSI_PAGECOUNT        = DWORD($0000000e); // VT_I4
+    PIDSI_WORDCOUNT        = DWORD($0000000f); // VT_I4
+    PIDSI_CHARCOUNT        = DWORD($00000010); // VT_I4
+    PIDSI_THUMBNAIL        = DWORD($00000011); // VT_CF
+    PIDSI_APPNAME          = DWORD($00000012); // VT_LPSTR
+    PIDSI_DOC_SECURITY     = DWORD($00000013); // VT_I4
+    PIDDSI_CATEGORY        = $00000002; // VT_LPSTR 
+    PIDDSI_PRESFORMAT      = $00000003; // VT_LPSTR
+    PIDDSI_BYTECOUNT       = $00000004; // VT_I4
+    PIDDSI_LINECOUNT       = $00000005; // VT_I4
+    PIDDSI_PARCOUNT        = $00000006; // VT_I4
+    PIDDSI_SLIDECOUNT      = $00000007; // VT_I4
+    PIDDSI_NOTECOUNT       = $00000008; // VT_I4
+    PIDDSI_HIDDENCOUNT     = $00000009; // VT_I4
+    PIDDSI_MMCLIPCOUNT     = $0000000A; // VT_I4
+    PIDDSI_SCALE           = $0000000B; // VT_BOOL 
+    PIDDSI_HEADINGPAIR     = $0000000C; // VT_VARIANT |VT_VECTOR
+    PIDDSI_DOCPARTS        = $0000000D; // VT_LPSTR |VT_VECTOR
+    PIDDSI_MANAGER         = $0000000E; // VT_LPSTR
+    PIDDSI_COMPANY         = $0000000F; // VT_LPSTR
+    PIDDSI_LINKSDIRTY      = $00000010; // VT_BOOL
+
+//  FMTID_MediaFileSummaryInfo - Property IDs
+
+    PIDMSI_EDITOR          = DWord($00000002);  // VT_LPWSTR
+    PIDMSI_SUPPLIER        = DWord($00000003);  // VT_LPWSTR
+    PIDMSI_SOURCE          = DWord($00000004);  // VT_LPWSTR
+    PIDMSI_SEQUENCE_NO     = DWord($00000005);  // VT_LPWSTR
+    PIDMSI_PROJECT         = DWord($00000006);  // VT_LPWSTR
+    PIDMSI_STATUS          = DWord($00000007);  // VT_UI4
+    PIDMSI_OWNER           = DWord($00000008);  // VT_LPWSTR
+    PIDMSI_RATING          = DWord($00000009);  // VT_LPWSTR
+    PIDMSI_PRODUCTION      = DWord($0000000A);  // VT_FILETIME (UTC)
+    PIDMSI_COPYRIGHT       = DWord($0000000B);  // VT_LPWSTR
+    PRSPEC_INVALID = ULONG($ffffffff);
+    PRSPEC_LPWSTR  = ULONG(0);
+    PRSPEC_PROPID  = ULONG(1);
+    PROPSETFLAG_DEFAULT   = DWORD(0);
+    PROPSETFLAG_NONSIMPLE = DWORD(1);
+    PROPSETFLAG_ANSI      = DWORD(2);
+
 TYPE
     VARTYPE             = USHORT;
 
@@ -740,6 +815,22 @@ TYPE
     FUNCKIND            = DWord;
     CHANGEKIND          = DWord;
     CALLCONV            = DWord;
+
+   PIDMSI_STATUS_VALUE = (
+    PIDMSI_STATUS_NORMAL  = 0,
+    PIDMSI_STATUS_NEW,
+    PIDMSI_STATUS_PRELIM,
+    PIDMSI_STATUS_DRAFT,
+    PIDMSI_STATUS_INPROGRESS,
+    PIDMSI_STATUS_EDIT,
+    PIDMSI_STATUS_REVIEW,
+    PIDMSI_STATUS_PROOF,
+    PIDMSI_STATUS_FINAL,
+    PIDMSI_STATUS_OTHER   = $7FFF
+    );
+   TPIDMSI_STATUS_VALUE= PIDMSI_STATUS_Value;
+
+
 
     PCOAUTHIDENTITY    = ^TCOAUTHIDENTITY;
     _COAUTHIDENTITY    = Record
@@ -1526,8 +1617,200 @@ TYPE
   CUSTDATA                       = tagCUSTDATA;
   LPCUSTDATA                     = ^CUSTDATA;
 
-//  CURRENCY                       = CY;
+  PPROPVARIANT		         = ^TPROPVARIANT;
 
+
+
+  tagPROPSPEC = record
+                  ulKind : ULONG ;
+                  case boolean of
+                    false : ( propid:propid);
+                    true  :  (lpwstr: LPOLEStr);	   
+                    end; 
+         
+  PROPSPEC= tagPROPSPEC;
+  TPROPSPEC = PROPSPEC;
+  PPROPSPEC = ^TPROPSPEC;
+              
+  tagSTATPROPSTG = record
+                    lpwstrName : LPOLESTR ;
+                    propid:PROPID ;
+                    vt : VARTYPE;
+                    end;
+  STATPROPSTG = tagSTATPROPSTG;
+  TSTATPROPSTG = STATPROPSTG;
+  PSTATPROPSTG = ^TSTATPROPSTG;
+
+      tagSTATPROPSETSTG = record
+          fmtid : FMTID;
+          clsid : CLSID;
+          grfFlags : DWORD;
+          mtime : FILETIME;
+          ctime : FILETIME;
+          atime : FILETIME;
+          dwOSVersion : DWORD;
+       end;
+  STATPROPSETSTG = tagSTATPROPSETSTG;
+  TSTATPROPSETSTG = STATPROPSETSTG;
+  PSTATPROPSETSTG = ^STATPROPSETSTG;
+      
+   tagVersionedStream = record
+        guidVersion : TGUID;
+        pStream : pointer; {IStream}
+     end;
+   VERSIONEDSTREAM = tagVersionedStream;
+   TVERSIONEDSTREAM = tagVersionedStream;
+   LPVERSIONEDSTREAM = tagVersionedStream;
+   PVERSIONEDSTREAM = ^TagVersionedStream;
+
+
+   LPSAFEARRAY = ^SAFEARRAY;
+   tagDEC = record //  simpler remoting variant without nested unions. see wtypes.h
+         wReserved : ushort;
+         scale,
+         sign : byte;
+         hi32 : ULONG;
+         lo64 : ULONGLONG;
+         end;
+   TDECIMAL=tagDEC;
+   PDecimal=^TDECIMAL;
+
+   tagCAC = record
+        cElems : ULONG;
+        pElems : pCHAR;
+     end;
+   CAC = tagCAC;
+   TCAC = tagCAC;
+   tagCAUB = record
+        cElems : ULONG;
+        pElems : pUCHAR;
+     end;
+   CAUB = tagCAUB;
+   TCAUB = tagCAUB;
+   tagCAI = record
+        cElems : ULONG;
+        pElems : pSHORT;
+     end;
+   CAI = tagCAI;
+   TCAI = tagCAI;
+   tagCAUI = record
+        cElems : ULONG;
+        pElems : pUSHORT;
+     end;
+   CAUI = tagCAUI;
+   TCAUI = tagCAUI;
+   tagCAL = record
+        cElems : ULONG;
+        pElems : pLONG;
+     end;
+   CAL = tagCAL;
+   TCAL = tagCAL;
+   tagCAUL = record
+        cElems : ULONG;
+        pElems : pULONG;
+     end;
+   CAUL = tagCAUL;
+   TCAUL = tagCAUL;
+   tagCAFLT = record
+        cElems : ULONG;
+        pElems : pSingle;
+     end;
+   CAFLT = tagCAFLT;
+   TCAFLT = tagCAFLT;
+   tagCADBL = record
+        cElems : ULONG;
+        pElems : ^DOUBLE;
+     end;
+   CADBL = tagCADBL;
+   TCADBL = tagCADBL;
+   tagCACY = record
+        cElems : ULONG;
+        pElems : ^CY;
+     end;
+   CACY = tagCACY;
+   TCACY = tagCACY;
+   tagCADATE = record
+        cElems : ULONG;
+        pElems : ^DATE;
+     end;
+   CADATE = tagCADATE;
+   TCADATE = tagCADATE;
+   tagCABSTR = record
+        cElems : ULONG;
+        pElems : ^BSTR;
+     end;
+   CABSTR = tagCABSTR;
+   TCABSTR = tagCABSTR;
+   tagCABSTRBLOB = record
+        cElems : ULONG;
+        pElems : ^BSTRBLOB;
+     end;
+   CABSTRBLOB = tagCABSTRBLOB;
+   TCABSTRBLOB = tagCABSTRBLOB;
+   tagCABOOL = record
+        cElems : ULONG;
+        pElems : ^VARIANT_BOOL;
+     end;
+   CABOOL = tagCABOOL;
+   TCABOOL = tagCABOOL;
+   tagCASCODE = record
+        cElems : ULONG;
+        pElems : ^SCODE;
+     end;
+   CASCODE = tagCASCODE;
+   TCASCODE = tagCASCODE;
+   tagCAPROPVARIANT = record
+        cElems : ULONG;
+        pElems : ^PROPVARIANT;
+     end;
+   CAPROPVARIANT = tagCAPROPVARIANT;
+   TCAPROPVARIANT = tagCAPROPVARIANT;
+   tagCAH = record
+        cElems : ULONG;
+        pElems : ^LARGE_INTEGER;
+     end;
+   CAH = tagCAH;
+   TCAH = tagCAH;
+   tagCAUH = record
+        cElems : ULONG;
+        pElems : ^ULARGE_INTEGER;
+     end;
+   CAUH = tagCAUH;
+   TCAUH = tagCAUH;
+   tagCALPSTR = record
+        cElems : ULONG;
+        pElems : ^LPSTR;
+     end;
+   CALPSTR = tagCALPSTR;
+   TCALPSTR = tagCALPSTR;
+   tagCALPWSTR = record
+        cElems : ULONG;
+        pElems : ^LPWSTR;
+     end;
+   CALPWSTR = tagCALPWSTR;
+   TCALPWSTR = tagCALPWSTR;
+   tagCAFILETIME = record
+        cElems : ULONG;
+        pElems : ^FILETIME;
+     end;
+   CAFILETIME = tagCAFILETIME;
+   TCAFILETIME = tagCAFILETIME;
+   tagCACLIPDATA = record
+        cElems : ULONG;
+        pElems : ^CLIPDATA;
+     end;
+   CACLIPDATA = tagCACLIPDATA;
+   TCACLIPDATA = tagCACLIPDATA;
+   tagCACLSID = record
+        cElems : ULONG;
+        pElems : ^CLSID;
+     end;
+   CACLSID = tagCACLSID;
+   TCACLSID = tagCACLSID;
+
+   PROPVAR_PAD1 = WORD;
+   PROPVAR_PAD2 = WORD;
+   PROPVAR_PAD3 = WORD;
 
 // Forward interfaces.
 
@@ -1544,10 +1827,96 @@ TYPE
    ICallFactory        = Interface;
    ISynchronize        = Interface;
    ITypeLib            = Interface;
+   IPropertyStorage    = Interface;
+   IEnumSTATPROPSETSTG = interface;
 
+   TPROPVARIANT = record
+          vt : VARTYPE;
+          wReserved1 : PROPVAR_PAD1;
+          wReserved2 : PROPVAR_PAD2;
+          wReserved3 : PROPVAR_PAD3;
+          case longint of
+                 0 : ( cVal : CHAR );
+                 1 : ( bVal : UCHAR );
+                 2 : ( iVal : SHORT );
+                 3 : ( uiVal : USHORT );
+                 4 : ( lVal : LONG );
+                 5 : ( ulVal : ULONG );
+                 6 : ( intVal : longINT );
+                 7 : ( uintVal : UINT );
+                 8 : ( hVal : LARGE_INTEGER );
+                 9 : ( uhVal : ULARGE_INTEGER );
+                 10 : ( fltVal : SINGLE );
+                 11 : ( dblVal : DOUBLE );
+                 12 : ( boolVal : VARIANT_BOOL );
+                 13 : ( bool : _VARIANT_BOOL );
+                 14 : ( scode : SCODE );
+                 15 : ( cyVal : CY );
+                 16 : ( date : DATE );
+                 17 : ( filetime : FILETIME );
+                 18 : ( puuid : ^CLSID );
+                 19 : ( pclipdata : ^CLIPDATA );
+                 20 : ( bstrVal : BSTR );
+                 21 : ( bstrblobVal : BSTRBLOB );
+                 22 : ( blob : BLOB );
+                 23 : ( pszVal : LPSTR );
+                 24 : ( pwszVal : LPWSTR );
+                 25 : ( punkVal : pointer; { IUnknown to avoid Data types which require initialization/finalization can't be used in variant records});
+                 26 : ( pdispVal : pointer; {IDispatch} );
+                 27 : ( pStream : pointer {IStream} );
+                 28 : ( pStorage : pointer{IStorage} );
+                 29 : ( pVersionedStream : LPVERSIONEDSTREAM );
+                 30 : ( parray : LPSAFEARRAY );
+                 31 : ( cac : CAC );
+                 32 : ( caub : CAUB );
+                 33 : ( cai : CAI );
+                 34 : ( caui : CAUI );
+                 35 : ( cal : CAL );
+                 36 : ( caul : CAUL );
+                 37 : ( cah : CAH );
+                 38 : ( cauh : CAUH );
+                 39 : ( caflt : CAFLT );
+                 40 : ( cadbl : CADBL );
+                 41 : ( cabool : CABOOL );
+                 42 : ( cascode : CASCODE );
+                 43 : ( cacy : CACY );
+                 44 : ( cadate : CADATE );
+                 45 : ( cafiletime : CAFILETIME );
+                 46 : ( cauuid : CACLSID );
+                 47 : ( caclipdata : CACLIPDATA );
+                 48 : ( cabstr : CABSTR );
+                 49 : ( cabstrblob : CABSTRBLOB );
+                 50 : ( calpstr : CALPSTR );
+                 51 : ( calpwstr : CALPWSTR );
+                 52 : ( capropvar : CAPROPVARIANT );
+                 53 : ( pcVal : pCHAR );
+                 54 : ( pbVal : pUCHAR );
+                 55 : ( piVal : pSHORT );
+                 56 : ( puiVal : pUSHORT );
+                 57 : ( plVal : pLONG );
+                 58 : ( pulVal : pULONG );
+                 59 : ( pintVal : plongint );
+                 60 : ( puintVal : pUINT );
+                 61 : ( pfltVal : psingle );
+                 62 : ( pdblVal : pDOUBLE );
+                 63 : ( pboolVal : ^VARIANT_BOOL );
+                 64 : ( pdecVal : pDECIMAL );
+                 65 : ( pscode : ^SCODE );
+                 66 : ( pcyVal : ^CY );
+                 67 : ( pdate : ^DATE );
+                 68 : ( pbstrVal : ^TBSTR );
+                 69 : ( ppunkVal : ^IUnknown );
+                 70 : ( ppdispVal : ^IDispatch );
+                 71 : ( pparray : ^LPSAFEARRAY );
+                 72 : ( pvarVal : ^PROPVARIANT );
+             end;
+     PROPVARIANT=TPROPVARIANT;
+     TagPROPVARIANT = TPROPVARIANT;
 // Unknwn.idl
 
 // IUnknown is in classesh.inc
+
+
 
    AsyncIUnknown = Interface( IUnknown)
       ['{000e0000-0000-0000-C000-000000000046}']
@@ -3005,6 +3374,46 @@ Type
      function EnumReqCategoriesOfClass(rclsid:pclsid;out ppenumclsid : IEnumClsID):HResult; StdCall;
      end;
 
+    IPropertySetStorage = Interface(IUnknown)
+     ['{0000013A-0000-0000-C000-000000000046}']
+     function Create(const rfmtid:FMTID; const pclsid:CLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT;
+     function Open(const fmtid:FMTID; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT; StdCall;
+     function Delete(const rfmtid:FMTID):HRESULT; StdCall;
+     function Enum(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
+     end;
+ 
+   IEnumSTATPROPSTG = interface( IUnknown)
+     ['{00000139-0000-0000-C000-000000000046}']
+     function Next(celt:ULONG; var rgelt:STATPROPSTG; pceltFetched:pULONG):HRESULT; StdCall;
+     function Skip(celt:ULONG):HRESULT; StdCall;
+     function Reset:HRESULT; StdCall;
+     function Clone(out ppenum:IEnumSTATPROPSTG):HRESULT; StdCall;
+     end;
+
+   IEnumSTATPROPSETSTG = interface( IUnknown)
+     ['{0000013B-0000-0000-C000-000000000046}']
+     function Next(celt:ULONG; var rgelt:STATPROPSETSTG; pceltFetched:pULONG):HRESULT; StdCall;
+     function Skip(celt:ULONG):HRESULT; StdCall;
+     function Reset:HRESULT; StdCall;
+     function Clone(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
+     end;
+
+   IPropertyStorage = interface(IUnknown)
+     ['{00000138-0000-0000-C000-000000000046}']
+     function ReadMultiple(cpspec:ULONG; rgpspec:pPROPSPEC; rgpropvar:pPROPVARIANT):HRESULT; StdCall;
+     function WriteMultiple(cpspec:ULONG; rgpspec:pPROPSPEC; rgpropvar:pPROPVARIANT; propidNameFirst:PROPID):HRESULT; StdCall;
+     function DeleteMultiple(cpspec:ULONG; rgpspec:pPROPSPEC):HRESULT; StdCall;
+     function ReadPropertyNames(cpspec:ULONG; rgpropid:pPROPID; rgpropvar:plpolestr):HRESULT; StdCall;
+     function WritePropertyNames(cpspec:ULONG; rgpspec:pPROPID; rgpropvar:plpolestr):HRESULT; StdCall;
+     function DeletePropertyNames(cpspec:ULONG; rgpspec:pPROPid):HRESULT; StdCall;
+     function Commit(grfCommitFlags:DWORD):HRESULT; StdCall;
+     function Revert:HRESULT; StdCall;
+     function Enum(out ppenum:IEnumSTATPROPSTG):HRESULT; StdCall;
+     function SetTimes(pctime:PFILETIME; patime:PFILETIME; pmtime:PFILETIME):HRESULT; StdCall;
+     function SetClass(clsid:pCLSID):HRESULT; StdCall;
+     function Stat(pstatpsstg:pSTATPROPSETSTG):HRESULT; StdCall;
+     end;
+
 { ole2.h }
 
   type
@@ -3496,7 +3905,7 @@ type
   const
     oleaut32dll   = 'oleaut32.dll';
 
-  function  SysAllocString(psz: pointer): Integer; stdcall; external oleaut32dll name 'SysAllocString';
+  function  SysAllocString(psz: pointer): TBStr; stdcall; external oleaut32dll name 'SysAllocString';
   function  SysAllocStringLen(psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysAllocStringLen';
   procedure SysFreeString(bstr:pointer); stdcall; external oleaut32dll name 'SysFreeString';
   function  SysStringLen(bstr:pointer):UINT; stdcall; external oleaut32dll name 'SysStringLen';
