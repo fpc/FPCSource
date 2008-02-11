@@ -465,21 +465,17 @@ function SHDoneButton(hwndRequester: HWND ; dwState : DWORD ): WINBOOL; external
 function SHFindMenuBar(hwnd:HWND) : HWND; external UserDLLAyg name 'SHFindMenuBar';
 function SHFullScreen(hwmdRequester: hWnd; dwState: DWord): WINBOOL; external UserDLLAyg name 'SHFullScreen';  {Pocket PC  special controls}
 function SHGetAutoRunPath( pAutoRunPath : LPTSTR ): WINBOOL; external UserDLLAyg name 'SHGetAutoRunPath';  
-
-function SHHandleWMActivate(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO; dwFlags:DWORD  ): WINBOOL; external UserDLLAyg name 'SHHandleWMActivate';
-function SHHandleWMSettingChange(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO): WINBOOL; external UserDLLAyg name 'SHHandleWMSettingChange';
+function SHHandleWMActivate(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO; dwFlags:DWORD  ): WINBOOL; external UserDLLAyg index 84;
+function SHHandleWMSettingChange(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO): WINBOOL; external UserDLLAyg index 83;
 function SHInitDialog(pshidi: PSHINITDLGINFO): WINBOOL; external UserDLLAyg name 'SHInitDialog';
 function SHInitExtraControls: WINBOOL; external UserDLLAyg name 'SHInitExtraControls';
 procedure SHInputDialog(hwnd : HWND; uMsg : UINT; wParam: WPARAM ); external UserDLLAyg name 'SHInputDialog';
 function SHGetAppKeyAssoc( ptszApp: LPCTSTR ): Byte; external UserDLLAyg name 'SHGetAppKeyAssoc';
-{not exported on PocketPC 4.21 SE , may be smartphone only ? oro06 09-02-06
-function SHLoadImageResource(hinst: HINST; uIdGif: UINT ): HBITMAP; external UserDLLAyg name 'SHLoadImageResource';
-function SHLoadImageFile(pszFileName: LPCTSTR ) : HBITMAP; external UserDLLAyg name 'SHLoadImageFile';
-procedure SHNavigateBack; external UserDLLAyg name 'SHNavigateBack';
-}
 function SHSetAppKeyWndAssoc( bVk: BYTE ; hwnd : HWND ): WINBOOL; external UserDLLAyg name 'SHSetAppKeyWndAssoc';
 function SHSetNavBarText(hwndRequester : HWND; pszText : LPCTSTR): WINBOOL; external UserDLLAyg name 'SHSetNavBarText';
-
+function SHLoadImageResource(hinst: HINST; uIdGif: UINT ): HBITMAP; external UserDLLAyg index 64;
+function SHLoadImageFile(pszFileName: LPCTSTR ) : HBITMAP; external UserDLLAyg index 75;
+procedure SHNavigateBack; external UserDLLAyg index 183;
 function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT  ): WINBOOL; external UserDLLAyg name 'SHSipInfo';
 function SHSipPreference(hwnd: HWND ; st : SIPSTATE ) : WINBOOL; external UserDLLAyg name 'SHSipPreference';
 function SHRecognizeGesture(var shrg : SHRGINFO): DWORD; external UserDLLAyg name 'SHRecognizeGesture';
