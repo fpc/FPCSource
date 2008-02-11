@@ -7,6 +7,7 @@ uses fpmkunit;
 Var
   T : TTarget;
   P : TPackage;
+  D : TDependency;
 begin
   With Installer do
     begin
@@ -17,7 +18,8 @@ begin
     P.Directory:='paszlib';
 {$endif ALLPACKAGES}
     P.Version:='2.2.1';
-    P.Dependencies.Add('hash');
+    D:=P.Dependencies.Add('hash');
+      D.Version:='2.2.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('paszlib.pas');

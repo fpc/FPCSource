@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='bzip2';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

@@ -16,8 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='dbus';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.1';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('dbus.pas');
       with T.Dependencies do

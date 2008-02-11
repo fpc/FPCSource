@@ -16,22 +16,24 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gnome1';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
-    P.SourcePath.Add('src');
-//    P.Dependencies.Add('x11');
+    P.Version:='2.2.1';
+    P.OSes:=AllUnixOSes;
 
-    T:=P.Targets.AddUnit('gconfclient.pp');
+    P.Dependencies.Add('gtk1');
+    P.Dependencies.Add('imlib');
+
+    T:=P.Targets.AddUnit('src/gconfclient/gconfclient.pp');
+      T.IncludePath.Add('src/gconfclient');
       with T.Dependencies do
         begin
           AddInclude('gconflisteners.inc');
           AddInclude('gconfchangeset.inc');
           AddInclude('gconflisteners.inc');
           AddInclude('gconfchangeset.inc');
-          AddUnit('glib');
-          AddUnit('gtk');
           AddUnit('gconf');
         end;
-    T:=P.Targets.AddUnit('gconf.pp');
+    T:=P.Targets.AddUnit('src/gconf/gconf.pp');
+      T.IncludePath.Add('src/gconf');
       with T.Dependencies do
         begin
           AddInclude('gconfglibpublic.inc');
@@ -44,10 +46,10 @@ begin
           AddInclude('gconfvalue.inc');
           AddInclude('gconfschema.inc');
           AddInclude('gconfengine.inc');
-          AddUnit('glib');
         end;
-    T:=P.Targets.AddUnit('libart.pp');
-    T:=P.Targets.AddUnit('libgnome.pp');
+    T:=P.Targets.AddUnit('src/libart.pp');
+    T:=P.Targets.AddUnit('src/libgnome/libgnome.pp');
+      T.IncludePath.Add('src/libgnome');
       with T.Dependencies do
         begin
           AddInclude('gnomeutil.inc');
@@ -80,9 +82,9 @@ begin
           AddInclude('gnomesound.inc');
           AddInclude('gnometriggers.inc');
           AddInclude('gnomeurl.inc');
-          AddUnit('glib');
-        end;
-    T:=P.Targets.AddUnit('libgnomeui.pp');
+         end;
+    T:=P.Targets.AddUnit('src/libgnomeui/libgnomeui.pp');
+      T.IncludePath.Add('src/libgnomeui');
       with T.Dependencies do
         begin
           AddInclude('gnomeinit.inc');
@@ -204,14 +206,11 @@ begin
           AddInclude('gnomedruidpagestandard.inc');
           AddInclude('gnomedruidpagefinish.inc');
           AddInclude('gnomedruid.inc');
-          AddUnit('glib');
-          AddUnit('gdk');
-          AddUnit('gdk_imlib');
-          AddUnit('gtk');
           AddUnit('libgnome');
           AddUnit('libart');
         end;
-    T:=P.Targets.AddUnit('libzvt.pp');
+    T:=P.Targets.AddUnit('src/zvt/libzvt.pp');
+      T.IncludePath.Add('src/zvt');
       with T.Dependencies do
         begin
           AddInclude('lists.inc');
@@ -220,10 +219,6 @@ begin
           AddInclude('lists.inc');
           AddInclude('vt.inc');
           AddInclude('vtx.inc');
-          AddUnit('glib');
-          AddUnit('gdk');
-          AddUnit('gtk');
-          AddUnit('gdk_imlib');
         end;
 
 

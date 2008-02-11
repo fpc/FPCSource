@@ -7,6 +7,7 @@ uses fpmkunit;
 Var
   T : TTarget;
   P : TPackage;
+  D : TDependency;
 begin
   With Installer do
     begin
@@ -18,8 +19,10 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.1';
 
-    P.Dependencies.Add('paszlib');
-    P.Dependencies.Add('fcl-base');
+    D:=P.Dependencies.Add('paszlib');
+      D.Version:='2.2.1';
+    D:=P.Dependencies.Add('fcl-base');
+      D.Version:='2.2.1';
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

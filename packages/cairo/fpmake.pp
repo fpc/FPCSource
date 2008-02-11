@@ -16,16 +16,13 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='cairo';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.1';
     P.SourcePath.Add('src');
 
-T:=P.Targets.AddUnit('cairo.pp');
-  with T.Dependencies do
-    begin
-      AddUnit('xlib');
-      AddUnit('xrender');
-      AddUnit('freetypeh');
-    end;
+    P.Dependencies.Add('x11');
+    P.Dependencies.Add('fcl-image');
+    
+    T:=P.Targets.AddUnit('cairo.pp');
 
 
 {$ifndef ALLPACKAGES}
