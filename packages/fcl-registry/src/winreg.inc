@@ -15,10 +15,9 @@ end;
 Function PrepKey(Const S : String) : pChar;
 
 begin
-  If (S[1]<>'\') then
-    Result:=@S[1]
-  else
-    Result:=@S[2];
+  Result:=PChar(S);
+  If Result^='\' then
+    Inc(Result);
 end;
 
 Function RelativeKey(Const S : String) : Boolean;
@@ -71,7 +70,7 @@ Var
   RD : DWord;
 
 begin
-  P := @Name[1];
+  P := PChar(Name);
   If RegQueryValueExA(fCurrentKey,P,Nil,
                       @RD,Buffer,lpdword(@BufSize))<>ERROR_SUCCESS Then
     Result:=-1
@@ -97,7 +96,7 @@ Var
   P: PChar;
 
 begin
-  P:=@ValueName[1];
+  P:=PChar(ValueName);
   With Value do
     Result:=RegQueryValueExA(fCurrentKey,P,Nil,lpdword(@RegData),Nil,lpdword(@DataSize))=ERROR_SUCCESS;
   If Not Result Then
@@ -340,7 +339,7 @@ begin
     rdInteger      : RegDataType:=REG_DWORD;
     rdBinary       : RegDataType:=REG_BINARY;
   end;
-  P:=@Name[1];
+  P:=PChar(Name);
   Result:=RegSetValueExA(fCurrentKey,P,0,RegDataType,Buffer,BufSize)=ERROR_SUCCESS;
 end;
 

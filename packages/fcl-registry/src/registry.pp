@@ -375,7 +375,7 @@ begin
        SetLength(Result, Info.DataSize-1)
      else
        SetLength(Result, Info.DataSize);
-     GetData(Name,@Result[1],Info.DataSize,Info.RegData);
+     GetData(Name,PChar(Result),Info.DataSize,Info.RegData);
    end
   else
     result:='';
@@ -422,7 +422,7 @@ end;
 procedure TRegistry.WriteExpandString(const Name, Value: string);
 
 begin
-  PutData(Name, @Value[1], Length(Value),rdExpandString);
+  PutData(Name, PChar(Value), Length(Value),rdExpandString);
 end;
 
 procedure TRegistry.WriteFloat(const Name: string; Value: Double);
@@ -438,7 +438,7 @@ end;
 procedure TRegistry.WriteString(const Name, Value: string);
 
 begin
-  PutData(Name, @Value[1], Length(Value), rdString);
+  PutData(Name, PChar(Value), Length(Value), rdString);
 end;
 
 procedure TRegistry.MoveKey(const OldName, NewName: string; Delete: Boolean);
