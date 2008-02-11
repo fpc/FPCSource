@@ -600,8 +600,23 @@ implementation
       end;
 
     procedure tcginlinenode.second_abs_long;
+      var
+	opsize : tcgsize;
+	tempreg1, tempreg2 : tregister;
       begin
-        internalerror(200711251);
+        opsize := def_cgsize(left.resultdef);
+
+        secondpass(left);
+        location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, false);
+	location := left.location;
+        location.register := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+
+	tempreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+	tempreg2 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+	
+	cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, tcgsize2size[opsize]*8-1, left.location.register, tempreg1);
+	cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_XOR, OS_INT, left.location.register, tempreg1, tempreg2);
+	cg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist, OP_SUB, OS_INT, tempreg1, tempreg2, location.register);
       end;
 
 
