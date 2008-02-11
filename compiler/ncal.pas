@@ -747,6 +747,8 @@ implementation
            internalerror(200305091);
          expr.fileinfo:=fileinfo;
          callparaflags:=[];
+         if expr.nodetype = typeconvn then
+           ttypeconvnode(expr).warn_pointer_to_signed:=false;
       end;
 
     destructor tcallparanode.destroy;
