@@ -107,7 +107,7 @@ else
 # Different OS_TARGET, default to libgdb v6
 GDBVER=GDB_V606
 gdbver.inc:
-        $(CPPROG) gdbver_nogdb.inc gdbver.inc
+        $(CPPROG) src/gdbver_nogdb.inc src/gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
