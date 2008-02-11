@@ -7,7 +7,7 @@ name=aspell
 version=1.0.0
 
 [target]
-units=aspell scheck
+units=aspell spellcheck
 
 [install]
 fpcpackage=y
