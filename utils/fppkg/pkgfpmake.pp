@@ -58,6 +58,13 @@ type
   end;
 
 
+  { TFPMakeRunnerClean }
+
+  TFPMakeRunnerClean = Class(TFPMakeRunner)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
   { TFPMakeRunnerManifest }
 
   TFPMakeRunnerManifest = Class(TFPMakeRunner)
@@ -248,6 +255,14 @@ Var
 
 begin
   OOptions:='';
+  // Does the current package support this CPU-OS?
+  if assigned(CurrentPackage) then
+    begin
+      if not(CompilerOptions.CompilerOS in CurrentPackage.OSes) or
+         not(CompilerOptions.CompilerCPU in CurrentPackage.CPUs) then
+        Error(SErrPackageDoesNotSupportTarget,[CurrentPackage.Name,
+            MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+    end;
   { Maybe compile fpmake executable? }
   ExecuteAction(CurrentPackage,'compilefpmake');
   { Create options }
@@ -291,6 +306,12 @@ begin
 end;
 
 
+function TFPMakeRunnerClean.Execute(const Args:TActionArgs):boolean;
+begin
+  result:=(RunFPMake('clean')=0);
+end;
+
+
 function TFPMakeRunnerManifest.Execute(const Args:TActionArgs):boolean;
 begin
   result:=(RunFPMake('manifest')=0);
@@ -310,6 +331,7 @@ initialization
   RegisterPkgHandler('fpmakecompile',TFPMakeRunnerCompile);
   RegisterPkgHandler('fpmakebuild',TFPMakeRunnerBuild);
   RegisterPkgHandler('fpmakeinstall',TFPMakeRunnerInstall);
+  RegisterPkgHandler('fpmakeclean',TFPMakeRunnerClean);
   RegisterPkgHandler('fpmakemanifest',TFPMakeRunnerManifest);
   RegisterPkgHandler('fpmakearchive',TFPMakeRunnerArchive);
 end.

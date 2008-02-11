@@ -5,16 +5,17 @@ unit pkgrepos;
 interface
 
 uses
-  Classes,SysUtils,
-  fprepos;
+  SysUtils,Classes,
+  fprepos,pkgoptions;
 
 function GetRemoteRepositoryURL(const AFileName:string):string;
 
 procedure LoadLocalMirrors;
 procedure LoadLocalRepository;
-procedure LoadLocalStatus;
-procedure SaveLocalStatus;
-procedure LoadFPMakeLocalStatus;
+function  LoadOrCreatePackage(const AName:string):TFPPackage;
+function  LoadPackageManifest(const AManifestFN:string):TFPPackage;
+procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
+procedure CheckFPMakeDependencies;
 procedure ListLocalRepository(all:boolean=false);
 
 procedure ListRemoteRepository;
@@ -32,7 +33,6 @@ uses
   zipper,
   fpxmlrep,
   pkgglobals,
-  pkgoptions,
   pkgmessages;
 
 {*****************************************************************************
@@ -134,6 +134,32 @@ end;
                            Local Repository
 *****************************************************************************}
 
+procedure ReadIniFile(Const AFileName: String;L:TStrings);
+Var
+  F : TFileStream;
+  Line : String;
+  I,P,PC : Integer;
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead);
+  Try
+    L.LoadFromStream(F);
+    // Fix lines.
+    For I:=L.Count-1 downto 0 do
+      begin
+        Line:=L[I];
+        P:=Pos('=',Line);
+        PC:=Pos(';',Line);  // Comment line.
+        If (P=0) or ((PC<>0) and (PC<P)) then
+          L.Delete(I)
+        else
+          L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
+      end;
+  Finally
+    F.Free;
+  end;
+end;
+
+
 procedure LoadLocalRepository;
 var
   S : String;
@@ -165,44 +191,162 @@ begin
 end;
 
 
-procedure LoadLocalStatus;
-var
-  S : String;
+function LoadOrCreatePackage(const AName:string):TFPPackage;
 begin
-  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
-  Log(vlDebug,SLogLoadingStatusFile,[S]);
+  result:=CurrentRepository.FindPackage(AName);
+  if not assigned(result) then
+    begin
+      result:=CurrentRepository.AddPackage(AName);
+      result.IsLocalPackage:=true;
+    end;
+end;
+
+
+function LoadPackageManifest(const AManifestFN:string):TFPPackage;
+var
+  X : TFPXMLRepositoryHandler;
+  i : integer;
+  DoAdd : Boolean;
+  NewP : TFPPackage;
+  NewPackages : TFPPackages;
+begin
+  result:=nil;
+  NewPackages:=TFPPackages.Create(TFPPackage);
+  X:=TFPXMLRepositoryHandler.Create;
+  try
+    X.LoadFromXml(NewPackages,AManifestFN);
+    // Update or Add packages to repository
+    for i:=0 to NewPackages.Count-1 do
+      begin
+        NewP:=NewPackages[i];
+        DoAdd:=True;
+        result:=CurrentRepository.FindPackage(NewP.Name);
+        if assigned(result) then
+          begin
+            if NewP.Version.CompareVersion(result.Version)<0 then
+              begin
+                Writeln(Format('Ignoring package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,result.Version.AsString]));
+                DoAdd:=False;
+              end
+            else
+              Writeln(Format('Updating package %s-%s (old %s)',[NewP.Name,NewP.Version.AsString,result.Version.AsString]));
+          end
+        else
+          result:=CurrentRepository.PackageCollection.AddPackage(NewP.Name);
+        // Copy contents
+        if DoAdd then
+          result.Assign(NewP);
+      end;
+  finally
+    X.Free;
+    NewPackages.Free;
+  end;
+end;
+
+
+procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
+
+  procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
+  Var
+    L : TStrings;
+    V : String;
+  begin
+    L:=TStringList.Create;
+    Try
+      ReadIniFile(AFileName,L);
+{$warning TODO Maybe check also CPU-OS}
+{$warning TODO Add date to check recompile}
+      V:=L.Values['version'];
+      APackage.InstalledVersion.AsString:=V;
+      // Log packages found in multiple locations (local and global) ?
+      if not APackage.InstalledVersion.Empty then
+        begin
+          if showdups then
+            Log(vlDebug,SDbgPackageMultipleLocations,[APackage.Name,ExtractFilePath(AFileName)]);
+        end;
+    Finally
+      L.Free;
+    end;
+  end;
+
+  procedure LoadPackagefpcFromFile(APackage:TFPPackage;const AFileName: String);
+  Var
+    L : TStrings;
+    V : String;
+  begin
+    L:=TStringList.Create;
+    Try
+      ReadIniFile(AFileName,L);
+      V:=L.Values['version'];
+      APackage.InstalledVersion.AsString:=V;
+    Finally
+      L.Free;
+    end;
+  end;
+
+  function CheckUnitDir(const AUnitDir:string):boolean;
+  var
+    SR : TSearchRec;
+    P  : TFPPackage;
+    UD,UF : String;
+  begin
+    Result:=false;
+    if FindFirst(IncludeTrailingPathDelimiter(AUnitDir)+AllFiles,faDirectory,SR)=0 then
+      begin
+        Log(vlDebug,SLogFindInstalledPackages,[AUnitDir]);
+        repeat
+          if ((SR.Attr and faDirectory)=faDirectory) and (SR.Name<>'.') and (SR.Name<>'..') then
+            begin
+              UD:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(AUnitDir)+SR.Name);
+              // Try new fpunits.conf
+              UF:=UD+UnitConfigFileName;
+              if FileExistsLog(UF) then
+                begin
+                  P:=LoadOrCreatePackage(SR.Name);
+                  LoadUnitConfigFromFile(P,UF)
+                end
+              else
+                begin
+                  // Try Old style Package.fpc
+                  UF:=UD+'Package.fpc';
+                  if FileExistsLog(UF) then
+                    begin
+                      P:=LoadOrCreatePackage(SR.Name);
+                      LoadPackagefpcFromFile(P,UF);
+                    end;
+                end;
+            end;
+        until FindNext(SR)<>0;
+      end;
+  end;
+
+begin
   CurrentRepository.ClearStatus;
-  if FileExists(S) then
-    CurrentRepository.LoadStatusFromFile(S);
+  // First scan the global directory
+  // The local directory will overwrite the versions
+  if ACompilerOptions.GlobalUnitDir<>'' then
+    CheckUnitDir(ACompilerOptions.GlobalUnitDir);
+  if ACompilerOptions.LocalUnitDir<>'' then
+    CheckUnitDir(ACompilerOptions.LocalUnitDir);
 end;
 
 
-procedure SaveLocalStatus;
-var
-  S : String;
-begin
-  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.CompilerConfig);
-  Log(vlDebug,SLogSavingStatusFile,[S]);
-  CurrentRepository.SaveStatusToFile(S);
-end;
-
-
-procedure LoadFPMakeLocalStatus;
+procedure CheckFPMakeDependencies;
 var
   i : Integer;
-  S : String;
   P : TFPPackage;
   ReqVer : TFPVersion;
 begin
-  S:=GlobalOptions.LocalVersionsFile(GlobalOptions.FPMakeCompilerConfig);
-  Log(vlDebug,SLogLoadingStatusFile,[S]);
-  CurrentRepository.ClearStatus;
-  if FileExists(S) then
-    CurrentRepository.LoadStatusFromFile(S);
+  // Reset availability
+  for i:=1 to FPMKUnitDepCount do
+    FPMKUnitDepAvailable[i]:=false;
+  // Not version check needed in Recovery mode, we always need to use
+  // the internal bootstrap procedure
+  if GlobalOptions.RecoveryMode then
+    exit;
   // Check for fpmkunit dependencies
   for i:=1 to FPMKUnitDepCount do
     begin
-      FPMKUnitDepAvailable[i]:=false;
       P:=CurrentRepository.FindPackage(FPMKUnitDeps[i].package);
       if P<>nil then
         begin
@@ -256,8 +400,8 @@ end;
 
 
 procedure RebuildRemoteRepository;
+
 var
-  X : TFPXMLRepositoryHandler;
   i : integer;
   ArchiveSL : TStringList;
   ManifestSL : TStringList;
@@ -289,17 +433,12 @@ begin
         { Load manifest.xml }
         if FileExists(ManifestFileName) then
           begin
-            X:=TFPXMLRepositoryHandler.Create;
-            With X do
-              try
-                LoadFromXml(CurrentRepository.PackageCollection,ManifestFileName);
-              finally
-                Free;
-              end;
+            LoadPackageManifest(ManifestFileName);
             DeleteFile(ManifestFileName);
           end
         else
           Writeln('No manifest found in archive ',ArchiveSL[i]);
+
       end;
   finally
     ArchiveSL.Free;

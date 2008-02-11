@@ -33,16 +33,16 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
-  { TCommandAllAvail }
+  { TCommandShowAll }
 
-  TCommandAllAvail = Class(TPackagehandler)
+  TCommandShowAll = Class(TPackagehandler)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
-  { TCommandAvail }
+  { TCommandShowAvail }
 
-  TCommandAvail = Class(TPackagehandler)
+  TCommandShowAvail = Class(TPackagehandler)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
@@ -89,6 +89,13 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
+  { TCommandClean }
+
+  TCommandClean = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
   { TCommandArchive }
 
   TCommandArchive = Class(TPackagehandler)
@@ -129,19 +136,20 @@ begin
   DownloadFile(PackagesURL,GlobalOptions.LocalPackagesFile);
   // Read the repository again
   LoadLocalRepository;
-  LoadLocalStatus;
+  // no need to log errors again
+  FindInstalledPackages(CompilerOptions,False);
   Result:=true;
 end;
 
 
-function TCommandAllAvail.Execute(const Args:TActionArgs):boolean;
+function TCommandShowAll.Execute(const Args:TActionArgs):boolean;
 begin
   ListLocalRepository(true);
   Result:=true;
 end;
 
 
-function TCommandAvail.Execute(const Args:TActionArgs):boolean;
+function TCommandShowAvail.Execute(const Args:TActionArgs):boolean;
 begin
   ListLocalRepository(false);
   Result:=true;
@@ -200,8 +208,18 @@ function TCommandCompile.Execute(const Args:TActionArgs):boolean;
 begin
   if assigned(CurrentPackage) then
     begin
-      ExecuteAction(CurrentPackage,'installdependencies',Args);
-      ExecuteAction(CurrentPackage,'unzip',Args);
+      // For local files we need the information inside the zip to get the
+      // dependencies
+      if CurrentPackage.IsLocalPackage then
+        begin
+          ExecuteAction(CurrentPackage,'unzip',Args);
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+        end
+      else
+        begin
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+          ExecuteAction(CurrentPackage,'unzip',Args);
+        end;
     end;
   ExecuteAction(CurrentPackage,'fpmakecompile',Args);
   Result:=true;
@@ -212,8 +230,18 @@ function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
   if assigned(CurrentPackage) then
     begin
-      ExecuteAction(CurrentPackage,'installdependencies',Args);
-      ExecuteAction(CurrentPackage,'unzip',Args);
+      // For local files we need the information inside the zip to get the
+      // dependencies
+      if CurrentPackage.IsLocalPackage then
+        begin
+          ExecuteAction(CurrentPackage,'unzip',Args);
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+        end
+      else
+        begin
+          ExecuteAction(CurrentPackage,'installdependencies',Args);
+          ExecuteAction(CurrentPackage,'unzip',Args);
+        end;
     end;
   ExecuteAction(CurrentPackage,'fpmakebuild',Args);
   Result:=true;
@@ -227,10 +255,14 @@ begin
   ExecuteAction(CurrentPackage,'fpmakeinstall',Args);
   // Update local status file
   if assigned(CurrentPackage) then
-    begin
-      CurrentPackage.InstalledVersion.Assign(CurrentPackage.Version);
-      SaveLocalStatus;
-    end;
+    CurrentPackage.InstalledVersion.Assign(CurrentPackage.Version);
+  Result:=true;
+end;
+
+
+function TCommandClean.Execute(const Args:TActionArgs):boolean;
+begin
+  ExecuteAction(CurrentPackage,'fpmakeclean',Args);
   Result:=true;
 end;
 
@@ -245,40 +277,64 @@ end;
 function TCommandInstallDependencies.Execute(const Args:TActionArgs):boolean;
 var
   i : Integer;
+  MissingDependency,
   D : TFPDependency;
+  P,
   DepPackage : TFPPackage;
   L : TStringList;
   status : string;
 begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
-  // List dependencies
+  // Load dependencies for local packages
+  if CurrentPackage.IsLocalPackage then
+    begin
+      ExecuteAction(CurrentPackage,'fpmakemanifest',Args);
+      P:=LoadPackageManifest(ManifestFileName);
+      // Update CurrentPackage
+      CurrentPackage.Assign(P);
+      CurrentPackage.IsLocalPackage:=true;
+    end;
+  // Find and List dependencies
+  MissingDependency:=nil;
   L:=TStringList.Create;
   for i:=0 to CurrentPackage.Dependencies.Count-1 do
     begin
       D:=CurrentPackage.Dependencies[i];
-      DepPackage:=CurrentRepository.PackageByName(D.PackageName);
-      // Need installation?
-      if (DepPackage.InstalledVersion.Empty) or
-         (DepPackage.InstalledVersion.CompareVersion(D.MinVersion)<0) then
+      if (CompilerOptions.CompilerOS in D.OSes) and
+         (CompilerOptions.CompilerCPU in D.CPUs) then
         begin
-          if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
-            status:='Not Available!'
+          DepPackage:=CurrentRepository.PackageByName(D.PackageName);
+          // Need installation?
+          if (DepPackage.InstalledVersion.Empty) or
+             (DepPackage.InstalledVersion.CompareVersion(D.MinVersion)<0) then
+            begin
+              if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
+                begin
+                  status:='Not Available!';
+                  MissingDependency:=D;
+                end
+              else
+                begin
+                  status:='Updating';
+                  L.Add(DepPackage.Name);
+                end;
+            end
           else
-            status:='Updating';
-          L.Add(DepPackage.Name);
+            status:='OK';
+          Log(vlInfo,SLogPackageDependency,
+              [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
         end
       else
-        status:='OK';
-      Log(vlDebug,SDbgPackageDependency,
-          [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
+        Log(vlDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
     end;
+  // Give error on first missing dependency
+  if assigned(MissingDependency) then
+    Error(SErrNoPackageAvailable,[MissingDependency.PackageName,MissingDependency.MinVersion.AsString]);
   // Install needed updates
   for i:=0 to L.Count-1 do
     begin
       DepPackage:=CurrentRepository.PackageByName(L[i]);
-      if DepPackage.Version.CompareVersion(D.MinVersion)<0 then
-        Error(SErrNoPackageAvailable,[D.PackageName,D.MinVersion.AsString]);
       ExecuteAction(DepPackage,'install');
     end;
   FreeAndNil(L);
@@ -288,14 +344,15 @@ end;
 
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
-  RegisterPkgHandler('allavail',TCommandAllAvail);
-  RegisterPkgHandler('avail',TCommandAvail);
+  RegisterPkgHandler('showall',TCommandShowAll);
+  RegisterPkgHandler('showavail',TCommandShowAvail);
   RegisterPkgHandler('scan',TCommandScanPackages);
   RegisterPkgHandler('download',TCommandDownload);
   RegisterPkgHandler('unzip',TCommandUnzip);
   RegisterPkgHandler('compile',TCommandCompile);
   RegisterPkgHandler('build',TCommandBuild);
   RegisterPkgHandler('install',TCommandInstall);
+  RegisterPkgHandler('clean',TCommandClean);
   RegisterPkgHandler('archive',TCommandArchive);
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);
 end.

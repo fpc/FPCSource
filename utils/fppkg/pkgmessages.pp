@@ -42,7 +42,7 @@ Resourcestring
   SErrConvertFPMakeExists    = 'Found existing fpmake.pp, aborting conversion';
   SErrFailedToSelectMirror   = 'Could not select a mirror, run update and retry';
   SErrUnsupportedConfigVersion = 'Configuration file "%s" is too old, delete file manual and retry';
-
+  SErrPackageDoesNotSupportTarget = 'Package %s does not support %s';
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';
@@ -66,19 +66,21 @@ Resourcestring
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
   SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
-  SLogLoadingStatusFile      = 'Loading local status from "%s"';
+  SLogFindInstalledPackages  = 'Finding installed packages in "%s"';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
   SLogFPMKUnitDepVersion     = 'Checking for %s %s, installed %s, available %s';
   SLogFPMKUnitDepTooOld      = 'Minimum version of %s is not installed, using internal fpmkunit with limited functionality';
   SLogSelectedMirror         = 'Selected mirror "%s"';
   SLogUpgradingConfig        = 'Configuration file "%s" is updated with new configuration settings';
+  SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
   SDbgDirectoryExists        = 'Directory "%s" %s';
   SDbgFileExists             = 'File "%s" %s';
   SDbgBackupFile             = 'Creating Backup File "%s"';
-  SDbgPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
+  SDbgPackageMultipleLocations = 'Multiple installations found for package %s, using installation "%s"';
+  SDbgPackageDependencyOtherTarget  = 'Dependency on package %s is not for %s';
 
 implementation
 

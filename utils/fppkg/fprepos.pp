@@ -41,14 +41,19 @@ Type
   );
   TOSes = Set of TOS;
 
+const
+  AllOSes = [Low(TOS)..High(TOS)];
+  AllCPUs = [Low(TCPU)..High(TCPU)];
+
+type
   { TFPVersion }
 
   TFPVersion = Class(TPersistent)
   private
-    FMajor: Word;
-    FMinor: Word;
-    FRelease: Word;
-    FSuffix: string;
+    FMajor,
+    FMinor,
+    FMicro,
+    FBuild    : Word;
     function GetAsString: String;
     function GetEmpty: Boolean;
     procedure SetAsString(const AValue: String);
@@ -60,16 +65,18 @@ Type
    Function SameVersion(AVersion : TFPVersion) : Boolean;
    Property Empty : Boolean Read GetEmpty;
   Published
-   Property Release : Word Read FRelease Write FRelease;
    Property Major : Word Read FMajor Write FMajor;
    Property Minor : Word Read FMinor Write FMinor;
-   Property Suffix : string Read FSuffix Write FSuffix;
+   Property Micro : Word Read FMicro Write FMicro;
+   Property Build : Word Read FBuild Write FBuild;
   end;
 
   { TFPDependency }
 
   TFPDependency = Class(TStreamCollectionItem)
   private
+    FOSes : TOSES;
+    FCPUs : TCPUS;
     FMinVersion: TFPVersion;
     FPackageName: String;
     procedure SetMinVersion(const AValue: TFPVersion);
@@ -82,6 +89,8 @@ Type
   Published
     Property PackageName : String Read FPackageName Write FPackageName;
     Property MinVersion : TFPVersion Read FMinVersion Write SetMinVersion;
+    Property OSes : TOSes Read FOSes Write FOses;
+    Property CPUs : TCPUs Read FCPUs Write FCPUs;
   end;
 
   { TFPDepencencies }
@@ -112,13 +121,9 @@ Type
     FOSes : TOSES;
     FCPUs : TCPUS;
     FIsLocalPackage : Boolean;
-    function GetDependencies: TFPDependencies;
-    function GetHasDependencies: Boolean;
     function GetFileName: String;
     procedure SetName(const AValue: String);
     procedure SetVersion(const AValue: TFPVersion);
-  Protected
-    Function CreateDependencies : TFPDependencies; virtual;
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
@@ -126,8 +131,7 @@ Type
     Procedure SaveToStream(Stream : TStream); override;
     Procedure Assign(Source : TPersistent); override;
     Function AddDependency(Const APackageName : String; AMinVersion : String = '') : TFPDependency;
-    Property HasDependencies : Boolean Read GetHasDependencies;
-    Property Dependencies : TFPDependencies Read GetDependencies;
+    Property Dependencies : TFPDependencies Read FDependencies;
   Published
     Property Name : String Read FName Write SetName;
     Property Author : String Read FAuthor Write FAuthor;
@@ -187,10 +191,12 @@ Type
     Procedure Save;
     // Loading and Saving version numbers: List of Name=Value pairs.
     procedure ClearStatus;
+{$ifdef STATUSFILE}
     Procedure LoadStatusFromStream(Stream : TStream); virtual;
     Procedure SaveStatusToStream(Stream : TStream); virtual;
     Procedure LoadStatusFromFile(const AFileName : String);
     Procedure SaveStatusToFile(const AFileName : String);
+{$endif STATUSFILE}
     // Package management
     Function IndexOfPackage(const APackageName : String) : Integer;
     Function FindPackage(const APackageName : String) : TFPPackage;
@@ -289,34 +295,32 @@ ResourceString
 
 
 Function OSToString(OS: TOS) : String;
-
 begin
   Result:=LowerCase(GetenumName(TypeInfo(TOS),Ord(OS)));
 end;
 
-Function OSesToString(OSes: TOSes) : String;
 
+Function OSesToString(OSes: TOSes) : String;
 begin
   Result:=LowerCase(SetToString(PtypeInfo(TypeInfo(TOSes)),Integer(OSes),False));
 end;
 
-Function CPUToString(CPU: TCPU) : String;
 
+Function CPUToString(CPU: TCPU) : String;
 begin
   Result:=LowerCase(GetenumName(TypeInfo(TCPU),Ord(CPU)));
 end;
 
-Function CPUSToString(CPUS: TCPUS) : String;
 
+Function CPUSToString(CPUS: TCPUS) : String;
 begin
   Result:=LowerCase(SetToString(PTypeInfo(TypeInfo(TCPUS)),Integer(CPUS),False));
 end;
 
-Function StringToOS(S : String) : TOS;
 
+Function StringToOS(S : String) : TOS;
 Var
   I : Integer;
-
 begin
   I:=GetEnumValue(TypeInfo(TOS),S);
   if (I=-1) then
@@ -326,16 +330,14 @@ end;
 
 
 Function OSesToString(S : String) : TOSes;
-
 begin
   Result:=TOSes(StringToSet(PTypeInfo(TypeInfo(TOSes)),S));
 end;
 
-Function StringToCPU(S : String) : TCPU;
 
+Function StringToCPU(S : String) : TCPU;
 Var
   I : Integer;
-
 begin
   I:=GetEnumValue(TypeInfo(TCPU),S);
   if (I=-1) then
@@ -343,23 +345,22 @@ begin
   Result:=TCPU(I);
 end;
 
-Function StringToCPUS(S : String) : TCPUS;
 
+Function StringToCPUS(S : String) : TCPUS;
 begin
   Result:=TCPUS(StringToSet(PTypeInfo(TypeInfo(TCPUS)),S));
 end;
 
-Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 
+Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 begin
   Result:=CPUToString(CPU)+'-'+OSToString(OS);
 end;
 
-Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
 
+Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
 Var
   P : integer;
-
 begin
   P:=Pos('-',S);
   If (P=0) then
@@ -376,25 +377,21 @@ begin
   if Empty then
     Result:='<none>'
   else
-    begin
-      Result:=Format('%d.%d.%d',[Release,Major,Minor]);
-      If (Suffix<>'') then
-        Result:=Result+'-'+Suffix;
-    end;
+    Result:=Format('%d.%d.%d-%d',[Major,Minor,Micro,Build]);
 end;
+
 
 function TFPVersion.GetEmpty: Boolean;
 begin
-  Result:=(Release=0) and (Major=0) and (Minor=0) and (Suffix='');
+  Result:=(Major=0) and (Minor=0) and (Micro=0) and (Build=0);
 end;
+
 
 procedure TFPVersion.SetAsString(const AValue: String);
 
   Function NextDigit(sep : Char; var V : string) : integer;
-
   Var
     P : Integer;
-
   begin
     P:=Pos(Sep,V);
     If (P=0) then
@@ -407,64 +404,61 @@ procedure TFPVersion.SetAsString(const AValue: String);
   end;
 
 Var
-  P : Integer;
   V : String;
-
 begin
   Clear;
   // Special support for empty version string
   if (AValue='') or (AValue='<none>') then
     exit;
   V:=AValue;
-  Release:=NextDigit('.',V);
   Major:=NextDigit('.',V);
-  Minor:=NextDigit('-',V);
-  P:=Pos('-',V);
-  If (P<>0) then
-    Delete(V,1,P);
-  Suffix:=V;
+  Minor:=NextDigit('.',V);
+  Micro:=NextDigit('-',V);
+  Build:=NextDigit(#0,V);
 end;
+
 
 procedure TFPVersion.Clear;
 begin
-  Release:=0;
+  Micro:=0;
   Major:=0;
   Minor:=0;
-  Suffix:='';
+  Build:=0;
 end;
 
-procedure TFPVersion.Assign(Source: TPersistent);
 
+procedure TFPVersion.Assign(Source: TPersistent);
 Var
   V : TFPVersion;
-
 begin
   if Source is TFPVersion then
     begin
-    V:=Source as TFPVersion;
-    Release:=V.Release;
-    Major:=V.Major;
-    Minor:=V.Minor;
-    Suffix:=V.Suffix;
+      V:=Source as TFPVersion;
+      Major:=V.Major;
+      Minor:=V.Minor;
+      Micro:=V.Micro;
+      Build:=V.Build;
     end
   else
     inherited Assign(Source);
 end;
 
+
 function TFPVersion.CompareVersion(AVersion: TFPVersion): Integer;
 begin
-  Result:=Release-AVersion.Release;
+  Result:=Major-AVersion.Major;
   If (Result=0) then
     begin
-    Result:=Major-AVersion.Major;
-    if (Result=0) then
-      begin
       Result:=Minor-AVersion.Minor;
-      If (Result=0) then
-        Result:=CompareText(Suffix,AVersion.Suffix);
-      end;
+      if (Result=0) then
+        begin
+          Result:=Micro-AVersion.Micro;
+          If (Result=0) then
+            Result:=Build-AVersion.Build;
+        end;
     end;
 end;
+
 
 function TFPVersion.SameVersion(AVersion: TFPVersion): Boolean;
 begin
@@ -480,16 +474,15 @@ begin
   FVersion.Assign(AValue);
 end;
 
-Function TFPPackage.CreateDependencies : TFPDependencies;
-begin
-  Result:=TFPDependencies.Create(TFPDependency);
-end;
 
 constructor TFPPackage.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FVersion:=TFPVersion.Create;
   FInstalledVersion:=TFPVersion.Create;
+  FOSes:=AllOSes;
+  FCPUs:=AllCPUs;
+  FDependencies:=TFPDependencies.Create(TFPDependency);
 end;
 
 
@@ -501,8 +494,8 @@ begin
   inherited Destroy;
 end;
 
-procedure TFPPackage.SetName(const AValue: String);
 
+procedure TFPPackage.SetName(const AValue: String);
 begin
   If (AValue<>FName) and (AValue<>'') then
     If (Collection<>Nil) and (Collection is TFPPackages) then
@@ -513,17 +506,6 @@ begin
   FName:=AValue;
 end;
 
-function TFPPackage.GetDependencies: TFPDependencies;
-begin
-  If Not Assigned(FDependencies) then
-    FDependencies:=CreateDependencies;
-  Result:=FDependencies;
-end;
-
-function TFPPackage.GetHasDependencies: Boolean;
-begin
-  Result:=(Dependencies<>nil) and (FDependencies.Count>0);
-end;
 
 function TFPPackage.GetFileName: String;
 var
@@ -538,14 +520,13 @@ begin
     Result:=FFileName;
 end;
 
-procedure TFPPackage.LoadFromStream(Stream: TStream; Streamversion : Integer);
 
+procedure TFPPackage.LoadFromStream(Stream: TStream; Streamversion : Integer);
 Var
   B : Boolean;
   O : TOSes;
   C : TCPUs;
   I,J,Count : Integer;
-
 begin
   Version.AsString:=ReadString(Stream);
   Name:=ReadString(Stream);
@@ -559,36 +540,32 @@ begin
   O:=[];
   For I:=1 to Count do
     begin
-    J:=GetEnumValue(TypeInfo(TOS),ReadString(Stream));
-    If (J<>-1) then
-      Include(O,TOS(J));
+      J:=GetEnumValue(TypeInfo(TOS),ReadString(Stream));
+      If (J<>-1) then
+        Include(O,TOS(J));
     end;
   OSEs:=O;
   Count:=ReadInteger(Stream);
   C:=[];
   For I:=1 to Count do
     begin
-    J:=GetEnumValue(TypeInfo(TCPU),ReadString(Stream));
-    If (J<>-1) then
-      Include(C,TCPU(J));
+      J:=GetEnumValue(TypeInfo(TCPU),ReadString(Stream));
+      If (J<>-1) then
+        Include(C,TCPU(J));
     end;
   CPUS:=C;
-  FreeAndNil(FDependencies);
+  FDependencies.Clear;
   B:=ReadBoolean(Stream);
   If B then
-    begin
-    FDependencies:=CreateDependencies;
     FDependencies.LoadFromStream(Stream);
-    end
 end;
 
-procedure TFPPackage.SaveToStream(Stream: TStream);
 
+procedure TFPPackage.SaveToStream(Stream: TStream);
 Var
   Count : Integer;
   O : TOS;
   C : TCPU;
-
 begin
   WriteString(Stream,Version.AsString);
   WriteString(Stream,Name);
@@ -617,43 +594,41 @@ begin
   For C:=Low(TCPU) to High(TCPU) do
     If C in CPUS then
       WriteString(Stream,GetEnumName(TypeInfo(TCPU),Ord(C)));
-  WriteBoolean(Stream,HasDependencies);
-  If HasDependencies then
+  WriteBoolean(Stream,FDependencies.Count>0);
+  If FDependencies.Count>0 then
     FDependencies.SaveToStream(Stream);
 end;
 
-procedure TFPPackage.Assign(Source: TPersistent);
 
+procedure TFPPackage.Assign(Source: TPersistent);
 Var
   P : TFPPackage;
-
 begin
   if Source is TFPPackage then
     begin
-    P:=Source as TFPPackage;
-    // This creates trouble if P has the same owning collection !!
-    If P.Collection<>Collection then
-      Name:=P.Name;
-    Author:=P.Author;
-    Version:=P.Version;
-    Description:=P.Description;
-    ExternalURL:=P.ExternalURL;
-    FileName:=P.FileName;
-    InstalledVersion:=P.Installedversion;
-    If P.HasDependencies then
-      Dependencies.Assign(P.Dependencies)
-    else
-      FreeAndNil(FDependencies);
+      P:=Source as TFPPackage;
+      // This creates trouble if P has the same owning collection !!
+      If P.Collection<>Collection then
+        Name:=P.Name;
+      Author:=P.Author;
+      Version:=P.Version;
+      Description:=P.Description;
+      ExternalURL:=P.ExternalURL;
+      FileName:=P.FileName;
+      InstalledVersion.Assign(P.Installedversion);
+      Dependencies.Clear;
+      Dependencies.Assign(P.Dependencies);
     end
   else
     inherited Assign(Source);
 end;
 
-function TFPPackage.AddDependency(const APackageName: String;
-  AMinVersion: String): TFPDependency;
+
+function TFPPackage.AddDependency(const APackageName: String;AMinVersion: String): TFPDependency;
 begin
   Result:=Dependencies.AddDependency(APackageName,AMinVersion);
 end;
+
 
 { TFPPackages }
 
@@ -837,13 +812,12 @@ begin
 end;
 
 
+{$ifdef STATUSFILE}
 procedure TFPRepository.LoadStatusFromStream(Stream: TStream);
-
 Var
   L : TStrings;
   I : Integer;
   N,V : String;
-
 begin
   L:=TStringList.Create;
   Try
@@ -859,12 +833,11 @@ begin
   end;
 end;
 
-procedure TFPRepository.SaveStatusToStream(Stream: TStream);
 
+procedure TFPRepository.SaveStatusToStream(Stream: TStream);
 Var
   L : TStrings;
   I : Integer;
-
 begin
   L:=TStringList.Create;
   Try
@@ -878,11 +851,10 @@ begin
   end;
 end;
 
-procedure TFPRepository.LoadStatusFromFile(const AFileName: String);
 
+procedure TFPRepository.LoadStatusFromFile(const AFileName: String);
 Var
   F : TFileStream;
-
 begin
   F:=TFileStream.Create(AFileName,fmOpenRead);
   Try
@@ -892,11 +864,10 @@ begin
   end;
 end;
 
-procedure TFPRepository.SaveStatusToFile(const AFileName: String);
 
+procedure TFPRepository.SaveStatusToFile(const AFileName: String);
 Var
   F : TFileStream;
-
 begin
   If FileExists(AFileName) and BackupFiles then
     BackupFile(AFileName);
@@ -907,83 +878,87 @@ begin
     F.Free;
   end;
 end;
+{$endif STATUSFILE}
+
 
 function TFPRepository.IndexOfPackage(const APackageName: String): Integer;
 begin
   Result:=FPackages.IndexOfPackage(APackageName);
 end;
 
+
 function TFPRepository.FindPackage(const APackageName: String): TFPPackage;
 begin
   Result:=FPackages.FindPackage(APackageName);
 end;
+
 
 function TFPRepository.PackageByName(const APackageName: String): TFPPackage;
 begin
   Result:=FPackages.PackageByName(APackageName);
 end;
 
+
 procedure TFPRepository.RemovePackage(const APackageName: string);
 begin
   PackageByName(APackageName).Free;
 end;
+
 
 procedure TFPRepository.DeletePackage(Index : Integer);
 begin
   GetPackage(Index).Free;
 end;
 
-function TFPRepository.AddPackage(const APackageName: string): TFPPackage;
 
+function TFPRepository.AddPackage(const APackageName: string): TFPPackage;
 begin
   Result:=FPackages.AddPackage(APackageName);
 end;
 
-procedure TFPRepository.DoGetPackageDependencies(const APackageName: String;
-  List: TStringList; Level: Integer);
+
+procedure TFPRepository.DoGetPackageDependencies(const APackageName: String; List: TStringList; Level: Integer);
 Var
   P : TFPPackage;
   D2,D1 : TFPDependency;
   i,J : Integer;
-
 begin
   // If too many levels, bail out
   If (Level>FMaxDependencyLevel) then
     Raise EPackage.CreateFmt(SErrMaxLevelExceeded,[Level,APackageName]);
   // Check if it is a known package.
   P:=FindPackage(APackageName);
-  If Assigned(P) and P.HasDependencies then
-    For I:=0 to P.Dependencies.Count-1 do
-      begin
+  If not Assigned(P) then
+    exit;
+  For I:=0 to P.Dependencies.Count-1 do
+    begin
       D1:=P.Dependencies[i];
       J:=List.IndexOf(APackageName);
       If J=-1 then
         begin
-        // Dependency not yet in list.
-        D2:=TFPDependency.Create(Nil);
-        D2.Assign(D1);
-        List.AddObject(D2.PackageName,D2);
+          // Dependency not yet in list.
+          D2:=TFPDependency.Create(Nil);
+          D2.Assign(D1);
+          List.AddObject(D2.PackageName,D2);
         end
       else
         begin
-        // Dependency already in list, compare versions.
-        D2:=List.Objects[J] as TFPDependency;
-        If D1.MinVersion.CompareVersion(D2.MinVersion)>0 then
-          D2.MinVersion.Assign(D1.MinVersion);
+          // Dependency already in list, compare versions.
+          D2:=List.Objects[J] as TFPDependency;
+          If D1.MinVersion.CompareVersion(D2.MinVersion)>0 then
+            D2.MinVersion.Assign(D1.MinVersion);
         end;
       // If it was already in the list, we no longer recurse.
       If (Level>=0) and (J=-1) Then
         DoGetPackageDependencies(D2.PackageName,List,Level+1);
-      end;
+    end;
 end;
 
-procedure TFPRepository.GetPackageDependencies(const APackageName: String;
-  List: TObjectList; Recurse: Boolean);
 
+procedure TFPRepository.GetPackageDependencies(const APackageName: String; List: TObjectList; Recurse: Boolean);
 Var
   L : TStringList;
   I : Integer;
-
 begin
   L:=TStringList.Create;
   Try
@@ -1005,11 +980,15 @@ begin
   FMinVersion.Assign(AValue);
 end;
 
+
 constructor TFPDependency.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FMinVersion:=TFPVersion.Create;
+  FOSes:=AllOSes;
+  FCPUs:=AllCPUs;
 end;
+
 
 destructor TFPDependency.Destroy;
 begin
@@ -1017,12 +996,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TFPDependency.LoadFromStream(Stream: TStream; Streamversion: Integer
-  );
+
+procedure TFPDependency.LoadFromStream(Stream: TStream; Streamversion: Integer);
 begin
   PackageName:=ReadString(Stream);
   MinVersion.AsString:=ReadString(Stream)
 end;
+
 
 procedure TFPDependency.SaveToStream(Stream: TStream);
 begin
@@ -1030,17 +1010,23 @@ begin
   WriteString(Stream,MinVersion.AsString);
 end;
 
+
 procedure TFPDependency.Assign(Source: TPersistent);
+var
+  S : TFPDependency;
 begin
   If Source is TFPDependency then
-    With Source as TFPDependency do
-      begin
-      Self.PackageName:=PackageName;
-      Self.MinVersion:=MinVersion;
-      end
+    begin
+      S:=Source as TFPDependency;
+      FPackageName:=S.PackageName;
+      FMinVersion.Assign(S.MinVersion);
+      FOSes:=S.OSes;
+      FCPUs:=S.CPUs;
+    end
   else
     inherited Assign(Source);
 end;
+
 
 { TFPDependencies }
 
@@ -1049,11 +1035,12 @@ begin
   Result:=TFPDependency(Items[Index]);
 end;
 
-procedure TFPDependencies.SetDependency(Index : Integer;
-  const AValue: TFPDependency);
+
+procedure TFPDependencies.SetDependency(Index : Integer; const AValue: TFPDependency);
 begin
   Items[Index]:=AValue;
 end;
+
 
 function TFPDependencies.AddDependency(const APackageName: String; const AMinVersion: String): TFPDependency;
 begin
@@ -1062,6 +1049,7 @@ begin
   If (AMinVersion<>'') then
     Result.MinVersion.AsString:=AMinVersion;
 end;
+
 
 { TFPMirror }
 

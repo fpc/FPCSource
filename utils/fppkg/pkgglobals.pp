@@ -32,16 +32,16 @@ Const
   FPMKUnitDepCount=4;
   FPMKUnitDeps : array[1..4] of TFPMKUnitDep = (
     (package: 'hash';
-     reqver : '2.0.0';
+     reqver : '2.2.1';
      undef  : 'NO_UNIT_ZIPPER'),
     (package: 'paszlib';
-     reqver : '2.2.0';
+     reqver : '2.2.1';
      undef  : 'NO_UNIT_ZIPPER'),
     (package: 'fcl-process';
-     reqver : '2.0.0';
+     reqver : '2.2.1';
      undef  : 'NO_UNIT_PROCESS'),
     (package: 'fpmkunit';
-     reqver : '2.2.0';
+     reqver : '2.2.1';
      undef  : '')
   );
 

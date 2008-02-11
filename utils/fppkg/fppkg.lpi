@@ -12,7 +12,7 @@
       <MainUnit Value="0"/>
       <IconPath Value=".\"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="7"/>
+      <ActiveEditorIndexAtStart Value="4"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -28,17 +28,17 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="build hash"/>
+        <CommandLineParams Value="avail"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="38">
+    <Units Count="39">
       <Unit0>
         <Filename Value="fppkg.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fppkg"/>
-        <CursorPos X="1" Y="246"/>
-        <TopLine Value="228"/>
+        <CursorPos X="1" Y="317"/>
+        <TopLine Value="293"/>
         <EditorIndex Value="7"/>
         <UsageCount Value="86"/>
         <Loaded Value="True"/>
@@ -75,8 +75,8 @@
         <Filename Value="fprepos.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fprepos"/>
-        <CursorPos X="1" Y="187"/>
-        <TopLine Value="163"/>
+        <CursorPos X="3" Y="167"/>
+        <TopLine Value="168"/>
         <EditorIndex Value="8"/>
         <UsageCount Value="86"/>
         <Loaded Value="True"/>
@@ -205,8 +205,8 @@
       <Unit22>
         <Filename Value="pkgrepos.pp"/>
         <UnitName Value="pkgrepos"/>
-        <CursorPos X="17" Y="108"/>
-        <TopLine Value="108"/>
+        <CursorPos X="57" Y="242"/>
+        <TopLine Value="210"/>
         <EditorIndex Value="4"/>
         <UsageCount Value="32"/>
         <Loaded Value="True"/>
@@ -276,7 +276,7 @@
       <Unit32>
         <Filename Value="pkglnet.pp"/>
         <UnitName Value="pkglnet"/>
-        <CursorPos X="45" Y="32"/>
+        <CursorPos X="71" Y="10"/>
         <TopLine Value="1"/>
         <EditorIndex Value="9"/>
         <UsageCount Value="17"/>
@@ -321,76 +321,47 @@
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit37>
+      <Unit38>
+        <Filename Value="../../../proj/lazarus/lcl/interfaces/gtk/gtkproc.pp"/>
+        <UnitName Value="GTKProc"/>
+        <CursorPos X="11" Y="674"/>
+        <TopLine Value="655"/>
+        <UsageCount Value="10"/>
+      </Unit38>
     </Units>
-    <JumpHistory Count="17" HistoryIndex="16">
+    <JumpHistory Count="8" HistoryIndex="7">
       <Position1>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="128" Column="17" TopLine="111"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="108" Column="17" TopLine="108"/>
       </Position1>
       <Position2>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="47" Column="32" TopLine="28"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="177" Column="16" TopLine="173"/>
       </Position2>
       <Position3>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="213" Column="18" TopLine="188"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="212" Column="77" TopLine="193"/>
       </Position3>
       <Position4>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="51" Column="54" TopLine="32"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="222" Column="33" TopLine="196"/>
       </Position4>
       <Position5>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="76" Column="25" TopLine="57"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="210" Column="1" TopLine="183"/>
       </Position5>
       <Position6>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="110" Column="56" TopLine="91"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="218" Column="29" TopLine="203"/>
       </Position6>
       <Position7>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="60" Column="31" TopLine="49"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="26" Column="28" TopLine="7"/>
       </Position7>
       <Position8>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="160" Column="16" TopLine="134"/>
+        <Filename Value="pkgrepos.pp"/>
+        <Caret Line="229" Column="1" TopLine="208"/>
       </Position8>
-      <Position9>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="44" Column="36" TopLine="24"/>
-      </Position9>
-      <Position10>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="213" Column="46" TopLine="194"/>
-      </Position10>
-      <Position11>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="236" Column="12" TopLine="199"/>
-      </Position11>
-      <Position12>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="200" Column="20" TopLine="181"/>
-      </Position12>
-      <Position13>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="317" Column="24" TopLine="280"/>
-      </Position13>
-      <Position14>
-        <Filename Value="pkgglobals.pp"/>
-        <Caret Line="159" Column="52" TopLine="147"/>
-      </Position14>
-      <Position15>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="74" Column="30" TopLine="55"/>
-      </Position15>
-      <Position16>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="78" Column="32" TopLine="59"/>
-      </Position16>
-      <Position17>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="245" Column="9" TopLine="224"/>
-      </Position17>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
