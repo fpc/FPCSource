@@ -471,6 +471,7 @@ unit cgobj;
              @param(usedinproc Registers which are used in the code of this routine)
           }
           procedure g_restore_registers(list:TAsmList);virtual;
+                    
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual;
 
@@ -3608,7 +3609,7 @@ implementation
         size : longint;
         r : integer;
       begin
-        { Get temp }
+        { calculate temp. size }
         size:=0;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
@@ -3645,15 +3646,20 @@ implementation
               end;
 
             if uses_registers(R_MMREGISTER) then
-              for r:=low(saved_mm_registers) to high(saved_mm_registers) do
-                begin
-                  if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
-                    begin
-                      a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
-                      inc(href.offset,tcgsize2size[OS_VECTOR]);
-                    end;
-                  include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
-                end;
+              begin
+                if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
+                  inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
+
+                for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+                  begin
+                    if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                      begin
+                        a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
+                        inc(href.offset,tcgsize2size[OS_VECTOR]);
+                      end;
+                    include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
+                  end;
+              end;
           end;
       end;
 

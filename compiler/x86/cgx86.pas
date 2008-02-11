@@ -1016,7 +1016,17 @@ unit cgx86;
          tmpref:=ref;
          make_simple_ref(list,tmpref);
          if shuffle=nil then
-           list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,reg))
+           begin
+             if fromsize=OS_M64 then
+               list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,reg))
+             else
+{$ifdef x86_64}
+               { x86-64 has always properly aligned data }
+               list.concat(taicpu.op_ref_reg(A_MOVDQA,S_NO,tmpref,reg));
+{$else x86_64}
+               list.concat(taicpu.op_ref_reg(A_MOVDQU,S_NO,tmpref,reg));
+{$endif x86_64}
+           end
          else if shufflescalar(shuffle) then
            list.concat(taicpu.op_ref_reg(get_scalar_mm_op(fromsize,tosize),S_NO,tmpref,reg))
          else
@@ -1032,7 +1042,17 @@ unit cgx86;
          tmpref:=ref;
          make_simple_ref(list,tmpref);
          if shuffle=nil then
-           list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,tmpref))
+           begin
+             if fromsize=OS_M64 then
+               list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,tmpref))
+             else
+{$ifdef x86_64}
+               { x86-64 has always properly aligned data }
+               list.concat(taicpu.op_reg_ref(A_MOVDQA,S_NO,reg,tmpref))
+{$else x86_64}
+               list.concat(taicpu.op_reg_ref(A_MOVDQU,S_NO,reg,tmpref))
+{$endif x86_64}
+           end
          else if shufflescalar(shuffle) then
            begin
              if tosize<>fromsize then
