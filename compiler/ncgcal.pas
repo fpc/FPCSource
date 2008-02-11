@@ -507,6 +507,7 @@ implementation
 
     procedure tcgcallnode.handle_return_value;
       var
+        tmpcgsize,
         cgsize    : tcgsize;
         retloc    : tlocation;
         ref       : treference;
@@ -583,10 +584,20 @@ implementation
                         getregister was done for the full register
                         def_cgsize(resultdef) is used here because
                         it could be a constructor call }
+
                       if getsupreg(procdefinition.funcretloc[callerside].register)<first_int_imreg then
                         cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
-                      location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,def_cgsize(resultdef),procdefinition.funcretloc[callerside].register,location.register);
+
+                      { but use def_size only if it returns something valid because in
+                        case of odd sized structured results in registers def_cgsize(resultdef)
+                        could return OS_NO }
+                      if def_cgsize(resultdef)<>OS_NO then
+                        tmpcgsize:=def_cgsize(resultdef)
+                      else
+                        tmpcgsize:=cgsize;
+
+                      location.register:=cg.getintregister(current_asmdata.CurrAsmList,tmpcgsize);
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,tmpcgsize,procdefinition.funcretloc[callerside].register,location.register);
                     end;
 {$ifdef arm}
                   if (resultdef.typ=floatdef) and (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
@@ -1085,7 +1096,7 @@ implementation
              cgpara.init;
              paramanager.getintparaloc(pocall_default,1,cgpara);
              cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_RAX,cgpara);
-             cgpara.done;          
+             cgpara.done;
 {$endif x86_64}
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');

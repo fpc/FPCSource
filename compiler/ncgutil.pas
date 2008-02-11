@@ -1376,6 +1376,32 @@ implementation
                       end;
                     end
                   else
+                    { this code is for structures etc. being returned in registers and having odd sizes }
+                    if (current_procinfo.procdef.funcretloc[calleeside].size=OS_64) and
+                      (restmploc.size<>OS_64) then
+                      begin
+                        resloc:=current_procinfo.procdef.funcretloc[calleeside];
+                        if resloc.loc<>LOC_REGISTER then
+                          internalerror(200409141);
+                        { Load low and high register separate to generate better register
+                          allocation info }
+                        if getsupreg(resloc.register)<first_int_imreg then
+                          begin
+                            cg.getcpuregister(list,resloc.register);
+                          end;
+                        case restmploc.loc of
+                          LOC_REFERENCE :
+                            begin
+                              href:=restmploc.reference;
+                              cg.a_load_ref_reg(list,OS_64,OS_64,href,resloc.register);
+                            end;
+                          LOC_CREGISTER :
+                            cg.a_load_reg_reg(list,OS_64,OS_64,restmploc.register,resloc.register);
+                          else
+                            internalerror(200409203);
+                        end;
+                      end
+                    else
 {$else cpu64bit}
                   if current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64] then
                     begin
@@ -1421,6 +1447,33 @@ implementation
                     end
                   else
 {$endif cpu64bit}
+                  { this code is for structures etc. being returned in registers and having odd sizes }
+                  if (current_procinfo.procdef.funcretloc[calleeside].size=OS_32) and
+                    not(restmploc.size in [OS_S32,OS_32]) then
+                    begin
+                      resloc:=current_procinfo.procdef.funcretloc[calleeside];
+                      if resloc.loc<>LOC_REGISTER then
+                        internalerror(200409141);
+                      { Load low and high register separate to generate better register
+                        allocation info }
+                      if getsupreg(resloc.register)<first_int_imreg then
+                        begin
+                          cg.getcpuregister(list,resloc.register);
+                        end;
+                      case restmploc.loc of
+                        LOC_REFERENCE :
+                          begin
+                            href:=restmploc.reference;
+                            resloc.register:=cg.makeregsize(list,resloc.register,OS_32);
+                            cg.a_load_ref_reg(list,OS_32,OS_32,href,resloc.register);
+                          end;
+                        LOC_CREGISTER :
+                          cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.register,resloc.register);
+                        else
+                          internalerror(200409203);
+                      end;
+                    end
+                  else
                     begin
                       hreg:=cg.makeregsize(list,funcretloc.register,funcretloc.size);
                       if getsupreg(funcretloc.register)<first_int_imreg then

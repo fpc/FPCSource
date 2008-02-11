@@ -436,11 +436,26 @@ unit cpupara;
          { Return in register }
           begin
             p.funcretloc[side].loc:=LOC_REGISTER;
-            if p.returndef.size>8 then
+            if retcgsize=OS_NO then
               begin
-                p.funcretloc[side].size:=OS_128;
-                p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
-                p.funcretloc[side].registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
+                case p.returndef.size of
+                  0..4:
+                    begin
+                      p.funcretloc[side].size:=OS_32;
+                      p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBD);
+                    end;
+                  5..8:
+                    begin
+                      p.funcretloc[side].size:=OS_64;
+                      p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBQ);
+                    end;
+                  9..16:
+                    begin
+                      p.funcretloc[side].size:=OS_128;
+                      p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
+                      p.funcretloc[side].registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
+                    end;
+                end;
               end
             else
               begin
