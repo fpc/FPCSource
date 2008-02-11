@@ -126,7 +126,6 @@ type
     FRecordArray    : array of Pointer;
     FLastRecInd     : integer;
 {$ELSE}
-    FCurrentRecBuf  : PBufRecLinkItem;
     FLastRecBuf     : PBufRecLinkItem;
     FFirstRecBuf    : PBufRecLinkItem;
 {$ENDIF ARRAYBUF}
@@ -145,6 +144,7 @@ type
 
     FIndexesCount   : integer;
     FCurrentIndex   : PBufIndex;
+    FCurrentRecBuf  : PBufRecLinkItem;
 
     FFilterBuffer   : pchar;
     FBRecordCount   : integer;
@@ -491,7 +491,7 @@ begin
 
 // Set FirstRecBuf and FCurrentRecBuf
   AIndex.FFirstRecBuf:=FIndexes[0].FFirstRecBuf;
-  AIndex.FCurrentRecBuf:=AIndex.FFirstRecBuf;
+  FCurrentRecBuf:=AIndex.FFirstRecBuf;
 // Link in the FLastRecBuf that belongs to this index
   PCurRecLinkItem[AIndex.IndNr].next:=AIndex.FLastRecBuf;
   AIndex.FLastRecBuf[AIndex.IndNr].prior:=PCurRecLinkItem;
@@ -653,8 +653,8 @@ begin
     begin
     FFirstRecBuf := pointer(IntAllocRecordBuffer);
     FLastRecBuf := FFirstRecBuf;
-    FCurrentRecBuf := FLastRecBuf;
     end;
+  FCurrentRecBuf := FCurrentIndex^. FLastRecBuf;
 {$ELSE}
   for IndexNr:=0 to FIndexesCount-1 do with FIndexes[IndexNr] do
     begin
@@ -964,7 +964,6 @@ begin
   for i := 0 to FIndexesCount-1 do
     if SameText(FIndexes[i].Name,AValue) then
       begin
-      FIndexes[i].FCurrentRecBuf := FCurrentIndex^.FCurrentRecBuf;
       FCurrentIndex:=@FIndexes[i];
       if active then Resync([rmCenter]);
       exit;
@@ -987,7 +986,7 @@ begin
 {$IFDEF ARRAYBUF}
   FCurrentIndex^.FCurrentRecInd:=GetRecordFromBookmark(PBufBookmark(Buffer + FRecordSize)^);
 {$ELSE}
-  FCurrentIndex^.FCurrentRecBuf := PBufBookmark(Buffer + FRecordSize)^.BookmarkData;
+  FCurrentRecBuf := PBufBookmark(Buffer + FRecordSize)^.BookmarkData;
 {$ENDIF}
 end;
 
@@ -1026,7 +1025,7 @@ begin
 {$IFDEF ARRAYBUF}
   FCurrentIndex^.FCurrentRecInd:=GetRecordFromBookmark(PBufBookmark(ABookmark)^);
 {$ELSE}
-  FCurrentIndex^.FCurrentRecBuf := pointer(ABookmark^);
+  FCurrentRecBuf := pointer(ABookmark^);
 {$ENDIF}
 end;
 
@@ -1215,7 +1214,7 @@ begin
       if not ((x=1) and (FIndexes[1].FieldsName='')) then
         begin
         BuildIndex(FIndexes[x]);
-        FIndexes[x].FCurrentRecBuf:=FIndexes[x].FFirstRecBuf;
+        FCurrentRecBuf:=FCurrentIndex^.FFirstRecBuf;
         end;
       end;
     Exit;
@@ -1367,10 +1366,10 @@ begin
   InternalSetToRecord(ActiveBuffer);
 {$IFNDEF ARRAYBUF}
   // Remove the record from all active indexes
-  RemoveRecordFromIndex(FIndexes[0].FCurrentRecBuf,FIndexes[0]);
+  RemoveRecordFromIndex(FCurrentRecBuf,FIndexes[0]);
   if FCurrentIndex=@FIndexes[1] then StartInd := 1 else StartInd := 2;
   for i := StartInd to FIndexesCount-1 do
-    RemoveRecordFromIndex(FIndexes[i].FCurrentRecBuf,FIndexes[i]);
+    RemoveRecordFromIndex(FCurrentRecBuf,FIndexes[i]);
 {$ENDIF}
 
   if not GetRecordUpdateBuffer then
@@ -1547,7 +1546,7 @@ begin
 {$ELSE}
   CheckBrowseMode;
 
-  StoreRecBuf := FCurrentIndex^.FCurrentRecBuf;
+  StoreRecBuf := FCurrentRecBuf;
 
   r := 0;
   FailedCount := 0;
@@ -1615,7 +1614,7 @@ begin
       SetLength(FUpdateBlobBuffers,0);
       end;
 
-    FCurrentIndex^.FCurrentRecBuf := StoreRecBuf;
+    FCurrentRecBuf := StoreRecBuf;
     Resync([]);
   end;
 {$ENDIF}
@@ -1666,7 +1665,7 @@ begin
     begin
     if GetBookmarkFlag(ActiveBuffer) = bfEOF then
       // Append
-      with FCurrentIndex^ do
+      with FIndexes[0] do
 {$IFDEF ARRAYBUF}
         FCurrentRecInd := FLastRecInd
 {$ELSE}
@@ -1678,7 +1677,7 @@ begin
       // inserted
       InternalSetToRecord(ActiveBuffer);
 
-    with FCurrentIndex^ do
+    with FIndexes[0] do
       begin
 {$IFDEF ARRAYBUF}
       inc(FLastRecInd);
@@ -1687,9 +1686,15 @@ begin
       Move(FRecordArray[FCurrentRecInd],FRecordArray[FCurrentRecInd+1],sizeof(Pointer)*(FLastRecInd-FCurrentRecInd));
       FRecordArray[FCurrentRecInd]:=pointer(IntAllocRecordBuffer);
 {$ELSE}
-    // Create the new record buffer
-      AddRecordToIndex(PBufRecLinkItem(IntAllocRecordBuffer),FCurrentRecBuf,FCurrentIndex^);
-      FCurrentRecBuf := FCurrentRecBuf^.prior;
+      // Create the new record buffer
+      AddRecordToIndex(PBufRecLinkItem(IntAllocRecordBuffer),FCurrentRecBuf,FIndexes[0]);
+      FCurrentRecBuf := FCurrentRecBuf[IndNr].prior;
+      // Add the record to the other indexes
+      for i := 1 to FIndexesCount-1 do if ((i>1) or (@FIndexes[i]=FCurrentIndex)) then
+        begin
+        AddRecordToIndex(FCurrentRecBuf,FIndexes[i].FLastRecBuf,FIndexes[i]);
+        end;
+
 {$ENDIF}
       end;
 
@@ -1699,7 +1704,7 @@ begin
 {$IFDEF ARRAYBUF}
       BookmarkData := FCurrentIndex^.FCurrentRecInd;
 {$ELSE}
-      BookmarkData := FCurrentIndex^.FCurrentRecBuf;
+      BookmarkData := FCurrentRecBuf;
 {$ENDIF}
       BookmarkFlag := bfInserted;
       end;
@@ -1714,15 +1719,15 @@ begin
     FCurrentUpdateBuffer := length(FUpdateBuffer);
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
 
+{$IFDEF ARRAYBUF}
     with FCurrentIndex^ do
       begin
-{$IFDEF ARRAYBUF}
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookmarkData := FCurrentRecInd;
       FUpdateBuffer[FCurrentUpdateBuffer].Bookmark.BookMarkBuf := FRecordArray[FCurrentRecInd];
-{$ELSE}
-      FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
-{$ENDIF}
       end;
+{$ELSE}
+    FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
+{$ENDIF}
 
     if state = dsEdit then
       begin
@@ -1740,8 +1745,8 @@ begin
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukInsert;
     end;
 
-  with FCurrentIndex^ do
 {$IFDEF ARRAYBUF}
+  with FIndexes[0] do
     move(ActiveBuffer^,FRecordArray[FCurrentRecInd]^,FRecordSize);
 {$ELSE}
     CurrBuff := pchar(FCurrentRecBuf);
@@ -2103,7 +2108,7 @@ begin
     begin
     FIndexes[FIndexesCount-1].FFirstRecBuf := pointer(IntAllocRecordBuffer);
     FIndexes[FIndexesCount-1].FLastRecBuf := FIndexes[FIndexesCount-1].FFirstRecBuf;
-    FIndexes[FIndexesCount-1].FCurrentRecBuf := FIndexes[FIndexesCount-1].FLastRecBuf;
+    FCurrentRecBuf := FIndexes[FIndexesCount-1].FLastRecBuf;
     BuildIndex(FIndexes[FIndexesCount-1]);
     end
 {$IFNDEF ARRAYBUF}
