@@ -61,6 +61,7 @@ interface
        tinnode = class(tbinopnode)
           constructor create(l,r : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
+          function simplify:tnode;override;
           function pass_1 : tnode;override;
        end;
        tinnodeclass = class of tinnode;
@@ -292,6 +293,15 @@ implementation
             exit;
           end;
 
+         result:=simplify;
+      end;
+
+
+    function tinnode.simplify:tnode;
+      var
+        t : tnode;
+      begin
+         result:=nil;
          { constant evaluation }
          if (left.nodetype=ordconstn) then
            begin
