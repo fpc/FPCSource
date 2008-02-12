@@ -182,7 +182,7 @@ unit cpupara;
                 result:=
                   (not(calloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) and
                    (def.size>sizeof(aint))) or
-                  ((calloption = pocall_mwpascal) and
+                  (((calloption = pocall_mwpascal) or (target_info.system=system_i386_wince)) and
                    (varspez=vs_const));
             end;
           arraydef :

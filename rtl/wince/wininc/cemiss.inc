@@ -199,23 +199,26 @@ end;
 
 function RegSetValueExA(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG;
 var
-  lpwsValueName: PWideChar;
+  lpwsValueName, ws: PWideChar;
   DataBuf: pointer;
   sz: DWORD;
 begin
  lpwsValueName:=PCharToPWideChar(lpValueName);
  if dwType in [REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ] then begin
-   DataBuf:=PCharToPWideChar(lpData, cbData, @sz);
+   ws:=PCharToPWideChar(lpData, cbData, @sz);
    if (cbData > 0) and (PChar(lpData)[cbData - 1] <> #0) then
      Inc(sz, SizeOf(WideChar));
    cbData:=sz;
+   DataBuf:=ws;
  end
- else
+ else begin
    DataBuf:=lpData;
+   ws:=nil;
+ end;
  Result:=RegSetValueExW(hKey, lpwsValueName, Reserved, dwType, DataBuf, cbData);
  FreeMem(lpwsValueName);
- if DataBuf <> nil then
-   FreeMem(DataBuf);
+ if ws <> nil then
+   FreeMem(ws);
 end;
 
 {$endif read_implementation}
