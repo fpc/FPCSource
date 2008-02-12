@@ -681,8 +681,9 @@ implementation
              if (tsetdef(right.resultdef).settype=smallset) and
                 (tsetdef(left.resultdef).settype<>smallset) then
                right.resultdef:=tsetdef.create(tsetdef(right.resultdef).elementdef,0,255);
-             { check base types }
-             inserttypeconv(left,right.resultdef);
+             { check base types, keep the original type if right was an empty set }
+             if assigned(tsetdef(right.resultdef).elementdef) then
+               inserttypeconv(left,right.resultdef);
 
              if codegenerror then
               begin
