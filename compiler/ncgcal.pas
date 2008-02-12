@@ -648,6 +648,17 @@ implementation
                 else
 {$endif}
                   cg.a_load_reg_loc(current_asmdata.CurrAsmList,cgsize,location.register,funcretnode.location);
+              LOC_REFERENCE:
+                begin
+                  case funcretnode.location.loc of
+                    LOC_REGISTER:
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,cgsize,cgsize,location.reference,funcretnode.location.register);
+                    LOC_REFERENCE:
+                      cg.g_concatcopy(current_asmdata.CurrAsmList,location.reference,funcretnode.location.reference,resultdef.size);
+                    else
+                      internalerror(200802121);
+                  end;
+                end;
               else
                 internalerror(200709085);
             end;
