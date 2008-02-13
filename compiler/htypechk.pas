@@ -1072,7 +1072,7 @@ implementation
                       if report_errors then
                         CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
                   end;
-                  
+
                  { when typecasting to the same size but changing the signdness of
                    an ordinal, the value cannot be in a register if it's < sizeof(aint).
                    The reason is that a tc_int_2_int type conversion changing the sign
@@ -1948,10 +1948,12 @@ implementation
         releasecurrpt : boolean;
         cdoptions : tcompare_defs_options;
 
-    {$ifopt r+}{$define ena_rq}{$q-}{$r-}{$endif}
+    {$ifopt r+}{$define ena_r}{$r-}{$endif}
+    {$ifopt q+}{$define ena_q}{$q-}{$endif}
       const
         inf=1.0/0.0;
-    {$ifdef ena_rq}{$q+}{$r+}{$endif}
+    {$ifdef ena_r}{$r+}{$endif}
+    {$ifdef ena_q}{$q+}{$endif}
 
       begin
         cdoptions:=[cdo_check_operator];
