@@ -60,7 +60,8 @@
 {$ifdef x86_64}
   {$define x86}
   {$define cpuflags}
-  {$define cpu64bit}
+  {$define cpu64bitalu}
+  {$define cpu64bitaddr}
   {$define cpuextended}
   {$define cpufloat128}
   {$define cputargethasfixedstack}
@@ -69,7 +70,8 @@
 {$endif x86_64}
 
 {$ifdef alpha}
-  {$define cpu64bit}
+  {$define cpu64bitalu}
+  {$define cpu64bitaddr}
 {$endif alpha}
 
 {$ifdef sparc}
@@ -86,7 +88,8 @@
 {$endif powerpc}
 
 {$ifdef powerpc64}
-  {$define cpu64bit}
+  {$define cpu64bitalu}
+  {$define cpu64bitaddr}
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}

@@ -191,13 +191,13 @@ interface
       end;
 
       { A type to store register locations for 64 Bit values. }
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
       tregister64 = tregister;
-{$else cpu64bit}
+{$else cpu64bitalu}
       tregister64 = record
          reglo,reghi : tregister;
       end;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 
       Tregistermmxset = record
         reg0,reg1,reg2,reg3:Tregister

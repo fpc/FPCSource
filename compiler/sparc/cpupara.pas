@@ -81,8 +81,8 @@ implementation
         if nr<1 then
           InternalError(2002100806);
         cgpara.reset;
-        cgpara.size:=OS_INT;
-        cgpara.intsize:=tcgsize2size[OS_INT];
+        cgpara.size:=OS_ADDR;
+        cgpara.intsize:=sizeof(pint);
         cgpara.alignment:=std_param_align;
         paraloc:=cgpara.add_location;
         with paraloc^ do
@@ -175,7 +175,7 @@ implementation
         else
          { Return in register }
           begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
             if retcgsize in [OS_64,OS_S64] then
              begin
                p.funcretloc[side].loc:=LOC_REGISTER;
@@ -191,7 +191,7 @@ implementation
                  p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
              end
             else
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
              begin
                p.funcretloc[side].loc:=LOC_REGISTER;
                p.funcretloc[side].size:=retcgsize;
@@ -284,7 +284,7 @@ implementation
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
                     { Parameters are aligned at 4 bytes }
-                    inc(parasize,align(tcgsize2size[paraloc^.size],sizeof(aint)));
+                    inc(parasize,align(tcgsize2size[paraloc^.size],sizeof(pint)));
                   end;
                 dec(paralen,tcgsize2size[paraloc^.size]);
               end;

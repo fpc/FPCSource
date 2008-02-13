@@ -68,9 +68,9 @@ implementation
       nbas,ncon,ncal,ncnv,nld,ncgrtti,
       tgobj,ncgutil,
       cgutils,cgobj
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
       ,cg64f32
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
       ;
 
 
@@ -336,7 +336,7 @@ implementation
          end
         else
          begin
-           { length in ansi/wide strings is at offset -sizeof(aint) }
+           { length in ansi/wide strings is at offset -sizeof(pint) }
            location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,false);
            current_asmdata.getjumplabel(lengthlab);
            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
@@ -348,7 +348,7 @@ implementation
              end
            else
              begin
-               reference_reset_base(href,left.location.register,-sizeof(aint));
+               reference_reset_base(href,left.location.register,-sizeof(pint));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
              end;
@@ -381,11 +381,11 @@ implementation
         location_copy(location,left.location);
         location_force_reg(current_asmdata.CurrAsmList,location,cgsize,false);
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
         if cgsize in [OS_64,OS_S64] then
           cg64.a_op64_const_reg(current_asmdata.CurrAsmList,cgop,cgsize,1,location.register64)
         else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
           cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,location.size,1,location.register);
 
         cg.g_rangecheck(current_asmdata.CurrAsmList,location,resultdef,resultdef);
@@ -401,9 +401,9 @@ implementation
         var
          addvalue : TConstExprInt;
          addconstant : boolean;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          hregisterhi,
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
          hregister : tregister;
          cgsize : tcgsize;
         begin
@@ -442,9 +442,9 @@ implementation
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,cgsize,addvalue<=1);
                   hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                   hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register64.reghi;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                   { insert multiply with addvalue if its >1 }
                   if addvalue>1 then
                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,cgsize,addvalue.svalue,hregister);
@@ -454,22 +454,22 @@ implementation
           { write the add instruction }
           if addconstant then
             begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
               if cgsize in [OS_64,OS_S64] then
                 cg64.a_op64_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],cgsize,addvalue,tcallparanode(left).left.location)
               else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                 cg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],
                   aint(addvalue.svalue),tcallparanode(left).left.location);
             end
            else
              begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                if cgsize in [OS_64,OS_S64] then
                  cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],cgsize,
                    joinreg64(hregister,hregisterhi),tcallparanode(left).left.location)
                else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                  cg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],
                    hregister,tcallparanode(left).left.location);
              end;
@@ -704,7 +704,7 @@ implementation
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
           location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-        {$ifdef cpu64bit}
+        {$ifdef cpu64bitaddr}
           reference_reset_base(frame_ref,current_procinfo.framepointer,8);
         {$else}
           reference_reset_base(frame_ref,current_procinfo.framepointer,4);

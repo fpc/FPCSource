@@ -260,7 +260,7 @@ implementation
                              HashValue    : LongWord;
                            end;
                       }
-                      location.reference.offset:=sizeof(aint);
+                      location.reference.offset:=sizeof(pint);
                    end
                  else
                    internalerror(22798);
@@ -342,7 +342,7 @@ implementation
                            layout of a threadvar is (4 bytes pointer):
                              0 - Threadvar index
                              4 - Threadvar value in single threading }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname),sizeof(aint));
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname),sizeof(pint));
                          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                          cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
                          location.reference.base:=hregister;
@@ -408,13 +408,13 @@ implementation
                     internalerror(200312011);
                   if assigned(left) then
                     begin
-                      if (sizeof(aint) = 4) then
+                      if (sizeof(pint) = 4) then
                          location_reset(location,LOC_CREFERENCE,OS_64)
-                      else if (sizeof(aint) = 8) then
+                      else if (sizeof(pint) = 8) then
                          location_reset(location,LOC_CREFERENCE,OS_128)
                       else
                          internalerror(20020520);
-                      tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(aint),tt_normal,location.reference);
+                      tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(pint),tt_normal,location.reference);
                       secondpass(left);
 
                       { load class instance/classrefdef address }
@@ -445,7 +445,7 @@ implementation
 
                       { store the class instance or classredef address }
                       href:=location.reference;
-                      inc(href.offset,sizeof(aint));
+                      inc(href.offset,sizeof(pint));
                       cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,href);
 
                       { virtual method ? }
@@ -660,11 +660,11 @@ implementation
             case right.location.loc of
               LOC_CONSTANT :
                 begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                   if (left.location.size in [OS_64,OS_S64]) or (right.location.size in [OS_64,OS_S64]) then
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
                   else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                     cg.a_load_const_loc(current_asmdata.CurrAsmList,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
@@ -674,11 +674,11 @@ implementation
                     LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                         if left.location.size in [OS_64,OS_S64] then
                           cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
                         else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                           cg.a_load_ref_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.register);
                       end;
                     LOC_FPUREGISTER,
@@ -748,11 +748,11 @@ implementation
                       cg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sreg);
                     LOC_SUBSETREF,
                     LOC_CSUBSETREF:
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                       if right.location.size in [OS_64,OS_S64] then
                        cg64.a_load64_ref_subsetref(current_asmdata.CurrAsmList,right.location.reference,left.location.sref)
                       else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                        cg.a_load_ref_subsetref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sref);
                     else
                       internalerror(200203284);
@@ -785,12 +785,12 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                   if left.location.size in [OS_64,OS_S64] then
                     cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,
                       right.location.register64,left.location)
                   else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                     cg.a_load_reg_loc(current_asmdata.CurrAsmList,right.location.size,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,
@@ -829,11 +829,11 @@ implementation
               LOC_SUBSETREF,
               LOC_CSUBSETREF:
                 begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                   if right.location.size in [OS_64,OS_S64] then
                    cg64.a_load64_subsetref_loc(current_asmdata.CurrAsmList,right.location.sref,left.location)
                   else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                   cg.a_load_subsetref_loc(current_asmdata.CurrAsmList,
                       right.location.size,right.location.sref,left.location);
                 end;
@@ -935,7 +935,7 @@ implementation
           internalerror(200608042);
         dovariant:=(nf_forcevaria in flags) or is_variant_array(resultdef);
         if dovariant then
-          elesize:=sizeof(aint)+sizeof(aint)
+          elesize:=sizeof(pint)+sizeof(pint)
         else
           elesize:=tarraydef(resultdef).elesize;
         location_reset(location,LOC_CREFERENCE,OS_NO);
@@ -1074,7 +1074,7 @@ implementation
                  if vtype=$ff then
                    internalerror(14357);
                  { write changing field update href to the next element }
-                 inc(href.offset,sizeof(aint));
+                 inc(href.offset,sizeof(pint));
                  if vaddr then
                   begin
                     location_force_mem(current_asmdata.CurrAsmList,hp.left.location);
@@ -1085,10 +1085,10 @@ implementation
                  else
                   cg.a_load_loc_ref(current_asmdata.CurrAsmList,OS_ADDR,hp.left.location,href);
                  { update href to the vtype field and write it }
-                 dec(href.offset,sizeof(aint));
+                 dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
                  { goto next array element }
-                 inc(href.offset,sizeof(aint)*2);
+                 inc(href.offset,sizeof(pint)*2);
                end
               else
               { normal array constructor of the same type }
@@ -1114,11 +1114,11 @@ implementation
                      end;
                    else
                      begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                        if hp.left.location.size in [OS_64,OS_S64] then
                          cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                          cg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location,href);
                      end;
                  end;

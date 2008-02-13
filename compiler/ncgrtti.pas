@@ -545,11 +545,11 @@ implementation
            if (tf_requires_proper_alignment in target_info.flags) then
              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            { size of elements }
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(def.elesize));
+           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(def.elesize));
 
            if not(ado_IsDynamicArray in def.arrayoptions) then
              begin
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(aint(def.elecount)));
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(pint(def.elecount)));
                { element type }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
              end
@@ -572,7 +572,7 @@ implementation
                if def.elementdef.needs_inittable then
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)))
                else
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(0));
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
                { dummy DynUnitName }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
              end;
@@ -940,13 +940,13 @@ implementation
           inc(st);
           if (tf_requires_proper_alignment in target_info.flags) then
             align(st,sizeof(Tconstptruint));
-          inc(st,8+sizeof(aint));
+          inc(st,8+sizeof(pint));
           { write rtti data }
           with current_asmdata do
             begin
               rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA);
               maybe_new_object_file(asmlists[al_rtti]);
-              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(aint)));
+              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
               asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
               asmlists[al_rtti].concat(Tai_const.create_32bit(longint(mode)));
               if mode=lookup then
@@ -956,7 +956,7 @@ implementation
                     begin
                       while o<syms[i].value do
                         begin
-                          asmlists[al_rtti].concat(Tai_const.create_aint(0));
+                          asmlists[al_rtti].concat(Tai_const.create_pint(0));
                           inc(o);
                         end;
                       inc(o);
@@ -1046,13 +1046,13 @@ implementation
           inc(st);
           if (tf_requires_proper_alignment in target_info.flags) then
             align(st,sizeof(Tconstptruint));
-          inc(st,8+sizeof(aint));
+          inc(st,8+sizeof(pint));
           { write rtti data }
           with current_asmdata do
             begin
               rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA);
               maybe_new_object_file(asmlists[al_rtti]);
-              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(aint)));
+              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
               asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
               asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
               for i:=0 to sym_count-1 do
@@ -1124,7 +1124,7 @@ implementation
         { write rtti data }
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA);
         maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
-        new_section(current_asmdata.asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(aint)));
+        new_section(current_asmdata.asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(rttilab,0));
         write_rtti_data(def,rt);
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol_end.Create(rttilab));

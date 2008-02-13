@@ -658,7 +658,7 @@ implementation
              begin
                constdef:=tai_const(hp).consttype;
                case constdef of
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                  aitconst_128bit :
                     begin
                       internalerror(200404291);
@@ -683,13 +683,13 @@ implementation
                         end;
                       AsmLn;
                     end;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                  aitconst_128bit,
                  aitconst_64bit,
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,

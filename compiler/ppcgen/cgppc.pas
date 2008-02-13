@@ -298,12 +298,12 @@ unit cgppc;
           current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
         href.refaddr := addr_low;
         href.base := NR_R11;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
         current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
-{$else cpu64bit}
+{$else cpu64bitaddr}
         { darwin/ppc64 uses a 32 bit absolute address here, strange... }
         current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDU,NR_R12,href));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
         current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MTCTR,NR_R12));
         current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_BCTR));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_lazy_symbol_pointer,''));
@@ -425,10 +425,10 @@ unit cgppc;
       (((A_STB, A_STBU), (A_STBX, A_STBUX)),
         ((A_STH, A_STHU), (A_STHX, A_STHUX)),
         ((A_STW, A_STWU), (A_STWX, A_STWUX))
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
         ,
         ((A_STD, A_STDU), (A_STDX, A_STDUX))
-{$endif cpu64bit}
+{$endif cpu64bitalu}
         );
     var
       ref2: TReference;
@@ -778,11 +778,11 @@ unit cgppc;
       {$ENDIF EXTDEBUG}
     //  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
       
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
       list.concat(taicpu.op_reg_ref(A_LD, result, ref));
-{$else cpu64bit}
+{$else cpu64bitaddr}
       list.concat(taicpu.op_reg_ref(A_LWZ, result, ref));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
     end;
     
     

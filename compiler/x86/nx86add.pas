@@ -1049,23 +1049,23 @@ unit nx86add;
 
     procedure tx86addnode.second_add64bit;
       begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
         second_addordinal;
-{$else cpu64bit}
+{$else cpu64bitalu}
         { must be implemented separate }
         internalerror(200402042);
-{$endif cpu64bit}
+{$endif cpu64bitalu}
       end;
 
 
     procedure tx86addnode.second_cmp64bit;
       begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
         second_cmpordinal;
-{$else cpu64bit}
+{$else cpu64bitalu}
         { must be implemented separate }
         internalerror(200402043);
-{$endif cpu64bit}
+{$endif cpu64bitalu}
       end;
 
 

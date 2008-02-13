@@ -283,7 +283,7 @@ implementation
 
         procedure check_range(hp:tnode);
         begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
           if hp.nodetype=ordconstn then
             begin
               if (tordconstnode(hp).value<int64(low(longint))) or
@@ -294,7 +294,7 @@ implementation
                   tordconstnode(hp).value:=0;
                 end;
             end;
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
         end;
 
       var
@@ -316,9 +316,9 @@ implementation
 
          { variable must be an ordinal, int64 is not allowed for 32bit targets }
          if not(is_ordinal(hloopvar.resultdef))
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
             or is_64bitint(hloopvar.resultdef)
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
             then
            MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
 
@@ -536,7 +536,7 @@ implementation
                 else
                   hdef:=tpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
-                tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(aint),tt_persistent,true,p);
+                tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p);
                 typecheckpass(tempnode);
                 valuenode:=p;
                 refnode:=ctemprefnode.create(tempnode);

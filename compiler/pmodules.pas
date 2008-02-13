@@ -175,7 +175,7 @@ implementation
         ltvTables.insert(Tai_const.Create_32bit(count));
         { insert in data segment }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_THREADVARTABLES',sizeof(aint));
+        new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_THREADVARTABLES',sizeof(pint));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
         current_asmdata.asmlists[al_globals].concatlist(ltvTables);
         current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
@@ -216,7 +216,7 @@ implementation
             ltvTable.concat(tai_const.create_sym(nil));
             { add to datasegment }
             maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-            new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(aint));
+            new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
             current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
             current_asmdata.asmlists[al_globals].concatlist(ltvTable);
             current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
@@ -294,10 +294,10 @@ implementation
             hp:=tmodule(hp.next);
           end;
         { Insert TableCount at start }
-        ResourceStringTables.insert(Tai_const.Create_aint(count));
+        ResourceStringTables.insert(Tai_const.Create_pint(count));
         { Add to data segment }
         maybe_new_object_file(current_asmdata.AsmLists[al_globals]);
-        new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(aint));
+        new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(pint));
         current_asmdata.AsmLists[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
         current_asmdata.AsmLists[al_globals].concatlist(ResourceStringTables);
         current_asmdata.AsmLists[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
@@ -349,7 +349,7 @@ implementation
         unitinits.insert(Tai_const.Create_32bit(count));
         { Add to data segment }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',sizeof(aint));
+        new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',sizeof(pint));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
         current_asmdata.asmlists[al_globals].concatlist(unitinits);
         current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
@@ -372,9 +372,9 @@ implementation
         if not(tf_no_generic_stackcheck in target_info.flags) then
           begin
             { stacksize can be specified and is now simulated }
-            new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(aint));
-            current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(stacksize));
+            new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(pint));
+            current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(pint)));
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(stacksize));
           end;
 {$IFDEF POWERPC}
         { AmigaOS4 "stack cookie" support }
@@ -393,9 +393,9 @@ implementation
 {$ENDIF POWERPC}
         { Initial heapsize }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',sizeof(aint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(aint)));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(heapsize));
+        new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',sizeof(pint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(pint)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(heapsize));
         { Initial heapsize }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
         new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',sizeof(boolean));

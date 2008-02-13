@@ -340,7 +340,7 @@ implementation
              typecheckpass(p1);
              result:=internalstatements(newstatement);
              hdef:=tpointerdef.create(p1.resultdef);
-             temp:=ctempcreatenode.create(hdef,sizeof(aint),tt_persistent,false);
+             temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false);
              addstatement(newstatement,temp);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create_internal(p1)));
              addstatement(newstatement,cassignmentnode.create(

@@ -927,9 +927,9 @@ implementation
             begin
               if tprocvardef(def).is_methodpointer and
                  (not tprocvardef(def).is_addressonly) then
-                if (sizeof(aint) = 4) then
+                if (sizeof(pint) = 4) then
                   result:=OS_64
-                else if (sizeof(aint) = 8) then
+                else if (sizeof(pint) = 8) then
                   result:=OS_128
                 else
                   internalerror(200707141)

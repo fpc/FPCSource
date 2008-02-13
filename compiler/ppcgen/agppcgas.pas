@@ -69,17 +69,17 @@ unit agppcgas;
        itcpugas,cpuinfo,
        aasmcpu;
 
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
     const
       refaddr2str: array[trefaddr] of string[9] = ('', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
       verbose_refaddrs = [addr_low, addr_high, addr_higher, addr_highest, addr_higha, addr_highera, addr_highesta];
       refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','lo16', 'hi16', '@err', '@err', 'ha16', '@err', '@err');
-{$else cpu64bit}
+{$else cpu64bitaddr}
     const
       refaddr2str: array[trefaddr] of string[3] = ('','','','@l','@h','@ha');
       refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','lo16','hi16','ha16');
       verbose_refaddrs = [addr_low,addr_high,addr_higha];
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
 
 
     function getreferencestring(var ref : treference) : string;
@@ -124,13 +124,13 @@ unit agppcgas;
                if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
                  s := s+refaddr2str[refaddr];
              end;
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
            if (refaddr = addr_pic) then
 	     if (target_info.system <> system_powerpc64_linux) then
 	       s := s + ')'
 	     else
 	       s := s + ')@got';
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
 
            if (index=NR_NO) and (base<>NR_NO) then
              begin
@@ -391,9 +391,9 @@ unit agppcgas;
     function TPPCAppleGNUAssembler.MakeCmdLine: TCmdStr;
       begin
         result := inherited MakeCmdLine;
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         Replace(result,'$ARCH','ppc64')
-{$else cpu64bit}
+{$else cpu64bitaddr}
         case current_settings.cputype of
           cpu_PPC7400:
             Replace(result,'$ARCH','ppc7400');
@@ -402,7 +402,7 @@ unit agppcgas;
           else
             Replace(result,'$ARCH','ppc')
         end;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
       end;
 
 
@@ -420,11 +420,11 @@ unit agppcgas;
 
          idtxt  : 'AS';
          asmbin : 'as';
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
          asmcmd : '-a64 -o $OBJ $ASM';
-{$else cpu64bit}
+{$else cpu64bitaddr}
          asmcmd: '-o $OBJ $ASM';
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
          supported_target : system_any;
          flags : [af_allowdirect,af_needar,af_smartlink_sections];
          labelprefix : '.L';

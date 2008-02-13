@@ -1039,11 +1039,11 @@ implementation
                   if is_class(pd._class) then
                     pd.returndef:=pd._class
                   else
-{$ifdef CPU64bit}
+{$ifdef CPU64bitaddr}
                     pd.returndef:=bool64type;
-{$else CPU64bit}
+{$else CPU64bitaddr}
                     pd.returndef:=bool32type;
-{$endif CPU64bit}
+{$endif CPU64bitaddr}
                 end;
             end;
 

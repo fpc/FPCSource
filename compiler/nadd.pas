@@ -1142,7 +1142,7 @@ implementation
                    inserttypeconv(right,u64inttype);
                end
              { 64 bit cpus do calculations always in 64 bit }
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
              { is there a cardinal? }
              else if ((torddef(rd).ordtype=u32bit) or (torddef(ld).ordtype=u32bit)) then
                begin
@@ -1186,7 +1186,7 @@ implementation
                        inserttypeconv(right,u32inttype);
                    end;
                end
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
              { generic ord conversion is sinttype }
              else
                begin
@@ -2445,7 +2445,7 @@ implementation
                   internalerror(200103291);
                  expectloc:=LOC_FLAGS;
                end
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
               { is there a 64 bit type ? }
              else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) then
                begin
@@ -2457,7 +2457,7 @@ implementation
                   else
                     expectloc:=LOC_JUMP;
                end
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
              { is there a cardinal? }
              else if (torddef(ld).ordtype=u32bit) then
                begin

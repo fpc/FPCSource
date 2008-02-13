@@ -608,7 +608,7 @@ implementation
                LOC_REGISTER,
                LOC_SUBSETREG:
                  // can happen for function results on win32 and darwin/x86
-                 if (left.resultdef.size > sizeof(aint)) then
+                 if (left.resultdef.size > sizeof(pint)) then
                    expectloc:=LOC_REFERENCE
                  else
                    expectloc:=LOC_SUBSETREG;

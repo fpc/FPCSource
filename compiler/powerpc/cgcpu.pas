@@ -199,7 +199,7 @@ const
             case location^.loc of
               LOC_REGISTER,LOC_CREGISTER:
                 begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                   if (sizeleft <> 3) then
                     begin
                       a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
@@ -215,9 +215,9 @@ const
                       a_reg_dealloc(list,NR_R0);
                       dec(tmpref.offset,2);
                     end;
-{$else not cpu64bit}
+{$else not cpu64bitaddr}
 {$error add 64 bit support for non power of 2 loads in a_param_ref}
-{$endif not cpu64bit}
+{$endif not cpu64bitaddr}
                 end;
               LOC_REFERENCE:
                 begin
@@ -396,7 +396,9 @@ const
      procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
 
        begin
-         if (sreg.bitlen <> sizeof(aint)*8) then
+         if (sreg.bitlen > 32) then
+           internalerror(2008020701);
+         if (sreg.bitlen <> 32) then
            begin
              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,destreg,
                sreg.subsetreg,(32-sreg.startbit) and 31,32-sreg.bitlen,31));
@@ -423,7 +425,9 @@ const
        begin
          if (slopt in [SL_SETZERO,SL_SETMAX]) then
            inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
-         else if (sreg.bitlen <> sizeof(aint) * 8) then
+         else if (sreg.bitlen>32) then
+           internalerror(2008020702)
+         else if (sreg.bitlen <> 32) then
            list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,sreg.subsetreg,fromreg,
              sreg.startbit,32-sreg.startbit-sreg.bitlen,31-sreg.startbit))
          else
@@ -434,6 +438,8 @@ const
        procedure tcgppc.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister);
 
          begin
+           if (tosreg.bitlen>32) or (tosreg.startbit>31) then
+             internalerror(2008020703);
            if (fromsreg.bitlen >= tosreg.bitlen) then
              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,tosreg.subsetreg, fromsreg.subsetreg,
                 (tosreg.startbit-fromsreg.startbit) and 31,
@@ -962,7 +968,8 @@ const
                { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
-                dec(href.offset,(RS_R31-firstregint)*sizeof(aint));
+                {$warning TODO: 64 bit support }
+                dec(href.offset,(RS_R31-firstregint)*sizeof(pint));
                 list.concat(taicpu.op_reg_ref(A_STMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
               end
             else
@@ -1077,7 +1084,8 @@ const
                 { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
-                dec(href.offset,(RS_R31-firstregint)*sizeof(aint));
+                {$warning TODO: 64 bit support }
+                dec(href.offset,(RS_R31-firstregint)*sizeof(pint));
                 list.concat(taicpu.op_reg_ref(A_LMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
               end
             else

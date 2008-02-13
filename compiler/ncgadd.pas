@@ -177,7 +177,7 @@ interface
           begin
             if TCGSize2Size[left.location.size]<>TCGSize2Size[location.size] then
               internalerror(200307041);
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
             if location.size in [OS_64,OS_S64] then
               begin
                 location.register64.reglo := left.location.register64.reglo;
@@ -192,7 +192,7 @@ interface
           begin
             if TCGSize2Size[right.location.size]<>TCGSize2Size[location.size] then
               internalerror(200307042);
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
             if location.size in [OS_64,OS_S64] then
               begin
                 location.register64.reglo := right.location.register64.reglo;
@@ -205,7 +205,7 @@ interface
         else
 {$endif}
           begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
             if location.size in [OS_64,OS_S64] then
               begin
                 location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -546,7 +546,7 @@ interface
           (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef);
 
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
         case nodetype of
           xorn,orn,andn,addn:
             begin
@@ -587,7 +587,7 @@ interface
           else
             internalerror(2002072803);
         end;
-{$else cpu64bit}
+{$else cpu64bitalu}
         case nodetype of
           xorn,orn,andn,addn:
             begin
@@ -633,7 +633,7 @@ interface
           else
             internalerror(2002072803);
         end;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 
         { emit overflow check if enabled }
         if checkoverflow then

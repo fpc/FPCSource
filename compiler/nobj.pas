@@ -645,9 +645,9 @@ implementation
                 { allocate a pointer in the object memory }
                 with tObjectSymtable(_class.symtable) do
                   begin
-                    datasize:=align(datasize,sizeof(aint));
+                    datasize:=align(datasize,sizeof(pint));
                     ImplIntf.Ioffset:=datasize;
-                    datasize:=datasize+sizeof(aint);
+                    datasize:=datasize+sizeof(pint);
                   end;
               end;
           end;
@@ -820,7 +820,7 @@ implementation
          current_asmdata.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_label.Create(p^.nl));
          len:=length(p^.data.messageinf.str^);
          current_asmdata.asmlists[al_globals].concat(tai_const.create_8bit(len));
@@ -862,9 +862,9 @@ implementation
 
          { now start writing of the message string table }
          current_asmdata.getdatalabel(result);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_label.Create(result));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(count));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(count));
          if assigned(root) then
            begin
               writestrentry(root);
@@ -899,7 +899,7 @@ implementation
 
          { now start writing of the message string table }
          current_asmdata.getdatalabel(r);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_label.Create(r));
          genintmsgtab:=r;
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
@@ -977,7 +977,7 @@ implementation
            begin
               current_asmdata.getdatalabel(r);
               gendmt:=r;
-              al_globals.concat(cai_align.create(const_align(sizeof(aint))));
+              al_globals.concat(cai_align.create(const_align(sizeof(pint))));
               al_globals.concat(Tai_label.Create(r));
               { entries for caching }
               al_globals.concat(Tai_const.Create_ptr(0));
@@ -1032,7 +1032,7 @@ implementation
               begin
                 current_asmdata.getdatalabel(l);
 
-                current_asmdata.asmlists[al_typedconsts].concat(cai_align.create(const_align(sizeof(aint))));
+                current_asmdata.asmlists[al_typedconsts].concat(cai_align.create(const_align(sizeof(pint))));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(length(tsym(p).realname)));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create(tsym(p).realname));
@@ -1059,7 +1059,7 @@ implementation
          if count>0 then
            begin
               current_asmdata.getdatalabel(l);
-              current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+              current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
               current_asmdata.asmlists[al_globals].concat(Tai_label.Create(l));
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
               _class.symtable.SymList.ForEachCall(@do_gen_published_methods,nil);
@@ -1084,7 +1084,7 @@ implementation
         current_asmdata.getdatalabel(fieldtable);
         current_asmdata.getdatalabel(classtable);
         maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
-        new_section(current_asmdata.asmlists[al_rtti],sec_rodata,classtable.name,const_align(sizeof(aint)));
+        new_section(current_asmdata.asmlists[al_rtti],sec_rodata,classtable.name,const_align(sizeof(pint)));
 
         { retrieve field info fields }
         fieldcount:=0;
@@ -1116,8 +1116,8 @@ implementation
                (sp_published in tsym(sym).symoptions) then
               begin
                 if (tf_requires_proper_alignment in target_info.flags) then
-                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(AInt)));
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
+                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(pint)));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset));
                 classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                 if classindex=-1 then
                   internalerror(200611033);
@@ -1128,7 +1128,7 @@ implementation
           end;
 
         { generate the class table }
-        current_asmdata.asmlists[al_rtti].concat(cai_align.create(const_align(sizeof(aint))));
+        current_asmdata.asmlists[al_rtti].concat(cai_align.create(const_align(sizeof(pint))));
         current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(classtable));
         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classtablelist.count));
         if (tf_requires_proper_alignment in target_info.flags) then
@@ -1159,7 +1159,7 @@ implementation
         i  : longint;
       begin
         vtblstr:=intf_get_vtbl_name(AImplIntf);
-        section_symbol_start(rawdata,vtblstr,AT_DATA,true,sec_data,const_align(sizeof(aint)));
+        section_symbol_start(rawdata,vtblstr,AT_DATA,true,sec_data,const_align(sizeof(pint)));
         if assigned(AImplIntf.procdefs) then
           begin
             for i:=0 to AImplIntf.procdefs.count-1 do
@@ -1186,7 +1186,7 @@ implementation
           begin
             { label for GUID }
             current_asmdata.getdatalabel(guidlabel);
-            rawdata.concat(cai_align.create(const_align(sizeof(aint))));
+            rawdata.concat(cai_align.create(const_align(sizeof(pint))));
             rawdata.concat(Tai_label.Create(guidlabel));
             with AImplIntf.IntfDef.iidguid^ do
               begin
@@ -1207,12 +1207,12 @@ implementation
         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
         { IOffset field }
         if AImplIntf.VtblImplIntf.IType = etStandard then
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.IOffset))
+          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset))
         else
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.FieldOffset));
+          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.FieldOffset));
         { IIDStr }
         current_asmdata.getdatalabel(iidlabel);
-        rawdata.concat(cai_align.create(const_align(sizeof(aint))));
+        rawdata.concat(cai_align.create(const_align(sizeof(pint))));
         rawdata.concat(Tai_label.Create(iidlabel));
         rawdata.concat(Tai_const.Create_8bit(length(AImplIntf.IntfDef.iidstr^)));
         if AImplIntf.IntfDef.objecttype=odt_interfacecom then
@@ -1221,7 +1221,7 @@ implementation
           rawdata.concat(Tai_string.Create(AImplIntf.IntfDef.iidstr^));
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(iidlabel));
         { IType }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.VtblImplIntf.IType)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(aint(AImplIntf.VtblImplIntf.IType)));
       end;
 
 
@@ -1233,9 +1233,9 @@ implementation
         intftablelab : tasmlabel;
       begin
         current_asmdata.getdatalabel(intftablelab);
-        current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+        current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(intftablelab));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(_class.ImplementedInterfaces.count));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(_class.ImplementedInterfaces.count));
         rawdata:=TAsmList.Create;
         { Write vtbls }
         for i:=0 to _class.ImplementedInterfaces.count-1 do
@@ -1267,7 +1267,7 @@ implementation
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_rodata,s,const_align(sizeof(aint)));
+          new_section(current_asmdata.asmlists[al_globals],sec_rodata,s,const_align(sizeof(pint)));
           current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
           current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
           current_asmdata.asmlists[al_globals].concat(Tai_const.Create_16bit(_class.iidguid^.D2));
@@ -1308,7 +1308,7 @@ implementation
              procname:=pd.mangledname;
            List.concat(Tai_const.createname(procname,0));
 {$ifdef vtentry}
-           hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(aint));
+           hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
 {$endif vtentry}
          end;
@@ -1341,7 +1341,7 @@ implementation
           begin
             current_asmdata.getdatalabel(classnamelabel);
             maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-            new_section(current_asmdata.asmlists[al_globals],sec_rodata,classnamelabel.name,const_align(sizeof(aint)));
+            new_section(current_asmdata.asmlists[al_globals],sec_rodata,classnamelabel.name,const_align(sizeof(pint)));
 
             { interface table }
             if _class.ImplementedInterfaces.count>0 then
@@ -1363,7 +1363,7 @@ implementation
 
         { write debug info }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_rodata,_class.vmt_mangledname,const_align(sizeof(aint)));
+        new_section(current_asmdata.asmlists[al_globals],sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint)));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(_class.vmt_mangledname,AT_DATA,0));
 
          { determine the size with symtable.datasize, because }

@@ -98,7 +98,7 @@ begin
   { more or less copied from cgcpu.pas/g_stackframe_entry }
   if not (po_assembler in procdef.procoptions) then begin
     // no VMX support
-    result := align(numgpr * tcgsize2size[OS_INT] +
+    result := align(numgpr * sizeof(pint) +
         numfpr * tcgsize2size[OS_FLOAT], ELF_STACK_ALIGN);
 
     if (pi_do_call in flags) or (tg.lasttemp <> tg.firsttemp) or

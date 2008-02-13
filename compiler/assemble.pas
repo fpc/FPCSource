@@ -1177,7 +1177,7 @@ Implementation
                        if target_info.system=system_x86_64_win64 then
                          ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
                        else
-                         ObjData.writereloc(Tai_const(hp).symofs,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
+                         ObjData.writereloc(Tai_const(hp).symofs,sizeof(pint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
                      end;
                    aitconst_secrel32_symbol :
                      begin

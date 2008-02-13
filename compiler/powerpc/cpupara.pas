@@ -83,8 +83,8 @@ unit cpupara;
         paraloc : pcgparalocation;
       begin
         cgpara.reset;
-        cgpara.size:=OS_INT;
-        cgpara.intsize:=tcgsize2size[OS_INT];
+        cgpara.size:=OS_ADDR;
+        cgpara.intsize:=sizeof(pint);
         cgpara.alignment:=get_para_align(calloption);
         paraloc:=cgpara.add_location;
         with paraloc^ do
@@ -102,9 +102,9 @@ unit cpupara;
                loc:=LOC_REFERENCE;
                paraloc^.reference.index:=NR_STACK_POINTER_REG;
                if (target_info.abi <> abi_powerpc_aix) then
-                 reference.offset:=sizeof(aint)*(nr-8)
+                 reference.offset:=sizeof(pint)*(nr-8)
                else
-                 reference.offset:=sizeof(aint)*(nr);
+                 reference.offset:=sizeof(pint)*(nr);
              end;
           end;
       end;
@@ -258,7 +258,7 @@ unit cpupara;
         else
          { Return in register }
           begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
             if retcgsize in [OS_64,OS_S64] then
              begin
                { low 32bits }
@@ -274,7 +274,7 @@ unit cpupara;
                  p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
              end
             else
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
              begin
                p.funcretloc[side].loc:=LOC_REGISTER;
                p.funcretloc[side].size:=retcgsize;
@@ -426,12 +426,12 @@ unit cpupara;
               if (target_info.abi = abi_powerpc_aix) and
                  (paradef.typ in [recorddef,arraydef]) then
                 hp.paraloc[side].composite:=true;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
               if (target_info.abi=abi_powerpc_sysv) and
                  is_64bit(paradef) and
                  odd(nextintreg-RS_R3) then
                 inc(nextintreg);
-{$endif not cpu64bit}
+{$endif not cpu64bitaddr}
               if (paralen = 0) then
                 if (paradef.typ = recorddef) then
                   begin
@@ -472,7 +472,7 @@ unit cpupara;
                       { if nextfpureg > maxfpureg, all intregs are already used, since there }
                       { are less of those available for parameter passing in the AIX abi     }
                       if target_info.abi=abi_powerpc_aix then
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                         if (paracgsize = OS_F32) then
                           begin
                             inc(stack_offset,4);
@@ -487,13 +487,13 @@ unit cpupara;
                             else
                               nextintreg := RS_R11;
                           end;
-{$else not cpu64bit}
+{$else not cpu64bitaddr}
                           begin
                             inc(stack_offset,tcgsize2size[paracgsize]);
                             if (nextintreg < RS_R11) then
                               inc(nextintreg);
                           end;
-{$endif not cpu64bit}
+{$endif not cpu64bitaddr}
                     end
                   else { LOC_REFERENCE }
                     begin
@@ -526,7 +526,7 @@ unit cpupara;
                              (nextintreg < RS_R11) do
                           begin
                             inc(nextintreg);
-                            dec(paralen,sizeof(aint));
+                            dec(paralen,sizeof(pint));
                           end;
                        paralen := 0;
                     end;

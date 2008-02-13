@@ -139,9 +139,9 @@ uses
               current_asmdata.asmlists[al_const].concat(tai_label.create(referencelab));
             end;
           current_asmdata.getdatalabel(result);
-          current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
-          current_asmdata.asmlists[al_const].concat(tai_const.create_aint(-1));
-          current_asmdata.asmlists[al_const].concat(tai_const.create_aint(len));
+          current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(pint))));
+          current_asmdata.asmlists[al_const].concat(tai_const.create_pint(-1));
+          current_asmdata.asmlists[al_const].concat(tai_const.create_pint(len));
           current_asmdata.asmlists[al_const].concat(tai_label.create(result));
           if (target_info.system in systems_darwin) then
              current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,referencelab.name));
@@ -163,7 +163,7 @@ uses
 	  the data sections }
         maybe_new_object_file(current_asmdata.asmlists[al_const]);
         maybe_new_object_file(current_asmdata.asmlists[al_resourcestrings]);
-        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'1_START'),sizeof(aint));
+        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'1_START'),sizeof(pint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
           make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
 
@@ -173,15 +173,15 @@ uses
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
 
         { Add entries }
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            new_section(current_asmdata.asmlists[al_const],sec_rodata,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(aint));
+            new_section(current_asmdata.asmlists[al_const],sec_rodata,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(pint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
               valuelab:=WriteValueString(R.Value,R.Len)
@@ -199,20 +199,20 @@ uses
                      HashValue    : LongWord;
                    end;
             }
-            new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'2_'+r.name),sizeof(aint));
+            new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'2_'+r.name),sizeof(pint));
             resstrlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol.Create_global(resstrlab,0));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(valuelab));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(valuelab));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(longint(R.Hash)));
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.create(resstrlab));
             R:=TResourceStringItem(R.Next);
           end;
-        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(aint));
+        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(pint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
           make_mangledname('RESSTR',current_module.localsymtable,'END'),AT_DATA,0));
         { The darwin/ppc64 assembler or linker seems to have trouble       }

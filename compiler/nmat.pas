@@ -34,11 +34,11 @@ interface
           function pass_typecheck:tnode;override;
           function simplify : tnode;override;
          protected
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
           function first_moddiv64bitint: tnode; virtual;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
           function firstoptimize: tnode; virtual;
           function first_moddivint: tnode; virtual;
        end;
@@ -48,14 +48,14 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify : tnode;override;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
           { override the following if you want to implement }
           { parts explicitely in the code generator (CEC)
             Should return nil, if everything will be handled
             in the code generator
           }
           function first_shlshr64bitint: tnode; virtual;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
        end;
        tshlshrnodeclass = class of tshlshrnode;
 
@@ -224,7 +224,7 @@ implementation
              resultdef:=left.resultdef;
            end
          else
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
           { when there is one 64bit value, everything is done
             in 64bit }
           if (is_64bitint(left.resultdef) or
@@ -261,7 +261,7 @@ implementation
               resultdef:=left.resultdef;
            end
          else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
            begin
               { Make everything always default singed int }
               if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
@@ -317,7 +317,7 @@ implementation
 {$endif cpuneedsdiv32helper}
 
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
     function tmoddivnode.first_moddiv64bitint: tnode;
       var
         procname: string[31];
@@ -350,7 +350,7 @@ implementation
         right := nil;
         firstpass(result);
       end;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
 
 
     function tmoddivnode.firstoptimize: tnode;
@@ -424,7 +424,7 @@ implementation
          if assigned(result) then
            exit;
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          { 64bit }
          if (left.resultdef.typ=orddef) and
             (right.resultdef.typ=orddef) and
@@ -436,7 +436,7 @@ implementation
              expectloc:=LOC_REGISTER;
            end
          else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
            begin
              result := first_moddivint;
              if assigned(result) then
@@ -519,7 +519,7 @@ implementation
       end;
 
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
     function tshlshrnode.first_shlshr64bitint: tnode;
       var
         procname: string[31];
@@ -538,7 +538,7 @@ implementation
         right := nil;
         firstpass(result);
       end;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
 
 
     function tshlshrnode.pass_1 : tnode;
@@ -551,7 +551,7 @@ implementation
          if codegenerror then
            exit;
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          { 64 bit ints have their own shift handling }
          if is_64bit(left.resultdef) then
            begin
@@ -561,7 +561,7 @@ implementation
              regs:=2;
            end
          else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
            begin
              regs:=1
            end;
@@ -634,13 +634,13 @@ implementation
                }
              end
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
          else if is_64bit(left.resultdef) then
            begin
              inserttypeconv(left,s64inttype);
              resultdef:=left.resultdef
            end
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
          else if (left.resultdef.typ=orddef) then
            begin
              inserttypeconv(left,sinttype);
@@ -845,12 +845,12 @@ implementation
              end
          else
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
            if is_64bitint(left.resultdef) then
              begin
              end
          else
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
            if is_integer(left.resultdef) then
              begin
              end
@@ -895,14 +895,14 @@ implementation
              expectloc:=LOC_MMXREGISTER
          else
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
            if is_64bit(left.resultdef) then
              begin
                 if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                   expectloc:=LOC_REGISTER;
              end
          else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
            if is_integer(left.resultdef) then
              expectloc:=LOC_REGISTER;
       end;

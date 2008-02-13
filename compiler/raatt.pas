@@ -785,7 +785,7 @@ unit raatt;
                 BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
-                   if constsize<>sizeof(aint) then
+                   if constsize<>sizeof(pint) then
                     Message(asmr_w_32bit_const_for_address);
                    ConcatConstSymbol(curlist,asmsym,asmsymtyp,value)
                  end
@@ -1009,11 +1009,11 @@ unit raatt;
            AS_DQ:
              Begin
                Consume(AS_DQ);
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                BuildConstant(8);
-{$else cpu64bit}
+{$else cpu64bitaddr}
                BuildRealConstant(s64comp);
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
              end;
 
            AS_SINGLE:

@@ -34,20 +34,30 @@ interface
        TCmdStr = AnsiString;
        TPathStr = String;
 
+       { Integer type corresponding to pointer size }
+{$ifdef cpu64bitaddr}
+       PUint = qword;
+       PInt = int64;
+{$else cpu64bitaddr}
+       PUint = cardinal;
+       PInt = longint;
+{$endif cpu64bitaddr}     
+
        { Natural integer register type and size for the target machine }
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
        AWord = qword;
        AInt = Int64;
 
      Const
        AIntBits = 64;
-{$else cpu64bit}
+{$else cpu64bitalu}
        AWord = longword;
        AInt = longint;
 
      Const
        AIntBits = 32;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
+
      Type
        PAWord = ^AWord;
        PAInt = ^AInt;

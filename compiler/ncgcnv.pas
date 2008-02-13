@@ -103,9 +103,6 @@ interface
               end
             else
               location_force_reg(current_asmdata.CurrAsmList,location,newsize,false);
-{$ifndef cpu64bit}
-            // if is_signed(left.resultdef) and
-{$endif cpu64bit}
           end
         else
           begin
@@ -118,7 +115,7 @@ interface
             location_copy(location,left.location);
             location.size:=newsize;
             orgsize := def_cgsize(left.resultdef);
-            if (ressize < tcgsize2size[OS_INT]) and
+            if (ressize < sizeof(aint)) and
                (location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
                (orgsize <> newsize) then
               begin
@@ -384,11 +381,11 @@ interface
     var r:Treference;
 
     begin
-      tg.gettemp(current_asmdata.currasmlist,2*sizeof(aword),tt_normal,r);
+      tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),tt_normal,r);
       location_reset(location,LOC_REFERENCE,OS_NO);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
-      inc(r.offset,sizeof(aword));
+      inc(r.offset,sizeof(puint));
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
     end;
 

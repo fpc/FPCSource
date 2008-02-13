@@ -1125,7 +1125,7 @@ implementation
          inherited create(stringdef);
          stringtype:=st_longstring;
          len:=l;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1134,7 +1134,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_longstring;
          len:=ppufile.getaint;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1143,7 +1143,7 @@ implementation
          inherited create(stringdef);
          stringtype:=st_ansistring;
          len:=-1;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1152,7 +1152,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_ansistring;
          len:=ppufile.getaint;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1161,7 +1161,7 @@ implementation
          inherited create(stringdef);
          stringtype:=st_widestring;
          len:=-1;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1170,7 +1170,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_widestring;
          len:=ppufile.getaint;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1179,7 +1179,7 @@ implementation
          inherited create(stringdef);
          stringtype:=st_unicodestring;
          len:=-1;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1188,7 +1188,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_unicodestring;
          len:=ppufile.getaint;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -1769,7 +1769,7 @@ implementation
 
     procedure tfiledef.setsize;
       begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
@@ -1783,7 +1783,7 @@ implementation
             else
               savesize:=368;
         end;
-{$else cpu64bit}
+{$else cpu64bitaddr}
         case filetyp of
           ft_text :
             savesize:=592{+4};
@@ -1791,7 +1791,7 @@ implementation
           ft_untyped :
             savesize:=332;
         end;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
       end;
 
 
@@ -1873,11 +1873,11 @@ implementation
 
     procedure tvariantdef.setsize;
       begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         savesize:=24;
-{$else cpu64bit}
+{$else cpu64bitaddr}
         savesize:=16;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
       end;
 
 
@@ -1912,7 +1912,7 @@ implementation
       begin
         inherited create(dt);
         pointeddef:=def;
-        savesize:=sizeof(aint);
+        savesize:=sizeof(pint);
       end;
 
 
@@ -1920,7 +1920,7 @@ implementation
       begin
          inherited ppuload(dt,ppufile);
          ppufile.getderef(pointeddefderef);
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
       end;
 
 
@@ -2299,7 +2299,7 @@ implementation
       begin
         if ado_IsDynamicArray in arrayoptions then
           begin
-            size:=sizeof(aint);
+            size:=sizeof(pint);
             exit;
           end;
 
@@ -2360,7 +2360,7 @@ implementation
       begin
          { alignment of dyn. arrays doesn't depend on the element size }
          if (ado_IsDynamicArray in arrayoptions) then
-           alignment:=size_2_align(sizeof(aint))
+           alignment:=size_2_align(sizeof(pint))
          { alignment is the size of the elements }
          else if (elementdef.typ in [arraydef,recorddef]) or
            ((elementdef.typ=objectdef) and
@@ -2574,7 +2574,7 @@ implementation
          proccalloption:=pocall_none;
          procoptions:=[];
          returndef:=voidtype;
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
          requiredargarea:=0;
          has_paraloc_info:=false;
          location_reset(funcretloc[callerside],LOC_INVALID,OS_NO);
@@ -2702,7 +2702,7 @@ implementation
              ppufile.getdata(funcretloc[callerside],sizeof(funcretloc[callerside]));
            end;
 
-         savesize:=sizeof(aint);
+         savesize:=sizeof(pint);
          has_paraloc_info:=(po_explicitparaloc in procoptions);
       end;
 
@@ -3575,9 +3575,9 @@ implementation
       begin
          if (po_methodpointer in procoptions) and
             not(po_addressonly in procoptions) then
-           size:=2*sizeof(aint)
+           size:=2*sizeof(pint)
          else
-           size:=sizeof(aint);
+           size:=sizeof(pint);
       end;
 
 
@@ -3916,7 +3916,7 @@ implementation
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
                     tObjectSymtable(symtable).datasize:=
-                      tObjectSymtable(symtable).datasize-sizeof(aint);
+                      tObjectSymtable(symtable).datasize-sizeof(pint);
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
                   if (oo_has_vmt in c.objectoptions) or is_class(self) then
@@ -3941,11 +3941,11 @@ implementation
                  tObjectSymtable(symtable).fieldalignment);
 
              if (tf_requires_proper_alignment in target_info.flags) then
-               tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(aint));
+               tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
 
              vmt_offset:=tObjectSymtable(symtable).datasize;
              tObjectSymtable(symtable).datasize:=
-               tObjectSymtable(symtable).datasize+sizeof(aint);
+               tObjectSymtable(symtable).datasize+sizeof(pint);
              include(objectoptions,oo_has_vmt);
           end;
      end;
@@ -4016,7 +4016,7 @@ implementation
     function tobjectdef.size : aint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
-          result:=sizeof(aint)
+          result:=sizeof(pint)
         else
           result:=tObjectSymtable(symtable).datasize;
       end;
@@ -4025,7 +4025,7 @@ implementation
     function tobjectdef.alignment:shortint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
-          alignment:=sizeof(aint)
+          alignment:=sizeof(pint)
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
       end;
@@ -4036,15 +4036,15 @@ implementation
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
-          { the +2*sizeof(Aint) is size and -size }
-          vmtmethodoffset:=(index+10)*sizeof(aint)+2*sizeof(AInt);
+          { the +2*sizeof(pint) is size and -size }
+          vmtmethodoffset:=(index+10)*sizeof(pint)+2*sizeof(pint);
         odt_interfacecom,odt_interfacecorba:
-          vmtmethodoffset:=index*sizeof(aint);
+          vmtmethodoffset:=index*sizeof(pint);
         else
 {$ifdef WITHDMT}
-          vmtmethodoffset:=(index+4)*sizeof(aint);
+          vmtmethodoffset:=(index+4)*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=(index+3)*sizeof(aint);
+          vmtmethodoffset:=(index+3)*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;

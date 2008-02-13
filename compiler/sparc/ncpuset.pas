@@ -113,7 +113,7 @@ unit ncpuset;
         { Delay slot }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
         { generate jump table }
-        new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(aint));
+        new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(pint));
         current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
         last:=min_;
         genitem(current_procinfo.aktlocaldata,hp);

@@ -498,7 +498,7 @@ unit cgobj;
           function get_bit_reg_ref_sref(list: TAsmList; bitnumbersize: tcgsize; bitnumber: tregister; const ref: treference): tsubsetreference;
        end;
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
     {# @abstract(Abstract code generator for 64 Bit operations)
        This class implements an abstract code generator class
        for 64 Bit operations.
@@ -572,15 +572,15 @@ unit cgobj;
         { override to catch 64bit rangechecks }
         procedure g_rangecheck64(list: TAsmList; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 
     var
        {# Main code generator class }
        cg : tcg;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
        {# Code generator class for all operations working with 64-Bit operands }
        cg64 : tcg64;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 
 
 implementation
@@ -1290,7 +1290,7 @@ implementation
             if (loadbitsize = AIntBits) then
               begin
                 { if (tmpreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
-                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpreg);
+                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpreg);
                 { if (tmpreg = cpu_bit_size) then tmpreg := 0 else tmpreg := -1 }
                 a_op_const_reg(list,OP_SUB,OS_INT,1,tmpreg);
                 { if (tmpreg = cpu_bit_size) then extra_value_reg := 0 }
@@ -1316,7 +1316,7 @@ implementation
             if (loadbitsize = AIntBits) then
               begin
                 { if (tmpreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
-                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpreg);
+                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpreg);
                 { if (tmpreg = cpu_bit_size) then tmpreg := 0 else tmpreg := -1 }
                 a_op_const_reg(list,OP_SUB,OS_INT,1,tmpreg);
                 { if (tmpreg = cpu_bit_size) then extra_value_reg := 0 }
@@ -1695,7 +1695,7 @@ implementation
                         if (loadbitsize = AIntBits) then
                           begin
                             { if (tmpindexreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
-                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpindexreg,valuereg);
+                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpindexreg,valuereg);
                             { if (tmpindexreg = cpu_bit_size) then maskreg := 0 else maskreg := -1 }
                             a_op_const_reg(list,OP_SUB,OS_INT,1,valuereg);
                             { if (tmpindexreg = cpu_bit_size) then maskreg := 0 }
@@ -1718,7 +1718,7 @@ implementation
                           begin
                             valuereg := getintregister(list,OS_INT);
                             { if (tmpindexreg >= cpu_bit_size) then valuereg := 1 else valuereg := 0 }
-                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpindexreg,valuereg);
+                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpindexreg,valuereg);
                             { if (tmpindexreg = cpu_bit_size) then valuereg := 0 else valuereg := -1 }
                             a_op_const_reg(list,OP_SUB,OS_INT,1,valuereg);
                             { if (tmpindexreg = cpu_bit_size) then tmpreg := maskreg := 0 }
@@ -3281,14 +3281,14 @@ implementation
            { all values are always valid                      }
            is_cbool(todef) then
           exit;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
         { handle 64bit rangechecks separate for 32bit processors }
         if is_64bit(fromdef) or is_64bit(todef) then
           begin
              cg64.g_rangecheck64(list,l,fromdef,todef);
              exit;
           end;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
         { only check when assigning to scalar, subranges are different, }
         { when todef=fromdef then the check is always generated         }
         getrange(fromdef,lfrom,hfrom);
@@ -3304,7 +3304,7 @@ implementation
         { operations can at most cause overflows (JM)                        }
         { Note that these checks are mostly processor independent, they only }
         { have to be changed once we introduce 64bit subrange types          }
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
         if (fromdef = todef) and
            (fromdef.typ=orddef) and
            (((((torddef(fromdef).ordtype = s64bit) and
@@ -3317,7 +3317,7 @@ implementation
                (lfrom = low(int64)) and
                (hfrom = high(int64)))))) then
           exit;
-{$else cpu64bit}
+{$else cpu64bitalu}
         if (fromdef = todef) and
            (fromdef.typ=orddef) and
            (((((torddef(fromdef).ordtype = s32bit) and
@@ -3327,7 +3327,7 @@ implementation
                (lfrom = low(cardinal)) and
                (hfrom = high(cardinal)))))) then
           exit;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 
         { optimize some range checks away in safe cases }
         fromsize := fromdef.size;
@@ -3430,11 +3430,11 @@ implementation
           a_cmp_const_reg_label(list,OS_INT,OC_GTE,aint(hto-lto),hreg,neglabel)
         else
         }
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
         if qword(hto-lto)>qword(aintmax) then
           a_cmp_const_reg_label(list,OS_INT,OC_BE,aintmax,hreg,neglabel)
         else
-{$endif cpu64bit}
+{$endif cpu64bitalu}
           a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(int64(hto-lto)),hreg,neglabel);
         a_call_name(list,'FPC_RANGEERROR');
         a_label(list,neglabel);
@@ -3798,11 +3798,11 @@ implementation
                   l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_LOCAL,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
-{$else cpu64bit}
+{$else cpu64bitaddr}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_32bit(0));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                 end;
               result := getaddressregister(list);
               reference_reset_symbol(ref,l,0);
@@ -3821,7 +3821,7 @@ implementation
                                     TCG64
 *****************************************************************************}
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
     procedure tcg64.a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64; regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst);
@@ -3946,7 +3946,7 @@ implementation
         end;
       end;
 
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 
 
 
@@ -3954,7 +3954,7 @@ initialization
     ;
 finalization
   cg.free;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
   cg64.free;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 end.

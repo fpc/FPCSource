@@ -611,9 +611,9 @@ implementation
                   if torddef(def).ordtype in [uchar,
                     u8bit,u16bit,
                     s8bit,s16bit,s32bit,
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                     u32bit,s64bit,
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                     pasbool,bool8bit,bool16bit,bool32bit,bool64bit,
                     uwidechar] then
                     begin

@@ -318,7 +318,7 @@ implementation
                LOC_REGISTER,
                LOC_CREGISTER:
                  begin
-                   if (left.resultdef.size > sizeof(aint)) then
+                   if (left.resultdef.size > sizeof(pint)) then
                      location_force_mem(current_asmdata.CurrAsmList,location)
                    else
                      begin
@@ -756,7 +756,7 @@ implementation
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
                               href:=location.reference;
-                              dec(href.offset,sizeof(aint)-offsetdec);
+                              dec(href.offset,sizeof(pint)-offsetdec);
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                               cg.a_param_ref(current_asmdata.CurrAsmList,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -909,7 +909,7 @@ implementation
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.a_param_reg(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
-                              dec(href.offset,sizeof(aint)-offsetdec);
+                              dec(href.offset,sizeof(pint)-offsetdec);
                               //dec(href.offset,7);
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                               cg.a_param_ref(current_asmdata.CurrAsmList,OS_INT,href,paraloc1);

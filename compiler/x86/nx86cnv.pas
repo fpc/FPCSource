@@ -85,13 +85,13 @@ implementation
 
     procedure tx86typeconvnode.second_int_to_bool;
       var
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
         hreg2,
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
         hregister : tregister;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
         href      : treference;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
         resflags  : tresflags;
         hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
@@ -133,7 +133,7 @@ implementation
             LOC_CREFERENCE,
             LOC_REFERENCE :
               begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -143,7 +143,7 @@ implementation
                    cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,href,hregister);
                  end
                 else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                  begin
                    location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
@@ -155,7 +155,7 @@ implementation
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -163,7 +163,7 @@ implementation
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                  end
                 else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
               end;
             LOC_JUMP :
@@ -188,7 +188,7 @@ implementation
            begin
              { load flags to register }
              location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
               if (location.size in [OS_64,OS_S64]) then
                 begin
                   hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -205,7 +205,7 @@ implementation
                     cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
                 end
              else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                begin
                  location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                  cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
@@ -248,11 +248,11 @@ implementation
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
           location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
         if use_sse(resultdef) and
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
            (torddef(left.resultdef).ordtype in [s32bit,s64bit]) then
-{$else cpu64bit}
+{$else cpu64bitalu}
            (torddef(left.resultdef).ordtype=s32bit) then
-{$endif cpu64bit}
+{$endif cpu64bitalu}
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
@@ -290,11 +290,11 @@ implementation
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).ordtype=u64bit) then
               begin
-    {$ifdef cpu64bit}
+    {$ifdef cpu64bitalu}
                 emit_const_reg(A_BT,S_Q,63,left.location.register);
-    {$else cpu64bit}
+    {$else cpu64bitalu}
                 emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
-    {$endif cpu64bit}
+    {$endif cpu64bitalu}
                 signtested:=true;
               end
             else

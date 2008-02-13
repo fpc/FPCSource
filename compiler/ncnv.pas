@@ -1953,7 +1953,7 @@ implementation
       end;
 
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
 
     { checks whether we can safely remove 64 bit typeconversions }
     { in case range and overflow checking are off, and in case   }
@@ -2040,7 +2040,7 @@ implementation
             n.resultdef:=todef;
         end;
       end;
-{$endif not cpu64bit}
+{$endif not cpu64bitaddr}
 
 
     function ttypeconvnode.simplify: tnode;
@@ -2190,7 +2190,7 @@ implementation
             end;
         end;
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
@@ -2209,7 +2209,7 @@ implementation
                 end;
             end;
         end;
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
 
       end;
 

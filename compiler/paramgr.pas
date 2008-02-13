@@ -166,12 +166,12 @@ implementation
         case varspez of
           vs_out,
           vs_var :
-            push_size:=sizeof(aint);
+            push_size:=sizeof(pint);
           vs_value,
           vs_const :
             begin
                 if push_addr_param(varspez,def,calloption) then
-                  push_size:=sizeof(aint)
+                  push_size:=sizeof(pint)
                 else
                   begin
                     { special array are normally pushed by addr, only for
@@ -326,7 +326,7 @@ implementation
               i386 isn't affected anyways because it uses the stack to push parameters
               on arm it reduces executable size of the compiler by 2.1 per cent (FK) }
             { Does it fit a register? }
-            if (len<=sizeof(aint)) and
+            if (len<=sizeof(pint)) and
                (cgpara.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
               newparaloc^.loc:=LOC_REGISTER
             else

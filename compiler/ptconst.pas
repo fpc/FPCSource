@@ -423,7 +423,7 @@ implementation
               begin
                 current_asmdata.getdatalabel(ll);
                 list.concat(Tai_const.Create_sym(ll));
-                current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(aint))));
+                current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(pint))));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
                 if (p.nodetype in [stringconstn,ordconstn]) then
                   begin
@@ -531,7 +531,7 @@ implementation
                         list.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,offset));
                       constsym :
                         if tconstsym(srsym).consttyp=constresourcestring then
-                          list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),sizeof(aint)))
+                          list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),sizeof(pint)))
                         else
                           Message(type_e_variable_id_expected);
                       else
@@ -704,10 +704,10 @@ implementation
                          current_asmdata.getdatalabel(ll);
                          list.concat(Tai_const.Create_sym(ll));
                          current_asmdata.getdatalabel(ll2);
-                         current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+                         current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(pint))));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll2));
-                         current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
-                         current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength));
+                         current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(-1));
+                         current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(strlength));
                          { make sure the string doesn't get dead stripped if the header is referenced }
                          if (target_info.system in systems_darwin) then
                            current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll.name));
@@ -733,14 +733,14 @@ implementation
                          current_asmdata.getdatalabel(ll);
                          list.concat(Tai_const.Create_sym(ll));
                          current_asmdata.getdatalabel(ll2);
-                         current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+                         current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(pint))));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll2));
                          if (def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags) then
                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
                          else
                            begin
-                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
-                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.size));
+                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(-1));
+                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(strlength*cwidechartype.size));
                            end;
                          { make sure the string doesn't get dead stripped if the header is referenced }
                          if (target_info.system in systems_darwin) then
@@ -1253,7 +1253,7 @@ implementation
                           list.concat(tai_const.create_8bit(0));
                         list.concat(tai_const.createname(def.vmt_mangledname,0));
                         { this is more general }
-                        curroffset:=def.vmt_offset + sizeof(aint);
+                        curroffset:=def.vmt_offset + sizeof(pint);
                         vmtwritten:=true;
                       end;
 
@@ -1280,7 +1280,7 @@ implementation
                 list.concat(tai_const.create_8bit(0));
               list.concat(tai_const.createname(def.vmt_mangledname,0));
               { this is more general }
-              curroffset:=def.vmt_offset + sizeof(aint);
+              curroffset:=def.vmt_offset + sizeof(pint);
             end;
           for i:=1 to def.size-curroffset do
             list.concat(Tai_const.Create_8bit(0));

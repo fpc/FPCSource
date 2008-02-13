@@ -1634,15 +1634,15 @@ unit cgx86;
     procedure Tcgx86.g_concatcopy(list:TAsmList;const source,dest:Treference;len:aint);
 
     const
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
         REGCX=NR_RCX;
         REGSI=NR_RSI;
         REGDI=NR_RDI;
-{$else cpu64bit}
+{$else cpu64bitalu}
         REGCX=NR_ECX;
         REGSI=NR_ESI;
         REGDI=NR_EDI;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 
     type  copymode=(copy_move,copy_mmx,copy_string);
 
@@ -1694,7 +1694,7 @@ unit cgx86;
                     copysize:=4;
                     cgsize:=OS_32;
                   end
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
                 else if len<16 then
                   begin
                     copysize:=8;
@@ -1800,11 +1800,11 @@ unit cgx86;
                   end;
                 if helpsize>0 then
                   begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
                     if sizeof(aint)=8 then
                       list.concat(Taicpu.op_none(A_MOVSQ,S_NO))
                     else
-{$endif cpu64bit}
+{$endif cpu64bitalu}
                       list.concat(Taicpu.op_none(A_MOVSD,S_NO));
                   end;
                 if len>=4 then
@@ -1860,7 +1860,7 @@ unit cgx86;
                  mcountPrefix:='';
                 end;
                 current_asmdata.getaddrlabel(pl);
-                new_section(list,sec_data,lower(current_procinfo.procdef.mangledname),sizeof(aint));
+                new_section(list,sec_data,lower(current_procinfo.procdef.mangledname),sizeof(pint));
                 list.concat(Tai_label.Create(pl));
                 list.concat(Tai_const.Create_32bit(0));
                 new_section(list,sec_code,lower(current_procinfo.procdef.mangledname),0);
@@ -2005,19 +2005,19 @@ unit cgx86;
         if not nostackframe then
           begin
             { return address }
-            stackmisalignment := sizeof(aint);
+            stackmisalignment := sizeof(pint);
             list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
               CGmessage(cg_d_stackframe_omited)
             else
               begin
                 { push <frame_pointer> }
-                inc(stackmisalignment,sizeof(aint));
+                inc(stackmisalignment,sizeof(pint));
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                 { Return address and FP are both on stack }
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(aint));
-                current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(aint)));
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
+                current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
                 list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end;
@@ -2035,7 +2035,7 @@ unit cgx86;
                   localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
                 cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(aint));
+                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
               end;
           end;
       end;

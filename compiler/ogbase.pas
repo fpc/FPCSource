@@ -898,7 +898,7 @@ implementation
           sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7:
             result:=4;
           else
-            result:=sizeof(aint);
+            result:=sizeof(pint);
         end;
       end;
 
@@ -1244,7 +1244,7 @@ implementation
         vtblentryoffset : aint;
       begin
         CheckIdx(VTableIdx);
-        vtblentryoffset:=ExeSymbol.ObjSymbol.Offset+VTableIdx*sizeof(aint);
+        vtblentryoffset:=ExeSymbol.ObjSymbol.Offset+VTableIdx*sizeof(pint);
         { Find and disable relocation }
         for i:=0 to ExeSymbol.ObjSymbol.ObjSection.ObjRelocations.Count-1 do
           begin
@@ -1266,7 +1266,7 @@ implementation
       begin
         if EntryCnt<>0 then
           internalerror(200603313);
-        EntryCnt:=ASize div sizeof(aint);
+        EntryCnt:=ASize div sizeof(pint);
         EntryArray:=AllocMem(EntryCnt*sizeof(TVTableEntry));
       end;
 

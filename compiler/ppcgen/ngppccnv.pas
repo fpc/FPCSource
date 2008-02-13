@@ -70,9 +70,9 @@ implementation
       var
         hreg1,
         hreg2    : tregister;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
         href     : treference;
-{$endif not cpu64bit}
+{$endif not cpu64bitalu}
         resflags : tresflags;
         opsize   : tcgsize;
         hlabel, oldTrueLabel, oldFalseLabel : tasmlabel;
@@ -108,17 +108,17 @@ implementation
 
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          opsize := def_cgsize(left.resultdef);
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          if (opsize in [OS_64,OS_S64]) then
            opsize:=OS_32;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER :
               begin
                 if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   begin
                     hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                     if left.location.size in [OS_64,OS_S64] then
                       begin
                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hreg1);
@@ -129,19 +129,19 @@ implementation
                         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg1,hreg2,hreg1);
                       end
                     else
-{$endif not cpu64bit}
+{$endif not cpu64bitalu}
                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.reference,hreg1);
                   end
                 else
                   begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                      if left.location.size in [OS_64,OS_S64] then
                        begin
                           hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                           cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,left.location.register64.reglo,hreg1);
                        end
                      else
-{$endif not cpu64bit}
+{$endif not cpu64bitalu}
                        hreg1 := left.location.register;
                   end;
                 hreg2 := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -186,7 +186,7 @@ implementation
             else
               internalerror(10062);
          end;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          if (location.size in [OS_64,OS_S64]) then
            begin
              location.register64.reglo:=hreg1;
@@ -199,7 +199,7 @@ implementation
                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
            end
          else
-{$endif cpu64bit}
+{$endif cpu64bitalu}
            location.register:=hreg1;
 
          current_procinfo.CurrTrueLabel:=oldTrueLabel;

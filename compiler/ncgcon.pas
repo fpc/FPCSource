@@ -240,11 +240,11 @@ implementation
     procedure tcgordconstnode.pass_generate_code;
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resultdef));
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
          location.value:=value.svalue;
-{$else cpu64bit}
+{$else cpu64bitalu}
          location.value64:=value.svalue;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
       end;
 
 
@@ -415,9 +415,9 @@ implementation
                    maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
                    if (len=0) or
                       not(cst_type in [cst_ansistring,cst_widestring]) then
-                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(aint)))
+                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)))
                    else
-                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
+                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case cst_type of
@@ -430,8 +430,8 @@ implementation
                              begin
                                 current_asmdata.getdatalabel(l1);
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(l1));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len));
                                 { make sure the string doesn't get dead stripped if the header is referenced }
                                 if (target_info.system in systems_darwin) then
                                   current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
@@ -463,8 +463,8 @@ implementation
                                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.size))
                                 else
                                   begin
-                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
-                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.size));
+                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
+                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len*cwidechartype.size));
                                   end;
                                 { make sure the string doesn't get dead stripped if the header is referenced }
                                 if (target_info.system in systems_darwin) then
@@ -625,7 +625,7 @@ implementation
                  current_asmdata.getdatalabel(lastlabel);
                  lab_set:=lastlabel;
                  maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(aint)));
+                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
                  current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                  { already handled at the start of this method?? (JM)
                  if tsetdef(resultdef).settype=smallset then

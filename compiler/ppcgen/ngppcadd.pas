@@ -125,10 +125,10 @@ implementation
         if not(cmpop) then
           begin
             location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
             if is_64bit(resultdef) then
               location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
          end;
       end;
 

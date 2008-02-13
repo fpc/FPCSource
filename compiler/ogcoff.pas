@@ -717,7 +717,7 @@ const pemagic : array[0..3] of byte = (
         alignflag : longword;
       begin
         aoptions:=[];
-        aalign:=sizeof(aint);
+        aalign:=sizeof(pint);
         if flags and PE_SCN_CNT_CODE<>0 then
           include(aoptions,oso_executable);
         if flags and PE_SCN_MEM_DISCARDABLE<>0 then
@@ -1817,7 +1817,7 @@ const pemagic : array[0..3] of byte = (
                else
                  begin
                    djdecodesechdrflags(secname,sechdr.flags);
-                   secalign:=sizeof(aint);
+                   secalign:=sizeof(pint);
                  end;
                if (Length(secname)>3) and (secname[2] in ['e','f','i','p','r']) then
                  begin

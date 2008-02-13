@@ -48,7 +48,12 @@ Possible compiler switches (* marks a currently required switch):
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software
                        floating point operations
-  cpu64bit            The target is a 64-bit processor
+  cpu64bitaddr        The targets use a 64-bit address space (pointers and
+                       the default integer type are 64 bit)
+  cpu64bitalu         The target cpu has 64-bit registers available (unless
+                       cpu64bitaddr is also defined, pointers and default
+                       integer type remain 32 bit, but the cpu can perform
+                       64 bit calculations directly without needing helpers)
   -----------------------------------------------------------------
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:

@@ -121,7 +121,7 @@ implementation
        begin
          FImageBase:=abase;
          if FImageBase<>0 then
-           imagebasestr:=' (ImageBase='+HexStr(FImageBase,sizeof(aint)*2)+')'
+           imagebasestr:=' (ImageBase='+HexStr(FImageBase,sizeof(pint)*2)+')'
          else
            imagebasestr:='';
          AddHeader('Memory map'+imagebasestr);
@@ -132,8 +132,8 @@ implementation
      procedure TExeMap.AddMemoryMapExeSection(p:texesection);
        begin
          { .text           0x000018a8     0xd958 }
-         Add(PadSpace(p.name,19)+PadSpace(' 0x'+HexStr(p.mempos+Fimagebase,sizeof(aint)*2),12)+
-             ' 0x'+HexStr(p.size,sizeof(aint)));
+         Add(PadSpace(p.name,19)+PadSpace(' 0x'+HexStr(p.mempos+Fimagebase,sizeof(pint)*2),12)+
+             ' 0x'+HexStr(p.size,sizeof(pint)));
        end;
 
 
@@ -148,15 +148,15 @@ implementation
              Add(' '+secname);
              secname:='';
            end;
-         Add(' '+PadSpace(secname,18)+PadSpace(' 0x'+HexStr(p.mempos+FImageBase,sizeof(aint)*2),12)+
-             ' 0x'+HexStr(p.size,sizeof(aint))+' '+p.objdata.name);
+         Add(' '+PadSpace(secname,18)+PadSpace(' 0x'+HexStr(p.mempos+FImageBase,sizeof(pint)*2),12)+
+             ' 0x'+HexStr(p.size,sizeof(pint))+' '+p.objdata.name);
        end;
 
 
      procedure TExeMap.AddMemoryMapSymbol(p:TObjSymbol);
        begin
          {                 0x00001e30                setup_screens }
-         Add(Space(20)+PadSpace('0x'+HexStr(p.address+Fimagebase,sizeof(aint)*2),25)+' '+p.name);
+         Add(Space(20)+PadSpace('0x'+HexStr(p.address+Fimagebase,sizeof(pint)*2),25)+' '+p.name);
        end;
 
 end.

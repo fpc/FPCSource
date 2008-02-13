@@ -841,7 +841,7 @@ Begin
               opr.localscale:=0;
               opr.localgetoffset:=GetOffset;
               if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vardef,current_procinfo.procdef.proccalloption) then
-                SetSize(sizeof(aint),false);
+                SetSize(sizeof(pint),false);
             end;
         end;
         case tabstractvarsym(sym).vardef.typ of
@@ -1379,7 +1379,7 @@ Begin
                else
                  begin
                    { size = sizeof(target_system_pointer) }
-                   size:=sizeof(aint);
+                   size:=sizeof(pint);
                    offset:=procdef._class.vmtmethodoffset(procdef.extnumber)
                  end;
              end;

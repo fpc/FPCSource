@@ -308,17 +308,17 @@ implementation
         end;
 
 
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         telfheader = telf64header;
         telfreloc = telf64reloc;
         telfsymbol = telf64symbol;
         telfsechdr = telf64sechdr;
-{$else cpu64bit}
+{$else cpu64bitaddr}
         telfheader = telf32header;
         telfreloc = telf32reloc;
         telfsymbol = telf32symbol;
         telfsechdr = telf32sechdr;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
 
 
       function MayBeSwapHeader(h : telf32header) : telf32header;
@@ -796,11 +796,11 @@ implementation
                    else
                      relsym:=SHN_UNDEF;
                  end;
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                rel.info:=(qword(relsym) shl 32) or reltyp;
-{$else cpu64bit}
+{$else cpu64bitaddr}
                rel.info:=(relsym shl 8) or reltyp;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                { write reloc }
                relocsect.write(MaybeSwapElfReloc(rel),sizeof(rel));
              end;
@@ -1049,11 +1049,11 @@ implementation
            { Write ELF Header }
            fillchar(header,sizeof(header),0);
            header.magic0123:=$464c457f; { = #127'ELF' }
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
            header.file_class:=2;
-{$else cpu64bit}
+{$else cpu64bitaddr}
            header.file_class:=1;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
            if target_info.endian=endian_big then
              header.data_encoding:=2
            else

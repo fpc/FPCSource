@@ -652,11 +652,11 @@ end;
 
 function tppufile.getaint:aint;
 begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
   result:=getint64;
-{$else cpu64bit}
+{$else cpu64bitalu}
   result:=getlongint;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 end;
 
 

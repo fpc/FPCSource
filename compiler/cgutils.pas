@@ -105,10 +105,10 @@ unit cgutils;
                      registeralias : tregister;
 {$endif m68k}
                     );
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                 { overlay a 64 Bit register type }
                 2 : (register64 : tregister64);
-{$endif cpu64bit}
+{$endif cpu64bitalu}
               );
             LOC_SUBSETREG,
             LOC_CSUBSETREG : (

@@ -255,7 +255,7 @@ implementation
            { always starts at a multiple of 10 bits. Same for the others.  }
            3,5,6,7,9,10,12,16:
              result := 2;
-  {$ifdef cpu64bit}
+  {$ifdef cpu64bitalu}
            { performance penalty for unaligned 8 byte access is much   }
            { higher than for unaligned 4 byte access, at least on ppc, }
            { so use 4 bytes even in some cases where a value could     }
@@ -265,10 +265,10 @@ implementation
              result := 4;
            else
              result := 8;
-  {$else cpu64bit}
+  {$else cpu64bitalu}
            else
              result := 4;
-  {$endif cpu64bit}
+  {$endif cpu64bitalu}
          end;
       end;
 

@@ -399,18 +399,18 @@ uses cutils, cclasses;
           A_DCBA, A_DCBI, A_DCBST, A_DCBT, A_DCBTST, A_DCBZ, A_DCBF, A_ICBI,
           A_ECOWX, A_FCMPO, A_FCMPU, A_MTMSR, A_TLBIE, A_TW, A_TWI,
           A_CMPWI, A_CMPW, A_CMPLWI, A_CMPLW, A_MT, A_MTLR, A_MTCTR
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
           , A_STDU, A_STDUX,
           A_STD, A_STDX,
           A_STDCX_,
           A_CMPD, A_CMPDI, A_CMPLD, A_CMPLDI,
           A_MFXER
-{$endif cpu64bit}
+{$endif cpu64bitalu}
             : ;
           A_RLWIMI, A_RLWIMI_
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
           , A_INSRDI, A_INSRDI_, A_RLDIMI
-{$endif not cpu64bit}
+{$endif not cpu64bitalu}
           :
             if opnr = 0 then
               result := operand_readwrite;
@@ -426,9 +426,9 @@ uses cutils, cclasses;
         result := operand_read;
         case opcode of
           A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, 
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
           A_STDU, A_STDUX,
-{$endif cpu64bit}
+{$endif cpu64bitalu}
           A_STFSU, A_STFSUX, A_STFDU, A_STFDUX:
             if (oper[opnr]^.ref^.base = reg) then
               result := operand_readwrite;
@@ -440,11 +440,11 @@ uses cutils, cclasses;
       begin
         case getregtype(r) of
           R_INTREGISTER:
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
             result:=taicpu.op_reg_ref(A_LD,r,ref);
-{$else cpu64bit}
+{$else cpu64bitalu}
             result:=taicpu.op_reg_ref(A_LWZ,r,ref);
-{$endif cpu64bit}
+{$endif cpu64bitalu}
           R_FPUREGISTER:
             result:=taicpu.op_reg_ref(A_LFD,r,ref);
           else
@@ -457,11 +457,11 @@ uses cutils, cclasses;
       begin
         case getregtype(r) of
           R_INTREGISTER:
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
             result:=taicpu.op_reg_ref(A_STD,r,ref);
-{$else cpu64bit}
+{$else cpu64bitalu}
             result:=taicpu.op_reg_ref(A_STW,r,ref);
-{$endif cpu64bit}
+{$endif cpu64bitalu}
           R_FPUREGISTER:
             result:=taicpu.op_reg_ref(A_STFD,r,ref);
           else

@@ -266,7 +266,7 @@ implementation
                 end
               else
                 hreg2:=left.location.register;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
               if left.location.size in [OS_64,OS_S64] then
                 begin
                   hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -274,7 +274,7 @@ implementation
                   hreg2:=hreg1;
                   opsize:=OS_32;
                 end;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
               hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
               if is_pasbool(resultdef) then
@@ -307,7 +307,7 @@ implementation
           else
             internalerror(10062);
         end;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          if (location.size in [OS_64,OS_S64]) then
            begin
              location.register64.reglo:=hreg1;
@@ -320,7 +320,7 @@ implementation
                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
            end
          else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
            location.register:=hreg1;
 
         current_procinfo.CurrTrueLabel:=oldTrueLabel;

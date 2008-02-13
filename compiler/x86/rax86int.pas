@@ -2024,7 +2024,7 @@ Unit Rax86int;
                 BuildConstSymbolExpression(false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
-                   if constsize<>sizeof(aint) then
+                   if constsize<>sizeof(pint) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
                    ConcatConstSymbol(curlist,asmsym,asmsymtyp,value)
                  end

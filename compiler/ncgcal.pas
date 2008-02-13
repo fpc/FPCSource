@@ -218,7 +218,7 @@ implementation
                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
                      cg.a_parammm_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
                    end;
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
                  LOC_REGISTER,
                  LOC_CREGISTER :
                    begin
@@ -227,7 +227,7 @@ implementation
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
                      cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                    end;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 {$ifdef powerpc}
                  LOC_REGISTER,
                  LOC_CREGISTER :
@@ -262,7 +262,7 @@ implementation
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
                    cg.a_parammm_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara,mms_movescalar);
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
                  LOC_REGISTER,
                  LOC_CREGISTER :
                    begin
@@ -270,7 +270,7 @@ implementation
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
                      cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                    end;
-{$endif cpu64bit}
+{$endif cpu64bitalu}
 {$ifdef powerpc}
                  { x86_64 pushes s64comp in normal register }
                  LOC_REGISTER,
@@ -300,21 +300,21 @@ implementation
              LOC_REGISTER,
              LOC_CREGISTER :
                begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                  { use cg64 only for int64, not for 8 byte records }
                  if is_64bit(left.resultdef) then
                    cg64.a_param64_loc(current_asmdata.CurrAsmList,left.location,tempcgpara)
                  else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                    begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                      { Only a_param_ref supports multiple locations, when the
                        value is still a const or in a register then write it
                        to a reference first. This situation can be triggered
                        by typecasting an int64 constant to a record of 8 bytes }
                      if left.location.size in [OS_64,OS_S64] then
                        location_force_mem(current_asmdata.CurrAsmList,left.location);
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                      cg.a_param_loc(current_asmdata.CurrAsmList,left.location,tempcgpara);
                    end;
                end;
@@ -332,21 +332,21 @@ implementation
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                  { use cg64 only for int64, not for 8 byte records }
                  if is_64bit(left.resultdef) then
                    cg64.a_param64_loc(current_asmdata.CurrAsmList,left.location,tempcgpara)
                  else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                    begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                      { Only a_param_ref supports multiple locations, when the
                        value is still a const or in a register then write it
                        to a reference first. This situation can be triggered
                        by typecasting an int64 constant to a record of 8 bytes }
                      if left.location.size in [OS_64,OS_S64] then
                        location_force_mem(current_asmdata.CurrAsmList,left.location);
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                      cg.a_param_loc(current_asmdata.CurrAsmList,left.location,tempcgpara);
                    end;
                end;
@@ -548,7 +548,7 @@ implementation
                if cgsize<>OS_NO then
                 begin
                   location_reset(location,LOC_REGISTER,cgsize);
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                   { x86-64 system v abi:
                     structs with up to 16 bytes are returned in registers }
                   if cgsize in [OS_128,OS_S128] then
@@ -561,7 +561,7 @@ implementation
                       cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,procdefinition.funcretloc[callerside].registerhi,ref);
                     end
                   else
-{$else cpu64bit}
+{$else cpu64bitaddr}
                   if cgsize in [OS_64,OS_S64] then
                     begin
                       retloc:=procdefinition.funcretloc[callerside];
@@ -578,7 +578,7 @@ implementation
                       cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,retloc.register64.reghi,location.register64.reghi);
                     end
                   else
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
                     begin
                       { change register size after the unget because the
                         getregister was done for the full register
@@ -642,7 +642,7 @@ implementation
 
             case location.loc of
               LOC_REGISTER :
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                 if cgsize in [OS_64,OS_S64] then
                   cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
                 else
@@ -952,7 +952,7 @@ implementation
                  if not is_interface(tprocdef(procdefinition)._class) then
                    begin
                      inc(current_asmdata.NextVTEntryNr);
-                     current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition)._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(aint)),AT_FUNCTION,0));
+                     current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition)._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
                    end;
 {$endif vtentry}
 
@@ -1063,7 +1063,7 @@ implementation
             { for Cdecl functions we don't need to pop the funcret when it
               was pushed by para }
             if paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
-              dec(pop_size,sizeof(aint));
+              dec(pop_size,sizeof(pint));
             { Remove parameters/alignment from the stack }
             pop_parasize(pop_size);
           end;
@@ -1076,14 +1076,14 @@ implementation
                LOC_REGISTER,
                LOC_CREGISTER:
                  begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                    if procdefinition.funcretloc[callerside].size in [OS_64,OS_S64] then
                      begin
                        exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register64.reghi));
                        exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register64.reglo));
                      end
                    else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                      exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register));
                  end;
                LOC_FPUREGISTER,

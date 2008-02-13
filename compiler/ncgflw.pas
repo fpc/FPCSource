@@ -1317,12 +1317,12 @@ implementation
            begin
              exceptvarsym.localloc.loc:=LOC_REFERENCE;
              exceptvarsym.localloc.size:=OS_ADDR;
-             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(aint),voidpointertype,exceptvarsym.localloc.reference);
+             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),voidpointertype,exceptvarsym.localloc.reference);
              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
            end
          else
            begin
-             tg.GetTemp(current_asmdata.CurrAsmList,sizeof(aint),tt_normal,exceptref);
+             tg.GetTemp(current_asmdata.CurrAsmList,sizeof(pint),tt_normal,exceptref);
              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptref);
            end;
 

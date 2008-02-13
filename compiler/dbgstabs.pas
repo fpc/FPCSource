@@ -661,20 +661,20 @@ implementation
       var
         ss : ansistring;
       begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$2,64,64;'+
                                  '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;16;$3,384,128;'+
                                  'NAME:ar$1;0;255;$4,512,2048;;',[def_stab_number(s32inttype),
                                  def_stab_number(s64inttype),
                                  def_stab_number(u8inttype),
                                  def_stab_number(cchartype)]);
-{$else cpu64bit}
+{$else cpu64bitaddr}
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
                                  '_PRIVATE:ar$1;1;32;$3,96,256;USERDATA:ar$1;1;16;$2,352,128;'+
                                  'NAME:ar$1;0;255;$3,480,2048;;',[def_stab_number(s32inttype),
                                  def_stab_number(u8inttype),
                                  def_stab_number(cchartype)]);
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
         write_def_stabstr(list,def,ss);
       end;
 
@@ -862,9 +862,9 @@ implementation
           filedef :
             begin
               appenddef(list,s32inttype);
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
               appenddef(list,s64inttype);
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
               appenddef(list,u8inttype);
               appenddef(list,cchartype);
             end;
@@ -1173,7 +1173,7 @@ implementation
           else
             begin
               if (vo_is_thread_var in sym.varoptions) then
-                threadvaroffset:='+'+tostr(sizeof(aint))
+                threadvaroffset:='+'+tostr(sizeof(pint))
               else
                 threadvaroffset:='';
               if (vo_is_typed_const in sym.varoptions) then

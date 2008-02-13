@@ -345,9 +345,9 @@ implementation
                      procedure matching requires equal parameters }
                    if is_constnode(pt) and
                       is_ordinal(pt.resultdef)
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                       and (not is_64bitint(pt.resultdef))
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                       then
                      begin
                        if is_integer(pt.resultdef) then
@@ -567,9 +567,9 @@ implementation
          if try_to_consume(_DEFAULT) then
            begin
               if not(is_ordinal(p.propdef) or
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                      is_64bitint(p.propdef) or
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                      is_class(p.propdef) or
                      is_single(p.propdef) or
                      (p.propdef.typ in [classrefdef,pointerdef]) or
@@ -1375,9 +1375,9 @@ implementation
                   recst.addfield(fieldvs);
                 end;
               if not(is_ordinal(casetype))
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                  or is_64bitint(casetype)
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                  then
                 Message(type_e_ordinal_expr_expected);
               consume(_OF);

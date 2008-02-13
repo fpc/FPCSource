@@ -470,9 +470,9 @@ begin
                 adjusttail := true;
               end;
             end;
-            if (adjusttail) and (sizeleft < tcgsize2size[OS_INT]) then
+            if (adjusttail) and (sizeleft < sizeof(pint)) then
               a_op_const_reg(list, OP_SHL, OS_INT,
-                (tcgsize2size[OS_INT] - sizeleft) * tcgsize2size[OS_INT],
+                (sizeof(pint) - sizeleft) * sizeof(pint),
                 location^.register);
           end;
         end;
@@ -754,7 +754,7 @@ begin
     ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and (fromsize <> tosize)) or
     { do we need to mask out the sign when loading from smaller signed to larger unsigned type? }
     ( is_signed_cgsize(fromsize) and (not is_signed_cgsize(tosize)) and
-      (tcgsize2size[fromsize] < tcgsize2size[tosize]) and (tcgsize2size[tosize] <> tcgsize2size[OS_INT]) ) then begin
+      (tcgsize2size[fromsize] < tcgsize2size[tosize]) and (tcgsize2size[tosize] <> sizeof(pint)) ) then begin
     case tosize of
       OS_S8:
         instr := taicpu.op_reg_reg(A_EXTSB,reg2,reg1);
@@ -1388,7 +1388,7 @@ var
         for regcount := RS_R31 downto firstreggpr do begin
           a_load_reg_ref(list, OS_INT, OS_INT, newreg(R_INTREGISTER, regcount,
             R_SUBNONE), href);
-          dec(href.offset, tcgsize2size[OS_INT]);
+          dec(href.offset, sizeof(pint));
         end;
       { VMX registers not supported by FPC atm }
 
@@ -1526,7 +1526,7 @@ var
         for regcount := RS_R31 downto firstreggpr do begin
           a_load_ref_reg(list, OS_INT, OS_INT, href, newreg(R_INTREGISTER, regcount,
             R_SUBNONE));
-          dec(href.offset, tcgsize2size[OS_INT]);
+          dec(href.offset, sizeof(pint));
         end;
 
       { VMX not supported by FPC atm }

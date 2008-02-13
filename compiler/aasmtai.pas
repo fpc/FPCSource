@@ -115,13 +115,17 @@ interface
         );
 
     const
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
+       aitconst_ptr = aitconst_64bit;
+{$else cpu64bitaddr}
+       aitconst_ptr = aitconst_32bit;
+{$endif cpu64bitaddr}
+
+{$ifdef cpu64bitalu}
        aitconst_aint = aitconst_64bit;
-       aitconst_ptr  = aitconst_64bit;
-{$else cpu64bit}
+{$else cpu64bitaddr}
        aitconst_aint = aitconst_32bit;
-       aitconst_ptr  = aitconst_32bit;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
 
        taitypestr : array[taitype] of string[24] = (
           '<none>',
@@ -407,6 +411,7 @@ interface
           constructor Create_sleb128bit(_value : int64);
           constructor Create_uleb128bit(_value : qword);
           constructor Create_aint(_value : aint);
+          constructor Create_pint(_value : pint);
           constructor Create_sym(_sym:tasmsymbol);
           constructor Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
           constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
@@ -1141,6 +1146,17 @@ implementation
       end;
 
 
+    constructor tai_const.Create_pint(_value : pint);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=aitconst_ptr;
+         value:=_value;
+         sym:=nil;
+         endsym:=nil;
+      end;
+
+
     constructor tai_const.Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
       begin
          inherited Create;
@@ -1260,7 +1276,7 @@ implementation
             if target_info.system=system_x86_64_win64 then
               result:=sizeof(longint)
             else
-              result:=sizeof(aint);
+              result:=sizeof(pint);
           aitconst_uleb128bit :
             result:=LengthUleb128(qword(value));
           aitconst_sleb128bit :

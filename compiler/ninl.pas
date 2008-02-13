@@ -301,7 +301,7 @@ implementation
           procname:=procname+'enum'
         else
           case torddef(source.resultdef).ordtype of
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
             u64bit:
               procname := procname + 'uint';
 {$else}
@@ -445,9 +445,9 @@ implementation
             orddef :
               begin
                 case Torddef(para.left.resultdef).ordtype of
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                   s64bit,
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                   s8bit,
                   s16bit,
                   s32bit :
@@ -455,9 +455,9 @@ implementation
                       name := procprefixes[do_read]+'sint';
                       readfunctype:=sinttype;
                     end;
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                   u64bit,
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                   u8bit,
                   u16bit,
                   u32bit :
@@ -475,7 +475,7 @@ implementation
                       name := procprefixes[do_read]+'widechar';
                       readfunctype:=cwidechartype;
                     end;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                   s64bit :
                     begin
                       name := procprefixes[do_read]+'int64';
@@ -486,7 +486,7 @@ implementation
                       name := procprefixes[do_read]+'qword';
                       readfunctype:=u64inttype;
                     end;
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
                   scurrency:
                     begin
                       name := procprefixes[do_read]+'currency';
@@ -1120,9 +1120,9 @@ implementation
         if assigned(codepara) and
            (
             (codepara.resultdef.typ <> orddef)
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
             or is_64bitint(codepara.resultdef)
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
             ) then
           begin
             CGMessagePos1(codepara.fileinfo,type_e_integer_expr_expected,codepara.resultdef.typename);
@@ -1188,9 +1188,9 @@ implementation
           orddef:
             begin
               case torddef(destpara.resultdef).ordtype of
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                 s64bit,
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                 s8bit,
                 s16bit,
                 s32bit:
@@ -1200,17 +1200,17 @@ implementation
                     sizepara := ccallparanode.create(cordconstnode.create
                       (destpara.resultdef.size,s32inttype,true),nil);
                   end;
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                 u64bit,
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                 u8bit,
                 u16bit,
                 u32bit:
                    suffix := 'uint_';
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                 s64bit: suffix := 'int64_';
                 u64bit: suffix := 'qword_';
-{$endif cpu64bit}
+{$endif not cpu64bitaddr}
                 scurrency: suffix := 'currency_';
                 else
                   internalerror(200304225);
@@ -2569,11 +2569,11 @@ implementation
                    typecheckpass(hpp);
 
                    if not((hpp.resultdef.typ=orddef) and
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
                           (torddef(hpp.resultdef).ordtype<>u32bit)) then
-{$else not cpu64bit}
+{$else not cpu64bitaddr}
                           (torddef(hpp.resultdef).ordtype<>u64bit)) then
-{$endif not cpu64bit}
+{$endif not cpu64bitaddr}
                      inserttypeconv_internal(hpp,sinttype);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
@@ -2608,11 +2608,11 @@ implementation
                    { assign result of addition }
                    if not(is_integer(resultnode.resultdef)) then
                      inserttypeconv(hpp,torddef.create(
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
                        s64bit,
-{$else cpu64bit}
+{$else cpu64bitaddr}
                        s32bit,
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
                        get_min_value(resultnode.resultdef),
                        get_max_value(resultnode.resultdef)))
                    else

@@ -165,12 +165,12 @@ unit rgcpu;
               A_STHBRX, A_LHBRX, A_STWBRX, A_LWBRX, A_STWCX_, A_LWARX,
               A_ECIWX, A_ECOWX,
               A_LMW, A_STMW,A_LSWI,A_LSWX,A_STSWI,A_STSWX
-{$ifdef cpu64bit}
+{$ifdef cpu64bitalu}
               , A_STD, A_STDX,
               A_LD, A_LDX,
               A_LWA, A_LWAX,
               A_STDCX_,A_LDARX
-{$endif cpu64bit}
+{$endif cpu64bitalu}
                 :
                 begin
                   case taicpu(p).oper[1]^.typ of

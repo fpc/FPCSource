@@ -1353,7 +1353,7 @@ implementation
             current_asmdata.getaddrlabel(arr);
           append_entry(DW_TAG_structure_type,true,[
             DW_AT_name,DW_FORM_string,name+#0,
-            DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
+            DW_AT_byte_size,DW_FORM_data1,2*sizeof(pint)
             ]);
           finish_entry;
 
@@ -1404,11 +1404,11 @@ implementation
             end;
           st_longstring:
             begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
               addnormalstringdef('LongString',u64inttype,qword(-1));
-{$else cpu64bit}
+{$else cpu64bitaddr}
               addnormalstringdef('LongString',u32inttype,cardinal(-1));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
            end;
          st_ansistring:
            begin
@@ -1472,7 +1472,7 @@ implementation
             else
               current_asmdata.getaddrlabel(proc);
             append_entry(DW_TAG_structure_type,true,[
-              DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
+              DW_AT_byte_size,DW_FORM_data1,2*sizeof(pint)
             ]);
             finish_entry;
 
@@ -1489,10 +1489,10 @@ implementation
             { self entry }
             append_entry(DW_TAG_member,false,[
               DW_AT_name,DW_FORM_string,'Self'#0,
-              DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sizeof(aint))
+              DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sizeof(pint))
               ]);
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sizeof(aint)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sizeof(pint)));
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(class_tobject));
             finish_entry;
 
@@ -1718,7 +1718,7 @@ implementation
                       begin
                         templist.concat(tai_const.create_8bit(3));
                         templist.concat(tai_const.createname(sym.mangledname,0));
-                        blocksize:=1+sizeof(aword);
+                        blocksize:=1+sizeof(puint);
                       end;
                   end;
                 paravarsym,
@@ -1851,7 +1851,7 @@ implementation
             { possible, i.e., equivalent to gcc's                    }
             { __attribute__((__packed__)), which is also what gpc    }
             { does.                                                  }
-            fieldnatsize:=max(sizeof(aint),sym.vardef.size);
+            fieldnatsize:=max(sizeof(pint),sym.vardef.size);
             fieldoffset:=(sym.fieldoffset div (fieldnatsize*8)) * fieldnatsize;
             bitoffset:=sym.fieldoffset mod (fieldnatsize*8);
             if (target_info.endian=endian_little) then
@@ -1909,23 +1909,23 @@ implementation
             end;
           constnil:
             begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
               current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(0));
-{$else cpu64bit}
+{$else cpu64bitaddr}
               current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(0));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
             end;
           constpointer:
             begin
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
               current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(int64(sym.value.valueordptr)));
-{$else cpu64bit}
+{$else cpu64bitaddr}
               current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(sym.value.valueordptr));
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
             end;
           constreal:
             begin
@@ -2011,14 +2011,14 @@ implementation
                  end;
                *)
                templist.concat(tai_const.create_8bit(3));
-               templist.concat(tai_const.create_aint(sym.addroffset));
-               blocksize:=1+sizeof(aword);
+               templist.concat(tai_const.create_pint(sym.addroffset));
+               blocksize:=1+sizeof(puint);
             end;
           toasm :
             begin
               templist.concat(tai_const.create_8bit(3));
               templist.concat(tai_const.createname(sym.mangledname,0));
-              blocksize:=1+sizeof(aword);
+              blocksize:=1+sizeof(puint);
             end;
           tovar:
             begin
@@ -2312,7 +2312,7 @@ implementation
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
 
         { address size }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
 
         { first manadatory compilation unit TAG }
         append_entry(DW_TAG_compile_unit,true,[
@@ -2494,7 +2494,7 @@ implementation
                        (target_info.system in systems_darwin) then
                       begin
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
-                        asmline.concat(tai_const.create_uleb128bit(1+sizeof(aint)));
+                        asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
                         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
                         asmline.concat(tai_const.create_sym(currlabel));
                       end
@@ -2546,7 +2546,7 @@ implementation
             current_asmdata.getlabel(currlabel, alt_dbgline);
             list.insertafter(tai_label.create(currlabel), hpend);
             asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
-            asmline.concat(tai_const.create_uleb128bit(1+sizeof(aint)));
+            asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
             asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
             asmline.concat(tai_const.create_sym(currlabel));
           end;
@@ -2580,7 +2580,7 @@ implementation
         asmline.concat(tai_const.create_uleb128bit(get_file_index(infile)));
 
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
-        asmline.concat(tai_const.create_uleb128bit(1+sizeof(aint)));
+        asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
         asmline.concat(tai_const.create_sym(nil));
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));

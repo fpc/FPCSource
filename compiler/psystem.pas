@@ -197,12 +197,12 @@ implementation
         s80floattype:=tfloatdef.create(s80real);
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif avr}
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
         ptruinttype:=u64inttype;
         ptrsinttype:=s64inttype;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
 {$ifdef cpu32bit}
         uinttype:=u32inttype;
         sinttype:=s32inttype;
@@ -417,12 +417,12 @@ implementation
         loadtype('olevariant',colevarianttype);
         loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
-{$ifdef cpu64bit}
+{$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
         ptruinttype:=u64inttype;
         ptrsinttype:=s64inttype;
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
 {$ifdef cpu32bit}
         uinttype:=u32inttype;
         sinttype:=s32inttype;

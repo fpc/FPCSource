@@ -85,8 +85,8 @@ var
   paraloc: pcgparalocation;
 begin
   cgpara.reset;
-  cgpara.size := OS_INT;
-  cgpara.intsize := tcgsize2size[OS_INT];
+  cgpara.size := OS_ADDR;
+  cgpara.intsize := sizeof(pint);
   cgpara.alignment := get_para_align(calloption);
   paraloc := cgpara.add_location;
   with paraloc^ do begin
@@ -392,7 +392,7 @@ begin
         inc(nextintreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
 
-        inc(stack_offset, tcgsize2size[OS_INT]);
+        inc(stack_offset, sizeof(pint));
       end else if (loc = LOC_FPUREGISTER) and
         (nextfloatreg <= RS_F13) then begin
         paraloc^.loc := loc;

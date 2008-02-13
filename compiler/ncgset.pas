@@ -575,17 +575,17 @@ implementation
 
       procedure genitem(t : pcaselabel);
 
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
         var
            l1 : tasmlabel;
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
 
         begin
            if assigned(t^.less) then
              genitem(t^.less);
            if t^._low=t^._high then
              begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                 if opsize in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
@@ -594,7 +594,7 @@ implementation
                      cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                   begin
                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low.svalue),hregister, blocklabel(t^.blockid));
                   end;
@@ -609,7 +609,7 @@ implementation
                 { ELSE-label                                }
                 if not lastwasrange or (t^._low-last>1) then
                   begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                      if opsize in [OS_64,OS_S64] then
                        begin
                           current_asmdata.getjumplabel(l1);
@@ -622,13 +622,13 @@ implementation
                           cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
                      else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                        begin
                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low.svalue), hregister,
                            elselabel);
                        end;
                   end;
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                 if opsize in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
@@ -640,7 +640,7 @@ implementation
                     cg.a_label(current_asmdata.CurrAsmList,l1);
                   end
                 else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                   begin
                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high.svalue), hregister, blocklabel(t^.blockid));
                   end;
@@ -714,14 +714,14 @@ implementation
          opsize:=def_cgsize(left.resultdef);
          { copy the case expression to a register }
          location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          if opsize in [OS_S64,OS_64] then
            begin
              hregister:=left.location.register64.reglo;
              hregister2:=left.location.register64.reghi;
            end
          else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
            hregister:=left.location.register;
          if isjump then
           begin
@@ -740,11 +740,11 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
          if opsize in [OS_64,OS_S64] then
            genlinearcmplist(labels)
          else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
            begin
               if cs_opt_level1 in current_settings.optimizerswitches then
                 begin

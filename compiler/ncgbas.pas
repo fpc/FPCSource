@@ -415,14 +415,14 @@ interface
                   location_reset(tempinfo^.location,LOC_CREGISTER,def_cgsize(tempinfo^.typedef))
                 else
                   location_reset(tempinfo^.location,LOC_REGISTER,def_cgsize(tempinfo^.typedef));
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                 if tempinfo^.location.size in [OS_64,OS_S64] then
                   begin
                     tempinfo^.location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     tempinfo^.location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                   end
                 else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                   tempinfo^.location.register:=cg.getintregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
               end;
           end
@@ -504,14 +504,14 @@ interface
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
-{$ifndef cpu64bit}
+{$ifndef cpu64bitalu}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
                     end
                   else
-{$endif cpu64bit}
+{$endif not cpu64bitalu}
                     cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
                 end;
               if release_to_normal then
