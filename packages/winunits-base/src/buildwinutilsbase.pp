@@ -21,7 +21,7 @@ unit buildwinutilsbase;
 interface
 
 uses
-    flatsb, winver, mmsystem, comconst, commctrl, comobj, 
+    flatsb, winver, mmsystem, comconst, commctrl, comobj, commdlg,
     ole2, activex, shellapi, shlobj, oleserver,  shfolder, richedit,imagehlp;
 
 implementation

@@ -8,7 +8,7 @@ version=2.2.0
 
 [target]
 units=buildwinutilsbase
-implicitunits=flatsb winver mmsystem comobj comconst commctrl ole2 activex shellapi shlobj oleserver \
+implicitunits=flatsb winver mmsystem comobj comconst commdlg commctrl ole2 activex shellapi shlobj oleserver \
                shfolder richedit imagehlp
 
 examples=examples

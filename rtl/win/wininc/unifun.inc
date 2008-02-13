@@ -338,6 +338,7 @@ function GetICMProfileW(_para1:HDC; _para2:DWORD; _para3:LPWSTR):WINBOOL; extern
 function SetICMProfileW(_para1:HDC; _para2:LPWSTR):WINBOOL; external 'gdi32' name 'SetICMProfileW';
 function UpdateICMRegKeyW(_para1:DWORD; _para2:DWORD; _para3:LPWSTR; _para4:UINT):WINBOOL; external 'gdi32' name 'UpdateICMRegKeyW';
 function EnumICMProfilesW(_para1:HDC; _para2:ICMENUMPROC; _para3:LPARAM):longint; external 'gdi32' name 'EnumICMProfilesW';
+{
 function CreatePropertySheetPageW(lppsp:LPCPROPSHEETPAGE):HPROPSHEETPAGE; external 'comctl32' name 'CreatePropertySheetPageW';
 function PropertySheetW(lppsph:LPCPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetW';
 function ImageList_LoadImageW(hi:HINST; lpbmp:LPCWSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external 'comctl32' name 'ImageList_LoadImageW';
@@ -352,6 +353,8 @@ function ChooseFontW(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32' name 'Cho
 function FindTextW(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'FindTextW';
 function PrintDlgW(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDlgW';
 function PageSetupDlgW(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgW';
+}
+
 function CreateProcessW(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;dwCreationFlags:DWORD; lpEnvironment:LPVOID;
   lpCurrentDirectory:LPCWSTR; lpStartupInfo:LPSTARTUPINFO; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32' name 'CreateProcessW';
 procedure GetStartupInfoW(lpStartupInfo:LPSTARTUPINFO); external 'kernel32' name 'GetStartupInfoW';

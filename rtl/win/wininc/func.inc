@@ -1046,8 +1046,9 @@ function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; exter
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
 
 { was missing, bug report 1808 PM }
+{
 function CommDlgExtendedError : DWORD; external 'comdlg32' name 'CommDlgExtendedError';
-
+}
 { wgl Windows OpenGL helper functions }
 function wglUseFontBitmaps(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
 function wglCreateContext(_para1:HDC):HGLRC; external 'opengl32' name 'wglCreateContext';

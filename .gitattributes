@@ -4338,6 +4338,7 @@ packages/winunits-base/src/activex.pp svneol=native#text/plain
 packages/winunits-base/src/buildwinutilsbase.pp svneol=native#text/plain
 packages/winunits-base/src/comconst.pp svneol=native#text/plain
 packages/winunits-base/src/commctrl.pp svneol=native#text/plain
+packages/winunits-base/src/commdlg.pp svneol=native#text/plain
 packages/winunits-base/src/comobj.pp svneol=native#text/plain
 packages/winunits-base/src/flatsb.pp svneol=native#text/plain
 packages/winunits-base/src/imagehlp.pp svneol=native#text/plain
