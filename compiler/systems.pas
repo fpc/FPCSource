@@ -51,7 +51,8 @@ interface
              cpu_x86_64,                   { 8 }
              cpu_mips,                     { 9 }
              cpu_arm,                      { 10 }
-             cpu_powerpc64                 { 11 }
+             cpu_powerpc64,                { 11 }
+             cpu_avr                       { 12 }
        );
 
        tasmmode= (asmmode_none
@@ -141,7 +142,8 @@ interface
              system_powerpc64_embedded, { 58 }
              system_i386_symbian,       { 59 }
              system_arm_symbian,        { 60 }
-             system_x86_64_darwin       { 61 }
+             system_x86_64_darwin,      { 61 }
+             system_avr_embedded        { 62 }
        );
 
      type
@@ -410,7 +412,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64');
+             'mips','arm', 'powerpc64', 'avr');
 
        abi2str : array[tabi] of string[10] =
          ('default','sysv','aix','eabi','armeb');
@@ -923,6 +925,10 @@ begin
   {$endif WINDOWS}
   {$endif cpuarm}
 {$endif arm}
+
+{$ifdef avr}
+  default_target(system_avr_embedded);
+{$endif avr}
 end;
 
 

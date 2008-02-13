@@ -25,13 +25,15 @@
 {$i filerec.inc}
 {$i textrec.inc}
 
-{$ifdef FPC_OBJFPC_EXTENDED_IF}
-  {$if High(errorcode)<>maxExitCode}
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
+  {$ifdef FPC_OBJFPC_EXTENDED_IF}
+    {$if High(errorcode)<>maxExitCode}
+      {$define FPC_LIMITED_EXITCODE}
+    {$endif}
+  {$else}
     {$define FPC_LIMITED_EXITCODE}
-  {$endif}
-{$else}
-  {$define FPC_LIMITED_EXITCODE}
-{$endif FPC_OBJFPC_EXTENDED_IF}
+  {$endif FPC_OBJFPC_EXTENDED_IF}
+{$endif FPC_HAS_FEATURE_EXITCODE}
 
 Procedure HandleError (Errno : Longint); forward;
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
@@ -173,6 +175,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$i arm.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
+
+{$ifdef cpuavr}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i avr.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuavr}
 
 
 procedure fillchar(var x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}

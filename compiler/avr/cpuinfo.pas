@@ -46,7 +46,7 @@ Const
    {# Size of a multimedia register               }
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
-   target_cpu_string = 'arm';
+   target_cpu_string = 'avr';
 
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [

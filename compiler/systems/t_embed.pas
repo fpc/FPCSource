@@ -284,6 +284,13 @@ end;
 *****************************************************************************}
 
 initialization
+{$ifdef arm}
   RegisterExternalLinker(system_arm_embedded_info,TlinkerEmbedded);
   RegisterTarget(system_arm_embedded_info);
+{$endif arm}
+
+{$ifdef avr}
+  RegisterExternalLinker(system_avr_embedded_info,TlinkerEmbedded);
+  RegisterTarget(system_avr_embedded_info);
+{$endif avr}
 end.

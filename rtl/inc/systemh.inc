@@ -195,6 +195,25 @@ Type
   FarPointer = Pointer;
 {$endif CPUARM}
 
+{$ifdef CPUAVR}
+  {$define DEFAULT_SINGLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  ValReal = Real;
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPUARM}
+
 {$ifdef CPU64}
   SizeInt = Int64;
   SizeUInt = QWord;
@@ -212,6 +231,15 @@ Type
   ValSInt = Longint;
   ValUInt = Cardinal;
 {$endif CPU32}
+
+{$ifdef CPU16}
+  SizeInt = Integer;
+  SizeUInt = Word;
+  PtrInt = Integer;
+  PtrUInt = Word;
+  ValSInt = Integer;
+  ValUInt = Word;
+{$endif CPU16}
 
 { Zero - terminated strings }
   PChar               = ^Char;

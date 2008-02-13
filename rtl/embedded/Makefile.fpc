@@ -39,8 +39,7 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-override FPCOPT+=
-rtl.cfg
+override FPCOPT+=@rtl.cfg
 
 ifdef RELEASE
 override FPCOPT+=-Ur

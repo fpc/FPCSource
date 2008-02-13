@@ -86,12 +86,77 @@ unit i_embed;
             abi : abi_default
           );
 
+       system_avr_embedded_info : tsysteminfo =
+          (
+            system       : system_avr_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses
+	                          ,tf_smartlink_sections];
+            cpu          : cpu_avr;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 0;
+            stacksize    : 1024;
+            abi : abi_default
+          );
+
   implementation
 
 initialization
-{$ifdef arm}
+{$ifdef CPUARM}
   {$ifdef embedded}
     set_source_info(system_arm_embedded_info);
   {$endif embedded}
-{$endif arm}
+{$endif CPUARM}
+{$ifdef CPUAVR}
+  {$ifdef embedded}
+    set_source_info(system_avr_embedded_info);
+  {$endif embedded}
+{$endif CPUAVR}
 end.

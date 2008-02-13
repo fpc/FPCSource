@@ -2270,6 +2270,15 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif arm}
+{$ifdef avr}
+  def_system_macro('CPUAVR');
+  def_system_macro('CPU16');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif avr}
 
   { read configuration file }
   if (not disable_configfile) and

@@ -191,17 +191,30 @@ implementation
         s80floattype:=tfloatdef.create(s80real);
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif arm}
+{$ifdef avr}
+        s32floattype:=tfloatdef.create(s32real);
+        s64floattype:=tfloatdef.create(s64real);
+        s80floattype:=tfloatdef.create(s80real);
+        s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
+{$endif avr}
 {$ifdef cpu64bit}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
         ptruinttype:=u64inttype;
         ptrsinttype:=s64inttype;
-{$else cpu64bit}
+{$endif cpu64bit}
+{$ifdef cpu32bit}
         uinttype:=u32inttype;
         sinttype:=s32inttype;
         ptruinttype:=u32inttype;
         ptrsinttype:=s32inttype;
-{$endif cpu64bit}
+{$endif cpu32bit}
+{$ifdef cpu16bit}
+        uinttype:=u16inttype;
+        sinttype:=s16inttype;
+        ptruinttype:=u16inttype;
+        ptrsinttype:=s16inttype;
+{$endif cpu16bit}
         { some other definitions }
         voidpointertype:=tpointerdef.create(voidtype);
         charpointertype:=tpointerdef.create(cchartype);
