@@ -65,14 +65,31 @@ const
 
 function Escape(const s: String; const Allowed: TSysCharSet): String;
 var
-  i: Integer;
+  i, L: Integer;
+  P: PChar;
 begin
-  SetLength(Result, 0);
+  L := Length(s);
   for i := 1 to Length(s) do
+    if not (s[i] in Allowed) then Inc(L,2);
+  if L = Length(s) then
+  begin
+    Result := s;
+    Exit;
+  end;
+
+  SetLength(Result, L);
+  P := @Result[1];
+  for i := 1 to Length(s) do
+  begin
     if not (s[i] in Allowed) then
-      Result := Result + '%' + IntToHex(ord(s[i]), 2)
+    begin
+      P^ := '%'; Inc(P);
+      StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+    end
     else
-      Result := Result + s[i];
+      P^ := s[i];
+    Inc(P);
+  end;
 end;
 
 function EncodeURI(const URI: TURI): String;
@@ -127,22 +144,24 @@ end;
 function Unescape(const s: String): String;
 var
   i, RealLength: Integer;
+  P: PChar;
 begin
   SetLength(Result, Length(s));
   i := 1;
+  P := PChar(Result);  { use PChar to prevent numerous calls to UniqueString }
   RealLength := 0;
   while i <= Length(s) do
   begin
-    Inc(RealLength);
     if s[i] = '%' then
     begin
-      Result[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
+      P[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
       Inc(i, 3);
     end else
     begin
-      Result[RealLength] := s[i];
+      P[RealLength] := s[i];
       Inc(i);
     end;
+    Inc(RealLength);
   end;
   SetLength(Result, RealLength);
 end;
@@ -386,12 +405,22 @@ end;
 function FilenameToURI(const Filename: string): string;
 var
   I: Integer;
+  IsAbsFilename: Boolean;
 begin
-  // TODO: seems implemented, but not tested well
-  Result := 'file://';
-  if (Length(Filename) > 2) and (Filename[1] <> PathDelim) and (Filename[2] = ':') then
-    Result := Result + '/';
+  IsAbsFilename := ((Filename <> '') and (Filename[1] = PathDelim)) or
+    ((Length(Filename) > 2) and (Filename[1] in ['A'..'Z', 'a'..'z']) and (Filename[2] = ':'));
+
+  Result := 'file:';
+  if IsAbsFilename then
+  begin
+    if Filename[1] <> PathDelim then
+      Result := Result + '///'
+    else
+      Result := Result + '//';
+  end;
+
   Result := Result + Filename;
+  { unreachable code warning is ok here }
   if PathDelim <> '/' then
   begin
     I := Pos(PathDelim, Result);
