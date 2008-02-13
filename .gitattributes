@@ -4717,7 +4717,7 @@ rtl/amiga/varutils.pp svneol=native#text/plain
 rtl/arm/arm.inc svneol=native#text/plain
 rtl/arm/divide.inc svneol=native#text/x-pascal
 rtl/arm/int64p.inc svneol=native#text/plain
-rtl/arm/makefile.cpu -text
+rtl/arm/makefile.cpu svneol=native#text/plain
 rtl/arm/math.inc svneol=native#text/plain
 rtl/arm/mathu.inc svneol=native#text/plain
 rtl/arm/mathuh.inc svneol=native#text/plain
@@ -4940,7 +4940,7 @@ rtl/i386/cpu.pp svneol=native#text/plain
 rtl/i386/fastmove.inc svneol=native#text/plain
 rtl/i386/i386.inc svneol=native#text/plain
 rtl/i386/int64p.inc svneol=native#text/plain
-rtl/i386/makefile.cpu -text
+rtl/i386/makefile.cpu svneol=native#text/plain
 rtl/i386/math.inc svneol=native#text/plain
 rtl/i386/mathu.inc svneol=native#text/plain
 rtl/i386/mathuh.inc svneol=native#text/plain
@@ -5176,7 +5176,7 @@ rtl/linux/x86_64/sysnr.inc svneol=native#text/plain
 rtl/m68k/int64p.inc -text
 rtl/m68k/lowmath.inc svneol=native#text/plain
 rtl/m68k/m68k.inc svneol=native#text/plain
-rtl/m68k/makefile.cpu -text
+rtl/m68k/makefile.cpu svneol=native#text/plain
 rtl/m68k/math.inc svneol=native#text/plain
 rtl/m68k/readme -text
 rtl/m68k/set.inc svneol=native#text/plain
@@ -5637,7 +5637,7 @@ rtl/solaris/unxconst.inc svneol=native#text/plain
 rtl/solaris/unxfunc.inc svneol=native#text/plain
 rtl/solaris/unxsockh.inc svneol=native#text/plain
 rtl/sparc/int64p.inc svneol=native#text/plain
-rtl/sparc/makefile.cpu -text
+rtl/sparc/makefile.cpu svneol=native#text/plain
 rtl/sparc/math.inc svneol=native#text/plain
 rtl/sparc/mathu.inc svneol=native#text/plain
 rtl/sparc/mathuh.inc svneol=native#text/plain
@@ -5872,7 +5872,7 @@ rtl/wince/winres.inc -text
 rtl/wince/winsock.pp svneol=native#text/plain
 rtl/wince/winsock2.pp svneol=native#text/plain
 rtl/x86_64/int64p.inc svneol=native#text/plain
-rtl/x86_64/makefile.cpu -text
+rtl/x86_64/makefile.cpu svneol=native#text/plain
 rtl/x86_64/math.inc svneol=native#text/plain
 rtl/x86_64/mathu.inc svneol=native#text/plain
 rtl/x86_64/mathuh.inc svneol=native#text/plain
