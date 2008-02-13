@@ -56,7 +56,6 @@ type
     procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtStr(const ws: WideString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtChr(c: WideChar); {$IFDEF HAS_INLINE} inline; {$ENDIF}
-    procedure wrtLineEnd; {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtQuotedLiteral(const ws: WideString);
     procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
@@ -154,7 +153,8 @@ begin
   FCapacity := 512;
   // Initialize Indent string
   SetLength(FIndent, 100);
-  for I := 1 to 100 do FIndent[I] := ' ';
+  FIndent[1] := #10;
+  for I := 2 to 100 do FIndent[I] := ' ';
   FIndentCount := 0;
   // Later on, this may be put under user control
   // for now, take OS setting
@@ -175,7 +175,6 @@ var
   pb: PChar;
   wc: Cardinal;
   SrcEnd: PWideChar;
-  I: Integer;
 begin
   pb := FBufPos;
   SrcEnd := Src + Length;
@@ -191,30 +190,29 @@ begin
 
     wc := Cardinal(Src^);  Inc(Src);
     case wc of
-      $0A:  for I := 1 to System.Length(FLineBreak) do
-            begin
-              pb^ := FLineBreak[I]; Inc(pb);
-            end;
+      $0A: pb := StrECopy(pb, PChar(FLineBreak));
 
       0..$09, $0B..$7F:  begin
         pb^ := char(wc); Inc(pb);
       end;
 
       $80..$7FF: begin
-        pb^ := Char($C0 or (wc shr 6));   Inc(pb);
-        pb^ := Char($80 or (wc and $3F)); Inc(pb);
+        pb^ := Char($C0 or (wc shr 6));
+        pb[1] := Char($80 or (wc and $3F));
+        Inc(pb,2);
       end;
 
       $D800..$DBFF: begin
         if (Src < SrcEnd) and (Src^ >= #$DC00) and (Src^ <= #$DFFF) then
         begin
-          wc := ((wc - $D7C0) shl 10) + (word(Src^) xor $DC00);
+          wc := ((LongInt(wc) - $D7C0) shl 10) + LongInt(word(Src^) xor $DC00);
           Inc(Src);
 
-          pb^ := Char($F0 or (wc shr 18));           Inc(pb);
-          pb^ := Char($80 or ((wc shr 12) and $3F)); Inc(pb);
-          pb^ := Char($80 or ((wc shr 6) and $3F));  Inc(pb);
-          pb^ := Char($80 or (wc and $3F));          Inc(pb);
+          pb^ := Char($F0 or (wc shr 18));
+          pb[1] := Char($80 or ((wc shr 12) and $3F));
+          pb[2] := Char($80 or ((wc shr 6) and $3F));
+          pb[3] := Char($80 or (wc and $3F));
+          Inc(pb,4);
         end
         else
           raise EConvertError.Create('High surrogate without low one');
@@ -223,9 +221,10 @@ begin
         raise EConvertError.Create('Low surrogate without high one');
       else   // $800 >= wc > $FFFF, excluding surrogates
       begin
-        pb^ := Char($E0 or (wc shr 12));          Inc(pb);
-        pb^ := Char($80 or ((wc shr 6) and $3F)); Inc(pb);
-        pb^ := Char($80 or (wc and $3F));         Inc(pb);
+        pb^ := Char($E0 or (wc shr 12));
+        pb[1] := Char($80 or ((wc shr 6) and $3F));
+        pb[2] := Char($80 or (wc and $3F));
+        Inc(pb,3);
       end;
     end;
   end;
@@ -237,20 +236,16 @@ begin
   wrtChars(PWideChar(ws), Length(ws));
 end;
 
+{ No checks here - buffer always has 32 extra bytes }
 procedure TXMLWriter.wrtChr(c: WideChar); { inline }
 begin
-  wrtChars(@c,1);
-end;
-
-procedure TXMLWriter.wrtLineEnd; { inline }
-begin
-  // line endings now handled in WrtStr!
-  wrtChr(#10);
+  FBufPos^ := char(ord(c));
+  Inc(FBufPos);
 end;
 
 procedure TXMLWriter.wrtIndent; { inline }
 begin
-  wrtChars(PWideChar(FIndent), FIndentCount*2);
+  wrtChars(PWideChar(FIndent), FIndentCount*2+1);
 end;
 
 procedure TXMLWriter.IncIndent;
@@ -366,75 +361,56 @@ end;
 procedure TXMLWriter.VisitElement(node: TDOMNode);
 var
   i: Integer;
-  attr, child: TDOMNode;
+  child: TDOMNode;
   SavedInsideTextNode: Boolean;
-  IsLeaf: Boolean;
-  MixedContent: Boolean;
 begin
   if not FInsideTextNode then
     wrtIndent;
   wrtChr('<');
-  wrtStr(node.NodeName);
+  wrtStr(TDOMElement(node).TagName);
   // FIX: Accessing Attributes was causing them to be created for every element :(
   if node.HasAttributes then
     for i := 0 to node.Attributes.Length - 1 do
     begin
-      attr := node.Attributes.Item[i];
-      if TDOMAttr(attr).Specified then
-        VisitAttribute(attr);
+      child := node.Attributes.Item[i];
+      if TDOMAttr(child).Specified then
+        VisitAttribute(child);
     end;
   Child := node.FirstChild;
   if Child = nil then
-    wrtStr('/>')
+    wrtChars('/>', 2)
   else
   begin
     SavedInsideTextNode := FInsideTextNode;
     wrtChr('>');
-    MixedContent := False;
-    repeat
-      if Assigned(Child.PreviousSibling) and
-        (Child.PreviousSibling.InheritsFrom(TDOMText) <> Child.InheritsFrom(TDOMText)) then
-        MixedContent := True;
-      Child := Child.NextSibling;
-    until Child = nil;
-    Child := node.FirstChild; // restore
-
-    IsLeaf := (Child = node.LastChild) and (Child.FirstChild = nil);
-    if not (FInsideTextNode or MixedContent or IsLeaf) then
-      wrtLineEnd;
-
-    FInsideTextNode := {FInsideTextNode or} MixedContent or IsLeaf;
+    FInsideTextNode := Child.NodeType in [TEXT_NODE, CDATA_SECTION_NODE];
     IncIndent;
     repeat
       WriteNode(Child);
       Child := Child.NextSibling;
     until Child = nil;
     DecIndent;
-    if not FInsideTextNode then
+    if not (node.LastChild.NodeType in [TEXT_NODE, CDATA_SECTION_NODE]) then
       wrtIndent;
     FInsideTextNode := SavedInsideTextNode;
-    wrtStr('</');
-    wrtStr(Node.NodeName);
+    wrtChars('</', 2);
+    wrtStr(TDOMElement(Node).TagName);
     wrtChr('>');
   end;
-  if not FInsideTextNode then
-    wrtLineEnd;
 end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);
 begin
-  ConvWrite(node.NodeValue, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
+  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
 end;
 
 procedure TXMLWriter.VisitCDATA(node: TDOMNode);
 begin
   if not FInsideTextNode then
     wrtIndent;
-  wrtStr('<![CDATA[');
-  wrtStr(node.NodeValue);
-  wrtStr(']]>');
-  if not FInsideTextNode then
-    wrtLineEnd;
+  wrtChars('<![CDATA[', 9);
+  wrtStr(TDOMCharacterData(node).Data);
+  wrtChars(']]>', 3);
 end;
 
 procedure TXMLWriter.VisitEntityRef(node: TDOMNode);
@@ -452,16 +428,14 @@ begin
   wrtChr(' ');
   wrtStr(TDOMProcessingInstruction(node).Data);
   wrtStr('?>');
-  if not FInsideTextNode then wrtLineEnd;
 end;
 
 procedure TXMLWriter.VisitComment(node: TDOMNode);
 begin
   if not FInsideTextNode then wrtIndent;
-  wrtStr('<!--');
-  wrtStr(node.NodeValue);
-  wrtStr('-->');
-  if not FInsideTextNode then wrtLineEnd;
+  wrtChars('<!--', 4);
+  wrtStr(TDOMCharacterData(node).Data);
+  wrtChars('-->', 3);
 end;
 
 procedure TXMLWriter.VisitDocument(node: TDOMNode);
@@ -486,16 +460,16 @@ begin
     wrtChr('"');
   end;
 *)
-  wrtStr('?>'#10);
+  wrtStr('?>');
 
   // TODO: now handled as a regular PI, remove this?
   if Length(TXMLDocument(node).StylesheetType) > 0 then
   begin
-    wrtStr('<?xml-stylesheet type="');
+    wrtStr(#10'<?xml-stylesheet type="');
     wrtStr(TXMLDocument(node).StylesheetType);
     wrtStr('" href="');
     wrtStr(TXMLDocument(node).StylesheetHRef);
-    wrtStr('"?>'#10);
+    wrtStr('"?>');
   end;
 
   child := node.FirstChild;
@@ -504,6 +478,7 @@ begin
     WriteNode(Child);
     Child := Child.NextSibling;
   end;
+  wrtChars(#10, 1);
 end;
 
 procedure TXMLWriter.VisitAttribute(Node: TDOMNode);
@@ -511,15 +486,17 @@ var
   Child: TDOMNode;
 begin
   wrtChr(' ');
-  wrtStr(Node.NodeName);
-  wrtStr('="');
+  wrtStr(TDOMAttr(Node).Name);
+  wrtChars('="', 2);
   Child := Node.FirstChild;
   while Assigned(Child) do
   begin
-    if Child.NodeType = ENTITY_REFERENCE_NODE then
-      VisitEntityRef(Child)
-    else
-      ConvWrite(Child.NodeValue, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+    case Child.NodeType of
+      ENTITY_REFERENCE_NODE:
+        VisitEntityRef(Child);
+      TEXT_NODE:
+        ConvWrite(TDOMCharacterData(Child).Data, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+    end;
     Child := Child.NextSibling;
   end;
   wrtChr('"');
@@ -527,7 +504,7 @@ end;
 
 procedure TXMLWriter.VisitDocumentType(Node: TDOMNode);
 begin
-  wrtStr('<!DOCTYPE ');
+  wrtStr(#10'<!DOCTYPE ');
   wrtStr(Node.NodeName);
   wrtChr(' ');
   with TDOMDocumentType(Node) do
@@ -551,7 +528,7 @@ begin
       wrtChr(']');
     end;
   end;
-  wrtStr('>'#10);
+  wrtChr('>');
 end;
 
 procedure TXMLWriter.VisitFragment(Node: TDOMNode);

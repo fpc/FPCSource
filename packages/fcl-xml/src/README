@@ -9,33 +9,34 @@ DOM level 2 extensions.
 
 XMLRead
 -------
-Provides a simple XML reader, which can read XML data from a file or stream.
-This simple parser will be replaced by a much improved one soon, which will be
-able to handle different character encodings, namespaces and entity references.
-(This parser reads the file directly, i.e. it doesn't support Unicode or
-different charsets yet.)
+Provides an XML reader, which can read XML data from a file or stream.
+The parser can read files encoded in UTF-8, UTF-16 (both endianness),
+and ISO-8859-1. It supports DTD validation.
 Regarding entity references: The pre-defined entities "lt", "gt", "amp", "apos"
-and "quot" are replaced by their normal value during reading. Other entity
-references are stored as TDOMEntityReference nodes in the DOM tree.
-Regarding whitespace handling: Whitespace directly after the beginning of a
+and "quot", and internal entities declared in DTD, are replaced by their
+defined values during reading. Ability to resolve external entities is
+currently limited to the file system.
+Regarding whitespace handling: By default, whitespace directly after the beginning of a
 tag is discarded, and sections of the XML file which contain only whitespace and
-no other text content are discarded as well.
+no other text content are discarded as well. However, whitespace-preserving
+mode can be enabled by setting TDOMParser.Options.PreserveWhitespace property to
+True.
 
 
 XMLWrite
 --------
 Writes a DOM structure as XML data into a file or stream. It can deal both with
 XML files and XML fragments.
-At the moment it supports only the node types which can be read by XMLRead.
+At the moment it supports only the UTF-8 output endcoding.
 Please note that the writer replaces some characters by entity references
 automatically:
 For normal text nodes, the following replacements will be done:
 '<' => '&lt;'
 '>' => '&gt;'
 '&' => '&amp;'
-For attribute values, additionally '"' gets replaced by '&quot;'. Single
-apostrophes (') don't need to get converted, as values are already written using
-"" quotes.
+For attribute values, additionally '"' gets replaced by '&quot;', and characters
+#9, #10 and #13 are escaped using numerical references. Single apostrophes (')
+don't need to get converted, as values are already written using "" quotes.
 The XML reader (in xmlread.pp) will convert these entity references back to
 their original characters.
 

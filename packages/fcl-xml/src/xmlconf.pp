@@ -124,7 +124,7 @@ end;
 
 procedure TXMLConfig.Flush;
 begin
-  if Modified then
+  if Modified and (Filename <> '') then
   begin
     WriteXMLFile(Doc, Filename);
     FModified := False;
@@ -348,13 +348,14 @@ procedure TXMLConfig.DoSetFilename(const AFilename: String; ForceReload: Boolean
 begin
   if (not ForceReload) and (FFilename = AFilename) then
     exit;
+    
+  Flush;
+  FreeAndNil(Doc);
+    
   FFilename := AFilename;
 
   if csLoading in ComponentState then
     exit;
-
-  Flush;
-  FreeAndNil(Doc);
 
   if FileExists(AFilename) and not FStartEmpty then
     ReadXMLFile(Doc, AFilename);
