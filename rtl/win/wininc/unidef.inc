@@ -338,11 +338,13 @@ function GetICMProfile(_para1:HDC; _para2:DWORD; _para3:LPWSTR):WINBOOL; externa
 function SetICMProfile(_para1:HDC; _para2:LPWSTR):WINBOOL; external 'gdi32' name 'SetICMProfileW';
 function UpdateICMRegKey(_para1:DWORD; _para2:DWORD; _para3:LPWSTR; _para4:UINT):WINBOOL; external 'gdi32' name 'UpdateICMRegKeyW';
 function EnumICMProfiles(_para1:HDC; _para2:ICMENUMPROC; _para3:LPARAM):longint; external 'gdi32' name 'EnumICMProfilesW';
+{
 function CreatePropertySheetPage(lppsp:LPCPROPSHEETPAGE):HPROPSHEETPAGE; external 'comctl32' name 'CreatePropertySheetPageW';
 function PropertySheet(lppsph:LPCPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetW';
 function ImageList_LoadImage(hi:HINST; lpbmp:LPCWSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external 'comctl32' name 'ImageList_LoadImageW';
 function CreateStatusWindow(style:LONG; lpszText:LPCWSTR; hwndParent:HWND; wID:UINT):HWND; external 'comctl32' name 'CreateStatusWindowW';
 procedure DrawStatusText(hDC:HDC; lprc:LPRECT; pszText:LPCWSTR; uFlags:UINT); external 'comctl32' name 'DrawStatusTextW';
+}
 function GetOpenFileName(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetOpenFileNameW';
 function GetSaveFileName(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetSaveFileNameW';
 function GetFileTitle(_para1:LPCWSTR; _para2:LPWSTR; _para3:WORD):integer; external 'comdlg32' name 'GetFileTitleW';

@@ -1009,12 +1009,13 @@ function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'P
 
 // windows because of Delphi compat.
 
+{$calling default}
 function InterLockedIncrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDINCREMENT';
 function InterLockedDecrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDDECREMENT';
 function InterLockedExchange (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGE';
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGEADD';
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
-
+{$calling stdcall}
 
 {$endif read_interface}
 
