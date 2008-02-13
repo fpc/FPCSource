@@ -859,6 +859,7 @@ implementation
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
+        cgpara : tcgpara;
       begin
          if not assigned(procdefinition) or
             not procdefinition.has_paraloc_info then
@@ -1100,7 +1101,10 @@ implementation
          if procdefinition.proccalloption=pocall_safecall then
            begin
 {$ifdef x86_64}
-             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_RAX,NR_RCX);
+             cgpara.init;
+             paramanager.getintparaloc(pocall_default,1,cgpara);
+             cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_RAX,cgpara);
+             cgpara.done;          
 {$endif x86_64}
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
