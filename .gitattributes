@@ -89,6 +89,7 @@ compiler/avr/cpupara.pas svneol=native#text/plain
 compiler/avr/cpupi.pas svneol=native#text/plain
 compiler/avr/cputarg.pas svneol=native#text/plain
 compiler/avr/itcpugas.pas svneol=native#text/plain
+compiler/avr/navradd.pas svneol=native#text/plain
 compiler/avr/raavr.pas svneol=native#text/plain
 compiler/avr/raavrgas.pas svneol=native#text/plain
 compiler/avr/ravrcon.inc svneol=native#text/plain
