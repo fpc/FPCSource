@@ -563,47 +563,46 @@ Const
   comctl32 = 'comctl32.dll';
 
 {$ifdef unicode}
-function GetOpenFileName(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetOpenFileNameA';
-function GetSaveFileName(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetSaveFileNameA';
-function GetFileTitle(_para1:LPCSTR; _para2:LPSTR; _para3:WORD):integer; external 'comdlg32' name 'GetFileTitleA';
-function ChooseColor(_para1:LPCHOOSECOLOR):WINBOOL; external 'comdlg32' name 'ChooseColorA';
-function FindText(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'FindTextA';
-function ReplaceText(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'ReplaceTextA';
-function ChooseFont(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32' name 'ChooseFontA';
-function PrintDlg(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDlgA';
-function PageSetupDlg(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgA';
-function CreateProcess(lpApplicationName:LPCSTR; lpCommandLine:LPSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;dwCreationFlags:DWORD; lpEnvironment:LPVOID;
+function GetOpenFileName(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetOpenFileNameA';
+function GetSaveFileName(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetSaveFileNameA';
+function GetFileTitle(_para1:LPCSTR; _para2:LPSTR; _para3:WORD):integer; stdcall; external 'comdlg32' name 'GetFileTitleA';
+function ChooseColor(_para1:LPCHOOSECOLOR):WINBOOL; stdcall; external 'comdlg32' name 'ChooseColorA';
+function FindText(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'FindTextA';
+function ReplaceText(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'ReplaceTextA';
+function ChooseFont(_para1:LPCHOOSEFONT):WINBOOL; stdcall; external 'comdlg32' name 'ChooseFontA';
+function PrintDlg(_para1:LPPRINTDLG):WINBOOL; stdcall; external 'comdlg32' name 'PrintDlgA';
+function PageSetupDlg(_para1:LPPAGESETUPDLG):WINBOOL; stdcall; external 'comdlg32' name 'PageSetupDlgA';
 {$else}
-function GetOpenFileName(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetOpenFileNameW';
-function GetSaveFileName(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetSaveFileNameW';
-function GetFileTitle(_para1:LPCWSTR; _para2:LPWSTR; _para3:WORD):integer; external 'comdlg32' name 'GetFileTitleW';
-function ChooseColor(_para1:LPCHOOSECOLOR):WINBOOL; external 'comdlg32' name 'ChooseColorW';
-function ReplaceText(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'ReplaceTextW';
-function ChooseFont(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32' name 'ChooseFontW';
-function FindText(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'FindTextW';
-function PrintDlg(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDlgW';
-function PageSetupDlg(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgW';
+function GetOpenFileName(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetOpenFileNameW';
+function GetSaveFileName(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetSaveFileNameW';
+function GetFileTitle(_para1:LPCWSTR; _para2:LPWSTR; _para3:WORD):integer; stdcall; external 'comdlg32' name 'GetFileTitleW';
+function ChooseColor(_para1:LPCHOOSECOLOR):WINBOOL; stdcall; external 'comdlg32' name 'ChooseColorW';
+function ReplaceText(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'ReplaceTextW';
+function ChooseFont(_para1:LPCHOOSEFONT):WINBOOL; stdcall; external 'comdlg32' name 'ChooseFontW';
+function FindText(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'FindTextW';
+function PrintDlg(_para1:LPPRINTDLG):WINBOOL; stdcall; external 'comdlg32' name 'PrintDlgW';
+function PageSetupDlg(_para1:LPPAGESETUPDLG):WINBOOL; stdcall; external 'comdlg32' name 'PageSetupDlgW';
 {$endif}
 
-function GetOpenFileNameA(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetOpenFileNameA';
-function GetSaveFileNameA(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetSaveFileNameA';
-function GetFileTitleA(_para1:LPCSTR; _para2:LPSTR; _para3:WORD):integer; external 'comdlg32' name 'GetFileTitleA';
-function ChooseColorA(_para1:LPCHOOSECOLOR):WINBOOL; external 'comdlg32' name 'ChooseColorA';
-function FindTextA(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'FindTextA';
-function ReplaceTextA(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'ReplaceTextA';
-function ChooseFontA(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32' name 'ChooseFontA';
-function PrintDlgA(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDlgA';
-function PageSetupDlgA(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgA';
-function CommDlgExtendedError : DWORD; external 'comdlg32' name 'CommDlgExtendedError';
-function GetOpenFileNameW(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetOpenFileNameW';
-function GetSaveFileNameW(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetSaveFileNameW';
-function GetFileTitleW(_para1:LPCWSTR; _para2:LPWSTR; _para3:WORD):integer; external 'comdlg32' name 'GetFileTitleW';
-function ChooseColorW(_para1:LPCHOOSECOLOR):WINBOOL; external 'comdlg32' name 'ChooseColorW';
-function ReplaceTextW(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'ReplaceTextW';
-function ChooseFontW(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32' name 'ChooseFontW';
-function FindTextW(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'FindTextW';
-function PrintDlgW(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDlgW';
-function PageSetupDlgW(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgW';
+function GetOpenFileNameA(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetOpenFileNameA';
+function GetSaveFileNameA(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetSaveFileNameA';
+function GetFileTitleA(_para1:LPCSTR; _para2:LPSTR; _para3:WORD):integer; stdcall; external 'comdlg32' name 'GetFileTitleA';
+function ChooseColorA(_para1:LPCHOOSECOLOR):WINBOOL; stdcall; external 'comdlg32' name 'ChooseColorA';
+function FindTextA(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'FindTextA';
+function ReplaceTextA(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'ReplaceTextA';
+function ChooseFontA(_para1:LPCHOOSEFONT):WINBOOL; stdcall; external 'comdlg32' name 'ChooseFontA';
+function PrintDlgA(_para1:LPPRINTDLG):WINBOOL; stdcall; external 'comdlg32' name 'PrintDlgA';
+function PageSetupDlgA(_para1:LPPAGESETUPDLG):WINBOOL; stdcall; external 'comdlg32' name 'PageSetupDlgA';
+function CommDlgExtendedError : DWORD; stdcall; external 'comdlg32' name 'CommDlgExtendedError';
+function GetOpenFileNameW(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetOpenFileNameW';
+function GetSaveFileNameW(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetSaveFileNameW';
+function GetFileTitleW(_para1:LPCWSTR; _para2:LPWSTR; _para3:WORD):integer; stdcall; external 'comdlg32' name 'GetFileTitleW';
+function ChooseColorW(_para1:LPCHOOSECOLOR):WINBOOL; stdcall; external 'comdlg32' name 'ChooseColorW';
+function ReplaceTextW(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'ReplaceTextW';
+function ChooseFontW(_para1:LPCHOOSEFONT):WINBOOL; stdcall; external 'comdlg32' name 'ChooseFontW';
+function FindTextW(_para1:LPFINDREPLACE):HWND; stdcall; external 'comdlg32' name 'FindTextW';
+function PrintDlgW(_para1:LPPRINTDLG):WINBOOL; stdcall; external 'comdlg32' name 'PrintDlgW';
+function PageSetupDlgW(_para1:LPPAGESETUPDLG):WINBOOL; stdcall; external 'comdlg32' name 'PageSetupDlgW';
 
 implementation
 
