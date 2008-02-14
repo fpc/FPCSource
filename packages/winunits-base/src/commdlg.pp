@@ -469,7 +469,7 @@ Type
      tagPDW = TPRINTDLGW;
      TPDW = TPRINTDLGW;
      PPDW = ^TPRINTDLGW;
-     {$ifdef unicode}
+     {$ifndef unicode}
 	  LPPRINTDLG = ^TPRINTDLGA;
       PPRINTDLG = ^TPRINTDLGA;
       _PRINTDLG = TPRINTDLGA; 
@@ -562,7 +562,7 @@ Type
 Const
   comctl32 = 'comctl32.dll';
 
-{$ifdef unicode}
+{$ifndef unicode}
 function GetOpenFileName(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetOpenFileNameA';
 function GetSaveFileName(_para1:LPOPENFILENAME):WINBOOL; stdcall; external 'comdlg32' name 'GetSaveFileNameA';
 function GetFileTitle(_para1:LPCSTR; _para2:LPSTR; _para3:WORD):integer; stdcall; external 'comdlg32' name 'GetFileTitleA';
