@@ -574,17 +574,23 @@ end;
 
 procedure fpc_WideStr_Concat_multi (var DestS:Widestring;const sarr:array of Widestring); compilerproc;
 Var
-  lowstart,i  : Longint;
+  i           : Longint;
   p,pc        : pointer;
-  Size,NewLen,
-  OldDestLen  : SizeInt;
+  Size,NewLen : SizeInt;
+{$ifndef FPC_WINLIKEWIDESTRING}
+  lowstart    : longint;
   destcopy    : pointer;
+  OldDestLen  : SizeInt;
+{$else FPC_WINLIKEWIDESTRING}
+  DestTmp     : Widestring;
+{$endif FPC_WINLIKEWIDESTRING}
 begin
   if high(sarr)=0 then
     begin
       DestS:='';
       exit;
     end;
+{$ifndef FPC_WINLIKEWIDESTRING}
   destcopy:=nil;
   lowstart:=low(sarr);
   if Pointer(DestS)=Pointer(sarr[lowstart]) then
@@ -597,7 +603,9 @@ begin
         begin
           { if DestS is used somewhere in the middle of the expression,
             we need to make sure the original string still exists after
-            we empty/modify DestS                                       }
+            we empty/modify DestS.
+            This trick only works with reference counted strings. Therefor
+            this optimization is disabled for WINLIKEWIDESTRING }
           destcopy:=pointer(dests);
           fpc_WideStr_Incr_Ref(destcopy);
           lowstart:=low(sarr);
@@ -629,6 +637,26 @@ begin
         end;
     end;
   fpc_WideStr_Decr_Ref(destcopy);
+{$else FPC_WINLIKEWIDESTRING}
+  { First calculate size of the result so we can do
+    a single call to SetLength() }
+  NewLen:=0;
+  for i:=low(sarr) to high(sarr) do
+    inc(NewLen,length(sarr[i]));
+  SetLength(DestTmp,NewLen);
+  pc:=pwidechar(DestTmp);
+  for i:=low(sarr) to high(sarr) do
+    begin
+      p:=pointer(sarr[i]);
+      if assigned(p) then
+        begin
+          Size:=length(widestring(p));
+          Move(p^,pc^,(Size+1)*sizeof(WideChar));
+          inc(pc,size*sizeof(WideChar));
+        end;
+    end;
+  DestS:=DestTmp;
+{$endif FPC_WINLIKEWIDESTRING}
 end;
 
 {$endif STR_CONCAT_PROCS}
@@ -722,7 +750,7 @@ begin
   begin
     fpc_pchar_to_widestr := '';
     exit;
-  end;  
+  end;
   l:=IndexChar(p^,-1,#0);
   widestringmanager.Ansi2WideMoveProc(P,fpc_PChar_To_WideStr,l);
 end;
@@ -738,7 +766,7 @@ begin
       begin
         fpc_chararray_to_widestr := '';
         exit;
-      end;  
+      end;
       i:=IndexChar(arr,high(arr)+1,#0);
       if i = -1 then
         i := high(arr)+1;
