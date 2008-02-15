@@ -136,7 +136,8 @@ type
     sp_strictprivate,
     sp_strictprotected,
     sp_implicitrename,
-    sp_hidden
+    sp_hidden,
+    sp_hint_experimental
   );
   tsymoptions=set of tsymoption;
 

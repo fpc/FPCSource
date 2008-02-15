@@ -1583,6 +1583,11 @@ sym_w_identifier_only_read=05061_W_Variable "$1" read but nowhere assigned
 sym_h_abstract_method_list=05062_H_Found abstract method: $1
 % When getting a warning about constructing a class/object with abstract methods
 % you get this hint to find the affected method.
+sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{experimental} is used. Experimental symbols
+% might disappear or change semantics in future versions. Usage of this symbol
+% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator

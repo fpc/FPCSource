@@ -2050,6 +2050,7 @@ const
              _LIBRARY,
              _PLATFORM,
              _UNIMPLEMENTED,
+             _EXPERIMENTAL,
              _DEPRECATED :
                exit;
            end;

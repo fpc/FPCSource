@@ -2587,6 +2587,8 @@ implementation
           internalerror(200602051);
         if sp_hint_deprecated in symoptions then
           Message1(sym_w_deprecated_symbol,srsym.realname);
+        if sp_hint_experimental in symoptions then
+          Message1(sym_w_experimental_symbol,srsym.realname);
         if sp_hint_platform in symoptions then
           Message1(sym_w_non_portable_symbol,srsym.realname);
         if sp_hint_unimplemented in symoptions then

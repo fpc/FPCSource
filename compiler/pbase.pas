@@ -299,6 +299,11 @@ implementation
                 include(symopt,sp_hint_deprecated);
                 try_consume_hintdirective:=true;
               end;
+            _EXPERIMENTAL :
+              begin
+                include(symopt,sp_hint_experimental);
+                try_consume_hintdirective:=true;
+              end;
             _PLATFORM :
               begin
                 include(symopt,sp_hint_platform);
