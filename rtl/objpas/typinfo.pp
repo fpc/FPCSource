@@ -142,7 +142,7 @@ unit typinfo;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
               );
-			      tkDynArray: 
+			      tkDynArray:
 			        (
 			        elSize     : PtrUInt;
 			        elType2    : PPTypeInfo;
@@ -306,9 +306,9 @@ Type
   TSetPropValue   = Procedure (Instance: TObject; const PropName: string; const Value: Variant);
   TGetVariantProp = Function (Instance: TObject; PropInfo : PPropInfo): Variant;
   TSetVariantProp = Procedure (Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
-  
+
   EPropertyConvertError = class(Exception); // Not used (yet), but defined for compatibility.
-  
+
 Const
   OnGetPropValue   : TGetPropValue = Nil;
   OnSetPropValue   : TSetPropValue = Nil;
@@ -1123,13 +1123,34 @@ begin
 end;
 
 procedure SetInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: IInterface);
-
+type
+  TSetIntfStrProcIndex=procedure(index:longint;const i:IInterface) of object;
+  TSetIntfStrProc=procedure(i:IInterface) of object;
+var
+  AMethod : TMethod;
 begin
-{$ifdef cpu64}
-  SetInt64Prop(Instance,PropInfo,Int64(Value));
-{$else cpu64}
-  SetOrdProp(Instance,PropInfo,Integer(Value));
-{$endif cpu64}
+  case Propinfo^.PropType^.Kind of
+    tkInterface:
+      begin
+        case (PropInfo^.PropProcs shr 2) and 3 of
+          ptField:
+            PInterface(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
+          ptstatic,
+          ptvirtual :
+            begin
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.SetProc
+              else
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                TSetIntfStrProcIndex(AMethod)(PropInfo^.Index,Value)
+              else
+                TSetIntfStrProc(AMethod)(Value);
+            end;
+        end;
+      end;
+  end;
 end;
 
 { ---------------------------------------------------------------------

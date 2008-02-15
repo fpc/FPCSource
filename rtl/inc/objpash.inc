@@ -112,7 +112,7 @@
                   clock_seq_hi_and_reserved : byte;     // The high field of the clock sequence multiplexed with the variant
                   clock_seq_low : byte;                 // The low field of the clock sequence
                   node : array[0..5] of byte;           // The spatially unique node identifier
-                 );                  
+                 );
        end;
 
        // This enumerate is found both in the rtl and compiler. Do not change the order of the fields.
@@ -227,7 +227,7 @@
           property RefCount : longint read frefcount;
        end;
        TInterfacedClass = class of TInterfacedObject;
-       
+
        TAggregatedObject = class(TObject)
        private
           fcontroller: Pointer;
@@ -243,7 +243,7 @@
        end;
 
        TContainedObject = class(TAggregatedObject,IInterface)
-         protected 
+         protected
            function QueryInterface(const iid : tguid;out obj) : longint;virtual; stdcall;
          end;
 
@@ -252,6 +252,7 @@
        PPUnknown = ^PUnknown;
        PDispatch = ^IDispatch;
        PPDispatch = ^PDispatch;
+       PInterface = PUnknown;
 
 
        TExceptProc = Procedure (Obj : TObject; Addr : Pointer; FrameCount:Longint; Frame: PPointer);
