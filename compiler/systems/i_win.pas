@@ -85,7 +85,7 @@ unit i_win;
                 maxCrecordalign : 16
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
+            stacksize    : 16*1024*1024;
             abi          : abi_default;
           );
 
@@ -146,7 +146,7 @@ unit i_win;
                 maxCrecordalign : 16
               );
             first_parm_offset : 16;
-            stacksize    : 262144;
+            stacksize    : 16*1024*1024;
             abi          : abi_default;
           );
 
