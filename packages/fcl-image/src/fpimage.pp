@@ -316,7 +316,7 @@ const
      'No palette available'
      );
 
-{$i FPColors.inc}
+{$i fpcolors.inc}
 
 type
   TGrayConvMatrix = record

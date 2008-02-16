@@ -883,9 +883,11 @@ function DeleteColorSpace(_para1:HCOLORSPACE):WINBOOL; external 'gdi32' name 'De
 function GetDeviceGammaRamp(_para1:HDC; _para2:LPVOID):WINBOOL; external 'gdi32' name 'GetDeviceGammaRamp';
 function SetDeviceGammaRamp(_para1:HDC; _para2:LPVOID):WINBOOL; external 'gdi32' name 'SetDeviceGammaRamp';
 function ColorMatchToTarget(_para1:HDC; _para2:HDC; _para3:DWORD):WINBOOL; external 'gdi32' name 'ColorMatchToTarget';
+{
 function CreatePropertySheetPageA(lppsp:LPCPROPSHEETPAGE):HPROPSHEETPAGE; external 'comctl32' name 'CreatePropertySheetPageA';
 function DestroyPropertySheetPage(hPSPage:HPROPSHEETPAGE):WINBOOL; external 'comctl32' name 'DestroyPropertySheetPage';
 procedure InitCommonControls; external 'comctl32' name 'InitCommonControls';
+
 function ImageList_AddIcon(himl:HIMAGELIST; hicon:HICON):longint;
 function ImageList_Create(cx:longint; cy:longint; flags:UINT; cInitial:longint; cGrow:longint):HIMAGELIST; external 'comctl32' name 'ImageList_Create';
 function ImageList_Destroy(himl:HIMAGELIST):WINBOOL; external 'comctl32' name 'ImageList_Destroy';
@@ -925,6 +927,8 @@ function MakeDragList(hLB:HWND):WINBOOL; external 'comctl32' name 'MakeDragList'
 procedure DrawInsert(handParent:HWND; hLB:HWND; nItem:longint); external 'comctl32' name 'DrawInsert';
 function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; external 'comctl32' name 'LBItemFromPt';
 function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint;hParent:HWND; nID:longint; hInst:HINST; hBuddy:HWND; nUpper:longint;nLower:longint; nPos:longint):HWND; external 'comctl32' name 'CreateUpDownControl';
+}
+
 function RegCloseKey(hKey:HKEY):LONG; external 'advapi32' name 'RegCloseKey';
 function RegSetKeySecurity(hKey:HKEY; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR):LONG; external 'advapi32' name 'RegSetKeySecurity';
 function RegFlushKey(hKey:HKEY):LONG; external 'advapi32' name 'RegFlushKey';
@@ -1042,8 +1046,9 @@ function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; exter
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
 
 { was missing, bug report 1808 PM }
+{
 function CommDlgExtendedError : DWORD; external 'comdlg32' name 'CommDlgExtendedError';
-
+}
 { wgl Windows OpenGL helper functions }
 function wglUseFontBitmaps(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
 function wglCreateContext(_para1:HDC):HGLRC; external 'opengl32' name 'wglCreateContext';
@@ -1390,12 +1395,12 @@ begin
   GlobalPtrHandle:=Pointer(GlobalHandle(lp));
 end;
 
-
+{
 function ImageList_AddIcon(himl:HIMAGELIST; hicon:HICON):longint;
 begin
   ImageList_AddIcon:=ImageList_ReplaceIcon(himl,-(1),hicon);
 end;
-
+}
 
 function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
 begin

@@ -654,7 +654,7 @@ function GetWorldTransform(DC: HDC; var p2: TXForm): BOOL; external 'gdi32' name
 //function GradientFill(DC: HDC; var p2: TTriVertex; p3: ULONG; p4: Pointer; p5, p6: ULONG): BOOL;external 'gdi32' name 'GradientFill';
 procedure GlobalMemoryStatus(var Buffer: MEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
 function HeapWalk(hHeap: THandle; var lpEntry: TProcessHeapEntry): BOOL; external 'kernel32' name 'HeapWalk';
-function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external 'comctl32' name 'ImageList_GetDragImage';
+//function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external 'comctl32' name 'ImageList_GetDragImage';
 function InflateRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'InflateRect';
 function InitializeAcl(var pAcl: TACL; nAclLength, dwAclRevision: DWORD): BOOL; external 'advapi32' name 'InitializeAcl';
 {$ifndef NO_SMART_LINK}
@@ -1005,16 +1005,17 @@ function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScr
   var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
 function CreateWaitableTimer(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
 function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA';
-function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
+//function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
 
 // windows because of Delphi compat.
 
+{$calling default}
 function InterLockedIncrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDINCREMENT';
 function InterLockedDecrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDDECREMENT';
 function InterLockedExchange (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGE';
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGEADD';
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
-
+{$calling stdcall}
 
 {$endif read_interface}
 
