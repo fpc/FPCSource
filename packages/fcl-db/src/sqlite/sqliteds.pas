@@ -72,15 +72,15 @@ function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPC
 var
   CodeError, TempInt: Integer;
 begin
-  TempInt:=-1;
+  TempInt := -1;
   if ColumnValues[0] <> nil then
   begin
-    Val(StrPas(ColumnValues[0]),TempInt,CodeError);
+    Val(String(ColumnValues[0]), TempInt, CodeError);
     if CodeError <> 0 then
-      DatabaseError('SqliteDs - Error trying to get last autoinc value');
+      DatabaseError('TSqliteDataset: Error trying to get last autoinc value');
   end;
-  Integer(NextValue^):=Succ(TempInt);
-  Result:=1;
+  Integer(NextValue^) := Succ(TempInt);
+  Result := 1;
 end;
 
 { TSqliteDataset }
@@ -103,7 +103,7 @@ begin
   Result := sqlite_open(PChar(FFileName), 0, @ErrorStr);
   if Result = nil then
   begin
-    DatabaseError('Error opening "' + FFileName +'": ' + StrPas(ErrorStr));
+    DatabaseError('Error opening "' + FFileName +'": ' + String(ErrorStr));
     sqlite_freemem(ErrorStr);
   end;
 end;
@@ -133,11 +133,11 @@ begin
   // If the field contains another type, may have problems
   for i := 0 to ColumnCount - 1 do
   begin
-    ColumnStr := UpperCase(StrPas(ColumnNames[i + ColumnCount]));
+    ColumnStr := UpperCase(String(ColumnNames[i + ColumnCount]));
     if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
     begin
       if AutoIncrementKey and
-           (UpperCase(StrPas(ColumnNames[i])) = UpperCase(PrimaryKey)) then
+           (UpperCase(String(ColumnNames[i])) = UpperCase(PrimaryKey)) then
       begin
         AType := ftAutoInc;
         FAutoIncFieldNo := i;
@@ -184,9 +184,9 @@ begin
       AType := ftString;
     end;    
     if AType = ftString then
-      FieldDefs.Add(StrPas(ColumnNames[i]), AType, dsMaxStringSize)
+      FieldDefs.Add(String(ColumnNames[i]), AType, dsMaxStringSize)
     else
-      FieldDefs.Add(StrPas(ColumnNames[i]), AType);  
+      FieldDefs.Add(String(ColumnNames[i]), AType);  
     //Set the pchar2sql function
     if AType in [ftString,ftMemo] then
       FGetSqlStr[i]:=@Char2SqlStr
@@ -308,26 +308,26 @@ end;
 
 function TSqliteDataset.GetSqliteEncoding: String;
 begin
-  Result:=StrPas(sqlite_encoding);
+  Result := String(sqlite_encoding);
 end;
   
 function TSqliteDataset.GetSqliteVersion: String;
 begin
-  Result:=StrPas(sqlite_version);
+  Result := String(sqlite_version);
 end;
 
 function TSqliteDataset.QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;
 var
-  vm:Pointer;
-  ColumnNames,ColumnValues:PPChar;
-  ColCount:Integer;
+  vm: Pointer;
+  ColumnNames, ColumnValues: PPChar;
+  ColCount: Integer;
   
   procedure FillStrings;
   begin
     while FReturnCode = SQLITE_ROW do
     begin
-      AStrList.Add(StrPas(ColumnValues[0]));
-      FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
+      AStrList.Add(String(ColumnValues[0]));
+      FReturnCode := sqlite_step(vm, @ColCount, @ColumnValues, @ColumnNames);
     end;
   end;
   procedure FillStringsAndObjects;
@@ -335,22 +335,22 @@ var
     while FReturnCode = SQLITE_ROW do
     begin
       // I know, this code is really dirty!!
-      AStrList.AddObject(StrPas(ColumnValues[0]),TObject(PtrInt(StrToInt(StrPas(ColumnValues[1])))));
-      FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
+      AStrList.AddObject(String(ColumnValues[0]), TObject(PtrInt(StrToInt(String(ColumnValues[1])))));
+      FReturnCode:=sqlite_step(vm, @ColCount, @ColumnValues, @ColumnNames);
     end;
   end;    
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  Result:='';
-  FReturnCode:=sqlite_compile(FSqliteHandle,Pchar(ASql),nil,@vm,nil);
+  Result := '';
+  FReturnCode := sqlite_compile(FSqliteHandle, PChar(ASql), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString,Self);
     
-  FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
+  FReturnCode := sqlite_step(vm, @ColCount, @ColumnValues, @ColumnNames);
   if (FReturnCode = SQLITE_ROW) and (ColCount > 0) then
   begin
-    Result:=StrPas(ColumnValues[0]);
+    Result := String(ColumnValues[0]);
     if AStrList <> nil then
     begin   
       if FillObjects and (ColCount > 1) then
