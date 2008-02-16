@@ -297,7 +297,7 @@ type
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
     property StatementType : TStatementType read GetStatementType;
-    property ParseSQL : Boolean read FParseSQL write SetParseSQL;
+    property ParseSQL : Boolean read FParseSQL write SetParseSQL default true;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
