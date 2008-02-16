@@ -1,4 +1,4 @@
-{ OPT=-Sew }
+{ %OPT=-Sew }
 { %fail }
 procedure p;experimental;
   begin
