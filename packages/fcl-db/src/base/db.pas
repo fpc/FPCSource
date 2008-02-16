@@ -501,6 +501,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
+    property Alignment default taRightJustify;
     property DisplayFormat: string read FDisplayFormat write SetDisplayFormat;
     property EditFormat: string read FEditFormat write SetEditFormat;
   end;
