@@ -702,12 +702,13 @@ begin
 {$ENDIF}
     end;
 
-  for r := 0 to FIndexesCount-1 do with FIndexes[r] do
+  for r := 1 to FIndexesCount-1 do with FIndexes[r] do
     begin
 {$IFDEF ARRAYBUF}
     FreeRecordBuffer(FRecordArray[FLastRecInd]);
     SetLength(FRecordArray,FInitialBuffers);
 {$ELSE}
+    FreeRecordBuffer(pointer(FLastRecBuf));
     FFirstRecBuf:= nil;
 {$ENDIF}
     end;
