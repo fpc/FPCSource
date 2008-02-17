@@ -296,7 +296,7 @@ begin
             else
             begin
               ParamNameStart:=p;
-              while not (p^ in (SQLDelimiterCharacters+[#0,'=','+','-','*','\','/','[',']'])) do
+              while not (p^ in (SQLDelimiterCharacters+[#0,'=','+','-','*','\','/','[',']','|'])) do
                 Inc(p);
               ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
             end;
