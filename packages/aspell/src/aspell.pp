@@ -1013,7 +1013,6 @@ uses
 
 var
   LibHandle: TLibHandle = 0;
-  AspellInited_: Boolean;
 
 {$IFDEF WINDOWS}
 function RegistryQueryValue (name,sub:shortstring):shortstring;
@@ -1057,10 +1056,12 @@ begin
   
   {$IFDEF windows}
   bversion := RegistryQueryValue('SOFTWARE\Aspell','AspellVersion');
-  move(bversion[1], version, 4);
-  path := RegistryQueryValue('SOFTWARE\Aspell','Path');
-  // will work if they passed %s, won't bork if they passed absolute
-  libname := path + PathDelim + StringReplace(libn, '%s', IntToStr(Version), [rfReplaceAll]);
+  if Length(bversion) >= 4 then begin
+    move(bversion[1], version, 4);
+    path := RegistryQueryValue('SOFTWARE\Aspell','Path');
+    // will work if they passed %s, won't bork if they passed absolute
+    libname := path + PathDelim + StringReplace(libn, '%s', IntToStr(Version), [rfReplaceAll]);
+  end;
   {$ENDIF}
 
   LibHandle := LoadLibrary(libname);
