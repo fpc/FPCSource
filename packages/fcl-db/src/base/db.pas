@@ -214,6 +214,7 @@ type
     procedure Add(const AName: string; ADataType: TFieldType); overload;
     Function AddFieldDef : TFieldDef;
     procedure Assign(FieldDefs: TFieldDefs); overload;
+    function Find(const AName: string): TFieldDef;
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
     procedure Update; overload;
