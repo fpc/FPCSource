@@ -699,6 +699,7 @@ begin
       FCurrentRecBuf := FCurrentRecBuf[IndNr].next;
       FreeRecordBuffer(pc);
       end;
+    FFirstRecBuf:=nil;
 {$ENDIF}
     end;
 
