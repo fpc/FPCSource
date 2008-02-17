@@ -936,10 +936,10 @@ implementation
           else
             inc(st);
           if (tf_requires_proper_alignment in target_info.flags) then
-            align(st,sizeof(Tconstptruint));
+            st:=align(st,sizeof(Tconstptruint));
           inc(st);
           if (tf_requires_proper_alignment in target_info.flags) then
-            align(st,sizeof(Tconstptruint));
+            st:=align(st,sizeof(Tconstptruint));
           inc(st,8+sizeof(pint));
           { write rtti data }
           with current_asmdata do
@@ -1042,10 +1042,10 @@ implementation
           else
             inc(st);
           if (tf_requires_proper_alignment in target_info.flags) then
-            align(st,sizeof(Tconstptruint));
+            st:=align(st,sizeof(Tconstptruint));
           inc(st);
           if (tf_requires_proper_alignment in target_info.flags) then
-            align(st,sizeof(Tconstptruint));
+            st:=align(st,sizeof(Tconstptruint));
           inc(st,8+sizeof(pint));
           { write rtti data }
           with current_asmdata do
