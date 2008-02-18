@@ -1046,10 +1046,12 @@ begin
     if MatchRecord then
     begin
       Result := TempItem;
-      if DoResync then
+      if DoResync and (TempItem <> PPDataRecord(ActiveBuffer)^) then
       begin
+        DoBeforeScroll;
         FCurrentItem := TempItem;
         Resync([]);
+        DoAfterScroll;
       end;
       Break;//while
     end;
@@ -1180,17 +1182,22 @@ end;
 
 procedure TCustomSqliteDataset.SetRecNo(Value: Integer);
 var
-  Counter:Integer;
-  TempItem:PDataRecord;
+  Counter: Integer;
+  TempItem: PDataRecord;
 begin
   if (Value > FRecordCount) or (Value <= 0) then
     DatabaseError('Record Number Out Of Range',Self);
   CheckBrowseMode;
-  TempItem:=FBeginItem;
+  TempItem := FBeginItem;
   for Counter := 1 to Value do
-    TempItem:=TempItem^.Next;
-  FCurrentItem:=TempItem;
-  Resync([]);
+    TempItem := TempItem^.Next;
+  if TempItem <> PPDataRecord(ActiveBuffer)^ then
+  begin
+    DoBeforeScroll;
+    FCurrentItem := TempItem;
+    Resync([]);
+    DoAfterScroll;
+  end;
 end;
 
 // Specific functions 
