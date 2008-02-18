@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="/"/>
+    <PathDelim Value="\"/>
     <Version Value="6"/>
     <General>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
+      <IconPath Value=".\"/>
       <TargetFileExt Value=""/>
       <Title Value="Test classes"/>
-      <ActiveEditorIndexAtStart Value="4"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
+      <DestinationDirectory Value="$(TestDir)\publishedproject\"/>
       <IgnoreBinaries Value="False"/>
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
       <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
@@ -22,213 +23,91 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--format=plain --suite=TTestResolveReference"/>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--format=plain --suite=TTestTStringList"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="FPCUnitConsoleRunner"/>
+        <PackageName Value="FCL"/>
       </Item1>
       <Item2>
-        <PackageName Value="FCL"/>
+        <PackageName Value="FPCUnitConsoleRunner"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="14">
       <Unit0>
         <Filename Value="testclasses.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testclasses"/>
-        <UsageCount Value="221"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcfindnested.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcfindnested"/>
-        <CursorPos X="13" Y="116"/>
-        <TopLine Value="66"/>
-        <EditorIndex Value="0"/>
-        <UsageCount Value="221"/>
-        <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="tcstringlist.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcstringlist"/>
-        <UsageCount Value="221"/>
-        <SyntaxHighlighter Value="Text"/>
       </Unit2>
       <Unit3>
         <Filename Value="tccollection.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tccollection"/>
-        <CursorPos X="24" Y="66"/>
-        <TopLine Value="52"/>
-        <EditorIndex Value="3"/>
-        <UsageCount Value="221"/>
-        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="tclist.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tclist"/>
-        <CursorPos X="1" Y="37"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="4"/>
-        <UsageCount Value="221"/>
-        <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcpersistent.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcpersistent"/>
-        <UsageCount Value="221"/>
-        <SyntaxHighlighter Value="Text"/>
       </Unit5>
       <Unit6>
         <Filename Value="tclinkedlist.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tclinkedlist"/>
-        <CursorPos X="22" Y="209"/>
-        <TopLine Value="176"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="221"/>
-        <Loaded Value="True"/>
       </Unit6>
       <Unit7>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/classesh.inc"/>
-        <CursorPos X="15" Y="195"/>
-        <TopLine Value="154"/>
-        <UsageCount Value="80"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/collect.inc"/>
-        <CursorPos X="51" Y="319"/>
-        <TopLine Value="293"/>
-        <EditorIndex Value="6"/>
-        <UsageCount Value="110"/>
-        <Loaded Value="True"/>
-      </Unit8>
-      <Unit9>
         <Filename Value="tccomponent.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tccomponent"/>
-        <CursorPos X="1" Y="260"/>
-        <TopLine Value="236"/>
-        <UsageCount Value="221"/>
-      </Unit9>
-      <Unit10>
+      </Unit7>
+      <Unit8>
         <Filename Value="tcstreaming.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcstreaming"/>
-        <CursorPos X="1" Y="337"/>
-        <TopLine Value="312"/>
-        <UsageCount Value="220"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="tccompstreaming.pas"/>
-        <UnitName Value="tctestcompstreaming"/>
-        <CursorPos X="51" Y="4"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="10"/>
-      </Unit11>
-      <Unit12>
+      </Unit8>
+      <Unit9>
         <Filename Value="testcomps.inc"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="220"/>
-        <SyntaxHighlighter Value="Text"/>
-      </Unit12>
-      <Unit13>
+      </Unit9>
+      <Unit10>
         <Filename Value="tccompstreaming.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tccompstreaming"/>
-        <UsageCount Value="220"/>
-        <SyntaxHighlighter Value="Text"/>
-      </Unit13>
-      <Unit14>
+      </Unit10>
+      <Unit11>
         <Filename Value="tcresref.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcresref"/>
-        <CursorPos X="14" Y="524"/>
-        <TopLine Value="483"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="220"/>
-        <Loaded Value="True"/>
-      </Unit14>
-      <Unit15>
+      </Unit11>
+      <Unit12>
         <Filename Value="sllist.inc"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="220"/>
-        <SyntaxHighlighter Value="Text"/>
-      </Unit15>
-      <Unit16>
+      </Unit12>
+      <Unit13>
         <Filename Value="resref.inc"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="11" Y="28"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="220"/>
-      </Unit16>
-      <Unit17>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/classes.inc"/>
-        <CursorPos X="3" Y="933"/>
-        <TopLine Value="930"/>
-        <UsageCount Value="80"/>
-      </Unit17>
-      <Unit18>
-        <Filename Value="../objpas/classes/reader.inc"/>
-        <CursorPos X="16" Y="1108"/>
-        <TopLine Value="1093"/>
-        <UsageCount Value="80"/>
-      </Unit18>
-      <Unit19>
-        <Filename Value="../../../../fpc/rtl/objpas/classes/lists.inc"/>
-        <CursorPos X="3" Y="1"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="10"/>
-      </Unit19>
-      <Unit20>
-        <Filename Value="../../../../tclist.pas"/>
-        <UnitName Value="tclist"/>
-        <CursorPos X="1" Y="40"/>
-        <TopLine Value="18"/>
-        <EditorIndex Value="5"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit20>
+      </Unit13>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
-      <Position1>
-        <Filename Value="tclist.pp"/>
-        <Caret Line="355" Column="10" TopLine="355"/>
-      </Position1>
-      <Position2>
-        <Filename Value="tclist.pp"/>
-        <Caret Line="60" Column="5" TopLine="26"/>
-      </Position2>
-      <Position3>
-        <Filename Value="../../../../tclist.pas"/>
-        <Caret Line="356" Column="1" TopLine="309"/>
-      </Position3>
-      <Position4>
-        <Filename Value="tclist.pp"/>
-        <Caret Line="617" Column="1" TopLine="567"/>
-      </Position4>
-      <Position5>
-        <Filename Value="tclist.pp"/>
-        <Caret Line="51" Column="1" TopLine="51"/>
-      </Position5>
-      <Position6>
-        <Filename Value="tclist.pp"/>
-        <Caret Line="411" Column="1" TopLine="409"/>
-      </Position6>
-      <Position7>
-        <Filename Value="tclist.pp"/>
-        <Caret Line="433" Column="16" TopLine="408"/>
-      </Position7>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
+    <PathDelim Value="\"/>
     <CodeGeneration>
       <Generate Value="Faster"/>
     </CodeGeneration>
@@ -236,14 +115,4 @@
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
-  <Debugging>
-    <Exceptions Count="2">
-      <Item1>
-        <Name Value="ECodetoolError"/>
-      </Item1>
-      <Item2>
-        <Name Value="EFOpenError"/>
-      </Item2>
-    </Exceptions>
-  </Debugging>
 </CONFIG>
