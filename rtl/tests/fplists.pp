@@ -1,4 +1,4 @@
-{$mode objpas}
+{$mode objfpc}
 unit fplists;
 
 interface
@@ -104,7 +104,7 @@ end;
 procedure TLinkedList.RemoveItem(Item: TLinkedListItem; FreeItem : Boolean = False);
 
 Var
-  I,P : TLinkedListItem;
+  I : TLinkedListItem;
 
 begin
   If (Item<>Nil) and (FRoot<>Nil) then

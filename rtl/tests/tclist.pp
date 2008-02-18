@@ -121,7 +121,7 @@ begin
   If ACount+AOffSet>20 then
     Fail('Too many elements added to list. Max is 20');
   For I:=1+AOffSet to AOffSet+ACount do
-    List.Add(@Pointers[i]);
+    AList.Add(@Pointers[i]);
 end;
 
 procedure TTestTList.TestCreate;
@@ -315,20 +315,12 @@ begin
 end;
 
 procedure TTestTList.TestExtractResult;
-
-Var
-  I : Integer;
-
 begin
   FillList(9);
   AssertEquals('Extracting pointers[4]',@Pointers[4],List.Extract(@Pointers[4]));
 end;
 
 procedure TTestTList.TestExtractCount;
-
-Var
-  I : Integer;
-
 begin
   FillList(9);
   List.Extract(@Pointers[4]);
@@ -336,10 +328,6 @@ begin
 end;
 
 procedure TTestTList.TestExtractNonExisting;
-
-Var
-  I : Integer;
-
 begin
   FillList(9);
   List.Extract(@List);
@@ -347,20 +335,12 @@ begin
 end;
 
 procedure TTestTList.TestExtractNonExistingResult;
-
-Var
-  I : Integer;
-
 begin
   FillList(9);
   AssertEquals('Extracting unexisting, result is nil',Nil,List.Extract(@List));
 end;
 
 procedure TTestTList.TestExtractOnlyFirst;
-
-Var
-  I : Integer;
-
 begin
   FillList(9);
   List.Insert(0,@Pointers[4]);
