@@ -344,9 +344,9 @@ end;
 function TNotificationSink.GetNot(Index : Integer): TNotification;
 begin
   If Assigned(FEvents) then
-    Result:=Nil
+    Result:=TNotification(FEvents.Items[Index])
   else
-    Result:=TNotification(FEvents.Items[Index]);
+    Result:=Nil;
 end;
 
 destructor TNotificationSink.Destroy;
