@@ -436,7 +436,7 @@ implementation
                   if code<>0 then
                    l:=1;
                   status.maxerrorcount:=l;
-                  i:=j;
+                  i:=j-1;
                 end;
               'w','W' :
                 status.errorwarning:=true;
