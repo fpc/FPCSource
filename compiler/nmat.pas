@@ -224,7 +224,7 @@ implementation
              resultdef:=left.resultdef;
            end
          else
-{$ifndef cpu64bitalu}
+{$ifndef cpu64bitaddr}
           { when there is one 64bit value, everything is done
             in 64bit }
           if (is_64bitint(left.resultdef) or
@@ -261,7 +261,7 @@ implementation
               resultdef:=left.resultdef;
            end
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitaddr}
            begin
               { Make everything always default singed int }
               if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
