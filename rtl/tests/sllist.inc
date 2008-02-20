@@ -95,7 +95,7 @@ end;
 procedure TLinkedList.RemoveItem(Item: TLinkedListItem; FreeItem : Boolean = False);
 
 Var
-  I : TLinkedListItem;
+  I,P : TLinkedListItem;
 
 begin
   If (Item<>Nil) and (FRoot<>Nil) then

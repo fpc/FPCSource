@@ -532,5 +532,9 @@ end;
 
 initialization
   RegisterTest(TTestResolveReference);
+  InitCriticalSection(ResolveSection);
+  
+finalization
+  DoneCriticalsection(ResolveSection);
 end.
 
