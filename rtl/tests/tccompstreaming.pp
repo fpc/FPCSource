@@ -3,7 +3,7 @@ Unit tccompstreaming;
 interface
 
 Uses
-  SysUtils,Classes,tcstreaming;
+  SysUtils,Classes,tcstreaming,fpcunit, testregistry;
 
 Type 
   TTestComponentStream = Class(TTestStreaming)
@@ -50,6 +50,61 @@ Type
     Procedure TestTStreamedOwnedComponent;
     Procedure TestTMethodComponent;
     Procedure TestTMethodComponent2;
+  end;
+  { TMyItem }
+
+  TMyItem = Class(TCollectionItem)
+  private
+    FNR: Integer;
+    FStr: String;
+  Public
+    Procedure Assign(Source : TPersistent); override;
+  Published
+    Property Nr : Integer Read FNR Write FNR;
+    Property Str: String Read FStr Write FStr;
+  end;
+
+  { TMyColl }
+
+  TMyColl = Class(TCollection)
+  private
+    function GetIt(index : Integer): TMyItem;
+    procedure SetIt(index : Integer; const AValue: TMyItem);
+  Public
+    Property It[index : Integer] : TMyItem Read GetIt Write SetIt; default;
+  end;
+
+  { TCollComp }
+
+  TCollComp = Class(TComponent)
+  private
+    FMyColl: TMyColl;
+    procedure SetMyColl(const AValue: TMyColl);
+  Public
+    Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy; override;
+    Function ToStream : TStream;
+    Procedure FromStream(AStream : TStream);
+  Published
+    Property MyColl : TMyColl Read FMyColl Write SetMyColl;
+  end;
+
+
+  { TTestCollectionStream }
+
+  TTestCollectionStream = Class(TTestCase)
+
+  private
+    procedure CompareColl(CA, CB: TMyCOll);
+    function CreateColl(Anr: Integer): TCollComp;
+    function EmptyComp: TCollComp;
+    procedure TestNr(ACount: Integer);
+  Published
+    procedure Test1;
+    procedure Test2;
+    procedure Test3;
+    procedure TestClear;
+    procedure TestEmpty;
   end;
 
 Implementation
@@ -1070,4 +1125,185 @@ begin
     end;
 end;
 
+{ TMyColl }
+
+function TMyColl.GetIt(index : Integer): TMyItem;
+begin
+  Result:=Items[Index] as TMyItem;
+end;
+
+procedure TMyColl.SetIt(index : Integer; const AValue: TMyItem);
+begin
+  Items[Index]:=AValue;
+end;
+
+{ TCollComp }
+
+procedure TCollComp.SetMyColl(const AValue: TMyColl);
+begin
+  if (FMyColl=AValue) then
+    exit;
+  FMyColl.Assign(AValue);
+end;
+
+constructor TCollComp.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FMyColl:=TMyCOll.Create(TMyItem);
+end;
+
+destructor TCollComp.Destroy;
+begin
+  FreeAndNil(FMyColl);
+  inherited Destroy;
+end;
+
+function TCollComp.ToStream: TStream;
+begin
+  Result:=TMemoryStream.Create;
+  Result.WriteComponent(Self);
+  Result.Position:=0;
+end;
+
+procedure TCollComp.FromStream(AStream: TStream);
+begin
+  AStream.ReadComponent(Self);
+  Astream.Free;
+end;
+
+procedure TMyItem.Assign(Source: TPersistent);
+
+Var
+  I : TMyItem;
+
+begin
+  If (Source is TMyItem) then
+    begin
+    I:=Source as TMyItem;
+    FNR:=I.NR;
+    FStr:=I.Str;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+Procedure TTestCollectionStream.CompareColl(CA,CB : TMyCOll);
+
+Var
+  I : Integer;
+
+begin
+  AssertEquals('Counts differ: %d %d',CA.Count,CB.Count);
+  For I:=0 to CA.Count-1 do
+    begin
+    AssertEquals(Format('Nr property of element %d equals',[I]),CA[i].Nr,CB[i].Nr);
+    AssertEquals(Format('Str property of element %d equals',[I]),CA[i].Str,CB[i].Str);
+    end;
+end;
+
+Function TTestCollectionStream.EmptyComp : TCollComp;
+
+begin
+  Result:=TCollComp.Create(Nil);
+end;
+
+Function TTestCollectionStream.CreateColl(Anr : Integer) : TCollComp;
+
+Var
+  I : Integer;
+  T : TMyItem;
+
+begin
+  Result:=EmptyComp;
+  Result.Name:='C'+IntToStr(Anr);
+  For I:=0 to ANr-1 do
+    begin
+    T:=Result.MyColl.Add as TMyItem;
+    T.Nr:=0;
+    T.Str:=IntToStr(I+1);
+    end;
+end;
+
+Procedure TTestCollectionStream.TestEmpty;
+
+Var
+ CA,CB : TCollComp;
+
+begin
+  CA:=CreateColl(0);
+  try
+    CB:=EmptyComp;
+    Try
+      CB.FromStream(CA.ToStream);
+      CompareColl(CA.MyColl,CB.MyColl);
+    Finally
+      CB.Free;
+    end;
+  Finally
+    CA.Free;
+  end;
+end;
+
+Procedure TTestCollectionStream.TestNr(ACount : Integer);
+
+Var
+ CA,CB : TCollComp;
+
+begin
+  CA:=CreateColl(ACount);
+  try
+    CB:=EmptyComp;
+    Try
+      CB.FromStream(CA.ToStream);
+      CompareColl(CA.MyColl,CB.MyColl);
+    Finally
+      CB.Free;
+    end;
+  Finally
+    CA.Free;
+  end;
+end;
+
+Procedure TTestCollectionStream.TestClear;
+
+Var
+ CA,CB : TCollComp;
+
+begin
+  CA:=CreateColl(3);
+  try
+    CB:=CreateColl(1);
+    CB.Name:='';
+    Try
+      // CB collection should be cleared before loading.
+      CB.FromStream(CA.ToStream);
+      CompareColl(CA.MyColl,CB.MyColl);
+    Finally
+      CB.Free;
+    end;
+  Finally
+    CA.Free;
+  end;
+end;
+
+Procedure TTestCollectionStream.Test1;
+
+begin
+  TestNr(1);
+end;
+
+Procedure TTestCollectionStream.Test2;
+
+begin
+  TestNr(2);
+end;
+
+Procedure TTestCollectionStream.Test3;
+
+begin
+  TestNr(3);
+end;
+
+begin
+  RegisterTests([TTestComponentStream,TTestCollectionStream]);
 end.
