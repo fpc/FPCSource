@@ -26,6 +26,7 @@ unit ngppcinl;
 interface
 
     uses
+       cpubase,
        node,ninl,ncginl;
 
     type
@@ -37,24 +38,29 @@ interface
           function first_sqrt_real: tnode; override;
           function first_abs_real: tnode; override;
           function first_sqr_real: tnode; override;
+          function first_trunc_real: tnode; override;
+          function first_round_real: tnode; override;
           procedure second_sqrt_real; override;
           procedure second_abs_real; override;
           procedure second_sqr_real; override;
+          procedure second_trunc_real; override;
+          procedure second_round_real; override;
           procedure second_prefetch;override;
        protected
           procedure load_fpu_location;
+          procedure second_trunc_round_real(op: tasmop);
        end;
 
 implementation
 
     uses
-      cutils,globals,verbose,
+      cutils,globals,verbose,globtype,
       aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
       defutil,
       cgbase,pass_2,
-      cpubase,cpuinfo,ncgutil,
-      cgutils,cgobj,rgobj;
+      cpuinfo,ncgutil,
+      cgutils,cgobj,rgobj,tgobj;
 
 
 {*****************************************************************************
@@ -84,6 +90,30 @@ implementation
       begin
         expectloc:=LOC_FPUREGISTER;
         first_sqr_real := nil;
+      end;
+
+
+     function tgppcinlinenode.first_trunc_real : tnode;
+      begin
+       if (current_settings.cputype >= cpu_PPC970) then
+          begin
+            expectloc:=LOC_REFERENCE;
+            first_trunc_real := nil;
+          end
+        else
+          result:=inherited first_trunc_real;
+      end;
+
+
+     function tgppcinlinenode.first_round_real : tnode;
+      begin
+       if (current_settings.cputype >= cpu_PPC970) then
+          begin
+            expectloc:=LOC_REFERENCE;
+            first_round_real := nil;
+          end
+        else
+          result:=inherited first_round_real;
       end;
 
 
@@ -139,6 +169,37 @@ implementation
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,
            left.location.register,left.location.register));
        end;
+
+
+     procedure tgppcinlinenode.second_trunc_round_real(op: tasmop);
+       var
+         tmpreg: tregister;
+       begin
+         if (current_settings.cputype < cpu_PPC970) then
+           internalerror(2007020910);
+         secondpass(left);
+         location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+         tmpreg:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
+           left.location.register));
+         location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+         tg.gettemptyped(current_asmdata.CurrAsmList,resultdef,tt_normal,
+           location.reference);
+         cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,OS_F64,OS_F64,tmpreg,
+           location.reference);
+       end;
+
+
+    procedure tgppcinlinenode.second_trunc_real;
+      begin
+        second_trunc_round_real(A_FCTIDZ);
+      end;
+
+
+    procedure tgppcinlinenode.second_round_real;
+      begin
+        second_trunc_round_real(A_FCTID);
+      end;
 
 
      procedure tgppcinlinenode.second_prefetch;
