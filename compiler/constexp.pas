@@ -131,7 +131,7 @@ begin
     internalerror(200706093)
   else if c.signed then
     result:=c.svalue
-  else if c.uvalue>high(int64) then
+  else if c.uvalue>qword(high(int64)) then
     internalerror(200706094)
   else
     result:=int64(c.uvalue);
