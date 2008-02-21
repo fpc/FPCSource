@@ -5,7 +5,7 @@ unit tccollection;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry; 
+  Classes, SysUtils, fpcunit, testregistry;
 
 type
 
@@ -412,9 +412,6 @@ begin
 end;
 
 procedure TTestTCollection.TestNotifyDelete;
-
-Var
-  I : TMyItem;
 
 begin
   AddItems(3);

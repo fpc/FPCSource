@@ -4,8 +4,9 @@ program testclasses;
 
 uses
   Classes, tcfindnested, tcstringlist, tccollection, tclist,
-  tcpersistent, tclinkedlist, tccomponent, tcstreaming, tccompstreaming,consoletestrunner,
-  tcresref;
+  tcpersistent, tclinkedlist, tccomponent, tcstreaming, tccompstreaming,
+  tcresref,
+  consoletestrunner;
 
 type
 

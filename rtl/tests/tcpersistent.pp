@@ -5,7 +5,7 @@ unit tcpersistent;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry; 
+  Classes, SysUtils, fpcunit, testregistry;
 
 type
 
@@ -30,7 +30,7 @@ type
   protected
     function GetOwner: TPersistent; override;
   public
-    procedure Assign(Source: TPersistent); virtual;
+    procedure Assign(Source: TPersistent); override;
   published
     Property MyProp : Integer Read FMyProp Write FMyProp;
   end;

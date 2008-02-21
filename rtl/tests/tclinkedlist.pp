@@ -5,7 +5,7 @@ unit tclinkedlist;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, fplists;
+  Classes, SysUtils, fpcunit, testregistry, fplists;
 
 type
 

@@ -5,7 +5,7 @@ unit tccomponent;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry; 
+  Classes, SysUtils, fpcunit, testregistry;
 
 type
 
@@ -401,7 +401,6 @@ end;
 procedure TTestTComponentNotifies.TestInsertNotification;
 
 Var
-  C : TComponent;
   E : TNotification;
 
 begin
