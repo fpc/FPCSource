@@ -6,7 +6,7 @@ Uses
   SysUtils,Classes,tcstreaming,fpcunit, testregistry;
 
 Type 
-  TTestComponentStream = Class(TTestStreaming)
+TTestComponentStream = Class(TTestStreaming)
   Published
     Procedure TestTEmptyComponent;
     Procedure TestTIntegerComponent;
@@ -36,6 +36,7 @@ Type
     Procedure TestTEnumComponent2;
     Procedure TestTEnumComponent3;
     Procedure TestTEnumComponent4;
+    Procedure TestTEnumComponent5;
     Procedure TestTSetComponent;
     Procedure TestTSetComponent2;
     Procedure TestTSetComponent3;
@@ -46,6 +47,7 @@ Type
     Procedure TestTCollectionComponent2;
     Procedure TestTCollectionComponent3;
     Procedure TestTCollectionComponent4;
+    Procedure TestTCollectionComponent5;
     Procedure TestTOwnedComponent;
     Procedure TestTStreamedOwnedComponent;
     Procedure TestTMethodComponent;
@@ -95,7 +97,7 @@ Type
   TTestCollectionStream = Class(TTestCase)
 
   private
-    procedure CompareColl(CA, CB: TMyCOll);
+    procedure CompareColl(CA, CB: TMyColl);
     function CreateColl(Anr: Integer): TCollComp;
     function EmptyComp: TCollComp;
     procedure TestNr(ACount: Integer);
@@ -745,6 +747,26 @@ begin
     end;
 end;
 
+Procedure TTestComponentStream.TestTEnumComponent5;
+
+Var
+  C : TComponent;
+
+begin
+  C:=TEnumComponent5.Create(Nil);
+  Try
+    SaveToStream(C);
+    ExpectSignature;
+    ExpectFlags([],0);
+    ExpectBareString('TEnumComponent5');
+    ExpectBareString('TestTEnumComponent5');
+    ExpectEndOfList;
+    ExpectEndOfList;
+  Finally
+    C.Free;
+    end;
+end;
+
 
 Procedure TTestComponentStream.TestTSetComponent;
 
@@ -1023,6 +1045,40 @@ begin
     end;
 end;
 
+Procedure TTestComponentStream.TestTCollectionComponent5;
+
+Var
+  C : TComponent;
+
+begin
+  C:=TCollectionComponent5.Create(Nil);
+  Try
+    SaveToStream(C);
+    ExpectSignature;
+    ExpectFlags([],0);
+    ExpectBareString('TCollectionComponent5');
+    ExpectBareString('TestTCollectionComponent5');
+    ExpectBareString('Coll');
+    ExpectValue(vaCollection);
+    ExpectValue(vaList);
+    ExpectBareString('StrProp1');
+    ExpectString('Something');
+    ExpectBareString('StrProp2');
+    ExpectString('Otherthing');
+    ExpectEndOfList;
+    ExpectValue(vaList);
+    ExpectBareString('StrProp1');
+    ExpectString('Something 2');
+    ExpectBareString('StrProp2');
+    ExpectString('Otherthing 2');
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+  Finally
+    C.Free;
+    end;
+end;
+
 
 Procedure TTestComponentStream.TestTOwnedComponent;
 
@@ -1187,7 +1243,7 @@ begin
     inherited Assign(Source);
 end;
 
-Procedure TTestCollectionStream.CompareColl(CA,CB : TMyCOll);
+Procedure TTestCollectionStream.CompareColl(CA,CB : TMyColl);
 
 Var
   I : Integer;
@@ -1219,7 +1275,7 @@ begin
   For I:=0 to ANr-1 do
     begin
     T:=Result.MyColl.Add as TMyItem;
-    T.Nr:=0;
+    T.Nr:=I; // not I+1, so the default value gets tested too
     T.Str:=IntToStr(I+1);
     end;
 end;

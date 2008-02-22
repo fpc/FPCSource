@@ -274,6 +274,14 @@ Type
     Property Dice : TDice Read F Write F default two;
   end;
 
+  // Enum property with default, no need to set
+  TEnumComponent5 = Class(TComponent)
+  private
+    F: TDice;
+  Published
+    Property Dice : TDice Read F Write F default one;
+  end;
+
   Throws = Set of TDice;
 
   // Set property, no default.
@@ -363,6 +371,20 @@ Type
     Property StrProp : String Read F Write F;
   end;
 
+  // For use in collection streaming: items with two properties
+
+  { TTest2Item }
+
+  TTest2Item = Class(TCollectionItem)
+  Private
+    F1, F2 : String;
+  public
+  Published
+    Property StrProp1 : String Read F1 Write F1;
+    Property StrProp2 : String Read F2 Write F2;
+  end;
+
+
   TTestCollection = Class(TCollection)
   Public
     Constructor Create;
@@ -400,7 +422,18 @@ Type
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
   Published
-    Property Coll : TTestCollection Read FColl Write SetCOll;
+    Property Coll : TTestCollection Read FColl Write SetColl;
+  end;
+
+  // collection two elements, items with two properties
+  TCollectionComponent5 = Class(TComponent)
+    FColl : TCollection;
+    Procedure SetColl(AColl : TCollection);
+  Public
+    Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy; override;
+  Published
+    Property Coll : TCollection Read FColl Write SetColl;
   end;
 
   // Component as published property
@@ -774,6 +807,61 @@ begin
   (FColl.Add as TTestItem).StrProp:='Third';
 end;
 
+{ TCollectionComponent4 }
+
+constructor TCollectionComponent4.Create(AOwner: TComponent);
+begin
+  inherited;
+  FColl:=TTestCollection.Create;
+  (FColl.Add as TTestItem).StrProp:='Something'
+end;
+
+destructor TCollectionComponent4.Destroy;
+begin
+  FreeAndNil(FColl);
+  inherited;
+end;
+
+procedure TCollectionComponent4.SetColl(AColl: TTestCollection);
+begin
+  FColl.Assign(AColl);
+end;
+
+{ TCollectionComponent5 }
+
+procedure TCollectionComponent5.SetColl(AColl: TCollection);
+begin
+  FColl.Assign(AColl);
+end;
+
+constructor TCollectionComponent5.Create(AOwner: TComponent);
+var
+  Item : TTest2Item;
+begin
+  inherited Create(AOwner);
+  FColl:=TCollection.Create(TTest2Item);
+  Item := FColl.Add as TTest2Item;
+  Item.StrProp1 := 'Something';
+  Item.StrProp2 := 'Otherthing';
+  Item := FColl.Add as TTest2Item;
+  Item.StrProp1 := 'Something 2';
+  Item.StrProp2 := 'Otherthing 2';
+end;
+
+destructor TCollectionComponent5.Destroy;
+begin
+  FreeAndNil(FColl);
+  inherited Destroy;
+end;
+
+{ TTestCollection }
+
+Constructor TTestCollection.Create;
+begin
+  Inherited Create(TTestitem);
+  PropName:='MyCollProp';
+end;
+
 { TStreamedOwnedComponent }
 
 Constructor TStreamedOwnedComponent.Create(AOwner : TComponent);
@@ -840,33 +928,5 @@ begin
  // Do nothng
 end;
 
-
-{ TCollectionComponent4 }
-
-constructor TCollectionComponent4.Create(AOwner: TComponent);
-begin
-  inherited;
-  FColl:=TTestCollection.Create;
-  (FColl.Add as TTestItem).StrProp:='Something'
-end;
-
-destructor TCollectionComponent4.Destroy;
-begin
-  FreeAndNil(FColl);
-  inherited;
-end;
-
-procedure TCollectionComponent4.SetColl(AColl: TTestCollection);
-begin
-
-end;
-
-{ TTestCollection }
-
-Constructor TTestCollection.Create;
-begin
-  Inherited Create(TTestitem);
-  PropName:='MyCollProp';
-end;
 
 end.

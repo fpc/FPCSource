@@ -106,6 +106,7 @@ begin
   P:=Nil;
   ACount:=GetPropList(Instance,P);
   AssertEquals('Property count of TPersistence is zero',1,ACount);
+  Freemem(p);
 end;
 
 procedure TTestPersistentDescendent.TestNamePath;
