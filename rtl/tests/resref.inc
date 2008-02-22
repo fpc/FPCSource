@@ -27,6 +27,7 @@ type
   TUnResolvedInstance = Class(TLinkedListItem)
     Instance : TPersistent; // Instance we're handling unresolveds for
     FUnresolved : TLinkedList; // The list
+    Destructor Destroy; override;
     Function AddReference(ARoot : TComponent; APropInfo : PPropInfo; AGlobal,ARelative : String) : TUnresolvedReference;
     Function RootUnresolved : TUnresolvedReference; inline; // Return root element in list.
     Function ResolveReferences : Boolean; // Return true if all unresolveds were resolved.
@@ -243,6 +244,12 @@ begin
 end;
 
 { TUnResolvedInstance }
+
+destructor TUnResolvedInstance.Destroy;
+begin
+  FUnresolved.Free;
+  inherited Destroy;
+end;
 
 function TUnResolvedInstance.AddReference(ARoot: TComponent;
   APropInfo: PPropInfo; AGlobal, ARelative: String): TUnresolvedReference;
