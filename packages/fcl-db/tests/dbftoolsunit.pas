@@ -43,6 +43,10 @@ begin
         Append;
         FieldByName('ID').AsInteger := countID;
         FieldByName('NAME').AsString := 'TestName'+inttostr(countID);
+        // Explicitly call .post, since there could be a bug which disturbs
+        // the automatic call to post. (example: when TDataset.DataEvent doesn't
+        // work properly)
+        Post;
         end;
       if state = dsinsert then
         Post;
