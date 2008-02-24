@@ -324,6 +324,12 @@ const
   parser_e_no_common_type=03235;
   parser_e_no_generics_as_types=03236;
   parser_w_register_list_ignored=03237;
+  parser_e_implements_must_be_class_or_interface=03238;
+  parser_e_implements_must_have_correct_type=03239;
+  parser_e_implements_must_read_specifier=03240;
+  parser_e_implements_must_not_have_write_specifier=03241;
+  parser_e_implements_must_not_have_stored_specifier=03242;
+  parser_e_implements_uses_non_implemented_interface=03243;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -735,9 +741,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 45612;
+  MsgTxtSize = 45996;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,86,238,84,64,50,108,22,135,60,
+    24,86,244,84,64,50,108,22,135,60,
     42,1,1,1,1,1,1,1,1,1
   );

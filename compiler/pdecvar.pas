@@ -55,7 +55,7 @@ implementation
        fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmdata,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,nutils,
        { codegen }
        ncgutil,
        { parser }
@@ -623,54 +623,63 @@ implementation
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
            begin
-             consume(_ID);
-             try
-               { NOTE: This code will be fixed when the strings are added to the localized string table }
-               if not is_interface(p.propdef) then
+             single_type(def,false);
+
+             if compare_defs(def,p.propdef,nothingn)<te_equal then
                begin
-                 Comment(V_Error, 'Implements property must have interface type');
+                 message2(parser_e_implements_must_have_correct_type,def.GetTypeName,p.propdef.GetTypeName);
                  exit;
                end;
-               if pattern <> p.propdef.mangledparaname() then
+             if not is_class_or_interface(def) then
                begin
-                 Comment(V_Error, 'Implements-property must implement interface of correct type');
+                 message(parser_e_implements_must_be_class_or_interface);
                  exit;
                end;
-               if not assigned(p.propaccesslist[palt_read].firstsym) then
+             if not assigned(p.propaccesslist[palt_read].firstsym) then
                begin
-                 Comment(V_Error, 'Implements-property must have read specifier');
+                 message(parser_e_implements_must_read_specifier);
                  exit;
                end;
-               if assigned(p.propaccesslist[palt_write].firstsym) then
+             if assigned(p.propaccesslist[palt_write].firstsym) then
                begin
-                 Comment(V_Error, 'Implements-property must not have write-specifier');
+                 message(parser_e_implements_must_not_have_write_specifier);
                  exit;
                end;
-               if assigned(p.propaccesslist[palt_stored].firstsym) then
+             if assigned(p.propaccesslist[palt_stored].firstsym) then
                begin
-                 Comment(V_Error, 'Implements-property must not have stored-specifier');
+                 message(parser_e_implements_must_not_have_stored_specifier);
                  exit;
                end;
-               found:=false;
-               for i:=0 to aclass.ImplementedInterfaces.Count-1 do
+             found:=false;
+             for i:=0 to aclass.ImplementedInterfaces.Count-1 do
                begin
                  ImplIntf:=TImplementedInterface(aclass.ImplementedInterfaces[i]);
-                 { FIXME: Is this check valid? }
-                 if ImplIntf.IntfDef.Objname^=pattern then
+
+                 if compare_defs(def,ImplIntf.IntfDef,nothingn)>=te_equal then
                  begin
                    found:=true;
                    break;
                  end;
                end;
-               if found then
+             if found then
                begin
-                 ImplIntf.IType := etFieldValue;
-                 ImplIntf.FieldOffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+                 ImplIntf.ImplementsGetter:=p;
+                 case p.propaccesslist[palt_read].firstsym^.sym.typ of
+                   procsym :
+                     begin
+                       if (po_virtualmethod in tprocdef(p.propaccesslist[palt_read].procdef).procoptions) then
+                         ImplIntf.IType:=etVirtualMethodResult
+                       else
+                         ImplIntf.IType:=etStaticMethodResult;
+                     end;
+                   fieldvarsym :
+                     ImplIntf.IType:=etFieldValue;
+                   else
+                     internalerror(200802161);
+                 end;
                end
-               else
-                 Comment(V_Error, 'Implements-property used on unimplemented interface');
-             finally
-             end;
+             else
+               message1(parser_e_implements_uses_non_implemented_interface,def.GetTypeName);
          end;
 
          { remove temporary procvardefs }

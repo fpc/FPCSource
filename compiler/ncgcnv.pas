@@ -377,7 +377,7 @@ interface
       end;
 
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
-    
+
     var r:Treference;
 
     begin
@@ -512,16 +512,23 @@ interface
             else
               internalerror(121120001);
          end;
-         current_asmdata.getjumplabel(l1);
-         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,location.register,l1);
          hd:=tobjectdef(left.resultdef);
          while assigned(hd) do
            begin
              ImplIntf:=hd.find_implemented_interface(tobjectdef(resultdef));
              if assigned(ImplIntf) then
                begin
-                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,ImplIntf.ioffset,location.register);
-                 break;
+                 case ImplIntf.IType of
+                   etStandard:
+                     begin
+                       current_asmdata.getjumplabel(l1);
+                       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,location.register,l1);
+                       cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,ImplIntf.ioffset,location.register);
+                       break;
+                     end;
+                   else
+                     internalerror(200802163);
+                 end;
                end;
              hd:=hd.childof;
            end;

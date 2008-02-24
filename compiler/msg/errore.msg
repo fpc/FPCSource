@@ -1134,6 +1134,12 @@ parser_e_no_generics_as_types=03236_E_Generics without specialization can not be
 % Generics must be always specialized before being used as variable type
 parser_w_register_list_ignored=03237_W_Register list is ignored for pure assembler routines
 % When using pure assembler routines, the list with modified registers is ignored.
+parser_e_implements_must_be_class_or_interface=03238_E_Implements property must have interface type
+parser_e_implements_must_have_correct_type=03239_E_Implements-property must implement interface of correct type, found "$1" expected "$2"
+parser_e_implements_must_read_specifier=03240_E_Implements-property must have read specifier
+parser_e_implements_must_not_have_write_specifier=03241_E_Implements-property must not have write-specifier
+parser_e_implements_must_not_have_stored_specifier=03242_E_Implements-property must not have stored-specifier
+parser_e_implements_uses_non_implemented_interface=03243_E_Implements-property used on unimplemented interface: "$1"
 % \end{description}
 #
 # Type Checking

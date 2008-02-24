@@ -509,7 +509,7 @@ implementation
                 if assigned(implprocdef) then
                   ImplIntf.AddImplProc(implprocdef)
                 else
-                  if ImplIntf.IType = etStandard then
+                  if ImplIntf.IType=etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;
@@ -1206,10 +1206,17 @@ implementation
         { VTable }
         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
         { IOffset field }
-        if AImplIntf.VtblImplIntf.IType = etStandard then
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset))
-        else
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.FieldOffset));
+        case AImplIntf.VtblImplIntf.IType of
+          etStandard:
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset));
+          etFieldValue,
+          etVirtualMethodResult,
+          etStaticMethodResult:
+            ;
+          else
+            internalerror(200802162);
+        end;
+
         { IIDStr }
         current_asmdata.getdatalabel(iidlabel);
         rawdata.concat(cai_align.create(const_align(sizeof(pint))));

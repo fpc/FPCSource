@@ -41,10 +41,6 @@ interface
 
     procedure string_dec(var def: tdef);
 
-    procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
-
-    function node_to_propaccesslist(p1:tnode):tpropaccesslist;
-
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
 
     { the ID token has to be consumed before calling this function }
@@ -139,104 +135,6 @@ implementation
                  def:=cshortstringtype;
             end;
        end;
-
-
-    procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
-      var
-        plist : ppropaccesslistitem;
-      begin
-        plist:=pl.firstsym;
-        while assigned(plist) do
-         begin
-           case plist^.sltype of
-             sl_load :
-               begin
-                 addsymref(plist^.sym);
-                 if not assigned(st) then
-                   st:=plist^.sym.owner;
-                 { p1 can already contain the loadnode of
-                   the class variable. When there is no tree yet we
-                   may need to load it for with or objects }
-                 if not assigned(p1) then
-                  begin
-                    case st.symtabletype of
-                      withsymtable :
-                        p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                      ObjectSymtable :
-                        p1:=load_self_node;
-                    end;
-                  end;
-                 if assigned(p1) then
-                  p1:=csubscriptnode.create(plist^.sym,p1)
-                 else
-                  p1:=cloadnode.create(plist^.sym,st);
-               end;
-             sl_subscript :
-               begin
-                 addsymref(plist^.sym);
-                 p1:=csubscriptnode.create(plist^.sym,p1);
-               end;
-             sl_typeconv :
-               p1:=ctypeconvnode.create_explicit(p1,plist^.def);
-             sl_absolutetype :
-               begin
-                 p1:=ctypeconvnode.create(p1,plist^.def);
-                 include(p1.flags,nf_absolute);
-               end;
-             sl_vec :
-               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuedef,true));
-             else
-               internalerror(200110205);
-           end;
-           plist:=plist^.next;
-         end;
-      end;
-
-
-    function node_to_propaccesslist(p1:tnode):tpropaccesslist;
-      var
-        sl : tpropaccesslist;
-
-        procedure addnode(p:tnode);
-        begin
-          case p.nodetype of
-            subscriptn :
-              begin
-                addnode(tsubscriptnode(p).left);
-                sl.addsym(sl_subscript,tsubscriptnode(p).vs);
-              end;
-            typeconvn :
-              begin
-                addnode(ttypeconvnode(p).left);
-                if nf_absolute in ttypeconvnode(p).flags then
-                  sl.addtype(sl_absolutetype,ttypeconvnode(p).totypedef)
-                else
-                  sl.addtype(sl_typeconv,ttypeconvnode(p).totypedef);
-              end;
-            vecn :
-              begin
-                addnode(tvecnode(p).left);
-                if tvecnode(p).right.nodetype=ordconstn then
-                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value,tvecnode(p).right.resultdef)
-                else
-                  begin
-                    Message(parser_e_illegal_expression);
-                    { recovery }
-                    sl.addconst(sl_vec,0,tvecnode(p).right.resultdef);
-                  end;
-             end;
-            loadn :
-              sl.addsym(sl_load,tloadnode(p).symtableentry);
-            else
-              internalerror(200310282);
-          end;
-        end;
-
-      begin
-        sl:=tpropaccesslist.create;
-        addnode(p1);
-        result:=sl;
-      end;
 
 
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;

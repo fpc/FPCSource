@@ -2658,10 +2658,61 @@ implementation
 
 
     function ttypeconvnode.first_class_to_intf : tnode;
+      var
+        hd : tobjectdef;
+        ImplIntf : TImplementedInterface;
       begin
-         first_class_to_intf:=nil;
+         result:=nil;
          expectloc:=LOC_REGISTER;
+         hd:=tobjectdef(left.resultdef);
+         while assigned(hd) do
+           begin
+             ImplIntf:=hd.find_implemented_interface(tobjectdef(resultdef));
+             if assigned(ImplIntf) then
+               begin
+                 case ImplIntf.IType of
+                   etStandard:
+                     { handle in pass 2 }
+                     ;
+                   etFieldValue:
+                     if is_interface(tobjectdef(resultdef)) then
+                       begin
+                         result:=left;
+                         propaccesslist_to_node(result,tpropertysym(implintf.implementsgetter).owner,tpropertysym(implintf.implementsgetter).propaccesslist[palt_read]);
+                         left:=nil;
+                       end
+                     else
+                       begin
+                         internalerror(200802213);
+                       end;
+                   etStaticMethodResult,
+                   etVirtualMethodResult:
+                     if is_interface(tobjectdef(resultdef)) then
+                       begin
+                         { constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags); }
+                         result:=ccallnode.create(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
+                           tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym).owner,
+                           left,[]);
+                         addsymref(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym);
+                         left:=nil;
+                       end
+                     else if is_class(tobjectdef(resultdef)) then
+                       begin
+                         internalerror(200802211);
+                       end
+                     else
+                       internalerror(200802231);
+                   else
+                     internalerror(200802165);
+                 end;
+                 break;
+               end;
+             hd:=hd.childof;
+           end;
+         if hd=nil then
+           internalerror(200802164);
       end;
+
 
     function ttypeconvnode._first_int_to_int : tnode;
       begin
