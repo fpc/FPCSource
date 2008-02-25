@@ -4388,7 +4388,6 @@ packages/fcl-res/src/machosubreader.inc svneol=native#text/plain
 packages/fcl-res/src/machosubwriter.inc svneol=native#text/plain
 packages/fcl-res/src/machotypes.pp svneol=native#text/plain
 packages/fcl-res/src/machowriter.pp svneol=native#text/plain
-packages/fcl-res/src/myobjbin.inc svneol=native#text/plain
 packages/fcl-res/src/prova.pp svneol=native#text/plain
 packages/fcl-res/src/resdatastream.pp svneol=native#text/plain
 packages/fcl-res/src/resfactory.pp svneol=native#text/plain
