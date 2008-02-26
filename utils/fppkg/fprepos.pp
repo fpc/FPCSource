@@ -79,6 +79,7 @@ type
     FCPUs : TCPUS;
     FMinVersion: TFPVersion;
     FPackageName: String;
+    FRequireChecksum : cardinal;
     procedure SetMinVersion(const AValue: TFPVersion);
   Public
     Constructor Create(ACollection : TCollection); override;
@@ -91,6 +92,7 @@ type
     Property MinVersion : TFPVersion Read FMinVersion Write SetMinVersion;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
+    Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
 
   { TFPDepencencies }
@@ -116,10 +118,12 @@ type
     FExternalURL: String;
     FFileName: String;
     FVersion: TFPVersion;
-    FInstalledVersion: TFPVersion;
     FDependencies : TFPDependencies;
     FOSes : TOSES;
     FCPUs : TCPUS;
+    // Installation info
+    FInstalledVersion  : TFPVersion;
+    FInstalledChecksum : cardinal;
     FIsLocalPackage : Boolean;
     function GetFileName: String;
     procedure SetName(const AValue: String);
@@ -136,7 +140,6 @@ type
     Property Name : String Read FName Write SetName;
     Property Author : String Read FAuthor Write FAuthor;
     Property Version : TFPVersion Read FVersion Write SetVersion;
-    Property InstalledVersion : TFPVersion Read FInstalledVersion Write FInstalledVersion;
     Property License : String Read FLicense Write FLicense;
     Property Description : String Read FDescription Write FDescription;
     Property ExternalURL : String Read FExternalURL Write FExternalURL;
@@ -144,6 +147,8 @@ type
     Property Email : String Read FEmail Write FEmail;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
+    Property InstalledVersion : TFPVersion Read FInstalledVersion Write FInstalledVersion;
+    Property InstalledChecksum : Cardinal Read FInstalledChecksum Write FInstalledChecksum;
     // Manual package from commandline not in official repository
     Property IsLocalPackage : Boolean Read FIsLocalPackage Write FIsLocalPackage;
   end;
@@ -480,6 +485,7 @@ begin
   inherited Create(ACollection);
   FVersion:=TFPVersion.Create;
   FInstalledVersion:=TFPVersion.Create;
+  FInstalledChecksum:=$ffffffff;
   FOSes:=AllOSes;
   FCPUs:=AllCPUs;
   FDependencies:=TFPDependencies.Create(TFPDependency);
@@ -987,6 +993,7 @@ begin
   FMinVersion:=TFPVersion.Create;
   FOSes:=AllOSes;
   FCPUs:=AllCPUs;
+  FRequireChecksum:=$ffffffff;
 end;
 
 

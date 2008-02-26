@@ -308,6 +308,7 @@ Type
     // Package, Unit
     FTarget : TObject;
     FVersion : TFPVersion;
+    FRequireChecksum : Cardinal;
     // Filenames, Includes
     FTargetFileName : String;
     Function GetVersion : string;
@@ -319,6 +320,7 @@ Type
     Property DependencyType : TDependencyType Read FDependencyType;
     Property TargetFileName : String Read FTargetFileName Write FTargetFileName;
     Property Version : String Read GetVersion Write SetVersion;
+    Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
 
   TDependencies = Class(TConditionalStrings)
@@ -524,6 +526,7 @@ Type
     FCommands : TCommands;
     FDescriptionFile : String;
     FDescription : String;
+    FInstalledChecksum : Cardinal;
     // Cached directory of installed packages
     FUnitDir : String;
     Function GetDescription : string;
@@ -552,6 +555,7 @@ Type
     Property Directory : String Read FDirectory Write FDirectory;
     Property Description : String Read GetDescription Write FDescription;
     Property DescriptionFile : String Read FDescriptionFile Write FDescriptionFile;
+    Property InstalledChecksum : Cardinal Read FInstalledChecksum Write FInstalledChecksum;
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -1006,6 +1010,7 @@ ResourceString
   SDbgArchivingFile         = 'Archiving "%s"';
   SDbgSearchPath            = 'Using %s path "%s"';
   SDbgEnterDir              = 'Entering directory "%s"';
+  SDbgPackageChecksumChanged = 'Dependent package %s is modified';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -1058,6 +1063,7 @@ Const
   // Keys for unit config
   KeyName     = 'Name';
   KeyVersion  = 'Version';
+  KeyChecksum = 'Checksum';
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
 
@@ -1854,6 +1860,7 @@ begin
   FCommands:=TCommands.Create(TCommand);
   FCPUs:=AllCPUs;
   FOSes:=AllOSes;
+  FInstalledChecksum:=$ffffffff;
   // Implicit dependency on RTL
   FDependencies.Add('rtl');
 end;
@@ -2064,7 +2071,10 @@ var
   L,L2 : TStrings;
   VOS : TOS;
   VCPU : TCPU;
-  i : Integer;
+  i,k : Integer;
+  DepChecksum : Cardinal;
+  DepName : String;
+  D : TDependency;
 begin
   L:=TStringList.Create;
   Try
@@ -2072,6 +2082,7 @@ begin
     With L do
       begin
         Version:=Values[KeyVersion];
+        InstalledChecksum:=Cardinal(StrToInt64Def(Values[KeyChecksum],$ffffffff));
         VCPU:=StringToCPU(Values[KeyCPU]);
         VOS:=StringToOS(Values[KeyOS]);
         OSes:=[VOS];
@@ -2079,7 +2090,19 @@ begin
         L2:=TStringList.Create;
         L2.CommaText:=Values[KeyDepends];
         for i:=0 to L2.Count-1 do
-          Dependencies.Add(L2[i],CPUs,OSes);
+          begin
+            DepName:=L2[i];
+            k:=Pos('|',DepName);
+            if k>0 then
+              begin
+                DepChecksum:=StrToInt(Copy(DepName,k+1,Length(DepName)-k));
+                DepName:=Copy(DepName,1,k-1);
+              end
+            else
+              DepChecksum:=$ffffffff;
+            D:=Dependencies.Add(DepName,CPUs,OSes);
+            D.RequireChecksum:=DepChecksum;
+          end;
         FreeAndNil(L2);
         NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
       end;
@@ -2096,6 +2119,7 @@ Var
   Deps : String;
   i : integer;
   D : TDependency;
+  p : TPackage;
 begin
   F:=TFileStream.Create(AFileName,fmCreate);
   L:=TStringList.Create;
@@ -2104,6 +2128,8 @@ begin
       begin
         Values[KeyName]:=Name;
         Values[KeyVersion]:=Version;
+        // TODO Generate checksum based on PPUs
+        Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
         Values[KeyCPU]:=CPUToString(ACPU);
         Values[KeyOS]:=OSToString(AOS);
         Deps:='';
@@ -2112,10 +2138,12 @@ begin
             D:=Dependencies[i];
             if (ACPU in D.CPUs) and (AOS in D.OSes) then
               begin
-                if Deps='' then
-                  Deps:=D.Value
-                else
-                  Deps:=Deps+','+D.Value;
+                if Deps<>'' then
+                  Deps:=Deps+',';
+                Deps:=Deps+D.Value;
+                P:=TPackage(D.Target);
+                if assigned(P) and (P.InstalledChecksum<>$ffffffff) then
+                  Deps:=Deps+'|'+IntToStr(P.InstalledChecksum);
               end;
           end;
         Values[KeyDepends]:=Deps;
@@ -3982,11 +4010,20 @@ begin
          (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
         begin
           P:=TPackage(D.Target);
-          // If it already was compiled, then State<>tsNeutral, and it won't be compiled again.
-          If Assigned(P) and (P<>APackage) then
-            MaybeCompile(P)
+          If Assigned(P) then
+            begin
+              if (P<>APackage) then
+                MaybeCompile(P);
+            end
           else
-            D.Target:=CheckExternalPackage(D.Value);
+            begin
+              D.Target:=CheckExternalPackage(D.Value);
+              P:=TPackage(D.Target);
+            end;
+          if (D.RequireChecksum<>$ffffffff) and
+             (P.InstalledChecksum<>$ffffffff) and
+             (P.InstalledChecksum<>D.RequireChecksum) then
+            Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
         end;
     end;
 end;
@@ -4033,7 +4070,7 @@ Var
   B : Boolean;
 begin
   If (Apackage.State<>tsCompiled) then
-    Compile(APackage);
+    MaybeCompile(APackage);
   try
     Log(vlInfo,SInfoInstallingPackage,[APackage.Name]);
     If (APackage.Directory<>'') then

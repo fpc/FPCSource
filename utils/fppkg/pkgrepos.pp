@@ -248,22 +248,56 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
 
   procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
   Var
-    L : TStrings;
+    L,DepSL : TStrings;
+    DepName,
     V : String;
+    DepChecksum : Cardinal;
+    i,j,k : integer;
+    D : TFPDependency;
   begin
     L:=TStringList.Create;
     Try
       ReadIniFile(AFileName,L);
-{$warning TODO Maybe check also CPU-OS}
-{$warning TODO Add date to check recompile}
-      V:=L.Values['version'];
-      APackage.InstalledVersion.AsString:=V;
       // Log packages found in multiple locations (local and global) ?
       if not APackage.InstalledVersion.Empty then
         begin
           if showdups then
             Log(vlDebug,SDbgPackageMultipleLocations,[APackage.Name,ExtractFilePath(AFileName)]);
         end;
+{$warning TODO Maybe check also CPU-OS}
+      // Read fpunits.conf
+      V:=L.Values['version'];
+      APackage.InstalledVersion.AsString:=V;
+      V:=L.Values['checksum'];
+      APackage.InstalledChecksum:=StrToInt(V);
+      // Load dependencies
+      V:=L.Values['depends'];
+      DepSL:=TStringList.Create;
+      DepSL.CommaText:=V;
+      for i:=0 to DepSL.Count-1 do
+        begin
+          DepName:=DepSL[i];
+          k:=Pos('|',DepName);
+          if k>0 then
+            begin
+              DepChecksum:=StrToInt(Copy(DepName,k+1,Length(DepName)-k));
+              DepName:=Copy(DepName,1,k-1);
+            end
+          else
+            DepChecksum:=$ffffffff;
+          D:=nil;
+          for j:=0 to APackage.Dependencies.Count-1 do
+            begin
+              D:=APackage.Dependencies[j];
+              if D.PackageName=DepName then
+                break;
+              D:=nil;
+            end;
+          if not assigned(D) then
+            D:=APackage.AddDependency(DepName,'');
+          D.RequireChecksum:=DepChecksum;
+        end;
+      DepSL.Free;
     Finally
       L.Free;
     end;
