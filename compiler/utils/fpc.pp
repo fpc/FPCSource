@@ -214,7 +214,16 @@ program fpc;
                            else
                              error('Illegal processor type "'+processorstr+'"');
 
+{$ifndef darwin}
                            ppcbin:='ppcross'+cpusuffix;
+{$else not darwin}
+                           { the mach-o format supports "fat" binaries whereby }
+                           { a single executable contains machine code for     }
+                           { several architectures -> it is counter-intuitive  }
+                           { and non-standard to use different binary names    }
+                           { for cross-compilers vs. native compilers          }
+                           ppcbin:='ppc'+cpusuffix;
+{$endif not darwin}
                          end;
                  end
               else if pos('-Xp',s)=1 then

@@ -173,7 +173,7 @@ const
         { the fractional part is not used for rounding later                }
         currprec := -1;
         { instead, round based on the next whole digit }
-        if (trunc(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
+        if (int(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
            roundStr(temp,spos);
         end;
 {$ifdef DEBUG_NASM}

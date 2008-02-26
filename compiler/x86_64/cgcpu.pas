@@ -229,7 +229,4 @@ unit cgcpu;
 
 begin
   cg:=tcgx86_64.create;
-{$ifndef cpu64bit}
-  cg64:=tcg64f64.create;
-{$endif cpu64bit}
 end.

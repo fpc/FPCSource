@@ -453,17 +453,15 @@ implementation
             if assigned(srsym) and
                (srsym.typ=procsym) then
               begin
-                { if self<>0 and vmt=1 then freeinstance }
+                { if self<>0 and vmt<>0 then freeinstance }
                 addstatement(newstatement,cifnode.create(
                     caddnode.create(andn,
                         caddnode.create(unequaln,
                             load_self_pointer_node,
                             cnilnode.create),
-                        caddnode.create(equaln,
-                            ctypeconvnode.create(
-                                load_vmt_pointer_node,
-                                voidpointertype),
-                            cpointerconstnode.create(1,voidpointertype))),
+                        caddnode.create(unequaln,
+                            load_vmt_pointer_node,
+                            cnilnode.create)),
                     ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                     nil));
               end

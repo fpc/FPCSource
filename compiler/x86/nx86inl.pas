@@ -337,12 +337,14 @@ implementation
 
       procedure tx86inlinenode.second_IncludeExclude;
         var
-         hregister : tregister;
+         hregister,
+         hregister2: tregister;
          setbase   : aint;
          bitsperop,l : longint;
          cgop : topcg;
          asmop : tasmop;
-         opsize : tcgsize;
+         opsize,
+         orgsize: tcgsize;
         begin
           if not(is_varset(tcallparanode(left).resultdef)) then
             opsize:=int_cgsize(tcallparanode(left).resultdef.size)
@@ -380,8 +382,11 @@ implementation
             end
           else
             begin
+              orgsize:=opsize;
               if opsize in [OS_8,OS_S8] then
-                opsize:=OS_32;
+                begin
+                  opsize:=OS_32;
+                end;
               { determine asm operator }
               if inlinenumber=in_include_x_y then
                  asmop:=A_BTS
@@ -394,7 +399,13 @@ implementation
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
               else
-                emit_reg_reg(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.register);
+                begin
+                  { second argument can't be an 8 bit register either }
+                  hregister2:=tcallparanode(left).left.location.register;
+                  if (orgsize in [OS_8,OS_S8]) then
+                    hregister2:=cg.makeregsize(current_asmdata.CurrAsmList,hregister2,opsize);
+                  emit_reg_reg(asmop,tcgsize2opsize[opsize],hregister,hregister2);
+                end;
             end;
         end;
 
