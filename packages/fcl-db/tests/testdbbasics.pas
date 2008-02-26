@@ -38,6 +38,9 @@ type
     procedure TestOnFilter;
     procedure TestStringFilter;
 
+    procedure TestSetFieldValues;
+    procedure TestGetFieldValues;
+
     procedure TestAddIndex;
     procedure TestInactSwitchIndex;
 
@@ -110,7 +113,7 @@ type
 
 implementation
 
-uses toolsunit, bufdataset;
+uses toolsunit, bufdataset, variants;
 
 type THackDataLink=class(TdataLink);
 
@@ -556,6 +559,73 @@ begin
 
     GotoBookmark(BM5);
     AssertEquals(14,FieldByName('id').AsInteger);
+    end;
+end;
+
+procedure TTestDBBasics.TestSetFieldValues;
+var PassException : boolean;
+begin
+  with DBConnector.GetNDataset(true,11) do
+    begin
+    open;
+    first;
+    edit;
+    FieldValues['id']:=5;
+    post;
+    AssertEquals('TestName1',FieldByName('name').AsString);
+    AssertEquals(5,FieldByName('id').AsInteger);
+    edit;
+    FieldValues['name']:='FieldValuesTestName';
+    post;
+    AssertEquals('FieldValuesTestName',FieldByName('name').AsString);
+    AssertEquals(5,FieldByName('id').AsInteger);
+    edit;
+    FieldValues['id;name']:= VarArrayOf([243,'ValuesTestName']);
+    post;
+    AssertEquals('ValuesTestName',FieldByName('name').AsString);
+    AssertEquals(243,FieldByName('id').AsInteger);
+    
+    PassException:=false;
+    try
+      edit;
+      FieldValues['id;name;fake']:= VarArrayOf([243,'ValuesTestName',4]);
+    except
+      on E: EDatabaseError do PassException := True;
+    end;
+    post;
+    AssertTrue(PassException);
+    end;
+end;
+
+procedure TTestDBBasics.TestGetFieldValues;
+var AVar          : Variant;
+    PassException : boolean;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    open;
+    AVar:=FieldValues['id'];
+    AssertEquals(AVar,1);
+
+    AVar:=FieldValues['name'];
+    AssertEquals(AVar,'TestName1');
+
+    AVar:=FieldValues['id;name'];
+    AssertEquals(AVar[0],1);
+    AssertEquals(AVar[1],'TestName1');
+
+    AVar:=FieldValues['name;id;'];
+    AssertEquals(AVar[1],1);
+    AssertEquals(AVar[0],'TestName1');
+    
+    PassException:=false;
+    try
+      AVar:=FieldValues['name;id;fake'];
+    except
+      on E: EDatabaseError do PassException := True;
+    end;
+    AssertTrue(PassException);
+
     end;
 end;
 
