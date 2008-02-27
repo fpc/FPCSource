@@ -296,7 +296,7 @@ implementation
         constsetlo,
         constsethi  : TConstExprInt;
 
-        procedure update_constsethi(def:tdef);
+        procedure update_constsethi(def:tdef; maybetruncenumrange: boolean);
           begin
             if (def.typ=orddef) and
                ((torddef(def).high>=constsethi) or
@@ -339,6 +339,16 @@ implementation
                    constsethi:=tenumdef(def).max;
                  if (tenumdef(def).min<=constsetlo) then
                    constsetlo:=tenumdef(def).min;
+                 { for constant set elements, delphi allows the usage of elements of enumerations which
+                   have value>255 if there is no element with a value > 255 used }
+                 if (maybetruncenumrange) and
+                    (m_delphi in current_settings.modeswitches) then
+                   begin
+                    if constsethi>255 then
+                      constsethi:=255;
+                    if constsetlo<0 then
+                      constsetlo:=0;
+                   end;
               end;
           end;
 
@@ -461,10 +471,10 @@ implementation
                               end
                              else
                               begin
-                                update_constsethi(p2.resultdef);
+                                update_constsethi(p2.resultdef,false);
                                 inserttypeconv(p2,hdef);
 
-                                update_constsethi(p3.resultdef);
+                                update_constsethi(p3.resultdef,false);
                                 inserttypeconv(p3,hdef);
 
                                 if assigned(hdef) then
@@ -481,21 +491,7 @@ implementation
                          if p2.nodetype=ordconstn then
                           begin
                             if not(is_integer(p2.resultdef)) then
-                              begin
-                                { for constant set elements, delphi allows the usage of elements of enumerations which
-                                  have value>255 if there is no element with a value > 255 used }
-                                if (m_delphi in current_settings.modeswitches) and (p2.resultdef.typ=enumdef) then
-                                  begin
-                                    if tordconstnode(p2).value>constsethi then
-                                      constsethi:=tordconstnode(p2).value;
-                                    if tordconstnode(p2).value<constsetlo then
-                                      constsetlo:=tordconstnode(p2).value;
-                                    if hdef=nil then
-                                      hdef:=p2.resultdef;
-                                  end
-                                else
-                                  update_constsethi(p2.resultdef);
-                              end;
+                              update_constsethi(p2.resultdef,true);
 
                             if assigned(hdef) then
                               inserttypeconv(p2,hdef)
@@ -507,7 +503,7 @@ implementation
                           end
                          else
                           begin
-                            update_constsethi(p2.resultdef);
+                            update_constsethi(p2.resultdef,false);
 
                             if assigned(hdef) then
                               inserttypeconv(p2,hdef)
