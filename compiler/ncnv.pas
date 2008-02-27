@@ -488,6 +488,8 @@ implementation
                                   begin
                                     if tordconstnode(p2).value>constsethi then
                                       constsethi:=tordconstnode(p2).value;
+                                    if tordconstnode(p2).value<constsetlo then
+                                      constsetlo:=tordconstnode(p2).value;
                                     if hdef=nil then
                                       hdef:=p2.resultdef;
                                   end
@@ -1957,7 +1959,7 @@ implementation
 
     { checks whether we can safely remove 64 bit typeconversions }
     { in case range and overflow checking are off, and in case   }
-    { the result of thise node tree is downcasted again to a     }
+    { the result of this node tree is downcasted again to a      }
     { 8/16/32 bit value afterwards                               }
     function checkremove64bittypeconvs(n: tnode): boolean;
 
