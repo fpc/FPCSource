@@ -8,6 +8,9 @@ Uses
   SysUtils,Classes, fpcunit, testutils, testregistry;
 
 Type
+
+  { TTestStreaming }
+
   TTestStreaming = Class(TTestCase)
   Private
     FStream : TMemoryStream;
@@ -39,6 +42,7 @@ Type
     Procedure ExpectWideString(AValue : WideString);
     Procedure ExpectEndofList;
     Procedure ExpectSignature;
+    Procedure ExpectEndOfStream;
   end;
 
 implementation
@@ -359,11 +363,20 @@ begin
 end;
 
 procedure TTestStreaming.SaveToStream(C: TComponent);
+var
+  s: TStream;
 begin
   C.Name:='Test'+C.ClassName;
   FStream.Clear;
   FStream.WriteComponent(C);
   FStream.Position:=0;
+  // for debugging purposes, you can write a component to file too
+  // set the class name of the component you want to write to disk in the next line
+  if (C.ClassName='TStreamedOwnedComponentsX') then begin
+    s := TFileStream.Create(C.ClassName+'.txt', fmCreate, fmShareDenyNone );
+    s.WriteComponent(C);
+    s.Free;
+  end;
 end;
 
 procedure TTestStreaming.TearDown;
@@ -410,6 +423,13 @@ begin
   S:=ReadBareStr;
   If (S<>AValue) then
     Fail('Expected bare string %s, got :%s',[AValue,S]);
+end;
+
+procedure TTestStreaming.ExpectEndOfStream;
+begin
+  If (FStream.Position<>FStream.Size) then
+    Fail('Expected at end of stream, current position=%d, size=%d',
+          [FStream.Position,FStream.Size]);
 end;
 
 end.

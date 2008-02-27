@@ -6,6 +6,9 @@ Uses
   SysUtils,Classes,tcstreaming,fpcunit, testregistry;
 
 Type 
+
+{ TTestComponentStream }
+
 TTestComponentStream = Class(TTestStreaming)
   Published
     Procedure TestTEmptyComponent;
@@ -1126,6 +1129,8 @@ begin
     ExpectEndOfList;
     ExpectEndOfList;
     ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfStream;
   Finally
     C.Free;
     end;
@@ -1160,6 +1165,7 @@ begin
     ExpectEndOfList;
     ExpectEndOfList;
     ExpectEndOfList;
+    ExpectEndOfStream;
   Finally
     C.Free;
     end;
