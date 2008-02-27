@@ -458,6 +458,15 @@ Type
   Published
     Sub : TIntegerComponent;
   end;
+  
+  // Stream 2 sub components
+  TStreamedOwnedComponents = Class(TChildrenComponent)
+  Public
+    Constructor Create(AOwner : TComponent);  override;
+  Published
+    SubA : TIntegerComponent;
+    SubB : TStringComponent;
+  end;
 
   // Method tests.
 
@@ -556,6 +565,7 @@ end;
 
 constructor TStringComponent.Create(AOwner: TComponent);
 begin
+  Inherited;
   F:='A string';
 end;
 
@@ -871,6 +881,18 @@ begin
   Sub:=TIntegerComponent.Create(Self);
   Sub.Name:='Sub';
 end;
+
+{ TStreamedOwnedComponents }
+
+constructor TStreamedOwnedComponents.Create(AOwner: TComponent);
+begin
+  inherited;
+  SubA:=TIntegerComponent.Create(Self);
+  SubA.Name:='SubA';
+  SubB:=TStringComponent.Create(Self);
+  SubB.Name:='SubB';
+end;
+
 
 Constructor TOwnedComponent.Create(AOwner : TComponent);
 

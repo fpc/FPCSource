@@ -50,6 +50,7 @@ TTestComponentStream = Class(TTestStreaming)
     Procedure TestTCollectionComponent5;
     Procedure TestTOwnedComponent;
     Procedure TestTStreamedOwnedComponent;
+    Procedure TestTStreamedOwnedComponents;
     Procedure TestTMethodComponent;
     Procedure TestTMethodComponent2;
   end;
@@ -1122,6 +1123,40 @@ begin
     ExpectBareString('Sub');
     ExpectBareString('IntProp');
     ExpectInteger(3);
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectEndOfList;
+  Finally
+    C.Free;
+    end;
+end;
+
+Procedure TTestComponentStream.TestTStreamedOwnedComponents;
+
+Var
+  C : TComponent;
+
+begin
+  C:=TStreamedOwnedComponents.Create(Nil);
+  Try
+    SaveToStream(C);
+    ExpectSignature;
+    ExpectFlags([],0);
+    ExpectBareString('TStreamedOwnedComponents');
+    ExpectBareString('TestTStreamedOwnedComponents');
+    ExpectEndOfList;
+    ExpectFlags([],0);
+    ExpectBareString('TIntegerComponent');
+    ExpectBareString('SubA');
+    ExpectBareString('IntProp');
+    ExpectInteger(3);
+    ExpectEndOfList;
+    ExpectEndOfList;
+    ExpectFlags([],0);
+    ExpectBareString('TStringComponent');
+    ExpectBareString('SubB');
+    ExpectBareString('StringProp');
+    ExpectString('A string');
     ExpectEndOfList;
     ExpectEndOfList;
     ExpectEndOfList;
