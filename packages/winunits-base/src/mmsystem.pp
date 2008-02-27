@@ -2519,6 +2519,7 @@ Function joyGetDevCapsA(x1: UINT; x2: LPJOYCAPSA; x3: UINT): MMRESULT;stdcall; e
 Function joyGetDevCapsW(x1: UINT; x2: LPJOYCAPSW; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'joyGetDevCapsW';
 Function joyGetDevCaps(x1: UINT; x2: LPJOYCAPS; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'joyGetDevCapsW' {$else}'joyGetDevCapsA' {$endif};
+Function mixerSetControlDetails(hmxobj: HMIXEROBJ; pmxcd: LPMIXERCONTROLDETAILS; fdwdetails: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mixerSetControlDetails';
 Function mixerGetControlDetailsA(x1: HMIXEROBJ; x2: LPMIXERCONTROLDETAILS; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mixerGetControlDetailsA';
 Function mixerGetControlDetailsW(x1: HMIXEROBJ; x2: LPMIXERCONTROLDETAILS; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mixerGetControlDetailsW';
 Function mixerGetControlDetails(x1: HMIXEROBJ; x2: LPMIXERCONTROLDETAILS; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name
