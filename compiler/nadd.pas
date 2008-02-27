@@ -761,7 +761,6 @@ implementation
         hp          : tnode;
         rd,ld,nd    : tdef;
         hsym        : tfieldvarsym;
-        i           : longint;
         llow,lhigh,
         rlow,rhigh  : tconstexprint;
         strtype     : tstringtype;
@@ -945,29 +944,6 @@ implementation
          { if both are orddefs then check sub types }
          else if (ld.typ=orddef) and (rd.typ=orddef) then
            begin
-             { optimize multiplacation by a power of 2 }
-             if not(cs_check_overflow in current_settings.localswitches) and
-                (nodetype = muln) and
-                (((left.nodetype = ordconstn) and
-                  ispowerof2(tordconstnode(left).value,i)) or
-                 ((right.nodetype = ordconstn) and
-                  ispowerof2(tordconstnode(right).value,i))) then
-               begin
-                 if left.nodetype = ordconstn then
-                   begin
-                     tordconstnode(left).value := i;
-                     result := cshlshrnode.create(shln,right,left);
-                   end
-                 else
-                   begin
-                     tordconstnode(right).value := i;
-                     result := cshlshrnode.create(shln,left,right);
-                   end;
-                 left := nil;
-                 right := nil;
-                 exit;
-               end;
-
               { set for & and | operations in macpas mode: they only work on }
               { booleans, and always short circuit evaluation                }
               if (nf_short_bool in flags) then
@@ -2376,10 +2352,11 @@ implementation
 {$ifdef addstringopt}
          hp      : tnode;
 {$endif addstringopt}
-         lt,rt   : tnodetype;
          rd,ld   : tdef;
          newstatement : tstatementnode;
          temp    : ttempcreatenode;
+         i       : longint;
+         lt,rt   : tnodetype;
       begin
          result:=nil;
 
@@ -2422,6 +2399,29 @@ implementation
          { if both are orddefs then check sub types }
          else if (ld.typ=orddef) and (rd.typ=orddef) then
            begin
+             { optimize multiplacation by a power of 2 }
+             if not(cs_check_overflow in current_settings.localswitches) and
+                (nodetype = muln) and
+                (((left.nodetype = ordconstn) and
+                  ispowerof2(tordconstnode(left).value,i)) or
+                 ((right.nodetype = ordconstn) and
+                  ispowerof2(tordconstnode(right).value,i))) then
+               begin
+                 if left.nodetype = ordconstn then
+                   begin
+                     tordconstnode(left).value := i;
+                     result := cshlshrnode.create(shln,right,left);
+                   end
+                 else
+                   begin
+                     tordconstnode(right).value := i;
+                     result := cshlshrnode.create(shln,left,right);
+                   end;
+                 left := nil;
+                 right := nil;
+                 exit;
+               end;
+
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
               begin
