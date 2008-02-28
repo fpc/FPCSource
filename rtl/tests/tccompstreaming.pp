@@ -1129,7 +1129,6 @@ begin
     ExpectEndOfList;
     ExpectEndOfList;
     ExpectEndOfList;
-    ExpectEndOfList;
     ExpectEndOfStream;
   Finally
     C.Free;

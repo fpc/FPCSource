@@ -23,16 +23,16 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--format=plain --suite=TTestCollectionStream"/>
+        <CommandLineParams Value="--format=plain --suite=TTestComponentStream"/>
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="FPCUnitConsoleRunner"/>
+        <PackageName Value="FCL"/>
       </Item1>
       <Item2>
-        <PackageName Value="FCL"/>
+        <PackageName Value="FPCUnitConsoleRunner"/>
       </Item2>
     </RequiredPackages>
     <Units Count="14">
