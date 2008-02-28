@@ -545,14 +545,14 @@ end;
 
 function TDaemon.Stop: Boolean;
 begin
-  Result:=inherited Start;
+  Result:=inherited Stop;
   If assigned(FOnStop) then
     FOnStop(Self,Result);
 end;
 
 function TDaemon.Pause: Boolean;
 begin
-  Result:=inherited Start;
+  Result:=inherited Pause;
   If assigned(FOnPause) then
     FOnPause(Self,Result);
 end;
