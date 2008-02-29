@@ -19,7 +19,7 @@ program ImgConv;
 
 uses FPWriteXPM, FPWritePNG, FPWriteBMP,
      FPReadXPM, FPReadPNG, FPReadBMP, fpreadjpeg,fpwritejpeg,
-     fpreadtga,fpwritetga,fpreadpnm,
+     fpreadtga,fpwritetga,fpreadpnm,fpwritepnm,
      {$ifndef UseFile}classes,{$endif}
      FPImage, sysutils;
 
@@ -77,6 +77,8 @@ begin
     Writer := TFPWriterPNG.Create
   else if T = 'T' then
     Writer := TFPWriterTARGA.Create
+  else if T = 'N' then
+    Writer := TFPWriterPNM.Create(4)
   else
     begin
     Writeln('Unknown file format : ',T);
