@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Type checking and register allocation for add nodes
+    Type checking and simplification for add nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1206,8 +1206,40 @@ implementation
                     is_signed(rd) or
                     (nodetype=subn) then
                    begin
+{$ifdef cpunodefaultint}
+                      { for small cpus we use the smallest common type }
+                      llow:=torddef(rd).low;
+                      if llow<torddef(ld).low then
+                        llow:=torddef(ld).low;
+                      lhigh:=torddef(rd).high;
+                      if lhigh<torddef(ld).high then
+                        lhigh:=torddef(ld).high;
+                      case range_to_basetype(llow,lhigh) of
+                        s8bit:
+                          nd:=s8inttype;
+                        u8bit:
+                          nd:=u8inttype;
+                        s16bit:
+                          nd:=s8inttype;
+                        u16bit:
+                          nd:=u8inttype;
+                        s32bit:
+                          nd:=s8inttype;
+                        u32bit:
+                          nd:=u8inttype;
+                        s64bit:
+                          nd:=s8inttype;
+                        u64bit:
+                          nd:=u8inttype;
+                        else
+                          internalerror(200802291);
+                      end;
+                     inserttypeconv(right,nd);
+                     inserttypeconv(left,nd);
+{$else cpunodefaultint}
                      inserttypeconv(right,sinttype);
                      inserttypeconv(left,sinttype);
+{$endif cpunodefaultint}
                    end
                  else
                    begin

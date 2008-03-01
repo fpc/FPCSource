@@ -113,6 +113,7 @@
   {$define cpu16bit}
   {$define cpuflags}
   {$define cpunofpu}
+  {$define cpunodefaultint}
 {$endif avr}
 
 {$IFDEF MACOS}
