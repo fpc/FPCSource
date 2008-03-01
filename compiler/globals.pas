@@ -299,7 +299,8 @@ interface
 
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the target_info.cprefix)                }
-       mainaliasname : string = 'main';
+       defaultmainaliasname = 'main';
+       mainaliasname : string = defaultmainaliasname;
 
        { by default no local variable trashing }
        localvartrashing: longint = -1;

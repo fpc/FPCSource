@@ -616,6 +616,26 @@ implementation
         do_moduleswitch(cs_support_macro);
       end;
 
+    procedure dir_pascalmainname;
+      var
+        s: string;
+      begin
+        current_scanner.skipspace;
+        s:=trimspace(current_scanner.readcomment);
+        if assigned(current_module.mainname) and
+           (s<>current_module.mainname^) then
+          begin
+            Message1(scan_w_multiple_main_name_overrides,current_module.mainname^);
+            stringdispose(current_module.mainname)
+          end
+        else if (mainaliasname<>defaultmainaliasname) and
+                (mainaliasname<>s) then
+          Message1(scan_w_multiple_main_name_overrides,mainaliasname);
+        mainaliasname:=s;
+        if (mainaliasname<>defaultmainaliasname) then
+          current_module.mainname:=stringdup(mainaliasname);
+      end;
+
     procedure dir_maxfpuregisters;
       var
          l  : integer;
@@ -1345,6 +1365,7 @@ implementation
         AddDirective('PACKENUM',directive_all, @dir_packenum);
         AddDirective('PACKRECORDS',directive_all, @dir_packrecords);
         AddDirective('PACKSET',directive_all, @dir_packset);
+        AddDirective('PASCALMAINNAME',directive_all, @dir_pascalmainname);
         AddDirective('PIC',directive_all, @dir_pic);
         AddDirective('POP',directive_all, @dir_pop);
         AddDirective('PROFILE',directive_all, @dir_profile);

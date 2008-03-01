@@ -146,6 +146,7 @@ interface
         linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
         linkotherstaticlibs,
         linkotherframeworks  : tlinkcontainer;
+        mainname      : pshortstring; { alternate name for "main" procedure }
 
         used_units           : tlinkedlist;
         dependent_units      : tlinkedlist;
@@ -469,6 +470,7 @@ implementation
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs:=TLinkContainer.Create;
         linkotherframeworks:=TLinkContainer.Create;
+        mainname:=nil;
         FImportLibraryList:=TFPHashObjectList.Create(true);
         crc:=0;
         interface_crc:=0;
@@ -564,6 +566,7 @@ implementation
         linkotherstaticlibs.Free;
         linkothersharedlibs.Free;
         linkotherframeworks.Free;
+        stringdispose(mainname);
         FImportLibraryList.Free;
         stringdispose(objfilename);
         stringdispose(asmfilename);
@@ -708,6 +711,7 @@ implementation
         linkothersharedlibs:=TLinkContainer.Create;
         linkotherframeworks.Free;
         linkotherframeworks:=TLinkContainer.Create;
+        stringdispose(mainname);
         FImportLibraryList.Free;
         FImportLibraryList:=TFPHashObjectList.Create;
         do_compile:=false;
