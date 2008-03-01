@@ -18,21 +18,16 @@ interface
 uses
   { in the interface so the graphh definitions of moveto etc override }
   { the ones in the universal interfaces                              }
-  cthreads, FPCMacOSAll;
+  FPCMacOSAll;
 
 {$linkframework Carbon}
 
-type
-  TGraphProgram = function(p: pointer): longint;
-
-  procedure StartGraphProgram(p: TGraphProgram);
+{$pascalmainname FPCMacOSXGraphMain}
 
 {$i graphh.inc}
 
 Const
   { Supported modes }
-  {(sg) GTEXT deactivated because we need mode #0 as default mode}
-  {GTEXT             = 0;                 Compatible with VGAlib v1.2 }
   G320x200x16       = 1;
   G640x200x16       = 2;
   G640x350x16       = 3;
@@ -97,7 +92,11 @@ implementation
 
 uses
   { for FOUR_CHAR_CODE }
-  macpas;
+  macpas,
+  baseunix,
+  unix,
+  ctypes,
+  pthreads;
 
 const
   InternalDriverName = 'Quartz';
@@ -964,7 +963,7 @@ end;
            begin
            ModeNumber:=I;
            ModeName:=ModeNames[i];
-           // Pretend we are VGA always.
+           // Always pretend we are VGA.
            DriverNumber := VGA;
            // MaxX is number of pixels in X direction - 1
            MaxX:=640-1;
@@ -1059,34 +1058,36 @@ begin
 end;
 
 
-var
-  proctorun: TGraphProgram;
-   
-function wrapper(p: pointer): longint;
-(*
-  var
-    event : EventRef;
-*)
-  begin 
-    wrapper:=proctorun(nil);
-    halt(wrapper);
-(*
-    if (CreateEvent(nil, kEventClassFPCGraph, kEventQuit, GetCurrentEventTime(), 0, event) <> noErr) then
-      exit;
+type
+  pmainparas = ^tmainparas;
+  tmainparas = record
+    argc: cint;
+    argv: ppchar;
+    envp: ppchar;
+  end;
 
-    if (PostEventToQueue(MainEventQueue,event,kEventPriorityLow) <> noErr) then
-      begin
-        ReleaseEvent(event);
-        halt(wrapper);
-      end;
-*)
+procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: ppchar); external name '_FPCMacOSXGraphMain';
+
+function wrapper(p: pointer): pointer; cdecl;
+  var
+    mainparas: pmainparas absolute p;
+  begin 
+    FPCMacOSXGraphMain(mainparas^.argc, mainparas^.argv, mainparas^.envp);
+    wrapper:=nil;
+    { the main program should exit }
+    fpexit(1);
   end;
 
 
-procedure StartGraphProgram(p: TGraphProgram);
+{ this routine runs before the rtl is initialised, so don't call any }
+{ rtl routines in it                                                 }
+procedure main(argcpara: cint; argvpara, envppara: ppchar); cdecl; [public];
   var
-    taskid: mptaskid;
     eventRec: eventrecord;
+    graphmainthread: TThreadID;
+    attr: TThreadAttr;
+    ret: cint;
+    mainparas: tmainparas;
   begin
     if InstallEventHandler (GetApplicationEventTarget,
                             NewEventHandlerUPP (@GraphEventHandler), 
@@ -1094,18 +1095,24 @@ procedure StartGraphProgram(p: TGraphProgram);
                             @allGraphSpec, 
                             nil,
                             nil) <> noErr then
-      begin
-        _GraphResult:=grError;
-        exit;
-      end;
+      fpexit(1);
   
-    proctorun:=p;
-     
     { main program has to be the first one to access the event queue, see }
     { http://lists.apple.com/archives/carbon-dev/2007/Jun/msg00612.html   }
     eventavail(0,eventRec);
     maineventqueue:=GetMainEventQueue;
-    BeginThread(@wrapper);
+    ret:=pthread_attr_init(@attr);
+    if (ret<>0) then
+      fpexit(1);
+    ret:=pthread_attr_setdetachstate(@attr,1);
+    if (ret<>0) then
+      fpexit(1);
+    mainparas.argc:=argcpara;
+    mainparas.argv:=argvpara;
+    mainparas.envp:=envppara;
+    ret:=pthread_create(@graphmainthread,@attr,@wrapper,@mainparas);
+    if (ret<>0) then
+      fpexit(1);
     RunApplicationEventLoop;
   end;
 
