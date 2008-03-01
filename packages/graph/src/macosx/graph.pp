@@ -20,8 +20,6 @@ uses
   { the ones in the universal interfaces                              }
   FPCMacOSAll;
 
-{$linkframework Carbon}
-
 {$pascalmainname FPCMacOSXGraphMain}
 
 {$i graphh.inc}
@@ -768,7 +766,6 @@ begin
                         or kWindowInWindowMenuAttribute
                         or kWindowCompositingAttribute
                         or kWindowLiveResizeAttribute
-                        or kWindowInWindowMenuAttribute
                         or kWindowNoUpdatesAttribute; 
 
   SetRect (contentRect, 0,  0,
