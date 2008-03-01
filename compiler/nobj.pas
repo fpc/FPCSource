@@ -1212,7 +1212,7 @@ implementation
           etFieldValue,
           etVirtualMethodResult,
           etStaticMethodResult:
-            ;
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(0));
           else
             internalerror(200802162);
         end;
