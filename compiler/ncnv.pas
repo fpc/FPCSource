@@ -1958,58 +1958,83 @@ implementation
     { the result of this node tree is downcasted again to a      }
     { 8/16/32 bit value afterwards                               }
     function checkremove64bittypeconvs(n: tnode): boolean;
+      var
+        gotmuldivmod, gotsint: boolean;
 
       { checks whether a node is either an u32bit, or originally }
       { was one but was implicitly converted to s64bit           }
-      function wasoriginallyuint32(n: tnode): boolean;
+      function wasoriginallyint32(n: tnode): boolean;
         begin
           if (n.resultdef.typ<>orddef) then
             exit(false);
-          if (torddef(n.resultdef).ordtype=u32bit) then
+          if (torddef(n.resultdef).ordtype in [s32bit,u32bit]) then
+            begin
+              if (torddef(n.resultdef).ordtype=s32bit) then
+                gotsint:=true;
+              exit(true);
+            end;
+          if (torddef(n.resultdef).ordtype=s64bit) and
+             { nf_explicit is also set for explicitly typecasted }
+             { ordconstn's                                       }
+             ([nf_internal,nf_explicit]*n.flags=[]) and
+             { either a typeconversion node coming from u32bit }
+             (((n.nodetype=typeconvn) and
+               (ttypeconvnode(n).left.resultdef.typ=orddef) and
+               (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s32bit,u32bit])) or
+             { or an ordconstnode which was/is a valid cardinal }
+              ((n.nodetype=ordconstn) and
+               (tordconstnode(n).value>=low(longint)) and
+               (tordconstnode(n).value<=high(cardinal)))) then
+            begin
+              if ((n.nodetype=typeconvn) and
+                  (torddef(ttypeconvnode(n).left.resultdef).ordtype=s32bit)) or
+                 ((n.nodetype=ordconstn) and
+                  (tordconstnode(n).value<0)) then
+                gotsint:=true;
+              exit(true);
+            end;
+          result:=false;
+        end;
+  
+  
+      function docheckremove64bittypeconvs(n: tnode): boolean;
+        begin
+          result:=false;
+          if wasoriginallyint32(n) then
             exit(true);
-          result:=
-            (torddef(n.resultdef).ordtype=s64bit) and
-            { nf_explicit is also set for explicitly typecasted }
-            { ordconstn's                                       }
-            ([nf_internal,nf_explicit]*n.flags=[]) and
-            { either a typeconversion node coming from u32bit }
-            (((n.nodetype=typeconvn) and
-              (ttypeconvnode(n).left.resultdef.typ=orddef) and
-              (torddef(ttypeconvnode(n).left.resultdef).ordtype=u32bit)) or
-            { or an ordconstnode which was/is a valid cardinal }
-             ((n.nodetype=ordconstn) and
-              (tordconstnode(n).value>=0) and
-              (tordconstnode(n).value<=high(cardinal))));
-        end;
-
-
-      begin
-        result:=false;
-        if wasoriginallyuint32(n) then
-          exit(true);
-        case n.nodetype of
-          subn:
-            begin
-              { nf_internal is set by taddnode.typecheckpass in  }
-              { case the arguments of this subn were u32bit, but }
-              { upcasted to s64bit for calculation correctness   }
-              { (normally only needed when range checking, but   }
-              {  also done otherwise so there is no difference   }
-              {  in overload choosing etc between $r+ and $r-)   }
-              if (nf_internal in n.flags) then
-                result:=true
-              else
+          case n.nodetype of
+            subn,orn,xorn:
+              begin
+                { nf_internal is set by taddnode.typecheckpass in  }
+                { case the arguments of this subn were u32bit, but }
+                { upcasted to s64bit for calculation correctness   }
+                { (normally only needed when range checking, but   }
+                {  also done otherwise so there is no difference   }
+                {  in overload choosing etc between $r+ and $r-)   }
+                if (nf_internal in n.flags) then
+                  result:=true
+                else
+                  result:=
+                    docheckremove64bittypeconvs(tbinarynode(n).left) and
+                    docheckremove64bittypeconvs(tbinarynode(n).right);
+              end;
+            addn,muln,divn,modn,andn:
+              begin
+                if n.nodetype in [muln,divn,modn] then
+                  gotmuldivmod:=true;
                 result:=
-                  checkremove64bittypeconvs(tbinarynode(n).left) and
-                  checkremove64bittypeconvs(tbinarynode(n).right);
-            end;
-          addn,muln,divn,modn,xorn,andn,orn:
-            begin
-              result:=
-                checkremove64bittypeconvs(tbinarynode(n).left) and
-                checkremove64bittypeconvs(tbinarynode(n).right);
-            end;
+                  docheckremove64bittypeconvs(tbinarynode(n).left) and
+                  docheckremove64bittypeconvs(tbinarynode(n).right);
+              end;
+          end;
         end;
+
+      begin { checkremove64bittypeconvs }
+        gotmuldivmod:=false;
+        gotsint:=false;
+        result:=
+          docheckremove64bittypeconvs(n) and
+          not(gotmuldivmod and gotsint);
       end;
 
 

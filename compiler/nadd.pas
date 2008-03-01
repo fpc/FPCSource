@@ -140,8 +140,9 @@ implementation
 
     function taddnode.simplify : tnode;
       var
-        t : tnode;
+        t, hp   : tnode;
         lt,rt   : tnodetype;
+        realdef : tdef;
         rd,ld   : tdef;
         rv,lv,v : tconstexprint;
         rvd,lvd : bestreal;
@@ -204,28 +205,6 @@ implementation
             ) then
           begin
              t:=nil;
-             { when comparing/substracting  pointers, make sure they are }
-             { of the same  type (JM)                                    }
-             if (lt = pointerconstn) and (rt = pointerconstn) then
-              begin
-                if not(cs_extsyntax in current_settings.moduleswitches) and
-                   not(nodetype in [equaln,unequaln]) then
-                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename)
-                else
-                  if (nodetype <> subn) and
-                     is_voidpointer(rd) then
-                    inserttypeconv(right,left.resultdef)
-                  else if (nodetype <> subn) and
-                          is_voidpointer(ld) then
-                    inserttypeconv(left,right.resultdef)
-                  else if not(equal_defs(ld,rd)) then
-                    IncompatibleTypes(ld,rd);
-               end
-             else if (ld.typ=enumdef) and (rd.typ=enumdef) then
-              begin
-                if not(equal_defs(ld,rd)) then
-                  inserttypeconv(right,left.resultdef);
-               end;
 
              { load values }
              case lt of
@@ -248,12 +227,8 @@ implementation
                else
                  internalerror(2002080203);
              end;
-             if (lt = pointerconstn) and
-                (rt <> pointerconstn) then
-               rv := rv * tpointerdef(left.resultdef).pointeddef.size;
-             if (rt = pointerconstn) and
-                (lt <> pointerconstn) then
-               lv := lv * tpointerdef(right.resultdef).pointeddef.size;
+             { type checking already took care of multiplying      }
+             { integer constants with pointeddef.size if necessary }
              case nodetype of
                addn :
                  begin
@@ -265,12 +240,12 @@ implementation
                        t:=genintconstnode(0)
                      end
                    else if (lt=pointerconstn) then
-                     t := cpointerconstnode.create(qword(v),left.resultdef)
+                     t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
                        t := genintconstnode(v)
                      else
-                       t := cordconstnode.create(v,left.resultdef,(ld.typ<>enumdef));
+                       t := cordconstnode.create(v,resultdef,(ld.typ<>enumdef));
                  end;
                subn :
                  begin
@@ -284,14 +259,18 @@ implementation
                    else if (lt=pointerconstn) then
                      { pointer-pointer results in an integer }
                      if (rt=pointerconstn) then
-                       t := genintconstnode(v div tpointerdef(ld).pointeddef.size)
+                       begin
+                         if not(nf_has_pointerdiv in flags) then
+                           internalerror(2008030101);
+                         t := genintconstnode(v)
+                       end
                      else
-                       t := cpointerconstnode.create(qword(v),left.resultdef)
+                       t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
                        t:=genintconstnode(v)
                      else
-                       t:=cordconstnode.create(v,left.resultdef,(ld.typ<>enumdef));
+                       t:=cordconstnode.create(v,resultdef,(ld.typ<>enumdef));
                  end;
                muln :
                  begin
@@ -309,17 +288,17 @@ implementation
                  if is_integer(ld) then
                    t:=genintconstnode(lv xor rv)
                  else
-                   t:=cordconstnode.create(lv xor rv,left.resultdef,true);
+                   t:=cordconstnode.create(lv xor rv,resultdef,true);
                orn :
                  if is_integer(ld) then
                    t:=genintconstnode(lv or rv)
                  else
-                   t:=cordconstnode.create(lv or rv,left.resultdef,true);
+                   t:=cordconstnode.create(lv or rv,resultdef,true);
                andn :
                  if is_integer(ld) then
                    t:=genintconstnode(lv and rv)
                  else
-                   t:=cordconstnode.create(lv and rv,left.resultdef,true);
+                   t:=cordconstnode.create(lv and rv,resultdef,true);
                ltn :
                  t:=cordconstnode.create(ord(lv<rv),booltype,true);
                lten :
@@ -340,10 +319,7 @@ implementation
                    t:=crealconstnode.create(lvd/rvd,resultrealdef);
                  end;
                else
-                 begin
-                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                   t:=cnothingnode.create;
-                 end;
+                 internalerror(2008022101);
              end;
              result:=t;
              exit;
@@ -358,8 +334,17 @@ implementation
             is_subequal(left.resultdef,right.resultdef) then
             begin
               t:=nil;
+              hp:=right;
+              realdef:=hp.resultdef;
+              while (hp.nodetype=typeconvn) and
+                    ([nf_internal,nf_explicit] * hp.flags = []) and
+                    is_in_limit(ttypeconvnode(hp).left.resultdef,realdef) do
+                begin
+                  hp:=ttypeconvnode(hp).left;
+                  realdef:=hp.resultdef;
+                end;
               lv:=Tordconstnode(left).value;
-              with Torddef(right.resultdef) do
+              with torddef(realdef) do
                 case nodetype of
                  ltn:
                    if lv<low then
@@ -395,15 +380,21 @@ implementation
                 end
             end
           else if (left.resultdef.typ=orddef) and is_constintnode(right) and
-(*              { all type limits are stored using tconstexprint = int64   }
-              { currently, so u64bit support would need extra type casts }
-              (Torddef(left.resultdef).ordtype<>u64bit) and*)
               { don't ignore type checks }
               is_subequal(left.resultdef,right.resultdef) then
             begin
               t:=nil;
+              hp:=left;
+              realdef:=hp.resultdef;
+              while (hp.nodetype=typeconvn) and
+                    ([nf_internal,nf_explicit] * hp.flags = []) and
+                    is_in_limit(ttypeconvnode(hp).left.resultdef,realdef) do
+                begin
+                  hp:=ttypeconvnode(hp).left;
+                  realdef:=hp.resultdef;
+                end;
               rv:=Tordconstnode(right).value;
-              with Torddef(left.resultdef) do
+              with torddef(realdef) do
                 case nodetype of
                  ltn:
                    if high<rv then
@@ -448,7 +439,7 @@ implementation
                   addn,subn:
                    result := left.getcopy;
                   muln:
-                   result:=cordconstnode.create(0,left.resultdef,true);
+                   result:=cordconstnode.create(0,resultdef,true);
                 end;
               end
             else if tordconstnode(right).value = 1 then
@@ -546,10 +537,7 @@ implementation
                 unequaln :
                   t:=cordconstnode.create(ord(lvd<>rvd),booltype,true);
                 else
-                  begin
-                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                    t:=cnothingnode.create;
-                  end;
+                  internalerror(2008022102);
              end;
              result:=t;
              exit;
@@ -588,10 +576,7 @@ implementation
                 unequaln :
                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype,true);
                 else
-                  begin
-                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                    t:=cnothingnode.create;
-                  end;
+                  internalerror(2008022103);
              end;
              donewidestring(ws1);
              donewidestring(ws2);
@@ -661,10 +646,7 @@ implementation
                 unequaln :
                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype,true);
                 else
-                  begin
-                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                    t:=cnothingnode.create;
-                  end;
+                  internalerror(2008022104);
              end;
              result:=t;
              exit;
@@ -676,42 +658,26 @@ implementation
            (left.nodetype=setconstn) and
            not assigned(tsetconstnode(left).left) then
           begin
-             { check if size adjusting is needed, only for left
-               to right as the other way is checked in the typeconv }
-             if (tsetdef(right.resultdef).settype=smallset) and
-                (tsetdef(left.resultdef).settype<>smallset) then
-               right.resultdef:=tsetdef.create(tsetdef(right.resultdef).elementdef,0,255);
-             { check base types, keep the original type if right was an empty set }
-             if assigned(tsetdef(right.resultdef).elementdef) then
-               inserttypeconv(left,right.resultdef);
-
-             if codegenerror then
-              begin
-                { recover by only returning the left part }
-                result:=left;
-                left:=nil;
-                exit;
-              end;
              case nodetype of
                addn :
                  begin
                    resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
-                   t:=csetconstnode.create(@resultset,left.resultdef);
+                   t:=csetconstnode.create(@resultset,resultdef);
                  end;
                 muln :
                   begin
                     resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
-                    t:=csetconstnode.create(@resultset,left.resultdef);
+                    t:=csetconstnode.create(@resultset,resultdef);
                   end;
                subn :
                   begin
                     resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
-                            t:=csetconstnode.create(@resultset,left.resultdef);
+                            t:=csetconstnode.create(@resultset,resultdef);
                   end;
                symdifn :
                   begin
                     resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
-                        t:=csetconstnode.create(@resultset,left.resultdef);
+                        t:=csetconstnode.create(@resultset,resultdef);
                   end;
                unequaln :
                   begin
@@ -734,10 +700,7 @@ implementation
                     t:=cordconstnode.create(byte(b),booltype,true);
                   end;
                 else
-                  begin
-                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                    t:=cnothingnode.create;
-                  end;
+                  internalerror(2008022105);
              end;
              result:=t;
              exit;
@@ -879,10 +842,6 @@ implementation
             inserttypeconv(right,cwidestringtype);
             inserttypeconv(left,cwidestringtype);
           end;
-
-         result:=simplify;
-         if assigned(result) then
-           exit;
 
         { load easier access variables }
         rd:=right.resultdef;
@@ -1087,19 +1046,35 @@ implementation
                   if (torddef(rd).ordtype<>scurrency) then
                    inserttypeconv(right,s64currencytype);
                end
-             { and,or,xor work on bit patterns and don't care
-               about the sign of integers }
-             { compares don't need extension to native int size either }
-             { as long as both values are signed or unsigned           }
+             { "and" does't care about the sign of integers }
+             { "xor", "or" and compares don't need extension to native int }
+             { size either as long as both values are signed or unsigned   }
+             { "xor" and "or" also don't care about the sign if the values }
+             { occupy an entire register                                   }
              else if is_integer(ld) and is_integer(rd) and
-                     ((nodetype in [andn,orn,xorn]) or
-                      ((nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
+                     ((nodetype=andn) or
+                      ((nodetype in [orn,xorn,equaln,unequaln,gtn,gten,ltn,lten]) and
                        not(is_signed(ld) xor is_signed(rd)))) then
                begin
-                 if rd.size>ld.size then
-                   inserttypeconv_internal(left,right.resultdef)
-                 else
-                   inserttypeconv_internal(right,left.resultdef);
+                 if (rd.size>ld.size) or
+                    { Delphi-compatible: prefer unsigned type for "and" with equal size }
+                    ((rd.size=ld.size) and
+                     not is_signed(rd)) then
+                   begin
+                     if (rd.size=ld.size) and
+                        is_signed(ld) then
+                       inserttypeconv_internal(left,right.resultdef)
+                     else
+                       inserttypeconv(left,right.resultdef)
+                   end
+                 else 
+                   begin
+                     if (rd.size=ld.size) and
+                        is_signed(rd) then
+                       inserttypeconv_internal(right,left.resultdef)
+                     else
+                       inserttypeconv(right,left.resultdef)
+                   end
                end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
@@ -1148,8 +1123,9 @@ implementation
                      { mustn't do it here because that would change  }
                      { overload choosing behaviour etc. The code in  }
                      { ncnv.pas is run after that is already decided }
-                     if not is_signed(left.resultdef) and
-                        not is_signed(right.resultdef) then
+                     if (not is_signed(left.resultdef) and
+                         not is_signed(right.resultdef)) or
+                        (nodetype in [orn,xorn]) then
                        include(flags,nf_internal);
                      inserttypeconv(left,s64inttype);
                      inserttypeconv(right,s64inttype);
@@ -1260,84 +1236,80 @@ implementation
            else array constructor can be seen as array of char (PFV) }
          else if (ld.typ=setdef) then
           begin
-            { trying to add a set element? }
-            if (nodetype=addn) and (rd.typ<>setdef) then
-             begin
-               if (rt=setelementn) then
-                 begin
-                   if not(equal_defs(tsetdef(ld).elementdef,rd)) then
-                     inserttypeconv(right,tsetdef(ld).elementdef);
-                 end
-               else
-                 CGMessage(type_e_mismatch);
-             end
-            else
-             begin
-               if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
-                CGMessage(type_e_set_operation_unknown);
-               { Make operands the same setdef. If one's elementtype fits   }
-               { entirely inside the other's, pick the one with the largest }
-               { range.  Otherwise create a new setdef with a range which   }
-               { can contain both.                                          }
-               if not(equal_defs(ld,rd)) then
-                begin
-                  { note: ld cannot be an empty set with elementdef=nil in }
-                  { case right is not a set, arrayconstructor_to_set takes }
-                  { care of that                                           }
-
-                  { 1: rd is a set with an assigned elementdef, and ld is    }
-                  {    either an empty set without elementdef or a set whose }
-                  {    elementdef fits in rd's elementdef -> convert to rd   }
-                  if ((rd.typ=setdef) and
-                      assigned(tsetdef(rd).elementdef) and
-                      (not assigned(tsetdef(ld).elementdef) or
-                       is_in_limit(ld,rd))) then
-                    inserttypeconv(left,right.resultdef)
-                  { 2: rd is either an empty set without elementdef or a set }
-                  {    whose elementdef fits in ld's elementdef, or a set    }
-                  {    element whose def fits in ld's elementdef -> convert  }
-                  {    to ld. ld's elementdef can't be nil here, is caught   }
-                  {    previous case and "note:" above                       }
-                  else if ((rd.typ=setdef) and
-                           (not assigned(tsetdef(rd).elementdef) or
-                            is_in_limit(rd,ld))) or
-                          ((rd.typ<>setdef) and
-                           is_in_limit(rd,tsetdef(ld).elementdef)) then
-                    inserttypeconv(right,left.resultdef)
-                  { 3: otherwise create setdef which encompasses both, taking }
-                  {    into account empty sets without elementdef             }
+             if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
+              CGMessage(type_e_set_operation_unknown);
+             { right must either be a set or a set element }
+             if (rd.typ<>setdef) and
+                (rt<>setelementn) then
+               CGMessage(type_e_mismatch)
+             { Make operands the same setdef. If one's elementtype fits   }
+             { entirely inside the other's, pick the one with the largest }
+             { range.  Otherwise create a new setdef with a range which   }
+             { can contain both.                                          }
+             else if not(equal_defs(ld,rd)) then
+              begin
+                { note: ld cannot be an empty set with elementdef=nil in }
+                { case right is not a set, arrayconstructor_to_set takes }
+                { care of that                                           }
+  
+                { 1: rd is a set with an assigned elementdef, and ld is    }
+                {    either an empty set without elementdef or a set whose }
+                {    elementdef fits in rd's elementdef -> convert to rd   }
+                if ((rd.typ=setdef) and
+                    assigned(tsetdef(rd).elementdef) and
+                    (not assigned(tsetdef(ld).elementdef) or
+                     is_in_limit(ld,rd))) then
+                  inserttypeconv(left,rd)
+                { 2: rd is either an empty set without elementdef or a set }
+                {    whose elementdef fits in ld's elementdef, or a set    }
+                {    element whose def fits in ld's elementdef -> convert  }
+                {    to ld. ld's elementdef can't be nil here, is caught   }
+                {    previous case and "note:" above                       }
+                else if ((rd.typ=setdef) and
+                         (not assigned(tsetdef(rd).elementdef) or
+                          is_in_limit(rd,ld))) or
+                        ((rd.typ<>setdef) and
+                         is_in_limit(rd,tsetdef(ld).elementdef)) then
+                   if (rd.typ=setdef) then
+                    inserttypeconv(right,ld)
                   else
-                    begin
-                      if assigned(tsetdef(ld).elementdef) then
+                    inserttypeconv(right,tsetdef(ld).elementdef)
+                { 3: otherwise create setdef which encompasses both, taking }
+                {    into account empty sets without elementdef             }
+                else
+                  begin
+                    if assigned(tsetdef(ld).elementdef) then
+                      begin
+                        llow:=tsetdef(ld).setbase;
+                        lhigh:=tsetdef(ld).setmax;
+                      end;
+                    if (rd.typ=setdef) then
+                      if assigned(tsetdef(rd).elementdef) then
                         begin
-                          llow:=tsetdef(ld).setbase;
-                          lhigh:=tsetdef(ld).setmax;
-                        end;
-                      if (rd.typ=setdef) then
-                        if assigned(tsetdef(rd).elementdef) then
-                          begin
-                            rlow:=tsetdef(rd).setbase;
-                            rhigh:=tsetdef(rd).setmax;
-                          end
-                        else
-                          begin
-                            { ld's elementdef must have been valid }
-                            rlow:=llow;
-                            rhigh:=lhigh;
-                          end
+                          rlow:=tsetdef(rd).setbase;
+                          rhigh:=tsetdef(rd).setmax;
+                        end
                       else
-                        getrange(rd,rlow,rhigh);
-                      if not assigned(tsetdef(ld).elementdef) then
                         begin
-                          llow:=rlow;
-                          lhigh:=rhigh;
-                        end;
-                      nd:=tsetdef.create(tsetdef(ld).elementdef,min(llow,rlow),max(lhigh,rhigh));
-                      inserttypeconv(left,nd);
-                      inserttypeconv(right,nd);
-                    end;
-                end;
-            end;
+                          { ld's elementdef must have been valid }
+                          rlow:=llow;
+                          rhigh:=lhigh;
+                        end
+                    else
+                      getrange(rd,rlow,rhigh);
+                    if not assigned(tsetdef(ld).elementdef) then
+                      begin
+                        llow:=rlow;
+                        lhigh:=rhigh;
+                      end;
+                    nd:=tsetdef.create(tsetdef(ld).elementdef,min(llow,rlow),max(lhigh,rhigh));
+                    inserttypeconv(left,nd);
+                    if (rd.typ=setdef) then
+                      inserttypeconv(right,nd)
+                    else
+                      inserttypeconv(right,tsetdef(nd).elementdef);
+                  end;
+              end;
           end
          { pointer comparision and subtraction }
          else if (
@@ -1802,6 +1774,10 @@ implementation
                 end;
             end;
           end;
+
+         if not codegenerror and
+            not assigned(result) then
+           result:=simplify;
       end;
 
 

@@ -6853,6 +6853,7 @@ tests/test/cg/ptest.pp svneol=native#text/plain
 tests/test/cg/taddbool.pp svneol=native#text/plain
 tests/test/cg/taddcard.pp svneol=native#text/plain
 tests/test/cg/taddcurr.pp svneol=native#text/plain
+tests/test/cg/taddint.pp svneol=native#text/plain
 tests/test/cg/taddlong.pp svneol=native#text/plain
 tests/test/cg/taddr1.pp svneol=native#text/plain
 tests/test/cg/taddr2.pp svneol=native#text/plain
