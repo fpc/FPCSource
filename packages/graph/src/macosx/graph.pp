@@ -1066,7 +1066,7 @@ type
     envp: ppchar;
   end;
 
-procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: ppchar); external name '_FPCMacOSXGraphMain';
+procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: ppchar); cdecl; external;
 
 function wrapper(p: pointer): pointer; cdecl;
   var
