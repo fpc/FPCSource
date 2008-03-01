@@ -1,7 +1,7 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 2008 by Florian Klaempfl
 
-    This unit contains the ARM GAS instruction tables
+    This unit contains the AVR GAS instruction tables
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
