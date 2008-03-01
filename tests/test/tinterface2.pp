@@ -1,6 +1,9 @@
 { %VERSION=1.1 }
 
+{$ifdef fpc}
 {$mode objfpc}
+{$endif}
+
 type
   ITest = interface(IUnknown)
     procedure DoSomething;
@@ -33,13 +36,12 @@ end;
 
 
 var
-  c: TMyClass;
+  c: ITest;
 begin
   i:=0;
   c := TMyClass.Create;
   DoTest(c);
   DoTest2(c);
-  c.Free;
   if i<>2 then
     begin
        writeln('Problem with passing interfaces as parameters');
