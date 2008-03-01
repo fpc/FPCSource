@@ -7269,6 +7269,7 @@ tests/test/thintdir.pp svneol=native#text/plain
 tests/test/timplements1.pp svneol=native#text/plain
 tests/test/timplements2.pp svneol=native#text/plain
 tests/test/timplements3.pp svneol=native#text/plain
+tests/test/timplements4.pp svneol=native#text/plain
 tests/test/timplprog.pp svneol=native#text/plain
 tests/test/tindex.pp svneol=native#text/plain
 tests/test/tinivar.pp svneol=native#text/plain
