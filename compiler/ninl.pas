@@ -604,7 +604,9 @@ implementation
                           fracpara.right := ccallparanode.create(
                               cordconstnode.create(ord(tfloatdef(para.left.resultdef).floattype),
                               s32inttype,true),nil);
-                        end;
+                        end
+                      else
+                        fracpara.right:=nil;
                     end;
                   if para.left.resultdef.typ=enumdef then
                     begin
