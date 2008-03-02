@@ -1983,7 +1983,7 @@ implementation
                (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s32bit,u32bit])) or
              { or an ordconstnode which was/is a valid cardinal }
               ((n.nodetype=ordconstn) and
-               (tordconstnode(n).value>=low(longint)) and
+               (tordconstnode(n).value>=int64(low(longint))) and
                (tordconstnode(n).value<=high(cardinal)))) then
             begin
               if ((n.nodetype=typeconvn) and
@@ -1995,8 +1995,8 @@ implementation
             end;
           result:=false;
         end;
-  
-  
+
+
       function docheckremove64bittypeconvs(n: tnode): boolean;
         begin
           result:=false;
