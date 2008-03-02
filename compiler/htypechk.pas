@@ -1027,11 +1027,6 @@ implementation
                  end;
                exit;
              end;
-           if (Valid_Const in opts) and is_constnode(hp) then
-             begin
-               result:=true;
-               exit;
-             end;
            case hp.nodetype of
              temprefn :
                begin
@@ -1232,6 +1227,26 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                 exit;
+               end;
+             ordconstn,
+             realconstn :
+               begin
+                 { these constants will be passed by value }
+                 if report_errors then
+                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 exit;
+               end;
+             setconstn,
+             stringconstn,
+             guidconstn :
+               begin
+                 { these constants will be passed by reference }
+                 if valid_const in opts then
+                   result:=true
+                 else
+                   if report_errors then
+                     CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
              addrn :

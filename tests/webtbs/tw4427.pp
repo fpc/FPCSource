@@ -1,11 +1,8 @@
 {$inline on}
 
-type
-  pbyte = ^byte;
-
 procedure test(p: pchar);
 begin
-  if pbyte(p)^ <> 0 then
+  if pchar(p)^ <> 'a' then
     halt(1);
 end;
 
@@ -15,5 +12,5 @@ begin
 end;
 
 begin
-  test(#0);
+  test('abc');
 end.
