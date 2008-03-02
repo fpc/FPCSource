@@ -6,6 +6,7 @@
 main=fcl-db
 
 [target]
+dirs_beos=interbase postgres mysql odbc oracle sqlite
 dirs_linux=interbase postgres mysql odbc oracle sqlite
 dirs_freebsd=interbase postgres mysql odbc oracle sqlite
 dirs_darwin=interbase postgres mysql odbc oracle sqlite

@@ -12,6 +12,9 @@ dirs_powerpc64_linux=graph
 dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
+dirs_beos=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd22 pxlib 
 dirs_freebsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd22 pxlib
@@ -45,7 +48,6 @@ dirs_netware=fv zlib unzip
 dirs_netwlibc=fv zlib unzip
 dirs_palmos=palmunits
 dirs_go32v2=fv graph unzip gdbint
-dirs_beos=fv graph gdbint mysql ibase postgres odbc sqlite pthreads imagemagick
 dirs_amiga=amunits
 
 [install]

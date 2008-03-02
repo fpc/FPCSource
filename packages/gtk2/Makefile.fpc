@@ -8,6 +8,7 @@ version=2.0.0
 
 [require]
 libc=y
+packages_beos=x11
 packages_linux=x11
 packages_freebsd=x11
 packages_solaris=x11
@@ -35,7 +36,7 @@ build=n
 fpcdir=../..
 
 [prerules]
-ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin ),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin beos ),)
 GDK2X=gdk2x
 GTK2X11=gtk2x11
 GTK2X11INCLUDE=src/gtk2x11/include
