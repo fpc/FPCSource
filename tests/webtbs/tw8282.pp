@@ -58,12 +58,12 @@ begin
       Result.Hi32 := 0;
     end else if Right < 32 then begin
       Result.Hi32 := Left.Hi32 shr Right;
-      Result.Mid32 := (Left.Mid32 shr Right) or (Left.Hi32 shl (32 - Right));
+      Result.Mid32 := (Left.Mid32 shr Right) or dword(Left.Hi32 shl (32 - Right));
       Result.Lo32 := (Left.Lo32 shr Right) or (Left.Mid32 shl (32 - Right));
     end else if Right < 64 then begin
       Result.Hi32 := 0;
       Result.Mid32 := Left.Hi32 shr (Right-32);
-      Result.Lo32 := (Left.Mid32 shr (Right-32)) or (Left.Hi32 shl (64 - Right));
+      Result.Lo32 := longint(Left.Mid32 shr (Right-32)) or (Left.Hi32 shl (64 - Right));
     end else if Right < 96 then begin
       Result.Hi32 := 0;
       Result.Mid32 := 0;
@@ -96,7 +96,7 @@ begin
     end else if Right < 32 then begin
       Result.Lo32 := Left.Lo32 shl Right;
       Result.Mid32 := (Left.Mid32 shl Right) or (Left.Lo32 shr (32 - Right));
-      Result.Hi32 := (Left.Hi32 shl Right) or (Left.Mid32 shr (32 - Right));
+      Result.Hi32 := (Left.Hi32 shl Right) or longint(Left.Mid32 shr (32 - Right));
     end else if Right < 64 then begin
       Result.Lo32 := 0;
       Result.Mid32 := Left.Lo32 shl (Right-32);
