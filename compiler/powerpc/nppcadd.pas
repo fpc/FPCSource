@@ -777,7 +777,7 @@ interface
            setdef :
              begin
                { normalsets are already handled in pass1 }
-               if (tsetdef(left.resultdef).settype<>smallset) then
+               if not is_smallset(left.resultdef) then
                 internalerror(200109042);
                second_addsmallset;
                exit;

@@ -1060,7 +1060,7 @@ implementation
     function tsetconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if tsetdef(resultdef).settype=smallset then
+         if is_smallset(resultdef) then
           expectloc:=LOC_CONSTANT
          else
           expectloc:=LOC_CREFERENCE;

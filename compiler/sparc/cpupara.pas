@@ -133,7 +133,7 @@ implementation
           procvardef :
             result:=(po_methodpointer in tprocvardef(def).procoptions);
           setdef :
-            result:=(tsetdef(def).settype<>smallset);
+            result:=not is_smallset(def);
         end;
       end;
 

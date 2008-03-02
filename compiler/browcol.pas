@@ -1388,14 +1388,7 @@ end;
   function GetSetDefStr(def: tsetdef): string;
   var Name: string;
   begin
-    Name:='';
-    case def.settype of
-      normset  : Name:='set';
-      smallset : Name:='set';
-      varset   : Name:='varset';
-    end;
-    Name:=Name+' of ';
-    Name:=Name+GetDefinitionStr(def.elementdef);
+    Name:='set of '+GetDefinitionStr(def.elementdef);
     GetSetDefStr:=Name;
   end;
   function GetPointerDefStr(def: tpointerdef): string;

@@ -240,13 +240,8 @@ implementation
          end;
 
         { don't insert obsolete type conversions }
-        if equal_defs(p.resultdef,def) and
-           not ((p.resultdef.typ=setdef) and
-                (tsetdef(p.resultdef).settype <>
-                 tsetdef(def).settype)) then
-         begin
-           p.resultdef:=def;
-         end
+        if equal_defs(p.resultdef,def) then
+          p.resultdef:=def
         else
          begin
            p:=ctypeconvnode.create(p,def);
@@ -266,13 +261,8 @@ implementation
          end;
 
         { don't insert obsolete type conversions }
-        if equal_defs(p.resultdef,def) and
-           not ((p.resultdef.typ=setdef) and
-                (tsetdef(p.resultdef).settype <>
-                 tsetdef(def).settype)) then
-         begin
-           p.resultdef:=def;
-         end
+        if equal_defs(p.resultdef,def) then
+          p.resultdef:=def
         else
          begin
            p:=ctypeconvnode.create_internal(p,def);
@@ -2597,10 +2587,11 @@ implementation
           begin
             left.resultdef:=resultdef;
             result:=left;
+            left:=nil;
           end
         { equal sets for the code generator? }
         else if (left.resultdef.size=resultdef.size) and
-          (tsetdef(left.resultdef).setbase=tsetdef(resultdef).setbase) then
+                (tsetdef(left.resultdef).setbase=tsetdef(resultdef).setbase) then
           {$warning This causes wrong (but Delphi-compatible) results for disjoint subsets}
           { e.g., this prints true because of this:
               var
@@ -2614,9 +2605,11 @@ implementation
                 writeln(b in sb);
               end.
           }
-          result:=left
+          begin
+            result:=left;
+            left:=nil;
+          end
         else
-        // if is_varset(resultdef) then
           begin
             result:=internalstatements(newstatement);
 
@@ -2651,18 +2644,8 @@ implementation
             );
             addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
             addstatement(newstatement,ctemprefnode.create(temp));
+            left:=nil;
           end;
-        {
-        else
-          begin
-            srsym:=search_system_type('FPC_SMALL_SET');
-            result :=
-              ccallnode.createinternres('fpc_set_load_small',
-                ccallparanode.create(ctypeconvnode.create_internal(left,srsym.typedef),nil),resultdef);
-          end;
-        }
-        { reused }
-        left:=nil;
       end;
 
 

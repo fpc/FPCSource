@@ -310,7 +310,7 @@ unit cpupara;
                 result:=not structure_in_registers(varspez,def.size);
             end;
           setdef :
-            result:=(tsetdef(def).settype<>smallset);
+            result:=not is_smallset(def);
         end;
       end;
 

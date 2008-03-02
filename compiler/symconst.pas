@@ -191,11 +191,6 @@ type
     st_unicodestring
   );
 
-  { set types }
-  tsettype = (
-    normset,smallset,varset
-  );
-
   tvarianttype = (
     vt_normalvariant,vt_olevariant
   );

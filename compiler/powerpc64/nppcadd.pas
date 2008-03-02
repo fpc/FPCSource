@@ -96,8 +96,8 @@ begin
       opsize := OS_32
     else
       opsize := OS_S32;
-    cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef), opsize, 
-      left.location.register, left.location.register); 
+    cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef), opsize,
+      left.location.register, left.location.register);
   end;
 
   { can we use an immediate, or do we have to load the
@@ -173,7 +173,7 @@ begin
     setdef:
       begin
         { normalsets are already handled in pass1 }
-        if (tsetdef(left.resultdef).settype <> smallset) then
+        if not is_smallset(left.resultdef) then
           internalerror(200109041);
         second_addsmallset;
         exit;
@@ -218,7 +218,7 @@ begin
   checkoverflow:=
     (nodetype in [addn,subn,muln]) and
     (cs_check_overflow in current_settings.localswitches) and
-    (left.resultdef.typ<>pointerdef) and 
+    (left.resultdef.typ<>pointerdef) and
     (right.resultdef.typ<>pointerdef);
 
   load_left_right(cmpop, checkoverflow);

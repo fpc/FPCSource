@@ -233,9 +233,6 @@ interface
     {# returns true, if the type passed is can be used with windows automation }
     function is_automatable(p : tdef) : boolean;
 
-    {# returns true, if the type passed is a varset }
-    function is_varset(p : tdef) : boolean;
-
     { # returns true if the procdef has no parameters and no specified return type }
     function is_bareprocdef(pd : tprocdef): boolean;
 
@@ -665,14 +662,6 @@ implementation
       end;
 
 
-    { true if p is a smallset def }
-    function is_smallset(p : tdef) : boolean;
-      begin
-        is_smallset:=(p.typ=setdef) and
-                     (tsetdef(p).settype=smallset);
-      end;
-
-
     { true, if def is a 32 bit int type }
     function is_32bitint(def : tdef) : boolean;
       begin
@@ -999,9 +988,9 @@ implementation
 
 
     {# returns true, if the type passed is a varset }
-    function is_varset(p : tdef) : boolean;
+    function is_smallset(p : tdef) : boolean;
       begin
-        result:=(p.typ=setdef) and not(p.size in [1,2,4])
+        result:=(p.typ=setdef) and (p.size in [1,2,4])
       end;
 
 

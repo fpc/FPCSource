@@ -168,7 +168,7 @@ unit cpupara;
           objectdef :
             result:=is_object(def);
           setdef :
-            result:=(tsetdef(def).settype<>smallset);
+            result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           procvardef :
@@ -293,7 +293,7 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
 	    paradef:=hp.vardef;
-	
+
 	    { syscall for AmigaOS can have already a paraloc set }
             if (vo_has_explicit_paraloc in hp.varoptions) then
               begin
@@ -302,7 +302,7 @@ unit cpupara;
                 continue;
               end;
             hp.paraloc[side].reset;
-	
+
             { currently only support C-style array of const }
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                is_array_of_const(paradef) then

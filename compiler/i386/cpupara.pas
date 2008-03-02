@@ -210,7 +210,7 @@ unit cpupara;
           procvardef :
             result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
           setdef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (not is_smallset(def));
         end;
       end;
 

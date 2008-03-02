@@ -542,7 +542,6 @@ interface
        tsetdef = class(tstoreddef)
           elementdef : tdef;
           elementdefderef : tderef;
-          settype  : tsettype;
           setbase,
           setmax   : aword;
           constructor create(def:tdef;low, high : aint);
@@ -1065,7 +1064,7 @@ implementation
           objectdef:
             is_intregable:=(is_class(self) or is_interface(self)) and not needs_inittable;
           setdef:
-            is_intregable:=(tsetdef(self).settype=smallset);
+            is_intregable:=is_smallset(self);
           recorddef:
             begin
               recsize:=size;
@@ -2043,15 +2042,9 @@ implementation
            begin
              setbase:=0;
              if (high<32) then
-               begin
-                 settype:=smallset;
-                 savesize:=Sizeof(longint)
-               end
+               savesize:=Sizeof(longint)
              else if (high<256) then
-               begin
-                 settype:=normset;
-                 savesize:=32
-               end
+               savesize:=32
              else
                savesize:=(high+7) div 8
            end
@@ -2061,14 +2054,8 @@ implementation
              setbase:=low and not(setallocbits-1);
              packedsavesize:=current_settings.setalloc*((((high+setallocbits)-setbase)) DIV setallocbits);
              savesize:=packedsavesize;
-             if (packedsavesize<=4) then
-               begin
-                 settype:=smallset;
-                 if savesize=3 then
-                   savesize:=4;
-               end
-             else if (packedsavesize<=32) then
-               settype:=normset;
+             if savesize=3 then
+               savesize:=4;
            end;
       end;
 
@@ -2077,7 +2064,6 @@ implementation
       begin
          inherited ppuload(setdef,ppufile);
          ppufile.getderef(elementdefderef);
-         settype:=tsettype(ppufile.getbyte);
          savesize:=ppufile.getaint;
          setbase:=ppufile.getaint;
          setmax:=ppufile.getaint;
@@ -2088,7 +2074,6 @@ implementation
       begin
         result:=tsetdef.create(elementdef,setbase,setmax);
         { the copy might have been created with a different setalloc setting }
-        tsetdef(result).settype:=settype;
         tsetdef(result).savesize:=savesize;
       end;
 
@@ -2097,7 +2082,6 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putderef(elementdefderef);
-         ppufile.putbyte(byte(settype));
          ppufile.putaint(savesize);
          ppufile.putaint(setbase);
          ppufile.putaint(setmax);

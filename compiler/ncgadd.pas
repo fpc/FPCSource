@@ -50,9 +50,9 @@ interface
           procedure second_addfloat;virtual;abstract;
           procedure second_addboolean;virtual;
           procedure second_addsmallset;virtual;
+          procedure second_addsmallsetelement;virtual;
 {$ifdef x86}
 {$ifdef SUPPORT_MMX}
-          procedure second_opmmxset;virtual;abstract;
           procedure second_opmmx;virtual;abstract;
 {$endif SUPPORT_MMX}
 {$endif x86}
@@ -253,11 +253,14 @@ interface
     procedure tcgaddnode.second_opsmallset;
       begin
         { when a setdef is passed, it has to be a smallset }
-        if is_varset(left.resultdef) or
-          is_varset(right.resultdef) then
+        if not(
+               ((left.nodetype=setelementn) or is_smallset(left.resultdef)) and
+               ((right.nodetype=setelementn) or is_smallset(right.resultdef))
+              ) then
           internalerror(200203302);
-
-        if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
+        if (left.nodetype=setelementn) or (right.nodetype=setelementn) then
+          second_addsmallsetelement
+        else if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
           second_cmpsmallset
         else
           second_addsmallset;
@@ -267,82 +270,16 @@ interface
     procedure tcgaddnode.second_addsmallset;
       var
         tmpreg : tregister;
-        mask,
-        setbase : aint;
-
         cgop    : TOpCg;
         opdone  : boolean;
       begin
         opdone := false;
-
         pass_left_right;
         force_reg_left_right(true,true);
-
-        { setelementn is a special case, it must be on right.
-          We need an extra check if left is a register because the
-          default case can skip the register loading when the
-          setelementn is in a register (PFV) }
-        if (nf_swapped in flags) and
-           (left.nodetype=setelementn) then
-          swapleftright;
-        if (right.nodetype=setelementn) and
-           (left.location.loc<>LOC_REGISTER) then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
-
         set_result_location_reg;
-        if (left.resultdef.typ=setdef) then
-          setbase:=tsetdef(left.resultdef).setbase
-        else
-          setbase:=tsetdef(right.resultdef).setbase;
-
         case nodetype of
           addn :
-            begin
-              { are we adding set elements ? }
-              if right.nodetype=setelementn then
-                begin
-                  { no range support for smallsets! }
-                  if assigned(tsetelementnode(right).right) then
-                   internalerror(43244);
-                  if (right.location.loc = LOC_CONSTANT) then
-                    begin
-                      if (target_info.endian=endian_big) then
-                        mask:=aint((aword(1) shl (resultdef.size*8-1)) shr aword(right.location.value-setbase))
-                      else
-                        mask:=aint(1 shl (right.location.value-setbase));
-                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,
-                        mask,left.location.register,location.register);
-                    end
-                  else
-                    begin
-                      if (target_info.endian=endian_big) then
-                        begin
-                          mask:=aint((aword(1) shl (resultdef.size*8-1)));
-                          cgop:=OP_SHR
-                        end
-                      else
-                        begin
-                          mask:=1;
-                          cgop:=OP_SHL
-                        end;
-                      tmpreg := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,mask,tmpreg);
-                      location_force_reg(current_asmdata.CurrAsmList,right.location,location.size,true);
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
-                        right.location.register,tmpreg);
-                      if left.location.loc <> LOC_CONSTANT then
-                        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,tmpreg,
-                            left.location.register,location.register)
-                      else
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,
-                            left.location.value,tmpreg,location.register);
-                    end;
-                  opdone := true;
-                end
-              else
-                cgop := OP_OR;
-            end;
+            cgop:=OP_OR;
           symdifn :
             cgop:=OP_XOR;
           muln :
@@ -398,6 +335,63 @@ interface
               cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
                 right.location.register,left.location.register,
                 location.register);
+          end;
+      end;
+
+
+    procedure tcgaddnode.second_addsmallsetelement;
+      var
+        tmpreg : tregister;
+        mask,
+        setbase : aint;
+        cgop    : TOpCg;
+      begin
+        if nodetype<>addn then
+          internalerror(20080302);
+        { setelementn is a special case, it must be on right }
+        if (nf_swapped in flags) and
+           (left.nodetype=setelementn) then
+          swapleftright;
+        { no range support for smallsets }
+        if assigned(tsetelementnode(right).right) then
+          internalerror(20080303);
+        pass_left_right;
+        force_reg_left_right(false,false);
+        set_result_location_reg;
+        setbase:=tsetdef(left.resultdef).setbase;
+        if (right.location.loc = LOC_CONSTANT) then
+          begin
+            if (target_info.endian=endian_big) then
+              mask:=aint((aword(1) shl (resultdef.size*8-1)) shr aword(right.location.value-setbase))
+            else
+              mask:=aint(1 shl (right.location.value-setbase));
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,
+              mask,left.location.register,location.register);
+          end
+        else
+          begin
+            if (target_info.endian=endian_big) then
+              begin
+                mask:=aint((aword(1) shl (resultdef.size*8-1)));
+                cgop:=OP_SHR
+              end
+            else
+              begin
+                mask:=1;
+                cgop:=OP_SHL
+              end;
+            tmpreg := cg.getintregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,mask,tmpreg);
+            location_force_reg(current_asmdata.CurrAsmList,right.location,location.size,true);
+            register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
+              right.location.register,tmpreg);
+            if left.location.loc <> LOC_CONSTANT then
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,tmpreg,
+                  left.location.register,location.register)
+            else
+              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,location.size,
+                  left.location.value,tmpreg,location.register);
           end;
       end;
 
@@ -810,21 +804,10 @@ interface
             end;
           setdef :
             begin
-              {Normalsets are already handled in pass1 if mmx
-               should not be used.}
-              if is_varset(tsetdef(left.resultdef)) then
-                begin
-{$ifdef SUPPORT_MMX}
-                {$ifdef i386}
-                  if cs_mmx in current_settings.localswitches then
-                    second_opmmxset
-                  else
-                {$endif}
-{$endif SUPPORT_MMX}
-                    internalerror(200109041);
-                end
+              if is_smallset(tsetdef(left.resultdef)) then
+                second_opsmallset
               else
-                second_opsmallset;
+                internalerror(200109041);
             end;
           arraydef :
             begin

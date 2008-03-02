@@ -383,10 +383,8 @@ implementation
         pass_left_and_right;
 
         { when a setdef is passed, it has to be a smallset }
-        if ((left.resultdef.typ=setdef) and
-            (tsetdef(left.resultdef).settype<>smallset)) or
-           ((right.resultdef.typ=setdef) and
-            (tsetdef(right.resultdef).settype<>smallset)) then
+        if not is_smallset(left.resultdef) or
+           not is_smallset(right.resultdef) then
          internalerror(200203301);
 
         opdone := false;

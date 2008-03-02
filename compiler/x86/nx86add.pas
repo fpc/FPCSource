@@ -52,7 +52,6 @@ unit nx86add;
         procedure second_cmp64bit;override;
         procedure second_cmpordinal;override;
 {$ifdef SUPPORT_MMX}
-        procedure second_opmmxset;override;
         procedure second_opmmx;override;
 {$endif SUPPORT_MMX}
         procedure second_opvector;override;
@@ -654,85 +653,6 @@ unit nx86add;
           location_freetemp(current_asmdata.CurrAsmList,left.location);
       end;
 {$endif SUPPORT_MMX}
-
-
-{*****************************************************************************
-                                   addmmxset
-*****************************************************************************}
-
-{$ifdef SUPPORT_MMX}
-    procedure tx86addnode.second_opmmxset;
-
-    var opsize : TCGSize;
-        op     : TAsmOp;
-        cmpop,
-        noswap : boolean;
-    begin
-      pass_left_right;
-
-      cmpop:=false;
-      noswap:=false;
-      opsize:=OS_32;
-      case nodetype of
-        addn:
-          begin
-            { are we adding set elements ? }
-            if right.nodetype=setelementn then
-              begin
-                { adding elements is not commutative }
-{                if nf_swapped in flags then
-                  swapleftright;}
-                { bts requires both elements to be registers }
-{                location_force_reg(current_asmdata.CurrAsmList,left.location,opsize_2_cgsize[opsize],false);
-                location_force_reg(current_asmdata.CurrAsmList,right.location,opsize_2_cgsize[opsize],true);
-                op:=A_BTS;
-                noswap:=true;}
-              end
-            else
-              op:=A_POR;
-          end;
-        symdifn :
-          op:=A_PXOR;
-        muln:
-          op:=A_PAND;
-        subn:
-          op:=A_PANDN;
-        equaln,
-        unequaln :
-          begin
-            op:=A_PCMPEQD;
-            cmpop:=true;
-          end;
-        lten,gten:
-          begin
-            if (not(nf_swapped in flags) and (nodetype = lten)) or
-               ((nf_swapped in flags) and (nodetype = gten)) then
-              swapleftright;
-            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
-            emit_op_right_left(A_AND,opsize);
-            op:=A_PCMPEQD;
-            cmpop:=true;
-            { warning: ugly hack, we need a JE so change the node to equaln }
-            nodetype:=equaln;
-          end;
-          xorn :
-            op:=A_PXOR;
-          orn :
-            op:=A_POR;
-          andn :
-            op:=A_PAND;
-          else
-            internalerror(2003042215);
-        end;
-        { left must be a register }
-        left_must_be_reg(opsize,noswap);
-{        emit_generic_code(op,opsize,true,extra_not,false);}
-        location_freetemp(current_asmdata.CurrAsmList,right.location);
-        if cmpop then
-          location_freetemp(current_asmdata.CurrAsmList,left.location);
-      end;
-{$endif SUPPORT_MMX}
-
 
 
 {*****************************************************************************

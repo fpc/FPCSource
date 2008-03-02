@@ -173,7 +173,7 @@ unit cpupara;
                              is_array_of_const(def) or
                              is_array_constructor(def);
           setdef :
-            result:=(tsetdef(def).settype<>smallset);
+            result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
         end;

@@ -466,7 +466,7 @@ implementation
          opsize,
          orgsize: tcgsize;
         begin
-          if not(is_varset(tcallparanode(left).resultdef)) then
+          if is_smallset(tcallparanode(left).resultdef) then
             opsize:=int_cgsize(tcallparanode(left).resultdef.size)
           else
             opsize:=OS_32;

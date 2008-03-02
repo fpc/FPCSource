@@ -200,7 +200,7 @@ unit cpupara;
           objectdef :
             result:=is_object(def);
           setdef :
-            result:=(tsetdef(def).settype<>smallset);
+            result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
         end;

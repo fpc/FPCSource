@@ -155,7 +155,8 @@ implementation
 
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values or be signed !! }
-         use_small:=(tsetdef(right.resultdef).settype=smallset) and not is_signed(left.resultdef) and
+         use_small:=is_smallset(right.resultdef) and
+                    not is_signed(left.resultdef) and
                     ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high.svalue<32) or
                      (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<32));
 

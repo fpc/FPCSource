@@ -513,144 +513,143 @@ implementation
 *****************************************************************************}
 
     procedure tcgsetconstnode.pass_generate_code;
-      var
-         hp1         : tai;
-         lastlabel   : tasmlabel;
-         i, diff     : longint;
-         neededtyp   : taiconst_type;
-      type
-         setbytes=array[0..31] of byte;
-         Psetbytes=^setbytes;
+
+        procedure smallsetconst;
+        begin
+          location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
+          if (source_info.endian=target_info.endian) then
+            begin
+{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
+              { not plongint, because that will "sign extend" the set on 64 bit platforms }
+              { if changed to "paword", please also modify "32-resultdef.size*8" and      }
+              { cross-endian code below                                                   }
+              { Extra aint type cast to avoid range errors                                }
+              location.value:=aint(pCardinal(value_set)^)
+{$else}
+              location.value:=reverse_byte(Psetbytes(value_set)^[0]);
+              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[1]) shl 8);
+              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[2]) shl 16);
+              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[3]) shl 24);
+{$endif}
+            end
+          else
+            begin
+              location.value:=swapendian(Pcardinal(value_set)^);
+              location.value:= reverse_byte (location.value         and $ff)         or
+                              (reverse_byte((location.value shr  8) and $ff) shl  8) or
+                              (reverse_byte((location.value shr 16) and $ff) shl 16) or
+                              (reverse_byte((location.value shr 24) and $ff) shl 24);
+            end;
+          if (target_info.endian=endian_big) then
+            location.value:=location.value shr (32-resultdef.size*8);
+        end;
+
+        procedure varsetconst;
+        var
+           hp1         : tai;
+           lastlabel   : tasmlabel;
+           i, diff     : longint;
+           neededtyp   : taiconst_type;
+        type
+           setbytes=array[0..31] of byte;
+           Psetbytes=^setbytes;
+        begin
+          location_reset(location,LOC_CREFERENCE,OS_NO);
+          neededtyp:=aitconst_8bit;
+          lastlabel:=nil;
+          { const already used ? }
+          if not assigned(lab_set) then
+            begin
+              { tries to found an old entry }
+              hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
+              while assigned(hp1) do
+                begin
+                   if hp1.typ=ait_label then
+                     lastlabel:=tai_label(hp1).labsym
+                   else
+                     begin
+                       if (lastlabel<>nil) and
+                         (hp1.typ=ait_const) and
+                         (tai_const(hp1).consttype=neededtyp) then
+                         begin
+                           if (tai_const(hp1).consttype=aitconst_8bit) then
+                            begin
+                              { compare normal set }
+                              i:=0;
+                              while assigned(hp1) and (i<32) do
+                               begin
+                                 if (source_info.endian=target_info.endian) then
+                                   begin
+{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
+                                     if tai_const(hp1).value<>Psetbytes(value_set)^[i ] then
+{$else}
+                                     if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i xor 3]) then
+{$endif}
+                                       break
+                                   end
+                                 else if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i]) then
+                                   break;
+                                 inc(i);
+                                 hp1:=tai(hp1.next);
+                               end;
+                              if i=32 then
+                               begin
+                                 { found! }
+                                 lab_set:=lastlabel;
+                                 break;
+                               end;
+                              { leave when the end of consts is reached, so no
+                                hp1.next is done }
+                              if not assigned(hp1) then
+                               break;
+                            end
+                           else
+                            begin
+                              { compare small set }
+                              if paint(value_set)^=tai_const(hp1).value then
+                               begin
+                                 { found! }
+                                 lab_set:=lastlabel;
+                                 break;
+                               end;
+                            end;
+                         end;
+                       lastlabel:=nil;
+                     end;
+                   hp1:=tai(hp1.next);
+                 end;
+               { :-(, we must generate a new entry }
+               if not assigned(lab_set) then
+                 begin
+                   current_asmdata.getdatalabel(lastlabel);
+                   lab_set:=lastlabel;
+                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                   if (source_info.endian=target_info.endian) then
+{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
+                     for i:=0 to 31 do
+                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
+{$else}
+                     for i:=0 to 31 do
+                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i xor 3])))
+{$endif}
+                   else
+                     for i:=0 to 31 do
+                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
+                 end;
+            end;
+          location.reference.symbol:=lab_set;
+        end;
+
       begin
         adjustforsetbase;
 
         { small sets are loaded as constants }
-        if not(is_varset(resultdef)) then
-         begin
-           location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
-           if (source_info.endian=target_info.endian) then
-             begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
-               { not plongint, because that will "sign extend" the set on 64 bit platforms }
-               { if changed to "paword", please also modify "32-resultdef.size*8" and      }
-               { cross-endian code below                                                   }
-               { Extra aint type cast to avoid range errors                                }
-               location.value:=aint(pCardinal(value_set)^)
-{$else}
-               location.value:=reverse_byte(Psetbytes(value_set)^[0]);
-               location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[1]) shl 8);
-               location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[2]) shl 16);
-               location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[3]) shl 24);
-{$endif}
-             end
-           else
-             begin
-               location.value:=swapendian(Pcardinal(value_set)^);
-               location.value:= reverse_byte (location.value         and $ff)         or
-                               (reverse_byte((location.value shr  8) and $ff) shl  8) or
-                               (reverse_byte((location.value shr 16) and $ff) shl 16) or
-                               (reverse_byte((location.value shr 24) and $ff) shl 24);
-             end;
-           if (target_info.endian=endian_big) then
-             location.value:=location.value shr (32-resultdef.size*8);
-           exit;
-         end;
-        location_reset(location,LOC_CREFERENCE,OS_NO);
-        neededtyp:=aitconst_8bit;
-        lastlabel:=nil;
-        { const already used ? }
-        if not assigned(lab_set) then
-          begin
-             { tries to found an old entry }
-             hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
-             while assigned(hp1) do
-               begin
-                  if hp1.typ=ait_label then
-                    lastlabel:=tai_label(hp1).labsym
-                  else
-                    begin
-                      if (lastlabel<>nil) and
-                        (hp1.typ=ait_const) and
-                        (tai_const(hp1).consttype=neededtyp) then
-                        begin
-                          if (tai_const(hp1).consttype=aitconst_8bit) then
-                           begin
-                             { compare normal set }
-                             i:=0;
-                             while assigned(hp1) and (i<32) do
-                              begin
-                                if (source_info.endian=target_info.endian) then
-                                  begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
-                                    if tai_const(hp1).value<>Psetbytes(value_set)^[i ] then
-{$else}
-                                    if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i xor 3]) then
-{$endif}
-                                      break
-                                  end
-                                else if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i]) then
-                                  break;
-                                inc(i);
-                                hp1:=tai(hp1.next);
-                              end;
-                             if i=32 then
-                              begin
-                                { found! }
-                                lab_set:=lastlabel;
-                                break;
-                              end;
-                             { leave when the end of consts is reached, so no
-                               hp1.next is done }
-                             if not assigned(hp1) then
-                              break;
-                           end
-                          else
-                           begin
-                             { compare small set }
-                             if paint(value_set)^=tai_const(hp1).value then
-                              begin
-                                { found! }
-                                lab_set:=lastlabel;
-                                break;
-                              end;
-                           end;
-                        end;
-                      lastlabel:=nil;
-                    end;
-                  hp1:=tai(hp1.next);
-               end;
-             { :-(, we must generate a new entry }
-             if not assigned(lab_set) then
-               begin
-                 current_asmdata.getdatalabel(lastlabel);
-                 lab_set:=lastlabel;
-                 maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
-                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                 { already handled at the start of this method?? (JM)
-                 if tsetdef(resultdef).settype=smallset then
-                  begin
-                    move(value_set^,i,sizeof(longint));
-                    Consts.concat(Tai_const.Create_32bit(i));
-                  end
-                 else
-                 }
-                  begin
-                    if (source_info.endian=target_info.endian) then
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
-                      for i:=0 to 31 do
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
-{$else}
-                      for i:=0 to 31 do
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i xor 3])))
-{$endif}
-                    else
-                      for i:=0 to 31 do
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
-                  end;
-               end;
-          end;
-        location.reference.symbol:=lab_set;
+        if is_smallset(resultdef) then
+          smallsetconst
+        else
+          varsetconst;
       end;
 
 

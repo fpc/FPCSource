@@ -186,7 +186,7 @@ begin
     objectdef:
       result := is_object(def);
     setdef:
-      result := (tsetdef(def).settype <> smallset);
+      result := not is_smallset(def);
     stringdef:
       result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
   end;
@@ -353,7 +353,7 @@ begin
     end;
 
     { patch FPU values into integer registers if we currently have
-     to pass them as vararg parameters     
+     to pass them as vararg parameters
     }
     if (isVararg) and (paradef.typ = floatdef) then begin
       loc := LOC_REGISTER;
@@ -385,7 +385,7 @@ begin
           paracgsize := int_cgsize(paralen);
         if (paracgsize in [OS_NO,OS_128,OS_S128]) then
           paraloc^.size := OS_INT
-        else 
+        else
           paraloc^.size := paracgsize;
 
         paraloc^.register := newreg(R_INTREGISTER, nextintreg, R_SUBNONE);
@@ -403,12 +403,12 @@ begin
         inc(nextintreg);
         inc(nextfloatreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
-     
+
         inc(stack_offset, tcgsize2size[OS_FLOAT]);
       end else if (loc = LOC_MMREGISTER) then begin
         { Altivec not supported }
         internalerror(200510192);
-      end else begin 
+      end else begin
         { either LOC_REFERENCE, or one of the above which must be passed on the
         stack because of insufficient registers }
         paraloc^.loc := LOC_REFERENCE;
@@ -440,7 +440,7 @@ begin
   curintreg := nextintreg;
   curfloatreg := nextfloatreg;
   curmmreg := nextmmreg;
-  cur_stack_offset := stack_offset; 
+  cur_stack_offset := stack_offset;
   result := stack_offset;
 end;
 
@@ -449,7 +449,7 @@ function tppcparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
 var
   cur_stack_offset: aword;
   parasize, l: longint;
-  curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;  
+  curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
   i: integer;
   hp: tparavarsym;
   paraloc: pcgparalocation;
@@ -494,9 +494,9 @@ end;
 
 
 {
-                  
+
     breaks e.g. tests/test/cg/tpara1
-                               
+
 procedure tppcparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 var
   paraloc : pcgparalocation;

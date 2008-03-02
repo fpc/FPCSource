@@ -144,7 +144,7 @@ implementation
            { interfaces are also passed by reference to be compatible with delphi and COM }
            ((def.typ=objectdef) and (is_object(def) or is_interface(def))) or
            (def.typ=variantdef) or
-           ((def.typ=setdef) and (tsetdef(def).settype<>smallset));
+           ((def.typ=setdef) and not is_smallset(def));
       end;
 
 

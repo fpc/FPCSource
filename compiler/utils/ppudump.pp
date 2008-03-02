@@ -1651,7 +1651,6 @@ end;
 
 procedure readdefinitions(const s:string);
 type
-  tsettype  = (normset,smallset,varset);
   tordtype = (
     uvoid,
     u8bit,u16bit,u32bit,u64bit,
@@ -1960,20 +1959,9 @@ begin
              readcommondef('Set definition');
              write  (space,'     Element type : ');
              readderef;
-             b:=getbyte;
-             // skip savesize
-             getaint;
-             case tsettype(b) of
-               smallset : write(space,'  SmallSet');
-               normset  : write(space,'  NormalSet');
-               varset   : write(space,'  VarSet');
-               else       writeln('!! Warning: Invalid set type ',b);
-             end;
-             // set base
-             l:=getaint;
-             // set max
-             j:=getaint;
-             writeln(' with ',j-l,' elements');
+             writeln(space,'             Size : ',getaint);
+             writeln(space,'         Set Base : ',getaint);
+             writeln(space,'          Set Max : ',getaint);
            end;
 
          ibvariantdef :

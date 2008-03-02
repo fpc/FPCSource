@@ -573,10 +573,12 @@ implementation
                      is_class(p.propdef) or
                      is_single(p.propdef) or
                      (p.propdef.typ in [classrefdef,pointerdef]) or
-                     ((p.propdef.typ=setdef) and
-                      (tsetdef(p.propdef).settype=smallset))) or
-                     ((p.propdef.typ=arraydef) and
-                      (ppo_indexed in p.propoptions)) or
+                     is_smallset(p.propdef)
+                    ) or
+                    (
+                     (p.propdef.typ=arraydef) and
+                     (ppo_indexed in p.propoptions)
+                    ) or
                  (ppo_hasparameters in p.propoptions) then
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
