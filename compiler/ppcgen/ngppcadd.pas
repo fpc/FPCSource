@@ -384,7 +384,8 @@ implementation
 
         { when a setdef is passed, it has to be a smallset }
         if not is_smallset(left.resultdef) or
-           not is_smallset(right.resultdef) then
+           (not is_smallset(right.resultdef) and
+            (right.nodetype<>setelementn)) then
          internalerror(200203301);
 
         opdone := false;
