@@ -1046,7 +1046,8 @@ implementation
             gen_restore_used_regs(aktproccode);
             { We know the size of the stack, now we can generate the
               parameter that is passed to the stack checking code }
-            if (cs_check_stack in entryswitches) and
+            if not(tf_no_generic_stackcheck in target_info.flags) and
+               (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
                (procdef.proctypeoption<>potype_proginit) then
               begin
