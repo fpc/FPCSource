@@ -79,6 +79,7 @@ type
       constructor Create (ACount : integer);
       destructor Destroy; override;
       procedure Build (Img : TFPCustomImage); virtual;
+      procedure Copy (APalette: TFPPalette); virtual;
       procedure Merge (pal : TFPPalette); virtual;
       function IndexOf (const AColor: TFPColor) : integer; virtual;
       function Add (const Value: TFPColor) : integer; virtual;

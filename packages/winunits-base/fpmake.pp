@@ -38,6 +38,7 @@ begin
           AddUnit('oleserver');
           AddUnit('shfolder');
           AddUnit('richedit');
+		  AddUnit('wininet');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
@@ -54,7 +55,7 @@ begin
     T:=P.Targets.AddImplicitUnit('winver.pp');
     T:=P.Targets.AddImplicitUnit('imagehlp.pp');
     T:=P.Targets.AddImplicitUnit('commdlg.pp');
-
+    T:=P.Targets.AddImplicitUnit('wininet.pp');
 {$ifndef ALLPACKAGES}
     Run;
     end;

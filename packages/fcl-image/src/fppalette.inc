@@ -44,6 +44,18 @@ begin
     end;
 end;
 
+procedure TFPPalette.Copy(APalette: TFPPalette);
+var
+  x: integer;
+begin
+  if (APalette <> Self) then
+  begin
+    Self.Clear;
+    for x := 0 to APalette.Count - 1 do
+        Add(APalette.Color[x])
+  end;
+end;
+
 procedure TFPPalette.Merge (pal : TFPPalette);
 var r : integer;
 begin
