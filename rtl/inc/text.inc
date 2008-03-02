@@ -689,6 +689,7 @@ end;
 
 {$endif CPU64}
 
+{$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; [Public,Alias:'FPC_WRITE_TEXT_FLOAT']; compilerproc;
 var
   s : String;
@@ -698,6 +699,7 @@ Begin
   Str_real(Len,fixkomma,r,treal_type(rt),s);
   Write_Str(Len,t,s);
 End;
+{$endif}
 
 procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; [Public,Alias:'FPC_WRITE_TEXT_ENUM']; compilerproc;
 
@@ -1163,6 +1165,7 @@ Begin
 End;
 
 
+{$ifndef FPUNONE}
 procedure fpc_Read_Text_Float(var f : Text; out v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
 var
   hs : string;
@@ -1184,6 +1187,7 @@ begin
   If code<>0 Then
    InOutRes:=106;
 end;
+{$endif}
 
 procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck; [Public,Alias:'FPC_READ_TEXT_ENUM'];compilerproc;
 
@@ -1211,7 +1215,11 @@ var
   hs : string;
   code : Word;
 begin
+{$ifdef FPUNONE}
+  v:=0;
+{$else}
   v:=0.0;
+{$endif}
   If not CheckRead(f) then
     exit;
   hs:='';

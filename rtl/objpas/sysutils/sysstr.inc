@@ -983,6 +983,8 @@ begin
   Result:=Buffer;
 end;
 
+{$ifndef FPUNONE}
+
 Function StrToFloat(Const S: String): Extended;
 
 begin
@@ -1572,6 +1574,7 @@ begin
 end;
 
 
+
 {$ifndef FPC_COMP_IS_INT64}
 Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 
@@ -1633,17 +1636,6 @@ begin
   Result:=FloatToStrF(Value,ffGeneral,-1,0);
 end;
 
-function AnsiDequotedStr(const S: string; AQuote: Char): string;
-
-var p : pchar;
-
-begin
-  p:=pchar(pointer(s)); // work around CONST. Ansiextract is safe for nil
-  result:=AnsiExtractquotedStr(p,AQuote);
-  if result='' Then
-    result:=s;
-end;
-
 function StrToCurr(const S: string): Currency;
 begin
   if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
@@ -1663,6 +1655,18 @@ begin
     Result:=Default;
 end;
 
+{$endif FPUNONE}
+
+function AnsiDequotedStr(const S: string; AQuote: Char): string;
+
+var p : pchar;
+
+begin
+  p:=pchar(pointer(s)); // work around CONST. Ansiextract is safe for nil
+  result:=AnsiExtractquotedStr(p,AQuote);
+  if result='' Then
+    result:=s;
+end;
 
 function StrToBool(const S: string): Boolean;
 begin
@@ -1711,14 +1715,22 @@ end;
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 Var
   Temp : String;
+{$ifdef FPUNONE}
+  D : Longint;
+{$else}
   D : Double;
+{$endif}
   Code: word;
 begin
   Temp:=upcase(S);
   Val(temp,D,code);
   Result:=true;
   If Code=0 then
+{$ifdef FPUNONE}
+    Value:=(D<>0)
+{$else}
     Value:=(D<>0.0)
+{$endif}
   else If Temp='TRUE' then
     Value:=true
   else if Temp='FALSE' then
@@ -1726,6 +1738,8 @@ begin
   else
     Result:=false;
 end;
+
+{$ifndef FPUNONE}
 
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
 
@@ -2372,6 +2386,7 @@ begin
   Result:=FormatCurr(Format,Value,DefaultFormatSettings);
 end;
 
+{$endif}
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -2779,8 +2794,10 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
               case fmt[m] of
                 'd':
                   Result:=vtInteger;
+{$ifndef FPUNONE}
                 'f':
                   Result:=vtExtended;
+{$endif}
                 's':
                   Result:=vtString;
                 'c':
@@ -2833,6 +2850,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 
             end;
 
+{$ifndef FPUNONE}
           vtExtended :
             begin
               if GetFloat>0 then
@@ -2843,6 +2861,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
               else
                 break;
             end;
+{$endif}
 
           vtString :
             begin

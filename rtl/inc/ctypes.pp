@@ -72,8 +72,15 @@ type
   culong                 = cardinal;           pculong                = ^culong;
 {$endif}
 
+// Kylix compat types
+  u_long  = culong;
+  u_short = cushort;
+
+
+{$ifndef FPUNONE}
   cfloat                 = single;             pcfloat                = ^cfloat;
   cdouble                = double;             pcdouble               = ^cdouble;
+{$endif}
 {$endif}
 
 {$ifdef defined(win64) or defined(wince)}
@@ -84,6 +91,7 @@ type
   {$define longdouble_is_double}
 {$endif}
 
+{$ifndef FPUNONE}
 {$ifdef longdouble_is_double}
   clongdouble=double;
 {$else}
@@ -103,11 +111,6 @@ type
   {$endif}
 {$endif}
   Pclongdouble=^clongdouble;
-
-// Kylix compat types
-  u_long  = culong;
-  u_short = cushort;
-
 
 {$ifdef longdouble_assignment_overload_real80}
 operator := (const v:clongdouble) r:extended;inline;
@@ -157,9 +160,11 @@ operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
 operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
 {$endif dummy}
 {$endif}
+{$endif FPUNONE}
 
 implementation
 
+{$ifndef FPUNONE}
 {$ifdef longdouble_assignment_overload_real80}
 operator := (const v:clongdouble) r:extended;
 
@@ -385,5 +390,6 @@ begin
 end;
 {$endif}
 {$endif}
+{$endif FPUNONE}
 
 end.

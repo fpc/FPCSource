@@ -24,6 +24,7 @@ Unit UComplex;
 
   interface
 
+{$ifndef FPUNONE}
     uses math;
 
     type complex = record
@@ -633,4 +634,7 @@ Unit UComplex;
     end;
 
 
+{$else}
+implementation
+{$endif FPUNONE}
 end.

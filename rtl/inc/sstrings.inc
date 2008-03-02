@@ -396,12 +396,16 @@ end;
 { it's used inside real2str.inc and otherwise the searching via the      }
 { compilerproc name will fail (JM)                                       }
 
+{$ifndef FPUNONE}
 {$I real2str.inc}
+{$endif}
 
+{$ifndef FPUNONE}
 procedure fpc_shortstr_float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; compilerproc;
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
+{$endif}
 
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
 
@@ -723,6 +727,7 @@ end;
 {$endif CPU64}
 
 
+{$ifndef FPUNONE}
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char);compilerproc;
 var
   ss : shortstring;
@@ -735,6 +740,7 @@ begin
     maxlen:=high(a)+1;
   move(ss[1],pchar(@a)^,maxlen);
 end;
+{$endif}
 
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
@@ -1014,6 +1020,7 @@ end;
 
 {$endif CPU64}
 
+{$ifndef FPUNONE}
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   valmaxexpnorm=4932;
@@ -1028,7 +1035,9 @@ const
 {$endif}
 {$endif}
 {$endif}
+{$endif}
 
+{$ifndef FPUNONE}
 Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
 var
   hd,
@@ -1142,6 +1151,7 @@ begin
 { success ! }
   code:=0;
 end;
+{$endif}
 
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
 

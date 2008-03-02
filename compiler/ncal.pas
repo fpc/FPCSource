@@ -206,7 +206,7 @@ implementation
       symconst,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,nset,
-      procinfo,
+      procinfo,cpuinfo,
       cgbase
       ;
 
@@ -332,7 +332,8 @@ implementation
                 typecheckpass(para.left);
               end
             { force automatable float type }
-            else if is_extended(para.left.resultdef) then
+            else if is_extended(para.left.resultdef)
+                and (current_settings.fputype<>fpu_none) then
               begin
                 para.left:=ctypeconvnode.create_internal(para.left,s64floattype);
                 typecheckpass(para.left);

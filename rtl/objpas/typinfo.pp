@@ -34,15 +34,17 @@ unit typinfo;
 {$MINENUMSIZE 1   this saves a lot of memory }
        // if you change one of the following enumeration types
        // you have also to change the compiler in an appropriate way !
-       TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,
-                   tkFloat,tkSet,tkMethod,tkSString,tkLString,tkAString,
+       TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,
+                   tkSet,tkMethod,tkSString,tkLString,tkAString,
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
                    tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
                    tkDynArray,tkInterfaceRaw);
 
        TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
+{$ifndef FPUNONE}
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
+{$endif}
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
                       mkClassProcedure, mkClassFunction);
        TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
@@ -99,8 +101,10 @@ unit typinfo;
                   tkSet:
                     (CompType : PTypeInfo)
               );
+{$ifndef FPUNONE}
             tkFloat:
               (FloatType : TFloatType);
+{$endif}
             tkSString:
               (MaxLength : Byte);
             tkClass:
@@ -248,10 +252,12 @@ Function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
 Procedure SetWideStrProp(Instance: TObject; const PropName: string; const Value: WideString);
 Procedure SetWideStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: WideString);
 
+{$ifndef FPUNONE}
 Function  GetFloatProp(Instance: TObject; PropInfo : PPropInfo) : Extended;
 Function  GetFloatProp(Instance: TObject; const PropName: string): Extended;
 Procedure SetFloatProp(Instance: TObject; const PropName: string; Value: Extended);
 Procedure SetFloatProp(Instance: TObject; PropInfo : PPropInfo;  Value : Extended);
+{$endif}
 
 Function  GetObjectProp(Instance: TObject; const PropName: string): TObject;
 Function  GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject;
@@ -1363,6 +1369,7 @@ begin
 end;
 
 
+{$ifndef FPUNONE}
 
 { ---------------------------------------------------------------------
   Float properties
@@ -1509,6 +1516,7 @@ begin
   SetFloatProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
+{$endif}
 
 { ---------------------------------------------------------------------
   Method properties

@@ -35,7 +35,9 @@ type
 
   PLongint = System.PLongint;
   PSmallInt = System.PSmallInt;
+{$ifndef FPUNONE}
   PDouble = System.PDouble;
+{$endif}
   PByte = System.PByte;
   Largeint = int64;
   LARGE_INT = LargeInt;
@@ -53,8 +55,10 @@ type
   TInt64DynArray = array of Int64;
   TQWordDynArray = array of QWord;
   TLongWordDynArray = array of LongWord;
+{$ifndef FPUNONE}
   TSingleDynArray = array of Single;
   TDoubleDynArray = array of Double;
+{$endif}
   TBooleanDynArray = array of Boolean;
   TStringDynArray = array of AnsiString;
   TWideStringDynArray   = array of WideString;

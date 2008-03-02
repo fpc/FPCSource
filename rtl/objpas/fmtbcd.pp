@@ -190,11 +190,13 @@ INTERFACE
   {$define myInttype := int64}
 {$endif}
 
+{$ifndef FPUNONE}
 {$ifdef real8}
   {$define myRealtype := double}
 {$endif}
 {$ifdef real10}
   {$define myRealtype := extended}
+{$endif}
 {$endif}
 
 {$ifdef SUPPORT_COMP}
@@ -266,9 +268,11 @@ INTERFACE
                                 BCDin2 : tBCD;
                             var BCDout : tBCD );
 
+{$ifndef FPUNONE}
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
                             var BCDout : tBCD ); Inline;
+{$endif}
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                         const StringIn : FmtBCDStringtype;
@@ -283,9 +287,11 @@ INTERFACE
                               Divisor : tBCD;
                           var BCDout : tBCD );
 
+{$ifndef FPUNONE}
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : myRealtype;
                           var BCDout : tBCD ); Inline;
+{$endif}
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : FmtBCDStringtype;
@@ -306,9 +312,11 @@ INTERFACE
                                    Precision,
                                    Scale : Word ) : Variant;
 
+{$ifndef FPUNONE}
   function VarFmtBCDCreate ( const aValue : myRealtype;
                                    Precision : Word = 18;
                                    Scale : Word = 4 ) : Variant;
+{$endif}
 
   function VarFmtBCDCreate ( const aBCD : tBCD ) : Variant;
 
@@ -322,10 +330,12 @@ INTERFACE
   function TryStrToBCD ( const aValue : FmtBCDStringtype;
                            var BCD : tBCD ) : Boolean;
 
+{$ifndef FPUNONE}
   function DoubleToBCD ( const aValue : myRealtype ) : tBCD; Inline;
 
   procedure DoubleToBCD ( const aValue : myRealtype;
                             var BCD : tBCD );
+{$endif}
 
   function IntegerToBCD ( const aValue : myInttype ) : tBCD;
 
@@ -340,7 +350,9 @@ INTERFACE
 { Convert BCD struct to string/Double/Integer }
   function BCDToStr ( const BCD : tBCD ) : FmtBCDStringtype;
 
+{$ifndef FPUNONE}
   function BCDToDouble ( const BCD : tBCD ) : myRealtype;
+{$endif}
 
   function BCDToInteger ( const BCD : tBCD;
                                 Truncate : Boolean = False ) : myInttype;
@@ -380,6 +392,7 @@ INTERFACE
                      const BCDIn : tBCD;
                        var BCDout : tBCD ); Inline;
 
+{$ifndef FPUNONE}
   procedure BCDAdd ( const BCDIn : tBCD;
                      const DoubleIn : myRealtype;
                        var BCDout : tBCD ); Inline;
@@ -387,6 +400,7 @@ INTERFACE
   procedure BCDAdd ( const DoubleIn : myRealtype;
                      const BCDIn : tBCD;
                        var BCDout : tBCD ); Inline;
+{$endif}
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const Currin : currency;
@@ -426,6 +440,7 @@ INTERFACE
                           const BCDIn : tBCD;
                             var BCDout : tBCD ); Inline;
 
+{$ifndef FPUNONE}
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
                             var BCDout : tBCD ); Inline;
@@ -433,6 +448,7 @@ INTERFACE
   procedure BCDSubtract ( const DoubleIn : myRealtype;
                           const BCDIn : tBCD;
                             var BCDout : tBCD ); Inline;
+{$endif}
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const Currin : currency;
@@ -472,9 +488,11 @@ INTERFACE
                           const BCDIn : tBCD;
                             var BCDout : tBCD ); Inline;
 
+{$ifndef FPUNONE}
   procedure BCDMultiply ( const DoubleIn : myRealtype;
                           const BCDIn : tBCD;
                             var BCDout : tBCD ); Inline;
+{$endif}
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const Currin : currency;
@@ -506,9 +524,11 @@ INTERFACE
                         const Divisor : tBCD;
                           var BCDout : tBCD ); Inline;
 
+{$ifndef FPUNONE}
   procedure BCDDivide ( const Dividend : myRealtype;
                         const Divisor : tBCD;
                             var BCDout : tBCD ); Inline;
+{$endif}
 
   procedure BCDDivide ( const BCDIn : tBCD;
                         const Currin : currency;
@@ -561,11 +581,13 @@ INTERFACE
   operator + ( const i : myInttype;
                const BCD : tBCD ) z : tBCD; Inline;
 
+{$ifndef FPUNONE}
   operator + ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
   operator + ( const r : myRealtype;
                const BCD : tBCD ) z : tBCD; Inline;
+{$endif}
 
   operator + ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -596,11 +618,13 @@ INTERFACE
   operator - ( const i : myInttype;
                const BCD : tBCD ) z : tBCD; Inline;
 
+{$ifndef FPUNONE}
   operator - ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
   operator - ( const r : myRealtype;
                const BCD : tBCD ) z : tBCD; Inline;
+{$endif}
 
   operator - ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -631,11 +655,13 @@ INTERFACE
   operator * ( const i : myInttype;
                const BCD : tBCD ) z : tBCD; Inline;
 
+{$ifndef FPUNONE}
   operator * ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
   operator * ( const r : myRealtype;
                const BCD : tBCD ) z : tBCD; Inline;
+{$endif}
 
   operator * ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -666,11 +692,13 @@ INTERFACE
   operator / ( const i : myInttype;
                const BCD : tBCD ) z : tBCD; Inline;
 
+{$ifndef FPUNONE}
   operator / ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
   operator / ( const r : myRealtype;
                const BCD : tBCD ) z : tBCD; Inline;
+{$endif}
 
   operator / ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -728,6 +756,7 @@ INTERFACE
   operator := ( const BCD : tBCD ) z : int64; Inline;
 {$endif}
 
+{$ifndef FPUNONE}
   operator := ( const r : Single ) z : tBCD; Inline;
 
   operator := ( const BCD : tBCD ) z : Single; Inline;
@@ -740,6 +769,7 @@ INTERFACE
   operator := ( const r : Extended ) z : tBCD; Inline;
 
   operator := ( const BCD : tBCD ) z : Extended; Inline;
+{$endif}
 {$endif}
 
   operator := ( const c : currency ) z : tBCD; Inline;
@@ -1539,6 +1569,7 @@ IMPLEMENTATION
         else StrToBCD := BCD;
      end;
 
+{$ifndef FPUNONE}
   procedure DoubleToBCD ( const aValue : myRealtype;
                             var BCD : tBCD );
 
@@ -1559,6 +1590,7 @@ IMPLEMENTATION
     begin
       DoubleToBCD ( aValue, result );
      end;
+{$endif}
 
   function IntegerToBCD ( const aValue : myInttype ) : tBCD;
 
@@ -1732,6 +1764,7 @@ IMPLEMENTATION
 {$endif}
      end;
 
+{$ifndef FPUNONE}
   function BCDToDouble ( const BCD : tBCD ) : myRealtype;
 
     var
@@ -1762,6 +1795,7 @@ IMPLEMENTATION
             else BCDToDouble := +r;
          end;
      end;
+{$endif}
 
   function BCDToInteger ( const BCD : tBCD;
                                 Truncate : Boolean = False ) : myInttype;
@@ -2095,6 +2129,7 @@ writeln;
          end;
      end;
 
+{$ifndef FPUNONE}
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
                             var BCDout : tBCD ); Inline;
@@ -2102,6 +2137,7 @@ writeln;
     begin
       BCDMultiply ( BCDIn, DoubleToBCD ( DoubleIn ), BCDout );
      end;
+{$endif}
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const StringIn : FmtBCDStringtype;
@@ -2370,6 +2406,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       BCDDivide ( StrToBCD ( Dividend ), StrToBCD ( Divisor ), BCDout );
      end;
 
+{$ifndef FPUNONE}
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : myRealtype;
                           var BCDout : tBCD ); Inline;
@@ -2377,6 +2414,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
     begin
       BCDDivide ( Dividend, DoubleToBCD ( Divisor ), BCDout );
      end;
+{$endif}
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : FmtBCDStringtype;
@@ -2410,6 +2448,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       VarFmtBCDCreate ( result, StrToBCD ( aValue ) );
      end;
 
+{$ifndef FPUNONE}
   function VarFmtBCDCreate ( const aValue : myRealtype;
                                    Precision : Word = 18;
                                    Scale : Word = 4 ) : Variant;
@@ -2417,6 +2456,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
     begin
       VarFmtBCDCreate ( result, DoubleToBCD ( aValue ) );
      end;
+{$endif}
 
   function VarFmtBCDCreate ( const aBCD : tBCD ) : Variant;
 
@@ -2649,6 +2689,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
       BCDAdd ( BCDIn, IntIn, BCDout );
      end;
 
+{$ifndef FPUNONE}
   procedure BCDAdd ( const BCDIn : tBCD;
                      const DoubleIn : myRealtype;
                        var BCDout : tBCD ); Inline;
@@ -2664,6 +2705,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
     begin
       BCDAdd ( DoubleToBCD ( DoubleIn ), BCDIn, BCDout );
      end;
+{$endif}
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const Currin : currency;
@@ -2732,6 +2774,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
       BCDNegate ( BCDout );
      end;
 
+{$ifndef FPUNONE}
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
                             var BCDout : tBCD ); Inline;
@@ -2747,6 +2790,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
     begin
       BCDSubtract ( DoubleToBCD ( DoubleIn ), BCDIn, BCDout );
      end;
+{$endif}
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const Currin : currency;
@@ -2915,6 +2959,7 @@ writeln;
       BCDMultiply ( BCDIn, IntIn, BCDout );
      end;
 
+{$ifndef FPUNONE}
   procedure BCDMultiply ( const DoubleIn : myRealtype;
                           const BCDIn : tBCD;
                             var BCDout : tBCD ); Inline;
@@ -2922,6 +2967,7 @@ writeln;
     begin
       BCDMultiply ( DoubleToBCD ( DoubleIn ), BCDIn, BCDout );
      end;
+{$endif}
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const Currin : currency;
@@ -2981,6 +3027,7 @@ writeln;
       BCDDivide ( IntegerToBCD ( Dividend ), Divisor, BCDout );
      end;
 
+{$ifndef FPUNONE}
   procedure BCDDivide ( const Dividend : myRealtype;
                         const Divisor : tBCD;
                           var BCDout : tBCD ); Inline;
@@ -2988,6 +3035,7 @@ writeln;
     begin
       BCDDivide ( DoubleToBCD ( Dividend ), Divisor, BCDout );
      end;
+{$endif}
 
   procedure BCDDivide ( const BCDIn : tBCD;
                         const Currin : currency;
@@ -3102,6 +3150,7 @@ writeln;
       BCDAdd ( i, BCD, z );
      end;
 
+{$ifndef FPUNONE}
   operator + ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
@@ -3115,6 +3164,7 @@ writeln;
     begin
       BCDAdd ( DoubleToBCD ( r ), BCD, z );
      end;
+{$endif}
 
   operator + ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -3182,6 +3232,7 @@ writeln;
       BCDNegate ( z );
      end;
 
+{$ifndef FPUNONE}
   operator - ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
@@ -3195,6 +3246,7 @@ writeln;
     begin
       BCDSubtract ( DoubleToBCD ( r ), BCD, z );
      end;
+{$endif}
 
   operator - ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -3261,6 +3313,7 @@ writeln;
       BCDMultiply ( BCD, i, z );
      end;
 
+{$ifndef FPUNONE}
   operator * ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
@@ -3274,6 +3327,7 @@ writeln;
     begin
       BCDMultiply ( DoubleToBCD ( r ), BCD, z );
      end;
+{$endif}
 
   operator * ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -3340,6 +3394,7 @@ writeln;
       BCDDivide ( IntegerToBCD ( i ), BCD, z );
      end;
 
+{$ifndef FPUNONE}
   operator / ( const BCD : tBCD;
                const r : myRealtype ) z : tBCD; Inline;
 
@@ -3353,6 +3408,7 @@ writeln;
     begin
       BCDDivide ( DoubleToBCD ( r ), BCD, z );
      end;
+{$endif}
 
   operator / ( const BCD : tBCD;
                const c : currency ) z : tBCD; Inline;
@@ -3498,6 +3554,7 @@ writeln;
      end;
 {$endif}
 
+{$ifndef FPUNONE}
   operator := ( const r : Single ) z : tBCD; Inline;
 
     begin
@@ -3534,6 +3591,7 @@ writeln;
     begin
       z := BCDToDouble ( BCD );
      end;
+{$endif}
 {$endif}
 
   operator := ( const c : currency ) z : tBCD; Inline;

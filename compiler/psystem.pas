@@ -40,7 +40,7 @@ interface
 implementation
 
     uses
-      globals,globtype,verbose,constexp,
+      globals,globtype,verbose,constexp,cpuinfo,
       systems,
       symconst,symtype,symsym,symdef,symtable,
       aasmtai,aasmdata,aasmcpu,
@@ -116,6 +116,20 @@ implementation
           systemunit.insert(result);
         end;
 
+        procedure create_fpu_types;
+        begin
+          if init_settings.fputype<>fpu_none then
+            begin
+              s32floattype:=tfloatdef.create(s32real);
+              s64floattype:=tfloatdef.create(s64real);
+              s80floattype:=tfloatdef.create(s80real);
+            end else begin
+              s32floattype:=nil;
+              s64floattype:=nil;
+              s80floattype:=nil;
+            end;
+        end;
+
       var
         hrecst : trecordsymtable;
       begin
@@ -150,9 +164,7 @@ implementation
         openchararraytype:=tarraydef.create(0,-1,s32inttype);
         tarraydef(openchararraytype).elementdef:=cchartype;
 {$ifdef x86}
-        s32floattype:=tfloatdef.create(s32real);
-        s64floattype:=tfloatdef.create(s64real);
-        s80floattype:=tfloatdef.create(s80real);
+        create_fpu_types;
         if target_info.system<>system_x86_64_win64 then
           s64currencytype:=tfloatdef.create(s64currency)
         else
@@ -162,33 +174,23 @@ implementation
           end;
 {$endif x86}
 {$ifdef powerpc}
-        s32floattype:=tfloatdef.create(s32real);
-        s64floattype:=tfloatdef.create(s64real);
-        s80floattype:=tfloatdef.create(s80real);
+        create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif powerpc}
 {$ifdef POWERPC64}
-        s32floattype:=tfloatdef.create(s32real);
-        s64floattype:=tfloatdef.create(s64real);
-        s80floattype:=tfloatdef.create(s80real);
+        create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif POWERPC64}
 {$ifdef sparc}
-        s32floattype:=tfloatdef.create(s32real);
-        s64floattype:=tfloatdef.create(s64real);
-        s80floattype:=tfloatdef.create(s80real);
+        create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif sparc}
 {$ifdef m68k}
-        s32floattype:=tfloatdef.create(s32real);
-        s64floattype:=tfloatdef.create(s64real);
-        s80floattype:=tfloatdef.create(s80real);
+        create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif}
 {$ifdef arm}
-        s32floattype:=tfloatdef.create(s32real);
-        s64floattype:=tfloatdef.create(s64real);
-        s80floattype:=tfloatdef.create(s80real);
+        create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif arm}
 {$ifdef avr}
@@ -240,6 +242,7 @@ implementation
         else
         *)
 {$endif cpufpemu}
+        if init_settings.fputype <> fpu_none then
           begin
             addtype('Single',s32floattype);
             addtype('Double',s64floattype);
@@ -316,9 +319,12 @@ implementation
         addtype('$file',cfiletype);
         addtype('$variant',cvarianttype);
         addtype('$olevariant',cvarianttype);
-        addtype('$s32real',s32floattype);
-        addtype('$s64real',s64floattype);
-        addtype('$s80real',s80floattype);
+        if init_settings.fputype<>fpu_none then
+          begin
+            addtype('$s32real',s32floattype);
+            addtype('$s64real',s64floattype);
+            addtype('$s80real',s80floattype);
+          end;
         addtype('$s64currency',s64currencytype);
         { Add a type for virtual method tables }
         hrecst:=trecordsymtable.create(current_settings.packrecords);
@@ -396,9 +402,12 @@ implementation
         loadtype('unicodestring',cunicodestringtype);
         loadtype('openshortstring',openshortstringtype);
         loadtype('openchararray',openchararraytype);
-        loadtype('s32real',s32floattype);
-        loadtype('s64real',s64floattype);
-        loadtype('s80real',s80floattype);
+        if init_settings.fputype <> fpu_none then
+          begin
+            loadtype('s32real',s32floattype);
+            loadtype('s64real',s64floattype);
+            loadtype('s80real',s80floattype);
+          end;
         loadtype('s64currency',s64currencytype);
         loadtype('boolean',booltype);
         loadtype('boolean8',bool8type);

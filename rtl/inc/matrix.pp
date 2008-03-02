@@ -31,6 +31,7 @@ interface
 
 {*****************************************************************************}
 
+{$ifndef FPUNONE}
 {$MACRO on}
 
 type    Tvector2_single_data=array[0..1] of single;
@@ -820,4 +821,7 @@ implementation
 {$INFO Compile mmatimp.inc for Tmatrix4_extended}
 {$i mmatimp.inc}
 
+{$else}
+implementation
+{$endif FPUNONE}
 end.

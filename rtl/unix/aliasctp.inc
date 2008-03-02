@@ -48,7 +48,9 @@ type
   cslong                 = UnixType.cslong;      pcslong                = UnixType.pcslong;
   culong                 = UnixType.culong;      pculong                = UnixType.pculong;
 
+{$ifndef FPUNONE}
   cfloat                 = UnixType.cfloat;      pcfloat                = UnixType.pcfloat;
   cdouble                = UnixType.cdouble;     pcdouble               = UnixType.pcdouble;
 //  clongdouble            = UnixType.clongdouble; pclongdouble           = UnixType.pclongdouble;
+{$endif}
 

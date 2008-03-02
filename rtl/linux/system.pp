@@ -306,6 +306,7 @@ begin
   InitSyscallIntf;
 {$endif}
 
+{$ifndef FPUNONE}
   SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
@@ -313,6 +314,7 @@ begin
   // some PPC kernels set the exception bits FE0/FE1 in the MSR to zero,
   // disabling all FPU exceptions. Enable them again.
   fpprctl(PR_SET_FPEXC, PR_FP_EXC_PRECISE);
+{$endif}
 {$endif}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);

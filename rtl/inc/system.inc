@@ -293,6 +293,7 @@ begin
 end;
 {$endif SUPPORT_EXTENDED}
 
+{$ifndef FPUNONE}
 {$ifdef FPC_USE_LIBC}
 { Include libc versions }
 {$i cgenmath.inc}
@@ -301,6 +302,9 @@ end;
 {$I math.inc}
 { Include generic version }
 {$I genmath.inc}
+{$endif}
+
+{$i gencurr.inc}
 
 
 function aligntoptr(p : pointer) : pointer;inline;
@@ -542,10 +546,12 @@ begin
     random := 0;
 end;
 
+{$ifndef FPUNONE}
 function random: extended;
 begin
   random := cardinal(genrand_MT19937) * (1.0/(int64(1) shl 32));
 end;
+{$endif}
 
 {****************************************************************************
                             Memory Management

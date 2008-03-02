@@ -1,3 +1,5 @@
+{ %TIMEOUT=20 }
+
 const
   err: boolean = false;
 

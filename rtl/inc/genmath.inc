@@ -965,55 +965,6 @@ invalid:
 {$endif FPC_SYSTEM_HAS_EXP}
 
 
-{$ifdef FPC_CURRENCY_IS_INT64}
-
-    function trunc(c : currency) : int64;
-      type
-        tmyrec = record
-          i: int64;
-        end;
-      begin
-        result := int64(tmyrec(c)) div 10000
-      end;
-
-
-    function trunc(c : comp) : int64;
-      begin
-        result := c
-      end;
-
-
-    function round(c : currency) : int64;
-      type
-        tmyrec = record
-          i: int64;
-        end;
-      var
-        rem, absrem: longint;
-      begin
-        { (int64(tmyrec(c))(+/-)5000) div 10000 can overflow }
-        result := int64(tmyrec(c)) div 10000;
-        rem := int64(tmyrec(c)) - result * 10000;
-        absrem := abs(rem);
-        if (absrem > 5000) or
-           ((absrem = 5000) and
-            (rem > 0)) then
-          if (rem > 0) then
-            inc(result)
-          else
-            dec(result);
-      end;
-
-
-    function round(c : comp) : int64;
-      begin
-        result := c
-      end;
-
-{$endif FPC_CURRENCY_IS_INT64}
-
-
-
 {$ifndef FPC_SYSTEM_HAS_LN}
     function fpc_ln_real(d:ValReal):ValReal;compilerproc;
     {*****************************************************************}

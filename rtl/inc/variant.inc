@@ -279,10 +279,12 @@ end;
 
 
 {$ifndef VER2_0}
+{$ifndef FPUNONE}
 Operator :=(const source : real) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromReal(Dest,Source);
 end;
+{$endif}
 {$endif VER2_0}
 
 
@@ -293,10 +295,12 @@ operator :=(const source : currency) dest : variant;{$ifdef SYSTEMINLINE}inline;
   end;
 
 
+{$ifndef FPUNONE}
 operator :=(const source : tdatetime) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     VariantManager.VarFromTDateTime(Dest,Source);
   end;
+{$endif}
 
 
 operator :=(const source : terror) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -460,10 +464,12 @@ end;
 
 
 {$ifndef VER2_0}
+{$ifndef FPUNONE}
 operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartoreal(source);
 end;
+{$endif}
 {$endif VER2_0}
 
 { Misc. }
@@ -473,10 +479,12 @@ operator :=(const source : variant) dest : currency;{$ifdef SYSTEMINLINE}inline;
   end;
 
 
+{$ifndef FPUNONE}
 operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     dest:=variantmanager.vartotdatetime(source);
   end;
+{$endif}
 
 {$ifndef FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
 operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -783,17 +791,23 @@ operator :=(const source : olevariant) dest : extended;{$ifdef SYSTEMINLINE}inli
 {$ifdef SUPPORT_COMP}
 operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
+{$ifdef FPUNONE}
+    dest:=comp(variantmanager.vartoint64(variant(tvardata(source))));
+{$else}
     dest:=comp(variantmanager.vartoreal(variant(tvardata(source))));
+{$endif}
   end;
 {$endif SUPPORT_COMP}
 
 
+{$ifndef FPUNONE}
 {$ifndef VER2_0}
 operator :=(const source : olevariant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     dest:=variantmanager.vartoreal(variant(tvardata(source)));
   end;
 {$endif VER2_0}
+{$endif}
 
 { Misc. }
 operator :=(const source : olevariant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -802,10 +816,12 @@ operator :=(const source : olevariant) dest : currency;{$ifdef SYSTEMINLINE}inli
   end;
 
 
+{$ifndef FPUNONE}
 operator :=(const source : olevariant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     dest:=variantmanager.vartotdatetime(variant(tvardata(source)));
   end;
+{$endif}
 
 
 operator :=(const source : olevariant) dest : terror;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -949,10 +965,12 @@ operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{
 
 
 {$ifndef VER2_0}
+{$ifndef FPUNONE}
 operator :=(const source : real) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     variantmanager.varfromreal(variant(tvardata(dest)),source);
   end;
+{$endif}
 {$endif VER2_0}
 
 
@@ -963,10 +981,12 @@ operator :=(const source : currency) dest : olevariant;{$ifdef SYSTEMINLINE}inli
   end;
 
 
+{$ifndef FPUNONE}
 operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     variantmanager.varfromtdatetime(variant(tvardata(dest)),source);
   end;
+{$endif}
 
 
 operator :=(const source : terror) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}

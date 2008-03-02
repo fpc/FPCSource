@@ -22,6 +22,7 @@ interface
 {$mode objfpc}
 {$H+}
 
+{$ifndef FPUNONE}
 Uses convutils;
 
 
@@ -547,4 +548,7 @@ end;
 
 initialization
  registerall;
+{$else}
+implementation
+{$endif}
 end.

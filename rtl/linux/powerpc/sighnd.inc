@@ -21,8 +21,10 @@ var
 {  fpustate: longint; }
 begin
   res:=0;
+{$ifndef FPUNONE}
   { exception flags are turned off by kernel }
   fpc_enable_ppc_fpu_exceptions;
+{$endif}
   case sig of
     SIGFPE :
       case (SigInfo^.si_code) of

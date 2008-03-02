@@ -19,6 +19,7 @@ unit dateutils;
 
 interface
 
+{$ifndef FPUNONE}
 uses
   SysUtils, Math, Types;
 
@@ -2385,4 +2386,7 @@ begin
  result:=scandatetime(pattern,s,defaultformatsettings);
 end;
 
+{$else}
+implementation
+{$endif FPUNONE}
 end.

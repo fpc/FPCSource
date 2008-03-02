@@ -21,7 +21,9 @@
   { Read date & Time function declarations }
   {$i osutilsh.inc}
 
+{$ifndef FPUNONE}
   {$i datih.inc}
+{$endif}
 
   { Read String Handling functions declaration }
   {$i sysstrh.inc}

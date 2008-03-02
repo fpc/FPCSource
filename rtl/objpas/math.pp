@@ -26,6 +26,7 @@
 unit math;
 interface
 
+{$ifndef FPUNONE}
     uses
        sysutils;
 
@@ -2385,5 +2386,9 @@ begin
   Result:=Trunc((AValue/RV)+0.5)*RV;
 end;
 {$endif}
+
+{$else}
+implementation
+{$endif FPUNONE}
 
 end.

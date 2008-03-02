@@ -2343,6 +2343,8 @@ implementation
                 end;
                consume(_REALNUMBER);
 {$ifdef FPC_REAL2REAL_FIXED}
+               if current_settings.fputype=fpu_none then
+                 Message(parser_e_unsupported_real);
                if (current_settings.minfpconstprec=s32real) and
                   (d = single(d)) then
                  p1:=crealconstnode.create(d,s32floattype)

@@ -23,8 +23,10 @@ Var
 
     procedure InitThread(stklen:SizeUInt);
       begin
+{$ifndef FPUNONE}
         SysResetFPU;
         SysInitFPU;
+{$endif}
 {$ifndef HAS_MEMORYMANAGER}
         { initialize this thread's heap }
         InitHeapThread;

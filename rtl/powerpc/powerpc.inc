@@ -34,6 +34,8 @@ const
   ppc_fpu_invalid_snan = (1 shl (32-7));
 }
 
+{$ifndef FPUNONE}
+
 procedure fpc_enable_ppc_fpu_exceptions;
 assembler; nostackframe;
 asm
@@ -51,7 +53,6 @@ asm
   { exceptions                                                 }
   mtfsfi 6,9
 end;
-
 
 procedure fpc_cpuinit;
 begin
@@ -206,6 +207,14 @@ _restfpr_31_l:  lwz     r0, 4(r11)
 end;
 {$endif MACOS}
 
+{$else}
+
+procedure fpc_cpuinit;
+begin
+end;
+
+{$endif}
+
 {****************************************************************************
                                 Move / Fill
 ****************************************************************************}
@@ -333,7 +342,7 @@ asm
           {  r0 := count div 4, will be moved to ctr when copying dwords  }
           srwi    r0,r5,2
 
-{$ifndef ppc603}
+{$if not defined(ppc603) and not defined(FPUNONE)}
           {  adjust the update count: it will now be 8 or -8 depending on overlap  }
           slwi    r10,r10,1
 
@@ -451,7 +460,9 @@ var
   temp : packed record
     case byte of
       0: (l1,l2: longint);
+{$ifndef FPUNONE}
       1: (d: double);
+{$endif}
     end;
 {$endif FPC_ABI_AIX}
 asm
@@ -480,6 +491,7 @@ asm
         add       r3,r3,r10
         { decrease count with number of bytes already stored }
         sub       r4,r4,r10
+{$IFNDEF FPUNONE}
         blt       cr1,.LFillCharSmall
 {$IFDEF USE_DCBZ}
         { if we have to fill with 0 (which happens a lot), we can simply use }
@@ -559,6 +571,7 @@ asm
         addi      r3,r3,8
         b         .LFillCharVerySmall
 .LFillCharSmall:
+{$ENDIF FPUNONE}
         { when we arrive here, we're already 4 byte aligned }
         { get count div 4 to store dwords }
         srwi      r10,r4,2

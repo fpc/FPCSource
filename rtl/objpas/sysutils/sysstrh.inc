@@ -40,6 +40,7 @@ type
 
 const
   { For floattodatetime and VariantToDate }
+{$ifndef FPUNONE}
   MinDateTime: TDateTime =  -693593.0;     { 01/01/0001 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
 
@@ -49,6 +50,10 @@ const
 {$else}
   MinCurrency: Currency = -922337203685477.0000;
   MaxCurrency: Currency =  922337203685477.0000;
+{$endif}
+{$else}
+  MinCurrency: Currency = -9223372036854775807;
+  MaxCurrency: Currency =  9223372036854775807;
 {$endif}
 
 Const
@@ -129,6 +134,7 @@ Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Arra
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : Pchar;
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
 Procedure FmtStr(Var Res: string; const Fmt : string; Const args: Array of const; Const FormatSettings: TFormatSettings);
+{$ifndef FPUNONE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
@@ -190,6 +196,17 @@ function StrToCurr(const S: string): Currency;
 function TryStrToCurr(const S: string;Var Value : Currency): Boolean;
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 
+Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
+Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
+Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
+Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
+Function FormatFloat(Const Format : String; Value : Extended) : String;
+Function FormatFloat(Const Format : String; Value : Extended; Const FormatSettings: TFormatSettings) : String;
+
+function FormatCurr(const Format: string; Value: Currency): string;
+Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings: TFormatSettings): string;
+{$endif}
+
 function StrToBool(const S: string): Boolean;
 function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
@@ -197,15 +214,7 @@ function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 
 function LastDelimiter(const Delimiters, S: string): Integer;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
-Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
-Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
-Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
-Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
-Function FormatFloat(Const Format : String; Value : Extended) : String;
-Function FormatFloat(Const Format : String; Value : Extended; Const FormatSettings: TFormatSettings) : String;
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
-function FormatCurr(const Format: string; Value: Currency): string;
-Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings: TFormatSettings): string;
 
 function SScanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
 

@@ -25,7 +25,9 @@ interface
 {$define SYSTEMINLINE}
 
 type
+{$ifndef FPUNONE}
   LongDouble = ValReal;
+{$endif}
   FourCharArray = packed array[1..4] of char;
 
   UnsignedByte = Byte;
@@ -387,9 +389,11 @@ end;
 
 
 {$ifdef cpupowerpc}
+{$ifndef FPUNONE}
 begin
   asm
     mtfsfi 6,1
   end;
+{$endif}
 {$endif cpupowerpc}
 end.

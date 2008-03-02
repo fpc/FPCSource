@@ -1684,6 +1684,7 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
+{$ifndef FPUNONE}
 {$ifndef FPC_SYSTEM_HAS_SYSRESETFPU}
 
 procedure SysResetFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1701,6 +1702,7 @@ begin
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSINITFPU}
+{$endif}
 
 {$ifndef FPC_SYSTEM_HAS_SWAPENDIAN}
 function SwapEndian(const AValue: SmallInt): SmallInt;

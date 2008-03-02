@@ -304,7 +304,9 @@
       vtInteger    = 0;
       vtBoolean    = 1;
       vtChar       = 2;
+{$ifndef FPUNONE}
       vtExtended   = 3;
+{$endif}
       vtString     = 4;
       vtPointer    = 5;
       vtPChar      = 6;
@@ -335,7 +337,9 @@
            vtChar       : (VChar: Char);
            vtWideChar   : (VWideChar: WideChar);
 {$endif ENDIAN_BIG}
+{$ifndef FPUNONE}
            vtExtended   : (VExtended: PExtended);
+{$endif}
            vtString     : (VString: PShortString);
            vtPointer    : (VPointer: Pointer);
            vtPChar      : (VPChar: PChar);

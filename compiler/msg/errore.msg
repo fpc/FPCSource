@@ -358,7 +358,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03237 is the last used one
+# 03244 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1141,6 +1141,8 @@ parser_e_implements_must_read_specifier=03240_E_Implements-property must have re
 parser_e_implements_must_not_have_write_specifier=03241_E_Implements-property must not have write-specifier
 parser_e_implements_must_not_have_stored_specifier=03242_E_Implements-property must not have stored-specifier
 parser_e_implements_uses_non_implemented_interface=03243_E_Implements-property used on unimplemented interface: "$1"
+parser_e_unsupported_real=03244_E_Floating point not supported for this target
+% The compiler parsed a floating point expression, but it is not supported.
 % \end{description}
 #
 # Type Checking

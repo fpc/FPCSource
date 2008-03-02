@@ -80,7 +80,9 @@ Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
 Procedure FileClose (Handle : THandle);
 Function FileTruncate (Handle : THandle;Size: Int64) : boolean;
+{$ifndef FPUNONE}
 Function FileAge (Const FileName : String): Longint;
+{$endif}
 Function FileExists (Const FileName : String) : Boolean;
 Function DirectoryExists (Const Directory : String) : Boolean;
 Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;

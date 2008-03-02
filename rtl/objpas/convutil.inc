@@ -25,14 +25,13 @@ interface
 {$mode objfpc}
 {$H+}
 
+{$ifndef FPUNONE}
 Type TConvType        = type Integer;
      TConvFamily      = type Integer;
      TConvFamilyArray = array of TConvFamily;
      TConvTypeArray   = array of TConvType;
      TConversionProc  = function(const AValue: Double): Double;
-
-
-Type  TConvUtilFloat = double;
+     TConvUtilFloat   = double;
 
 Function RegisterConversionFamily(Const S : String):TConvFamily;
 Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
@@ -278,4 +277,7 @@ end;
 finalization
   setlength(theunits,0);
   setlength(thefamilies,0);
+{$else}
+implementation
+{$endif}
 end.

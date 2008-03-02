@@ -237,6 +237,7 @@ begin
               Index:=Prec-Length(ToAdd);
               ToAdd:=StringOfChar('0',Index)+ToAdd
               end;
+{$ifndef FPUNONE}
         'E' : begin
               if CheckArg(vtCurrency,false) then
                 ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffexponent,Prec,3,FormatSettings)
@@ -267,6 +268,10 @@ begin
               else if CheckArg(vtCurrency,true) then
                 ToAdd:=FloatToStrF(Args[doarg].VCurrency^,ffCurrency,9999,Prec,FormatSettings);
               end;
+{$else}
+        'E','F','G','N','M':
+              RunError(207);
+{$endif}
         'S' : begin
                 if CheckArg(vtString,false) then
                   hs:=Args[doarg].VString^

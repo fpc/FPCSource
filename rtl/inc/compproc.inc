@@ -103,7 +103,9 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : dword
 { Str() support }
 procedure fpc_ShortStr_sint(v : valsint;len : SizeInt;out s : shortstring); compilerproc;
 procedure fpc_shortstr_uint(v : valuint;len : SizeInt;out s : shortstring); compilerproc;
+{$ifndef FPUNONE}
 procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring); compilerproc;
+{$endif}
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);compilerproc;
 procedure fpc_ShortStr_Currency(c : currency; len,f : SizeInt; out s : shortstring); compilerproc;
 
@@ -112,7 +114,9 @@ procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of char); c
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : AnsiString); compilerproc;
 procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : AnsiString); compilerproc;
+{$ifndef FPUNONE}
 procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring); compilerproc;
+{$endif}
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring); compilerproc;
 {$endif FPC_HAS_STR_CURRENCY}
@@ -138,31 +142,41 @@ procedure fpc_WideStr_uint(v : valuint;Len : SizeInt; out S : WideString); compi
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU64}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPUNONE}
 procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString); compilerproc;
+{$endif}
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
 {$endif FPC_HAS_STR_CURRENCY}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
+{$ifndef FPUNONE}
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char); compilerproc;
+{$endif}
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
 {$endif FPC_HAS_STR_CURRENCY}
 
 { Val() support }
+{$ifndef FPUNONE}
 Function fpc_Val_Real_ShortStr(const s : shortstring; out code : ValSInt): ValReal; compilerproc;
+{$endif}
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; compilerproc;
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; compilerproc;
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; compilerproc;
 Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifndef FPUNONE}
 Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; compilerproc;
+{$endif}
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; out Code : ValSInt): ValSInt; compilerproc;
 Function fpc_Val_Currency_AnsiStr(Const S : AnsiString; out Code : ValSInt): Currency; compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPUNONE}
 Function fpc_Val_Real_WideStr(Const S : WideString; out Code : ValSInt): ValReal; compilerproc;
+{$endif}
 Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; out Code : ValSInt): ValSInt; compilerproc;
 Function fpc_Val_UInt_WideStr (Const S : WideString; out Code : ValSInt): ValUInt; compilerproc;
 function fpc_val_enum_widestr(str2ordindex:pointer;const s:widestring;out code:valsint):longint;compilerproc;
@@ -317,7 +331,9 @@ Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); compilerp
 procedure fpc_write_text_qword(len : longint;var t : text;q : qword); compilerproc;
 procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerproc;
 {$endif CPU64}
+{$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
+{$endif}
 procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); compilerproc;
 {$ifdef FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); compilerproc;
@@ -360,7 +376,9 @@ Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); compilerproc;
 Procedure fpc_Read_Text_Char(var f : Text; out c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; out l :ValSInt); compilerproc;
 Procedure fpc_Read_Text_UInt(var f : Text; out u :ValUInt); compilerproc;
+{$ifndef FPUNONE}
 Procedure fpc_Read_Text_Float(var f : Text; out v :ValReal); compilerproc;
+{$endif}
 procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); compilerproc;
 procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); compilerproc;
 {$ifndef CPU64}
@@ -391,6 +409,7 @@ function fpc_shl_int64(value,shift : int64) : int64; compilerproc;
 function fpc_shr_int64(value,shift : int64) : int64; compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
+{$ifndef FPUNONE}
 function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
 function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_cos_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
@@ -404,6 +423,7 @@ function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inl
 function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
 function fpc_round_real(d : ValReal) : int64;compilerproc;
 function fpc_trunc_real(d : ValReal) : int64;compilerproc;
+{$endif}
 
 {$ifdef FPC_HAS_FEATURE_CLASSES}
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;

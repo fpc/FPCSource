@@ -585,9 +585,9 @@ implementation
                   p:=ctypeconvnode.create(p,s32inttype)
                 else if is_void(p.resultdef) then
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
-                else if iscvarargs and
-                        is_currency(p.resultdef) then
-                       p:=ctypeconvnode.create(p,s64floattype);
+                else if iscvarargs and is_currency(p.resultdef)
+                    and (current_settings.fputype<>fpu_none) then
+                  p:=ctypeconvnode.create(p,s64floattype);
               end;
             floatdef :
               if not(iscvarargs) then

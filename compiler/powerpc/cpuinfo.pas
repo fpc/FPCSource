@@ -65,7 +65,8 @@ Const
      '970'
    );
 
-   fputypestr : array[tfputype] of string[8] = ('',
+   fputypestr : array[tfputype] of string[8] = (
+     'NONE',
      'SOFT',
      'STANDARD'
    );

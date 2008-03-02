@@ -89,9 +89,11 @@ Type
   { moved here from psystem.pas
     Delphi allows chose of overloaded procedure depending
     on Real <-> Double, so use type here, see also tw7425.pp (FK) }
+{$ifndef FPUNONE}
 {$ifndef VER2_0}
   Real = type Double;
 {$endif VER2_0}
+{$endif}
 
 {$ifdef CPUI386}
   {$define CPU32}
@@ -103,7 +105,9 @@ Type
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
 
-  ValReal = Extended;
+  {$ifndef FPUNONE}
+    ValReal = Extended;
+  {$endif}
 {$endif CPUI386}
 
 {$ifdef CPUX86_64}
@@ -112,10 +116,14 @@ Type
   {$define DEFAULT_EXTENDED}
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
-  ValReal = Extended;
+  {$ifndef FPUNONE}
+    ValReal = Extended;
+  {$endif}
 {$else WIN64}
   {$define DEFAULT_DOUBLE}
-  ValReal = Double;
+  {$ifndef FPUNONE}
+    ValReal = Double;
+  {$endif}
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
@@ -133,7 +141,9 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
-  ValReal = Real;
+  {$ifndef FPUNONE}
+    ValReal = Real;
+  {$endif}
 
   { Comp type does not exist on fpu }
   Comp    = int64;
@@ -145,12 +155,14 @@ Type
 {$ifdef CPUPOWERPC}
   {$define DEFAULT_DOUBLE}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
+  {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
 
-  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
-  ValReal = Double;
+    ValReal = Double;
+  {$endif}
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
@@ -167,7 +179,9 @@ Type
 
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
-  ValReal = Double;
+  {$ifndef FPUNONE}
+    ValReal = Double;
+  {$endif}
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
@@ -186,7 +200,9 @@ Type
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
   {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
-  ValReal = Real;
+  {$ifndef FPUNONE}
+    ValReal = Real;
+  {$endif}
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
@@ -262,16 +278,20 @@ Type
   PUTF8String         = ^UTF8String;
 
   HRESULT             = type Longint;
+{$ifndef FPUNONE}
   TDateTime           = type Double;
+{$endif}
   TError               = type Longint;
 
+{$ifndef FPUNONE}
   PSingle             = ^Single;
   PDouble             = ^Double;
+  PExtended           = ^Extended;
+{$endif}
   PCurrency           = ^Currency;
 {$ifdef SUPPORT_COMP}
   PComp               = ^Comp;
 {$endif SUPPORT_COMP}
-  PExtended           = ^Extended;
 
   PSmallInt           = ^Smallint;
   PShortInt           = ^Shortint;
@@ -298,8 +318,10 @@ Type
   PShortString        = ^ShortString;
   PAnsiString         = ^AnsiString;
 
+{$ifndef FPUNONE}
   PDate               = ^TDateTime;
   PDateTime	      = ^TDateTime;
+{$endif}
   PError              = ^TError;
   PVariant            = ^Variant;
   POleVariant         = ^OleVariant;
@@ -506,7 +528,9 @@ Function Align (Addr : Pointer; Alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINL
 {$ifdef FPC_HAS_FEATURE_RANDOM}
 Function  Random(l:longint):longint;
 Function  Random(l:int64):int64;
+{$ifndef FPUNONE}
 Function  Random: extended;
+{$endif}
 Procedure Randomize;
 {$endif FPC_HAS_FEATURE_RANDOM}
 
@@ -560,8 +584,12 @@ function NtoLE(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+{$ifndef FPUNONE}
 { float math routines }
 {$I mathh.inc}
+{$endif}
+{ currency math routines }
+{$I currh.inc}
 
 {****************************************************************************
                          Addr/Pointer Handling
@@ -841,8 +869,10 @@ Procedure SysInitExceptions;
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 procedure SysInitStdIO;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
+{$ifndef FPUNONE}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif}
 
 {*****************************************************************************
                          Abstract/Assert/Error Handling

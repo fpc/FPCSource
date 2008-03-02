@@ -248,6 +248,7 @@ begin
     FileTruncate:=fpftruncate(Handle,Size)>=0;
 end;
 
+{$ifndef FPUNONE}
 Function UnixToWinAge(UnixAge : time_t): Longint;
 
 Var
@@ -269,6 +270,7 @@ begin
   else
     Result:=UnixToWinAge(info.st_mtime);
 end;
+{$endif}
 
 
 Function FileExists (Const FileName : String) : Boolean;
@@ -432,7 +434,9 @@ begin
      f.Attr:=WinAttr;
      f.Size:=st.st_Size;
      f.Mode:=st.st_mode;
+{$ifndef FPUNONE}
      f.Time:=UnixToWinAge(st.st_mtime);
+{$endif}
      result:=true;
    End;
 end;
@@ -777,6 +781,7 @@ End;
 
 
 
+{$ifndef FPUNONE}
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 var
@@ -786,6 +791,7 @@ begin
   GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
 //  SystemTime.MilliSecond := 0;
 end ;
+{$endif}
 
 
 Procedure InitAnsi;

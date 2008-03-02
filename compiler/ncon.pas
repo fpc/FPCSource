@@ -472,6 +472,8 @@ implementation
     {   i386           }
     constructor trealconstnode.create(v : bestreal;def:tdef);
       begin
+         if current_settings.fputype=fpu_none then
+            internalerror(2008022401);
          inherited create(realconstn);
          typedef:=def;
          value_real:=v;

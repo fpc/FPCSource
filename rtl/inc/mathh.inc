@@ -70,13 +70,6 @@ procedure float_raise(i: shortint);
     function int(d : ValReal) : ValReal;[internproc:fpc_in_int_real];
     function trunc(d : ValReal) : int64;[internproc:fpc_in_trunc_real];
 
-{$ifdef FPC_CURRENCY_IS_INT64}
-    function trunc(c : currency) : int64;
-    function trunc(c : comp) : int64;
-    function round(c : currency) : int64;
-    function round(c : comp) : int64;
-{$endif FPC_CURRENCY_IS_INT64}
-
 {$ifdef SUPPORT_EXTENDED}
     function FPower10(val: Extended; Power: Longint): Extended;
 {$endif SUPPORT_EXTENDED}

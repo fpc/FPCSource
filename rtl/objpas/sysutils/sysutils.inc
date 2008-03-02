@@ -80,7 +80,9 @@
   {$i sysstr.inc}
 
   { Read date & Time function implementations }
+{$ifndef FPUNONE}
   {$i dati.inc}
+{$endif}
 
   { Read pchar handling functions implementation }
   {$i syspch.inc}
