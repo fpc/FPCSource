@@ -7,12 +7,14 @@ name=pxlib
 version=2.0.0
 
 [target]
+units_beos=pxlib
 units_linux=pxlib
 units_win32=pxlib
 units_darwin=pxlib
 units_freebsd=pxlib
 units_openbsd=pxlib
 units_netbsd=pxlib
+examples_beos=ppxview
 examples_linux=ppxview
 examples_win32=ppxview
 examples_darwin=ppxview

@@ -8,6 +8,7 @@ version=2.2.1
 
 [target]
 dirs=src/sdf src/memds src/sqldb src/base 
+dirs_beos=src/dbase src/sqlite src/export src/datadict src/codegen
 dirs_linux=src/dbase src/sqlite src/export src/datadict src/codegen
 dirs_freebsd=src/dbase src/sqlite src/export src/datadict src/codegen
 dirs_darwin=src/dbase src/sqlite

@@ -6,7 +6,7 @@ unit wininet;
 //
 //  File: wininet.h
 //
-//  Header translation by Marco van de Voort for Free Pascal 
+//  Header translation by Marco van de Voort for Free Pascal
 //  Platform SDK "winsdk6.0" downloaded february 2008
 //
 //--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ Uses Windows;
 // Internet APIs
 //
 
-Type 
+Type
      HINTERNET = LPVOID;
      LPHINTERNET = HINTERNET;
 	 PHINTERNET = ^HINTERNET;
@@ -33,7 +33,7 @@ Type
 	 PINTERNET_PORT = ^INTERNET_PORT;
 	 PGROUPID = ^GROUPID;
      GROUPID = LONGLONG;
-	 
+	
 Const
   WININETLIBNAME = 'wininet.dll';
 { wininenti constants}
@@ -159,11 +159,11 @@ Const
 
 //
 // flags for FTP
-//	 
+//	
 	 FTP_TRANSFER_TYPE_UNKNOWN   = $00000000;
      FTP_TRANSFER_TYPE_ASCII     = $00000001;
      FTP_TRANSFER_TYPE_BINARY    = $00000002;
-	 
+	
      INTERNET_FLAG_TRANSFER_ASCII    = FTP_TRANSFER_TYPE_ASCII;     // = $00000001
      INTERNET_FLAG_TRANSFER_BINARY   = FTP_TRANSFER_TYPE_BINARY;    // = $00000002
 
@@ -186,50 +186,50 @@ Const
                                  SECURITY_FLAG_IGNORE_CERT_CN_INVALID or
                                  SECURITY_FLAG_IGNORE_CERT_DATE_INVALID or
                                  SECURITY_FLAG_IGNORE_WRONG_USAGE);
-	 
-	 
+	
+	
 //
 // flags field masks
 //
 
-     SECURITY_INTERNET_MASK  = (INTERNET_FLAG_IGNORE_CERT_CN_INVALID    or  
-                                 INTERNET_FLAG_IGNORE_CERT_DATE_INVALID  or  
-                                 INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTPS  or  
+     SECURITY_INTERNET_MASK  = (INTERNET_FLAG_IGNORE_CERT_CN_INVALID    or
+                                 INTERNET_FLAG_IGNORE_CERT_DATE_INVALID  or
+                                 INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTPS  or
                                  INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTP   );
 
-     SECURITY_IGNORE_ERROR_MASK  = (INTERNET_FLAG_IGNORE_CERT_CN_INVALID   or  
-                                     INTERNET_FLAG_IGNORE_CERT_DATE_INVALID or  
-                                     SECURITY_FLAG_IGNORE_UNKNOWN_CA        or  
+     SECURITY_IGNORE_ERROR_MASK  = (INTERNET_FLAG_IGNORE_CERT_CN_INVALID   or
+                                     INTERNET_FLAG_IGNORE_CERT_DATE_INVALID or
+                                     SECURITY_FLAG_IGNORE_UNKNOWN_CA        or
                                      SECURITY_FLAG_IGNORE_REVOCATION    );
 
-     INTERNET_FLAGS_MASK     = (INTERNET_FLAG_RELOAD               
-                                or INTERNET_FLAG_RAW_DATA            
-                                or INTERNET_FLAG_EXISTING_CONNECT    
-                                or INTERNET_FLAG_ASYNC               
-                                or INTERNET_FLAG_PASSIVE             
-                                or INTERNET_FLAG_NO_CACHE_WRITE      
-                                or INTERNET_FLAG_MAKE_PERSISTENT     
-                                or INTERNET_FLAG_FROM_CACHE          
-                                or INTERNET_FLAG_SECURE              
-                                or INTERNET_FLAG_KEEP_CONNECTION     
-                                or INTERNET_FLAG_NO_AUTO_REDIRECT    
-                                or INTERNET_FLAG_READ_PREFETCH       
-                                or INTERNET_FLAG_NO_COOKIES          
-                                or INTERNET_FLAG_NO_AUTH             
-                                or INTERNET_FLAG_CACHE_IF_NET_FAIL   
-                                or SECURITY_INTERNET_MASK            
-                                or INTERNET_FLAG_RESYNCHRONIZE       
-                                or INTERNET_FLAG_HYPERLINK           
-                                or INTERNET_FLAG_NO_UI               
-                                or INTERNET_FLAG_PRAGMA_NOCACHE      
-                                or INTERNET_FLAG_CACHE_ASYNC         
-                                or INTERNET_FLAG_FORMS_SUBMIT        
-                                or INTERNET_FLAG_NEED_FILE           
-                                or INTERNET_FLAG_RESTRICTED_ZONE     
-                                or INTERNET_FLAG_TRANSFER_BINARY     
-                                or INTERNET_FLAG_TRANSFER_ASCII      
-                                or INTERNET_FLAG_FWD_BACK            
-                                or INTERNET_FLAG_BGUPDATE            
+     INTERNET_FLAGS_MASK     = (INTERNET_FLAG_RELOAD
+                                or INTERNET_FLAG_RAW_DATA
+                                or INTERNET_FLAG_EXISTING_CONNECT
+                                or INTERNET_FLAG_ASYNC
+                                or INTERNET_FLAG_PASSIVE
+                                or INTERNET_FLAG_NO_CACHE_WRITE
+                                or INTERNET_FLAG_MAKE_PERSISTENT
+                                or INTERNET_FLAG_FROM_CACHE
+                                or INTERNET_FLAG_SECURE
+                                or INTERNET_FLAG_KEEP_CONNECTION
+                                or INTERNET_FLAG_NO_AUTO_REDIRECT
+                                or INTERNET_FLAG_READ_PREFETCH
+                                or INTERNET_FLAG_NO_COOKIES
+                                or INTERNET_FLAG_NO_AUTH
+                                or INTERNET_FLAG_CACHE_IF_NET_FAIL
+                                or SECURITY_INTERNET_MASK
+                                or INTERNET_FLAG_RESYNCHRONIZE
+                                or INTERNET_FLAG_HYPERLINK
+                                or INTERNET_FLAG_NO_UI
+                                or INTERNET_FLAG_PRAGMA_NOCACHE
+                                or INTERNET_FLAG_CACHE_ASYNC
+                                or INTERNET_FLAG_FORMS_SUBMIT
+                                or INTERNET_FLAG_NEED_FILE
+                                or INTERNET_FLAG_RESTRICTED_ZONE
+                                or INTERNET_FLAG_TRANSFER_BINARY
+                                or INTERNET_FLAG_TRANSFER_ASCII
+                                or INTERNET_FLAG_FWD_BACK
+                                or INTERNET_FLAG_BGUPDATE
                                 );
 
      INTERNET_ERROR_MASK_INSERT_CDROM                    = $1;
@@ -262,7 +262,7 @@ Const
 // INTERNET_SCHEME - enumerated URL scheme type
 //
 
-Type 
+Type
   INTERNET_SCHEME = (
     INTERNET_SCHEME_PARTIAL = -2,
     INTERNET_SCHEME_UNKNOWN = -1,
@@ -277,14 +277,14 @@ Type
     INTERNET_SCHEME_SOCKS,
     INTERNET_SCHEME_JAVASCRIPT,
     INTERNET_SCHEME_VBSCRIPT,
-    INTERNET_SCHEME_RES    
+    INTERNET_SCHEME_RES
 	);	
   LPINTERNET_SCHEME =  ^INTERNET_SCHEME;
 
 Const
     INTERNET_SCHEME_FIRST = INTERNET_SCHEME_FTP;
     INTERNET_SCHEME_LAST = INTERNET_SCHEME_RES;
-  
+
 //
 // INTERNET_DIAGNOSTIC_SOCKET_INFO.Flags definitions
 //
@@ -508,7 +508,7 @@ Const
      INTERNET_OPTION_CODEPAGE_EXTRA      =          101;
      INTERNET_OPTION_IDN                 =          102;
      INTERNET_FIRST_OPTION               =     INTERNET_OPTION_CALLBACK;
-     INTERNET_LAST_OPTION                =     INTERNET_OPTION_IDN;                                        
+     INTERNET_LAST_OPTION                =     INTERNET_OPTION_IDN;
 //
 // values for INTERNET_OPTION_PRIORITY
 //
@@ -596,8 +596,8 @@ Const
      INTERNET_STATUS_P3P_HEADER              = 325;
      INTERNET_STATUS_P3P_POLICYREF           = 326;
      INTERNET_STATUS_COOKIE_HISTORY          = 327;
-                                             
-//                                           
+
+//
 // the following can be indicated in a state change notification:
 //
 
@@ -621,8 +621,8 @@ Type
     COOKIE_STATE_DOWNGRADE      =  $4,
     COOKIE_STATE_REJECT         =  $5
 	);
-  
-   
+
+
 Const
     COOKIE_STATE_MAX            = COOKIE_STATE_REJECT;
 
@@ -647,17 +647,17 @@ Const
      MAX_GOPHER_DISPLAY_TEXT     = 128;
      MAX_GOPHER_SELECTOR_TEXT    = 256;
      MAX_GOPHER_HOST_NAME        = INTERNET_MAX_HOST_NAME_LENGTH;
-     MAX_GOPHER_LOCATOR_LENGTH   = (1                                  
-                                    + MAX_GOPHER_DISPLAY_TEXT           
-                                    + 1                                 
-                                    + MAX_GOPHER_SELECTOR_TEXT          
-                                    + 1                                 
-                                    + MAX_GOPHER_HOST_NAME              
-                                    + 1                                 
-                                    + INTERNET_MAX_PORT_NUMBER_LENGTH   
-                                    + 1                                 
-                                    + 1                                 
-                                    + 2                                 
+     MAX_GOPHER_LOCATOR_LENGTH   = (1
+                                    + MAX_GOPHER_DISPLAY_TEXT
+                                    + 1
+                                    + MAX_GOPHER_SELECTOR_TEXT
+                                    + 1
+                                    + MAX_GOPHER_HOST_NAME
+                                    + 1
+                                    + INTERNET_MAX_PORT_NUMBER_LENGTH
+                                    + 1
+                                    + 1
+                                    + 2
                                     );
 
 //
@@ -711,20 +711,20 @@ Const
 // (known) file type
 //
 
-     GOPHER_TYPE_FILE_MASK       = (GOPHER_TYPE_TEXT_FILE          
-                                    or GOPHER_TYPE_MAC_BINHEX        
-                                    or GOPHER_TYPE_DOS_ARCHIVE       
-                                    or GOPHER_TYPE_UNIX_UUENCODED    
-                                    or GOPHER_TYPE_BINARY            
-                                    or GOPHER_TYPE_GIF               
-                                    or GOPHER_TYPE_IMAGE             
-                                    or GOPHER_TYPE_BITMAP            
-                                    or GOPHER_TYPE_MOVIE             
-                                    or GOPHER_TYPE_SOUND             
-                                    or GOPHER_TYPE_HTML              
-                                    or GOPHER_TYPE_PDF               
-                                    or GOPHER_TYPE_CALENDAR          
-                                    or GOPHER_TYPE_INLINE            
+     GOPHER_TYPE_FILE_MASK       = (GOPHER_TYPE_TEXT_FILE
+                                    or GOPHER_TYPE_MAC_BINHEX
+                                    or GOPHER_TYPE_DOS_ARCHIVE
+                                    or GOPHER_TYPE_UNIX_UUENCODED
+                                    or GOPHER_TYPE_BINARY
+                                    or GOPHER_TYPE_GIF
+                                    or GOPHER_TYPE_IMAGE
+                                    or GOPHER_TYPE_BITMAP
+                                    or GOPHER_TYPE_MOVIE
+                                    or GOPHER_TYPE_SOUND
+                                    or GOPHER_TYPE_HTML
+                                    or GOPHER_TYPE_PDF
+                                    or GOPHER_TYPE_CALENDAR
+                                    or GOPHER_TYPE_INLINE
                                     );
 
      MAX_GOPHER_CATEGORY_NAME    = 128;     // arbitrary
@@ -865,11 +865,11 @@ Const
      HTTP_QUERY_REQUEST_METHOD               = 45;  // special: GET/POST etc.
      HTTP_QUERY_REFRESH                      = 46;
      HTTP_QUERY_CONTENT_DISPOSITION          = 47;
-                                             
-//                                           
-// HTTP 1.1 defined headers                  
-//                                           
-                                             
+
+//
+// HTTP 1.1 defined headers
+//
+
      HTTP_QUERY_AGE                          = 48;
      HTTP_QUERY_CACHE_CONTROL                = 49;
      HTTP_QUERY_CONTENT_BASE                 = 50;
@@ -905,8 +905,8 @@ Const
      HTTP_QUERY_PASSPORT_URLS                = 77;
      HTTP_QUERY_PASSPORT_CONFIG              = 78;
      HTTP_QUERY_MAX                          = 78;
-                                             
-//                                           
+
+//
 // HTTP_QUERY_CUSTOM - if this special value is supplied as the dwInfoLevel
 // parameter of HttpQueryInfo() then the lpBuffer parameter contains the name
 // of the header we are to query
@@ -947,10 +947,10 @@ Const
      HTTP_QUERY_FLAG_COALESCE                = $10000000;
 
 
-     HTTP_QUERY_MODIFIER_FLAGS_MASK          = (HTTP_QUERY_FLAG_REQUEST_HEADERS    
-                                                or HTTP_QUERY_FLAG_SYSTEMTIME        
-                                                or HTTP_QUERY_FLAG_NUMBER            
-                                                or HTTP_QUERY_FLAG_COALESCE          
+     HTTP_QUERY_MODIFIER_FLAGS_MASK          = (HTTP_QUERY_FLAG_REQUEST_HEADERS
+                                                or HTTP_QUERY_FLAG_SYSTEMTIME
+                                                or HTTP_QUERY_FLAG_NUMBER
+                                                or HTTP_QUERY_FLAG_COALESCE
                                                 );
 
      HTTP_QUERY_HEADER_MASK                  = ( not HTTP_QUERY_MODIFIER_FLAGS_MASK);
@@ -1000,11 +1000,11 @@ Const
      HTTP_STATUS_VERSION_NOT_SUP     = 505; // HTTP version not supported
      HTTP_STATUS_FIRST               = HTTP_STATUS_CONTINUE;
      HTTP_STATUS_LAST                = HTTP_STATUS_VERSION_NOT_SUP;
-                                     
-//                                   
+
+//
 // values for dwModifiers parameter of HttpAddRequestHeaders()
-//                                   
-                                     
+//
+
      HTTP_ADDREQ_INDEX_MASK      = $0000FFFF;
      HTTP_ADDREQ_FLAGS_MASK      = $FFFF0000;
 
@@ -1249,11 +1249,11 @@ Const
      URLHISTORY_CACHE_ENTRY          = $00200000;
 
 
-     URLCACHE_FIND_DEFAULT_FILTER    = NORMAL_CACHE_ENTRY             
-                                    or   COOKIE_CACHE_ENTRY             
-                                    or   URLHISTORY_CACHE_ENTRY         
-                                    or   TRACK_OFFLINE_CACHE_ENTRY      
-                                    or   TRACK_ONLINE_CACHE_ENTRY       
+     URLCACHE_FIND_DEFAULT_FILTER    = NORMAL_CACHE_ENTRY
+                                    or   COOKIE_CACHE_ENTRY
+                                    or   URLHISTORY_CACHE_ENTRY
+                                    or   TRACK_OFFLINE_CACHE_ENTRY
+                                    or   TRACK_ONLINE_CACHE_ENTRY
                                     or   STICKY_CACHE_ENTRY;
 
 
@@ -1288,9 +1288,9 @@ Const
 // updatable cache group fields
 //
      CACHEGROUP_READWRITE_MASK                   =
-            CACHEGROUP_ATTRIBUTE_TYPE               
-        or   CACHEGROUP_ATTRIBUTE_QUOTA           
-		or   CACHEGROUP_ATTRIBUTE_GROUPNAME          
+            CACHEGROUP_ATTRIBUTE_TYPE
+        or   CACHEGROUP_ATTRIBUTE_QUOTA
+		or   CACHEGROUP_ATTRIBUTE_GROUPNAME
         or   CACHEGROUP_ATTRIBUTE_STORAGE;
 //
 // INTERNET_CACHE_GROUP_INFO
@@ -1354,7 +1354,7 @@ Const
 
 // States for InternetSetDialState
      INTERNET_DIALSTATE_DISCONNECTED     = 1;
-    
+
      INTERNET_IDENTITY_FLAG_PRIVATE_CACHE        = $01;
      INTERNET_IDENTITY_FLAG_SHARED_CACHE         = $02;
      INTERNET_IDENTITY_FLAG_CLEAR_DATA           = $04;
@@ -1381,9 +1381,9 @@ Const
 
      PRIVACY_TYPE_FIRST_PARTY        = 0;
      PRIVACY_TYPE_THIRD_PARTY        = 1;
-	 
-Type	 
-	 
+	
+Type	
+	
      INTERNET_ASYNC_RESULT = packed record
           dwResult : DWORD_PTR;
           dwError : DWORD;
@@ -1391,7 +1391,7 @@ Type
 	 TINTERNET_ASYNC_RESULT = INTERNET_ASYNC_RESULT;
      LPINTERNET_ASYNC_RESULT = ^INTERNET_ASYNC_RESULT;
      PINTERNET_ASYNC_RESULT = LPINTERNET_ASYNC_RESULT;
-	 
+	
   { INTERNET_DIAGNOSTIC_SOCKET_INFO - info about the socket in use }
      INTERNET_DIAGNOSTIC_SOCKET_INFO =packed  record
           Socket : DWORD_PTR;
@@ -1401,7 +1401,7 @@ Type
        end;
 	 TINTERNET_DIAGNOSTIC_SOCKET_INFO = INTERNET_DIAGNOSTIC_SOCKET_INFO;
      LPINTERNET_DIAGNOSTIC_SOCKET_INFO = ^INTERNET_DIAGNOSTIC_SOCKET_INFO;
-     PINTERNET_DIAGNOSTIC_SOCKET_INFO = LPINTERNET_DIAGNOSTIC_SOCKET_INFO;	 
+     PINTERNET_DIAGNOSTIC_SOCKET_INFO = LPINTERNET_DIAGNOSTIC_SOCKET_INFO;	
 
      INTERNET_PROXY_INFO = packed record
           dwAccessType : DWORD;
@@ -1410,7 +1410,7 @@ Type
        end;
 	 TINTERNET_PROXY_INFO = INTERNET_PROXY_INFO ;
      LPINTERNET_PROXY_INFO = ^INTERNET_PROXY_INFO;
-     PINTERNET_PROXY_INFO = LPINTERNET_PROXY_INFO;	 
+     PINTERNET_PROXY_INFO = LPINTERNET_PROXY_INFO;	
 
      INTERNET_PER_CONN_OPTIONA = record
           dwOption : DWORD;
@@ -1423,7 +1423,7 @@ Type
        end;
 	 TINTERNET_PER_CONN_OPTIONA   = INTERNET_PER_CONN_OPTIONA;
      LPINTERNET_PER_CONN_OPTIONA = ^INTERNET_PER_CONN_OPTIONA;
-     PINTERNET_PER_CONN_OPTIONA = LPINTERNET_PER_CONN_OPTIONA;	 
+     PINTERNET_PER_CONN_OPTIONA = LPINTERNET_PER_CONN_OPTIONA;	
      INTERNET_PER_CONN_OPTIONW = record
           dwOption : DWORD;
           Value : record
@@ -1434,9 +1434,9 @@ Type
               end;
        end;
 	 TINTERNET_PER_CONN_OPTIONW = INTERNET_PER_CONN_OPTIONW;
-     LPINTERNET_PER_CONN_OPTIONW = ^INTERNET_PER_CONN_OPTIONW;	   
+     LPINTERNET_PER_CONN_OPTIONW = ^INTERNET_PER_CONN_OPTIONW;	
      PINTERNET_PER_CONN_OPTIONW = LPINTERNET_PER_CONN_OPTIONW;
-	 
+	
 {$ifdef UNICODE}
      INTERNET_PER_CONN_OPTION = INTERNET_PER_CONN_OPTIONW;
      LPINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONW;
@@ -1446,9 +1446,9 @@ Type
      INTERNET_PER_CONN_OPTION = INTERNET_PER_CONN_OPTIONA;
      LPINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONA;
      TINTERNET_PER_CONN_OPTION = INTERNET_PER_CONN_OPTIONA;
-     PINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONA;	 
+     PINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONA;	
 {$endif}
-  
+
      INTERNET_PER_CONN_OPTION_LISTA = record
           dwSize : DWORD;
           pszConnection : LPSTR;
@@ -1458,7 +1458,7 @@ Type
        end;
 	 TINTERNET_PER_CONN_OPTION_LISTA  = INTERNET_PER_CONN_OPTION_LISTA ;
      LPINTERNET_PER_CONN_OPTION_LISTA = ^INTERNET_PER_CONN_OPTION_LISTA;
-     PINTERNET_PER_CONN_OPTION_LISTA  = LPINTERNET_PER_CONN_OPTION_LISTA;	 
+     PINTERNET_PER_CONN_OPTION_LISTA  = LPINTERNET_PER_CONN_OPTION_LISTA;	
 
      INTERNET_PER_CONN_OPTION_LISTW = record
           dwSize : DWORD;
@@ -1474,20 +1474,20 @@ Type
      INTERNET_PER_CONN_OPTION_LIST = INTERNET_PER_CONN_OPTION_LISTW;
      LPINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTW;
      TINTERNET_PER_CONN_OPTION_LIST = INTERNET_PER_CONN_OPTION_LISTW;
-     PINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTW;	 
+     PINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTW;	
 {$else}
      INTERNET_PER_CONN_OPTION_LIST = INTERNET_PER_CONN_OPTION_LISTA;
      LPINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTA;
      TINTERNET_PER_CONN_OPTION_LIST = INTERNET_PER_CONN_OPTION_LISTA;
      PINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTA;
 {$endif}
-  
+
      INTERNET_VERSION_INFO = record
           dwMajorVersion : DWORD;
           dwMinorVersion : DWORD;
        end;
      LPINTERNET_VERSION_INFO = ^INTERNET_VERSION_INFO;
-     PINTERNET_VERSION_INFO = LPINTERNET_VERSION_INFO;	 
+     PINTERNET_VERSION_INFO = LPINTERNET_VERSION_INFO;	
      TINTERNET_VERSION_INFO = INTERNET_VERSION_INFO;
      HTTP_VERSION_INFO = record
           dwMajorVersion : DWORD;
@@ -1495,8 +1495,8 @@ Type
        end;
 	 THTTP_VERSION_INFO = HTTP_VERSION_INFO;
      LPHTTP_VERSION_INFO = ^HTTP_VERSION_INFO;
-     PHTTP_VERSION_INFO = LPHTTP_VERSION_INFO;	 
-    
+     PHTTP_VERSION_INFO = LPHTTP_VERSION_INFO;	
+
      INTERNET_CONNECTED_INFO = record
           dwConnectedState : DWORD;
           dwFlags : DWORD;
@@ -1523,7 +1523,7 @@ Type
           dwExtraInfoLength : DWORD;
        end;
      LPURL_COMPONENTSA = ^URL_COMPONENTSA;
-     PURL_COMPONENTSA = LPURL_COMPONENTSA;	 
+     PURL_COMPONENTSA = LPURL_COMPONENTSA;	
 	 TURL_COMPONENTSA = URL_COMPONENTSA;
      URL_COMPONENTSW = record
           dwStructSize : DWORD;
@@ -1544,8 +1544,8 @@ Type
        end;
 	 TURL_COMPONENTSW = URL_COMPONENTSW;
      LPURL_COMPONENTSW = ^URL_COMPONENTSW;
-     PURL_COMPONENTSW = LPURL_COMPONENTSW;	 
-	 
+     PURL_COMPONENTSW = LPURL_COMPONENTSW;	
+	
 {$ifdef UNICODE}
      URL_COMPONENTS = URL_COMPONENTSW;
      LPURL_COMPONENTS = LPURL_COMPONENTSW;
@@ -1557,7 +1557,7 @@ Type
      TURL_COMPONENTS = URL_COMPONENTSA;
      PURL_COMPONENTS = LPURL_COMPONENTSA;
 {$endif}
-  
+
      INTERNET_CERTIFICATE_INFO = record
           ftExpiry : FILETIME;
           ftStart : FILETIME;
@@ -1571,7 +1571,7 @@ Type
 	 TINTERNET_CERTIFICATE_INFO = INTERNET_CERTIFICATE_INFO;
      LPINTERNET_CERTIFICATE_INFO = ^INTERNET_CERTIFICATE_INFO;
 	 PINTERNET_CERTIFICATE_INFO = LPINTERNET_CERTIFICATE_INFO;
-	 
+	
      LPINTERNET_BUFFERSA = ^_INTERNET_BUFFERSA;
      _INTERNET_BUFFERSA = record
           dwStructSize : DWORD;
@@ -1587,7 +1587,7 @@ Type
        end;
      INTERNET_BUFFERSA = _INTERNET_BUFFERSA;
 	 TINTERNET_BUFFERSA = _INTERNET_BUFFERSA;
-     
+
 	 PINTERNET_BUFFERSA = LPINTERNET_BUFFERSA;
      LPINTERNET_BUFFERSW = ^_INTERNET_BUFFERSW;
      _INTERNET_BUFFERSW = record
@@ -1603,14 +1603,14 @@ Type
           dwOffsetHigh : DWORD;
        end;
      INTERNET_BUFFERSW = _INTERNET_BUFFERSW;
-    
+
      TINTERNET_BUFFERSW = _INTERNET_BUFFERSW;
      PINTERNET_BUFFERSW = LPINTERNET_BUFFERSW;
 {$ifdef UNICODE}
      INTERNET_BUFFERS = INTERNET_BUFFERSW;
      LPINTERNET_BUFFERS = LPINTERNET_BUFFERSW;
      TINTERNET_BUFFERS = INTERNET_BUFFERSW;
-     PINTERNET_BUFFERS = LPINTERNET_BUFFERSW;	 
+     PINTERNET_BUFFERS = LPINTERNET_BUFFERSW;	
 {$else}
      INTERNET_BUFFERS = INTERNET_BUFFERSA;
      LPINTERNET_BUFFERS = LPINTERNET_BUFFERSA;
@@ -1630,7 +1630,7 @@ Type
      TIncomingCookieState = IncomingCookieState;
 	 PIncomingCookieState = ^IncomingCookieState;
 	 LPIncomingCookieState = PIncomingCookieState;
-	 
+	
      OutgoingCookieState = record
           cSent : longint;
           cSuppressed : longint;
@@ -1639,7 +1639,7 @@ Type
      ToutgoingCookieState = outgoingCookieState;
 	 PoutgoingCookieState = ^outgoingCookieState;
 	 LPoutgoingCookieState = PoutgoingCookieState;
-	 
+	
      InternetCookieHistory = record
           fAccepted : BOOL;
           fLeashed : BOOL;
@@ -1649,7 +1649,7 @@ Type
      TInternetCookieHistory = InternetCookieHistory;
 	 PInternetCookieHistory = ^InternetCookieHistory;
 	 LPInternetCookieHistory = PInternetCookieHistory;
-	 
+	
      CookieDecision = record
           dwCookieState : DWORD;
           fAllowSession : BOOL;
@@ -1666,9 +1666,9 @@ Type
           Locator : array[0..(MAX_GOPHER_LOCATOR_LENGTH+1)-1] of CHAR;
        end;
      LPGOPHER_FIND_DATAA = ^GOPHER_FIND_DATAA;
-	 TGOPHER_FIND_DATAA = GOPHER_FIND_DATAA;   
+	 TGOPHER_FIND_DATAA = GOPHER_FIND_DATAA;
 	 PGOPHER_FIND_DATAA = LPGOPHER_FIND_DATAA;
-  
+
      GOPHER_FIND_DATAW = record
           DisplayString : array[0..(MAX_GOPHER_DISPLAY_TEXT+1)-1] of WCHAR;
           GopherType : DWORD;
@@ -1677,11 +1677,11 @@ Type
           LastModificationTime : FILETIME;
           Locator : array[0..(MAX_GOPHER_LOCATOR_LENGTH+1)-1] of WCHAR;
        end;
-  
+
 	 LPGOPHER_FIND_DATAW = ^GOPHER_FIND_DATAW;
-	 TGOPHER_FIND_DATAW = GOPHER_FIND_DATAW;   
+	 TGOPHER_FIND_DATAW = GOPHER_FIND_DATAW;
 	 PGOPHER_FIND_DATAW = LPGOPHER_FIND_DATAW;
-  
+
 {$ifdef UNICODE}
      GOPHER_FIND_DATA = GOPHER_FIND_DATAW;
      LPGOPHER_FIND_DATA = LPGOPHER_FIND_DATAW;
@@ -1705,13 +1705,13 @@ Type
      GOPHER_MOD_DATE_ATTRIBUTE_TYPE = record
           DateAndTime : FILETIME;
        end;
-	 TGOPHER_MOD_DATE_ATTRIBUTE_TYPE = GOPHER_MOD_DATE_ATTRIBUTE_TYPE;  
+	 TGOPHER_MOD_DATE_ATTRIBUTE_TYPE = GOPHER_MOD_DATE_ATTRIBUTE_TYPE;
      LPGOPHER_MOD_DATE_ATTRIBUTE_TYPE = ^GOPHER_MOD_DATE_ATTRIBUTE_TYPE;
 	 PGOPHER_MOD_DATE_ATTRIBUTE_TYPE = LPGOPHER_MOD_DATE_ATTRIBUTE_TYPE;
 
      GOPHER_TTL_ATTRIBUTE_TYPE = record
           Ttl : DWORD;
-       end;    
+       end;
 	 TGOPHER_TTL_ATTRIBUTE_TYPE = GOPHER_TTL_ATTRIBUTE_TYPE;
 	 LPGOPHER_TTL_ATTRIBUTE_TYPE = ^GOPHER_TTL_ATTRIBUTE_TYPE;
 	 PGOPHER_TTL_ATTRIBUTE_TYPE = LPGOPHER_TTL_ATTRIBUTE_TYPE;
@@ -1823,7 +1823,7 @@ Type
      TGOPHER_UNKNOWN_ATTRIBUTE_TYPE = GOPHER_UNKNOWN_ATTRIBUTE_TYPE;
      LPGOPHER_UNKNOWN_ATTRIBUTE_TYPE = ^GOPHER_UNKNOWN_ATTRIBUTE_TYPE;
      PGOPHER_UNKNOWN_ATTRIBUTE_TYPE = LPGOPHER_UNKNOWN_ATTRIBUTE_TYPE;
-  
+
      GOPHER_ATTRIBUTE_TYPE = record
           CategoryId : DWORD;
           AttributeId : DWORD;
@@ -1857,7 +1857,7 @@ Type
 	 GOPHER_ATTRIBUTE_ENUMERATOR = function (lpAttributeInfo:LPGOPHER_ATTRIBUTE_TYPE; dwError:DWORD):BOOL;stdcall;
      PFN_AUTH_NOTIFY = function (dwContext:DWORD_PTR; dwReturn:DWORD; lpreserved:LPVOID):DWORD;stdcall;
 	 InternetAuthNotifyCallback = PFN_AUTH_NOTIFY;
-    
+
      _INTERNET_CACHE_ENTRY_INFOA = packed record
           dwStructSize : DWORD;
           lpszSourceUrlName : LPSTR;
@@ -1877,13 +1877,13 @@ Type
           case longint of
                  0 : ( dwReserved : DWORD );
                  1 : ( dwExemptDelta : DWORD );
-          end;   
+          end;
 	 TINTERNET_CACHE_ENTRY_INFOA = _INTERNET_CACHE_ENTRY_INFOA;
 	 INTERNET_CACHE_ENTRY_INFOA = _INTERNET_CACHE_ENTRY_INFOA;
      PINTERNET_CACHE_ENTRY_INFOA = ^INTERNET_CACHE_ENTRY_INFOA;
      LPINTERNET_CACHE_ENTRY_INFOA = PINTERNET_CACHE_ENTRY_INFOA;
      PLPINTERNET_CACHE_ENTRY_INFOA = ^LPINTERNET_CACHE_ENTRY_INFOA;
- 
+
      _INTERNET_CACHE_ENTRY_INFOW = packed record
           dwStructSize : DWORD;
           lpszSourceUrlName : LPWSTR;
@@ -1904,7 +1904,7 @@ Type
                  0 : ( dwReserved : DWORD );
                  1 : ( dwExemptDelta : DWORD );
           end;
-     INTERNET_CACHE_ENTRY_INFOW  = _INTERNET_CACHE_ENTRY_INFOW;  
+     INTERNET_CACHE_ENTRY_INFOW  = _INTERNET_CACHE_ENTRY_INFOW;
      TINTERNET_CACHE_ENTRY_INFOW = _INTERNET_CACHE_ENTRY_INFOW;
      PINTERNET_CACHE_ENTRY_INFOW = ^INTERNET_CACHE_ENTRY_INFOW;
      LPINTERNET_CACHE_ENTRY_INFOW = PINTERNET_CACHE_ENTRY_INFOW;
@@ -1913,7 +1913,7 @@ Type
        INTERNET_CACHE_ENTRY_INFO = INTERNET_CACHE_ENTRY_INFOW;
        LPINTERNET_CACHE_ENTRY_INFO = LPINTERNET_CACHE_ENTRY_INFOW;
        TINTERNET_CACHE_ENTRY_INFO = INTERNET_CACHE_ENTRY_INFOW;
-       PINTERNET_CACHE_ENTRY_INFO = LPINTERNET_CACHE_ENTRY_INFOW;       
+       PINTERNET_CACHE_ENTRY_INFO = LPINTERNET_CACHE_ENTRY_INFOW;
 {$else}
        INTERNET_CACHE_ENTRY_INFO = INTERNET_CACHE_ENTRY_INFOA;
        LPINTERNET_CACHE_ENTRY_INFO = LPINTERNET_CACHE_ENTRY_INFOA;
@@ -1927,10 +1927,10 @@ Type
           pfnNotify : PFN_AUTH_NOTIFY;
           dwContext : DWORD_PTR;
        end;
-     TINTERNET_AUTH_NOTIFY_DATA = INTERNET_AUTH_NOTIFY_DATA;  
-	 PINTERNET_AUTH_NOTIFY_DATA = ^INTERNET_AUTH_NOTIFY_DATA;  
-	 LPINTERNET_AUTH_NOTIFY_DATA = PINTERNET_AUTH_NOTIFY_DATA;   
-	 
+     TINTERNET_AUTH_NOTIFY_DATA = INTERNET_AUTH_NOTIFY_DATA;
+	 PINTERNET_AUTH_NOTIFY_DATA = ^INTERNET_AUTH_NOTIFY_DATA;
+	 LPINTERNET_AUTH_NOTIFY_DATA = PINTERNET_AUTH_NOTIFY_DATA;
+	
        _INTERNET_CACHE_TIMESTAMPS = record
             ftExpires : FILETIME;
             ftLastModified : FILETIME;
@@ -1939,7 +1939,7 @@ Type
        LPINTERNET_CACHE_TIMESTAMPS = ^_INTERNET_CACHE_TIMESTAMPS;
        TINTERNET_CACHE_TIMESTAMPS = _INTERNET_CACHE_TIMESTAMPS;
        PINTERNET_CACHE_TIMESTAMPS = LPINTERNET_CACHE_TIMESTAMPS;
-    
+
        _INTERNET_CACHE_GROUP_INFOA = record
             dwGroupSize : DWORD;
             dwGroupFlags : DWORD;
@@ -1977,13 +1977,13 @@ Type
        TINTERNET_CACHE_GROUP_INFO = INTERNET_CACHE_GROUP_INFOA;
        PINTERNET_CACHE_GROUP_INFO = LPINTERNET_CACHE_GROUP_INFOA;
 {$endif}
-    
+
        AUTO_PROXY_SCRIPT_BUFFER = record
             dwStructSize : DWORD;
             lpszScriptBuffer : LPSTR;
             dwScriptBufferSize : DWORD;
          end;
-    
+
 	   LPAUTO_PROXY_SCRIPT_BUFFER = ^AUTO_PROXY_SCRIPT_BUFFER;
 	   TAUTO_PROXY_SCRIPT_BUFFER = AUTO_PROXY_SCRIPT_BUFFER;
        PAUTO_PROXY_SCRIPT_BUFFER = LPAUTO_PROXY_SCRIPT_BUFFER;
@@ -2018,10 +2018,10 @@ Type
 			end;
   pfnInternetInitializeAutoProxyDll = function (dwVersion:DWORD; lpszDownloadedTempFile:LPSTR; lpszMime:LPSTR; lpAutoProxyCallbacks:pAutoProxyHelperFunctions; lpAutoProxyScriptBuffer:LPAUTO_PROXY_SCRIPT_BUFFER):BOOL;stdcall;
   pfnInternetDeInitializeAutoProxyDll = function (lpszMime:LPSTR; dwReserved:DWORD):BOOL;stdcall;
-  pfnInternetGetProxyInfo = function (lpszUrl:LPCSTR; dwUrlLength:DWORD; lpszUrlHostName:LPSTR; dwUrlHostNameLength:DWORD; lplpszProxyHostName:pLPSTR; 
+  pfnInternetGetProxyInfo = function (lpszUrl:LPCSTR; dwUrlLength:DWORD; lpszUrlHostName:LPSTR; dwUrlHostNameLength:DWORD; lplpszProxyHostName:pLPSTR;
                     lpdwProxyHostNameLength:LPDWORD):BOOL;stdcall;
   PFN_DIAL_HANDLER = function (_para1:HWND; _para2:LPCSTR; _para3:DWORD; _para4:LPDWORD):DWORD;stdcall;
-  
+
   function InternetTimeFromSystemTimeA(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeA';
   function InternetTimeFromSystemTimeW(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPWSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeW';
   function InternetTimeToSystemTimeA(lpszTime:LPCSTR; pst:PSYSTEMTIME; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeToSystemTimeA';
@@ -2035,21 +2035,23 @@ Type
   function InternetCombineUrlA(lpszBaseUrl:LPCSTR; lpszRelativeUrl:LPCSTR; lpszBuffer:LPSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlA';
   function InternetCombineUrlW(lpszBaseUrl:LPCWSTR; lpszRelativeUrl:LPCWSTR; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlW';
   function InternetOpenA(lpszAgent:LPCSTR; dwAccessType:DWORD; lpszProxy:LPCSTR; lpszProxyBypass:LPCSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenA';
-  function InternetOpenW(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';	  
+  function InternetOpenW(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';	
   function InternetCloseHandle(hInternet:HINTERNET):BOOL;stdcall;external WININETLIBNAME name 'InternetCloseHandle';
-  function InternetConnectA(hInternet:HINTERNET; lpszServerName:LPCSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCSTR; lpszPassword:LPCSTR; 
+  function InternetConnectA(hInternet:HINTERNET; lpszServerName:LPCSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCSTR; lpszPassword:LPCSTR;
              dwService:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetConnectA';
-  function InternetConnectW(hInternet:HINTERNET; lpszServerName:LPCWSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCWSTR; lpszPassword:LPCWSTR; 
+  function InternetConnectW(hInternet:HINTERNET; lpszServerName:LPCWSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCWSTR; lpszPassword:LPCWSTR;
              dwService:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetConnectW';
-  function InternetOpenUrlA(hInternet:HINTERNET; lpszUrl:LPCSTR; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; dwFlags:DWORD; 
+  function InternetOpenUrlA(hInternet:HINTERNET; lpszUrl:LPCSTR; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; dwFlags:DWORD;
              dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlA';
-  function InternetOpenUrlW(hInternet:HINTERNET; lpszUrl:LPCWSTR; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwFlags:DWORD; 
+  function InternetOpenUrlW(hInternet:HINTERNET; lpszUrl:LPCWSTR; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwFlags:DWORD;
              dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlW';
   function InternetReadFile(hFile:HINTERNET; lpBuffer:LPVOID; dwNumberOfBytesToRead:DWORD; lpdwNumberOfBytesRead:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFile';
+  function InternetReadFile(hFile:HINTERNET; lpBuffer:LPVOID; dwNumberOfBytesToRead:DWORD; var lpdwNumberOfBytesRead:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFile';
   function InternetReadFileExA(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSA; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExA';
   function InternetReadFileExW(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSW; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExW';
   function InternetSetFilePointer(hFile:HINTERNET; lDistanceToMove:LONG; pReserved:PVOID; dwMoveMethod:DWORD; dwContext:DWORD_PTR):DWORD;stdcall;external WININETLIBNAME name 'InternetSetFilePointer';
   function InternetWriteFile(hFile:HINTERNET; lpBuffer:LPCVOID; dwNumberOfBytesToWrite:DWORD; lpdwNumberOfBytesWritten:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetWriteFile';
+  function InternetWriteFile(hFile:HINTERNET; lpBuffer:LPCVOID; dwNumberOfBytesToWrite:DWORD; var lpdwNumberOfBytesWritten:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetWriteFile';
   function InternetQueryDataAvailable(hFile:HINTERNET; lpdwNumberOfBytesAvailable:LPDWORD; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryDataAvailable';
   function InternetFindNextFileA(hFind:HINTERNET; lpvFindData:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetFindNextFileA';
   function InternetFindNextFileW(hFind:HINTERNET; lpvFindData:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetFindNextFileW';
@@ -2067,13 +2069,13 @@ Type
   function InternetSetStatusCallbackW(hInternet:HINTERNET; lpfnInternetCallback:INTERNET_STATUS_CALLBACK):INTERNET_STATUS_CALLBACK;stdcall;external WININETLIBNAME name 'InternetSetStatusCallbackW';
   function FtpFindFirstFileA(hConnect:HINTERNET; lpszSearchFile:LPCSTR; lpFindFileData:LPWIN32_FIND_DATA; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileA';
   function FtpFindFirstFileW(hConnect:HINTERNET; lpszSearchFile:LPCWSTR; lpFindFileData:LPWIN32_FIND_DATAW; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileW';
-  function FtpGetFileA(hConnect:HINTERNET; lpszRemoteFile:LPCSTR; lpszNewFile:LPCSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD; 
+  function FtpGetFileA(hConnect:HINTERNET; lpszRemoteFile:LPCSTR; lpszNewFile:LPCSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD;
              dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpGetFileA';
-  function FtpGetFileW(hConnect:HINTERNET; lpszRemoteFile:LPCWSTR; lpszNewFile:LPCWSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD; 
+  function FtpGetFileW(hConnect:HINTERNET; lpszRemoteFile:LPCWSTR; lpszNewFile:LPCWSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD;
              dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpGetFileW';
   function FtpPutFileA(hConnect:HINTERNET; lpszLocalFile:LPCSTR; lpszNewRemoteFile:LPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpPutFileA';
   function FtpPutFileW(hConnect:HINTERNET; lpszLocalFile:LPCWSTR; lpszNewRemoteFile:LPCWSTR; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpPutFileW';
-  function FtpGetFileEx(hFtpSession:HINTERNET; lpszRemoteFile:LPCSTR; lpszNewFile:LPCWSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD; 
+  function FtpGetFileEx(hFtpSession:HINTERNET; lpszRemoteFile:LPCSTR; lpszNewFile:LPCWSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD;
              dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpGetFileEx';
   function FtpPutFileEx(hFtpSession:HINTERNET; lpszLocalFile:LPCWSTR; lpszNewRemoteFile:LPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpPutFileEx';
   function FtpDeleteFileA(hConnect:HINTERNET; lpszFileName:LPCSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpDeleteFileA';
@@ -2090,30 +2092,30 @@ Type
   function FtpSetCurrentDirectoryW(hConnect:HINTERNET; lpszDirectory:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpSetCurrentDirectoryW';
   function FtpGetCurrentDirectoryA(hConnect:HINTERNET; lpszCurrentDirectory:LPSTR; lpdwCurrentDirectory:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryA';
   function FtpGetCurrentDirectoryW(hConnect:HINTERNET; lpszCurrentDirectory:LPWSTR; lpdwCurrentDirectory:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryW';
-  function FtpCommandA(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCSTR; dwContext:DWORD_PTR; 
+  function FtpCommandA(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCSTR; dwContext:DWORD_PTR;
              phFtpCommand:PHINTERNET):BOOL;stdcall;external WININETLIBNAME name 'FtpCommandA';
-  function FtpCommandW(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCWSTR; dwContext:DWORD_PTR; 
+  function FtpCommandW(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCWSTR; dwContext:DWORD_PTR;
              phFtpCommand:PHINTERNET):BOOL;stdcall;external WININETLIBNAME name 'FtpCommandW';
   function FtpGetFileSize(hFile:HINTERNET; lpdwFileSizeHigh:LPDWORD):DWORD;stdcall;external WININETLIBNAME name 'FtpGetFileSize';
-  function GopherCreateLocatorA(lpszHost:LPCSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCSTR; lpszSelectorString:LPCSTR; dwGopherType:DWORD; 
+  function GopherCreateLocatorA(lpszHost:LPCSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCSTR; lpszSelectorString:LPCSTR; dwGopherType:DWORD;
              lpszLocator:LPSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorA';
-  function GopherCreateLocatorW(lpszHost:LPCWSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCWSTR; lpszSelectorString:LPCWSTR; dwGopherType:DWORD; 
+  function GopherCreateLocatorW(lpszHost:LPCWSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCWSTR; lpszSelectorString:LPCWSTR; dwGopherType:DWORD;
              lpszLocator:LPWSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorW';
   function GopherGetLocatorTypeA(lpszLocator:LPCSTR; lpdwGopherType:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeA';
   function GopherGetLocatorTypeW(lpszLocator:LPCWSTR; lpdwGopherType:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeW';
-  function GopherFindFirstFileA(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszSearchString:LPCSTR; lpFindData:LPGOPHER_FIND_DATAA; dwFlags:DWORD; 
+  function GopherFindFirstFileA(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszSearchString:LPCSTR; lpFindData:LPGOPHER_FIND_DATAA; dwFlags:DWORD;
              dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileA';
-  function GopherFindFirstFileW(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszSearchString:LPCWSTR; lpFindData:LPGOPHER_FIND_DATAW; dwFlags:DWORD; 
+  function GopherFindFirstFileW(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszSearchString:LPCWSTR; lpFindData:LPGOPHER_FIND_DATAW; dwFlags:DWORD;
              dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileW';
   function GopherOpenFileA(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszView:LPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherOpenFileA';
   function GopherOpenFileW(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszView:LPCWSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherOpenFileW';
-  function GopherGetAttributeA(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszAttributeName:LPCSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD; 
+  function GopherGetAttributeA(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszAttributeName:LPCSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
              lpdwCharactersReturned:LPDWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeA';
-  function GopherGetAttributeW(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszAttributeName:LPCWSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD; 
+  function GopherGetAttributeW(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszAttributeName:LPCWSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
              lpdwCharactersReturned:LPDWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeW';
-  function HttpOpenRequestA(hConnect:HINTERNET; lpszVerb:LPCSTR; lpszObjectName:LPCSTR; lpszVersion:LPCSTR; lpszReferrer:LPCSTR; 
+  function HttpOpenRequestA(hConnect:HINTERNET; lpszVerb:LPCSTR; lpszObjectName:LPCSTR; lpszVersion:LPCSTR; lpszReferrer:LPCSTR;
              lplpszAcceptTypes:LPPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'HttpOpenRequestA';
-  function HttpOpenRequestW(hConnect:HINTERNET; lpszVerb:LPCWSTR; lpszObjectName:LPCWSTR; lpszVersion:LPCWSTR; lpszReferrer:LPCWSTR; 
+  function HttpOpenRequestW(hConnect:HINTERNET; lpszVerb:LPCWSTR; lpszObjectName:LPCWSTR; lpszVersion:LPCWSTR; lpszReferrer:LPCWSTR;
              lplpszAcceptTypes:LPPCWSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'HttpOpenRequestW';
   function HttpAddRequestHeadersA(hRequest:HINTERNET; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; dwModifiers:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpAddRequestHeadersA';
   function HttpAddRequestHeadersW(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwModifiers:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpAddRequestHeadersW';
@@ -2131,9 +2133,9 @@ Type
   function InternetGetCookieW(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; lpdwSize:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieW';
   function InternetSetCookieExA(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPCSTR; dwFlags:DWORD; dwReserved:DWORD_PTR):DWORD;stdcall;external WININETLIBNAME name 'InternetSetCookieExA';
   function InternetSetCookieExW(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPCWSTR; dwFlags:DWORD; dwReserved:DWORD_PTR):DWORD;stdcall;external WININETLIBNAME name 'InternetSetCookieExW';
-  function InternetGetCookieExA(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; lpdwSize:LPDWORD; dwFlags:DWORD; 
+  function InternetGetCookieExA(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; lpdwSize:LPDWORD; dwFlags:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExA';
-  function InternetGetCookieExW(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; lpdwSize:LPDWORD; dwFlags:DWORD; 
+  function InternetGetCookieExW(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; lpdwSize:LPDWORD; dwFlags:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExW';
   function InternetAttemptConnect(dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetAttemptConnect';
   function InternetCheckConnectionA(lpszUrl:LPCSTR; dwFlags:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCheckConnectionA';
@@ -2141,12 +2143,12 @@ Type
   function ResumeSuspendedDownload(hRequest:HINTERNET; dwResultCode:DWORD):BOOL;stdcall;external WININETLIBNAME name 'ResumeSuspendedDownload';
   function InternetErrorDlg(hWnd:HWND; hRequest:HINTERNET; dwError:DWORD; dwFlags:DWORD; lppvData:ppointer):DWORD;stdcall;external WININETLIBNAME name 'InternetErrorDlg';
   function InternetConfirmZoneCrossingA(hWnd:HWND; szUrlPrev:LPSTR; szUrlNew:LPSTR; bPost:BOOL):DWORD;stdcall;external WININETLIBNAME name 'InternetConfirmZoneCrossingA';
-  function InternetConfirmZoneCrossingW(hWnd:HWND; szUrlPrev:LPWSTR; szUrlNew:LPWSTR; bPost:BOOL):DWORD;stdcall;external WININETLIBNAME name 'InternetConfirmZoneCrossingW';  
+  function InternetConfirmZoneCrossingW(hWnd:HWND; szUrlPrev:LPWSTR; szUrlNew:LPWSTR; bPost:BOOL):DWORD;stdcall;external WININETLIBNAME name 'InternetConfirmZoneCrossingW';
   function CreateUrlCacheEntryA(lpszUrlName:LPCSTR; dwExpectedFileSize:DWORD; lpszFileExtension:LPCSTR; lpszFileName:LPSTR; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'CreateUrlCacheEntryA';
   function CreateUrlCacheEntryW(lpszUrlName:LPCWSTR; dwExpectedFileSize:DWORD; lpszFileExtension:LPCWSTR; lpszFileName:LPWSTR; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'CreateUrlCacheEntryW';
-  function CommitUrlCacheEntryA(lpszUrlName:LPCSTR; lpszLocalFileName:LPCSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD; 
+  function CommitUrlCacheEntryA(lpszUrlName:LPCSTR; lpszLocalFileName:LPCSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD;
              lpHeaderInfo:LPCSTR; dwHeaderSize:DWORD; lpszFileExtension:LPCSTR; lpszOriginalUrl:LPCSTR):BOOL;stdcall;external WININETLIBNAME name 'CommitUrlCacheEntryA';
-  function CommitUrlCacheEntryW(lpszUrlName:LPCWSTR; lpszLocalFileName:LPCWSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD; 
+  function CommitUrlCacheEntryW(lpszUrlName:LPCWSTR; lpszLocalFileName:LPCWSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD;
              lpHeaderInfo:LPCWSTR; dwHeaderSize:DWORD; lpszFileExtension:LPCWSTR; lpszOriginalUrl:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'CommitUrlCacheEntryW';
   function RetrieveUrlCacheEntryFileA(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileA';
   function RetrieveUrlCacheEntryFileW(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileW';
@@ -2158,34 +2160,34 @@ Type
   function UnlockUrlCacheEntryStream(hUrlCacheStream:HANDLE; Reserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'UnlockUrlCacheEntryStream';
   function GetUrlCacheEntryInfoA(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoA';
   function GetUrlCacheEntryInfoW(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoW';
-  function FindFirstUrlCacheGroup(dwFlags:DWORD; dwFilter:DWORD; lpSearchCondition:LPVOID; dwSearchCondition:DWORD; lpGroupId:PGROUPID; 
+  function FindFirstUrlCacheGroup(dwFlags:DWORD; dwFilter:DWORD; lpSearchCondition:LPVOID; dwSearchCondition:DWORD; lpGroupId:PGROUPID;
              lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheGroup';
   function FindNextUrlCacheGroup(hFind:HANDLE; lpGroupId:PGROUPID; lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheGroup';
-  function GetUrlCacheGroupAttributeA(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA; lpdwGroupInfo:LPDWORD; 
+  function GetUrlCacheGroupAttributeA(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA; lpdwGroupInfo:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeA';
-  function GetUrlCacheGroupAttributeW(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; lpdwGroupInfo:LPDWORD; 
+  function GetUrlCacheGroupAttributeW(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; lpdwGroupInfo:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeW';
   function SetUrlCacheGroupAttributeA(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheGroupAttributeA';
   function SetUrlCacheGroupAttributeW(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheGroupAttributeW';
-  function GetUrlCacheEntryInfoExA(lpszUrl:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPSTR; lpcbRedirectUrl:LPDWORD; 
+  function GetUrlCacheEntryInfoExA(lpszUrl:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPSTR; lpcbRedirectUrl:LPDWORD;
              lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExA';
-  function GetUrlCacheEntryInfoExW(lpszUrl:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPWSTR; lpcbRedirectUrl:LPDWORD; 
+  function GetUrlCacheEntryInfoExW(lpszUrl:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPWSTR; lpcbRedirectUrl:LPDWORD;
              lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExW';
   function SetUrlCacheEntryInfoA(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoA';
   function SetUrlCacheEntryInfoW(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoW';
   function CreateUrlCacheGroup(dwFlags:DWORD; lpReserved:LPVOID):GROUPID;stdcall;external WININETLIBNAME name 'CreateUrlCacheGroup';
   function DeleteUrlCacheGroup(GroupId:GROUPID; dwFlags:DWORD; lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'DeleteUrlCacheGroup';
-  function SetUrlCacheEntryGroupA(lpszUrlName:LPCSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD; 
+  function SetUrlCacheEntryGroupA(lpszUrlName:LPCSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryGroupA';
-  function SetUrlCacheEntryGroupW(lpszUrlName:LPCWSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD; 
+  function SetUrlCacheEntryGroupW(lpszUrlName:LPCWSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryGroupW';
-  function FindFirstUrlCacheEntryExA(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; 
+  function FindFirstUrlCacheEntryExA(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
              lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExA';
-  function FindFirstUrlCacheEntryExW(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; 
+  function FindFirstUrlCacheEntryExW(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
              lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExW';
-  function FindNextUrlCacheEntryExA(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; 
+  function FindNextUrlCacheEntryExA(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExA';
-  function FindNextUrlCacheEntryExW(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; 
+  function FindNextUrlCacheEntryExW(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
   function FindFirstUrlCacheEntryA(lpszUrlSearchPattern:LPCSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
   function FindFirstUrlCacheEntryW(lpszUrlSearchPattern:LPCWSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
@@ -2220,18 +2222,18 @@ Type
   function InternetClearAllPerSiteCookieDecisions:BOOL;stdcall;external WININETLIBNAME name 'InternetClearAllPerSiteCookieDecisions';
 
 {$ifndef UNICODE}
-  function InternetTimeFromSystemTime(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeA';  
+  function InternetTimeFromSystemTime(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeA';
   function InternetTimeToSystemTime(lpszTime:LPCSTR; pst:PSYSTEMTIME; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeToSystemTimeA';
-  function InternetCrackUrl(lpszUrl:LPCSTR; dwUrlLength:DWORD; dwFlags:DWORD; lpUrlComponents:LPURL_COMPONENTSA):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlA'; 
+  function InternetCrackUrl(lpszUrl:LPCSTR; dwUrlLength:DWORD; dwFlags:DWORD; lpUrlComponents:LPURL_COMPONENTSA):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlA';
   function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSA; dwFlags:DWORD; lpszUrl:LPSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlA';
   function InternetCanonicalizeUrl(lpszUrl:LPCSTR; lpszBuffer:LPSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlA';
-  function InternetCombineUrl(lpszBaseUrl:LPCSTR; lpszRelativeUrl:LPCSTR; lpszBuffer:LPSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlA'; 
-  function InternetOpen(lpszAgent:LPCSTR; dwAccessType:DWORD; lpszProxy:LPCSTR; lpszProxyBypass:LPCSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenA'; 
-  function InternetConnect(hInternet:HINTERNET; lpszServerName:LPCSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCSTR; lpszPassword:LPCSTR; 
+  function InternetCombineUrl(lpszBaseUrl:LPCSTR; lpszRelativeUrl:LPCSTR; lpszBuffer:LPSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlA';
+  function InternetOpen(lpszAgent:LPCSTR; dwAccessType:DWORD; lpszProxy:LPCSTR; lpszProxyBypass:LPCSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenA';
+  function InternetConnect(hInternet:HINTERNET; lpszServerName:LPCSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCSTR; lpszPassword:LPCSTR;
              dwService:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetConnectA';
-  function InternetReadFileEx(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSA; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExA';			 
-  function InternetOpenUrl(hInternet:HINTERNET; lpszUrl:LPCSTR; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; dwFlags:DWORD; 
-             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlA'; 
+  function InternetReadFileEx(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSA; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExA';			
+  function InternetOpenUrl(hInternet:HINTERNET; lpszUrl:LPCSTR; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlA';
   function InternetFindNextFile(hFind:HINTERNET; lpvFindData:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetFindNextFileA';
   function InternetQueryOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryOptionA';
   function InternetSetOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; dwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetSetOptionA';
@@ -2239,7 +2241,7 @@ Type
   function InternetGetLastResponseInfo(lpdwError:LPDWORD; lpszBuffer:LPSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetLastResponseInfoA';
   function InternetSetStatusCallback(hInternet:HINTERNET; lpfnInternetCallback:INTERNET_STATUS_CALLBACK):INTERNET_STATUS_CALLBACK;stdcall;external WININETLIBNAME name 'InternetSetStatusCallbackA';
   function FtpFindFirstFile(hConnect:HINTERNET; lpszSearchFile:LPCSTR; lpFindFileData:LPWIN32_FIND_DATA; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileA';
-  function FtpGetFile(hConnect:HINTERNET; lpszRemoteFile:LPCSTR; lpszNewFile:LPCSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD; 
+  function FtpGetFile(hConnect:HINTERNET; lpszRemoteFile:LPCSTR; lpszNewFile:LPCSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD;
              dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpGetFileA';
   function FtpPutFile(hConnect:HINTERNET; lpszLocalFile:LPCSTR; lpszNewRemoteFile:LPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpPutFileA';
   function FtpDeleteFile(hConnect:HINTERNET; lpszFileName:LPCSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpDeleteFileA';
@@ -2249,17 +2251,17 @@ Type
   function FtpRemoveDirectory(hConnect:HINTERNET; lpszDirectory:LPCSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpRemoveDirectoryA';
   function FtpSetCurrentDirectory(hConnect:HINTERNET; lpszDirectory:LPCSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpSetCurrentDirectoryA';
   function FtpGetCurrentDirectory(hConnect:HINTERNET; lpszCurrentDirectory:LPSTR; lpdwCurrentDirectory:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryA';
-  function FtpCommand(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCSTR; dwContext:DWORD_PTR; 
+  function FtpCommand(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCSTR; dwContext:DWORD_PTR;
              phFtpCommand:PHINTERNET):BOOL;stdcall;external WININETLIBNAME name 'FtpCommandA';
-  function GopherCreateLocator(lpszHost:LPCSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCSTR; lpszSelectorString:LPCSTR; dwGopherType:DWORD; 
+  function GopherCreateLocator(lpszHost:LPCSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCSTR; lpszSelectorString:LPCSTR; dwGopherType:DWORD;
              lpszLocator:LPSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorA';
   function GopherGetLocatorType(lpszLocator:LPCSTR; lpdwGopherType:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeA';
-  function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszSearchString:LPCSTR; lpFindData:LPGOPHER_FIND_DATAA; dwFlags:DWORD; 
-             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileA';	 
+  function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszSearchString:LPCSTR; lpFindData:LPGOPHER_FIND_DATAA; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileA';	
   function GopherOpenFile(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszView:LPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherOpenFileA';
-  function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszAttributeName:LPCSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD; 
+  function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszAttributeName:LPCSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
              lpdwCharactersReturned:LPDWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeA';
-  function HttpOpenRequest(hConnect:HINTERNET; lpszVerb:LPCSTR; lpszObjectName:LPCSTR; lpszVersion:LPCSTR; lpszReferrer:LPCSTR; 
+  function HttpOpenRequest(hConnect:HINTERNET; lpszVerb:LPCSTR; lpszObjectName:LPCSTR; lpszVersion:LPCSTR; lpszReferrer:LPCSTR;
              lplpszAcceptTypes:LPPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'HttpOpenRequestA';
   function HttpAddRequestHeaders(hRequest:HINTERNET; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; dwModifiers:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpAddRequestHeadersA';
   function HttpSendRequest(hRequest:HINTERNET; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; lpOptional:LPVOID; dwOptionalLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpSendRequestA';
@@ -2268,29 +2270,29 @@ Type
   function HttpQueryInfo(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoA';
   function InternetSetCookie(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPCSTR):BOOL;stdcall;external WININETLIBNAME name 'InternetSetCookieA';
   function InternetGetCookie(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; lpdwSize:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieA';
-  function InternetSetCookieEx(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPCSTR; dwFlags:DWORD; dwReserved:DWORD_PTR):DWORD;stdcall;external WININETLIBNAME name 'InternetSetCookieExA'; 
-  function InternetGetCookieEx(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; lpdwSize:LPDWORD; dwFlags:DWORD; 
+  function InternetSetCookieEx(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPCSTR; dwFlags:DWORD; dwReserved:DWORD_PTR):DWORD;stdcall;external WININETLIBNAME name 'InternetSetCookieExA';
+  function InternetGetCookieEx(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; lpdwSize:LPDWORD; dwFlags:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExA';
-  function InternetCheckConnection(lpszUrl:LPCSTR; dwFlags:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCheckConnectionA'; 
+  function InternetCheckConnection(lpszUrl:LPCSTR; dwFlags:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCheckConnectionA';
   function InternetConfirmZoneCrossing(hWnd:HWND; szUrlPrev:LPSTR; szUrlNew:LPSTR; bPost:BOOL):DWORD;stdcall;external WININETLIBNAME name 'InternetConfirmZoneCrossingA';
   function CreateUrlCacheEntry(lpszUrlName:LPCSTR; dwExpectedFileSize:DWORD; lpszFileExtension:LPCSTR; lpszFileName:LPSTR; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'CreateUrlCacheEntryA';
-  function CommitUrlCacheEntry(lpszUrlName:LPCSTR; lpszLocalFileName:LPCSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD; 
+  function CommitUrlCacheEntry(lpszUrlName:LPCSTR; lpszLocalFileName:LPCSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD;
              lpHeaderInfo:LPCSTR; dwHeaderSize:DWORD; lpszFileExtension:LPCSTR; lpszOriginalUrl:LPCSTR):BOOL;stdcall;external WININETLIBNAME name 'CommitUrlCacheEntryA';
   function RetrieveUrlCacheEntryFile(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileA';
   function UnlockUrlCacheEntryFile(lpszUrlName:LPCSTR; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'UnlockUrlCacheEntryFileA';
   function RetrieveUrlCacheEntryStream(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamA';
-  function GetUrlCacheEntryInfo(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoA';  
-  function GetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA; lpdwGroupInfo:LPDWORD; 
+  function GetUrlCacheEntryInfo(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoA';
+  function GetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA; lpdwGroupInfo:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeA';
   function SetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheGroupAttributeA';
-  function GetUrlCacheEntryInfoEx(lpszUrl:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPSTR; lpcbRedirectUrl:LPDWORD; 
+  function GetUrlCacheEntryInfoEx(lpszUrl:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPSTR; lpcbRedirectUrl:LPDWORD;
              lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExA';
   function SetUrlCacheEntryInfo(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoA';
-  function SetUrlCacheEntryGroup(lpszUrlName:LPCSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD; 
+  function SetUrlCacheEntryGroup(lpszUrlName:LPCSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryGroupA';
-  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; 
+  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
              lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExA';
-  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; 
+  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExA';
   function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
   function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
@@ -2302,18 +2304,18 @@ Type
   function InternetSetPerSiteCookieDecision(pchHostName:LPCSTR; dwDecision:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetSetPerSiteCookieDecisionA';
   function InternetGetPerSiteCookieDecision(pchHostName:LPCSTR; pResult:Pdword):BOOL;stdcall;external WININETLIBNAME name 'InternetGetPerSiteCookieDecisionA';
   function InternetEnumPerSiteCookieDecision(pszSiteName:LPSTR; pcSiteNameSize:Pdword; pdwDecision:Pdword; dwIndex:dword):BOOL;stdcall;external WININETLIBNAME name 'InternetEnumPerSiteCookieDecisionA';
-{$ELSE}  
+{$ELSE}
   function InternetTimeFromSystemTime(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPWSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeW';
-  function InternetTimeToSystemTime(lpszTime:LPCWSTR; pst:PSYSTEMTIME; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeToSystemTimeW'; 
+  function InternetTimeToSystemTime(lpszTime:LPCWSTR; pst:PSYSTEMTIME; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeToSystemTimeW';
   function InternetCrackUrl(lpszUrl:LPCWSTR; dwUrlLength:DWORD; dwFlags:DWORD; lpUrlComponents:LPURL_COMPONENTSW):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlW';
   function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
   function InternetCanonicalizeUrl(lpszUrl:LPCWSTR; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlW';
-  function InternetCombineUrl(lpszBaseUrl:LPCWSTR; lpszRelativeUrl:LPCWSTR; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlW';  
-  function InternetOpen(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';	  
-  function InternetConnect(hInternet:HINTERNET; lpszServerName:LPCWSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCWSTR; lpszPassword:LPCWSTR; 
+  function InternetCombineUrl(lpszBaseUrl:LPCWSTR; lpszRelativeUrl:LPCWSTR; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlW';
+  function InternetOpen(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';	
+  function InternetConnect(hInternet:HINTERNET; lpszServerName:LPCWSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCWSTR; lpszPassword:LPCWSTR;
              dwService:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetConnectW';
-  function InternetOpenUrl(hInternet:HINTERNET; lpszUrl:LPCWSTR; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwFlags:DWORD; 
-             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlW';			 
+  function InternetOpenUrl(hInternet:HINTERNET; lpszUrl:LPCWSTR; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlW';			
   function InternetReadFileEx(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSW; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExW';
     function InternetFindNextFile(hFind:HINTERNET; lpvFindData:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetFindNextFileW';
   function InternetQueryOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryOptionW';
@@ -2322,7 +2324,7 @@ Type
   function InternetGetLastResponseInfo(lpdwError:LPDWORD; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetLastResponseInfoW';
   function InternetSetStatusCallback(hInternet:HINTERNET; lpfnInternetCallback:INTERNET_STATUS_CALLBACK):INTERNET_STATUS_CALLBACK;stdcall;external WININETLIBNAME name 'InternetSetStatusCallbackW';
   function FtpFindFirstFile(hConnect:HINTERNET; lpszSearchFile:LPCWSTR; lpFindFileData:LPWIN32_FIND_DATAW; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileW';
-  function FtpGetFile(hConnect:HINTERNET; lpszRemoteFile:LPCWSTR; lpszNewFile:LPCWSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD; 
+  function FtpGetFile(hConnect:HINTERNET; lpszRemoteFile:LPCWSTR; lpszNewFile:LPCWSTR; fFailIfExists:BOOL; dwFlagsAndAttributes:DWORD;
              dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpGetFileW';
   function FtpPutFile(hConnect:HINTERNET; lpszLocalFile:LPCWSTR; lpszNewRemoteFile:LPCWSTR; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'FtpPutFileW';
   function FtpDeleteFile(hConnect:HINTERNET; lpszFileName:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpDeleteFileW';
@@ -2332,17 +2334,17 @@ Type
   function FtpRemoveDirectory(hConnect:HINTERNET; lpszDirectory:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpRemoveDirectoryW';
   function FtpSetCurrentDirectory(hConnect:HINTERNET; lpszDirectory:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'FtpSetCurrentDirectoryW';
   function FtpGetCurrentDirectory(hConnect:HINTERNET; lpszCurrentDirectory:LPWSTR; lpdwCurrentDirectory:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryW';
-  function FtpCommand(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCWSTR; dwContext:DWORD_PTR; 
+  function FtpCommand(hConnect:HINTERNET; fExpectResponse:BOOL; dwFlags:DWORD; lpszCommand:LPCWSTR; dwContext:DWORD_PTR;
              phFtpCommand:PHINTERNET):BOOL;stdcall;external WININETLIBNAME name 'FtpCommandW';
-  function GopherCreateLocator(lpszHost:LPCWSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCWSTR; lpszSelectorString:LPCWSTR; dwGopherType:DWORD; 
+  function GopherCreateLocator(lpszHost:LPCWSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCWSTR; lpszSelectorString:LPCWSTR; dwGopherType:DWORD;
              lpszLocator:LPWSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorW';
   function GopherGetLocatorType(lpszLocator:LPCWSTR; lpdwGopherType:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeW';
-  function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszSearchString:LPCWSTR; lpFindData:LPGOPHER_FIND_DATAW; dwFlags:DWORD; 
-             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileW';		 
+  function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszSearchString:LPCWSTR; lpFindData:LPGOPHER_FIND_DATAW; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileW';		
   function GopherOpenFile(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszView:LPCWSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherOpenFileW';
-  function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszAttributeName:LPCWSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD; 
+  function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszAttributeName:LPCWSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
              lpdwCharactersReturned:LPDWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeW';
-  function HttpOpenRequest(hConnect:HINTERNET; lpszVerb:LPCWSTR; lpszObjectName:LPCWSTR; lpszVersion:LPCWSTR; lpszReferrer:LPCWSTR; 
+  function HttpOpenRequest(hConnect:HINTERNET; lpszVerb:LPCWSTR; lpszObjectName:LPCWSTR; lpszVersion:LPCWSTR; lpszReferrer:LPCWSTR;
              lplpszAcceptTypes:LPPCWSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'HttpOpenRequestW';
   function HttpAddRequestHeaders(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwModifiers:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpAddRequestHeadersW';
   function HttpSendRequest(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; lpOptional:LPVOID; dwOptionalLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpSendRequestW';
@@ -2352,36 +2354,36 @@ Type
   function InternetSetCookie(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'InternetSetCookieW';
   function InternetGetCookie(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; lpdwSize:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieW';
   function InternetSetCookieEx(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPCWSTR; dwFlags:DWORD; dwReserved:DWORD_PTR):DWORD;stdcall;external WININETLIBNAME name 'InternetSetCookieExW';
-  function InternetGetCookieEx(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; lpdwSize:LPDWORD; dwFlags:DWORD; 
-             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExW'; 
-  function InternetCheckConnection(lpszUrl:LPCWSTR; dwFlags:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCheckConnectionW'; 
+  function InternetGetCookieEx(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; lpdwSize:LPDWORD; dwFlags:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExW';
+  function InternetCheckConnection(lpszUrl:LPCWSTR; dwFlags:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCheckConnectionW';
   function InternetConfirmZoneCrossing(hWnd:HWND; szUrlPrev:LPWSTR; szUrlNew:LPWSTR; bPost:BOOL):DWORD;stdcall;external WININETLIBNAME name 'InternetConfirmZoneCrossingW';
   function CreateUrlCacheEntry(lpszUrlName:LPCWSTR; dwExpectedFileSize:DWORD; lpszFileExtension:LPCWSTR; lpszFileName:LPWSTR; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'CreateUrlCacheEntryW';
-  function CommitUrlCacheEntry(lpszUrlName:LPCWSTR; lpszLocalFileName:LPCWSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD; 
+  function CommitUrlCacheEntry(lpszUrlName:LPCWSTR; lpszLocalFileName:LPCWSTR; ExpireTime:FILETIME; LastModifiedTime:FILETIME; CacheEntryType:DWORD;
              lpHeaderInfo:LPCWSTR; dwHeaderSize:DWORD; lpszFileExtension:LPCWSTR; lpszOriginalUrl:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'CommitUrlCacheEntryW';
   function RetrieveUrlCacheEntryFile(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileW';
   function UnlockUrlCacheEntryFile(lpszUrlName:LPCWSTR; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'UnlockUrlCacheEntryFileW';
   function RetrieveUrlCacheEntryStream(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamW';
   function GetUrlCacheEntryInfo(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoW';
-  
-  function GetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; lpdwGroupInfo:LPDWORD; 
+
+  function GetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; lpdwGroupInfo:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeW';
   function SetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheGroupAttributeW';
-  function GetUrlCacheEntryInfoEx(lpszUrl:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPWSTR; lpcbRedirectUrl:LPDWORD; 
+  function GetUrlCacheEntryInfoEx(lpszUrl:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; lpszRedirectUrl:LPWSTR; lpcbRedirectUrl:LPDWORD;
              lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExW';
   function SetUrlCacheEntryInfo(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoW';
-  function SetUrlCacheEntryGroup(lpszUrlName:LPCWSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD; 
+  function SetUrlCacheEntryGroup(lpszUrlName:LPCWSTR; dwFlags:DWORD; GroupId:GROUPID; pbGroupAttributes:LPBYTE; cbGroupAttributes:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryGroupW';
-  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; 
+  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
              lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExW';
-  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; 
+  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
   function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCWSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
   function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
   function FindCloseUrlCache(hEnumHandle:HANDLE):BOOL;stdcall;external WININETLIBNAME name 'FindCloseUrlCache';
   function DeleteUrlCacheEntry(lpszUrlName:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'DeleteUrlCacheEntryW';
   function InternetDial(hwndParent:HWND; lpszConnectoid:LPWSTR; dwFlags:DWORD; lpdwConnection:PDWORD_PTR; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialW';
-  
+
   function InternetGoOnline(lpszURL:LPWSTR; hwndParent:HWND; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGoOnlineW';
   function InternetGetConnectedStateEx(lpdwFlags:LPDWORD; lpszConnectionName:LPWSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExW';
   function InternetSetDialState(lpszConnectoid:LPCWSTR; dwState:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetSetDialStateW';
@@ -2390,7 +2392,7 @@ Type
   function InternetEnumPerSiteCookieDecision(pszSiteName:LPWSTR; pcSiteNameSize:Pdword; pdwDecision:Pdword; dwIndex:dword):BOOL;stdcall;external WININETLIBNAME name 'InternetEnumPerSiteCookieDecisionW';
   function PrivacySetZonePreference(dwZone:DWORD; dwType:DWORD; dwTemplate:DWORD; pszPreference:LPCWSTR):DWORD;stdcall;external WININETLIBNAME name 'PrivacySetZonePreferenceW';
   function PrivacyGetZonePreference(dwZone:DWORD; dwType:DWORD; pdwTemplate:LPDWORD; pszBuffer:LPWSTR; pdwBufferLength:LPDWORD):DWORD;stdcall;external WININETLIBNAME name 'PrivacyGetZonePreferenceW';
-{$endif}    
-	 
+{$endif}
+	
 implementation
-end. 
+end.
