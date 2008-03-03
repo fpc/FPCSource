@@ -54,7 +54,7 @@ var
                                age-detection.}
 
    {  date time formatting characters:
-      c      : shortdateformat + ' ' + shorttimeformat
+      c      : shortdateformat + ' ' + longtimeformat
       d      : day of month
       dd     : day of month (leading zero)
       ddd    : day of week (abbreviation)
@@ -65,9 +65,9 @@ var
       mm     : month (leading zero)
       mmm    : month (abbreviation)
       mmmm   : month (full)
-      y      : year (four digits)
+      y      : year (two digits)
       yy     : year (two digits)
-      yyyy   : year (with century)
+      yyyy   : year (four digits, with century)
       h      : hour
       hh     : hour (leading zero)
       n      : minute
