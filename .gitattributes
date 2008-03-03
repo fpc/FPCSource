@@ -4973,6 +4973,7 @@ rtl/inc/compproc.inc svneol=native#text/plain
 rtl/inc/crt.inc svneol=native#text/plain
 rtl/inc/crth.inc svneol=native#text/plain
 rtl/inc/ctypes.pp svneol=native#text/plain
+rtl/inc/currh.inc svneol=native#text/plain
 rtl/inc/dos.inc svneol=native#text/plain
 rtl/inc/dosh.inc svneol=native#text/plain
 rtl/inc/dynarr.inc svneol=native#text/plain
