@@ -2453,8 +2453,7 @@ begin
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
 
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
-{$if defined(i386) or defined(m68k) or defined(powerpc) or defined(powerpc64)
-    or defined(sparc) or defined(arm) or defined(avr)}
+
   if init_settings.fputype<>fpu_none then
     begin
 {$if defined(i386)}
@@ -2473,7 +2472,6 @@ begin
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
     end;
-{$endif}
 
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
