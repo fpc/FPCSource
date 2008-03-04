@@ -514,6 +514,10 @@ implementation
 
     procedure tcgsetconstnode.pass_generate_code;
 
+      type
+         setbytes=array[0..31] of byte;
+         Psetbytes=^setbytes;
+
         procedure smallsetconst;
         begin
           location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
@@ -550,9 +554,6 @@ implementation
            lastlabel   : tasmlabel;
            i, diff     : longint;
            neededtyp   : taiconst_type;
-        type
-           setbytes=array[0..31] of byte;
-           Psetbytes=^setbytes;
         begin
           location_reset(location,LOC_CREFERENCE,OS_NO);
           neededtyp:=aitconst_8bit;
