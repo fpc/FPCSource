@@ -632,7 +632,7 @@ unit i_linux;
             res          : res_none;
             dbg          : dbg_stabs;
             script       : script_unix;
-            endian       : endian_big;
+            endian       : endian_little;
             alignment    :
               (
                 procalign       : 4;
