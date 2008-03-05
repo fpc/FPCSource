@@ -58,11 +58,11 @@ fcl-image_smart: fcl-base_smart paszlib_smart
 fcl-image_release: fcl-base_release paszlib_release
 fcl-image_shared: fcl-base_shared paszlib_shared
 
-fcl-fpcunit_all: fcl-xml_all
-fcl-fpcunit_debug: fcl-xml_debug
-fcl-fpcunit_smart: fcl-xml_smart
-fcl-fpcunit_release: fcl-xml_release
-fcl-fpcunit_shared: fcl-xml_shared
+fcl-fpcunit_all: fcl-xml_all paszlib_all
+fcl-fpcunit_debug: fcl-xml_debug paszlib_debug
+fcl-fpcunit_smart: fcl-xml_smart paszlib_smart
+fcl-fpcunit_release: fcl-xml_release paszlib_release
+fcl-fpcunit_shared: fcl-xml_shared paszlib_shared
 
 fcl-registry_all: fcl-xml_all
 fcl-registry_debug: fcl-xml_debug
