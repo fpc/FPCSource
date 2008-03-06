@@ -625,8 +625,8 @@ implementation
         resultdef:=typedef;
         { only do range checking when explicitly asked for it
           and if the type can be range checked, see tests/tbs/tb0539.pp }
-        if rangecheck and (resultdef.typ in [orddef,enumdef]) then
-           testrange(resultdef,value,false);
+        if (resultdef.typ in [orddef,enumdef]) then
+           testrange(resultdef,value,not rangecheck)
       end;
 
     function tordconstnode.pass_1 : tnode;

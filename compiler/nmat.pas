@@ -799,18 +799,24 @@ implementation
                s8bit,
                u16bit,
                s16bit,
-               u32bit,
                s32bit,
-               s64bit,
-               u64bit :
+               s64bit:
                  begin
                    v:=int64(not int64(v)); { maybe qword is required }
                    int_to_type(v,def);
                  end;
+               u32bit,
+               u64bit :
+                 begin
+                   { Delphi-compatible: not dword = dword (not word = longint) }
+                   { Extension: not qword = qword                              }
+                   v:=qword(not qword(v));
+                   { will be truncated by the ordconstnode for u32bit }
+                 end;
                else
                  CGMessage(type_e_mismatch);
              end;
-             t:=cordconstnode.create(v,def,true);
+             t:=cordconstnode.create(v,def,false);
              result:=t;
              exit;
           end;
