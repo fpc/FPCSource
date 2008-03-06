@@ -790,6 +790,8 @@ implementation
                bool64bit:
                  begin
                    v:=byte(not(boolean(int64(v))));
+                   if (torddef(left.resultdef).ordtype<>pasbool) then
+                     v:=-v;
                  end;
                uchar,
                uwidechar,
