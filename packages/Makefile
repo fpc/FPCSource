@@ -7333,11 +7333,19 @@ fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart pos
 fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release pxlib_release
 fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release pxlib_shared
 else
+ifeq ($(findstring $(OS_TARGET),win64),)
+fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all
+fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug
+fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart
+fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release
+fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release
+else
 fcl-db_all: fcl-base_all
 fcl-db_debug: fcl-base_debug
 fcl-db_smart: fcl-base_smart
 fcl-db_release: fcl-base_release
 fcl-db_shared: fcl-base_shared
+endif
 endif
 fcl_all: fcl-base_all fcl-xml_all fcl-fpcunit_all fcl-db_all fcl-web_all fcl-registry_all fcl-passrc_all fcl-image_all fcl-net_all fcl-json_all
 fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_debug fcl-registry_debug fcl-passrc_debug fcl-image_debug fcl-net_debug fcl-json_debug
