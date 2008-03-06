@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm numlib
+dirs=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm
 dirs_linux_i386=libc unixutil graph pxlib
 dirs_i386_linux=graph
 dirs_x86_64_linux=graph
@@ -14,34 +14,34 @@ dirs_arm_linux=graph
 dirs_m68k_linux=graph
 dirs_beos=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd22 pxlib 
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd22 pxlib numlib
 dirs_freebsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd22 pxlib
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd22 pxlib numlib
 dirs_darwin=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd22
+               imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd22 numlib
 dirs_i386_darwin=graph univint sdl
 dirs_powerpc_darwin=graph univint sdl
 dirs_solaris=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd22
+               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd22 numlib
 dirs_netbsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd22 pxlib
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd22 pxlib numlib
 dirs_openbsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd22 pxlib
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd22 pxlib numlib
 dirs_linux=fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  \
                a52 bfd aspell svgalib newt cdrom users  \
-               imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd22 pxlib
+               imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd22 pxlib numlib
 dirs_win32=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl gtk1 gtk2 a52 cdrom fpgtk openal fftw lua \
-               oggvorbis sdl openssl graph pcap httpd22 pxlib
+               oggvorbis sdl openssl graph pcap httpd22 pxlib numlib
 dirs_win64=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-                tcl opengl gtk1 gtk2 fpgtk fftw sdl openssl cdrom
-dirs_wince=fcl-web tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis
+                tcl opengl gtk1 gtk2 fpgtk fftw sdl openssl cdrom numlib
+dirs_wince=fcl-web tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
 dirs_os2=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_emx=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_netware=fv zlib unzip
@@ -128,18 +128,18 @@ fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
 fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
 fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
 
-ifneq ($(findstring $(OS_TARGET),linux  freebsd openbsd netbsd win32),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32),)
 fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
 fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug
 fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart pxlib_smart
 fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release pxlib_release
 fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release pxlib_shared
 else
-fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all 
-fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug
-fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart
-fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release
-fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release
+fcl-db_all: fcl-base_all
+fcl-db_debug: fcl-base_debug
+fcl-db_smart: fcl-base_smart
+fcl-db_release: fcl-base_release
+fcl-db_shared: fcl-base_shared
 endif
 
 fcl_all: fcl-base_all fcl-xml_all fcl-fpcunit_all fcl-db_all fcl-web_all fcl-registry_all fcl-passrc_all fcl-image_all fcl-net_all fcl-json_all
