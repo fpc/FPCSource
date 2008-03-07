@@ -589,7 +589,7 @@ begin
   cpu_has_edsp:=true;
   in_edsp_test:=true;
   asm
-    pld [r0]
+    ldrd r0,[sp]
   end;
   in_edsp_test:=false;
   if cpu_has_edsp then
