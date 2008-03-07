@@ -8008,6 +8008,7 @@ tests/webtbs/tw10897.pp svneol=native#text/plain
 tests/webtbs/tw1090.pp svneol=native#text/plain
 tests/webtbs/tw1092.pp svneol=native#text/plain
 tests/webtbs/tw10920.pp svneol=native#text/plain
+tests/webtbs/tw10927.pp svneol=native#text/plain
 tests/webtbs/tw10931.pp svneol=native#text/plain
 tests/webtbs/tw1096.pp svneol=native#text/plain
 tests/webtbs/tw10966.pp svneol=native#text/plain
