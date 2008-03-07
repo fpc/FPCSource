@@ -5,7 +5,11 @@ var
   q: qword;
 begin
   a := not(ptruint(7));
+{$ifdef cpu64}
+  if a<>ptruint($fffffffffffffff8) then
+{$else}
   if a<>$fffffff8 then
+{$endif}
     halt(1);
   q := not(qword(7));
   if q<>qword($fffffffffffffff8) then
