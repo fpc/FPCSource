@@ -1,9 +1,9 @@
-﻿#
+#
 #   German (UTF-8) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 9207 + one
+#   Based on errore.msg of SVN revision 10422
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -357,11 +357,12 @@ scan_w_frameworks_darwin_only=02084_W_Framework-bezogene Optionen werden nur fü
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
 scan_e_illegal_minfpconstprec=02085_E_"$1" ist eine ungültige minimale Präzision von Fliesskommakonstanten
 % Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
+scan_w_multiple_main_name_overrides=02086_W_Der Name der "main" Prozedur wird mehrfach überschrieben. Es war bisher auf "$1" gesetzt
 % \end{description}
 #
 # Parser
 #
-# 03237 is the last used one
+# 03244 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1138,6 +1139,14 @@ parser_e_no_generics_as_types=03236_E_Generische Typen können nicht ohne Spezia
 % Generics must be always specialized before being used as variable type
 parser_w_register_list_ignored=03237_W_Registerliste wird in reinen Assemblerroutinen ignoriert
 % When using pure assembler routines, the list with modified registers is ignored.
+parser_e_implements_must_be_class_or_interface=03238_E_Die Implements-Eigenschaft muss einen Interface-Typ haben
+parser_e_implements_must_have_correct_type=03239_E_Die Implements-Eigenschaft muss ein Interface mit dem richtigen Type implementieren; Es wurde Typ "$1" gefunden, aber Typ "$2" erwartet.
+parser_e_implements_must_read_specifier=03240_E_Die Implements-Eigenschaft muss einen Lesen-Bezeichner haben
+parser_e_implements_must_not_have_write_specifier=03241_E_Die Implements-Eigenschaft darf keinen Schreib-Bezeichner haben
+parser_e_implements_must_not_have_stored_specifier=03242_E_Die Implements-Eigenschaft darf keinen Gespeichert-Bezeichner haben
+parser_e_implements_uses_non_implemented_interface=03243_E_Die Implements-Eigenschaft benutzt das nicht implementierte Interface "$1"
+parser_e_unsupported_real=03244_E_Fliesskommavariablen werden für dieses Ziel nicht unterstützt
+% The compiler parsed a floating point expression, but it is not supported.
 % \end{description}
 #
 # Type Checking
@@ -1587,6 +1596,11 @@ sym_w_identifier_only_read=05061_W_Die Variable "$1" wird gelesen, obwohl ihr ab
 sym_h_abstract_method_list=05062_H_Abstrakte Method "$1" gefunden 
 % When getting a warning about constructing a class/object with abstract methods
 % you get this hint to find the affected method.
+sym_w_experimental_symbol=05063_W_Symbol "$1" ist experimentell
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{experimental} is used. Experimental symbols
+% might disappear or change semantics in future versions. Usage of this symbol
+% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator
@@ -2681,6 +2695,7 @@ P*2WT_Spezifiziere "tool type application"    (MPW tool, nur Mac OS)
 **2Xc_Übergebe --shared an den Linker (nur Unix)
 **2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile)
 **2Xe_Verwende den externen Linker
+**2Xg_Erstelle die Debug-Informationen in einer separaten Datei und erstelle eine Debug-Link Sektion im ausführbaren Programm
 **2XD_Versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
 **2Xi_Verwende den internen Linker
 **2Xm_Erzeuge die "link map"
