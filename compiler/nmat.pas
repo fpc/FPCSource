@@ -800,12 +800,20 @@ implementation
                u16bit,
                s16bit,
                s32bit,
+{$ifdef cpu64bitaddr}
+               u32bit,
+{$endif cpu64bitaddr}
                s64bit:
                  begin
-                   v:=int64(not int64(v)); { maybe qword is required }
-                   int_to_type(v,def);
+                   v:=int64(not int64(v));
+                   if (torddef(left.resultdef).ordtype<>s64bit) then
+                     def:=sinttype
+                   else
+                     def:=s64inttype;
                  end;
+{$ifndef cpu64bitaddr}
                u32bit,
+{$endif not cpu64bitaddr}
                u64bit :
                  begin
                    { Delphi-compatible: not dword = dword (not word = longint) }
