@@ -300,21 +300,9 @@ unit cpubase;
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_R0;
       RS_FUNCTION_RETURN_REG = RS_R0;
-      { Low part of 64bit return value }
-      NR_FUNCTION_RETURN64_LOW_REG = NR_R0;
-      RS_FUNCTION_RETURN64_LOW_REG = RS_R0;
-      { High part of 64bit return value }
-      NR_FUNCTION_RETURN64_HIGH_REG = NR_R1;
-      RS_FUNCTION_RETURN64_HIGH_REG = RS_R1;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
       RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
-      { The lowh part of 64bit value returned from a function }
-      NR_FUNCTION_RESULT64_LOW_REG = NR_FUNCTION_RETURN64_LOW_REG;
-      RS_FUNCTION_RESULT64_LOW_REG = RS_FUNCTION_RETURN64_LOW_REG;
-      { The high part of 64bit value returned from a function }
-      NR_FUNCTION_RESULT64_HIGH_REG = NR_FUNCTION_RETURN64_HIGH_REG;
-      RS_FUNCTION_RESULT64_HIGH_REG = RS_FUNCTION_RETURN64_HIGH_REG;
 
       NR_FPU_RESULT_REG = NR_F0;
 
@@ -324,6 +312,13 @@ unit cpubase;
 
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
+
+      { Low part of 64bit return value }
+      function NR_FUNCTION_RESULT64_LOW_REG: tregister;
+      function RS_FUNCTION_RESULT64_LOW_REG: shortint;
+      { High part of 64bit return value }
+      function NR_FUNCTION_RESULT64_HIGH_REG: tregister;
+      function RS_FUNCTION_RESULT64_HIGH_REG: shortint;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -379,7 +374,7 @@ unit cpubase;
   implementation
 
     uses
-      rgBase,verbose;
+      systems,rgBase,verbose;
 
 
     const
@@ -527,5 +522,39 @@ unit cpubase;
         if result=-1 then
           internalerror(200603251);
       end;
+
+      { Low part of 64bit return value }
+    function NR_FUNCTION_RESULT64_LOW_REG: tregister;
+    begin
+      if target_info.endian=endian_little then
+        result:=NR_R0
+      else
+        result:=NR_R1;
+    end;
+
+    function RS_FUNCTION_RESULT64_LOW_REG: shortint;
+    begin
+      if target_info.endian=endian_little then
+        result:=RS_R0
+      else
+        result:=RS_R1;
+    end;
+
+      { High part of 64bit return value }
+    function NR_FUNCTION_RESULT64_HIGH_REG: tregister;
+    begin
+      if target_info.endian=endian_little then
+        result:=NR_R1
+      else
+        result:=NR_R0;
+    end;
+
+    function RS_FUNCTION_RESULT64_HIGH_REG: shortint;
+    begin
+      if target_info.endian=endian_little then
+        result:=RS_R1
+      else
+        result:=RS_R1;
+    end;
 
 end.
