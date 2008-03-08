@@ -1062,21 +1062,6 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-
-                         { for fieldvars, having a typenode is wrong:   }
-                         { fields cannot be overridden/hidden in child  }
-                         { classes. However, we always have to pass the }
-                         { typenode to handle_propertysym because the   }
-                         { parent doesn't know yet to what the property }
-                         { will resolve (and in case of procsyms, we do }
-                         { need the type node in case of                }
-                         { "inherited property_with_getter/setter"      }
-                         if (assigned(p1)) and
-                            (p1.nodetype = typen) then
-                           begin
-                             p1.free;
-                             p1:=nil;
-                           end;
                          propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
@@ -1105,15 +1090,6 @@ implementation
                      fieldvarsym :
                        begin
                           { generate access code }
-
-                          { for fieldvars, having a typenode is wrong:   }
-                          { see comments above for write access          }
-                          if (assigned(p1)) and
-                             (p1.nodetype = typen) then
-                            begin
-                              p1.free;
-                              p1:=nil;
-                            end;
                           propaccesslist_to_node(p1,st,propaccesslist);
                           include(p1.flags,nf_isproperty);
                        end;
@@ -2258,14 +2234,14 @@ implementation
                        not from self }
                      if srsym.typ in [procsym,propertysym] then
                       begin
-                        hdef:=hclassdef;
                         if (srsym.typ = procsym) then
                           begin
+                            hdef:=hclassdef;
                             if (po_classmethod in current_procinfo.procdef.procoptions) or
                                (po_staticmethod in current_procinfo.procdef.procoptions) then
                               hdef:=tclassrefdef.create(hdef);
+                            p1:=ctypenode.create(hdef);
                           end;
-                        p1:=ctypenode.create(hdef);
                       end
                      else
                       begin

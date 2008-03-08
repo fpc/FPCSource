@@ -1,3 +1,5 @@
+{ %result=1 }
+
 program project1;
 
 {$mode objfpc}{$H+}
