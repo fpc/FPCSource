@@ -554,7 +554,7 @@ unit cpubase;
       if target_info.endian=endian_little then
         result:=RS_R1
       else
-        result:=RS_R1;
+        result:=RS_R0;
     end;
 
 end.
