@@ -18,6 +18,8 @@ function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;assembler
 asm
   stmfd sp!,{r4,r5,r6,r14}
   mov r6,#0
+  // r4 = result lo, r5 = result hi
+{$ifdef ENDIAN_LITTLE}
   // lo(f1)*lo(f2)
   umull r4,r5,r0,r2
   // lo(f1)*hi(f2)
@@ -31,6 +33,21 @@ asm
   orrs r6,r6,r0
   mov r0,r4
   mov r1,r5
+{$else}
+  // lo(f1)*lo(f2)
+  umull r4,r5,r1,r3
+  // lo(f1)*hi(f2)
+  umlal r5,r6,r1,r2
+  // overflow?
+  // hi(f1)*hi(f2)
+  mul r1,r0,r2
+  // hi(f1)*lo(f2)
+  umlal r5,r6,r0,r3
+  // check for overflow
+  orrs r6,r6,r1
+  mov r1,r4
+  mov r0,r5
+{$endif}
   // no overflow?
   beq .Lexit
   // checkoverflow?
