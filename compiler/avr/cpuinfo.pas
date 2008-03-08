@@ -1,7 +1,7 @@
 {
-    Copyright (c) 1998-2002 by the Free Pascal development team
+    Copyright (c) 2008 by the Free Pascal development team
 
-    Basic Processor information for the ARM
+    Basic Processor information for the AVR
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -65,7 +65,8 @@ Const
      'AVR'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[6] = (
+     'NONE',
      'SOFT',
      'LIBGCC'
    );

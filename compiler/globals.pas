@@ -798,7 +798,7 @@ implementation
           FillChar(GUID,SizeOf(GUID),0);
           string2guid:=true;
           end
-        else  
+        else
           string2guid:=false;
       end;
 
@@ -1263,6 +1263,10 @@ implementation
         init_settings.cputype:=cpu_athlon64;
         init_settings.fputype:=fpu_sse64;
 {$endif x86_64}
+{$ifdef avr}
+        init_settings.cputype:=cpuinfo.cpu_avr;
+        init_settings.fputype:=fpu_none;
+{$endif avr}
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
 
