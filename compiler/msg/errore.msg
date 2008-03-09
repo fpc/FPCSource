@@ -353,7 +353,7 @@ scan_w_frameworks_darwin_only=02084_W_Framework-related options are only support
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
 scan_e_illegal_minfpconstprec=02085_E_Illegal minimal floating point constant precision "$1"
 % Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
-scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure multiple times, was previously set to "$1" 
+scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure multiple times, was previously set to "$1"
 % \end{description}
 #
 # Parser
@@ -1135,7 +1135,7 @@ parser_e_no_generics_as_types=03236_E_Generics without specialization can not be
 % Generics must be always specialized before being used as variable type
 parser_w_register_list_ignored=03237_W_Register list is ignored for pure assembler routines
 % When using pure assembler routines, the list with modified registers is ignored.
-parser_e_implements_must_be_class_or_interface=03238_E_Implements property must have interface type
+parser_e_implements_must_be_class_or_interface=03238_E_Implements property must have class or interface type
 parser_e_implements_must_have_correct_type=03239_E_Implements-property must implement interface of correct type, found "$1" expected "$2"
 parser_e_implements_must_read_specifier=03240_E_Implements-property must have read specifier
 parser_e_implements_must_not_have_write_specifier=03241_E_Implements-property must not have write-specifier
@@ -1143,6 +1143,9 @@ parser_e_implements_must_not_have_stored_specifier=03242_E_Implements-property m
 parser_e_implements_uses_non_implemented_interface=03243_E_Implements-property used on unimplemented interface: "$1"
 parser_e_unsupported_real=03244_E_Floating point not supported for this target
 % The compiler parsed a floating point expression, but it is not supported.
+parser_e_class_doesnt_implement_interface=03245_E_Class "$1" does not implement interface "$2"
+% The delegated interface is not implemented by the class given in the implements clause
+parser_e_class_implements_must_be_interface=03246_E_Type used by implements must be an interface
 % \end{description}
 #
 # Type Checking

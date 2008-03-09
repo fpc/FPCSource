@@ -627,16 +627,41 @@ implementation
            begin
              single_type(def,false);
 
-             if compare_defs(def,p.propdef,nothingn)<te_equal then
+             if not(is_interface(def)) then
+               message(parser_e_class_implements_must_be_interface);
+
+             if is_interface(p.propdef) then
                begin
-                 message2(parser_e_implements_must_have_correct_type,def.GetTypeName,p.propdef.GetTypeName);
-                 exit;
-               end;
-             if not is_class_or_interface(def) then
+                 if compare_defs(def,p.propdef,nothingn)<te_equal then
+                   begin
+                     message2(parser_e_implements_must_have_correct_type,def.GetTypeName,p.propdef.GetTypeName);
+                     exit;
+                   end;
+               end
+             else if is_class(p.propdef) then
+               begin
+                 ImplIntf:=tobjectdef(p.propdef).find_implemented_interface(tobjectdef(def));
+                 if assigned(ImplIntf) then
+                   begin
+                     if compare_defs(ImplIntf.IntfDef,def,nothingn)<te_equal then
+                       begin
+                         message2(parser_e_implements_must_have_correct_type,ImplIntf.IntfDef.GetTypeName,def.GetTypeName);
+                         exit;
+                       end;
+                   end
+                 else
+                   begin
+                     message2(parser_e_class_doesnt_implement_interface,p.propdef.GetTypeName,def.GetTypeName);
+                     exit;
+                   end;
+               end
+             else
                begin
                  message(parser_e_implements_must_be_class_or_interface);
                  exit;
                end;
+
+
              if not assigned(p.propaccesslist[palt_read].firstsym) then
                begin
                  message(parser_e_implements_must_read_specifier);
@@ -658,10 +683,10 @@ implementation
                  ImplIntf:=TImplementedInterface(aclass.ImplementedInterfaces[i]);
 
                  if compare_defs(def,ImplIntf.IntfDef,nothingn)>=te_equal then
-                 begin
-                   found:=true;
-                   break;
-                 end;
+                   begin
+                     found:=true;
+                     break;
+                   end;
                end;
              if found then
                begin
