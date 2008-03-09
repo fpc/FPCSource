@@ -135,7 +135,7 @@ fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart pos
 fcl-db_release: fcl-base_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release pxlib_release
 fcl-db_shared: fcl-base_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release pxlib_shared
 else
-ifneq ($(findstring $(OS_TARGET),win64),)
+ifneq ($(findstring $(OS_TARGET),win64 solaris darwin),)
 fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all
 fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug
 fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart
