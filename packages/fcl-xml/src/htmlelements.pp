@@ -51,8 +51,8 @@ type
     property ElementTag : THTMLElementTag read FElementTag write FElementTag;
     property TagName : DOMString read GetTagName;
     property NodeName : DOMstring read GetTagName;
-    property AttrubuteNames [index:integer] : DOMString read GetAttributeName;
-    property AttrubuteValues [index:integer] : DOMString read GetAttributeValue;
+    property AttributeNames [index:integer] : DOMString read GetAttributeName;
+    property AttributeValues [index:integer] : DOMString read GetAttributeValue;
   end;
   THTMLElementClass = class of THTMLCustomELement;
 
