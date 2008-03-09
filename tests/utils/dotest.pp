@@ -697,8 +697,11 @@ var
   FullExeLogFile,
   TestRemoteExe,
   TestExe  : string;
+  LocalFile, RemoteFile: string;
+  LocalPath: string;
   execcmd  : string;
   execres  : boolean;
+  index    : integer;
   EndTicks,
   StartTicks : int64;
   function ExecuteRemote(const prog,args:string):boolean;
@@ -717,6 +720,8 @@ var
       EndTicks:=GetMicroSTicks;
    end;
 
+label
+  done;
 begin
   RunExecutable:=false;
   execres:=true;
@@ -747,7 +752,37 @@ begin
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
       if deBefore in DelExecutable then
         ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
-      ExecuteRemote(rcpprog,RemotePara+' '+TestExe+' '+RemoteAddr+':'+TestRemoteExe);
+      execres:=ExecuteRemote(rcpprog,RemotePara+' '+TestExe+' '+RemoteAddr+':'+TestRemoteExe);
+      if not execres then
+      begin
+        Verbose(V_Abort, 'Could not copy executable '+TestExe);
+        goto done;
+      end;
+      s:=Config.Files;
+      if length(s) > 0 then
+      begin
+        LocalPath:=SplitPath(PPFile);
+        if Length(LocalPath) > 0 then
+          LocalPath:=LocalPath+'/';
+        repeat
+          index:=pos(' ',s);
+          if index=0 then
+            LocalFile:=s
+          else
+            LocalFile:=copy(s,1,index-1);
+          RemoteFile:=RemotePath+'/'+SplitFileName(LocalFile);
+          LocalFile:=LocalPath+LocalFile;
+          execres:=ExecuteRemote(rcpprog,RemotePara+' '+LocalFile+' '+RemoteAddr+':'+RemoteFile);
+          if not execres then
+          begin
+            Verbose(V_Abort, 'Could not copy required file '+LocalFile);
+            goto done;
+          end;
+          if index=0 then
+            break;
+          s:=copy(s,index+1,length(s)-index);
+        until false;
+      end;
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
       execcmd:=RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+
@@ -798,6 +833,7 @@ begin
     begin
       Verbose(V_Normal,'Execution took '+ToStr(EndTicks-StartTicks)+' us');
     end;
+done:
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);

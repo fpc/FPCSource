@@ -1,3 +1,4 @@
+{ %FILES=testux.txt }
 Program trdtxt02;
 
 {$ifdef fpc}

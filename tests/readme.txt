@@ -41,6 +41,8 @@ MAXVERSION.........Compiler with at most this version number required.
 RESULT.............Exit code of execution of test expected
 TIMEOUT............Timeout indication for test in seconds (only used if
                    enabled by defining TEST_TIMEOUT)
+FILES..............List of files (separated by spaces) required by test,
+                   will be copied to remote before execution
 GRAPH..............Requires graph unit
 FAIL...............Compilation must fail
 RECOMPILE..........After compiling a test, recompile the test for a second

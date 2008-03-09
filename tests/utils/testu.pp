@@ -37,6 +37,7 @@ type
     Timeout       : longint;
     Category      : string;
     Note          : string;
+    Files         : string;
   end;
 
 Const
@@ -257,6 +258,9 @@ begin
               else
                if GetEntry('TIMEOUT') then
                 Val(res,r.Timeout,code)
+              else
+               if GetEntry('FILES') then
+                r.Files:=res
               else
                Verbose(V_Error,'Unknown entry: '+s);
             end;
