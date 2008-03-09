@@ -724,7 +724,7 @@ type  Ptypeinfo=^Ttypeinfo;
 
 var
     p:Pstring;
-    l,h,m:cardinal;
+    l,h,m,offset:cardinal;
     sorted_array:^Tsorted_array;
     s:string;
 
@@ -740,7 +740,11 @@ begin
   if Pcardinal(ord2strindex)^=0 then
     begin
       {The compiler did generate a lookup table.}
-      with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do
+      offset:=2+length(Ptypeinfo(typinfo)^.name);
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      offset:=(offset+sizeof(sizeint)-1) and not (sizeof(sizeint)-1);
+{$endif}
+      with Penuminfo(Pbyte(typinfo)+offset)^ do
         begin
           if (ordinal<minvalue) or (ordinal>maxvalue) then
             begin
