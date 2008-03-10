@@ -319,7 +319,7 @@ interface
             tf_pic_default,
             { the os does some kind of stack checking and it can be converted into a rte 202 }
             tf_no_generic_stackcheck,
-            tf_has_resources
+            tf_has_winlike_resources
        );
 
        psysteminfo = ^tsysteminfo;

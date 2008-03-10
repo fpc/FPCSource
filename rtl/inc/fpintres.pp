@@ -19,7 +19,7 @@ interface
 
 implementation
 
-{$ifdef FPC_HAS_RESOURCES}
+{$ifdef FPC_HAS_WINLIKERESOURCES}
   {$ifdef WINDOWS}
     {$include winres.inc}
   {$else}

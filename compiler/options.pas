@@ -2021,11 +2021,11 @@ begin
     exclude(init_settings.moduleswitches,cs_create_pic);
     
   { Resources support }
-  if (tf_has_resources in target_info.flags) then
+  if (tf_has_winlike_resources in target_info.flags) then
     if def then
-      def_system_macro('FPC_HAS_RESOURCES')
+      def_system_macro('FPC_HAS_WINLIKERESOURCES')
     else
-      undef_system_macro('FPC_HAS_RESOURCES');
+      undef_system_macro('FPC_HAS_WINLIKERESOURCES');
 end;
 
 

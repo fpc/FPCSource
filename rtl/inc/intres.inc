@@ -29,21 +29,8 @@ type
   end;
   PResHdr = ^TResHdr;
 
-
-//Needed to bootstrap the compiler: FPC_HAS_RESOURCES was buggy in previous
-//versions of the compiler
-{$ifdef VER2_0}
-  {$undef FPC_HAS_RESOURCES}
-{$endif}
-{$ifdef VER2_1}
-  {$undef FPC_HAS_RESOURCES}
-{$endif}
-{$ifdef VER2_2_0}
-  {$undef FPC_HAS_RESOURCES}
-{$endif}
-
 var
-{$ifdef FPC_HAS_RESOURCES}
+{$ifdef FPC_HAS_WINLIKERESOURCES}
   ResHeader : PResHdr; external name 'FPC_RESLOCATION';
 {$else}
   ResHeader : PResHdr= nil;

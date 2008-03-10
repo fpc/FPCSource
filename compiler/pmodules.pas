@@ -231,7 +231,7 @@ implementation
       hp           : tused_unit;
       found        : Boolean;
     begin
-      CheckResourcesUsed:=tf_has_resources in target_info.flags;
+      CheckResourcesUsed:=tf_has_winlike_resources in target_info.flags;
       if not CheckResourcesUsed then exit;
 
       hp:=tused_unit(usedunits.first);
@@ -467,7 +467,7 @@ implementation
         { Note: on windows we always need resources! }
         resources_used:=(target_info.system in system_all_windows)
                          or CheckResourcesUsed;
-        if (not resources_used) and (tf_has_resources in target_info.flags) then
+        if (not resources_used) and (tf_has_winlike_resources in target_info.flags) then
           begin
             { resources aren't used, so we don't need this unit }
             if target_res.id=res_ext then
@@ -564,7 +564,7 @@ implementation
            { Which kind of resource support?
              Note: if resources aren't used this unit will be removed later,
              otherwise we need it here since it must be loaded quite early }
-           if (tf_has_resources in target_info.flags) then
+           if (tf_has_winlike_resources in target_info.flags) then
              if target_res.id=res_ext then
                AddUnit('fpextres')
              else

@@ -32,7 +32,7 @@ unit i_sunos;
             system       : system_i386_solaris;
             name         : 'Solaris for i386';
             shortname    : 'solaris';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,tf_has_resources];
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;SUNOS;HASUNIX';
@@ -92,7 +92,7 @@ unit i_sunos;
             name         : 'Solaris for SPARC';
             shortname    : 'solaris';
             flags        : [tf_needs_symbol_size,tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_requires_proper_alignment,tf_smartlink_library,tf_has_resources];
+                            tf_requires_proper_alignment,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_SPARC;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;SUNOS;HASUNIX';

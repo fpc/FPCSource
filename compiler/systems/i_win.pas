@@ -35,7 +35,7 @@ unit i_win;
             flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,tf_smartlink_library
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_winlikewidestring,tf_no_pic_supported,
-                            tf_no_generic_stackcheck,tf_has_resources];
+                            tf_no_generic_stackcheck,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -96,7 +96,7 @@ unit i_win;
             shortname    : 'Win64';
             flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,
                             tf_smartlink_sections,tf_smartlink_library,tf_winlikewidestring,tf_no_pic_supported,
-                            tf_no_generic_stackcheck,tf_has_resources];
+                            tf_no_generic_stackcheck,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'WIN64UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -157,7 +157,7 @@ unit i_win;
             shortname    : 'WinCE';
             flags        : [tf_files_case_aware,tf_use_function_relative_addresses{,tf_winlikewidestring},
                             tf_smartlink_sections,tf_requires_proper_alignment,tf_no_pic_supported,
-                            tf_has_resources];
+                            tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;UNICODE';
@@ -218,7 +218,7 @@ unit i_win;
             shortname    : 'WinCE';
             flags        : [tf_files_case_aware,tf_use_function_relative_addresses
                             {,tf_winlikewidestring},tf_smartlink_sections,tf_no_pic_supported,
-                            tf_has_resources];
+                            tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;UNICODE';
