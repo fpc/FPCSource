@@ -830,9 +830,11 @@ begin
     Result:=Chr(Ord0+(AValue mod 7))+Result;
     AValue:=AValue div 7;
     end;
-  if Len>2 then
-    Result:=IntToStr(AValue mod 26)+Result;
-  AValue:=AValue div 26;
+  if Len>1 then
+    begin
+    Result:=Chr(Ord0+(AValue mod 26))+Result;
+    AValue:=AValue div 26;
+    end;
   Result:=Chr(OrdA+AValue)+Result;
 end;
 
