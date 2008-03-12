@@ -64,6 +64,7 @@ type
 
   TTestDataLink = class(TDataLink)
      protected
+       procedure DataSetScrolled(Distance: Integer); override;
 {$IFDEF fpc}
        procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
 {$ELSE}
@@ -252,6 +253,13 @@ end;
 { TTestDataLink }
 
 {$IFDEF FPC}
+
+procedure TTestDataLink.DataSetScrolled(Distance: Integer);
+begin
+  DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
+  inherited DataSetScrolled(Distance);
+end;
+
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
 {$ELSE}
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);
