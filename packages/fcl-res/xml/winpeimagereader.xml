@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    winpeimagereader
+  ====================================================================
+-->
+
+<module name="winpeimagereader">
+<short>Contains a resource reader for PE image files </short>
+<descr>
+<p>This unit contains <link id="TWinPEImageResourceReader"/>, a <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link> descendant that is able to read Microsoft Windows PE image files (executables, dynamic link libraries and so on).</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TWinPEImageResourceReader"/> with <link id="resource.TResources">TResources</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="coffreader">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TWinPEImageResourceReader">
+<short>PE image file resource reader</short>
+<descr>
+<p>This class provides a reader for Microsoft Windows PE image files containing resources.</p>
+<p>PE is the file format used by Microsoft Windows executables, dynamic link libraries and so on.</p>
+<remark>This reader can only read full PE images, not COFF object files. Use <link id="coffreader.TCoffResourceReader">TCoffResourceReader</link> instead.</remark>
+</descr>
+<seealso>
+<link id="resource.TAbstractResourceReader">TAbstractResourceReader</link>
+<link id="coffreader.TCoffResourceReader">TCoffResourceReader</link>
+</seealso>
+</element>
+
+</module> <!-- winpeimagereader -->
+
+</package>
+</fpdoc-descriptions>

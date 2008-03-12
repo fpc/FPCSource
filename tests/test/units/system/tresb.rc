@@ -1,0 +1,11 @@
+#include <windres.h>
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+TestFile FILE "tres1.txt"
+Test TEXT "tres2.txt"
+
+LANGUAGE LANG_ITALIAN, SUBLANG_ITALIAN
+TestFile FILE "tres1_it.txt"
+
+

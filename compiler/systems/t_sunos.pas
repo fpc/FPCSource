@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2008 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) solaris target
@@ -40,7 +40,7 @@ implementation
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     cgobj,
-    import,export,link,i_sunos,ogbase;
+    import,export,link,comprsrc,rescmn,i_sunos,ogbase;
 
   type
     timportlibsolaris=class(timportlib)
@@ -470,4 +470,6 @@ initialization
   RegisterExport(system_sparc_solaris,TExportLibsolaris);
   RegisterTarget(system_sparc_solaris_info);
 {$endif sparc}
+
+  RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

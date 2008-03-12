@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    acceleratorsresource
+  ====================================================================
+-->
+
+<module name="acceleratorsresource">
+<short>Contains an accelerator table resource type</short>
+<descr>
+<p>This unit contains <link id="TAcceleratorsResource"/>, a <link id="resource.TAbstractResource">TAbstractResource</link> descendant specialized in handling resource of type <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link>.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TAcceleratorsResource"/> for type <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link> with <link id="resfactory.TResourceFactory">TResourceFactory</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- constant Visibility: default -->
+<element name="FVirtKey">
+<short>The accelerator key is a virtual key code</short>
+<descr>
+<p>When this flag is set, the accelerator key is a virtual key code. Otherwise, it is a ASCII character</p>
+</descr>
+<seealso>
+<link id="TAccelerator"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="FNoInvert">
+<short>Obsolete</short>
+<descr>
+<p>This flag is obsolete and is provided only for compatibility with 16 bit Windows.</p>
+</descr>
+<seealso>
+<link id="TAccelerator"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="FShift">
+<short>The accelerator is activated only if <var>SHIFT</var> key is pressed</short>
+<descr>
+<p>This flag is valid only if the key is a virtual key.</p>
+</descr>
+<seealso>
+<link id="TAccelerator"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="FControl">
+<short>The accelerator is activated only if <var>CTRL</var> key is pressed</short>
+<descr>
+<p>This flag is valid only if the key is a virtual key.</p>
+</descr>
+<seealso>
+<link id="TAccelerator"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="FAlt">
+<short>The accelerator is activated only if <var>ALT</var> key is pressed</short>
+<descr>
+<p>This flag is valid only if the key is a virtual key.</p>
+</descr>
+<seealso>
+<link id="TAccelerator"/>
+</seealso>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TAccelerator">
+<short>A single accelerator entry</short>
+<descr>
+<p>A single accelerator entry in the accelerator table resource.</p>
+<p>The key associated with the accelerator is represented by <var>Ansi</var> field: it can be a character or a virtual-key code (in the latter case, <link id="FVirtKey"/> flag must be active).</p>
+<p>The accelerator is identified by the value of <var>id</var> field.</p>
+<p><var>Flags</var> is a combination of the following values:</p>
+<ul>
+<li><link id="FVirtKey"/></li>
+<li><link id="FShift"/></li>
+<li><link id="FNoInvert"/></li>
+<li><link id="FControl"/></li>
+<li><link id="FAlt"/></li>
+</ul>
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TAccelerator.Flags">
+<short>A set of flags that can be combined to specify an accelerator's characteristics.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TAccelerator.Ansi">
+<short>An ANSI character value or a virtual-key code</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TAccelerator.Id">
+<short>An integer value that identifies the accelerator</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TAccelerator.padding">
+<short>Used to keep record size aligned on a DWORD boundary</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PAccelerator">
+<short>A pointer to a TAccelerator record</short>
+<seealso>
+<link id="TAccelerator"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TAcceleratorsResource">
+<short>Accelerator table resource type</short>
+<descr>
+<p>This class represents a resource of type <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link>.</p>
+<p>An accelerator table resource is a collection of accelerators (represented by <link id="TAccelerator"/> records).</p>
+<p>An accelerator represents a keystroke that can be associated with some action.</p>
+<p>This resource type is very Microsoft Windows-specific, so it might not be of interest for many users.</p>
+<p>Methods are provided to add, delete and modify single accelerators.</p>
+<remark>This class doesn't allow its type to be changed to anything else than <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link>. Attempts to do so result in a <link id="resource.EResourceDescChangeNotAllowedException">EResourceDescChangeNotAllowedException</link>.</remark>
+</descr>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TAcceleratorsResource.Create">
+<short>Creates a new accelerator table resource</short>
+<descr>
+<p>Please note that <var>aType</var> parameter is not used, since this class always uses <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link> as type.</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAcceleratorsResource.Create.aType">
+<short>Ignored. Can be <var>nil</var>.</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAcceleratorsResource.Create.aName">
+<short>The name of the resource</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TAcceleratorsResource.Add">
+<short>Adds a new accelerator to the table</short>
+<seealso>
+<link id="TAcceleratorsResource.Items"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAcceleratorsResource.Add.aItem">
+<short>The accelerator to add</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TAcceleratorsResource.Clear">
+<short>Empties the accelerator table</short>
+<seealso>
+<link id="TAcceleratorsResource.Items"/>
+<link id="TAcceleratorsResource.Delete"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TAcceleratorsResource.Delete">
+<short>Deletes an accelerator from the table</short>
+<seealso>
+<link id="TAcceleratorsResource.Items"/>
+<link id="TAcceleratorsResource.Clear"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAcceleratorsResource.Delete.aIndex">
+<short>The index of the accelerator to delete</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAcceleratorsResource.Count">
+<short>The number of accelerators in the table</short>
+<seealso>
+<link id="TAcceleratorsResource.Items"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAcceleratorsResource.Items">
+<short>Indexed array of accelerators in the table</short>
+<descr>
+<p>This property can be used to access all accelerators in the object.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TAcceleratorsResource.Count">Count</link>-1.</remark>
+<remark>If you need to access <link id="resource.TAbstractResource.RawData">RawData</link> after you added, deleted or modified accelerators, be sure to call <link id="resource.TAbstractResource.UpdateRawData">UpdateRawData</link> first. This isn't needed however when resource is written to a stream, since <link id="resource.TResources">TResources</link> takes care of it.</remark>
+</descr>
+<seealso>
+<link id="TAcceleratorsResource.Count"/>
+<link id="TAccelerator"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAcceleratorsResource.Items.index">
+<short>The index of the accelerator to access</short>
+</element>
+
+</module> <!-- acceleratorsresource -->
+
+</package>
+</fpdoc-descriptions>

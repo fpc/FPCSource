@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    machowriter
+  ====================================================================
+-->
+
+<module name="machowriter">
+<short>Contains a resource writer for Mach-O files</short>
+<descr>
+<p>This unit contains <link id="TMachOResourceWriter"/>, a <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link> descendant that is able to write Mach-O object files containing resources.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TMachOResourceWriter"/> with <link id="resource.TResources">TResources</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="machotypes">
+</element>
+
+<!-- object Visibility: default -->
+<element name="EMachOResourceWriterException">
+<short>Base class for Mach-O resource writer-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EMachOResourceWriterUnknownBitSizeException">
+<short>Internal error</short>
+<descr>
+<p>If this exception is raised, an internal error occurred.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TMachOResourceWriter">
+<short>Mach-O resource writer</short>
+<descr>
+<p>This class provides a writer for Mach-O object files and images containing resources.</p>
+<p>Mach-O is the file format used by Darwin and Mac OS X for object files and image files (executables, dynamic libraries and so on). Free Pascal can store resources in Mach-O files in its own format.</p>
+<p><link id="TMachOResourceWriter.MachineType">MachineType</link> property can be used to set the machine type of the object file to generate.</p>
+</descr>
+<seealso>
+<link id="TMachOResourceWriter.MachineType"/>
+<link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>
+<link id="machoreader.TMachOResourceReader">TMachOResourceReader</link>
+<link id="Format of resources in object files"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TMachOResourceWriter.MachineType">
+<short>The machine type of the object file</short>
+<descr>
+<p>This property can be used to set the machine type of the object file to write.</p>
+</descr>
+<seealso>
+<link id="machotypes.TMachOMachineType">TMachOMachineType</link>
+</seealso>
+</element>
+
+</module> <!-- machowriter -->
+
+</package>
+</fpdoc-descriptions>

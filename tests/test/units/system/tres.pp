@@ -1,6 +1,6 @@
 { Test for resources support. }
 
-{%TARGET=win32,win64,wince,linux}
+{%TARGET=win32,win64,wince,linux,freebsd,darwin,netbsd,openbsd,solaris}
 
 {$mode objfpc}
 
@@ -14,8 +14,8 @@ end;
 
 function GetResource(ResourceName, ResourceType: PChar; PResSize: PLongInt = nil): pointer;
 var
-  hRes: TResourceHandle;
-  gRes: HGLOBAL;
+  hRes: TFPResourceHandle;
+  gRes: TFPResourceHGLOBAL;
 begin
   hRes:=FindResource(HINSTANCE, ResourceName, ResourceType);
   if hRes = 0 then

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    bitmapresource
+  ====================================================================
+-->
+
+<module name="bitmapresource">
+<short>Contains a bitmap resource type</short>
+<descr>
+<p>This unit contains <link id="TBitmapResource"/>, a <link id="resource.TAbstractResource">TAbstractResource</link> descendant specialized in handling resource of type <link id="resource.RT_BITMAP">RT_BITMAP</link>.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TBitmapResource"/> for type <link id="resource.RT_BITMAP">RT_BITMAP</link> with <link id="resfactory.TResourceFactory">TResourceFactory</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TBitmapResource">
+<short>Bitmap resource type</short>
+<descr>
+<p>This class represents a resource of type <link id="resource.RT_BITMAP">RT_BITMAP</link>.</p>
+<p>A bitmap resource contents is very similar to a BMP file. However some differences exists, so <link id="resource.TAbstractResource.RawData">RawData</link> is not appropriate if you need to read and write BMP data. Instead, <link id="TBitmapResource.BitmapData">BitmapData</link> property gives access to a BMP file-like stream.</p>
+<remark>This class doesn't allow its type to be changed to anything else than <link id="resource.RT_BITMAP">RT_BITMAP</link>. Attempts to do so result in a <link id="resource.EResourceDescChangeNotAllowedException">EResourceDescChangeNotAllowedException</link>.</remark>
+</descr>
+<seealso>
+<link id="TBitmapResource.BitmapData">BitmapData</link>
+<link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TBitmapResource.Create">
+<short>Creates a new bitmap resource</short>
+<descr>
+<p>Please note that <var>aType</var> parameter is not used, since this class always uses <link id="resource.RT_BITMAP">RT_BITMAP</link> as type.</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TBitmapResource.Create.aType">
+<short>Ignored. Can be <var>nil</var>.</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TBitmapResource.Create.aName">
+<short>The name of the resource</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TBitmapResource.SetCustomBitmapDataStream">
+<short>Sets a custom stream as the underlying stream for BitmapData</short>
+<descr>
+<p>This method allows the user to use a custom stream as the underlying stream for <link id="TBitmapResource.BitmapData">BitmapData</link>. This is useful when you want a <link id="TBitmapResource"/> to be created from a bmp file for which you have a stream.</p>
+<p><b>Sample code</b></p>
+<p>This code creates a resource containing a bitmap</p>
+<code>
+var
+  aName : TResourceDesc;
+  aRes : TBitmapResource;
+  aFile : TFileStream;
+  Resources : TResources;
+begin
+  Resources:=TResources.Create;
+  aName:=TResourceDesc.Create('MYBITMAP');
+  aRes:=TBitmapResource.Create(nil,aName); //type is always RT_BITMAP
+  aName.Free; //not needed anymore
+  aFile:=TFileStream.Create('mybitmap.bmp',fmOpenRead or fmShareDenyNone);
+  aRes.SetCustomBitmapDataStream(aFile);
+  Resources.Add(aRes);
+  Resources.WriteToFile('myresource.res');
+
+  Resources.Free; //it destroys aRes as well.
+  aFile.Free;
+end;
+</code>
+</descr>
+<seealso>
+<link id="TBitmapResource.BitmapData"/>
+<link id="resource.TAbstractResource.UpdateRawData">TAbstractResource.UpdateRawData</link>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TBitmapResource.SetCustomBitmapDataStream.aStream">
+<short>The custom stream to use as the underlying <link id="TBitmapResource.BitmapData">BitmapData</link> stream</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TBitmapResource.BitmapData">
+<short>Resource data as a BMP stream</short>
+<descr>
+<p><link id="TBitmapResource.BitmapData">BitmapData</link> property gives access to resource data in a  BMP file-like stream, unlike <link id="resource.TAbstractResource.RawData">RawData</link>.</p>
+<p><link id="TBitmapResource.BitmapData">BitmapData</link> does not create a copy of <link id="resource.TAbstractResource.RawData">RawData</link> so memory usage is generally kept limited.</p>
+<p>You can also set a custom stream as the underlying stream for <link id="TBitmapResource.BitmapData">BitmapData</link> via <link id="TBitmapResource.SetCustomBitmapDataStream">SetCustomBitmapDataStream</link>, much like <link id="resource.TAbstractResource.SetCustomRawDataStream">SetCustomRawDataStream</link> does for <link id="resource.TAbstractResource.RawData">RawData</link>. This is useful when you want a <link id="TBitmapResource"/> to be created from a bmp file for which you have a stream.</p>
+<remark>If you need to access <link id="resource.TAbstractResource.RawData">RawData</link> after you modified <link id="TBitmapResource.BitmapData">BitmapData</link>, be sure to call <link id="resource.TAbstractResource.UpdateRawData">UpdateRawData</link> first. This isn't needed however when resource is written to a stream, since <link id="resource.TResources">TResources</link> takes care of it.</remark>
+</descr>
+<seealso>
+<link id="TBitmapResource.SetCustomBitmapDataStream"/>
+<link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>
+<link id="resource.TAbstractResource.UpdateRawData">TAbstractResource.UpdateRawData</link>
+</seealso>
+</element>
+
+</module> <!-- bitmapresource -->
+
+</package>
+</fpdoc-descriptions>

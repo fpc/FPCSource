@@ -27,12 +27,15 @@ unit i_os2;
        systems;
 
     const
-       res_emxbind_info : tresinfo =
+       res_wrc_os2_info : tresinfo =
           (
-            id     : res_emxbind;
-            resbin : 'emxbind';
-            rescmd : '-b -r $RES $OBJ'
-            (* Not really used - see TLinkeros2.SetDefaultInfo in t_os2.pas. *)
+             id     : res_watcom_wrc_os2;
+             resbin : '';
+             rescmd : '';
+             rcbin  : 'wrc';
+             rccmd  : '-r -zm -q -bt=os2 -fo=$RES $RC';
+             resourcefileclass : nil;
+             resflags : [res_single_file];
           );
 
        system_i386_os2_info : tsysteminfo =
@@ -70,7 +73,7 @@ unit i_os2;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_emxbind;
+            res          : res_watcom_wrc_os2;
             dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;

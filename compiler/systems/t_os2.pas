@@ -552,6 +552,6 @@ end;
 initialization
   RegisterExternalLinker(system_i386_os2_info,TLinkerOS2);
   RegisterImport(system_i386_os2,TImportLibOS2);
-{  RegisterRes(res_emxbind_info);}
+{  RegisterRes(res_wrc_os2_info,TResourceFile);}
   RegisterTarget(system_i386_os2_info);
 end.

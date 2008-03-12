@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    dfmreader
+  ====================================================================
+-->
+
+<module name="dfmreader">
+<short>Contains a resource reader for DFM files</short>
+<descr>
+<p>This unit contains <link id="TDfmResourceReader"/>, a <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link> descendant used to compile DFM files to resources.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TDfmResourceReader"/> with <link id="resource.TResources">TResources</link>.</p>
+
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TDfmResourceReader">
+<short>DFM resource reader</short>
+<descr>
+<p>This class isn't a proper resource reader. It provides a quick way to create a resource file from a DFM/XFM/LFM file, similar to what Delphi does with constructs like <var>{$R *.dfm}</var>.</p>
+<p>This class reads a DFM, XFM or LFM file, compiles it to binary format if it isn't, and stores it in a resource of type <link id="resource.RT_RCDATA">RT_RCDATA</link> with the name of the form specified in the DFM file.</p>
+</descr>
+</element>
+
+</module> <!-- dfmreader -->
+
+</package>
+</fpdoc-descriptions>

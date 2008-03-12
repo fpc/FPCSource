@@ -1,53 +1,92 @@
 
-function SysFindResource(hModule:HMODULE; lpName: PWideChar; lpType: PWideChar):TResourceHandle; cdecl; external 'coredll' name 'FindResourceW';
-function SysLoadResource(hModule:HMODULE; hResInfo: TResourceHandle):HGLOBAL; cdecl; external 'coredll' name 'LoadResource';
-function SysSizeofResource(hModule:HMODULE; hResInfo:TResourceHandle):DWORD; cdecl; external 'coredll' name 'SizeofResource';
+function SysFindResource(hModule:TFPResourceHMODULE; lpName: PWideChar; lpType: PWideChar):TFPResourceHandle; cdecl; external 'coredll' name 'FindResourceW';
+function SysLoadResource(hModule:TFPResourceHMODULE; hResInfo: TFPResourceHandle):TFPResourceHGLOBAL; cdecl; external 'coredll' name 'LoadResource';
+function SysSizeofResource(hModule:TFPResourceHMODULE; hResInfo:TFPResourceHandle):DWORD; cdecl; external 'coredll' name 'SizeofResource';
 
-Function HINSTANCE: HMODULE;
+var
+  SysInstance : PtrUInt;external name '_FPC_SysInstance' ;
+
+Function IntHINSTANCE: TFPResourceHMODULE;
 begin
-  Result:=sysinstance;
+  IntHINSTANCE:=sysinstance;
 end;
 
-Function FindResource(ModuleHandle: HMODULE; ResourceName, ResourceType: PChar): TResourceHandle;
+Function IntEnumResourceTypes(ModuleHandle : TFPResourceHMODULE; EnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool;
+begin
+  IntEnumResourceTypes:=False;
+end;
+
+Function IntEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+begin
+  IntEnumResourceNames:=False;
+end;
+
+Function IntEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+begin
+  IntEnumResourceLanguages:=False;
+end;
+
+Function IntFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
 var
   ws1, ws2: PWideChar;
 begin
-  if cardinal(ResourceName) shr 16 <> 0 then
+  if PtrUInt(ResourceName) shr 16 <> 0 then
     ws1:=PCharToPWideChar(ResourceName)
   else
     ws1:=pointer(ResourceName);
-  if cardinal(ResourceType) shr 16 <> 0 then
+  if PtrUInt(ResourceType) shr 16 <> 0 then
     ws2:=PCharToPWideChar(ResourceType)
   else
     ws2:=pointer(ResourceType);
-  Result:=SysFindResource(ModuleHandle, ws1, ws2);
-  if cardinal(ResourceType) shr 16 <> 0 then
+  IntFindResource:=SysFindResource(ModuleHandle, ws1, ws2);
+  if PtrUInt(ResourceType) shr 16 <> 0 then
     FreeMem(ws2);
-  if cardinal(ResourceName) shr 16 <> 0 then
+  if PtrUInt(ResourceName) shr 16 <> 0 then
     FreeMem(ws1);
 end;
 
-Function LoadResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): HGLOBAL;
+Function IntFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PChar; Language : word): TFPResourceHandle;
 begin
-  Result:=SysLoadresource(ModuleHandle,Reshandle);
+  IntFindResourceEx:=FindResource(ModuleHandle,ResourceName,ResourceType);
 end;
 
-Function SizeofResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): Integer;
+Function IntLoadResource(ModuleHandle: TFPResourceHMODULE; ResHandle: TFPResourceHandle): TFPResourceHGLOBAL;
 begin
-  Result:=SysSizeofResource(ModuleHandle,Reshandle);
+  IntLoadResource:=SysLoadresource(ModuleHandle,Reshandle);
 end;
 
-Function LockResource(ResData: HGLOBAL): Pointer;
+Function IntSizeofResource(ModuleHandle: TFPResourceHMODULE; ResHandle: TFPResourceHandle): LongWord;
 begin
-  Result:=pointer(ResData);
+  IntSizeofResource:=SysSizeofResource(ModuleHandle,Reshandle);
 end;
 
-Function UnlockResource(ResData: HGLOBAL): LongBool;
+Function IntLockResource(ResData: TFPResourceHGLOBAL): Pointer;
 begin
-  UnlockResource := True;
+  IntLockResource:=pointer(ResData);
 end;
 
-Function FreeResource(ResData: HGLOBAL): LongBool;
+Function IntUnlockResource(ResData: TFPResourceHGLOBAL): LongBool;
 begin
-  FreeResource := True;
+  IntUnlockResource:= True;
 end;
+
+Function IntFreeResource(ResData: TFPResourceHGLOBAL): LongBool;
+begin
+  IntFreeResource:= True;
+end;
+
+const
+  InternalResourceManager : TResourceManager =
+  (
+    HINSTANCEFunc : @IntHINSTANCE;
+    EnumResourceTypesFunc : @IntEnumResourceTypes;
+    EnumResourceNamesFunc : @IntEnumResourceNames;
+    EnumResourceLanguagesFunc : @IntEnumResourceLanguages;
+    FindResourceFunc : @IntFindResource;
+    FindResourceExFunc : @IntFindResourceEx;
+    LoadResourceFunc : @IntLoadResource;
+    SizeofResourceFunc : @IntSizeofResource;
+    LockResourceFunc : @IntLockResource;
+    UnlockResourceFunc : @IntUnlockResource;
+    FreeResourceFunc : @IntFreeResource;
+  );

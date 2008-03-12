@@ -27,12 +27,15 @@ unit i_emx;
        systems;
 
     const
-       res_emxbind_info : tresinfo =
+       res_wrc_os2_info : tresinfo =
           (
-            id     : res_emxbind;
-            resbin : 'emxbind';
-            rescmd : '-b -r $RES $OBJ'
-            (* Not really used - see TLinkerEMX.SetDefaultInfo in t_emx.pas. *)
+             id     : res_watcom_wrc_os2;
+             resbin : '';
+             rescmd : '';
+             rcbin  : 'wrc';
+             rccmd  : '-r -zm -q -bt=os2 -fo=$RES $RC';
+             resourcefileclass : nil;
+             resflags : [res_single_file];
           );
 
        system_i386_emx_info : tsysteminfo =
@@ -70,7 +73,7 @@ unit i_emx;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_emxbind;
+            res          : res_watcom_wrc_os2;
             dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;

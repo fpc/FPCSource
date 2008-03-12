@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    externaltypes
+  ====================================================================
+-->
+
+<module name="externaltypes">
+<short>Contains types and constants used by external resource reader and writer</short>
+<descr>
+<p>These types are used internally by <link id="externalreader.TExternalResourceReader">TExternalResourceReader</link> and <link id="externalwriter.TExternalResourceWriter">TExternalResourceWriter</link>.</p>
+<p>Two constants are of interest: <link id="EXT_ENDIAN_BIG"/> and <link id="EXT_ENDIAN_LITTLE"/>.</p>
+</descr>
+
+<topic name="Description of external resource file format">
+<short>Description of external resource file format</short>
+<descr>
+<p><b>Introduction</b></p>
+<p>An external resource file (.fpcres extension) provides resource support for those systems where a resource format suitable to be embedded in an object file isn't available.</p>
+<p>The file format is designed in a way similar to other internal resource formats. The file is opened at program startup and is mapped in the program address space. Offsets in the file are easily converted to pointers at runtime since those offsets represent a displacement from a base address (the starting address where the file is mapped). Differences from an internal file format hence lie in the fact that resources aren't mapped in the program address space by the program loader but by Free Pascal RTL, and data must be accessed with a displacement mechanism instead of absolute pointers.</p>
+<p>For internal resources details, see <link id ="Format of resources in object files"/></p>
+<p><b>File layout</b></p>
+<p>An external resource file consists of these parts:</p>
+<ul>
+<li>The initial header, containing various file information</li>
+<li>The resource tree, in the form of nodes</li>
+<li>The string table, which can be optional</li>
+<li>The resource data</li>
+</ul>
+<p>The header is made up by initial header, resource tree and string table (if present).</p>
+<p><b>Conventions</b></p>
+<p>In this document, data sizes are specified with pascal-style data types. They are the following:</p>
+<table>
+<th><td>Name</td><td>Meaning</td></th>
+<tr><td><var>byte</var></td><td>Unsigned 8 bit integer.</td></tr>
+<tr><td><var>longword</var></td><td>Unsigned 32 bit integer.</td></tr>
+<tr><td><var>qword</var></td><td>Unsigned 64 bit integer.</td></tr>
+</table>
+<p>Byte order used in the file is specified in the initial header.</p>
+<p>All data structures in the file must be aligned on qword boundaries.</p>
+
+<p><b>The initial header</b></p>
+<p>An external resource file starts with this header:</p>
+<table>
+	<th><td>Name</td><td>Offset</td><td>Length</td><td>Description</td></th>
+ 	<tr>
+		<td>magic</td>
+		<td>0</td>
+		<td>6</td>
+		<td>Six ASCII characters that form the string <var>FPCRES</var></td>
+	</tr>
+
+	<tr>
+		<td>version</td>
+		<td>6</td>
+		<td>byte</td>
+		<td>File format version. Currently it is <var>1</var>.</td>
+	</tr>
+	<tr>
+		<td>endianess</td>
+		<td>7</td>
+		<td>byte</td>
+		<td>Byte order. <var>1</var> for big endian, <var>2</var> for little endian</td>
+	</tr>
+	<tr>
+		<td>count</td>
+		<td>8</td>
+		<td>longword</td>
+		<td>Number of resources in the file</td>
+	</tr>
+	<tr>
+		<td>nodesize</td>
+		<td>12</td>
+		<td>longword</td>
+		<td>Size of header up to the string table, excluded</td>
+	</tr>
+	<tr>
+		<td>hdrsize</td>
+		<td>16</td>
+		<td>longword</td>
+		<td>Full size of header (up to the string table, included)</td>
+	</tr>
+	<tr>
+		<td>reserved</td>
+		<td>20</td>
+		<td>12</td>
+		<td>Must be zero</td>
+	</tr>
+</table>
+<p>Note that byte order of the file can be read in the <var>endianess</var> field of the header. All data fields longer than a byte are written with the byte order specified in <var>endianess</var>.</p>
+<p>If no resource name or type is identified by strings, string table is optional. When this is the case, <var>nodesize</var> and <var>hdrsize</var> have the same value.</p>
+
+<p><b>The resource tree</b></p>
+<p>Immediately following the initial header, the resource tree comes. It is made up by nodes that represent resource types, names and language ids.</p>
+<p>Data is organized so that resource information (type, name and language id) is represented by a tree: root node contains resource types, that in turn contain resource names, which contain language ids, which describe resource data.</p>
+<p>Given a node, its sub-nodes are ordered as follows:</p>
+<ul>
+<li>First the "named" nodes (nodes that use a string as identifier) come, then the id ones (nodes that use an integer as identifier).</li>
+<li>Named nodes are alphabetically sorted, in ascending order.</li>
+<li>Id nodes are sorted in ascending order.</li>
+</ul>
+<p>In the file, all sub-nodes of a node are written in the order described above. Then, all sub-nodes of the first sub-node are written, and so on.</p>
+<p><b>Example:</b></p>
+<p>There are three resources:</p>
+<ol>
+<li>a <var>BITMAP</var> resource with name <var>MYBITMAP</var> and language id <var>$0409</var></li>
+<li>a <var>BITMAP</var> resource with name <var>1</var> and language id <var>0</var></li>
+<li>a resource with type <var>MYTYPE</var> and name <var>1</var> and language id <var>0</var></li>
+</ol>
+<p>Nodes are laid out this way (note that <var>BITMAP</var> resources have type <var>2</var>):</p>
+<pre>
+ 
+root | MYTYPE 2 | 1 | 0 | MYBITMAP 1 | $0409 | 0
+</pre>
+<p>That is, types (<var>MYTYPE</var> is a string, so it comes before <var>2</var> which is <var>BITMAP</var>), then names for <var>MYTYPE</var> (<var>1</var>), then language id for resource 3 (<var>0</var>), then names for <var>BITMAP</var> (<var>MYBITMAP</var> and <var>1</var>), then language id for resource 1 (<var>$0409</var>), then language id for resource 2 (<var>0</var>).</p>
+
+<p><b>Node format</b></p>
+<table>
+	<th><td>Name</td><td>Offset</td><td>Length</td><td>Description</td></th>
+	<tr>
+		<td>nameid</td>
+		<td>0</td>
+		<td>longword</td>
+		<td>name offset, integer id or language id</td>
+	</tr>
+	<tr>
+		<td>ncount</td>
+		<td>4</td>
+		<td>longword</td>
+		<td>named sub-nodes count</td>
+	</tr>
+	<tr>
+		<td>idcountsize</td>
+		<td>8</td>
+		<td>longword</td>
+		<td>id sub-nodes count or resource size</td>
+	</tr>
+	<tr>
+		<td>subptr</td>
+		<td>12</td>
+		<td>longword</td>
+		<td>offset to first sub-node</td>
+	</tr>
+</table>
+<p>Note that all offset are always relative to the beginning of the file.</p>
+<p>If the node is identified by a string, <var>nameid</var> is an offset to the null-terminated string holding the name. If it is identified by an id, <var>nameid</var> is that id. Language id nodes are always identified by and ID.</p>
+<p><var>ncount</var> is the number of named sub-nodes of this node (nodes that are identified by a string).</p>
+<p><var>idcountsize</var> is the number of id sub-nodes of this node (nodes that are identified by an integer id). For language id nodes, this field holds the size of the resource data.</p>
+<p><var>subptr</var> is an offset to the first subnode of this node. Note that it allows to access every subnode of this node, since subnodes of a node always come one after the other. For language id nodes, <var>subptr</var> is the offset to the resource data.</p>
+
+<p><b>The string table</b></p>
+<p>The string table is used to store strings used for resource types and names. If all resources use integer ids for name and types, it may not be present in the file.</p>
+<p>The string table simply contains null-terminated strings, one after the other.</p>
+<p>If present, the string table always contains a <var>0</var> (zero) at the beginning. This way, the empty string is located at the offset of the string table (whose value is held in <var>nodesize</var> field of the initial header).</p>
+
+<p><b>The resource data</b></p>
+<p>This part of the file contains raw resource data. As written before, all data structures must be aligned on qword boundaries, so if a resource data size is not a multiple of 8, bytes of padding must be inserted after that resource data.</p>
+</descr>
+</topic>
+
+<!-- array type Visibility: default -->
+<element name="TExternalResMagic">
+<short>Type used for the magic identifier in external resource files</short>
+<seealso>
+<link id="EXTERNAL_RESMAGIC"/>
+</seealso>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TExtHeader">
+<short>Header of an external resource file</short>
+<descr>
+<p>This header describes the data structure present at the beginning of an external resource file.</p>
+</descr>
+<seealso>
+<link id="EXTERNAL_RESMAGIC"/>
+<link id="EXT_CURRENT_VERSION"/>
+<link id="EXT_ENDIAN_BIG"/>
+<link id="EXT_ENDIAN_LITTLE"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.magic">
+<short>String identifying the file format</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.version">
+<short>File format version</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.endianess">
+<short>Byte order of the file</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.count">
+<short>Number of resources in the file</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.nodesize">
+<short>Size of header up to string table, excluded</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.hdrsize">
+<short>Size of header up to string table, included</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.reserved1">
+<short>Unused as of version 1</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.reserved2">
+<short>Unused as of version 1</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TExtHeader.reserved3">
+<short>Unused as of version 1</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TResInfoNode">
+<short>A node of a resource tree</short>
+<descr>
+<p>This record represents a node used in a resource tree. A node contains information about a certain resource type, name or language id.</p>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TResInfoNode.nameid">
+<short>Name or ID of the node</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TResInfoNode.ncount">
+<short>Number of named sub-entries</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TResInfoNode.idcountsize">
+<short>Number of ID sub-entries or resource size</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TResInfoNode.subptr">
+<short>Offset to first subnode or resource data</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EXTERNAL_RESMAGIC">
+<short>Magic identifier for the external resource file type</short>
+<descr>
+<p>This value is used for <link id="TExtHeader.magic"/>.</p>
+</descr>
+<seealso>
+<link id="TExternalResMagic"/>
+<link id="TExtHeader"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EXT_CURRENT_VERSION">
+<short>Current version of file format</short>
+<descr>
+<p>This value is used for <link id="TExtHeader.version"/>.</p>
+</descr>
+<seealso>
+<link id="TExtHeader"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EXT_ENDIAN_BIG">
+<short>The file uses big endian byte order</short>
+<descr>
+<p>This value is used for <link id="TExtHeader.endianess"/>.</p>
+</descr>
+<seealso>
+<link id="TExtHeader"/>
+<link id="EXT_ENDIAN_LITTLE"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EXT_ENDIAN_LITTLE">
+<short>The file uses little endian byte order</short>
+<descr>
+<p>This value is used for <link id="TExtHeader.endianess"/>.</p>
+</descr>
+<seealso>
+<link id="TExtHeader"/>
+<link id="EXT_ENDIAN_BIG"/>
+</seealso>
+</element>
+
+</module> <!-- externaltypes -->
+
+</package>
+</fpdoc-descriptions>

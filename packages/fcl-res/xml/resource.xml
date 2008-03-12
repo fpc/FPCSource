@@ -1,0 +1,2843 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<topic name="Format of resources in object files">
+<short>Format of resources in object files</short>
+<descr>
+<p><b>Introduction</b></p>
+<p>This appendix describes the format in which resources are stored in object files. This doesn't apply to PECOFF file format, where a format already exists and is well described in documentation from Microsoft.</p>
+<p>On Microsoft Windows, resources are natively supported by the operating system. On other systems, Free Pascal RTL provides access to resources, which are embedded in the executable file in the format that is here described.</p>
+<p>This appendix doesn't describe a particular object file format implementation (e.g. ELF or Mach-O), but the layout of the sections involved in supporting resources: the way these sections are actually laid out on a file are subject to the rules of the hosting object file format.</p>
+<p>For external resource file details, see <link id ="externaltypes.Description of external resource file format">Description of external resource file format</link></p>
+<p><b>Conventions</b></p>
+<p>In this document, data sizes are specified with pascal-style data types. They are the following:</p>
+<table>
+<th><td>Name</td><td>Meaning</td></th>
+<tr><td><var>longword</var></td><td>Unsigned 32 bit integer.</td></tr>
+<tr><td><var>ptruint</var></td><td>Unsigned integer of the size of a pointer</td></tr>
+</table>
+<p>Byte order is the one of the target machine.</p>
+<p>All data structures in the sections must be aligned on machine boundaries (4 bytes for 32 bit machines, 8 bytes for 64 bit machines).</p>
+<p>Note that all pointers must be valid at runtime. This means that relocations must be written to the object file so that the linker can relocate pointers to the addresses they will have at runtime. Note also that pointers to strings are really pointers, and not offsets to the beginning of the string table.</p>
+<p><b>Resource sections</b></p>
+<p>Free Pascal uses two sections to store resource information:</p>
+<ul>
+<li><var>fpc.resources</var>. This is a data section that contains all required structures. It must be writable.</li>
+<li><var>fpc.rehandles</var>. This is a bss section whose size must be equal to <var>(total number of resources)*(size of pointer)</var>. It must be writable.</li>
+</ul>
+<p>The rest of this chapter will describe the contents of <var>fpc.resources</var> section.</p>
+<p><b>Resource section layout</b></p>
+<p>The <var>fpc.resources</var> section consists of these parts:</p>
+<ul>
+<li>The initial header</li>
+<li>The resource tree, in the form of nodes</li>
+<li>The string table, which can be optional</li>
+<li>The resource data</li>
+</ul>
+<p><b>The initial header</b></p>
+<p>The <var>fpc.resources</var> section starts with this header:</p>
+<table>
+	<th><td>Name</td><td>Offset</td><td>Length</td><td>Description</td></th>
+	<tr>
+		<td>rootptr</td>
+		<td>0</td>
+		<td>ptruint</td>
+		<td>Pointer to the root node.</td>
+	</tr>
+	<tr>
+		<td>count</td>
+		<td>4/8</td>
+		<td>longword</td>
+		<td>Total number of resources.</td>
+	</tr>
+	<tr>
+		<td>usedhandles</td>
+		<td>8/12</td>
+		<td>longword</td>
+		<td>Used at runtime. Set to zero in object files.</td>
+	</tr>
+	<tr>
+		<td>handles</td>
+		<td>12/16</td>
+		<td>ptruint</td>
+		<td>Pointer to the first byte of <var>fpc.reshandles</var> section.</td>
+	</tr>
+</table>
+<p><b>The resource tree</b></p>
+<p>Immediately following the initial header, the resource tree comes. It is made up by nodes that represent resource types, names and language ids.</p>
+<p>Data is organized so that resource information (type, name and language id) is represented by a tree: root node contains resource types, that in turn contain resource names, which contain language ids, which describe resource data.</p>
+<p>Given a node, its sub-nodes are ordered as follows:</p>
+<ul>
+<li>First the "named" nodes (nodes that use a string as identifier) come, then the id ones (nodes that use an integer as identifier).</li>
+<li>Named nodes are alphabetically sorted, in ascending order.</li>
+<li>Id nodes are sorted in ascending order.</li>
+</ul>
+<p>In the file, all sub-nodes of a node are written in the order described above. Then, all sub-nodes of the first sub-node are written, and so on.</p>
+<p><b>Example:</b></p>
+<p>There are three resources:</p>
+<ol>
+<li>a <var>BITMAP</var> resource with name <var>MYBITMAP</var> and language id <var>$0409</var></li>
+<li>a <var>BITMAP</var> resource with name <var>1</var> and language id <var>0</var></li>
+<li>a resource with type <var>MYTYPE</var> and name <var>1</var> and language id <var>0</var></li>
+</ol>
+<p>Nodes are laid out this way (note that <var>BITMAP</var> resources have type <var>2</var>):</p>
+<pre>
+	
+	root | MYTYPE 2 | 1 | 0 | MYBITMAP 1 | $0409 | 0
+</pre>
+<p>That is, types (<var>MYTYPE</var> is a string, so it comes before <var>2</var> which is <var>BITMAP</var>), then names for <var>MYTYPE</var> (<var>1</var>), then language id for resource 3 (<var>0</var>), then names for <var>BITMAP</var> (<var>MYBITMAP</var> and <var>1</var>), then language id for resource 1 (<var>$0409</var>), then language id for resource 2 (<var>0</var>).</p>
+<p><b>Node format</b></p>
+<table>
+	<th><td>Name</td><td>Offset</td><td>Length</td><td>Description</td></th>
+	<tr>
+		<td>nameid</td>
+		<td>0</td>
+		<td>ptruint</td>
+		<td>name pointer, integer id or language id</td>
+	</tr>
+	<tr>
+		<td>ncount</td>
+		<td>4/8</td>
+		<td>longword</td>
+		<td>named sub-nodes count</td>
+	</tr>
+	<tr>
+		<td>idcountsize</td>
+		<td>8/12</td>
+		<td>longword</td>
+		<td>id sub-nodes count or resource size</td>
+	</tr>
+	<tr>
+		<td>subptr</td>
+		<td>12/16</td>
+		<td>ptruint</td>
+		<td>pointer to first sub-node</td>
+	</tr>
+</table>
+<p>If the node is identified by a string, <var>nameid</var> is a pointer to the null-terminated string holding the name. If it is identified by an id, <var>nameid</var> is that id. Language id nodes are always identified by and ID.</p>
+<p><var>ncount</var> is the number of named sub-nodes of this node (nodes that are identified by a string).</p>
+<p><var>idcountsize</var> is the number of id sub-nodes of this node (nodes that are identified by an integer id). For language id nodes, this field holds the size of the resource data.</p>
+<p><var>subptr</var> is an pointer to the first subnode of this node. Note that it allows to access every subnode of this node, since subnodes of a node always come one after the other. For language id nodes, <var>subptr</var> is the pointer to the resource data.</p>
+<p><b>The string table</b></p>
+<p>The string table is used to store strings used for resource types and names. If all resources use integer ids for name and types, it may not be present in the file.</p>
+<p>The string table simply contains null-terminated strings, one after the other.</p>
+<p>If present, the string table always contains a <var>0</var> (zero) at the beginning. This way, the empty string is located at the first byte of the string table.</p>
+<p><b>The resource data</b></p>
+<p>This part of the file contains raw resource data. As written before, all data structures must be aligned on machine boundaries, so if a resource data size is not a multiple of 4 (for 32 bit machines) or 8 (for 64 bit machines), bytes of padding must be inserted after that resource data.</p>
+<p><b>Exported symbols</b></p>
+<p>Object files containing resources must export a pointer to the first byte of <var>fpc.resources</var> section. The name of this symbol is <var>FPC_RESSYMBOL</var>.</p>
+<p><b>Mach-O specific notes</b></p>
+<p><var>fpc.resources</var> and <var>fpc.reshandles</var> sections are to be contained in a <var>__DATA</var> segment.</p>
+</descr>
+</topic>
+
+<topic name="How to implement a new resource writer">
+<short>How to implement a new resource writer</short>
+<descr>
+<remark>This chapter assumes you have some experience in using this library.</remark>
+<p>We'll see how to implement a writer for a new resource file format. A resource writer is a descendant of <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>, and it's usually implemented in a unit named <var>namewriter</var>, where <i>name</i> is file format name.</p>
+<p>Suppose we must write a writer for file format <i>foo</i>; we could start with a unit like this:</p>
+<code>
+unit foowriter;
+
+{$MODE OBJFPC} {$H+}
+
+interface
+
+uses
+  Classes, SysUtils, resource;
+
+type
+  TFooResourceWriter = class (TAbstractResourceWriter)
+  protected
+    function GetExtensions : string; override;
+    function GetDescription : string; override;
+    procedure Write(aResources : TResources; aStream : TStream); override;
+  public
+    constructor Create; override;
+  end;
+
+implementation
+
+function TFooResourceWriter.GetExtensions: string;
+begin
+
+end;
+
+function TFooResourceWriter.GetDescription: string;
+begin
+
+end;
+
+procedure TFooResourceWriter.Write(aResources: TResources; aStream: TStream);
+begin
+
+end;
+
+constructor TFooResourceWriter.Create;
+begin
+
+end;
+
+initialization
+  TResources.RegisterWriter('.foo',TFooResourceWriter);
+
+end.
+</code>
+<p>Note that in the <var>initialization</var> section, <var>TFooResourceWriter</var> is registered for extension <var>.foo</var>.</p>
+<p>We must implement abstract methods of <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>. Let's start with the simpler ones, <link id="resource.TAbstractResourceWriter.GetExtensions">GetExtensions</link> and <link id="resource.TAbstractResourceWriter.GetDescription">GetDescription</link>.</p>
+<code>
+function TFooResourceWriter.GetExtensions: string;
+begin
+  Result:='.foo';
+end;
+
+function TFooResourceWriter.GetDescription: string;
+begin
+  Result:='FOO resource writer';
+end;
+</code>
+<p>Now let's see <link id="resource.TAbstractResourceWriter.Write">Write</link>. This method must write all resources in the <link id="resource.TResources">TResources</link> object to the stream.</p>
+<p>Suppose that our foo format is very simple:</p>
+<ul>
+<li>the header is made by a 4-byte signature (<var>FOO*</var>), a <var>longword</var> holding the number of resources in the file, and other 8 bytes of padding.</li>
+<li><p>each resource has a 16-byte header containing:</p>
+<ul>
+<li>a longword for the resource type (only IDs are allowed for types)</li>
+<li>a longword for the resource name (only IDs are allowed for names)</li>
+<li>a longword for the language ID</li>
+<li>a longword for the size of the resource data</li>
+</ul>
+</li>
+<li>
+after the resource header immediately comes the resource data, possibly padded so that it ends on a 4 byte boundary.
+</li>
+<li>
+file format is little-endian
+</li>
+</ul>
+<p>Our <link id="resource.TAbstractResourceWriter.Write">Write</link> method could be something like this:</p>
+<code>
+procedure TFooResourceWriter.Write(aResources: TResources; aStream: TStream);
+var i : integer;
+begin
+  WriteFileHeader(aStream,aResources);
+  for i:=0 to aResources.Count-1 do
+    WriteResource(aStream,aResources[i]);
+end;
+</code>
+<p>So we must implement <var>WriteFileHeader</var>, which writes the 16-byte file header, and <var>WriteResource</var>, which writes a single resource with its header.</p>
+<p>Let's start from the first one:</p>
+<code>
+procedure TFooResourceWriter.WriteFileHeader(aStream: TStream; aResources: TResources);
+var signature : array[0..3] of char;
+    rescount : longword;
+    padding : qword;
+begin
+  signature:='FOO*';
+  rescount:=aResources.Count;
+  padding:=0;
+
+  aStream.WriteBuffer(signature[0],4);
+  aStream.WriteBuffer(rescount,sizeof(rescount));
+  aStream.WriteBuffer(padding,sizeof(padding));
+end;
+</code>
+<p>This code simply writes the file header as defined in foo format. Note that if we are running on a big endian system we should swap bytes before writing, e.g. calling <var>SwapEndian</var> function, but for simplicity this is omitted.</p>
+<p>Now <var>WriteResource</var> comes. This method could be like this:</p>
+<code>
+procedure TFooResourceWriter.WriteResource(aStream: TStream; aResource: TAbstractResource);
+var aType : longword;
+    aName : longword;
+    aLangID : longword;
+    aDataSize : longword;
+begin
+  aType:=aResource._Type.ID;
+  aName:=aResource.Name.ID;
+  aLangID:=aResource.LangID;
+  aDataSize:=aResource.RawData.Size;
+
+  //write resource header
+  aStream.WriteBuffer(aType,sizeof(aType));
+  aStream.WriteBuffer(aName,sizeof(aName));
+  aStream.WriteBuffer(aLangID,sizeof(aLangID));
+  aStream.WriteBuffer(aDataSize,sizeof(aDataSize));
+
+  //write resource data
+  aResource.RawData.Position:=0;
+  aStream.CopyFrom(aResource.RawData,aResource.RawData.Size);
+
+  //align data so that it ends on a 4-byte boundary
+  Align4Bytes(aStream);
+end;
+</code>
+<p>We write the 16-byte resource header, and then resource data. Note that if resources have been loaded from a stream and the user didn't modify resource data, we are copying data directly from the original stream.</p>
+<p><var>Align4Bytes</var> is a private method (not shown for simplicity) that writes some padding bytes to the stream if needed, since FOO file format specifies that resource data must be padded to end on a 4 byte boundary. Again, we didn't consider endianess for simplicity. And finally, note that foo format only supports IDs for types and names, so if one of them is a name (that is, a string) this code might cause exceptions to be raised.</p>
+<p><b>Note:</b> More complex file formats store resources in a tree hierarchy; since <link id="resource.TResources">TResources</link> internally stores resources in this way too, a writer can choose to acquire a reference to the internal tree used by the <link id="resource.TResources">TResources</link> object (see <link id="resource.TAbstractResourceWriter.GetTree">TAbstractResourceWriter.GetTree</link>) and use it directly. For these file formats resources can be written faster, since there is no overhead involved in building a separate resource tree in the writer.</p>
+<p>That's all. Now you should be able to create a real resource writer.</p>
+</descr>
+</topic>
+
+<topic name="How to implement a new resource reader">
+<short>How to implement a new resource reader</short>
+<descr>
+<remark>This chapter assumes you have some experience in using this library.</remark>
+<p>We'll see how to implement a reader for a new resource file format. A resource reader is a descendant of <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link>, and it's usually implemented in a unit named <var>namereader</var>, where <i>name</i> is file format name.</p>
+<p>Suppose we must write a reader for file format <i>foo</i>; we could start with a unit like this:</p>
+<code>
+unit fooreader;
+
+{$MODE OBJFPC} {$H+}
+
+interface
+
+uses
+  Classes, SysUtils, resource;
+
+type
+  TFooResourceReader = class(TAbstractResourceReader)
+  protected
+    function GetExtensions : string; override;
+    function GetDescription : string; override;
+    procedure Load(aResources : TResources; aStream : TStream); override;
+    function CheckMagic(aStream : TStream) : boolean; override;
+  public
+    constructor Create; override;
+  end;
+
+implementation
+
+function TFooResourceReader.GetExtensions: string;
+begin
+
+end;
+
+function TFooResourceReader.GetDescription: string;
+begin
+
+end;
+
+procedure TFooResourceReader.Load(aResources: TResources; aStream: TStream);
+begin
+
+end;
+
+function TFooResourceReader.CheckMagic(aStream: TStream): boolean;
+begin
+
+end;
+
+constructor TFooResourceReader.Create;
+begin
+
+end;
+
+initialization
+  TResources.RegisterReader('.foo',TFooResourceReader);
+
+end.
+</code>
+<p>Note that in the <var>initialization</var> section, <var>TFooResourceReader</var> is registered for extension <var>.foo</var>.</p>
+<p>We must implement abstract methods of <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link>. Let's start with the simpler ones, <link id="resource.TAbstractResourceReader.GetExtensions">GetExtensions</link> and <link id="resource.TAbstractResourceReader.GetDescription">GetDescription</link>.</p>
+<code>
+function TFooResourceReader.GetExtensions: string;
+begin
+  Result:='.foo';
+end;
+
+function TFooResourceReader.GetDescription: string;
+begin
+  Result:='FOO resource reader';
+end;
+</code>
+<p>Now let's see <link id="resource.TAbstractResourceReader.CheckMagic">CheckMagic</link> method. This method is called with a stream as a parameter, and the reader must return <var>true</var> if it recognizes the stream as a valid one. Usually this means checking some magic number or header.</p>
+<code>
+function TFooResourceReader.CheckMagic(aStream: TStream): boolean;
+var signature : array[0..3] of char;
+begin
+  Result:=false;
+  try
+    aStream.ReadBuffer(signature[0],4);
+  except
+    on e : EReadError do exit;
+  end;
+  Result:=signature='FOO*';
+end; 
+</code>
+<p>Suppose our foo files start with a 4-byte signature <var>'FOO*'</var>. This method checks the signature and returns <var>true</var> if it is verified. Note that it catches <var>EReadError</var> exception raised by <var>TStream</var>: this way, if the stream is too short it returns <var>false</var> (as it should, since magic is not valid) instead of letting the exception to propagate.</p>
+<p>Now let's see <link id="resource.TAbstractResourceReader.Load">Load</link>. This method must read the stream and create resources in the <link id="resource.TResources">TResources</link> object, with information about their name, type, position and size of their raw data, and so on.</p>
+<code>
+procedure TFooResourceReader.Load(aResources: TResources; aStream: TStream);
+begin
+  if not CheckMagic(aStream) then
+    raise EResourceReaderWrongFormatException.Create('');
+  try
+    ReadResources(aResources,aStream);
+  except
+    on e : EReadError do
+      raise EResourceReaderUnexpectedEndOfStreamException.Create('');
+  end;
+end;
+</code>
+<p>First of all, this method checks file magic number, calling <link id="resource.TAbstractResourceReader.CheckMagic">CheckMagic</link> method we already implemented. This is necessary since <link id="resource.TAbstractResourceReader.CheckMagic">CheckMagic</link> is not called before <link id="resource.TAbstractResourceReader.Load">Load</link>: <link id="resource.TAbstractResourceReader.CheckMagic">CheckMagic</link> is invoked by <link id="resource.TResources">TResources</link> when probing a stream, while <link id="resource.TAbstractResourceReader.Load">Load</link> is invoked when loading resources (so if the user passed a reader object to a <link id="resource.TResources">TResources</link> object, <link id="resource.TAbstractResourceReader.CheckMagic">CheckMagic</link> is never called). Note also that the stream is always at its starting position when these methods are called.</p>
+<p>If magic number is ok, our method invokes another method to do the actual loading. If during this process the stream can't be read, an <link id="resource.EResourceReaderUnexpectedEndOfStreamException">EResourceReaderUnexpectedEndOfStreamException</link> exception is raised.</p>
+<p>So, let's implement the private method which will load resources.</p>
+<p>Suppose that our foo format is very simple:</p>
+<ul>
+<li>the header is made by the 4-byte signature we already saw, a <var>longword</var> holding the number of resources in the file, and other 8 bytes of padding.</li>
+<li><p>each resource has a 16-byte header containing:</p>
+<ul>
+<li>a longword for the resource type (only IDs are allowed for types)</li>
+<li>a longword for the resource name (only IDs are allowed for names)</li>
+<li>a longword for the language ID</li>
+<li>a longword for the size of the resource data</li>
+</ul>
+</li>
+<li>
+after the resource header immediately comes the resource data, possibly padded so that it ends on a 4 byte boundary.
+</li>
+<li>
+file format is little-endian
+</li>
+</ul>
+<p>To start with, our method will be:</p>
+<code>
+procedure TFooResourceReader.ReadResources(aResources: TResources; aStream: TStream);
+var Count, i: longword;
+    aType, aName, aLangID : longword;
+    aDataSize : longword;
+begin
+  //read remaining file header
+  aStream.ReadBuffer(Count,sizeof(Count));
+  aStream.Seek(8,soFromCurrent);
+
+  for i:=1 to Count do
+  begin
+    //read resource header
+    aStream.ReadBuffer(aType,sizeof(aType));
+    aStream.ReadBuffer(aName,sizeof(aName));
+    aStream.ReadBuffer(aLangID,sizeof(aLangID));
+    aStream.ReadBuffer(aDataSize,sizeof(aDataSize));
+
+  end;
+end;
+</code>
+<p>Since in <link id="resource.TAbstractResourceReader.Load">Load</link> we called <link id="resource.TAbstractResourceReader.CheckMagic">CheckMagic</link>, which read the first 4 bytes of the header, we must read the remaining 12: we read the number of resources, and we skip the other 8 bytes of padding.</p>
+<p>Then, for each resource, we read the resource header. Note that if we are running on a big endian system we should swap the bytes we read, e.g. calling <var>SwapEndian</var> function, but for simplicity this is omitted.</p>
+<p>Now, we should create a resource. Of which class? Well, we must use <link id="resfactory"/> unit. In fact it contains <link id="resfactory.TResourceFactory">TResourceFactory</link> class, which is an expert in creating resources of the right class: when the user adds a unit containing a resource class to the <var>uses</var> clause of its program, the resource class registers itself with <link id="resfactory.TResourceFactory">TResourceFactory</link>. This way it knows how to map resource types to resource classes.</p>
+<p>We need to have type and name of the resource to create as <link id="resource.TResourceDesc">TResourceDesc</link> objects: instead of creating and destroying these objects for each resource, we'll create a couple in the creator of our reader and we'll destroy them in the destructor, so that they will live for the whole life of our reader. Let's name them <var>workType</var> and <var>workName</var>.</p>
+<p>Our code becomes:</p>
+<code>
+uses
+  resfactory;
+
+procedure TFooResourceReader.ReadResources(aResources: TResources; aStream: TStream);
+var Count, i: longword;
+    aType, aName, aLangID : longword;
+    aDataSize : longword;
+    aRes : TAbstractResource;
+begin
+  //read remaining file header
+  aStream.ReadBuffer(Count,sizeof(Count));
+  aStream.Seek(8,soFromCurrent);
+
+  for i:=1 to Count do
+  begin
+    //read resource header
+    aStream.ReadBuffer(aType,sizeof(aType));
+    aStream.ReadBuffer(aName,sizeof(aName));
+    aStream.ReadBuffer(aLangID,sizeof(aLangID));
+    aStream.ReadBuffer(aDataSize,sizeof(aDataSize));
+
+    //create the resource
+    workType.ID:=aType;
+    workName.ID:=aName;
+    aRes:=TResourceFactory.CreateResource(workType,workName);
+    SetDataSize(aRes,aDataSize);
+    SetDataOffset(aRes,aStream.Position);
+    aRes.LangID:=aLangID;
+
+  end;
+end;
+</code>
+<p>Note that after the resource has been created we set its data size and data offset. Data offset is the current position in the stream, since in our FOO file format resource data immediately follows resource header.</p>
+<p>What else do we need to do? Of course we must create <link id="resource.TAbstractResource.RawData">RawData</link> stream for our resource, so that raw data can be accessed with the caching mechanism. We will create a <link id="resdatastream.TResourceDataStream">TResourceDataStream</link> object, telling it which resource and stream it is associated to, which its size will be and which class its underlying cached stream must be created from.</p>
+<p>So we add <link id="resdatastream"/> to the <var>uses</var> clause, declare another local variable</p>
+<code>
+aRawData : TResourceDataStream;
+</code>
+<p>and add these lines in the for loop</p>
+<code>
+aRawData:=TResourceDataStream.Create(aStream,aRes,aRes.DataSize,TCachedResourceDataStream);
+SetRawData(aRes,aRawData);
+</code>
+<p>That is, aRawData will create its underlying stream as a <link id="resdatastream.TCachedResourceDataStream">TCachedResourceDataStream</link> over the portion of <var>aStream</var> that starts at current position and ends after <var>aRes.DataSize bytes</var>.</p>
+<p>We almost finished: now we must add the newly created resource to the <link id="resource.TResources">TResources</link> object and move stream position to the next resource header. Complete code for <var>ReadResources</var> method is:</p>
+<code>
+procedure TFooResourceReader.ReadResources(aResources: TResources; aStream: TStream);
+var Count, i: longword;
+    aType, aName, aLangID : longword;
+    aDataSize : longword;
+    aRes : TAbstractResource;
+    aRawData : TResourceDataStream;
+begin
+  //read remaining file header
+  aStream.ReadBuffer(Count,sizeof(Count));
+  aStream.Seek(8,soFromCurrent);
+
+  for i:=1 to Count do
+  begin
+    //read resource header
+    aStream.ReadBuffer(aType,sizeof(aType));
+    aStream.ReadBuffer(aName,sizeof(aName));
+    aStream.ReadBuffer(aLangID,sizeof(aLangID));
+    aStream.ReadBuffer(aDataSize,sizeof(aDataSize));
+
+    //create the resource
+    workType.ID:=aType;
+    workName.ID:=aName;
+    aRes:=TResourceFactory.CreateResource(workType,workName);
+    SetDataSize(aRes,aDataSize);
+    SetDataOffset(aRes,aStream.Position);
+    aRes.LangID:=aLangID;
+
+    //set raw data
+    aRawData:=TResourceDataStream.Create(aStream,aRes,aRes.DataSize,TCachedResourceDataStream);
+    SetRawData(aRes,aRawData);
+
+    //add to aResources
+    try
+      aResources.Add(aRes);
+    except
+      on e : EResourceDuplicateException do
+      begin
+        aRes.Free;
+        raise;
+      end;
+    end;
+
+    //go to next resource header
+    aStream.Seek(aDataSize,soFromCurrent);
+    Align4Bytes(aStream);
+  end;
+end;
+</code>
+<p><var>Align4Bytes</var> is a private method (not shown for simplicity) that sets stream position to the next multiple of 4 if needed, since FOO file format specifies that resource data must be padded to end on a 4 byte boundary.</p>
+<p><b>Note:</b> We have used <link id="resource.TResources.Add">Add</link> method to populate the <link id="resource.TResources">TResources</link> object. More complex file formats store resources in a tree hierarchy; since <link id="resource.TResources">TResources</link> internally stores resources in this way too, a reader can choose to acquire a reference to the internal tree used by the <link id="resource.TResources">TResources</link> object (see <link id="resource.TAbstractResourceReader.GetTree">TAbstractResourceReader.GetTree</link>), populate it and notify the <link id="resource.TResources">TResources</link> object about the added resources (see <link id="resource.TAbstractResourceReader.AddNoTree">TAbstractResourceReader.AddNoTree</link>). For these file formats resources can be loaded faster, since there is no overhead involved in keeping a separate resource tree in the reader.</p>
+<p>That's all. Now you should be able to create a real resource reader.</p>
+</descr>
+</topic>
+
+<topic name="How to implement a new resource class">
+<short>How to implement a new resource class</short>
+<descr>
+<remark>This chapter assumes you have some experience in using this library.</remark>
+<p><b>Some considerations</b></p>
+<p>Usually, a specific resource class is needed when resource data is encoded in a specific binary format that makes working with <link id="resource.TAbstractResource.RawData">RawData</link> uncomfortable.</p>
+<p>However, there aren't many reasons to design a new binary format requiring a specific resource class: the classes provided with this package exist for compatibility with Microsoft Windows, but in the general case one should avoid such approach.</p>
+<p>In Microsoft Windows, some resource types have a specific format, and the operating system supports them at runtime making it easy to access that kind of data: e.g. icons and bitmaps are stored in resources in a format that is slightly different from the one found in regular files, but the operating system allows the user to easily load them using <var>LoadImage</var> function, without having to deal with their internal format. Other resource types are used to obtain information about the executable: <link id="resource.RT_VERSION">RT_VERSION</link> resource type and <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> contain version information and program icon that can be displayed in Windows Explorer, respectively.</p>
+<p>Using this kind of resources in a cross-platform perspective doesn't make much sense however, since there is no support by other operating systems for these types of resources (and for resources in general), and this means that it's up to you to provide support at runtime for these binary formats. So if you need to store images as resources it's better to use <link id="resource.TGenericResource">TGenericResource</link> and store an image in PNG format (for instance), which can be read by existing libraries at runtime, instead of creating a <link id="resource.RT_BITMAP">RT_BITMAP</link> resource with <link id="bitmapresource.TBitmapResource">TBitmapResource</link>, since libraries that read BMP files can't handle that resource contents.</p>
+<p>New resource classes thus make sense when you want to add support for existing Windows-specific resources, e.g. because you are writing a resource compiler or editor, but in the general case they should be avoided.</p>
+<p>Now that you've been warned, let's start with the topic of this chapter.</p>
+<p><b>How to implement a new resource class</b></p>
+<p>A resource class is a descendant of <link id="resource.TAbstractResource">TAbstractResource</link>, and it's usually implemented in a unit named <var>typeresource</var>, where <i>type</i> is resource type.</p>
+<p>If you are implementing a new resource class, you are doing it to provide additional methods or properties to utilize resource data. You resource class must thus be able to read its <link id="resource.TAbstractResource.RawData">RawData</link> stream format and write data back to it when it is requested to do so.</p>
+<p>Generally, your class shouldn't create private objects, records or memory buffers to provide these specific means of accessing data until it's requested to do so (lazy loading), and it should free these things when it is requested to write back data to the <link id="resource.TAbstractResource.RawData">RawData</link> stream.</p>
+<p>We'll see these points in more detail, using <link id="acceleratorsresource.TAcceleratorsResource">TAcceleratorsResource</link> as an example.</p>
+<p><link id="acceleratorsresource.TAcceleratorsResource">TAcceleratorsResource</link> holds a collection of accelerators. An accelerator is a record defined as follows:</p>
+<code>
+type
+  TAccelerator = packed record
+    Flags : word;
+    Ansi : word;
+    Id : word;
+    padding : word;
+  end;
+</code>
+<p>The resource simply contains accelerators, one immediately following the other. Last accelerator must have $80 in its flags.</p>
+<p>To provide easy access to the elements it contains, our accelerator resource class exposes these methods and properties in its public section:</p>
+<code>
+procedure Add(aItem : TAccelerator);
+procedure Clear;
+procedure Delete(aIndex : integer);
+property Count : integer read GetCount;
+property Items[index : integer] : TAccelerator read GetItem write SetItem; default;
+</code>
+<p>We must also implement abstract methods (and an abstract constructor) of <link id="resource.TAbstractResource">TAbstractResource</link>:</p>
+<code>
+protected
+  function GetType : TResourceDesc; override;
+  function GetName : TResourceDesc; override;
+  function ChangeDescTypeAllowed(aDesc : TResourceDesc) : boolean; override;
+  function ChangeDescValueAllowed(aDesc : TResourceDesc) : boolean; override;
+  procedure NotifyResourcesLoaded; override;
+public
+  constructor Create(aType,aName : TResourceDesc); override;
+  procedure UpdateRawData; override;
+</code>
+<p>The protected methods are very easy to implement, so let's start from them. For <link id="resource.TAbstractResource.GetType">GetType</link> and <link id="resource.TAbstractResource.GetName">GetName</link>, we need to add two private fields, <var>fType</var> and <var>fName</var>, of type <link id="resource.TResourceDesc">TResourceDesc</link>. We create them in the constructor and destroy them in the destructor. Type will always be <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link>. We make the parameterless constructor of <link id="resource.TAbstractResource">TAbstractResource</link> public, using <var>1</var> as the resource name, while in the other constructor we use the name passed as parameter, ignoring the type (since it must always be <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link>).</p>
+<p>So, <link id="resource.TAbstractResource.GetType">GetType</link>, <link id="resource.TAbstractResource.GetName">GetName</link>, the constructors and the destructor are implemented as follows:</p>
+<code>
+function TAcceleratorsResource.GetType: TResourceDesc;
+begin
+  Result:=fType;
+end;
+
+function TAcceleratorsResource.GetName: TResourceDesc;
+begin
+  Result:=fName;
+end;
+
+constructor TAcceleratorsResource.Create;
+begin
+  inherited Create;
+  fType:=TResourceDesc.Create(RT_ACCELERATOR);
+  fName:=TResourceDesc.Create(1);
+  SetDescOwner(fType);
+  SetDescOwner(fName);
+end;
+
+constructor TAcceleratorsResource.Create(aType, aName: TResourceDesc);
+begin
+  Create;
+  fName.Assign(aName);
+end;
+
+destructor TAcceleratorsResource.Destroy;
+begin
+  fType.Free;
+  fName.Free;
+  inherited Destroy;
+end;
+</code>
+<p>Note that we used <link id="resource.TAbstractResource.SetDescOwner">SetDescOwner</link> to let type and name know the resource that owns them.</p>
+<p>Now <link id="resource.TAbstractResource.ChangeDescTypeAllowed">ChangeDescTypeAllowed</link> and <link id="resource.TAbstractResource.ChangeDescValueAllowed">ChangeDescValueAllowed</link> come. As we said, resource type must be <link id="resource.RT_ACCELERATOR">RT_ACCELERATOR</link>, always. Thus, we only allow name to change value or type:</p>
+<code>
+function TAcceleratorsResource.ChangeDescTypeAllowed(aDesc: TResourceDesc): boolean;
+begin
+  Result:=aDesc=fName;
+end;
+
+function TAcceleratorsResource.ChangeDescValueAllowed(aDesc: TResourceDesc): boolean;
+begin
+  Result:=aDesc=fName;
+end;
+</code>
+<p><link id="resource.TAbstractResource.NotifyResourcesLoaded">NotifyResourcesLoaded</link> is called by <link id="resource.TResources">TResources</link> when it finishes loading all resources. Since we are not interested in this fact, we simply leave this method empty. This method is useful for resources that "own" other resources, like <link id="groupiconresource.TGroupIconResource">TGroupIconResource</link> and <link id="groupiconresource.TGroupCursorResource">TGroupCursorResource</link> (note: you should <b>not</b> implement resource types that depend on other resources: it complicates things a lot and gives you a lot of headaches).</p>
+<p>Now, let's see the more interesting - and more difficult - part: providing an easy way to deal with accelerators.</p>
+<p>As we said earlier, we must implement some methods and properties to do so. Surely we'll need a list to hold pointers to accelerator records, but we must think a little bit about how this list is created, populated, written to <link id="resource.TAbstractResource.RawData">RawData</link> and so on.</p>
+<p>When the object is created, we don't have to create (yet) single accelerator records, as said before; but if the user tries to access them we must do it. If the object is created and its <link id="resource.TAbstractResource.RawData">RawData</link> contains data (e.g. because a reader has created the resource when loading a resource file) and the user tries to access an accelerator, we must create accelerators from <link id="resource.TAbstractResource.RawData">RawData</link> contents. So, until a user tries to access accelerators our class doesn't do anything, while when the user does so it "lazy-loads" data, or creates empty structures if <link id="resource.TAbstractResource.RawData">RawData</link> is empty.</p>
+<p>When data is loaded, <link id="resource.TAbstractResource.RawData">RawData</link> contents aren't considered anymore. When, however, our resource is requested to update <link id="resource.TAbstractResource.RawData">RawData</link> (that is, when <link id="resource.TAbstractResource.UpdateRawData">UpdateRawData</link> method is invoked), our "lazy-loaded" data must be freed. In fact, a user could ask our resource to update raw data, then he/she could modify it directly and then could use our resource's specialized methods and properties to do further processing: for this reason, when <link id="resource.TAbstractResource.RawData">RawData</link> is written, other buffered things must be freed, so that they'll created again from <link id="resource.TAbstractResource.RawData">RawData</link> if needed.</p>
+<p>Note that other resource classes could behave differently: e.g. <link id="bitmapresource.TBitmapResource">TBitmapResource</link> uses a copy-on-write mechanism on top of <link id="resource.TAbstractResource.RawData">RawData</link> to insert a BMP file header at the beginning of the stream, but it doesn't copy <link id="resource.TAbstractResource.RawData">RawData</link> contents whenever possible.</p>
+<p>Coming back to our <link id="acceleratorsresource.TAcceleratorsResource">TAcceleratorsResource</link> example, let's see how to implement this behaviour.</p>
+<p>Let's add a <var>fList</var> field in the <var>private</var> section of our class:</p>
+<code>
+fList : TFPList;
+</code>
+<p>In the constructor, we set this field to <var>nil</var>: we use it to check if data has been loaded from <link id="resource.TAbstractResource.RawData">RawData</link> or not. Consequently in the destructor we'll free the list only if it's not <var>nil</var>:</p>
+<code>
+destructor TAcceleratorsResource.Destroy;
+begin
+  fType.Free;
+  fName.Free;
+  if fList&lt;&gt;nil then
+  begin
+    Clear;
+    fList.Free;
+  end;
+  inherited Destroy;
+end;
+</code>
+<p>(we did not implement <var>Clear</var> method yet: we'll see it later).</p>
+<p>We said that our resource must load data only when needed; to do this we add a private method, <var>CheckDataLoaded</var> that ensures that data is loaded. This method is called by whatever method needs to operate on the list: if data has already been loaded it will quickly return, otherwise it will load data.</p>
+<code>
+procedure TAcceleratorsResource.CheckDataLoaded;
+var acc : TAccelerator;
+    tot, i : integer;
+    p : PAccelerator;
+begin
+  if fList&lt;&gt;nil then exit;
+  fList:=TFPList.Create;
+  if RawData.Size=0 then exit;
+  RawData.Position:=0;
+  tot:=RawData.Size div 8;
+  for i:=1 to tot do
+  begin
+    RawData.ReadBuffer(acc,sizeof(acc));
+    GetMem(p,sizeof(TAccelerator));
+    p^:=acc;
+    fList.Add(p);
+  end;
+end;	
+</code>
+<p>If <var>fList</var> is not <var>nil</var> data is already loaded, so exit. Otherwise, create the list. If <link id="resource.TAbstractResource.RawData">RawData</link> is empty we don't need to load anything, so exit. Otherwise allocate room for accelerators, read them from the stream, and add them to the list.</p>
+<p>Note that if we are running on a big endian system we should swap the bytes we read, e.g. calling <var>SwapEndian</var> function, but for simplicity this is omitted.</p>
+<p>The counterpart of <var>CheckDataLoaded</var> is <link id="resource.TAbstractResource.UpdateRawData">UpdateRawData</link>. When it is called, data from the list must be written back to <link id="resource.TAbstractResource.RawData">RawData</link>, and the list and its contents must be freed:</p>
+<code>
+procedure TAcceleratorsResource.UpdateRawData;
+var acc : TAccelerator;
+    i : integer;
+begin
+  if fList=nil then exit;
+  RawData.Size:=0;
+  RawData.Position:=0;
+
+  for i:=0 to fList.Count-1 do
+  begin
+    acc:=PAccelerator(fList[i])^;
+    // $80 means 'this is the last entry', so be sure only the last one has this bit set.
+    if i=Count-1 then acc.Flags:=acc.Flags or $80
+    else acc.Flags:=acc.Flags and $7F;
+    RawData.WriteBuffer(acc,sizeof(acc));
+  end;
+  Clear;
+  FreeAndNil(fList);
+end;	
+</code>
+<p>If <var>fList</var> is <var>nil</var> data hasn't been loaded, so <link id="resource.TAbstractResource.RawData">RawData</link> is up to date, so exit. Otherwise, write each accelerator (ensuring that only last one has <var>$80</var> flag set), clear the list, free it and set it to nil. Again, if we are on a big endian system we should swap each accelerator contents before writing it, but for simplicity this is omitted.</p>
+<p>Other methods we named earlier (<var>Add</var>, <var>Delete</var>, <var>Clear</var>) are trivial to implement: remember only to call <var>CheckDataLoaded</var> before doing anything. The same is true for accessor methods of relevant properties (<var>Count</var>, <var>Items</var>).</p>
+<p>If you are curious, you can check the full implementation of <link id="acceleratorsresource.TAcceleratorsResource">TAcceleratorsResource</link> looking at source code.</p>
+</descr>
+</topic>
+
+<topic name="Basic Usage">
+<short>Basic Usage</short>
+<descr>
+<p><b>Resource files and TResources class</b></p>
+<p>One of the most important classes is <link id="resource.TResources">TResources</link> class, contained in <link id="resource"/> unit, which represents a format-independent view of a resource file. In fact, while single resources are important, they are of little use alone, since they can't be read or written to file directly: they need to be contained in a <link id="resource.TResources">TResources</link> object.</p>
+<p><link id="resource.TResources">TResources</link> provides methods to read itself from a file or stream, using specific objects that are able to read resource data from such a stream: these are the so called <i>resource readers</i>, that descend from <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link>.</p>
+<p>There are also <i>resource writers</i> that do the opposite, and that descend from <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>.</p>
+<p>Usually readers and writers register themselves with <link id="resource.TResources">TResources</link> in the <var>initialization</var> section of the unit they are implemented in, so you only need to add a certain unit to your program <var>uses</var> clause to let <link id="resource.TResources">TResources</link> "know" about a particular file format.</p>
+<p>Let's see a very simple example: a program that converts a .res file to an object file in COFF format (the object file format used by Microsoft Windows).</p>
+<code>
+program res1;
+
+{$mode objfpc}
+
+uses
+  Classes, SysUtils, resource, resreader, coffwriter;
+
+var
+  resources : TResources;
+begin
+  resources:=TResources.Create;
+  resources.LoadFromFile('myresource.res');
+  resources.WriteToFile('myobject.o');
+  resources.Free;
+end.
+</code>
+<p>As you can see, the code is trivial. Note that <var>resreader</var> and <var>coffwriter</var> units were added to the <var>uses</var> clause of the program: this way, the resource reader for .res files and the resource writer for COFF files have been registered, letting the <var>resources</var> object know how to handle these file types.</p>
+<p>There are cases where one doesn't want to let the <link id="resource.TResources">TResources</link> object to choose readers and writers by itself. In fact, while generally it is a good idea to let <link id="resource.TResources">TResources</link> probe all readers it knows to find one able to read the input file, this isn't true when it comes to write files: writers are selected based on the file extension, so if you are trying to write a file with .o extension you can't be sure about which writer will be selected: it could be the COFF or the ELF writer (it depends on which writer gets registered first). Moreover, writers generally make an object file for the host architecture, so if you are running the program on a i386 machine it will produce a COFF or ELF file for i386.</p>
+<p>The solution is to provide <link id="resource.TResources">TResources</link> with a specific writer. In the following example the reader is automatically chosen among various readers, and we use a specific writer to produce an ELF file for SPARC.</p>
+<code>
+program res2;
+
+{$mode objfpc}
+
+uses
+  Classes, SysUtils, resource,
+  resreader, coffreader, elfreader, winpeimagereader, //readers
+  elfwriter, elfconsts;
+
+var
+  resources : TResources;
+  writer : TElfResourceWriter;
+begin
+  resources:=TResources.Create;
+  resources.LoadFromFile(paramstr(1));
+  writer:=TElfResourceWriter.Create;
+  writer.MachineType:=emtsparc;
+  resources.WriteToFile(ChangeFileExt(paramstr(1),'.o'),writer);
+  resources.Free;
+  writer.Free;
+end.
+</code>
+<p>Note that the file to convert is taken from the command line. Its format is automatically detected among res (<link id="resreader"/>), coff (<link id="coffreader"/>), elf (<link id="elfreader"/>), PE (<link id="winpeimagereader"/>, e.g. a Windows exe or dll), and is written as an ELF file for SPARC. Note that we had to use <link id="elfconsts"/> unit since we used <link id="elfconsts.TElfMachineType.emtsparc">emtsparc</link> constant to specify the machine type of the object file to generate.</p>
+<p>With a small change to the above program we can let the user know which reader was selected to read the input file: we can use <link id="resource.TResources.FindReader">TResources.FindReader</link> class method to obtain the appropriate reader for a given stream.</p>
+<code>
+program res3;
+
+{$mode objfpc}
+
+uses
+  Classes, SysUtils, resource,
+  resreader, coffreader, elfreader, winpeimagereader, //readers
+  elfwriter, elfconsts;
+
+var
+  resources : TResources;
+  writer : TElfResourceWriter;
+  reader : TAbstractResourceReader;
+  inFile : TFileStream;
+begin
+  resources:=TResources.Create;
+  inFile:=TFileStream.Create(paramstr(1), fmOpenRead or fmShareDenyNone);
+  reader:=TResources.FindReader(inFile);
+  writeln('Selected reader: ',reader.Description);
+  resources.LoadFromStream(inFile,reader);
+  writer:=TElfResourceWriter.Create;
+  writer.MachineType:=emtsparc;
+  resources.WriteToFile(ChangeFileExt(paramstr(1),'.o'),writer);
+  resources.Free;
+  reader.Free;
+  writer.Free;
+  inFile.Free;
+end.
+</code>
+<p>Output example:</p>
+<pre>
+user@localhost:~$ ./res3 myresource.res
+Selected reader: .res resource reader
+user@localhost:~$
+</pre>
+<p><b>Single resources</b></p>
+<p>You can do more with resources than simply converting between file formats.</p>
+<p><link id="resource.TResources.Items">TResources.Items</link> property provides a simple way to access all resources contained in the <link id="resource.TResources">TResources</link> object.</p>
+<p>In the following example we read a resource file and then dump each resource data in a file whose name is built from type and name of the dumped resource.</p>
+<code>
+program res4;
+
+{$mode objfpc}
+
+uses
+  Classes, SysUtils, resource, resreader;
+
+var
+  resources : TResources;
+  dumpFile : TFileStream;
+  i : integer;
+  fname : string;
+begin
+  resources:=TResources.Create;
+  resources.LoadFromFile('myresource.res');
+  for i:=0 to resources.Count-1 do
+  begin
+    fname:=resources[i]._Type.Name+'_'+resources[i].Name.Name;
+    dumpFile:=TFileStream.Create(fname,fmCreate or fmShareDenyWrite);
+    dumpFile.CopyFrom(resources[i].RawData,resources[i].RawData.Size);
+    dumpFile.Free;
+  end;
+  resources.Free;
+end.
+</code>
+<p>This code simply copies the content of each resource's <link id="resource.TAbstractResource.RawData">RawData</link> stream to a file stream, whose name is <i>resourcetype_resourcename</i>.</p>
+<p>Resource raw data isn't always what one expected, however. While some resource types simply contain a copy of a file in their raw data, other types do some processing, so that dumping raw data doesn't result in a file in the format one expected.</p>
+<p>E.g. a resource of type <link id="resource.RT_MANIFEST">RT_MANIFEST</link> is of the former type: its raw data is like an XML manifest file. On the other hand, in a resource of type <link id="resource.RT_BITMAP">RT_BITMAP</link> the <link id="resource.TAbstractResource.RawData">RawData</link> stream isn't like a BMP file.</p>
+<p>For this reason, several classes (descendants of <link id="resource.TAbstractResource">TAbstractResource</link>) are provided to handle the peculiarities of this or that resource type. Much like it's done with readers and writers, resource classes can be registered: adding the unit that contains a resource class to the <var>uses</var> clause of your program registers that class. This way, when resources are read from a file, they are created with the class that is registered for their type (the class responsible to do this is <link id="resfactory.TResourceFactory">TResourceFactory</link>, but probably you won't need to use it unless you're implementing a new resource reader or resource class).</p>
+<p>In the following example, we read a resource file and then dump data of each resource of type <link id="resource.RT_BITMAP">RT_BITMAP</link> as a BMP file.</p>
+<code>
+program res5;
+
+{$mode objfpc}
+
+uses
+  Classes, SysUtils, resource, resreader, bitmapresource;
+
+var
+  resources : TResources;
+  dumpFile : TFileStream;
+  i : integer;
+  fname : string;
+begin
+  resources:=TResources.Create;
+  resources.LoadFromFile('myresource.res');
+  for i:=0 to resources.Count-1 do
+    if resources[i] is TBitmapResource then
+      with resources[i] as TBitmapResource do
+      begin
+        fname:=Name.Name+'.bmp';
+        dumpFile:=TFileStream.Create(fname,fmCreate or fmShareDenyWrite);
+        dumpFile.CopyFrom(BitmapData,BitmapData.Size);
+        dumpFile.Free;
+      end;
+  resources.Free;
+end.
+</code>
+<p>Note that we included <link id="bitmapresource"/> in the <var>uses</var> clause of our program. This way, resources of type <link id="resource.RT_BITMAP">RT_BITMAP</link> are created from <link id="bitmapresource.TBitmapResource">TBitmapResource</link> class. This class provides a stream, <link id="bitmapresource.TBitmapResource.BitmapData">BitmapData</link> that allows resource raw data to be accessed as if it was a bmp file.</p>
+<p>We can of course do the opposite. In the following code we are creating a manifest resource from <var>manifest.xml</var> file.</p>
+<code>
+program res6;
+
+{$mode objfpc}
+
+uses
+  Classes, SysUtils, resource, reswriter;
+
+var
+  resources : TResources;
+  inFile : TFileStream;
+  res : TGenericResource;
+  rname,rtype : TResourceDesc;
+begin
+  inFile:=TFileStream.Create('manifest.xml',fmOpenRead or fmShareDenyNone);
+  rtype:=TResourceDesc.Create(RT_MANIFEST);
+  rname:=TResourceDesc.Create(1);
+  res:=TGenericResource.Create(rtype,rname);
+  rtype.Free; //no longer needed
+  rname.Free;
+  res.SetCustomRawDataStream(inFile);
+  resources:=TResources.Create;
+  resources.Add(res);
+  resources.WriteToFile('myresource.res');
+  resources.Free;  //frees res as well
+  inFile.Free;
+end.
+</code>
+<p>Note that resources of type <link id="resource.RT_MANIFEST">RT_MANIFEST</link> contain a straight copy of a xml file, so <link id="resource.TGenericResource">TGenericResource</link> class fits our needs. <link id="resource.TGenericResource">TGenericResource</link> is a basic implementation of <link id="resource.TAbstractResource">TAbstractResource</link>. It is the default class used by <link id="resfactory.TResourceFactory">TResourceFactory</link> when it must create a resource whose type wasn't registered with any resource class.</p>
+<p>Please note that instead of copying <var>inFile</var> contents to <link id="resource.TAbstractResource.RawData">RawData</link> we used <link id="resource.TAbstractResource.SetCustomRawDataStream">SetCustomRawDataStream</link> method: it sets a stream as the underlying stream for <link id="resource.TAbstractResource.RawData">RawData</link>, so that when final resource file is written, data is read directly from the original file.</p>
+<p>Let's see a similar example, in which we use a specific class instead of <link id="resource.TGenericResource">TGenericResource</link>. In the following code we are creating a resource containing the main program icon, which is read from <var>mainicon.ico</var> file.</p>
+<code>
+program res7;
+
+{$mode objfpc}
+
+uses
+  Classes, SysUtils, resource, reswriter, groupiconresource;
+
+var
+  resources : TResources;
+  inFile : TFileStream;
+  iconres : TGroupIconResource;
+  name : TResourceDesc;
+begin
+  inFile:=TFileStream.Create('mainicon.ico',fmOpenRead or fmShareDenyNone);
+  name:=TResourceDesc.Create('MAINICON');
+  //type is always RT_GROUP_ICON for this resource class
+  iconres:=TGroupIconResource.Create(nil,name);
+  iconres.SetCustomItemDataStream(inFile);
+  resources:=TResources.Create;
+  resources.Add(iconres);
+  resources.WriteToFile('myicon.res');
+  resources.Free;  //frees iconres as well
+  inFile.Free;
+  name.Free;
+end.
+</code>
+<p>In this program we created a new <link id="groupiconresource.TGroupIconResource">TGroupIconResource</link> with 'MAINICON' as name, and we loaded its contents from file 'mainicon.ico'. Please note that <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> resource raw data doesn't contain a .ico file, so we have to write to <link id="groupresource.TGroupResource.ItemData">ItemData</link> which is a ico-like stream. As we did for <var>res6</var> program, we tell the resource to use our stream as the underlying stream for resource data: the only difference is that we are using <link id="groupresource.TGroupResource.SetCustomItemDataStream">TGroupResource.SetCustomItemDataStream</link> instead of <link id="resource.TAbstractResource.SetCustomRawDataStream">TAbstractResource.SetCustomRawDataStream</link> method, for obvious reasons.</p>
+<p><b>Other resource types</b></p>
+<p>There are other resource types that allow to easily deal with resource data. E.g. <link id="versionresource.TVersionResource">TVersionResource</link> makes it easy to create and read version information for Windows executables and dlls, <link id="stringtableresource.TStringTableResource">TStringTableResource</link> deals with string tables, and so on.</p>
+<p><b>Data caching</b></p>
+<p>Whenever possible, fcl-res tries to avoid to duplicate data. Generally a reader doesn't copy resource data from the original stream to <link id="resource.TAbstractResource.RawData">RawData</link> stream: instead, it only informs the resource about where its raw data is in the original stream. <link id="resource.TAbstractResource.RawData">RawData</link> uses a caching system so that it appears as a stream while it only redirects operations to its underlying stream, with a copy-on-write mechanism. Of course this behaviour can be controlled by the user. For further information, see <link id="resource.TAbstractResource">TAbstractResource</link> and <link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>.</p>
+</descr>
+
+</topic>
+
+<topic name="Introduction">
+<short>Introduction</short>
+<descr>
+<p>This package contains a library to easily work with Microsoft Windows resources in a cross-platform way.</p>
+<p>Classes are provided to create, load and write resources from/to different file formats in a transparent way, and to handle most common resource types without having to deal with their internal format.</p>
+<p>Whenever possible data caching is performed, helped by a copy-on-write mechanism. This improves performance especially when converting big resources from a file format to another.</p>
+<p>Since fcl-res architecture is extensible, it's always possible to extend the library with custom resource types or new file readers/writers.</p>
+<p>Please note that resources aren't limited to Windows platform: Free Pascal can use them also on ELF and Mach-O targets. Moreover, this library can be useful for cross-compilation purposes even on other targets.</p>
+<p>It is highly recommended to read <link id="Basic Usage"/> topic if you are approaching this library for the first time.</p>
+</descr>
+</topic>
+
+<!--
+  ====================================================================
+    resource
+  ====================================================================
+-->
+
+<module name="resource">
+<short>Contains base classes for resource handling</short>
+<descr>
+<p>This unit contains base classes needed to work with resources.</p>
+<p>Single resources are represented by an instance of a <link id="TAbstractResource"/> descendant. They are grouped in a <link id="TResources"/> instance which can be read (written) to (from) a stream via a <link id="TAbstractResourceReader"/> (<link id="TAbstractResourceWriter"/>) descendant.</p>
+<p><link id="TGenericResource"/> provides a basic implementation of <link id="TAbstractResource"/>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Sysutils">
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_CURSOR">
+<short>Single cursor resource</short>
+<descr>
+A single image in a cursor. Don't use it directly.
+</descr>
+<seealso>
+<link id="RT_GROUP_CURSOR"/>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_BITMAP">
+<short>Bitmap resource</short>
+<seealso>
+<link id="bitmapresource.TBitmapResource">TBitmapResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_ICON">
+<short>Single icon resource</short>
+<descr>
+A single image in a icon. Don't use it directly.
+</descr>
+<seealso>
+<link id="RT_GROUP_ICON"/>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_MENU">
+<short>Menu resource</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_DIALOG">
+<short>Dialog resource</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_STRING">
+<short>String table resource</short>
+<seealso>
+<link id="stringtableresource.TStringTableResource">TStringTableResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_FONTDIR">
+<short>Font directory resource</short>
+<descr>
+This resource type is obsolete and never appears in 32 bit resources.
+</descr>
+<seealso>
+<link id="RT_FONT"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_FONT">
+<short>Single font resource</short>
+<descr>
+This resource type is obsolete and never appears in 32 bit resources.
+</descr>
+<seealso>
+<link id="RT_FONTDIR"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_ACCELERATOR">
+<short>Accelerator table resource</short>
+<seealso>
+<link id="acceleratorsresource.TAcceleratorsResource">TAcceleratorsResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_RCDATA">
+<short>Application-defined resource (raw data)</short>
+<descr>
+<p>This resource type contains arbitrary binary data</p>
+<p>Note that Delphi dfm files are stored in compiled form as a RCDATA resource</p>
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_MESSAGETABLE">
+<short>Message table resource</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_GROUP_CURSOR">
+<short>Cursor resource</short>
+<descr>
+<p>This resource type contains a cursor and it's the equivalent of a .cur file</p>
+<remark>Please note that is is made up of several <link id="RT_CURSOR"/> resources (the single cursor images) that shouldn't be accessed singularly.</remark>
+</descr>
+<seealso>
+<link id="RT_CURSOR"/>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_GROUP_ICON">
+<short>Icon resource</short>
+<descr>
+<p>This resource type contains an icon and it's the equivalent of a .ico file</p>
+<remark>Please note that is is made up of several <link id="RT_ICON"/> resources (the single icon images) that shouldn't be accessed singularly.</remark>
+</descr>
+<seealso>
+<link id="RT_ICON"/>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_VERSION">
+<short>Version resource</short>
+<descr>
+This resource defines version information which is visible when viewing properties of a Windows executable or DLL.
+</descr>
+<seealso>
+<link id="versionresource.TVersionResource">TVersionResource</link>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_DLGINCLUDE">
+<short>Never present in compiled form</short>
+<descr>
+This resource is used internally by resource compilers but will never appear in compiled form
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_PLUGPLAY">
+<short>Plug and Play resource</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_VXD">
+<short>VXD resource</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_ANICURSOR">
+<short>Animated cursor resource</short>
+<descr>
+This resource type contains raw binary data taken from a .ani file
+</descr>
+<seealso>
+<link id="RT_ANIICON"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_ANIICON">
+<short>Animated icon resource</short>
+<descr>
+This resource type contains raw binary data taken from a .ani file
+</descr>
+<seealso>
+<link id="RT_ANICURSOR"/>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_HTML">
+<short>HTML resource</short>
+<descr>
+This resource type contains an HTML file.
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RT_MANIFEST">
+<short>Windows XP Side-by-Side Assembly XML manifest</short>
+<descr>
+<p>This resource contains data taken from a .manifest file</p>
+<remark>Resource name must be one of <link id ="CREATEPROCESS_MANIFEST_RESOURCE_ID"/> (mainly used for executables), <link id ="ISOLATIONAWARE_MANIFEST_RESOURCE_ID"/> or <link id="ISOLATIONAWARE_NOSTATICIMPORT_MANIFEST_RESOURCE_ID"/> (mainly used for DLLs)</remark>
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CREATEPROCESS_MANIFEST_RESOURCE_ID">
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ISOLATIONAWARE_MANIFEST_RESOURCE_ID">
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ISOLATIONAWARE_NOSTATICIMPORT_MANIFEST_RESOURCE_ID">
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MINIMUM_RESERVED_MANIFEST_RESOURCE_ID">
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MAXIMUM_RESERVED_MANIFEST_RESOURCE_ID">
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MF_MOVEABLE">
+<short>The resource can be moved</short>
+<descr>
+This flag is ignored by Windows and Free Pascal RTL. It's provided for compatibility with 16-bit Windows.
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MF_PURE">
+<short>The resource contains dword-aligned data</short>
+<descr>
+This flag is ignored by Windows and Free Pascal RTL. It's provided for compatibility with 16-bit Windows.
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MF_PRELOAD">
+<short>The resource is loaded with the executable file</short>
+<descr>
+This flag is ignored by Windows and Free Pascal RTL. It's provided for compatibility with 16-bit Windows.
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MF_DISCARDABLE">
+<short>The resource can be discarded if no longer needed</short>
+<descr>
+This flag is ignored by Windows and Free Pascal RTL. It's provided for compatibility with 16-bit Windows.
+</descr>
+</element>
+
+<!-- resource string Visibility: default -->
+<element name="SReaderNotFoundExt">
+</element>
+
+<!-- resource string Visibility: default -->
+<element name="SReaderNotFoundProbe">
+</element>
+
+<!-- resource string Visibility: default -->
+<element name="SWriterNotFoundExt">
+</element>
+
+<!-- resource string Visibility: default -->
+<element name="SDescChangeNotAllowed">
+</element>
+
+<!-- resource string Visibility: default -->
+<element name="SLangIDChangeNotAllowed">
+</element>
+
+<!-- resource string Visibility: default -->
+<element name="SResDuplicate">
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TLangID">
+<short>A resource language ID</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TResName">
+<short>A resource type or name in string form</short>
+<seealso>
+<link id="TResID"/>
+<link id="TDescType"/>
+<link id="TResourceDesc"/>
+</seealso>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TResID">
+<short>A resource type or name in ID form</short>
+<seealso>
+<link id="TResName"/>
+<link id="TDescType"/>
+<link id="TResourceDesc"/>
+</seealso>
+</element>
+
+<!-- enumeration type Visibility: default -->
+<element name="TDescType">
+<short>The type of a resource type or name</short>
+<seealso>
+<link id="TResName"/>
+<link id="TResID"/>
+<link id="TResourceDesc"/>
+</seealso>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TDescType.dtName">
+<short>The resource type or name is a string</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TDescType.dtID">
+<short>The resource type or name is an ID</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceException">
+<short>Base class for resource-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceDescTypeException">
+<short>Wrong description type error</short>
+<descr>
+<p>This exception is raised when a resource description is of type <link id="TDescType.dtName">dtName</link> and <link id="TResourceDesc.ID"/> property is read.</p>
+</descr>
+<seealso>
+<link id="TResourceDesc.ID"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceDescChangeNotAllowedException">
+<short>Description is not allowed to change</short>
+<descr>
+<p>This exception is raised when a resource description (either type or name) is tried to be changed, but the resource class doesn't allow it.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource._Type"/>
+<link id="TAbstractResource.Name"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceLangIDChangeNotAllowedException">
+<short>Language ID is not allowed to change</short>
+<descr>
+<p>This exception is raised when the resource language ID is tried to be changed, but the resource is contained in a <link id="TResources"/> object.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.LangID"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceDuplicateException">
+<short>There is already a resource with same type, name and language ID</short>
+<descr>
+<p>This exception is raised when a resource is being added to a <link id="TResources"/> object, but another resource with the same type, name and language ID already exists.</p>
+</descr>
+<seealso>
+<link id="TResources.Add"/>
+<link id="TResources.MoveFrom"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceNotFoundException">
+<short>No resource matching the search criteria is found</short>
+<descr>
+<p>This exception is raised when searching for a resource in a <link id="TResources"/> object fails.</p>
+</descr>
+<seealso>
+<link id="TResources.Find"/>
+<link id="TResources.Remove"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="ENoMoreFreeIDsException">
+<short>There are no more free IDs to use as name for a resource</short>
+<descr>
+<p>This exception is raised by <link id="TResources.AddAutoID"/> method when it is not possible to generate an ID to use as a name for the given resource, because all possible 65536 IDs are already assigned to resources of the same type as the given one.</p>
+</descr>
+<seealso>
+<link id="TResources.AddAutoID"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceReaderException">
+<short>Base class for resource reader-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceReaderNotFoundException">
+<short>No suitable resource reader was found</short>
+<descr>
+<p>This exception is raised when no <link id="TAbstractResourceReader"/> descendant able to read a stream was found.</p>
+</descr>
+<seealso>
+<link id="TResources.FindReader"/>
+<link id="TResources.LoadFromStream"/>
+<link id="TResources.LoadFromFile"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceReaderWrongFormatException">
+<short>The stream is not in the format the reader supports</short>
+<descr>
+<p>This exception is raised by <link id="TAbstractResourceReader.Load">Load</link> method of a <link id="TAbstractResourceReader"/> descendant when the stream it was asked to read resources from is not in the format it supports.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.Load"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceReaderUnexpectedEndOfStreamException">
+<short>The stream ended prematurely</short>
+<descr>
+<p>This exception is raised by <link id="TAbstractResourceReader.Load">Load</link> method of a <link id="TAbstractResourceReader"/> descendant when the stream it was asked to read resources from ended prematurely.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.Load"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceWriterException">
+<short>Base class for resource writer-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EResourceWriterNotFoundException">
+<short>No suitable resource writer was found</short>
+<descr>
+<p>This exception is raised by <link id="TResources.WriteToFile">WriteToFile</link> method of <link id="TResources"/> when no <link id="TAbstractResourceWriter"/> descendant matching filename extension was found.</p>
+</descr>
+<seealso>
+<link id="TResources.WriteToFile"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TAbstractResource">
+<short>Base abstract resource class</short>
+<descr>
+<p>This is the base class that represents a resource.</p>
+<p>A resource is identified by its <link id="TAbstractResource._Type">type</link>, <link id="TAbstractResource.Name">name</link> and <link id="TAbstractResource.LangID">language ID</link> even if some file formats or operating systems don't consider the latter.</p>
+<p>There are also additional properties that aren't always present in all file formats, so their values aren't always meaningful: however, they can be used to display detailed information when possible.</p>
+<p>Every resource has a <link id="TAbstractResource.RawData">RawData</link> stream that holds resource data. This stream uses a copy-on-write mechanism: if the resource has been read from a stream or file, <link id="TAbstractResource.RawData">RawData</link> redirects read operations to the original stream. This is particularly useful when a resource file must be converted from a format to another, or when more resource files must be merged, since (potentially large) resource data is directly copied from the original to the destination stream without the need of allocating a lot of memory.</p>
+<p>When resource data is encoded in a resource-specific format, <link id="TAbstractResource.RawData">RawData</link> can be uncomfortable: it's often better to use a more specialized descendant class that provides additional properties and methods.</p>
+<p>Resources cannot be read or written alone from/to a stream: they need to be contained in a <link id="TResources"/> object, which represents an abstract view of a resource file.</p>
+<p>Usually each descendant registers itself with <link id="resfactory.TResourceFactory">TResourceFactory</link> class in the <var>initialization</var> section of the unit in which it is implemented: this way <link id="resfactory.TResourceFactory">TResourceFactory</link> class can know which class to use to instantiate a resource of a given type.</p>
+<remark>An object of this class should never be directly instantiated: use a descendant class instead.</remark>
+</descr>
+<seealso>
+<link id="TGenericResource"/>
+<link id="acceleratorsresource.TAcceleratorsResource">TAcceleratorsResource</link>
+<link id="bitmapresource.TBitmapResource">TBitmapResource</link>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+<link id="stringtableresource.TStringTableResource">TStringTableResource</link>
+<link id="versionresource.TVersionResource">TVersionResource</link>
+<link id="TResources"/>
+<link id="resfactory.TResourceFactory">TResourceFactory</link>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TResourceDesc">
+<short>A resource description (type or name)</short>
+<descr>
+<p>This class represent a resource description (type or name).</p>
+<p>Resources are identified by a type, name and (optionally) a language ID.</p>
+<p>Type and name can be either a <b>name</b> (a string identifier) or an <b>ID</b> (an integer identifier in the range 0..65535).</p>
+<remark>
+Unfortunately, <i>name</i> is used both to refer to a the name of the resource and both to the format of a resource description
+</remark>
+<p><b>Example:</b></p>
+<p>Typically, a Windows executable has a main icon, which is a resource of type <link id ="RT_GROUP_ICON"/> (type is an ID) and name <var>MAINICON</var> (name is a name).</p>
+</descr>
+<seealso>
+<link id="TAbstractResource"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TResourceDesc.SetOwner">
+<short>Protected method to let a resource set itself as owner of the TResourceDesc</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDesc.SetOwner.aOwner">
+<short>The resource that is to become the owner of the TResourceDesc</short>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TResourceDesc.Create">
+<short>Creates a new TResourceDesc object</short>
+<descr>
+<p>Creates a new TResourceDesc object.</p>
+<p>Without arguments, resource description is of type <link id="TDescType.dtName">dtName</link> and its name is empty.</p>
+<p>If an argument is specified, resource description and name/id are set accordingly to the value passed as parameter.</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDesc.Create.aID">
+<short>The ID to use as the resource description ID</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDesc.Create.aName">
+<short>The name to use as the resource description name</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResourceDesc.Assign">
+<short>Assigns the contents of another TResourceDesc object to this one</short>
+<descr>
+</descr>
+<errors>
+<p>
+If changing values is not permitted because owner resource doesn't allow it (e.g. because owner resource is a <link id="bitmapresource.TBitmapResource">TBitmapResource</link> and values other than <link id ="RT_BITMAP"/> are not permitted for the resource type) an <link id="EResourceDescChangeNotAllowedException"/> exception is raised.</p>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDesc.Assign.aResourceDesc">
+<short>The object from which data must be copied</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceDesc.Equals">
+<short>Compares the contents of another TResourceDesc object to this one</short>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceDesc.Equals.Result">
+<short>True if the contents of the two objects are the same</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDesc.Equals.aResDesc">
+<short>The object to compare with this one</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceDesc.Name">
+<short>The value of the resource description as a name</short>
+<descr>
+<p>Setting this property causes <link id="TResourceDesc.DescType">DescType</link> to be <link id="TDescType.dtName">dtName</link></p>
+<p>When reading, if <link id="TResourceDesc.DescType">DescType</link> is <link id="TDescType.dtID">dtID</link>, the ID is returned as a string value.</p>
+</descr>
+<seealso>
+<link id="TResourceDesc.ID"/>
+<link id="TResourceDesc.DescType"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceDesc.ID">
+<short>The value of the resource description as an ID</short>
+<descr>
+<p>Setting this property causes <link id="TResourceDesc.DescType">DescType</link> to be <link id="TDescType.dtID">dtID</link></p>
+<remark>When reading, if <link id="TResourceDesc.DescType">DescType</link> is <link id="TDescType.dtName">dtName</link>, an <link id="EResourceDescTypeException"/> exception is raised.</remark>
+</descr>
+<seealso>
+<link id="TResourceDesc.Name"/>
+<link id="TResourceDesc.DescType"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceDesc.DescType">
+<short>The type of the resource description</short>
+<descr>
+<p>When DescType is <link id="TDescType.dtName">dtName</link>, resource description value is a name and can be accessed via <link id="TResourceDesc.Name">Name</link> property</p>
+<p>When DescType is <link id="TDescType.dtID">dtID</link>, resource description value is an ID and can be accessed via <link id="TResourceDesc.ID">ID</link> property</p>
+</descr>
+<seealso>
+<link id="TResourceDesc.Name"/>
+<link id="TResourceDesc.ID"/>
+<link id="TDescType"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TResources">
+<short>A collection of resources</short>
+<descr>
+<p>This class represents a format-independent view of a resource file. It holds a collection of resources (<link id="TAbstractResource"/> descendants).</p>
+<p>Typically, a TResource object is loaded from and written to a stream via format-dependent readers and writers, which are descendants of <link id="TAbstractResourceReader"/> and <link id="TAbstractResourceWriter"/>, respectively.</p>
+<p>Single resources can be added, removed, searched and modified: a resource compiler or editor probably will create resources, set their data, and add them to a TResources object which can then be written to file in the desired format.</p>
+<p>This class also provides some class methods to register and find resource readers and writers: these classes, once registered, will be used by a TResources object when it is asked to load or save itself to a stream and the user didn't specify a reader or writer.</p>
+<remark>Because of the copy-on-write mechanism of <link id="TAbstractResource"/>, care should be taken when loading resources, since by default resource data isn't immediately read from the stream: resources hold a reference to the original stream because they need it when their data is requested. For further information, see <link id="TResources.LoadFromStream"/> and <link id="TResources.LoadFromFile"/>.</remark>
+</descr>
+<seealso>
+<link id="TAbstractResource"/>
+<link id="TAbstractResourceReader"/>
+<link id="TAbstractResourceWriter"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResource.SetDescOwner">
+<short>Sets this resource as the owner of the given TResourceDesc</short>
+<descr>
+<p>This method is provided so that descendants of <link id="TAbstractResource"/> can set themselves as the owners of the given TResourceDesc</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.SetDescOwner.aDesc">
+<short>The TResourceDesc that the resource must own</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResource.SetOwnerList">
+<short>Protected method to let a resource list set itself as the owner of the resource</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.SetOwnerList.aResources">
+<short>The resource list that is to become the owner of the resource</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResource.SetChildOwner">
+<short>Protected method to let a resource set itself as the owner of a sub-resource</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.SetChildOwner.aChild">
+<short>The sub-resource that the resource must own</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResource.GetType">
+<short>Returns the type of the resource</short>
+<descr>
+<p>Descendant classes must implement this method to provide access to the resource type.</p>
+</descr>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResource.GetType.Result">
+<short>The <link id="TResourceDesc"/> object representing the type of the resource</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResource.GetName">
+<short>Returns the name of the resource</short>
+<descr>
+<p>Descendant classes must implement this method to provide access to the resource name.</p>
+</descr>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResource.GetName.Result">
+<short>The <link id="TResourceDesc"/> object representing the name of the resource</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResource.ChangeDescTypeAllowed">
+<short>Reports whether changing the type of resource type or name is allowed</short>
+<descr>
+<p>Descendant classes must implement this method to declare if the resource allows changing the type of one of its resource description (type or name): that is, if it allows one of its descriptions type to change from <link id="TDescType.dtName">dtName</link> to <link id="TDescType.dtID">dtID</link> or vice versa.</p>
+<p><b>Example:</b></p>
+<p>A certain resource class allows its name only to be changed: e.g. a <link id="bitmapresource.TBitmapResource">TBitmapResource</link> doesn't want its type to be anything else than <link id="RT_BITMAP"/>. It then allows changing the type of the description only if the description is the resource name:</p>
+<code>
+  Result:=aDesc=fName;
+</code>
+</descr>
+<seealso>
+<link id="TAbstractResource.ChangDescValueAllowed"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResource.ChangeDescTypeAllowed.Result">
+<short>True if the resource allows the given <link id="TResourceDesc"/> to change type</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.ChangeDescTypeAllowed.aDesc">
+<short>The <link id="TResourceDesc"/> whose type should be changed</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResource.ChangeDescValueAllowed">
+<short>Reports whether changing the value of resource type or name is allowed</short>
+<descr>
+<p>Descendant classes must implement this method to declare if the resource allows changing the value of one of its resource description (type or name).</p>
+<p><b>Example:</b></p>
+<p>A certain resource class allows its name only to be changed: e.g. a <link id="bitmapresource.TBitmapResource">TBitmapResource</link> doesn't want its type to be anything else than <link id="RT_BITMAP"/>. It then allows changing the value of the description only if the description is the resource name:</p>
+<code>
+  Result:=aDesc=fName;
+</code>
+</descr>
+<seealso>
+<link id="TAbstractResource.ChangDescTypeAllowed"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResource.ChangeDescValueAllowed.Result">
+<short>True if the resource allows the given <link id="TResourceDesc"/> to change value</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.ChangeDescValueAllowed.aDesc">
+<short>The <link id="TResourceDesc"/> whose value should be changed</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResource.NotifyResourcesLoaded">
+<short>Tells the resource that all resources have been loaded</short>
+<descr>
+<p>This method is called by a <link id="TResources"/> object when the loading of all resources from a stream has completed.</p>
+<p><b>Example:</b></p>
+<p>A Group resource (e.g. <link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>) can use this method to find all its sub-resources, since all resources have been loaded from a stream.</p>
+</descr>
+</element>
+
+<!-- constructor Visibility: protected -->
+<element name="TAbstractResource.Create">
+<short>Creates a new resource</short>
+<descr>
+<p>A new resource is created with the given type and name.</p>
+<remark>Please note that the resource doesn't take ownership of the <link id="TResourceDesc"/> objects passed as parameters, it simply copies them: it's user responsibility to free them when no longer needed.</remark>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.Create.aType">
+<short>The type of the resource to be created</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.Create.aName">
+<short>The name of the resource to be created</short>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TAbstractResource.Destroy">
+<short>Destroys the object</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TAbstractResource.CompareContents">
+<short>Compares the contents of the resource to the contents of another one</short>
+<descr>
+<p>This methods compares the contents of the resource with the ones of <var>aResource</var>. If they are of the same length and their contents are the same, <var>true</var> is returned, <var>false</var> otherwise.</p>
+<p>Usually this methods compares the contents of the two <link id="TAbstractResource.RawData">RawData</link> streams, calling <link id="resdatastream.TResourceDataStream.Compare">TResourceDataStream.Compare</link>, but descendent classes can implement a different algorithm.</p>
+</descr>
+<seealso>
+<link id="resdatastream.TResourceDataStream.Compare">TResourceDataStream.Compare</link>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResource.CompareContents.Result">
+<short>True if the contents of the two resources are the same</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.CompareContents.aResource">
+<short>The resource to compare to this one</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TAbstractResource.UpdateRawData">
+<short>Updates RawData stream.</short>
+<descr>
+<p>When operating on resource data with more high-level streams than <link id="TAbstractResource.RawData">RawData</link> (e.g: <link id="bitmapresource.TBitmapResource.BitmapData">TBitmapResource.BitmapData</link>) RawData contents are no longer valid. This method ensures that <link id="TAbstractResource.RawData">RawData</link> stream is properly synchronized with the contents of the higher-level stream.</p>
+<remark>Normally a resource writer doesn't need to call this method when it is about to write the resource data to a stream, since <link id="TResources"/> class takes care of this before telling the resource writer to write resources to a stream.</remark>
+</descr>
+<seealso>
+<link id="TAbstractResource.RawData"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TAbstractResource.SetCustomRawDataStream">
+<short>Sets a custom stream as the underlying stream for RawData</short>
+<descr>
+<p>Normally, <link id="TAbstractResource.RawData">RawData</link> uses a memory stream or the original resource stream (e.g. the original file containing the resource) as its underlying stream. This method allows the user to use a custom stream as the underlying stream. This can be useful when a resource must be created from the contents of an original file as-is.</p>
+<p>If <var>aStream</var> is <var>nil</var>, a new memory stream is used as the underlying stream. This can be used to remove a previously set custom stream as the underlying stream.</p>
+<p><b>Sample code</b></p>
+<p>This code creates a resource containing an html file</p>
+<code>
+var
+  aType, aName : TResourceDesc;
+  aRes : TGenericResource;
+  aFile : TFileStream;
+begin
+  aType:=TResourceDesc.Create(RT_HTML);
+  aName:=TResourceDesc.Create('index');
+  aRes:=TGenericResource.Create(aType,aName);
+  aFile:=TFileStream.Create('index.html',fmOpenRead or fmShareDenyNone);
+  aRes.SetCustomRawDataStream(aFile);
+
+  //do something...
+
+  aRes.Free;
+  aFile.Free;
+  aType.Free;
+  aName.Free;
+end;
+</code>
+</descr>
+<seealso>
+<link id="TAbstractResource.RawData"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResource.SetCustomRawDataStream.aStream">
+<short>The custom stream to use as the underlying <link id="TAbstractResource.RawData">RawData</link> stream. It can be <var>nil</var></short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource._Type">
+<short>The type of the resource</short>
+<descr>
+<remark>
+<p>Please note that some <link id="TAbstractResource"/> descendants don't allow resource type to be changed (e.g: it's not possible for a <link id="bitmapresource.TBitmapResource">TBitmapResource</link> to have a type other than <link id="RT_BITMAP"/>). If it is the case, an <link id="EResourceDescChangeNotAllowedException"/> exception is raised.</p>
+<p>Moreover, if the resource is contained in a <link id="TResources"/> object, type change is not allowed.</p>
+</remark>
+</descr>
+<seealso>
+<link id="TAbstractResource.ChangeDescTypeAllowed"/>
+<link id="TAbstractResource.ChangeDescValueAllowed"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.Name">
+<short>The name of the resource</short>
+<descr>
+<remark>
+<p>Please note that some <link id="TAbstractResource"/> descendants don't allow resource name to be changed (e.g: a <link id="stringtableresource.TStringTableResource">TStringTableResource</link> name is determined by the range of strings' ID it contains). If it is the case, an <link id="EResourceDescChangeNotAllowedException"/> exception is raised.</p>
+<p>Moreover, if the resource is contained in a <link id="TResources"/> object, name change is not allowed.</p>
+</remark>
+</descr>
+<seealso>
+<link id="TAbstractResource.ChangeDescTypeAllowed"/>
+<link id="TAbstractResource.ChangeDescValueAllowed"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.LangID">
+<short>The language ID of the resource</short>
+<descr>
+<remark>Please note that if the resource is contained in a <link id="TResources"/> object, language ID change is not allowed: trying to do so results in an <link id="EResourceLangIDChangeNotAllowedException"/> exception being raised.</remark>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.DataSize">
+<short>The size of resource raw data</short>
+<descr>
+<p>DataSize is the length, in bytes, of the resource data, accessible via <link id="TAbstractResource.RawData">RawData</link> property.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.RawData"/>
+<link id="TAbstractResource.DataOffset"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.HeaderSize">
+<short>The size of resource header</short>
+<descr>
+<p>This property is not always meaningful, since not all file formats support it.</p>
+<p>Its value, when nonzero, can be used for information purposes.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.DataVersion">
+<short>The version of the resource data</short>
+<descr>
+<p>This property is not always meaningful, since not all file formats support it.</p>
+<p>Its value, when nonzero, can be used for information purposes.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.MemoryFlags">
+<short>The memory flags of the resource</short>
+<descr>
+<p>This field is a combination of the following flags</p>
+<ul>
+<li><link id="MF_MOVEABLE"/></li>
+<li><link id="MF_PURE"/></li>
+<li><link id="MF_PRELOAD"/></li>
+<li><link id="MF_DISCARDABLE"/></li>
+</ul>
+<p>By default, a newly created resource has <link id="MF_MOVEABLE"/> and <link id="MF_DISCARDABLE"/> flags set.</p>
+<remark>Please note that memory flags are ignored by Windows and Free Pascal RTL. They are provided only for compatibility with 16-bit Windows.</remark>
+<p>This property is not always meaningful, since not all file formats support it.</p>
+<p>Its value, when nonzero, can be used for information purposes.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.Version">
+<short>A user defined version number</short>
+<descr>
+<p>A tool that writes resource files can write version information in this field.</p>
+<p>This property is not always meaningful, since not all file formats support it.</p>
+<p>Its value, when nonzero, can be used for information purposes.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.Characteristics"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.Characteristics">
+<short>A user defined piece of data</short>
+<descr>
+<p>A tool that writes resource files can write arbitrary data in this field.</p>
+<p>This property is not always meaningful, since not all file formats support it.</p>
+<p>Its value, when nonzero, can be used for information purposes.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.Version"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.DataOffset">
+<short>The offset of resource data from the beginning of the stream</short>
+<descr>
+<p>A reader sets this property to let the resource know where its raw data begins in the resource stream.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.RawData"/>
+<link id="TAbstractResource.DataSize"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.CodePage">
+<short>The code page of the resource</short>
+<descr>
+<p>This property is not always meaningful, since not all file formats support it.</p>
+<p>Its value, when nonzero, can be used for information purposes.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.RawData">
+<short>The raw resource data stream</short>
+<descr>
+<p>This property provides access to the resource raw data in a stream-like way.</p>
+<p>When a resource has been read from a stream, RawData redirects read operations to the original stream. When RawData is written to, a copy-on-write mechanism copies data from the original stream to a memory stream.</p>
+<p>The copy-on-write behaviour can be controlled via <link id="TAbstractResource.CacheData">CacheData</link> property.</p>
+<p>Note that for some predefined resource types there are better ways to read and write resource data: some resource types use specific formats, so RawData might not always be what one expected. E.g. in a resource of type <link id="RT_BITMAP"/>, RawData doesn't contain a valid BMP file: in this case it's better to use <link id="bitmapresource.TBitmapResource.BitmapData">BitmapData</link> stream of <link id="bitmapresource.TBitmapResource">TBitmapResource</link> class to work with a BMP-like stream.</p>
+<remark>When writing to a "specialized" stream in a descendant class (like the <link id="bitmapresource.TBitmapResource.BitmapData">TBitmapResource.BitmapData</link> stream mentioned earlier), RawData contents might not be valid anymore. If you need to access RawData again, be sure to call <link id="TAbstractResource.UpdateRawData">UpdateRawData</link> method first.</remark>
+<p>Usually there isn't much penalty in using specialized streams in descendant classes, since data isn't duplicated in two or more streams, whenever possible. So, having a very large bitmap resource and reading/writing it via <link id="bitmapresource.TBitmapResource.BitmapData">TBitmapResource.BitmapData</link> doesn't mean the bitmap is allocated two times.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.CacheData"/>
+<link id="TAbstractResource.UpdateRawData"/>
+<link id="TAbstractResource.SetCustomRawDataStream"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.CacheData">
+<short>Controls the copy-on-write behaviour of the resource</short>
+<descr>
+<p>When CacheData is true, copy-on-write mechanism of <link id="TAbstractResource.RawData">RawData</link> is enabled.</p>
+<p>Setting CacheData to false forces the raw resource data to be loaded in memory without performing any caching.</p>
+<p>By default, CacheData is true.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.RawData"/>
+<link id="TResources.CacheData"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.OwnerList">
+<short>The resource list that owns this resource</short>
+<descr>
+<p>This property identifies the <link id="TResources"/> object to which this resource belongs to.</p>
+<p>This property can be <var>nil</var> if the resource isn't part of a resource list.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResource.Owner">
+<short>The owner of this resource</short>
+<descr>
+<p>This property is meaningful only for those sub-resources that are part of a larger <i>group resource</i>.</p>
+<p><b>Example</b>: an icon is made by a <link id="RT_GROUP_ICON"/> resource and many <link id="RT_ICON"/> resources that hold single-image data. Each <link id="RT_ICON"/> resource has a pointer to the <link id="RT_GROUP_ICON"/> resource in its Owner property.</p>
+</descr>
+</element>
+
+<!-- "class of" type Visibility: default -->
+<element name="TResourceClass">
+<short>Resource metaclass</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TGenericResource">
+<short>Generic resource class</short>
+<descr>
+<p>This class represents a generic resource.</p>
+<p>It is suitable to use in all situations where a higher level class is not needed (e.g. the resource raw data is made of arbitrary data) or when total low-level control is desirable.</p>
+<p>This class is also the default one that is used by <link id="resfactory.TResourceFactory">TResourceFactory</link> when it finds no class matching the given type.</p>
+</descr>
+<seealso>
+<link id="resfactory.TResourceFactory.CreateResource">TResourceFactory.CreateResource</link>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TAbstractResourceReader">
+<short>Base abstract resource reader class</short>
+<descr>
+<p>This is the base class that represents a resource reader.</p>
+<p>A resource reader is an object whose job is to populate a <link id="TResources"/> object with resources read from a stream in a specific format.</p>
+<p>Typically, a <link id="TResources"/> object invokes <link id="TAbstractResourceReader.CheckMagic">CheckMagic</link> method of the resource reader when it's searching for a reader able to read a certain stream, and <link id="TAbstractResourceReader.Load">Load</link> method when it wants the reader to read data from the stream.</p>
+<p>Usually each resource reader registers itself with <link id="TResources"/> class in the <var>initialization</var> section of the unit in which it is implemented: this way a <link id="TResources"/> object can find it when probing a stream that is to be read.</p>
+<remark>An object of this class should never be directly instantiated: use a descendant class instead.</remark>
+</descr>
+<seealso>
+<link id="TResources"/>
+<link id="TAbstractResource"/>
+<link id="TAbstractResourceWriter"/>
+<link id="resreader.TResResourceReader">TResResourceReader</link>
+<link id="coffreader.TCoffResourceReader">TCoffResourceReader</link>
+<link id="winpeimagereader.TWinPEImageResourceReader">TWinPEResourceReader</link>
+<link id="elfreader.TElfResourceReader">TElfResourceReader</link>
+<link id="externalreader.TExternalResourceReader">TExternalResourceReader</link>
+<link id="dfmreader.TDfmResourceReader">TDfmResourceReader</link>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TAbstractResourceWriter">
+<short>Base abstract resource writer class</short>
+<descr>
+<p>This is the base class that represents a resource writer.</p>
+<p>A resource writer is an object whose job is to write all resources contained in a <link id="TResources"/> object to a stream in a specific format.</p>
+<p>Typically, a <link id="TResources"/> object invokes <link id="TAbstractResourceWriter.Write">Write</link> method of the resource writer when it wants the writer to write data to a stream.</p>
+<p>Usually each resource writer registers itself with <link id="TResources"/> class in the <var>initialization</var> section of the unit in which it is implemented: this way a <link id="TResources"/> object can find it when it is asked to write itself to a file, and no writer was specified (the writer is found based on the extension of the file to write to).</p>
+<remark>An object of this class should never be directly instantiated: use a descendant class instead.</remark>
+</descr>
+<seealso>
+<link id="TResources"/>
+<link id="TAbstractResource"/>
+<link id="TAbstractResourceReader"/>
+<link id="reswriter.TResResourceWriter">TResResourceWriter</link>
+<link id="coffwriter.TCoffResourceWriter">TCoffResourceWriter</link>
+<link id="elfwriter.TElfResourceWriter">TElfResourceWriter</link>
+<link id="externalwriter.TExternalResourceWriter">TExternalResourceWriter</link>
+</seealso>
+</element>
+
+<!-- "class of" type Visibility: default -->
+<element name="TResourceReaderClass">
+<short>Resource reader metaclass</short>
+</element>
+
+<!-- "class of" type Visibility: default -->
+<element name="TResourceWriterClass">
+<short>Resource writer metaclass</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResources.Find">
+<short>Searches for a resource</short>
+<descr>
+<p>This method searches for a resource with the given type and name. If a language ID is not provided, the first resource found that matches <var>aType</var> and <var>aName</var> is returned.</p>
+</descr>
+<errors>
+<p>If the resource is not found, an <link id="EResourceNotFoundException"/> exception is raised.</p>
+</errors>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResources.Find.Result">
+<short>The resource that matches the search criteria</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Find.aType">
+<short>The type of the resource to search for</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Find.aName">
+<short>The name of the resource to search for</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Find.aLangID">
+<short>The language ID of the resource to search for</short>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TResources.Create">
+<short>Creates a new TResources object</short>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TResources.Destroy">
+<short>Destroys the object</short>
+<descr>
+<remark>All resources are destroyed as well.</remark>
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.Add">
+<short>Adds a resource</short>
+<descr>
+<p>This method adds <var>aResource</var> to the object, and sets itself as the owner list of the resource.</p>
+</descr>
+<errors>
+<p>If a resource with the same type, name and language ID already exists, an <link id="EResourceDuplicateException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TResources.AddAutoID"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Add.aResource">
+<short>The resource to add</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResources.AddAutoID">
+<short>Adds a resource and gives it a new autogenerated name</short>
+<descr>
+<p>This method tries to find a spare ID to use as a name for the given resource, assigns it to the resource, and adds it.</p>
+<p>This method is useful when the name of the resource is not important. E.g. a group resource doesn't care about the names of its sub-resources, so it could use this method to ensure that its sub-resources don't clash with names of other sub-resources of the same type.</p>
+</descr>
+<errors>
+<p>If there are no more free IDs for the resource type of the given resource (that is, when the number of resources of the same type of <var>aResource</var> with an ID name is equal to 65536) an <link id="ENoMoreFreeIDsException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TResources.Add"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResources.AddAutoID.Result">
+<short>The autogenerated ID of the added resource</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.AddAutoID.aResource">
+<short>The resource to add</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.Clear">
+<short>Deletes all resources</short>
+<descr>
+<p>This method empties the TResources object destroying all resources.</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResources.FindReader">
+<short>Searches for a suitable resource reader</short>
+<descr>
+<p>This method tries to find a resource reader able to read the stream passed as parameter.</p>
+<p>If an extension is specified, only readers matching that extension are tried. The extension is case-insensitive and includes the leading dot, unless the empty string is passed (which means "no extension", e.g. a unix executable, which doesn't have an extension).</p>
+<p>If a suitable reader is found, an instance of that reader is returned.</p>
+<remark>To make a resource reader class known, add that resource reader unit to the uses clause of your program.</remark>
+</descr>
+<errors>
+<p>If no suitable reader is found, an <link id="EResourceReaderNotFoundException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TAbstractResourceReader"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResources.FindReader.Result">
+<short>An instance of a <link id="TAbstractResourceReader"/> descendant.</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.FindReader.aStream">
+<short>The stream to be probed</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.FindReader.aExtension">
+<short>The extension the reader is registered for</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.MoveFrom">
+<short>Moves all resources of another TResources object to itself</short>
+<descr>
+<p>This method takes all resources from object <var>aResources</var> and adds them to this object. <var>aResources</var> object is left empty.</p>
+</descr>
+<errors>
+<p>If a resource with the same type, name and language ID already exists, an <link id="EResourceDuplicateException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TResources.Add"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.MoveFrom.aResources">
+<short>The TResources object from which resources must be taken</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResources.Remove">
+<short>Removes a resource</short>
+<descr>
+<p>This method searches for a resource based on passed parameters and removes it from the object.</p>
+<p>The removed resource is then returned.</p>
+</descr>
+<errors>
+<p>If no matching resource is found, an <link id="EResourceNotFoundException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TResources.Find"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResources.Remove.Result">
+<short>The removed resource</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Remove.aType">
+<short>The type of the resource to search for</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Remove.aName">
+<short>The name of the resource to search for</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Remove.aLangID">
+<short>The language ID of the resource to search for</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Remove.aResource">
+<short>The resource to remove</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Remove.aIndex">
+<short>The index of the resource to remove</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.LoadFromStream">
+<short>Loads the contents of the object from a stream</short>
+<descr>
+<p>This method clears the TResources object and loads its contents from the stream passed as parameter.</p>
+<p>If a reader is specified, that reader is used. Otherwise, the stream is probed to find a suitable reader.</p>
+<remark>If <link id="TResources.CacheData">CacheData</link> is set to <var>true</var>, the stream will be used as the underlying stream of each resource <link id="TAbstractResource.RawData">RawData</link> stream. This means that the stream must not be freed until all resources in the TResources object are freed: this happens when the TResources object is cleared or is loaded again from a different source. If you need to free the stream while there are still resources, disable the copy-on-write mechanism by setting <link id="TResources.CacheData">CacheData</link> property to <var>false</var>.</remark>
+</descr>
+<errors>
+<p>If no reader is passed and probing fails, an <link id="EResourceReaderNotFoundException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TAbstractResourceReader"/>
+<link id="TAbstractResource.RawData"/>
+<link id="TAbstractResource.CacheData"/>
+<link id="TResources.CacheData"/>
+<link id="TResources.LoadFromFile"/>
+<link id="TResources.Clear"/>
+<link id="TResources.FindReader"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.LoadFromStream.aStream">
+<short>The stream to read from</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.LoadFromStream.aReader">
+<short>The resource reader to use to read the stream</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.LoadFromFile">
+<short>Loads the contents of the object from a file</short>
+<descr>
+<p>This method clears the TResources object and loads its contents from the file passed as parameter.</p>
+<p>If a reader is specified, that reader is used. Otherwise, the file is probed to find a suitable reader.</p>
+<remark>If <link id="TResources.CacheData">CacheData</link> is set to <var>true</var>, the file will be left open and used as the underlying stream of each resource <link id="TAbstractResource.RawData">RawData</link> stream. This means that the file will be open until the TResources object is cleared or is loaded again from a different source. If you want the file to be closed while there are still resources, disable the copy-on-write mechanism by setting <link id="TResources.CacheData">CacheData</link> property to <var>false</var>.</remark>
+<p><b>Sample code</b></p>
+<p>This code extracts resources from an exe file</p>
+<code>
+var
+  resources : TResources;
+begin
+  resources:=TResources.Create;
+  resources.LoadFromFile('myexe.exe');
+  resources.WriteToFile('myexe.res');
+  resources.Free;
+end;
+</code>
+</descr>
+<errors>
+<p>If no reader is passed and probing fails, an <link id="EResourceReaderNotFoundException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TAbstractResourceReader"/>
+<link id="TAbstractResource.RawData"/>
+<link id="TAbstractResource.CacheData"/>
+<link id="TResources.CacheData"/>
+<link id="TResources.LoadFromStream"/>
+<link id="TResources.Clear"/>
+<link id="TResources.FindReader"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.LoadFromFile.aFileName">
+<short>The name of file to read from</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.LoadFromFile.aReader">
+<short>The reader to use to read the file</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.RegisterReader">
+<short>Registers a resource reader class</short>
+<descr>
+<p>This class method registers a resource reader class.</p>
+<p>When registered, a class is known to TResources class, and can be used by <link id="TResources.FindReader">FindReader</link>, <link id="TResources.LoadFromStream">LoadFromStream</link> and <link id="TResources.LoadFromFile">LoadFromFile</link> methods when probing.</p>
+<p>Usually this method is called in the <var>initialization</var> section of the unit implementing a <link id="TAbstractResourceReader"/> descendant.</p>
+<p>A class can be registered multiple times, one for each extension it is able to read. Multiple class can be registered for the same extension (e.g. both a coff and a elf reader can be registered for the .o extension). The extension must include the leading dot unless the empty string is used (which means "no extension", e.g. a unix executable, which doesn't have an extension).</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader"/>
+<link id="TResources.FindReader"/>
+<link id="TResources.LoadFromStream"/>
+<link id="TResources.LoadFromFile"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.RegisterReader.aExtension">
+<short>The extension for which the class must be registered</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.RegisterReader.aClass">
+<short>The <link id="TAbstractResourceReader"/> descendant to register</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.RegisterWriter">
+<short>Registers a resource writer class</short>
+<descr>
+<p>This class method registers a resource writer class.</p>
+<p>When registered, a class is known to TResources class, and can be used by <link id="TResources.WriteToFile">WriteToFile</link> method when probing.</p>
+<p>Usually this method is called in the <var>initialization</var> section of the unit implementing a <link id="TAbstractResourceWriter"/> descendant.</p>
+<p>A class can be registered multiple times, one for each extension it is able to write. Multiple class can be registered for the same extension (e.g. both a coff and a elf writer can be registered for the .o extension) although only the first one found will be used when probing. The extension must include the leading dot unless the empty string is used (which means "no extension", e.g. a unix executable, which doesn't have an extension).</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceWriter"/>
+<link id="TResources.WriteToFile"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.RegisterWriter.aExtension">
+<short>The extension for which the class must be registered</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.RegisterWriter.aClass">
+<short>The <link id="TAbstractResourceWriter"/> descendant to register</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.WriteToStream">
+<short>Writes the contents of the object to a stream</short>
+<descr>
+<p>This method writes the contents of the object to a stream via the specified <link id="TAbstractResourceWriter"/> descendant</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceWriter"/>
+<link id="TResources.WriteToFile"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.WriteToStream.aStream">
+<short>The stream to write to</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.WriteToStream.aWriter">
+<short>The resource writer to use to write the stream</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResources.WriteToFile">
+<short>Writes the contents of the object to a file</short>
+<descr>
+<p>This method writes the contents of the object to a file whose name is passed as parameter.</p>
+<p>If a writer is specified, that writer is used. Otherwise, the first registered writer matching the file name extension is used.</p>
+</descr>
+<errors>
+<p>If no writer is passed and no suitable writer is found, an <link id="EResourceWriterNotFoundException"/> exception is raised.</p>
+</errors>
+<seealso>
+<link id="TAbstractResourceWriter"/>
+<link id="TResources.WriteToStream"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.WriteToFile.aFileName">
+<short>The name of the file to write to</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.WriteToFile.aWriter">
+<short>The resource writer to use to write to the file</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResources.Count">
+<short>The number of resources in the object</short>
+<seealso>
+<link id="TResources.Items"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResources.Items">
+<short>Indexed array of resources in the object</short>
+<descr>
+<p>This property can be used to access all resources in the object.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TResources.Count">Count</link>-1.</remark>
+</descr>
+<seealso>
+<link id="TResources.Count"/>
+<link id="TAbstractResource"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResources.Items.Index">
+<short>The index of the resource to access</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResources.CacheData">
+<short>Controls the copy-on-write behaviour of all resources</short>
+<descr>
+<p>Changing this property changes <link id="TAbstractResource.CacheData">CacheData</link> property of all resources contained in the object.</p>
+<p>This property affects existing resources and resources that are added or loaded.</p>
+<p>By default, CacheData is true.</p>
+</descr>
+<seealso>
+<link id="TAbstractResource.CacheData"/>
+<link id="TAbstractResource.RawData"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.SetDataSize">
+<short>Protected method to let a reader set a resource <link id="TAbstractResource.DataSize">DataSize</link> property</short>
+<descr>
+<p>This method allows a descendant class to set <link id="TAbstractResource.DataSize">DataSize</link> property of a resource that is being loaded.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.SetHeaderSize"/>
+<link id="TAbstractResourceReader.SetDataOffset"/>
+<link id="TAbstractResourceReader.SetRawData"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetDataSize.aResource">
+<short>The resource whose <link id="TAbstractResource.DataSize">DataSize</link> property must be set</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetDataSize.aValue">
+<short>The value to set the property to</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.SetHeaderSize">
+<short>Protected method to let a reader set a resource <link id="TAbstractResource.HeaderSize">HeaderSize</link> property</short>
+<descr>
+<p>This method allows a descendant class to set <link id="TAbstractResource.HeaderSize">HeaderSize</link> property of a resource that is being loaded.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.SetDataSize"/>
+<link id="TAbstractResourceReader.SetDataOffset"/>
+<link id="TAbstractResourceReader.SetRawData"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetHeaderSize.aResource">
+<short>The resource whose <link id="TAbstractResource.HeaderSize">HeaderSize</link> property must be set</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetHeaderSize.aValue">
+<short>The value to set the property to</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.SetDataOffset">
+<short>Protected method to let a reader set a resource <link id="TAbstractResource.DataOffset">DataOffset</link> property</short>
+<descr>
+<p>This method allows a descendant class to set <link id="TAbstractResource.DataOffset">DataOffset</link> property of a resource that is being loaded.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.SetDataSize"/>
+<link id="TAbstractResourceReader.SetHeaderSize"/>
+<link id="TAbstractResourceReader.SetRawData"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetDataOffset.aResource">
+<short>The resource whose <link id="TAbstractResource.DataOffset">DataOffset</link> property must be set</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetDataOffset.aValue">
+<short>The value to set the property to</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.SetRawData">
+<short>Protected method to let a reader set a resource <link id="TAbstractResource.RawData">RawData</link> property</short>
+<descr>
+<p>This method allows a descendant class to set <link id="TAbstractResource.RawData">RawData</link> property of a resource that is being loaded.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.SetDataSize"/>
+<link id="TAbstractResourceReader.SetHeaderSize"/>
+<link id="TAbstractResourceReader.SetDataOffset"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetRawData.aResource">
+<short>The resource whose <link id="TAbstractResource.RawData">RawData</link> property must be set</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.SetRawData.aStream">
+<short>The value to set the property to</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.CallSubReaderLoad">
+<short>Calls another reader's <link id="TAbstractResourceReader.Load">Load</link> method</short>
+<descr>
+<p>This method allows a descendant class to call another reader's <link id="TAbstractResourceReader.Load">Load</link> method. This can be useful when a reader needs to use another one.</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.CallSubReaderLoad.aReader">
+<short>The reader whose <link id="TAbstractResourceReader.Load">Load</link> method must be called</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.CallSubReaderLoad.aResources">
+<short>The <var>aResources</var> parameter of <link id="TAbstractResourceReader.Load">Load</link> method</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.CallSubReaderLoad.aStream">
+<short>The <var>aStream</var> parameter of <link id="TAbstractResourceReader.Load">Load</link> method</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.AddNoTree">
+<short>Adds a resource without updating the internal tree</short>
+<descr>
+<p>This protected method is used by descendents of <link id="TAbstractResourceReader"/> after they add new resources to the internal resource tree used by a <link id="TResources"/> object. Calling this method notifies the <link id="TResources"/> object about the newly-added resource.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.GetTree"/>
+<link id="resourcetree.TRootResTreeNode">TRootResTreeNode</link>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.AddNoTree.aResources">
+<short>The TResources object to be notified</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.AddNoTree.aResource">
+<short>The resource that has been added to the tree</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.GetTree">
+<short>Gets the internal resource tree of a TResources object</short>
+<descr>
+<p>This protected method can be used by descendents of <link id="TAbstractResourceReader"/> to obtain the internal resource tree used by a <link id="TResources"/> object. The internal resource tree is an instance of <link id="resourcetree.TRootResTreeNode">TRootResTreeNode</link>.</p>
+<p>Some resource readers can improve their performance if, instead of calling <link id="TResources.Add"/>, add themselves resources to the internal tree used by a <link id="TResources"/> object.</p>
+<remark>After adding a resource to a resource tree, a reader must always call <link id="TAbstractResourceReader.AddNoTree">AddNoTree</link> method to let the <link id="TResources"/> object know about the newly-added resource.</remark>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.AddNoTree"/>
+<link id="resourcetree.TRootResTreeNode">TRootResTreeNode</link>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.GetTree.aResources">
+<short>The <link id="TResources"/> object whose tree must be returned</short>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResourceReader.GetTree.Result">
+<short>The resource tree. It is an instance of <var>TRootResTreeNode</var>.</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResourceReader.GetExtensions">
+<short>Returns the extensions the reader is registered for</short>
+<descr>
+<p>Descendant classes must implement this method to provide access to <link id="TAbstractResourceReader.Extensions">Extensions</link> property.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.Extensions"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResourceReader.GetExtensions.Result">
+<short>The extensions the reader is registered for</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResourceReader.GetDescription">
+<short>Returns the description of the reader</short>
+<descr>
+<p>Descendant classes must implement this method to provide access to <link id="TAbstractResourceReader.Description">Description</link> property.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.Description"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResourceReader.GetDescription.Result">
+<short>The description of the reader</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceReader.Load">
+<short>Loads resources from a stream</short>
+<descr>
+<p>A <link id="TResources"/> object invokes this method when it needs to be loaded from a stream, passing itself as the <var>aResources</var> parameter and the stream as the <var>aStream</var> parameter.</p>
+<p><var>aStream</var> position is already correctly set: the reader must start to read from there.</p>
+<p>Descendant classes must ensure that the the stream is in a format they recognize, otherwise an <link id="EResourceReaderWrongFormatException"/> exception must be raised.</p>
+<p>Each resource is then created, read from the stream and added to the <link id="TResources"/> object.</p>
+<p>When reading a resource, a reader must:</p>
+<ul>
+<li>Create the resource via <link id="resfactory.TResourceFactory.CreateResource">TResourceFactory.CreateResource</link> class method with the correct type and name.</li>
+<li><p>Set at least the following resource properties:</p>
+<ul>
+<li><link id="TAbstractResource.DataSize">DataSize</link>, via <link id="TAbstractResourceReader.SetDataSize">SetDataSize</link> method.</li>
+<li><link id="TAbstractResource.DataOffset">DataOffset</link>, via <link id="TAbstractResourceReader.SetDataOffset">SetDataSize</link> method. This is the offset of the resource data from the beginning of the stream.</li>
+<li><link id="TAbstractResource.RawData">RawData</link>. The reader must create a <link id="resdatastream.TResourceDataStream">TResourceDataStream</link> object and assign it to the resource via <link id="TAbstractResourceReader.SetRawData">SetRawData</link> method.</li>
+</ul>
+</li>
+</ul>
+</descr>
+<errors>
+<p>If the stream is in a format not recognized by the reader, a <link id="EResourceReaderWrongFormatException"/> exception must be raised.</p>
+<p>If the stream ends prematurely, a <link id="EResourceReaderUnexpectedEndOfStreamException"/> exception must be raised.</p>
+</errors>
+<seealso>
+<link id="TResources"/>
+<link id="TResources.LoadFromStream"/>
+<link id="TResources.LoadFromFile"/>
+<link id="TAbstractResource"/>
+<link id="TAbstractResource.DataSize"/>
+<link id="TAbstractResource.DataOffset"/>
+<link id="TAbstractResource.RawData"/>
+<link id="TAbstractResourceReader.SetDataSize"/>
+<link id="TAbstractResourceReader.SetDataOffset"/>
+<link id="TAbstractResourceReader.SetRawData"/>
+<link id="TAbstractResourceReader.CheckMagic"/>
+<link id="resdatastream.TResourceDataStream">TResourceDataStream</link>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.Load.aResources">
+<short>The <link id="TResources"/> object to be loaded from the stream</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.Load.aStream">
+<short>The stream which resources must be loaded from </short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResourceReader.CheckMagic">
+<short>Checks whether a stream is in a format the reader recognizes</short>
+<descr>
+<p>A <link id="TResources"/> object invokes this method when it is searching for a reader able to read a stream, passing that stream as the <var>aStream</var> parameter.</p>
+<p><var>aStream</var> position is already correctly set: the reader must start to read from there.</p>
+<p>This method should read the minimum amount of information needed to recognize the contents of a stream as a valid format: it usually means reading a magic number or a file header.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceReader.Load"/>
+<link id="TResources.FindReader"/>
+<link id="TResources.LoadFromStream"/>
+<link id="TResources.LoadFromFile"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResourceReader.CheckMagic.Result">
+<short><var>true</var> if the format of the stream is recognized</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceReader.CheckMagic.aStream">
+<short>The stream to check</short>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TAbstractResourceReader.Create">
+<short>Creates a new reader object</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResourceReader.Extensions">
+<short>The extensions of file types the reader is able to read</short>
+<descr>
+<p>This property is a string made of space-separated file extensions (each including the leading dot), all lowercase.</p>
+<p>This property signals which file types the reader is able to read.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResourceReader.Description">
+<short>The reader description</short>
+<descr>
+<p>This property provides a textual description of the reader, e.g. "FOO resource reader"</p>
+</descr>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceWriter.GetTree">
+<short>Gets the internal resource tree of a TResources object</short>
+<descr>
+<p>This protected method can be used by descendents of <link id="TAbstractResourceWriter"/> to obtain the internal resource tree used by a <link id="TResources"/> object. The internal resource tree is an instance of <link id="resourcetree.TRootResTreeNode">TRootResTreeNode</link>.</p>
+<p>Some resource writers need to order resources with a tree structure before writing them to a file. Instead of doing this work themselves, they can use the already-ordered internal resource tree of the <link id="TResources"/> object they must write.</p>
+</descr>
+<seealso>
+<link id="resourcetree.TRootResTreeNode">TRootResTreeNode</link>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceWriter.GetTree.aResources">
+<short>The <link id="TResources"/> object whose tree must be returned</short>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResourceWriter.GetTree.Result">
+<short>The resource tree. It is an instance of <var>TRootResTreeNode</var>.</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResourceWriter.GetExtensions">
+<short>Returns the extensions the writer is registered for</short>
+<descr>
+<p>Descendant classes must implement this method to provide access to <link id="TAbstractResourceWriter.Extensions">Extensions</link> property.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceWriter.Extensions"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResourceWriter.GetExtensions.Result">
+<short>The extensions the writer is registered for</short>
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TAbstractResourceWriter.GetDescription">
+<short>Returns the description of the writer</short>
+<descr>
+<p>Descendant classes must implement this method to provide access to <link id="TAbstractResourceWriter.Description">Description</link> property.</p>
+</descr>
+<seealso>
+<link id="TAbstractResourceWriter.Description"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TAbstractResourceWriter.GetDescription.Result">
+<short>The description of the writer</short>
+</element>
+
+<!-- procedure Visibility: protected -->
+<element name="TAbstractResourceWriter.Write">
+<short>Writes resources to a stream</short>
+<descr>
+<p>A <link id="TResources"/> object invokes this method when it needs to be written to a stream, passing itself as the <var>aResources</var> parameter and the stream as the <var>aStream</var> parameter.</p>
+<p><var>aStream</var> position is already correctly set: the writer must start to write from there.</p>
+<p>A writer must write data in the way specified by the format it supports: usually this means writing a header and all resources contained in the <link id="TResources"/> object.</p>
+<p>For each resource, a writer should write some information about the resource (like type and name) in a way defined by the format it implements, and the resource data, which is accessible by <link id="TAbstractResource.RawData">RawData</link> property of the resource.</p>
+</descr>
+<seealso>
+<link id="TResources"/>
+<link id="TResources.WriteToStream"/>
+<link id="TResources.WriteToFile"/>
+<link id="TAbstractResource"/>
+<link id="TAbstractResource.DataSize"/>
+<link id="TAbstractResource.RawData"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceWriter.Write.aResources">
+<short>The <link id="TResources"/> object to be written to the stream</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TAbstractResourceWriter.Write.aStream">
+<short>The stream which resources must be written to</short>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TAbstractResourceWriter.Create">
+<short>Creates a new writer object</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResourceWriter.Extensions">
+<short>The extensions of file types the writer is able to write</short>
+<descr>
+<p>This property is a string made of space-separated file extensions (each including the leading dot), all lowercase.</p>
+<p>This property signals which file types the writer is able to write.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TAbstractResourceWriter.Description">
+<short>The writer description</short>
+<descr>
+<p>This property provides a textual description of the writer, e.g. "FOO resource writer"</p>
+</descr>
+</element>
+
+</module> <!-- resource -->
+
+</package>
+</fpdoc-descriptions>

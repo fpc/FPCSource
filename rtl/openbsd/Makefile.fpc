@@ -16,7 +16,8 @@ units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       sysutils fgl classes fmtbcd typinfo math varutils \
        charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard  serial variants types systhrds sysctl sysconst
+      video mouse keyboard  serial variants types systhrds sysctl sysconst \
+      fpintres
 units_netbsd_i386=mmx cpu
 rsts=math varutils typinfo variants classes sysconst
 implicitunits=exeinfo

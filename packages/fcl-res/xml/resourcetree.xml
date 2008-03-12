@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    resourcetree
+  ====================================================================
+-->
+
+<module name="resourcetree">
+<short>Implements an ordered tree of resources</short>
+<descr>
+<p>This unit implements classes that represent an ordered tree of resources.</p>
+<p>Such a tree is used internally by <link id="resource.TResources">TResources</link> to speed up operations, and by certain resource readers and writers that deal with resource formats where data is stored as ordered trees of resources. For this reason, only implementors of resource readers and writers should be interested in these classes.</p>
+<p>A tree begins with a root node, which is an instance of <link id="TRootResTreeNode"/>. The root node contains type nodes, that contain name nodes, that contain language id nodes. Finally, a language id node contains a resource.</p>
+<p>Each node contains its sub nodes in two lists: a Named list for nodes identified by a name (a string), and an ID list for nodes identified by an ID (an integer). In each list, nodes are sorted in ascending order.</p>
+<p>Many resource formats (PECOFF, ELF, Mach-O, and external resource files) use this exact format to store resource information.</p>
+<remark>When a tree is destroyed, the resources it references aren't destroyed.</remark>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TResourceTreeNode">
+<short>Abstract class representing a resource tree node.</short>
+<descr>
+<p>This class represents a node in a resource tree.</p>
+<remark>An object of this class should never be directly instantiated. To create a node, call <link id ="TResourceTreeNode.CreateSubNode">CreateSubNode</link> method of an already existing node.</remark>
+</descr>
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TResourceTreeNode.fParent">
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TResourceTreeNode.fNamedEntries">
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TResourceTreeNode.fIDEntries">
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TResourceTreeNode.fSubDirRVA">
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TResourceTreeNode.fDataRVA">
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TResourceTreeNode.fNameRva">
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TResourceTreeNode.fDesc">
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TResourceTreeNode.GetNamedCount">
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.GetNamedCount.Result">
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TResourceTreeNode.GetNamedEntry">
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.GetNamedEntry.Result">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.GetNamedEntry.index">
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TResourceTreeNode.GetIDCount">
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.GetIDCount.Result">
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TResourceTreeNode.GetIDEntry">
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.GetIDEntry.Result">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.GetIDEntry.index">
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TResourceTreeNode.GetData">
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.GetData.Result">
+</element>
+
+<!-- function Visibility: protected -->
+<element name="TResourceTreeNode.Find">
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.Find.Result">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aList">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aDesc">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.index">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aLangID">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aType">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aName">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.noLangID">
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.toDelete">
+</element>
+
+<!-- constructor Visibility: protected -->
+<element name="TResourceTreeNode.Create">
+</element>
+
+<!-- property Visibility: protected -->
+<element name="TResourceTreeNode.Parent">
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TResourceTreeNode.Destroy">
+<short>Destroys the object.</short>
+<descr>
+<remark>Only root nodes (instances of <link id="TRootResTreeNode"/>) should be destroyed. Children nodes are destroyed by their parent when needed.</remark>
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResourceTreeNode.Add">
+<short>Adds a new resource to the tree</short>
+<descr>
+<p>This method adds a new resource to the tree, creating all needed sub nodes</p>
+<remark>This method should only be called on root nodes (instances of <link id="TRootResTreeNode"/>).</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.Remove"/>
+</seealso>
+<errors>
+<p>If a resource with the same type, name and language ID already exists, an <link id="resource.EResourceDuplicateException">EResourceDuplicateException</link> exception is raised.</p>
+</errors>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Add.aResource">
+<short>The resource to add</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceTreeNode.CreateSubNode">
+<short>Creates a subnode</short>
+<descr>
+<p>This method creates a subnode, identified by the given resource description.</p>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.Desc"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.CreateSubNode.Result">
+<short>The newly created sub node</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.CreateSubNode.aDesc">
+<short>The description of the sub node</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceTreeNode.CreateResource">
+<short>Creates a new resource</short>
+<descr>
+<p>This method creates a new resource.</p>
+<p>A new resource is created and its type, name and language id are determined from the ancestor nodes in the tree hierarchy.</p>
+<p>Usually <var>CreateResource</var> is called by resource readers that read files in which resources are stored as trees.</p>
+<remark>This method is meaningful only when called on leaf nodes (language id nodes).</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.IsLeaf"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.CreateResource.Result">
+<short>The newly created resource</short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResourceTreeNode.Clear">
+<short>Destroys all sub nodes</short>
+<descr>
+<p>This method destroys all sub nodes of the node.</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceTreeNode.Remove">
+<short>Removes a resource from the tree</short>
+<descr>
+<p>This method searches for the specified resource and removes it from the tree. If a language ID is not provided, the first resource found that matches <var>aType</var> and <var>aName</var> is returned. The removed resource is then returned.</p>
+<p>If no resource is found, <var>nil</var> is returned.</p>
+<remark>This method should only be called on root nodes (instances of <link id="TRootResTreeNode"/>).</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.Add"/>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.Remove.Result">
+<short>The removed resource, or <var>nil</var> if not found</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Remove.aType">
+<short>The type of the resource to remove</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Remove.aName">
+<short>The name of the resource to remove</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Remove.aLangID">
+<short>The language ID of the resource to remove</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceTreeNode.Find">
+<short>Searches for a resource</short>
+<descr>
+<p>This method searches for a resource with the given type and name in the tree. If a language ID is not provided, the first resource found that matches <var>aType</var> and <var>aName</var> is returned.</p>
+<p>If no resource is found, <var>nil</var> is returned.</p>
+<remark>This method should only be called on root nodes (instances of <link id="TRootResTreeNode"/>).</remark>
+</descr>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.Find.Result">
+<short>The resource that matches the search criteria</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aType">
+<short>The type of the resource to search for</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aName">
+<short>The name of the resource to search for</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.Find.aLangID">
+<short>The language ID of the resource to search for</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceTreeNode.FindFreeID">
+<short>Find a free ID to be used as a resource name</short>
+<descr>
+<p>This method is used to find an available ID to be used as a name for a resource, given a resource type. It is used internally by <link id="resource.TResources.AddAutoID">AddAutoID</link> method of <link id="resource.TResources">TResources</link>.</p>
+<remark>This method should only be called on root nodes (instances of <link id="TRootResTreeNode"/>).</remark>
+</descr>
+<errors>
+<p>If there are no free ids left for the given resource type, an <link id="resource.ENoMoreFreeIDsException">ENoMoreFreeIDsException</link> is raised.</p>
+</errors>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.FindFreeID.Result">
+<short>A new resource ID</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.FindFreeID.aType">
+<short>The type of the resource</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceTreeNode.IsLeaf">
+<short>Reports whether the node is a leaf node.</short>
+<descr>
+<p>Returns <var>true</var> if the node is a leaf node. A leaf node is a language ID node.</p>
+</descr>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceTreeNode.IsLeaf.Result">
+<short><var>True</var> if the node is a leaf node</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.Desc">
+<short>The description of the node</short>
+<descr>
+<p>The description of a node identifies that node. According to the type of the node, it can be a resource type, name or language id.</p>
+</descr>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.NamedCount">
+<short>The number of named sub nodes of the node</short>
+<seealso>
+<link id="TResourceTreeNode.NamedEntries"/>
+<link id="TResourceTreeNode.IDCount"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.NamedEntries">
+<short>Indexed array of named sub nodes of the node</short>
+<descr>
+<p>This property can be used to access all named sub nodes in the node.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TResourceTreeNode.NamedCount">NamedCount</link>-1.</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.NamedCount"/>
+<link id="TResourceTreeNode.IDEntries"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.NamedEntries.index">
+<short></short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.IDCount">
+<short>The number of ID sub nodes of the node</short>
+<seealso>
+<link id="TResourceTreeNode.IDEntries"/>
+<link id="TResourceTreeNode.NamedCount"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.IDEntries">
+<short>Indexed array of ID sub nodes of the node</short>
+<descr>
+<p>This property can be used to access all ID sub nodes in the node.</p>
+<remark>This array is 0-based: valid elements range from 0 to <link id="TResourceTreeNode.IDCount">IDCount</link>-1.</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.IDCount"/>
+<link id="TResourceTreeNode.NamedEntries"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceTreeNode.IDEntries.index">
+<short></short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.NameRVA">
+<short>To be used by readers and writers</short>
+<descr>
+<p>This property can be freely used by resource readers and writers to store a file offset or address needed to load or write other data, since it isn't used by <link id="TResourceTreeNode"/> or <link id="resource.TResources">TResources</link>.</p>
+<remark>Do not rely on the value of this property when accessing a new tree: other readers or writers could have changed it for their internal operations.</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.SubDirRVA"/>
+<link id="TResourceTreeNode.DataRVA"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.SubDirRVA">
+<short>To be used by readers and writers</short>
+<descr>
+<p>This property can be freely used by resource readers and writers to store a file offset or address needed to load or write other data, since it isn't used by <link id="TResourceTreeNode"/> or <link id="resource.TResources">TResources</link>.</p>
+<remark>Do not rely on the value of this property when accessing a new tree: other readers or writers could have changed it for their internal operations.</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.NameRVA"/>
+<link id="TResourceTreeNode.DataRVA"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.DataRVA">
+<short>To be used by readers and writers</short>
+<descr>
+<p>This property can be freely used by resource readers and writers to store a file offset or address needed to load or write other data, since it isn't used by <link id="TResourceTreeNode"/> or <link id="resource.TResources">TResources</link>.</p>
+<remark>Do not rely on the value of this property when accessing a new tree: other readers or writers could have changed it for their internal operations.</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.NameRVA"/>
+<link id="TResourceTreeNode.SubDirRVA"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceTreeNode.Data">
+<short>The resource contained in this node</short>
+<descr>
+<p>This property references the resource contained in this node.</p>
+<remark>This property is meaningful only on leaf nodes (language id nodes).</remark>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.IsLeaf"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TRootResTreeNode">
+<short>The root node in a resource tree</short>
+<descr>
+<p>This node represents the root node of a resource tree.</p>
+<p>It is the only node which must be created with its constructor: other nodes in the tree are automatically created when adding a resource, or calling <link id="TResourceTreeNode.CreateSubNode">CreateSubNode</link> method of their parent.</p>
+<p>Normally all search, add and delete operations on the tree are performed by calling methods of this node.</p>
+</descr>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TRootResTreeNode.Create">
+<short>Creates a new root node</short>
+<descr>
+<p>This method creates a new tree, represented by a root node without children.</p>
+<p>Other nodes in the tree are automatically created when adding a resource, or calling <link id="TResourceTreeNode.CreateSubNode">CreateSubNode</link> method of their parent.</p>
+</descr>
+<seealso>
+<link id="TResourceTreeNode.CreateSubNode"/>
+<link id="TResourceTreeNode.Add"/>
+</seealso>
+</element>
+
+</module> <!-- resourcetree -->
+
+</package>
+</fpdoc-descriptions>

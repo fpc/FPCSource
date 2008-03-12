@@ -10,9 +10,11 @@ version=2.0.0
 dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc
 programs=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
 programs_linux=grab_vcsa
-dirs_win32=fpmc fpcres
-dirs_linux=fpcres
-dirs_freebsd=fpcres
+dirs_win32=fpmc fpcres fpcreslipo
+dirs_linux=fpcres fpcreslipo
+dirs_freebsd=fpcres fpcreslipo
+dirs_darwin=fpcres fpcreslipo
+dirs_macos=fpcres fpcreslipo
 rsts=rstconv
 
 [require]

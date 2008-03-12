@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    elfwriter
+  ====================================================================
+-->
+
+<module name="elfwriter">
+<short>Contains a resource writer for ELF files</short>
+<descr>
+<p>This unit contains <link id="TElfResourceWriter"/>, a <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link> descendant that is able to write ELF object files containing resources.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TElfResourceWriter"/> with <link id="resource.TResources">TResources</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="elfconsts">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="elftypes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="elfcommon">
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceWriterException">
+<short>Base class for elf resource writer-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceWriterUnknownMachineException">
+<short>Unknown machine type error</short>
+<descr>
+<p>This exception is raised when an attempt is made to set <link id="elfwriter.TElfResourceWriter.MachineType">TElfResourceWriter.MachineType</link> to an unknown machine type.</p>
+</descr>
+<seealso>
+<link id="elfwriter.TElfResourceWriter.MachineType">TElfResourceWriter.MachineType</link>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceWriterUnknownClassException">
+<short>Internal error</short>
+<descr>
+<p>If this exception is raised, an internal error occurred.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceWriterUnknownSectionException">
+<short>Internal error</short>
+<descr>
+<p>If this exception is raised, an internal error occurred.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TElfResourceWriter">
+<short>ELF resource writer</short>
+<descr>
+<p>This class provides a writer for ELF object files and images containing resources.</p>
+<p>ELF is the file format used by unices and other operating systems for object files and image files (executables, dynamic libraries and so on). Free Pascal can store resources in ELF files in its own format.</p>
+<p><link id="TElfResourceWriter.MachineType">MachineType</link> property can be used to set the machine type of the object file to generate.</p>
+</descr>
+<seealso>
+<link id="TElfResourceWriter.MachineType"/>
+<link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>
+<link id="elfreader.TElfResourceReader">TElfResourceReader</link>
+<link id="Format of resources in object files"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TElfResourceWriter.MachineType">
+<short>The machine type of the object file</short>
+<descr>
+<p>This property can be used to set the machine type of the object file to write.</p>
+<p>If an attempt is made to set MachineType to an unsupported value, an <link id="EElfResourceWriterUnknownMachineException"/> exception is raised.</p>
+</descr>
+<seealso>
+<link id="elfconsts.TElfMachineType">TElfMachineType</link>
+<link id="EElfResourceWriterUnknownMachineException"/>
+</seealso>
+</element>
+
+</module> <!-- elfwriter -->
+
+</package>
+</fpdoc-descriptions>

@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for FCL Pascal source file parsing and writing units
+#
+
+[package]
+name=fcl-res
+version=2.2.0
+
+[target]
+units=acceleratorsresource bitmapresource coffconsts coffreader cofftypes \
+      coffwriter dfmreader elfconsts elfreader elftypes elfwriter externalreader \
+      externaltypes externalwriter fpcrestypes groupcursorresource groupiconresource \
+      groupresource icocurtypes machoconsts machoreader machotypes machowriter \
+      resdatastream resfactory resmerger resource resourcetree resreader reswriter \
+      stringtableresource strtable versionconsts versionresource versiontypes \
+      winpeimagereader
+rsts=versiontypes stringtableresource resource resfactory
+
+
+[compiler]
+options=-S2h
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

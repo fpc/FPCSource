@@ -1,7 +1,7 @@
 {
 
     This file is part of the Free Pascal Run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2008 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     For details about the copyright.
@@ -794,6 +794,7 @@ Procedure FinalizeHeap;forward;
 {$endif HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
 
+
 Procedure InternalExit;
 var
   current_exit : Procedure;
@@ -1312,18 +1313,7 @@ end;
                             Resources support
 *****************************************************************************}
 
-
-{$ifndef HAS_RESOURCES}
 {$i sysres.inc}
-{$endif}
-
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function FindResource(ModuleHandle: HMODULE; ResourceName, ResourceType: AnsiString): TResourceHandle;
-
-begin
-  Result:=FindResource(ModuleHandle,PChar(ResourceName),PChar(ResourceType));
-end;
-{$endif}
 
 const
   CtrlBreakHandler: TCtrlBreakHandler = nil;

@@ -4,13 +4,14 @@
 
 [target]
 programs=fpcres
+units=msghandler paramparser sourcehandler  target
 rsts=fpcres fpcresfix elfres
 
 [clean]
 units=fpcresfix elfbfd elfres
 
 [require]
-packages=rtl
+packages=rtl fcl-res
 
 [install]
 fpcpackage=y
@@ -19,5 +20,3 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
-.NOTPARALLEL:
-fpcmake$(EXEEXT): fpcresfix.pas elfbfd.pas elfres.pas fpcres.pas

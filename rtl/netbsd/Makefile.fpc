@@ -16,7 +16,8 @@ units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       sysutils types fgl classes typinfo math varutils fmtbcd \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets terminfo \
-      video mouse keyboard  serial variants types sysctl sysconst fpmkunit $(CPU_UNITS)
+      video mouse keyboard  serial variants types sysctl sysconst fpmkunit $(CPU_UNITS) \
+      fpintres
       # ipc
 
 rsts=math varutils typinfo variants classes sysconst fpmkunit

@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    resdatastream
+  ====================================================================
+-->
+
+<module name="resdatastream">
+<short>Contains stream classes to provide copy-on-write functionality</short>
+<descr>
+<p>This unit contains various streams that are used to provide copy-on-write mechanism for <link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>, via more levels of indirection.</p>
+<p>Main class is <link id="TResourceDataStream"/>, which is the stream used for <link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>. This class uses an underlying stream, to which it redirects operations.</p>
+<p>At a lower level, a <link id="TCachedDataStream"/> descendant provides a layer between the original stream and the <link id="TResourceDataStream"/>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TCachedDataStream">
+<short>Base cached stream class</short>
+<descr>
+<p>This abstract class provides basic cached stream functionalities.</p>
+<p>A cached stream is a read-only stream that operates on a portion of another stream. That is, it creates a "window" on the original stream from which to read data. Since it is a read-only stream, trying to write to the stream or to set its size cause an EInvalidOperation exception to be raised.</p>
+<p>This class is used by <link id="TResourceDataStream"/> to access the raw data of a resource. When an attempt to write to the stream is detected, <link id="TResourceDataStream"/> replaces it with a memory stream and copies the contents of the cached stream to the memory one, thus providing a copy-on-write mechanism.</p>
+<remark>An object of this class should never be directly instantiated: use a descendant class instead.</remark>
+</descr>
+<seealso>
+<link id="TResourceDataStream"/>
+<link id="TCachedResourceDataStream"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TCachedDataStream.fStream">
+<short>The original stream</short>
+<descr>
+<p>This protected member is provided to let descendant classes access the original stream.</p>
+</descr>
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TCachedDataStream.fSize">
+<short>The size of the cached stream</short>
+<descr>
+<p>This protected member is provided to let descendant classes access the size of the cached stream.</p>
+</descr>
+</element>
+
+<!-- variable Visibility: protected -->
+<element name="TCachedDataStream.fPosition">
+<short>The position from the cached stream perspective</short>
+<descr>
+<p>This protected member is provided to let descendant classes access the position of the cached stream.</p>
+</descr>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TCachedDataStream.Create">
+<short>Creates a new object</short>
+<descr>
+<p>A new cached stream is created on top of the <var>aStream</var> stream.</p>
+</descr>
+<seealso>
+<link id="TCachedDataStream"/>
+<link id="TResourceDataStream"/>
+<link id="TResourceDataStream.Create"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TCachedDataStream.Create.aStream">
+<short>The stream from which to read data</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TCachedDataStream.Create.aResource">
+<short>The resource whose data must be read</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TCachedDataStream.Create.aSize">
+<short>The size of the resource data</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TCachedResourceDataStream">
+<short>An implementation of a cached stream</short>
+<descr>
+<p>This class provides an implementation of <link id="TCachedDataStream"/>.</p>
+<p>Usually resource readers create a <link id="TResourceDataStream"/> with a TCachedResourceDataStream as the underlying stream.</p>
+</descr>
+<seealso>
+<link id="TCachedDataStream"/>
+<link id="TResourceDataStream"/>
+</seealso>
+</element>
+
+<!-- "class of" type Visibility: default -->
+<element name="TCachedStreamClass">
+<short>Cached stream metaclass</short>
+</element>
+
+<!-- enumeration type Visibility: default -->
+<element name="TUnderlyingStreamType">
+<short>The type of the underlying stream of TResourceDataStream</short>
+<seealso>
+<link id="TResourceDataStream"/>
+</seealso>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TUnderlyingStreamType.usCached">
+<short>The underlying stream is a TCachedResourceDataStream descendant</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TUnderlyingStreamType.usMemory">
+<short>The underlying stream is a memory stream</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TUnderlyingStreamType.usCustom">
+<short>The underlying stream is a custom stream</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TResourceDataStream">
+<short>Stream class that provides copy-on-write functionality</short>
+<descr>
+<p>This class provides the copy-on-write mechanism of <link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>, via more levels of indirection.</p>
+<p>It uses an underlying stream, to which it redirects operations.</p>
+<p>The underlying stream can be a <link id="TCachedDataStream"/> descendant, a memory stream or a custom stream. Usually when a resource is loaded from a stream, the underlying stream is a <link id="TCachedDataStream"/> descendant, which provides a read-only stream-like interface over a portion of the original stream (that is, the part of the original stream where resource data resides). When <link id="TResourceDataStream"/> is requested to write data, it replaces the underlying stream with a memory stream, whose contents are copied from the previous underlying stream: this way, copy-on-write functionality can be achieved.</p>
+<p>As said before, third possibility is to have a custom stream as the underlying stream: a user can set this stream via <link id="resource.TAbstractResource.SetCustomRawDataStream">TAbstractResource.SetCustomRawDataStream</link> method, which in turn calls <link id="TResourceDataStream.SetCustomStream"/></p>	
+<p><b>Figure</b>: Levels of indirection</p>
+<pre>
+.
+                     TResourceDataStream
+                              |
+       _______________________|_______________________________
+      |                       |                               |
+TMemoryStream     TCachedDataStream descendant          custom stream
+                         /           \
+ _______________________|_____________|______________________________
+|                o r i g|i n a l   s t|r e a m                       |
+|_______________________|_____________|______________________________|
+
+</pre>
+</descr>
+<seealso>
+<link id="TCachedDataStream"/>
+<link id="TResourceDataStream.Create"/>
+<link id="TResourceDataStream.SetCustomStream"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TResourceDataStream.Create">
+<short>Creates a new object</short>
+<descr>
+<p>A new <link id="TResourceDataStream"/> object is created.</p>
+<p>If <var>aStream</var> is <var>nil</var>, the underlying stream is a memory stream. Otherwise, a cached stream of the class specified in <var>aClass</var> is created and set as the underlying stream.</p>
+</descr>
+<seealso>
+<link id="TResourceDataStream"/>
+<link id="TCachedDataStream"/>
+<link id="TResourceDataStream.SetCustomStream"/>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDataStream.Create.aStream">
+<short>The stream which resource data must be read from. It can be <var>nil</var></short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDataStream.Create.aResource">
+<short>The resource whose data must be read</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDataStream.Create.aSize">
+<short>The size of the resource data</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDataStream.Create.aClass">
+<short>The class to use to create the underlying cached stream</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TResourceDataStream.Compare">
+<short>Compares the stream to another one</short>
+<descr>
+<p>This methods compares the stream with <var>aStream</var>. If they are of the same length and their contents are the same, <var>true</var> is returned, <var>false</var> otherwise.</p>
+</descr>
+<seealso>
+<link id="resource.TAbstractResource.CompareContents">TAbstractResource.CompareContents</link>
+</seealso>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="TResourceDataStream.Compare.Result">
+<short>True if the contents of the two streams are the same</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDataStream.Compare.aStream">
+<short>The stream to compare to this one. It can be <var>nil</var></short>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TResourceDataStream.SetCustomStream">
+<short>Sets a custom stream as the underlying stream</short>
+<descr>
+<p>This method sets a custom stream as the underlying stream.</p>
+<p>If <var>aStream</var> is <var>nil</var>, a new memory stream is used as the underlying stream. This can be used to remove a previously set custom stream as the underlying stream.</p>
+<p>Usually it is called by <link id="resource.TAbstractResource.SetCustomRawDataStream">TAbstractResource.SetCustomRawDataStream</link>.</p>
+</descr>
+<seealso>
+<link id="TResourceDataStream"/>
+<link id="resource.TAbstractResource.SetCustomRawDataStream">TAbstractResource.SetCustomRawDataStream</link>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TResourceDataStream.SetCustomStream.aStream">
+<short>The stream to use as the underlying stream. It can be <var>nil</var></short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TResourceDataStream.Cached">
+<short>Controls the copy-on-write behaviour of the stream</short>
+<descr>
+<p>When this property is set to <var>true</var>, a cached stream is used as the underlying stream for read operations. If it is set to <var>false</var>, no caching is performed and data is always copied to a memory stream.</p>
+<p>Note that this property does nothing if the underlying stream is a custom stream.</p>
+<p>By default this property is true.</p>
+</descr>
+<seealso>
+<link id="TResourceDataStream"/>
+<link id="resource.TAbstractResource.CacheData">TAbstractResource.CacheData</link>
+</seealso>
+</element>
+
+</module> <!-- resdatastream -->
+
+</package>
+</fpdoc-descriptions>

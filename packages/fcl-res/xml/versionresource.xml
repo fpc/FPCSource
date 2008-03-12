@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    versionresource
+  ====================================================================
+-->
+
+<module name="versionresource">
+<short>Contains a version information resource type</short>
+<descr>
+<p>This unit contains <link id="TVersionResource"/>, a <link id="resource.TAbstractResource">TAbstractResource</link> descendant specialized in handling resource of type <link id="resource.RT_VERSION">RT_VERSION</link>.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TVersionResource"/> for type <link id="resource.RT_VERSION">RT_VERSION</link> with <link id="resfactory.TResourceFactory">TResourceFactory</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="versionconsts">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="versiontypes">
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TVerBlockHeader">
+<short>This type is internally used</short>
+<descr>
+<p>This type is internally used by <link id="TVersionResource"/></p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TVersionResource">
+<short>Version information resource type</short>
+<descr>
+<p>This class represents a resource of type <link id="resource.RT_VERSION">RT_VERSION</link>.</p>
+<p>A resource of this type provides version information for a Microsoft Windows executable or dll, which is shown when checking properties of a file in Windows Explorer.</p>
+<p>Information is stored in <link id="TVersionResource.FixedInfo">FixedInfo</link>, <link id="TVersionResource.StringFileInfo">StringFileInfo</link> and <link id="TVersionResource.VarFileInfo">VarFileInfo</link>.</p>
+<remark>This class doesn't allow its type to be changed to anything else than <link id="resource.RT_VERSION">RT_VERSION</link>, and its name to be different from 1. Attempts to do so result in a <link id="resource.EResourceDescChangeNotAllowedException">EResourceDescChangeNotAllowedException</link>.</remark>
+<remark>If you need to access <link id="resource.TAbstractResource.RawData">RawData</link> after you modified something, be sure to call <link id="resource.TAbstractResource.UpdateRawData">UpdateRawData</link> first. This isn't needed however when resource is written to a stream, since <link id="resource.TResources">TResources</link> takes care of it.</remark>
+<p><b>Sample code</b></p>
+<p>This code creates a version information resource</p>
+<code>
+const
+  myVersion : TFileProductVersion = (1,2,0,0);
+
+var
+  resources : TResources;
+  aRes : TVersionResource;
+  st : TVersionStringTable;
+  ti : TVerTranslationInfo;
+begin
+  aRes:=TVersionResource.Create(nil,nil); //it's always RT_VERSION and 1 respectively
+  resources:=TResources.Create;
+  resources.Add(aRes);
+
+  aRes.FixedInfo.FileVersion:=myversion;
+  aRes.FixedInfo.ProductVersion:=myversion;
+  aRes.FixedInfo.FileFlagsMask:=VS_FFI_FILEFLAGSMASK;
+  aRes.FixedInfo.FileFlags:=0;
+  aRes.FixedInfo.FileOS:=VOS_NT_WINDOWS32;
+  aRes.FixedInfo.FileType:=VFT_APP;
+  aRes.FixedInfo.FileSubType:=0;
+  aRes.FixedInfo.FileDate:=0;
+
+  st:=TVersionStringTable.Create('041004B0'); //Italian, unicode codepage
+  st.Add('CompanyName','Foo Corporation');
+  st.Add('FileDescription','Foo suite core program');
+  st.Add('FileVersion','1.2');
+  st.Add('ProductVersion','1.2');
+  aRes.StringFileInfo.Add(st);
+
+  ti.language:=$0410; //Italian
+  ti.codepage:=$04B0; //Unicode codepage
+  aRes.VarFileInfo.Add(ti);
+
+  resources.WriteToFile('myresource.res');
+  resources.Free; //destroys aRes as well.
+end;
+</code>
+</descr>
+<seealso>
+<link id="TVersionResource.FixedInfo"/>
+<link id="TVersionResource.StringFileInfo"/>
+<link id="TVersionResource.VarFileInfo"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TVersionResource.Create">
+<short>Creates a new version information resource</short>
+<descr>
+<p>Please note that <var>aType</var> and <var>aName</var> parameters are not used, since this class always uses <link id="resource.RT_VERSION">RT_VERSION</link> as type and 1 as name.</p>
+</descr>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionResource.Create.aType">
+<short>Ignored. Can be <var>nil</var>.</short>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TVersionResource.Create.aName">
+<short>Ignored. Can be <var>nil</var>.</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionResource.FixedInfo">
+<short>Language independent part of version information</short>
+<seealso>
+<link id="versiontypes.TVersionFixedInfo">TVersionFixedInfo</link>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionResource.StringFileInfo">
+<short>Language dependent part of version information</short>
+<seealso>
+<link id="versiontypes.TVersionStringFileInfo">TVersionStringFileInfo</link>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TVersionResource.VarFileInfo">
+<short>List of supported languages</short>
+<seealso>
+<link id="versiontypes.TVersionVarFileInfo">TVersionVarFileInfo</link>
+</seealso>
+</element>
+
+</module> <!-- versionresource -->
+
+</package>
+</fpdoc-descriptions>

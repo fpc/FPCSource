@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    externalwriter
+  ====================================================================
+-->
+
+<module name="externalwriter">
+<short>Contains a resource writer for external resource files</short>
+<descr>
+<p>This unit contains <link id="TExternalResourceWriter"/>, a <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link> descendant that is able to write standalone resource files in a Free Pascal-specific format.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TExternalResourceWriter"/> with <link id="resource.TResources">TResources</link>.</p>
+<p><b>See also</b></p>
+<p><link id="externaltypes.Free Pascal external resource file format description">Free Pascal external resource file format description</link></p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resourcetree">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="externaltypes">
+</element>
+
+<!-- object Visibility: default -->
+<element name="EExternalResourceWriterException">
+<short>Base class for external resource writer-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EExternalResInvalidEndianessException">
+<short>Invalid endianess error</short>
+<descr>
+<p>This exception is raised when an attempt is made to set <link id="TExternalResourceWriter.Endianess">Endianess</link> property of a <link id="TExternalResourceWriter"/> object to a value other than <link id="externaltypes.EXT_ENDIAN_BIG">EXT_ENDIAN_BIG</link> or <link id="externaltypes.EXT_ENDIAN_LITTLE">EXT_ENDIAN_LITTLE</link>.</p>
+</descr>
+<seealso>
+<link id="TExternalResourceWriter.Endianess"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TExternalResStringTable">
+<short>External resource file string table</short>
+<descr>
+<p>This class is used internally by <link id="TExternalResourceWriter"/>.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TExternalResourceWriter">
+<short>External file resource writer</short>
+<descr>
+<p>This class provides a writer for .fpcres files: they are standalone files containing resources.</p>
+<p>Standalone files are files that don't get linked with the final executable. They are used as a
+fallback solution on all those platforms for which an internal resource format is not available.</p>
+<p>At runtime the resource file is read by Free Pascal RTL to provide resource support to the application.</p>
+<p><link id="TExternalResourceWriter.Endianess">Endianess</link> property can be used to set the byte order to use in the file to generate.</p>
+</descr>
+<seealso>
+<link id="TExternalResourceWriter.Endianess"/>
+<link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>
+<link id="externalreader.TExternalResourceReader">TExternalResourceReader</link>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TExternalResourceWriter.Endianess">
+<short>The byte order to use in the file</short>
+<descr>
+<p>This property can be used to set the byte order (endianess) of the file to write.</p>
+<remark>If a value other than <link id="externaltypes.EXT_ENDIAN_BIG">EXT_ENDIAN_BIG</link> or <link id="externaltypes.EXT_ENDIAN_LITTLE">EXT_ENDIAN_LITTLE</link> is used, an <link id="EExternalResInvalidEndianessException"/> exception is raised.</remark>
+</descr>
+<seealso>
+<link id="externaltypes.EXT_ENDIAN_BIG">EXT_ENDIAN_BIG</link>
+<link id="externaltypes.EXT_ENDIAN_LITTLE">EXT_ENDIAN_LITTLE</link>
+</seealso>
+</element>
+
+</module> <!-- externalwriter -->
+
+</package>
+</fpdoc-descriptions>

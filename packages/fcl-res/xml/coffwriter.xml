@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    coffwriter
+  ====================================================================
+-->
+
+<module name="coffwriter">
+<short>Contains a resource writer for COFF files</short>
+<descr>
+<p>This unit contains <link id="TCoffResourceWriter"/>, a <link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link> descendant that is able to write COFF object files containing resources.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TCoffResourceWriter"/> with <link id="resource.TResources">TResources</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resourcetree">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="cofftypes">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TResourceStringTable">
+<short>COFF resource string table</short>
+<descr>
+<p>This class is used internally by <link id="TCoffResourceWriter"/>.</p>
+</descr>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TCoffRelocation">
+<short>COFF relocation type</short>
+<descr>
+<p>This record is used internally by <link id="TCoffResourceWriter"/>.</p>
+</descr>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PCoffRelocation">
+<short>Pointer to a COFF relocation</short>
+<descr>
+<p>This type is used internally by <link id="TCoffResourceWriter"/>.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TCoffRelocations">
+<short>COFF relocation table</short>
+<descr>
+<p>This class is used internally by <link id="TCoffResourceWriter"/>.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TCoffResourceWriter">
+<short>COFF resource writer</short>
+<descr>
+<p>This class provides a writer for COFF object files containing resources.</p>
+<p>COFF is the file format used by Microsoft Windows object files. Usually resources get stored in a object file that can be given to a linker to produce an executable.</p>
+<p><link id="TCoffResourceWriter.MachineType">MachineType</link> property can be used to set the machine type of the object file to generate.</p>
+</descr>
+<seealso>
+<link id="TCoffResourceWriter.MachineType"/>
+<link id="resource.TAbstractResourceWriter">TAbstractResourceWriter</link>
+<link id="coffreader.TCoffResourceReader">TCoffResourceWriter</link>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TCoffResourceWriter.MachineType">
+<short>The machine type of the object file</short>
+<descr>
+<p>This property can be used to set the machine type of the object file to write.</p>
+</descr>
+<seealso>
+<link id="cofftypes.TCoffMachineType">TCoffMachineType</link>
+</seealso>
+</element>
+
+</module> <!-- coffwriter -->
+
+</package>
+</fpdoc-descriptions>

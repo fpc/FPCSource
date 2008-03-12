@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2008 by Peter Vreman
 
     This unit implements support information structures for solaris
 
@@ -32,7 +32,7 @@ unit i_sunos;
             system       : system_i386_solaris;
             name         : 'Solaris for i386';
             shortname    : 'solaris';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library];
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;SUNOS;HASUNIX';
@@ -62,7 +62,7 @@ unit i_sunos;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_gar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
@@ -92,7 +92,7 @@ unit i_sunos;
             name         : 'Solaris for SPARC';
             shortname    : 'solaris';
             flags        : [tf_needs_symbol_size,tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_requires_proper_alignment,tf_smartlink_library];
+                            tf_requires_proper_alignment,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_SPARC;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;SUNOS;HASUNIX';
@@ -122,7 +122,7 @@ unit i_sunos;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_gar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_big;

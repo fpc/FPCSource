@@ -15,7 +15,8 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors terminfo termio video crt mouse keyboard console \
       variants dateutils convutils stdconvs \
-      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd
+      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd \
+      fpintres fpextres
 implicitunits=exeinfo
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
@@ -116,6 +117,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+fpintres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
+
+fpextres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
 
 objpas$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

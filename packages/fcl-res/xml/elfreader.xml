@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    elfreader
+  ====================================================================
+-->
+
+<module name="elfreader">
+<short>Contains a resource reader for ELF files</short>
+<descr>
+<p>This unit contains <link id="TElfResourceReader"/>, a <link id="resource.TAbstractResourceReader">TAbstractResourceReader</link> descendant that is able to read ELF object files containing resources.</p>
+<p>Adding this unit to a program's <var>uses</var> clause registers class <link id="TElfResourceReader"/> with <link id="resource.TResources">TResources</link>.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="elfconsts">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="elftypes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="elfcommon">
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceReaderException">
+<short>Base class for elf resource reader-related exceptions</short>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceReaderUnknownClassException">
+<short>Unknown ELF class error</short>
+<descr>
+<p>This exception is raised by <link id="resource.TAbstractResourceReader.Load">Load</link> method of <link id="TElfResourceReader"/> when class field of ELF header is neither <link id="elfconsts.ELFCLASS32">ELFCLASS32</link> nor <link id="elfconsts.ELFCLASS64">ELFCLASS64</link>.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceReaderUnknownVersionException">
+<short>Unknown ELF version error</short>
+<descr>
+<p>This exception is raised by <link id="resource.TAbstractResourceReader.Load">Load</link> method of <link id="TElfResourceReader"/> when version field of ELF header is not 1.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceReaderNoSectionsException">
+<short>No section headers error</short>
+<descr>
+<p>This exception is raised by <link id="resource.TAbstractResourceReader.Load">Load</link> method of <link id="TElfResourceReader"/> when no section headers are found.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EElfResourceReaderNoStringTableException">
+<short>No string table error</short>
+<descr>
+<p>This exception is raised by <link id="resource.TAbstractResourceReader.Load">Load</link> method of <link id="TElfResourceReader"/> when no ELF string table is found.</p>
+</descr>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TElfResourceReader">
+<short>ELF resource reader</short>
+<descr>
+<p>This class provides a reader for ELF object files and images containing resources.</p>
+<p>ELF is the file format used by unices and other operating systems for object files and image files (executables, dynamic libraries and so on). Free Pascal can store resources in ELF files in its own format.</p>
+<p>After an object file has been read, <link id="TElfResourceReader.MachineType">MachineType</link> property holds the machine type the object file was built for.</p>
+<remark>This reader can't read ELF files without section headers. These are however very rare.</remark>
+</descr>
+<seealso>
+<link id="TElfResourceReader.MachineType"/>
+<link id="resource.TAbstractResourceReader">TAbstractResourceReader</link>
+<link id="elfwriter.TElfResourceWriter">TElfResourceWriter</link>
+<link id="Format of resources in object files"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TElfResourceReader.MachineType">
+<short>The machine type of the object file</short>
+<descr>
+<p>This property holds the machine type of the object file that has been read.</p>
+<remark>Obviously, this property is meaningful only after an object file has been read.</remark>
+</descr>
+<seealso>
+<link id="elfconsts.TElfMachineType">TElfMachineType</link>
+</seealso>
+</element>
+
+</module> <!-- elfreader -->
+
+</package>
+</fpdoc-descriptions>

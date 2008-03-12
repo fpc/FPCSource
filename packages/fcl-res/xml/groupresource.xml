@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fpdoc-descriptions>
+<package name="fcl-res">
+
+<!--
+  ====================================================================
+    groupresource
+  ====================================================================
+-->
+
+<module name="groupresource">
+<short>Contains group resource classes</short>
+<descr>
+<p>This unit contains <link id="TGroupResource"/> and <link id="TGroupCachedDataStream"/>, two classes used for resources of type <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> and <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link>.</p>
+<p>The former is an abstract resource class which is implemented by <link id="groupiconresource.TGroupIconResource">TGroupIconResource</link> and <link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>, and the latter is a <link id="resdatastream.TCachedDataStream">TCachedDataStream</link> descendant used to provide .ico/.cur like streams for resource classes mentioned earlier.</p>
+<p>This unit shouldn't be of interest for the user, who should look at documentation for <link id="groupiconresource"/> and <link id="groupcursorresource"/> units instead.</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="Classes">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="SysUtils">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resource">
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="resdatastream">
+</element>
+
+<!-- object Visibility: default -->
+<element name="TGroupResource">
+<short>Abstract common class for group icon and group cursor classes</short>
+<descr>
+<p>This class provides common functionalities that are extended by <link id="groupiconresource.TGroupIconResource">TGroupIconResource</link> and <link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>.</p>
+<p>Resources of type <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> and <link id="resource.RT_GROUP_CURSOR">RT_GROUP_CURSOR</link> represent a .ico or .cur file, respectively. However, data isn't contained in a single resource, but it's scattered over several different resources. That is, a .ico file contains an icon, which is made of several different images (for different sizes and color depth); when it is represented as a resource, however, the <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> resource only contains information about the single images, which are contained each in a different resource of type <link id="resource.RT_ICON">RT_ICON</link>. The single resources are pretty unuseful alone, since they only consist of raw image data: they must be accessed in the contest of the <link id="resource.RT_GROUP_ICON">RT_GROUP_ICON</link> resource, which provides information about them.</p>
+<p><link id="groupiconresource.TGroupIconResource">TGroupIconResource</link> and <link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link> provide a way to handle resources of these types as if they were .ico or .cur files. This class implements common functionalities, since icons and cursors are very similar.</p>
+<remark>An object of this class should never be directly instantiated: use a descendant class instead.</remark>
+</descr>
+<seealso>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+</seealso>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TGroupResource.Destroy">
+<short></short>
+<descr>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TGroupResource.SetCustomItemDataStream">
+<short>Sets a custom stream as the underlying stream for ItemData</short>
+<descr>
+<p>This method allows the user to use a custom stream as the underlying stream for <link id="TGroupResource.ItemData">ItemData</link>. This is useful when you want a <link id="groupiconresource.TGroupIconResource">TGroupIconResource</link> or <link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link> to be created from a ico or cur file for which you have a stream.</p>
+<p><b>Sample code</b></p>
+<p>This code creates a resource containing an icon</p>
+<code>
+var
+  aName : TResourceDesc;
+  aRes : TGroupIconResource;
+  aFile : TFileStream;
+  Resources : TResources;
+begin
+  Resources:=TResources.Create;
+  aName:=TResourceDesc.Create('MAINICON');
+  aRes:=TGroupIconResource.Create(nil,aName); //type is always RT_GROUP_ICON
+  aName.Free; //not needed anymore
+  aFile:=TFileStream.Create('mainicon.ico',fmOpenRead or fmShareDenyNone);
+  aRes.SetCustomItemDataStream(aFile);
+  Resources.Add(aRes);
+  Resources.WriteToFile('myresource.res');
+
+  Resources.Free; //it destroys aRes as well.
+  aFile.Free;
+end;
+</code>
+
+
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="TGroupResource.ItemData"/>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+<link id="resource.TAbstractResource.UpdateRawData">TAbstractResource.UpdateRawData</link>
+</seealso>
+</element>
+
+<!-- argument Visibility: default -->
+<element name="TGroupResource.SetCustomItemDataStream.aStream">
+<short>The custom stream to use as the underlying ItemData stream</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TGroupResource.ItemData">
+<short>Resource data as an ICO/CUR stream</short>
+<descr>
+<p>This property gives access to resource data in a (ICO or CUR) file-like stream, unlike <link id="resource.TAbstractResource.RawData">RawData</link>.</p>
+<p>The exact format of the stream (ico or cur) is determined by the descendant class of <link id="TGroupResource"/> that is used.</p>
+<p>ItemData does not create a copy of <link id="resource.TAbstractResource.RawData">RawData</link> so memory usage is generally kept limited.</p>
+<p>You can also set a custom stream as the underlying stream for ItemData via <link id="TGroupResource.SetCustomItemDataStream">SetCustomItemDataStream</link>, much like <link id="resource.TAbstractResource.SetCustomRawDataStream">SetCustomRawDataStream</link> does for <link id="resource.TAbstractResource.RawData">RawData</link>. This is useful when you want a <link id="groupiconresource.TGroupIconResource">TGroupIconResource</link> or <link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link> to be created from a ico or cur file for which you have a stream.</p>
+<remark>If you need to access <link id="resource.TAbstractResource.RawData">RawData</link> after you modified ItemData, be sure to call <link id="resource.TAbstractResource.UpdateRawData">UpdateRawData</link> first. This isn't needed however when resource is written to a stream, since <link id="resource.TResources">TResources</link> takes care of it.</remark>
+</descr>
+<seealso>
+<link id="TGroupResource.SetCustomItemDataStream"/>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+<link id="resource.TAbstractResource.RawData">TAbstractResource.RawData</link>
+<link id="resource.TAbstractResource.UpdateRawData">TAbstractResource.UpdateRawData</link>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TGroupCachedDataStream">
+<short>Cached stream for group classes</short>
+<descr>
+<p>This class is used by <link id="TGroupResource"/> descendants to provide an .ico/.cur like stream.</p>
+<p>Unlike <link id="resdatastream.TCachedResourceDataStream">TCachedResourceDataStream</link>, which provides a stream-like interface over a portion of another stream, this class lets multiple stream to be seen as one: this way, several <link id="resource.RT_ICON">RT_ICON</link> or <link id="resource.RT_CURSOR">RT_CURSOR</link> resources can appear like a single .ico or .cur file.</p>
+</descr>
+<seealso>
+<link id="TGroupResource"/>
+<link id="groupiconresource.TGroupIconResource">TGroupIconResource</link>
+<link id="groupcursorresource.TGroupCursorResource">TGroupCursorResource</link>
+<link id="resdatastream.TCachedDataStream">TCachedDataStream</link>
+<link id="resdatastream.TCachedResourceDataStream">TCachedResourceDataStream</link>
+</seealso>
+</element>
+
+</module> <!-- groupresource -->
+
+</package>
+</fpdoc-descriptions>

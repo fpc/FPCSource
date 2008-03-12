@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2008 by Peter Vreman
 
     This unit implements support information structures for linux
 
@@ -24,31 +24,9 @@ unit i_linux;
   interface
 
     uses
-       systems;
+       systems, rescmn;
 
     const
-       res_elf32_info : tresinfo =
-          (
-             id     : res_elf;
-             resbin : 'fpcres';
-             rescmd : '-o $OBJ -i $RES';
-             { cross compiled windres can be used to compile .rc files on linux }
-             rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -o $RES $RC';
-             resourcefileclass : nil;
-          );
-
-       res_elf64_info : tresinfo =
-          (
-             id     : res_elf;
-             resbin : 'fpcres';
-             rescmd : '-o $OBJ -i $RES';
-             { cross compiled windres can be used to compile .rc files on linux }
-             rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -o $RES $RC';
-             resourcefileclass : nil;
-          );
-
        system_i386_linux_info : tsysteminfo =
           (
             system       : system_i386_LINUX;
@@ -59,7 +37,7 @@ unit i_linux;
                             tf_section_threadvars,
 {$endif segment_threadvars}
                             tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_smartlink_library,tf_needs_dwarf_cfi];
+                            tf_smartlink_library,tf_needs_dwarf_cfi,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -118,7 +96,7 @@ unit i_linux;
             system       : system_x86_6432_LINUX;
             name         : 'Linux for x64_6432';
             shortname    : 'Linux6432';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_pic_uses_got{,tf_smartlink_sections},tf_smartlink_library];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_pic_uses_got{,tf_smartlink_sections},tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -148,7 +126,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
@@ -178,7 +156,7 @@ unit i_linux;
             name         : 'Linux for m68k';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_smartlink_library];
+                            tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -208,7 +186,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_big;
@@ -238,7 +216,7 @@ unit i_linux;
             name         : 'Linux for PowerPC';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_smartlink_library];
+                            tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -268,7 +246,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_big;
@@ -298,7 +276,7 @@ unit i_linux;
             name         : 'Linux for PowerPC64';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_requires_proper_alignment,tf_smartlink_library];
+                            tf_requires_proper_alignment,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_powerpc64;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -328,7 +306,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_big;
@@ -358,7 +336,7 @@ unit i_linux;
             name         : 'Linux for Alpha';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_use_function_relative_addresses,tf_smartlink_library];
+                            tf_use_function_relative_addresses,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_alpha;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -388,7 +366,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
@@ -418,7 +396,7 @@ unit i_linux;
             name         : 'Linux for x86-64';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_smartlink_library,
-                            tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses];
+                            tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -448,7 +426,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;
@@ -478,7 +456,7 @@ unit i_linux;
             name         : 'Linux for SPARC';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,tf_smartlink_library,
-                            tf_use_function_relative_addresses,tf_requires_proper_alignment];
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_has_winlike_resources];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -508,7 +486,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_big;
@@ -539,7 +517,7 @@ unit i_linux;
             name         : 'Linux for ARMEL';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections,tf_smartlink_library];
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -569,7 +547,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
@@ -599,7 +577,7 @@ unit i_linux;
             name         : 'Linux for ARM';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections,tf_smartlink_library];
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -629,7 +607,7 @@ unit i_linux;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
