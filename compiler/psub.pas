@@ -1232,32 +1232,32 @@ implementation
                 begin
                   if (currpara.varspez in [vs_out,vs_var,vs_const]) then
                     begin
-                            Message1(parser_w_not_supported_for_inline,'formal parameter');
-                            Message(parser_w_inlining_disabled);
-                            exit;
+                      Message1(parser_w_not_supported_for_inline,'formal parameter');
+                      Message(parser_w_inlining_disabled);
+                      exit;
                     end;
                 end;
               arraydef :
-                      begin
-                        if is_array_constructor(currpara.vardef) or
-                           is_variant_array(currpara.vardef) then
-                          begin
-                            Message1(parser_w_not_supported_for_inline,'array of const');
-                            Message(parser_w_inlining_disabled);
-                            exit;
+                begin
+                  if is_array_of_const(currpara.vardef) or
+                     is_variant_array(currpara.vardef) then
+                    begin
+                      Message1(parser_w_not_supported_for_inline,'array of const');
+                      Message(parser_w_inlining_disabled);
+                      exit;
                     end;
                   { open arrays might need re-basing of the index, i.e. if you pass
                     an array[1..10] as open array, you have to add 1 to all index operations
                     if you directly inline it }
                   if is_open_array(currpara.vardef) then
                     begin
-                            Message1(parser_w_not_supported_for_inline,'open array');
-                            Message(parser_w_inlining_disabled);
-                            exit;
+                      Message1(parser_w_not_supported_for_inline,'open array');
+                      Message(parser_w_inlining_disabled);
+                      exit;
                     end;
-                      end;
-                  end;
                 end;
+            end;
+        end;
         result:=true;
       end;
 
