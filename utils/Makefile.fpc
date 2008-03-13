@@ -15,6 +15,7 @@ dirs_linux=fpcres fpcreslipo
 dirs_freebsd=fpcres fpcreslipo
 dirs_darwin=fpcres fpcreslipo
 dirs_macos=fpcres fpcreslipo
+dirs_solaris=fpcres fpcreslipo
 rsts=rstconv
 
 [require]
