@@ -71,7 +71,7 @@ Type
   TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram);
   TTargetTypes = set of TTargetType;
 
-  TTargetState = (tsNeutral,tsNeedCompile,tsNoCompile,tsCompiling,tsCompiled,tsInstalled,tsNotFound);
+  TTargetState = (tsNeutral,tsConsidering,tsNoCompile,tsCompiled,tsInstalled,tsNotFound);
   TTargetStates = Set of TTargetState;
 
   TSourceType = (stDoc,stSrc,stExample,stTest);
@@ -961,6 +961,7 @@ ResourceString
   SErrInvalidFPCInfo    = 'Compiler returns invalid information, check if fpc -iV works';
   SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s"';
   SErrAlreadyInitialized = 'Installer can only be initialized once';
+  SErrInvalidState      = 'Invalid state for target %s';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -3665,17 +3666,6 @@ Var
   OD,OFN : String;
 begin
   Result:=False;
-  case ATarget.State of
-    tsNeedCompile :
-      begin
-        result:=true;
-        exit;
-      end;
-    tsNoCompile,
-    tsCompiling,
-    tsCompiled :
-      exit;
-  end;
 
   // Forced recompile?
   if FForceCompile then
@@ -3721,7 +3711,7 @@ begin
                       Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);
                     // If a dependent package is compiled we always need to recompile
                     Log(vldebug, SDbgDependencyOnUnit, [ATarget.Name,T.Name]);
-                    Result:=(T.State in [tsNeedCompile,tsCompiling,tsCompiled]) or NeedsCompile(APackage,T);
+                    Result:=(T.State=tsCompiled);
                     if Result then
                       Log(vldebug, SDbgDependencyUnitRecompiled, [T.Name]);
                   end;
@@ -3737,14 +3727,8 @@ begin
         end;
     end;
 
-  // Upate also target state so a second check is faster
   if result then
-    begin
-      ATarget.FTargetState:=tsNeedCompile;
-      Log(vlDebug,SDbgMustCompile,[ATarget.Name]);
-    end
-  else
-    ATarget.FTargetState:=tsNoCompile;
+    Log(vlDebug,SDbgMustCompile,[ATarget.Name]);
 end;
 
 
@@ -3752,24 +3736,17 @@ procedure TBuildEngine.Compile(APackage: TPackage; ATarget: TTarget);
 Var
   S : String;
 begin
-  if ATarget.State in [tsNeutral,tsNeedCompile] then
-    begin
-      Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);
-      LogIndent;
-      ATarget.FTargetState:=tsCompiling;
-      ExecuteCommands(ATarget.Commands,caBeforeCompile);
-      If Assigned(ATarget.BeforeCompile) then
-        ATarget.BeforeCompile(ATarget);
-      S:=GetCompilerCommand(APackage,ATarget);
-      ExecuteCommand(GetCompiler,S);
-      If Assigned(ATarget.AfterCompile) then
-        ATarget.AfterCompile(ATarget);
-      ExecuteCommands(ATarget.Commands,caAfterCompile);
-      ATarget.FTargetState:=tsCompiled;
-      LogUnIndent;
-    end
-  else if ATarget.State<>tsCompiled then
-    Log(vlWarning, Format(SWarnAttemptingToCompileNonNeutralTarget, [ATarget.Name]));
+  Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);
+  LogIndent;
+  ExecuteCommands(ATarget.Commands,caBeforeCompile);
+  If Assigned(ATarget.BeforeCompile) then
+    ATarget.BeforeCompile(ATarget);
+  S:=GetCompilerCommand(APackage,ATarget);
+  ExecuteCommand(GetCompiler,S);
+  If Assigned(ATarget.AfterCompile) then
+    ATarget.AfterCompile(ATarget);
+  ExecuteCommands(ATarget.Commands,caAfterCompile);
+  LogUnIndent;
 end;
 
 
@@ -3779,8 +3756,6 @@ Var
   T : TTarget;
   D : TDependency;
 begin
-  if ATarget.State in [tsCompiled,tsCompiling,tsNoCompile] then
-    exit;
   Log(vlDebug, Format(SDbgCompilingDependenciesOfTarget, [ATarget.Name]));
   LogIndent;
   For I:=0 to ATarget.Dependencies.Count-1 do
@@ -3798,9 +3773,12 @@ begin
                   // used for dependency checking
                   if (T.TargetType<>ttImplicitUnit) then
                     begin
-                      if T.State=tsCompiling then
-                        Log(vlWarning,SWarnCircularTargetDependency,[ATarget.Name,T.Name]);
-                      MaybeCompile(APackage,T);
+                      case T.State of
+                        tsNeutral :
+                          MaybeCompile(APackage,T);
+                        tsConsidering :
+                          Log(vlWarning,SWarnCircularTargetDependency,[ATarget.Name,T.Name]);
+                      end;
                     end;
                 end
               else
@@ -3816,14 +3794,20 @@ end;
 
 procedure TBuildEngine.MaybeCompile(APackage: TPackage; ATarget: TTarget);
 begin
-  if not(ATarget.State in [tsNeutral,tsNeedCompile]) then
-    exit;
+  if ATarget.State<>tsNeutral then
+    Error(SErrInvalidState,[ATarget.Name]);
   Log(vlDebug, Format(SDbgConsideringTarget, [ATarget.Name]));
   LogIndent;
+  ATarget.FTargetState:=tsConsidering;
   ResolveDependencies(ATarget.Dependencies,ATarget.Collection as TTargets);
   CompileDependencies(APackage, ATarget);
   if NeedsCompile(APackage, ATarget) then
-    Compile(APackage,ATarget);
+    begin
+      Compile(APackage,ATarget);
+      ATarget.FTargetState:=tsCompiled;
+    end
+  else
+    ATarget.FTargetState:=tsNoCompile;
   LogUnIndent;
 end;
 
@@ -3835,19 +3819,6 @@ Var
   D : TDependency;
 begin
   Result:=False;
-  case APackage.State of
-    tsNeedCompile :
-      begin
-        result:=true;
-        exit;
-      end;
-    tsNoCompile,
-    tsNotFound,
-    tsCompiling,
-    tsCompiled,
-    tsInstalled :
-      exit;
-  end;
 
   // Forced recompile?
   if FForceCompile then
@@ -3864,11 +3835,9 @@ begin
               (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
              begin
                P:=TPackage(D.Target);
-               if Assigned(P) and (P<>APackage) then
+               if Assigned(P) then
                  begin
-                   If (P.State in [tsCompiling,tsNeedCompile]) then
-                     Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
-                   Result:=(P.State in [tsCompiled,tsCompiling,tsNeedCompile]);
+                   Result:=(P.State=tsCompiled);
                    if Result then
                      break;
                  end;
@@ -3894,70 +3863,8 @@ begin
       end;
     end;
 
-  // Upate also target state so a second check is faster
   if result then
-    begin
-      APackage.FTargetState:=tsNeedCompile;
-      Log(vlDebug,SDbgMustCompile,[APackage.Name]);
-    end
-  else
-    APackage.FTargetState:=tsNoCompile;
-end;
-
-
-procedure TBuildEngine.Compile(APackage: TPackage);
-Var
-  T : TTarget;
-  I : Integer;
-begin
-  Try
-    Log(vlInfo,SInfoCompilingPackage,[APackage.Name]);
-    APackage.FTargetState:=tsCompiling;
-    If (APackage.Directory<>'') then
-      EnterDir(APackage.Directory);
-    CreateOutputDir(APackage);
-    Dictionary.AddVariable('UNITSOUTPUTDIR',APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
-    Dictionary.AddVariable('BINOUTPUTDIR',APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
-    DoBeforeCompile(APackage);
-    For I:=0 to APackage.Targets.Count-1 do
-      begin
-        T:=APackage.Targets.TargetItems[i];
-        if (T.TargetType in [ttUnit,ttProgram]) then
-          begin
-            if TargetOK(T) then
-              MaybeCompile(APackage,T)
-            else
-              begin
-                if not(Defaults.CPU in T.CPUs) then
-                  Log(vldebug, Format(SDbgSkippingTargetWrongCPU, [T.Name, CPUsToString(T.CPUs)]));
-                if not(Defaults.OS in T.OSes) then
-                  Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSesToString(T.OSes)]));
-              end;
-          end
-        else
-          log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
-      end;
-    DoAfterCompile(APackage);
-    APackage.FTargetState:=tsCompiled;
-  Finally
-    If (APackage.Directory<>'') then
-      EnterDir('');
-  end;
-end;
-
-
-procedure TBuildEngine.MaybeCompile(APackage: TPackage);
-begin
-  if not(APackage.State in [tsNeutral,tsNeedCompile]) then
-    exit;
-  Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);
-  LogIndent;
-  ResolveDependencies(APackage.Dependencies,(APackage.Collection as TPackages));
-  CompileDependencies(APackage);
-  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS);
-  If NeedsCompile(APackage) then
-    Compile(APackage);
-  LogUnIndent;
+    Log(vlDebug,SDbgMustCompile,[APackage.Name]);
 end;
 
 
@@ -4012,8 +3919,12 @@ begin
           P:=TPackage(D.Target);
           If Assigned(P) then
             begin
-              if (P<>APackage) then
-                MaybeCompile(P);
+              case P.State of
+                tsNeutral :
+                  MaybeCompile(P);
+                tsConsidering :
+                  Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
+              end;
             end
           else
             begin
@@ -4026,6 +3937,66 @@ begin
             Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
         end;
     end;
+end;
+
+
+procedure TBuildEngine.Compile(APackage: TPackage);
+Var
+  T : TTarget;
+  I : Integer;
+begin
+  Try
+    Log(vlInfo,SInfoCompilingPackage,[APackage.Name]);
+    If (APackage.Directory<>'') then
+      EnterDir(APackage.Directory);
+    CreateOutputDir(APackage);
+    Dictionary.AddVariable('UNITSOUTPUTDIR',APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
+    Dictionary.AddVariable('BINOUTPUTDIR',APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
+    DoBeforeCompile(APackage);
+    For I:=0 to APackage.Targets.Count-1 do
+      begin
+        T:=APackage.Targets.TargetItems[i];
+        if (T.TargetType in [ttUnit,ttProgram]) then
+          begin
+            if TargetOK(T) then
+              MaybeCompile(APackage,T)
+            else
+              begin
+                if not(Defaults.CPU in T.CPUs) then
+                  Log(vldebug, Format(SDbgSkippingTargetWrongCPU, [T.Name, CPUsToString(T.CPUs)]));
+                if not(Defaults.OS in T.OSes) then
+                  Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSesToString(T.OSes)]));
+              end;
+          end
+        else
+          log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
+      end;
+    DoAfterCompile(APackage);
+  Finally
+    If (APackage.Directory<>'') then
+      EnterDir('');
+  end;
+end;
+
+
+procedure TBuildEngine.MaybeCompile(APackage: TPackage);
+begin
+  if APackage.State<>tsNeutral then
+    Error(SErrInvalidState,[APackage.Name]);
+  Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);
+  LogIndent;
+  APackage.FTargetState:=tsConsidering;
+  ResolveDependencies(APackage.Dependencies,(APackage.Collection as TPackages));
+  CompileDependencies(APackage);
+  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS);
+  If NeedsCompile(APackage) then
+    begin
+      Compile(APackage);
+      APackage.FTargetState:=tsCompiled;
+    end
+  else
+    APackage.FTargetState:=tsNoCompile;
+  LogUnIndent;
 end;
 
 
