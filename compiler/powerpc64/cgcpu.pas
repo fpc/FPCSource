@@ -726,33 +726,6 @@ begin
   ref2 := ref;
   fixref(list, ref2);
 
-  { unaligned 64 bit accesses are much slower than unaligned }
-  { 32 bit accesses because they cause a hardware exception  }
-  { (which isn't handled by linux, so there you even get a   }
-  {  crash)                                                  }
-  if (ref.alignment<>0) and
-     (fromsize in [OS_64,OS_S64]) and
-     (ref.alignment<4) then
-    begin
-      if (ref2.base<>NR_NO) and
-         (ref2.index<>NR_NO) then
-        begin
-	  // althoug fixref above makes sure that the location ref points to can be
-	  // accessed using the existing opcode restrictions, ref+4 still may be too
-	  // large to encode
-          tmpreg:=getintregister(list,OS_64);
-          a_op_reg_reg_reg(list,OP_ADD,OS_64,ref2.base,ref2.index,tmpreg);
-          ref2.base:=tmpreg;
-          ref2.index:=NR_NO;
-        end;
-      tmpreg:=getintregister(list,OS_32);
-      a_load_ref_reg(list,OS_32,OS_32,ref2,tmpreg);
-      inc(ref2.offset,4);
-      a_load_ref_reg(list,OS_32,OS_32,ref2,reg); 
-      list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, tmpreg, 32, 0));
-      exit;
-    end;
-
   op := loadinstr[fromsize, ref2.index <> NR_NO, false];
   { there is no LWAU instruction, simulate using ADDI and LWA }
   if (op = A_NOP) then begin
