@@ -254,6 +254,10 @@ implementation
                  ((dir.Name<>'.') and
                   (dir.Name<>'..')) then
                 begin
+                  { Force Archive bit so the attribute always has a value. This is needed
+                    to be able to see the difference in the directoryentries lookup if a file
+                    exists or not }
+                  Dir.Attr:=Dir.Attr or faArchive;
                   if not(tf_files_case_sensitive in source_info.flags) then
                     if (tf_files_case_aware in source_info.flags) then
                       begin
