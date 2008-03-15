@@ -190,9 +190,9 @@ const
 {$endif}
 
 var
-  main_relo_freelists : pfreelists;
   orphaned_freelists : tfreelists;
   heap_lock : trtlcriticalsection;
+  heap_lock_use : integer;
 threadvar
   freelists : tfreelists;
 
@@ -1392,6 +1392,12 @@ procedure InitHeapThread;
 var
   loc_freelists: pfreelists;
 begin
+  if heap_lock_use > 0 then
+  begin
+    entercriticalsection(heap_lock);
+    inc(heap_lock_use);
+    leavecriticalsection(heap_lock);
+  end;
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
 {$ifdef DUMP_MEM_USAGE}
@@ -1406,6 +1412,7 @@ var
 begin
   { we cannot initialize the locks here yet, thread support is
     not loaded yet }
+  heap_lock_use := 0;
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
   fillchar(orphaned_freelists,sizeof(orphaned_freelists),0);
@@ -1417,9 +1424,12 @@ var
 begin
   { this function should be called in main thread context }
   loc_freelists := @freelists;
-  main_relo_freelists := loc_freelists;
+  heap_lock_use := 1;
   initcriticalsection(heap_lock);
-  modify_freelists(loc_freelists, main_relo_freelists);
+  { loc_freelists still points to main thread's freelists, but they
+    have a reference to the global main freelists, fix them to point
+    to the main thread specific variable }
+  modify_freelists(loc_freelists, loc_freelists);
   if MemoryManager.RelocateHeap <> nil then
     MemoryManager.RelocateHeap();
 end;
@@ -1428,12 +1438,13 @@ procedure FinalizeHeap;
 var
   poc, poc_next: poschunk;
   loc_freelists: pfreelists;
+  last_thread: boolean;
 {$ifdef DUMP_MEM_USAGE}
   i : longint;
 {$endif}
 begin
   loc_freelists := @freelists;
-  if main_relo_freelists <> nil then
+  if heap_lock_use > 0 then
   begin
     entercriticalsection(heap_lock);
     finish_waitfixedlist(loc_freelists);
@@ -1453,22 +1464,21 @@ begin
   end;
   loc_freelists^.oslist := nil;
   loc_freelists^.oscount := 0;
-  if main_relo_freelists <> nil then
+  if heap_lock_use > 0 then
   begin
 {$endif HAS_SYSOSFREE}
-    if main_relo_freelists <> loc_freelists then
+    poc := modify_freelists(loc_freelists, @orphaned_freelists);
+    if assigned(poc) then
     begin
-      poc := modify_freelists(loc_freelists, @orphaned_freelists);
-      if assigned(poc) then
-      begin
-        poc^.next_any := orphaned_freelists.oslist_all;
-        if assigned(orphaned_freelists.oslist_all) then
-          orphaned_freelists.oslist_all^.prev_any := poc;
-        orphaned_freelists.oslist_all := loc_freelists^.oslist_all;
-      end;
+      poc^.next_any := orphaned_freelists.oslist_all;
+      if assigned(orphaned_freelists.oslist_all) then
+        orphaned_freelists.oslist_all^.prev_any := poc;
+      orphaned_freelists.oslist_all := loc_freelists^.oslist_all;
     end;
+    dec(heap_lock_use);
+    last_thread := heap_lock_use = 0;
     leavecriticalsection(heap_lock);
-    if main_relo_freelists = loc_freelists then
+    if last_thread then
       donecriticalsection(heap_lock);
   end;
 {$ifdef SHOW_MEM_USAGE}
