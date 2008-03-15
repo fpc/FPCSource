@@ -1,11 +1,14 @@
 { %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos}
 { %NEEDLIBRARY }
 
+{ same as tw8730c, but linking to libc so it uses different }
+{ startup code                                              }
+
 {$mode delphi}
 program MainApp;
 
 uses
-  sysutils;
+  initc, sysutils;
 
 const
 {$ifdef windows}
