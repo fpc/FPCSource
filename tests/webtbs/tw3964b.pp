@@ -1,7 +1,8 @@
+{ %needlibrary }
 { %target=linux }
 {$mode objfpc}
 
-{$linklib libtw3964a}
+{$linklib tw3964a}
 
 function testfunc : longint;
 begin
