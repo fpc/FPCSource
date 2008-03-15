@@ -239,7 +239,7 @@ begin
      if length(sysrootpath) > 0 then
        ExeCmd[1]:=ExeCmd[1]+' -T';
      ExeCmd[1]:=ExeCmd[1]+' $RES';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
      ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
@@ -424,6 +424,35 @@ begin
          Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
          HPath:=TCmdStrListItem(HPath.Next);
        end;
+
+      { force local symbol resolution (i.e., inside the shared }
+      { library itself) for a number of global symbols which   }
+      { appear in every FPC-compiled program/library. This is  }
+      { actually the wrong approach (the right one is to make  }
+      { everything local, except for what appears in the       }
+      { "exports" statements), but it fixes some of the worst  }
+      { problems for now.                                      }
+      if (isdll) then
+        begin
+          add('VERSION');
+          add('{');
+          add('  {');
+          add('    local:');
+          add('      __fpc_valgrind;');
+          add('      __heapsize;');
+          add('      __stklen;');
+          add('      _FPC_SHARED_LIB_START_LOCAL;');
+          add('      FPC_FINALIZEUNITS;');
+          add('      FPC_INITIALIZEUNITS;');
+          add('      FPC_RESLOCATION;');
+          add('      FPC_RESOURCESTRINGTABLES;');
+          add('      FPC_THREADVARTABLES;');
+          add('      INITFINAL;');
+          add('      PASCALFINALIZE;');
+          add('      PASCALMAIN;');
+          add('  };');
+          add('}');
+        end;
 
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }

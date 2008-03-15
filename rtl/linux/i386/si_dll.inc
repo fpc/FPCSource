@@ -40,7 +40,7 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
  ******************************************************************************}
 {$asmmode ATT}
 
-procedure _FPC_shared_lib_start(argc : dword;argv,envp : pointer); cdecl; public name '_start';
+procedure _FPC_shared_lib_start(argc : dword;argv,envp : pointer); cdecl; public name '_FPC_SHARED_LIB_START_LOCAL'; public name '_start';
 begin
   { we've to discuss about the use of this ;) }
   asm
@@ -58,6 +58,11 @@ begin
 end;
 
 {$ifndef VER2_0}
+
+{ this hack is needed so we can make the reference below to _FPC_shared_lib_start }
+{ local in compiler/systems/t_linux.pas                                           }
+procedure _FPC_SHARED_LIB_START_LOCAL(argc : dword;argv,envp : pointer); cdecl; external;
+
 procedure initdummy; assembler; nostackframe;
 label
   FPC_LIB_START;
@@ -68,9 +73,9 @@ asm
 //    .type FPC_LIB_START,@function
 FPC_LIB_START:
 {$ifdef FPC_PIC}
-  jmp	_FPC_shared_lib_start@PLT
+  jmp	_FPC_SHARED_LIB_START_LOCAL@PLT
 {$else FPC_PIC}
-  jmp	_FPC_shared_lib_start
+  jmp	_FPC_SHARED_LIB_START_LOCAL
 {$endif FPC_PIC}
 .text
 end;
