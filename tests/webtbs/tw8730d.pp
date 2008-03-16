@@ -1,4 +1,4 @@
-{ %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos}
+{ %target=darwin,linux,freebsd,solaris,beos}
 { %NEEDLIBRARY }
 
 { same as tw8730c, but linking to libc so it uses different }
