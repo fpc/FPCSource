@@ -117,7 +117,10 @@ procedure start ( state : Integer );
    file. In particular, yywrap may arrange for more input and return false
    in which case the yylex routine resumes lexical analysis. *)
 
-function yywrap : Boolean;
+type
+  yywrap_t = function (): Boolean;
+var
+  yywrap: yywrap_t;
   (* The default yywrap routine supplied here closes input and output files
      and returns true (causing yylex to terminate). *)
 
@@ -305,10 +308,11 @@ procedure start ( state : Integer );
 
 (* yywrap: *)
 
-function yywrap : Boolean;
+function lexlib_yywrap : Boolean;
   begin
-    close(yyinput); close(yyoutput);
-    yywrap := true;
+    close(yyinput);
+    close(yyoutput);
+    lexlib_yywrap := true;
   end(*yywrap*);
 
 (* Internal routines: *)
@@ -401,6 +405,7 @@ procedure yyclear;
   end(*yyclear*);
 
 begin
+  yywrap := @lexlib_yywrap;
   assign(yyinput, '');
   assign(yyoutput, '');
   reset(yyinput); rewrite(yyoutput);
