@@ -2226,7 +2226,10 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfStackCommit:=$1000;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
-            peoptheader.LoaderFlags:=0;
+            if SetPEFlagsSetExplicity then
+              peoptheader.LoaderFlags:=peflags
+            else
+              peoptheader.LoaderFlags:=0;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
             UpdateDataDir('.idata',PE_DATADIR_IDATA);
             UpdateDataDir('.edata',PE_DATADIR_EDATA);
