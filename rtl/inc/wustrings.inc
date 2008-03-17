@@ -1971,10 +1971,33 @@ function GenericWideCase(const s : WideString) : WideString;
     unimplementedwidestring;
   end;
 
+function CompareWideMemRange(P1, P2: Pointer; Length: cardinal): integer;
+  var i: cardinal;
+  begin
+    i := 0;
+    result := 0;
+    while (result=0) and (I<length) do
+      begin
+      result:=Word(P1^)-Word(P2^);
+      P1:=PWideChar(P1)+1;            // VP compat.
+      P2:=PWideChar(P2)+1;
+      i := i + 1;
+      end;
+  end;
 
 function CompareWideString(const s1, s2 : WideString) : PtrInt;
+  var count, count1, count2: integer;
   begin
-    unimplementedwidestring;
+    result := 0;
+    Count1 := Length(S1);
+    Count2 := Length(S2);
+    if Count1>Count2 then
+      Count:=Count2
+    else
+      Count:=Count1;
+    result := CompareWideMemRange(Pointer(S1),Pointer(S2), Count);
+    if result=0 then
+      result:=Count1-Count2;
   end;
 
 
