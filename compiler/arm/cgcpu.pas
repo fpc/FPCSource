@@ -775,6 +775,8 @@ unit cgcpu;
          so : tshifterop;
          dir : integer;
        begin
+         if (TCGSize2Size[FromSize] >= TCGSize2Size[ToSize]) then
+           FromSize := ToSize;
          case ToSize of
            { signed integer registers }
            OS_8,
@@ -843,6 +845,8 @@ unit cgcpu;
          so : tshifterop;
          dir : integer;
        begin
+         if (TCGSize2Size[FromSize] >= TCGSize2Size[ToSize]) then
+           FromSize := ToSize;
          case FromSize of
            { signed integer registers }
            OS_8:
