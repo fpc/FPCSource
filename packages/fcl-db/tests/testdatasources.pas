@@ -30,11 +30,12 @@ type
     procedure TestDataEvent6;
     procedure TestDataEvent7;
     procedure TestCalcFirstRecord1;
+    procedure TestRefreshLookupList;
   end;
   
 implementation
 
-uses ToolsUnit, dbf, testregistry;
+uses ToolsUnit, dbf, testregistry, variants;
 
 type THackDataset=class(TDataset);
      THackDataLink=class(TDatalink);
@@ -478,6 +479,83 @@ begin
     dec(FirstRec,4);
     AssertEquals(FirstRec,THackDataLink(aDatalink).FirstRecord);
 
+    end;
+end;
+
+procedure TTestDatasources.TestRefreshLookupList;
+var ds, lkpDs   : TDataset;
+    AFld1, AFld2, AFld3 : Tfield;
+    ExceptionOccured : boolean;
+    Var1,Var2 : Variant;
+    
+  procedure TestLookupList;
+  begin
+    lkpDs.Open;
+    lkpDs.first;
+    while not LkpDs.eof do with AFld3 do
+      begin
+      Var1 := LkpDs.FieldValues[LookupResultField];
+      Var2 := LookupList.ValueOfKey(LkpDs.fieldvalues[LookupKeyFields]);
+      AssertEquals(VarToStr(Var1),VarToStr(Var2));
+      lkpDs.Next;
+      end;
+  end;
+begin
+  ds := DBConnector.GetNDataset(15);
+  lkpDs := DBConnector.GetNDataset(5);
+  with ds do
+    begin
+    AFld1 := TIntegerField.Create(ds);
+    AFld1.FieldName := 'ID';
+    AFld1.DataSet := ds;
+
+    AFld2 := TStringField.Create(ds);
+    AFld2.FieldName := 'NAME';
+    AFld2.DataSet := ds;
+
+    AFld3 := TIntegerField.Create(ds);
+    with AFld3 do
+      begin
+      // Test if nothing happens when not all properties are filled
+      FieldName := 'LookupFld';
+      FieldKind := fkLookup;
+      DataSet := ds;
+      RefreshLookupList;
+      LookupDataSet := lkpDs;
+      RefreshLookupList;
+      LookupKeyFields:='name';
+      RefreshLookupList;
+      LookupResultField:='ID';
+      RefreshLookupList;
+      KeyFields:='name';
+      // Everything is filled in, this should run wihout any problems:
+      RefreshLookupList;
+      // The lookupdataset was closed, and should be closed again:
+      AssertFalse(lkpDs.Active);
+
+      // If some fields don't exist, check if an exception is raised:
+      LookupKeyFields:='faulty';
+      AssertException(EDatabaseError,RefreshLookupList);
+      LookupKeyFields:='name';
+
+      LookupResultField :='faulty';
+      AssertException(EDatabaseError,RefreshLookupList);
+      LookupResultField :='ID';
+
+      // Check if the lookuplist is correctly filled
+      RefreshLookupList;
+      TestLookupList;
+
+      // Check if the lookuplist is correctly filled when there are multiple
+      // fields in the key
+      LookupResultField:='name';
+      LookupKeyFields:='id;name';
+      RefreshLookupList;
+      TestLookupList;
+      end;
+    AFld1.Free;
+    AFld2.Free;
+    AFld3.Free;
     end;
 end;
 
