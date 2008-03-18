@@ -135,6 +135,7 @@ interface
         { create new assembler label }
         procedure getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
         procedure getjumplabel(out l : TAsmLabel);
+        procedure getglobaljumplabel(out l : TAsmLabel);
         procedure getaddrlabel(out l : TAsmLabel);
         procedure getdatalabel(out l : TAsmLabel);
         { generate an alternative (duplicate) symbol }
@@ -397,6 +398,11 @@ implementation
         inc(FNextLabelNr[alt_jump]);
       end;
 
+    procedure TAsmData.getglobaljumplabel(out l : TAsmLabel);
+      begin
+        l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt_jump],alt_jump);
+        inc(FNextLabelNr[alt_jump]);
+      end;
 
     procedure TAsmData.getdatalabel(out l : TAsmLabel);
       begin

@@ -850,7 +850,13 @@ implementation
     function tcglabelnode.getasmlabel : tasmlabel;
       begin
         if not(assigned(asmlabel)) then
-          current_asmdata.getjumplabel(asmlabel);
+          { labsym is not set in inlined procedures, but since assembler }
+          { routines can't be inlined, that shouldn't matter             }
+          if assigned(labsym) and
+             labsym.nonlocal then
+            current_asmdata.getglobaljumplabel(asmlabel)
+          else
+            current_asmdata.getjumplabel(asmlabel);
         result:=asmlabel
       end;
 

@@ -51,7 +51,8 @@ interface
 
        tlabelsym = class(tstoredsym)
           used,
-          defined : boolean;
+          defined,
+          nonlocal : boolean;
           { points to the matching node, only valid resultdef pass is run and
             the goto<->label relation in the node tree is created, should
             be a tnode }
@@ -390,6 +391,7 @@ implementation
          inherited create(labelsym,n);
          used:=false;
          defined:=false;
+         nonlocal:=false;
          code:=nil;
       end;
 
@@ -399,6 +401,7 @@ implementation
          inherited ppuload(labelsym,ppufile);
          code:=nil;
          used:=false;
+         nonlocal:=false;
          defined:=true;
       end;
 
@@ -420,7 +423,10 @@ implementation
        if not(defined) then
          begin
            defined:=true;
-           current_asmdata.getjumplabel(asmblocklabel);
+           if nonlocal then
+             current_asmdata.getglobaljumplabel(asmblocklabel)
+           else
+             current_asmdata.getjumplabel(asmblocklabel);
          end;
        result:=asmblocklabel.name;
      end;
