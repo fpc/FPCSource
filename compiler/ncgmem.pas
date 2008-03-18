@@ -756,9 +756,19 @@ implementation
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
                               href:=location.reference;
-                              dec(href.offset,sizeof(pint)-offsetdec);
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                              cg.a_param_ref(current_asmdata.CurrAsmList,OS_INT,href,paraloc1);
+                              if not(tf_winlikewidestring in target_info.flags) or
+                                 (tstringdef(left.resultdef).stringtype<>st_widestring) then
+                                begin
+                                  dec(href.offset,sizeof(pint)-offsetdec);
+                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
+                                end
+                              else
+                                begin
+                                  { winlike widestrings have a 4 byte length }
+                                  dec(href.offset,4-offsetdec);
+                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                                end;
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -910,9 +920,22 @@ implementation
                               cg.a_param_reg(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
                               dec(href.offset,sizeof(pint)-offsetdec);
-                              //dec(href.offset,7);
+
+                              href:=location.reference;
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                              cg.a_param_ref(current_asmdata.CurrAsmList,OS_INT,href,paraloc1);
+                              if not(tf_winlikewidestring in target_info.flags) or
+                                 (tstringdef(left.resultdef).stringtype<>st_widestring) then
+                                begin
+                                  dec(href.offset,sizeof(pint)-offsetdec);
+                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
+                                end
+                              else
+                                begin
+                                  { winlike widestrings have a 4 byte length }
+                                  dec(href.offset,4-offsetdec);
+                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                                end;
+
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
