@@ -506,7 +506,7 @@ begin
   if inputType in [fitcheckbox,fitradio] then
     Result := 'T'
   else
-    Result := FField.Text;
+    Result := FField.DisplayText;
   if assigned (FOnGetValue) then
     onGetValue(self,Result);
 end;
@@ -888,7 +888,13 @@ begin
           if Page < 0 then
             first
           else
-            RecNo := ((Page-1) * RecordsPerPage) + 1; // zero based? yes: + 1 has to be deleted
+            begin
+            try  // Catch exception if the record doesn't exist.
+              RecNo := ((Page-1) * RecordsPerPage) + 1; // zero based? yes: + 1 has to be deleted
+            except
+              Last;
+              end;
+            end;
           r := 0;
           while not eof and (r < RecordsPerPage) do
             begin
@@ -992,6 +998,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
   begin
     with TableDef.CopyTablePosition(aControlDef.LabelPos) do
       begin
+      FormField := aControldef;
       CellType := ctLabel;
       IsLabel := true;
       Value := aControldef.getLabel;
@@ -1063,6 +1070,7 @@ procedure THTMLDatasetFormShowProducer.ControlToTableDef (aControldef : TFormFie
       begin
       CellType := ctLabel;
       IsLabel := false;
+      FormField := aControldef;
       Value := aControlDef.getValue;
       if not FSeparateLabel and not FIncludeHeader then
         begin
@@ -1077,6 +1085,7 @@ procedure THTMLDatasetFormShowProducer.ControlToTableDef (aControldef : TFormFie
     with TableDef.CopyTablePosition(aControlDef.LabelPos) do
       begin
       CellType := ctLabel;
+      FormField := aControldef;
       IsLabel := true;
       Value := aControldef.getLabel;
       end;
