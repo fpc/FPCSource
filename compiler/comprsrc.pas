@@ -338,7 +338,7 @@ procedure TWinLikeResourceFile.Collect(const fn: ansistring);
 begin
   if fResScript=nil then
     fResScript:=TScript.Create(fScriptName);
-  fResScript.Add(fn);
+  fResScript.Add(MaybeQuoted(fn));
   inc(fCollectCount);
 end;
 
@@ -414,7 +414,8 @@ begin
             begin
               { Copy .res file to units output dir. Otherwise .res file will not be found
                 when only compiled units path is available }
-              if not CopyResFile(s,ExtractFileName(res.FPStr)) then exit;
+              res.FPStr:=ExtractFileName(res.FPStr); //store file name only in PPU.
+              if not CopyResFile(s,res.FPStr) then exit;
             end;
         end
       else
