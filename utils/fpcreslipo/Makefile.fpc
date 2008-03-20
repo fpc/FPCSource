@@ -6,9 +6,6 @@
 programs=fpcreslipo
 units=msghandler paramparser sourcehandler
 
-[clean]
-units=fpcresfix elfbfd elfres
-
 [require]
 packages=rtl fcl-res
 
