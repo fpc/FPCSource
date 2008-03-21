@@ -33,6 +33,7 @@ type
     procedure RefreshInternalCalcFields(Buffer: PChar); override;
     procedure InternalInitFieldDefs; override;
     procedure CalculateFields(Buffer: PChar); override;
+    procedure ClearCalcFields(Buffer: PChar); override;
   end;
 
 implementation
@@ -186,6 +187,12 @@ procedure TDbfTraceDataset.CalculateFields(Buffer: PChar);
 begin
   DataEvents := DataEvents + 'CalculateFields' + ';';
   inherited CalculateFields(Buffer);
+end;
+
+procedure TDbfTraceDataset.ClearCalcFields(Buffer: PChar);
+begin
+  DataEvents := DataEvents + 'ClearCalcFields' + ';';
+  inherited ClearCalcFields(Buffer);
 end;
 
 initialization

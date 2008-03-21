@@ -16,6 +16,7 @@ type
   TTestDatasources = class(TTestCase)
   private
     procedure FieldNotifyEvent(Sender: TField);
+    procedure DatasetNotifyEvent(Dataset: TDataset);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -31,11 +32,12 @@ type
     procedure TestDataEvent7;
     procedure TestCalcFirstRecord1;
     procedure TestRefreshLookupList;
+    procedure TestCalculateFields;
   end;
   
 implementation
 
-uses ToolsUnit, dbf, testregistry, variants;
+uses ToolsUnit, dbf, testregistry, variants{$IFDEF UNIX},cwstring {$ENDIF};
 
 type THackDataset=class(TDataset);
      THackDataLink=class(TDatalink);
@@ -45,6 +47,11 @@ type THackDataset=class(TDataset);
 procedure TTestDatasources.FieldNotifyEvent(Sender: TField);
 begin
   DataEvents := DataEvents + 'FieldNotifyEvent' + ';';
+end;
+
+procedure TTestDatasources.DatasetNotifyEvent(Dataset: TDataset);
+begin
+  DataEvents := DataEvents + 'DatasetNotifyEvent' + ';';
 end;
 
 procedure TTestDatasources.SetUp;
@@ -306,7 +313,7 @@ begin
     DataEvents := '';
     AutoCalcFields:=True;
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
-    AssertEquals('CalculateFields;deFieldChange:ID;',DataEvents);
+    AssertEquals('CalculateFields;ClearCalcFields;deFieldChange:ID;',DataEvents);
 
     AFld := FieldByName('calcfld');
     DataEvents := '';
@@ -485,7 +492,6 @@ end;
 procedure TTestDatasources.TestRefreshLookupList;
 var ds, lkpDs   : TDataset;
     AFld1, AFld2, AFld3 : Tfield;
-    ExceptionOccured : boolean;
     Var1,Var2 : Variant;
     
   procedure TestLookupList;
@@ -556,6 +562,67 @@ begin
     AFld1.Free;
     AFld2.Free;
     AFld3.Free;
+    end;
+end;
+
+procedure TTestDatasources.TestCalculateFields;
+var ds, lkpDs   : TDataset;
+    AFld1, AFld2, AFld3 : Tfield;
+    StoreValue : Variant;
+    Buffer: pchar;
+begin
+  ds := DBConnector.GetTraceDataset(False);
+  lkpDs := DBConnector.GetNDataset(5);
+  with ds do
+    begin
+    AFld1 := TIntegerField.Create(ds);
+    AFld1.FieldName := 'ID';
+    AFld1.DataSet := ds;
+
+    AFld2 := TStringField.Create(ds);
+    AFld2.FieldName := 'NAME';
+    AFld2.DataSet := ds;
+
+    AFld3 := TIntegerField.Create(ds);
+    with AFld3 do
+      begin
+      FieldName := 'LookupFld';
+      FieldKind := fkLookup;
+      DataSet := ds;
+      LookupDataSet := lkpDs;
+      LookupKeyFields:='name';
+      LookupResultField:='ID';
+      KeyFields := 'name';
+      end;
+    ds.OnCalcFields:=DatasetNotifyEvent;
+    lkpds.Open;
+    open;
+    Buffer:=ds.ActiveBuffer;
+
+    // If the state is dsInternalCalc, only the OnCalcField event should be called
+    THackDataset(ds).SetState(dsInternalCalc);
+    DataEvents:='';
+    StoreValue:=AFld3.Value;
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertEquals('CalculateFields;DatasetNotifyEvent;',DataEvents);
+    AssertEquals(VarToStr(StoreValue),VarToSTr(AFld3.Value));
+    THackDataset(ds).SetState(dsBrowse);
+
+    // Also if the dataset is Unidirectional, only the OnCalcField event should be called
+    THackDataset(ds).SetUniDirectional(True);
+    DataEvents:='';
+    StoreValue:=AFld3.Value;
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertEquals('CalculateFields;DatasetNotifyEvent;',DataEvents);
+    AssertEquals(VarToStr(StoreValue),VarToSTr(AFld3.Value));
+    THackDataset(ds).SetUniDirectional(False);
+
+    // Else, the value of all the lookup fields should get calculated
+    DataEvents:='';
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertEquals('CalculateFields;ClearCalcFields;DatasetNotifyEvent;',DataEvents);
+    // This assertion fails because of bug 11027
+    //AssertEquals('1',VarToStr(StoreValue));
     end;
 end;
 
