@@ -2304,12 +2304,33 @@ end;
 
 function TLookupList.ValueOfKey(const AKey: Variant): Variant;
 
+  Function VarArraySameValues(VarArray1,VarArray2 : Variant) : Boolean;
+  // This only works for one-dimensional vararrays with a lower bound of 0
+  // and equal higher bounds wich only contains variants.
+  // The vararrays returned by GetFieldValues do apply.
+  var i : integer;
+  begin
+    Result := True;
+    if (VarArrayHighBound(VarArray1,1))<> (VarArrayHighBound(VarArray2,1)) then exit;
+    for i := 0 to VarArrayHighBound(VarArray1,1) do
+    begin
+      if VarArray1[i]<>VarArray2[i] then
+        begin
+        Result := false;
+        Exit;
+        end;
+    end;
+  end;
+
 var I: Integer;
 begin
   Result := Null;
   if VarIsNull(AKey) then Exit;
   i := FList.Count - 1;
-  while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
+  if VarIsArray(AKey) then
+    while (i > 0) And not VarArraySameValues(PLookupListRec(FList.Items[I])^.Key,AKey) do Dec(i)
+  else
+    while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
   if i >= 0 then Result := PLookupListRec(FList.Items[I])^.Value;
 end;
 
