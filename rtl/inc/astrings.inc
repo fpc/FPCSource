@@ -250,13 +250,14 @@ Var
   p,pc        : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;
-  destcopy    : ansistring;
+  destcopy    : pointer;
 begin
   if high(sarr)=0 then
     begin
       DestS:='';
       exit;
     end;
+  destcopy:=nil;
   lowstart:=low(sarr);
   if Pointer(DestS)=Pointer(sarr[lowstart]) then
     inc(lowstart);
@@ -269,7 +270,8 @@ begin
           { if DestS is used somewhere in the middle of the expression,
             we need to make sure the original string still exists after
             we empty/modify DestS                                       }
-          destcopy:=dests;
+          destcopy:=pointer(dests);
+          fpc_AnsiStr_Incr_Ref(destcopy);
           lowstart:=low(sarr);
           break;
         end;
@@ -298,6 +300,7 @@ begin
           inc(pc,size);
         end;
     end;
+  fpc_AnsiStr_Decr_Ref(destcopy);
 end;
 
 
