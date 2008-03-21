@@ -33,6 +33,7 @@ type
     procedure TestCalcFirstRecord1;
     procedure TestRefreshLookupList;
     procedure TestCalculateFields;
+    procedure TestCalcLookupValue;
     procedure TestEnableControls;
   end;
   
@@ -627,6 +628,92 @@ begin
     AssertEquals('CalculateFields;ClearCalcFields;DatasetNotifyEvent;',DataEvents);
     AssertEquals('3',VarToStr(AFld3.Value));
     end;
+end;
+
+procedure TTestDatasources.TestCalcLookupValue;
+var ds, lkpDs   : TDataset;
+    AFld1, AFld2, AFld3 : Tfield;
+    Buffer: pchar;
+begin
+  ds := DBConnector.GetNDataset(True,15);
+  lkpDs := DBConnector.GetNDataset(5);
+  with ds do
+    begin
+    AFld1 := TIntegerField.Create(ds);
+    AFld1.FieldName := 'ID';
+    AFld1.DataSet := ds;
+
+    AFld2 := TStringField.Create(ds);
+    AFld2.FieldName := 'NAME';
+    AFld2.DataSet := ds;
+
+    AFld3 := TIntegerField.Create(ds);
+    with AFld3 do
+      begin
+      FieldName := 'LookupFld';
+      FieldKind := fkLookup;
+      DataSet := ds;
+      LookupDataSet := lkpDs;
+      LookupKeyFields:='name';
+      LookupResultField:='ID';
+      KeyFields := 'name';
+      end;
+    ds.OnCalcFields:=DatasetNotifyEvent;
+    lkpds.Open;
+    open;
+    Next;
+    Buffer:=ds.ActiveBuffer;
+
+    // When LookupCache is true, use the lookupCache (Here with the 'wrong' value 412)
+    AFld3.LookupList.Clear;
+    AFld3.LookupList.Add('TestName2',412);
+    AFld3.LookupCache:=True;
+    // CalculateFields is the only way to call CalcLookupValue
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertEquals(412,AFld3.AsInteger);
+
+    // Without lookupcache, return the right value
+    AFld3.LookupCache:=False;
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertEquals(2,AFld3.AsInteger);
+
+    // If there's no LookupDataset, the result should be Null
+    AFld3.LookupDataSet:= nil;
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertTrue(AFld3.IsNull);
+
+    // If there's no LookupDataset, the result should be Null
+    AFld3.LookupDataSet:= nil;
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertTrue(AFld3.IsNull);
+
+    // Same holds for closed lookupdatasets
+    AFld3.LookupDataSet:= lkpDs;
+    lkpDs.Close;
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertTrue(AFld3.IsNull);
+    lkpds.Open;
+    
+    // Thing are getting interesting with multiple fields in the key:
+    AFld3.LookupKeyFields:='name;id';
+    AFld3.KeyFields := 'name;id';
+    AFld3.LookupCache:=True;
+    AFld3.LookupList.Clear;
+    AFld3.LookupList.Add(VarArrayOf(['TestName2',2]),112);
+    AFld3.LookupCache:=True;
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertEquals(112,AFld3.AsInteger);
+    AFld3.LookupCache:=False;
+
+    // Now without a LookupCache
+    // Disabled this part, since tDbf has problems with multiple-field keys
+{
+    AFld3.LookupKeyFields:='name;id';
+    AFld3.KeyFields := 'name;id';
+    THackDataset(ds).CalculateFields(Buffer);
+    AssertEquals(2,AFld3.AsInteger);}
+    end;
+
 end;
 
 procedure TTestDatasources.TestEnableControls;
