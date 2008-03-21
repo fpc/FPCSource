@@ -1188,13 +1188,12 @@ implementation
         if (tsym(p).typ=paravarsym) then
          begin
            needs_inittable :=
-             not is_class_or_interface(tparavarsym(p).vardef) and
+             not is_class(tparavarsym(p).vardef) and
              tparavarsym(p).vardef.needs_inittable;
            do_trashing :=
              (localvartrashing <> -1) and
              (not assigned(tparavarsym(p).defaultconstsym)) and
-             (not tparavarsym(p).vardef.needs_inittable or
-              is_class(tparavarsym(p).vardef));
+             not needs_inittable;
            case tparavarsym(p).varspez of
              vs_value :
                if needs_inittable then
@@ -1250,7 +1249,7 @@ implementation
         if not(tsym(p).typ=paravarsym) then
           exit;
         list:=TAsmList(arg);
-        if not is_class_or_interface(tparavarsym(p).vardef) and
+        if not is_class(tparavarsym(p).vardef) and
            tparavarsym(p).vardef.needs_inittable then
          begin
            if (tparavarsym(p).varspez=vs_value) then

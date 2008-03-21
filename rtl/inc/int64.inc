@@ -349,7 +349,7 @@
                 { the bit 63 can be only set if we have $80000000 00000000 }
                 { and sign is true                                         }
                 (q3 shr 63<>0) and
-                 ((q3<>(qword(1) shl 63)) or not(sign))
+                 ((q3<>qword(qword(1) shl 63)) or not(sign))
                 ) then
                 HandleErrorFrame(215,get_frame);
 

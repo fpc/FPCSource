@@ -16,4 +16,6 @@ begin
    halt(1);
  if pwidechar(24)-pwidechar(22)<>1 then
   halt(1);
+ if pwidechar(22)+1 <> pwidechar(24) then
+   halt(1);
 end.

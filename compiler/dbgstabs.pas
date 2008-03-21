@@ -1051,7 +1051,7 @@ implementation
                assigned(tprocdef(def.owner.defowner).procsym) then
               info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
           end;
-        ss:='"'+obj+':'+RType+def_stab_number(def.returndef)+info+'",'+tostr(n_function)+',0,'+tostr(def.fileinfo.line)+','+def.mangledname;
+        ss:='"'+ansistring(obj)+':'+RType+def_stab_number(def.returndef)+info+'",'+tostr(n_function)+',0,'+tostr(def.fileinfo.line)+','+ansistring(def.mangledname);
         getmem(p,length(ss)+1);
         move(pchar(ss)^,p^,length(ss)+1);
         templist.concat(Tai_stab.Create(stab_stabs,p));
