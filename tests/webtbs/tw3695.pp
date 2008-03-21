@@ -64,6 +64,7 @@ begin
     //WriteLn('Loop forever inside Tester.run when compiled by FPC 1.9.8');
   end;
   thread.Terminate;
+  CheckSynchronize;
   thread.waitfor;
 end;
 
