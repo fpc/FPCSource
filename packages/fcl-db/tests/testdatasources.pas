@@ -33,6 +33,7 @@ type
     procedure TestCalcFirstRecord1;
     procedure TestRefreshLookupList;
     procedure TestCalculateFields;
+    procedure TestEnableControls;
   end;
   
 implementation
@@ -571,7 +572,7 @@ var ds, lkpDs   : TDataset;
     StoreValue : Variant;
     Buffer: pchar;
 begin
-  ds := DBConnector.GetTraceDataset(False);
+  ds := DBConnector.GetTraceDataset(True);
   lkpDs := DBConnector.GetNDataset(5);
   with ds do
     begin
@@ -618,12 +619,75 @@ begin
     THackDataset(ds).SetUniDirectional(False);
 
     // Else, the value of all the lookup fields should get calculated
+    edit;
+    FieldByName('name').asstring := 'TestName3';
+    post;
     DataEvents:='';
     THackDataset(ds).CalculateFields(Buffer);
     AssertEquals('CalculateFields;ClearCalcFields;DatasetNotifyEvent;',DataEvents);
-    // This assertion fails because of bug 11027
-    //AssertEquals('1',VarToStr(StoreValue));
+    AssertEquals('3',VarToStr(AFld3.Value));
     end;
+end;
+
+procedure TTestDatasources.TestEnableControls;
+var ds: TDataset;
+    ADataLink : TTestDataLink;
+    ADataSource : TDataSource;
+begin
+  ds := DBConnector.GetTraceDataset(False);
+  ADatasource := TDataSource.Create(nil);
+  ADatalink := TTestDataLink.Create;
+  ADatalink.DataSource := aDatasource;
+  ADataSource.DataSet := ds;
+  with ds do
+    begin
+    Open;
+    
+    // If DisableControls isn't called, nothing should happen.
+    DataEvents:='';
+    EnableControls;
+    AssertEquals('',DataEvents);
+
+    DisableControls;
+    DisableControls;
+    // DisableControls is called twice. Ie: first call to enablecontrols should
+    // still do nothing.
+    DataEvents:='';
+    EnableControls;
+    AssertEquals('',DataEvents);
+
+    // On this call to Enablecontrols, the controls should get enabled again:
+    DataEvents:='';
+    EnableControls;
+    AssertEquals('SetCurrentRecord;deDataSetChange:0;',DataEvents);
+
+    // If the state of the dataset has been changed while the controls were
+    // disabled, then an deUpdateState event should be raised
+    DisableControls;
+    THackDataset(ds).SetState(dsSetKey);
+    DataEvents:='';
+    EnableControls;
+    AssertEquals('deUpdateState:0;SetCurrentRecord;deDataSetChange:0;',DataEvents);
+    THackDataset(ds).SetState(dsBrowse);
+
+    // If the dataset is closed while the controls were disabled, then only
+    // an deUpdateState event should occur.
+    DisableControls;
+    Close;
+    DataEvents:='';
+    EnableControls;
+    AssertEquals('deUpdateState:0;',DataEvents);
+
+    // And the same happens if the dataset was opened
+    DisableControls;
+    Open;
+    DataEvents:='';
+    EnableControls;
+    AssertEquals('deUpdateState:0;',DataEvents);
+    close;
+    end;
+  ADataLink.Free;
+  ADataSource.Free;
 end;
 
 initialization
