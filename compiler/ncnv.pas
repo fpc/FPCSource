@@ -487,6 +487,8 @@ implementation
                                   begin
                                     if tordconstnode(p2).value>constsethi then
                                       constsethi:=tordconstnode(p2).value;
+                                    if tordconstnode(p2).value<constsetlo then
+                                      constsetlo:=tordconstnode(p2).value;
                                     if hdef=nil then
                                       hdef:=p2.resultdef;
                                   end
