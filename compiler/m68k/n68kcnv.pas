@@ -164,14 +164,11 @@ implementation
 
 {$warning needs LOC_JUMP support, because called for bool_to_bool from ncgcnv }
 
-         { bytebool(byte) or wordbool(word) or longbool(longint) must }
-         { be accepted for var parameters, and must not change the    }
-         { the ordinal value                                          }
+         { Explicit typecasts from any ordinal type to a boolean type }
+         { must not change the ordinal value                          }
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
-            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
-            is_cbool(resultdef) and
-            not is_pasbool(left.resultdef) then
+            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
            begin
               location_copy(location,left.location);
               location.size:=def_cgsize(resultdef);

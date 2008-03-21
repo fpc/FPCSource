@@ -2923,13 +2923,18 @@ implementation
                  )
                 ) or
                 { int 2 bool/bool 2 int, explicit typecast, see also nx86cnv }
-                ((convtype in [tc_int_2_bool,tc_bool_2_int]) and
+                ((convtype in [tc_int_2_bool,tc_bool_2_int,tc_bool_2_bool]) and
                  (nf_explicit in flags) and
                  (resultdef.size=left.resultdef.size));
 
         { When using only a part of the value it can't be in a register since
           that will load the value in a new register first }
-        if (resultdef.size<left.resultdef.size) then
+        { the same goes for changing the sign of equal-sized values which
+          are smaller than an entire register }
+        if (resultdef.size<left.resultdef.size) or
+           ((resultdef.size=left.resultdef.size) and
+            (left.resultdef.size<sizeof(aint)) and
+            (is_signed(resultdef) xor is_signed(left.resultdef))) then
           make_not_regable(left,[ra_addr_regable]);
       end;
 
