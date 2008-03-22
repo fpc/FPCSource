@@ -10,7 +10,9 @@ uses
 var
  wstr1: widestring;
 begin
+{$ifdef mswindows}
  winwidestringalloc:= false;
+{$endif}
  //crash exist with winwidestringalloc also but with bigger application only
  wstr1:= '123';
  wstr1:= 'ABC'+wstr1+'abc';
