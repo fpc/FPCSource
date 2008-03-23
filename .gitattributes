@@ -6690,6 +6690,7 @@ tests/tbs/tb0539.pp svneol=native#text/plain
 tests/tbs/tb0540.pp svneol=native#text/x-pascal
 tests/tbs/tb0541.pp svneol=native#text/plain
 tests/tbs/tb0542.pp svneol=native#text/plain
+tests/tbs/tb0544.pp svneol=native#text/plain
 tests/tbs/tb0545.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain

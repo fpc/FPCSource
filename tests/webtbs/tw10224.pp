@@ -7,13 +7,14 @@ var
 
 procedure expect(const v,s:string);
 var
-  s1 : string;
+  s1,s2 : string;
 begin
-  s1:=SetDirSeparators(s);
-  writeln('relative path: "',v,'"');
-  if v<>s then
+  s1:=SetDirSeparators(v);
+  s2:=SetDirSeparators(s);
+  writeln('relative path: "',s1,'"');
+  if s1<>s2 then
     begin
-      writeln('Error, expected "',s,'"');
+      writeln('Error, expected "',s2,'"');
       err:=true;
     end;
 end;
