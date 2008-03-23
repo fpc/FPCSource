@@ -257,6 +257,12 @@ implementation
             appenddef_object(list,tobjectdef(def));
           undefineddef :
             appenddef_undefined(list,tundefineddef(def));
+          procdef :
+            begin
+              { procdefs are already written in a separate step. procdef
+                support in appenddef is only needed for beforeappenddef to
+                write all local type defs }
+            end;
         else
           internalerror(200601281);
         end;

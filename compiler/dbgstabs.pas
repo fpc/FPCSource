@@ -466,31 +466,11 @@ implementation
           appenddef(TAsmList(arg),tfieldvarsym(p).vardef);
       end;
 
-{
-    procedure TDebugInfoStabs.method_write_defs(p:TObject;arg:pointer);
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        if tsym(p).typ<>procsym then
-          exit;
-        for i:=0 to tprocsym(p).ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(tprocsym(p).ProcdefList[i]);
-            insertdef(TAsmList(arg),pd.returndef);
-            if (po_virtualmethod in pd.procoptions) then
-              insertdef(TAsmList(arg),pd._class);
-            if assigned(pd.parast) then
-              write_symtable_defs(TAsmList(arg),pd.parast);
-            if assigned(pd.localst) then
-              write_symtable_defs(TAsmList(arg),pd.localst);
-          end;
-      end;
-}
 
     procedure TDebugInfoStabs.write_def_stabstr(list:TAsmList;def:tdef;const ss:ansistring);
       var
         stabchar : string[2];
+        symname  : string[20];
         st    : ansistring;
         p     : pchar;
       begin
@@ -499,12 +479,19 @@ implementation
           stabchar := 'Tt'
         else
           stabchar := 't';
+        { Type names for types defined in the current unit are already written in
+          the typesym }
+        if (def.owner.symtabletype=globalsymtable) and
+           not(def.owner.iscurrentunit) then
+          symname:='${sym_name}'
+        else
+          symname:='';
         { Here we maybe generate a type, so we have to use numberstring }
         if is_class(def) and
            tobjectdef(def).writing_class_record_dbginfo then
-          st:=def_stabstr_evaluate(def,'"${sym_name}:$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
+          st:=def_stabstr_evaluate(def,'"'+symname+':$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
         else
-          st:=def_stabstr_evaluate(def,'"${sym_name}:$1$2=',[stabchar,def_stab_number(def)]);
+          st:=def_stabstr_evaluate(def,'"'+symname+':$1$2=',[stabchar,def_stab_number(def)]);
         st:=st+ss;
         { line info is set to 0 for all defs, because the def can be in an other
           unit and then the linenumber is invalid in the current sourcefile }
@@ -956,6 +943,9 @@ implementation
       begin
         if not assigned(def.procstarttai) then
           exit;
+
+        { mark as used so the local type defs also be written }
+        def.dbg_state:=dbg_state_used;
 
         templist:=TAsmList.create;
 
