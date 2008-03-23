@@ -39,17 +39,20 @@
 *)
 
 {$ifdef NDS_INTERFACE}
+type 
+  f32 = integer;
+
 const
   REG_DISPCNT		: pcuint32 = pointer($4000000);
 
 {$ifdef ARM9}
-  WAIT_CR = REG_EXMEMCNT;
+  {$define   WAIT_CR := REG_EXMEMCNT}
 {$else}
-  WAIT_CR = REG_EXMEMSTAT;
+  {$define   WAIT_CR := REG_EXMEMSTAT}
 {$endif}
 
-  DISP_SR = REG_DISPSTAT;
-  DISP_Y = REG_VCOUNT;
+{$define   DISP_SR := REG_DISPSTAT}
+{$define   DISP_Y := REG_VCOUNT}
   
   REG_BGCTRL		: pcuint16 = pointer($4000008);
   REG_BG0CNT		: pcuint16 = pointer($4000008);
@@ -106,12 +109,13 @@ const
   REG_BLDMOD		: pcuint16 = pointer($4000050);
   REG_COLV		: pcuint16 = pointer($4000052);
   REG_COLY		: pcuint16 = pointer($4000054);
-  
-  SERIAL_CR = REG_SPICNT;
-  SERIAL_DATA = REG_SPIDATA;
-  SIO_CR = REG_SIOCNT;
-  R_CR = REG_RCNT;  
-  
+
+{$ifdef ARM7}
+  {$define SERIAL_CR := REG_SPICNT}
+  {$define SERIAL_DATA := REG_SPIDATA}
+  {$define SIO_CR := REG_SIOCNT}
+  {$define R_CR := REG_RCNT}  
+{$endif ARM7}
   (*	secondary screen *)
   REG_DISPCNT_SUB		: pcuint32 = pointer($4001000);
   REG_BGCTRL_SUB		: pcuint16 = pointer($4001008);
@@ -218,22 +222,22 @@ const
   REG_TM3CNT	: pcuint16 = pointer($400010E);
   
   
-  REG_SIOCNT		: pcuint16 = pointer($4000128);
+//  REG_SIOCNT		: pcuint16 = pointer($4000128);
   REG_SIOMLT_SEND	: pcuint16 = pointer($400012A);
   
-  KEYS		= REG_KEYINPUT;
-  KEYS_CR = REG_KEYCNT;
+{$define KEYS		:= REG_KEYINPUT}
+{$define KEYS_CR := REG_KEYCNT}
   //???
-  REG_RCNT		: pcuint16 = pointer($4000134);
+//  REG_RCNT		: pcuint16 = pointer($4000134);
   REG_HS_CTRL		: pcuint16 = pointer($4000140);
   
   (* Interupt	enable registers *)
-  IE  = REG_IE;
-  _IF	=	REG_IF;
-  IME	= REG_IME;
+{$define IE  := REG_IE}
+{$define _IF :=	REG_IF}
+{$define IME	:= REG_IME}
   
   (*controls power  0x30f	is all on *)
-  POWER_CR = REG_POWERCNT;
+{$define POWER_CR := REG_POWERCNT}
   
   (* ram	controllers	0x8	is enabled,	other bits have	to do with mapping *)
   REG_VRAM_A_CR	: pcuint8 = pointer($4000240);

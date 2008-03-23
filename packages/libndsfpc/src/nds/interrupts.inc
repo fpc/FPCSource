@@ -86,14 +86,20 @@ const
   IME_ENABLE  : IME_VALUE = 1;  (* Enable all interrupts not masked out in REG_IE *)
 
 
+type
+  TVoidFunctionPointer = procedure of object;
+  
 var
 //  __irq_vector: array [0..0] of VoidFunctionPointer; cvar; external;
 //  __irq_vector: array [0..0] of Pointer; cvar; external;
 //  __irq_flags: array [0..0] of cuint32; cvar; external;
 //  __irq_flags: pcuint32; cvar; external;
 //  __irq_vector: ^VoidFunctionPointer; cvar; external;
-  __irq_vector: Pointer; cvar; external;
-  __irq_flags: pcuint32; cvar; external;
+
+///  __irq_vector: Pointer; cvar; external;
+///  __irq_flags: pcuint32; cvar; external;
+  __irq_vector: Pointer; external name '__irq_vector';
+  __irq_flags: pcuint32; external name '__irq_flags';
 
 
 
@@ -107,10 +113,10 @@ type
   end;
 
 procedure irqInit(); cdecl; external;
-//procedure irqSet(irq: IRQ_MASK; handler: VoidFunctionPointer); cdecl; external;
+procedure irqSet(irq: IRQ_MASK; handler: TVoidFunctionPointer); cdecl; external;
 procedure irqSet(irq: IRQ_MASK; handler: pointer); cdecl; external;
 procedure irqClear(irq: IRQ_MASK); cdecl; external;
-//procedure irqInitHandler(handler: VoidFunctionPointer); cdecl; external;
+procedure irqInitHandler(handler: TVoidFunctionPointer); cdecl; external;
 procedure irqInitHandler(handler: pointer); cdecl; external;
 procedure irqEnable(irq: cuint32); cdecl; external;
 procedure irqDisable(irq: cuint32); cdecl; external;

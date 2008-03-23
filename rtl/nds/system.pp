@@ -58,6 +58,9 @@ var
   envp: PPChar;
   errno: integer;
   fake_heap_end: ^byte; cvar;
+  irq_vector: integer; external name '__irq_vector';
+  
+
 
 implementation
 
@@ -82,6 +85,23 @@ implementation
 
 
 {
+  NDS CPU detecting function
+  --------------------------
+   ARM946E-S processor can handle dsp extensions, but ARM7TDMI does not. FPC can 
+   detect dsp by catching a SIGILL that fires when ARM7 cpu tries to use a dsp 
+   command. Unfortunately, NDS' rtl does not have any error catching mechanism.
+   This function takes care to check if the code is running on an ARM9 or on an 
+   ARM7 CPU, by checking the IRQ vector address ($0B003FFC for ARM9, 0380fff8 
+   for ARM7), declared in the linker script. This function is cleaner than the
+   older one, because does not raise any memory writing error.  
+   It works on Nintendo DS only, I guess :)
+}
+function IsARM9(): boolean;
+begin
+  IsARM9 := integer(@irq_vector) = $0B003FFC;
+end;
+
+{
   NDS CPU detecting function (thanks to 21o6):
   --------------------------------------------
    "You see, the ARM7 can't write to bank A of VRAM, but it doesn't give any
@@ -93,16 +113,19 @@ implementation
    function takes care to check if the code is running on an ARM9 or on an ARM7
    CPU. It works on Nintendo DS only, I guess :)
 }
-function IsARM9(): boolean;
+function IsARM92(): boolean;
 var
   Dummy : pword absolute $06800000;
   tmp: word;
 begin
   tmp := Dummy^;
   Dummy^ := $C0DE;
-  IsARM9 := Dummy^ = $C0DE;
+  IsARM92 := Dummy^ = $C0DE;
   Dummy^ := tmp;
 end;
+
+
+
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: SizeUInt;

@@ -39,7 +39,45 @@
 *)
 
 {$ifdef NDS_INTERFACE}
-procedure playSound(sound: pTransferSoundData); cdecl; external;
-procedure setGenericSound(rate: cuint32; vol: cuint8; pan: cuint8; format: cuint8); cdecl; external;
-procedure playGenericSound(const data: pointer; length: cuint32); cdecl; external;
+var
+  Snd: TTransferSound;
+  SndDat: TTransferSoundData; //  =		{ (void *)0 , 0, 11025, 64, 64, 1 };
+
+procedure playSound(ASound: pTransferSoundData);
+procedure setGenericSound(rate: cuint32; vol: cuint8; pan: cuint8; format: cuint8);
+procedure playGenericSound(data: pointer; length: cuint32);
 {$endif NDS_INTERFACE}
+
+{$ifdef NDS_IMPLEMENTATION}
+procedure playSoundBlock(ASnd: PTransferSound);
+begin
+	DC_FlushRange(ASnd, sizeof(TTransferSound));
+	IPC^.soundData := ASnd;
+end;
+
+procedure setGenericSound(rate: cuint32; vol: cuint8; pan: cuint8; format: cuint8);
+begin
+	SndDat.rate		:= rate;
+	SndDat.vol		:= vol;
+	SndDat.pan		:= pan;
+	SndDat.format	:= format;
+end;
+
+procedure playSound(ASound: pTransferSoundData);
+begin
+	Snd.count := 1;
+	Move(ASound^,  Snd.data[0], sizeof(TTransferSoundData) );
+	playSoundBlock(@Snd);
+end;
+
+procedure playGenericSound(data: pointer; length: cuint32);
+begin
+	Snd.count := 1;
+  move(SndDat, Snd.data, sizeof(TTransferSoundData) );
+	Snd.data[0].data := data;
+	Snd.data[0].len := length;
+	playSoundBlock(@Snd);
+end;
+
+
+{$endif NDS_IMPLEMENTATION}

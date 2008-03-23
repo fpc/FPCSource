@@ -23,8 +23,8 @@
 (**** CONST *******************************************************************)
 const
   LIBMIKMOD_VERSION_MAJOR = 3;
-  LIBMIKMOD_VERSION_MINOR = 1;
-  LIBMIKMOD_REVISION      = 10;
+  LIBMIKMOD_VERSION_MINOR = 2;
+  LIBMIKMOD_REVISION      = 0;
 
   LIBMIKMOD_VERSION = (
                         (LIBMIKMOD_VERSION_MAJOR shl 16) or
@@ -88,6 +88,7 @@ const
   DMODE_SOFT_SNDFX = $0004; 
   DMODE_SOFT_MUSIC = $0008; 
   DMODE_HQMIXER    = $0010; 
+  DMODE_FLOAT      = $0020;
   DMODE_SURROUND   = $0100; 
   DMODE_INTERP     = $0200;
   DMODE_REVERSE    = $0400;
@@ -146,6 +147,7 @@ const
 
   MAXSAMPLEHANDLES  = 384;
 
+  STM_NTRACKERS = 3;
 
 (****** Types *****************************************************************)
 type
@@ -243,6 +245,18 @@ type
     MMERR_MAC_SPEED,
     MMERR_MAC_START,
 
+    MMERR_OSX_UNKNOWN_DEVICE,
+    MMERR_OSX_BAD_PROPERTY,
+    MMERR_OSX_UNSUPPORTED_FORMAT,
+    MMERR_OSX_SET_STEREO,
+    MMERR_OSX_BUFFER_ALLOC,
+    MMERR_OSX_ADD_IO_PROC,
+    MMERR_OSX_DEVICE_START,
+    MMERR_OSX_PTHREAD,
+    
+    MMERR_DOSWSS_STARTDMA,
+    MMERR_DOSSB_STARTDMA,
+    
     MMERR_MAX
   );
     
@@ -329,6 +343,7 @@ type
     fadevol: cushort;
     panning: csshort;
     kick: cuchar;
+    kick_flag: cuchar;
     period: cushort;
     nna: cuchar;
     volflg: cuchar;
@@ -362,7 +377,9 @@ type
 
   MP_CONTROL = packed record
     main: MP_CHANNEL;
+    
     slave: PMP_VOICE;
+    
     slavechn: cuchar;
     muted: cuchar;
     ultoffset: cushort;
@@ -394,27 +411,34 @@ type
     vibpos: cschar;
     vibspd: cuchar;
     vibdepth: cuchar;
+    
     trmpos: cschar;
     trmspd: cuchar;
     trmdepth: cuchar;
+    
     fslideupspd: cuchar;
     fslidednspd: cuchar;
     fportupspd: cuchar;
     fportdnspd: cuchar;
     ffportupspd: cuchar;
     ffportdnspd: cuchar;
+    
     hioffset: cuint;
     soffset: cushort;
+    
     sseffect: cuchar;
     ssdata: cuchar;
     chanvolslide: cuchar;
+    
     panbwave: cuchar;
     panbpos: cuchar;
     panbspd: cschar;
     panbdepth: cuchar;
+    
     newsamp: cushort;
     voleffect: cuchar;
     voldata: cuchar;
+    
     pat_reppos: csshort;
     pat_repcnt: cushort;
   end;
@@ -493,6 +517,20 @@ type
   end;
   TModule = MODULE;
   PModule = ^MODULE;
+
+
+  VOICEINFO = packed record
+    i: PInstrument;
+    s: PSample;
+    panning: csshort;
+    volume: cschar;
+    period: cushort;
+    kick: cuchar;
+  end;
+  TVoiceInfo = VOICEINFO;
+  PVoiceInfo = ^VOICEINFO;
+  
+
 
   drvenum1 = (
     MD_MUSIC = 0,
@@ -615,6 +653,7 @@ type
     HardVoiceLimit: cuchar;
     SoftVoiceLimit: cuchar;
     Alias: pcchar;
+    CmdLineHelp: pcchar;
     CommandLine: TMDCommandLine;
     IsPresent: TMDIsPresent;
     SampleLoad: TMDSampleLoad;
@@ -788,6 +827,7 @@ var
 
   load_669: MLOADER; cvar; external; (* 669 and Extended-669 (by Tran/Renaissance) *)
   load_amf: MLOADER; cvar; external; (* DMP Advanced Module Format (by Otto Chrons) *)
+  load_asy: MLOADER; cvar; external; (* ASYLUM Music Format 1.0 *)
   load_dsm: MLOADER; cvar; external; (* DSIK internal module format *)
   load_far: MLOADER; cvar; external; (* Farandole Composer (by Daniel Potter) *)
   load_gdm: MLOADER; cvar; external; (* General DigiMusic (by Edward Schlunder) *)
@@ -825,6 +865,7 @@ var
 {$ifdef ARM9}
 var
   md_bpm: cushort; cvar;
+  
 procedure MikMod9_SendCommand(command: cuint); cdecl; {forward;}external; 
 function Player_LoadMemory(const buffer: pointer; size: cint; maxchan: cint; curious: cint): PModule; cdecl; external;
 {$endif ARM9}
@@ -904,6 +945,42 @@ procedure _mm_write_M_ULONGS(value1: pcuint; value2: cint; value3: PMWriter); cd
 procedure _mm_write_I_ULONGS(value1: pcuint; value2: cint; value3: PMWriter); cdecl; external;
 
 
+procedure SL_HalveSample(value1: PSAMPLOAD; value2: cint); cdecl; external;
+procedure SL_Sample8to16(value: PSAMPLOAD); cdecl; external;
+procedure SL_Sample16to8(value: PSAMPLOAD); cdecl; external;
+procedure SL_SampleSigned(value: PSAMPLOAD); cdecl; external;
+procedure SL_SampleUnsigned(value: PSAMPLOAD); cdecl; external;
+function SL_LoadSamples(): cint; cdecl; external;
+function SL_RegisterSample(value1: PSAMPLE; value2: cint; value3: PMREADER): PSAMPLOAD; cdecl; external;
+function SL_Load(value1: pointer; value2: PSAMPLOAD; value3: cuint): cint; cdecl; external;
+function SL_Init(value: PSAMPLOAD): cint; cdecl; external;
+procedure SL_Exit(value: PSAMPLOAD); cdecl; external;
+
+
+
+
+procedure UniSetRow(value: pcuchar); cdecl; external;
+function UniGetByte(): cuchar; cdecl; external;
+function UniGetWord(): cushort; cdecl; external;
+function UniFindRow(value1: pcuchar; value2: cushort): pcuchar; cdecl; external;
+procedure UniSkipOpcode(); cdecl; external;
+procedure UniReset(); cdecl; external;
+procedure UniWriteByte(value: cuchar); cdecl; external;
+procedure UniWriteWord(value: cushort); cdecl; external;
+procedure UniNewline(); cdecl; external;
+function UniDup(): pcuchar; cdecl; external;
+function UniInit(): cint; cdecl; external;
+procedure UniCleanup(); cdecl; external;
+procedure UniEffect(value1: cushort; value2: cushort); cdecl; external;
+procedure UniInstrument(x: cushort); inline;
+procedure UniNote(x: cushort); inline;
+procedure UniPTEffect(value1: cuchar; value2: cuchar); cdecl; external;
+procedure UniVolEffect(value1: cushort; value2: cuchar); cdecl; external;
+
+
+
+
+
 function MikMod_strerror(value: cint): pcchar; cdecl; external;
 function MikMod_RegisterErrorHandler(value: MikMod_handler_t): MikMod_handler_t; cdecl; external;
 
@@ -912,6 +989,7 @@ procedure MikMod_RegisterAllDrivers(); cdecl; external;
 function MikMod_InfoDriver(): pcchar; cdecl; external;
 procedure MikMod_RegisterDriver(value: PMDriver); cdecl; external;
 function MikMod_DriverFromAlias(value: pcint): cint; cdecl; external;
+function MikMod_DriverByOrdinal(value: cint): PMDriver; cdecl; external;
 
 function MikMod_Init(value: string): cint; cdecl; external;
 procedure MikMod_Exit(); cdecl; external;
@@ -972,6 +1050,7 @@ procedure Player_Mute(value: csint; args: array of const); cdecl; external;
 procedure Player_ToggleMute(value: csint; args: array of const); cdecl; external;
 function Player_GetChannelVoice(value: cuchar): cint; cdecl; external;
 function Player_GetChannelPeriod(value: cuchar): cushort; cdecl; external;
+function Player_QueryVoices(numvoices: cushort; vinfo: PVOICEINFO): cint; cdecl; external; 
 
 function MikMod_RegisterPlayer(value: MikMod_player_t): MikMod_player_t; cdecl; external;
 
@@ -1060,6 +1139,87 @@ type
     NDS_HW_CMD_VOICE_UPDATE
   );
   
+
+var
+  modreader: PMREADER; cvar; external; 
+  finetune: array [0..15] of cushort; cvar; external;
+  _of: MODULE; external name 'of';
+  npertab: array [0..(7 * OCTAVE) - 1] of cushort; cvar; external;
+
+  remap: array [0..UF_MAXCHAN - 1] of cschar; cvar; external;
+  poslookup: pcuchar; cvar; external;
+
+  poslookupcnt: cuchar; cvar; external;
+  origpositions: pcushort; cvar; external;
+
+  filters: cint; cvar; external;
+  activemacro: cuchar; cvar; external;
+  filtermacros: array [0..UF_MAXMACRO - 1] of cuchar; cvar; external;
+  filtersettings: array [0..UF_MAXFILTER - 1] of FILTER; cvar; external;
+
+  noteindex: pcint; cvar; external;
+
+
+function ReadComment(value: cushort): cint; cdecl; external;
+function ReadLinedComment(value1: cushort; value2: cushort): cint; cdecl; external;
+function AllocPositions(value: cint): cint; cdecl; external;
+function AllocPatterns(): cint; cdecl; external;
+function AllocTracks(): cint; cdecl; external;
+function AllocInstruments(): cint; cdecl; external;
+function AllocSamples(): cint; cdecl; external;
+function DupStr(value1: pcchar; value2: cushort; value3: cint): pcchar; cdecl; external;
+
+function AllocLinear(): pcint; cdecl; external;
+procedure FreeLinear(); cdecl; external;
+function speed_to_finetune(value1: cuint; value2: cint): cint; cdecl; external;
+procedure S3MIT_ProcessCmd(value1: cuchar; value2: cuchar; value3: cuint); cdecl; external;
+procedure S3MIT_CreateOrders(value: cint); cdecl; external;
+
+function getlinearperiod(value1: cushort; value2: cuint): cushort; cdecl; external;
+function getfrequency(value1: cushort; value2: cuint): cuint; cdecl; external;
+
+var
+  STM_Signatures: array [0..STM_NTRACKERS - 1] of pcchar; cvar; external;
+  md_numchn: cushort; cvar; external;
+  md_sngchn: cushort; cvar; external;
+  md_sfxchn: cushort; cvar; external;
+  md_hardchn: cushort; cvar; external;
+  md_softchn: cushort; cvar; external;
+  
+  
+function MD_SampleLoad(value1: PSAMPLOAD; value2: cint): csshort; cdecl; external;
+procedure MD_SampleUnload(value: csshort); cdecl; external;
+function MD_SampleSpace(value: cint): cuint; cdecl; external;
+function MD_SampleLength(value1: cint; value2: PSAMPLE): cuint; cdecl; external;
+
+procedure unsignedtoulaw(value1: pcchar; value2: cint); cdecl; external;
+
+function MD_GetAtom(value1, value2: pcchar; value3: cint): pcchar; cdecl; external;
+
+procedure VC_SetupPointers(); cdecl; external;
+function VC1_Init(): cint; cdecl; external;
+function VC2_Init(): cint; cdecl; external;
+
+
+procedure _mm_registerdriver(value: PMDRIVER); cdecl; external;
+procedure _mm_registerloader(value: PMLOADER); cdecl; external;
+function MikMod_Active_internal(): cint; cdecl; external;
+procedure MikMod_DisableOutput_internal(); cdecl; external;
+function MikMod_EnableOutput_internal(): cint; cdecl; external;
+procedure MikMod_Exit_internal(); cdecl; external;
+function MikMod_SetNumVoices_internal(value1, value2: cint): cint; cdecl; external;
+procedure Player_Exit_internal(value: PMODULE); cdecl; external;
+procedure Player_Stop_internal(); cdecl; external;
+function Player_Paused_internal(): cint; cdecl; external;
+procedure Sample_Free_internal(value: PSAMPLE); cdecl; external;
+procedure Voice_Play_internal(value1: cschar; value2: PSAMPLE; value3: cuint); cdecl; external;
+procedure Voice_SetFrequency_internal(value1: cschar; value2: cuint); cdecl; external;
+procedure Voice_SetPanning_internal(value1: cschar; value2: cuint); cdecl; external;
+procedure Voice_SetVolume_internal(value1: cschar; value2: cushort); cdecl; external;
+procedure Voice_Stop_internal(value: cschar); cdecl; external;
+function Voice_Stopped_internal(value: cschar): cint; cdecl; external;
+
+
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
@@ -1073,4 +1233,15 @@ begin
     FreeMem(p);
   p := nil;
 end;
+
+procedure UniInstrument(x: cushort); inline;
+begin
+  UniEffect(cushort(UNI_INSTRUMENT), x)
+end; 
+
+procedure UniNote(x: cushort); inline;
+begin
+  UniEffect(cushort(UNI_NOTE), x)
+end;
+
 {$endif NDS_IMPLEMENTATION}

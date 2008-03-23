@@ -83,17 +83,6 @@ end;
 
 {$ifdef ARM9}
 {$ifdef NDS_INTERFACE}
-{$ifdef DOXYGEN}
-type
-  ARM9_power = cint;
-const  
-  POWER_LCD       : ARM9_power = 0;
-  POWER_2D_A      : ARM9_power = 1;
-  POWER_MATRIX    : ARM9_power = 2;
-  POWER_3D_CORE   : ARM9_power = 3;
-  POWER_2D_B      : ARM9_power = 4;
-  POWER_SWAP_LCDS : ARM9_power = 5;
-{$else DOXYGEN}
 const
   POWER_LCD			= (1 shl 0);
   POWER_2D_A		= (1 shl 1);
@@ -103,7 +92,6 @@ const
   POWER_SWAP_LCDS	= (1 shl 15);
   POWER_ALL_2D    = (POWER_LCD or POWER_2D_A or POWER_2D_B);
   POWER_ALL       = (POWER_ALL_2D or POWER_3D_CORE or POWER_MATRIX);
-{$endif DOXYGEN}
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
@@ -126,17 +114,10 @@ end;
 
 {$ifdef ARM7}
 {$ifdef NDS_INTERFACE}
-{$ifdef DOXYGEN}
-type
-  ARM7_power = cint;
-const
-    POWER_SOUND: ARM7_power = 0;	
-    POWER_UNKNOWN: ARM7_power = 1;	
-{$else DOXYGEN}
 const
   POWER_SOUND  = (1 shl 0);
   POWER_UNKNOWN  = (1 shl 1);
-{$endif DOXYGEN}
+
 procedure readUserSettings(); cdecl; external;
 {$endif NDS_INTERFACE}
 {$endif ARM7}

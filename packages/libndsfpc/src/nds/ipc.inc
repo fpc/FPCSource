@@ -87,20 +87,22 @@ type
             end;
            ); 
     end;
-    unixTime: cint32;
+//    unixTime: cint32; // Moved!
     
   	battery: cuint16;            // battery life ??  hopefully.  :)
   	aux: cuint16;                // i have no idea...
 
   
     // Don't rely on these below, will change or be removed in the future
-  	soundData: pTransferSound;
+  	soundData: PTransferSound;
     mailAddr: cuint32;
     mailData: cuint32;
     mailRead: cuint8;
     mailBusy: cuint8;
     mailSize: cuint32;
 
+    // unixTime here, because in the old position it breaked nds sound system O_o
+    unixTime: cint32;
   end;
   TransferRegion = sTransferRegion; 
   TTransferRegion = TransferRegion;
@@ -129,14 +131,14 @@ const
 
 
 {$ifdef NDS_IMPLEMENTATION}
-function getIPC(): pTransferRegion; inline;
+function getIPC(): PTransferRegion; inline;
 begin
-	getIPC := pTransferRegion(pointer($027FF000));
+	getIPC := PTransferRegion(pointer($027FF000));
 end;
 
-function IPC(): TransferRegion; 
+function IPC(): PTransferRegion; inline;
 begin
-	IPC := getIPC()^;
+	IPC := getIPC();
 end;
   
 procedure IPC_SendSync(sync: cuint); inline; 
@@ -173,8 +175,8 @@ const
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_INTERFACE}
-function getIPC(): pTransferRegion; inline;
-function IPC(): TransferRegion; 
+function getIPC(): PTransferRegion; inline;
+function IPC(): PTransferRegion; inline;
 procedure IPC_SendSync(sync: cuint); inline; 
 function IPC_GetSync(): cint; inline;
 {$endif NDS_INTERFACE}
