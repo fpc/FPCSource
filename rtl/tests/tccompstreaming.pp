@@ -698,8 +698,12 @@ begin
     ExpectFlags([],0);
     ExpectBareString('TEnumComponent2');
     ExpectBareString('TestTEnumComponent2');
+{$ifndef FPC}
+    // FPC does not stream an undeclared default value, it assumes the
+    // 0-the value is the default.
     ExpectBareString('Dice');
     ExpectIdent('one');
+{$endif FPC}
     ExpectEndOfList;
     ExpectEndOfList;
   Finally
@@ -811,9 +815,13 @@ begin
     ExpectFlags([],0);
     ExpectBareString('TSetComponent2');
     ExpectBareString('TestTSetComponent2');
+{$ifndef FPC}
+    // Same as for sets: a set with undeclared default is regarded as
+    // A set with default [], and is not streamed if it is empty.
     ExpectBareString('Throw');
     ExpectValue(vaSet);
     ExpectBareString('');
+{$endif FPC}
     ExpectEndOfList;
     ExpectEndOfList;
   Finally

@@ -8,7 +8,7 @@
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
       <Title Value="findnested"/>
-      <ActiveEditorIndexAtStart Value="7"/>
+      <ActiveEditorIndexAtStart Value="6"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -29,10 +29,10 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="FCL"/>
+        <PackageName Value="FPCUnitConsoleRunner"/>
       </Item1>
       <Item2>
-        <PackageName Value="FPCUnitConsoleRunner"/>
+        <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
     <Units Count="19">
@@ -52,7 +52,7 @@
         <UnitName Value="tcfindnested"/>
         <CursorPos X="14" Y="17"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="3"/>
         <UsageCount Value="90"/>
         <Loaded Value="True"/>
       </Unit1>
@@ -62,7 +62,7 @@
         <UnitName Value="tcstringlist"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="25"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="2"/>
         <UsageCount Value="90"/>
         <Loaded Value="True"/>
       </Unit2>
@@ -72,7 +72,7 @@
         <UnitName Value="tccollection"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="436"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="10"/>
         <UsageCount Value="90"/>
         <Loaded Value="True"/>
       </Unit3>
@@ -82,7 +82,7 @@
         <UnitName Value="tclist"/>
         <CursorPos X="1" Y="336"/>
         <TopLine Value="331"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="11"/>
         <UsageCount Value="90"/>
         <Loaded Value="True"/>
       </Unit4>
@@ -92,7 +92,7 @@
         <UnitName Value="tcpersistent"/>
         <CursorPos X="22" Y="52"/>
         <TopLine Value="127"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="4"/>
         <UsageCount Value="90"/>
         <Loaded Value="True"/>
       </Unit5>
@@ -102,7 +102,7 @@
         <UnitName Value="tclinkedlist"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="108"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="90"/>
         <Loaded Value="True"/>
       </Unit6>
@@ -136,7 +136,7 @@
         <UnitName Value="testutils"/>
         <CursorPos X="59" Y="10"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="7"/>
         <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit11>
@@ -145,7 +145,7 @@
         <UnitName Value="fpcunit"/>
         <CursorPos X="1" Y="1042"/>
         <TopLine Value="1020"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="8"/>
         <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit12>
@@ -154,7 +154,7 @@
         <UnitName Value="testregistry"/>
         <CursorPos X="1" Y="117"/>
         <TopLine Value="94"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="9"/>
         <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit13>
@@ -175,59 +175,28 @@
         <UnitName Value="fpcunitconsolerunner"/>
         <CursorPos X="62" Y="14"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="22"/>
-        <Loaded Value="True"/>
       </Unit16>
       <Unit17>
         <Filename Value="tccompstreaming.pp"/>
         <UnitName Value="tccompstreaming"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="5"/>
         <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="../objpas/typinfo.pp"/>
         <UnitName Value="typinfo"/>
-        <CursorPos X="55" Y="344"/>
+        <CursorPos X="17" Y="346"/>
         <TopLine Value="319"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="6"/>
         <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit18>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
-      <Position1>
-        <Filename Value="testclasses.lpr"/>
-        <Caret Line="7" Column="26" TopLine="1"/>
-      </Position1>
-      <Position2>
-        <Filename Value="testclasses.lpr"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position2>
-      <Position3>
-        <Filename Value="testclasses.lpr"/>
-        <Caret Line="19" Column="31" TopLine="1"/>
-      </Position3>
-      <Position4>
-        <Filename Value="../../../lazarus/components/fpcunit/console/fpcunitconsolerunner.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position4>
-      <Position5>
-        <Filename Value="testclasses.lpr"/>
-        <Caret Line="5" Column="15" TopLine="1"/>
-      </Position5>
-      <Position6>
-        <Filename Value="tccompstreaming.pp"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position6>
-      <Position7>
-        <Filename Value="../objpas/typinfo.pp"/>
-        <Caret Line="15" Column="25" TopLine="1"/>
-      </Position7>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
@@ -235,6 +204,11 @@
       <Generate Value="Faster"/>
       <TargetCPU Value="x86_64"/>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
+    </Linking>
     <Other>
       <CustomOptions Value="
 "/>

@@ -535,6 +535,7 @@ initialization
   InitCriticalSection(ResolveSection);
   
 finalization
+  FreeAndNil(NeedResolving);
   DoneCriticalsection(ResolveSection);
 end.
 

@@ -282,7 +282,7 @@ begin
     begin
     RN:=R.NextRef;
     If R.Resolve(Self.Instance) then
-      FUnresolved.RemoveItem(R);
+      FUnresolved.RemoveItem(R,True);
     R:=RN;
     end;
   Result:=RootUnResolved=Nil;
