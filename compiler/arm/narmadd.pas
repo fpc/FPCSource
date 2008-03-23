@@ -301,17 +301,22 @@ interface
 
 
     function tarmaddnode.pass_1 : tnode;
+      var
+        unsigned : boolean;
       begin
         result:=inherited pass_1;
 
-        { handling boolean expressions }
-        if not(assigned(result)) and
-           (
-             not(is_boolean(left.resultdef)) or
-             not(is_boolean(right.resultdef)) or
-             is_dynamic_array(left.resultdef)
-           ) then
-          expectloc:=LOC_FLAGS;
+        if not(assigned(result)) then
+          begin
+            unsigned:=not(is_signed(left.resultdef)) or
+              not(is_signed(right.resultdef));
+
+            if is_64bit(left.resultdef) and
+              ((nodetype in [equaln,unequaln]) or
+               (unsigned and (nodetype in [ltn,lten,gtn,gten]))
+              ) then
+              expectloc:=LOC_FLAGS;
+          end;
       end;
 
 
