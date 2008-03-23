@@ -341,31 +341,6 @@ implementation
       end;
 
 
-    procedure check_inline_para(p:TObject;arg:pointer);
-      var
-        pd : tabstractprocdef absolute arg;
-      begin
-        if not(po_inline in pd.procoptions) or
-           (tsym(p).typ<>paravarsym) then
-         exit;
-        with tparavarsym(p) do
-         begin
-           case vardef.typ of
-             arraydef :
-               begin
-                 if is_array_constructor(vardef) or
-                    is_variant_array(vardef) then
-                   begin
-                     Message1(parser_w_not_supported_for_inline,'array of const');
-                     Message(parser_w_inlining_disabled);
-                     pd.proccalloption:=pocall_default;
-                   end;
-               end;
-           end;
-         end;
-      end;
-
-
     procedure set_addr_param_regable(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ<>paravarsym) then
@@ -1200,12 +1175,6 @@ begin
 end;
 
 
-procedure pd_inline(pd:tabstractprocdef);
-begin
-  { Check if there are parameters that can't be inlined }
-  pd.parast.SymList.ForEachCall(@check_inline_para,pd);
-end;
-
 procedure pd_internconst(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
@@ -1730,7 +1699,7 @@ const
     ),(
       idtok:_INLINE;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
-      handler  : @pd_inline;
+      handler  : nil;
       pocall   : pocall_none;
       pooption : [po_inline];
       mutexclpocall : [];
