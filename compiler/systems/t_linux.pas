@@ -27,6 +27,7 @@ unit t_linux;
 interface
 
   uses
+    aasmdata,
     symsym,symdef,ppu,
     import,export,expunix,link;
 
@@ -36,6 +37,7 @@ interface
     end;
 
     texportliblinux=class(texportlibunix)
+      procedure setfininame(list: TAsmList; const s: string); override;
     end;
 
     tlinkerlinux=class(texternallinker)
@@ -65,7 +67,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,
-    aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,
+    aasmbase,aasmtai,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
     comprsrc,
     rescmn, i_linux
@@ -87,6 +89,20 @@ implementation
           end;
       end;
 
+
+{*****************************************************************************
+                               TEXPORTLIBLINUX
+*****************************************************************************}
+
+    procedure texportliblinux.setfininame(list: TAsmList; const s: string);
+      begin
+        { the problem with not having a .fini section is that a finalization
+          routine in regular code can get "smart" linked away -> reference it
+          just like the debug info }
+        list.concat(Tai_section.create(sec_fpc,'links',0));
+        list.concat(Tai_const.Createname(s,0));
+        inherited setfininame(list,s);
+      end;
 
 {*****************************************************************************
                                   TLINKERLINUX

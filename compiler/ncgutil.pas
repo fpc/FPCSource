@@ -2062,9 +2062,7 @@ implementation
 
         if (current_module.islibrary) then
           if (current_procinfo.procdef.proctypeoption = potype_proginit) then
-            exportlib.setinitname(list,current_procinfo.procdef.mangledname)
-          else if ((current_module.flags and uf_finalize)<>0) then
-            exportlib.setfininame(list,current_procinfo.procdef.mangledname);
+            exportlib.setinitname(list,current_procinfo.procdef.mangledname);
         
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
           begin
