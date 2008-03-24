@@ -488,8 +488,8 @@ override FPC=
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' cycleclean compiler
 endif
 
 endif
