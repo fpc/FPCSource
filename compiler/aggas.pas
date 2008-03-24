@@ -250,7 +250,7 @@ implementation
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
 {$warning TODO .data.ro not yet working}
-{$if defined(arm) or defined(powerpc)} 
+{$if defined(arm) or defined(powerpc)}
           '.rodata',
 {$else arm}
           '.data',
@@ -258,7 +258,7 @@ implementation
 {$if defined(m68k)} { Amiga/m68k GNU AS doesn't seem to like .rodata (KB) }
           '.data',
 {$else}
-	  '.rodata',
+    '.rodata',
 {$endif}
           '.bss',
           '.threadvar',
@@ -563,6 +563,7 @@ implementation
 
            ait_align :
              begin
+               last_align := tai_align_abstract(hp).aligntype;
                if tai_align_abstract(hp).aligntype>1 then
                  begin
                    if not(target_info.system in systems_darwin) then
@@ -629,27 +630,53 @@ implementation
                        asmwrite(','+tostr(tai_datablock(hp).size));
                        asmwrite(','+tostr(last_align));
                        asmln;
-                     end
+                     end;
                  end
                else
                  begin
-                   { The .comm is required for COMMON symbols. These are used
-                     in the shared library loading. All the symbols declared in
-                     the .so file need to resolve to the data allocated in the main
-                     program (PFV) }
-                   if Tai_datablock(hp).is_global then
+{$ifdef USE_COMM_IN_BSS}
+                   if writingpackages then
                      begin
-                       asmwrite(#9'.comm'#9);
-                       asmwrite(tai_datablock(hp).sym.name);
-                       asmwrite(','+tostr(tai_datablock(hp).size));
-                       asmln;
+                       { The .comm is required for COMMON symbols. These are used
+                         in the shared library loading. All the symbols declared in
+                         the .so file need to resolve to the data allocated in the main
+                         program (PFV) }
+                       if tai_datablock(hp).is_global then
+                         begin
+                           asmwrite(#9'.comm'#9);
+                           asmwrite(tai_datablock(hp).sym.name);
+                           asmwrite(','+tostr(tai_datablock(hp).size));
+                           asmwrite(','+tostr(last_align));
+                           asmln;
+                         end
+                       else
+                         begin
+                           asmwrite(#9'.lcomm'#9);
+                           asmwrite(tai_datablock(hp).sym.name);
+                           asmwrite(','+tostr(tai_datablock(hp).size));
+                           asmwrite(','+tostr(last_align));
+                           asmln;
+                         end
                      end
                    else
+{$endif USE_COMM_IN_BSS}
                      begin
-                       asmwrite(#9'.lcomm'#9);
-                       asmwrite(tai_datablock(hp).sym.name);
-                       asmwrite(','+tostr(tai_datablock(hp).size));
-                       asmln;
+                       if Tai_datablock(hp).is_global then
+                         begin
+                           asmwrite(#9'.globl ');
+                           asmwriteln(Tai_datablock(hp).sym.name);
+                         end;
+                       if (target_info.system <> system_arm_linux) then
+                         sepChar := '@'
+                       else
+                         sepChar := '%';
+                       if (tf_needs_symbol_type in target_info.flags) then
+                         asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
+                       if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
+                         asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
+                       asmwrite(Tai_datablock(hp).sym.name);
+                       asmwriteln(':');
+                       asmwriteln(#9'.zero '+tostr(Tai_datablock(hp).size));
                      end;
                  end;
              end;

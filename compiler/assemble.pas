@@ -943,9 +943,12 @@ Implementation
                end;
              ait_datablock :
                begin
-                 if Tai_datablock(hp).is_global then
+{$ifdef USE_COMM_IN_BSS}
+                 if writingpackages and
+                    Tai_datablock(hp).is_global then
                    ObjData.SymbolDefine(Tai_datablock(hp).sym)
                  else
+{$endif USE_COMM_IN_BSS}
                    begin
                      ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
                      ObjData.SymbolDefine(Tai_datablock(hp).sym);
@@ -1026,13 +1029,17 @@ Implementation
                begin
                  if (oso_data in ObjData.CurrObjSec.secoptions) then
                    Message(asmw_e_alloc_data_only_in_bss);
-                 if Tai_datablock(hp).is_global then
+{$ifdef USE_COMM_IN_BSS}
+                 if writingpackages and
+                    Tai_datablock(hp).is_global then
                    begin
                      objsym:=ObjData.SymbolDefine(Tai_datablock(hp).sym);
                      objsym.size:=Tai_datablock(hp).size;
                      objsym.bind:=AB_COMMON;
+                     objsym.alignment:=needtowritealignmentalsoforELF;
                    end
                  else
+{$endif USE_COMM_IN_BSS}
                    begin
                      ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
                      objsym:=ObjData.SymbolDefine(Tai_datablock(hp).sym);
@@ -1127,7 +1134,10 @@ Implementation
              ait_datablock :
                begin
                  ObjOutput.exportsymbol(ObjData.SymbolRef(Tai_datablock(hp).sym));
-                 if not Tai_datablock(hp).is_global then
+{$ifdef USE_COMM_IN_BSS}
+                 if not(writingpackages and
+                        Tai_datablock(hp).is_global) then
+{$endif USE_COMM_IN_BSS}
                    begin
                      ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
                      ObjData.alloc(Tai_datablock(hp).size);
