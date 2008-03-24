@@ -142,6 +142,7 @@ var
   cpu : tcputype;
   fpu : tfputype;
   opt : toptimizerswitch;
+  abi : tabi;
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -183,6 +184,19 @@ begin
             if hs1<>'' then
               begin
                 Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+                Comment(V_Normal,hs);
+              end;
+          end;
+      end
+     else if pos('$ABITARGETS',s)>0 then
+      begin
+        for abi:=low(abi) to high(abi) do
+          begin
+            hs:=s;
+            hs1:=abi2str[abi];
+            if hs1<>'' then
+              begin
+                Replace(hs,'$ABITARGETS',hs1);
                 Comment(V_Normal,hs);
               end;
           end;
@@ -478,6 +492,22 @@ begin
                while j<=length(more) do
                 begin
                   case more[j] of
+                    'a' :
+                      begin
+                        s:=upper(copy(more,j+1,length(more)-j));
+                        if not(SetAbiType(s,target_info.abi)) then
+                          IllegalPara(opt);
+                        break;
+                      end;
+
+                    'b' :
+                       begin
+                         if UnsetBool(More, j) then
+                           target_info.endian:=endian_little
+                         else
+                           target_info.endian:=endian_big;
+                       end;
+
                     'c' :
                        begin
                          if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),init_settings.defproccall) then
@@ -1928,7 +1958,6 @@ procedure TOption.TargetOptions(def:boolean);
 var
   s : string;
   i : integer;
-  abi : tabi;
 begin
   if def then
    def_system_macro(target_info.shortname)
@@ -1947,41 +1976,6 @@ begin
       undef_system_macro(Copy(s,1,i-1));
      delete(s,1,i);
    end;
-
-  { endian define }
-  case target_info.endian of
-    endian_little :
-      begin
-         if def then
-           begin
-             def_system_macro('ENDIAN_LITTLE');
-             def_system_macro('FPC_LITTLE_ENDIAN');
-           end
-         else
-           begin
-             undef_system_macro('ENDIAN_LITTLE');
-             undef_system_macro('FPC_LITTLE_ENDIAN');
-           end;
-      end;
-    endian_big :
-      begin
-         if def then
-           begin
-             def_system_macro('ENDIAN_BIG');
-             def_system_macro('FPC_BIG_ENDIAN');
-           end
-         else
-           begin
-             undef_system_macro('ENDIAN_BIG');
-             undef_system_macro('FPC_BIG_ENDIAN');
-           end
-      end;
-  end;
-
-  { define abi }
-  for abi:=low(tabi) to high(tabi) do
-    undef_system_macro('FPC_ABI_'+upper(abi2str[abi]));
-  def_system_macro('FPC_ABI_'+upper(abi2str[target_info.abi]));
 
   if (tf_winlikewidestring in target_info.flags) then
     if def then
@@ -2115,6 +2109,7 @@ procedure read_arguments(cmd:string);
 var
   env: ansistring;
   i : tfeature;
+  abi : tabi;
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -2320,6 +2315,25 @@ begin
   { Stop if errors in options }
   if ErrorCount>0 then
    StopOptions(1);
+
+  { endian define }
+  case target_info.endian of
+    endian_little :
+      begin
+        def_system_macro('ENDIAN_LITTLE');
+        def_system_macro('FPC_LITTLE_ENDIAN');
+      end;
+    endian_big :
+      begin
+        def_system_macro('ENDIAN_BIG');
+        def_system_macro('FPC_BIG_ENDIAN');
+      end;
+  end;
+
+  { define abi }
+  for abi:=low(tabi) to high(tabi) do
+    undef_system_macro('FPC_ABI_'+abi2str[abi]);
+  def_system_macro('FPC_ABI_'+abi2str[target_info.abi]);
 
   { Write logo }
   if option.ParaLogo then

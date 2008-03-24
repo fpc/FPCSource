@@ -66,6 +66,9 @@ fpcunit : fpcunit-stamp.$(FULL_TARGET)
 
 
 TESTOPT=-n -FE$(COMPILER_TARGETDIR) -T$(OS_TARGET) $(OPT)
+ifeq ($(CPU_TARGET),armeb)
+override TESTOPT+=-Cb
+endif
 ifneq ($(BINUTILSPREFIX),)
 override TESTOPT+=-XP$(BINUTILSPREFIX) -Xc
 endif

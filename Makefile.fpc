@@ -57,6 +57,9 @@ endif
 ifeq ($(CPU_TARGET),arm)
 PPSUF=arm
 endif
+ifeq ($(CPU_TARGET),armeb)
+PPSUF=arm
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix.
 ifdef CROSSCOMPILE

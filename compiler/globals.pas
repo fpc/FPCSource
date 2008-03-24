@@ -332,6 +332,7 @@ interface
     function  guid2string(const GUID: TGUID): string;
 
     function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
+    function Setabitype(const s:string;var a:tabi):boolean;
     function Setcputype(const s:string;var a:tcputype):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
@@ -855,6 +856,23 @@ implementation
             result:=true;
             break;
           end;
+      end;
+
+
+    function Setabitype(const s:string;var a:tabi):boolean;
+      var
+        t  : tabi;
+        hs : string;
+      begin
+        result:=false;
+        hs:=Upper(s);
+        for t:=low(t) to high(t) do
+          if abi2str[t]=hs then
+            begin
+              a:=t;
+              result:=true;
+              break;
+            end;
       end;
 
 

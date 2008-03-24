@@ -36,8 +36,8 @@ fpcdir=../..
 target=linux
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(COMMON)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(ARCH)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(ARCH) $(COMMON)
 targetdir=.
 
 [shared]
@@ -52,7 +52,7 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
 RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
-PROCINC=$(RTL)/$(CPU_TARGET)
+PROCINC=$(RTL)/$(ARCH)
 UNIXINC=$(RTL)/unix
 
 UNITPREFIX=rtl
@@ -62,7 +62,7 @@ SYSINIT_UNITS=
 
 LOADERS=prt0 dllprt0 cprt0 gprt0
 
-ifeq ($(CPU_TARGET),i386)
+ifeq ($(ARCH),i386)
 ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
 override LOADERS=
 else
@@ -72,11 +72,11 @@ CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
 
-ifeq ($(CPU_TARGET),x86_64)
+ifeq ($(ARCH),x86_64)
 SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
 
-ifeq ($(CPU_TARGET),arm)
+ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
 endif
 
@@ -108,13 +108,13 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 # Select 32/64 mode
-ifeq ($(CPU_TARGET),i386)
+ifeq ($(ARCH),i386)
   ASTARGET=--32
 endif
-ifeq ($(CPU_TARGET),x86_64)
+ifeq ($(ARCH),x86_64)
   ASTARGET=--64
 endif
-ifeq ($(CPU_TARGET),powerpc64)
+ifeq ($(ARCH),powerpc64)
   ASTARGET=-a64
 endif
 
@@ -122,25 +122,25 @@ endif
 # Loaders
 #
 
-prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
+prt0$(OEXT) : $(ARCH)/prt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
 
-dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
+dllprt0$(OEXT) : $(ARCH)/dllprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
 
-gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
+gprt0$(OEXT) : $(ARCH)/gprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
 
-cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+cprt0$(OEXT) : $(ARCH)/cprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
 
-cprt21$(OEXT) : $(CPU_TARGET)/cprt21.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
+cprt21$(OEXT) : $(ARCH)/cprt21.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(ARCH)/cprt21.as
 
-gprt21$(OEXT) : $(CPU_TARGET)/gprt21.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
+gprt21$(OEXT) : $(ARCH)/gprt21.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(ARCH)/gprt21.as
 
-ucprt0$(OEXT) : $(CPU_TARGET)/ucprt0.as
+ucprt0$(OEXT) : $(ARCH)/ucprt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
 
 
@@ -173,7 +173,7 @@ unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SY
 
 baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
   $(UNIXINC)/bunxh.inc \
-  bunxsysc.inc $(CPU_TARGET)/syscallh.inc $(CPU_TARGET)/sysnr.inc \
+  bunxsysc.inc $(ARCH)/syscallh.inc $(ARCH)/sysnr.inc \
   ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 

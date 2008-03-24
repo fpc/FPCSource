@@ -14,7 +14,7 @@ dirs=utils
 targetdir=.
 unittargetdir=$(CPU_UNITDIR)/units/$(FULL_TARGET)
 unitdir=$(COMPILERSOURCEDIR)
-includedir=$(PPC_TARGET)
+includedir=$(CPC_TARGET)
 
 [require]
 packages=rtl
@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -62,11 +62,20 @@ endif
 ifdef ARM
 PPC_TARGET=arm
 endif
+ifdef ARMEB
+PPC_TARGET=armeb
+endif
 
 # Default is to generate a compiler for the same
 # platform as CPU_TARGET (a native compiler)
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
+endif
+
+ifeq ($(PPC_TARGET),armeb)
+CPC_TARGET=arm
+else
+CPC_TARGET=$(PPC_TARGET)
 endif
 
 # Default is to generate a compiler for the same
@@ -76,13 +85,13 @@ PPC_OS=$(OS_TARGET)
 endif
 
 # Where to place the unit files.
-CPU_UNITDIR=$(PPC_TARGET)
+CPU_UNITDIR=$(CPC_TARGET)
 
 # RTL
 UTILSDIR=../utils
 
 # Directories containing compiler sources
-COMPILERSOURCEDIR=$(PPC_TARGET) systems
+COMPILERSOURCEDIR=$(CPC_TARGET) systems
 
 # Utils used by compiler development/installation
 COMPILERUTILSDIR=utils
@@ -109,33 +118,33 @@ override OPT=
 MSGFILES=$(wildcard msg/error*.msg)
 
 # ppcSUFFIX
-ifeq ($(PPC_TARGET),i386)
+ifeq ($(CPC_TARGET),i386)
 CPUSUF=386
 endif
-ifeq ($(PPC_TARGET),alpha)
+ifeq ($(CPC_TARGET),alpha)
 CPUSUF=axp
 endif
-ifeq ($(PPC_TARGET),m68k)
+ifeq ($(CPC_TARGET),m68k)
 CPUSUF=68k
 endif
-ifeq ($(PPC_TARGET),powerpc)
+ifeq ($(CPC_TARGET),powerpc)
 CPUSUF=ppc
 endif
-ifeq ($(PPC_TARGET),powerpc64)
+ifeq ($(CPC_TARGET),powerpc64)
 CPUSUF=ppc64
 endif
-ifeq ($(PPC_TARGET),sparc)
+ifeq ($(CPC_TARGET),sparc)
 CPUSUF=sparc
 endif
-ifeq ($(PPC_TARGET),x86_64)
+ifeq ($(CPC_TARGET),x86_64)
 CPUSUF=x64
 endif
-ifeq ($(PPC_TARGET),arm)
+ifeq ($(CPC_TARGET),arm)
 CPUSUF=arm
 endif
 
 # Do not define the default -d$(CPU_TARGET) because that
-# will conflict with our -d$(PPC_TARGET)
+# will conflict with our -d$(CPC_TARGET)
 NOCPUDEF=1
 
 # Default message file
@@ -165,7 +174,7 @@ endif
 endif
 
 # set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
-override LOCALOPT+=-d$(PPC_TARGET) -dGDB -dBROWSERLOG
+override LOCALOPT+=-d$(CPC_TARGET) -dGDB -dBROWSERLOG
 
 # i386 specific
 ifeq ($(PPC_TARGET),i386)
@@ -269,7 +278,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 alpha vis ia64
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64
 
 .PHONY: $(PPC_TARGETS)
 
@@ -364,7 +373,7 @@ insdat: insdatx86 insdatarm
 # Make only the compiler
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
-             $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
+             $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
 ifneq ($(REVSTR),)
         $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
 endif
