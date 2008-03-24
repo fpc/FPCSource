@@ -85,7 +85,7 @@ interface
           constructor create(const n:string;usealign:shortint);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure alignrecord(fieldoffset,varalign:shortint);
+          procedure alignrecord(fieldoffset:aint;varalign:shortint);
           procedure addfield(sym:tfieldvarsym);
           procedure insertfield(sym:tfieldvarsym);
           procedure addalignmentpadding;
@@ -787,7 +787,7 @@ implementation
           result:=1;
       end;
 
-    procedure tabstractrecordsymtable.alignrecord(fieldoffset,varalign:shortint);
+    procedure tabstractrecordsymtable.alignrecord(fieldoffset:aint;varalign:shortint);
       var
         varalignrecord: shortint;
       begin
