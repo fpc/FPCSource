@@ -34,7 +34,7 @@ implementation
        { common }
        cutils,
        { global }
-       globals,tokens,verbose,constexp,
+       globals,globtype,tokens,verbose,constexp,
        systems,
        ppu,fmodule,
        { symtable }
@@ -52,7 +52,6 @@ implementation
 
     procedure read_exports;
       var
-        hp        : texported_item;
         orgs,
         DefString,
         InternalProcName : string;
@@ -60,6 +59,9 @@ implementation
         pt         : tnode;
         srsym      : tsym;
         srsymtable : TSymtable;
+        hpname     : shortstring;
+        index      : longint;
+        options    : word;
 
         function IsGreater(hp1,hp2:texported_item):boolean;
         var
@@ -83,12 +85,13 @@ implementation
          InternalProcName:='';
          consume(_EXPORTS);
          repeat
-           hp:=texported_item.create;
+           hpname:='';
+           options:=0;
+           index:=0;
            if token=_ID then
              begin
                 consume_sym_orgid(srsym,srsymtable,orgs);
                 { orgpattern is still valid here }
-                hp.sym:=srsym;
                 InternalProcName:='';
                 case srsym.typ of
                   staticvarsym :
@@ -126,23 +129,23 @@ implementation
                  begin
                    pt:=comp_expr(true);
                    if pt.nodetype=ordconstn then
-                    if (Tordconstnode(pt).value<int64(low(hp.index))) or
-                       (Tordconstnode(pt).value>int64(high(hp.index))) then
+                    if (Tordconstnode(pt).value<int64(low(index))) or
+                       (Tordconstnode(pt).value>int64(high(index))) then
                       begin
-                        hp.index:=0;
+                        index:=0;
                         message(parser_e_range_check_error)
                       end
                     else
-                      hp.index:=Tordconstnode(pt).value.svalue
+                      index:=Tordconstnode(pt).value.svalue
                    else
                     begin
-                      hp.index:=0;
+                      index:=0;
                       consume(_INTCONST);
                     end;
-                   hp.options:=hp.options or eo_index;
+                   options:=options or eo_index;
                    pt.free;
                    if target_info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince] then
-                    DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
+                    DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(index)
                    else
                     DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
                  end;
@@ -150,33 +153,64 @@ implementation
                  begin
                    pt:=comp_expr(true);
                    if pt.nodetype=stringconstn then
-                    hp.name:=stringdup(strpas(tstringconstnode(pt).value_str))
+                    hpname:=strpas(tstringconstnode(pt).value_str)
                    else
                     begin
-                      hp.name:=stringdup('');
                       consume(_CSTRING);
                     end;
-                   hp.options:=hp.options or eo_name;
+                   options:=options or eo_name;
                    pt.free;
-                   DefString:=hp.name^+'='+InternalProcName;
+                   DefString:=hpname+'='+InternalProcName;
                  end;
                 if try_to_consume(_RESIDENT) then
                  begin
-                   hp.options:=hp.options or eo_resident;
+                   options:=options or eo_resident;
                    DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
                  end;
                 if (DefString<>'') and UseDeffileForExports then
                  DefFile.AddExport(DefString);
-                { Default to generate a name entry with the provided name }
-                if not assigned(hp.name) then
-                 begin
-                   hp.name:=stringdup(orgs);
-                   hp.options:=hp.options or eo_name;
-                 end;
-                if hp.sym.typ=procsym then
-                  exportlib.exportprocedure(hp)
+
+                if srsym.typ=procsym then
+                  begin
+                    { if no specific name or index was given, then if }
+                    { the procedure has aliases defined export those, }
+                    { otherwise export the name as it appears in the  }
+                    { export section (it doesn't make sense to export }
+                    { the generic mangled name, because the name of   }
+                    { the parent unit is used in that)                }
+                    if ((options and (eo_name or eo_index))=0) and
+                       (tprocdef(tprocsym(srsym).procdeflist[0]).aliasnames.count>1) then
+                      exportallprocsymnames(tprocsym(srsym),options)
+                    else
+                      begin
+                        { there's a name or an index -> export only one name   }
+                        { correct? Or can you export multiple names with the   }
+                        { same index? And/or should we also export the aliases }
+                        { if a name is specified? (JM)                         }
+
+                        if ((options and eo_name)=0) then
+                          { Use set mangled name in case of cdecl/cppdecl/mwpascal }
+                          { if no name specified                                   }
+                          if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
+                            hpname:=target_info.cprefix+tprocsym(srsym).realname
+                          else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
+                            hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
+                          else
+                            hpname:=orgs;
+
+                        exportprocsym(srsym,hpname,index,options);
+                      end
+                  end
                 else
-                  exportlib.exportvar(hp);
+                  begin
+                    if ((options and eo_name)=0) then
+                      { for "cvar" }
+                      if (vo_has_mangledname in tstaticvarsym(srsym).varoptions) then
+                        hpname:=srsym.mangledname
+                      else
+                        hpname:=orgs;
+                    exportvarsym(srsym,hpname,index,options);
+                  end;
              end
            else
              consume(_ID);

@@ -358,7 +358,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03244 is the last used one
+# 03247 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1146,6 +1146,10 @@ parser_e_unsupported_real=03244_E_Floating point not supported for this target
 parser_e_class_doesnt_implement_interface=03245_E_Class "$1" does not implement interface "$2"
 % The delegated interface is not implemented by the class given in the implements clause
 parser_e_class_implements_must_be_interface=03246_E_Type used by implements must be an interface
+parser_e_cant_export_var_different_name=03247_E_Variables cannot be exported with a different name on this target, add the name to the declaration using the "export" directive (variable name: $1, declared export name: $2)
+% On most targets it is not possible to change the name under which a variable is exported inside the \var{exports} statement of a library.
+% In that case, you have to specify the export name at the point where the variable is declared, using the \var{export} and \var{alias} directives.
+
 % \end{description}
 #
 # Type Checking

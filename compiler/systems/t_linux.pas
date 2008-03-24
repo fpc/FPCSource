@@ -28,18 +28,14 @@ interface
 
   uses
     symsym,symdef,ppu,
-    import,export,link;
+    import,export,expunix,link;
 
   type
     timportliblinux=class(timportlib)
       procedure generatelib;override;
     end;
 
-    texportliblinux=class(texportlib)
-      procedure preparelib(const s : string);override;
-      procedure exportprocedure(hp : texported_item);override;
-      procedure exportvar(hp : texported_item);override;
-      procedure generatelib;override;
+    texportliblinux=class(texportlibunix)
     end;
 
     tlinkerlinux=class(texternallinker)
@@ -90,109 +86,6 @@ implementation
             current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
-
-
-{*****************************************************************************
-                               TEXPORTLIBLINUX
-*****************************************************************************}
-
-procedure texportliblinux.preparelib(const s:string);
-begin
-end;
-
-
-procedure texportliblinux.exportprocedure(hp : texported_item);
-var
-  hp2 : texported_item;
-begin
-  { first test the index value }
-  if (hp.options and eo_index)<>0 then
-   begin
-     Message1(parser_e_no_export_with_index_for_target,'linux');
-     exit;
-   end;
-  { now place in correct order }
-  hp2:=texported_item(current_module._exports.first);
-  while assigned(hp2) and
-     (hp.name^>hp2.name^) do
-    hp2:=texported_item(hp2.next);
-  { insert hp there !! }
-  if assigned(hp2) and (hp2.name^=hp.name^) then
-    begin
-      { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp.name^);
-      exit;
-    end;
-  if hp2=texported_item(current_module._exports.first) then
-    current_module._exports.concat(hp)
-  else if assigned(hp2) then
-    begin
-       hp.next:=hp2;
-       hp.previous:=hp2.previous;
-       if assigned(hp2.previous) then
-         hp2.previous.next:=hp;
-       hp2.previous:=hp;
-    end
-  else
-    current_module._exports.concat(hp);
-end;
-
-
-procedure texportliblinux.exportvar(hp : texported_item);
-begin
-  hp.is_var:=true;
-  exportprocedure(hp);
-end;
-
-
-procedure texportliblinux.generatelib;
-var
-  hp2 : texported_item;
-  pd  : tprocdef;
-{$ifdef x86}
-  sym : tasmsymbol;
-  r : treference;
-{$endif x86}
-begin
-  new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-  hp2:=texported_item(current_module._exports.first);
-  while assigned(hp2) do
-   begin
-     if (not hp2.is_var) and
-        (hp2.sym.typ=procsym) then
-      begin
-        { the manglednames can already be the same when the procedure
-          is declared with cdecl }
-        pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
-        if not has_alias_name(pd,hp2.name^) then
-         begin
-           { place jump in al_procedures }
-           current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           if (cs_create_pic in current_settings.moduleswitches) and
-             { other targets need to be checked how it works }
-             (target_info.system in [system_x86_64_linux,system_i386_linux]) then
-             begin
-{$ifdef x86}
-               sym:=current_asmdata.RefAsmSymbol(pd.mangledname);
-               reference_reset_symbol(r,sym,0);
-               if cs_create_pic in current_settings.moduleswitches then
-                 r.refaddr:=addr_pic
-               else
-                 r.refaddr:=addr_full;
-               current_asmdata.asmlists[al_procedures].concat(taicpu.op_ref(A_JMP,S_NO,r));
-{$endif x86}
-             end
-           else
-             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname);
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
-         end;
-      end
-     else
-      message1(parser_e_no_export_of_variables_for_target,'linux');
-     hp2:=texported_item(hp2.next);
-   end;
-end;
 
 
 {*****************************************************************************
@@ -426,30 +319,24 @@ begin
        end;
 
       { force local symbol resolution (i.e., inside the shared }
-      { library itself) for a number of global symbols which   }
-      { appear in every FPC-compiled program/library. This is  }
-      { actually the wrong approach (the right one is to make  }
-      { everything local, except for what appears in the       }
-      { "exports" statements), but it fixes some of the worst  }
-      { problems for now.                                      }
+      { library itself) for all non-exorted symbols, otherwise }
+      { several RTL symbols of FPC-compiled shared libraries   }
+      { will be bound to those of a single shared library or   }
+      { to the main program                                    }
       if (isdll) then
         begin
           add('VERSION');
           add('{');
           add('  {');
+          if not texportlibunix(exportlib).exportedsymnames.empty then
+            begin
+              add('    global:');
+              repeat
+                add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+              until texportlibunix(exportlib).exportedsymnames.empty;
+            end;
           add('    local:');
-          add('      __fpc_valgrind;');
-          add('      __heapsize;');
-          add('      __stklen;');
-          add('      _FPC_SHARED_LIB_START_LOCAL;');
-          add('      FPC_FINALIZEUNITS;');
-          add('      FPC_INITIALIZEUNITS;');
-          add('      FPC_RESLOCATION;');
-          add('      FPC_RESOURCESTRINGTABLES;');
-          add('      FPC_THREADVARTABLES;');
-          add('      INITFINAL;');
-          add('      PASCALFINALIZE;');
-          add('      PASCALMAIN;');
+          add('      *;');
           add('  };');
           add('}');
         end;
@@ -1132,6 +1019,7 @@ begin
   WriteResponseFile(true);
 
  { Create some replacements }
+ { note: linux does not use exportlib.initname/fininame due to the custom startup code }
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
