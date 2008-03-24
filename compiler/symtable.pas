@@ -85,6 +85,7 @@ interface
           constructor create(const n:string;usealign:shortint);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure alignrecord(fieldoffset,varalign:shortint);
           procedure addfield(sym:tfieldvarsym);
           procedure insertfield(sym:tfieldvarsym);
           procedure addalignmentpadding;
@@ -786,11 +787,20 @@ implementation
           result:=1;
       end;
 
+    procedure tabstractrecordsymtable.alignrecord(fieldoffset,varalign:shortint);
+      var
+        varalignrecord: shortint;
+      begin
+        if (usefieldalignment=C_alignment) then
+          varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
+        else
+          varalignrecord:=field2recordalignment(fieldoffset,varalign);
+        recordalignment:=max(recordalignment,varalignrecord);
+      end;
 
     procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym);
       var
         l      : aint;
-        varalignrecord,
         varalignfield,
         varalign : shortint;
         vardef : tdef;
@@ -883,11 +893,7 @@ implementation
         else
           _datasize:=sym.fieldoffset+l;
         { Calc alignment needed for this record }
-        if (usefieldalignment=C_alignment) then
-          varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
-        else
-          varalignrecord:=field2recordalignment(sym.fieldoffset,varalign);
-        recordalignment:=max(recordalignment,varalignrecord);
+        alignrecord(sym.fieldoffset,varalign);
       end;
 
 
