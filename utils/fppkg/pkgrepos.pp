@@ -269,7 +269,10 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
       V:=L.Values['version'];
       APackage.InstalledVersion.AsString:=V;
       V:=L.Values['checksum'];
-      APackage.InstalledChecksum:=StrToInt(V);
+      if V<>'' then
+        APackage.InstalledChecksum:=StrToInt(V)
+      else
+        APackage.InstalledChecksum:=$ffffffff;
       // Load dependencies
       V:=L.Values['depends'];
       DepSL:=TStringList.Create;
