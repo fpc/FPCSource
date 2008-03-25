@@ -3959,7 +3959,10 @@ begin
         if (T.TargetType in [ttUnit,ttProgram]) then
           begin
             if TargetOK(T) then
-              MaybeCompile(APackage,T)
+              begin
+                if T.State=tsNeutral then
+                  MaybeCompile(APackage,T);
+              end
             else
               begin
                 if not(Defaults.CPU in T.CPUs) then
