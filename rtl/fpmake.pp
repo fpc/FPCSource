@@ -95,7 +95,6 @@ begin
           // Unix implementations
           AddInclude('osdefs.inc',AllUnixOSes);
           AddInclude('sysunixh.inc',AllUnixOSes);
-          AddInclude('elfres32.inc',AllUnixOSes);
           AddInclude('system.inc',AllUnixOSes);
           AddInclude('errno.inc',AllUnixOSes);
           AddInclude('ostypes.inc',AllUnixOSes);
@@ -577,6 +576,19 @@ begin
         end;
 
     // Misc units
+    T:=P.Targets.AddUnit('fpextres.pp',[Darwin]);
+      with T.Dependencies do
+        begin
+          AddInclude('extres_multiarch.inc',[Darwin]);
+          AddInclude('extres.inc',AllOSes-[Darwin]);
+        end;
+    T:=P.Targets.AddUnit('fpintres.pp',AllUnixOSes+AllWindowsOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('baseunix',AllUnixOSes);
+          AddInclude('intres.inc',AllOSes-AllWindowsOSes);
+          AddInclude('winres.inc',AllWindowsOSes);
+        end;
     T:=P.Targets.AddUnit('charset.pp');
       with T.Dependencies do
         begin
