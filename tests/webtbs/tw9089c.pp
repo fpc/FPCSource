@@ -5,9 +5,6 @@ program ptest;
 
 {$mode objfpc}{$H+}
 
-uses
-  initc;
-
 const
 {$ifdef windows}
   libname='tw9089b.dll';
