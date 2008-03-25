@@ -1075,6 +1075,8 @@ implementation
 {$endif powerpc}
 {$ifdef arm}
            header.e_machine:=40;
+           if (current_settings.fputype=cpu_soft) then
+             header.e_flags:=$600;
 {$endif arm}
 {$ifdef x86_64}
            header.e_machine:=62;

@@ -176,9 +176,9 @@ Implementation
       cclasses,
 {$endif memdebug}
       script,fmodule,verbose,
-{$ifdef m68k}
+{$if defined(m68k) or defined(arm)}
       cpuinfo,
-{$endif m68k}
+{$endif m68k or arm}
       aasmcpu,
       owbase,owar
       ;
@@ -509,6 +509,12 @@ Implementation
         else
           result:='-m68000 '+result;
 {$endif}
+
+{$ifdef arm}
+        if current_settings.fputype = fpu_soft then
+         result:='-mfpu=softvfp '+result;
+{$endif arm}
+
         if (cs_link_on_target in current_settings.globalswitches) then
          begin
            Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
