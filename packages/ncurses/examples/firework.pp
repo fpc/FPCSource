@@ -1,11 +1,16 @@
 {
 }
+//{$mode objfpc}
+{$INLINE OFF}
+{$ifdef FPC_PROFILE}
+{$INLINE OFF}
+{$endif FPC_PROFILE}
 program firework;
 uses
   ncurses;
 
 CONST
-  my_bg : LONGINT = COLOR_BLACK;
+  my_bg = COLOR_BLACK;
 
 Procedure showit;
 begin
@@ -87,12 +92,14 @@ Var
 begin
   flag:=0;
   initscr;
-  if (has_colors<>0) then
+  //if (has_colors<>0) then
+  if has_colors then
    start_color;
   curs_set(0);
   randomize;
   cbreak;
-  While true do
+  nodelay(stdscr, true);
+  While getch=ERR do
    begin
      repeat
        startp:=random (COLS -3);
@@ -133,4 +140,6 @@ begin
      erase;
      showit;
    end;
+   endwin();
+   halt(0);
 end.

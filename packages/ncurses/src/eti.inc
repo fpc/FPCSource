@@ -28,6 +28,8 @@
   {
        Author: Juergen Pfeifer <Juergen.Pfeifer@T-Online.de> 1995,1997
                                                                                }
+{$IFNDEF _ETI_INCLUDED_}
+
   const
      E_OK = 0;
      E_SYSTEM_ERROR = -(1);
@@ -44,3 +46,11 @@
      E_REQUEST_DENIED = -(12);
      E_INVALID_FIELD = -(13);
      E_CURRENT = -(14);
+
+{$DEFINE _ETI_INCLUDED_}
+
+{$ELSE _ETI_INCLUDED_}
+
+{$WARNING eti.inc already included}
+
+{$ENDIF _ETI_INCLUDED_}
