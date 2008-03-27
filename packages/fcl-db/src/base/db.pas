@@ -228,9 +228,9 @@ type
   TFieldKinds = Set of TFieldKind;
 
   TFieldNotifyEvent = procedure(Sender: TField) of object;
-  TFieldGetTextEvent = procedure(Sender: TField; var Text: string;
+  TFieldGetTextEvent = procedure(Sender: TField; var aText: string;
     DisplayText: Boolean) of object;
-  TFieldSetTextEvent = procedure(Sender: TField; const Text: string) of object;
+  TFieldSetTextEvent = procedure(Sender: TField; const aText: string) of object;
   TFieldRef = ^TField;
   TFieldChars = set of Char;
 
