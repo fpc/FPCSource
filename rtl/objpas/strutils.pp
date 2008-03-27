@@ -514,113 +514,119 @@ end;
     Extended search and replace
   ---------------------------------------------------------------------}
 
-Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String; Options: TStringSearchOptions): PChar;
+type
+  TEqualFunction = function (const a,b : char) : boolean;
 
-var
-  Len,I,SLen: Integer;
-  C: Char;
-  Found : Boolean;
-  Direction: Shortint;
-  CharMap: array[Char] of Char;
-
-  Function GotoNextWord(var P : PChar): Boolean;
-
-  begin
-    if (Direction=1) then
-      begin
-      // Skip characters
-      While (Len>0) and not (P^ in WordDelimiters) do
-        begin
-        Inc(P);
-        Dec(Len);
-        end;
-     // skip delimiters
-      While (Len>0) and (P^ in WordDelimiters) do
-        begin
-        Inc(P);
-        Dec(Len);
-        end;
-      Result:=Len>0;
-      end
-    else
-      begin
-      // Skip Delimiters
-      While (Len>0) and (P^ in WordDelimiters) do
-        begin
-        Dec(P);
-        Dec(Len);
-        end;
-     // skip characters
-      While (Len>0) and not (P^ in WordDelimiters) do
-        begin
-        Dec(P);
-        Dec(Len);
-        end;
-      Result:=Len>0;
-      // We're on the first delimiter. Pos back on char.
-      Inc(P);
-      Inc(Len);
-      end;
-  end;
-
+function EqualWithCase (const a,b : char) : boolean;
 begin
-  Result:=nil;
-  Slen:=Length(SearchString);
-  if (BufLen<=0) or (Slen=0) then
-    Exit;
-  if soDown in Options then
-    begin
-    Direction:=1;
-    Inc(SelStart,SelLength);
-    Len:=BufLen-SelStart-SLen+1;
-    if (Len<=0) then
-      Exit;
-    end
-  else
-    begin
-    Direction:=-1;
-    Dec(SelStart,Length(SearchString));
-    Len:=SelStart+1;
-    end;
-  if (SelStart<0) or (SelStart>BufLen) then
-    Exit;
-  Result:=@Buf[SelStart];
-  for C:=Low(Char) to High(Char) do
-    if (soMatchCase in Options) then
-      CharMap[C]:=C
-    else
-      CharMap[C]:=Upcase(C);
-  if Not (soMatchCase in Options) then
-    SearchString:=UpCase(SearchString);
-  Found:=False;
-  while (Result<>Nil) and (Not Found) do
-    begin
-    if ((soWholeWord in Options) and
-        (Result<>@Buf[SelStart]) and
-        not GotoNextWord(Result)) then
-        Result:=Nil
-    else
-      begin
-        // try to match whole searchstring
-      I:=0;
-      while (I<Slen) and (CharMap[Result[I]]=SearchString[I+1]) do
-      Inc(I);
-      // Whole searchstring matched ?
-      if (I=SLen) then
-      Found:=(Len=0) or
-              (not (soWholeWord in Options)) or
-              (Result[SLen] in WordDelimiters);
-      if not Found then
-        begin
-        Inc(Result,Direction);
-        Dec(Len);
-        If (Len=0) then
-          Result:=Nil;
-        end;
-      end;
-    end;
+  result := (a = b);
 end;
 
+function EqualWithoutCase (const a,b : char) : boolean;
+begin
+  result := (lowerCase(a) = lowerCase(b));
+end;
+
+function IsWholeWord (bufstart, bufend, wordstart, wordend : pchar) : boolean;
+begin
+            // Check start
+  result := ((wordstart = bufstart) or ((wordstart-1)^ in worddelimiters)) and
+            // Check end
+            ((wordend = bufend) or ((wordend+1)^ in worddelimiters));
+end;
+
+function SearchDown(buf,aStart,endchar:pchar; SearchString:string;
+    Equals : TEqualFunction; WholeWords:boolean) : pchar;
+var Found : boolean;
+    s, c : pchar;
+begin
+  result := aStart;
+  Found := false;
+  while not Found and (result <= endchar) do
+    begin
+    // Search first letter
+    while (result <= endchar) and not Equals(result^,SearchString[1]) do
+      inc (result);
+    // Check if following is searchstring
+    c := result;
+    s := @(Searchstring[1]);
+    Found := true;
+    while (c <= endchar) and (s^ <> #0) and Found do
+      begin
+      Found := Equals(c^, s^);
+      inc (c);
+      inc (s);
+      end;
+    if s^ <> #0 then
+      Found := false;
+    // Check if it is a word
+    if Found and WholeWords then
+      Found := IsWholeWord(buf,endchar,result,c-1);
+    if not found then
+      inc (result);
+    end;
+  if not Found then
+    result := nil;
+end;
+
+function SearchUp(buf,aStart,endchar:pchar; SearchString:string;
+    equals : TEqualFunction; WholeWords:boolean) : pchar;
+var Found : boolean;
+    s, c, l : pchar;
+begin
+  result := aStart;
+  Found := false;
+  l := @(SearchString[length(SearchString)]);
+  while not Found and (result >= buf) do
+    begin
+    // Search last letter
+    while (result >= buf) and not Equals(result^,l^) do
+      dec (result);
+    // Check if before is searchstring
+    c := result;
+    s := l;
+    Found := true;
+    while (c >= buf) and (s >= @SearchString[1]) and Found do
+      begin
+      Found := Equals(c^, s^);
+      dec (c);
+      dec (s);
+      end;
+    if (s >= @(SearchString[1])) then
+      Found := false;
+    // Check if it is a word
+    if Found and WholeWords then
+      Found := IsWholeWord(buf,endchar,c+1,result);
+    if found then
+      result := c+1
+    else
+      dec (result);
+    end;
+  if not Found then
+    result := nil;
+end;
+
+//function SearchDown(buf,aStart,endchar:pchar; SearchString:string; equal : TEqualFunction; WholeWords:boolean) : pchar;
+function SearchBuf(Buf: PChar;BufLen: Integer;SelStart: Integer;SelLength: Integer;
+    SearchString: String;Options: TStringSearchOptions):PChar;
+var
+  equal : TEqualFunction;
+begin
+  SelStart := SelStart + SelLength;
+  if (SearchString = '') or (SelStart > BufLen) or (SelStart < 0) then
+    result := nil
+  else
+    begin
+    if soMatchCase in Options then
+      Equal := @EqualWithCase
+    else
+      Equal := @EqualWithoutCase;
+    if soDown in Options then
+      result := SearchDown(buf,buf+SelStart,Buf+(BufLen-1), SearchString, Equal, (soWholeWord in Options))
+    else
+      result := SearchUp(buf,buf+SelStart,Buf+(Buflen-1), SearchString, Equal, (soWholeWord in Options));
+    end;
+end;
 
 
 Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String): PChar;inline; // ; Options: TStringSearchOptions = [soDown]
