@@ -580,7 +580,7 @@ function wstandout(win: PWINDOW): Longint; inline;
 function wstandend(win: PWINDOW): Longint; inline;
 function wattr_set(win:PWINDOW; attrs:attr_t; pair:Smallint; opts:Pointer):Longint; inline;
 //function wattr_get(win: PWINDOW): longint;// original fpc ncurses?
-function wattr_get(win:PWINDOW; attrs:Pattr_t; pair:PSmallint; opts:Pointer):longint; inline;
+function wattr_get(win:PWINDOW; attrs:Pattr_t; pair:PSmallint; opts:Pointer):longint; // inline; breaks compilation on some architectures currently
 function wattron(win:PWINDOW; attrs: attr_t): Longint; inline;
 function wattroff(win:PWINDOW; attrs: attr_t): Longint; inline;
 function wattrset(win: PWINDOW; attrs: attr_t): longint; inline;
