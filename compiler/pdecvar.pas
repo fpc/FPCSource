@@ -605,8 +605,8 @@ implementation
                     setconstn :
                       p.default:=plongint(tsetconstnode(pt).value_set)^;
                     ordconstn :
-                      if (Tordconstnode(pt).value<int64(low(p.default))) or
-                         (Tordconstnode(pt).value>int64(high(p.default))) then
+                      if (Tordconstnode(pt).value<int64(low(longint))) or
+                         (Tordconstnode(pt).value>int64(high(cardinal))) then
                         message(parser_e_range_check_error)
                       else
                         p.default:=longint(tordconstnode(pt).value.svalue);

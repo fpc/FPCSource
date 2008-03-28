@@ -6830,6 +6830,7 @@ tests/tbs/tb0543.pp svneol=native#text/plain
 tests/tbs/tb0544.pp svneol=native#text/plain
 tests/tbs/tb0545.pp svneol=native#text/plain
 tests/tbs/tb0546.pp svneol=native#text/plain
+tests/tbs/tb0547.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
