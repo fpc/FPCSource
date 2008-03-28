@@ -121,7 +121,7 @@ interface
         { wdosx }   ( true,  false, false, false, false, false, false, false, false),
         { palmos }  ( false, true,  false, false, false, true,  false, false, false),
         { macos }   ( false, false, true,  false, false, false, false, false, false),
-        { darwin }  ( true,  false, true,  false, true,  false, true,  false, false),
+        { darwin }  ( true,  false, true,  false, true,  true,  true,  false, false),
         { emx }     ( true,  false, false, false, false, false, false, false, false),
         { watcom }  ( true,  false, false, false ,false, false, false, false, false),
         { morphos } ( false, false, true,  false ,false, false, false, false, false),
