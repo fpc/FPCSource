@@ -243,14 +243,11 @@ begin
     inc(fPos);
     CheckLoadBuffer;
   end;
-  if TryStrToInt(Result,i) and (i<256) then
-  begin
-    if i>127 then ascii:=false;
-    setlength(Result,1);
-    Result[1]:=widechar(word(i));
-  end
-  else
-    Result:='#'+Result;
+  if not TryStrToInt(Result,i) then
+  i:=0;
+  if i>127 then ascii:=false;
+  setlength(Result,1);
+  Result[1]:=widechar(word(i));
 end;
 
 procedure TParser.HandleString;

@@ -1351,6 +1351,21 @@ var
       WriteQWord(qword(value));
     end;
   end;
+
+  procedure ProcessWideString(const left : widestring);
+  var ws : widestring;
+  begin
+    ws:=left+parser.TokenWideString;
+    while parser.NextToken = '+' do
+    begin
+      parser.NextToken;   // Get next string fragment
+      if not (parser.Token in [toString,toWString]) then
+        parser.CheckToken(toWString);
+      ws:=ws+parser.TokenWideString;
+    end;
+    Output.WriteByte(Ord(vaWstring));
+    WriteWString(ws);
+  end;
   
   procedure ProcessProperty; forward;
 
@@ -1360,10 +1375,7 @@ var
     flt: Extended;
 {$endif}
     s: String;
-    ws: WideString;
     stream: TMemoryStream;
-    i: Integer;
-    b: Boolean;
   begin
     case parser.Token of
       toInteger:
@@ -1382,40 +1394,32 @@ var
 {$endif}
       toString:
         begin
-          ws := parser.TokenWideString;
+          s := parser.TokenString;
           while parser.NextToken = '+' do
           begin
             parser.NextToken;   // Get next string fragment
-            parser.CheckToken(toString);
-            ws := ws + parser.TokenWideString;
-          end;
-          b:= false;
-          for i:= 1 to length(ws) do begin
-            if ord(ws[i]) and $ff00 <> 0 then begin
-              b:= true;
-              break;
+            case parser.Token of
+              toString  : s:=s+parser.TokenString;
+              toWString : begin
+                            ProcessWideString(s);
+                            exit;
+                          end
+              else parser.CheckToken(toString);
             end;
           end;
-          if b then begin
-            Output.WriteByte(Ord(vaWstring));
-            WriteWString(ws);
-            end
-          else
-	    begin
-            setlength(s,length(ws));
-            for i:= 1 to length(s) do begin
-              s[i]:= chr(ord(ws[i])); //cut msb
-            end;
-            if (length(S)>255) then begin
+          if (length(S)>255) then
+          begin
             Output.WriteByte(Ord(vaLString));
             WriteLString(S);
-            end
-            else begin
+          end
+          else
+          begin
             Output.WriteByte(Ord(vaString));
             WriteString(s);
-            end;
           end;
         end;
+      toWString:
+        ProcessWideString('');
       toSymbol:
         begin
           if CompareText(parser.TokenString, 'True') = 0 then
