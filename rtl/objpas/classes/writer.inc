@@ -586,6 +586,7 @@ begin
         WriteProperty(Instance,PropList^[i]);
     Freemem(PropList);
   end;
+  Instance.DefineProperties(Self);
 end;
 
 procedure TWriter.WriteProperty(Instance: TPersistent; PropInfo: Pointer);
