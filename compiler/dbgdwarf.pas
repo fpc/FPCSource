@@ -206,8 +206,6 @@ interface
         defnumberlist,
         deftowritelist   : TFPObjectList;
 
-        writing_def_dwarf : boolean;
-
         { use this defs to create info for variants and file handles }
         { unused (MWE)
         filerecdef,
@@ -2322,7 +2320,6 @@ implementation
         current_filepos:=current_module.mainfilepos;
 
         currabbrevnumber:=0;
-        writing_def_dwarf:=false;
 
         defnumberlist:=TFPObjectList.create(false);
         deftowritelist:=TFPObjectList.create(false);
