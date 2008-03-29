@@ -902,34 +902,31 @@ var
   SavedOwner, SavedParent: TComponent;
   
 begin
+  { Read properties }
+  while not EndOfList do
+    ReadProperty(Instance);
+  ReadListEnd;
+
+  { Read children }
+  SavedOwner := Owner;
+  SavedParent := Parent;
   try
-    { Read properties }
+    Owner := Instance.GetChildOwner;
+    if not Assigned(Owner) then
+      Owner := Root;
+    Parent := Instance.GetChildParent;
+
     while not EndOfList do
-      ReadProperty(Instance);
+      ReadComponent(nil);
     ReadListEnd;
-
-    { Read children }
-    SavedOwner := Owner;
-    SavedParent := Parent;
-    try
-      Owner := Instance.GetChildOwner;
-      if not Assigned(Owner) then
-        Owner := Root;
-      Parent := Instance.GetChildParent;
-
-      while not EndOfList do
-        ReadComponent(nil);
-      ReadListEnd;
-    finally
-      Owner := SavedOwner;
-      Parent := SavedParent;
-    end;
-
-    { Fixup references if necessary (normally only if this is the root) }
-    DoFixupReferences;
   finally
-    FreeAndNil(FFixups);
+    Owner := SavedOwner;
+    Parent := SavedParent;
   end;
+
+  { Fixup references if necessary (normally only if this is the root) }
+  If (Instance=FRoot) then
+    DoFixupReferences;
 end;
 
 {$ifndef FPUNONE}
