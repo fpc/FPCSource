@@ -1470,7 +1470,7 @@ var
     // descendants of TComponent
     while ComponentClassType<>TComponent do begin
       FieldClassTable :=
-        PFieldTable((Pointer(RootComponent.ClassType)+vmtFieldTable)^)^.ClassTable;
+        PFieldTable((Pointer(ComponentClassType)+vmtFieldTable)^)^.ClassTable;
       if assigned(FieldClassTable) then begin
         for i := 0 to FieldClassTable^.Count -1 do begin
           Entry := FieldClassTable^.Entries[i];
