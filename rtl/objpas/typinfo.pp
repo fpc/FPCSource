@@ -743,7 +743,9 @@ begin
     begin
       getmem(PropList,result*sizeof(pointer));
       GetPropInfos(TypeInfo,PropList);
-    end;
+    end
+  else
+    PropList:=Nil;  
 end;
 
 
