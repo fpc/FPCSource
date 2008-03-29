@@ -660,7 +660,7 @@ begin
           G.Addreference(R.FRoot,R.FPropInfo,Copy(R.FRelative,1,P-1),Copy(R.FRelative,P+1,Length(R.FRelative)-P));
           end;
         end;
-      L.RemoveItem(R);
+      L.RemoveItem(R,True);
       R:=RN;
       end;
     FreeAndNil(FFixups);
