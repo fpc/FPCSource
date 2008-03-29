@@ -39,7 +39,13 @@ type
    PXPointer = ^TXPointer;
    TXPointer = ^char;
    PBool = ^TBool;
-   TBool = longbool; {cint?}
+   { We cannot use TBool = LongBool, because Longbool(True)=-1, 
+     and that is not handled well by X. So we leave TBool=cint; 
+     and make overloaded calls with a boolean parameter. 
+     For function results, longbool is OK, since everything <>0 
+     is interpreted as true, so we introduce TBoolResult. }
+   TBool = cint;
+   TBoolResult = longbool;
    PStatus = ^TStatus;
    TStatus = cint;
 
@@ -986,7 +992,7 @@ type
 
    TXIMProc = procedure (para1:TXIM; para2:TXPointer; para3:TXPointer);cdecl;
 
-   TXICProc = function (para1:TXIC; para2:TXPointer; para3:TXPointer):TBool;cdecl;
+   TXICProc = function (para1:TXIC; para2:TXPointer; para3:TXPointer):TBoolResult;cdecl;
 
    TXIDProc = procedure (para1:PDisplay; para2:TXPointer; para3:TXPointer);cdecl;
 
@@ -1247,7 +1253,7 @@ type
 {$endif}
 type
   funcdisp = function(display:PDisplay):cint;cdecl;
-  funcifevent = function(display:PDisplay; event:PXEvent; p : TXPointer):TBool;cdecl;
+  funcifevent = function(display:PDisplay; event:PXEvent; p : TXPointer):TBoolResult;cdecl;
   chararr32 = array[0..31] of char;
 
 const
@@ -1401,11 +1407,11 @@ function XChangeProperty(para1:PDisplay; para2:TWindow; para3:TAtom; para4:TAtom
            para6:cint; para7:Pcuchar; para8:cint):cint;cdecl;external libX11;
 function XChangeSaveSet(para1:PDisplay; para2:TWindow; para3:cint):cint;cdecl;external libX11;
 function XChangeWindowAttributes(para1:PDisplay; para2:TWindow; para3:culong; para4:PXSetWindowAttributes):cint;cdecl;external libX11;
-function XCheckIfEvent(para1:PDisplay; para2:PXEvent; para3:funcifevent; para4:TXPointer):TBool;cdecl;external libX11;
-function XCheckMaskEvent(para1:PDisplay; para2:clong; para3:PXEvent):TBool;cdecl;external libX11;
-function XCheckTypedEvent(para1:PDisplay; para2:cint; para3:PXEvent):TBool;cdecl;external libX11;
-function XCheckTypedWindowEvent(para1:PDisplay; para2:TWindow; para3:cint; para4:PXEvent):TBool;cdecl;external libX11;
-function XCheckWindowEvent(para1:PDisplay; para2:TWindow; para3:clong; para4:PXEvent):TBool;cdecl;external libX11;
+function XCheckIfEvent(para1:PDisplay; para2:PXEvent; para3:funcifevent; para4:TXPointer):TBoolResult;cdecl;external libX11;
+function XCheckMaskEvent(para1:PDisplay; para2:clong; para3:PXEvent):TBoolResult;cdecl;external libX11;
+function XCheckTypedEvent(para1:PDisplay; para2:cint; para3:PXEvent):TBoolResult;cdecl;external libX11;
+function XCheckTypedWindowEvent(para1:PDisplay; para2:TWindow; para3:cint; para4:PXEvent):TBoolResult;cdecl;external libX11;
+function XCheckWindowEvent(para1:PDisplay; para2:TWindow; para3:clong; para4:PXEvent):TBoolResult;cdecl;external libX11;
 function XCirculateSubwindows(para1:PDisplay; para2:TWindow; para3:cint):cint;cdecl;external libX11;
 function XCirculateSubwindowsDown(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
 function XCirculateSubwindowsUp(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
@@ -1431,7 +1437,7 @@ function XDeleteProperty(para1:PDisplay; para2:TWindow; para3:TAtom):cint;cdecl;
 function XDestroyWindow(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
 function XDestroySubwindows(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
 function XDoesBackingStore(para1:PScreen):cint;cdecl;external libX11;
-function XDoesSaveUnders(para1:PScreen):TBool;cdecl;external libX11;
+function XDoesSaveUnders(para1:PScreen):TBoolResult;cdecl;external libX11;
 function XDisableAccessControl(para1:PDisplay):cint;cdecl;external libX11;
 function XDisplayCells(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
 function XDisplayHeight(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
@@ -1497,7 +1503,7 @@ function XGeometry(para1:PDisplay; para2:cint; para3:Pchar; para4:Pchar; para5:c
 function XGetErrorDatabaseText(para1:PDisplay; para2:Pchar; para3:Pchar; para4:Pchar; para5:Pchar;
            para6:cint):cint;cdecl;external libX11;
 function XGetErrorText(para1:PDisplay; para2:cint; para3:Pchar; para4:cint):cint;cdecl;external libX11;
-function XGetFontProperty(para1:PXFontStruct; para2:TAtom; para3:Pculong):TBool;cdecl;external libX11;
+function XGetFontProperty(para1:PXFontStruct; para2:TAtom; para3:Pculong):TBoolResult;cdecl;external libX11;
 function XGetGCValues(para1:PDisplay; para2:TGC; para3:culong; para4:PXGCValues):TStatus;cdecl;external libX11;
 function XGetGeometry(para1:PDisplay; para2:TDrawable; para3:PWindow; para4:Pcint; para5:Pcint;
            para6:Pcuint; para7:Pcuint; para8:Pcuint; para9:Pcuint):TStatus;cdecl;external libX11;
@@ -1563,11 +1569,11 @@ function XQueryBestTile(para1:PDisplay; para2:TDrawable; para3:cuint; para4:cuin
            para6:Pcuint):TStatus;cdecl;external libX11;
 function XQueryColor(para1:PDisplay; para2:TColormap; para3:PXColor):cint;cdecl;external libX11;
 function XQueryColors(para1:PDisplay; para2:TColormap; para3:PXColor; para4:cint):cint;cdecl;external libX11;
-function XQueryExtension(para1:PDisplay; para2:Pchar; para3:Pcint; para4:Pcint; para5:Pcint):TBool;cdecl;external libX11;
+function XQueryExtension(para1:PDisplay; para2:Pchar; para3:Pcint; para4:Pcint; para5:Pcint):TBoolResult;cdecl;external libX11;
 {?}
 function XQueryKeymap(para1:PDisplay; para2:chararr32):cint;cdecl;external libX11;
 function XQueryPointer(para1:PDisplay; para2:TWindow; para3:PWindow; para4:PWindow; para5:Pcint;
-           para6:Pcint; para7:Pcint; para8:Pcint; para9:Pcuint):TBool;cdecl;external libX11;
+           para6:Pcint; para7:Pcint; para8:Pcint; para9:Pcuint):TBoolResult;cdecl;external libX11;
 function XQueryTextExtents(para1:PDisplay; para2:TXID; para3:Pchar; para4:cint; para5:Pcint;
            para6:Pcint; para7:Pcint; para8:PXCharStruct):cint;cdecl;external libX11;
 function XQueryTextExtents16(para1:PDisplay; para2:TXID; para3:PXChar2b; para4:cint; para5:Pcint;
@@ -1647,7 +1653,7 @@ function XTextExtents16(para1:PXFontStruct; para2:PXChar2b; para3:cint; para4:Pc
 function XTextWidth(para1:PXFontStruct; para2:Pchar; para3:cint):cint;cdecl;external libX11;
 function XTextWidth16(para1:PXFontStruct; para2:PXChar2b; para3:cint):cint;cdecl;external libX11;
 function XTranslateCoordinates(para1:PDisplay; para2:TWindow; para3:TWindow; para4:cint; para5:cint;
-           para6:Pcint; para7:Pcint; para8:PWindow):TBool;cdecl;external libX11;
+           para6:Pcint; para7:Pcint; para8:PWindow):TBoolResult;cdecl;external libX11;
 function XUndefineCursor(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
 function XUngrabButton(para1:PDisplay; para2:cuint; para3:cuint; para4:TWindow):cint;cdecl;external libX11;
 function XUngrabKey(para1:PDisplay; para2:cint; para3:cuint; para4:TWindow):cint;cdecl;external libX11;
@@ -1684,9 +1690,9 @@ procedure XFreeFontSet(para1:PDisplay; para2:TXFontSet);cdecl;external libX11;
 function XFontsOfFontSet(para1:TXFontSet; para2:PPPXFontStruct; para3:PPPchar):cint;cdecl;external libX11;
 function XBaseFontNameListOfFontSet(para1:TXFontSet):Pchar;cdecl;external libX11;
 function XLocaleOfFontSet(para1:TXFontSet):Pchar;cdecl;external libX11;
-function XContextDependentDrawing(para1:TXFontSet):TBool;cdecl;external libX11;
-function XDirectionalDependentDrawing(para1:TXFontSet):TBool;cdecl;external libX11;
-function XContextualDrawing(para1:TXFontSet):TBool;cdecl;external libX11;
+function XContextDependentDrawing(para1:TXFontSet):TBoolResult;cdecl;external libX11;
+function XDirectionalDependentDrawing(para1:TXFontSet):TBoolResult;cdecl;external libX11;
+function XContextualDrawing(para1:TXFontSet):TBoolResult;cdecl;external libX11;
 function XExtentsOfFontSet(para1:TXFontSet):PXFontSetExtents;cdecl;external libX11;
 function XmbTextEscapement(para1:TXFontSet; para2:Pchar; para3:cint):cint;cdecl;external libX11;
 function XwcTextEscapement(para1:TXFontSet; para2:PWideChar; para3:cint):cint;cdecl;external libX11;
@@ -1734,7 +1740,7 @@ function Xutf8ResetIC(para1:TXIC):Pchar;cdecl;external libX11;
 function XSetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
 function XGetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
 function XIMOfIC(para1:TXIC):TXIM;cdecl;external libX11;
-function XFilterEvent(para1:PXEvent; para2:TWindow):TBool;cdecl;external libX11;
+function XFilterEvent(para1:PXEvent; para2:TWindow):TBoolResult;cdecl;external libX11;
 function XmbLookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:Pchar; para4:cint; para5:PKeySym;
            para6:PStatus):cint;cdecl;external libX11;
 function XwcLookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:PWideChar; para4:cint; para5:PKeySym;
@@ -1743,9 +1749,9 @@ function Xutf8LookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:Pchar; par
            para6:PStatus):cint;cdecl;external libX11;
 function XVaCreateNestedList(unused:cint; dotdotdot:array of const):TXVaNestedList;cdecl;external libX11;
 function XRegisterIMInstantiateCallback(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar; para5:TXIDProc;
-           para6:TXPointer):TBool;cdecl;external libX11;
+           para6:TXPointer):TBoolResult;cdecl;external libX11;
 function XUnregisterIMInstantiateCallback(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar; para5:TXIDProc;
-           para6:TXPointer):TBool;cdecl;external libX11;
+           para6:TXPointer):TBoolResult;cdecl;external libX11;
 type
    TXConnectionWatchProc = procedure (para1:PDisplay; para2:TXPointer; para3:cint; para4:TBool; para5:PXPointer);cdecl;
 
@@ -1813,6 +1819,15 @@ function DoesBackingStore(s : PScreen) : cint;
 function EventMaskOfScreen(s : PScreen) : clong;
 function XAllocID(dpy : PDisplay) : TXID;
 {$endif MACROS}
+
+// Overloaded functions to handle TBool parameters as actual booleans.
+function XSynchronize(para1:PDisplay; para2:Boolean):funcdisp;
+function XInternAtom(para1:PDisplay; para2:Pchar; para3:Boolean):TAtom;
+function XInternAtoms(para1:PDisplay; para2:PPchar; para3:cint; para4:Boolean; para5:PAtom):TStatus;
+function XClearArea(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint; para6:cuint; para7:Boolean):cint;
+function XSendEvent(para1:PDisplay; para2:TWindow; para3:Boolean; para4:clong; para5:PXEvent):TStatus;
+function XSetGraphicsExposures(para1:PDisplay; para2:TGC; para3:Boolean):cint;
+function XSync(para1:PDisplay; para2:Boolean):cint;
 
 implementation
 
@@ -2072,6 +2087,49 @@ begin
    XAllocID:=(PXPrivDisplay(dpy))^.resource_alloc(dpy);
 end;
 {$endif MACROS}
+
+function XSynchronize(para1:PDisplay; para2:boolean):funcdisp;
+
+begin
+  Result:=XSynchronize(para1,Ord(para2));
+end;
+
+function XInternAtom(para1:PDisplay; para2:Pchar; para3:Boolean):TAtom;
+
+begin
+  Result:=XInternAtom(para1,para2,para3);
+end;
+
+function XInternAtoms(para1:PDisplay; para2:PPchar; para3:cint; para4:Boolean; para5:PAtom):TStatus;
+
+begin
+  Result:=XInternAtoms(para1,para2,para3,Ord(para4),para5);
+end;
+
+function XClearArea(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint; para6:cuint; para7:Boolean):cint;
+
+begin
+  Result:=XClearArea(para1,para2,para3,para4,para5,para6,Ord(Para7));
+end;
+
+function XSendEvent(para1:PDisplay; para2:TWindow; para3:Boolean; para4:clong; para5:PXEvent):TStatus;
+
+begin
+  Result:=XSendEvent(para1,para2,ord(Para3),para4,para5);
+end;
+
+function XSetGraphicsExposures(para1:PDisplay; para2:TGC; para3:Boolean):cint;
+
+begin
+  Result:=XSetGraphicsExposures(Para1,para2,Ord(Para3));
+end;
+
+function XSync(para1:PDisplay; para2:Boolean):cint;
+
+begin
+  Result:=XSync(Para1,Ord(Para2));
+end;
+
 
 
 end.
