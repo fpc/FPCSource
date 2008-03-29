@@ -2097,7 +2097,7 @@ end;
 function XInternAtom(para1:PDisplay; para2:Pchar; para3:Boolean):TAtom;
 
 begin
-  Result:=XInternAtom(para1,para2,para3);
+  Result:=XInternAtom(para1,para2,Ord(para3));
 end;
 
 function XInternAtoms(para1:PDisplay; para2:PPchar; para3:cint; para4:Boolean; para5:PAtom):TStatus;
