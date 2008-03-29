@@ -1680,7 +1680,7 @@ begin
   DoneCriticalsection(ResolveSection);
   GlobalLists.Free;
   ComponentPages.Free;
-
+  FreeAndNil(NeedResolving);
   { GlobalNameSpace is an interface so this is enough }
   GlobalNameSpace:=nil;
 
