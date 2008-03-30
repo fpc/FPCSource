@@ -1239,7 +1239,7 @@ type
     FDestroyDriver: Boolean;
     FRootAncestor: TComponent;
     FPropPath: String;
-    FAncestorList: TList;
+    FAncestors: TFPList;
     FAncestorPos: Integer;
     FChildPos: Integer;
     FOnFindAncestor: TFindAncestorEvent;
@@ -1247,11 +1247,14 @@ type
     FOnWriteStringProperty:TReadWriteStringPropertyEvent;
     procedure AddToAncestorList(Component: TComponent);
     procedure WriteComponentData(Instance: TComponent);
+    Procedure DetermineAncestor(Component: TComponent);
+    procedure DoFindAncestor(Component : TComponent);
   protected
     procedure SetRoot(ARoot: TComponent); override;
     procedure WriteBinary(AWriteData: TStreamProc);
     procedure WriteProperty(Instance: TPersistent; PropInfo: Pointer);
     procedure WriteProperties(Instance: TPersistent);
+    procedure WriteChildren(Component: TComponent);
     function CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectWriter; virtual;
   public
     constructor Create(ADriver: TAbstractObjectWriter);

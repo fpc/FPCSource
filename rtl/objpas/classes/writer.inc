@@ -402,7 +402,7 @@ end;
 // Used as argument for calls to TComponent.GetChildren:
 procedure TWriter.AddToAncestorList(Component: TComponent);
 begin
-  FAncestorList.Add(Component);
+  FAncestors.Add(Component);
 end;
 
 procedure TWriter.DefineProperty(const Name: String;
@@ -495,25 +495,121 @@ begin
   WriteListEnd;
 end;
 
+procedure TWriter.DetermineAncestor(Component : TComponent);
+
+Var
+  S : String;
+  I : Integer;
+  C : TComponent; 
+
+begin
+  // Should be set only when we write an inherited with children.
+  
+  if Not Assigned(FAncestors) then
+    exit;
+  FAncestor:=nil;
+  S:=UpperCase(Component.Name);
+  I:=0;
+  While (FAncestor=Nil) and (I<FAncestors.Count) do
+    begin
+    C:=TComponent(FAncestors[i]);
+    if (S=UpperCase(C.Name)) then
+      FAncestor:=C;
+    Inc(I);
+    end;
+end;
+
+procedure TWriter.DoFindAncestor(Component : TComponent);
+
+Var
+  C : TComponent;
+
+begin
+  if Assigned(FOnFindAncestor) then
+    if (Ancestor=Nil) or (Ancestor is TComponent) then
+      begin
+      C:=TComponent(Ancestor);
+      FOnFindAncestor(Self,Component,Component.Name,C,FRootAncestor);
+      Ancestor:=C;
+      end;
+end;
+
 procedure TWriter.WriteComponent(Component: TComponent);
+
 var
   i : integer;
+  SA : TPersistent;
+  SR : TComponent;
 begin
-  Component.FComponentState:=Component.FComponentState+[csWriting];
-  Component.WriteState(Self);
-  Component.GetChildren(@WriteComponent,Root);
-  FDriver.EndList;
-  Component.FComponentState:=Component.FComponentState-[csWriting];
+  SR:=FRoot;
+  SA:=FAncestor;
+  Try
+    Component.FComponentState:=Component.FComponentState+[csWriting];
+    Try
+      // Possibly set ancestor.
+      DetermineAncestor(Component);
+      DoFindAncestor(Component); // Mainly for IDE when a parent form had an ancestor renamed...
+      // Will call WriteComponentData.
+      Component.WriteState(Self);
+      FDriver.EndList;
+    Finally
+      Component.FComponentState:=Component.FComponentState-[csWriting];
+    end;
+  Finally
+    FAncestor:=SA;
+    FRoot:=SR;
+  end;
+end;
+
+procedure TWriter.WriteChildren(Component : TComponent);
+
+Var
+  SRoot, SRootA : TComponent;
+  SList : TFPList;
+begin
+  // Write children list. 
+  // While writing children, the ancestor environment must be saved
+  // This is recursive...
+  SRoot:=FRoot;
+  SRootA:=FRootAncestor;
+  SList:=FAncestors;
+  try
+    FAncestors:=Nil;
+    if csInline in Component.ComponentState then
+       FRoot:=Component;
+    if (FAncestor is TComponent) then
+       begin
+       FAncestors:=TFPList.Create;
+       if csInline in TComponent(FAncestor).ComponentState then
+         FRootAncestor := TComponent(FAncestor);
+       TComponent(FAncestor).GetChildren(@AddToAncestorList,FRootAncestor);
+       end;
+    try
+      Component.GetChildren(@WriteComponent, FRoot);
+    Finally
+      FreeAndNil(FAncestors);
+    end;    
+  finally
+    FAncestors:=Slist;
+    FRoot:=SRoot;
+    FRootAncestor:=SRootA;
+  end;
 end;
 
 procedure TWriter.WriteComponentData(Instance: TComponent);
 var Dummy: Integer;
     Flags: TFilerFlags;
 begin
+  Dummy:=0;
   Flags := [];
+  If Assigned(FAncestor) then
+    Flags:=[ffInherited];
   FDriver.BeginComponent(Instance,Flags, Dummy);
   WriteProperties(Instance);
   WriteListEnd;
+  // Needs special handling of ancestor.
+  If not IgnoreChildren then
+    WriteChildren(Instance);
 end;
 
 procedure TWriter.WriteDescendent(ARoot: TComponent; AAncestor: TComponent);
