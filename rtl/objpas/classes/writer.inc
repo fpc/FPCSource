@@ -402,7 +402,7 @@ end;
 // Used as argument for calls to TComponent.GetChildren:
 procedure TWriter.AddToAncestorList(Component: TComponent);
 begin
-  FAncestors.Add(Component);
+  FAncestors.AddObject(Component.Name,Component);
 end;
 
 procedure TWriter.DefineProperty(const Name: String;
@@ -498,25 +498,17 @@ end;
 procedure TWriter.DetermineAncestor(Component : TComponent);
 
 Var
-  S : String;
   I : Integer;
-  C : TComponent; 
 
 begin
   // Should be set only when we write an inherited with children.
-  
   if Not Assigned(FAncestors) then
     exit;
-  FAncestor:=nil;
-  S:=UpperCase(Component.Name);
-  I:=0;
-  While (FAncestor=Nil) and (I<FAncestors.Count) do
-    begin
-    C:=TComponent(FAncestors[i]);
-    if (S=UpperCase(C.Name)) then
-      FAncestor:=C;
-    Inc(I);
-    end;
+  I:=FAncestors.IndexOf(Component.Name);
+  If (I=-1) then
+    FAncestor:=Nil
+  else
+    FAncestor:=TComponent(FAncestors.Objects[i]);
 end;
 
 procedure TWriter.DoFindAncestor(Component : TComponent);
@@ -537,9 +529,9 @@ end;
 procedure TWriter.WriteComponent(Component: TComponent);
 
 var
-  i : integer;
   SA : TPersistent;
   SR : TComponent;
+  
 begin
   SR:=FRoot;
   SA:=FAncestor;
@@ -565,7 +557,7 @@ procedure TWriter.WriteChildren(Component : TComponent);
 
 Var
   SRoot, SRootA : TComponent;
-  SList : TFPList;
+  SList : TStringList;
 begin
   // Write children list. 
   // While writing children, the ancestor environment must be saved
@@ -579,10 +571,11 @@ begin
        FRoot:=Component;
     if (FAncestor is TComponent) then
        begin
-       FAncestors:=TFPList.Create;
+       FAncestors:=TStringList.Create;
        if csInline in TComponent(FAncestor).ComponentState then
          FRootAncestor := TComponent(FAncestor);
        TComponent(FAncestor).GetChildren(@AddToAncestorList,FRootAncestor);
+       FAncestors.Sorted:=True;
        end;
     try
       Component.GetChildren(@WriteComponent, FRoot);

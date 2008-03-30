@@ -1239,7 +1239,7 @@ type
     FDestroyDriver: Boolean;
     FRootAncestor: TComponent;
     FPropPath: String;
-    FAncestors: TFPList;
+    FAncestors: TStringList;
     FAncestorPos: Integer;
     FChildPos: Integer;
     FOnFindAncestor: TFindAncestorEvent;
