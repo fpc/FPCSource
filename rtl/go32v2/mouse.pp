@@ -21,6 +21,9 @@ interface
 { tells the mouse unit to draw the mouse cursor itself }
 procedure DoCustomMouse(b : boolean);
 
+const
+  MouseIsVisible: boolean = false;
+
 
 implementation
 
@@ -55,7 +58,6 @@ const
   CallCounter  : longint = 0;
 {$endif DEBUG}
   drawmousecursor : boolean = false;
-  mouseisvisible : boolean = false;
   { position where the mouse was drawn the last time }
   oldmousex : longint = -1;
   oldmousey : longint = -1;
@@ -586,6 +588,7 @@ begin
              popl    %ebp
      .LShowMouseExit:
      end;
+  MouseIsVisible := true;
 end;
 
 
@@ -615,6 +618,7 @@ begin
              popl    %ebp
      .LHideMouseExit:
      end;
+  MouseIsVisible := false;
 end;
 
 
