@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Mouse unit for linux
+    Mouse unit for OS/2
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,6 +17,9 @@ unit Mouse;
 interface
 
 {$i mouseh.inc}
+
+const
+  MouseIsVisible: boolean = false;
 
 implementation
 
@@ -68,6 +71,7 @@ begin
 *)
 
   MouDrawPtr (Handle);
+  MouseIsVisible := true;
  end;
 end;
 
@@ -115,6 +119,7 @@ begin
   begin
    Dec (HideCounter);
    if HideCounter = 0 then MouDrawPtr (Handle);
+   MouseIsVisible := true;
   end;
  end;
 end;
@@ -134,6 +139,7 @@ begin
        PtrRect.cRow := Pred (ScreenHeight);
        PtrRect.cCol := Pred (ScreenWidth);
        MouRemovePtr (PtrRect, Handle);
+       MouseIsVisible := false;
       end;
   end;
  end;
