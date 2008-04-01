@@ -28,7 +28,7 @@ begin
     P.SourcePath.Add('objpas');
 
     // Where to find the include files using firstmatch
-    P.IncludePath.Add('$(OS)/$(CPU)',[Linux]+AllBSDOSes);
+    P.IncludePath.Add('$(OS)/$(CPU)',AllUnixOSes);
     P.IncludePath.Add('$(OS)');
     P.IncludePath.Add('$(CPU)');
     P.IncludePath.Add('bsd',AllBSDOSes);
@@ -55,6 +55,7 @@ begin
           AddInclude('varianth.inc');
           AddInclude('sysosh.inc');
           AddInclude('resh.inc');
+          AddInclude('currh.inc');
           // Implementations
           AddInclude('set.inc');
           AddInclude('int64p.inc');
@@ -63,6 +64,7 @@ begin
           AddInclude('sysheap.inc');
           AddInclude('sysdir.inc');
           AddInclude('sysfile.inc');
+          AddInclude('sysres.inc');
           AddInclude('except.inc');
           AddInclude('threadvr.inc');
           AddInclude('filerec.inc');
@@ -70,6 +72,7 @@ begin
           AddInclude('generic.inc');
           AddInclude('genset.inc');
           AddInclude('genmath.inc');
+          AddInclude('gencurr.inc');
           AddInclude('sstrings.inc');
           AddInclude('int64.inc');
           AddInclude('astrings.inc');
@@ -88,7 +91,7 @@ begin
           AddInclude('innr.inc');
           AddInclude('$(CPU).inc');
           AddInclude('fastmove.inc',[i386],AllOSes);
-          AddInclude('strpas.inc');
+          AddInclude('strpas.inc',[i386,powerpc,powerpc64],AllOSes);
           AddInclude('math.inc');
           AddInclude('real2str.inc');
           AddInclude('systhrd.inc',AllWindowsOSes+[Netware,Netwlibc,EMX,OS2]);
@@ -102,12 +105,12 @@ begin
           AddInclude('ctypes.inc',AllUnixOSes);
           AddInclude('stat.inc',[Linux]);
           AddInclude('signal.inc',AllUnixOSes);
-          AddInclude('sighnd.inc',AllUnixOSes);
-          AddInclude('sighndh.inc',AllUnixOSes);
+          AddInclude('sighnd.inc',AllUnixOSes-[Beos]);
+          AddInclude('sighndh.inc',[Linux,Solaris]);
           AddInclude('syscallh.inc',[Linux,Beos,FreeBSD]);
           AddInclude('syscall.inc',[Linux,Beos,FreeBSD]);
           AddInclude('sysnr.inc',[Linux,Beos,FreeBSD]);
-          AddInclude('ossysc.inc',AllUnixOSes);
+          AddInclude('ossysc.inc',AllUnixOSes-[Solaris]);
           AddInclude('osmacro.inc',AllUnixOSes);
           // Windows implementations
           AddInclude('winres.inc',AllWindowsOSes);
@@ -143,7 +146,7 @@ begin
           AddInclude('ostypes.inc');
           AddInclude('stat.inc',[Linux]);
           AddInclude('signal.inc');
-          AddInclude('sighndh.inc');
+          AddInclude('sighndh.inc',[Linux,Solaris]);
           AddInclude('bunxh.inc');
           AddInclude('bunxovlh.inc');
           AddInclude('genfunch.inc');
@@ -152,8 +155,8 @@ begin
           AddInclude('genfdset.inc');
           AddInclude('syscallh.inc',[Linux,Beos,FreeBSD]);
           AddInclude('sysnr.inc',[Linux,Beos,FreeBSD]);
-          AddInclude('bsyscall.inc',[Linux,Beos,FreeBSD]);
-          AddInclude('bunxsysc.inc',[Linux,Beos,FreeBSD]);
+          AddInclude('bsyscall.inc',[Linux,FreeBSD]);
+          AddInclude('bunxsysc.inc',[Linux,FreeBSD]);
           AddInclude('settimeo.inc');
           AddInclude('osmacro.inc');
           AddInclude('bunxovl.inc');
@@ -168,11 +171,11 @@ begin
           AddInclude('aliasptp.inc');
           AddInclude('aliasctp.inc');
           AddInclude('unxconst.inc');
-          AddInclude('unxsysch.inc');
+          AddInclude('unxsysch.inc',[Linux,FreeBSD]);
+          AddInclude('unxsysc.inc',[Linux,FreeBSD]);
           AddInclude('unxovlh.inc');
           AddInclude('unxovl.inc');
           AddInclude('syscallh.inc',[Linux,Beos,FreeBSD]);
-          AddInclude('unxsysc.inc',[Linux,Beos,FreeBSD]);
           AddInclude('textrec.inc');
           AddInclude('filerec.inc');
           AddInclude('unxfunc.inc');
@@ -188,11 +191,17 @@ begin
           AddInclude('termiosproc.inc');
         end;
     T:=P.Targets.AddUnit('unix/errors.pp',AllUnixOSes);
-      T.Dependencies.AddUnit('unixtype');
-      T.Dependencies.AddInclude('errnostr.inc');
-    T:=P.Targets.AddUnit('unix/syscall.pp',AllUnixOSes);
-      T.Dependencies.AddInclude('sysnr.inc');
-      T.Dependencies.AddInclude('syscallh.inc');
+      with T.Dependencies do
+        begin
+          AddUnit('unixtype');
+          AddInclude('errnostr.inc');
+        end;
+    T:=P.Targets.AddUnit('unix/syscall.pp',[Linux,Beos,FreeBSD]);
+      with T.Dependencies do
+        begin
+          AddInclude('sysnr.inc');
+          AddInclude('syscallh.inc');
+        end;
     T:=P.Targets.AddUnit('unix/terminfo.pp',AllUnixOSes);
       T.Dependencies.AddUnit('baseunix',AllUnixOSes);
     T:=P.Targets.AddUnit('unix/dl.pp',AllUnixOSes);
@@ -201,7 +210,7 @@ begin
       With T.Dependencies do
         begin
           AddUnit('baseunix');
-          AddUnit('syscall');
+          AddUnit('syscall',[Linux,Beos,FreeBSD]);
           AddInclude('ipccall.inc',[Linux]);
           AddInclude('ipcbsd.inc',[FreeBSD]);
         end;
@@ -293,11 +302,11 @@ begin
         end;
 
     // Windows units
-    T:=P.Targets.AddUnit('sysinitcyg.pp',AllWindowsOSes);
+    T:=P.Targets.AddUnit('sysinitcyg.pp',AllWindowsOSes-[WinCE]);
       T.Dependencies.AddUnit('system');
-    T:=P.Targets.AddUnit('sysinitgprof.pp',AllWindowsOSes);
+    T:=P.Targets.AddUnit('sysinitgprof.pp',AllWindowsOSes-[WinCE]);
       T.Dependencies.AddUnit('system');
-    T:=P.Targets.AddUnit('sysinitpas.pp',AllWindowsOSes);
+    T:=P.Targets.AddUnit('sysinitpas.pp',AllWindowsOSes-[WinCE]);
       T.Dependencies.AddUnit('system');
     T:=P.Targets.AddUnit('windows.pp',AllWindowsOSes);
       T.IncludePath.Add('win/wininc');
@@ -340,7 +349,7 @@ begin
         begin
           AddUnit('windows');
         end;
-    T:=P.Targets.AddUnit('winsysut.pp',AllWindowsOSes);
+    T:=P.Targets.AddUnit('winsysut.pp',AllWindowsOSes-[WinCE]);
       with T.Dependencies do
         begin
           AddUnit('windows');
@@ -351,7 +360,7 @@ begin
         begin
           AddUnit('system');
         end;
-    T:=P.Targets.AddUnit('signals.pp',AllWindowsOSes);
+    T:=P.Targets.AddUnit('signals.pp',[Win32]);
       with T.Dependencies do
         begin
           AddUnit('system');
@@ -474,6 +483,8 @@ begin
           AddUnit('windows',AllWindowsOSes);
           AddInclude('classesh.inc');
           AddInclude('classes.inc');
+          AddInclude('resref.inc');
+          AddInclude('sllist.inc');
           AddInclude('util.inc');
           AddInclude('bits.inc');
           AddInclude('streams.inc');
@@ -553,7 +564,7 @@ begin
           AddUnit('unixtype',AllUnixOSes);
           AddInclude('aliasctp.inc',AllUnixOSes);
         end;
-    T:=P.Targets.AddUnit('initc.pp');
+    T:=P.Targets.AddUnit('initc.pp',AllOSes-[WinCE]);
       T.Dependencies.AddUnit('ctypes');
     T:=P.Targets.AddUnit('cmem.pp');
       T.Dependencies.AddUnit('system');
@@ -672,7 +683,7 @@ begin
            AddInclude('keyscan.inc');
            AddUnit('mouse');
          end;
-    T:=P.Targets.AddUnit('sockets.pp');
+    T:=P.Targets.AddUnit('sockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,MorphOS,Netware,Netwlibc]);
       with T.Dependencies do
         begin
           AddUnit('baseunix',AllUnixOSes);
@@ -684,7 +695,7 @@ begin
           AddInclude('sockovl.inc');
           AddInclude('sockets.inc');
           AddInclude('unxsockh.inc',AllUnixOSes);
-          AddInclude('unixsock.inc',AllUnixOSes);
+          AddInclude('unixsock.inc',AllUnixOSes-[Solaris,Darwin]);
           AddInclude('fpwinsockh.inc',AllWindowsOSes);
         end;
     T:=P.Targets.AddUnit('serial.pp',AllUnixOSes);
