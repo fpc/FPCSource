@@ -108,8 +108,9 @@ Const
   AllWindowsOSes  = [Win32,Win64,WinCE];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
-  OSCpuPossible : array[TOS,TCpu] of boolean = (
+  OSCPUSupported : array[TOS,TCpu] of boolean = (
     { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb}
+    { none }    ( false, false, false, false, false, false, false, false, false, false),
     { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true ),
     { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false),
     { win32 }   ( false, true,  false, false, false, false, false, false, false, false),
