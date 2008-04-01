@@ -222,7 +222,12 @@ begin
         CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
       // Call compiler
       If ExecuteProcess(FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
-        Error(SErrFailedToCompileFPCMake);
+        begin
+          if not GlobalOptions.RecoveryMode then
+            Error(SErrCompileFailureFPMakeTryRecovery)
+          else
+            Error(SErrCompileFailureFPMake);
+        end;
       // Cleanup units
       DeleteDir(TempBuildDir);
     end

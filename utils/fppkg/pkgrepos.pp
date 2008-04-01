@@ -13,8 +13,11 @@ function GetRemoteRepositoryURL(const AFileName:string):string;
 procedure LoadLocalMirrors;
 procedure LoadLocalRepository;
 function  LoadOrCreatePackage(const AName:string):TFPPackage;
+procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
 function  LoadPackageManifest(const AManifestFN:string):TFPPackage;
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
+function  PackageIsBroken(APackage:TFPPackage):boolean;
+function  FindBrokenPackages(SL:TStrings):Boolean;
 procedure CheckFPMakeDependencies;
 procedure ListLocalRepository(all:boolean=false);
 
@@ -244,66 +247,71 @@ begin
 end;
 
 
+procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
+Var
+  L,DepSL : TStrings;
+  DepName,
+  V : String;
+  DepChecksum : Cardinal;
+  i,j,k : integer;
+  D : TFPDependency;
+begin
+  L:=TStringList.Create;
+  Try
+    ReadIniFile(AFileName,L);
+{$warning TODO Maybe check also CPU-OS}
+    // Read fpunits.conf
+    V:=L.Values['version'];
+    APackage.InstalledVersion.AsString:=V;
+    V:=L.Values['checksum'];
+    if V<>'' then
+      APackage.InstalledChecksum:=StrToInt(V)
+    else
+      APackage.InstalledChecksum:=$ffffffff;
+    // Load dependencies
+    V:=L.Values['depends'];
+    DepSL:=TStringList.Create;
+    DepSL.CommaText:=V;
+    for i:=0 to DepSL.Count-1 do
+      begin
+        DepName:=DepSL[i];
+        k:=Pos('|',DepName);
+        if k>0 then
+          begin
+            DepChecksum:=StrToInt(Copy(DepName,k+1,Length(DepName)-k));
+            DepName:=Copy(DepName,1,k-1);
+          end
+        else
+          DepChecksum:=$ffffffff;
+        D:=nil;
+        for j:=0 to APackage.Dependencies.Count-1 do
+          begin
+            D:=APackage.Dependencies[j];
+            if D.PackageName=DepName then
+              break;
+            D:=nil;
+          end;
+        if not assigned(D) then
+          D:=APackage.AddDependency(DepName,'');
+        D.RequireChecksum:=DepChecksum;
+      end;
+    DepSL.Free;
+  Finally
+    L.Free;
+  end;
+end;
+
+
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 
-  procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
-  Var
-    L,DepSL : TStrings;
-    DepName,
-    V : String;
-    DepChecksum : Cardinal;
-    i,j,k : integer;
-    D : TFPDependency;
+  procedure LogDuplicatePackages(APackage:TFPPackage;const AFileName: String);
   begin
-    L:=TStringList.Create;
-    Try
-      ReadIniFile(AFileName,L);
-      // Log packages found in multiple locations (local and global) ?
-      if not APackage.InstalledVersion.Empty then
-        begin
-          if showdups then
-            Log(vlDebug,SDbgPackageMultipleLocations,[APackage.Name,ExtractFilePath(AFileName)]);
-        end;
-{$warning TODO Maybe check also CPU-OS}
-      // Read fpunits.conf
-      V:=L.Values['version'];
-      APackage.InstalledVersion.AsString:=V;
-      V:=L.Values['checksum'];
-      if V<>'' then
-        APackage.InstalledChecksum:=StrToInt(V)
-      else
-        APackage.InstalledChecksum:=$ffffffff;
-      // Load dependencies
-      V:=L.Values['depends'];
-      DepSL:=TStringList.Create;
-      DepSL.CommaText:=V;
-      for i:=0 to DepSL.Count-1 do
-        begin
-          DepName:=DepSL[i];
-          k:=Pos('|',DepName);
-          if k>0 then
-            begin
-              DepChecksum:=StrToInt(Copy(DepName,k+1,Length(DepName)-k));
-              DepName:=Copy(DepName,1,k-1);
-            end
-          else
-            DepChecksum:=$ffffffff;
-          D:=nil;
-          for j:=0 to APackage.Dependencies.Count-1 do
-            begin
-              D:=APackage.Dependencies[j];
-              if D.PackageName=DepName then
-                break;
-              D:=nil;
-            end;
-          if not assigned(D) then
-            D:=APackage.AddDependency(DepName,'');
-          D.RequireChecksum:=DepChecksum;
-        end;
-      DepSL.Free;
-    Finally
-      L.Free;
-    end;
+    // Log packages found in multiple locations (local and global) ?
+    if not APackage.InstalledVersion.Empty then
+      begin
+        if showdups then
+          Log(vlDebug,SDbgPackageMultipleLocations,[APackage.Name,ExtractFilePath(AFileName)]);
+      end;
   end;
 
   procedure LoadPackagefpcFromFile(APackage:TFPPackage;const AFileName: String);
@@ -340,6 +348,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
               if FileExistsLog(UF) then
                 begin
                   P:=LoadOrCreatePackage(SR.Name);
+                  LogDuplicatePackages(P,UF);
                   LoadUnitConfigFromFile(P,UF)
                 end
               else
@@ -349,6 +358,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
                   if FileExistsLog(UF) then
                     begin
                       P:=LoadOrCreatePackage(SR.Name);
+                      LogDuplicatePackages(P,UF);
                       LoadPackagefpcFromFile(P,UF);
                     end;
                 end;
@@ -365,6 +375,57 @@ begin
     CheckUnitDir(ACompilerOptions.GlobalUnitDir);
   if ACompilerOptions.LocalUnitDir<>'' then
     CheckUnitDir(ACompilerOptions.LocalUnitDir);
+end;
+
+
+function PackageIsBroken(APackage:TFPPackage):boolean;
+var
+  j : integer;
+  D : TFPDependency;
+  DepPackage : TFPPackage;
+begin
+  result:=false;
+  for j:=0 to APackage.Dependencies.Count-1 do
+    begin
+      D:=APackage.Dependencies[j];
+      if (CompilerOptions.CompilerOS in D.OSes) and
+         (CompilerOptions.CompilerCPU in D.CPUs) then
+        begin
+          DepPackage:=CurrentRepository.FindPackage(D.PackageName);
+          // Don't stop on missing dependencies
+          if assigned(DepPackage) then
+            begin
+              if (DepPackage.InstalledChecksum<>D.RequireChecksum) then
+                begin
+                  Log(vlInfo,SLogPackageChecksumChanged,[APackage.Name,D.PackageName]);
+                  result:=true;
+                  exit;
+                end;
+            end
+          else
+            Log(vlDebug,SDbgObsoleteDependency,[D.PackageName]);
+        end;
+    end;
+end;
+
+
+function FindBrokenPackages(SL:TStrings):Boolean;
+var
+  i : integer;
+  P : TFPPackage;
+begin
+  SL.Clear;
+  for i:=0 to CurrentRepository.PackageCount-1 do
+    begin
+      P:=CurrentRepository.Packages[i];
+      // Process only installed packages
+      if not P.InstalledVersion.Empty then
+        begin
+          if PackageIsBroken(P) then
+            SL.Add(P.Name);
+        end;
+    end;
+  Result:=(SL.Count>0);
 end;
 
 
@@ -405,16 +466,20 @@ procedure ListLocalRepository(all:boolean=false);
 var
   P : TFPPackage;
   i : integer;
+  SL : TStringList;
 begin
-  Writeln(Format('%-20s %-12s %-12s',['Name','Installed','Available']));
+  SL:=TStringList.Create;
+  SL.Sorted:=true;
   for i:=0 to CurrentRepository.PackageCount-1 do
     begin
       P:=CurrentRepository.Packages[i];
       if all or (P.Version.CompareVersion(P.InstalledVersion)>0) then
-        begin
-          Writeln(Format('%-20s %-12s %-12s',[P.Name,P.InstalledVersion.AsString,P.Version.AsString]));
-        end;
+        SL.Add(Format('%-20s %-12s %-12s',[P.Name,P.InstalledVersion.AsString,P.Version.AsString]));
     end;
+  Writeln(Format('%-20s %-12s %-12s',['Name','Installed','Available']));
+  for i:=0 to SL.Count-1 do
+    Writeln(SL[i]);
+  FreeAndNil(SL);
 end;
 
 
@@ -426,13 +491,19 @@ procedure ListRemoteRepository;
 var
   P : TFPPackage;
   i : integer;
+  SL : TStringList;
 begin
-  Writeln(Format('%-20s %-12s %-20s',['Name','Available','FileName']));
+  SL:=TStringList.Create;
+  SL.Sorted:=true;
   for i:=0 to CurrentRepository.PackageCount-1 do
     begin
       P:=CurrentRepository.Packages[i];
-      Writeln(Format('%-20s %-12s %-20s',[P.Name,P.Version.AsString,P.FileName]));
+      SL.Add(Format('%-20s %-12s %-20s',[P.Name,P.Version.AsString,P.FileName]));
     end;
+  Writeln(Format('%-20s %-12s %-20s',['Name','Available','FileName']));
+  for i:=0 to SL.Count-1 do
+    Writeln(SL[i]);
+  FreeAndNil(SL);
 end;
 
 
@@ -499,7 +570,4 @@ begin
     end;
 end;
 
-
-
-initialization
 end.

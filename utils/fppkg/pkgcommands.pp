@@ -110,6 +110,13 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
+  { TCommandFixBroken }
+
+  TCommandFixBroken = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
 
 function TCommandAddConfig.Execute(const Args:TActionArgs):boolean;
 begin
@@ -249,13 +256,22 @@ end;
 
 
 function TCommandInstall.Execute(const Args:TActionArgs):boolean;
+var
+  S : String;
 begin
   if assigned(CurrentPackage) then
     ExecuteAction(CurrentPackage,'build',Args);
   ExecuteAction(CurrentPackage,'fpmakeinstall',Args);
-  // Update local status file
+  // Update version information from generated fpunits.conf
   if assigned(CurrentPackage) then
-    CurrentPackage.InstalledVersion.Assign(CurrentPackage.Version);
+    begin
+      if GlobalOptions.InstallGlobal then
+        S:=CompilerOptions.GlobalUnitDir
+      else
+        S:=CompilerOptions.LocalUnitDir;
+      S:=IncludeTrailingPathDelimiter(S)+CurrentPackage.Name+PathDelim+UnitConfigFileName;
+      LoadUnitConfigFromFile(CurrentPackage,S);
+    end;
   Result:=true;
 end;
 
@@ -321,7 +337,15 @@ begin
                 end;
             end
           else
-            status:='OK';
+            begin
+              if PackageIsBroken(DepPackage) then
+                begin
+                  status:='Broken, recompiling';
+                  L.Add(DepPackage.Name);
+                end
+              else
+                status:='OK';
+            end;
           Log(vlInfo,SLogPackageDependency,
               [D.PackageName,D.MinVersion.AsString,DepPackage.InstalledVersion.AsString,DepPackage.Version.AsString,status]);
         end
@@ -342,6 +366,29 @@ begin
 end;
 
 
+function TCommandFixBroken.Execute(const Args:TActionArgs):boolean;
+var
+  i : integer;
+  P : TFPPackage;
+  SL : TStringList;
+begin
+  SL:=TStringList.Create;
+  repeat
+    FindBrokenPackages(SL);
+    if SL.Count=0 then
+      break;
+    for i:=0 to SL.Count-1 do
+      begin
+        P:=CurrentRepository.PackageByName(SL[i]);
+        ExecuteAction(P,'build');
+        ExecuteAction(P,'install');
+      end;
+  until false;
+  FreeAndNil(SL);
+  Result:=true;
+end;
+
+
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
   RegisterPkgHandler('showall',TCommandShowAll);
@@ -355,4 +402,5 @@ initialization
   RegisterPkgHandler('clean',TCommandClean);
   RegisterPkgHandler('archive',TCommandArchive);
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);
+  RegisterPkgHandler('fixbroken',TCommandFixBroken);
 end.

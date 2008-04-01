@@ -245,6 +245,8 @@ begin
         GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
         GlobalOptions.RecoveryMode:=true
+      else if CheckOption(I,'b','broken') then
+        GlobalOptions.AllowBroken:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
@@ -275,6 +277,7 @@ var
   OldCurrDir : String;
   Res    : Boolean;
   i      : Integer;
+  SL     : TStringList;
 begin
   OldCurrDir:=GetCurrentDir;
   Try
@@ -304,6 +307,16 @@ begin
     if GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig then
       FindInstalledPackages(CompilerOptions,true);
 
+    // Check for broken dependencies
+    if not GlobalOptions.AllowBroken and
+       not((ParaPackages.Count=0) and (ParaAction='fixbroken')) then
+      begin
+        SL:=TStringList.Create;
+        if FindBrokenPackages(SL) then
+          Error(SErrBrokenPackagesFound);
+        FreeAndNil(SL);
+      end;
+
     if ParaPackages.Count=0 then
       begin
         Log(vlDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
@@ -332,6 +345,10 @@ begin
               break;
           end;
       end;
+
+    // Recompile all packages dependent on this package
+    if res and (ParaAction='install') then
+      pkghandler.ExecuteAction(nil,'fixbroken');
 
     Terminate;
 

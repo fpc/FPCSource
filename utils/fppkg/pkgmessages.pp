@@ -26,7 +26,8 @@ Resourcestring
   SErrException              = 'The FPC Package tool encountered the following error:';
   SErrActionAlreadyRegistered= 'Action "%s" is already registered';
   SErrActionNotFound         = 'Action "%s" is not supported';
-  SErrFailedToCompileFPCMake = 'Could not compile fpmake driver program';
+  SErrCompileFailureFPMake   = 'Could not compile fpmake driver program';
+  SErrCompileFailureFPMakeTryRecovery = 'Could not compile fpmake driver program, try adding "--recovery"';
   SErrNoFTPDownload          = 'This binary has no support for FTP downloads.';
   SErrNoHTTPDownload         = 'This binary has no support for HTTP downloads.';
   SErrBackupFailed           = 'Backup of file "%s" to file "%s" failed.';
@@ -47,6 +48,7 @@ Resourcestring
   SErrLoginFailed            = 'FTP LOGIN command failed.';
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';
   SErrGETFailed              = 'FTP GET "%s" command failed.';
+  SErrBrokenPackagesFound    = 'Found broken packages, run "fppkg fixbroken" first';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
@@ -73,6 +75,7 @@ Resourcestring
   SLogSelectedMirror         = 'Selected mirror "%s"';
   SLogUpgradingConfig        = 'Configuration file "%s" is updated with new configuration settings';
   SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
+  SLogPackageChecksumChanged = 'Package %s needs to be rebuild, dependency %s is modified';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
@@ -81,6 +84,8 @@ Resourcestring
   SDbgBackupFile             = 'Creating Backup File "%s"';
   SDbgPackageMultipleLocations = 'Multiple installations found for package %s, using installation "%s"';
   SDbgPackageDependencyOtherTarget  = 'Dependency on package %s is not for %s';
+  SDbgObsoleteDependency     = 'Obsolete dependency found on package %s';
+
 
 implementation
 
