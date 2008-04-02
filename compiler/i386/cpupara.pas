@@ -390,7 +390,12 @@ unit cpupara;
           That means for pushes the para with the
           highest offset (see para3) needs to be pushed first
         }
-        for i:=0 to paras.count-1 do
+        if p.proccalloption in pushleftright_pocalls then
+          i:=paras.count-1
+        else
+          i:=0;
+        while ((p.proccalloption in pushleftright_pocalls) and (i>=0)) or
+              (not(p.proccalloption in pushleftright_pocalls) and (i<=paras.count-1)) do
           begin
             hp:=tparavarsym(paras[i]);
             pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
@@ -478,6 +483,10 @@ unit cpupara;
                     dec(paralen,l);
                   end;
               end;
+            if p.proccalloption in pushleftright_pocalls then
+              dec(i)
+            else
+              inc(i);
           end;
       end;
 
