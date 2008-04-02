@@ -1821,13 +1821,20 @@ function XAllocID(dpy : PDisplay) : TXID;
 {$endif MACROS}
 
 // Overloaded functions to handle TBool parameters as actual booleans.
-function XSynchronize(para1:PDisplay; para2:Boolean):funcdisp;
+function XClearArea(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint; para6:cuint; para7:Boolean):cint;
+function XGetWindowProperty(para1:PDisplay; para2:TWindow; para3:TAtom; para4:clong; para5:clong;
+           para6:Boolean; para7:TAtom; para8:PAtom; para9:Pcint; para10:Pculong;
+           para11:Pculong; para12:PPcuchar):cint;
+function XGrabKeyboard(para1:PDisplay; para2:TWindow; para3:Boolean; para4:cint; para5:cint; para6:TTime):cint;
+function XGrabPointer(para1:PDisplay; para2:TWindow; para3:Boolean; para4:cuint; para5:cint;
+           para6:cint; para7:TWindow; para8:TCursor; para9:TTime):cint;
 function XInternAtom(para1:PDisplay; para2:Pchar; para3:Boolean):TAtom;
 function XInternAtoms(para1:PDisplay; para2:PPchar; para3:cint; para4:Boolean; para5:PAtom):TStatus;
-function XClearArea(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint; para6:cuint; para7:Boolean):cint;
 function XSendEvent(para1:PDisplay; para2:TWindow; para3:Boolean; para4:clong; para5:PXEvent):TStatus;
 function XSetGraphicsExposures(para1:PDisplay; para2:TGC; para3:Boolean):cint;
 function XSync(para1:PDisplay; para2:Boolean):cint;
+function XSynchronize(para1:PDisplay; para2:Boolean):funcdisp;
+
 
 implementation
 
@@ -2088,10 +2095,30 @@ begin
 end;
 {$endif MACROS}
 
-function XSynchronize(para1:PDisplay; para2:boolean):funcdisp;
+function XClearArea(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint; para6:cuint; para7:Boolean):cint;
 
 begin
-  Result:=XSynchronize(para1,Ord(para2));
+  Result:=XClearArea(para1,para2,para3,para4,para5,para6,Ord(Para7));
+end;
+
+function XGetWindowProperty(para1: PDisplay; para2: TWindow; para3: TAtom;
+  para4: clong; para5: clong; para6: Boolean; para7: TAtom; para8: PAtom;
+  para9: Pcint; para10: Pculong; para11: Pculong; para12: PPcuchar): cint;
+begin
+  Result := XGetWindowProperty(para1,para2,para3,para4,para5,ord(para6),para7,para8,para9,para10,para11,para12);
+end;
+
+function XGrabKeyboard(para1: PDisplay; para2: TWindow; para3: Boolean;
+  para4: cint; para5: cint; para6: TTime): cint;
+begin
+  Result:=XGrabKeyboard(para1,para2,Ord(para3),para4,para5,para6);
+end;
+
+function XGrabPointer(para1: PDisplay; para2: TWindow; para3: Boolean;
+  para4: cuint; para5: cint; para6: cint; para7: TWindow; para8: TCursor;
+  para9: TTime): cint;
+begin
+  Result:=XGrabPointer(para1,para2,Ord(para3),para4,para5,para6,para7,para8,para9);
 end;
 
 function XInternAtom(para1:PDisplay; para2:Pchar; para3:Boolean):TAtom;
@@ -2104,12 +2131,6 @@ function XInternAtoms(para1:PDisplay; para2:PPchar; para3:cint; para4:Boolean; p
 
 begin
   Result:=XInternAtoms(para1,para2,para3,Ord(para4),para5);
-end;
-
-function XClearArea(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint; para6:cuint; para7:Boolean):cint;
-
-begin
-  Result:=XClearArea(para1,para2,para3,para4,para5,para6,Ord(Para7));
 end;
 
 function XSendEvent(para1:PDisplay; para2:TWindow; para3:Boolean; para4:clong; para5:PXEvent):TStatus;
@@ -2128,6 +2149,12 @@ function XSync(para1:PDisplay; para2:Boolean):cint;
 
 begin
   Result:=XSync(Para1,Ord(Para2));
+end;
+
+function XSynchronize(para1:PDisplay; para2:boolean):funcdisp;
+
+begin
+  Result:=XSynchronize(para1,Ord(para2));
 end;
 
 
