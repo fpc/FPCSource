@@ -597,6 +597,8 @@ begin
   Flags := [];
   If Assigned(FAncestor) then
     Flags:=[ffInherited];
+  if csInline in Instance.ComponentState then
+    Flags:=Flags+[ffInline];
   FDriver.BeginComponent(Instance,Flags, Dummy);
   WriteProperties(Instance);
   WriteListEnd;
