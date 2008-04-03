@@ -2763,7 +2763,8 @@ implementation
               append_entry(DW_TAG_set_type,false,[
                 DW_AT_byte_size,DW_FORM_data2,def.size
                 ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
+            if assigned(def.elementdef) then
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
           end
         else
           begin
