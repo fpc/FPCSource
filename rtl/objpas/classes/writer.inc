@@ -595,10 +595,13 @@ var Dummy: Integer;
 begin
   Dummy:=0;
   Flags := [];
-  If Assigned(FAncestor) then
-    Flags:=[ffInherited];
-  if csInline in Instance.ComponentState then
-    Flags:=Flags+[ffInline];
+  If (Assigned(FAncestor)) and  //has ancestor
+     (not (csInline in Instance.ComponentState) or // no inline component
+      // .. or the inline component is inherited
+      (csAncestor in Instance.Componentstate) and (FAncestors <> nil)) then
+    Flags:=[ffInherited]
+  else If csInline in Instance.ComponentState then
+    Flags:=[ffInline];
   FDriver.BeginComponent(Instance,Flags, Dummy);
   WriteProperties(Instance);
   WriteListEnd;
