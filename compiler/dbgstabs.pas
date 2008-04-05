@@ -489,7 +489,10 @@ implementation
         { Here we maybe generate a type, so we have to use numberstring }
         if is_class(def) and
            tobjectdef(def).writing_class_record_dbginfo then
-          st:=def_stabstr_evaluate(def,'"'+symname+':$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
+          { in case of writing the class record structure, we always have to
+            use the class name (so it refers both to the struct and the
+            pointer to the struct), otherwise gdb crashes (see tests/webtbs/tw9766.pp) }
+          st:=def_stabstr_evaluate(def,'"{$sym_name}:$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
         else
           st:=def_stabstr_evaluate(def,'"'+symname+':$1$2=',[stabchar,def_stab_number(def)]);
         st:=st+ss;
