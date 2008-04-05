@@ -2749,6 +2749,8 @@ implementation
       end;
 
     procedure TDebugInfoDwarf2.appenddef_set(list:TAsmList;def: tsetdef);
+      var
+        lab: tasmlabel;
       begin
         if (ds_dwarf_sets in current_settings.debugswitches) then
           begin
@@ -2764,7 +2766,21 @@ implementation
                 DW_AT_byte_size,DW_FORM_data2,def.size
                 ]);
             if assigned(def.elementdef) then
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
+              begin
+                if (def.elementdef.typ=enumdef) then
+                  begin
+                    { gdb 6.7 - 6.8 is broken for regular enum sets }
+                    current_asmdata.getaddrlabel(lab);
+                    append_labelentry_ref(DW_AT_type,lab);
+                    finish_entry;
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
+                    append_entry(DW_TAG_subrange_type,false,[
+                      DW_AT_lower_bound,DW_FORM_sdata,tenumdef(def.elementdef).minval,
+                      DW_AT_upper_bound,DW_FORM_sdata,tenumdef(def.elementdef).maxval
+                      ]);
+                  end;
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef))
+              end
           end
         else
           begin
