@@ -205,6 +205,9 @@
      DM_PELSHEIGHT = $100000;
      DM_DISPLAYFLAGS = $200000;
      DM_DISPLAYFREQUENCY = $400000;
+     DM_DISPLAYORIENTATION = LONGWORD($80);
+     DM_DISPLAYQUERYORIENTATION= DWORD($01000000);
+     DM_DISPLAYFIXEDOUTPUT = LONGWORD($20000000);
      CDS_UPDATEREGISTRY = 1;
      CDS_TEST = 2;
      CDS_FULLSCREEN = 4;
@@ -1131,7 +1134,9 @@
      SB_BOTTOM = 7;
      SB_TOP = 6;
   { EnumCalendarInfo  }
-     ENUM_ALL_CALENDARS = -(1);
+     ENUM_ALL_CALENDARS     = dword(-1);
+     ENUM_CURRENT_SETTINGS  = dword(-1);
+     ENUM_REGISTRY_SETTINGS = dword(-2);     
   { EnumDateFormats  }
      DATE_SHORTDATE = 1;
      DATE_LONGDATE = 2;
@@ -5624,6 +5629,11 @@ const
 
   AC_SRC_OVER = $00;     
   AC_SRC_ALPHA = $01;     
+
+  DMDO_DEFAULT    = 0;
+  DMDO_90         = 1;
+  DMDO_180        = 2;
+  DMDO_270        = 3;
 
 {$endif read_interface}
 
