@@ -1,9 +1,16 @@
 {$IFDEF FPC}
 {$MODE OBJFPC}
 {$ENDIF}
+
+{$DEFINE UseRegexCompat}
+
 program testreg1;
 uses
+{$IFDEF UseRegexCompat}
+   regexprcompat;
+{$ELSE}
    regexpr;
+{$ENDIF}
 
 var
    r         : tregexprengine;
@@ -318,6 +325,16 @@ begin
      do_error(705);
    DestroyregExprEngine(r);
 
+{$IFDEF UseRegexCompat}
+   initok:=GenerateRegExprEngine('Cat(AZ){2,}Q',[],r);
+   if not initok then
+     do_error(705);
+   if not(RegExprPos(r,'BCatAZAZAZAZQDABCD',index,len)) or
+     (index<>1) or (len<>12) then
+     do_error(705);
+   DestroyregExprEngine(r);
+{$ENDIF}
+
    initok:=GenerateRegExprEngine('CatAZ{0,}',[],r);
    if not initok then
      do_error(706);
@@ -361,6 +378,14 @@ begin
      do_error(725);
    if not(RegExprPos(r,'BCatAZAZAZDABCD',index,len)) or
      (index<>1) or (len<>9) then
+     do_error(725);
+   DestroyregExprEngine(r);
+
+   initok:=GenerateRegExprEngine('Cat(AZ){1,3}',[],r);
+   if not initok then
+     do_error(725);
+   if not(RegExprPos(r,'BCatAZAZDABCD',index,len)) or
+     (index<>1) or (len<>7) then
      do_error(725);
    DestroyregExprEngine(r);
 
@@ -650,11 +675,13 @@ begin
 
    { test real backtracking }
 
-(*   r:=GenerateRegExprEngine('nofoo|foo',[]);
+{$IFDEF UseRegexCompat}
+   r:=GenerateRegExprEngine('nofoo|foo',[]);
    if not(RegExprPos(r,'1234   foo1234XXXX',index,len)) or
      (index<>7) or (len<>3) then
      do_error(1300);
-   DestroyregExprEngine(r);*)
+   DestroyregExprEngine(r);
+{$ENDIF}
 
   GenerateRegExprEngine('abc\(123\)$',[],r);
   if not (RegExprPos(r,'1234 abc(123)', index, len)) or
@@ -762,7 +789,6 @@ begin
      do_error(1505);
    DestroyregExprEngine(r);
 
-{
   initok:=GenerateRegExprEngine('\.localhost$',[],r);
   if not initok then
      do_error(1506);
@@ -778,6 +804,7 @@ begin
      do_error(1507);
    DestroyregExprEngine(r);
 
+{$IFDEF UseRegexCompat}
   initok:=GenerateRegExprEngine('.*[^e]\.localhost$',[],r);
   if not initok then
      do_error(1508);
@@ -796,22 +823,22 @@ begin
   if not initok then
      do_error(1500);
    if not(RegExprPos(r,'1234   nofoo1234XXXX',index,len)) or
-     (index<>8) or (len<>9) then
+     (index<>7) or (len<>9) then
      do_error(1500);
    DestroyregExprEngine(r);
 
    r:=GenerateRegExprEngine('(nofoo|foo|anotherfoo)1234',[]);
    if not(RegExprPos(r,'1234   nofoo1234XXXX',index,len)) or
-     (index<>8) or (len<>9) then
+     (index<>7) or (len<>9) then
      do_error(1009);
    DestroyregExprEngine(r);
 
    r:=GenerateRegExprEngine('nofoo1234|foo1234',[]);
-   if (r.data=nil) or not(RegExprPos(r,'1234   foo1234XXXX',index,len)) or
+   if {(r.data=nil) or} not(RegExprPos(r,'1234   foo1234XXXX',index,len)) or
      (index<>7) or (len<>7) then
      do_error(1010);
    DestroyregExprEngine(r);
-   }
+{$ENDIF}
 
   { *************************************************************************
                               replacement tests
