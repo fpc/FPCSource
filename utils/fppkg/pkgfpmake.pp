@@ -13,16 +13,15 @@ uses
   fprepos,
   pkgoptions,
   pkgglobals,
-  pkgmessages;
+  pkgmessages,
+  pkgrepos;
 
 type
   { TFPMakeCompiler }
 
   TFPMakeCompiler = Class(TPackagehandler)
-  Private
-    Procedure CompileFPMake;
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
 
@@ -38,7 +37,7 @@ type
 
   TFPMakeRunnerCompile = Class(TFPMakeRunner)
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
 
@@ -46,7 +45,7 @@ type
 
   TFPMakeRunnerBuild = Class(TFPMakeRunner)
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
 
@@ -54,7 +53,7 @@ type
 
   TFPMakeRunnerInstall = Class(TFPMakeRunner)
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
 
@@ -62,21 +61,21 @@ type
 
   TFPMakeRunnerClean = Class(TFPMakeRunner)
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
   { TFPMakeRunnerManifest }
 
   TFPMakeRunnerManifest = Class(TFPMakeRunner)
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
   { TFPMakeRunnerArchive }
 
   TFPMakeRunnerArchive = Class(TFPMakeRunner)
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
    TMyMemoryStream=class(TMemoryStream)
@@ -120,7 +119,7 @@ end;
 
 { TFPMakeCompiler }
 
-Procedure TFPMakeCompiler.CompileFPMake;
+Procedure TFPMakeCompiler.Execute;
 var
   OOptions : string;
 
@@ -161,9 +160,11 @@ Var
   FPMakeSrc : string;
   NeedFPMKUnitSource,
   HaveFpmake : boolean;
+  P : TFPPackage;
 begin
+  P:=InstalledRepository.PackageByName(PackageName);
   OOptions:='';
-  SetCurrentDir(PackageBuildPath);
+  SetCurrentDir(PackageBuildPath(P));
   // Check for fpmake source
   FPMakeBin:='fpmake'+ExeExt;
   FPMakeSrc:='fpmake.pp';
@@ -236,18 +237,11 @@ begin
 end;
 
 
-function TFPMakeCompiler.Execute(const Args:TActionArgs):boolean;
-begin
-{$warning TODO Check arguments}
-  CompileFPMake;
-  result:=true;
-end;
-
-
 { TFPMakeRunner }
 
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
+  P : TFPPackage;
   FPMakeBin,
   OOptions : string;
 
@@ -261,15 +255,18 @@ Var
 begin
   OOptions:='';
   // Does the current package support this CPU-OS?
-  if assigned(CurrentPackage) then
+  if PackageName<>'' then
+    P:=InstalledRepository.PackageByName(PackageName)
+  else
+    P:=nil;
+  if assigned(P) then
     begin
-      if not(CompilerOptions.CompilerOS in CurrentPackage.OSes) or
-         not(CompilerOptions.CompilerCPU in CurrentPackage.CPUs) then
-        Error(SErrPackageDoesNotSupportTarget,[CurrentPackage.Name,
-            MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+      if not(CompilerOptions.CompilerOS in P.OSes) or
+         not(CompilerOptions.CompilerCPU in P.CPUs) then
+        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
     end;
   { Maybe compile fpmake executable? }
-  ExecuteAction(CurrentPackage,'compilefpmake');
+  ExecuteAction(PackageName,'compilefpmake');
   { Create options }
   AddOption('--nofpccfg');
   if vlInfo in LogLevels then
@@ -286,49 +283,47 @@ begin
   AddOption('--globalunitdir='+CompilerOptions.GlobalUnitDir);
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
-  SetCurrentDir(PackageBuildPath);
+  SetCurrentDir(PackageBuildPath(P));
   Result:=ExecuteProcess(FPMakeBin,Command+' '+OOptions);
   if Result<>0 then
     Error(SErrExecutionFPMake,[Command]);
 end;
 
 
-function TFPMakeRunnerCompile.Execute(const Args:TActionArgs):boolean;
+procedure TFPMakeRunnerCompile.Execute;
 begin
-  result:=(RunFPMake('compile')=0);
+  RunFPMake('compile');
 end;
 
 
-function TFPMakeRunnerBuild.Execute(const Args:TActionArgs):boolean;
+procedure TFPMakeRunnerBuild.Execute;
 begin
-  result:=(RunFPMake('build')=0);
+  RunFPMake('build');
 end;
 
 
-function TFPMakeRunnerInstall.Execute(const Args:TActionArgs):boolean;
+procedure TFPMakeRunnerInstall.Execute;
 begin
-  result:=(RunFPMake('install')=0);
+  RunFPMake('install');
 end;
 
 
-function TFPMakeRunnerClean.Execute(const Args:TActionArgs):boolean;
+procedure TFPMakeRunnerClean.Execute;
 begin
-  result:=(RunFPMake('clean')=0);
+  RunFPMake('clean');
 end;
 
 
-function TFPMakeRunnerManifest.Execute(const Args:TActionArgs):boolean;
+procedure TFPMakeRunnerManifest.Execute;
 begin
-  result:=(RunFPMake('manifest')=0);
+  RunFPMake('manifest');
 end;
 
 
-function TFPMakeRunnerArchive.Execute(const Args:TActionArgs):boolean;
+procedure TFPMakeRunnerArchive.Execute;
 begin
-  result:=(RunFPMake('archive')=0);
+  RunFPMake('archive');
 end;
-
-
 
 
 initialization

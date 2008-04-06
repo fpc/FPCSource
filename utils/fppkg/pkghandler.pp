@@ -10,52 +10,31 @@ uses
   pkgoptions,
   fprepos;
 
+const
+  CmdLinePackageName='<cmdline>';
+  CurrentDirPackageName='<currentdir>';
+
 type
-  { TActionStack }
-
-  TActionArgs = array of string;
-
-  TActionStackItem = record
-    ActionPackage : TFPPackage;
-    Action : string;
-    Args   : TActionArgs;
-  end;
-  PActionStackItem = ^TActionStackItem;
-
-  TActionStack = class
-  private
-    FList : TFPList;
-  public
-    constructor Create;
-    destructor Destroy;override;
-    procedure Push(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
-    procedure Push(APackage:TFPPackage;const AAction:string;const Args:array of string);
-    function  Pop(out APackage:TFPPackage;out AAction:string;out Args:TActionArgs):boolean;
-  end;
-
-
   { TPackageHandler }
 
   TPackageHandler = Class(TComponent)
   private
-    FCurrentPackage : TFPPackage;
+    FPackageName : string;
+    FIsLocalPackage : boolean;
   Protected
     Procedure Log(Level: TLogLevel;Msg : String);
     Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
     Procedure Error(Msg : String);
     Procedure Error(Fmt : String; const Args : array of const);
-    procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
-    function PackageBuildPath:String;
-    function PackageRemoteArchive:String;
-    function PackageLocalArchive:String;
-    function PackageManifestFile:String;
   Public
-    Constructor Create(AOwner:TComponent;APackage:TFPPackage); virtual;
+    Constructor Create(AOwner:TComponent;const APackageName:string); virtual;
     function PackageLogPrefix:String;
-    Function Execute(const Args:TActionArgs):boolean; virtual; abstract;
-    Property CurrentPackage:TFPPackage Read FCurrentPackage Write FCurrentPackage;
+    procedure ExecuteAction(const APackageName,AAction:string);
+    procedure Execute; virtual; abstract;
+    Property PackageName:string Read FPackageName;
+    Property IsLocalPackage:boolean Read FIsLocalPackage Write FIsLocalPackage;
   end;
   TPackageHandlerClass = class of TPackageHandler;
 
@@ -64,7 +43,12 @@ type
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-function ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil):Boolean;
+procedure ExecuteAction(const APackageName,AAction:string);
+
+function PackageBuildPath(APackage:TFPPackage):String;
+function PackageRemoteArchive(APackage:TFPPackage): String;
+function PackageLocalArchive(APackage:TFPPackage): String;
+function PackageManifestFile(APackage:TFPPackage): String;
 
 
 Implementation
@@ -99,53 +83,83 @@ begin
 end;
 
 
-function ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil):Boolean;
+procedure ExecuteAction(const APackageName,AAction:string);
 var
   pkghandlerclass : TPackageHandlerClass;
-  i : integer;
-  logargs : string;
   FullActionName : string;
 begin
-  result:=false;
   // Check if we have already executed or are executing the action
-  if assigned(Apackage) then
-    FullActionName:=APackage.Name+AAction
-  else
-    FullActionName:=AAction;
+  FullActionName:=APackageName+AAction;
   if ExecutedActions.Find(FullActionName)<>nil then
     begin
       Log(vlDebug,'Already executed or executing action '+FullActionName);
-      result:=true;
       exit;
     end;
   ExecutedActions.Add(FullActionName,Pointer(PtrUInt(1)));
   // Create action handler class
   pkghandlerclass:=GetPkgHandler(AAction);
-  With pkghandlerclass.Create(nil,APackage) do
+  With pkghandlerclass.Create(nil,APackageName) do
     try
-      logargs:='';
-      for i:=Low(Args) to High(Args) do
-        begin
-          if logargs='' then
-            logargs:=Args[i]
-          else
-            logargs:=logargs+','+Args[i];
-        end;
-      Log(vlDebug,SLogRunAction+' start',[AAction,logargs]);
-      result:=Execute(Args);
-      Log(vlDebug,SLogRunAction+' end',[AAction,logargs]);
+      if (APackageName=CmdLinePackageName) or
+         (APackageName=CurrentDirPackageName) then
+        IsLocalPackage:=true;
+      Log(vlDebug,SLogRunAction+' start',[AAction]);
+      Execute;
+      Log(vlDebug,SLogRunAction+' end',[AAction]);
     finally
       Free;
     end;
 end;
 
 
+function PackageBuildPath(APackage:TFPPackage):String;
+begin
+  if APackage.Name=CurrentDirPackageName then
+    Result:='.'
+  else if APackage.Name=CmdLinePackageName then
+    Result:=GlobalOptions.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
+  else
+    Result:=GlobalOptions.BuildDir+APackage.Name;
+end;
+
+
+function PackageRemoteArchive(APackage:TFPPackage): String;
+begin
+  if APackage.Name=CurrentDirPackageName then
+    Error(SErrNoPackageSpecified)
+  else if APackage.Name=CmdLinePackageName then
+    Error(SErrPackageIsLocal);
+  if APackage.ExternalURL<>'' then
+    Result:=APackage.ExternalURL
+  else
+    Result:=GetRemoteRepositoryURL(APackage.FileName);
+end;
+
+
+function PackageLocalArchive(APackage:TFPPackage): String;
+begin
+  if APackage.Name=CurrentDirPackageName then
+    Error(SErrNoPackageSpecified)
+  else if APackage.Name=CmdLinePackageName then
+    Result:=APackage.LocalFileName
+  else
+    Result:=GlobalOptions.ArchivesDir+APackage.FileName;
+end;
+
+
+function PackageManifestFile(APackage:TFPPackage): String;
+begin
+  Result:=ManifestFileName;
+end;
+
+
+
 { TPackageHandler }
 
-constructor TPackageHandler.Create(AOwner:TComponent;APackage:TFPPackage);
+constructor TPackageHandler.Create(AOwner:TComponent;const APackageName:string);
 begin
   inherited Create(AOwner);
-  FCurrentPackage:=APackage;
+  FPackageName:=APackageName;
 end;
 
 Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
@@ -163,50 +177,19 @@ begin
 end;
 
 
-function TPackageHandler.PackageBuildPath:String;
-begin
-  if CurrentPackage=nil then
-    Result:='.'
-  else
-    Result:=GlobalOptions.BuildDir+CurrentPackage.Name;
-end;
-
-function TPackageHandler.PackageRemoteArchive: String;
-begin
-  if not assigned(CurrentPackage) then
-    Error(SErrNoPackageSpecified);
-  if CurrentPackage.IsLocalPackage then
-    Error(SErrPackageIsLocal);
-  if CurrentPackage.ExternalURL<>'' then
-    Result:=CurrentPackage.ExternalURL
-  else
-    Result:=GetRemoteRepositoryURL(CurrentPackage.FileName);
-end;
-
-function TPackageHandler.PackageLocalArchive: String;
-begin
-  if not assigned(CurrentPackage) then
-    Error(SErrNoPackageSpecified);
-  if CurrentPackage.IsLocalPackage then
-    Result:=CurrentPackage.FileName
-  else
-    Result:=GlobalOptions.ArchivesDir+CurrentPackage.FileName;
-end;
-
-
-function TPackageHandler.PackageManifestFile: String;
-begin
-  Result:=ManifestFileName;
-end;
-
-
 function TPackageHandler.PackageLogPrefix:String;
 begin
-  if assigned(CurrentPackage) then
-    Result:='['+CurrentPackage.Name+'] '
+  if PackageName<>'' then
+    Result:='['+PackageName+'] '
   else
-//    Result:='[<currentdir>] ';
     Result:='';
+end;
+
+
+procedure TPackageHandler.ExecuteAction(const APackageName,AAction:string);
+begin
+  // Needed to override TComponent.ExecuteAction method
+  pkghandler.ExecuteAction(APackageName,AAction);
 end;
 
 
@@ -231,71 +214,6 @@ end;
 Procedure TPackageHandler.Error(Fmt:String; const Args:array of const);
 begin
   pkgglobals.Error(PackageLogPrefix+Fmt,Args);
-end;
-
-
-procedure TPackageHandler.ExecuteAction(APackage: TFPPackage; const AAction: string; const Args: TActionArgs=nil);
-begin
-  pkghandler.ExecuteAction(APackage,AAction,Args);
-end;
-
-
-{ TActionStack }
-
-constructor TActionStack.Create;
-begin
-  FList:=TFPList.Create;
-end;
-
-
-destructor TActionStack.Destroy;
-begin
-  FreeAndNil(FList);
-end;
-
-
-procedure TActionStack.Push(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
-var
-  ActionItem : PActionStackItem;
-begin
-  New(ActionItem);
-  ActionItem^.ActionPackage:=APackage;
-  ActionItem^.Action:=AAction;
-  ActionItem^.Args:=Args;
-  FList.Add(ActionItem);
-end;
-
-
-procedure TActionStack.Push(APackage:TFPPackage;const AAction:string;const Args:array of string);
-var
-  ActionArgs : TActionArgs;
-  i : integer;
-begin
-  SetLength(ActionArgs,high(Args)+1);
-  for i:=low(Args) to high(Args) do
-    ActionArgs[i]:=Args[i];
-  Push(APackage,AAction,ActionArgs);
-end;
-
-
-function TActionStack.Pop(out APackage:TFPPackage;out AAction:string;out Args:TActionArgs):boolean;
-var
-  ActionItem : PActionStackItem;
-  Idx : integer;
-begin
-  Result:=false;
-  if FList.Count=0 then
-    exit;
-  // Retrieve Item from stack
-  Idx:=FList.Count-1;
-  ActionItem:=PActionStackItem(FList[Idx]);
-  FList.Delete(Idx);
-  // Copy contents and dispose stack item
-  APackage:=ActionItem^.ActionPackage;
-  AAction:=ActionItem^.Action;
-  Args:=ActionItem^.Args;
-  dispose(ActionItem);
-  Result:=true;
 end;
 
 

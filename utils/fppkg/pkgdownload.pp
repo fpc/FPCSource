@@ -30,7 +30,7 @@ Type
 
   TDownloadPackage = Class(TPackagehandler)
   Public
-    Function Execute(const Args:TActionArgs):boolean;override;
+    Procedure Execute;override;
   end;
 
 procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
@@ -44,9 +44,11 @@ implementation
 uses
   contnrs,
   uriparser,
+  fprepos,
   pkgglobals,
   pkgoptions,
-  pkgmessages;
+  pkgmessages,
+  pkgrepos;
 
 var
   DownloaderList  : TFPHashList;
@@ -157,15 +159,17 @@ end;
 
 { TDownloadPackage }
 
-function TDownloadPackage.Execute(const Args:TActionArgs):boolean;
+procedure TDownloadPackage.Execute;
 var
   DownloaderClass : TBaseDownloaderClass;
+  P : TFPPackage;
 begin
+  P:=AvailableRepository.PackageByName(PackageName);
   DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
   with DownloaderClass.Create(nil) do
     try
-      Log(vlCommands,SLogDownloading,[PackageRemoteArchive,PackageLocalArchive]);
-      Download(PackageRemoteArchive,PackageLocalArchive);
+      Log(vlCommands,SLogDownloading,[PackageRemoteArchive(P),PackageLocalArchive(P)]);
+      Download(PackageRemoteArchive(P),PackageLocalArchive(P));
     finally
       Free;
     end;

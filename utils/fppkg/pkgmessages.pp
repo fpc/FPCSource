@@ -49,11 +49,12 @@ Resourcestring
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';
   SErrGETFailed              = 'FTP GET "%s" command failed.';
   SErrBrokenPackagesFound    = 'Found broken packages, run "fppkg fixbroken" first';
+  SErrManifestNoSinglePackage = 'Manifest file "%s" does not contain exactly one package';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
   SLogCommandLineAction      = 'Adding action from commandline: "%s %s"';
-  SLogRunAction              = 'Action: "%s %s"';
+  SLogRunAction              = 'Action: "%s"';
   SLogExecute                = 'Executing: "%s %s"';
   SLogChangeDir              = 'CurrentDir: "%s"';
   SLogDownloading            = 'Downloading "%s" to "%s"';
