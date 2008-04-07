@@ -944,6 +944,13 @@ uses
                readlinkcontainer(LinkotherSharedLibs);
              iblinkotherframeworks :
                readlinkcontainer(LinkOtherFrameworks);
+             ibmainname:
+               begin
+                 mainname:=stringdup(ppufile.getstring);
+                 if (mainaliasname<>defaultmainaliasname) then
+                   Message1(scan_w_multiple_main_name_overrides,mainaliasname);
+                 mainaliasname:=mainname^;
+               end;
              ibImportSymbols :
                readImportSymbols;
              ibderefmap :
@@ -1012,6 +1019,13 @@ uses
          { first the unitname }
          ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
+
+         { write the alternate main procedure name if any }
+         if assigned(mainname) then
+           begin
+             ppufile.putstring(mainname^);
+             ppufile.writeentry(ibmainname);
+           end;
 
          writesourcefiles;
 {$IFDEF MACRO_DIFF_HINT}

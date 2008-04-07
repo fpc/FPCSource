@@ -27,9 +27,11 @@
       // Start with checking the file in the current directory
       Result:=Name;
       temp:=SetDirSeparators(DirList);
-      repeat
-        If (Result<>'') and FileExists(Result) Then
+      while True do begin
+        If (Result <> '') and FileExists(Result) Then
           exit;
+        If Temp = '' then
+          Break; // No more directories to search - fail
         I:=pos(PathSeparator,Temp);
         If I<>0 then
           begin
@@ -41,9 +43,9 @@
             Result:=Temp;
             Temp:='';
           end;
-        if Result<>'' then
+        If Result<>'' then
           Result:=IncludeTrailingPathDelimiter(Result)+name;
-      until temp='';
+      end;
       result:='';
     end;
 

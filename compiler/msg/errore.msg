@@ -124,7 +124,7 @@ general_i_number_of_notes=01023_I_$1 note(s) issued
 #
 # Scanner
 #
-# 02085 is the last used one
+# 02086 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -353,6 +353,7 @@ scan_w_frameworks_darwin_only=02084_W_Framework-related options are only support
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
 scan_e_illegal_minfpconstprec=02085_E_Illegal minimal floating point constant precision "$1"
 % Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
+scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure multiple times, was previously set to "$1" 
 % \end{description}
 #
 # Parser

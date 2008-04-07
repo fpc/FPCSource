@@ -125,6 +125,8 @@ const
   ibnodetree       = 80;
   ibasmsymbols     = 81;
   ibresources      = 82;
+
+  ibmainname       = 90;
   { target-specific things }
   iblinkotherframeworks = 100;
 
