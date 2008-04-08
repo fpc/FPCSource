@@ -392,7 +392,7 @@ begin
     // Collect all matches.
     While (R<>Nil) do
       begin
-      If R.RootMatches(FRoot) and (FRef=UpperCase(R.FGLobal)) Then
+      If R.RootMatches(FRoot) and ((FRef = '') or (FRef=UpperCase(R.FGLobal))) Then
         begin
         If Not Assigned(L) then
           L:=TFPList.Create;
