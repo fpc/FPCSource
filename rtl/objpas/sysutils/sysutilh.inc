@@ -159,6 +159,7 @@ type
 
    ESafecallException = class(Exception);
    ENoThreadSupport = Class(Exception);
+   ENoWideStringSupport = Class(Exception);
 
 
    { Exception handling routines }
