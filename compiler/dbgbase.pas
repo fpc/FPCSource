@@ -226,6 +226,9 @@ implementation
         { to avoid infinite loops }
         def.dbg_state := dbg_state_writing;
         beforeappenddef(list,def);
+        { queued defs have to be written later }
+        if (def.dbg_state=dbg_state_queued) then
+          exit;
         case def.typ of
           stringdef :
             appenddef_string(list,tstringdef(def));
@@ -257,6 +260,12 @@ implementation
             appenddef_object(list,tobjectdef(def));
           undefineddef :
             appenddef_undefined(list,tundefineddef(def));
+          procdef :
+            begin
+              { procdefs are already written in a separate step. procdef
+                support in appenddef is only needed for beforeappenddef to
+                write all local type defs }
+            end;
         else
           internalerror(200601281);
         end;
@@ -388,7 +397,7 @@ implementation
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
-            if (def.dbg_state=dbg_state_used) then
+            if (def.dbg_state in [dbg_state_used,dbg_state_queued]) then
               appenddef(list,def);
           end;
         case st.symtabletype of

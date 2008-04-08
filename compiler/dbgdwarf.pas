@@ -206,8 +206,6 @@ interface
         defnumberlist,
         deftowritelist   : TFPObjectList;
 
-        writing_def_dwarf : boolean;
-
         { use this defs to create info for variants and file handles }
         { unused (MWE)
         filerecdef,
@@ -1029,7 +1027,10 @@ implementation
 
     procedure TDebugInfoDwarf.appenddef_ord(list:TAsmList;def:torddef);
       var
-        sign: tdwarf_type;
+        basedef      : tdef;
+        sign         : tdwarf_type;
+        signform     : tdwarf_form;
+        fullbytesize : byte;
       begin
         case def.ordtype of
           s8bit,
@@ -1044,21 +1045,67 @@ implementation
               { because otherwise they are interpreted wrongly when used }
               { in a bitpacked record                                    }
               if (def.low<0) then
-                sign:=DW_ATE_signed
+                begin
+                  sign:=DW_ATE_signed;
+                  signform:=DW_FORM_sdata
+                end
               else
-                sign:=DW_ATE_unsigned;
-              { we should generate a subrange type here }
-              if assigned(def.typesym) then
-                append_entry(DW_TAG_base_type,false,[
-                  DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                  DW_AT_encoding,DW_FORM_data1,sign,
-                  DW_AT_byte_size,DW_FORM_data1,def.size
-                  ])
+                begin
+                  sign:=DW_ATE_unsigned;
+                  signform:=DW_FORM_udata
+                end;
+              fullbytesize:=def.size;
+              case fullbytesize of
+                1:
+                  if (sign=DW_ATE_signed) then
+                    basedef:=s8inttype
+                  else
+                    basedef:=u8inttype;
+                2:
+                  if (sign=DW_ATE_signed) then
+                    basedef:=s16inttype
+                  else
+                    basedef:=u16inttype;
+                4:
+                  if (sign=DW_ATE_signed) then
+                    basedef:=s32inttype
+                  else
+                    basedef:=u32inttype;
+                else
+                  internalerror(2008032201);
+              end;
+
+              if (def.low=torddef(basedef).low) and
+                 (def.high=torddef(basedef).high) then
+                { base type such as byte/shortint/word/... }
+                if assigned(def.typesym) then
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                    DW_AT_encoding,DW_FORM_data1,sign,
+                    DW_AT_byte_size,DW_FORM_data1,fullbytesize])
+                else
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_encoding,DW_FORM_data1,sign,
+                    DW_AT_byte_size,DW_FORM_data1,fullbytesize])
               else
-                append_entry(DW_TAG_base_type,false,[
-                  DW_AT_encoding,DW_FORM_data1,sign,
-                  DW_AT_byte_size,DW_FORM_data1,def.size
-                  ]);
+                begin
+                  { subrange type }
+                  { note: don't do this 64 bit int types, they appear    }
+                  {       to be always clipped to s32bit for some reason }
+                  if assigned(def.typesym) then
+                    append_entry(DW_TAG_subrange_type,false,[
+                      DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                      DW_AT_lower_bound,signform,int64(def.low),
+                      DW_AT_upper_bound,signform,int64(def.high)
+                      ])
+                  else
+                    append_entry(DW_TAG_subrange_type,false,[
+                      DW_AT_lower_bound,signform,int64(def.low),
+                      DW_AT_upper_bound,signform,int64(def.high)
+                      ]);
+                  append_labelentry_ref(DW_AT_type,def_dwarf_lab(basedef));
+                end;
+                
               finish_entry;
             end;
           uvoid :
@@ -2271,7 +2318,6 @@ implementation
         current_filepos:=current_module.mainfilepos;
 
         currabbrevnumber:=0;
-        writing_def_dwarf:=false;
 
         defnumberlist:=TFPObjectList.create(false);
         deftowritelist:=TFPObjectList.create(false);
@@ -2701,6 +2747,8 @@ implementation
       end;
 
     procedure TDebugInfoDwarf2.appenddef_set(list:TAsmList;def: tsetdef);
+      var
+        lab: tasmlabel;
       begin
         if (ds_dwarf_sets in current_settings.debugswitches) then
           begin
@@ -2715,7 +2763,22 @@ implementation
               append_entry(DW_TAG_set_type,false,[
                 DW_AT_byte_size,DW_FORM_data2,def.size
                 ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
+            if assigned(def.elementdef) then
+              begin
+                if (def.elementdef.typ=enumdef) then
+                  begin
+                    { gdb 6.7 - 6.8 is broken for regular enum sets }
+                    current_asmdata.getaddrlabel(lab);
+                    append_labelentry_ref(DW_AT_type,lab);
+                    finish_entry;
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
+                    append_entry(DW_TAG_subrange_type,false,[
+                      DW_AT_lower_bound,DW_FORM_sdata,tenumdef(def.elementdef).minval,
+                      DW_AT_upper_bound,DW_FORM_sdata,tenumdef(def.elementdef).maxval
+                      ]);
+                  end;
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef))
+              end
           end
         else
           begin
