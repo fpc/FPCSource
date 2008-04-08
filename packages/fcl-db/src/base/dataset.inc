@@ -824,6 +824,12 @@ begin
     end;
 end;
 
+Procedure TDataSet.SetFieldDefs(AFieldDefs: TFieldDefs);
+
+begin
+  FFieldDefs.Assign(AFieldDefs);
+end;
+
 procedure TDataSet.InitFieldDefsFromfields;
 var i : integer;
 begin

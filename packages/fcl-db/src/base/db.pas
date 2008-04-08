@@ -1130,6 +1130,7 @@ type
     Function GetActive : boolean;
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
+    Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
   protected
     procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
@@ -1312,7 +1313,7 @@ type
     property DefaultFields: Boolean read FDefaultFields;
     property EOF: Boolean read FEOF;
     property FieldCount: Longint read GetFieldCount;
-    property FieldDefs: TFieldDefs read FFieldDefs write FFieldDefs;
+    property FieldDefs: TFieldDefs read FFieldDefs write SetFieldDefs;
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
     property Modified: Boolean read FModified write SetModified;
