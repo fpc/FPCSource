@@ -99,20 +99,41 @@ CONST
         TlsSetValue(tlskey,dataindex);
       end;
 
+
     function SysRelocateThreadvar(offset : dword) : pointer;
-	var
+      var
         dataindex : pointer;
+        errorsave : dword;
       begin
-        dataindex := TlsGetValue(tlskey);
-        if dataindex = nil then begin
-          SysAllocateThreadVars;
-          dataindex := TlsGetValue(tlskey);
+{$ifdef dummy}
+        { I've no clue why this doesn't read dataindex, imo it should (FK) }
+        asm
+          movl TLSKey,%edx
+          movl $0x2c,%eax
+          movl %fs:(%eax),%eax
+          movl (%eax,%edx,4),%eax
+          movl %eax,dataindex
         end;
+        if DataIndex=nil then
+          begin
+            errorsave:=GetLastError;
+            SysAllocateThreadVars;
+            DataIndex:=TlsGetValue(tlskey);
+            SetLastError(errorsave);
+          end;
+{$else win32}
+        errorsave:=GetLastError;
+        dataindex:=TlsGetValue(tlskey);
+        if dataindex=nil then
+          begin
+            SysAllocateThreadVars;
+            dataindex:=TlsGetValue(tlskey);
+          end;
+        SetLastError(errorsave);
+{$endif win32}
         SysRelocateThreadvar:=DataIndex+Offset;
-{
-      begin
-        SysRelocateThreadvar:=TlsGetValue(tlskey)+Offset;
-}      end;
+      end;
+
 
     procedure SysReleaseThreadVars;
       begin

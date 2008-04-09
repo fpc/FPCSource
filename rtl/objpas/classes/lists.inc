@@ -826,7 +826,6 @@ destructor TThreadList.Destroy;
   end;
 
 
-
 procedure TThreadList.Add(Item: Pointer);
   begin
     LockList;
@@ -876,5 +875,3 @@ procedure TThreadList.UnlockList;
   begin
     System.LeaveCriticalSection(FLock);
   end;
-
-

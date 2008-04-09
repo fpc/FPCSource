@@ -173,6 +173,9 @@ threadvar
    function GetLastError : DWORD;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetLastError';
 
+   procedure SetLastError(dwErrCode : DWORD);
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetLastError';
+
    { time and date functions }
    function GetTickCount : longint;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetTickCount';
