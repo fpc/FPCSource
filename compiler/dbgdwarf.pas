@@ -2768,7 +2768,10 @@ implementation
                 if (def.elementdef.typ=enumdef) then
                   begin
                     { gdb 6.7 - 6.8 is broken for regular enum sets }
-                    current_asmdata.getaddrlabel(lab);
+                    if not(tf_dwarf_only_local_labels in target_info.flags) then
+                      current_asmdata.getdatalabel(lab)
+                    else
+                      current_asmdata.getaddrlabel(lab);
                     append_labelentry_ref(DW_AT_type,lab);
                     finish_entry;
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));

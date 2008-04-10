@@ -479,22 +479,23 @@ implementation
           stabchar := 'Tt'
         else
           stabchar := 't';
-        { Type names for types defined in the current unit are already written in
-          the typesym }
-        if (def.owner.symtabletype=globalsymtable) and
-           not(def.owner.iscurrentunit) then
-          symname:='${sym_name}'
-        else
-          symname:='';
-        { Here we maybe generate a type, so we have to use numberstring }
+        { in case of writing the class record structure, we always have to
+          use the class name (so it refers both to the struct and the
+          pointer to the struct), otherwise gdb crashes (see tests/webtbs/tw9766.pp) }
         if is_class(def) and
            tobjectdef(def).writing_class_record_dbginfo then
-          { in case of writing the class record structure, we always have to
-            use the class name (so it refers both to the struct and the
-            pointer to the struct), otherwise gdb crashes (see tests/webtbs/tw9766.pp) }
           st:=def_stabstr_evaluate(def,'"{$sym_name}:$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
         else
-          st:=def_stabstr_evaluate(def,'"'+symname+':$1$2=',[stabchar,def_stab_number(def)]);
+          begin
+            { Type names for types defined in the current unit are already written in
+              the typesym }
+            if (def.owner.symtabletype=globalsymtable) and
+               not(def.owner.iscurrentunit) then
+              symname:='${sym_name}'
+            else
+              symname:='';
+            st:=def_stabstr_evaluate(def,'"'+symname+':$1$2=',[stabchar,def_stab_number(def)]);
+          end;
         st:=st+ss;
         { line info is set to 0 for all defs, because the def can be in an other
           unit and then the linenumber is invalid in the current sourcefile }
