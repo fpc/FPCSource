@@ -109,15 +109,32 @@ unit cgcpu;
         tmpref, ref: treference;
         location: pcgparalocation;
         sizeleft: aint;
+        sourcesize: tcgsize;
       begin
         location := paraloc.location;
         tmpref := r;
-        sizeleft := paraloc.intsize;
+        { make sure we handle passing a 32 bit value in memory to a }
+        { 64 bit register location etc. correctly                   }
+        if (size<>OS_NO) and
+           (tcgsize2size[size]<paraloc.intsize) then
+          begin
+            paraloc.check_simple_location;
+            if not(location^.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              internalerror(2008031801);
+            sizeleft:=tcgsize2size[size]
+          end
+        else
+          sizeleft:=paraloc.intsize;
         while assigned(location) do
           begin
             case location^.loc of
               LOC_REGISTER,LOC_CREGISTER:
-                a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
+                begin
+                  sourcesize:=int_cgsize(sizeleft);
+                  if (sourcesize=OS_NO) then
+                    sourcesize:=location^.size;
+                  a_load_ref_reg(list,sourcesize,location^.size,tmpref,location^.register);
+                end;
               LOC_REFERENCE:
                 begin
                   reference_reset_base(ref,location^.reference.index,location^.reference.offset);
