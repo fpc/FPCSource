@@ -209,6 +209,7 @@ type
     function GetChangeCount: integer; virtual;
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
+    procedure ClearCalcFields(Buffer: PChar); override;
     procedure InternalInitRecord(Buffer: PChar); override;
     function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
@@ -637,6 +638,12 @@ end;
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
 begin
   ReAllocMem(Buffer,0);
+end;
+
+procedure TBufDataset.ClearCalcFields(Buffer: PChar);
+begin
+  if CalcFieldsSize > 0 then
+    FillByte((Buffer+RecordSize)^,CalcFieldsSize,0);
 end;
 
 procedure TBufDataset.InternalOpen;
