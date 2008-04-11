@@ -28,6 +28,11 @@ Uses
   SysUtils, unixtype, initc;
 
 Const
+{$ifdef BSD}
+  // Darwin and FreeBSD. Note the lead underscores are added.
+ {$i clocale.inc}
+{$else}
+// checked for Linux only, but might be general glibc.
   __LC_CTYPE    = 0;
   __LC_NUMERIC  = 1;
   __LC_TIME     = 2;
@@ -35,8 +40,6 @@ Const
   __LC_MONETARY = 4;
   __LC_MESSAGES = 5;
   __LC_ALL      = 6;
-  
-
  ABDAY_1 = (__LC_TIME shl 16);
  DAY_1 = (ABDAY_1)+7;
  ABMON_1 = (ABDAY_1)+14;
@@ -68,7 +71,7 @@ Const
  __P_SIGN_POSN = (__INT_CURR_SYMBOL)+13;
  __N_SIGN_POSN = (__INT_CURR_SYMBOL)+14;
  _NL_MONETARY_CRNCYSTR = (__INT_CURR_SYMBOL)+15;
-
+ {$endif}
 
 
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
@@ -178,6 +181,9 @@ const
 var
   i: integer;
   prec, sep, signp: byte;
+  {$ifdef BSD}
+   plocale : plconv;
+  {$ENDIF}
 begin
   setlocale(__LC_ALL,'');
   for i := 1 to 12 do
@@ -204,9 +210,30 @@ begin
   ShortTimeFormat := TransformFormatStr(ShortTimeFormat);
   LongTimeFormat := GetLocaleStr(T_FMT_AMPM);
   LongTimeFormat := TransformFormatStr(LongTimeFormat);
-  //Currency stuff
+
+  {$Ifdef BSD}
+     plocale:=localeconv;
+     // for these fields there is a separate BSD derived POSIX function.
+     if not assigned(plocale) then exit; // for now.
+     CurrencyString:=plocale^.CURRENCY_SYMBOL;
+     CurrencyString := Copy(CurrencyString, 2, Length(CurrencyString));
+     CurrencyDecimals:=ord(plocale^.FRAC_DIGITS);
+     prec:=ord(plocale^.P_CS_PRECEDES);
+     sep:=ord(plocale^.P_SEP_BY_SPACE);
+     if (prec<=1) and (sep<=1) then
+       CurrencyFormat := byte(not boolean(prec)) + sep shl 1;
+     prec := ord(plocale^.N_CS_PRECEDES);
+     sep := ord(plocale^.N_SEP_BY_SPACE);
+     signp := ord(plocale^.N_SIGN_POSN);
+     if (signp in [0..4]) and (prec in [0, 1]) and (sep in [0, 1]) then
+       NegCurrFormat := NegFormatsTable[signp, prec, sep];
+  //Number stuff
+     ThousandSeparator:=plocale^.THOUSANDS_SEP[0];
+  {$else}
+   //Currency stuff
   CurrencyString := GetLocaleStr(_NL_MONETARY_CRNCYSTR);
   CurrencyString := Copy(CurrencyString, 2, Length(CurrencyString));
+
   CurrencyDecimals := StrToIntDef(GetLocaleStr(__FRAC_DIGITS), CurrencyDecimals);
   prec := byte(GetLocaleChar(__P_CS_PRECEDES));
   sep := byte(GetLocaleChar(__P_SEP_BY_SPACE));
@@ -219,6 +246,7 @@ begin
     NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
   ThousandSeparator:=GetLocaleChar(__THOUSANDS_SEP);
+  {$endif}
   DecimalSeparator:=GetLocaleChar(RADIXCHAR);
 end;
 
