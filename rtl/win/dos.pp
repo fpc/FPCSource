@@ -536,7 +536,7 @@ function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWO
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
-  i,p1   : longint;
+  p1     : longint;
   s      : searchrec;
   newdir : pathstr;
 begin

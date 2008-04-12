@@ -167,7 +167,7 @@ var
 begin
    n := bit shr BITSHIFT;
    grow(bit);
-   FBits^[n] := FBits^[n] or (longint(1) shl (bit and MASK));
+   FBits^[n] := FBits^[n] or (cardinal(1) shl (bit and MASK));
    if bit >= FBSize then FBSize := bit;
 end;
 
@@ -223,7 +223,7 @@ end;
 procedure TBits.notbits(bitset : TBits);
 var
    n : longint;
-   jj : longint;
+   jj : cardinal;
    loop : longint;
 begin
    if FSize < bitset.getFSize then

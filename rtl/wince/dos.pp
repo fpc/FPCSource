@@ -114,8 +114,8 @@ begin
   res:=FileTimeToLocalFileTime(@WTime, @lft) and FileTimeToSystemTime(@lft, @st);
   if res then
   begin
-    FatDate:=st.wDay or (st.wMonth shl 5) or ((st.wYear - 1980) shl 9);
-    FatTime:=(st.wSecond div 2) or (st.wMinute shl 5) or (st.wHour shl 11);
+    FatDate:=st.wDay or (st.wMonth shl 5) or (word(st.wYear - 1980) shl 9);
+    FatTime:=word(st.wSecond div 2) or (st.wMinute shl 5) or (st.wHour shl 11);
     Longrec(Dtime).Hi:=FatDate;
     Longrec(Dtime).Lo:=FatTime;
   end;

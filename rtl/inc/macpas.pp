@@ -293,7 +293,7 @@ end;
 
 procedure BSet(var i: cardinal; j: cardinal); {$ifdef systeminline}inline;{$endif}
 begin
-  i := i or (1 shl j);
+  i := i or (cardinal(1) shl j);
 end;
 
 procedure BSet(var i: int64; j: cardinal); {$ifdef systeminline}inline;{$endif}

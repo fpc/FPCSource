@@ -31,7 +31,7 @@ Function AnsiContainsText(const AText, ASubText: string): Boolean;
 Function AnsiStartsText(const ASubText, AText: string): Boolean;inline;
 Function AnsiEndsText(const ASubText, AText: string): Boolean;inline;
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
-Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
+Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
@@ -42,7 +42,7 @@ Function AnsiContainsStr(const AText, ASubText: string): Boolean;inline;
 Function AnsiStartsStr(const ASubText, AText: string): Boolean;inline;
 Function AnsiEndsStr(const ASubText, AText: string): Boolean;inline;
 Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
-Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
+Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
@@ -260,7 +260,7 @@ begin
 end;
 
 
-Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
+Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
 begin
   Result:=(AnsiIndexText(AText,AValues)<>-1)
 end;
@@ -308,7 +308,7 @@ Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll]);
 end;
 
 
-Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
+Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
 begin
   Result:=AnsiIndexStr(AText,Avalues)<>-1;
 end;

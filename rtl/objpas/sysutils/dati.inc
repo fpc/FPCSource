@@ -758,7 +758,7 @@ begin
   else
     begin
     Result:=(s shr 1) or (m shl 5) or (h shl 11);
-    Result:=Result or DD shl 16 or (MM shl 21) or ((YY-1980) shl 25);
+    Result:=Result or longint(DD shl 16 or (MM shl 21) or (word(YY-1980) shl 25));
     end;
 {$else unix}
   Result:=LocalToEpoch(yy,mm,dd,h,m,s);

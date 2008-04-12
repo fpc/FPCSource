@@ -235,9 +235,9 @@ begin
   htonl:=host;
 {$else}
   htonl:=THostAddr(host)[4];
-  htonl:=htonl or ( (THostAddr(host)[3]) shl 8);
-  htonl:=htonl or ( (THostAddr(host)[2]) shl 16);
-  htonl:=htonl or ( (THostAddr(host)[1]) shl 24);
+  htonl:=htonl or longint( (THostAddr(host)[3]) shl 8);
+  htonl:=htonl or longint( (THostAddr(host)[2]) shl 16);
+  htonl:=htonl or longint( (THostAddr(host)[1]) shl 24);
 {$endif}
 end;
 
@@ -248,9 +248,9 @@ begin
   ntohl:=net;
 {$else}
   ntohl:=THostAddr(Net)[4];
-  ntohl:=ntohl or ( (THostAddr(Net)[3]) shl 8);
-  ntohl:=ntohl or ( (THostAddr(Net)[2]) shl 16);
-  ntohl:=ntohl or ( (THostAddr(Net)[1]) shl 24);
+  ntohl:=ntohl or longint( (THostAddr(Net)[3]) shl 8);
+  ntohl:=ntohl or longint( (THostAddr(Net)[2]) shl 16);
+  ntohl:=ntohl or longint( (THostAddr(Net)[1]) shl 24);
 {$endif}
 end;
 
