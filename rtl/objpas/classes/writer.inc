@@ -399,10 +399,24 @@ begin
   Result := TBinaryObjectWriter.Create(Stream, BufSize);
 end;
 
+Type
+  TPosComponent = Class(TObject)
+    FPos : Integer;
+    FComponent : TComponent;
+    Constructor Create(APos : Integer; AComponent : TComponent);
+  end;
+
+Constructor TPosComponent.Create(APos : Integer; AComponent : TComponent);
+
+begin
+  FPos:=APos;
+  FComponent:=AComponent;
+end;
+
 // Used as argument for calls to TComponent.GetChildren:
 procedure TWriter.AddToAncestorList(Component: TComponent);
 begin
-  FAncestors.AddObject(Component.Name,Component);
+  FAncestors.AddObject(Component.Name,TPosComponent.Create(FAncestors.Count,Component));
 end;
 
 procedure TWriter.DefineProperty(const Name: String;
@@ -506,9 +520,16 @@ begin
     exit;
   I:=FAncestors.IndexOf(Component.Name);
   If (I=-1) then
-    FAncestor:=Nil
+    begin
+    FAncestor:=Nil;
+    FAncestorPos:=-1;
+    end
   else
-    FAncestor:=TComponent(FAncestors.Objects[i]);
+    With TPosComponent(FAncestors.Objects[i]) do
+      begin
+      FAncestor:=FComponent;
+      FAncestorPos:=FPos;
+      end;
 end;
 
 procedure TWriter.DoFindAncestor(Component : TComponent);
@@ -558,6 +579,9 @@ procedure TWriter.WriteChildren(Component : TComponent);
 Var
   SRoot, SRootA : TComponent;
   SList : TStringList;
+  SPos,SPosA : Integer;
+  I : Integer;
+  
 begin
   // Write children list. 
   // While writing children, the ancestor environment must be saved
@@ -565,8 +589,12 @@ begin
   SRoot:=FRoot;
   SRootA:=FRootAncestor;
   SList:=FAncestors;
+  SPos:=FCurrentPos;
+  SPosA:=FAncestorPos;
   try
     FAncestors:=Nil;
+    FCurrentPos:=0;
+    FAncestorPos:=-1;
     if csInline in Component.ComponentState then
        FRoot:=Component;
     if (FAncestor is TComponent) then
@@ -580,20 +608,23 @@ begin
     try
       Component.GetChildren(@WriteComponent, FRoot);
     Finally
+      For I:=0 to FAncestors.Count-1 do 
+        FAncestors.Objects[i].Free;
       FreeAndNil(FAncestors);
     end;    
   finally
     FAncestors:=Slist;
     FRoot:=SRoot;
     FRootAncestor:=SRootA;
+    FCurrentPos:=SPos;
+    FAncestorPos:=Spos;
   end;
 end;
 
 procedure TWriter.WriteComponentData(Instance: TComponent);
-var Dummy: Integer;
-    Flags: TFilerFlags;
+var 
+  Flags: TFilerFlags;
 begin
-  Dummy:=0;
   Flags := [];
   If (Assigned(FAncestor)) and  //has ancestor
      (not (csInline in Instance.ComponentState) or // no inline component
@@ -602,7 +633,11 @@ begin
     Flags:=[ffInherited]
   else If csInline in Instance.ComponentState then
     Flags:=[ffInline];
-  FDriver.BeginComponent(Instance,Flags, Dummy);
+  If (FAncestors<>Nil) and ((FCurrentPos<>FAncestorPos) or (FAncestor=Nil)) then
+    Include(Flags,ffChildPos);
+  FDriver.BeginComponent(Instance,Flags,FCurrentPos);
+  If (FAncestors<>Nil) then
+    Inc(FCurrentPos);
   WriteProperties(Instance);
   WriteListEnd;
   // Needs special handling of ancestor.

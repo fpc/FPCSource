@@ -1240,6 +1240,8 @@ type
     FRootAncestor: TComponent;
     FPropPath: String;
     FAncestors: TStringList;
+    FAncestorPos: Integer;
+    FCurrentPos: Integer;
     FOnFindAncestor: TFindAncestorEvent;
     FOnWriteMethodProperty: TWriteMethodPropertyEvent;
     FOnWriteStringProperty:TReadWriteStringPropertyEvent;
