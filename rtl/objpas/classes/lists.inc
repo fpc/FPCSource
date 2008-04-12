@@ -324,7 +324,6 @@ begin
 end;
 
 procedure TFPList.DoCopy(ListA, ListB : TFPList);
-var l : TFPList;
 begin
   if assigned (ListB) then
     CopyMove (ListB)
@@ -393,7 +392,6 @@ begin
 end;
 
 procedure TFPList.DoOr(ListA, ListB : TFPList);
-var r : integer;
 begin
   if assigned (ListB) then
     begin
@@ -670,7 +668,6 @@ begin
 end;
 
 procedure TList.DoCopy(ListA, ListB : TList);
-var l : TList;
 begin
   if assigned (ListB) then
     CopyMove (ListB)
@@ -739,7 +736,6 @@ begin
 end;
 
 procedure TList.DoOr(ListA, ListB : TList);
-var r : integer;
 begin
   if assigned (ListB) then
     begin

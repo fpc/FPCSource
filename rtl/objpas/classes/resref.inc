@@ -82,7 +82,6 @@ type
 var
   NeedResolving : TLinkedList;
   ResolveSection : TRTLCriticalSection;
-  LastAddInstance : TUnresolvedInstance;
 
 // Add an instance to the global list of instances which need resolving.
 Function FindUnresolvedInstance(AInstance: TPersistent) : TUnResolvedInstance;
@@ -139,10 +138,6 @@ end;
 
 procedure GlobalFixupReferences;
 
-var
-  V : TResolveReferenceVisitor;
-  I : Integer;
-    
 begin
   If (NeedResolving=Nil) then 
     Exit;
