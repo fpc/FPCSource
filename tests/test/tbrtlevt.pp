@@ -120,10 +120,15 @@ begin
       halt(7);
     end;
 
+{$ifdef windows}
+  { On windows event can not be "abandoned". Skipping this test }
+  basiceventdestroy(event);
+{$else}
   help:=thelper.create(o_waittimeoutabandon);
   basiceventdestroy(event);
   help.waitfor;
   help.free;
+{$endif}
 
   event := BasicEventCreate(nil,false,false,'bla');
   help:=thelper.create(o_waittimeoutsignal);
