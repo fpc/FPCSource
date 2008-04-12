@@ -216,7 +216,7 @@ function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
 procedure memmove(dest, src: pointer; count: longint);
    cdecl; external 'coredll' name 'memmove';
 
-procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE']; {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 begin
   if count > 0 then
     memmove(@dest, @source, count);
@@ -226,7 +226,7 @@ end;
 function memcmp(buf1, buf2: pointer; count: longint): longint;
    cdecl; external 'coredll' name 'memcmp';
 
-function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; {$ifdef SYSTEMINLINE}inline;{$endif}
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt;
 begin
   CompareByte := memcmp(@buf1, @buf2, len);
 end;

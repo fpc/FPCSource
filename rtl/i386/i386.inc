@@ -1045,7 +1045,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;nostackframe;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer):pointer;nostackframe;assembler;
 asm
 {$ifndef REGCALL}
         movl    framebp,%eax
@@ -1058,7 +1058,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;nostackframe;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer):pointer;nostackframe;assembler;
 asm
 {$ifndef REGCALL}
         movl    framebp,%eax
@@ -1071,7 +1071,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;nostackframe;
 asm
         movl    %esp,%eax
 end;
@@ -1359,7 +1359,7 @@ const
 
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
-Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure SysInitFPU;
   var
     { these locals are so we don't have to hack pic code in the assembler }
     localmxcsr: dword;
@@ -1383,7 +1383,7 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure SysResetFPU;
   begin
     asm
       fnclex
@@ -1501,7 +1501,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
 
-procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadBarrier;assembler;nostackframe;
 asm
   lock
   addl $0,0(%esp)
@@ -1513,14 +1513,14 @@ begin
   { reads imply barrier on earlier reads depended on }
 end;
 
-procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure ReadWriteBarrier;assembler;nostackframe;
 asm
   lock
   addl $0,0(%esp)
   { alternative: mfence on SSE capable CPUs }
 end;
 
-procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure WriteBarrier;assembler;nostackframe;
 asm
   { no write reordering on intel CPUs (yet) }
 end;

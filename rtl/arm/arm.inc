@@ -71,14 +71,14 @@ end;
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;nostackframe;
 asm
   mov    r0,r11
 end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer):pointer;assembler;
 asm
   movs r0,r0
   beq .Lg_a_null
@@ -88,7 +88,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer):pointer;assembler;
 asm
   movs r0,r0
   beq .Lgnf_null
@@ -98,7 +98,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : pointer;assembler;
 asm
   mov    r0,sp
 end;

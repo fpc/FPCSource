@@ -239,7 +239,7 @@ Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): 
 { pointer argument because otherwise when calling this, we get
   an endless loop since a 'var s: ansistring' must be made
   unique as well                                               }
-Function fpc_ansistr_Unique(Var S : Pointer): Pointer; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Function fpc_ansistr_Unique(Var S : Pointer): Pointer; compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}

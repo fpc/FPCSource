@@ -185,31 +185,31 @@ function do_isdevice(handle:thandle):boolean;forward;
 {$endif cpuavr}
 
 
-procedure fillchar(var x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fillchar(var x;count : SizeInt;value : boolean);
 begin
   fillchar(x,count,byte(value));
 end;
 
 
-procedure fillchar(var x;count : SizeInt;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fillchar(var x;count : SizeInt;value : char);
 begin
   fillchar(x,count,byte(value));
 end;
 
 
-procedure FillByte (var x;count : SizeInt;value : byte ); {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure FillByte (var x;count : SizeInt;value : byte );
 begin
   FillChar (X,Count,VALUE);
 end;
 
 
-function IndexChar(Const buf;len:SizeInt;b:char):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function IndexChar(Const buf;len:SizeInt;b:char):SizeInt;
 begin
   IndexChar:=IndexByte(Buf,Len,byte(B));
 end;
 
 
-function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;
 begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
