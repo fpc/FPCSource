@@ -128,7 +128,7 @@ fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
 fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
 fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
 
-ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos),)
 fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
 fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug
 fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart pxlib_smart

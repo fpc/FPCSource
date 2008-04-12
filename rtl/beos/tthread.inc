@@ -361,8 +361,11 @@ begin
 end;
 
 procedure SemaphorePost(const FSem: Pointer);
+var
+  b : byte;
 begin
-  fpwrite(PFilDes(FSem)^[1], #0, 1);
+  b := 0;
+  fpwrite(PFilDes(FSem)^[1], b, 1);
 end;
 
 procedure SemaphoreDestroy(const FSem: Pointer);
