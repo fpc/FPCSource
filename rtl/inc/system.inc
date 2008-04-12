@@ -453,12 +453,12 @@ Type
 const
   MT19937M=397;
   MT19937MATRIX_A  =$9908b0df;  // constant vector a
-  MT19937UPPER_MASK=$80000000;  // most significant w-r bits
-  MT19937LOWER_MASK=$7fffffff;  // least significant r bits
+  MT19937UPPER_MASK=longint($80000000);  // most significant w-r bits
+  MT19937LOWER_MASK=longint($7fffffff);  // least significant r bits
 
 { Tempering parameters }
-  TEMPERING_MASK_B=$9d2c5680;
-  TEMPERING_MASK_C=$efc60000;
+  TEMPERING_MASK_B=longint($9d2c5680);
+  TEMPERING_MASK_C=longint($efc60000);
 
 
 VAR
