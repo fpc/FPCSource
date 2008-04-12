@@ -181,9 +181,11 @@ files will be removed.
 Example cross testing of target arm-wince
 -----------------------------------------
 //arm-wince example : see FPCTRUNK\DEMO\WINCE\TESTEMU\ for additional required tools
-make TEST_FPC=ppcrossarm TEST_CPU_TARGET=arm TEST_OS_TARGET=wince TEST_OPT="-XParm-wince- -WC -Xs" TEST_REMOTEPATH=\fpctest EMULATOR=MyDisc:\My\Path\to\wcetemu.exe
+Connect your device via ActiveSync and execute:
 
-You need to create \fpctest folder on remote device before running testsuite.
+make TEST_FPC=ppcrossarm TEST_CPU_TARGET=arm TEST_OS_TARGET=wince TEST_OPT="-XParm-wince- -WC -Xs" EMULATOR=MyDisc:\My\Path\to\wcetemu.exe
+
+Tests will be performed in \fpctests folder on the device.
 
 Result uploading
 ----------------
