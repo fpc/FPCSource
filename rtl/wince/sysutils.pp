@@ -74,13 +74,13 @@ begin
   begin
     while True do begin
       if strlen <> -1 then
-        len:=(strlen + 1) div SizeOf(WideChar)
+        len:=strlen + 1
       else
         len:=WideToAnsiBuf(str, -1, nil, 0);
       if len > 0 then
       begin
         SetLength(Result, len - 1);
-        if (WideToAnsiBuf(str, -1, @Result[1], len) = 0) and (strlen <> -1) then
+        if (WideToAnsiBuf(str, strlen, @Result[1], len) = 0) and (strlen <> -1) then
         begin
           strlen:=-1;
           continue;
@@ -883,7 +883,7 @@ var
 begin
   ws1:=PCharToPWideChar(S1, MaxLen, @len1);
   ws2:=PCharToPWideChar(S2, MaxLen, @len2);
-  Result:=CompareString(LOCALE_USER_DEFAULT, 0, ws1, len1, ws2, len2) - 2;
+  Result:=CompareString(LOCALE_USER_DEFAULT, 0, ws1, len1 div SizeOf(WideChar), ws2, len2 div SizeOf(WideChar)) - 2;
   FreeMem(ws2);
   FreeMem(ws1);
 end;
@@ -896,7 +896,7 @@ var
 begin
   ws1:=PCharToPWideChar(S1, MaxLen, @len1);
   ws2:=PCharToPWideChar(S2, MaxLen, @len2);
-  Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, ws1, len1, ws2, len2) - 2;
+  Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, ws1, len1 div SizeOf(WideChar), ws2, len2 div SizeOf(WideChar)) - 2;
   FreeMem(ws2);
   FreeMem(ws1);
 end;
@@ -908,6 +908,7 @@ var
   len: longint;
 begin
   buf:=PCharToPWideChar(Str, -1, @len);
+  len:=len div SizeOf(WideChar);
   CharLowerBuff(buf, len);
   Result:=Str;
   WideToAnsiBuf(buf, -1, Result, len + 1);
@@ -921,6 +922,7 @@ var
   len: longint;
 begin
   buf:=PCharToPWideChar(Str, -1, @len);
+  len:=len div SizeOf(WideChar);
   CharUpperBuff(buf, len);
   Result:=Str;
   WideToAnsiBuf(buf, -1, Result, len + 1);
