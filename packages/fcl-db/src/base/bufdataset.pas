@@ -177,8 +177,6 @@ type
     function GetIndexDefs : TIndexDefs;
 {$IFDEF ARRAYBUF}
     procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: pchar);
-{$ELSE}
-    procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: PBufRecLinkItem);
 {$ENDIF}
     function  GetCurrentBuffer: PChar;
     procedure CalcRecordSize;
@@ -1055,19 +1053,11 @@ end;
 
 {$IFDEF ARRAYBUF}
 procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : pchar);
-{$ELSE}
-procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : PBufRecLinkItem);
-{$ENDIF}
 var cp : integer;
     NewValueBufLen : Integer;
-{$IFDEF ARRAYBUF}
     NewValueBuf,CompValueBuf : pchar;
     RecInd : integer;
     HighVal,LowVal : Integer;
-{$ELSE}
-    NewValueBuf : pchar;
-    CompBuf : PBufRecLinkItem;
-{$ENDIF}
 begin
   if not assigned(AIndex.Fields) then
     AIndex.Fields := FieldByName(AIndex.FieldsName);
@@ -1075,7 +1065,6 @@ begin
   NewValueBuf:=pchar(ARecBuf);
   inc(NewValueBuf,FFieldBufPositions[AIndex.Fields.FieldNo-1]);
 
-{$IFDEF ARRAYBUF}
   NewValueBufLen:= Length(NewValueBuf);
   HighVal := AIndex.FLastRecInd;
   LowVal := 0;
@@ -1112,32 +1101,8 @@ begin
   move(AIndex.FRecordArray[RecInd],AIndex.FRecordArray[RecInd+1],sizeof(pointer)*(AIndex.FLastRecInd-RecInd+5)); // Let op. Moet zijn +1?
   AIndex.FRecordArray[RecInd]:= ARecBuf;
   inc(AIndex.FLastRecInd)
-{$ELSE}
-  inc(NewValueBuf,sizeof(TBufRecLinkItem)*FMaxIndexesCount);
-  NewValueBufLen:= Length(pchar(NewValueBuf));
-  CompBuf:=AIndex.FFirstRecBuf;
-
-  cp := 1;
-  while (cp>0) and (CompBuf<>AIndex.FLastRecBuf) do
-    begin
-    if AIndex.Fields.DataType = ftString then
-      begin
-      cp := DBCompareTextLen(pointer(NewValueBuf),pchar(CompBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],NewValueBufLen,[]);
-      if cp > 0 then
-        CompBuf := CompBuf[AIndex.IndNr].next;
-      end;
-    end;
-
-  ARecBuf[AIndex.IndNr].next:= CompBuf;
-  ARecBuf[AIndex.IndNr].prior:= CompBuf[AIndex.IndNr].prior;
-
-  if assigned(CompBuf[AIndex.IndNr].prior) then
-    CompBuf[AIndex.IndNr].prior[AIndex.IndNr].next := ARecBuf
-  else
-    AIndex.FFirstRecBuf:=ARecBuf;
-  CompBuf[AIndex.IndNr].prior := ARecBuf;
-{$ENDIF}
 end;
+{$ENDIF}
 
 function TBufDataset.getnextpacket : integer;
 
