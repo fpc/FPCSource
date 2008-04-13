@@ -2035,8 +2035,10 @@ begin
 end;
 
 {
-  Clears variant array. If array element type is varVariant, then
-  clear each element individually first.
+  This procedure is needed to destroy and clear non-standard variant type array elements,
+  which can not be handled by SafeArrayDestroy.
+  If array element type is varVariant, then clear each element individually before
+  calling VariantClear for array. VariantClear just calls SafeArrayDestroy.
 }
 procedure DoVarClearArray(var VArray: TVarData);
 var
@@ -2058,7 +2060,7 @@ begin
       { Clearing each element }
       for i:=1 to cnt do begin
         DoVarClear(data^);
-        Inc(data);
+        Inc(pointer(data), arr^.ElementSize);
       end;
     finally
       VarResultCheck(SafeArrayUnaccessData(arr));
