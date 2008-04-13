@@ -579,7 +579,7 @@ procedure TWriter.WriteChildren(Component : TComponent);
 Var
   SRoot, SRootA : TComponent;
   SList : TStringList;
-  SPos,SPosA : Integer;
+  SPos : Integer;
   I : Integer;
   
 begin
@@ -590,7 +590,6 @@ begin
   SRootA:=FRootAncestor;
   SList:=FAncestors;
   SPos:=FCurrentPos;
-  SPosA:=FAncestorPos;
   try
     FAncestors:=Nil;
     FCurrentPos:=0;
