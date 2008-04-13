@@ -43,6 +43,7 @@ type
 
     procedure TestAddIndex;
     procedure TestAddDescIndex;
+    procedure TestAddCaseInsIndex;
     procedure TestInactSwitchIndex;
 
     procedure TestAddIndexInteger;
@@ -1050,6 +1051,49 @@ begin
     while not bof do
       begin
       inc(i);
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Prior;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.TestAddCaseInsIndex;
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    FList : TStringList;
+    i : integer;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+
+    AFieldType:=ftString;
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType],[],'','F'+FieldTypeNames[AfieldType]);
+    FList := TStringList.Create;
+    FList.Sorted:=true;
+    FList.Duplicates:=dupAccept;
+    open;
+
+    while not eof do
+      begin
+      flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Next;
+      end;
+
+    IndexName:='testindex';
+    first;
+    i:=0;
+
+    while not eof do
+      begin
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      inc(i);
+      Next;
+      end;
+
+    while not bof do
+      begin
+      dec(i);
       AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       Prior;
       end;

@@ -110,6 +110,7 @@ type
   TDBCompareRec = record
                    Comparefunc : TCompareFunc;
                    Off1,Off2   : PtrInt;
+                   Options     : TLocateOptions;
                    Desc        : Boolean;
                   end;
   TDBCompareStruct = array of TDBCompareRec;
@@ -355,7 +356,7 @@ var IndexFieldNr : Integer;
 begin
   for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
     begin
-    Result := Comparefunc(Rec1+Off1,Rec2+Off2,[]);
+    Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
     if Result <> 0 then
       begin
       if Desc then
@@ -421,6 +422,7 @@ var PCurRecLinkItem : PBufRecLinkItem;
 
     IndexFields     : TList;
     DescIndexFields : TList;
+    CInsIndexFields : TList;
     FieldsAmount    : Integer;
     FieldNr         : integer;
     AField          : TField;
@@ -449,10 +451,12 @@ begin
     begin
     IndexFields := TList.Create;
     DescIndexFields := TList.Create;
+    CInsIndexFields := TList.Create;
     try
       GetFieldList(IndexFields,FieldsName);
       FieldsAmount:=IndexFields.Count;
       GetFieldList(DescIndexFields,DescFields);
+      GetFieldList(CInsIndexFields,CaseinsFields);
       if FieldsAmount=0 then
         DatabaseError(SNoIndexFieldNameGiven);
       SetLength(DBCompareStruct,FieldsAmount);
@@ -474,12 +478,17 @@ begin
         end;
 
         DBCompareStruct[FieldNr].Desc := (DescIndexFields.IndexOf(AField)>-1);
+        if (CInsIndexFields.IndexOf(AField)>-1) then
+          DBCompareStruct[FieldNr].Options := [loCaseInsensitive]
+        else
+          DBCompareStruct[FieldNr].Options := [];
 
         DBCompareStruct[FieldNr].Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AField.FieldNo-1];
         DBCompareStruct[FieldNr].Off2:=DBCompareStruct[FieldNr].Off1;
         
         end;
     finally
+      CInsIndexFields.Free;
       DescIndexFields.Free;
       IndexFields.Free;
     end;
