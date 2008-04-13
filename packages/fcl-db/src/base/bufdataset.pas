@@ -110,6 +110,7 @@ type
   TDBCompareRec = record
                    Comparefunc : TCompareFunc;
                    Off1,Off2   : PtrInt;
+                   Desc        : Boolean;
                   end;
   TDBCompareStruct = array of TDBCompareRec;
 
@@ -120,6 +121,7 @@ type
     FieldsName      : String;
     CaseinsFields   : String;
     DescFields      : String;
+    Options         : TIndexOptions;
     DBCompareStruct : TDBCompareStruct;
 {$IFDEF ARRAYBUF}
     FCurrentRecInd  : integer;
@@ -217,7 +219,8 @@ type
     procedure InternalClose; override;
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
-    procedure InternalAddIndex(const AName, AFields : string); virtual;
+    procedure InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
+      const ACaseInsFields: string); virtual;
     procedure InternalPost; override;
     procedure InternalCancel; Override;
     procedure InternalDelete; override;
@@ -255,7 +258,8 @@ type
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
     function UpdateStatus: TUpdateStatus; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
-    procedure AddIndex(const AName, AFields : string); virtual;
+    procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
+      const ACaseInsFields: string = ''); virtual;
     property ChangeCount : Integer read GetChangeCount;
 {$IFNDEF ARRAYBUF}
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount;
@@ -354,7 +358,12 @@ begin
   for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
     begin
     Result := Comparefunc(Rec1+Off1,Rec2+Off2,[]);
-    if Result <> 0 then break;
+    if Result <> 0 then
+      begin
+      if Desc then
+        Result := -Result;
+      break;
+      end;
     end;
 end;
 
@@ -372,8 +381,8 @@ begin
   FMaxIndexesCount:=2;
 {$ENDIF}
   FIndexesCount:=0;
-  InternalAddIndex('DEFAULT_ORDER','');
-  InternalAddIndex('','');
+  InternalAddIndex('DEFAULT_ORDER','',[],'','');
+  InternalAddIndex('','',[],'','');
   FCurrentIndex:=@FIndexes[0];
 
   FIndexDefs := TIndexDefs.Create(Self);
@@ -412,7 +421,8 @@ var PCurRecLinkItem : PBufRecLinkItem;
     MergeAmount     : integer;
     PlaceQRec       : boolean;
 
-    IndexFields     : TStrings;
+    IndexFields     : TList;
+    DescIndexFields : TList;
     FieldsAmount    : Integer;
     FieldNr         : integer;
     AField          : TField;
@@ -439,17 +449,18 @@ begin
   // Build the DBCompareStructure
   with AIndex do
     begin
-    IndexFields := TStringList.Create;
+    IndexFields := TList.Create;
+    DescIndexFields := TList.Create;
     try
-      FieldsAmount:=ExtractStrings([','],[' '],pchar(FieldsName),IndexFields);
+      GetFieldList(IndexFields,FieldsName);
+      FieldsAmount:=IndexFields.Count;
+      GetFieldList(DescIndexFields,DescFields);
       if FieldsAmount=0 then
         DatabaseError(SNoIndexFieldNameGiven);
       SetLength(DBCompareStruct,FieldsAmount);
       for FieldNr:=0 to FieldsAmount-1 do
         begin
-        AField := FindField(IndexFields[FieldNr]);
-        if not assigned(AField) then
-          DatabaseErrorFmt(SErrIndexBasedOnUnkField,[IndexFields[FieldNr]]);
+        AField := TField(IndexFields[FieldNr]);
 
         case AField.DataType of
           ftString : DBCompareStruct[FieldNr].Comparefunc := @DBCompareText;
@@ -464,11 +475,14 @@ begin
           DatabaseErrorFmt(SErrIndexBasedOnInvField,[AField.FieldName]);
         end;
 
+        DBCompareStruct[FieldNr].Desc := (DescIndexFields.IndexOf(AField)>-1);
+
         DBCompareStruct[FieldNr].Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AField.FieldNo-1];
         DBCompareStruct[FieldNr].Off2:=DBCompareStruct[FieldNr].Off1;
         
         end;
     finally
+      DescIndexFields.Free;
       IndexFields.Free;
     end;
     end;
@@ -609,6 +623,7 @@ begin
     Fields := FIndexes[i].FieldsName;
     DescFields:= FIndexes[i].DescFields;
     CaseInsFields:=FIndexes[i].CaseinsFields;
+    Options:=FIndexes[i].Options;
     end;
 end;
 
@@ -2076,7 +2091,8 @@ begin
     end;
 end;
 
-procedure TBufDataset.AddIndex(const AName, AFields: string);
+procedure TBufDataset.AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
+                               const ACaseInsFields: string = '');
 begin
   if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
   
@@ -2088,10 +2104,11 @@ begin
   // If not all packets are fetched, you can not sort properly.
   if not active then
     FPacketRecords:=-1;
-  InternalAddIndex(AName,AFields);
+  InternalAddIndex(AName,AFields,AOptions,ADescFields,ACaseInsFields);
 end;
 
-procedure TBufDataset.InternalAddIndex(const AName, AFields: string);
+procedure TBufDataset.InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
+                                       const ACaseInsFields: string);
 var StoreIndNr : Integer;
 begin
   if Active then FetchAll;
@@ -2107,6 +2124,9 @@ begin
     begin
     Name:=AName;
     FieldsName:=AFields;
+    DescFields:=ADescFields;
+    CaseinsFields:=ACaseInsFields;
+    Options:=AOptions;
     IndNr:=FIndexesCount-1;
     end;
 
