@@ -326,7 +326,7 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring;const sstr:shortstring);a
 asm
     ldrb r12,[r2],#1
     cmp  r12,r1
-    movgt r1,r12
+    movgt r12,r1
     strb r12,[r0],#1
     cmp  r12,#6 (* 6 seems to be the break even point. *)
     blt  .LStartTailCopy
