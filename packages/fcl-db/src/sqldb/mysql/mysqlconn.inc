@@ -865,6 +865,10 @@ end;
 function TConnectionName.RowsAffected(cursor: TSQLCursor): TRowsCount;
 begin
   if assigned(cursor) then
+    // Compile this without range-checking. RowsAffected can be -1, although
+    // it's an unsigned integer. (small joke from the mysql-guys)
+    // Without range-checking this goes ok. If Range is turned on, this results
+    // in range-check errors.
     Result := (cursor as TCursorName).RowsAffected
   else
     Result := -1;
