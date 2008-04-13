@@ -384,7 +384,7 @@ procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);assembler;nostackfr
 asm
     ldrb r12,[r1],#1
     cmp  r12,r0
-    movgt r0,r12
+    movgt r12,r0
     strb r12,[r2],#1
     cmp  r12,#6 (* 6 seems to be the break even point. *)
     blt  .LStartTailCopy
