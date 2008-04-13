@@ -608,8 +608,9 @@ begin
     try
       Component.GetChildren(@WriteComponent, FRoot);
     Finally
-      For I:=0 to FAncestors.Count-1 do 
-        FAncestors.Objects[i].Free;
+      If Assigned(Fancestors) then
+        For I:=0 to FAncestors.Count-1 do 
+          FAncestors.Objects[i].Free;
       FreeAndNil(FAncestors);
     end;    
   finally
