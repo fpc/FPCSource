@@ -1174,7 +1174,6 @@ implementation
           obj    : tobjectdef;
           srsym  : tsym;
           st     : tsymtable;
-          objst  : tobjectsymtable;
           curroffset : aint;
           s,sorg : TIDString;
           vmtwritten : boolean;
@@ -1250,8 +1249,6 @@ implementation
                        (oo_has_vmt in def.objectoptions) and
                        (def.vmt_offset<fieldoffset) then
                       begin
-                        objst:=tobjectsymtable(def.symtable);
-                        objst.alignrecord(def.vmt_offset,sizeof(TConstPtrUInt));
                         for i:=1 to def.vmt_offset-curroffset do
                           list.concat(tai_const.create_8bit(0));
                         list.concat(tai_const.createname(def.vmt_mangledname,0));

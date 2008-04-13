@@ -3922,7 +3922,11 @@ implementation
                  tObjectSymtable(symtable).fieldalignment);
 
              if (tf_requires_proper_alignment in target_info.flags) then
-               tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
+               begin
+                 { Align VMT pointer and whole object instance if target CPU requires alignment. }
+                 tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
+                 tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
+               end;
 
              vmt_offset:=tObjectSymtable(symtable).datasize;
              tObjectSymtable(symtable).datasize:=
