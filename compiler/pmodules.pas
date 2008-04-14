@@ -1363,6 +1363,11 @@ implementation
            if force_init_final then
              finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
 
+          { the finalization routine of libraries is generic (and all libraries need to }
+          { be finalized, so they can finalize any units they use                       }
+          if (islibrary) then
+            exportlib.setfininame(current_asmdata.asmlists[al_procedures],'FPC_LIB_EXIT');
+
          { all labels must be defined before generating code }
          if Errorcount=0 then
            tstoredsymtable(current_module.localsymtable).checklabels;

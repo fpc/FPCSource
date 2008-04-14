@@ -40,6 +40,9 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
  ******************************************************************************}
 {$asmmode ATT}
 
+var
+  dlexitproc: pointer;
+
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 asm
   { First locate the start of the environment variables }
@@ -51,6 +54,8 @@ asm
   movl    %eax,operatingsystem_parameter_envp
   movl    %ecx,operatingsystem_parameter_argc
   movl    %ebx,operatingsystem_parameter_argv
+
+  movl    %edx, dlexitproc
 
   fninit                           { initialize fpu }
   fwait
@@ -70,6 +75,11 @@ end;
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
 .Lhaltproc:
+  movl    dlexitproc,%eax
+  testl   %eax,%eax
+  je      .Lnodlexitproc
+  call    *%eax
+.Lnodlexitproc:
   movl    syscall_nr_exit_group,%eax
 {$if sizeof(ExitCode)=2}  
   movzwl  ExitCode,%ebx

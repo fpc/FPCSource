@@ -358,7 +358,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03237 is the last used one
+# 03247 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1135,6 +1135,10 @@ parser_e_no_generics_as_types=03236_E_Generics without specialization can not be
 % Generics must be always specialized before being used as variable type
 parser_w_register_list_ignored=03237_W_Register list is ignored for pure assembler routines
 % When using pure assembler routines, the list with modified registers is ignored.
+parser_e_cant_export_var_different_name=03247_E_Variables cannot be exported with a different name on this target, add the name to the declaration using the "export" directive (variable name: $1, declared export name: $2)
+% On most targets it is not possible to change the name under which a variable is exported inside the \var{exports} statement of a library.
+% In that case, you have to specify the export name at the point where the variable is declared, using the \var{export} and \var{alias} directives.
+
 % \end{description}
 #
 # Type Checking

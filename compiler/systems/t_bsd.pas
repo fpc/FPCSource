@@ -36,7 +36,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_bsd,
+    import,export,link,i_bsd,expunix,
     cgutils,cgbase,cgobj,cpuinfo,ogbase;
 
   type
@@ -48,11 +48,12 @@ implementation
       procedure generatelib;override;
     end;
 
-    texportlibbsd=class(texportlib)
-      procedure preparelib(const s : string);override;
-      procedure exportprocedure(hp : texported_item);override;
-      procedure exportvar(hp : texported_item);override;
-      procedure generatelib;override;
+    texportlibbsd=class(texportlibunix)
+    end;
+
+    texportlibdarwin=class(texportlibbsd)
+      procedure setinitname(list: TAsmList; const s: string); override;
+      procedure setfininame(list: TAsmList; const s: string); override;
     end;
 
     tlinkerbsd=class(texternallinker)
@@ -80,6 +81,26 @@ implementation
 
 
 {*****************************************************************************
+                             TEXPORTLIBDARWIN
+*****************************************************************************}
+
+    procedure texportlibdarwin.setinitname(list: TAsmList; const s: string);
+      begin
+        list.concat(tai_directive.create(asd_mod_init_func,''));
+        list.concat(tai_align.create(sizeof(aint)));
+        list.concat(Tai_const.Createname(s,0));
+      end;
+
+
+    procedure texportlibdarwin.setfininame(list: TAsmList; const s: string);
+      begin
+        list.concat(tai_directive.create(asd_mod_term_func,''));
+        list.concat(tai_align.create(sizeof(aint)));
+        list.concat(Tai_const.Createname(s,0));
+      end;
+
+
+{*****************************************************************************
                                TIMPORTLIBBSD
 *****************************************************************************}
 
@@ -94,109 +115,6 @@ implementation
             current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
           end;
       end;
-
-
-{*****************************************************************************
-                               TEXPORTLIBBSD
-*****************************************************************************}
-
-procedure texportlibbsd.preparelib(const s:string);
-begin
-end;
-
-
-procedure texportlibbsd.exportprocedure(hp : texported_item);
-var
-  hp2 : texported_item;
-begin
-  { first test the index value }
-  if (hp.options and eo_index)<>0 then
-   begin
-     Message1(parser_e_no_export_with_index_for_target,'*bsd/darwin');
-     exit;
-   end;
-  { now place in correct order }
-  hp2:=texported_item(current_module._exports.first);
-  while assigned(hp2) and
-     (hp.name^>hp2.name^) do
-    hp2:=texported_item(hp2.next);
-  { insert hp there !! }
-  if assigned(hp2) and (hp2.name^=hp.name^) then
-    begin
-      { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp.name^);
-      exit;
-    end;
-  if hp2=texported_item(current_module._exports.first) then
-    current_module._exports.concat(hp)
-  else if assigned(hp2) then
-    begin
-       hp.next:=hp2;
-       hp.previous:=hp2.previous;
-       if assigned(hp2.previous) then
-         hp2.previous.next:=hp;
-       hp2.previous:=hp;
-    end
-  else
-    current_module._exports.concat(hp);
-end;
-
-
-procedure texportlibbsd.exportvar(hp : texported_item);
-begin
-  hp.is_var:=true;
-  exportprocedure(hp);
-end;
-
-
-procedure texportlibbsd.generatelib;  // straight t_linux copy for now.
-var
-  hp2 : texported_item;
-  pd  : tprocdef;
-{$ifdef x86}
-  sym : tasmsymbol;
-  r : treference;
-{$endif x86}
-begin
-  new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-  hp2:=texported_item(current_module._exports.first);
-  while assigned(hp2) do
-   begin
-     if (not hp2.is_var) and
-        (hp2.sym.typ=procsym) then
-      begin
-        { the manglednames can already be the same when the procedure
-          is declared with cdecl }
-        pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
-        if pd.mangledname<>hp2.name^ then
-         begin
-           { place jump in al_procedures }
-           current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           if (cs_create_pic in current_settings.moduleswitches) and
-             { other targets need to be checked how it works }
-             (target_info.system in [system_i386_freebsd]) then
-             begin
-{$ifdef x86}
-               sym:=current_asmdata.RefAsmSymbol(pd.mangledname);
-               reference_reset_symbol(r,sym,0);
-               if cs_create_pic in current_settings.moduleswitches then
-                 r.refaddr:=addr_pic
-               else
-                 r.refaddr:=addr_full;
-               current_asmdata.asmlists[al_procedures].concat(taicpu.op_ref(A_JMP,S_NO,r));
-{$endif x86}
-             end
-           else
-             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname);
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
-         end;
-      end
-     else
-      Message1(parser_e_no_export_of_variables_for_target,'*bsd/darwin');
-     hp2:=texported_item(hp2.next);
-   end;
-end;
 
 
 {*****************************************************************************
@@ -679,6 +597,7 @@ var
   cmdstr,
   extdbgbinstr,
   extdbgcmdstr  : TCmdStr;
+  exportedsyms: text;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
@@ -715,6 +634,21 @@ begin
     begin
       extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
       extdbgcmdstr:=maybequoted(current_module.sharedlibfilename^);
+    end;
+
+  if (target_info.system in systems_darwin) then
+    begin
+      { exported symbols for darwin }
+      if not texportlibunix(exportlib).exportedsymnames.empty then
+        begin
+          assign(exportedsyms,outputexedir+'linksyms.fpc');
+          rewrite(exportedsyms);
+          repeat
+            writeln(exportedsyms,texportlibunix(exportlib).exportedsymnames.getfirst);
+          until texportlibunix(exportlib).exportedsymnames.empty;
+          close(exportedsyms);
+          cmdstr:=cmdstr+' -exported_symbols_list '+maybequoted(outputexedir)+'linksyms.fpc';
+        end;
     end;
 
   if (LdSupportsNoResponseFile) and
@@ -755,6 +689,8 @@ begin
           DeleteFile(linkscript.fn);
           linkscript.free
         end;
+      if (target_info.system in systems_darwin) then
+        DeleteFile(outputexedir+'linksyms.fpc');
     end;     
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
@@ -787,7 +723,7 @@ initialization
   RegisterTarget(system_i386_openbsd_info);
   RegisterExternalLinker(system_i386_darwin_info,TLinkerBSD);
   RegisterImport(system_i386_darwin,timportlibdarwin);
-  RegisterExport(system_i386_darwin,texportlibbsd);
+  RegisterExport(system_i386_darwin,texportlibdarwin);
   RegisterTarget(system_i386_darwin_info);
 {$endif i386}
 {$ifdef m68k}
@@ -801,7 +737,7 @@ initialization
 //  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
   RegisterExternalLinker(system_powerpc_darwin_info,TLinkerBSD);
   RegisterImport(system_powerpc_darwin,timportlibdarwin);
-  RegisterExport(system_powerpc_darwin,texportlibbsd);
+  RegisterExport(system_powerpc_darwin,texportlibdarwin);
   RegisterTarget(system_powerpc_darwin_info);
 
   RegisterExternalLinker(system_powerpc_netbsd_info,TLinkerBSD);
@@ -812,7 +748,7 @@ initialization
 {$ifdef powerpc64}
   RegisterExternalLinker(system_powerpc64_darwin_info,TLinkerBSD);
   RegisterImport(system_powerpc64_darwin,timportlibdarwin);
-  RegisterExport(system_powerpc64_darwin,texportlibbsd);
+  RegisterExport(system_powerpc64_darwin,texportlibdarwin);
   RegisterTarget(system_powerpc64_darwin_info);
 {$endif powerpc64}
 end.

@@ -156,7 +156,7 @@ implementation
   uses
     version,
     cutils,cclasses,
-    globals,systems,verbose,
+    globals,systems,verbose,export,
     ppu,defutil,
     procinfo,paramgr,fmodule,
     regvars,dbgbase,
@@ -2013,20 +2013,10 @@ implementation
 
         current_procinfo.procdef.procendtai:=tai(list.last);
 
-        { finalisation marker for Mac OS X }
-        if (target_info.system in systems_darwin) and
-           (current_module.islibrary) and
-           (((current_module.flags and uf_finalize)<>0) or
-            (current_procinfo.procdef.proctypeoption = potype_proginit)) then
-          begin
-            if (current_procinfo.procdef.proctypeoption = potype_proginit) then
-              list.concat(tai_directive.create(asd_mod_init_func,''))
-            else
-              list.concat(tai_directive.create(asd_mod_term_func,''));
-            list.concat(tai_align.create(4));
-            list.concat(Tai_const.Createname(current_procinfo.procdef.mangledname,0));
-          end;
-
+        if (current_module.islibrary) then
+          if (current_procinfo.procdef.proctypeoption = potype_proginit) then
+            exportlib.setinitname(list,current_procinfo.procdef.mangledname);
+        
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
           begin
            if (target_info.system in (systems_darwin+[system_powerpc_macos])) and

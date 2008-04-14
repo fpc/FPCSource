@@ -28,8 +28,8 @@ interface
 uses
   cutils,cclasses,
   systems,
-  symtype,
-  aasmbase;
+  symtype,symdef,symsym,
+  aasmbase,aasmdata;
 
 const
    { export options }
@@ -51,6 +51,8 @@ type
    texportlib=class
    private
       notsupmsg : boolean;
+      finitname,
+      ffininame  : string;
       procedure NotSupported;
    public
       constructor Create;virtual;
@@ -59,9 +61,22 @@ type
       procedure exportprocedure(hp : texported_item);virtual;
       procedure exportvar(hp : texported_item);virtual;
       procedure generatelib;virtual;
+      procedure setinitname(list: TAsmList; const s: string); virtual;
+      procedure setfininame(list: TAsmList; const s: string); virtual;
+      
+      property initname: string read finitname;
+      property fininame: string read ffininame;
    end;
 
    TExportLibClass=class of TExportLib;
+
+
+  procedure exportprocsym(sym: tsym; const s : string; index: longint; options: word);
+  procedure exportvarsym(sym: tsym; const s : string; index: longint; options: word);
+
+  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: word);
+  procedure exportallprocsymnames(ps: tprocsym; options: word);
+
 
 var
   CExportLib : array[tsystem] of TExportLibClass;
@@ -75,6 +90,63 @@ implementation
 
 uses
   verbose,globals;
+
+{****************************************************************************
+                           TExported_procedure
+****************************************************************************}
+
+procedure exportprocsym(sym: tsym; const s : string; index: longint; options: word);
+  var
+    hp : texported_item;
+  begin
+    hp:=texported_item.create;
+    hp.name:=stringdup(s);
+    hp.sym:=sym;
+    hp.options:=options or eo_name;
+    hp.index:=index;
+    exportlib.exportprocedure(hp);
+  end;
+
+
+procedure exportvarsym(sym: tsym; const s : string; index: longint; options: word);
+  var
+    hp : texported_item;
+  begin
+    hp:=texported_item.create;
+    hp.name:=stringdup(s);
+    hp.sym:=sym;
+    hp.is_var:=true;
+    hp.options:=options or eo_name;
+    hp.index:=index;
+    exportlib.exportvar(hp);
+  end;
+
+
+  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: word);
+    var
+      item: TCmdStrListItem;
+    begin
+      exportprocsym(sym,pd.mangledname,0,options);
+      { walk through all aliases }
+      item:=TCmdStrListItem(pd.aliasnames.first);
+      while assigned(item) do
+        begin
+          { avoid duplicate entries, sometimes aliasnames contains the mangledname }
+          if item.str<>pd.mangledname then
+            exportprocsym(sym,item.str,0,options);
+          item:=TCmdStrListItem(item.next);
+        end;
+    end;
+    
+
+  procedure exportallprocsymnames(ps: tprocsym; options: word);
+    var
+      i: longint;
+    begin
+      for i:= 0 to ps.ProcdefList.Count-1 do
+        exportallprocdefnames(ps,tprocdef(ps.ProcdefList[i]),options);
+    end;
+
 
 {****************************************************************************
                            TExported_procedure
@@ -147,6 +219,17 @@ begin
   NotSupported;
 end;
 
+
+procedure texportlib.setinitname(list: TAsmList; const s: string);
+begin
+  finitname:=s;
+end;
+
+
+procedure texportlib.setfininame(list: TAsmList; const s: string);
+begin
+  ffininame:=s;
+end;
 
 {*****************************************************************************
                                  Init/Done
