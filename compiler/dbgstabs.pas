@@ -484,7 +484,7 @@ implementation
           pointer to the struct), otherwise gdb crashes (see tests/webtbs/tw9766.pp) }
         if is_class(def) and
            tobjectdef(def).writing_class_record_dbginfo then
-          st:=def_stabstr_evaluate(def,'"{$sym_name}:$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
+          st:=def_stabstr_evaluate(def,'"${sym_name}:$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
         else
           begin
             { Type names for types defined in the current unit are already written in
