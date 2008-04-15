@@ -377,7 +377,7 @@ begin
     end
     else begin
       GetMem(Result, SizeOf(WideChar));
-      Inc(len);
+      Inc(len, 2);
       Result^:=#0;
     end;
     break;
