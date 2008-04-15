@@ -446,7 +446,11 @@ interface
                      is_cbool(left.resultdef)) then
            second_bool_to_int
          else
-           second_int_to_bool
+           begin
+             { remove nf_explicit to perform full conversion }
+             exclude(flags, nf_explicit);
+             second_int_to_bool;
+           end;
       end;
 
 

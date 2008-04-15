@@ -237,7 +237,6 @@ implementation
          { Explicit typecasts from any ordinal type to a boolean type }
          { must not change the ordinal value                          }
          if (nf_explicit in flags) and
-            (left.resultdef.size=resultdef.size) and
             not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
            begin
               location_copy(location,left.location);
