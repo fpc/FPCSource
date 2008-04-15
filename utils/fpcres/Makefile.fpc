@@ -1,10 +1,12 @@
 #
-#   Makefile.fpc for FPCMake
+#   Makefile.fpc for fpcres
 #
 
 [target]
 programs=fpcres
-units=msghandler paramparser sourcehandler  target
+
+[clean]
+units=msghandler paramparser sourcehandler target
 
 [require]
 packages=rtl fcl-res
@@ -16,3 +18,5 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
+.NOTPARALLEL:
+fpcres$(EXEEXT): target.pas msghandler.pas paramparser.pas sourcehandler.pas fpcres.pas
