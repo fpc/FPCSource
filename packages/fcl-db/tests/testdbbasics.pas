@@ -30,6 +30,8 @@ type
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
     procedure TestBookmarks;
+    
+    procedure TestLocate;
 
     procedure TestFirst;
     procedure TestDelete1;
@@ -561,6 +563,28 @@ begin
 
     GotoBookmark(BM5);
     AssertEquals(14,FieldByName('id').AsInteger);
+    end;
+end;
+
+procedure TTestDBBasics.TestLocate;
+begin
+  with DBConnector.GetNDataset(true,13) do
+    begin
+    open;
+    asserttrue(Locate('id',vararrayof([5]),[]));
+    AssertEquals(5,FieldByName('id').AsInteger);
+    AssertFalse(Locate('id',vararrayof([15]),[]));
+    asserttrue(Locate('id',vararrayof([12]),[]));
+    AssertEquals(12,FieldByName('id').AsInteger);
+    close;
+    open;
+    asserttrue(Locate('id',vararrayof([12]),[]));
+    AssertEquals(12,FieldByName('id').AsInteger);
+    asserttrue(Locate('id;name',vararrayof([4,'TestName4']),[]));
+    AssertEquals(4,FieldByName('id').AsInteger);
+
+    assertFalse(Locate('id;name',vararrayof([4,'TestName5']),[]));
+
     end;
 end;
 
@@ -1297,7 +1321,7 @@ begin
   with ds do
     begin
 
-    AddIndex('testindex','F'+FieldTypeNames[ftString]+', F'+FieldTypeNames[ftInteger],[]);
+    AddIndex('testindex','F'+FieldTypeNames[ftString]+'; F'+FieldTypeNames[ftInteger],[]);
     FList := TStringList.Create;
     FList.Sorted:=true;
     FList.CaseSensitive:=True;
