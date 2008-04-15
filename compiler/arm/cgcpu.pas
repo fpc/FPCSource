@@ -1033,7 +1033,7 @@ unit cgcpu;
          instr: taicpu;
        begin
          conv_done:=false;
-         if tcgsize2size[tosize]<>tcgsize2size[fromsize] then
+         if tosize<>fromsize then
            begin
              shifterop_reset(so);
              if not do_conv(tosize) then

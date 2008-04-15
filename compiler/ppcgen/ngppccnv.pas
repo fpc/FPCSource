@@ -76,6 +76,7 @@ implementation
         resflags : tresflags;
         opsize   : tcgsize;
         hlabel, oldTrueLabel, oldFalseLabel : tasmlabel;
+        newsize   : tcgsize;
       begin
          oldTrueLabel:=current_procinfo.CurrTrueLabel;
          oldFalseLabel:=current_procinfo.CurrFalseLabel;
@@ -92,12 +93,14 @@ implementation
             not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
            begin
               location_copy(location,left.location);
-              location.size:=def_cgsize(resultdef);
+              newsize:=def_cgsize(resultdef);
               { change of sign? Then we have to sign/zero-extend in }
               { case of a loc_(c)register                           }
-              if (location.size<>left.location.size) and
+              if (newsize<>left.location.size) and
                  (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                location_force_reg(current_asmdata.CurrAsmList,location,location.size,true);
+                location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+              else
+                location.size:=newsize;
               current_procinfo.CurrTrueLabel:=oldTrueLabel;
               current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
