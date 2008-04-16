@@ -194,7 +194,12 @@ begin
 end;
 
 procedure SysUpdateScreen(Force: Boolean);
+var
+  Is_Mouse_Vis: boolean;
 begin
+  Is_Mouse_Vis := MouseIsVisible;     {MouseIsVisible is from Mouse unit}
+  if Is_Mouse_Vis then
+   HideMouse;
   if not force then
    begin
      asm
@@ -216,6 +221,8 @@ begin
      dosmemput(videoseg,0,videobuf^,VideoBufSize);
      move(videobuf^,oldvideobuf^,VideoBufSize);
    end;
+  if Is_Mouse_Vis then
+   ShowMouse;
 end;
 
 Procedure DoSetVideoMode(Params: Longint);

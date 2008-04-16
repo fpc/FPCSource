@@ -22,7 +22,7 @@ interface
 implementation
 
 uses
-  DosCalls, VioCalls;
+  DosCalls, VioCalls, Mouse;
 
 {$i video.inc}
 
@@ -352,6 +352,7 @@ end;
 procedure SysUpdateScreen (Force: boolean);
 
 var SOfs, CLen: cardinal;
+    Mouse_Visible: boolean;
 
 begin
   if not (Force) then
@@ -407,9 +408,14 @@ begin
   Move(VideoBuf^,SysVideoBuf^,VideoBufSize);
   if Force then
     begin
-    VioShowBuf (SOfs, CLen, 0);
-    Move (VideoBuf^ [SOfs div SizeOf (TVideoCell)],
+      Mouse_Visible := MouseIsVisible; {MouseIsVisible is from Mouse unit}
+      if Mouse_Visible then
+        HideMouse;
+      VioShowBuf (SOfs, CLen, 0);
+      Move (VideoBuf^ [SOfs div SizeOf (TVideoCell)],
           OldVideoBuf^ [SOfs div SizeOf (TVideoCell)], CLen);
+      if Mouse_Visible then
+        ShowMouse;
     end;
 end;
 
