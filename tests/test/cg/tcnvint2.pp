@@ -112,12 +112,12 @@ begin
  Test('longint -> longbool : Value should be TRUE...',lb1);
 {$ifndef tp}
  fromint64 := $10000000;
- lb1 := longbool(fromint64);
+ lb1 := longbool(qwordbool(fromint64));
  Test('int64 -> longbool : Value should be TRUE...',lb1);
  { does it indirectly, since it might not work in direct mode }
  value:=1;
  fromint64 := int64(value) shl int64(36) ;
- lb1 := longbool(fromint64);
+ lb1 := longbool(qwordbool(fromint64));
  Test('int64 -> longbool : Value should be TRUE...',lb1);
 {$endif}
  { left : LOC_REGISTER  }
@@ -154,9 +154,9 @@ begin
  Test('longint -> longbool : Value should be TRUE...',lb1);
 {$ifndef tp}
  fromint64 := $10000000;
- lb1 := longbool(getint64);
+ lb1 := longbool(qwordbool(getint64));
  Test('int64 -> longbool : Value should be TRUE...',lb1);
- lb1 := longbool(getint64_2);
+ lb1 := longbool(qwordbool(getint64_2));
  Test('int64 -> longbool : Value should be TRUE...',lb1);
 {$endif}
  { left : LOC_FLAGS  }

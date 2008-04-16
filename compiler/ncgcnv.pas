@@ -447,8 +447,9 @@ interface
            second_bool_to_int
          else
            begin
-             { remove nf_explicit to perform full conversion }
-             exclude(flags, nf_explicit);
+             if (resultdef.size<>left.resultdef.size) then
+               { remove nf_explicit to perform full conversion if boolean sizes are different }
+               exclude(flags, nf_explicit);
              second_int_to_bool;
            end;
       end;
