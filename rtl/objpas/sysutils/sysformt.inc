@@ -58,7 +58,10 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Procedure ReadIndex;
 
     begin
-      ReadInteger;
+      If Fmt[ChPos]<>':' then
+        ReadInteger
+      else
+        value:=0; // Delphi undocumented behaviour, assume 0, #11099
       If Fmt[ChPos]=':' then
         begin
         If Value=-1 then DoFormatError(feMissingArgument);

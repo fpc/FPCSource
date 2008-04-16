@@ -676,12 +676,18 @@ Function InitVal(const s:shortstring;out negativ:boolean;out base:byte):ValSInt;
 var
   Code : SizeInt;
 begin
-{Skip Spaces and Tab}
   code:=1;
+  negativ:=false;
+  base:=10;
+  if length(s)=0 then 
+    begin
+      InitVal:=code;
+      Exit;
+    end;
+{Skip Spaces and Tab}
   while (code<=length(s)) and (s[code] in [' ',#9]) do
    inc(code);
 {Sign}
-  negativ:=false;
   case s[code] of
    '-' : begin
            negativ:=true;
@@ -690,7 +696,6 @@ begin
    '+' : inc(code);
   end;
 {Base}
-  base:=10;
   if code<=length(s) then
    begin
      case s[code] of
@@ -1242,4 +1247,5 @@ begin
   else
     ShortCompareText := L1 - L2;
 end;
+
 

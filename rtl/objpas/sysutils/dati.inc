@@ -567,17 +567,6 @@ var
    StoreStr(pchar(@S[1]), Len);
    end ;
 
-   Function TimeReFormat(Const S : string) : string;
-   // Change m into n for time formatting.
-   Var i : longint;
-
-   begin
-     Result:=S;
-     For I:=1 to Length(Result) do
-       If Result[i]='m' then
-         result[i]:='n';
-   end;
-
 var
    Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
 
@@ -716,8 +705,8 @@ var
                       else StoreInt(MilliSecond, 3);
                       end ;
                    'T': begin
-                      if Count = 1 then StoreFormat(timereformat(ShortTimeFormat))
-                      else StoreFormat(TimeReformat(LongTimeFormat));
+                      if Count = 1 then StoreFormat(ShortTimeFormat)
+                      else StoreFormat(LongTimeFormat);
                       end ;
                    'C':
                      begin
@@ -725,7 +714,7 @@ var
                        if (Hour<>0) or (Minute<>0) or (Second<>0) then
                         begin
                           StoreString(' ');
-                          StoreFormat(TimeReformat(LongTimeFormat));
+                          StoreFormat(LongTimeFormat);
                         end;
                      end;
                 end;

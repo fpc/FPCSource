@@ -287,7 +287,7 @@ Const
 
 Type
    {*** structures to save a screen via nGrabScreen ***}
-   pnOneRow = pchar;
+   pnOneRow = pchtype;
    { a buffer for a max of 256 chtype items accessed via pchar }
    tnOneRow = array [0..1023] of char;
    { a one way linked list of screen rows }
@@ -355,7 +355,7 @@ Type
       Procedure ClrChMap(idx : integer);
    End;
 
-   pwin = ^Window;
+   pwin = PWindow;
 
    pnWindow = ^tnWindow;
    tnWindow = Object
@@ -651,7 +651,7 @@ Begin
    Else Begin
       wn := win;
       wbkgd(win,COLOR_PAIR(nSetColorPair(wincolor)));
-      If nisbold(wincolor) then wattr_on(win,A_BOLD);
+      If nisbold(wincolor) then wattr_on(win,A_BOLD,nil);
       scrollok(win,bool(true));
       intrflush(win,bool(false));
       keypad(win,bool(true));
@@ -819,7 +819,7 @@ Begin
             att := A_BOLD
          Else
             att := A_NORMAL;
-         mvwchgat(win,0,hx,len,att,cp,0);
+         mvwchgat(win,0,hx,len,att,cp,Nil);
       End;
    End;
 End;
@@ -828,7 +828,8 @@ End;
 Procedure tnWindow.SetColor(att : integer);
 Begin
    wbkgd(wn,COLOR_PAIR(nSetColorPair(att)));
-   If nisbold(att) then wattr_set(wn,A_BOLD);
+   If nisbold(att) then 
+     wattr_set(wn,A_BOLD,0,Nil);
    wincolor := att;
    If visible Then wrefresh(wn);
 End;
@@ -857,10 +858,11 @@ Var
    x,y,
    mx,my,
    atts : longint;
+   
 Begin
    wbkgd(win,COLOR_PAIR(nSetColorPair(att)));
-   atts := wattr_get(win);
-   If nisbold(att) then wattr_on(win,atts or A_BOLD);
+   atts := wattr_get(win,nil,Nil,nil);
+   If nisbold(att) then wattr_on(win,atts or A_BOLD,Nil);
    box(win,ACS_VLINE,ACS_HLINE);
    framecolor := att;
    If framecolor = -1 Then framecolor := wincolor;
@@ -874,7 +876,7 @@ Begin
          subp := new_panel(sub);
          hide_panel(subp);
          wbkgd(sub,COLOR_PAIR(nSetColorPair(wincolor)));
-         If nisbold(wincolor) then wattr_on(sub,A_BOLD);
+         If nisbold(wincolor) then wattr_on(sub,A_BOLD,Nil);
          scrollok(sub,bool(true));
          intrflush(sub,bool(false));
          keypad(sub,bool(true));
@@ -1563,7 +1565,7 @@ Begin
       att := A_BOLD or A_ALTCHARSET
    Else
       att := A_NORMAL or A_ALTCHARSET;
-   mvwchgat(win,y-1,x-1,1,att,cp,0);
+   mvwchgat(win,y-1,x-1,1,att,cp,Nil);
    { return cursor to saved position }
    wmove(win,yy,xx);
    If doRefresh Then wrefresh(win);
@@ -1614,7 +1616,7 @@ Begin
    End;
    wbkgd(sub,COLOR_PAIR(nSetColorPair(Attrib)));
    If nisbold(Attrib) then
-      wattr_on(sub,A_BOLD);
+      wattr_on(sub,A_BOLD,Nil);
    mvwaddstr(sub,0,0,StrPCopy(ps,s));
    { highlight the embedded control characters substitutes }
    If ctrl Then Begin
@@ -2586,10 +2588,10 @@ Var
    c : longint;
    { array of char/attr values, 4 bytes each, max 256 }
    buf : array[0..1023] of char;
-   p : pchar;
+   p : pchtype;
 Begin
    s := '';
-   p := nReadScrStr(win,x,y,n,buf);
+   p := nReadScrStr(win,x,y,n,@buf);
    If p <> nil Then Begin
       idx := 0;
       For i := 1 to n Do Begin
