@@ -91,13 +91,7 @@ type
     {$endif}
     FInternalActiveBuffer: PDataRecord;
     FInsertBookmark: PDataRecord;
-    FExpectedAppends: Integer;
-    FExpectedDeletes: Integer;
-    FExpectedUpdates: Integer;
     FOnCallback: TSqliteCallback;
-    FSaveOnClose: Boolean;
-    FSaveOnRefetch: Boolean;
-    FAutoIncrementKey: Boolean;
     FMasterLink: TMasterDataLink;
     FIndexFieldNames: String;
     FIndexFieldList: TList;
@@ -121,7 +115,6 @@ type
     FDeletedItems: TFPList;
     FReturnCode: Integer;
     FSqliteHandle: Pointer;
-    FDataAllocated: Boolean;
     FRowBufferSize: Integer;
     FRowCount: Integer;
     FRecordCount: Integer;
@@ -129,6 +122,10 @@ type
     FEndItem: PDataRecord;
     FCacheItem: PDataRecord;
     FGetSqlStr: array of TGetSqlStrFunction;
+    FSaveOnClose: Boolean;
+    FSaveOnRefetch: Boolean;
+    FAutoIncrementKey: Boolean;
+    FDataAllocated: Boolean;
     function SqliteExec(Sql:PChar; ACallback: TSqliteCdeclCallback; Data: Pointer):Integer;virtual; abstract;
     procedure InternalCloseHandle;virtual;abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
@@ -212,9 +209,9 @@ type
     procedure SetCurrentItem(Value:PDataRecord);
     property FCurrentItem: PDataRecord read FFCurrentItem write SetCurrentItem;
     {$endif}
-    property ExpectedAppends: Integer read FExpectedAppends write SetExpectedAppends;
-    property ExpectedUpdates: Integer read FExpectedUpdates write SetExpectedUpdates;
-    property ExpectedDeletes: Integer read FExpectedDeletes write SetExpectedDeletes;
+    property ExpectedAppends: Integer write SetExpectedAppends;
+    property ExpectedUpdates: Integer write SetExpectedUpdates;
+    property ExpectedDeletes: Integer write SetExpectedDeletes;
     property IndexFields[Value: Integer]: TField read GetIndexFields;
     property RowsAffected: Integer read GetRowsAffected;
     property ReturnCode: Integer read FReturnCode;

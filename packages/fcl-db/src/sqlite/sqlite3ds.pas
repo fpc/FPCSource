@@ -152,50 +152,52 @@ begin
 end;
 
 procedure TSqlite3Dataset.InternalInitFieldDefs;
+const
+  FieldSizeMap: array[Boolean] of Integer = (0, dsMaxStringSize);
 var
-  vm:Pointer;
-  ColumnStr:String;
-  i,ColumnCount:Integer;
-  AType:TFieldType;
+  vm: Pointer;
+  ColumnStr: String;
+  i, ColumnCount: Integer;
+  AType: TFieldType;
 begin
   {$ifdef DEBUG}
   WriteLn('##TSqlite3Dataset.InternalInitFieldDefs##');
   {$endif}
-  FAutoIncFieldNo:=-1;
+  FAutoIncFieldNo := -1;
   FieldDefs.Clear;
   FReturnCode := sqlite3_prepare(FSqliteHandle, PChar(FSql), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
   sqlite3_step(vm);
-  ColumnCount:=sqlite3_column_count(vm);
+  ColumnCount := sqlite3_column_count(vm);
   //Set BufferSize
-  FRowBufferSize:=(SizeOf(PPChar)*ColumnCount);
+  FRowBufferSize := (SizeOf(PPChar) * ColumnCount);
   //Prepare the array of pchar2sql functions
-  SetLength(FGetSqlStr,ColumnCount);
+  SetLength(FGetSqlStr, ColumnCount);
   for i := 0 to ColumnCount - 1 do
   begin
-   ColumnStr := UpperCase(String(sqlite3_column_decltype(vm,i)));
+   ColumnStr := UpperCase(String(sqlite3_column_decltype(vm, i)));
    if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
    begin
-     if AutoIncrementKey and (UpperCase(String(sqlite3_column_name(vm,i))) = UpperCase(PrimaryKey)) then
+     if AutoIncrementKey and (UpperCase(String(sqlite3_column_name(vm, i))) = UpperCase(PrimaryKey)) then
      begin
        AType := ftAutoInc;
        FAutoIncFieldNo := i;
      end
      else
        AType := ftInteger;     
-   end else if Pos('VARCHAR',ColumnStr) = 1 then
+   end else if Pos('VARCHAR', ColumnStr) = 1 then
    begin
      AType := ftString;
-   end else if Pos('BOOL',ColumnStr) = 1 then
+   end else if Pos('BOOL', ColumnStr) = 1 then
    begin
      AType := ftBoolean;
-   end else if Pos('AUTOINC',ColumnStr) = 1 then
+   end else if Pos('AUTOINC', ColumnStr) = 1 then
    begin
      AType := ftAutoInc;
      if FAutoIncFieldNo = -1 then
        FAutoIncFieldNo := i;
-   end else if (Pos('FLOAT',ColumnStr)=1) or (Pos('NUMERIC',ColumnStr)=1) then
+   end else if (Pos('FLOAT', ColumnStr) = 1) or (Pos('NUMERIC', ColumnStr) = 1) then
    begin
      AType := ftFloat;
    end else if (ColumnStr = 'DATETIME') then
@@ -219,27 +221,34 @@ begin
    end else if (ColumnStr = 'WORD') then
    begin
      AType := ftWord;
+   end else if (ColumnStr = '') then
+   begin
+     case sqlite3_column_type(vm, i) of
+       SQLITE_INTEGER:
+         AType := ftInteger;
+       SQLITE_FLOAT:
+         AType := ftFloat;
+     else
+       AType := ftString;
+     end;
    end else
    begin
      AType := ftString;
    end;
-   if AType = ftString then
-     FieldDefs.Add(String(sqlite3_column_name(vm,i)), AType, dsMaxStringSize)
-   else
-     FieldDefs.Add(String(sqlite3_column_name(vm,i)), AType);  
+   FieldDefs.Add(String(sqlite3_column_name(vm, i)), AType, FieldSizeMap[AType = ftString]);
    //Set the pchar2sql function
-   if AType in [ftString,ftMemo] then
-     FGetSqlStr[i]:=@Char2SqlStr
+   if AType in [ftString, ftMemo] then
+     FGetSqlStr[i] := @Char2SqlStr
    else
-     FGetSqlStr[i]:=@Num2SqlStr;
+     FGetSqlStr[i] := @Num2SqlStr;
    {$ifdef DEBUG}
-   writeln('  Field[',i,'] Name: ',sqlite3_column_name(vm,i));
-   writeln('  Field[',i,'] Type: ',sqlite3_column_decltype(vm,i));
+   writeln('  Field[',i,'] Name: ', sqlite3_column_name(vm,i));
+   writeln('  Field[',i,'] Type: ', sqlite3_column_decltype(vm,i));
    {$endif}
   end;
   sqlite3_finalize(vm);
   {$ifdef DEBUG}
-  writeln('  FieldDefs.Count: ',FieldDefs.Count);
+  writeln('  FieldDefs.Count: ', FieldDefs.Count);
   {$endif}
 end;
 
