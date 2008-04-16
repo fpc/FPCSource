@@ -791,7 +791,7 @@ unit cgcpu;
            else
              InternalError(200308295);
          end;
-         if ref.alignment<>0 then
+         if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize]) then
            begin
              if target_info.endian=endian_big then
                dir:=-1
@@ -812,21 +812,35 @@ unit cgcpu;
                  end;
                OS_32,OS_S32:
                  begin
-                   shifterop_reset(so);so.shiftmode:=SM_LSR;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
                    usedtmpref:=ref;
-                   if target_info.endian=endian_big then
-                     inc(usedtmpref.offset,3);
-                   usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,usedtmpref);
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,reg,so));
-                   inc(usedtmpref.offset,dir);
-                   a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,tmpreg,so));
-                   inc(usedtmpref.offset,dir);
-                   a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,tmpreg,so));
-                   inc(usedtmpref.offset,dir);
-                   a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
+                   shifterop_reset(so);so.shiftmode:=SM_LSR;
+                   if ref.alignment=2 then
+                     begin
+                       so.shiftimm:=16;
+                       if target_info.endian=endian_big then
+                         inc(usedtmpref.offset,2);
+                       usedtmpref:=a_internal_load_reg_ref(list,OS_16,OS_16,reg,usedtmpref);
+                       list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,reg,so));
+                       inc(usedtmpref.offset,dir*2);
+                       a_internal_load_reg_ref(list,OS_16,OS_16,tmpreg,usedtmpref);
+                     end
+                   else
+                     begin
+                       so.shiftimm:=8;
+                       if target_info.endian=endian_big then
+                         inc(usedtmpref.offset,3);
+                       usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,usedtmpref);
+                       list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,reg,so));
+                       inc(usedtmpref.offset,dir);
+                       a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
+                       list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,tmpreg,so));
+                       inc(usedtmpref.offset,dir);
+                       a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
+                       list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,tmpreg,so));
+                       inc(usedtmpref.offset,dir);
+                       a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
+                     end;
                  end
                else
                  handle_load_store(list,A_STR,oppostfix,reg,ref);
@@ -841,7 +855,7 @@ unit cgcpu;
        var
          oppostfix:toppostfix;
          usedtmpref: treference;
-         tmpreg,tmpreg2,tmpreg3 : tregister;
+         tmpreg,tmpreg2 : tregister;
          so : tshifterop;
          dir : integer;
        begin
@@ -863,7 +877,7 @@ unit cgcpu;
            else
              InternalError(200308297);
          end;
-         if Ref.alignment<>0 then
+         if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize]) then
            begin
              if target_info.endian=endian_big then
                dir:=-1
@@ -881,9 +895,9 @@ unit cgcpu;
                      (reg=ref.index) or
                      (reg=ref.base) then
                      begin
-                       tmpreg3:=getintregister(list,OS_INT);
-                       a_loadaddr_ref_reg(list,ref,tmpreg3);
-                       reference_reset_base(usedtmpref,tmpreg3,0);
+                       tmpreg2:=getintregister(list,OS_INT);
+                       a_loadaddr_ref_reg(list,ref,tmpreg2);
+                       reference_reset_base(usedtmpref,tmpreg2,0);
                      end
                    else
                      usedtmpref:=ref;
@@ -892,19 +906,17 @@ unit cgcpu;
                      inc(usedtmpref.offset,1);
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
-                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
                    inc(usedtmpref.offset,dir);
-                   tmpreg2:=getintregister(list,OS_INT);
                    if FromSize=OS_16 then
-                     a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2)
+                     a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg)
                    else
-                     a_internal_load_ref_reg(list,OS_S8,OS_S8,usedtmpref,tmpreg2);
-                   list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,tmpreg,tmpreg2,so));
+                     a_internal_load_ref_reg(list,OS_S8,OS_S8,usedtmpref,tmpreg);
+                   list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
                  end;
                OS_32,OS_S32:
                  begin
                    tmpreg:=getintregister(list,OS_INT);
-                   tmpreg2:=getintregister(list,OS_INT);
 
                    { only complicated references need an extra loadaddr }
                    if assigned(ref.symbol) or
@@ -915,28 +927,42 @@ unit cgcpu;
                      (reg=ref.index) or
                      (reg=ref.base) then
                      begin
-                       tmpreg3:=getintregister(list,OS_INT);
-                       a_loadaddr_ref_reg(list,ref,tmpreg3);
-                       reference_reset_base(usedtmpref,tmpreg3,0);
+                       tmpreg2:=getintregister(list,OS_INT);
+                       a_loadaddr_ref_reg(list,ref,tmpreg2);
+                       reference_reset_base(usedtmpref,tmpreg2,0);
                      end
                    else
                      usedtmpref:=ref;
 
-                   if target_info.endian=endian_big then
-                     inc(usedtmpref.offset,3);
-                   shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
-                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
-                   inc(usedtmpref.offset,dir);
-                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
-                   list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,tmpreg2,reg,tmpreg,so));
-                   inc(usedtmpref.offset,dir);
-                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
-                   so.shiftimm:=16;
-                   list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,tmpreg,tmpreg2,reg,so));
-                   inc(usedtmpref.offset,dir);
-                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2);
-                   so.shiftimm:=24;
-                   list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,tmpreg,tmpreg2,so));
+                   shifterop_reset(so);so.shiftmode:=SM_LSL;
+                   if ref.alignment=2 then
+                     begin
+                       if target_info.endian=endian_big then
+                         inc(usedtmpref.offset,2);
+                       a_internal_load_ref_reg(list,OS_16,OS_16,usedtmpref,reg);
+                       inc(usedtmpref.offset,dir*2);
+                       a_internal_load_ref_reg(list,OS_16,OS_16,usedtmpref,tmpreg);
+                       so.shiftimm:=16;
+                       list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
+                     end
+                   else
+                     begin
+                       if target_info.endian=endian_big then
+                         inc(usedtmpref.offset,3);
+                       a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
+                       inc(usedtmpref.offset,dir);
+                       a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                       so.shiftimm:=8;
+                       list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
+                       inc(usedtmpref.offset,dir);
+                       a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                       so.shiftimm:=16;
+                       list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
+                       inc(usedtmpref.offset,dir);
+                       a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                       so.shiftimm:=24;
+                       list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
+                     end;
                  end
                else
                  handle_load_store(list,A_LDR,oppostfix,reg,ref);

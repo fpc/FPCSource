@@ -361,6 +361,7 @@ implementation
                  if (gvs.varspez=vs_const) and
                     (location.loc=LOC_REFERENCE) then
                    location.loc:=LOC_CREFERENCE;
+                 location.reference.alignment:=gvs.vardef.alignment;
                end;
              paravarsym,
              localvarsym :
@@ -401,7 +402,7 @@ implementation
                  if (vs.varspez=vs_const) and
                     (location.loc=LOC_REFERENCE) then
                    location.loc:=LOC_CREFERENCE;
-               end;
+              end;
             procsym:
                begin
                   if not assigned(procdef) then
