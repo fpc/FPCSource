@@ -32,6 +32,8 @@ type
     secstrofs : ptruint;
     processaddress : ptruint;
     FunctionRelative: boolean;
+    // Offset of the binary image forming permanent offset to all retrieved values
+    ImgOffset: ptruint;
     filename  : string;
     // Allocate static buffer for reading data
     buf       : array[0..4095] of byte;
@@ -84,7 +86,7 @@ uses
                               DOS Stub
 ****************************************************************************}
 
-{$if defined(EMX) or defined(PE32) or defined(PE32PLUS)}
+{$if defined(EMX) or defined(PE32) or defined(PE32PLUS) or defined(GO32V2)}
 type
   tdosheader = packed record
      e_magic : word;
@@ -107,7 +109,7 @@ type
      e_res2 : array[0..9] of word;
      e_lfanew : longint;
   end;
-{$endif EMX or PE32 or PE32PLUS}
+{$endif EMX or PE32 or PE32PLUS or GO32v2}
 
 
 {****************************************************************************
@@ -323,7 +325,7 @@ begin
        end;
      if asecname=secname then
        begin
-         secofs:=sechdr.datapos;
+         secofs:=sechdr.datapos + E.ImgOffset;
          seclen:=sechdr.datalen;
          FindSectionCoff:=true;
          exit;
@@ -346,14 +348,29 @@ type
     flag   : word;
     other  : array[0..27] of byte;
   end;
+const
+  ParagraphSize = 512;
 var
   coffheader : tgo32coffheader;
+  DosHeader: TDosHeader;
+  BRead: cardinal;
 begin
   OpenGo32Coff:=false;
   { read and check header }
-  if e.size<2048+sizeof(coffheader) then
+  if E.Size < SizeOf (DosHeader) then
+   Exit;
+  BlockRead (E.F, DosHeader, SizeOf (DosHeader), BRead);
+  if BRead <> SizeOf (DosHeader) then
+   Exit;
+  if DosHeader.E_Magic = $5A4D then
+  begin
+   E.ImgOffset := DosHeader.e_cp * ParagraphSize;
+   if DosHeader.e_cblp > 0 then
+    E.ImgOffset := E.ImgOffset + DosHeader.e_cblp - 512;
+  end;
+  if e.size < E.ImgOffset + sizeof(coffheader) then
    exit;
-  seek(e.f,2048);
+  seek(e.f,E.ImgOffset);
   blockread(e.f,coffheader,sizeof(coffheader));
   if coffheader.mach<>$14c then
     exit;
@@ -990,6 +1007,7 @@ begin
   e.size:=filesize(e.f);
 
   E.FunctionRelative := true;
+  E.ImgOffset := 0;
   if ExeProcs.OpenProc<>nil then
     OpenExeFile:=ExeProcs.OpenProc(e);
 end;
