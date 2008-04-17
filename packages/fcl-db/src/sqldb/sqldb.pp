@@ -85,7 +85,9 @@ type
     FHostName            : string;
     FCharSet             : string;
     FRole                : String;
-
+    
+    function GetPort: cardinal;
+    procedure Setport(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
     procedure GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
@@ -119,6 +121,7 @@ type
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
+    property port: cardinal read GetPort write Setport;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -297,7 +300,7 @@ type
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
     property StatementType : TStatementType read GetStatementType;
-    property ParseSQL : Boolean read FParseSQL write SetParseSQL;
+    property ParseSQL : Boolean read FParseSQL write SetParseSQL default true;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
@@ -541,6 +544,19 @@ begin
   finally;
     DeAllocateCursorHandle(Cursor);
   end;
+end;
+
+function TSQLConnection.GetPort: cardinal;
+begin
+  result := StrToIntDef(Params.Values['Port'],0);
+end;
+
+procedure TSQLConnection.Setport(const AValue: cardinal);
+begin
+  if AValue<>0 then
+    params.Values['Port']:=IntToStr(AValue)
+  else with params do if IndexOfName('Port') > -1 then
+    Delete(IndexOfName('Port'));
 end;
 
 procedure TSQLConnection.GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);

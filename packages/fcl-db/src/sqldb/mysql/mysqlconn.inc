@@ -134,6 +134,7 @@ Type
     property KeepConnection;
     property LoginPrompt;
     property Params;
+    property Port stored false;
     property OnLogin;
   end;
 
@@ -213,12 +214,12 @@ end;
 procedure TConnectionName.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
 
 Var
-  Port : Cardinal;
+  APort : Cardinal;
 
 begin
   HMySQL := mysql_init(HMySQL);
-  Port:=Abs(StrToIntDef(Params.Values['Port'],0));
-  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,Port,Nil,0);
+  APort:=Abs(StrToIntDef(Params.Values['Port'],0));
+  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,0);
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
 end;

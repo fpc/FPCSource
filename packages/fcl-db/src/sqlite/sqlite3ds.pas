@@ -105,15 +105,15 @@ function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPC
 var
   CodeError, TempInt: Integer;
 begin
-  TempInt:=-1;
+  TempInt := -1;
   if ColumnValues[0] <> nil then
   begin
-    Val(StrPas(ColumnValues[0]),TempInt,CodeError);
+    Val(String(ColumnValues[0]), TempInt, CodeError);
     if CodeError <> 0 then
-      DatabaseError('SqliteDs - Error trying to get last autoinc value');
+      DatabaseError('TSqlite3Dataset: Error trying to get last autoinc value');
   end;
-  Integer(NextValue^):=Succ(TempInt);
-  Result:=1;
+  Integer(NextValue^) := Succ(TempInt);
+  Result := 1;
 end;
 
 { TSqlite3Dataset }
@@ -174,10 +174,10 @@ begin
   SetLength(FGetSqlStr,ColumnCount);
   for i := 0 to ColumnCount - 1 do
   begin
-   ColumnStr := UpperCase(StrPas(sqlite3_column_decltype(vm,i)));
+   ColumnStr := UpperCase(String(sqlite3_column_decltype(vm,i)));
    if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
    begin
-     if AutoIncrementKey and (UpperCase(StrPas(sqlite3_column_name(vm,i))) = UpperCase(PrimaryKey)) then
+     if AutoIncrementKey and (UpperCase(String(sqlite3_column_name(vm,i))) = UpperCase(PrimaryKey)) then
      begin
        AType := ftAutoInc;
        FAutoIncFieldNo := i;
@@ -224,9 +224,9 @@ begin
      AType := ftString;
    end;
    if AType = ftString then
-     FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, dsMaxStringSize)
+     FieldDefs.Add(String(sqlite3_column_name(vm,i)), AType, dsMaxStringSize)
    else
-     FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType);  
+     FieldDefs.Add(String(sqlite3_column_name(vm,i)), AType);  
    //Set the pchar2sql function
    if AType in [ftString,ftMemo] then
      FGetSqlStr[i]:=@Char2SqlStr
@@ -315,7 +315,7 @@ end;
 
 function TSqlite3Dataset.GetSqliteVersion: String;
 begin
-  Result:=StrPas(sqlite3_version());
+  Result := String(sqlite3_version());
 end;
 
 function TSqlite3Dataset.QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;
@@ -326,30 +326,30 @@ var
   begin
     while FReturnCode = SQLITE_ROW do
     begin
-      AStrList.Add(StrPas(sqlite3_column_text(vm,0)));
-      FReturnCode:=sqlite3_step(vm);
+      AStrList.Add(String(sqlite3_column_text(vm,0)));
+      FReturnCode := sqlite3_step(vm);
     end;
   end;
   procedure FillStringsAndObjects;
   begin
     while FReturnCode = SQLITE_ROW do
     begin
-      AStrList.AddObject(StrPas(sqlite3_column_text(vm,0)),TObject(PtrInt(sqlite3_column_int(vm,1))));
-      FReturnCode:=sqlite3_step(vm);
+      AStrList.AddObject(String(sqlite3_column_text(vm,0)), TObject(PtrInt(sqlite3_column_int(vm,1))));
+      FReturnCode := sqlite3_step(vm);
     end;
   end;    
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  Result:='';
-  FReturnCode:=sqlite3_prepare(FSqliteHandle,Pchar(ASql),-1,@vm,nil);
+  Result := '';
+  FReturnCode := sqlite3_prepare(FSqliteHandle,Pchar(ASql), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString,Self);
     
-  FReturnCode:=sqlite3_step(vm);
+  FReturnCode := sqlite3_step(vm);
   if (FReturnCode = SQLITE_ROW) and (sqlite3_column_count(vm) > 0) then
   begin
-    Result:=StrPas(sqlite3_column_text(vm,0));
+    Result := String(sqlite3_column_text(vm,0));
     if AStrList <> nil then
     begin   
       if FillObjects and (sqlite3_column_count(vm) > 1) then

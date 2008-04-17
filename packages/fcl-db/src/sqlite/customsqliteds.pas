@@ -288,24 +288,24 @@ function Num2SqlStr(APChar: PChar): String;
 begin
   if APChar = nil then
   begin
-    Result:=NullString;
+    Result := NullString;
     Exit;
   end;
-  Result:=StrPas(APChar);
+  Result := String(APChar);
 end;
 
 function Char2SqlStr(APChar: PChar): String;
 begin
   if APChar = nil then
   begin
-    Result:=NullString;
+    Result := NullString;
     Exit;
   end;
   //todo: create custom routine to directly transform PChar -> SQL str
-  Result:=StrPas(APChar);
-  if Pos('''',Result) > 0 then
-    Result:=AnsiReplaceStr(Result,'''','''''');
-  Result:=''''+Result+'''';
+  Result := String(APChar);
+  if Pos('''', Result) > 0 then
+    Result := AnsiReplaceStr(Result, '''', '''''');
+  Result := '''' + Result + '''';
 end;
 
 // TDSStream
@@ -313,14 +313,14 @@ end;
 constructor TDSStream.Create(const ActiveItem: PDataRecord; FieldIndex:Integer);
 begin
   inherited Create;
-  FPosition:=0;
-  FActiveItem:=ActiveItem;
-  FFieldIndex:=FieldIndex;
-  FFieldRow:=ActiveItem^.Row[FieldIndex];
+  //FPosition := 0;
+  FActiveItem := ActiveItem;
+  FFieldIndex := FieldIndex;
+  FFieldRow := ActiveItem^.Row[FieldIndex];
   if FFieldRow <> nil then
-    FRowSize:=StrLen(FFieldRow)
-  else
-    FRowSize:=0;  
+    FRowSize := StrLen(FFieldRow);
+  //else
+  //  FRowSize := 0;  
 end;  
 
 function TDSStream.Seek(Offset: Longint; Origin: Word): Longint;
@@ -585,36 +585,36 @@ end;
 function TCustomSqliteDataset.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
 var
-  ValError:Word;
-  FieldRow:PChar;
+  ValError: Word;
+  FieldRow: PChar;
 begin
-  FieldRow:=PPDataRecord(ActiveBuffer)^^.Row[Field.FieldNo - 1];
+  FieldRow := PPDataRecord(ActiveBuffer)^^.Row[Field.FieldNo - 1];
   Result := FieldRow <> nil;  
   if Result and (Buffer <> nil) then //supports GetIsNull
   begin
     case Field.Datatype of
     ftString:
       begin
-        Move(FieldRow^,PChar(Buffer)^,StrLen(FieldRow)+1);
+        Move(FieldRow^, PChar(Buffer)^, StrLen(FieldRow) + 1);
       end;
-    ftInteger,ftAutoInc:
+    ftInteger, ftAutoInc:
       begin
-        Val(StrPas(FieldRow),LongInt(Buffer^),ValError);
-        Result:= ValError = 0;  
+        Val(String(FieldRow), LongInt(Buffer^), ValError);
+        Result := ValError = 0;  
       end;
-    ftBoolean,ftWord:
+    ftBoolean, ftWord:
       begin
-        Val(StrPas(FieldRow),Word(Buffer^),ValError);
-        Result:= ValError = 0;
+        Val(String(FieldRow), Word(Buffer^), ValError);
+        Result := ValError = 0;
       end;    
-    ftFloat,ftDateTime,ftTime,ftDate,ftCurrency:
+    ftFloat, ftDateTime, ftTime, ftDate, ftCurrency:
       begin
-        Val(StrPas(FieldRow),Double(Buffer^),ValError);
-        Result:= ValError = 0; 
+        Val(String(FieldRow), Double(Buffer^), ValError);
+        Result := ValError = 0; 
       end;
     ftLargeInt:
       begin
-        Val(StrPas(FieldRow),Int64(Buffer^),ValError);
+        Val(String(FieldRow), Int64(Buffer^), ValError);
         Result:= ValError = 0;
       end;        
     end;
@@ -757,24 +757,24 @@ end;
 
 procedure TCustomSqliteDataset.InternalDelete;
 var
-  TempItem:PDataRecord;
-  ValError,TempInteger:Integer;
+  TempItem: PDataRecord;
+  ValError, TempInteger: Integer;
 begin
   Dec(FRecordCount);
-  TempItem:=PPDataRecord(ActiveBuffer)^;
-  TempItem^.Next^.Previous:=TempItem^.Previous;
-  TempItem^.Previous^.Next:=TempItem^.Next;
+  TempItem := PPDataRecord(ActiveBuffer)^;
+  TempItem^.Next^.Previous := TempItem^.Previous;
+  TempItem^.Previous^.Next := TempItem^.Next;
   if FCurrentItem = TempItem then
   begin
     if FCurrentItem^.Previous <> FBeginItem then
-      FCurrentItem:= FCurrentItem^.Previous
+      FCurrentItem := FCurrentItem^.Previous
     else
-      FCurrentItem:= FCurrentItem^.Next;  
+      FCurrentItem := FCurrentItem^.Next;  
   end; 
   // Dec FNextAutoInc (only if deleted item is the last record)  
   if FAutoIncFieldNo <> -1 then
   begin
-    Val(StrPas(TempItem^.Row[FAutoIncFieldNo]),TempInteger,ValError);
+    Val(String(TempItem^.Row[FAutoIncFieldNo]), TempInteger, ValError);
     if (ValError = 0) and (TempInteger = (FNextAutoInc - 1)) then
       Dec(FNextAutoInc);
   end;    
@@ -1046,10 +1046,12 @@ begin
     if MatchRecord then
     begin
       Result := TempItem;
-      if DoResync then
+      if DoResync and (TempItem <> PPDataRecord(ActiveBuffer)^) then
       begin
+        DoBeforeScroll;
         FCurrentItem := TempItem;
         Resync([]);
+        DoAfterScroll;
       end;
       Break;//while
     end;
@@ -1180,17 +1182,22 @@ end;
 
 procedure TCustomSqliteDataset.SetRecNo(Value: Integer);
 var
-  Counter:Integer;
-  TempItem:PDataRecord;
+  Counter: Integer;
+  TempItem: PDataRecord;
 begin
   if (Value > FRecordCount) or (Value <= 0) then
     DatabaseError('Record Number Out Of Range',Self);
   CheckBrowseMode;
-  TempItem:=FBeginItem;
+  TempItem := FBeginItem;
   for Counter := 1 to Value do
-    TempItem:=TempItem^.Next;
-  FCurrentItem:=TempItem;
-  Resync([]);
+    TempItem := TempItem^.Next;
+  if TempItem <> PPDataRecord(ActiveBuffer)^ then
+  begin
+    DoBeforeScroll;
+    FCurrentItem := TempItem;
+    Resync([]);
+    DoAfterScroll;
+  end;
 end;
 
 // Specific functions 
@@ -1351,7 +1358,7 @@ begin
     begin
       TempItem:=PDataRecord(FDeletedItems.List^[iItems]);
       SqlTemp:=SqlTemp+(TemplateStr+
-        StrPas(TempItem^.Row[FPrimaryKeyNo])+';');
+        String(TempItem^.Row[FPrimaryKeyNo])+';');
       FreeItem(TempItem);
       inc(StatementsCounter);
       //ApplyUpdates each 400 statements
@@ -1379,7 +1386,7 @@ begin
       iFields:=Fields.Count - 1;
       ASqlLine:=ASqlLine + (Fields[iFields].FieldName +' = '+
         FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields])+
-        WhereKeyNameEqual+StrPas(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo])+';');
+        WhereKeyNameEqual+String(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo])+';');
       SqlTemp:=SqlTemp + ASqlLine;
       inc(StatementsCounter);
       //ApplyUpdates each 400 statements

@@ -74,6 +74,10 @@ begin
   AssertEquals(     'select * from table where id = ?',
     params.ParseSQL('select * from table where id = :id',true,true,true,psInterbase));
 
+// Test bug 10345
+  AssertEquals(     'select email from table where upper(email) like ''%''||?||''%''',
+    params.ParseSQL('select email from table where upper(email) like ''%''||:email||''%''',true,true,true,psInterbase));
+
 // Test escape-sequences:
   AssertEquals(     'select * from table where ''id '''' = :id''',
     params.ParseSQL('select * from table where ''id '''' = :id''',true,False,True,psPostgreSQL));

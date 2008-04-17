@@ -214,6 +214,7 @@ type
     procedure Add(const AName: string; ADataType: TFieldType); overload;
     Function AddFieldDef : TFieldDef;
     procedure Assign(FieldDefs: TFieldDefs); overload;
+    function Find(const AName: string): TFieldDef;
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
     procedure Update; overload;
@@ -501,6 +502,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
+    property Alignment default taRightJustify;
     property DisplayFormat: string read FDisplayFormat write SetDisplayFormat;
     property EditFormat: string read FEditFormat write SetEditFormat;
   end;
