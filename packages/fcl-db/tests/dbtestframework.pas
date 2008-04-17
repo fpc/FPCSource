@@ -29,9 +29,6 @@ begin
     FDigestResultsWriter.Comment:=dbtype;
     FDigestResultsWriter.Category:='DB';
     FDigestResultsWriter.RelSrcDir:='fcl-db';
-    FDigestResultsWriter.Comment:=dbtype;
-    FDigestResultsWriter.Category:='db';
-    FDigestResultsWriter.RelSrcDir:='fcl-db';
     FXMLResultsWriter.WriteHeader;
 //    FdiDBResultsWriter.OpenConnection(dbconnectorname+';'+dbconnectorparams);
     GetTestRegistry.Run(testResult);
