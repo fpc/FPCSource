@@ -52,6 +52,8 @@ type
        Function GetNDataset(AChange : Boolean; n : integer) : TDataset;  overload;
        Function GetFieldDataset : TDataSet; overload;
        Function GetFieldDataset(AChange : Boolean) : TDataSet; overload;
+       
+       Function GetTraceDataset(AChange : Boolean) : TDataset; virtual;
 
        procedure StartTest;
        procedure StopTest;
@@ -62,6 +64,7 @@ type
 
   TTestDataLink = class(TDataLink)
      protected
+       procedure DataSetScrolled(Distance: Integer); override;
 {$IFDEF fpc}
        procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
 {$ELSE}
@@ -250,12 +253,22 @@ end;
 { TTestDataLink }
 
 {$IFDEF FPC}
+
+procedure TTestDataLink.DataSetScrolled(Distance: Integer);
+begin
+  DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
+  inherited DataSetScrolled(Distance);
+end;
+
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
 {$ELSE}
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Longint);
 {$ENDIF}
 begin
-  DataEvents := DataEvents + DataEventnames[Event] + ':' + inttostr(info) + ';';
+  if Event <> deFieldChange then
+    DataEvents := DataEvents + DataEventnames[Event] + ':' + inttostr(info) + ';'
+  else
+    DataEvents := DataEvents + DataEventnames[Event] + ':' + TField(info).FieldName + ';';
   inherited DataEvent(Event, Info);
 end;
 
@@ -278,6 +291,11 @@ begin
   if AChange then FChangedFieldDataset := True;
   Result := InternalGetFieldDataset;
   FUsedDatasets.Add(Result);
+end;
+
+function TDBConnector.GetTraceDataset(AChange: Boolean): TDataset;
+begin
+  result := GetNDataset(AChange,15);
 end;
 
 procedure TDBConnector.StartTest;

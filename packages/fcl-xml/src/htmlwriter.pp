@@ -62,6 +62,10 @@ type
     function FormButton (aname, caption, aOnClick: DOMstring) : THTML_Input;
     function FormHidden (aname, aValue: DOMstring) : THTML_Input;
     function FormFile (aname, aValue:DOMstring) : THTML_Input;
+    { Other usefull links to elements }
+    function Meta (aname, ahtpequiv,acontent: DOMString) : THTML_meta;
+    function Link (arel, ahref, athetype, amedia: DOMString) : THTML_link;
+    function Script (s, athetype, asrc: DOMString) : THTML_script;
     {$i wtagsintf.inc}
     property Document : THTMLDocument read FDocument write SetDocument;
     property CurrentElement : THTMLCustomElement read FCurrentElement write SetCurrentElement;
@@ -350,6 +354,39 @@ begin
     thetype := itFile;
     name := aname;
     value := aValue;
+    end;
+end;
+
+function THTMLwriter.Meta(aname, ahtpequiv, acontent: DOMString): THTML_meta;
+begin
+  result := tagmeta;
+  with result do
+    begin
+    name := aname;
+    httpequiv := ahtpequiv;
+    content := acontent;
+    end;
+end;
+
+function THTMLwriter.Link(arel, ahref, athetype, amedia: DOMString): THTML_link;
+begin
+  result := taglink;
+  with result do
+    begin
+    rel := arel;
+    href := ahref;
+    thetype := athetype;
+    media := amedia;
+    end;
+end;
+
+function THTMLwriter.Script(s, athetype, asrc: DOMString): THTML_script;
+begin
+  result := tagscript(s);
+  with result do
+    begin
+    thetype := athetype;
+    src := asrc;
     end;
 end;
 
