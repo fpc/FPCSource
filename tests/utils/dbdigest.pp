@@ -68,12 +68,14 @@ TConfigOpt = (
   coLogFile,
   coOS,
   coCPU,
+  coCategory,
   coVersion,
   coDate,
   coSubmitter,
   coMachine,
   coComment,
   coTestSrcDir,
+  coRelSrcDir,
   coVerbose
  );
 
@@ -87,22 +89,25 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'logfile',
   'os',
   'cpu',
+  'category',
   'version',
   'date',
   'submitter',
   'machine',
   'comment',
   'testsrcdir',
+  'relsrcdir',
   'verbose'
 );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','v','t','s','m','C','S','V');
+           = ('d','h','u','p','l','o','c','a','v','t','s','m','C','S','r','V');
 
 Var
   TestOS,
   TestCPU,
   TestVersion,
+  TestCategory,
   DatabaseName,
   HostName,
   UserName,
@@ -125,6 +130,7 @@ begin
     coLogFile      : LogFileName:=Value;
     coOS           : TestOS:=Value;
     coCPU          : TestCPU:=Value;
+    coCategory     : TestCategory:=Value;
     coVersion      : TestVersion:=Value;
     coDate         : 
       begin
@@ -150,7 +156,15 @@ begin
         TestSrcDir:=Value;
 	if (TestSrcDir<>'') and (TestSrcDir[length(TestSrcDir)]<>'/') then
 	  TestSrcDir:=TestSrcDir+'/';
-      end;	  
+      end;
+    coRelSrcDir   :
+      begin
+        RelSrcDir:=Value;
+	if (RelSrcDir<>'') and (RelSrcDir[length(RelSrcDir)]<>'/') then
+	  RelSrcDir:=RelSrcDir+'/';
+	if (RelSrcDir<>'') and (RelSrcDir[1]='/') then
+	  RelSrcDir:=copy(RelSrcDir,2,length(RelSrcDir)-1);
+      end;
   end;
 end;
 
@@ -190,6 +204,9 @@ Var
   I : Integer;
 
 begin
+  // Set the default value for old digests without RelSrcDir to the rtl/compiler
+  // testsuite
+  RelSrcDir:='tests/';
   If Not FileExists(FN) Then
     Exit;
   Verbose(V_DEBUG,'Parsing config file: '+FN);
@@ -258,6 +275,7 @@ Var
   TestCPUID : Integer;
   TestOSID  : Integer;
   TestVersionID  : Integer;
+  TestCategoryID : Integer;
   TestRunID : Integer;
 
 Procedure GetIDs;
@@ -269,6 +287,12 @@ begin
   TestOSID  := GetOSID(TestOS);
   If TestOSID=-1 then
     Verbose(V_Error,'NO ID for OS "'+TestOS+'" found.');
+  TestCategoryID := GetCategoryID(TestCategory);
+  If TestCategoryID=-1 then
+    begin
+//    Verbose(V_Error,'NO ID for Category "'+TestCategory+'" found.');
+    TestCategoryID:=1;
+    end;
   TestVersionID  := GetVersionID(TestVersion);
   If TestVersionID=-1 then
     Verbose(V_Error,'NO ID for version "'+TestVersion+'" found.');
@@ -277,7 +301,7 @@ begin
   TestRunID:=GetRunID(TestOSID,TestCPUID,TestVersionID,TestDate);
   If (TestRunID=-1) then
     begin
-    TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestDate);
+    TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestCategoryID,TestDate);
     If TestRUnID=-1 then
       Verbose(V_Error,'Could not insert new testrun record!');
     end

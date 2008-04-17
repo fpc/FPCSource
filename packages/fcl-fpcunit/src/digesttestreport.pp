@@ -86,7 +86,9 @@ type
     FTestResult : TTestStatus;
     FOutputDir : String;
     FHostName : String;
-  private
+    FComment : String;
+    FCategory : String;
+    FRelSrcDir: string;
     procedure CreateTar;
   public
   {ITestListener}
@@ -96,6 +98,10 @@ type
     procedure EndTest(ATest: TTest); override;
     procedure StartTestSuite(ATestSuite: TTestSuite); override;
     procedure EndTestSuite(ATestSuite: TTestSuite); override;
+    
+    property Comment: string read FComment write FComment;
+    property Category: string read FCategory write FCategory;
+    property RelSrcDir: string read FRelSrcDir write FRelSrcDir;
   end;
   
 implementation
@@ -223,7 +229,7 @@ var TarWriter : TTarWriter;
 
 
 begin
-  TarFileName:= FHostName+FormatDateTime('yyyymmddhhmm',Now)+'.tar.gz';
+  TarFileName:= FHostName+'-'+FormatDateTime('yyyymmddhhmm',Now)+'.tar.gz';
   getdir(0,OldDir);
   Chdir(FOutputDir);
   
@@ -306,7 +312,6 @@ end;
 
 procedure TDigestResultsWriter.EndTestSuite(ATestSuite: TTestSuite);
 var DigestFileName : String;
-    Comment        : String;
     i              : byte;
 begin
   if ATestSuite.TestName='' then
@@ -319,13 +324,11 @@ begin
     AddLog(DigestFileName,'Submitter='+sysutils.GetEnvironmentVariable('USER'));
     FHostName:=sysutils.GetEnvironmentVariable('HOSTNAME');
     if pos('.',FHostName)>0 then
-      FHostName:=system.Copy(FHostName,1,pos('.',FHostName));
+      FHostName:=system.Copy(FHostName,1,pos('.',FHostName)-1);
     AddLog(DigestFileName,'Machine='+FHostName);
-    
-    Comment:='';
-    for i := 1 to Paramcount do
-      Comment:=Comment+ParamStr(i)+' ';
-    AddLog(DigestFileName,'Comment='+Comment);
+    AddLog(DigestFileName,'Comment='+FComment);
+    AddLog(DigestFileName,'Category='+FCategory);
+    AddLog(DigestFileName,'RelSrcDir='+FRelSrcDir);
 // Create .tar.gz file
     CreateTar;
     end;
