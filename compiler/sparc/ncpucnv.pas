@@ -241,8 +241,9 @@ implementation
            begin
               location_copy(location,left.location);
               newsize:=def_cgsize(resultdef);
-              { change of size/sign? Then we have to sign/zero-extend }
-              if (newsize<>left.location.size) then
+              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
+              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
+                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
                 location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
               else
                 location.size:=newsize;

@@ -2516,6 +2516,16 @@ implementation
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
+         { when converting 64bit int to C-ctyle boolean, first convert to a 32bit int and then   }
+         { convert to a boolean (only necessary for 32bit processors) }
+         if (left.resultdef.size > sizeof(aint)) and (left.resultdef.size<>resultdef.size)
+            and is_cbool(resultdef) then
+           begin
+             result := ctypeconvnode.create_internal(left,s32inttype);
+             left := nil;
+             firstpass(result);
+             exit;
+           end;
          expectloc:=LOC_REGISTER;
       end;
 
