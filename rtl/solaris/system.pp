@@ -83,7 +83,10 @@ function paramstr(l: longint) : string;
 //       paramstr := execpathstr;
 //     end
 //   else
-     paramstr:=strpas(argv[l]);
+     if (l < argc) then
+       paramstr:=strpas(argv[l])
+     else
+       paramstr:='';
  end;
 
 Procedure Randomize;

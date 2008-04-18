@@ -121,8 +121,10 @@ function paramstr(l: longint) : string;
      begin
        paramstr := execpathstr;
      end
+   else if (l < argc) then
+     paramstr:=strpas(argv[l])
    else
-     paramstr:=strpas(argv[l]);
+     paramstr:='';
  end;
 
 Procedure Randomize;
