@@ -913,7 +913,7 @@ begin
     begin
     with query do
       begin
-      SQL.Text:='select TT.NAME from FPDEV left join FPDEV as TT on TT.ID=FPDEV.ID';
+      SQL.Text:='select TT.NAME from FPDEV left join FPDEV TT on TT.ID=FPDEV.ID';
       Open;
       close;
       end;
