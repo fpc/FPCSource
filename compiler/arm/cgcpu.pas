@@ -970,6 +970,9 @@ unit cgcpu;
            end
          else
            handle_load_store(list,A_LDR,oppostfix,reg,ref);
+
+         if (fromsize=OS_S8) and (tosize = OS_16) then
+           a_load_reg_reg(list,OS_16,OS_32,reg,reg);
        end;
 
 
@@ -1021,7 +1024,6 @@ unit cgcpu;
      procedure tcgarm.a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);
        var
          so : tshifterop;
-         conv_done: boolean;
 
        procedure do_shift(shiftmode : tshiftmode; shiftimm : byte; reg : tregister);
          begin
@@ -1030,43 +1032,46 @@ unit cgcpu;
            list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg,so));
          end;
 
-       function do_conv(size : tcgsize) : boolean;
-         begin
-           result:=true;
-           case size of
-             OS_8:
-               list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
-             OS_S8:
-               begin
-                 do_shift(SM_LSL,24,reg1);
-                 do_shift(SM_ASR,24,reg2);
-               end;
-             OS_16,OS_S16:
-               begin
-                 do_shift(SM_LSL,16,reg1);
-                 if size=OS_S16 then
-                   do_shift(SM_ASR,16,reg2)
-                 else
-                   do_shift(SM_LSR,16,reg2);
-               end;
-             else
-               result:=false;
-           end;
-           conv_done:=result;
-         end;
-
        var
          instr: taicpu;
+         conv_done: boolean;
        begin
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) then
+           internalerror(2002090901);
+
          conv_done:=false;
          if tosize<>fromsize then
            begin
              shifterop_reset(so);
-             if not do_conv(tosize) then
-               if tosize in [OS_32,OS_S32] then
-                 do_conv(fromsize)
+             conv_done:=true;
+             if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
+               fromsize:=tosize;
+             case fromsize of
+               OS_8:
+                 list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+               OS_S8:
+                 begin
+                   do_shift(SM_LSL,24,reg1);
+                   do_shift(SM_ASR,24,reg2);
+                   if tosize=OS_16 then
+                     begin
+                       do_shift(SM_LSL,16,reg1);
+                       do_shift(SM_LSR,16,reg2);
+                     end;
+                 end;
+               OS_16:
+                 begin
+                   do_shift(SM_LSL,16,reg1);
+                   do_shift(SM_LSR,16,reg2);
+                 end;
+               OS_S16:
+                 begin
+                   do_shift(SM_LSL,16,reg1);
+                   do_shift(SM_ASR,16,reg2)
+                 end;
                else
-                 internalerror(2002090901);
+                 conv_done:=false;
+             end;
            end;
          if not conv_done and (reg1<>reg2) then
            begin
