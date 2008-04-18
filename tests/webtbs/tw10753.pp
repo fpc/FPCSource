@@ -27,6 +27,7 @@ procedure p;
 end;
 
 begin
+  ThousandSeparator:=',';
   p;
   if err then
     halt(1);
