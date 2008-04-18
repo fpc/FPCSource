@@ -1,3 +1,5 @@
+{ %norun }
+
 unit tw10210;
 {$mode objfpc}
 interface
