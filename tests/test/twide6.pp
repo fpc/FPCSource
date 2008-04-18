@@ -1,3 +1,4 @@
+﻿{%skiptarget=wince}
 {$codepage utf-8}
 uses
  {$ifdef unix}
