@@ -82,9 +82,12 @@ begin
     error(35);
   if cardinal(si)<>$ffffffff then
     error(36);
+  i64:=cardinal(si);
+  if i64<>$ffffffff then
+    halt(37);
 {$ifdef FPC}
   if qword(si)<>$ffffffffffffffff then
-    error(37);
+    error(38);
 {$endif FPC}
 
   writeln('Test OK.');
