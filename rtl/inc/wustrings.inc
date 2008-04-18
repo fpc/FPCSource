@@ -1958,10 +1958,20 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
     setlength(result,resindex-1);
   end;
 
+const
+  SNoWidestrings = 'This binary has no widestrings support compiled in.';
+  SRecompileWithWidestrings = 'Recompile the application with a widestrings-manager in the program uses clause.';
 
 procedure unimplementedwidestring;
   begin
-    HandleErrorFrame(215,get_frame);
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+    If IsConsole then
+      begin
+      Writeln(StdErr,SNoWidestrings);
+      Writeln(StdErr,SRecompileWithWidestrings);
+      end;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+    HandleErrorFrame(233,get_frame);
   end;
 
 {$warnings off}
