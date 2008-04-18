@@ -1052,12 +1052,13 @@ unit cgcpu;
                OS_S8:
                  begin
                    do_shift(SM_LSL,24,reg1);
-                   do_shift(SM_ASR,24,reg2);
                    if tosize=OS_16 then
                      begin
-                       do_shift(SM_LSL,16,reg1);
+                       do_shift(SM_ASR,8,reg2);
                        do_shift(SM_LSR,16,reg2);
-                     end;
+                     end
+                   else
+                     do_shift(SM_ASR,24,reg2);
                  end;
                OS_16:
                  begin
