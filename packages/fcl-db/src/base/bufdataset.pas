@@ -110,6 +110,8 @@ type
   TDBCompareRec = record
                    Comparefunc : TCompareFunc;
                    Off1,Off2   : PtrInt;
+                   Options     : TLocateOptions;
+                   Desc        : Boolean;
                   end;
   TDBCompareStruct = array of TDBCompareRec;
 
@@ -120,6 +122,7 @@ type
     FieldsName      : String;
     CaseinsFields   : String;
     DescFields      : String;
+    Options         : TIndexOptions;
     DBCompareStruct : TDBCompareStruct;
 {$IFDEF ARRAYBUF}
     FCurrentRecInd  : integer;
@@ -175,8 +178,6 @@ type
     function GetIndexDefs : TIndexDefs;
 {$IFDEF ARRAYBUF}
     procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: pchar);
-{$ELSE}
-    procedure AddRecordToIndex(var AIndex: TBufIndex; ARecBuf: PBufRecLinkItem);
 {$ENDIF}
     function  GetCurrentBuffer: PChar;
     procedure CalcRecordSize;
@@ -186,6 +187,7 @@ type
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer : boolean;
+    procedure ProcessFieldCompareStruct(AField: TField; var ACompareRec : TDBCompareRec);
     procedure SetIndexFieldNames(const AValue: String);
     procedure SetIndexName(AValue: String);
 {$IFNDEF ARRAYBUF}
@@ -209,6 +211,7 @@ type
     function GetChangeCount: integer; virtual;
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
+    procedure ClearCalcFields(Buffer: PChar); override;
     procedure InternalInitRecord(Buffer: PChar); override;
     function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
@@ -216,7 +219,8 @@ type
     procedure InternalClose; override;
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
-    procedure InternalAddIndex(const AName, AFields : string); virtual;
+    procedure InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
+      const ACaseInsFields: string); virtual;
     procedure InternalPost; override;
     procedure InternalCancel; Override;
     procedure InternalDelete; override;
@@ -254,7 +258,8 @@ type
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
     function UpdateStatus: TUpdateStatus; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
-    procedure AddIndex(const AName, AFields : string); virtual;
+    procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
+      const ACaseInsFields: string = ''); virtual;
     property ChangeCount : Integer read GetChangeCount;
 {$IFNDEF ARRAYBUF}
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount;
@@ -299,7 +304,7 @@ end;
 function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  DBCompareTextLen(subValue,aValue,Length(pchar(subValue)),options);
+  Result := DBCompareTextLen(subValue,aValue,Length(pchar(subValue)),options);
 end;
 
 function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
@@ -352,8 +357,13 @@ var IndexFieldNr : Integer;
 begin
   for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
     begin
-    Result := Comparefunc(Rec1+Off1,Rec2+Off2,[]);
-    if Result <> 0 then break;
+    Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
+    if Result <> 0 then
+      begin
+      if Desc then
+        Result := -Result;
+      break;
+      end;
     end;
 end;
 
@@ -371,8 +381,8 @@ begin
   FMaxIndexesCount:=2;
 {$ENDIF}
   FIndexesCount:=0;
-  InternalAddIndex('DEFAULT_ORDER','');
-  InternalAddIndex('','');
+  InternalAddIndex('DEFAULT_ORDER','',[],'','');
+  InternalAddIndex('','',[],'','');
   FCurrentIndex:=@FIndexes[0];
 
   FIndexDefs := TIndexDefs.Create(Self);
@@ -411,7 +421,9 @@ var PCurRecLinkItem : PBufRecLinkItem;
     MergeAmount     : integer;
     PlaceQRec       : boolean;
 
-    IndexFields     : TStrings;
+    IndexFields     : TList;
+    DescIndexFields : TList;
+    CInsIndexFields : TList;
     FieldsAmount    : Integer;
     FieldNr         : integer;
     AField          : TField;
@@ -438,36 +450,32 @@ begin
   // Build the DBCompareStructure
   with AIndex do
     begin
-    IndexFields := TStringList.Create;
+    IndexFields := TList.Create;
+    DescIndexFields := TList.Create;
+    CInsIndexFields := TList.Create;
     try
-      FieldsAmount:=ExtractStrings([','],[' '],pchar(FieldsName),IndexFields);
+      GetFieldList(IndexFields,FieldsName);
+      FieldsAmount:=IndexFields.Count;
+      GetFieldList(DescIndexFields,DescFields);
+      GetFieldList(CInsIndexFields,CaseinsFields);
       if FieldsAmount=0 then
         DatabaseError(SNoIndexFieldNameGiven);
       SetLength(DBCompareStruct,FieldsAmount);
       for FieldNr:=0 to FieldsAmount-1 do
         begin
-        AField := FindField(IndexFields[FieldNr]);
-        if not assigned(AField) then
-          DatabaseErrorFmt(SErrIndexBasedOnUnkField,[IndexFields[FieldNr]]);
+        AField := TField(IndexFields[FieldNr]);
+        ProcessFieldCompareStruct(AField,DBCompareStruct[FieldNr]);
 
-        case AField.DataType of
-          ftString : DBCompareStruct[FieldNr].Comparefunc := @DBCompareText;
-          ftSmallint : DBCompareStruct[FieldNr].Comparefunc := @DBCompareSmallInt;
-          ftInteger,ftCurrency,ftBCD : DBCompareStruct[FieldNr].Comparefunc := @DBCompareInt;
-          ftWord : DBCompareStruct[FieldNr].Comparefunc := @DBCompareWord;
-          ftBoolean : DBCompareStruct[FieldNr].Comparefunc := @DBCompareByte;
-          ftFloat : DBCompareStruct[FieldNr].Comparefunc := @DBCompareDouble;
-          ftDateTime,ftDate,ftTime : DBCompareStruct[FieldNr].Comparefunc := @DBCompareDouble;
-          ftLargeint : DBCompareStruct[FieldNr].Comparefunc := @DBCompareLargeInt;
+        DBCompareStruct[FieldNr].Desc := (DescIndexFields.IndexOf(AField)>-1);
+        if (CInsIndexFields.IndexOf(AField)>-1) then
+          DBCompareStruct[FieldNr].Options := [loCaseInsensitive]
         else
-          DatabaseErrorFmt(SErrIndexBasedOnInvField,[AField.FieldName]);
-        end;
+          DBCompareStruct[FieldNr].Options := [];
 
-        DBCompareStruct[FieldNr].Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AField.FieldNo-1];
-        DBCompareStruct[FieldNr].Off2:=DBCompareStruct[FieldNr].Off1;
-        
         end;
     finally
+      CInsIndexFields.Free;
+      DescIndexFields.Free;
       IndexFields.Free;
     end;
     end;
@@ -608,6 +616,7 @@ begin
     Fields := FIndexes[i].FieldsName;
     DescFields:= FIndexes[i].DescFields;
     CaseInsFields:=FIndexes[i].CaseinsFields;
+    Options:=FIndexes[i].Options;
     end;
 end;
 
@@ -637,6 +646,12 @@ end;
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
 begin
   ReAllocMem(Buffer,0);
+end;
+
+procedure TBufDataset.ClearCalcFields(Buffer: PChar);
+begin
+  if CalcFieldsSize > 0 then
+    FillByte((Buffer+RecordSize)^,CalcFieldsSize,0);
 end;
 
 procedure TBufDataset.InternalOpen;
@@ -943,6 +958,28 @@ begin
   Result := (FCurrentUpdateBuffer < length(FUpdateBuffer))  and CompareBuf(FCurrentUpdateBuffer);
 end;
 
+procedure TBufDataset.ProcessFieldCompareStruct(AField: TField; var ACompareRec : TDBCompareRec);
+begin
+  case AField.DataType of
+    ftString : ACompareRec.Comparefunc := @DBCompareText;
+    ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
+    ftInteger, ftCurrency, ftBCD : ACompareRec.Comparefunc :=
+      @DBCompareInt;
+    ftWord : ACompareRec.Comparefunc := @DBCompareWord;
+    ftBoolean : ACompareRec.Comparefunc := @DBCompareByte;
+    ftFloat : ACompareRec.Comparefunc := @DBCompareDouble;
+    ftDateTime, ftDate, ftTime : ACompareRec.Comparefunc :=
+      @DBCompareDouble;
+    ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
+  else
+    DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName]);
+  end;
+
+  ACompareRec.Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+
+    FFieldBufPositions[AField.FieldNo-1];
+  ACompareRec.Off2:=ACompareRec.Off1;
+end;
+
 procedure TBufDataset.SetIndexFieldNames(const AValue: String);
 begin
   if AValue<>'' then
@@ -1033,19 +1070,11 @@ end;
 
 {$IFDEF ARRAYBUF}
 procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : pchar);
-{$ELSE}
-procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : PBufRecLinkItem);
-{$ENDIF}
 var cp : integer;
     NewValueBufLen : Integer;
-{$IFDEF ARRAYBUF}
     NewValueBuf,CompValueBuf : pchar;
     RecInd : integer;
     HighVal,LowVal : Integer;
-{$ELSE}
-    NewValueBuf : pchar;
-    CompBuf : PBufRecLinkItem;
-{$ENDIF}
 begin
   if not assigned(AIndex.Fields) then
     AIndex.Fields := FieldByName(AIndex.FieldsName);
@@ -1053,7 +1082,6 @@ begin
   NewValueBuf:=pchar(ARecBuf);
   inc(NewValueBuf,FFieldBufPositions[AIndex.Fields.FieldNo-1]);
 
-{$IFDEF ARRAYBUF}
   NewValueBufLen:= Length(NewValueBuf);
   HighVal := AIndex.FLastRecInd;
   LowVal := 0;
@@ -1090,32 +1118,8 @@ begin
   move(AIndex.FRecordArray[RecInd],AIndex.FRecordArray[RecInd+1],sizeof(pointer)*(AIndex.FLastRecInd-RecInd+5)); // Let op. Moet zijn +1?
   AIndex.FRecordArray[RecInd]:= ARecBuf;
   inc(AIndex.FLastRecInd)
-{$ELSE}
-  inc(NewValueBuf,sizeof(TBufRecLinkItem)*FMaxIndexesCount);
-  NewValueBufLen:= Length(pchar(NewValueBuf));
-  CompBuf:=AIndex.FFirstRecBuf;
-
-  cp := 1;
-  while (cp>0) and (CompBuf<>AIndex.FLastRecBuf) do
-    begin
-    if AIndex.Fields.DataType = ftString then
-      begin
-      cp := DBCompareTextLen(pointer(NewValueBuf),pchar(CompBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FFieldBufPositions[AIndex.Fields.FieldNo-1],NewValueBufLen,[]);
-      if cp > 0 then
-        CompBuf := CompBuf[AIndex.IndNr].next;
-      end;
-    end;
-
-  ARecBuf[AIndex.IndNr].next:= CompBuf;
-  ARecBuf[AIndex.IndNr].prior:= CompBuf[AIndex.IndNr].prior;
-
-  if assigned(CompBuf[AIndex.IndNr].prior) then
-    CompBuf[AIndex.IndNr].prior[AIndex.IndNr].next := ARecBuf
-  else
-    AIndex.FFirstRecBuf:=ARecBuf;
-  CompBuf[AIndex.IndNr].prior := ARecBuf;
-{$ENDIF}
 end;
+{$ENDIF}
 
 function TBufDataset.getnextpacket : integer;
 
@@ -2069,7 +2073,8 @@ begin
     end;
 end;
 
-procedure TBufDataset.AddIndex(const AName, AFields: string);
+procedure TBufDataset.AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
+                               const ACaseInsFields: string = '');
 begin
   if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
   
@@ -2081,10 +2086,11 @@ begin
   // If not all packets are fetched, you can not sort properly.
   if not active then
     FPacketRecords:=-1;
-  InternalAddIndex(AName,AFields);
+  InternalAddIndex(AName,AFields,AOptions,ADescFields,ACaseInsFields);
 end;
 
-procedure TBufDataset.InternalAddIndex(const AName, AFields: string);
+procedure TBufDataset.InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
+                                       const ACaseInsFields: string);
 var StoreIndNr : Integer;
 begin
   if Active then FetchAll;
@@ -2100,6 +2106,9 @@ begin
     begin
     Name:=AName;
     FieldsName:=AFields;
+    DescFields:=ADescFields;
+    CaseinsFields:=ACaseInsFields;
+    Options:=AOptions;
     IndNr:=FIndexesCount-1;
     end;
 
@@ -2253,96 +2262,62 @@ end;
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
 
-var keyfield    : TField;     // Field to search in
-    ValueBuffer : pchar;      // Pointer to value to search for, in TField' internal format
-    VBLength    : integer;
+var CurrLinkItem    : PBufRecLinkItem;
+    bm              : TBufBookmark;
+    SearchFields    : TList;
+    FieldsAmount    : Integer;
+    DBCompareStruct : TDBCompareStruct;
+    FieldNr         : Integer;
+    StoreDSState    : TDataSetState;
+    FilterBuffer    : PChar;
 
-    FieldBufPos : PtrInt;     // Amount to add to the record buffer to get the FieldBuffer
-    CurrLinkItem: PBufRecLinkItem;
-    CurrBuff    : pchar;
-    bm          : TBufBookmark;
-
-    CheckNull   : Boolean;
-    SaveState   : TDataSetState;
 
 begin
 {$IFDEF ARRAYBUF}
   DatabaseError('Locate is not supported');
 {$ELSE}
-// For now it is only possible to search in one field at the same time
-  result := False;
-
+  Result := False;
   if IsEmpty then exit;
 
-  keyfield := FieldByName(keyfields);
-  CheckNull := VarIsNull(KeyValues);
+  // Build the DBCompare structure
+  SearchFields := TList.Create;
+  try
+    GetFieldList(SearchFields,KeyFields);
+    FieldsAmount:=SearchFields.Count;
+    if FieldsAmount=0 then exit;
 
-  if not CheckNull then
-    begin
-    SaveState := State;
-    SetTempState(dsFilter);
-    keyfield.Value := KeyValues;
-    RestoreState(SaveState);
+    SetLength(DBCompareStruct,FieldsAmount);
+    for FieldNr:=0 to FieldsAmount-1 do
+      ProcessFieldCompareStruct(TField(SearchFields[FieldNr]),DBCompareStruct[FieldNr]);
+  finally
+    SearchFields.Free;
+  end;
 
-    FieldBufPos := FFieldBufPositions[keyfield.FieldNo-1];
-    VBLength := keyfield.DataSize;
-    ValueBuffer := AllocMem(VBLength);
-    currbuff := pointer(FCurrentIndex^.FLastRecBuf)+sizeof(TBufRecLinkItem)*FMaxIndexesCount+FieldBufPos;
-    move(currbuff^,ValueBuffer^,VBLength);
-    end;
-
+  // Set The filter-buffer
+  StoreDSState:=State;
+  SetTempState(dsFilter);
+  SetFieldValues(keyfields,KeyValues);
   CurrLinkItem := FCurrentIndex^.FFirstRecBuf;
+  FilterBuffer:=IntAllocRecordBuffer;
+  move(FCurrentIndex^.FLastRecBuf^,FilterBuffer^,FRecordsize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
+  SetTempState(StoreDSState);
 
-  if CheckNull then
+  // Iterate through the records until a match is found
+  while (CurrLinkItem <> FCurrentIndex^.FLastRecBuf) do
     begin
-    repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
-    if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+    if (IndexCompareRecords(FilterBuffer,CurrLinkItem,DBCompareStruct) = 0) then
       begin
-      result := True;
+      Result := True;
       break;
       end;
     CurrLinkItem := CurrLinkItem^.next;
-    if CurrLinkItem = FCurrentIndex^.FLastRecBuf then getnextpacket;
-    until CurrLinkItem = FCurrentIndex^.FLastRecBuf;
-    end
-  else if keyfield.DataType = ftString then
-    begin
-    repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
-    if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
-      begin
-      inc(CurrBuff,FieldBufPos);
-      if DBCompareTextLen(ValueBuffer,CurrBuff,VBLength,options) = 0 then
-        begin
-        result := True;
-        break;
-        end;
-      end;
-    CurrLinkItem := CurrLinkItem^.next;
-    if CurrLinkItem = FCurrentIndex^.FLastRecBuf then getnextpacket;
-    until CurrLinkItem = FCurrentIndex^.FLastRecBuf;
-    end
-  else
-    begin
-    repeat
-    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
-    if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
-      begin
-      inc(CurrBuff,FieldBufPos);
-      if CompareByte(ValueBuffer^,CurrBuff^,VBLength) = 0 then
-        begin
-        result := True;
-        break;
-        end;
-      end;
-
-    CurrLinkItem := CurrLinkItem^.next;
-    if CurrLinkItem = FCurrentIndex^.FLastRecBuf then getnextpacket;
-    until CurrLinkItem = FCurrentIndex^.FLastRecBuf;
+    if CurrLinkItem = FCurrentIndex^.FLastRecBuf then
+      getnextpacket;
     end;
+    
+  FreeRecordBuffer(FilterBuffer);
 
-
+  // If a match is found, jump to the found record
   if Result then
     begin
 {$IFDEF ARRAYBUF}
@@ -2353,8 +2328,6 @@ begin
     bm.BookmarkFlag := bfCurrent;
     GotoBookmark(@bm);
     end;
-
-  ReAllocmem(ValueBuffer,0);
 {$ENDIF}
 end;
 

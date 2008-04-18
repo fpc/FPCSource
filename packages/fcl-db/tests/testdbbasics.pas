@@ -30,6 +30,8 @@ type
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
     procedure TestBookmarks;
+    
+    procedure TestLocate;
 
     procedure TestFirst;
     procedure TestDelete1;
@@ -42,6 +44,8 @@ type
     procedure TestGetFieldValues;
 
     procedure TestAddIndex;
+    procedure TestAddDescIndex;
+    procedure TestAddCaseInsIndex;
     procedure TestInactSwitchIndex;
 
     procedure TestAddIndexInteger;
@@ -562,6 +566,28 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.TestLocate;
+begin
+  with DBConnector.GetNDataset(true,13) do
+    begin
+    open;
+    asserttrue(Locate('id',vararrayof([5]),[]));
+    AssertEquals(5,FieldByName('id').AsInteger);
+    AssertFalse(Locate('id',vararrayof([15]),[]));
+    asserttrue(Locate('id',vararrayof([12]),[]));
+    AssertEquals(12,FieldByName('id').AsInteger);
+    close;
+    open;
+    asserttrue(Locate('id',vararrayof([12]),[]));
+    AssertEquals(12,FieldByName('id').AsInteger);
+    asserttrue(Locate('id;name',vararrayof([4,'TestName4']),[]));
+    AssertEquals(4,FieldByName('id').AsInteger);
+
+    assertFalse(Locate('id;name',vararrayof([4,'TestName5']),[]));
+
+    end;
+end;
+
 procedure TTestDBBasics.TestSetFieldValues;
 var PassException : boolean;
 begin
@@ -886,7 +912,7 @@ begin
     
     if not ActiveDS then
       begin
-      AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+      AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
       IndexName:='testindex';
       end
     else
@@ -905,7 +931,7 @@ begin
       begin
       if not assigned(ds.FindField('F'+FieldTypeNames[AfieldType])) then
         Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
-      AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+      AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
       IndexName:='testindex';
       First;
       end;
@@ -978,10 +1004,97 @@ begin
     begin
 
     AFieldType:=ftString;
-    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     FList := TStringList.Create;
     FList.Sorted:=true;
     FList.CaseSensitive:=True;
+    FList.Duplicates:=dupAccept;
+    open;
+
+    while not eof do
+      begin
+      flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Next;
+      end;
+
+    IndexName:='testindex';
+    first;
+    i:=0;
+
+    while not eof do
+      begin
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      inc(i);
+      Next;
+      end;
+
+    while not bof do
+      begin
+      dec(i);
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Prior;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.TestAddDescIndex;
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    FList : TStringList;
+    i : integer;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+
+    AFieldType:=ftString;
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType],[],'F'+FieldTypeNames[AfieldType]);
+    FList := TStringList.Create;
+    FList.Sorted:=true;
+    FList.CaseSensitive:=True;
+    FList.Duplicates:=dupAccept;
+    open;
+
+    while not eof do
+      begin
+      flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Next;
+      end;
+
+    IndexName:='testindex';
+    first;
+    i:=FList.Count-1;
+
+    while not eof do
+      begin
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      dec(i);
+      Next;
+      end;
+
+    while not bof do
+      begin
+      inc(i);
+      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      Prior;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.TestAddCaseInsIndex;
+var ds : TBufDataset;
+    AFieldType : TFieldType;
+    FList : TStringList;
+    i : integer;
+begin
+  ds := DBConnector.GetFieldDataset as TBufDataset;
+  with ds do
+    begin
+
+    AFieldType:=ftString;
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType],[],'','F'+FieldTypeNames[AfieldType]);
+    FList := TStringList.Create;
+    FList.Sorted:=true;
     FList.Duplicates:=dupAccept;
     open;
 
@@ -1023,7 +1136,7 @@ begin
     begin
 
     AFieldType:=ftString;
-    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     IndexName:='testindex';
     open;
     IndexName:=''; // This should set the default index (default_order)
@@ -1066,7 +1179,7 @@ begin
     FieldByName('name').asstring := 'aA';
     post;
 
-    AddIndex('test','name');
+    AddIndex('test','name',[]);
 
     first;
     ds.IndexName:='test';
@@ -1163,7 +1276,7 @@ begin
   with ds do
     begin
     AFieldType:=ftString;
-    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     open;
 
     for i := 0 to (testValuesCount div 3) do
@@ -1208,7 +1321,7 @@ begin
   with ds do
     begin
 
-    AddIndex('testindex','F'+FieldTypeNames[ftString]+', F'+FieldTypeNames[ftInteger]);
+    AddIndex('testindex','F'+FieldTypeNames[ftString]+'; F'+FieldTypeNames[ftInteger],[]);
     FList := TStringList.Create;
     FList.Sorted:=true;
     FList.CaseSensitive:=True;
@@ -1258,7 +1371,7 @@ begin
   with ds do
     begin
     AFieldType:=ftString;
-    AddIndex('testindex','F'+FieldTypeNames[AfieldType]);
+    AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     IndexName:='testindex';
     open;
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
