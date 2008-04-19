@@ -836,7 +836,7 @@ const msgtxt : array[0..000195,1..240] of char=(
   'ugging disabled'#000+
   '11023_Free Pascal Compiler version $FPCFULLVERSIO','N [$FPCDATE] for $F'+
   'PCCPU'#010+
-  'Copyright (c) 1993-2007 by Florian Klaempfl'#000+
+  'Copyright (c) 1993-2008 by Florian Klaempfl'#000+
   '11024_Free Pascal Compiler version $FPCVERSION'#010+
   #010+
   'Compiler Date      : $FPCDATE'#010+
