@@ -132,6 +132,7 @@ implementation
                   end
                 else
                   begin
+                    hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 {$ifndef cpu64bitalu}
                      if left.location.size in [OS_64,OS_S64] then
                        begin
@@ -140,7 +141,7 @@ implementation
                        end
                      else
 {$endif not cpu64bitalu}
-                       hreg1 := left.location.register;
+                       cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg1);
                   end;
                 hreg2 := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                 
