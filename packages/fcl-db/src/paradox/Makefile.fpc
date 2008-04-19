@@ -1,0 +1,22 @@
+#
+# Makefile.fpc for paradox unit
+#
+
+[package]
+main=fcl-db
+
+[target]
+units=paradox
+rsts=paradox
+
+[require]
+packages=pxlib
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:

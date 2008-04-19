@@ -1207,6 +1207,9 @@ packages/fcl-db/src/memds/testcp.pp svneol=native#text/plain
 packages/fcl-db/src/memds/testld.pp svneol=native#text/plain
 packages/fcl-db/src/memds/testopen.pp svneol=native#text/plain
 packages/fcl-db/src/memds/testpop.pp svneol=native#text/plain
+packages/fcl-db/src/paradox/Makefile svneol=native#text/plain
+packages/fcl-db/src/paradox/Makefile.fpc svneol=native#text/plain
+packages/fcl-db/src/paradox/paradox.pp svneol=native#text/plain
 packages/fcl-db/src/sdf/Makefile svneol=native#text/plain
 packages/fcl-db/src/sdf/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/sdf/fpc.ssx -text

@@ -243,642 +243,324 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fcl-db
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+override TARGET_UNITS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=dbwhtml dbconst dbcoll
+override TARGET_RSTS+=paradox
 endif
 override INSTALL_FPCPACKAGE=y
-ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_OPTIONS+=-S2h
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_UNITDIR+=../dbase
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_UNITDIR+=../dbase
-endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -1626,222 +1308,218 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl-base
+override REQUIRE_PACKAGES=rtl pxlib
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_WINUNITS-BASE=1
-REQUIRE_PACKAGES_WINUNITS-JEDI=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_WINUNITS-BASE=1
-REQUIRE_PACKAGES_WINUNITS-JEDI=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -1869,82 +1547,30 @@ ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
 endif
 endif
-ifdef REQUIRE_PACKAGES_FCL-BASE
-PACKAGEDIR_FCL-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-BASE),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)
+ifdef REQUIRE_PACKAGES_PXLIB
+PACKAGEDIR_PXLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /pxlib/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_PXLIB),)
+ifneq ($(wildcard $(PACKAGEDIR_PXLIB)/units/$(TARGETSUFFIX)),)
+UNITDIR_PXLIB=$(PACKAGEDIR_PXLIB)/units/$(TARGETSUFFIX)
 else
-UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)
+UNITDIR_PXLIB=$(PACKAGEDIR_PXLIB)
 endif
 ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-BASE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-BASE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-BASE)/$(FPCMADE)
+$(PACKAGEDIR_PXLIB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_PXLIB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_PXLIB)/$(FPCMADE)
 endif
 else
-PACKAGEDIR_FCL-BASE=
-UNITDIR_FCL-BASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-BASE),)
-UNITDIR_FCL-BASE:=$(firstword $(UNITDIR_FCL-BASE))
+PACKAGEDIR_PXLIB=
+UNITDIR_PXLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /pxlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PXLIB),)
+UNITDIR_PXLIB:=$(firstword $(UNITDIR_PXLIB))
 else
-UNITDIR_FCL-BASE=
+UNITDIR_PXLIB=
 endif
 endif
-ifdef UNITDIR_FCL-BASE
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-BASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_WINUNITS-BASE
-PACKAGEDIR_WINUNITS-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /winunits-base/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_WINUNITS-BASE),)
-ifneq ($(wildcard $(PACKAGEDIR_WINUNITS-BASE)/units/$(TARGETSUFFIX)),)
-UNITDIR_WINUNITS-BASE=$(PACKAGEDIR_WINUNITS-BASE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_WINUNITS-BASE=$(PACKAGEDIR_WINUNITS-BASE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_WINUNITS-BASE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_WINUNITS-BASE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_WINUNITS-BASE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_WINUNITS-BASE=
-UNITDIR_WINUNITS-BASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /winunits-base/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_WINUNITS-BASE),)
-UNITDIR_WINUNITS-BASE:=$(firstword $(UNITDIR_WINUNITS-BASE))
-else
-UNITDIR_WINUNITS-BASE=
-endif
-endif
-ifdef UNITDIR_WINUNITS-BASE
-override COMPILER_UNITDIR+=$(UNITDIR_WINUNITS-BASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_WINUNITS-JEDI
-PACKAGEDIR_WINUNITS-JEDI:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /winunits-jedi/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_WINUNITS-JEDI),)
-ifneq ($(wildcard $(PACKAGEDIR_WINUNITS-JEDI)/units/$(TARGETSUFFIX)),)
-UNITDIR_WINUNITS-JEDI=$(PACKAGEDIR_WINUNITS-JEDI)/units/$(TARGETSUFFIX)
-else
-UNITDIR_WINUNITS-JEDI=$(PACKAGEDIR_WINUNITS-JEDI)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_WINUNITS-JEDI)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_WINUNITS-JEDI) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_WINUNITS-JEDI)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_WINUNITS-JEDI=
-UNITDIR_WINUNITS-JEDI:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /winunits-jedi/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_WINUNITS-JEDI),)
-UNITDIR_WINUNITS-JEDI:=$(firstword $(UNITDIR_WINUNITS-JEDI))
-else
-UNITDIR_WINUNITS-JEDI=
-endif
-endif
-ifdef UNITDIR_WINUNITS-JEDI
-override COMPILER_UNITDIR+=$(UNITDIR_WINUNITS-JEDI)
+ifdef UNITDIR_PXLIB
+override COMPILER_UNITDIR+=$(UNITDIR_PXLIB)
 endif
 endif
 ifndef NOCPUDEF
