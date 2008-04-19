@@ -18,7 +18,7 @@ begin
  stream1:= tmemorystream.create;
  stream2:= tmemorystream.create;
  try
-  instance1.realprop:= 1e100;
+  instance1.realprop:= 1e10;
   stream1.writecomponent(instance1);
   stream1.position:= 0;
   objectbinarytotext(stream1,stream2);

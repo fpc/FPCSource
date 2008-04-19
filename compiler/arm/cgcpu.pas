@@ -587,10 +587,9 @@ unit cgcpu;
           else if is_shifter_const(not(a),imm_shift) then
             list.concat(taicpu.op_reg_const(A_MVN,reg,not(a)))
           { loading of constants with mov and orr }
-          {else [if (is_shifter_const(a-byte(a),imm_shift)) then
+          else if (is_shifter_const(a-byte(a),imm_shift)) then
             begin
-              }{ roozbeh:why using tmpreg later causes error in compiling of system.pp,and also those other similars}
-              {list.concat(taicpu.op_reg_const(A_MOV,reg,a-byte(a)));
+              list.concat(taicpu.op_reg_const(A_MOV,reg,a-byte(a)));
               list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,byte(a)));
             end
           else if (is_shifter_const(a-word(a),imm_shift)) and (is_shifter_const(word(a),imm_shift)) then
@@ -598,11 +597,11 @@ unit cgcpu;
               list.concat(taicpu.op_reg_const(A_MOV,reg,a-word(a)));
               list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,word(a)));
             end
-          else if (is_shifter_const(a-(longint(a) shl 8) shr 8,imm_shift)) and (is_shifter_const((longint(a) shl 8) shr 8,imm_shift)) then
+          else if (is_shifter_const(a-(dword(a) shl 8) shr 8,imm_shift)) and (is_shifter_const((dword(a) shl 8) shr 8,imm_shift)) then
             begin
-              list.concat(taicpu.op_reg_const(A_MOV,reg,a-(longint(a) shl 8)shr 8));
-              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,(longint(a) shl 8)shr 8));
-            end}
+              list.concat(taicpu.op_reg_const(A_MOV,reg,a-(dword(a) shl 8) shr 8));
+              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,(dword(a) shl 8) shr 8));
+            end
           else
             begin
                reference_reset(hr);
