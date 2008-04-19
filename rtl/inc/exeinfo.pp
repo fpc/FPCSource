@@ -325,7 +325,7 @@ begin
        end;
      if asecname=secname then
        begin
-         secofs:=sechdr.datapos + E.ImgOffset;
+         secofs:=cardinal(sechdr.datapos) + E.ImgOffset;
          seclen:=sechdr.datalen;
          FindSectionCoff:=true;
          exit;
