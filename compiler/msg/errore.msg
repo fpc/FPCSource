@@ -2444,7 +2444,7 @@ option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate 
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2007 by Florian Klaempfl
+Copyright (c) 1993-2008 by Florian Klaempfl
 ]
 
 #
