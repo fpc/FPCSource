@@ -63,7 +63,7 @@ procedure TIDEApp.DoCompilerSwitch;
 var R,R2,R3,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
-    RB1,RB1b,RB2,RB3,RB4,RB5,RB6: PRadioButtons;
+    RB1,RB1b,RB2,RB4,RB5,RB6: PRadioButtons;
     Items: PSItem;
     IL: PEditorInputLine;
     IL2: PEditorInputLine;
@@ -138,28 +138,12 @@ begin
         CB3^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label21, Init(R2, label_compiler_runtimechecks, CB3));
-
-    Count:=OptimizingGoalSwitches^.ItemCount;
-    R2.Copy(TabIR);
-    R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
-    Dec(R2.B.X,4);
-    R2.B.Y:=R2.A.Y+Count;
-    Items:=nil;
-    for I:=Count-1 downto 0 do
-      Items:=NewSItem(OptimizingGoalSwitches^.ItemName(I), Items);
-    New(RB3, Init(R2, Items));
-    L:=OptimizingGoalSwitches^.GetCurrSel;
-    RB3^.SetData(L);
-    Dec(R2.A.Y);
-    R2.B.Y:=R2.A.Y+1;
-    New(Label22, Init(R2, label_compiler_optimizations, RB3));
+    New(Label21, Init(R2, label_compiler_codegeneration, CB3));
 
     Count:=OptimizationSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
-    Inc(R2.A.Y, OptimizingGoalSwitches^.ItemCount);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
@@ -170,6 +154,7 @@ begin
         CB2^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
+    New(Label22, Init(R2, label_compiler_optimizations, CB2));
 
     { --- Sheet 3 --- }
     Count:=ProcessorOptimizationSwitches^.ItemCount;
@@ -299,8 +284,7 @@ begin
         NewTabItem(CB3,
         NewTabItem(Label22,
         NewTabItem(CB2,
-        NewTabItem(RB3,
-        nil))))),
+        nil)))),
       NewTabDef('~P~rocessor',RB1,
         NewTabItem(Label23,
         NewTabItem(RB1,
@@ -359,7 +343,6 @@ begin
       OptimizationSwitches^.SetBooleanItem(I,CB2^.Mark(I));
     for I:=0 to VerboseSwitches^.ItemCount-1 do
       VerboseSwitches^.SetBooleanItem(I,CB4^.Mark(I));
-    OptimizingGoalSwitches^.SetCurrSel(RB3^.Value);
     ProcessorOptimizationSwitches^.SetCurrSel(RB1^.Value);
     ProcessorCodeGenerationSwitches^.SetCurrSel(RB1b^.Value);
     AsmReaderSwitches^.SetCurrSel(RB5^.Value);
