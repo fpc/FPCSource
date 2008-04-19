@@ -505,7 +505,6 @@ implementation
          releaseright : boolean;
          len : aint;
          r : tregister;
-         leftfirst : boolean;
          oldflowcontrol : tflowcontrol;
       begin
         location_reset(location,LOC_VOID,OS_NO);
@@ -532,8 +531,6 @@ implementation
            ((right.resultdef.needs_inittable) or
             (node_complexity(right)>node_complexity(left))) then
          begin
-           leftfirst:=false;
-
            secondpass(right);
            { increment source reference counter, this is
              useless for constants }
@@ -561,9 +558,6 @@ implementation
          end
         else
          begin
-           { if the left node is handled first, we have to forbid SSL below }
-           leftfirst:=true;
-
            { calculate left sides }
            secondpass(left);
            { decrement destination reference counter }
@@ -575,6 +569,9 @@ implementation
            if codegenerror then
              exit;
 
+           { tell the SSA/SSL code that the left side was handled first so
+             ni SSL is done
+           }
            oldflowcontrol:=flowcontrol;
            include(flowcontrol,fc_lefthandled);
 
