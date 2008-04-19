@@ -29,7 +29,16 @@ uses
    node;
 
     type
-       tenumflowcontrol = (fc_exit,fc_break,fc_continue,fc_inflowcontrol,fc_gotolabel);
+       tenumflowcontrol = (
+         fc_exit,
+         fc_break,
+         fc_continue,
+         fc_inflowcontrol,
+         fc_gotolabel,
+         { the left side of an expression is already handled, so we are
+           not allowed to do ssl }
+         fc_lefthandled);
+
        tflowcontrol = set of tenumflowcontrol;
 
     var

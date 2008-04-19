@@ -369,8 +369,8 @@ implementation
          href : treference;
          releaseright : boolean;
          len : aint;
-         r:Tregister;
-
+         r : tregister;
+         oldflowcontrol : tflowcontrol;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -436,9 +436,16 @@ implementation
            if codegenerror then
              exit;
 
+           { tell the SSA/SSL code that the left side was handled first so
+             ni SSL is done
+           }
+           oldflowcontrol:=flowcontrol;
+           include(flowcontrol,fc_lefthandled);
+
            { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
            { can be false                                             }
            secondpass(right);
+           flowcontrol:=oldflowcontrol;
            { increment source reference counter, this is
              useless for string constants}
            if (right.resultdef.needs_inittable) and
