@@ -734,17 +734,15 @@ begin
     op := A_LWA;
   end;
   a_load_store(list, op, reg, ref2);
-  { sign extend shortint if necessary, since there is no
-   load instruction that does that automatically (JM) }
-  if (fromsize = OS_S8) then
-    begin
-      list.concat(taicpu.op_reg_reg(A_EXTSB, reg, reg));
-      if (tosize in [OS_16,OS_32]) then
-        a_load_reg_reg(list,fromsize,tosize,reg,reg);
-    end
-  else if (fromsize = OS_S16) and
-          (tosize = OS_32) then
-    a_load_reg_reg(list,fromsize,tosize,reg,reg);
+  { sign extend shortint if necessary (because there is
+   no load instruction to sign extend an 8 bit value automatically)
+   and mask out extra sign bits when loading from a smaller 
+   signed to a larger unsigned type (where it matters) }
+  if (fromsize = OS_S8) then begin
+    a_load_reg_reg(list, OS_8, OS_S8, reg, reg);
+    a_load_reg_reg(list, OS_S8, tosize, reg, reg);
+  end else if (fromsize = OS_S16) and (tosize = OS_32) then
+    a_load_reg_reg(list, fromsize, tosize, reg, reg);
 end;
 
 procedure tcgppc.a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize;
