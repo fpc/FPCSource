@@ -2063,7 +2063,7 @@ implementation
         if (current_module.islibrary) then
           if (current_procinfo.procdef.proctypeoption = potype_proginit) then
             exportlib.setinitname(list,current_procinfo.procdef.mangledname);
-        
+
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
           begin
            if (target_info.system in (systems_darwin+[system_powerpc_macos])) and
@@ -2577,7 +2577,7 @@ implementation
         rr: treplaceregrec;
       begin
         if not (n.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) or
-           ([fc_inflowcontrol,fc_gotolabel] * flowcontrol <> []) then
+          ([fc_inflowcontrol,fc_gotolabel,fc_lefthandled] * flowcontrol <> []) then
           exit;
         rr.old := n.location.register;
         rr.ressym := nil;
@@ -2838,4 +2838,5 @@ implementation
       end;
 
 end.
+
 

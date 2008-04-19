@@ -504,8 +504,9 @@ implementation
          href : treference;
          releaseright : boolean;
          len : aint;
-         r:Tregister;
-
+         r : tregister;
+         leftfirst : boolean;
+         oldflowcontrol : tflowcontrol;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -531,6 +532,8 @@ implementation
            ((right.resultdef.needs_inittable) or
             (node_complexity(right)>node_complexity(left))) then
          begin
+           leftfirst:=false;
+
            secondpass(right);
            { increment source reference counter, this is
              useless for constants }
@@ -558,6 +561,9 @@ implementation
          end
         else
          begin
+           { if the left node is handled first, we have to forbid SSL below }
+           leftfirst:=true;
+
            { calculate left sides }
            secondpass(left);
            { decrement destination reference counter }
@@ -569,9 +575,13 @@ implementation
            if codegenerror then
              exit;
 
+           oldflowcontrol:=flowcontrol;
+           include(flowcontrol,fc_lefthandled);
+
            { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
            { can be false                                             }
            secondpass(right);
+           flowcontrol:=oldflowcontrol;
            { increment source reference counter, this is
              useless for string constants}
            if (right.resultdef.needs_inittable) and
