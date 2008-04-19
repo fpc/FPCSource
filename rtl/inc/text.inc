@@ -712,7 +712,7 @@ type  Ptypeinfo=^Ttypeinfo;
       Penuminfo=^Tenuminfo;
       Tenuminfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
         ordtype:byte;
-        minvalue,maxvalue:longint;
+        minvalue, maxvalue:longint;
         basetype:pointer;
         namelist:shortstring;
       end;
@@ -742,7 +742,7 @@ begin
       {The compiler did generate a lookup table.}
       offset:=2+length(Ptypeinfo(typinfo)^.name);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-      offset:=(offset+sizeof(sizeint)-1) and not (sizeof(sizeint)-1);
+      offset:=align(offset, sizeof(ptrint));
 {$endif}
       with Penuminfo(Pbyte(typinfo)+offset)^ do
         begin
@@ -754,7 +754,7 @@ begin
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
-      p:=Pshortstring((PPpointer(ord2strindex+4)+ordinal)^);
+      p:=Pshortstring((PPpointer(ord2strindex+align(sizeof(longint), sizeof(ptrint)))+ordinal)^);
       if p=nil then
         begin
           inoutres:=107;      {Invalid ordinal value for this enum.}

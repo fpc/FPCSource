@@ -405,9 +405,11 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
           end;
           if (tf_requires_proper_alignment in target_info.flags) then
-            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
+            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(longint(def.size)));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.min));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
+          if (tf_requires_proper_alignment in target_info.flags) then
+            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
           if assigned(def.basedef) then
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.basedef,rt)))
           else
@@ -951,6 +953,8 @@ implementation
               asmlists[al_rtti].concat(Tai_const.create_32bit(longint(mode)));
               if mode=lookup then
                 begin
+                  if (tf_requires_proper_alignment in target_info.flags) then
+                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
                   o:=syms[0].value;  {Start with min value.}
                   for i:=0 to sym_count-1 do
                     begin
@@ -968,7 +972,11 @@ implementation
                   asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
                   for i:=0 to sym_count-1 do
                     begin
+                      if (tf_requires_proper_alignment in target_info.flags) then
+                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));
                       asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
+                      if (tf_requires_proper_alignment in target_info.flags) then
+                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	      
                       asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                     end;
                 end;
@@ -1057,7 +1065,11 @@ implementation
               asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
               for i:=0 to sym_count-1 do
                 begin
+                  if (tf_requires_proper_alignment in target_info.flags) then
+                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));
                   asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
+                  if (tf_requires_proper_alignment in target_info.flags) then
+                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	      
                   asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
