@@ -7,15 +7,7 @@ library tw7838a;
 
 uses uw7838a;
 
-{$ifdef win32}
-const
- progname = '.\prog.exe';
-{$endif}
-
-
-
-
-function dllf: longint; 
+function dllf: longint;
 begin
   result:=exetest;
   if (result<>aa) then

@@ -6,7 +6,7 @@ interface
 var
   aa: longint;
 
-{$ifdef mswindows}
+{$ifdef windows}
 function exetest: longint; external 'tw7838b.exe'; 
 {$endif}
 

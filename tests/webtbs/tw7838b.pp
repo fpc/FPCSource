@@ -24,8 +24,8 @@ const
   libname = './libtw7838a.so';
 {$endif}
 {$endif}
-{$ifdef mswindows}
-  libname = '.\tw7838a.dll';
+{$ifdef windows}
+  libname = 'tw7838a.dll';
 {$endif}
 
 var
