@@ -540,6 +540,9 @@ implementation
                  InternalError(2002122101);
              end;
              handle_load_store(list,false,op,reg,ref);
+             if (fromsize=OS_S8) and
+                (tosize=OS_16) then
+               a_load_reg_reg(list,fromsize,tosize,reg,reg);
            end;
       end;
 
