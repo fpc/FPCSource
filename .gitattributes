@@ -1116,6 +1116,7 @@ packages/fcl-db/src/base/database.inc svneol=native#text/plain
 packages/fcl-db/src/base/dataset.inc svneol=native#text/plain
 packages/fcl-db/src/base/datasource.inc svneol=native#text/plain
 packages/fcl-db/src/base/db.pas svneol=native#text/plain
+packages/fcl-db/src/base/dbcoll.pp svneol=native#text/plain
 packages/fcl-db/src/base/dbconst.pas svneol=native#text/plain
 packages/fcl-db/src/base/dbwhtml.pp svneol=native#text/plain
 packages/fcl-db/src/base/dsparams.inc svneol=native#text/plain
