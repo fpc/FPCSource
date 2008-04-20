@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2006 by the Free Pascal Development team
+#   Copyright (c) 1999-2008 by the Free Pascal Development team
 #
 #   French (ISO 8859-1) Language File for Free Pascal
 #   Latest updates contributed by Rémi Dorlet <remi at dorlet.org>
@@ -2258,7 +2258,7 @@ option_config_is_dir=11040_F_Le fichier de configuration $1 est un répertoire
 # Logo (option -l)
 #
 option_logo=11023_[ Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2006, Florian Klaempfl ]
+Copyright (c) 1993-2008, Florian Klaempfl ]
 #
 # Info (option -i)
 #

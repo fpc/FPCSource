@@ -1,4 +1,4 @@
-#
+﻿#
 #   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
@@ -2207,7 +2207,7 @@ option_config_is_dir=11040_F_Konfigurationsfilen $1 er et directory
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2006 Florian Klaempfl
+Copyright (c) 1993-2008 Florian Klaempfl
 ]
 
 #

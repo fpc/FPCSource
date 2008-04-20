@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2006 by the Free Pascal Development team
+#   Copyright (c) 1999-2008 by the Free Pascal Development team
 #
 #   Portuguese (DOS encoding) language file for Free Pascal Compiler
 #   Contributed by Ari Ricardo Ody <ari.ody at japinfo.com.br>
@@ -2187,7 +2187,7 @@ option_config_is_dir=11040_F_Arquivo de configuracao $1 e um diretorio
 #
 option_logo=11023_[
 Free Pascal Compiler versao $FPCFULLVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2006 por Florian Klaempfl
+Copyright (c) 1993-2008 por Florian Klaempfl
 ]
 
 #

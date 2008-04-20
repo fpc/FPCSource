@@ -2414,7 +2414,7 @@ option_confict_asm_debug=11041_W_Die gewählte Assembler-Ausgabe "$1" kann kein 
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] für $FPCTARGET
-Copyright (c) 1993-2007 Florian Klämpfl
+Copyright (c) 1993-2008 Florian Klämpfl
 ]
 
 #
