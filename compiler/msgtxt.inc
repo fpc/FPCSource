@@ -816,7 +816,7 @@ const msgtxt : array[0..000190,1..240] of char=(
   'ebugging disabled'#000+
   '11023_Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPC'+
   'CPU'#010+
-  'Copyright (c) 1993-2007 by Florian Klaempfl'#000+
+  'Copyright (c) 1993-2008 by Florian Klaempfl'#000+
   '11024_Free Pascal Compiler version $FPCVERSION'#010+
   #010+
   'Compile','r Date      : $FPCDATE'#010+
