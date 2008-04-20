@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2007 by the Free Pascal Development team
+#   Copyright (c) 1999-2008 by the Free Pascal Development team
 #
 #   Hebrew (CP1255) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>

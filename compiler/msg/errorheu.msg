@@ -1,6 +1,6 @@
-#
+﻿#
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2007 by the Free Pascal Development team
+#   Copyright (c) 1999-2008 by the Free Pascal Development team
 #
 #   Hebrew (UTF8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
@@ -2690,7 +2690,7 @@ P*2WT_ציין אפליקציה מסוג כלי MPW (Classic Mac OS)
 **2Xi_השתמש במקשר פנימי
 **2Xm_צור מפת קישורים
 **2XM<x>_הגדר את השם של רוטינה ה'עיקרית' של התוכנה (ברירת מחדל הוא 'main')
-**2XP<x>_צרף את השמות המגיעים עם התחילית <x> מbinutils
+**2XP<x>_צרף את השמות המגיעים עÝ התחילית <x> מbinutils
 **2Xr<x>_הגדר את נתיב חיפוש הספריות ל <x> (נדרש עבור הידור לארכיטקטורות אחרות) (BeOS, Linux)
 **2XR<x>_צרף את <x> לכל נתיבי החיפוש של המקשר (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_נקה את כל הסמלים מקבצי ההרצה

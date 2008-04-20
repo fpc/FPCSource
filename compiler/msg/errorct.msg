@@ -1,6 +1,6 @@
-#   $Id: errorct.msg,v 1.2 2005/04/20 08:13:25 florian Exp $
+#
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1993-2005 by the Free Pascal Development team
+#   Copyright (c) 1993-2008 by the Free Pascal Development team
 #
 #   Catalan Language File for Free Pascal
 #
@@ -2100,7 +2100,7 @@ option_code_page_not_available=11039_E_La pàgina del codi no està disponible
 #
 option_logo=11023_[
 Free Pascal Compiler versió $FPCFULLVERSION [$FPCDATE] per $FPCCPU
-Copyright (c) 1993-2006 per Florian Klaempfl
+Copyright (c) 1993-2008 per Florian Klaempfl
 ]
 
 #

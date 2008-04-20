@@ -1,6 +1,6 @@
 #   $Id: errorid.msg,v 1.124 2007/09/20 02:52:50 zaenal Exp $
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2007 by the Free Pascal Development team
+#   Copyright (c) 1999-2008 by the Free Pascal Development team
 #
 #   Indonesian Language File for Free Pascal
 #   Contributed by Zaenal Mutaqin <ade999 at gmail.com>

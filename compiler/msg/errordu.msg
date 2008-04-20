@@ -1,4 +1,4 @@
-#
+﻿#
 #   German (UTF-8) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
