@@ -14,7 +14,7 @@ dirs_netbsd=interbase postgres mysql odbc oracle sqlite
 dirs_openbsd=interbase postgres mysql odbc oracle sqlite
 dirs_win32=interbase postgres mysql odbc oracle sqlite
 dirs_win64=interbase odbc mysql sqlite
-dirs_wince=interbase postgres sqlite
+dirs_wince=interbase postgres mysql odbc oracle sqlite
 units=sqldb
 rsts=sqldb
 

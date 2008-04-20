@@ -13,7 +13,7 @@ packages_darwin=ibase mysql oracle sqlite odbc postgres
 packages_netbsd=ibase mysql oracle sqlite odbc postgres
 packages_openbsd=ibase mysql oracle sqlite odbc postgres
 packages_win32=ibase mysql oracle sqlite odbc postgres
-packages_wince=sqlite
+packages_wince=ibase mysql oracle sqlite odbc postgres
 packages_win64=sqlite odbc
 
 [target]

@@ -346,7 +346,7 @@ end;
 function DBCompareDouble(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 var Dbl : Double;
 begin
-  Dbl := PDouble(aValue)^-PDouble(subValue)^;
+  Dbl := PDouble(subValue)^-PDouble(aValue)^;
   if dbl < 0 then result := -1
   else if dbl > 0 then result := 1
   else result := 0;

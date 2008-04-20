@@ -269,7 +269,7 @@ ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/paradox
@@ -1421,6 +1421,7 @@ REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_FCL-BASE=1
@@ -1477,6 +1478,9 @@ ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
@@ -1672,6 +1676,9 @@ ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
@@ -2531,6 +2538,7 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
+TARGET_DIRS_SRC/PARADOX=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1

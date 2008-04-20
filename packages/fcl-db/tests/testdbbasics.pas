@@ -1321,7 +1321,7 @@ begin
   with ds do
     begin
 
-    AddIndex('testindex','F'+FieldTypeNames[ftString]+'; F'+FieldTypeNames[ftInteger],[]);
+    AddIndex('testindex','F'+FieldTypeNames[ftString]+';F'+FieldTypeNames[ftInteger],[]);
     FList := TStringList.Create;
     FList.Sorted:=true;
     FList.CaseSensitive:=True;
