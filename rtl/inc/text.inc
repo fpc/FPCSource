@@ -754,7 +754,11 @@ begin
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}      
       p:=Pshortstring((PPpointer(ord2strindex+align(sizeof(longint), sizeof(ptrint)))+ordinal)^);
+{$else}
+      p:=Pshortstring((PPpointer(ord2strindex+sizeof(longint))+ordinal)^);
+{$endif}
       if p=nil then
         begin
           inoutres:=107;      {Invalid ordinal value for this enum.}
