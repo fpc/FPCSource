@@ -165,12 +165,18 @@ begin
   if utilsdirectory<>'' then
     resfound:=FindFile(utilsprefix+bin+source_info.exeext,utilsdirectory,false,resbin);
   if not resfound then
-    resfound:=FindExe(utilsprefix+bin,false,resbin);
+    begin
+      resfound:=FindExe(utilsprefix+bin,false,resbin);
+      if not resfound and (utilsprefix<>'') and ( (output=roRES) or (Pos('$ARCH', target_res.rescmd)<>0) ) then
+        { Search for resource compiler without utilsprefix, if RC->RES compiler is called }
+        { or RES->OBJ compiler supports different architectures. }
+        resfound:=FindExe(bin,false,resbin);
+    end;
   { get also the path to be searched for the windres.h }
   respath:=ExtractFilePath(resbin);
   if (not resfound) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
-     Message1(exec_e_res_not_found, bin);
+     Message1(exec_e_res_not_found, utilsprefix+bin+source_info.exeext);
      current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
      Result:=false;
    end;
