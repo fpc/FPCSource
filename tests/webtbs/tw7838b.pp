@@ -1,4 +1,4 @@
-{ %target=win32,win64,wince,linux}
+{ %target=win32,win64,linux}
 
 program prog;
 {$mode objfpc}
