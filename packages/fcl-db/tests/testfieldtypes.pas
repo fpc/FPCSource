@@ -946,7 +946,7 @@ procedure TTestFieldTypes.TestNumericNames;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-    if sqQuoteFieldnames in Connection.ConnOptions then
+    if not (SQLDbType in MySQLdbTypes) then
       Connection.ExecuteDirect('create table FPDEV2 (         ' +
                                 '  "2ID" INT NOT NULL            , ' +
                                 '  "3TEST" VARCHAR(10),     ' +
