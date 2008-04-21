@@ -205,10 +205,10 @@ var
 begin
  lpwsValueName:=PCharToPWideChar(lpValueName);
  if dwType in [REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ] then begin
+   if (cbData > 0) and (PChar(lpData)[cbData - 1] = #0) then
+     Dec(cbData);
    ws:=PCharToPWideChar(lpData, cbData, @sz);
-   if (cbData > 0) and (PChar(lpData)[cbData - 1] <> #0) then
-     Inc(sz, SizeOf(WideChar));
-   cbData:=sz;
+   cbData:=sz*SizeOf(WideChar);
    DataBuf:=ws;
  end
  else begin

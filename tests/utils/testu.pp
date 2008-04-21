@@ -156,6 +156,8 @@ begin
   while not eof(t) do
    begin
      readln(t,s);
+     if Copy(s,1,3)=#$EF#$BB#$BF then
+       delete(s,1,3);
      if s<>'' then
       begin
         TrimB(s);

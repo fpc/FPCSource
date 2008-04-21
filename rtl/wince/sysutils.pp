@@ -68,7 +68,7 @@ procedure PWideCharToString(const str: PWideChar; out Result: string; strlen: lo
 var
   len: longint;
 begin
-  if str^ = #0 then
+  if (strlen < 1) and (str^ = #0) then
     Result:=''
   else
   begin
@@ -803,8 +803,8 @@ begin
   if s <> '' then
   begin
     buf:=StringToPWideChar(s, @len);
-    CharUpperBuff(buf, len);
-    PWideCharToString(buf, Result, len);
+    CharUpperBuff(buf, len-1);
+    PWideCharToString(buf, Result, len-1);
     FreeMem(buf);
   end
   else
@@ -820,8 +820,8 @@ begin
   if s <> '' then
   begin
     buf:=StringToPWideChar(s, @len);
-    CharLowerBuff(buf, len);
-    PWideCharToString(buf, Result, len);
+    CharLowerBuff(buf, len-1);
+    PWideCharToString(buf, Result, len-1);
     FreeMem(buf);
   end
   else
@@ -883,7 +883,7 @@ var
 begin
   ws1:=PCharToPWideChar(S1, MaxLen, @len1);
   ws2:=PCharToPWideChar(S2, MaxLen, @len2);
-  Result:=CompareString(LOCALE_USER_DEFAULT, 0, ws1, len1 div SizeOf(WideChar), ws2, len2 div SizeOf(WideChar)) - 2;
+  Result:=CompareString(LOCALE_USER_DEFAULT, 0, ws1, len1, ws2, len2) - 2;
   FreeMem(ws2);
   FreeMem(ws1);
 end;
@@ -896,7 +896,7 @@ var
 begin
   ws1:=PCharToPWideChar(S1, MaxLen, @len1);
   ws2:=PCharToPWideChar(S2, MaxLen, @len2);
-  Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, ws1, len1 div SizeOf(WideChar), ws2, len2 div SizeOf(WideChar)) - 2;
+  Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, ws1, len1, ws2, len2) - 2;
   FreeMem(ws2);
   FreeMem(ws1);
 end;
@@ -908,10 +908,9 @@ var
   len: longint;
 begin
   buf:=PCharToPWideChar(Str, -1, @len);
-  len:=len div SizeOf(WideChar);
-  CharLowerBuff(buf, len);
+  CharLowerBuff(buf, len - 1);
   Result:=Str;
-  WideToAnsiBuf(buf, -1, Result, len + 1);
+  WideToAnsiBuf(buf, -1, Result, StrLen(Str));
   FreeMem(buf);
 end;
 
@@ -922,10 +921,9 @@ var
   len: longint;
 begin
   buf:=PCharToPWideChar(Str, -1, @len);
-  len:=len div SizeOf(WideChar);
-  CharUpperBuff(buf, len);
+  CharUpperBuff(buf, len - 1);
   Result:=Str;
-  WideToAnsiBuf(buf, -1, Result, len + 1);
+  WideToAnsiBuf(buf, -1, Result, StrLen(Str));
   FreeMem(buf);
 end;
 

@@ -319,6 +319,7 @@ function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar;
 function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
      cdecl; external 'coredll' name 'WideCharToMultiByte';
 
+{ Returns number of characters stored to WideBuf, including null-terminator. }
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
 begin
   Result := MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, AnsiBuf, AnsiBufLen, WideBuf, WideBufLen div SizeOf(WideChar));
@@ -331,12 +332,12 @@ begin
         exit;
     end;
     WideBuf[Result] := #0;
-    if (Result <> 0) or (AnsiBufLen = 0) then
-      Inc(Result);
   end;
-  Result:=Result*SizeOf(WideChar);
+  if (AnsiBufLen <> -1) and ((Result <> 0) or (AnsiBufLen = 0)) then
+    Inc(Result);
 end;
 
+{ Returns number of characters stored to AnsiBuf, including null-terminator. }
 function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
 begin
   Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideCharsLen, AnsiBuf, AnsiBufLen, nil, nil);
@@ -349,18 +350,20 @@ begin
         exit;
     end;
     AnsiBuf[Result] := #0;
-    if (Result <> 0) or (WideCharsLen = 0) then
-      Inc(Result);
   end;
+  if (WideCharsLen <> -1) and ((Result <> 0) or (WideCharsLen = 0)) then
+    Inc(Result);
 end;
 
+{ Returns dynamic memory block, which contains wide string. This memory should be freed using FreeMem. }
+{ outlen will contain number of wide characters stored to result buffer, including null-terminator. }
 function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
 var
   len: longint;
 begin
   while True do begin
     if strlen <> -1 then
-      len:=(strlen + 1)
+      len:=strlen + 1
     else
       len:=AnsiToWideBuf(str, -1, nil, 0);
     if len > 0 then
@@ -377,15 +380,17 @@ begin
     end
     else begin
       GetMem(Result, SizeOf(WideChar));
-      Inc(len, 2);
+      len:=1;
       Result^:=#0;
     end;
     break;
   end;
   if outlen <> nil then
-    outlen^:=len - SizeOf(WideChar);
+    outlen^:=len;
 end;
 
+{ Returns dynamic memory block, which contains wide string. This memory should be freed using FreeMem. }
+{ outlen will contain number of wide characters stored to result buffer, including null-terminator. }
 function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
 var
   len, wlen: longint;
@@ -393,14 +398,14 @@ begin
   len:=Length(s);
   wlen:=(len + 1)*SizeOf(WideChar);
   GetMem(Result, wlen);
-  wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen);
+  wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen)*SizeOf(WideChar);
   if wlen = 0 then
   begin
-    wlen:=AnsiToWideBuf(PChar(s), len, nil, 0);
+    wlen:=AnsiToWideBuf(PChar(s), len, nil, 0)*SizeOf(WideChar);
     if wlen > 0 then
     begin
       ReAllocMem(Result, wlen);
-      wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen);
+      wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen)*SizeOf(WideChar);
     end
     else
     begin
@@ -409,7 +414,7 @@ begin
     end;
   end;
   if outlen <> nil then
-    outlen^:=(wlen - 1) div SizeOf(WideChar);
+    outlen^:=wlen div SizeOf(WideChar);
 end;
 
 {*****************************************************************************
