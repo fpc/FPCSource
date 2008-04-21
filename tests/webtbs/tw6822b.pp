@@ -16,9 +16,9 @@ libname = './libtw6822a.so';
 {$endif darwin}
 {$endif unix}
 
-{$ifdef mswindows}
+{$ifdef windows}
 libname = 'tw6822a.dll';
-{$endif mswindows}
+{$endif windows}
 
 begin
   writeln('hello from loader program');
