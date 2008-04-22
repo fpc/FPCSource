@@ -1,7 +1,7 @@
 { %target=win32, wince }
 
 uses
-  windows;
+  CommDlg;
 
 var
   x : DWORD;
