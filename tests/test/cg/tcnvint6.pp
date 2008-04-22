@@ -6,12 +6,12 @@ begin
 end;
 
 var
-  b: byte;
-  w: word;
-  c: cardinal;
-  shi: shortint;
-  si: smallint;
-  i64: int64;
+  b,b2: byte;
+  w,w2: word;
+  c,c2: cardinal;
+  shi,shi2: shortint;
+  si,si2: smallint;
+  i64,i642: int64;
 begin
   b:=$ff;
   Inc(b,$ff);
@@ -31,6 +31,9 @@ begin
   if qword(b)<>$fe then
     error(7);
 {$endif FPC}
+  b2:=$fe;
+  if b<>b2 then
+    error(8);
 
   w:=$8000;
   if shortint(w)<>0 then
@@ -54,6 +57,9 @@ begin
   if qword(w)<>$fffe then
     error(17);
 {$endif FPC}
+  w2:=$fffe;
+  if w<>w2 then
+    error(18);
 
   c:=$ffffffff;
   Inc(c,$ffffffff);
@@ -63,32 +69,43 @@ begin
   if qword(c)<>$fffffffe then
     error(22);
 {$endif FPC}
+  c2:=$fffffffe;
+  if c<>c2 then
+    error(23);
 
-  shi:=-1;
-  if word(shi)<>$ffff then
+  shi:=$7f;
+  Inc(shi,$7f);
+  if word(shi)<>$fffe then
     error(31);
-  if cardinal(shi)<>$ffffffff then
+  if cardinal(shi)<>$fffffffe then
     error(32);
   i64:=cardinal(shi);
-  if i64<>$ffffffff then
+  if i64<>$fffffffe then
     error(33);
 {$ifdef FPC}
-  if qword(shi)<>$ffffffffffffffff then
+  if qword(shi)<>$fffffffffffffffe then
     error(34);
 {$endif FPC}
-
-  si:=-1;
-  if word(si)<>$ffff then
+  shi2:=-2;
+  if shi<>shi2 then
     error(35);
-  if cardinal(si)<>$ffffffff then
-    error(36);
+
+  si:=$7fff;
+  Inc(si,$7fff);
+  if word(si)<>$fffe then
+    error(41);
+  if cardinal(si)<>$fffffffe then
+    error(42);
   i64:=cardinal(si);
-  if i64<>$ffffffff then
-    halt(37);
+  if i64<>$fffffffe then
+    halt(43);
 {$ifdef FPC}
-  if qword(si)<>$ffffffffffffffff then
-    error(38);
+  if qword(si)<>$fffffffffffffffe then
+    error(44);
 {$endif FPC}
+  si2:=-2;
+  if si<>si2 then
+    error(45);
 
   writeln('Test OK.');
 end.
