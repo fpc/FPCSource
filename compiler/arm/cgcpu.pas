@@ -877,7 +877,7 @@ unit cgcpu;
            else
              InternalError(200308297);
          end;
-         if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize]) then
+         if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize]) then
            begin
              if target_info.endian=endian_big then
                dir:=-1
@@ -1036,7 +1036,7 @@ unit cgcpu;
          instr: taicpu;
          conv_done: boolean;
        begin
-         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) then
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2002090901);
 
          conv_done:=false;
