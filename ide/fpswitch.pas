@@ -169,7 +169,6 @@ var
     VerboseSwitches,
     CodegenSwitches,
     OptimizationSwitches,
-    OptimizingGoalSwitches,
     ProcessorCodeGenerationSwitches,
     ProcessorOptimizationSwitches,
     AsmReaderSwitches,
@@ -250,10 +249,10 @@ const
       opt_objmethcallvalid = 'Object ~m~ethod call checking';
       { Code generation }
       opt_pic = '~P~osition independent code';
-      opt_smart = '~C~reate smartlinkable units';
+      opt_smart = 'Create smart~l~inkable units';
       { Code options }
       //opt_generatefastercode = 'Generate ~f~aster code';
-      opt_generatesmallercode = 'Generate s~m~aller code';
+      opt_generatesmallercode = 'G~e~nerate smaller code';
       opt_useregistervariables = 'Use regis~t~er-variables';
       opt_uncertainoptimizations = '~U~ncertain optimizations';
       opt_level1optimizations = 'Level ~1~ optimizations';
@@ -790,7 +789,7 @@ end;
 
 procedure TSwitches.SetCurrSel(index:integer);
 begin
-  if IsSel then
+  if index<ItemCount then
    SelNr[SwitchesMode]:=index;
 end;
 
@@ -958,7 +957,6 @@ begin
      SyntaxSwitches^.WriteItemsCfg;
      CodegenSwitches^.WriteItemsCfg;
      OptimizationSwitches^.WriteItemsCfg;
-     OptimizingGoalSwitches^.WriteItemsCfg;
      ProcessorCodeGenerationSwitches^.WriteItemsCfg;
      ProcessorOptimizationSwitches^.WriteItemsCfg;
      AsmReaderSwitches^.WriteItemsCfg;
@@ -1025,10 +1023,9 @@ begin
        'F' : res:=DirectorySwitches^.ReadItemsCfg(s);
        'g' : res:=DebugInfoSwitches^.ReadItemsCfg(s);
        'O' : begin
-               res:=true;
-               if not OptimizationSwitches^.ReadItemsCfg(s) then
-                 if not ProcessorOptimizationSwitches^.ReadItemsCfg(s) then
-                   res:=OptimizingGoalSwitches^.ReadItemsCfg(s);
+               res:=OptimizationSwitches^.ReadItemsCfg(s);
+               if not res then
+                 res:=ProcessorOptimizationSwitches^.ReadItemsCfg(s);
              end;
        'M' : res:=CompilerModeSwitches^.ReadItemsCfg(s);
        'p' : res:=ProfileInfoSwitches^.ReadItemsCfg(s);
@@ -1211,15 +1208,10 @@ begin
      AddBooleanItem(opt_pic,'g',idNone);
      AddBooleanItem(opt_smart,'X',idNone);
    end;
-  New(OptimizingGoalSwitches,InitSelect('O'));
-  with OptimizingGoalSwitches^ do
-    begin
-       //AddSelectItem(opt_generatefastercode,'G',idNone);
-       AddSelectItem(opt_generatesmallercode,'s',idNone);
-    end;
   New(OptimizationSwitches,Init('O'));
   with OptimizationSwitches^ do
    begin
+     AddBooleanItem(opt_generatesmallercode,'s',idNone);
 {$ifdef I386}
      AddBooleanItem(opt_useregistervariables,'oregvar',idNone);
      AddBooleanItem(opt_uncertainoptimizations,'ouncertain',idNone);
@@ -1435,7 +1427,7 @@ begin
        { inline allowed }
        SyntaxSwitches^.SetBooleanItem(3,true);
        { Exe size complaints are louder than speed complaints: Optimize for size by default. }
-       OptimizingGoalSwitches^.SetCurrSel(1);
+       OptimizationSwitches^.SetBooleanItem(0,true);
        case i of
           om_debug:
             begin
@@ -1455,16 +1447,16 @@ begin
           om_normal:
             begin
                {Register variables.}
-               OptimizationSwitches^.SetBooleanItem(0,true);
+               OptimizationSwitches^.SetBooleanItem(1,true);
                {Level 1 optimizations.}
-               OptimizationSwitches^.SetBooleanItem(2,true);
+               OptimizationSwitches^.SetBooleanItem(3,true);
             end;
           om_release:
             begin
                {Register variables.}
-               OptimizationSwitches^.SetBooleanItem(0,true);
+               OptimizationSwitches^.SetBooleanItem(1,true);
                {Level 2 optimizations.}
-               OptimizationSwitches^.SetBooleanItem(3,true);
+               OptimizationSwitches^.SetBooleanItem(4,true);
                {Smart linking.}
                LibLinkerSwitches^.SetCurrSel(3);
                CodegenSwitches^.SetBooleanItem(6,true);
@@ -1486,7 +1478,6 @@ begin
   dispose(VerboseSwitches,Done);
   dispose(CodegenSwitches,Done);
   dispose(OptimizationSwitches,Done);
-  dispose(OptimizingGoalSwitches,Done);
   dispose(ProcessorOptimizationSwitches,Done);
   dispose(ProcessorCodeGenerationSwitches,Done);
   dispose(BrowserSwitches,Done);
@@ -1575,7 +1566,6 @@ begin
   EnumSwitches(VerboseSwitches);
   EnumSwitches(CodegenSwitches);
   EnumSwitches(OptimizationSwitches);
-  EnumSwitches(OptimizingGoalSwitches);
   EnumSwitches(ProcessorOptimizationSwitches);
   EnumSwitches(ProcessorCodeGenerationSwitches);
   EnumSwitches(AsmReaderSwitches);
