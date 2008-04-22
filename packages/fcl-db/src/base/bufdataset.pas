@@ -276,35 +276,13 @@ implementation
 
 uses variants, dbconst;
 
-function DBCompareTextLen(substr, astr: pchar; len : integer; options: TLocateOptions): int64;
-
-var
-  i : integer; Chr1, Chr2: byte;
-begin
-  result := 0;
-  i := 0;
-  chr1 := 1;
-  while (result=0) and (i<=len) and (chr1 <> 0) do
-    begin
-    Chr1 := byte(substr[i]);
-    Chr2 := byte(astr[i]);
-    inc(i);
-    if loCaseInsensitive in options then
-      begin
-      if Chr1 in [97..122] then
-        dec(Chr1,32);
-      if Chr2 in [97..122] then
-        dec(Chr2,32);
-      end;
-    result := Chr1 - Chr2;
-    end;
-  if (result <> 0) and (chr1 = 0) and (loPartialKey in options) then result := 0;
-end;
-
 function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := DBCompareTextLen(subValue,aValue,Length(pchar(subValue)),options);
+  if loCaseInsensitive in options then
+    Result := AnsiCompareText(pchar(subValue),pchar(aValue))
+  else
+    Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
 end;
 
 function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
