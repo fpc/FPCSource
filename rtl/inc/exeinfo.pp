@@ -366,7 +366,7 @@ begin
   begin
    E.ImgOffset := DosHeader.e_cp * ParagraphSize;
    if DosHeader.e_cblp > 0 then
-    E.ImgOffset := E.ImgOffset + DosHeader.e_cblp - 512;
+    E.ImgOffset := E.ImgOffset + DosHeader.e_cblp - ParagraphSize;
   end;
   if e.size < E.ImgOffset + sizeof(coffheader) then
    exit;
