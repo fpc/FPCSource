@@ -7378,6 +7378,7 @@ tests/test/timplements3.pp svneol=native#text/plain
 tests/test/timplements4.pp svneol=native#text/plain
 tests/test/timplements4a.pp svneol=native#text/plain
 tests/test/timplements4b.pp svneol=native#text/plain
+tests/test/timplements7.pp svneol=native#text/plain
 tests/test/timplprog.pp svneol=native#text/plain
 tests/test/tindex.pp svneol=native#text/plain
 tests/test/tinivar.pp svneol=native#text/plain
