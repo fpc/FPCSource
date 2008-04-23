@@ -1535,7 +1535,10 @@ type
     //!!!!   Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
   public
     //!! Moved temporary
+    // fpdoc doesn't handle this yet :(
+{$ifndef fpdocsystem}
     function IInterfaceComponentReference.GetComponent=iicrgetcomponent;
+{$endif}    
     procedure WriteState(Writer: TWriter); virtual;
     constructor Create(AOwner: TComponent); virtual;
     procedure BeforeDestruction; override;
