@@ -94,6 +94,7 @@ implementation
 
 procedure TSQLDBConnector.CreateFConnection;
 var i : TSQLDBTypes;
+    t : integer;
 begin
   for i := low(DBTypesNames) to high(DBTypesNames) do
     if UpperCase(dbconnectorparams) = DBTypesNames[i] then sqldbtype := i;
@@ -102,6 +103,13 @@ begin
     
   if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
   if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
+  if SQLDbType in [mysql40,mysql41] then
+    begin
+    // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
+    // fields on insertion. So to test properly, we have to do the same
+    for t := 0 to testValuesCount-1 do
+      testStringValues[t] := TrimRight(testStringValues[t]);
+    end;
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
   if SQLDbType in MySQLdbTypes then
     FieldtypeDefinitions[ftLargeint] := 'BIGINT';
