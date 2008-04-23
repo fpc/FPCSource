@@ -704,7 +704,7 @@ End;
 procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; [Public,Alias:'FPC_WRITE_TEXT_ENUM']; compilerproc;
 
 type  Ptypeinfo=^Ttypeinfo;
-      Ttypeinfo=record
+      Ttypeinfo=packed record
         kind:byte;
         name:shortstring;
        end;
