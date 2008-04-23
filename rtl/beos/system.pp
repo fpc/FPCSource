@@ -272,11 +272,12 @@ begin
   begin
     paramstr := execpathstr;
   end
-  else
+  else if (l < argc) then
   begin
-    paramstr := '';
     paramstr:=strpas(argv[l]);
-  end;
+  end
+  else
+    paramstr := '';
 end;
 
 Procedure Randomize;

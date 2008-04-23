@@ -448,7 +448,11 @@ end;
 
 procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest);
 const
+{$ifdef FPC_BIG_ENDIAN}
+  PADDING_MD45: array[0..15] of Cardinal = ($80000000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+{$else FPC_BIG_ENDIAN}
   PADDING_MD45: array[0..15] of Cardinal = ($80,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+{$endif FPC_BIG_ENDIAN}
 var
   Length: QWord;
   Pads: Cardinal;
@@ -468,7 +472,7 @@ begin
         MDUpdate(Context, PADDING_MD45, Pads);
 
         // 3. Append length of the stream
-        Invert(@Length, @Length, 8);
+        Length := NtoLE(Length);
         MDUpdate(Context, Length, 8);
 
         // 4. Invert state to digest
@@ -478,7 +482,7 @@ begin
     MD_VERSION_2:
       begin
         Pads := 16 - Context.BufCnt;
-        Length := Pads;
+        Length := NtoLE(QWord(Pads));
         while Pads > 0 do
         begin
           MDUpdate(Context, Length, 1);

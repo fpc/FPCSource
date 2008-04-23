@@ -203,7 +203,7 @@ end;
        b1:=shortint(byte1);
        b2:=shortint(byte2);
        { Decode the CHR OPCODE }
-       Decode:=smallint(((b1 and $80) shr 6)+((b2 and $80) shr 7));
+       Decode:=byte((shortint(b1 and $80) shr 6)+(shortint(b2 and $80) shr 7));
        { Now get the X,Y coordinates        }
        { bit 0..7 only which are considered }
        { signed values.                     }

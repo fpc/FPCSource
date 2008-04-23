@@ -933,15 +933,82 @@ begin
 end;
 
 
+   procedure qaddmode(modenr,xres,yres,colors: longint);
+   var
+     mode: TModeInfo;
+   begin
+     InitMode(Mode);
+     With Mode do
+       begin
+         ModeNumber := modenr;
+         ModeName := ModeNames[modenr];
+         // Always pretend we are VGA.
+         DriverNumber := VGA;
+         // MaxX is number of pixels in X direction - 1
+         MaxX := xres-1;
+         // same for MaxY
+         MaxY := yres-1;
+         YAspect := 10000;
+         XAspect := 10000;
+         MaxColor := colors;
+         PaletteSize := MaxColor;
+         directcolor := colors>256;
+         HardwarePages := 0;
+         // necessary hooks ...
+         DirectPutPixel := @q_DirectPixelProc;
+         GetPixel       := @q_GetPixelProc;
+         PutPixel       := @q_PutPixelProc;
+         { May be implemented later: }
+         HLine          := @q_HLineProc;
+         VLine          := @q_VLineProc;
+  {           GetScanLine    := @q_GetScanLineProc;}
+         ClearViewPort  := @q_ClrViewProc;
+         SetRGBPalette  := @q_SetRGBPaletteProc;
+         GetRGBPalette  := @q_GetRGBPaletteProc;
+         { These are not really implemented yet:
+         PutImage       := @q_PutImageProc;
+         GetImage       := @q_GetImageProc;}
+  {          If you use the default getimage/putimage, you also need the default
+         imagesize! (JM)
+          ImageSize      := @q_ImageSizeProc; }
+         { Add later maybe ?
+         SetVisualPage  := SetVisualPageProc;
+         SetActivePage  := SetActivePageProc; }
+         Line           := @q_LineProc;
+  {
+         InternalEllipse:= @q_EllipseProc;
+         PatternLine    := @q_PatternLineProc;
+         }
+         InitMode       := @SendInitGraph;
+       end;
+     AddMode(Mode);
+   end;
+
+
+  function toval(const s: string): size_t;
+    var
+      err: longint;
+    begin
+      val(s,toval,err);
+      if (err<>0) then
+        begin
+          writeln('Error decoding mode: ',s,' ',err);
+          runerror(218);
+        end;
+    end;
+
+
   function QueryAdapterInfo:PModeInfo;
   { This routine returns the head pointer to the list }
   { of supported graphics modes.                      }
   { Returns nil if no graphics mode supported.        }
   { This list is READ ONLY!                           }
    var
-    mode: TModeInfo;
-    i : longint;
-
+     colorstr: string;
+     i, hpos, cpos : longint;
+     xres, yres, colors,
+     dispxres, dispyres: longint;
+     dispcolors: int64;
    begin
      QueryAdapterInfo := ModeList;
      { If the mode listing already exists... }
@@ -949,64 +1016,45 @@ end;
      { anything...                           }
      if assigned(ModeList) then
        exit;
+     dispxres:=CGDisplayPixelsWide(kCGDirectMainDisplay);
+     { adjust for the menu bar and window title height }
+     { (the latter approximated to the same as the menu bar) }
+     dispyres:=CGDisplayPixelsHigh(kCGDirectMainDisplay)-GetMBarHeight*2;
+     dispcolors:=int64(1) shl CGDisplayBitsPerPixel(kCGDirectMainDisplay);
      SaveVideoState:=@q_savevideostate;
      RestoreVideoState:=@q_restorevideostate;
-//     For I:=0 to GLastMode do
-     i := 10;
+     for i := 1 to GLASTMODE do
        begin
-         begin
-         InitMode(Mode);
-         With Mode do
-           begin
-           ModeNumber:=I;
-           ModeName:=ModeNames[i];
-           // Always pretend we are VGA.
-           DriverNumber := VGA;
-           // MaxX is number of pixels in X direction - 1
-           MaxX:=640-1;
-           // same for MaxY
-           MaxY:=480-1;
-           YAspect:=10000;
-           if ((MaxX+1)*35=(MaxY+1)*64) then
-             XAspect:=7750
-           else if ((MaxX+1)*20=(MaxY+1)*64) then
-             XAspect:=4500
-           else if ((MaxX+1)*40=(MaxY+1)*64) then
-             XAspect:=8333
-           else { assume 4:3 }
-             XAspect:=10000;
-           MaxColor := 256;
-           PaletteSize := MaxColor;
-           HardwarePages := 0;
-           // necessary hooks ...
-           DirectPutPixel := @q_DirectPixelProc;
-           GetPixel       := @q_GetPixelProc;
-           PutPixel       := @q_PutPixelProc;
-           { May be implemented later: }
-           HLine          := @q_HLineProc;
-           VLine          := @q_VLineProc;
-{           GetScanLine    := @q_GetScanLineProc;}
-           ClearViewPort  := @q_ClrViewProc;
-           SetRGBPalette  := @q_SetRGBPaletteProc;
-           GetRGBPalette  := @q_GetRGBPaletteProc;
-           { These are not really implemented yet:
-           PutImage       := @q_PutImageProc;
-           GetImage       := @q_GetImageProc;}
-{          If you use the default getimage/putimage, you also need the default
-           imagesize! (JM)
-            ImageSize      := @q_ImageSizeProc; }
-           { Add later maybe ?
-           SetVisualPage  := SetVisualPageProc;
-           SetActivePage  := SetActivePageProc; }
-           Line           := @q_LineProc;
+         { get the mode info from the names }
+         hpos:=2;
+         while modenames[i][hpos]<>'x' do
+           inc(hpos);
+         inc(hpos);
+         cpos:=hpos;
+         while modenames[i][cpos]<>'x' do
+           inc(cpos);
+         inc(cpos);
+         xres:=toval(copy(modenames[i],2,hpos-3));
+         yres:=toval(copy(modenames[i],hpos,cpos-hpos-1));
+         colorstr:=copy(modenames[i],cpos,255);
+         if (colorstr='16') then
+           colors:=16
+         else if (colorstr='256') then
+           colors:=256
 {
-           InternalEllipse:= @q_EllipseProc;
-           PatternLine    := @q_PatternLineProc;
-           }
-           InitMode       := @SendInitGraph;
-           end;
-         AddMode(Mode);
-         end;
+         These don't work very well 
+         else if (colorstr='32K') then
+           colors:=32768
+         else if (colorstr='64K') then
+           colors:=65536
+}
+         else 
+//           1/24/32 bit not supported
+           continue;
+         if (xres <= dispxres) and
+            (yres <= dispyres) and
+            (colors <= dispcolors) then
+           qaddmode(i,xres,yres,colors);
        end;
    end;
 
@@ -1063,7 +1111,7 @@ type
     envp: ppchar;
   end;
 
-procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: ppchar); external name '_FPCMacOSXGraphMain';
+procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: ppchar); cdecl; external;
 
 function wrapper(p: pointer): pointer; cdecl;
   var
