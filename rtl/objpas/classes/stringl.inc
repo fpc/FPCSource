@@ -567,6 +567,7 @@ begin
       FQuoteChar:=S.FQuoteChar;
       FDelimiter:=S.FDelimiter;
       FNameValueSeparator:=S.FNameValueSeparator;
+      FLBS:=S.FLBS;
       AddStrings(S);
     finally
       EndUpdate;
