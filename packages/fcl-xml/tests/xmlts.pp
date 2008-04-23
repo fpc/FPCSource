@@ -49,7 +49,6 @@ type
     FPassed, FFailCount: Integer;
     FFalsePasses: Integer;
     FRootUri: string;
-    FTemplateName: string;
     FSuiteName: string;
     FDoc: TXMLDocument;
     FValidating: Boolean;
@@ -64,12 +63,12 @@ type
     table_informative: TDOMNode;
     FValError: string;
     FTestID: DOMString;
+    FErrLine, FErrCol: Integer;
     procedure LoadTemplate(const Name: string);
     procedure HandleTemplatePIs(Element: TDOMNode);
     procedure Diagnose(Element, Table: TDOMNode; Category: TDiagCategory; const Error: DOMString);
     procedure DiagnoseOut(const ErrorMsg: DOMString);
     function CompareNodes(actual, correct: TDOMNode; out Msg: string): Boolean;
-    procedure Canonicalize(node: TDOMNode);
     procedure ErrorHandler(Error: EXMLReadError);
   public
     constructor Create;
@@ -133,10 +132,20 @@ begin
   inherited Create;
   FParser := TDOMParser.Create;
   FParser.Options.PreserveWhitespace := True;
+  FParser.Options.ExpandEntities := True;
+  FParser.Options.IgnoreComments := True;
+  FParser.Options.CDSectionsAsText := True;
 end;
 
 procedure TTestSuite.ErrorHandler(Error: EXMLReadError);
 begin
+  // allow fatal error position to override that of validation error
+  if (FErrLine < 0) or (Error.Severity = esFatal) then
+  begin
+    FErrLine := Error.Line;
+    FErrCol := Error.LinePos;
+  end;  
+
   if Error.Severity = esError then
   begin
     if FValError = '' then // fetch the _first_ message
@@ -345,6 +354,8 @@ var
   I: Integer;
   root: UTF8String;
 begin
+  FErrLine := -1;
+  FErrCol := -1;
   FTestID := Element['ID'];
   TestType := Element['TYPE'];
   root := GetBaseURI(Element, FRootUri);
@@ -382,12 +393,16 @@ begin
   try
     try
       FParser.Options.Validate := FValidating;
+//      FParser.Options.Namespaces := (Element['NAMESPACE'] <> 'no');
       FParser.OnError := {$IFDEF FPC}@{$ENDIF}ErrorHandler;
       FParser.ParseUri(s, TempDoc);
     except
       on E: Exception do
         if E.ClassType <> EAbort then
+        begin
           FailMsg := E.Message;
+          FValError := '';
+        end;
     end;
 
     if table = table_informative then
@@ -412,12 +427,22 @@ begin
       begin
         if FailMsg <> '' then  // Fatal error
         begin
-          Inc(FFalsePasses);
-          Diagnose(Element, table, dcPass, FailMsg);
+          { outside not-wf category it is a test failure }
+          if table <> table_not_wf then
+          begin
+            Inc(FFailCount);
+            Diagnose(Element, table, dcFail, FailMsg);
+          end
+          else
+          begin
+            Inc(FFalsePasses);
+            Diagnose(Element, table, dcPass, FailMsg);
+          end;
         end
         else
         begin
-          if table = table_not_wf then  // validation error here is a test failure!
+          { outside invalid category it is a test failure }
+          if table = table_not_wf then
           begin
             Inc(FFailCount);
             Diagnose(Element, table, dcFail, FValError);
@@ -448,7 +473,6 @@ begin
       end;
 
     if outURI = '' then Exit;
-    Canonicalize(TempDoc);
     TempDoc.DocumentElement.Normalize;
     try
       // reference data must be parsed in non-validating mode because it contains DTDs
@@ -627,8 +651,7 @@ begin
   table_output.AppendChild(tr);
 end;
 
-
-procedure TTestSuite.Canonicalize(node: TDOMNode);
+procedure Canonicalize(node: TDOMNode);
 var
   child, work: TDOMNode;
   Frag: TDOMDocumentFragment;
@@ -772,9 +795,8 @@ begin
   with TTestSuite.Create do
   try
     FSuiteName := SuiteName;
-    FTemplateName := TemplateName;
     FValidating := Validation;
-    LoadTemplate(FTemplateName);
+    LoadTemplate(TemplateName);
     if Assigned(FTemplate) then
     begin
       Run(FSuiteName);

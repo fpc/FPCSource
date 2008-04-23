@@ -22,7 +22,8 @@ interface
 uses
   SysUtils;
 
-function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean;
+function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean; overload;
+function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
 function IsXmlNames(const Value: WideString; Xml11: Boolean = False): Boolean;
 function IsXmlNmToken(const Value: WideString; Xml11: Boolean = False): Boolean;
 function IsXmlNmTokens(const Value: WideString; Xml11: Boolean = False): Boolean;
@@ -64,7 +65,18 @@ begin
   Result := Xml11Pg;
 end;
 
-function IsXml11Char(const Value: WideString; var Index: Integer): Boolean;
+function IsXml11Char(Value: PWideChar; var Index: Integer): Boolean; overload;
+begin
+  if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
+  begin
+    Inc(Index);
+    Result := (Value[Index] >= #$DC00) and (Value[Index] <= #$DFFF);
+  end
+  else
+    Result := False;
+end;
+
+function IsXml11Char(const Value: WideString; var Index: Integer): Boolean; overload;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
   begin
@@ -76,6 +88,11 @@ begin
 end;
 
 function IsXmlName(const Value: WideString; Xml11: Boolean): Boolean;
+begin
+  Result := IsXmlName(PWideChar(Value), Length(Value), Xml11);
+end;
+
+function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
 var
   Pages: PByteArray;
   I: Integer;
@@ -86,12 +103,12 @@ begin
   else
     Pages := @NamePages;
 
-  I := 1;
-  if (Value = '') or not ((Byte(Value[I]) in NamingBitmap[Pages^[hi(Word(Value[I]))]]) or
+  I := 0;
+  if (Len = 0) or not ((Byte(Value[I]) in NamingBitmap[Pages^[hi(Word(Value[I]))]]) or
     (Xml11 and IsXml11Char(Value, I))) then
       Exit;
   Inc(I);
-  while I <= Length(Value) do
+  while I < Len do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
       (Xml11 and IsXml11Char(Value, I))) then

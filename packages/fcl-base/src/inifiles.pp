@@ -253,7 +253,7 @@ begin
 
   I := FValueHash.FindIndexOf(S);
   if I >= 0 then
-    Result := Integer(FValueHash[I])
+    Result := Integer(FValueHash[I])-1
   else
     Result := -1;
 end;
@@ -267,7 +267,7 @@ begin
 
   I := FNameHash.FindIndexOf(Name);
   if I >= 0 then
-    Result := Integer(FNameHash[I])
+    Result := Integer(FNameHash[I])-1
   else
     Result := -1;
 end;
@@ -288,7 +288,7 @@ begin
   else
     FValueHash.Clear;
   for I := 0 to Count - 1 do
-    FValueHash.Add(Strings[I], Pointer(I));
+    FValueHash.Add(Strings[I], Pointer(I+1));
   FValueHashValid := True;
 end;
 
@@ -301,7 +301,7 @@ begin
   else
     FNameHash.Clear;
   for I := 0 to Count - 1 do
-    FNameHash.Add(Names[I], Pointer(I));
+    FNameHash.Add(Names[I], Pointer(I+1));
   FNameHashValid := True;
 end;
 
