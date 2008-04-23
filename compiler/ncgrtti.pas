@@ -393,7 +393,6 @@ implementation
            hp : tenumsym;
         begin
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkEnumeration));
-          current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(cshortstringtype.alignment));	  
           write_rtti_name(def);
           if (tf_requires_proper_alignment in target_info.flags) then
             current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
