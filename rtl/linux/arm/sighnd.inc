@@ -33,6 +33,7 @@ begin
           begin
             res:=0;
             cpu_has_edsp:=false;
+            inc(uContext^.uc_mcontext.arm_pc,4);
           end
         else
           res:=216;
@@ -44,7 +45,7 @@ begin
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(uContext^.uc_mcontext.arm_ip),pointer(uContext^.uc_mcontext.arm_fp));
+    HandleErrorAddrFrame(res,pointer(uContext^.uc_mcontext.arm_pc),pointer(uContext^.uc_mcontext.arm_fp));
 end;
 
 
