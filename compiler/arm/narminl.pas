@@ -49,7 +49,6 @@ interface
         procedure second_sin_real; override;
         }
         procedure second_prefetch; override;
-        procedure second_incdec; override;
       private
         procedure load_fpu_location;
       end;
@@ -224,15 +223,6 @@ implementation
           end;
       end;
 
-
-    procedure tarminlinenode.second_incdec;
-      begin
-        inherited second_incdec;
-        { Strip result if inc/dec is performed in register on value less than 32-bit }
-        with tcallparanode(left).left.location do
-          if (loc in [LOC_REGISTER,LOC_CREGISTER]) and (tcgsize2size[size]<sizeof(aint)) then
-            cg.a_load_reg_reg(current_asmdata.CurrAsmList, size, OS_32, register, register)
-      end;
 
 begin
   cinlinenode:=tarminlinenode;
