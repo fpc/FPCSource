@@ -1,4 +1,4 @@
-{ %target=win32, wince }
+{ %target=win32 }
 
 uses
   CommDlg;
