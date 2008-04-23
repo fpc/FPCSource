@@ -2390,8 +2390,20 @@ implementation
                   ord(currvcl in conflictvcls)-ord(bestvcl in conflictvcls);
         end;
 
+
+        function getfirstrealparaidx(pd: pcandidate): integer;
+          begin
+            { can be different for currpd and bestpd in case of overloaded }
+            { functions, e.g. lowercase():char and lowercase():shortstring }
+            { (depending on the calling convention and parameter order)    }
+            result:=pd^.firstparaidx;
+            while (result>=0) and (vo_is_hidden_para in tparavarsym(pd^.data.paras[result]).varoptions) do
+              dec(result);
+            if (vo_is_hidden_para in tparavarsym(pd^.data.paras[result]).varoptions) then
+              internalerror(2006122803);
+          end;
+
       var
-        paraidx : integer;
         currpara, bestpara: tparavarsym;
         currvcl, bestvcl: tvariantequaltype;
       begin
@@ -2401,18 +2413,8 @@ implementation
             < 0 when bestpd is better than currpd
             = 0 when both are equal
         }
-        if (currpd^.firstparaidx<>bestpd^.firstparaidx) then
-          internalerror(2006122801);
-         paraidx:=currpd^.firstparaidx;
-         while (paraidx>=0) and (vo_is_hidden_para in tparavarsym(currpd^.data.paras[paraidx]).varoptions) do
-           if (vo_is_hidden_para in tparavarsym(bestpd^.data.paras[paraidx]).varoptions) then
-             dec(paraidx)
-           else
-             internalerror(2006122802);
-        if (vo_is_hidden_para in tparavarsym(currpd^.data.paras[paraidx]).varoptions) then
-          internalerror(2006122803);
-        currpara:=tparavarsym(currpd^.data.paras[paraidx]);
-        bestpara:=tparavarsym(bestpd^.data.paras[paraidx]);
+        currpara:=tparavarsym(currpd^.data.paras[getfirstrealparaidx(currpd)]);
+        bestpara:=tparavarsym(bestpd^.data.paras[getfirstrealparaidx(bestpd)]);
 
         { if one of the parameters is a regular variant, fall back to the }
         { default algorithm                                               }

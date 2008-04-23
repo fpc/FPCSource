@@ -1959,6 +1959,7 @@ begin
             case taicpu(p).opcode Of
               A_CALL:
                 if (current_settings.optimizecputype < cpu_Pentium2) and
+                   not(cs_create_pic in current_settings.moduleswitches) and
                    GetNextInstruction(p, hp1) and
                    (hp1.typ = ait_instruction) and
                    (taicpu(hp1).opcode = A_JMP) and
