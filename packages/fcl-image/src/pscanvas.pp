@@ -218,11 +218,13 @@ Resourcestring
 { TPostScriptCanvas ----------------------------------------------------------}
 
 Procedure TPostScriptCanvas.WritePS(const Cmd : String);
-
+var
+  ss : shortstring;
 begin
   If length(Cmd)>0 then
     FStream.Write(Cmd[1],Length(Cmd));
-  FStream.Write(LineEnding,SizeOf(LineEnding));
+  ss:=LineEnding;
+  FStream.Write(ss[1],Length(ss));
 end;
 
 Procedure TPostScriptCanvas.WritePS(Const Fmt : String; Args : Array of Const);
@@ -586,11 +588,13 @@ begin
 end;
 
 Procedure TPostScript.WritePS(const Cmd : String);
-
+var
+  ss : shortstring;
 begin
   If length(Cmd)>0 then
     FStream.Write(Cmd[1],Length(Cmd));
-  FStream.Write(LineEnding,SizeOf(LineEnding));
+  ss:=LineEnding;
+  FStream.Write(ss[1],Length(ss));
 end;
 
 Procedure TPostScript.WritePS(Const Fmt : String; Args : Array of Const);

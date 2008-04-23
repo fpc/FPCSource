@@ -75,7 +75,7 @@ end;
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
   result.Date := Trunc(msecs / msecsperday);
-  msecs:= comp(msecs-result.date*msecsperday);
+  msecs:= msecs-comp(result.date)*msecsperday;
   result.Time := Round(MSecs);
 end ;
 

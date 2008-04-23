@@ -1280,6 +1280,7 @@ begin
       FHashList := nil;
     end;
   SetHashCapacity(1);
+  FHashTable^[0]:=longword(-1); // sethashcapacity does not always call rehash
   if Assigned(FStrs) then
     begin
       FStrCount:=0;

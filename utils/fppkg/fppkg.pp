@@ -30,7 +30,6 @@ Type
 
   TMakeTool = Class(TCustomApplication)
   Private
-    ActionStack  : TActionStack;
     ParaAction   : string;
     ParaPackages : TStringList;
     procedure MaybeCreateLocalDirs;
@@ -174,13 +173,11 @@ Constructor TMakeTool.Create;
 begin
   inherited Create(nil);
   ParaPackages:=TStringList.Create;
-  ActionStack:=TActionStack.Create;
 end;
 
 
 Destructor TMakeTool.Destroy;
 begin
-  FreeAndNil(ActionStack);
   FreeAndNil(ParaPackages);
   inherited Destroy;
 end;
@@ -245,6 +242,8 @@ begin
         GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
         GlobalOptions.RecoveryMode:=true
+      else if CheckOption(I,'b','broken') then
+        GlobalOptions.AllowBroken:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
@@ -273,8 +272,8 @@ procedure TMakeTool.DoRun;
 var
   ActionPackage : TFPPackage;
   OldCurrDir : String;
-  Res    : Boolean;
   i      : Integer;
+  SL     : TStringList;
 begin
   OldCurrDir:=GetCurrentDir;
   Try
@@ -289,14 +288,14 @@ begin
     if not FileExists(GlobalOptions.LocalPackagesFile) then
       begin
         try
-          pkghandler.ExecuteAction(nil,'update');
+          pkghandler.ExecuteAction('','update');
         except
           on E: Exception do
             Log(vlWarning,E.Message);
         end;
       end;
-    LoadLocalMirrors;
-    LoadLocalRepository;
+    LoadLocalAvailableMirrors;
+    LoadLocalAvailableRepository;
     FindInstalledPackages(FPMakeCompilerOptions,true);
     CheckFPMakeDependencies;
     // We only need to reload the status when we use a different
@@ -304,10 +303,20 @@ begin
     if GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig then
       FindInstalledPackages(CompilerOptions,true);
 
+    // Check for broken dependencies
+    if not GlobalOptions.AllowBroken and
+       not((ParaPackages.Count=0) and (ParaAction='fixbroken')) then
+      begin
+        SL:=TStringList.Create;
+        if FindBrokenPackages(SL) then
+          Error(SErrBrokenPackagesFound);
+        FreeAndNil(SL);
+      end;
+
     if ParaPackages.Count=0 then
       begin
-        Log(vlDebug,SLogCommandLineAction,['[<currentdir>]',ParaAction]);
-        res:=pkghandler.ExecuteAction(nil,ParaAction);
+        ActionPackage:=InstalledRepository.AddPackage(CurrentDirPackageName);
+        pkghandler.ExecuteAction(CurrentDirPackageName,ParaAction);
       end
     else
       begin
@@ -316,22 +325,21 @@ begin
           begin
             if FileExists(ParaPackages[i]) then
               begin
-                ActionPackage:=LoadOrCreatePackage(ChangeFileExt(ExtractFileName(ParaPackages[i]),''));
-                ActionPackage.FileName:=ExpandFileName(ParaPackages[i]);
-                ActionPackage.IsLocalPackage:=true;
-                res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
-                FreeAndNil(ActionPackage);
+                ActionPackage:=InstalledRepository.AddPackage(CmdLinePackageName);
+                ActionPackage.LocalFileName:=ExpandFileName(ParaPackages[i]);
+                pkghandler.ExecuteAction(CmdLinePackageName,ParaAction);
               end
             else
               begin
-                ActionPackage:=CurrentRepository.PackageByName(ParaPackages[i]);
-                Log(vlDebug,SLogCommandLineAction,['['+ActionPackage.Name+']',ParaAction]);
-                res:=pkghandler.ExecuteAction(ActionPackage,ParaAction);
+                Log(vlDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
+                pkghandler.ExecuteAction(ParaPackages[i],ParaAction);
               end;
-            if not res then
-              break;
           end;
       end;
+
+    // Recompile all packages dependent on this package
+    if (ParaAction='install') then
+      pkghandler.ExecuteAction('','fixbroken');
 
     Terminate;
 

@@ -52,7 +52,7 @@ Type
 
   // Please keep this order, see OSCPUSupported below
   TCpu=(cpuNone,
-    i386,m68k,powerpc,sparc,x86_64,arm,powerpc64
+    i386,m68k,powerpc,sparc,x86_64,arm,powerpc64,avr,armeb
   );
   TCPUS = Set of TCPU;
 
@@ -71,7 +71,7 @@ Type
   TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram);
   TTargetTypes = set of TTargetType;
 
-  TTargetState = (tsNeutral,tsNeedCompile,tsNoCompile,tsCompiling,tsCompiled,tsInstalled,tsNotFound);
+  TTargetState = (tsNeutral,tsConsidering,tsNoCompile,tsCompiled,tsInstalled,tsNotFound);
   TTargetStates = Set of TTargetState;
 
   TSourceType = (stDoc,stSrc,stExample,stTest);
@@ -109,35 +109,35 @@ Const
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
-    { os          none   i386   m68k   ppc    sparc  x86_64 arm    ppc64}
-    { none  }   ( false, false, false, false, false, false, false, false),
-    { linux }   ( false, true,  true,  true,  true,  true,  true,  true ),
-    { go32v2 }  ( false, true,  false, false, false, false, false, false),
-    { win32 }   ( false, true,  false, false, false, false, false, false),
-    { os2 }     ( false, true,  false, false, false, false, false, false),
-    { freebsd } ( false, true,  true,  false, false, true,  false, false),
-    { beos }    ( false, true,  false, false, false, false, false, false),
-    { netbsd }  ( false, false, false, false, false, false, false, false),
-    { amiga }   ( false, false, true,  true,  false, false, false, false),
-    { atari }   ( false, false, false, false, false, false, false, false),
-    { solaris } ( false, true,  false, false, true,  false, false, false),
-    { qnx }     ( false, false, false, false, false, false, false, false),
-    { netware } ( false, true,  false, false, false, false, false, false),
-    { openbsd } ( false, false, false, false, false, false, false, false),
-    { wdosx }   ( false, true,  false, false, false, false, false, false),
-    { palmos }  ( false, false, true,  false, false, false, true,  false),
-    { macos }   ( false, false, false, true,  false, false, false, false),
-    { darwin }  ( false, true,  false, true,  false, true,  false, true ),
-    { emx }     ( false, true,  false, false, false, false, false, false),
-    { watcom }  ( false, true,  false, false, false ,false, false, false),
-    { morphos } ( false, false, false, true,  false ,false, false, false),
-    { netwlibc }( false, true,  false, false, false, false, false, false),
-    { win64   } ( false, false, false, false, false, true,  false, false),
-    { wince    }( false, true,  false, false, false, false, true,  false),
-    { gba    }  ( false, false, false, false, false, false, true,  false),
-    { nds    }  ( false, false, false, false, false, false, true,  false),
-    { embedded }( false, false, false, false, false, false, true,  false),
-    { symbian } ( false, true,  false, false, false, false, true,  false)
+    { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb}
+    { none }    ( false, false, false, false, false, false, false, false, false, false),
+    { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true ),
+    { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false),
+    { win32 }   ( false, true,  false, false, false, false, false, false, false, false),
+    { os2 }     ( false, true,  false, false, false, false, false, false, false, false),
+    { freebsd } ( false, true,  true,  false, false, true,  false, false, false, false),
+    { beos }    ( false, true,  false, false, false, false, false, false, false, false),
+    { netbsd }  ( false, true,  true,  true,  true,  false, false, false, false, false),
+    { amiga }   ( false, false, true,  true,  false, false, false, false, false, false),
+    { atari }   ( false, false, true,  false, false, false, false, false, false, false),
+    { solaris } ( false, true,  false, false, true,  false, false, false, false, false),
+    { qnx }     ( false, true,  false, false, false, false, false, false, false, false),
+    { netware } ( false, true,  false, false, false, false, false, false, false, false),
+    { openbsd } ( false, true,  true,  false, false, false, false, false, false, false),
+    { wdosx }   ( false, true,  false, false, false, false, false, false, false, false),
+    { palmos }  ( false, false, true,  false, false, false, true,  false, false, false),
+    { macos }   ( false, false, false, true,  false, false, false, false, false, false),
+    { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false),
+    { emx }     ( false, true,  false, false, false, false, false, false, false, false),
+    { watcom }  ( false, true,  false, false, false ,false, false, false, false, false),
+    { morphos } ( false, false, false, true,  false ,false, false, false, false, false),
+    { netwlibc }( false, true,  false, false, false, false, false, false, false, false),
+    { win64   } ( false, false, false, false, false, true,  false, false, false, false),
+    { wince    }( false, true,  false, false, false, false, true,  false, false, false),
+    { gba    }  ( false, false, false, false, false, false, true,  false, false, false),
+    { nds    }  ( false, false, false, false, false, false, true,  false, false, false),
+    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true ),
+    { symbian } ( false, true,  false, false, false, false, true,  false, false, false)
   );
 
   // Useful
@@ -308,6 +308,7 @@ Type
     // Package, Unit
     FTarget : TObject;
     FVersion : TFPVersion;
+    FRequireChecksum : Cardinal;
     // Filenames, Includes
     FTargetFileName : String;
     Function GetVersion : string;
@@ -319,6 +320,7 @@ Type
     Property DependencyType : TDependencyType Read FDependencyType;
     Property TargetFileName : String Read FTargetFileName Write FTargetFileName;
     Property Version : String Read GetVersion Write SetVersion;
+    Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
 
   TDependencies = Class(TConditionalStrings)
@@ -524,6 +526,7 @@ Type
     FCommands : TCommands;
     FDescriptionFile : String;
     FDescription : String;
+    FInstalledChecksum : Cardinal;
     // Cached directory of installed packages
     FUnitDir : String;
     Function GetDescription : string;
@@ -552,6 +555,7 @@ Type
     Property Directory : String Read FDirectory Write FDirectory;
     Property Description : String Read GetDescription Write FDescription;
     Property DescriptionFile : String Read FDescriptionFile Write FDescriptionFile;
+    Property InstalledChecksum : Cardinal Read FInstalledChecksum Write FInstalledChecksum;
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -957,6 +961,7 @@ ResourceString
   SErrInvalidFPCInfo    = 'Compiler returns invalid information, check if fpc -iV works';
   SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s"';
   SErrAlreadyInitialized = 'Installer can only be initialized once';
+  SErrInvalidState      = 'Invalid state for target %s';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -1006,6 +1011,7 @@ ResourceString
   SDbgArchivingFile         = 'Archiving "%s"';
   SDbgSearchPath            = 'Using %s path "%s"';
   SDbgEnterDir              = 'Entering directory "%s"';
+  SDbgPackageChecksumChanged = 'Dependent package %s is modified';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -1058,6 +1064,7 @@ Const
   // Keys for unit config
   KeyName     = 'Name';
   KeyVersion  = 'Version';
+  KeyChecksum = 'Checksum';
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
 
@@ -1854,6 +1861,7 @@ begin
   FCommands:=TCommands.Create(TCommand);
   FCPUs:=AllCPUs;
   FOSes:=AllOSes;
+  FInstalledChecksum:=$ffffffff;
   // Implicit dependency on RTL
   FDependencies.Add('rtl');
 end;
@@ -2064,7 +2072,10 @@ var
   L,L2 : TStrings;
   VOS : TOS;
   VCPU : TCPU;
-  i : Integer;
+  i,k : Integer;
+  DepChecksum : Cardinal;
+  DepName : String;
+  D : TDependency;
 begin
   L:=TStringList.Create;
   Try
@@ -2072,6 +2083,7 @@ begin
     With L do
       begin
         Version:=Values[KeyVersion];
+        InstalledChecksum:=Cardinal(StrToInt64Def(Values[KeyChecksum],$ffffffff));
         VCPU:=StringToCPU(Values[KeyCPU]);
         VOS:=StringToOS(Values[KeyOS]);
         OSes:=[VOS];
@@ -2079,7 +2091,19 @@ begin
         L2:=TStringList.Create;
         L2.CommaText:=Values[KeyDepends];
         for i:=0 to L2.Count-1 do
-          Dependencies.Add(L2[i],CPUs,OSes);
+          begin
+            DepName:=L2[i];
+            k:=Pos('|',DepName);
+            if k>0 then
+              begin
+                DepChecksum:=StrToInt(Copy(DepName,k+1,Length(DepName)-k));
+                DepName:=Copy(DepName,1,k-1);
+              end
+            else
+              DepChecksum:=$ffffffff;
+            D:=Dependencies.Add(DepName,CPUs,OSes);
+            D.RequireChecksum:=DepChecksum;
+          end;
         FreeAndNil(L2);
         NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
       end;
@@ -2096,6 +2120,7 @@ Var
   Deps : String;
   i : integer;
   D : TDependency;
+  p : TPackage;
 begin
   F:=TFileStream.Create(AFileName,fmCreate);
   L:=TStringList.Create;
@@ -2104,6 +2129,8 @@ begin
       begin
         Values[KeyName]:=Name;
         Values[KeyVersion]:=Version;
+        // TODO Generate checksum based on PPUs
+        Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
         Values[KeyCPU]:=CPUToString(ACPU);
         Values[KeyOS]:=OSToString(AOS);
         Deps:='';
@@ -2112,10 +2139,12 @@ begin
             D:=Dependencies[i];
             if (ACPU in D.CPUs) and (AOS in D.OSes) then
               begin
-                if Deps='' then
-                  Deps:=D.Value
-                else
-                  Deps:=Deps+','+D.Value;
+                if Deps<>'' then
+                  Deps:=Deps+',';
+                Deps:=Deps+D.Value;
+                P:=TPackage(D.Target);
+                if assigned(P) and (P.InstalledChecksum<>$ffffffff) then
+                  Deps:=Deps+'|'+IntToStr(P.InstalledChecksum);
               end;
           end;
         Values[KeyDepends]:=Deps;
@@ -3637,17 +3666,6 @@ Var
   OD,OFN : String;
 begin
   Result:=False;
-  case ATarget.State of
-    tsNeedCompile :
-      begin
-        result:=true;
-        exit;
-      end;
-    tsNoCompile,
-    tsCompiling,
-    tsCompiled :
-      exit;
-  end;
 
   // Forced recompile?
   if FForceCompile then
@@ -3693,7 +3711,7 @@ begin
                       Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);
                     // If a dependent package is compiled we always need to recompile
                     Log(vldebug, SDbgDependencyOnUnit, [ATarget.Name,T.Name]);
-                    Result:=(T.State in [tsNeedCompile,tsCompiling,tsCompiled]) or NeedsCompile(APackage,T);
+                    Result:=(T.State=tsCompiled);
                     if Result then
                       Log(vldebug, SDbgDependencyUnitRecompiled, [T.Name]);
                   end;
@@ -3709,14 +3727,8 @@ begin
         end;
     end;
 
-  // Upate also target state so a second check is faster
   if result then
-    begin
-      ATarget.FTargetState:=tsNeedCompile;
-      Log(vlDebug,SDbgMustCompile,[ATarget.Name]);
-    end
-  else
-    ATarget.FTargetState:=tsNoCompile;
+    Log(vlDebug,SDbgMustCompile,[ATarget.Name]);
 end;
 
 
@@ -3724,24 +3736,17 @@ procedure TBuildEngine.Compile(APackage: TPackage; ATarget: TTarget);
 Var
   S : String;
 begin
-  if ATarget.State in [tsNeutral,tsNeedCompile] then
-    begin
-      Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);
-      LogIndent;
-      ATarget.FTargetState:=tsCompiling;
-      ExecuteCommands(ATarget.Commands,caBeforeCompile);
-      If Assigned(ATarget.BeforeCompile) then
-        ATarget.BeforeCompile(ATarget);
-      S:=GetCompilerCommand(APackage,ATarget);
-      ExecuteCommand(GetCompiler,S);
-      If Assigned(ATarget.AfterCompile) then
-        ATarget.AfterCompile(ATarget);
-      ExecuteCommands(ATarget.Commands,caAfterCompile);
-      ATarget.FTargetState:=tsCompiled;
-      LogUnIndent;
-    end
-  else if ATarget.State<>tsCompiled then
-    Log(vlWarning, Format(SWarnAttemptingToCompileNonNeutralTarget, [ATarget.Name]));
+  Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);
+  LogIndent;
+  ExecuteCommands(ATarget.Commands,caBeforeCompile);
+  If Assigned(ATarget.BeforeCompile) then
+    ATarget.BeforeCompile(ATarget);
+  S:=GetCompilerCommand(APackage,ATarget);
+  ExecuteCommand(GetCompiler,S);
+  If Assigned(ATarget.AfterCompile) then
+    ATarget.AfterCompile(ATarget);
+  ExecuteCommands(ATarget.Commands,caAfterCompile);
+  LogUnIndent;
 end;
 
 
@@ -3751,8 +3756,6 @@ Var
   T : TTarget;
   D : TDependency;
 begin
-  if ATarget.State in [tsCompiled,tsCompiling,tsNoCompile] then
-    exit;
   Log(vlDebug, Format(SDbgCompilingDependenciesOfTarget, [ATarget.Name]));
   LogIndent;
   For I:=0 to ATarget.Dependencies.Count-1 do
@@ -3770,9 +3773,12 @@ begin
                   // used for dependency checking
                   if (T.TargetType<>ttImplicitUnit) then
                     begin
-                      if T.State=tsCompiling then
-                        Log(vlWarning,SWarnCircularTargetDependency,[ATarget.Name,T.Name]);
-                      MaybeCompile(APackage,T);
+                      case T.State of
+                        tsNeutral :
+                          MaybeCompile(APackage,T);
+                        tsConsidering :
+                          Log(vlWarning,SWarnCircularTargetDependency,[ATarget.Name,T.Name]);
+                      end;
                     end;
                 end
               else
@@ -3788,14 +3794,20 @@ end;
 
 procedure TBuildEngine.MaybeCompile(APackage: TPackage; ATarget: TTarget);
 begin
-  if not(ATarget.State in [tsNeutral,tsNeedCompile]) then
-    exit;
+  if ATarget.State<>tsNeutral then
+    Error(SErrInvalidState,[ATarget.Name]);
   Log(vlDebug, Format(SDbgConsideringTarget, [ATarget.Name]));
   LogIndent;
+  ATarget.FTargetState:=tsConsidering;
   ResolveDependencies(ATarget.Dependencies,ATarget.Collection as TTargets);
   CompileDependencies(APackage, ATarget);
   if NeedsCompile(APackage, ATarget) then
-    Compile(APackage,ATarget);
+    begin
+      Compile(APackage,ATarget);
+      ATarget.FTargetState:=tsCompiled;
+    end
+  else
+    ATarget.FTargetState:=tsNoCompile;
   LogUnIndent;
 end;
 
@@ -3807,19 +3819,6 @@ Var
   D : TDependency;
 begin
   Result:=False;
-  case APackage.State of
-    tsNeedCompile :
-      begin
-        result:=true;
-        exit;
-      end;
-    tsNoCompile,
-    tsNotFound,
-    tsCompiling,
-    tsCompiled,
-    tsInstalled :
-      exit;
-  end;
 
   // Forced recompile?
   if FForceCompile then
@@ -3836,11 +3835,9 @@ begin
               (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
              begin
                P:=TPackage(D.Target);
-               if Assigned(P) and (P<>APackage) then
+               if Assigned(P) then
                  begin
-                   If (P.State in [tsCompiling,tsNeedCompile]) then
-                     Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
-                   Result:=(P.State in [tsCompiled,tsCompiling,tsNeedCompile]);
+                   Result:=(P.State=tsCompiled);
                    if Result then
                      break;
                  end;
@@ -3866,70 +3863,8 @@ begin
       end;
     end;
 
-  // Upate also target state so a second check is faster
   if result then
-    begin
-      APackage.FTargetState:=tsNeedCompile;
-      Log(vlDebug,SDbgMustCompile,[APackage.Name]);
-    end
-  else
-    APackage.FTargetState:=tsNoCompile;
-end;
-
-
-procedure TBuildEngine.Compile(APackage: TPackage);
-Var
-  T : TTarget;
-  I : Integer;
-begin
-  Try
-    Log(vlInfo,SInfoCompilingPackage,[APackage.Name]);
-    APackage.FTargetState:=tsCompiling;
-    If (APackage.Directory<>'') then
-      EnterDir(APackage.Directory);
-    CreateOutputDir(APackage);
-    Dictionary.AddVariable('UNITSOUTPUTDIR',APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
-    Dictionary.AddVariable('BINOUTPUTDIR',APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
-    DoBeforeCompile(APackage);
-    For I:=0 to APackage.Targets.Count-1 do
-      begin
-        T:=APackage.Targets.TargetItems[i];
-        if (T.TargetType in [ttUnit,ttProgram]) then
-          begin
-            if TargetOK(T) then
-              MaybeCompile(APackage,T)
-            else
-              begin
-                if not(Defaults.CPU in T.CPUs) then
-                  Log(vldebug, Format(SDbgSkippingTargetWrongCPU, [T.Name, CPUsToString(T.CPUs)]));
-                if not(Defaults.OS in T.OSes) then
-                  Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSesToString(T.OSes)]));
-              end;
-          end
-        else
-          log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
-      end;
-    DoAfterCompile(APackage);
-    APackage.FTargetState:=tsCompiled;
-  Finally
-    If (APackage.Directory<>'') then
-      EnterDir('');
-  end;
-end;
-
-
-procedure TBuildEngine.MaybeCompile(APackage: TPackage);
-begin
-  if not(APackage.State in [tsNeutral,tsNeedCompile]) then
-    exit;
-  Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);
-  LogIndent;
-  ResolveDependencies(APackage.Dependencies,(APackage.Collection as TPackages));
-  CompileDependencies(APackage);
-  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS);
-  If NeedsCompile(APackage) then
-    Compile(APackage);
-  LogUnIndent;
+    Log(vlDebug,SDbgMustCompile,[APackage.Name]);
 end;
 
 
@@ -3982,13 +3917,89 @@ begin
          (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
         begin
           P:=TPackage(D.Target);
-          // If it already was compiled, then State<>tsNeutral, and it won't be compiled again.
-          If Assigned(P) and (P<>APackage) then
-            MaybeCompile(P)
+          If Assigned(P) then
+            begin
+              case P.State of
+                tsNeutral :
+                  MaybeCompile(P);
+                tsConsidering :
+                  Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
+              end;
+            end
           else
-            D.Target:=CheckExternalPackage(D.Value);
+            begin
+              D.Target:=CheckExternalPackage(D.Value);
+              P:=TPackage(D.Target);
+            end;
+          if (D.RequireChecksum<>$ffffffff) and
+             (P.InstalledChecksum<>$ffffffff) and
+             (P.InstalledChecksum<>D.RequireChecksum) then
+            Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
         end;
     end;
+end;
+
+
+procedure TBuildEngine.Compile(APackage: TPackage);
+Var
+  T : TTarget;
+  I : Integer;
+begin
+  Try
+    Log(vlInfo,SInfoCompilingPackage,[APackage.Name]);
+    If (APackage.Directory<>'') then
+      EnterDir(APackage.Directory);
+    CreateOutputDir(APackage);
+    Dictionary.AddVariable('UNITSOUTPUTDIR',APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
+    Dictionary.AddVariable('BINOUTPUTDIR',APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
+    DoBeforeCompile(APackage);
+    For I:=0 to APackage.Targets.Count-1 do
+      begin
+        T:=APackage.Targets.TargetItems[i];
+        if (T.TargetType in [ttUnit,ttProgram]) then
+          begin
+            if TargetOK(T) then
+              begin
+                if T.State=tsNeutral then
+                  MaybeCompile(APackage,T);
+              end
+            else
+              begin
+                if not(Defaults.CPU in T.CPUs) then
+                  Log(vldebug, Format(SDbgSkippingTargetWrongCPU, [T.Name, CPUsToString(T.CPUs)]));
+                if not(Defaults.OS in T.OSes) then
+                  Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSesToString(T.OSes)]));
+              end;
+          end
+        else
+          log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
+      end;
+    DoAfterCompile(APackage);
+  Finally
+    If (APackage.Directory<>'') then
+      EnterDir('');
+  end;
+end;
+
+
+procedure TBuildEngine.MaybeCompile(APackage: TPackage);
+begin
+  if APackage.State<>tsNeutral then
+    Error(SErrInvalidState,[APackage.Name]);
+  Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);
+  LogIndent;
+  APackage.FTargetState:=tsConsidering;
+  ResolveDependencies(APackage.Dependencies,(APackage.Collection as TPackages));
+  CompileDependencies(APackage);
+  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS);
+  If NeedsCompile(APackage) then
+    begin
+      Compile(APackage);
+      APackage.FTargetState:=tsCompiled;
+    end
+  else
+    APackage.FTargetState:=tsNoCompile;
+  LogUnIndent;
 end;
 
 
@@ -4033,7 +4044,7 @@ Var
   B : Boolean;
 begin
   If (Apackage.State<>tsCompiled) then
-    Compile(APackage);
+    MaybeCompile(APackage);
   try
     Log(vlInfo,SInfoInstallingPackage,[APackage.Name]);
     If (APackage.Directory<>'') then

@@ -79,6 +79,7 @@ type
     FCPUs : TCPUS;
     FMinVersion: TFPVersion;
     FPackageName: String;
+    FRequireChecksum : cardinal;
     procedure SetMinVersion(const AValue: TFPVersion);
   Public
     Constructor Create(ACollection : TCollection); override;
@@ -91,6 +92,7 @@ type
     Property MinVersion : TFPVersion Read FMinVersion Write SetMinVersion;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
+    Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
 
   { TFPDepencencies }
@@ -116,11 +118,12 @@ type
     FExternalURL: String;
     FFileName: String;
     FVersion: TFPVersion;
-    FInstalledVersion: TFPVersion;
     FDependencies : TFPDependencies;
     FOSes : TOSES;
     FCPUs : TCPUS;
-    FIsLocalPackage : Boolean;
+    // Installation info
+    FChecksum : cardinal;
+    FLocalFileName : String;
     function GetFileName: String;
     procedure SetName(const AValue: String);
     procedure SetVersion(const AValue: TFPVersion);
@@ -130,13 +133,12 @@ type
     Procedure LoadFromStream(Stream : TStream; Streamversion : Integer); override;
     Procedure SaveToStream(Stream : TStream); override;
     Procedure Assign(Source : TPersistent); override;
-    Function AddDependency(Const APackageName : String; AMinVersion : String = '') : TFPDependency;
+    Function AddDependency(Const APackageName : String; const AMinVersion : String = '') : TFPDependency;
     Property Dependencies : TFPDependencies Read FDependencies;
   Published
     Property Name : String Read FName Write SetName;
     Property Author : String Read FAuthor Write FAuthor;
     Property Version : TFPVersion Read FVersion Write SetVersion;
-    Property InstalledVersion : TFPVersion Read FInstalledVersion Write FInstalledVersion;
     Property License : String Read FLicense Write FLicense;
     Property Description : String Read FDescription Write FDescription;
     Property ExternalURL : String Read FExternalURL Write FExternalURL;
@@ -144,8 +146,9 @@ type
     Property Email : String Read FEmail Write FEmail;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
+    Property Checksum : Cardinal Read FChecksum Write FChecksum;
     // Manual package from commandline not in official repository
-    Property IsLocalPackage : Boolean Read FIsLocalPackage Write FIsLocalPackage;
+    Property LocalFileName : String Read FLocalFileName Write FLocalFileName;
   end;
 
   { TFPPackages }
@@ -189,14 +192,6 @@ type
     Procedure LoadFromFile(const AFileName : String);
     Procedure SaveToFile(const AFileName : String);
     Procedure Save;
-    // Loading and Saving version numbers: List of Name=Value pairs.
-    procedure ClearStatus;
-{$ifdef STATUSFILE}
-    Procedure LoadStatusFromStream(Stream : TStream); virtual;
-    Procedure SaveStatusToStream(Stream : TStream); virtual;
-    Procedure LoadStatusFromFile(const AFileName : String);
-    Procedure SaveStatusToFile(const AFileName : String);
-{$endif STATUSFILE}
     // Package management
     Function IndexOfPackage(const APackageName : String) : Integer;
     Function FindPackage(const APackageName : String) : TFPPackage;
@@ -479,7 +474,7 @@ constructor TFPPackage.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FVersion:=TFPVersion.Create;
-  FInstalledVersion:=TFPVersion.Create;
+  FChecksum:=$ffffffff;
   FOSes:=AllOSes;
   FCPUs:=AllCPUs;
   FDependencies:=TFPDependencies.Create(TFPDependency);
@@ -490,7 +485,6 @@ destructor TFPPackage.Destroy;
 begin
   FreeAndNil(FDependencies);
   FreeAndNil(FVersion);
-  FreeAndNil(FInstalledVersion);
   inherited Destroy;
 end;
 
@@ -615,7 +609,7 @@ begin
       Description:=P.Description;
       ExternalURL:=P.ExternalURL;
       FileName:=P.FileName;
-      InstalledVersion.Assign(P.Installedversion);
+      Checksum:=P.Checksum;
       Dependencies.Clear;
       Dependencies.Assign(P.Dependencies);
     end
@@ -624,7 +618,7 @@ begin
 end;
 
 
-function TFPPackage.AddDependency(const APackageName: String;AMinVersion: String): TFPDependency;
+function TFPPackage.AddDependency(Const APackageName : String; const AMinVersion : String = ''): TFPDependency;
 begin
   Result:=Dependencies.AddDependency(APackageName,AMinVersion);
 end;
@@ -802,85 +796,6 @@ begin
 end;
 
 
-procedure TFPRepository.ClearStatus;
-Var
-  I : Integer;
-begin
-  For I:=0 to PackageCount-1 do
-    With Packages[i] do
-      InstalledVersion.Clear;
-end;
-
-
-{$ifdef STATUSFILE}
-procedure TFPRepository.LoadStatusFromStream(Stream: TStream);
-Var
-  L : TStrings;
-  I : Integer;
-  N,V : String;
-begin
-  L:=TStringList.Create;
-  Try
-    L.LoadFromStream(Stream);
-    For I:=0 to L.Count-1 do
-      begin
-      L.GetNameValue(I,N,V);
-      If (N<>'') and (V<>'') then
-        PackageByName(N).InstalledVersion.AsString:=V;
-      end;
-  Finally
-    L.Free;
-  end;
-end;
-
-
-procedure TFPRepository.SaveStatusToStream(Stream: TStream);
-Var
-  L : TStrings;
-  I : Integer;
-begin
-  L:=TStringList.Create;
-  Try
-    For I:=0 to PackageCount-1 do
-      With Packages[i] do
-        if not InstalledVersion.Empty then
-          L.Add(Name+'='+InstalledVersion.AsString);
-    L.SaveToStream(Stream);
-  Finally
-    L.Free;
-  end;
-end;
-
-
-procedure TFPRepository.LoadStatusFromFile(const AFileName: String);
-Var
-  F : TFileStream;
-begin
-  F:=TFileStream.Create(AFileName,fmOpenRead);
-  Try
-    LoadStatusFromStream(F);
-  Finally
-    F.Free;
-  end;
-end;
-
-
-procedure TFPRepository.SaveStatusToFile(const AFileName: String);
-Var
-  F : TFileStream;
-begin
-  If FileExists(AFileName) and BackupFiles then
-    BackupFile(AFileName);
-  F:=TFileStream.Create(AFileName,fmCreate);
-  Try
-    SaveStatusToStream(F);
-  Finally
-    F.Free;
-  end;
-end;
-{$endif STATUSFILE}
-
-
 function TFPRepository.IndexOfPackage(const APackageName: String): Integer;
 begin
   Result:=FPackages.IndexOfPackage(APackageName);
@@ -987,6 +902,7 @@ begin
   FMinVersion:=TFPVersion.Create;
   FOSes:=AllOSes;
   FCPUs:=AllCPUs;
+  FRequireChecksum:=$ffffffff;
 end;
 
 

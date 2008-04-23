@@ -45,6 +45,7 @@ Type
     FFPMakeCompilerConfig : String;
     // Parameter options
     FCompilerConfig : String;
+    FAllowBroken,
     FInstallGlobal,
     FRecoveryMode   : Boolean;
     function  GetOptString(Index: integer): String;
@@ -74,6 +75,7 @@ Type
     Property CompilerConfig : String Read FCompilerConfig Write FCompilerConfig;
     Property InstallGlobal : Boolean Read FInstallGlobal Write FInstallGlobal;
     Property RecoveryMode : Boolean Read FRecoveryMode Write FRecoveryMode;
+    Property AllowBroken : Boolean Read FAllowBroken Write FAllowBroken;
   end;
 
 
@@ -261,6 +263,7 @@ begin
   FCompilerConfig:=FDefaultCompilerConfig;
   FInstallGlobal:=False;
   FRecoveryMode:=False;
+  FAllowBroken:=False;
 end;
 
 

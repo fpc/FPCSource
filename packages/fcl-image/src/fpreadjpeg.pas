@@ -201,6 +201,19 @@ var
     end;
   end;
 
+  function CorrectCMYK(const C: TFPColor): TFPColor;
+  var
+    MinColor: word;
+  begin
+    if C.red<C.green then MinColor:=C.red
+    else MinColor:= C.green;
+    if C.blue<MinColor then MinColor:= C.blue;
+    if MinColor+ C.alpha>$FF then MinColor:=$FF-C.alpha;
+    Result.red:=(C.red-MinColor) shl 8;
+    Result.green:=(C.green-MinColor) shl 8;
+    Result.blue:=(C.blue-MinColor) shl 8;
+    Result.alpha:=alphaOpaque;
+  end;
   procedure ReadPixels;
   var
     Continue: Boolean;
@@ -231,6 +244,15 @@ var
       while (FInfo.output_scanline < FInfo.output_height) do begin
         LinesRead := jpeg_read_scanlines(@FInfo, SampArray, 1);
         if LinesRead<1 then break;
+        if (FInfo.jpeg_color_space = JCS_CMYK) then
+        for x:=0 to FInfo.output_width-1 do begin
+          Color.Red:=SampRow^[x*4+0];
+          Color.Green:=SampRow^[x*4+1];
+          Color.Blue:=SampRow^[x*4+2];
+          Color.alpha:=SampRow^[x*4+3];
+          Img.Colors[x,y]:=CorrectCMYK(Color);
+        end
+        else
         for x:=0 to FInfo.output_width-1 do begin
           Color.Red:=SampRow^[x*3+0] shl 8;
           Color.Green:=SampRow^[x*3+1] shl 8;
