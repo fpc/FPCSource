@@ -106,6 +106,11 @@ unit cgcpu;
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+
+      private
+        { clear out potential overflow bits from 8 or 16 bit operations  }
+        { the upper 24/16 bits of a register after an operation          }
+        procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
       end;
 
       tcg64farm = class(tcg64f32)
@@ -476,6 +481,7 @@ unit cgcpu;
                 a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,setflags,ovloc);
               end;
           end;
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -571,6 +577,7 @@ unit cgcpu;
                 taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
               ));
         end;
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -1931,6 +1938,16 @@ unit cgcpu;
           list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         list.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
+
+    procedure tcgarm.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+      const
+        overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+      begin
+        if (op in overflowops) and
+           (size in [OS_8,OS_S8,OS_16,OS_S16]) then
+          a_load_reg_reg(list,OS_32,size,dst,dst);
       end;
 
 

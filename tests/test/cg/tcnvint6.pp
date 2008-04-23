@@ -11,7 +11,7 @@ var
   c,c2: cardinal;
   shi,shi2: shortint;
   si,si2: smallint;
-  i64,i642: int64;
+  i64: int64;
 begin
   b:=$ff;
   Inc(b,$ff);
@@ -83,7 +83,7 @@ begin
   if i64<>$fffffffe then
     error(33);
 {$ifdef FPC}
-  if qword(shi)<>$fffffffffffffffe then
+  if qword(shi)<>qword($fffffffffffffffe) then
     error(34);
 {$endif FPC}
   shi2:=-2;
@@ -100,7 +100,7 @@ begin
   if i64<>$fffffffe then
     halt(43);
 {$ifdef FPC}
-  if qword(si)<>$fffffffffffffffe then
+  if qword(si)<>qword($fffffffffffffffe) then
     error(44);
 {$endif FPC}
   si2:=-2;
