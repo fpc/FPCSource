@@ -7683,6 +7683,7 @@ tests/test/units/sysutils/tastrcmp.pp svneol=native#text/plain
 tests/test/units/sysutils/tfile1.pp svneol=native#text/plain
 tests/test/units/sysutils/tfilename.pp svneol=native#text/plain
 tests/test/units/sysutils/tfloattostr.pp -text
+tests/test/units/sysutils/tlocale.pp svneol=native#text/plain
 tests/test/units/sysutils/tsscanf.pp svneol=native#text/plain
 tests/test/units/sysutils/tstrtobool.pp svneol=native#text/plain
 tests/test/uprec6.pp svneol=native#text/plain
