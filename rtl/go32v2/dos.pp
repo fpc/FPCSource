@@ -275,7 +275,7 @@ begin
   dosregs.ax:=$4b00;
   msdos(dosregs);
   LoadDosError;
-  if DosError<>0 then
+  if DosError=0 then
    begin
      dosregs.ax:=$4d00;
      msdos(dosregs);
