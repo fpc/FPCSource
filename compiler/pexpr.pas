@@ -1849,7 +1849,7 @@ implementation
                    ccallparanode.create(caddrnode.create_internal
                   (ctemprefnode.create(temp)),
                    ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype),
-                   ccallparanode.create(p1
+                   ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype)
                      ,nil))));
 
                 addstatement(newstatement,ccallnode.createintern('fpc_vararray_put',paras));
