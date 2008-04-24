@@ -217,7 +217,7 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            sql1 := sql1 + ',''' + testValues[FType,CountID] + ''''
+            sql1 := sql1 + ',''' + StringReplace(testValues[FType,CountID],'''','''''',[rfReplaceAll]) + ''''
           else
             sql1 := sql1 + ',NULL';
           end;

@@ -104,14 +104,14 @@ const
     '1234567890',
     '_!@#$%^&*(',
     '_!@#$%^&*(',
-//    ' ''quotes'' ',
+    ' ''quotes'' ',
     ')-;:/?.<>',
     '~`|{}- =',    // note that there's no \  (backslash) since some db's uses that as escape-character
     '  WRaP  ',
     'wRaP  ',
     ' wRAP',
     'this',
-    'is',
+//    'is',
     'fun',
     'VB7^',
     'vdfbst'

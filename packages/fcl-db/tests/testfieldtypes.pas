@@ -88,30 +88,6 @@ const
   testIntValuesCount = 17;
   testIntValues : Array[0..testIntValuesCount-1] of integer = (-maxInt,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt);
 
-  testStringValuesCount = 20;
-  testStringValues : Array[0..testStringValuesCount-1] of string = (
-    '',
-    'a',
-    'ab',
-    'abc',
-    'abcd',
-    'abcde',
-    'abcdef',
-    'abcdefg',
-    'abcdefgh',
-    'abcdefghi',
-    'abcdefghij',
-    'lMnOpQrStU',
-    '1234567890',
-    '_!@#$%^&*(',
-    ' ''quotes'' ',
-    ')-;:/?.<>',
-    '~`|{}- =',    // note that there's no \  (backslash) since some db's uses that as escape-character
-    '  WRaP  ',
-    'wRaP  ',
-    ' wRAP'
-  );
-
   testDateValuesCount = 18;
   testDateValues : Array[0..testDateValuesCount-1] of string = (
     '2000-01-01',
@@ -708,7 +684,7 @@ end;
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
-  TestXXParamQuery(ftString,'VARCHAR(10)',testStringValuesCount);
+  TestXXParamQuery(ftString,'VARCHAR(10)',testValuesCount);
 end;
 
 procedure TTestFieldTypes.TestDateParamQuery;
