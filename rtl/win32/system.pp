@@ -1118,10 +1118,72 @@ begin
  GetProcessID := ProcessID;
 end;
 
-function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;assembler;
-asm
-  movl  %fs:(4),%eax
-  subl  %fs:(8),%eax
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+type
+  tdosheader = packed record
+     e_magic : word;
+     e_cblp : word;
+     e_cp : word;
+     e_crlc : word;
+     e_cparhdr : word;
+     e_minalloc : word;
+     e_maxalloc : word;
+     e_ss : word;
+     e_sp : word;
+     e_csum : word;
+     e_ip : word;
+     e_cs : word;
+     e_lfarlc : word;
+     e_ovno : word;
+     e_res : array[0..3] of word;
+     e_oemid : word;
+     e_oeminfo : word;
+     e_res2 : array[0..9] of word;
+     e_lfanew : longint;
+  end;
+  tpeheader = packed record
+     PEMagic : longint;
+     Machine : word;
+     NumberOfSections : word;
+     TimeDateStamp : longint;
+     PointerToSymbolTable : longint;
+     NumberOfSymbols : longint;
+     SizeOfOptionalHeader : word;
+     Characteristics : word;
+     Magic : word;
+     MajorLinkerVersion : byte;
+     MinorLinkerVersion : byte;
+     SizeOfCode : longint;
+     SizeOfInitializedData : longint;
+     SizeOfUninitializedData : longint;
+     AddressOfEntryPoint : longint;
+     BaseOfCode : longint;
+     BaseOfData : longint;
+     ImageBase : longint;
+     SectionAlignment : longint;
+     FileAlignment : longint;
+     MajorOperatingSystemVersion : word;
+     MinorOperatingSystemVersion : word;
+     MajorImageVersion : word;
+     MinorImageVersion : word;
+     MajorSubsystemVersion : word;
+     MinorSubsystemVersion : word;
+     Reserved1 : longint;
+     SizeOfImage : longint;
+     SizeOfHeaders : longint;
+     CheckSum : longint;
+     Subsystem : word;
+     DllCharacteristics : word;
+     SizeOfStackReserve : longint;
+     SizeOfStackCommit : longint;
+     SizeOfHeapReserve : longint;
+     SizeOfHeapCommit : longint;
+     LoaderFlags : longint;
+     NumberOfRvaAndSizes : longint;
+     DataDirectory : array[1..$80] of byte;
+  end;
+begin
+  result:=tpeheader((pointer(HInstance)+(tdosheader(pointer(HInstance)^).e_lfanew))^).SizeOfStackReserve;
 end;
 
 {
@@ -1131,9 +1193,6 @@ const
 }
 
 begin
-  { pass dummy value }
-  StackLength := CheckInitialStkLen($1000000);
-  StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
 
@@ -1145,7 +1204,13 @@ begin
   hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(GetCommandFile);
+
   MainInstance:=HInstance;
+
+  { pass dummy value }
+  StackLength := CheckInitialStkLen($1000000);
+  StackBottom := StackTop - StackLength;
+
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }
   InitHeap;
