@@ -1246,13 +1246,13 @@ implementation
     // and with all signaling policies preserved as is.
 
     type
-      {$ifdef ENDIAN_LITTLE}
+      {$if defined(ENDIAN_LITTLE) and not defined(FPC_DOUBLE_HILO_SWAPPED)}
         twoword=record
                   lo,hi:longword; // Little Endian split of a double.
                 end;
       {$else}
         twoword=record
-                  hi,lo:longword; // Little Endian split of a double.
+                  hi,lo:longword; // Big Endian split of a double.
                 end;
       {$endif}
 
