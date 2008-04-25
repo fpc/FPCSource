@@ -212,7 +212,7 @@ Tests will be performed in the \fpctests folder on the device.
 Result uploading
 ----------------
 Results can be uploaded to the test suite result DB 
-(http://www.freepascal.org/cgi-bin/testsuite.cgi) by executing
+(http://www.freepascal.org/testsuite/cgi-bin/testsuite.cgi) by executing
 
   make uploadrun
 
