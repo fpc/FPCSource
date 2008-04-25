@@ -1,10 +1,33 @@
+Usage
+-----
+To start the test suite execute:
+
+  make full TEST_FPC=path_to_your_compiler
+
+This should run all tests, scan the created log file and output some
+statistics.
+
+  make digest TEST_FPC=path_to_your_compiler
+
+scans the created log file and outputs some statistics
+
+  make digest USESQL=YES TEST_FPC=path_to_your_compiler
+
+sends the results to an SQL database
+
+When the tests are performed, first the units (e.g. rtl) needed by the
+tests are compiled in a clean determined way and put in the units
+directory. Then webtbs/webtbf/test/tbs/tbf are searched for t*.pp to be
+compiled and executed as tests.
+
+
 Directories
 -----------
 webtbs...........Tests for web-bug-database bugs (should compile/run)
                    Digits in filename refer to bug database entry
 webtbf...........Tests for web-bug-database bugs (should not compile/run)
                    Digits in filename refer to bug database entry
-test.............Testsuites for different aspects of the compiler/rtl etc
+test.............Test suites for different aspects of the compiler/rtl etc
 tbs..............Tests for other bugs, added by the fpc core team
                    (success in compilation) Digits in filename is a serial no
 tbf..............Tests for other bugs, added by the fpc core team
@@ -24,17 +47,16 @@ It should return 0 on success, any other value indicates failure.
 
 Test directives
 ---------------
-At the top of the test source code, some directives
-can be used to determine how the tests will be
-processed (if processed automatically via make),
-e. g. {%CPU=i386} :
+At the top of the test source code, some directives can be used to
+determine how the tests will be processed (if processed automatically via
+make), e.g. {%CPU=i386}:
 
 OPT................Compiler option required to compile
 CPU................Only for these CPU's (i386,m68k,etc). Might be a list.
 SKIPCPU............Not for these CPU's (i386,m68k,etc). Might be a list.
-TARGET.............Only for these OS targets (win32,macos,etc).
+TARGET.............Only for these OS targets (win32,MacOS,etc).
                    Might be a list.
-SKIPTARGET.........Not for these OS targets (win32,macos,etc).
+SKIPTARGET.........Not for these OS targets (win32,MacOS,etc).
                    Might be a list.
 VERSION............Compiler with at lest this version number required.
 MAXVERSION.........Compiler with at most this version number required.
@@ -65,30 +87,17 @@ KNOWNCOMPILEERROR..Known bug, which manifest itself at compile time. To
   NOTE: A list consists of comma separated items, e. g. CPU=i386,m68k,powerpc
         No space between the elements and the comma.
 
-Usage
------
-To actually start the testsuite:
-do a simple
-make full This should create a log of all failed tests.
-
-make rundigest scans the created log file and outputs some statistics
-make rundigest USESQL=YES sends the results to an SQL database
-
-When the tests are performed, first the units (e g rtl) needed by the tests
-are compiled in a clean determined way and put in the units directory. Then
-webtbs/webtbf/test/tbs/tbf are searched for t*.pp to be compiled
-and executed as tests.
 
 Controling testing in more detail
 ---------------------------------
-Calling "make full" will preform tests in a standard manner. To have
-more control of the test process we must differentiate between:
+Calling "make full" will perform tests in a standard manner. To have
+more control of the test process one must distinguish between:
 
-* Driver enviroment: compiler/rtl etc to be used by the tools which
+* Driver enviroment: compiler/rtl etc. to be used by the tools which
   runs and analyze the tests. All normal options to make, like FPC
-  OS_TARGET, OPT etc controls this.
+  OS_TARGET, OPT etc. controls this.
 
-* Test environment:  compiler/rtl etc to be tested, to be used
+* Test environment:  compiler/rtl etc. to be tested, to be used
   *in* the tests. Ususal options, prepended with TEST_ , controls
   this. If no such options are given, test and driver environment
   will be the same.
@@ -105,21 +114,23 @@ TEST_FPC_VERSION       defaults to version of TEST_FPC
 TEST_CCOMPILER         defaults to installed gcc compiler, but only
                        if driver and test full-targets are the same.
 TEST_VERBOSE           let dotest be more verbose, only usefull for debugging
-TEST_DELTEMP           delete temporary executable/object/ppu file, default is off
+TEST_DELTEMP           delete temporary executable/object/ppu file, 
+                       default is off
 TEST_TIMEOUT           use timeout wrapper for (remote) execution
 V                      print dotest commandline
 
   (Please add more test options if needed)
 
-NOTE To clean after a test session, "make clean" must be given the same
-options as when running the tests.
+NOTE: To clean after a test session, "make clean TEST_FPC=path_to_your_compiler" 
+must be given the same options as when running the tests.
 
-The utils directory is considerd to belong to the driver environment,
-all other directories belongs to the test environment.
+The utils directory is considerd to belong to the driver environment, 
+all other directories belong to the test environment.
+
 
 Remote execution
 ----------------
-Also remote execution of the testsuite is possible
+Also remote execution of the test suite is possible.
 
 Requirements:
 - rsh/ssh must work without keyboard interaction or extra parameters
@@ -134,9 +145,11 @@ TEST_REMOTEPATH      set remote path to use, default is /tmp
 TEST_DELBEFORE       delete remote executable before uploading
 TEST_DELTEMP         delete executable after running, so the remote system
                      doesn't need much free disk space
-TEST_REMOTEPW        pass a password with -pw to remote tools, mainly usefull for putty
+TEST_REMOTEPW        pass a password with -pw to remote tools, 
+                     mainly usefull for putty
 
-Example:
+
+Examples:
 -------
   make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- \
        TEST_RSH=sunny TEST_REMOTEPATH=/tmp/tests
@@ -150,51 +163,65 @@ Example for win32/putty:
        TEST_PUTTY=root@192.168.42.210 TEST_REMOTEPATH=/tmp TEST_DELTEMP=1 \
        "TEST_REMOTEPW=xxx" FPC=c:\fpc\compiler\ppc386
 
+
 Emulator execution
 ------------------
+Emulator execution is possible as well. It can't be combined with remote
+execution though.
 
-Emulator execution is possible as well. It can't be combined with remote execution though.
+EMULATOR: name of the emulator to use
 
-EMULATOR	     name of the emulator to use
+Examples:
 
-Example:
+  make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- \
+       EMULATOR=qemu-arm
+  make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- \
+       EMULATOR=qemu-arm digest DBDIGESTOPT="-C qemu-arm" USESQL=YES
 
-make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm
-make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm \
-     digest DBDIGESTOPT="-C qemu-arm" USESQL=YES
 
-Example cross testing of target MacOS with driver Darwin
+Example cross testing of target Mac OS with driver Darwin
 --------------------------------------------------------
-NOTE Today it is possible to run the test suite MacOS native.
+NOTE: Today, it is possible to run the test suite Mac OS native.
 
-A machine with both MacOS X and classic MacOS installed. Note that make will not
-run the tests, that has to be done in MPW with the scripts in utils/macos.
+A machine with both Mac OS X and classic Mac OS installed is required.
+Note that make will not run the tests.  This has to be done in MPW with the
+scripts in utils/MacOS.
 
-  make clean alltest TEST_OS_TARGET=macos TEST_OPT="-WT -st" \
-       USEUNITDIR=/Projekt/Freepascal/fpc/rtl/macos
+  make clean alltest TEST_OS_TARGET=MacOS TEST_OPT="-WT -st" \
+       USEUNITDIR=/Projekt/Freepascal/fpc/rtl/MacOS
 
-To clean. Note that same options as above has to be given so that the correct
-files will be removed.
+To clean. Note that same options as above has to be given so that the
+correct files will be removed.
 
-  make clean TEST_OS_TARGET=macos USEUNITDIR=/Projekt/Freepascal/fpc/rtl/macos
+  make clean TEST_OS_TARGET=MacOS USEUNITDIR=/Projekt/Freepascal/fpc/rtl/MacOS
+
 
 Example cross testing of target arm-wince
 -----------------------------------------
-//arm-wince example : see FPCTRUNK\DEMO\WINCE\TESTEMU\ for additional required tools
+//arm-wince example: 
+see FPCTRUNK\DEMO\WINCE\TESTEMU\ for additionally required tools
 Connect your device via ActiveSync and execute:
 
-make TEST_FPC=ppcrossarm TEST_CPU_TARGET=arm TEST_OS_TARGET=wince TEST_OPT="-XParm-wince- -WC -Xs" EMULATOR=MyDisc:\My\Path\to\wcetemu.exe
+  make TEST_FPC=ppcrossarm TEST_CPU_TARGET=arm TEST_OS_TARGET=wince \
+       TEST_OPT="-XParm-wince- -WC -Xs" \
+       EMULATOR=MyDisc:\My\Path\to\wcetemu.exe
 
-Tests will be performed in \fpctests folder on the device.
+Tests will be performed in the \fpctests folder on the device.
+
 
 Result uploading
 ----------------
-Results can be uploaded to the testsuite result DB (http://www.freepascal.org/cgi-bin/testsuite.cgi) by executing
+Results can be uploaded to the test suite result DB 
+(http://www.freepascal.org/cgi-bin/testsuite.cgi) by executing
 
-make uploadrun
+  make uploadrun
 
 On unix:
-- The testing machine must be enabled to login on www.freepascal.org automatically as user fpc with ssh.
+- The testing machine must be enabled to login on www.freepascal.org
+  automatically as user fpc with ssh.
+
 On Windows:
 - The putty utilities plink.exe and pscp.exe must be in the path
-- There must be a putty session named fpc@www.freepascal.org which is enabled to login automatically into www.freepascal.org
+- There must be a putty session named fpc@www.freepascal.org which is
+  enabled to login automatically into www.freepascal.org
+
