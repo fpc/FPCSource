@@ -17,7 +17,7 @@ targetdir=$(FULL_TARGET)
 fpcdir=../..
 
 [rules]
-.PHONY: rtl extra fpcunit all clean cleanrtl clean_ctest
+.PHONY: rtl extra fpcunit packages all clean cleanrtl clean_ctest
 
 #############################
 # RTL
@@ -40,7 +40,7 @@ rtl : rtl-stamp.$(FULL_TARGET)
 
 
 #############################
-# RTL
+# FPCUnit
 #
 
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
@@ -58,6 +58,27 @@ cleanfpcunit:
         -$(DEL) fpcunit-stamp.$(FULL_TARGET)
 
 fpcunit : fpcunit-stamp.$(FULL_TARGET)
+
+
+#############################
+# Packages
+#
+
+DUMMYINSTALLDIR=$(BASEDIR)/tmp
+INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
+PACKAGESDIR=../../packages
+
+packages-stamp.$(FULL_TARGET):
+        $(MAKE) -C ../../packages all 'OPT=$(OPT) -n'
+        $(MAKE) -C ../../packages install $(INSTALLOPT)
+        $(ECHO) Compiled > packages-stamp.$(FULL_TARGET)
+
+cleanpackages:
+        $(DELTREE) $(COMPILER_TARGETDIR)
+        $(DELTREE) $(DUMMYINSTALLDIR)
+        -$(DEL) packages-stamp.$(FULL_TARGET)
+
+packages : packages-stamp.$(FULL_TARGET)
 
 
 #############################
@@ -101,9 +122,13 @@ extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT)
 # Main rules
 #
 
+ifdef QUICKTEST
 all : rtl fpcunit extra
+else
+all : rtl fpcunit packages extra
+endif
 
-clean : cleanrtl cleanall cleanfpcunit
+clean : cleanrtl cleanall cleanfpcunit cleanpackages
 
 clean_ctest :
         -$(DEL) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o

@@ -28,14 +28,15 @@ webtbs...........Tests for web-bug-database bugs (should compile/run)
 webtbf...........Tests for web-bug-database bugs (should not compile/run)
                    Digits in filename refer to bug database entry
 test.............Test suites for different aspects of the compiler/rtl etc
+test/packages....Tests depending on packages. The tests are sorted by package
+                 though this is not mandatory because tests can depend on
+                 multiple packages
 tbs..............Tests for other bugs, added by the fpc core team
                    (success in compilation) Digits in filename is a serial no
 tbf..............Tests for other bugs, added by the fpc core team
                    (fail compile) Digits in filename is a serial no
 units............Helper units for doing the tests
 utils............Utilities for processing tests
-packages.........Tests for packages: to run these tests, the full fpc sources
-                 must be built
 
 
 Writing a test
@@ -83,6 +84,7 @@ KNOWNCOMPILEERROR..Known bug, which manifest itself at compile time. To
                    the right of the equal sign is the expected exit code
                    from compiler, followed by an optional note. Will not
                    be logged as a bug.
+QUICKTEST..........If set, only tests without package dependencies are executed
 
   NOTE: A list consists of comma separated items, e. g. CPU=i386,m68k,powerpc
         No space between the elements and the comma.
@@ -114,17 +116,17 @@ TEST_FPC_VERSION       defaults to version of TEST_FPC
 TEST_CCOMPILER         defaults to installed gcc compiler, but only
                        if driver and test full-targets are the same.
 TEST_VERBOSE           let dotest be more verbose, only usefull for debugging
-TEST_DELTEMP           delete temporary executable/object/ppu file, 
+TEST_DELTEMP           delete temporary executable/object/ppu file,
                        default is off
 TEST_TIMEOUT           use timeout wrapper for (remote) execution
 V                      print dotest commandline
 
   (Please add more test options if needed)
 
-NOTE: To clean after a test session, "make clean TEST_FPC=path_to_your_compiler" 
+NOTE: To clean after a test session, "make clean TEST_FPC=path_to_your_compiler"
 must be given the same options as when running the tests.
 
-The utils directory is considerd to belong to the driver environment, 
+The utils directory is considerd to belong to the driver environment,
 all other directories belong to the test environment.
 
 
@@ -145,7 +147,7 @@ TEST_REMOTEPATH      set remote path to use, default is /tmp
 TEST_DELBEFORE       delete remote executable before uploading
 TEST_DELTEMP         delete executable after running, so the remote system
                      doesn't need much free disk space
-TEST_REMOTEPW        pass a password with -pw to remote tools, 
+TEST_REMOTEPW        pass a password with -pw to remote tools,
                      mainly usefull for putty
 
 
@@ -198,7 +200,7 @@ correct files will be removed.
 
 Example cross testing of target arm-wince
 -----------------------------------------
-//arm-wince example: 
+//arm-wince example:
 see FPCTRUNK\DEMO\WINCE\TESTEMU\ for additionally required tools
 Connect your device via ActiveSync and execute:
 
@@ -211,7 +213,7 @@ Tests will be performed in the \fpctests folder on the device.
 
 Result uploading
 ----------------
-Results can be uploaded to the test suite result DB 
+Results can be uploaded to the test suite result DB
 (http://www.freepascal.org/testsuite/cgi-bin/testsuite.cgi) by executing
 
   make uploadrun
