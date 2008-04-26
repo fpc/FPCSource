@@ -160,7 +160,7 @@ begin
   {Try if the result fits in an int64.}
   if (a.signed) and (a.svalue<0) then
     {$Q-}
-    sspace:=qword(high(int64))-qword(-a.svalue)
+    sspace:=qword(high(int64))+qword(-a.svalue)
     {$ifdef ena_q}{$Q+}{$endif}
   else if not a.signed and (a.uvalue>qword(high(int64))) then
     goto try_qword
