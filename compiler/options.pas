@@ -2401,8 +2401,8 @@ begin
   if fpcdir='' then
     begin
       fpcdir:=ExePath+'../';
-      if not(PathExists(fpcdir+'/units',true)) and
-         not(PathExists(fpcdir+'/rtl',true)) then
+      if not(PathExists(fpcdir+'units',true)) and
+         not(PathExists(fpcdir+'rtl',true)) then
         fpcdir:=fpcdir+'../';
     end;
 {$endif unix}
