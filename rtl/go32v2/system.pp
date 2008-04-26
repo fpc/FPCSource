@@ -667,4 +667,5 @@ Begin
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
   initvariantmanager;
+  initwidestringmanager;
 End.
