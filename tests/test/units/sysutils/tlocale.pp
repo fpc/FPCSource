@@ -7,39 +7,57 @@ uses
 {$endif}
   SysUtils;
 
-
 procedure PrintSettings;
 var
  i: integer;
 begin
- for i := 1 to 12 do
-   begin
-   writeln(ShortMonthNames[i]);
-   writeln(LongMonthNames[i]);
-   end;
- for i := 1 to 7 do
-   begin
-   writeln(ShortDayNames[i]);
-   writeln(LongDayNames[i]);
-   end;
- writeln(DateSeparator);
- writeln(ShortDateFormat);
- writeln(LongDateFormat);
+  Writeln('Month names:');
+  for i := 1 to 12 do
+    Writeln('month ',i:5,' ',shortmonthnames[i]:25,' - ',longmonthnames[i]);
+  Writeln;
+  Writeln('Day names  :');
+  for i := 1 to 7 do
+     writeln('short day ',i:5,' ',shortdaynames[i]:25,' - ',longdaynames[i]);
+
+  writeln('Dateseparator :', dateseparator);
+  {$ifdef localedebug}
+  writeln('orgshortdate  :', orgformatsettings.shortdateformat);
+  {$endif}
+  writeln('short date    :', shortdateformat);
+  {$ifdef localedebug}
+  writeln('orglongdate   :', longdateformat);
+  {$endif}
+  writeln('long  date    :', longdateformat);
  { Time stuff }
- writeln(TimeSeparator);
- writeln(TimeAMString);
- writeln(TimePMString);
+  writeln('TimeSeparator :', timeseparator);
+  writeln('TimeAMstring  :', timeamstring);
+  writeln('TimePMstring  :', timepmstring);  
+  {$ifdef localedebug}
+  writeln('orgshorttime  :', orgformatsettings.shorttimeformat);
+  {$endif}
+
  // No support for 12 hour stuff at the moment...
- writeln(ShortTimeFormat);
- writeln(LongTimeFormat);
+  writeln('short time    :', shorttimeformat);
+  {$ifdef localedebug}
+  writeln('orglongtime   :', longtimeformat);
+  {$endif}
+  writeln('long  time    :', longtimeformat);
+
  { Currency stuff }
- writeln(CurrencyString);
- writeln(CurrencyFormat);
- writeln(NegCurrFormat);
- { Number stuff }
- writeln(ThousandSeparator);
- writeln(DecimalSeparator);
- writeln(CurrencyDecimals);
+
+  {$ifdef localedebug}
+  writeln('currency1     :', orgformatsettings.currencystring1);
+  writeln('currency2     :', orgformatsettings.currencystring2);
+  {$endif}
+
+  writeln('currencystring  :', currencystring);
+
+  writeln('currencyformat  :', currencyformat);
+  writeln('negcurrformat   :', negcurrformat);
+
+  writeln('decimalseparator :', decimalseparator);
+  writeln('thousandseparator:', thousandseparator);
+  writeln('currencydecimals :', currencydecimals);
 end;
 
 begin
