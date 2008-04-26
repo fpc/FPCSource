@@ -25,7 +25,7 @@ begin
   {$endif}
   writeln('short date    :', shortdateformat);
   {$ifdef localedebug}
-  writeln('orglongdate   :', longdateformat);
+  writeln('orglongdate   :', orgformatsettings.longdateformat);
   {$endif}
   writeln('long  date    :', longdateformat);
  { Time stuff }
@@ -39,7 +39,7 @@ begin
  // No support for 12 hour stuff at the moment...
   writeln('short time    :', shorttimeformat);
   {$ifdef localedebug}
-  writeln('orglongtime   :', longtimeformat);
+  writeln('orglongtime   :', orgformatsettings.longtimeformat);
   {$endif}
   writeln('long  time    :', longtimeformat);
 
