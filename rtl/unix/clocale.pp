@@ -20,6 +20,21 @@ unit clocale;
 
 interface
 
+{$ifdef localedebug}
+// for easier debugging, allows to print untransformed values in test
+Type TOrgFormatSettings = record
+                            ShortDateFormat,
+                            LongDateFormat ,
+                            ShortTimeFormat, 
+                            LongTimeFormat ,
+                            CurrencyString1, 
+                            CurrencyString2: string;
+                           end;
+
+var OrgFormatSettings : TOrgFormatSettings;
+
+{$endif}
+
 implementation
 
 {$linklib c}
@@ -198,17 +213,32 @@ begin
     end;
   //Date stuff
   ShortDateFormat := GetLocaleStr(D_FMT);
+ 
+{$ifdef localedebug}
+  OrgFormatSettings.ShortDateFormat:=shortdateformat;
+{$endif}
+ 
   DateSeparator := FindSeparator(ShortDateFormat, DateSeparator);
   ShortDateFormat := TransformFormatStr(ShortDateFormat);
   LongDateFormat := GetLocaleStr(D_T_FMT);
+{$ifdef localedebug}
+  OrgFormatSettings.LongDateFormat:=longdateformat;
+{$endif}
   LongDateFormat := TransformFormatStr(LongDateFormat);
   //Time stuff
   TimeAMString := GetLocaleStr(AM_STR);
   TimePMString := GetLocaleStr(PM_STR);
   ShortTimeFormat := GetLocaleStr(T_FMT);
+{$ifdef localedebug}
+  OrgFormatSettings.ShortTimeFormat:=shorttimeformat;
+{$endif}
   TimeSeparator := FindSeparator(ShortTimeFormat, TimeSeparator);
   ShortTimeFormat := TransformFormatStr(ShortTimeFormat);
   LongTimeFormat := GetLocaleStr(T_FMT_AMPM);
+{$ifdef localedebug}
+  OrgFormatSettings.LongTimeFormat:=longtimeformat;
+{$endif}
+
   LongTimeFormat := TransformFormatStr(LongTimeFormat);
 
   {$Ifdef BSD}
@@ -216,8 +246,12 @@ begin
      // for these fields there is a separate BSD derived POSIX function.
      if not assigned(plocale) then exit; // for now.
      CurrencyString:=plocale^.CURRENCY_SYMBOL;
-     CurrencyString := Copy(CurrencyString, 2, Length(CurrencyString));
+     CurrencyString := Copy(CurrencyString, 1, Length(CurrencyString));
      CurrencyDecimals:=ord(plocale^.FRAC_DIGITS);
+{$ifdef localedebug}
+  OrgFormatSettings.CurrencyString1:=plocale^.currency_symbol;
+  OrgFormatSettings.CurrencyString2:=plocale^.int_curr_symbol;
+{$endif}
      prec:=ord(plocale^.P_CS_PRECEDES);
      sep:=ord(plocale^.P_SEP_BY_SPACE);
      if (prec<=1) and (sep<=1) then
@@ -232,8 +266,11 @@ begin
   {$else}
    //Currency stuff
   CurrencyString := GetLocaleStr(_NL_MONETARY_CRNCYSTR);
+{$ifdef localedebug}
+  OrgFormatSettings.CurrencyString1:=currencystring;
+  OrgFormatSettings.CurrencyString2:='';
+{$endif}
   CurrencyString := Copy(CurrencyString, 2, Length(CurrencyString));
-
   CurrencyDecimals := StrToIntDef(GetLocaleStr(__FRAC_DIGITS), CurrencyDecimals);
   prec := byte(GetLocaleChar(__P_CS_PRECEDES));
   sep := byte(GetLocaleChar(__P_SEP_BY_SPACE));
