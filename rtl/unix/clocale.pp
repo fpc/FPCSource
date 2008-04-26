@@ -124,7 +124,9 @@ procedure GetFormatSettings;
   function TransformFormatStr(const s: string): string;
   var
     i, l: integer;
+    clock12:boolean;
   begin
+    clock12:=false; // should ampm get appended?
     TransformFormatStr := '';
     i := 1;
     l := Length(s);
@@ -150,16 +152,28 @@ procedure GetFormatSettings;
           'G': TransformFormatStr := TransformFormatStr + 'yyyy';
           'h': TransformFormatStr := TransformFormatStr + 'mmm';
           'H': TransformFormatStr := TransformFormatStr + 'hh';
-          'I': TransformFormatStr := TransformFormatStr + 'hhampm';
+          'I': begin 
+                 TransformFormatStr := TransformFormatStr + 'hh';
+                 clock12:=true;
+               end;
           //'j':
           'k': TransformFormatStr := TransformFormatStr + 'h';
-          'l': TransformFormatStr := TransformFormatStr + 'hampm';
+          'l': begin
+		  TransformFormatStr := TransformFormatStr + 'h';
+                  clock12:=true;
+               end;
           'm': TransformFormatStr := TransformFormatStr + 'mm';
           'M': TransformFormatStr := TransformFormatStr + 'nn';
           'n': TransformFormatStr := TransformFormatStr + sLineBreak;
-          'p': TransformFormatStr := TransformFormatStr + 'ampm';
-          'P': TransformFormatStr := TransformFormatStr + 'ampm';
-          'r': TransformFormatStr := TransformFormatStr + 'hhampm:nn:ss';
+          'p','P': 
+               begin
+                 TransformFormatStr := TransformFormatStr + 'ampm';
+                 clock12:=false;
+               end;
+          'r': begin
+                 TransformFormatStr := TransformFormatStr + 'hh:nn:ss';
+                 clock12:=true;  
+               end;
           'R': TransformFormatStr := TransformFormatStr + 'hh:nn';
           //'s':
           'S': TransformFormatStr := TransformFormatStr + 'ss';
@@ -182,6 +196,13 @@ procedure GetFormatSettings;
         TransformFormatStr := TransformFormatStr + s[i];
       inc(i);
     end;
+    i:=length(TransformFormatStr);
+    if clock12 and (i>0) then
+      begin
+        if transformformatstr[i]<>' ' then
+          TransformFormatStr := TransformFormatStr + ' ';
+        TransformFormatStr := TransformFormatStr + 'ampm';
+      end;
   end;
 
 const
@@ -245,8 +266,10 @@ begin
      plocale:=localeconv;
      // for these fields there is a separate BSD derived POSIX function.
      if not assigned(plocale) then exit; // for now.
-     CurrencyString:=plocale^.CURRENCY_SYMBOL;
-     CurrencyString := Copy(CurrencyString, 1, Length(CurrencyString));
+
+     CurrencyString:=plocale^.currency_symbol; // int_CURR_SYMBOL (in latin chars)
+     if CurrencyString='' then
+        CurrencyString:=plocale^.int_curr_symbol;
      CurrencyDecimals:=ord(plocale^.FRAC_DIGITS);
 {$ifdef localedebug}
   OrgFormatSettings.CurrencyString1:=plocale^.currency_symbol;
