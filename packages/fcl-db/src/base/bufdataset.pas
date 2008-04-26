@@ -306,7 +306,14 @@ end;
 function DBCompareLargeInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PInt64(subValue)^-PInt64(aValue)^;
+  // A simple subtraction doesn't work, since it could be that the result
+  // doesn't fit into a LargeInt
+  if PLargeInt(subValue)^ < PLargeInt(aValue)^ then
+    result := -1
+  else if PLargeInt(subValue)^  > PLargeInt(aValue)^ then
+    result := 1
+  else
+    result := 0;
 end;
 
 function DBCompareWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
@@ -318,16 +325,27 @@ end;
 function DBCompareQWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PQWord(subValue)^-PQWord(aValue)^;
+  // A simple subtraction doesn't work, since it could be that the result
+  // doesn't fit into a LargeInt
+  if PQWord(subValue)^ < PQWord(aValue)^ then
+    result := -1
+  else if PQWord(subValue)^  > PQWord(aValue)^ then
+    result := 1
+  else
+    result := 0;
 end;
 
 function DBCompareDouble(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 var Dbl : Double;
 begin
-  Dbl := PDouble(subValue)^-PDouble(aValue)^;
-  if dbl < 0 then result := -1
-  else if dbl > 0 then result := 1
-  else result := 0;
+  // A simple subtraction doesn't work, since it could be that the result
+  // doesn't fit into a LargeInt
+  if PDouble(subValue)^ < PDouble(aValue)^ then
+    result := -1
+  else if PDouble(subValue)^  > PDouble(aValue)^ then
+    result := 1
+  else
+    result := 0;
 end;
 
 function IndexCompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : TDBCompareStruct) : LargeInt;
@@ -1103,8 +1121,7 @@ function TBufDataset.getnextpacket : integer;
 
 var i : integer;
     pb : pchar;
-    IndexNr : integer;
-    
+
 begin
   if FAllPacketsFetched then
     begin
