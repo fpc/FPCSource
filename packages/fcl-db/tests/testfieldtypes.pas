@@ -292,8 +292,8 @@ begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      if (SQLDbType in MySQLdbTypes) then
-        AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL automatically trims strings
+      if (SQLDbType in [mysql40,mysql41]) then
+        AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL < 5.0.3 automatically trims strings
       else
         AssertEquals(testValues[i],fields[0].AsString);
       Next;

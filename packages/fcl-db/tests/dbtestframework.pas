@@ -12,7 +12,7 @@ uses
   DigestTestReport,
   toolsunit,
 // Units wich contains the tests
-  testbasics, testfieldtypes, TestDatasources, testdbbasics;
+{  testbasics, testfieldtypes, TestDatasources,} testdbbasics;
   
 var
   FXMLResultsWriter: TXMLResultsWriter;
