@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.2.0
-version=2.2.0
+title=Free Pascal Compiler 2.2.2
+version=2.2.2
 
 #
 # General
@@ -229,9 +229,10 @@ package=gdbos2.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # OS/2 7
 package=ufvos2.zip,Free ~V~ision (FV)
 # OS/2 8
-package=uclkdllos2.zip[uclkos2.zip],CLKDLL interface unit (eCS 1.1+)
+package=uos2unitsos2.zip[uos2os2.zip],Units interfacing libraries delivered with OS/2/eCS
+#package=uclkdllos2.zip[uclkos2.zip],CLKDLL interface unit (eCS 1.1+)
 # OS/2 9
-package=ulvmos2.zip,LVM interface unit (OS/2 v4.5 / eCS)
+#package=ulvmos2.zip,LVM interface unit (OS/2 v4.5 / eCS)
 # OS/2 10
 package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
 # OS/2 11
@@ -271,11 +272,11 @@ package=urexxos2.zip,REXX SAA interface units
 # OS/2-2 5
 package=uunzipos2.zip[uzipos2.zip],Unzip units
 # OS/2-2 6
-package=uftpapios2.zip[uftpos2.zip],FTP API interface units
+#package=uftpapios2.zip[uftpos2.zip],FTP API interface units
 # OS/2-2 7
-package=uhwvideoos2.zip[uhwvos2.zip],HW Video interface units
+#package=uhwvideoos2.zip[uhwvos2.zip],HW Video interface units
 # OS/2-2 8
-package=ummtkos2.zip,MMOS/2 interface units
+#package=ummtkos2.zip,MMOS/2 interface units
 # OS/2-2 9
 package=ux11os2.zip,X11 interface units
 # OS/2-2 10
@@ -330,9 +331,10 @@ package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # EMX 7
 package=ufvemx.zip,Free ~V~ision (FV)
 # EMX 8
-package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
+package=uos2unitsemx.zip[uos2emx.zip],Units interfacing libraries delivered with OS/2/eCS
+#package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
 # EMX 9
-package=ulvmemx.zip,LVM interface unit (OS/2 v4.5 / eCS)
+#package=ulvmemx.zip,LVM interface unit (OS/2 v4.5 / eCS)
 # EMX 10
 package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
 # EMX 11
@@ -372,11 +374,11 @@ package=urexxemx.zip,REXX SAA interface units
 # EMX-2 5
 package=uunzipemx.zip[uzipemx.zip],Unzip units
 # EMX-2 6
-package=uftpapiemx.zip[uftpemx.zip],FTP API interface units
+#package=uftpapiemx.zip[uftpemx.zip],FTP API interface units
 # EMX-2 7
-package=uhwvideoemx.zip[uhwvemx.zip],HW Video interface units
+#package=uhwvideoemx.zip[uhwvemx.zip],HW Video interface units
 # EMX-2 8
-package=ummtkemx.zip,MMOS/2 interface units
+#package=ummtkemx.zip,MMOS/2 interface units
 # EMX-2 9
 package=ux11emx.zip,X11 interface units
 # EMX-2 10
