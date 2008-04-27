@@ -1110,7 +1110,7 @@ unit cgcpu;
        var
          oppostfix:toppostfix;
        begin
-         case tosize of
+         case fromsize of
            OS_32,
            OS_F32:
              oppostfix:=PF_S;
@@ -1123,6 +1123,8 @@ unit cgcpu;
              InternalError(200309021);
          end;
          handle_load_store(list,A_LDF,oppostfix,reg,ref);
+         if fromsize<>tosize then
+           a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
        end;
 
 
