@@ -6,12 +6,12 @@ unit mysql4_com;
 interface
 
 uses
-  ctypes;
+  ctypes,dynlibs;
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    External_library = 'libmysqlclient.so';
+    External_library = 'libmysqlclient.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
