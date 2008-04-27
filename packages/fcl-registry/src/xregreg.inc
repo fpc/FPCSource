@@ -10,9 +10,11 @@ Const
   XFileName = 'reg.xml';
 
 Procedure TRegistry.SysRegCreate;
-
+var s : string;
 begin
-  FSysData:=TXMLRegistry.Create(XFileName);
+  s:=includetrailingpathdelimiter(GetAppConfigDir(GlobalXMLFile));
+  ForceDirectories(s);
+  FSysData:=TXMLRegistry.Create(s+XFileName);
   TXmlRegistry(FSysData).AutoFlush:=False;
 end;
 

@@ -192,6 +192,9 @@ ResourceString
   SRegSetDataFailed = 'Failed to set data for value "%s"';
   SRegGetDataFailed = 'Failed to get data for value "%s"';
 
+var
+  GlobalXMLFile : Boolean = False;
+
 implementation
 
 { ---------------------------------------------------------------------
