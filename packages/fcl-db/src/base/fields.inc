@@ -2138,7 +2138,7 @@ end;
 class procedure TBCDField.CheckTypeSize(AValue: Longint);
 
 begin
-  If not (AValue in [1..4]) then
+  If not (AValue in [0..4]) then
     DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
 end;
 
