@@ -586,15 +586,7 @@ begin
   inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
   field := mysql_fetch_field_direct(C.FRES, c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  // String-fields which can contain more then dsMaxStringSize characters
-  // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
-  if FieldDef.DataType in [ftBlob,ftMemo] then
-    begin
-    Result := Row^<>Nil;
-    CreateBlob:=True;
-    end
-  else
-    Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer, CreateBlob);
+  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer, CreateBlob);
 end;
 
 procedure TConnectionName.LoadBlobIntoBuffer(FieldDef: TFieldDef;
@@ -834,7 +826,12 @@ begin
           inc(p);
           end;
       Writeln;
-}      if Src<> '' then
+}
+      // String-fields which can contain more then dsMaxStringSize characters
+      // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
+      if AFieldType in [ftBlob,ftMemo] then
+        CreateBlob := True
+      else if Src<> '' then
         Move(Source^, Dest^, ASize)
       else
         Dest^ := #0;
