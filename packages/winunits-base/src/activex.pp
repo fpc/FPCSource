@@ -38,19 +38,21 @@ type
    FMTID  =  TGUID;
    pFMTID = pGUID;
 
-{Glue types, should be linked to the proper windows unit types}
-     Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
-     OleChar             = WChar;
-     LPOLESTR            = ^OLECHAR;
-     PLPOLESTR		 = ^LPOLESTR;
-     PROPID = ULONG;
-     TPROPID= PROPID;
-     PPROPID= ^PROPID;
-     VARIANT_BOOL        = wordbool;
-     _VARIANT_BOOL       = VARIANT_BOOL;
-     CY			 = CURRENCY;
-     DATE		 = DOUBLE;
-     BSTR		 = POLESTR;
+   { Glue types, should be linked to the proper windows unit types}
+   Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
+   OleChar             = WChar;
+   LPOLESTR            = ^OLECHAR;
+   POLECHAR            = LPOLESTR;
+   PLPOLESTR	       = ^LPOLESTR;
+   PROPID = ULONG;
+   TPROPID= PROPID;
+   PPROPID= ^PROPID;
+   VARIANT_BOOL        = wordbool;
+   _VARIANT_BOOL       = VARIANT_BOOL;
+   PVARIANT_BOOL       = ^VARIANT_BOOL;
+   CY		       = CURRENCY;
+   DATE	               = DOUBLE;
+   BSTR	               = POLESTR;
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
@@ -753,7 +755,7 @@ Const
     PIDSI_THUMBNAIL        = DWORD($00000011); // VT_CF
     PIDSI_APPNAME          = DWORD($00000012); // VT_LPSTR
     PIDSI_DOC_SECURITY     = DWORD($00000013); // VT_I4
-    PIDDSI_CATEGORY        = $00000002; // VT_LPSTR 
+    PIDDSI_CATEGORY        = $00000002; // VT_LPSTR
     PIDDSI_PRESFORMAT      = $00000003; // VT_LPSTR
     PIDDSI_BYTECOUNT       = $00000004; // VT_I4
     PIDDSI_LINECOUNT       = $00000005; // VT_I4
@@ -762,7 +764,7 @@ Const
     PIDDSI_NOTECOUNT       = $00000008; // VT_I4
     PIDDSI_HIDDENCOUNT     = $00000009; // VT_I4
     PIDDSI_MMCLIPCOUNT     = $0000000A; // VT_I4
-    PIDDSI_SCALE           = $0000000B; // VT_BOOL 
+    PIDDSI_SCALE           = $0000000B; // VT_BOOL
     PIDDSI_HEADINGPAIR     = $0000000C; // VT_VARIANT |VT_VECTOR
     PIDDSI_DOCPARTS        = $0000000D; // VT_LPSTR |VT_VECTOR
     PIDDSI_MANAGER         = $0000000E; // VT_LPSTR
@@ -1625,13 +1627,13 @@ TYPE
                   ulKind : ULONG ;
                   case boolean of
                     false : ( propid:propid);
-                    true  :  (lpwstr: LPOLEStr);	   
-                    end; 
-         
+                    true  :  (lpwstr: LPOLEStr);	
+                    end;
+
   PROPSPEC= tagPROPSPEC;
   TPROPSPEC = PROPSPEC;
   PPROPSPEC = ^TPROPSPEC;
-              
+
   tagSTATPROPSTG = record
                     lpwstrName : LPOLESTR ;
                     propid:PROPID ;
@@ -1653,7 +1655,7 @@ TYPE
   STATPROPSETSTG = tagSTATPROPSETSTG;
   TSTATPROPSETSTG = STATPROPSETSTG;
   PSTATPROPSETSTG = ^STATPROPSETSTG;
-      
+
    tagVersionedStream = record
         guidVersion : TGUID;
         pStream : pointer; {IStream}
@@ -1918,7 +1920,7 @@ TYPE
 
 
 
-   AsyncIUnknown = Interface( IUnknown)
+   AsyncIUnknown = Interface(IUnknown)
       ['{000e0000-0000-0000-C000-000000000046}']
         Function Begin_QueryInterface(Const riid : TIID): HResult; StdCall;
         Function Finish_QueryInterface(Out ppvObject : Pointer):HResult;StdCall;
@@ -3098,8 +3100,8 @@ TYPE
     ['{B196B283-BAB4-101A-B69C-00AA00341D07}']
     function GetClassInfo(out pptti : ITypeInfo):HResult; StdCall;
   end;
-  
-  
+
+
   IProvideClassInfo2 = Interface (IProvideClassInfo)
     ['{A6BC3AC0-DBAA-11CE-9DE3-00AA004BB851}']
     function GetGUID(dwguid:DWord;out pguid:TGUID):HResult; StdCall;
@@ -3220,12 +3222,12 @@ type
     function TranslateAccelerator(var msg: TMsg; wID: Word): HResult;StdCall;
   end;
 
-  IOleLink = interface(IUnknown) 
+  IOleLink = interface(IUnknown)
      ['{0000011d-0000-0000-C000-000000000046}']
     function SetUpdateOptions(dwupdateopt:dword):HResult; stdcall;
     function GetUpdateOptions(dwupdateopt:pdword):HResult; stdcall;
     function SetSourceMoniker(pmk : IMoniker;const clsid: TCLSID):HRESULT; stdcall;
-    function GetSourceMoniker(out pmk : IMoniker):HRESULT; stdcall;           
+    function GetSourceMoniker(out pmk : IMoniker):HRESULT; stdcall;
     function SetSourceDisplayName(ppszDisplayName:lpolestr):HResult; stdcall;
     function GetSourceDisplayName(out ppszDisplayName:lpolestr):HResult; stdcall;
     function BindToSource(bindflags:DWord;pbc: IBindCTX):HResult; stdcall;
@@ -3246,7 +3248,7 @@ type
       function OnInPlaceDeactivate :hresult; stdcall;
       function DiscardUndoState :hresult; stdcall;
       function DeactivateAndUndo :hresult; stdcall;
-      function OnPosRectChange(lprcPosRect:LPRect):hresult; stdcall;   
+      function OnPosRectChange(lprcPosRect:LPRect):hresult; stdcall;
       end;
 
     IOleInPlaceObject = interface(IOleWindow)
@@ -3256,7 +3258,7 @@ type
       function SetObjectRects(lprcPosRect:LPRect;lprcClipRect:LPRect):hresult; stdcall;
       function ReactivateAndUndo : HResult;
      end;
-  
+
     IOleDocumentView = interface(IUnknown)
         ['{b722bcc6-4e68-101b-a2bc-00aa00404770}']
         function SetInPlaceSite(ppipsite:IOleInPlaceSite):hresult; stdcall;
@@ -3303,7 +3305,7 @@ type
 
 { ObjSafe.idl}
   IObjectSafety = interface(IUnknown)
-    ['{CB5BDC81-93C1-11cf-8F20-00805F2CD064}']             
+    ['{CB5BDC81-93C1-11cf-8F20-00805F2CD064}']
     function GetInterfaceSafetyOptions(const riid:Tiid; out pdwsupportedoptions: dword;out pdwenabledoptions: dword):HRESULT; stdcall;
     function SetInterfaceSafetyOptions(const riid:Tiid; const dwoptionsetmask: dword;const dwenabledoptions : dword):HRESULT; stdcall;
     end;
@@ -3319,8 +3321,8 @@ type
     function Unfreeze(dwfreeze:dword):HResult; stdcall;
     function SetAdvise(aspects:DWORD;advf:DWORD;padvSink:IAdviseSink):HRESULT;stdcall;
     function Getadvise(paspects:pdword;padvf:pdword;out ppadvsink: IADviseSink):HRESULT;stdcall;
-    end;     
-        
+    end;
+
   IViewObject2 = interface(IViewObject)
     ['{00000127-0000-0000-C000-000000000046}']
     function GetExtent(dwDrawAspect:dword;lindex:DWord;ptd:pDVTARGETDEVICE;lpsizel:LPSIZEL):HRESULT;stdcall;
@@ -3332,7 +3334,7 @@ type
 
 Const CATDESC_MAX = 128;
 
-Type 
+Type
     CATID  = TGUID;
     TCATID = TGUID;
     PCATID = PGUID;
@@ -3341,7 +3343,7 @@ Type
 	LCID  : lcid;
         szDescription : array[0..CATDESC_MAX-1] of WideChar;
         end;
-  
+
    CATEGORYINFO   = tagCATEGORYINFO;
    TCATEGORYINFO  = tagCATEGORYINFO;
    LPCATEGORYINFO = ^tagCATEGORYINFO;
@@ -3349,8 +3351,8 @@ Type
 
    IEnumCLSID = IEnumGUID;
    IEnumCategoryInfo = interface(IUnknown)
-          ['{0002E011-0000-0000-C000-000000000046}'] 
-          function Next(celt: ULONG; out rgelt: TCategoryInfo; out pceltFetched: ULONG): HResult; stdcall;      
+          ['{0002E011-0000-0000-C000-000000000046}']
+          function Next(celt: ULONG; out rgelt: TCategoryInfo; out pceltFetched: ULONG): HResult; stdcall;
           function Skip(celt:ULONG):HResult; StdCall;
           function Reset:HResult; StdCall;
           function CLone(Out ppenum : IEnumCategoryInfo):HResult;StdCall;
@@ -3360,12 +3362,12 @@ Type
      ['{0002E012-0000-0000-C000-000000000046}']
      function RegisterCategories   (cCategories:ULONG;rgCategoryInfo : PCategoryInfo):HResult;Stdcall;
      function UnRegisterCategories (cCategories:ULONG;PCatid :PCATID):HResult;Stdcall;
-     function RegisterClassImplCategories (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;     
-     function UnRegisterClassImplCategories (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;       
-     function RegisterClassReqCategories  (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;     
-     function UnRegisterClassReqCategories  (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;       
+     function RegisterClassImplCategories (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;
+     function UnRegisterClassImplCategories (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;
+     function RegisterClassReqCategories  (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;
+     function UnRegisterClassReqCategories  (const rclsid:TGUID;cCategories:ULONG; rgCatid :PCATID):HResult;Stdcall;
     end;
-         
+
    ICatInformation = interface(IUnknown)
      ['{0002E013-0000-0000-C000-000000000046}']
      function EnumCategories(lcid:lcid;out ppenumCategoryInfo : ICatInformation):HResult; StdCall;
@@ -3383,7 +3385,7 @@ Type
      function Delete(const rfmtid:FMTID):HRESULT; StdCall;
      function Enum(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;
      end;
- 
+
    IEnumSTATPROPSTG = interface( IUnknown)
      ['{00000139-0000-0000-C000-000000000046}']
      function Next(celt:ULONG; var rgelt:STATPROPSTG; pceltFetched:pULONG):HRESULT; StdCall;
@@ -3945,6 +3947,254 @@ function VariantTimeToDosDateTime( vtime:DOUBLE;pwdosdate:PUSHORT;pwDosTime:PUSH
 
 function SystemTimeToVariantTime(LPSYSTEMTIME:lpSystemTime;pvtime: PDOUBLE):LONGINT; stdcall; external oleaut32dll name 'SystemTimeToVariantTime';
 function VariantTimeToSystemTime(vtime:DOUBLE; lpsystemtime: LPSYSTEMTIME):LONGINT; stdcall; external oleaut32dll name 'VariantTimeToSystemTime';
+
+
+{--------------------------------------------------------------------- }
+{                     VARTYPE Coercion API                             }
+{--------------------------------------------------------------------- }
+{ Note: The routines that convert *from* a string are defined
+ * to take a OLECHAR* rather than a BSTR because no allocation is
+ * required, and this makes the routines a bit more generic.
+ * They may of course still be passed a BSTR as the strIn param.
+  }
+
+function VarUI1FromI2(sIn:SHORT; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromI2';
+function VarUI1FromI4(lIn:LONG; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromI4';
+function VarUI1FromI8(i64In:LONG64; pbOut:PBYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromI8';
+function VarUI1FromR4(fltIn:Single; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromR4';
+function VarUI1FromR8(dblIn:DOUBLE; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromR8';
+function VarUI1FromCy(cyIn:CY; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromCy';
+function VarUI1FromDate(dateIn:DATE; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromDate';
+function VarUI1FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromStr';
+function VarUI1FromDisp(pdispIn:IDispatch; lcid:LCID; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromDisp';
+function VarUI1FromBool(boolIn:VARIANT_BOOL; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromBool';
+function VarUI1FromI1(cIn:CHAR; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromI1';
+function VarUI1FromUI2(uiIn:USHORT; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromUI2';
+function VarUI1FromUI4(ulIn:ULONG; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromUI4';
+function VarUI1FromUI8(ui64In:ULONG64; pbOut:PBYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromUI8';
+function VarUI1FromDec(var pdecIn:TDecimal; var pbOut:BYTE):HResult;stdcall;external oleaut32dll name 'VarUI1FromDec';
+function VarI2FromUI1(bIn:BYTE; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromUI1';
+function VarI2FromI4(lIn:LONG; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromI4';
+
+function VarI2FromI8(i64In:LONG64; psOut:PSHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromI8';
+function VarI2FromR4(fltIn:Single; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromR4';
+function VarI2FromR8(dblIn:DOUBLE; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromR8';
+function VarI2FromCy(cyIn:CY; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromCy';
+function VarI2FromDate(dateIn:DATE; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromDate';
+function VarI2FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromStr';
+function VarI2FromDisp(pdispIn:IDispatch; lcid:LCID; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromDisp';
+function VarI2FromBool(boolIn:VARIANT_BOOL; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromBool';
+function VarI2FromI1(cIn:CHAR; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromI1';
+function VarI2FromUI2(uiIn:USHORT; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromUI2';
+function VarI2FromUI4(ulIn:ULONG; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromUI4';
+
+function VarI2FromUI8(ui64In:ULONG64; psOut:PSHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromUI8';
+function VarI2FromDec(var pdecIn:TDecimal; var psOut:SHORT):HResult;stdcall;external oleaut32dll name 'VarI2FromDec';
+function VarI4FromUI1(bIn:BYTE; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromUI1';
+function VarI4FromI2(sIn:SHORT; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromI2';
+
+function VarI4FromI8(i64In:LONG64; plOut:PLONG):HResult;stdcall;external oleaut32dll name 'VarI4FromI8';
+function VarI4FromR4(fltIn:Single; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromR4';
+function VarI4FromR8(dblIn:DOUBLE; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromR8';
+function VarI4FromCy(cyIn:CY; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromCy';
+function VarI4FromDate(dateIn:DATE; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromDate';
+function VarI4FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromStr';
+function VarI4FromDisp(dispIn:IDispatch; lcid:LCID; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromDisp';
+function VarI4FromBool(boolIn:VARIANT_BOOL; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromBool';
+function VarI4FromI1(cIn:CHAR; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromI1';
+function VarI4FromUI2(uiIn:USHORT; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromUI2';
+function VarI4FromUI4(ulIn:ULONG; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromUI4';
+
+function VarI4FromUI8(ui64In:ULONG64; plOut:PLONG):HResult;stdcall;external oleaut32dll name 'VarI4FromUI8';
+function VarI4FromDec(var pdecIn:TDecimal; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromDec';
+function VarI4FromInt(intIn:cint; var plOut:LONG):HResult;stdcall;external oleaut32dll name 'VarI4FromInt';
+
+function VarI8FromUI1(bIn:BYTE; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromUI1';
+function VarI8FromI2(sIn:SHORT; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromI2';
+function VarI8FromI4(lIn:LONG; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromI4';
+function VarI8FromR4(fltIn:Single; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromR4';
+function VarI8FromR8(dblIn:DOUBLE; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromR8';
+function VarI8FromCy(cyIn:CY; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromCy';
+function VarI8FromDate(dateIn:DATE; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromDate';
+function VarI8FromStr(strIn:POLECHAR; lcid:LCID; dwFlags:dword; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromStr';
+function VarI8FromDisp(pdispIn:IDispatch; lcid:LCID; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromDisp';
+function VarI8FromBool(boolIn:VARIANT_BOOL; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromBool';
+function VarI8FromI1(cIn:CHAR; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromI1';
+
+function VarI8FromUI2(uiIn:USHORT; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromUI2';
+function VarI8FromUI4(ulIn:ULONG; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromUI4';
+function VarI8FromUI8(ui64In:ULONG64; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromUI8';
+function VarI8FromDec(var pdecIn:TDecimal; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromDec';
+function VarI8FromInt(intIn:cint; pi64Out:PLONG64):HResult;stdcall;external oleaut32dll name 'VarI8FromInt';
+
+{******************* }
+function VarR4FromUI1(bIn:BYTE; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromUI1';
+function VarR4FromI2(sIn:SHORT; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromI2';
+function VarR4FromI4(lIn:LONG; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromI4';
+
+function VarR4FromI8(i64In:LONG64; pfltOut:PSingle):HResult;stdcall;external oleaut32dll name 'VarR4FromI8';
+function VarR4FromR8(dblIn:DOUBLE; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromR8';
+function VarR4FromCy(cyIn:CY; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromCy';
+function VarR4FromDate(dateIn:DATE; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromDate';
+function VarR4FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromStr';
+function VarR4FromDisp(pdispIn:IDispatch; lcid:LCID; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromDisp';
+function VarR4FromBool(boolIn:VARIANT_BOOL; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromBool';
+function VarR4FromI1(cIn:CHAR; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromI1';
+function VarR4FromUI2(uiIn:USHORT; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromUI2';
+function VarR4FromUI4(ulIn:ULONG; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromUI4';
+
+function VarR4FromUI8(ui64In:ULONG64; pfltOut:PSingle):HResult;stdcall;external oleaut32dll name 'VarR4FromUI8';
+function VarR4FromDec(var pdecIn:TDecimal; var pfltOut:Single):HResult;stdcall;external oleaut32dll name 'VarR4FromDec';
+function VarR8FromUI1(bIn:BYTE; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromUI1';
+function VarR8FromI2(sIn:SHORT; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromI2';
+function VarR8FromI4(lIn:LONG; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromI4';
+
+function VarR8FromI8(i64In:LONG64; pdblOut:PDOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromI8';
+function VarR8FromR4(fltIn:Single; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromR4';
+function VarR8FromCy(cyIn:CY; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromCy';
+function VarR8FromDate(dateIn:DATE; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromDate';
+function VarR8FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromStr';
+function VarR8FromDisp(pdispIn:IDispatch; lcid:LCID; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromDisp';
+function VarR8FromBool(boolIn:VARIANT_BOOL; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromBool';
+function VarR8FromI1(cIn:CHAR; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromI1';
+function VarR8FromUI2(uiIn:USHORT; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromUI2';
+function VarR8FromUI4(ulIn:ULONG; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromUI4';
+
+function VarR8FromUI8(ui64In:ULONG64; pdblOut:PDOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromUI8';
+function VarR8FromDec(var pdecIn:TDecimal; var pdblOut:DOUBLE):HResult;stdcall;external oleaut32dll name 'VarR8FromDec';
+function VarDateFromUI1(bIn:BYTE; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromUI1';
+function VarDateFromI2(sIn:SHORT; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromI2';
+function VarDateFromI4(lIn:LONG; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromI4';
+
+function VarDateFromI8(i64In:LONG64; pdateOut:PDATE):HResult;stdcall;external oleaut32dll name 'VarDateFromI8';
+function VarDateFromR4(fltIn:Single; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromR4';
+function VarDateFromR8(dblIn:DOUBLE; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromR8';
+function VarDateFromCy(cyIn:CY; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromCy';
+function VarDateFromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromStr';
+
+function VarDateFromDisp(pdispIn:IDispatch; lcid:LCID; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromDisp';
+function VarDateFromBool(boolIn:VARIANT_BOOL; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromBool';
+function VarDateFromI1(cIn:CHAR; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromI1';
+function VarDateFromUI2(uiIn:USHORT; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromUI2';
+function VarDateFromUI4(ulIn:ULONG; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromUI4';
+
+function VarDateFromUI8(ui64In:ULONG64; pdateOut:PDATE):HResult;stdcall;external oleaut32dll name 'VarDateFromUI8';
+function VarDateFromDec(var pdecIn:TDecimal; var pdateOut:DATE):HResult;stdcall;external oleaut32dll name 'VarDateFromDec';
+function VarCyFromUI1(bIn:BYTE; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromUI1';
+function VarCyFromI2(sIn:SHORT; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromI2';
+function VarCyFromI4(lIn:LONG; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromI4';
+
+function VarCyFromI8(i64In:LONG64; pcyOut:PCurrency):HResult;stdcall;external oleaut32dll name 'VarCyFromI8';
+function VarCyFromR4(fltIn:Single; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromR4';
+function VarCyFromR8(dblIn:DOUBLE; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromR8';
+function VarCyFromDate(dateIn:DATE; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromDate';
+function VarCyFromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromStr';
+function VarCyFromDisp(pdispIn:IDispatch; lcid:LCID; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromDisp';
+function VarCyFromBool(boolIn:VARIANT_BOOL; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromBool';
+function VarCyFromI1(cIn:CHAR; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromI1';
+function VarCyFromUI2(uiIn:USHORT; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromUI2';
+function VarCyFromUI4(ulIn:ULONG; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromUI4';
+
+function VarCyFromUI8(ui64In:ULONG64; pcyOut:PCurrency):HResult;stdcall;external oleaut32dll name 'VarCyFromUI8';
+function VarCyFromDec(var pdecIn:TDecimal; var pcyOut:CY):HResult;stdcall;external oleaut32dll name 'VarCyFromDec';
+function VarBstrFromUI1(bVal:BYTE; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromUI1';
+function VarBstrFromI2(iVal:SHORT; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromI2';
+function VarBstrFromI4(lIn:LONG; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromI4';
+
+function VarBstrFromI8(i64In:LONG64; lcid:LCID; dwFlags:dword; pbstrOut:PBSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromI8';
+function VarBstrFromR4(fltIn:Single; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromR4';
+function VarBstrFromR8(dblIn:DOUBLE; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromR8';
+function VarBstrFromCy(cyIn:CY; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromCy';
+function VarBstrFromDate(dateIn:DATE; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromDate';
+function VarBstrFromDisp(pdispIn:IDispatch; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromDisp';
+function VarBstrFromBool(boolIn:VARIANT_BOOL; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromBool';
+function VarBstrFromI1(cIn:CHAR; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromI1';
+function VarBstrFromUI2(uiIn:USHORT; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromUI2';
+function VarBstrFromUI4(ulIn:ULONG; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromUI4';
+
+function VarBstrFromUI8(ui64In:ULONG64; lcid:LCID; dwFlags:dword; pbstrOut:PBSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromUI8';
+function VarBstrFromDec(var pdecIn:TDecimal; lcid:LCID; dwFlags:ULONG; var pbstrOut:BSTR):HResult;stdcall;external oleaut32dll name 'VarBstrFromDec';
+function VarBoolFromUI1(bIn:BYTE; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromUI1';
+function VarBoolFromI2(sIn:SHORT; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromI2';
+function VarBoolFromI4(lIn:LONG; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromI4';
+
+function VarBoolFromI8(i64In:LONG64; pboolOut:PVARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromI8';
+function VarBoolFromR4(fltIn:Single; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromR4';
+function VarBoolFromR8(dblIn:DOUBLE; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromR8';
+function VarBoolFromDate(dateIn:DATE; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromDate';
+function VarBoolFromCy(cyIn:CY; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromCy';
+function VarBoolFromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromStr';
+function VarBoolFromDisp(pdispIn:IDispatch; lcid:LCID; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromDisp';
+function VarBoolFromI1(cIn:CHAR; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromI1';
+function VarBoolFromUI2(uiIn:USHORT; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromUI2';
+function VarBoolFromUI4(ulIn:ULONG; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromUI4';
+
+function VarBoolFromUI8(i64In:ULONG64; pboolOut:PVARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromUI8';
+function VarBoolFromDec(var pdecIn:TDecimal; var pboolOut:VARIANT_BOOL):HResult;stdcall;external oleaut32dll name 'VarBoolFromDec';
+function VarI1FromUI1(bIn:BYTE; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromUI1';
+function VarI1FromI2(uiIn:SHORT; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromI2';
+function VarI1FromI4(lIn:LONG; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromI4';
+function VarI1FromI8(i64In:LONG64; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromI8';
+function VarI1FromR4(fltIn:Single; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromR4';
+function VarI1FromR8(dblIn:DOUBLE; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromR8';
+function VarI1FromDate(dateIn:DATE; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromDate';
+function VarI1FromCy(cyIn:CY; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromCy';
+function VarI1FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromStr';
+function VarI1FromDisp(pdispIn:IDispatch; lcid:LCID; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromDisp';
+function VarI1FromBool(boolIn:VARIANT_BOOL; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromBool';
+function VarI1FromUI2(uiIn:USHORT; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromUI2';
+function VarI1FromUI4(ulIn:ULONG; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromUI4';
+function VarI1FromUI8(i64In:ULONG64; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromUI8';
+function VarI1FromDec(var pdecIn:TDecimal; pcOut:pCHAR):HResult;stdcall;external oleaut32dll name 'VarI1FromDec';
+function VarUI2FromUI1(bIn:BYTE; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromUI1';
+function VarUI2FromI2(uiIn:SHORT; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromI2';
+function VarUI2FromI4(lIn:LONG; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromI4';
+
+function VarUI2FromI8(i64In:LONG64; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromI8';
+function VarUI2FromR4(fltIn:Single; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromR4';
+function VarUI2FromR8(dblIn:DOUBLE; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromR8';
+function VarUI2FromDate(dateIn:DATE; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromDate';
+function VarUI2FromCy(cyIn:CY; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromCy';
+function VarUI2FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromStr';
+function VarUI2FromDisp(pdispIn:IDispatch; lcid:LCID; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromDisp';
+function VarUI2FromBool(boolIn:VARIANT_BOOL; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromBool';
+function VarUI2FromI1(cIn:CHAR; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromI1';
+function VarUI2FromUI4(ulIn:ULONG; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromUI4';
+function VarUI2FromUI8(i64In:ULONG64; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromUI8';
+function VarUI2FromDec(var pdecIn:TDecimal; var puiOut:USHORT):HResult;stdcall;external oleaut32dll name 'VarUI2FromDec';
+function VarUI4FromUI1(bIn:BYTE; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromUI1';
+function VarUI4FromI2(uiIn:SHORT; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromI2';
+function VarUI4FromI4(lIn:LONG; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromI4';
+function VarUI4FromI8(i64In:LONG64; var plOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromI8';
+function VarUI4FromR4(fltIn:Single; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromR4';
+function VarUI4FromR8(dblIn:DOUBLE; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromR8';
+function VarUI4FromDate(dateIn:DATE; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromDate';
+function VarUI4FromCy(cyIn:CY; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromCy';
+function VarUI4FromStr(strIn:pOLECHAR; lcid:LCID; dwFlags:ULONG; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromStr';
+function VarUI4FromDisp(pdispIn:IDispatch; lcid:LCID; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromDisp';
+function VarUI4FromBool(boolIn:VARIANT_BOOL; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromBool';
+function VarUI4FromI1(cIn:CHAR; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromI1';
+function VarUI4FromUI2(uiIn:USHORT; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromUI2';
+function VarUI4FromUI8(ui64In:ULONG64; var plOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromUI8';
+function VarUI4FromDec(var pdecIn:TDecimal; var pulOut:ULONG):HResult;stdcall;external oleaut32dll name 'VarUI4FromDec';
+
+{**************************************** }
+function VarUI8FromUI1(bIn:BYTE; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromUI1';
+function VarUI8FromI2(sIn:SHORT; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromI2';
+function VarUI8FromI4(lIn:LONG; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromI4';
+function VarUI8FromI8(ui64In:LONG64; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromI8';
+function VarUI8FromR4(fltIn:Single; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromR4';
+function VarUI8FromR8(dblIn:DOUBLE; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromR8';
+function VarUI8FromCy(cyIn:CY; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromCy';
+function VarUI8FromDate(dateIn:DATE; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromDate';
+function VarUI8FromStr(strIn:POLECHAR; lcid:LCID; dwFlags:dword; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromStr';
+function VarUI8FromDisp(pdispIn:IDispatch; lcid:LCID; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromDisp';
+function VarUI8FromBool(boolIn:VARIANT_BOOL; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromBool';
+function VarUI8FromI1(cIn:CHAR; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromI1';
+function VarUI8FromUI2(uiIn:USHORT; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromUI2';
+function VarUI8FromUI4(ulIn:ULONG; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromUI4';
+function VarUI8FromDec(var pdecIn:TDecimal; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromDec';
+function VarUI8FromInt(intIn:cint; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromInt';
 
 implementation
 
