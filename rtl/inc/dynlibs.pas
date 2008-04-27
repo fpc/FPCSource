@@ -45,7 +45,23 @@ Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
 
 Type
   HModule = TLibHandle; 
-  
+
+// these are for easier crossplatform construction of dll names in dynloading libs.
+Const
+ {$ifdef Windows}
+  SharedSuffix  = 'dll';
+ {$else}
+   {$ifdef Darwin}
+     SharedSuffix = 'dylib';
+   {$else}
+     {$ifdef OS2}
+       SharedSuffix = 'dll';
+     {$else}
+       SharedSuffix = 'so';  
+     {$endif}
+   {$endif}
+ {$endif}      
+      
 Implementation
 
 { ---------------------------------------------------------------------
