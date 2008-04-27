@@ -806,6 +806,11 @@ Const
 
      HTTP_VERSIONA           = 'HTTP/1.0';
      HTTP_VERSIONW           : widestring = 'HTTP/1.0';
+     {$ifdef UNICODE}
+       HTTP_VERSION = HTTP_VERSIONW;
+     {$ELSE}
+       HTTP_VERSION = HTTP_VERSIONA;
+     {$ENDIF}
 
 
 //
@@ -1524,7 +1529,8 @@ Type
        end;
      LPURL_COMPONENTSA = ^URL_COMPONENTSA;
      PURL_COMPONENTSA = LPURL_COMPONENTSA;	
-	 TURL_COMPONENTSA = URL_COMPONENTSA;
+     TURL_COMPONENTSA = URL_COMPONENTSA;
+
      URL_COMPONENTSW = record
           dwStructSize : DWORD;
           lpszScheme : LPWSTR;
@@ -1557,6 +1563,7 @@ Type
      TURL_COMPONENTS = URL_COMPONENTSA;
      PURL_COMPONENTS = LPURL_COMPONENTSA;
 {$endif}
+     TURLComponents  = TURL_COMPONENTS;
 
      INTERNET_CERTIFICATE_INFO = record
           ftExpiry : FILETIME;
@@ -2221,6 +2228,69 @@ Type
   function PrivacyGetZonePreferenceW(dwZone:DWORD; dwType:DWORD; pdwTemplate:LPDWORD; pszBuffer:LPWSTR; pdwBufferLength:LPDWORD):DWORD;stdcall;external WININETLIBNAME name 'PrivacyGetZonePreferenceW';
   function InternetClearAllPerSiteCookieDecisions:BOOL;stdcall;external WININETLIBNAME name 'InternetClearAllPerSiteCookieDecisions';
 
+  { Delphi overloads, see bug 10576 }
+  function InternetCreateUrlA(lpUrlComponents:LPURL_COMPONENTSA; dwFlags:DWORD; lpszUrl:LPSTR; var lpdwUrlLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlA';
+  function InternetCreateUrlW(lpUrlComponents:LPURL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR;var lpdwUrlLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
+  function InternetCanonicalizeUrlA(lpszUrl:LPCSTR; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlA';
+  function InternetCanonicalizeUrlW(lpszUrl:LPCWSTR; lpszBuffer:LPWSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlW';
+  function InternetCombineUrlA(lpszBaseUrl:LPCSTR; lpszRelativeUrl:LPCSTR; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlA';
+  function InternetCombineUrlW(lpszBaseUrl:LPCWSTR; lpszRelativeUrl:LPCWSTR; lpszBuffer:LPWSTR;var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlW';
+  function InternetQueryDataAvailable(hFile:HINTERNET; var lpdwNumberOfBytesAvailable:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryDataAvailable';
+  function InternetQueryOptionA(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryOptionA';
+  function InternetQueryOptionW(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryOptionW';
+  function InternetGetLastResponseInfoA(lpdwError:LPDWORD; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetLastResponseInfoA';
+  function InternetGetLastResponseInfoW(lpdwError:LPDWORD; lpszBuffer:LPWSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetLastResponseInfoW';
+  function FtpGetFileSize(hFile:HINTERNET; var lpdwFileSizeHigh:DWORD):DWORD;stdcall;external WININETLIBNAME name 'FtpGetFileSize';
+  function GopherCreateLocatorA(lpszHost:LPCSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCSTR; lpszSelectorString:LPCSTR; dwGopherType:DWORD;
+             lpszLocator:LPSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorA';
+  function GopherCreateLocatorW(lpszHost:LPCWSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCWSTR; lpszSelectorString:LPCWSTR; dwGopherType:DWORD;
+             lpszLocator:LPWSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorW';
+  function GopherGetLocatorTypeA(lpszLocator:LPCSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeA';
+  function GopherGetLocatorTypeW(lpszLocator:LPCWSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeW';
+  function HttpQueryInfoA(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoA';
+  function HttpQueryInfoW(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoW';
+  function InternetGetCookieA(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieA';
+  function InternetGetCookieW(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieW';
+  function InternetGetCookieExA(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; var lpdwSize:DWORD; dwFlags:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExA';
+  function InternetGetCookieExW(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; var lpdwSize:DWORD; dwFlags:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExW';
+  function RetrieveUrlCacheEntryFileA(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileA';
+  function RetrieveUrlCacheEntryFileW(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileW';
+  function RetrieveUrlCacheEntryStreamA(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamA';
+  function RetrieveUrlCacheEntryStreamW(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamW';
+  function ReadUrlCacheEntryStream(hUrlCacheStream:HANDLE; dwLocation:DWORD; lpBuffer:LPVOID; var lpdwLen:DWORD; Reserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'ReadUrlCacheEntryStream';
+  function GetUrlCacheEntryInfoA(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoA';
+  function GetUrlCacheEntryInfoW(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoW';
+  function GetUrlCacheGroupAttributeA(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA; var lpdwGroupInfo:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeA';
+  function GetUrlCacheGroupAttributeW(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; var lpdwGroupInfo:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeW';
+  function GetUrlCacheEntryInfoExA(lpszUrl:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD; lpszRedirectUrl:LPSTR; var lpcbRedirectUrl:DWORD;
+             lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExA';
+  function GetUrlCacheEntryInfoExW(lpszUrl:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD; lpszRedirectUrl:LPWSTR; var lpcbRedirectUrl:DWORD;
+             lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExW';
+  function FindFirstUrlCacheEntryExA(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+             var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; var lpcbGroupAttributes:DWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExA';
+  function FindFirstUrlCacheEntryExW(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+             var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; var lpcbGroupAttributes:DWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExW';
+
+  function FindNextUrlCacheEntryExA(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExA';
+  function FindNextUrlCacheEntryExW(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
+  function FindFirstUrlCacheEntryA(lpszUrlSearchPattern:LPCSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
+  function FindFirstUrlCacheEntryW(lpszUrlSearchPattern:LPCWSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
+  function FindNextUrlCacheEntryA(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
+  function FindNextUrlCacheEntryW(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
+  function InternetDialA(hwndParent:HWND; lpszConnectoid:LPSTR; dwFlags:DWORD; var lpdwConnection:DWORD; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialA';
+  function InternetDialW(hwndParent:HWND; lpszConnectoid:LPWSTR; dwFlags:DWORD; var lpdwConnection:DWORD; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialW';
+  function InternetGetConnectedState(var lpdwFlags:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedState';
+  function InternetGetConnectedStateExA(var lpdwFlags:DWORD; lpszConnectionName:LPSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExA';
+  function InternetGetConnectedStateExW(var lpdwFlags:DWORD; lpszConnectionName:LPWSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExW';
+  function PrivacyGetZonePreferenceW(dwZone:DWORD; dwType:DWORD; var pdwTemplate:DWORD; pszBuffer:LPWSTR; var pdwBufferLength:DWORD):DWORD;stdcall;external WININETLIBNAME name 'PrivacyGetZonePreferenceW';
+
+
 {$ifndef UNICODE}
   function InternetTimeFromSystemTime(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeA';
   function InternetTimeToSystemTime(lpszTime:LPCSTR; pst:PSYSTEMTIME; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeToSystemTimeA';
@@ -2304,6 +2374,35 @@ Type
   function InternetSetPerSiteCookieDecision(pchHostName:LPCSTR; dwDecision:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetSetPerSiteCookieDecisionA';
   function InternetGetPerSiteCookieDecision(pchHostName:LPCSTR; pResult:Pdword):BOOL;stdcall;external WININETLIBNAME name 'InternetGetPerSiteCookieDecisionA';
   function InternetEnumPerSiteCookieDecision(pszSiteName:LPSTR; pcSiteNameSize:Pdword; pdwDecision:Pdword; dwIndex:dword):BOOL;stdcall;external WININETLIBNAME name 'InternetEnumPerSiteCookieDecisionA';
+
+  function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSA; dwFlags:DWORD; lpszUrl:LPSTR; var lpdwUrlLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlA';
+  function InternetCanonicalizeUrl(lpszUrl:LPCSTR; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlA';
+  function InternetCombineUrl(lpszBaseUrl:LPCSTR; lpszRelativeUrl:LPCSTR; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlA';
+  function InternetQueryOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryOptionA';
+  function InternetGetLastResponseInfo(lpdwError:LPDWORD; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetLastResponseInfoA';
+  function GopherCreateLocator(lpszHost:LPCSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCSTR; lpszSelectorString:LPCSTR; dwGopherType:DWORD;
+             lpszLocator:LPSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorA';
+  function GopherGetLocatorType(lpszLocator:LPCSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeA';
+  function HttpQueryInfo(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoA';
+  function InternetGetCookie(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieA';
+  function InternetGetCookieEx(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; var lpdwSize:DWORD; dwFlags:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExA';
+  function RetrieveUrlCacheEntryFile(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileA';
+  function RetrieveUrlCacheEntryStream(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamA';
+  function GetUrlCacheEntryInfo(lpszUrlName:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoA';
+  function GetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA; var lpdwGroupInfo:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeA';
+  function GetUrlCacheEntryInfoEx(lpszUrl:LPCSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD; lpszRedirectUrl:LPSTR; var lpcbRedirectUrl:DWORD;
+             lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExA';
+  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+             var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; var lpcbGroupAttributes:DWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExA';
+  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExA';
+  function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
+  function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
+  function InternetDial(hwndParent:HWND; lpszConnectoid:LPSTR; dwFlags:DWORD; var lpdwConnection:DWORD; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialA';
+  function InternetGetConnectedStateEx(var lpdwFlags:DWORD; lpszConnectionName:LPSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExA';
+
 {$ELSE}
   function InternetTimeFromSystemTime(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPWSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeW';
   function InternetTimeToSystemTime(lpszTime:LPCWSTR; pst:PSYSTEMTIME; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeToSystemTimeW';
@@ -2392,6 +2491,36 @@ Type
   function InternetEnumPerSiteCookieDecision(pszSiteName:LPWSTR; pcSiteNameSize:Pdword; pdwDecision:Pdword; dwIndex:dword):BOOL;stdcall;external WININETLIBNAME name 'InternetEnumPerSiteCookieDecisionW';
   function PrivacySetZonePreference(dwZone:DWORD; dwType:DWORD; dwTemplate:DWORD; pszPreference:LPCWSTR):DWORD;stdcall;external WININETLIBNAME name 'PrivacySetZonePreferenceW';
   function PrivacyGetZonePreference(dwZone:DWORD; dwType:DWORD; pdwTemplate:LPDWORD; pszBuffer:LPWSTR; pdwBufferLength:LPDWORD):DWORD;stdcall;external WININETLIBNAME name 'PrivacyGetZonePreferenceW';
+
+  {wide overloads}
+  function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR;var lpdwUrlLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
+  function InternetCanonicalizeUrl(lpszUrl:LPCWSTR; lpszBuffer:LPWSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlW';
+  function InternetCombineUrl(lpszBaseUrl:LPCWSTR; lpszRelativeUrl:LPCWSTR; lpszBuffer:LPWSTR;var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlW';
+  function InternetQueryOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryOptionW';
+  function InternetGetLastResponseInfo(lpdwError:LPDWORD; lpszBuffer:LPWSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetLastResponseInfoW';
+  function GopherCreateLocator(lpszHost:LPCWSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCWSTR; lpszSelectorString:LPCWSTR; dwGopherType:DWORD;
+             lpszLocator:LPWSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorW';
+  function GopherGetLocatorType(lpszLocator:LPCWSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeW';
+  function HttpQueryInfo(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoW';
+  function InternetGetCookie(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieW';
+  function InternetGetCookieEx(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; var lpdwSize:DWORD; dwFlags:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExW';
+  function RetrieveUrlCacheEntryFile(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileW';
+  function RetrieveUrlCacheEntryStream(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamW';
+  function GetUrlCacheEntryInfo(lpszUrlName:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoW';
+  function GetUrlCacheGroupAttribute(gid:GROUPID; dwFlags:DWORD; dwAttributes:DWORD; lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW; var lpdwGroupInfo:DWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheGroupAttributeW';
+  function GetUrlCacheEntryInfoEx(lpszUrl:LPCWSTR; lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD; lpszRedirectUrl:LPWSTR; var lpcbRedirectUrl:DWORD;
+             lpReserved:LPVOID; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoExW';
+  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+             var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; var lpcbGroupAttributes:DWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExW';
+  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbEntryInfo:DWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
+  function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCWSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
+  function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
+  function InternetDial(hwndParent:HWND; lpszConnectoid:LPWSTR; dwFlags:DWORD; var lpdwConnection:DWORD; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialW';
+  function InternetGetConnectedStateEx(var lpdwFlags:DWORD; lpszConnectionName:LPWSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExW';
+
 {$endif}
 	
 implementation
