@@ -1276,10 +1276,38 @@ begin
                       {          mov            reg2 reg/ref              }
                       { to       add/sub/or/... reg3/$const, reg/ref      }
                         begin
+                          { by example:
+                              movswl  %si,%eax        movswl  %si,%eax      p
+                              decl    %eax            addl    %edx,%eax     hp1
+                              movw    %ax,%si         movw    %ax,%si       hp2
+                            ->
+                              movswl  %si,%eax        movswl  %si,%eax      p
+                              decw    %eax            addw    %edx,%eax     hp1
+                              movw    %ax,%si         movw    %ax,%si       hp2
+                          }
                           taicpu(hp1).changeopsize(taicpu(hp2).opsize);
-                          taicpu(hp1).loadoper(1,taicpu(hp2).oper[1]^);
-                          if  (taicpu(hp1).oper[0]^.typ = top_reg) then
-                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                          {
+                            ->
+                              movswl  %si,%eax        movswl  %si,%eax      p
+                              decw    %si             addw    %dx,%si       hp1
+                              movw    %ax,%si         movw    %ax,%si       hp2
+                          }
+                          case taicpu(hp1).ops of
+                            1:
+                             taicpu(hp1).loadoper(0,taicpu(hp2).oper[1]^);
+                            2:
+                              begin
+                                taicpu(hp1).loadoper(1,taicpu(hp2).oper[1]^);
+                                if (taicpu(hp1).oper[0]^.typ = top_reg) then
+                                  setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
+                              end;
+                            else
+                              internalerror(2008042701);
+                          end;
+                          {
+                            ->
+                              decw    %si             addw    %dx,%si       p
+                          }
                           asml.remove(p);
                           asml.remove(hp2);
                           p.free;
