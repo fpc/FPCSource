@@ -155,15 +155,20 @@ var Ascript : TSQLScript;
 
 begin
   Ascript := tsqlscript.create(nil);
-  with Ascript do
-    begin
-    DataBase := TSQLDBConnector(DBConnector).Connection;
-    transaction := TSQLDBConnector(DBConnector).Transaction;
-    script.clear;
-    script.append('create table a (id int);');
-    script.append('create table b (id int);');
-    ExecuteScript;
-    end;
+  try
+    with Ascript do
+      begin
+      DataBase := TSQLDBConnector(DBConnector).Connection;
+      transaction := TSQLDBConnector(DBConnector).Transaction;
+      script.clear;
+      script.append('create table a (id int);');
+      script.append('create table b (id int);');
+      ExecuteScript;
+      end;
+  finally
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
+  end;
 end;
 
 procedure TTestFieldTypes.TestInt;
