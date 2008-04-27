@@ -959,11 +959,11 @@ begin
   case AField.DataType of
     ftString : ACompareRec.Comparefunc := @DBCompareText;
     ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
-    ftInteger, ftCurrency, ftBCD : ACompareRec.Comparefunc :=
+    ftInteger, ftBCD : ACompareRec.Comparefunc :=
       @DBCompareInt;
     ftWord : ACompareRec.Comparefunc := @DBCompareWord;
     ftBoolean : ACompareRec.Comparefunc := @DBCompareByte;
-    ftFloat : ACompareRec.Comparefunc := @DBCompareDouble;
+    ftFloat, ftCurrency : ACompareRec.Comparefunc := @DBCompareDouble;
     ftDateTime, ftDate, ftTime : ACompareRec.Comparefunc :=
       @DBCompareDouble;
     ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
@@ -1178,7 +1178,8 @@ begin
       ftword     : result := sizeof(longint);
     ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);
-    ftFloat      : result := sizeof(double);
+    ftFloat,
+      ftCurrency : result := sizeof(double);
     ftLargeInt   : result := sizeof(largeint);
     ftTime,
       ftDate,
