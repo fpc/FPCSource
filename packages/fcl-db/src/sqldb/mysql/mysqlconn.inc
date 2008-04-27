@@ -493,8 +493,18 @@ begin
       end;
     FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
       begin
-      NewType := ftString;
-      NewSize := ASize;
+      // Since mysql server version 5.0.3 string-fields with a length of more
+      // then 256 characters are suported
+      if ASize>dsMaxStringSize then
+        begin
+        NewType := ftMemo;
+        NewSize := 0;
+        end
+      else
+        begin
+        NewType := ftString;
+        NewSize := ASize;
+        end;
       end;
     FIELD_TYPE_BLOB:
       begin
@@ -576,7 +586,15 @@ begin
   inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
   field := mysql_fetch_field_direct(C.FRES, c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer, CreateBlob);
+  // String-fields which can contain more then dsMaxStringSize characters
+  // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
+  if FieldDef.DataType in [ftBlob,ftMemo] then
+    begin
+    Result := Row^<>Nil;
+    CreateBlob:=True;
+    end
+  else
+    Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer, CreateBlob);
 end;
 
 procedure TConnectionName.LoadBlobIntoBuffer(FieldDef: TFieldDef;
