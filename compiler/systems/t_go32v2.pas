@@ -87,7 +87,7 @@ procedure TExternalLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE $RES';
+     ExeCmd[1]:='ld $RES';
    end;
 end;
 
@@ -103,6 +103,16 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  
+  { Add all options to link.res instead of passing them via command line:
+    DOS command line is limited to 126 characters! }
+  LinkRes.Add('--script='+maybequoted(outputexedir+Info.ScriptName));
+  if info.ExtraOptions<>'' then
+    LinkRes.Add(Info.ExtraOptions);
+(* Potential issues with older ld version??? *)
+  if (cs_link_strip in current_settings.globalswitches) then
+    LinkRes.Add('-s');
+  LinkRes.Add('-o '+maybequoted(current_module.exefilename^));
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -238,15 +248,9 @@ var
   binstr,
   cmdstr  : TCmdStr;
   success : boolean;
-  StripStr : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
-
-{ Create some replacements }
-  StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then
-   StripStr:='-s';
 
   { Write used files and libraries and our own ld script }
   WriteScript(false);
@@ -254,12 +258,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
-  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
-(* Potential issues with older ld version??? *)
-  Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ScriptName));
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
