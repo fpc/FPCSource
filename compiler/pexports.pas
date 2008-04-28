@@ -189,14 +189,18 @@ implementation
                         { if a name is specified? (JM)                         }
 
                         if ((options and eo_name)=0) then
-                          { Use set mangled name in case of cdecl/cppdecl/mwpascal }
-                          { if no name specified                                   }
-                          if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
-                            hpname:=target_info.cprefix+tprocsym(srsym).realname
-                          else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
-                            hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
+                          if target_info.system in system_all_windows then
+                            { Export names are not mangled on Windows }
+                            hpname:=orgs
                           else
-                            hpname:=orgs;
+                            { Use set mangled name in case of cdecl/cppdecl/mwpascal }
+                            { if no name specified                                   }
+                            if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
+                              hpname:=target_info.cprefix+tprocsym(srsym).realname
+                            else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
+                              hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
+                            else
+                              hpname:=orgs;
 
                         exportprocsym(srsym,hpname,index,options);
                       end
