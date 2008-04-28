@@ -2284,8 +2284,8 @@ Type
              lpszLocator:LPWSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorW';
   function GopherGetLocatorTypeA(lpszLocator:LPCSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeA';
   function GopherGetLocatorTypeW(lpszLocator:LPCWSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeW';
-  function HttpQueryInfoA(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoA';
-  function HttpQueryInfoW(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoW';
+  function HttpQueryInfoA(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; var lpdwIndex:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoA';
+  function HttpQueryInfoW(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; var lpdwIndex:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoW';
   function InternetGetCookieA(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieA';
   function InternetGetCookieW(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieW';
   function InternetGetCookieExA(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; var lpdwSize:DWORD; dwFlags:DWORD;
@@ -2327,6 +2327,41 @@ Type
   function InternetGetConnectedStateExW(var lpdwFlags:DWORD; lpszConnectionName:LPWSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExW';
   function PrivacyGetZonePreferenceW(dwZone:DWORD; dwType:DWORD; var pdwTemplate:DWORD; pszBuffer:LPWSTR; var pdwBufferLength:DWORD):DWORD;stdcall;external WININETLIBNAME name 'PrivacyGetZonePreferenceW';
 
+  function FtpGetCurrentDirectoryA(hConnect:HINTERNET; lpszCurrentDirectory:LPSTR; var lpdwCurrentDirectory:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryA';
+  function FtpGetCurrentDirectoryW(hConnect:HINTERNET; lpszCurrentDirectory:LPWSTR; var lpdwCurrentDirectory:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryW';
+  function FtpFindFirstFileA(hConnect:HINTERNET; lpszSearchFile:LPCSTR; var lpFindFileData:WIN32_FIND_DATA; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileA';
+  function FtpFindFirstFileW(hConnect:HINTERNET; lpszSearchFile:LPCWSTR; var lpFindFileData:WIN32_FIND_DATAW; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileW';
+  function GopherFindFirstFileA(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszSearchString:LPCSTR; var lpFindData:GOPHER_FIND_DATAA; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileA';
+  function GopherFindFirstFileW(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszSearchString:LPCWSTR; var lpFindData:GOPHER_FIND_DATAW; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileW';
+  function GopherGetAttributeA(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszAttributeName:LPCSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
+             var lpdwCharactersReturned:DWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeA';
+  function GopherGetAttributeW(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszAttributeName:LPCWSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
+             var lpdwCharactersReturned:DWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeW';
+
+  function InternetErrorDlg(hWnd:HWND; hRequest:HINTERNET; dwError:DWORD; dwFlags:DWORD; var lppvData:pointer):DWORD;stdcall;external WININETLIBNAME name 'InternetErrorDlg';
+  function RetrieveUrlCacheEntryFileA(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileA';
+  function RetrieveUrlCacheEntryFileW(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileW';
+  function RetrieveUrlCacheEntryStreamA(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamA';
+  function RetrieveUrlCacheEntryStreamW(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamW';
+  function ReadUrlCacheEntryStream(hUrlCacheStream:HANDLE; dwLocation:DWORD; var lpBuffer; lpdwLen:LPDWORD; Reserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'ReadUrlCacheEntryStream';
+  function GetUrlCacheEntryInfoA(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoA';
+  function GetUrlCacheEntryInfoW(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoW';
+  function SetUrlCacheEntryInfoA(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoA';
+  function SetUrlCacheEntryInfoW(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoW';
+  function FindFirstUrlCacheEntryExA(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA;
+             lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExA';
+  function FindFirstUrlCacheEntryExW(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW;
+             lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExW';
+  function FindNextUrlCacheEntryExA(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExA';
+  function FindNextUrlCacheEntryExW(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
+  function FindFirstUrlCacheEntryA(lpszUrlSearchPattern:LPCSTR; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
+  function FindFirstUrlCacheEntryW(lpszUrlSearchPattern:LPCWSTR; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
+  function FindNextUrlCacheEntryA(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
+  function FindNextUrlCacheEntryW(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
 
 {$ifndef UNICODE}
 
@@ -2423,7 +2458,7 @@ Type
   function GopherCreateLocator(lpszHost:LPCSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCSTR; lpszSelectorString:LPCSTR; dwGopherType:DWORD;
              lpszLocator:LPSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorA';
   function GopherGetLocatorType(lpszLocator:LPCSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeA';
-  function HttpQueryInfo(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoA';
+  function HttpQueryInfo(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; var lpdwIndex:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoA';
   function InternetGetCookie(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieA';
   function InternetGetCookieEx(lpszUrl:LPCSTR; lpszCookieName:LPCSTR; lpszCookieData:LPSTR; var lpdwSize:DWORD; dwFlags:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExA';
@@ -2442,6 +2477,22 @@ Type
   function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
   function InternetDial(hwndParent:HWND; lpszConnectoid:LPSTR; dwFlags:DWORD; var lpdwConnection:DWORD; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialA';
   function InternetGetConnectedStateEx(var lpdwFlags:DWORD; lpszConnectionName:LPSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExA';
+  function FtpGetCurrentDirectory(hConnect:HINTERNET; lpszCurrentDirectory:LPSTR; var lpdwCurrentDirectory:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryA';
+  function FtpFindFirstFile(hConnect:HINTERNET; lpszSearchFile:LPCSTR; var lpFindFileData:WIN32_FIND_DATA; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileA';
+  function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszSearchString:LPCSTR; var lpFindData:GOPHER_FIND_DATAA; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileA';
+  function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszAttributeName:LPCSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
+             var lpdwCharactersReturned:DWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeA';
+  function RetrieveUrlCacheEntryFile(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileA';
+  function RetrieveUrlCacheEntryStream(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamA';
+  function GetUrlCacheEntryInfo(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoA';
+  function SetUrlCacheEntryInfo(lpszUrlName:LPCSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoA';
+  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA;
+             lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExA';
+  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExA';
+  function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCSTR; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
+  function FindNextUrlCacheEntry(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
 
 {$ELSE}
 
@@ -2545,7 +2596,7 @@ Type
   function GopherCreateLocator(lpszHost:LPCWSTR; nServerPort:INTERNET_PORT; lpszDisplayString:LPCWSTR; lpszSelectorString:LPCWSTR; dwGopherType:DWORD;
              lpszLocator:LPWSTR; var lpdwBufferLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorW';
   function GopherGetLocatorType(lpszLocator:LPCWSTR; var lpdwGopherType:DWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeW';
-  function HttpQueryInfo(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; lpdwIndex:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoW';
+  function HttpQueryInfo(hRequest:HINTERNET; dwInfoLevel:DWORD; lpBuffer:LPVOID; var lpdwBufferLength:DWORD; var lpdwIndex:DWORD):BOOL;stdcall;external WININETLIBNAME name 'HttpQueryInfoW';
   function InternetGetCookie(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR;var lpdwSize:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieW';
   function InternetGetCookieEx(lpszUrl:LPCWSTR; lpszCookieName:LPCWSTR; lpszCookieData:LPWSTR; var lpdwSize:DWORD; dwFlags:DWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetGetCookieExW';
@@ -2565,7 +2616,150 @@ Type
   function InternetDial(hwndParent:HWND; lpszConnectoid:LPWSTR; dwFlags:DWORD; var lpdwConnection:DWORD; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialW';
   function InternetGetConnectedStateEx(var lpdwFlags:DWORD; lpszConnectionName:LPWSTR; dwBufLen:DWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetGetConnectedStateExW';
 
+  function FtpGetCurrentDirectory(hConnect:HINTERNET; lpszCurrentDirectory:LPWSTR; var lpdwCurrentDirectory:DWORD):BOOL;stdcall;external WININETLIBNAME name 'FtpGetCurrentDirectoryW';
+  function FtpFindFirstFile(hConnect:HINTERNET; lpszSearchFile:LPCWSTR; var lpFindFileData:WIN32_FIND_DATAW; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'FtpFindFirstFileW';
+  function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszSearchString:LPCWSTR; var lpFindData:GOPHER_FIND_DATAW; dwFlags:DWORD;
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileW';
+  function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszAttributeName:LPCWSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
+             var lpdwCharactersReturned:DWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeW';
+
+  function RetrieveUrlCacheEntryFile(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; dwReserved:DWORD):BOOL;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryFileW';
+  function RetrieveUrlCacheEntryStream(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD; fRandomRead:BOOL; dwReserved:DWORD):HANDLE;stdcall;external WININETLIBNAME name 'RetrieveUrlCacheEntryStreamW';
+  function GetUrlCacheEntryInfo(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GetUrlCacheEntryInfoW';
+  function SetUrlCacheEntryInfo(lpszUrlName:LPCWSTR; var lpCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; dwFieldControl:DWORD):BOOL;stdcall;external WININETLIBNAME name 'SetUrlCacheEntryInfoW';
+  function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCWSTR; dwFlags:DWORD; dwFilter:DWORD; GroupId:GROUPID; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW;
+             lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD; lpReserved:LPVOID):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryExW';
+  function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
+             lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
+  function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCWSTR; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
+  function FindNextUrlCacheEntry(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
+
+
 {$endif}
-	
+    
+
+ function IS_GOPHER_TEXT_FILE(gtype:DWORD):BOOL; inline;           
+ function IS_GOPHER_DIRECTORY(gtype:DWORD):BOOL; inline;       
+ function IS_GOPHER_CSO(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_ERROR(gtype:DWORD):BOOL; inline;           
+ function IS_GOPHER_MAC_BINHEX(gtype:DWORD):BOOL; inline;      
+ function IS_GOPHER_DOS_ARCHIVE(gtype:DWORD):BOOL; inline;     
+ function IS_GOPHER_UNIX_UUENCODED(gtype:DWORD):BOOL; inline;  
+ function IS_GOPHER_INDEX_SERVER(gtype:DWORD):BOOL; inline;    
+ function IS_GOPHER_TELNET(gtype:DWORD):BOOL; inline;          
+ function IS_GOPHER_BINARY(gtype:DWORD):BOOL; inline;          
+ function IS_GOPHER_REDUNDANT(gtype:DWORD):BOOL; inline;       
+ function IS_GOPHER_TN3270(gtype:DWORD):BOOL; inline;          
+ function IS_GOPHER_GIF(gtype:DWORD):BOOL; inline;             
+ function IS_GOPHER_IMAGE(gtype:DWORD):BOOL; inline;           
+ function IS_GOPHER_BITMAP(gtype:DWORD):BOOL; inline;          
+ function IS_GOPHER_MOVIE(gtype:DWORD):BOOL; inline;           
+ function IS_GOPHER_SOUND(gtype:DWORD):BOOL; inline;           
+ function IS_GOPHER_HTML(gtype:DWORD):BOOL; inline;            
+ function IS_GOPHER_PDF(gtype:DWORD):BOOL; inline;             
+ function IS_GOPHER_CALENDAR(gtype:DWORD):BOOL; inline;        
+ function IS_GOPHER_INLINE(gtype:DWORD):BOOL; inline;          
+ function IS_GOPHER_UNKNOWN(gtype:DWORD):BOOL; inline;         
+ function IS_GOPHER_ASK(gtype:DWORD):BOOL; inline;             
+ function IS_GOPHER_GOPHER_PLUS(gtype:DWORD):BOOL; inline;
+
 implementation
+
+ function IS_GOPHER_TEXT_FILE(gtype:DWORD):BOOL;            
+    begin
+      result:=(gtype and GOPHER_TYPE_TEXT_FILE)=0;
+    end;
+ function IS_GOPHER_DIRECTORY(gtype:DWORD):BOOL;        
+    begin
+      result:=(gtype and GOPHER_TYPE_DIRECTORY)=0;
+    end;
+ function IS_GOPHER_CSO(gtype:DWORD):BOOL; 
+    begin
+      result:=(gtype and GOPHER_TYPE_CSO)=0;
+    end;
+ function IS_GOPHER_ERROR(gtype:DWORD):BOOL;            
+    begin
+      result:=(gtype and GOPHER_TYPE_ERROR)=0;
+    end;
+ function IS_GOPHER_MAC_BINHEX(gtype:DWORD):BOOL;       
+    begin
+      result:=(gtype and GOPHER_TYPE_MAC_BINHEX)=0;
+    end;
+ function IS_GOPHER_DOS_ARCHIVE(gtype:DWORD):BOOL;      
+    begin
+      result:=(gtype and GOPHER_TYPE_DOS_ARCHIVE)=0;
+    end;
+ function IS_GOPHER_UNIX_UUENCODED(gtype:DWORD):BOOL;   
+    begin
+      result:=(gtype and GOPHER_TYPE_UNIX_UUENCODED)=0;
+    end;
+ function IS_GOPHER_INDEX_SERVER(gtype:DWORD):BOOL;     
+    begin
+      result:=(gtype and GOPHER_TYPE_INDEX_SERVER)=0;
+    end;
+ function IS_GOPHER_TELNET(gtype:DWORD):BOOL;           
+    begin
+      result:=(gtype and GOPHER_TYPE_TELNET)=0;
+    end;
+ function IS_GOPHER_BINARY(gtype:DWORD):BOOL;           
+    begin
+      result:=(gtype and GOPHER_TYPE_BINARY)=0;
+    end;
+ function IS_GOPHER_REDUNDANT(gtype:DWORD):BOOL;        
+    begin
+      result:=(gtype and GOPHER_TYPE_REDUNDANT)=0;
+    end;
+ function IS_GOPHER_TN3270(gtype:DWORD):BOOL;           
+    begin
+      result:=(gtype and GOPHER_TYPE_TN3270)=0;
+    end;
+ function IS_GOPHER_GIF(gtype:DWORD):BOOL;              
+    begin
+      result:=(gtype and GOPHER_TYPE_GIF)=0;
+    end;
+ function IS_GOPHER_IMAGE(gtype:DWORD):BOOL;            
+    begin
+      result:=(gtype and GOPHER_TYPE_IMAGE)=0;
+    end;
+ function IS_GOPHER_BITMAP(gtype:DWORD):BOOL;           
+    begin
+      result:=(gtype and GOPHER_TYPE_BITMAP)=0;
+    end;
+ function IS_GOPHER_MOVIE(gtype:DWORD):BOOL;            
+    begin
+      result:=(gtype and GOPHER_TYPE_MOVIE)=0;
+    end;
+ function IS_GOPHER_SOUND(gtype:DWORD):BOOL;            
+    begin
+      result:=(gtype and GOPHER_TYPE_SOUND)=0;
+    end;
+ function IS_GOPHER_HTML(gtype:DWORD):BOOL;             
+    begin
+      result:=(gtype and GOPHER_TYPE_HTML)=0;
+    end;
+ function IS_GOPHER_PDF(gtype:DWORD):BOOL;              
+    begin
+      result:=(gtype and GOPHER_TYPE_PDF)=0;
+    end;  
+ function IS_GOPHER_CALENDAR(gtype:DWORD):BOOL;         
+    begin
+      result:=(gtype and GOPHER_TYPE_CALENDAR)=0;
+    end;  
+ function IS_GOPHER_INLINE(gtype:DWORD):BOOL;           
+    begin
+      result:=(gtype and GOPHER_TYPE_INLINE)=0;
+    end;     
+ function IS_GOPHER_UNKNOWN(gtype:DWORD):BOOL;          
+    begin
+      result:=(gtype and GOPHER_TYPE_UNKNOWN)=0;
+    end;  
+ function IS_GOPHER_ASK(gtype:DWORD):BOOL;              
+    begin
+      result:=(gtype and GOPHER_TYPE_ASK)=0;
+    end;  
+ function IS_GOPHER_GOPHER_PLUS(gtype:DWORD):BOOL; 
+    begin
+      result:=(gtype and GOPHER_TYPE_GOPHER_PLUS)=0;
+    end;  
+
 end.
