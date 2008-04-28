@@ -11,7 +11,7 @@ fpcpackage=y
 units = erroru popuperr ptest
 
 [compiler]
-targetdir=$(FULL_TARGET)
+targetdir=$(TARGETSUFFIX)
 
 [default]
 fpcdir=../..
