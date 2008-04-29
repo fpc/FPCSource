@@ -164,10 +164,15 @@ begin
       script.append('create table a (id int);');
       script.append('create table b (id int);');
       ExecuteScript;
+      // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+      if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
       end;
   finally
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
   end;
 end;
 
