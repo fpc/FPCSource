@@ -235,26 +235,32 @@ end;
 
 procedure TSQLDBConnector.DropNDatasets;
 begin
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
+  if assigned(FTransaction) then
+    begin
+    try
+      if Ftransaction.Active then Ftransaction.Rollback;
+      Ftransaction.StartTransaction;
+      Fconnection.ExecuteDirect('DROP TABLE FPDEV');
+      Ftransaction.Commit;
+    Except
+      if Ftransaction.Active then Ftransaction.Rollback
+    end;
+    end;
 end;
 
 procedure TSQLDBConnector.DropFieldDataset;
 begin
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
+  if assigned(FTransaction) then
+    begin
+    try
+      if Ftransaction.Active then Ftransaction.Rollback;
+      Ftransaction.StartTransaction;
+      Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
+      Ftransaction.Commit;
+    Except
+      if Ftransaction.Active then Ftransaction.Rollback
+    end;
+    end;
 end;
 
 function TSQLDBConnector.InternalGetNDataset(n: integer): TDataset;
@@ -279,14 +285,17 @@ end;
 
 destructor TSQLDBConnector.Destroy;
 begin
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
+  if assigned(FTransaction) then
+    begin
+    try
+      if Ftransaction.Active then Ftransaction.Rollback;
+      Ftransaction.StartTransaction;
+      Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
+      Ftransaction.Commit;
+    Except
+      if Ftransaction.Active then Ftransaction.Rollback
+    end; // try
+    end;
   inherited Destroy;
 
   FreeAndNil(FQuery);

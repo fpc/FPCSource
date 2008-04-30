@@ -176,7 +176,7 @@ end;
 
 destructor TDBConnector.destroy;
 begin
-  FUsedDatasets.Destroy;
+  if assigned(FUsedDatasets) then FUsedDatasets.Destroy;
   DropNDatasets;
   DropFieldDataset;
 end;
