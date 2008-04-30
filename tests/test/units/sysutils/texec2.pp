@@ -7,7 +7,11 @@ var cmd,cmdline : String;
     i           : Longint;
 
 begin
-  cmd:='execedbya';
+{$ifdef unix}
+  cmd:='./texec1';
+{$else}
+  cmd:='texec1.exe';
+{$endif}
   cmdline:='';
   for i:=0 to 10 do
    cmdline:=cmdline+'-Fu/usr/local/lib/fpc/1.0.10/units/freebsd/rtl/* ';
