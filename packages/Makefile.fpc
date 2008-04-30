@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res
+dirs=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd
 dirs_linux_i386=libc unixutil graph pxlib
 dirs_i386_linux=graph
 dirs_x86_64_linux=graph
