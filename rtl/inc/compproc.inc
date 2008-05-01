@@ -172,6 +172,7 @@ Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; out Code : ValSInt): ValSInt; compilerproc;
 Function fpc_Val_Currency_AnsiStr(Const S : AnsiString; out Code : ValSInt): Currency; compilerproc;
+function fpc_Val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:valsint):longint; compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPUNONE}

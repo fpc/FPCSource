@@ -938,6 +938,13 @@ begin
   s:=ss;
 end;
 
+function fpc_val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_ANSISTR']; compilerproc;
+
+begin
+  fpc_val_enum_ansistr:=fpc_val_enum_shortstr(str2ordindex,s,code);
+end;
+
+
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
