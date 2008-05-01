@@ -423,7 +423,7 @@ implementation
 {$ifdef i386}
         if current_settings.cputype<cpu_Pentium2 then
           begin
-            opsize:=int_cgsize(left.resultdef.size);
+            opsize:=def_cgsize(left.resultdef);
             secondpass(left);
             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
             location:=left.location;
@@ -436,7 +436,7 @@ implementation
         else
 {$endif i386}
           begin
-            opsize:=int_cgsize(left.resultdef.size);
+            opsize:=def_cgsize(left.resultdef);
             secondpass(left);
             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);

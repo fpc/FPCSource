@@ -167,6 +167,9 @@ procedure fail;
    _result : boolean;
    value : longint;
    value1: longint;
+   vsingle : single;
+   vdouble : double;
+   vextended : extended;
   begin
     Write('Abs() test with longint type...');
     _result := true;
@@ -207,6 +210,21 @@ procedure fail;
     value1 := abs(value);
     if value1 <> (RESULT_FOUR_INT) then
        _result := false;
+
+    value := VALUE_ONE_INT;
+    vsingle := abs(value);
+    if (round(vsingle) <> RESULT_ONE_INT) then
+      _result := false;
+
+    value := VALUE_ONE_INT;
+    vdouble := abs(value);
+    if (round(vdouble) <> RESULT_ONE_INT) then
+      _result := false;
+
+    value := VALUE_ONE_INT;
+    vextended := abs(value);
+    if (round(vextended) <> RESULT_ONE_INT) then
+      _result := false;
 
     if not _result then
       fail
