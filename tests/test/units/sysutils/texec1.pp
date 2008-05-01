@@ -1,4 +1,4 @@
-{ %fail }
+{ %result=1 }
 { this test fails when it isn't called by execansi }
   uses
     sysutils;
