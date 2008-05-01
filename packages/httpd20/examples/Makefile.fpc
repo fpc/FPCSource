@@ -7,7 +7,7 @@ units=minimain
 programs=mod_example  mod_hello  mod_spelling  testmodule
 
 [require]
-packages=httpd/httpd-2.2
+packages=httpd20
 
 [install]
 fpcpackage=y
