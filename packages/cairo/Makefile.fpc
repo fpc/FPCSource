@@ -2,14 +2,28 @@
 #   Makefile.fpc for cairo
 #
 [require]
-packages=x11 fcl-image
+packages=fcl-image
+#packages_win32=
+packages_linux=x11
+packages_freebsd=x11
+packages_netbsd=x11
+packages_openbsd=x11
+packages_solaris=x11
+packages_darwin=x11
 
 [package]
 name=cairo
 version=2.0.4
 
 [target]
-units=cairo
+units=cairo cairoft
+units_win32=cairowin32
+units_linux=cairoxlib
+units_freebsd=cairoxlib
+units_netbsd=cairoxlib
+units_openbsd=cairoxlib
+units_solaris=cairoxlib
+units_darwin=cairoxlib
 
 [install]
 fpcpackage=y
