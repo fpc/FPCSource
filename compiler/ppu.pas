@@ -260,7 +260,7 @@ type
     procedure putint64(i:int64);
     procedure putaint(i:aint);
     procedure putreal(d:ppureal);
-    procedure putstring(s:string);
+    procedure putstring(const s:string);
     procedure putnormalset(const b);
     procedure putsmallset(const b);
     procedure tempclose;
@@ -1025,7 +1025,7 @@ begin
 end;
 
 
-procedure tppufile.putstring(s:string);
+procedure tppufile.putstring(const s:string);
   begin
     putdata(s,length(s)+1);
   end;
