@@ -2363,6 +2363,12 @@ Type
   function FindNextUrlCacheEntryA(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
   function FindNextUrlCacheEntryW(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
 
+  function InternetCrackUrlW(lpszUrl:LPCWSTR; dwUrlLength:DWORD; dwFlags:DWORD; var lpUrlComponents:URL_COMPONENTSW):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlW';
+  function InternetCreateUrlW(var lpUrlComponents:URL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
+  function InternetCrackUrlA(lpszUrl:LPCSTR; dwUrlLength:DWORD; dwFlags:DWORD; var lpUrlComponents:URL_COMPONENTSA):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlA';
+  function InternetCreateUrlA(var lpUrlComponents:URL_COMPONENTSA; dwFlags:DWORD; lpszUrl:LPSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlA';
+
+
 {$ifndef UNICODE}
 
   function InternetTimeFromSystemTime(pst:PSYSTEMTIME; dwRFC:DWORD; lpszTime:LPSTR; cbTime:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetTimeFromSystemTimeA';
@@ -2448,8 +2454,8 @@ Type
   function InternetGetPerSiteCookieDecision(pchHostName:LPCSTR; pResult:Pdword):BOOL;stdcall;external WININETLIBNAME name 'InternetGetPerSiteCookieDecisionA';
   function InternetEnumPerSiteCookieDecision(pszSiteName:LPSTR; pcSiteNameSize:Pdword; pdwDecision:Pdword; dwIndex:dword):BOOL;stdcall;external WININETLIBNAME name 'InternetEnumPerSiteCookieDecisionA';
 
-  function InternetCrackUrlA(lpszUrl:LPCSTR; dwUrlLength:DWORD; dwFlags:DWORD; var lpUrlComponents:URL_COMPONENTSA):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlA';
-  function InternetCreateUrlA(var lpUrlComponents:URL_COMPONENTSA; dwFlags:DWORD; lpszUrl:LPSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlA';
+  function InternetCrackUrl(lpszUrl:LPCSTR; dwUrlLength:DWORD; dwFlags:DWORD; var lpUrlComponents:URL_COMPONENTSA):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlA';
+  function InternetCreateUrl(var lpUrlComponents:URL_COMPONENTSA; dwFlags:DWORD; lpszUrl:LPSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlA';
   function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSA; dwFlags:DWORD; lpszUrl:LPSTR; var lpdwUrlLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlA';
   function InternetCanonicalizeUrl(lpszUrl:LPCSTR; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlA';
   function InternetCombineUrl(lpszBaseUrl:LPCSTR; lpszRelativeUrl:LPCSTR; lpszBuffer:LPSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlA';
@@ -2585,8 +2591,8 @@ Type
   function PrivacyGetZonePreference(dwZone:DWORD; dwType:DWORD; pdwTemplate:LPDWORD; pszBuffer:LPWSTR; pdwBufferLength:LPDWORD):DWORD;stdcall;external WININETLIBNAME name 'PrivacyGetZonePreferenceW';
 
   {wide overloads}
-  function InternetCrackUrlW(lpszUrl:LPCWSTR; dwUrlLength:DWORD; dwFlags:DWORD; var lpUrlComponents:URL_COMPONENTSW):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlW';
-  function InternetCreateUrlW(var lpUrlComponents:URL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
+  function InternetCrackUrl(lpszUrl:LPCWSTR; dwUrlLength:DWORD; dwFlags:DWORD; var lpUrlComponents:URL_COMPONENTSW):BOOL;stdcall;external WININETLIBNAME name 'InternetCrackUrlW';
+  function InternetCreateUrl(var lpUrlComponents:URL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
 
   function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR;var lpdwUrlLength:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
   function InternetCanonicalizeUrl(lpszUrl:LPCWSTR; lpszBuffer:LPWSTR; var lpdwBufferLength:DWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlW';
