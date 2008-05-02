@@ -1677,35 +1677,25 @@ var
   p : pchar;
   i : longint;
 Begin
-  if F.BufPos>0 then
-   begin
-     if F.BufPos+ErrorLen>ErrorBufferLength then
-       i:=ErrorBufferLength-ErrorLen
-     else
-       i:=F.BufPos;
-     Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
-     inc(ErrorLen,i);
-     ErrorBuf[ErrorLen]:=#0;
-   end;
-  if ErrorLen>3 then
-   begin
-     p:=@ErrorBuf[ErrorLen];
-     for i:=1 to 4 do
-      begin
-        dec(p);
-        if not(p^ in [#10,#13]) then
-         break;
-      end;
-   end;
-   if ErrorLen=ErrorBufferLength then
-     i:=4;
-   if (i=4) then
+  while F.BufPos>0 do
     begin
-      AnsiToWideBuf(@ErrorBuf, -1, @ErrorBufW, SizeOf(ErrorBufW));
-      MessageBox(0,@ErrorBufW,'Error',0);
-      ErrorLen:=0;
+      begin
+        if F.BufPos+ErrorLen>ErrorBufferLength then
+          i:=ErrorBufferLength-ErrorLen
+        else
+          i:=F.BufPos;
+        Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
+        inc(ErrorLen,i);
+        ErrorBuf[ErrorLen]:=#0;
+      end;
+      if ErrorLen=ErrorBufferLength then
+        begin
+          AnsiToWideBuf(@ErrorBuf, -1, @ErrorBufW, SizeOf(ErrorBufW));
+          MessageBox(0,@ErrorBufW,'Error',0);
+          ErrorLen:=0;
+        end;
+      Dec(F.BufPos,i);
     end;
-  F.BufPos:=0;
   ErrorWrite:=0;
 End;
 
@@ -1728,6 +1718,7 @@ Begin
   TextRec(F).InOutFunc:=@ErrorWrite;
   TextRec(F).FlushFunc:=@ErrorWrite;
   TextRec(F).CloseFunc:=@ErrorClose;
+  ErrorLen:=0;
   ErrorOpen:=0;
 End;
 
@@ -1746,24 +1737,26 @@ procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in and messagebox }
-  if not IsConsole then begin
-    AssignError(stderr);
-    AssignError(stdout);
-    Assign(Output,'');
-    Assign(Input,'');
-    Assign(ErrOutput,'');
-  end
-  else begin
-    StdInputHandle:=_fileno(_getstdfilex(0));
-    StdOutputHandle:=_fileno(_getstdfilex(1));
-    StdErrorHandle:=_fileno(_getstdfilex(2));
+  if not IsConsole then
+    begin
+      AssignError(stderr);
+      AssignError(stdout);
+      Assign(Output,'');
+      Assign(Input,'');
+      Assign(ErrOutput,'');
+    end
+  else
+    begin
+      StdInputHandle:=_fileno(_getstdfilex(0));
+      StdOutputHandle:=_fileno(_getstdfilex(1));
+      StdErrorHandle:=_fileno(_getstdfilex(2));
 
-    OpenStdIO(Input,fmInput,StdInputHandle);
-    OpenStdIO(Output,fmOutput,StdOutputHandle);
-    OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
-    OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-    OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  end;
+      OpenStdIO(Input,fmInput,StdInputHandle);
+      OpenStdIO(Output,fmOutput,StdOutputHandle);
+      OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+      OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+      OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+    end;
 end;
 
 (* ProcessID cached to avoid repeated calls to GetCurrentProcess. *)
