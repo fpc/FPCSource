@@ -16,7 +16,8 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst fmtbcd \
-      cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix
+      cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix \
+      clocale
 implicitunits=exeinfo
 
 rsts=math varutils typinfo variants sysconst rtlconsts stdconvs
