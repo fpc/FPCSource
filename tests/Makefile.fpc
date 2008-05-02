@@ -61,6 +61,11 @@ ifndef TEST_OS_TARGET
 TEST_OS_TARGET:=$(word 5,$(TEST_FPC_COMPILERINFO))
 endif
 TEST_FULL_TARGET=$(TEST_CPU_TARGET)-$(TEST_OS_TARGET)
+ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
+TEST_TARGETSUFFIX=$(TEST_OS_TARGET)
+else
+TEST_TARGETSUFFIX=$(TEST_FULL_TARGET)
+endif
 
 ifndef TEST_CCOMPILER
 ifeq ($(CPU_TARGET),$(TEST_CPU_TARGET))
@@ -74,7 +79,7 @@ endif
 endif
 
 # Target dir where the ppu and binaries are created
-TEST_OUTPUTDIR=output/$(TEST_FULL_TARGET)
+TEST_OUTPUTDIR=output/$(TEST_TARGETSUFFIX)
 
 # Date and time the testsuite was run
 TEST_DATETIME:=$(shell $(DATE) +%Y%m%d%H%M)
@@ -90,6 +95,14 @@ endif
 DB_TARGZ=$(TEST_HOSTNAME)-$(TEST_DATETIME).tar.gz
 DB_HOST=fpc@www.freepascal.org
 DB_UPLOADDIR=/home/fpc/testsuite/incoming
+
+ifdef inWinNT
+inWinDOS=1
+endif
+ifeq ($(OS_SOURCE),go32v2)
+inWinDOS=1
+inDOS=1
+endif
 
 ################################
 # Misc
@@ -184,6 +197,12 @@ override DOTESTOPT+=-T$(TEST_FULL_TARGET)
 endif
 ifneq ($(TEST_BINUTILSPREFIX),)
 override DOTESTOPT+=-Y-XP$(TEST_BINUTILSPREFIX) -Y-Xd
+endif
+# Don't use comspec for dos:
+# command.com returns 0 if it manages to execute a program
+# regardless of the program's exit code
+ifdef inDOS
+override DOTESTOPT+=-X
 endif
 ifdef TEST_RSH
 override DOTESTOPT+=-R$(TEST_RSH)
@@ -305,9 +324,9 @@ allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 .PHONY: clean distclean clean_test
 
 clean_test:
-        -$(DELTREE) output/$(TEST_FULL_TARGET)
+        -$(DELTREE) $(TEST_OUTPUTDIR)
         -$(DEL) $(LOG) $(LONGLOG) $(FAILLIST)
-        -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET)
+        -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz.bat
 
 clean:
         $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
@@ -339,7 +358,7 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 
-ifndef inWinNT
+ifndef inWinDOS
 $(TEST_OUTPUTDIR)/tar.lst:
         cd $(TEST_OUTPUTDIR) && find . -name '*.log' -o -name '*.elg' > tar.lst
         $(ECHOREDIR) "log" >> $(TEST_OUTPUTDIR)/tar.lst
@@ -353,11 +372,20 @@ endif
 
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
+ifdef inDOS
+        $(ECHOREDIR) @echo off > dotgz.bat
+        $(ECHOREDIR) cd $(subst /,\,$(TEST_OUTPUTDIR)) >> dotgz.bat
+        $(ECHOREDIR) $(subst /,\,../../$(PREPUP)) $(DB_TARGZ) >> dotgz.bat
+        $(ECHOREDIR) if errorlevel 1 $(DEL) $(DB_TARGZ) >> dotgz.bat
+        $(ECHOREDIR) cd $(subst /,\,../../) >> dotgz.bat
+        $(RUNBATCH) dotgz.bat
+else
         cd "$(TEST_OUTPUTDIR)" && "../../$(PREPUP)" $(DB_TARGZ)
+endif
 endif
 
 uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
-ifdef inWinNT
+ifdef inWinDOS
         pscp -load "fpc@www.freepascal.org" $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part $(SSH_EXTRA)
         plink -load "fpc@www.freepascal.org" "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
 else

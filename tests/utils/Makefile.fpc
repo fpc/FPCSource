@@ -16,6 +16,7 @@ nortl=y
 programs=dotest fptime fail testfail digest $(DBDIGEST)
 programs_win32=prepup
 programs_win64=prepup
+programs_go32v2=prepup
 
 [clean]
 programs=dbdigest
