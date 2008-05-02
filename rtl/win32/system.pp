@@ -1017,34 +1017,24 @@ var
   p : pchar;
   i : longint;
 Begin
-  if F.BufPos>0 then
-   begin
-     if F.BufPos+ErrorLen>ErrorBufferLength then
-       i:=ErrorBufferLength-ErrorLen
-     else
-       i:=F.BufPos;
-     Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
-     inc(ErrorLen,i);
-     ErrorBuf[ErrorLen]:=#0;
-   end;
-  if ErrorLen>3 then
-   begin
-     p:=@ErrorBuf[ErrorLen];
-     for i:=1 to 4 do
-      begin
-        dec(p);
-        if not(p^ in [#10,#13]) then
-         break;
-      end;
-   end;
-   if ErrorLen=ErrorBufferLength then
-     i:=4;
-   if (i=4) then
+  while F.BufPos>0 do
     begin
-      MessageBox(0,@ErrorBuf,pchar('Error'),0);
-      ErrorLen:=0;
+      begin
+        if F.BufPos+ErrorLen>ErrorBufferLength then
+          i:=ErrorBufferLength-ErrorLen
+        else
+          i:=F.BufPos;
+        Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
+        inc(ErrorLen,i);
+        ErrorBuf[ErrorLen]:=#0;
+      end;
+      if ErrorLen=ErrorBufferLength then
+        begin
+          MessageBox(0,@ErrorBuf,pchar('Error'),0);
+          ErrorLen:=0;
+        end;
+      Dec(F.BufPos,i);
     end;
-  F.BufPos:=0;
   ErrorWrite:=0;
 End;
 
@@ -1066,6 +1056,7 @@ Begin
   TextRec(F).InOutFunc:=@ErrorWrite;
   TextRec(F).FlushFunc:=@ErrorWrite;
   TextRec(F).CloseFunc:=@ErrorClose;
+  ErrorLen:=0;
   ErrorOpen:=0;
 End;
 
@@ -1088,7 +1079,7 @@ begin
   if not IsConsole then
    begin
      AssignError(stderr);
-     AssignError(stdout);
+     AssignError(StdOut);
      Assign(Output,'');
      Assign(Input,'');
      Assign(ErrOutput,'');
