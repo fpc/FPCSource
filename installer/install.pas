@@ -93,8 +93,8 @@ program install;
      WHTMLScn,insthelp;
 
   const
-     installerversion='2.1.2';
-     installercopyright='Copyright (c) 1993-2007 Florian Klaempfl';
+     installerversion='2.2.0';
+     installercopyright='Copyright (c) 1993-2008 Florian Klaempfl';
 
 
      maxpacks=30;
@@ -201,6 +201,7 @@ program install;
 
      tapp = object(tapplication)
          procedure initmenubar;virtual;
+         procedure initstatusline;virtual;
          procedure handleevent(var event : tevent);virtual;
          procedure do_installdialog;
          procedure readcfg(const fn:string);
@@ -1804,6 +1805,22 @@ end;
           newsubmenu('Free Pascal Installer',hcnocontext,newmenu(nil
           ),
        nil))));
+    end;
+
+
+  procedure tapp.initstatusline;
+    var
+       R: TRect;
+    begin
+      GetExtent(R);
+      R.A.Y := R.B.Y - 1;
+      R.B.X := R.B.X - 12;
+      New(StatusLine,
+        Init(R,
+          NewStatusDef(0, $EFFF,nil,nil
+          )
+        )
+      );
     end;
 
 
