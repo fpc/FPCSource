@@ -301,6 +301,7 @@ interface
           { returns the label of the range check string }
           function needs_inittable : boolean;override;
           property elementdef : tdef read _elementdef write setelementdef;
+          function is_publishable : boolean;override;
        end;
 
        torddef = class(tstoreddef)
@@ -2401,6 +2402,11 @@ implementation
           internalerror(200204176);
       end;
 
+
+    function tarraydef.is_publishable : boolean;
+      begin
+        Result:=ado_IsDynamicArray in arrayoptions;
+      end;
 
 {***************************************************************************
                               tabstractrecorddef

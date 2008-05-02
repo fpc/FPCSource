@@ -8099,6 +8099,7 @@ tests/webtbs/tw1044.pp svneol=native#text/plain
 tests/webtbs/tw10454.pp svneol=native#text/plain
 tests/webtbs/tw1046.pp svneol=native#text/plain
 tests/webtbs/tw10489.pp svneol=native#text/plain
+tests/webtbs/tw10493.pp svneol=native#text/plain
 tests/webtbs/tw10495.pp svneol=native#text/plain
 tests/webtbs/tw1050.pp svneol=native#text/plain
 tests/webtbs/tw10519.pp svneol=native#text/plain
