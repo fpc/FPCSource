@@ -877,8 +877,8 @@ parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
 % You need to compile this file without the -WD switch on the
 % command line.
 parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
-% You need to use \var{\{\$MODE OBJFPC\}} or \var{\{\$MODE DELPHI\} to compile this file.
-% Or use the corresponding command line switch, either -Mobjfpc or -MDelphi.
+% You need to use \var{\{\$MODE OBJFPC\}} or \var{\{\$MODE DELPHI\}} to compile this file.
+% Or use the corresponding command line switch, either \var{-Mobjfpc} or \var{-MDelphi.}
 parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $1
 % Exporting of functions or procedures with a specified index is not
 % supported on this target.
