@@ -116,6 +116,10 @@ function gtk_file_chooser_add_shortcut_folder_uri(chooser:PGtkFileChooser; uri:P
 function gtk_file_chooser_remove_shortcut_folder_uri(chooser:PGtkFileChooser; uri:Pchar; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_chooser_remove_shortcut_folder_uri';
 function gtk_file_chooser_list_shortcut_folder_uris(chooser:PGtkFileChooser):PGSList;cdecl;external gtklib name 'gtk_file_chooser_list_shortcut_folder_uris';
 
+{$ifdef HasGTK2_8}
+function gtk_file_chooser_get_do_overwrite_confirmation(chooser:PGtkFileChooser): gboolean;  cdecl; external gtklib name 'gtk_file_chooser_get_do_overwrite_confirmation';
+procedure gtk_file_chooser_set_do_overwrite_confirmation(chooser:PGtkFileChooser; do_overwrite_confirmation:gboolean);  cdecl; external gtklib name 'gtk_file_chooser_set_do_overwrite_confirmation';
+{$endif}
 
 {$endif} {read_interface_rest}
 
