@@ -49,8 +49,8 @@ var
 Begin
   Case t.mode Of
     fmInput : Flags:=$10000;
-   fmOutput : Flags:=$11001;
-   fmAppend : Flags:=$10101;
+    fmOutput : Flags:=$11001;
+    fmAppend : Flags:=$10101;
   else
    begin
      InOutRes:=102;
@@ -65,9 +65,9 @@ Begin
   else
    begin
      t.InOutFunc:=@FileWriteFunc;
-   { Only install flushing if its a NOT a file, and only check if there
-     was no error opening the file, becuase else we always get a bad
-     file handle error 6 (PFV) }
+     { Only install flushing if its a NOT a file, and only check if there
+       was no error opening the file, becuase else we always get a bad
+       file handle error 6 (PFV) }
      if (InOutRes=0) and
         Do_Isdevice(t.Handle) then
       t.FlushFunc:=@FileWriteFunc;
@@ -110,7 +110,7 @@ Begin
   if InOutRes<>0 then
    Exit;
   case TextRec(t).mode of
-    fmInput,fmOutPut,fmAppend:
+    fmInput,fmOutput,fmAppend:
       Begin
         { Write pending buffer }
         If Textrec(t).Mode=fmoutput then
@@ -754,7 +754,7 @@ begin
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}      
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
       p:=Pshortstring((PPpointer(ord2strindex+align(sizeof(longint), sizeof(ptrint)))+ordinal)^);
 {$else}
       p:=Pshortstring((PPpointer(ord2strindex+sizeof(longint))+ordinal)^);
