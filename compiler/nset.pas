@@ -116,7 +116,7 @@ implementation
       verbose,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
-      nbas,ncnv,ncon,nld,cgobj,cgbase;
+      nbas,ncnv,ncon,nld,nflw,cgobj,cgbase;
 
 
 {*****************************************************************************
@@ -609,10 +609,10 @@ implementation
       end;
 
 
-
     function tcasenode.pass_1 : tnode;
       var
          i  : integer;
+         node_thenblock,node_elseblock : tnode;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -628,7 +628,74 @@ implementation
 
          { may be handle else tree }
          if assigned(elseblock) then
-           firstpass(elseblock);
+           begin
+             firstpass(elseblock);
+
+             { kill case? }
+             if blocks.count=0 then
+               begin
+                 result:=elseblock;
+                 elseblock:=nil;
+                 exit;
+               end;
+           end
+         else
+           if blocks.count=0 then
+             begin
+               result:=cnothingnode.create;
+               exit;
+             end;
+
+         if is_boolean(left.resultdef) then
+           begin
+             case blocks.count of
+               2:
+                 begin
+                   if boolean(qword(labels^._low))=false then
+                     begin
+                       node_thenblock:=pcaseblock(blocks[labels^.greater^.blockid])^.statement;
+                       node_elseblock:=pcaseblock(blocks[labels^.blockid])^.statement;
+                       pcaseblock(blocks[labels^.greater^.blockid])^.statement:=nil;
+                     end
+                   else
+                     begin
+                       node_thenblock:=pcaseblock(blocks[labels^.blockid])^.statement;
+                       node_elseblock:=pcaseblock(blocks[labels^.less^.blockid])^.statement;
+                       pcaseblock(blocks[labels^.less^.blockid])^.statement:=nil;
+                     end;
+                   pcaseblock(blocks[labels^.blockid])^.statement:=nil;
+                 end;
+               1:
+                 begin
+                   if labels^._low=labels^._high then
+                     begin
+                       if boolean(qword(labels^._low))=false then
+                         begin
+                           node_thenblock:=elseblock;
+                           node_elseblock:=pcaseblock(blocks[labels^.blockid])^.statement;
+                         end
+                       else
+                         begin
+                           node_thenblock:=pcaseblock(blocks[labels^.blockid])^.statement;
+                           node_elseblock:=elseblock;
+                         end;
+                       pcaseblock(blocks[labels^.blockid])^.statement:=nil;
+                       elseblock:=nil;
+                     end
+                   else
+                     begin
+                       result:=pcaseblock(blocks[labels^.blockid])^.statement;
+                       pcaseblock(blocks[labels^.blockid])^.statement:=nil;
+                       elseblock:=nil;
+                       exit;
+                     end;
+                 end;
+             else
+               internalerror(200805031);
+           end;
+           result:=cifnode.create(left,node_thenblock,node_elseblock);
+           left:=nil;
+         end;
       end;
 
 
