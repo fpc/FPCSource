@@ -203,6 +203,9 @@ interface
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
     {and returns it if found. Returns nil otherwise.}
     function  search_macro(const s : string):tsym;
+    { Additionally to searching for a macro, also checks whether it's still }
+    { actually defined (could be disable using "undef")                     }
+    function  defined_macro(const s : string):boolean;
 
 {*** Object Helpers ***}
     procedure search_class_overloads(aprocsym : tprocsym);
@@ -1873,6 +1876,21 @@ implementation
             stackitem:=stackitem^.next;
           end;
         result:= nil;
+      end;
+
+
+    function defined_macro(const s : string):boolean;
+      var
+        mac: tmacro;
+      begin
+        mac:=tmacro(search_macro(s));
+        if assigned(mac) then
+          begin
+            mac.is_used:=true;
+            defined_macro:=mac.defined;
+          end
+        else
+          defined_macro:=false;
       end;
 
 

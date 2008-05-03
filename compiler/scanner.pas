@@ -432,10 +432,7 @@ implementation
         valuedescr:= hs;
         if hs='' then
           Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(search_macro(hs));
-        if assigned(mac) then
-          mac.is_used:=true;
-        isdef:= assigned(mac) and mac.defined;
+        isdef:=defined_macro(hs);
       end;
 
     procedure dir_ifdef;
@@ -453,10 +450,7 @@ implementation
         valuedescr:= hs;
         if hs='' then
           Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(search_macro(hs));
-        if assigned(mac) then
-          mac.is_used:=true;
-        isnotdef:= not (assigned(mac) and mac.defined);
+        isnotdef:=not defined_macro(hs);
       end;
 
     procedure dir_ifndef;
