@@ -2064,7 +2064,7 @@ implementation
                            Init/Done Symtable
 ****************************************************************************}
 
-   procedure IniTSymtable;
+   procedure InitSymtable;
      begin
        { Reset symbolstack }
        symtablestack:=nil;
@@ -2084,6 +2084,7 @@ implementation
        class_tobject:=nil;
        interface_iunknown:=nil;
        rec_tguid:=nil;
+       aktobjectdef:=nil;
        dupnr:=0;
      end;
 
