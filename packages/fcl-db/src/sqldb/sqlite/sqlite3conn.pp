@@ -50,7 +50,6 @@ type
     foptions: TSQLiteOptions;
     procedure setoptions(const avalue: tsqliteoptions);
   protected
-    function stringquery(const asql: string): TStringArray;
     function stringsquery(const asql: string): TArrayStringArray;
     procedure checkerror(const aerror: integer);
     
@@ -82,13 +81,14 @@ type
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     // New methods
     procedure execsql(const asql: string);
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs; const TableName : string); // Differs from SQLDB.
-    function  getprimarykeyfield(const atablename: string; const acursor: tsqlcursor): string; 
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override; // Differs from SQLDB.
+    function getprimarykeyfield(const atablename: string; const acursor: tsqlcursor): string;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     function StrToStatementType(s : string) : TStatementType; override;
   public
-    function GetInsertID: int64; 
+    constructor Create(AOwner : TComponent); override;
+    function GetInsertID: int64;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
@@ -202,12 +202,14 @@ begin
   if assigned(aparams) and (aparams.count > 0) then 
     buf := aparams.parsesql(buf,false,false,false,psinterbase,fparambinding);
   checkerror(sqlite3_prepare(fhandle,pchar(buf),length(buf),@fstatement,@ftail));
+  FPrepared:=True;
 end;
 
 Procedure TSQLite3Cursor.UnPrepare;
 
 begin
   sqlite3_finalize(fstatement); // No check.
+  FPrepared:=False;
 end;
 
 Procedure TSQLite3Cursor.Execute;
@@ -226,8 +228,8 @@ begin
   finally  
     set8087cw(wo1);                    //restore
   end;
-{$endif}  
-  if (fstate<=sqliteerrormax) then 
+{$endif}
+  if (fstate<=sqliteerrormax) then
     checkerror(sqlite3_reset(fstatement));
   RowsAffected:=sqlite3_changes(fhandle);
   if (fstate=sqlite_row) then 
@@ -399,6 +401,7 @@ var
             
 begin
   SC:=TSQLite3Cursor(cursor);
+  checkerror(sqlite3_reset(sc.fstatement));
   If (AParams<>Nil) and (AParams.count > 0) then
     SC.BindParams(AParams);
   SC.Execute;    
@@ -639,12 +642,6 @@ begin
   result:= 0;
 end;
 
-function TSQLite3Connection.stringquery(const asql: string): TStringArray;
-begin
-  SetLength(result,0);
-  CheckError(sqlite3_exec(fhandle,pchar(asql),@execcallback,@result,nil));
-end;
-
 function execscallback(adata: pointer; ncols: longint; //adata = PArrayStringArray
                 avalues: PPchar; anames: PPchar):longint; cdecl;
 var
@@ -656,7 +653,7 @@ begin
  PP:=PArrayStringArray(adata);
  N:=high(PP^); // Length-1;
  setlength(PP^,N+2); // increase with 1;
- p:= @(PP^[N]); // newly added array, fill with data.
+ p:= @(PP^[N+1]); // newly added array, fill with data.
  setlength(p^,ncols); 
  for i:= 0 to ncols - 1 do 
    p^[i]:= strPas(avalues[i]);
@@ -719,8 +716,13 @@ begin
   result := inherited StrToStatementType(s);
 end;
 
-procedure TSQLite3Connection.UpdateIndexDefs(var IndexDefs: TIndexDefs;
-                              const TableName: string);
+constructor TSQLite3Connection.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash] + [sqQuoteFieldnames];
+end;
+
+procedure TSQLite3Connection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
   str1: string;
   
