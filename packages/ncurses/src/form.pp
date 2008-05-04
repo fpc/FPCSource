@@ -12,15 +12,11 @@ const
 {$PACKRECORDS C}
 {$INCLUDE eti.inc}
 
-
 type
-   //Pva_list = ^va_list;
-   //va_list = char;
   Pva_list  = Pointer;
   FIELD_CELL = Pointer;
   Form_Options = Longint;
   Field_Options = Longint;
-
 
 (* _PAGE  *)
 
@@ -30,8 +26,6 @@ type
     smin : Smallint;  { index of top leftmost field on page    }
     smax : Smallint;  { index of bottom rightmost field on page  }
   end;
-
-
 
 (*  FIELD  *)
 
@@ -77,8 +71,6 @@ type
   opaque for that reason.
 }
 
-
-
 (*  FIELDTYPE  *)
 
   TFieldCheck = function (_para1:PFIELD; _para2:Pointer):Bool; cdecl;
@@ -92,23 +84,14 @@ type
     ref : clong;                                        { reference count  }
     left : PFIELDTYPE;                                  { ptr to operand for |  }
     right : PFIELDTYPE;                                 { ptr to operand for |  }
-    //makearg : function (_para1:Pva_list):Pointer;cdecl;
     makearg : TMakearg;                                 { make fieldtype arg  }
-    //copyarg : function (_para1:Pointer):Pointer;
     copyarg : TCopy_arg;                                { copy fieldtype arg   }
-    //freearg : procedure (_para1:Pointer);
     freearg : TFree_arg;                                { field validation  }
-    //fcheck : function (_para1:PFIELD; _para2:Pointer):bool;
     fcheck : TFieldCheck;                               { free fieldtype arg  }
-    //ccheck : function (_para1:Longint; _para2:Pointer):bool;
     ccheck : TCharCheck;                                { character validation  }
-    //next : function (_para1:PFIELD; _para2:Pointer):bool;
     next : TFieldCheck;                                 { enumerate next value  }
-    //prev : function (_para1:PFIELD;  _para2:Pointer):bool;
     prev : TFieldCheck;                                 { enumerate prev value  }
   end;
-  //typenode = FIELDTYPE;
-
 
 (* FORM  *)
 
@@ -132,18 +115,11 @@ type
     current : PFIELD;       { current field     }
     page : ^_PAGE;          { page [maxpage]     }
     usrptr : Pointer;       { user pointer      }
-    //forminit : procedure (_para1:PFORM); cdecl;
     forminit : Form_Hook;
-    //formterm : procedure (_para1:PFORM); cdecl;
     formterm : Form_Hook;
-    //fieldinit : procedure (_para1:PFORM); cdecl;
     fieldinit : Form_Hook;
-    //fieldterm : procedure (_para1:PFORM); cdecl;
     fieldterm : Form_Hook;
   end;
-  //formnode = TFORM;
-
-
 
 (* field justification *)
 const
@@ -151,7 +127,6 @@ const
   JUSTIFY_LEFT = 1;
   JUSTIFY_CENTER = 2;
   JUSTIFY_RIGHT = 3;
-
 
 (* field options *)
   O_VISIBLE = $0001;
@@ -166,7 +141,6 @@ const
   O_STATIC = $0200;
   O_NL_OVERLOAD = $0001;
   O_BS_OVERLOAD = $0002;
-
 
 (* form driver commands *)
    REQ_NEXT_PAGE = KEY_MAX + 1;     { move to next page    }
@@ -229,7 +203,6 @@ const
    MIN_FORM_COMMAND = KEY_MAX + 1;  { used by form_driver     }
    MAX_FORM_COMMAND = KEY_MAX + 57; { used by form_driver    }
 
-
 (* standard field types *)
 
 var
@@ -269,12 +242,6 @@ var
 {$endif darwin}
 
 (* FIELDTYPE routines *)
-(* Const before declarator ignored *)
-(* Const before type ignored *)
-{
-function new_fieldtype(field_check:function (_para1:PFIELD;_para2:Pointer):bool; char_check:function (_para1:Longint;_para2:Pointer):bool):PFIELDTYPE;cdecl;external;
-}
-
 function new_fieldtype(field_check: TFieldCheck; char_check:TCharCheck):PFIELDTYPE; cdecl;external libform;
 
 function link_fieldtype(_para1:PFIELDTYPE; _para2:PFIELDTYPE):PFIELDTYPE; cdecl;external libform;
@@ -290,22 +257,9 @@ function set_fieldtype_arg(_para1:PFIELDTYPE; make_arg:function (_para1:Pva_list
 }
 function set_fieldtype_arg(fieldtype: PFIELDTYPE; make_arg: TMakearg; copy_arg: TCopy_arg; free_arg: TFree_arg): Longint;cdecl;external libform;
 
-{
-extern int set_fieldtype_choice (FIELDTYPE *,
-      bool (* const next_choice)(FIELD *,const void *),
-            bool (* const prev_choice)(FIELD *,const void *));
-
-(* Const before declarator ignored *)
-(* Const before type ignored *)
-(* Const before declarator ignored *)
-(* Const before type ignored *)
-function set_fieldtype_choice(_para1:PFIELDTYPE; next_choice:function (_para1:PFIELD; _para2:Pointer):bool; prev_choice:function (_para1:PFIELD; _para2:Pointer):bool):Longint;cdecl;external;
-}
-
 function set_fieldtype_choice(_para1:PFIELDTYPE; next_choice:TFieldCheck; prev_choice:TFieldCheck):Longint; cdecl;external libform;
 
 (* FIELD routines *)
-
 function new_field(_pa1,_pa2,_pa3,_pa4,_pa5,_pa6:Longint):PFIELD; cdecl;external libform;
 function dup_field(_para1:PFIELD; _para2:Longint; _para3:Longint):PFIELD; cdecl;external libform;
 function link_field(_para1:PFIELD; _para2:Longint; _para3:Longint):PFIELD; cdecl;external libform;

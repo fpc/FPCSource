@@ -4,10 +4,9 @@
 unit ncurses;
 interface
 
-
 {$PACKRECORDS C}
 {$LINKLIB ncursesw}
-{$LINKLIB c}
+{$LINKLIB c} // should be uses initc ?
 
 {$DEFINE USE_FPC_BYTEBOOL}
 
@@ -22,9 +21,7 @@ type
    Bool = Byte;
 {$ENDIF USE_FPC_BYTEBOOL}
 
-
 type
-   //cint = Longint;
    wchar_t = Widechar;
    pwchar_t = ^wchar_t;
 
@@ -44,18 +41,13 @@ const
    NCURSES_VERSION = '5.6';
    NCURSES_MOUSE_VERSION = 1;
 
-
 type
    pchtype = ^chtype;
-   //chtype  = Longword;
-   chtype  = Longint;
+   chtype  = Longint; {longword}
    pmmask_t = ^mmask_t;
-   //mmask_t  = Longword;
-   mmask_t  = Longint;
-
+   mmask_t  = Longint; {longword}
 
 { colors  }
-
 var
 {$IFNDEF darwin}
    COLORS : Longint cvar; external;
@@ -64,7 +56,6 @@ var
    COLORS : Longint external libncurses name 'COLORS';
    COLOR_PAIRS : Longint external libncurses name 'COLOR_PAIRS';
 {$ENDIF darwin}
-
 
 const
    COLOR_BLACK = 0;
@@ -75,7 +66,6 @@ const
    COLOR_MAGENTA = 5;
    COLOR_CYAN = 6;
    COLOR_WHITE = 7;
-
 
 type
    pNC_FPC_COLOR = ^NC_FPC_COLOR;
@@ -92,7 +82,6 @@ var
 {$ELSE darwin}
    acs_map : tacs_map external libncurses name 'acs_map';
 {$ENDIF darwin}
-
 
 //function NCURSES_ACS(c : Longint) : Longint;
 (* VT100 symbols begin here  *)
@@ -159,7 +148,7 @@ property ACS_SSSS : chtype read ACS_PLUS;
 const
    ERR = -(1);
    OK = 0;
-   _SUBWIN     = $01; { is this a sub-window? }
+   _SUBWIN    = $01; { is this a sub-window? }
    _ENDLINE   = $02;  { is the window flush right? }
    _FULLWIN   = $04;  { is the window full-screen? }
    _SCROLLWIN = $08;  { bottom edge is at screen bottom? }
@@ -265,7 +254,6 @@ type
        ESCDELAY: Longint external libncurses name 'ESCDELAY';
 {$ENDIF darwin}
 
-
 (*
  * These functions are extensions - not in XSI Curses.
  *)
@@ -365,7 +353,11 @@ function raw:Longint; cdecl;external libncurses;
 function resetty:Longint; cdecl;external libncurses;
 function reset_prog_mode:Longint; cdecl;external libncurses;
 function reset_shell_mode:Longint; cdecl;external libncurses;
-{function ripoffline(_para1:Longint; _para2:function (_para1:PWINDOW; _para2:Longint):Longint):Longint; cdecl;external libncurses;}//   ->???
+
+type TWinInit = function (win: PWINDOW; ncols: Longint): Longint; cdecl;
+
+function ripoffline(line: Longint; init: TWinInit):Longint; cdecl;external libncurses;
+
 function savetty:Longint; cdecl;external libncurses;
 function scr_dump(_para1:PChar):Longint; cdecl;external libncurses;
 function scr_init(_para1:PChar):Longint; cdecl;external libncurses;
@@ -439,7 +431,6 @@ procedure wtimeout(_para1:PWINDOW; _para2:Longint);cdecl;external libncurses;
 function wtouchln(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:Longint):Longint; cdecl;external libncurses;
 function wvline(_para1:PWINDOW; _para2:chtype; _para3:Longint):Longint; cdecl;external libncurses;
 
-
 (*
  * These are also declared in <ncursesw/term.h>:
  *)
@@ -449,15 +440,12 @@ function tigetnum(_para1:PChar):Longint; cdecl;external libncurses;
 function tigetstr(_para1:PChar):PChar;cdecl;external libncurses;
 function putp(_para1:PChar):Longint; cdecl;external libncurses;
 
-
 var
 {$IFNDEF darwin}
    ttytype : array of PChar cvar; external;  { needed for backward compatibility  }
 {$ELSE darwin}
    ttytype : array of PChar external libncurses  name 'ttytype';
 {$ENDIF darwin}
-
-
 
 (*
  * Function prototypes for wide-character operations.
@@ -499,8 +487,6 @@ function winwstr(_para1:PWINDOW; _para2:Pwchar_t):longint; cdecl;external libncu
 function wunctrl(_para1:Pcchar_t):Pwchar_t;cdecl;external libncurses;
 function wvline_set(_para1:PWINDOW; _para2:Pcchar_t; _para3:Longint):longint; cdecl;external libncurses;
 
-
-
 const
    A_NORMAL = 0;
    A_ATTRIBUTES = (not 0) shl 8;
@@ -541,15 +527,9 @@ const
    WA_TOP = A_TOP;
    WA_VERTICAL = A_VERTICAL;
 
-
-
-
-
 function COLOR_PAIR(n: longint): longint; inline;
 function PAIR_NUMBER(attr: attr_t): longint; inline;
 function color_set(color_pair_number: Smallint; opts: Pointer): longint; inline;
-
-
 
 (*  pseudo functions  *)
 
@@ -561,11 +541,20 @@ function resetterm: Longint; inline;
 function saveterm: Longint; inline;
 function crmode: Longint; inline;
 function nocrmode: Longint; inline;
-procedure getyx   (win: PWINDOW; var y,x); inline;
-procedure getbegyx(win: PWINDOW; var y,x); inline;
-procedure getmaxyx(win: PWINDOW; var y,x); inline;
-procedure getparyx(win: PWINDOW; var y,x); inline;
-procedure getsyx  (var y,x); inline;
+
+// formal parameter versions not endiansafe?
+procedure getyx   (win: PWINDOW; var y,x: Smallint); inline; overload;
+procedure getbegyx(win: PWINDOW; var y,x: Smallint); inline; overload;
+procedure getmaxyx(win: PWINDOW; var y,x: Smallint); inline; overload;
+procedure getparyx(win: PWINDOW; var y,x: Smallint); inline; overload;
+procedure getsyx  (var y,x: Smallint); inline; overload;
+
+procedure getyx   (win: PWINDOW; var y,x: Longint); inline; overload;
+procedure getbegyx(win: PWINDOW; var y,x: Longint); inline; overload;
+procedure getmaxyx(win: PWINDOW; var y,x: Longint); inline; overload;
+procedure getparyx(win: PWINDOW; var y,x: Longint); inline; overload;
+procedure getsyx  (var y,x: Longint); inline; overload;
+
 procedure setsyx  (y,x: Smallint); inline;
 function getattrs(win: PWINDOW): attr_t; inline;
 function getcurx(win: PWINDOW): Smallint; inline;
@@ -741,7 +730,6 @@ const
    KEY_F11 = KEY_F0 + 11;
    KEY_F12 = KEY_F0 + 12;
 
-
 function KEY_F(n : Byte) : chtype; inline;
 
 const
@@ -829,7 +817,6 @@ const
    KEY_EVENT = 411;     { We were interrupted by an event    &0633 }
    KEY_MAX = 511;       { Maximum key value is 0633    &0777 }
 
-
 type
    //tnc_wacs= array [char] of cchar_t;
    tnc_wacs= array of cchar_t;
@@ -893,11 +880,7 @@ property WACS_VLINE : cchar_t read WACS_SBSB;
 property WACS_PLUS : cchar_t read WACS_SSSS;
 {$ENDIF FPC_OBJFPC}
 
-
 (* mouse interface *)
-
-
-
 
 (*  event masks  *)
 
@@ -938,8 +921,6 @@ const
 
    ALL_MOUSE_EVENTS       = REPORT_MOUSE_POSITION - 1;
 
-
-
 (* macros to extract single event-bits from masks *)
 
 function BUTTON_RELEASE(e,x: longint): longint; inline;
@@ -950,8 +931,6 @@ function BUTTON_TRIPLE_CLICK(e,x: longint): longint; inline;
 function BUTTON_RESERVED_EVENT(e,x: longint): longint; inline;
 function mouse_trafo(pY,pX: PLongint; to_screen: Bool): Bool; inline;
 
-
-
 type
    PMEVENT = ^MEVENT;
    MEVENT = record
@@ -960,15 +939,12 @@ type
    bstate : mmask_t;     { button state bits }
 end;
 
-
 function getmouse(_para1:PMEVENT):longint; cdecl;external libncurses;
 function ungetmouse(_para1:PMEVENT):longint; cdecl;external libncurses;
 function mousemask(_para1:mmask_t; _para2:Pmmask_t):mmask_t;cdecl;external;
 function wenclose(_para1:PWINDOW; _para2:Longint; _para3:Longint):Bool;cdecl;external;
 function mouseinterval(_para1:Longint):longint; cdecl;external libncurses;
 function wmouse_trafo(_para1:PWINDOW; _para2:PLongint; _para3:PLongint; _para4:Bool):Bool;cdecl;external;
-
-
 
 {
  wide-character (enhanced) functionality
@@ -1040,7 +1016,6 @@ function mvwins_wstr(win: PWINDOW; y,x: Smallint; wstr: pwchar_t) : longint; inl
 function mvwinwstr(win: PWINDOW; y,x: Smallint; wstr: pwchar_t) : longint; inline;
 function mvwvline_set(win: PWINDOW; y,x: Smallint; wch: pcchar_t; n: longint) : longint; inline;
 
-
 function wmove(win: PWINDOW; y,x: Smallint): Longint; inline;
 
 (* C varargs  procedures*)
@@ -1071,7 +1046,6 @@ function wscanw(_para1:PWINDOW; _para2:PChar; args:array of const):Longint; cdec
 function printw(_para1:PChar; args:array of const):Longint; cdecl;external libncurses; overload;}
 
 {$ENDIF}
-
 
 implementation
 
@@ -1235,8 +1209,6 @@ begin
   ACS_STERLING:=acs_map['}'];
 end;
 
-
-
 function COLOR_PAIR(n : longint): longint;
 begin
   COLOR_PAIR:=n shl 8;
@@ -1252,8 +1224,6 @@ function color_set(color_pair_number: Smallint; opts: Pointer): longint; inline;
 begin
   color_set:=wcolor_set(stdscr,color_pair_number,opts);
 end;
-
-(*  pseudo functions  *)
 
 function wgetstr(win: PWINDOW; s: PChar): Longint;
 begin
@@ -1301,80 +1271,131 @@ begin
   nocrmode:=nocbreak;
 end;
 
-
-
-
-procedure getyx(win: PWINDOW; var y,x);
+procedure getyx(win: PWINDOW; var y,x: Smallint);
 begin
    if win<>nil then
    begin
-      Smallint(y) :=win^._cury; Smallint(x) :=win^._curx
+      y := win^._cury; x := win^._curx
    end
    else
    begin
-      Smallint(y) :=ERR; Smallint(x) :=ERR
+      y := ERR; x := ERR
    end
 end;
 
-procedure getbegyx(win: PWINDOW; var y,x);
+procedure getbegyx(win: PWINDOW; var y,x: Smallint);
 begin
    if win<>nil then
    begin
-      Smallint(y) :=win^._begy; Smallint(x) :=win^._begx
+      y := win^._begy; x := win^._begx
    end
    else
    begin
-      Smallint(y) :=ERR; Smallint(x) :=ERR
+      y := ERR; x := ERR
    end
 end;
 
-procedure getmaxyx(win: PWINDOW; var y,x);
+procedure getmaxyx(win: PWINDOW; var y,x: Smallint);
 begin
    if win<>nil then
    begin
-     Smallint(y) :=win^._maxy+1; Smallint(x) :=win^._maxx+1
+     y := win^._maxy+1; x := win^._maxx+1
    end
    else
    begin
-      Smallint(y) :=ERR; Smallint(x) :=ERR
+     y := ERR; x := ERR
    end
 end;
 
-procedure getparyx(win: PWINDOW; var y,x);
+procedure getparyx(win: PWINDOW; var y,x: Smallint);
 begin
-{#define getparyx(win,y,x) (y = getpary(win), x = getparx(win))}
   if win<>nil then
    begin
-     Smallint(y) :=win^._pary; Smallint(x) :=win^._parx
+     y := win^._pary; x :=win^._parx
    end
    else
    begin
-      Smallint(y) :=ERR; Smallint(x) :=ERR
+     y := ERR; x := ERR
    end
 end;
 
-
-
-
-procedure getsyx(var y,x);
+procedure getsyx(var y,x: Smallint);
 begin
-(*
-C macros:
-#define getsyx(y,x) do { if(newscr->_leaveok) (y)=(x)=-1; \
-       else getyx(newscr,(y),(x)); \
-        } while(0)
-*)
 {$IFNDEF USE_FPC_BYTEBOOL}
    if newscr^._leaveok = NC_FPC_TRUE then
 {$ELSE USE_FPC_BYTEBOOL}
    if newscr^._leaveok then
 {$ENDIF USE_FPC_BYTEBOOL}
    begin
-      Smallint(y) := -1; Smallint(x) := -1
+     y := -1; x := -1
    end
    else
    begin
-      Smallint(y) := newscr^._cury; Smallint(x) := newscr^._curx
+     y := newscr^._cury; x := newscr^._curx
+   end
+end;
+
+procedure getyx(win: PWINDOW; var y,x: Longint);
+begin
+   if win<>nil then
+   begin
+      y := win^._cury; x := win^._curx
+   end
+   else
+   begin
+      y := ERR; x := ERR
+   end
+end;
+
+procedure getbegyx(win: PWINDOW; var y,x: Longint);
+begin
+   if win<>nil then
+   begin
+      y := win^._begy; x := win^._begx
+   end
+   else
+   begin
+      y := ERR; x := ERR
+   end
+end;
+
+procedure getmaxyx(win: PWINDOW; var y,x: Longint);
+begin
+   if win<>nil then
+   begin
+     y := win^._maxy+1; x := win^._maxx+1
+   end
+   else
+   begin
+     y := ERR; x := ERR
+   end
+end;
+
+procedure getparyx(win: PWINDOW; var y,x: Longint);
+begin
+  if win<>nil then
+   begin
+     y := win^._pary; x :=win^._parx
+   end
+   else
+   begin
+     y := ERR; x := ERR
+   end
+end;
+
+procedure getsyx(var y,x: Longint);
+begin
+{$IFNDEF USE_FPC_BYTEBOOL}
+   if newscr^._leaveok = NC_FPC_TRUE then
+{$ELSE USE_FPC_BYTEBOOL}
+   if newscr^._leaveok then
+{$ENDIF USE_FPC_BYTEBOOL}
+   begin
+     y := -1; x := -1
+   end
+   else
+   begin
+     y := newscr^._cury; x := newscr^._curx
    end
 end;
 
@@ -1386,7 +1407,7 @@ C macros:
        else {newscr->_leaveok=FALSE;wmove(newscr,(y),(x));} \
         } while(0)
 *)
-   if (x OR y >=0)AND(x<=newscr^._maxx)AND(y<=newscr^._maxy) then
+   if (x>=0) and (y >=0) AND (x<=newscr^._maxx) AND (y<=newscr^._maxy) then
    begin
       newscr^._curx := x;
       newscr^._cury := y;
@@ -2780,15 +2801,10 @@ begin
 end;
 
 
-
-
-
-
-
 function wmove(win: PWINDOW; y,x: Smallint): Longint;
 begin
   //if (win!=nil)AND(x>=0)AND(x<=win^._maxx)AND(y>=0)AND(y<=win^._maxy) then
-  if (x OR y >=0)AND(x<=win^._maxx)AND(y<=win^._maxy) then
+  if (x>=0) and ( y>=0)AND(x<=win^._maxx)AND(y<=win^._maxy) then
   begin
     win^._curx := x;
     win^._cury := y;
