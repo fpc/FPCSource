@@ -2637,8 +2637,8 @@ function ImageList_GetIcon(himl:HIMAGELIST; i:longint; flags:UINT):HICON; extern
 function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):WINBOOL; external KernelDLL name 'ImageList_GetIconSize';
 function ImageList_GetImageCount(himl:HIMAGELIST):longint; external KernelDLL name 'ImageList_GetImageCount';
 function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external KernelDLL name 'ImageList_GetImageInfo';
-function ImageList_LoadBitmap(Instance: THandle; Bmp: LPCSTR; CX, Grow: LongInt; Mask: TColorRef): HImageList;
-function ImageList_LoadImage(hi:HINST; lpbmp:LPCSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external KernelDLL name 'ImageList_LoadImage';
+function ImageList_LoadBitmap(Instance: THandle; Bmp: LPCTSTR; CX, Grow: LongInt; Mask: TColorRef): HImageList;
+function ImageList_LoadImage(hi:HINST; lpbmp:LPCTSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external KernelDLL name 'ImageList_LoadImage';
 function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;dy:longint):HIMAGELIST; external KernelDLL name 'ImageList_Merge';
 function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL; external KernelDLL name 'ImageList_Replace';
 function ImageList_ReplaceIcon(himl:HIMAGELIST; i:longint; hicon:HICON):longint; external KernelDLL name 'ImageList_ReplaceIcon';
@@ -4201,7 +4201,7 @@ begin
   Result:=ImageList_GetIcon(ImageList, Image, 0);
 end;
 
-function ImageList_LoadBitmap(Instance: THandle; Bmp: LPCSTR; CX, Grow: LongInt; Mask: TColorRef): HImageList;
+function ImageList_LoadBitmap(Instance: THandle; Bmp: LPCTSTR; CX, Grow: LongInt; Mask: TColorRef): HImageList;
 begin
   Result := ImageList_LoadImage(Instance, Bmp, CX, Grow, Mask, IMAGE_BITMAP, 0);
 end;
