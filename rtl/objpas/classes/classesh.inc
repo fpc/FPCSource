@@ -1510,7 +1510,9 @@ type
     procedure PaletteCreated; dynamic;
     procedure ReadState(Reader: TReader); virtual;
     procedure SetAncestor(Value: Boolean);
-    procedure SetDesigning(Value: Boolean);
+    procedure SetDesigning(Value: Boolean; SetChildren : Boolean = True);
+    procedure SetDesignInstance(Value: Boolean);
+    procedure SetInline(Value: Boolean);
     procedure SetName(const NewName: TComponentName); virtual;
     procedure SetChildOrder(Child: TComponent; Order: Integer); dynamic;
     procedure SetParentComponent(Value: TComponent); dynamic;
