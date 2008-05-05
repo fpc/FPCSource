@@ -288,18 +288,36 @@ begin
 end;
 
 
-Procedure TComponent.SetDesigning(Value: Boolean);
+Procedure TComponent.SetDesigning(Value: Boolean; SetChildren : Boolean = True);
 
 Var Runner : Longint;
 
 begin
   If Value then
-    Include(FComponentSTate,csDesigning)
+    Include(FComponentState,csDesigning)
   else
-    Exclude(FComponentSTate,csDesigning);
-  if Assigned(FComponents) then
+    Exclude(FComponentState,csDesigning);
+  if Assigned(FComponents) and SetChildren then
     For Runner:=0 To FComponents.Count - 1 do
       TComponent(FComponents.items[Runner]).SetDesigning(Value);
+end;
+
+Procedure TComponent.SetDesignInstance(Value: Boolean);
+
+begin
+  If Value then
+    Include(FComponentState,csDesignInstance)
+  else
+    Exclude(FComponentState,csDesignInstance);
+end;
+
+Procedure TComponent.SetInline(Value: Boolean);
+
+begin
+  If Value then
+    Include(FComponentState,csInline)
+  else
+    Exclude(FComponentState,csInline);
 end;
 
 

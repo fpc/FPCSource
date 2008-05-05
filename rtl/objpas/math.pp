@@ -23,6 +23,7 @@
 
 {$MODE objfpc}
 {$inline on }
+{$GOTO on}
 unit math;
 interface
 
