@@ -1,3 +1,5 @@
+{ %fail }
+
 {$mode macpas}
 {$calling mwpascal}
 
