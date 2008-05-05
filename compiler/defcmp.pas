@@ -1579,8 +1579,12 @@ implementation
               { The same goes for array of const. Open arrays are handled     }
               { already (if their element types match exactly, they are       }
               { considered to be an exact match)                              }
+              { And also for "inline defined" function parameter definitions  }
+              { (i.e., function types directly declared in a parameter list)  }
               if (is_array_of_const(currpara1.vardef) or
-                  is_open_string(currpara1.vardef)) and
+                  is_open_string(currpara1.vardef) or
+                  ((currpara1.vardef.typ = procvardef) and
+                   not(assigned(currpara1.vardef.typesym)))) and
                  (eq=te_equal) and
                  (cpo_openequalisexact in cpoptions) then
                 eq:=te_exact;
