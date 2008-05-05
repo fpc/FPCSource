@@ -57,7 +57,7 @@ var
   argv: PPChar;
   envp: PPChar;
   errno: integer;
-  fake_heap_end: ^byte; cvar;
+  fake_heap_end: ^byte; cvar; external;
   irq_vector: integer; external name '__irq_vector';
   
 
@@ -101,32 +101,6 @@ begin
   IsARM9 := integer(@irq_vector) = $0B003FFC;
 end;
 
-{
-  NDS CPU detecting function (thanks to 21o6):
-  --------------------------------------------
-   "You see, the ARM7 can't write to bank A of VRAM, but it doesn't give any
-    error ... it just doesn't write there... so it's easily determinable what
-    CPU is running the code"
-
-   ARM946E-S processor can handle dsp extensions extensions, but ARM7TDMI does
-   not. FPC can't retrieve the CPU target at compiling time, so this small
-   function takes care to check if the code is running on an ARM9 or on an ARM7
-   CPU. It works on Nintendo DS only, I guess :)
-}
-function IsARM92(): boolean;
-var
-  Dummy : pword absolute $06800000;
-  tmp: word;
-begin
-  tmp := Dummy^;
-  Dummy^ := $C0DE;
-  IsARM92 := Dummy^ = $C0DE;
-  Dummy^ := tmp;
-end;
-
-
-
-
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: SizeUInt;
 begin
@@ -148,6 +122,35 @@ end;
 {*****************************************************************************
                              ParamStr/Randomize
 *****************************************************************************}
+const
+  QRAN_SHIFT  = 15;
+  QRAN_MASK   = ((1 shl QRAN_SHIFT) - 1);
+  QRAN_MAX    = QRAN_MASK;
+  QRAN_A      = 1664525;
+  QRAN_C      = 1013904223;
+
+{ set randseed to a new pseudo random value }
+procedure randomize;
+var
+  IPC_Timer: array [0..2] of byte absolute $27FF01B;
+begin
+  RandSeed := (IPC_Timer[0]  * 3600) + (IPC_Timer[1] * 60) + IPC_Timer[2]; 
+end;
+
+function random(): integer; 
+begin	
+	RandSeed := QRAN_A * RandSeed + QRAN_C;
+	random := (RandSeed shr 16) and QRAN_MAX;
+end;
+
+function random(value: integer): integer; 
+var
+  a: integer;
+begin	
+	RandSeed := QRAN_A * RandSeed + QRAN_C;
+	a := (RandSeed shr 16) and QRAN_MAX;
+  random := (a * value) shr 15;
+end;
 
 { number of args }
 function paramcount : longint;
@@ -161,11 +164,6 @@ begin
   paramstr := '';
 end;
 
-{ set randseed to a new pseudo random value }
-procedure randomize;
-begin
-  // Boo!
-end;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 procedure SysInitStdIO;
