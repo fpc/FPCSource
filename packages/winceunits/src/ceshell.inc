@@ -220,7 +220,9 @@ type
 // functions
 //*****************************************************************************
 function SHFileOperation(lpFileOp:LPSHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
+function SHFileOperation(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
 function SHFileOperationW(lpFileOp:LPSHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
+function SHFileOperationW(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
 function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external ShellDLL name 'SHGetPathFromIDList';
 function SHGetPathFromIDListW(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external ShellDLL name 'SHGetPathFromIDList';
 function SHGetMalloc(var ppMalloc: LPMALLOC): HRESULT; external ShellDLL name 'SHGetMalloc';

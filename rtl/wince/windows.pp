@@ -41,16 +41,6 @@ interface
 {$i struct.inc}
 {$i messages.inc}
 {$i coredll.inc}
-{$i aygshell.inc}
-{$i commctrl.inc}
-{$i commdlg.inc}
-{$i ceshell.inc}
-{$i oleaut32.inc}
-{$i iphlpapi.inc}
-{$i simmgr.inc}
-{$i tapi.inc}
-{$i notify.inc}
-{$i power.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
@@ -67,13 +57,6 @@ implementation
 {$i struct.inc}
 {$i messages.inc}
 {$i coredll.inc}
-{$i aygshell.inc}
-{$i commctrl.inc}
-{$i commdlg.inc}
-{$i ceshell.inc}
-{$i oleaut32.inc}
-{$i simmgr.inc}
-{$i tapi.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}

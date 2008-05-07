@@ -247,6 +247,20 @@
      EN_SAVECLIPBOARD = 1800;
      EN_SELCHANGE = 1794;
      EN_STOPNOUNDO = 1798;
+     
+     { Header control  }
+     HDM_DELETEITEM = 4610;
+     HDM_GETITEMW = 4619;
+     HDM_INSERTITEMW = 4618;
+     HDM_SETITEMW = 4620;
+
+     HDM_GETITEM = HDM_GETITEMW;
+     HDM_INSERTITEM = HDM_INSERTITEMW;
+     HDM_SETITEM = HDM_SETITEMW;
+
+     HDM_GETITEMCOUNT = 4608;
+     HDM_HITTEST = 4614;
+     HDM_LAYOUT = 4613;
 
   { Hot key control  }
   const
