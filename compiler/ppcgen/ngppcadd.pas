@@ -383,10 +383,15 @@ implementation
         pass_left_and_right;
 
         { when a setdef is passed, it has to be a smallset }
-        if not is_smallset(left.resultdef) or
-           (not is_smallset(right.resultdef) and
-            (right.nodetype<>setelementn)) then
-         internalerror(200203301);
+        if (not(nf_swapped in flags) and
+            not is_smallset(left.resultdef) or
+            (not is_smallset(right.resultdef) and
+             (right.nodetype<>setelementn))) or
+           ((nf_swapped in flags) and
+            not is_smallset(right.resultdef) or
+            (not is_smallset(left.resultdef) and
+             (left.nodetype<>setelementn))) then
+         internalerror(200203359);
 
         opdone := false;
         cmpop:=nodetype in [equaln,unequaln,lten,gten];
