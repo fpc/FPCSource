@@ -217,7 +217,7 @@ type
     function Realloc(pv: Pointer; cb: Longint): Pointer;
     procedure Free(pv: Pointer);
     function GetSize(pv: Pointer): Longint;
-    function DidAlloc(pv: Pointer): Integer;
+    function DidAlloc(pv: Pointer): longint;
     procedure HeapMinimize;
   end;
   LPMALLOC = ^IMalloc;

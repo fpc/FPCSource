@@ -264,12 +264,12 @@ const
 //*****************************************************************************
 
 //BSTR API
-function  SysAllocString(psz: pointer): Integer; external oleaut32dll name 'SysAllocString';
-function  SysAllocStringLen(psz: pointer; len:dword): Integer; external oleaut32dll name 'SysAllocStringLen';
+function  SysAllocString(psz: pointer): longint; external oleaut32dll name 'SysAllocString';
+function  SysAllocStringLen(psz: pointer; len:dword): longint; external oleaut32dll name 'SysAllocStringLen';
 procedure SysFreeString(bstr:pointer); external oleaut32dll name 'SysFreeString';
 function  SysStringLen(bstr:pointer):UINT; external oleaut32dll name 'SysStringLen';
-function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; external oleaut32dll name 'SysReAllocString';
-function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; external oleaut32dll name 'SysReAllocStringLen';
+function  SysReAllocString(var bstr:pointer;psz: pointer): longint; external oleaut32dll name 'SysReAllocString';
+function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): longint; external oleaut32dll name 'SysReAllocStringLen';
 
 implementation
 

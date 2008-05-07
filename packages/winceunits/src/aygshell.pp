@@ -428,8 +428,8 @@ type
     dwFlags : DWORD ;      // IN  - Some features we want
     nToolBarId : UINT ;    // IN  - Which toolbar are we using
     hInstRes : HINST;      // IN  - Instance that owns the resources
-    nBmpId : Integer;
-    cBmpImages : Integer;  // IN  - Count of bitmap images
+    nBmpId : longint;
+    cBmpImages : longint;  // IN  - Count of bitmap images
     hwndMB : HWND ;        // OUT
     clrBk : COLORREF ;     // IN  - background color of the menu bar (excluding sip)
   end;

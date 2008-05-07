@@ -423,7 +423,7 @@ type
 
   tagNMDATETIMEWMKEYDOWNA = record
     nmhdr     : NMHDR;
-    nVirtKey  : integer;
+    nVirtKey  : longint;
     pszFormat : LPCSTR;
     st        : SYSTEMTIME;
   end;
@@ -433,7 +433,7 @@ type
 
   tagNMDATETIMEWMKEYDOWNW = record
     nmhdr     : NMHDR;
-    nVirtKey  : integer;
+    nVirtKey  : longint;
     pszFormat : LPCWSTR;
     st        : SYSTEMTIME;
   end;
@@ -522,7 +522,7 @@ type
   TBBUTTONINFO=TBBUTTONINFOW;
   TTBButtonInfo=TBBUTTONINFO;
 
-  tagNMCUSTOMDRAWINFO = packed record
+  tagNMCUSTOMDRAWINFO = record
     hdr: TNMHdr;
     dwDrawStage: DWORD;
     hdc: HDC;
@@ -534,19 +534,19 @@ type
   PNMCustomDraw = ^TNMCustomDraw;
   TNMCustomDraw = tagNMCUSTOMDRAWINFO;
   
-  tagNMLVCUSTOMDRAW = packed record
+  tagNMLVCUSTOMDRAW = record
     nmcd: TNMCustomDraw;
     clrText: COLORREF;
     clrTextBk: COLORREF;
-    iSubItem: Integer;
+    iSubItem: longint;
   end;
   PNMLVCustomDraw = ^TNMLVCustomDraw;
   TNMLVCustomDraw = tagNMLVCUSTOMDRAW;
   
-  tagNMLVODSTATECHANGE = packed record
+  tagNMLVODSTATECHANGE = record
     hdr: TNMHdr;
-    iFrom: Integer;
-    iTo: Integer;
+    iFrom: longint;
+    iTo: longint;
     uNewState: UINT;
     uOldState: UINT;
   end;
