@@ -7,13 +7,10 @@ name=winceunits
 version=2.3.1
 
 [target]
-units=buildwinceunits
-implicitunits=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi \
-              gpsapi todaycmn
-
-examples=examples
-
-rsts = jwawintype comconst
+units_wince=buildwinceunits
+implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi \
+                    gpsapi todaycmn windbase cesync
+units_win32=rapi cesync
 
 [install]
 buildunit=buildwinceunits

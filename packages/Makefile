@@ -258,7 +258,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv graph unzip gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 a52 cdrom fpgtk openal fftw lua oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 a52 cdrom fpgtk openal fftw lua oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -1663,6 +1663,7 @@ TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_WINCEUNITS=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_HASH=1
@@ -7533,6 +7534,51 @@ winunits-jedi:
 	$(MAKE) -C winunits-jedi all
 .PHONY: winunits-jedi_all winunits-jedi_debug winunits-jedi_smart winunits-jedi_release winunits-jedi_units winunits-jedi_examples winunits-jedi_shared winunits-jedi_install winunits-jedi_sourceinstall winunits-jedi_exampleinstall winunits-jedi_distinstall winunits-jedi_zipinstall winunits-jedi_zipsourceinstall winunits-jedi_zipexampleinstall winunits-jedi_zipdistinstall winunits-jedi_clean winunits-jedi_distclean winunits-jedi_cleanall winunits-jedi_info winunits-jedi_makefiles winunits-jedi
 endif
+ifdef TARGET_DIRS_WINCEUNITS
+winceunits_all:
+	$(MAKE) -C winceunits all
+winceunits_debug:
+	$(MAKE) -C winceunits debug
+winceunits_smart:
+	$(MAKE) -C winceunits smart
+winceunits_release:
+	$(MAKE) -C winceunits release
+winceunits_units:
+	$(MAKE) -C winceunits units
+winceunits_examples:
+	$(MAKE) -C winceunits examples
+winceunits_shared:
+	$(MAKE) -C winceunits shared
+winceunits_install:
+	$(MAKE) -C winceunits install
+winceunits_sourceinstall:
+	$(MAKE) -C winceunits sourceinstall
+winceunits_exampleinstall:
+	$(MAKE) -C winceunits exampleinstall
+winceunits_distinstall:
+	$(MAKE) -C winceunits distinstall
+winceunits_zipinstall:
+	$(MAKE) -C winceunits zipinstall
+winceunits_zipsourceinstall:
+	$(MAKE) -C winceunits zipsourceinstall
+winceunits_zipexampleinstall:
+	$(MAKE) -C winceunits zipexampleinstall
+winceunits_zipdistinstall:
+	$(MAKE) -C winceunits zipdistinstall
+winceunits_clean:
+	$(MAKE) -C winceunits clean
+winceunits_distclean:
+	$(MAKE) -C winceunits distclean
+winceunits_cleanall:
+	$(MAKE) -C winceunits cleanall
+winceunits_info:
+	$(MAKE) -C winceunits info
+winceunits_makefiles:
+	$(MAKE) -C winceunits makefiles
+winceunits:
+	$(MAKE) -C winceunits all
+.PHONY: winceunits_all winceunits_debug winceunits_smart winceunits_release winceunits_units winceunits_examples winceunits_shared winceunits_install winceunits_sourceinstall winceunits_exampleinstall winceunits_distinstall winceunits_zipinstall winceunits_zipsourceinstall winceunits_zipexampleinstall winceunits_zipdistinstall winceunits_clean winceunits_distclean winceunits_cleanall winceunits_info winceunits_makefiles winceunits
+endif
 ifdef TARGET_DIRS_REXX
 rexx_all:
 	$(MAKE) -C rexx all
@@ -7667,51 +7713,6 @@ univint_makefiles:
 univint:
 	$(MAKE) -C univint all
 .PHONY: univint_all univint_debug univint_smart univint_release univint_units univint_examples univint_shared univint_install univint_sourceinstall univint_exampleinstall univint_distinstall univint_zipinstall univint_zipsourceinstall univint_zipexampleinstall univint_zipdistinstall univint_clean univint_distclean univint_cleanall univint_info univint_makefiles univint
-endif
-ifdef TARGET_DIRS_WINCEUNITS
-winceunits_all:
-	$(MAKE) -C winceunits all
-winceunits_debug:
-	$(MAKE) -C winceunits debug
-winceunits_smart:
-	$(MAKE) -C winceunits smart
-winceunits_release:
-	$(MAKE) -C winceunits release
-winceunits_units:
-	$(MAKE) -C winceunits units
-winceunits_examples:
-	$(MAKE) -C winceunits examples
-winceunits_shared:
-	$(MAKE) -C winceunits shared
-winceunits_install:
-	$(MAKE) -C winceunits install
-winceunits_sourceinstall:
-	$(MAKE) -C winceunits sourceinstall
-winceunits_exampleinstall:
-	$(MAKE) -C winceunits exampleinstall
-winceunits_distinstall:
-	$(MAKE) -C winceunits distinstall
-winceunits_zipinstall:
-	$(MAKE) -C winceunits zipinstall
-winceunits_zipsourceinstall:
-	$(MAKE) -C winceunits zipsourceinstall
-winceunits_zipexampleinstall:
-	$(MAKE) -C winceunits zipexampleinstall
-winceunits_zipdistinstall:
-	$(MAKE) -C winceunits zipdistinstall
-winceunits_clean:
-	$(MAKE) -C winceunits clean
-winceunits_distclean:
-	$(MAKE) -C winceunits distclean
-winceunits_cleanall:
-	$(MAKE) -C winceunits cleanall
-winceunits_info:
-	$(MAKE) -C winceunits info
-winceunits_makefiles:
-	$(MAKE) -C winceunits makefiles
-winceunits:
-	$(MAKE) -C winceunits all
-.PHONY: winceunits_all winceunits_debug winceunits_smart winceunits_release winceunits_units winceunits_examples winceunits_shared winceunits_install winceunits_sourceinstall winceunits_exampleinstall winceunits_distinstall winceunits_zipinstall winceunits_zipsourceinstall winceunits_zipexampleinstall winceunits_zipdistinstall winceunits_clean winceunits_distclean winceunits_cleanall winceunits_info winceunits_makefiles winceunits
 endif
 ifdef TARGET_DIRS_AMUNITS
 amunits_all:
