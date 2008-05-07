@@ -1014,7 +1014,6 @@ Function ErrorWrite(Var F: TextRec): Integer;
   An error message should always end with #13#10#13#10
 }
 var
-  p : pchar;
   i : longint;
 Begin
   while F.BufPos>0 do
