@@ -21,7 +21,8 @@ unit buildwinceunits;
 interface
 
 uses
-  aygshell,commctrl,commdlg,iphlpapi,notify,oleaut32,power,shellapi,simmgr,tapi;
+  aygshell,commctrl,commdlg,iphlpapi,notify,oleaut32,power,shellapi,simmgr,tapi,
+  gpsapi,todaycmn;
 
 implementation
 
