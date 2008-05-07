@@ -29,6 +29,7 @@ type
   published
     procedure TestClearUpdateableStatus;
     procedure TestParseJoins; // bug 10148
+    procedure TestParseUnion; // bug 8442
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
     procedure Test11Params;
@@ -900,6 +901,21 @@ begin
     with query do
       begin
       SQL.Text:='select TT.NAME from FPDEV left join FPDEV TT on TT.ID=FPDEV.ID';
+      Open;
+      close;
+      end;
+    end;
+end;
+
+procedure TTestFieldTypes.TestParseUnion;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    with query do
+      begin
+      SQL.Text:='select NAME from FPDEV where ID<5';
+      sql.Add('union');
+      sql.Add('select NAME from FPDEV where ID>5');
       Open;
       close;
       end;

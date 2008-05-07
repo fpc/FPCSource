@@ -1134,6 +1134,11 @@ begin
                          FWhereStopPos := PhraseP-PSQL+1
                        else
                          FWhereStopPos := CurrentP-PSQL+1;
+                       end
+                     else if (s = 'UNION') then
+                       begin
+                       ParsePart := ppBogus;
+                       FUpdateable := False;
                        end;
                      end;
         end; {case}
