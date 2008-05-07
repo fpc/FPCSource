@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 Free Pascal development team.
+    Copyright (c) 2006-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -172,7 +172,14 @@
 
 }
 
-{$ifdef read_interface}
+{$mode objfpc}
+unit shellapi;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -228,9 +235,6 @@ function SHGetPathFromIDListW(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; exte
 function SHGetMalloc(var ppMalloc: LPMALLOC): HRESULT; external ShellDLL name 'SHGetMalloc';
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external ShellDLL name 'SHGetSpecialFolderLocation';
 
-{$endif read_interface}
+implementation
 
-{$ifdef read_implementation}
-
-
-{$endif read_implementation}
+end.

@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 Free Pascal development team.
+    Copyright (c) 2006-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -78,7 +78,13 @@
                   UnenableRouter
 }
 
-{$ifdef read_interface}
+unit iphlpapi;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -164,10 +170,6 @@ type
 function GetNumberOfInterfaces(var dwNumIf : DWORD): DWORD; external IpHlpApiDLL name 'GetNumberOfInterfaces';
 function GetAdaptersInfo( pAdapterInfo : PIP_ADAPTER_INFO; var OutBufLen : ULONG): DWORD; external IpHlpApiDLL name 'GetAdaptersInfo';
 
-{$endif read_interface}
+implementation
 
-{$ifdef read_implementation}
-
-{$endif read_implementation}
-
-
+end.

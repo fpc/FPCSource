@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2007 Free Pascal development team.
+    Copyright (c) 2007-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,7 +19,13 @@
     notify.h
 }
 
-{$ifdef read_interface}
+unit notify;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 const
    NOTIFICATION_EVENT_NONE = 0;   
@@ -195,4 +201,6 @@ function CeRunAppAtTime(pwszAppName:pTCHAR; var lpTime:SYSTEMTIME):BOOL;external
 function CeRunAppAtEvent(pwszAppName:pTCHAR; lWhichEvent:LONG):BOOL;external KernelDLL name 'CeRunAppAtEvent';
 function CeHandleAppNotifications(pwszAppName:pTCHAR):BOOL;external KernelDLL name 'CeHandleAppNotifications';
 
-{$endif read_interface}
+implementation
+
+end.

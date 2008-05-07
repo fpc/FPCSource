@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 Free Pascal development team.
+    Copyright (c) 2006-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -240,7 +240,13 @@
        E2 VectorFromBstr
 }
 
-{$ifdef read_interface}
+unit oleaut32;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -265,12 +271,6 @@ function  SysStringLen(bstr:pointer):UINT; external oleaut32dll name 'SysStringL
 function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; external oleaut32dll name 'SysReAllocString';
 function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; external oleaut32dll name 'SysReAllocStringLen';
 
+implementation
 
-{$endif read_interface}
-
-
-{$ifdef read_implementation}
-
-{$endif read_implementation}
-
-
+end.

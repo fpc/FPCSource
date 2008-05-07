@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 Free Pascal development team.
+    Copyright (c) 2006-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -80,7 +80,13 @@
             33    Str_SetPtrW
 }
 
-{$ifdef read_interface}
+unit commctrl;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -665,9 +671,7 @@ function CommandBar_AddToolTips(hwndCB: HWND; cbToolTips : UINT; lpToolTipsStrin
 function CommandBands_Height(hwndCmdBands : HWND) : UINT;
 function CommandBands_IsVisible(hwndCmdBands : HWND) : BOOL;
 
-{$endif read_interface}
-
-{$ifdef read_implementation}
+implementation
 
 procedure CommandBar_Destroy(hwndCB : HWND);
 begin
@@ -704,4 +708,4 @@ begin
    CommandBands_IsVisible:=IsWindowVisible(hwndCmdBands);
 end;
 
-{$endif read_implementation}
+end.

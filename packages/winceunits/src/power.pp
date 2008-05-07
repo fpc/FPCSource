@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2007 Free Pascal development team.
+    Copyright (c) 2007-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -21,7 +21,14 @@
 
 { Power Management APIs }
 
-{$ifdef read_interface}
+unit power;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
+
 const
    AC_LINE_OFFLINE = $00;   
    AC_LINE_ONLINE = $01;   
@@ -148,4 +155,6 @@ function GetSystemPowerStatusEx(var SystemPowerStatusEx: SYSTEM_POWER_STATUS_EX;
 { Return value : 0 = fail.  Non-zero indicates length of returned data. }
 function GetSystemPowerStatusEx2(var SystemPowerStatusEx2: SYSTEM_POWER_STATUS_EX2; dwLen:DWORD; fUpdate:BOOL):DWORD;external KernelDLL name 'GetSystemPowerStatusEx2';
 
-{$endif read_interface}
+implementation
+
+end.
