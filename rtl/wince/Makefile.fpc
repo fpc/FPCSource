@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       matrix ucomplex \
       charset getopts winsock winsock2 sockets \
       cmem sharemem \
-      gx fpintres
+      fpintres
 #    initc  signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \

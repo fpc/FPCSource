@@ -252,7 +252,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=winceunits
-override PACKAGE_VERSION=2.3.1
+override PACKAGE_VERSION=2.2.0
 ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_UNITS+=rapi cesync
 endif
@@ -263,10 +263,10 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_UNITS+=buildwinceunits
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx
 endif
 override INSTALL_BUILDUNIT=buildwinceunits
 override INSTALL_FPCPACKAGE=y
