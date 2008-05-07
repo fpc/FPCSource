@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2007 Free Pascal development team.
+    Copyright (c) 2007-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,7 +19,13 @@
   contact S0vNark0m for more information snk_post@mail.ru (en, ru)
 }
 
-{$ifdef read_interface}
+unit tapi;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -1793,9 +1799,7 @@ function phoneShutdown(hPhoneApp:HPHONEAPP):LONG;external KernelDLL name 'phoneS
 
 function TAPIERROR_FORMATMESSAGE(const AErrCode: Longword): Longword; // C Macros conversion, may be wrong
 
-{$endif read_interface}
-
-{$ifdef read_implementation}
+implementation
 
 function TAPIERROR_FORMATMESSAGE(const AErrCode: Longword): Longword;
 begin
@@ -1804,4 +1808,4 @@ begin
  Exit(AErrCode-$80000000+$E000);
 end;
 
-{$endif read_implementation}
+end.

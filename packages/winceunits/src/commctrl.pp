@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 Free Pascal development team.
+    Copyright (c) 2006-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -80,7 +80,13 @@
             33    Str_SetPtrW
 }
 
-{$ifdef read_interface}
+unit commctrl;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -170,19 +176,6 @@ const
   NM_KEYDOWN            =  (NM_FIRST-15);
   NM_RECOGNIZEGESTURE   =  (NM_FIRST-50);
 
-  { Header control  }
-  HDM_DELETEITEM = 4610;
-  HDM_GETITEMW = 4619;
-  HDM_INSERTITEMW = 4618;
-  HDM_SETITEMW = 4620;
-
-  HDM_GETITEM = HDM_GETITEMW;
-  HDM_INSERTITEM = HDM_INSERTITEMW;
-  HDM_SETITEM = HDM_SETITEMW;
-
-  HDM_GETITEMCOUNT = 4608;
-  HDM_HITTEST = 4614;
-  HDM_LAYOUT = 4613;
   { Header control notifications  }
   HDN_BEGINTRACKW = HDN_FIRST-26;
   HDN_DIVIDERDBLCLICKW = HDN_FIRST-25;
@@ -430,7 +423,7 @@ type
 
   tagNMDATETIMEWMKEYDOWNA = record
     nmhdr     : NMHDR;
-    nVirtKey  : integer;
+    nVirtKey  : longint;
     pszFormat : LPCSTR;
     st        : SYSTEMTIME;
   end;
@@ -440,7 +433,7 @@ type
 
   tagNMDATETIMEWMKEYDOWNW = record
     nmhdr     : NMHDR;
-    nVirtKey  : integer;
+    nVirtKey  : longint;
     pszFormat : LPCWSTR;
     st        : SYSTEMTIME;
   end;
@@ -529,7 +522,7 @@ type
   TBBUTTONINFO=TBBUTTONINFOW;
   TTBButtonInfo=TBBUTTONINFO;
 
-  tagNMCUSTOMDRAWINFO = packed record
+  tagNMCUSTOMDRAWINFO = record
     hdr: TNMHdr;
     dwDrawStage: DWORD;
     hdc: HDC;
@@ -541,19 +534,19 @@ type
   PNMCustomDraw = ^TNMCustomDraw;
   TNMCustomDraw = tagNMCUSTOMDRAWINFO;
   
-  tagNMLVCUSTOMDRAW = packed record
+  tagNMLVCUSTOMDRAW = record
     nmcd: TNMCustomDraw;
     clrText: COLORREF;
     clrTextBk: COLORREF;
-    iSubItem: Integer;
+    iSubItem: longint;
   end;
   PNMLVCustomDraw = ^TNMLVCustomDraw;
   TNMLVCustomDraw = tagNMLVCUSTOMDRAW;
   
-  tagNMLVODSTATECHANGE = packed record
+  tagNMLVODSTATECHANGE = record
     hdr: TNMHdr;
-    iFrom: Integer;
-    iTo: Integer;
+    iFrom: longint;
+    iTo: longint;
     uNewState: UINT;
     uOldState: UINT;
   end;
@@ -678,9 +671,7 @@ function CommandBar_AddToolTips(hwndCB: HWND; cbToolTips : UINT; lpToolTipsStrin
 function CommandBands_Height(hwndCmdBands : HWND) : UINT;
 function CommandBands_IsVisible(hwndCmdBands : HWND) : BOOL;
 
-{$endif read_interface}
-
-{$ifdef read_implementation}
+implementation
 
 procedure CommandBar_Destroy(hwndCB : HWND);
 begin
@@ -717,4 +708,4 @@ begin
    CommandBands_IsVisible:=IsWindowVisible(hwndCmdBands);
 end;
 
-{$endif read_implementation}
+end.

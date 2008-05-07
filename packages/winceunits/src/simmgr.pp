@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2007 Free Pascal development team.
+    Copyright (c) 2007-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -20,7 +20,13 @@
   contact S0vNark0m for more information snk_post@mail.ru (en, ru)
 }
 
-{$ifdef read_interface}
+unit simmgr;
+
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -533,8 +539,6 @@ function SimWriteRecord(hSim:HSIM; dwAddress:DWORD; dwRecordType:DWORD; dwIndex:
 // Points to a SIM record information structure
 function SimGetRecordInfo(hSim:HSIM; dwAddress:DWORD; lpSimRecordInfo:LPSIMRECORDINFO):HRESULT;external KernelDLL name 'SimGetRecordInfo';
 
-{$endif read_interface}
+implementation
 
-{$ifdef read_implementation}
-
-{$endif read_implementation}
+end.

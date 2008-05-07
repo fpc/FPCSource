@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 Free Pascal development team.
+    Copyright (c) 2006-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -283,8 +283,13 @@
            236    VerifyTrust
 }
 
-{$ifdef read_interface}
+unit aygshell;
 
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -423,8 +428,8 @@ type
     dwFlags : DWORD ;      // IN  - Some features we want
     nToolBarId : UINT ;    // IN  - Which toolbar are we using
     hInstRes : HINST;      // IN  - Instance that owns the resources
-    nBmpId : Integer;
-    cBmpImages : Integer;  // IN  - Count of bitmap images
+    nBmpId : longint;
+    cBmpImages : longint;  // IN  - Count of bitmap images
     hwndMB : HWND ;        // OUT
     clrBk : COLORREF ;     // IN  - background color of the menu bar (excluding sip)
   end;
@@ -480,10 +485,6 @@ function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT 
 function SHSipPreference(hwnd: HWND ; st : SIPSTATE ) : WINBOOL; external UserDLLAyg name 'SHSipPreference';
 function SHRecognizeGesture(var shrg : SHRGINFO): DWORD; external UserDLLAyg name 'SHRecognizeGesture';
 
-{$endif read_interface}
+implementation
 
-{$ifdef read_implementation}
-
-{$endif read_implementation}
-
-
+end.

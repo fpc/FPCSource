@@ -278,8 +278,6 @@ function SetScrollInfo(hWnd: HWND; BarFlag: Integer; const ScrollInfo: TScrollIn
 function SetSysColors(cElements: Integer; const lpaElements; const lpaRgbValues): BOOL; external KernelDLL name 'SetSysColors';
 function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetSystemTime';
 function SetThreadContext(hThread: THandle; const lpContext: TContext): BOOL; external KernelDLL name 'SetThreadContext';
-function SHFileOperation(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
-function SHFileOperationW(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
 function StartDoc(DC: HDC; const p2: TDocInfo): Integer;external KernelDLL name 'StartDocW';
 function StartDocW(DC: HDC; const p2: TDocInfoW): Integer;external KernelDLL name 'StartDocW';
 function SubtractRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external KernelDLL name 'SubtractRect';

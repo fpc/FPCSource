@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 Free Pascal development team.
+    Copyright (c) 2005-2008 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,8 +14,13 @@
 {  Declarations for comdlg WinCE API
 
 }
+unit commdlg;
 
-{$ifdef read_interface}
+interface
+
+uses windows;
+
+{$calling cdecl}
 
 //*****************************************************************************
 // consts
@@ -53,10 +58,7 @@ function PageSetupDlg(_para1:LPPAGESETUPDLGW):WINBOOL; external ComdlgDLL name '
 function PageSetupDlgW(_para1:LPPAGESETUPDLGW):WINBOOL; external ComdlgDLL name 'PageSetupDlgW';
 function PrintDlg(_para1:LPPRINTDLG):WINBOOL; external ComdlgDLL name 'PrintDlg';
 
-
-{$endif read_interface}
-
-{$ifdef read_implementation}
+implementation
 
 function CommDlg_OpenSave_GetSpecA(_hdlg:HWND;_psz:LPSTR;_cbmax : longint) : LRESULT;
 begin
@@ -123,6 +125,4 @@ begin
   CommDlg_OpenSave_SetDefExt:=SNDMSG(_hdlg,CDM_SETDEFEXT,0,LPARAM(_pszext));
 end;
 
-{$endif read_implementation}
-
-
+end.
