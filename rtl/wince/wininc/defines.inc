@@ -1821,23 +1821,42 @@
      DWL_DLGPROC = 4;
      DWL_MSGRESULT = 0;
      DWL_USER = 8;
+  { LocalAlloc, LocalFlags  }
+     LMEM_FIXED          = $0000;
+     LMEM_MOVEABLE       = $0002;
+     LMEM_NOCOMPACT      = $0010;      //**** Used for Moveable Memory  ***/
+     LMEM_NODISCARD      = $0020;      //**** Ignored *****/
+     LMEM_ZEROINIT       = $0040;
+     LMEM_MODIFY         = $0080;      //*** Used only in LocalReAlloc() **/
+     LMEM_DISCARDABLE    = $0F00;      //**** Ignored ****/
+     LMEM_VALID_FLAGS    = $0F72;
+     LMEM_INVALID_HANDLE = $8000;
+     LMEM_DDESHARE       = $0000;	 //**** Ignored ****/
+     LMEM_LOWER          = $0000;	 //**** Ignored ****/
+     LMEM_NOT_BANKED     = $0000;	 //**** Ignored ****/
+     LMEM_NOTIFY         = $0000;	 //**** Ignored ****/
+     LMEM_SHARE          = $0000;	 //**** Ignored ****/
+     LPTR                = LMEM_FIXED or LMEM_ZEROINIT;
+     LHND                = LMEM_MOVEABLE or LMEM_ZEROINIT;
+     NONZEROLHND         = LMEM_MOVEABLE;
+     NONZEROLPTR         = LMEM_FIXED;
+//* Flags returned by LocalFlags (in addition to LMEM_DISCARDABLE) */
+     LMEM_DISCARDED      = $4000;
+     LMEM_LOCKCOUNT      = $00FF;
   { GlobalAlloc, GlobalFlags  }
-     GMEM_FIXED = 0;
-     GMEM_MOVEABLE = 2;
-     GPTR = 64;
-     GHND = 66;
-     GMEM_DDESHARE = 8192;
-     GMEM_DISCARDABLE = 256;
-     GMEM_LOWER = 4096;
-     GMEM_NOCOMPACT = 16;
-     GMEM_NODISCARD = 32;
-     GMEM_NOT_BANKED = 4096;
-     GMEM_NOTIFY = 16384;
-     GMEM_SHARE = 8192;
-     GMEM_ZEROINIT = 64;
-     GMEM_DISCARDED = 16384;
-     GMEM_INVALID_HANDLE = 32768;
-     GMEM_LOCKCOUNT = 255;
+     GMEM_FIXED          = LMEM_FIXED;
+     GMEM_MOVEABLE       = LMEM_MOVEABLE;
+     GPTR                = LPTR;
+     GHND                = LHND;
+     GMEM_DDESHARE       = LMEM_DDESHARE;
+     GMEM_DISCARDABLE    = LMEM_DISCARDABLE;
+     GMEM_LOWER          = LMEM_LOWER;
+     GMEM_NOCOMPACT      = LMEM_NOCOMPACT;
+     GMEM_NODISCARD      = LMEM_NODISCARD;
+     GMEM_NOT_BANKED     = LMEM_NOT_BANKED;
+     GMEM_NOTIFY         = LMEM_NOTIFY;
+     GMEM_SHARE          = LMEM_SHARE;
+     GMEM_ZEROINIT       = LMEM_ZEROINIT;
   { HeapAlloc, HeapReAlloc  }
      HEAP_GENERATE_EXCEPTIONS = 4;
      HEAP_NO_SERIALIZE = 1;
@@ -2025,24 +2044,6 @@
      DONT_RESOLVE_DLL_REFERENCES = 1;
      LOAD_LIBRARY_AS_DATAFILE = 2;
      LOAD_WITH_ALTERED_SEARCH_PATH = 8;
-  { LocalAlloc, LocalFlags  }
-     LPTR = 64;
-     LHND = 66;
-     NONZEROLHND = 2;
-     NONZEROLPTR = 0;
-     LMEM_NONZEROLHND = 2;
-     LMEM_NONZEROLPTR = 0;
-     LMEM_FIXED = 0;
-     LMEM_MOVEABLE = 2;
-     LMEM_NOCOMPACT = 16;
-     LMEM_NODISCARD = 32;
-     LMEM_ZEROINIT = 64;
-     LMEM_MODIFY = 128;
-     LMEM_LOCKCOUNT = 255;
-     LMEM_DISCARDABLE = 3840;
-     LMEM_DISCARDED = 16384;
-     LMEM_INVALID_HANDLE = 32768;
-     LMEM_VALID_FLAGS=$0F72;       //+winbase
   { MessageBeep, MessageBox  }
      MB_USERICON = $80;
      MB_ICONASTERISK = $40;
