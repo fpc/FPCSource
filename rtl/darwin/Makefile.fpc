@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       errors terminfo termio video crt mouse keyboard console \
       variants dateutils convutils stdconvs \
       sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd \
-      fpintres fpextres
+      fpintres fpextres clocale
 implicitunits=exeinfo
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
@@ -117,6 +117,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+clocale$(PPUEXT): initc$(PPUEXT) sysutils$(PPUEXT) unixtype$(PPUEXT)
 
 fpintres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
 
