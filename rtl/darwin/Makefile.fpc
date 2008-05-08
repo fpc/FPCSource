@@ -226,7 +226,7 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
         $(COMPILER) $(OBJPASDIR)/convutils.pp
 
 stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
+                    sysutils$(PPUEXT) convutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/stdconvs.pp
 
 #
