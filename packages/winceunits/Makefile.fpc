@@ -7,10 +7,14 @@ name=winceunits
 version=2.2.0
 
 [target]
-units_wince=buildwinceunits
+units_wince=buildwinceunits comobj
 implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi \
-                    gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl
+                    gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl \
+                    activex ole2 comconst
+
 units_win32=rapi cesync
+
+rsts=comconst
 
 [install]
 buildunit=buildwinceunits
@@ -23,5 +27,11 @@ fpcdir=../..
 options=-Ur
 sourcedir=src
 
+[prerules]
+WINDIR=../winunits-base/src
+
 [rules]
 .NOTPARALLEL:
+
+comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp
+        $(COMPILER) $(WINDIR)/comobj.pp
