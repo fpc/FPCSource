@@ -1605,7 +1605,7 @@ begin
               RemoveSep(opts);
               s:=upper(GetName(opts));
               if level=0 then
-               skip[level]:=not (assigned(search_macro(s)) or (s='COMMON'));
+               skip[level]:=not defined_macro(s) or (s='COMMON');
             end
            else
             if (s='IFDEF') then
@@ -1617,7 +1617,7 @@ begin
                   stopOptions(1);
                 end;
                inc(Level);
-               skip[level]:=(skip[level-1] or not assigned(search_macro(upper(GetName(opts)))));
+               skip[level]:=(skip[level-1] or not defined_macro(upper(GetName(opts))));
              end
            else
             if (s='IFNDEF') then
@@ -1629,7 +1629,7 @@ begin
                   stopOptions(1);
                 end;
                inc(Level);
-               skip[level]:=(skip[level-1] or assigned(search_macro(upper(GetName(opts)))));
+               skip[level]:=(skip[level-1] or defined_macro(upper(GetName(opts))));
              end
            else
             if (s='ELSE') then

@@ -432,10 +432,7 @@ implementation
         valuedescr:= hs;
         if hs='' then
           Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(search_macro(hs));
-        if assigned(mac) then
-          mac.is_used:=true;
-        isdef:= assigned(mac) and mac.defined;
+        isdef:=defined_macro(hs);
       end;
 
     procedure dir_ifdef;
@@ -453,10 +450,7 @@ implementation
         valuedescr:= hs;
         if hs='' then
           Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(search_macro(hs));
-        if assigned(mac) then
-          mac.is_used:=true;
-        isnotdef:= not (assigned(mac) and mac.defined);
+        isnotdef:=not defined_macro(hs);
       end;
 
     procedure dir_ifndef;
@@ -1926,6 +1920,8 @@ In case not, the value returned can be arbitrary.
 
 
     procedure tscannerfile.recordtoken;
+      var
+        a : array[0..1] of byte;
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
@@ -1933,8 +1929,9 @@ In case not, the value returned can be arbitrary.
         if CompareByte(current_settings,last_settings,sizeof(current_settings))<>0 then
           begin
             { use a special token to record it }
-            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
-            recordtokenbuf.write(ST_LOADSETTINGS,1);
+            a[0]:=byte(_GENERICSPECIALTOKEN);
+            a[1]:=byte(ST_LOADSETTINGS);
+            recordtokenbuf.write(a,2);
             recordtokenbuf.write(current_settings,sizeof(current_settings));
             last_settings:=current_settings;
           end;
@@ -1942,22 +1939,25 @@ In case not, the value returned can be arbitrary.
         { file pos changes? }
         if current_tokenpos.line<>last_filepos.line then
           begin
-            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
-            recordtokenbuf.write(ST_LINE,1);
+            a[0]:=byte(_GENERICSPECIALTOKEN);
+            a[1]:=byte(ST_LINE);
+            recordtokenbuf.write(a,2);
             recordtokenbuf.write(current_tokenpos.line,sizeof(current_tokenpos.line));
             last_filepos.line:=current_tokenpos.line;
           end;
         if current_tokenpos.column<>last_filepos.column then
           begin
-            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
-            recordtokenbuf.write(ST_COLUMN,1);
+            a[0]:=byte(_GENERICSPECIALTOKEN);
+            a[1]:=byte(ST_COLUMN);
+            recordtokenbuf.write(a,2);
             recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
             last_filepos.column:=current_tokenpos.column;
           end;
         if current_tokenpos.fileindex<>last_filepos.fileindex then
           begin
-            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
-            recordtokenbuf.write(ST_FILEINDEX,1);
+            a[0]:=byte(_GENERICSPECIALTOKEN);
+            a[1]:=byte(ST_FILEINDEX);
+            recordtokenbuf.write(a,2);
             recordtokenbuf.write(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
             last_filepos.fileindex:=current_tokenpos.fileindex;
           end;

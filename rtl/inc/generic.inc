@@ -1702,13 +1702,17 @@ end;
 {$ifndef FPC_SYSTEM_HAS_SWAPENDIAN}
 function SwapEndian(const AValue: SmallInt): SmallInt;
   begin
-    Result := (AValue shr 8) or (AValue shl 8);
+    { the extra Word type cast is necessary because the "AValue shr 8" }
+    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
+    { the sign bits from the upper 16 bits are shifted in rather than  }
+    { zeroes.                                                          }
+    Result := SmallInt((Word(AValue) shr 8) or (AValue shl 8));
   end;
 
 
 function SwapEndian(const AValue: Word): Word;
   begin
-    Result := (AValue shr 8) or (AValue shl 8);
+    Result := Word((AValue shr 8) or (AValue shl 8));
   end;
 
 

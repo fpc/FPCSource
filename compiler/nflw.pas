@@ -63,6 +63,7 @@ interface
           function dogetcopy : tnode;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefnode;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
@@ -264,6 +265,15 @@ implementation
         ppuwritenode(ppufile,t2);
       end;
 
+
+    procedure tloopnode.derefnode;
+      begin
+        inherited derefnode;
+        if assigned(t1) then
+          t1.derefnode;
+        if assigned(t2) then
+          t2.derefnode;
+      end;
 
     procedure tloopnode.buildderefimpl;
       begin

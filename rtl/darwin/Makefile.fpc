@@ -15,7 +15,8 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors terminfo termio video crt mouse keyboard console \
       variants dateutils convutils stdconvs \
-      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd
+      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd \
+      clocale
 implicitunits=exeinfo
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
@@ -116,6 +117,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+clocale$(PPUEXT): initc$(PPUEXT) sysutils$(PPUEXT) unixtype$(PPUEXT)
 
 objpas$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
@@ -221,7 +224,7 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
         $(COMPILER) $(OBJPASDIR)/convutils.pp
 
 stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
+                    sysutils$(PPUEXT) convutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/stdconvs.pp
 
 #

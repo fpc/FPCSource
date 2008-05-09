@@ -733,23 +733,23 @@ operator * (const m:objectname;const v:vectorcompanion) result:vectorcompanion;
 
 begin
     result.data[0]:=m.data[0,0]*v.data[0]
-                   +m.data[1,0]*v.data[1]
-   {$if matsize>=3}+m.data[2,0]*v.data[2]{$endif}
-   {$if matsize>=4}+m.data[3,0]*v.data[3]{$endif};
-    result.data[1]:=m.data[0,1]*v.data[0]
+                   +m.data[0,1]*v.data[1]
+   {$if matsize>=3}+m.data[0,2]*v.data[2]{$endif}
+   {$if matsize>=4}+m.data[0,3]*v.data[3]{$endif};
+    result.data[1]:=m.data[1,0]*v.data[0]
                    +m.data[1,1]*v.data[1]
-   {$if matsize>=3}+m.data[2,1]*v.data[2]{$endif}
-   {$if matsize>=4}+m.data[3,1]*v.data[3]{$endif};
+   {$if matsize>=3}+m.data[1,2]*v.data[2]{$endif}
+   {$if matsize>=4}+m.data[1,3]*v.data[3]{$endif};
 {$if matsize>=3}
-    result.data[2]:=m.data[0,2]*v.data[0]
-                   +m.data[1,2]*v.data[1]
+    result.data[2]:=m.data[2,0]*v.data[0]
+                   +m.data[2,1]*v.data[1]
                    +m.data[2,2]*v.data[2]
-   {$if matsize>=4}+m.data[3,2]*v.data[3]{$endif};
+   {$if matsize>=4}+m.data[2,3]*v.data[3]{$endif};
 {$endif}
 {$if matsize>=4}
-    result.data[3]:=m.data[0,3]*v.data[0]
-                   +m.data[1,3]*v.data[1]
-                   +m.data[2,3]*v.data[2]
+    result.data[3]:=m.data[3,0]*v.data[0]
+                   +m.data[3,1]*v.data[1]
+                   +m.data[3,2]*v.data[2]
                    +m.data[3,3]*v.data[3];
 {$endif}
 end;

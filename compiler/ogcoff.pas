@@ -771,7 +771,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjSection.fixuprelocs;
       var
-        i        : longint;
+        i,zero   : longint;
         objreloc : TObjRelocation;
         address,
         relocval : aint;
@@ -788,7 +788,8 @@ const pemagic : array[0..3] of byte = (
             if objreloc.typ=RELOC_ZERO then
               begin
                 data.Seek(objreloc.dataoffset);
-                data.Write(0,4);
+                zero:=0;
+                data.Write(zero,4);
                 continue;
               end;
             data.Seek(objreloc.dataoffset);

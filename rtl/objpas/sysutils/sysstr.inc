@@ -339,7 +339,12 @@ begin
     Result:=Ord(LowerCaseTable[Ord(S1[0])])-Ord(LowerCaseTable[Ord(S2[0])]); //!! Must be replaced by ansi characters !!
     Inc(S1);
     Inc(S2);
-  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0))
+  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0));
+  if (Result=0) and (s1[0]<>s2[0]) then //length(s1)<>length(s2)
+    if s1[0]=#0 then
+      Result:=-1 //s1 shorter than s2
+    else
+      Result:=1; //s1 longer than s2
 end;
 
 
@@ -367,7 +372,7 @@ begin
     Inc(S1);
     Inc(S2);
     Inc(I);
-  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0)) or (I=MaxLen)
+  Until (Result<>0) or (I=MaxLen)
 end;
 
 
@@ -395,7 +400,7 @@ begin
     Inc(S1);
     Inc(S2);
     Inc(I);
-  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0)) or (I=MaxLen)
+  Until (Result<>0) or (I=MaxLen)
 end;
 
 

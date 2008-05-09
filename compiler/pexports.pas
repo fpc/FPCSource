@@ -182,18 +182,17 @@ implementation
                         { if a name is specified? (JM)                         }
 
                         if ((options and eo_name)=0) then
-                          if target_info.system in system_all_windows then
-                            { Export names are not mangled on Windows }
+                          { Export names are not mangled on Windows and OS/2 }
+                          if (target_info.system in (system_all_windows+[system_i386_emx, system_i386_os2])) then
                             hpname:=orgs
+                          { Use set mangled name in case of cdecl/cppdecl/mwpascal }
+                          { and no name specified                                  }
+                          else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
+                            hpname:=target_info.cprefix+tprocsym(srsym).realname
+                          else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
+                            hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
                           else
-                            { Use set mangled name in case of cdecl/cppdecl/mwpascal }
-                            { if no name specified                                   }
-                            if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
-                              hpname:=target_info.cprefix+tprocsym(srsym).realname
-                            else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
-                              hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
-                            else
-                              hpname:=orgs;
+                            hpname:=orgs;
 
                         exportprocsym(srsym,hpname,index,options);
                       end
