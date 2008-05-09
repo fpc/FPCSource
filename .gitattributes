@@ -8005,6 +8005,7 @@ tests/webtbf/tw9039d.pp svneol=native#text/plain
 tests/webtbf/tw9053.pp svneol=native#text/plain
 tests/webtbf/tw9072a.pp svneol=native#text/plain
 tests/webtbf/tw9072b.pp svneol=native#text/plain
+tests/webtbf/tw9176a.pp svneol=native#text/plain
 tests/webtbf/tw9225.pp svneol=native#text/plain
 tests/webtbf/tw9306c.pp svneol=native#text/plain
 tests/webtbf/tw9499.pp svneol=native#text/plain
@@ -9053,7 +9054,7 @@ tests/webtbs/tw9161.pp svneol=native#text/plain
 tests/webtbs/tw9162.pp svneol=native#text/plain
 tests/webtbs/tw9167.pp svneol=native#text/plain
 tests/webtbs/tw9174.pp svneol=native#text/plain
-tests/webtbs/tw9176a.pp -text
+tests/webtbs/tw9176.pp svneol=native#text/plain
 tests/webtbs/tw9179.pp svneol=native#text/plain
 tests/webtbs/tw9187.pp svneol=native#text/plain
 tests/webtbs/tw9190.pp svneol=native#text/plain

@@ -1,4 +1,8 @@
+{ %fail }
+
+{$ifdef fpc}
 {$mode delphi}
+{$endif}
 
 type TBla=class
      bla : integer;
