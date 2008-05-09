@@ -249,11 +249,14 @@ implementation
 
     function HandleSafeCallException(ExceptObject: TObject; ExceptAddr: Pointer; const ErrorIID: TGUID; const ProgID,
       HelpFileName: WideString): HResult;
+{$ifndef wince}
       var
         _CreateErrorInfo : ICreateErrorInfo;
         ErrorInfo : IErrorInfo;
+{$endif wince}
       begin
         Result:=E_UNEXPECTED;
+{$ifndef wince}
         if Succeeded(CreateErrorInfo(_CreateErrorInfo)) then
           begin
             _CreateErrorInfo.SetGUID(ErrorIID);
@@ -271,6 +274,7 @@ implementation
             if _CreateErrorInfo.QueryInterface(IErrorInfo,ErrorInfo)=S_OK then
               SetErrorInfo(0,ErrorInfo);
           end;
+{$endif wince}
       end;
 
 
@@ -358,6 +362,7 @@ implementation
 
 
    function GetActiveOleObject(const ClassName : string) : IDispatch;
+{$ifndef wince}
      var
      	 intf : IUnknown;
        id : TCLSID;
@@ -366,6 +371,11 @@ implementation
        OleCheck(GetActiveObject(id,nil,intf));
        OleCheck(intf.QueryInterface(IDispatch,Result));
      end;
+{$else}
+     begin
+       Result:=nil;
+     end;
+{$endif wince}
 
 
    procedure OleError(Code: HResult);
@@ -398,11 +408,14 @@ implementation
 
 
    procedure SafeCallErrorHandler(err : HResult;addr : pointer);
+{$ifndef wince}
      var
        info : IErrorInfo;
        descr,src,helpfile : widestring;
        helpctx : DWORD;
+{$endif wince}
      begin
+{$ifndef wince}
        if GetErrorInfo(0,info)=S_OK then
          begin
            info.GetDescription(descr);
@@ -412,6 +425,7 @@ implementation
            raise EOleException.Create(descr,err,src,helpfile,helpctx) at addr;
          end
        else
+{$endif wince}
          raise EOleException.Create('',err,'','',0) at addr;
      end;
 
@@ -542,8 +556,10 @@ implementation
           begin
             if assigned(FFactory) and FCounted then
               FFactory.Comserver.CountObject(false);
+{$ifndef wince}
             if FRefCount>0 then
               CoDisconnectObject(Self,0);
+{$endif wince}
           end;
       end;
 
@@ -1108,9 +1124,11 @@ initialization
     end;
 
   if not(IsLibrary) then
+{$ifndef wince}
     if (CoInitFlags=-1) or not(assigned(comobj.CoInitializeEx)) then
       Initialized:=Succeeded(CoInitialize(nil))
     else
+{$endif wince}
       Initialized:=Succeeded(comobj.CoInitializeEx(nil, CoInitFlags));
 
   SafeCallErrorProc:=@SafeCallErrorHandler;
