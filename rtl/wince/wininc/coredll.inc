@@ -69,12 +69,8 @@
       691 A_SHAInit
       692 A_SHAUpdate
       1B8 AccessibilitySoundSentryEvent
-      153 ActivateDevice
-      154 ActivateDeviceEx
-      16A ActivateService
       35B AddEventAccess
       37A AddTrackedItem
-      157 AdvertiseInterface
       496 AllKeys
       35F AllocPhysMem
        E5 AttachDebugger
@@ -158,11 +154,9 @@
       1E6 CeUnmountDBVol
       1E5 CeWriteRecordProps
        2F CeZeroPointer
-      10B CheckPassword
       184 CloseAllDeviceHandles
       180 CloseAllFileHandles
       16D CloseAllServiceHandles
-      115 CloseMsgQueue
       384 CloseProcOE
        18 ComThreadBaseFunc
        51 CompactAllHeaps
@@ -172,8 +166,6 @@
       528 CreateBitmapFromPointer
       3A2 CreateCrit
       185 CreateDeviceHandle
-      111 CreateMsgQueue
-      16E CreateServiceHandle
       34E CreateStaticMapping
        C5 CryptAcquireContextW
        E1 CryptContextAddRef
@@ -212,27 +204,21 @@
        C3 DDKReg_GetIsrInfo
        C4 DDKReg_GetPciInfo
        C2 DDKReg_GetWindowInfo
-      158 DeactivateDevice
       3BF DebugNotify
       38B DecompressBinaryBlock
        FF DeleteAndRenameFile
       37B DeleteTrackedItem
       179 DeregisterAFS
       17B DeregisterAFSName
-      150 DeregisterDevice
-      16C DeregisterService
-      164 DevicePowerNotify
       3DA DisableCaretSystemWide
       17E DumpFileSystemHeap
       30C DumpKCallProfile
       3DB EnableCaretSystemWide
       553 EnableEUDC
-      486 EnableHardwareKeyboard
        BF EnumDevices
       50E EnumDisplayDevices
       666 EnumDisplayMonitors
        BE EnumPnpIds
-      173 EnumServices
       14D EnumUILanguagesW
       374 ExtractResource
       17F FileSystemPowerFunction
@@ -250,31 +236,23 @@
       398 GetCallerProcess
       3BE GetCallerProcessIndex
       3E9 GetClipboardDataAlloc
-       B1 GetCommMask
        29 GetCurrentFT
       39F GetCurrentPermissions
       186 GetDeviceByIndex
        C0 GetDeviceKeys
-      168 GetDevicePower
       2FA GetEventData
       394 GetFSHeapInfo
       407 GetForegroundInfo
       409 GetForegroundKeyboardLayoutHandle
       408 GetForegroundKeyboardTarget
        50 GetHeapSnapshot
-      399 GetIdleTime
       37D GetKPhys
-      488 GetKeyboardStatus
       405 GetKeyboardTarget
       4C3 GetMessageQueueReadyTimeStamp
-      4BF GetMessageSource
       4B7 GetMessageWNoWait
       30B GetModuleInformation
       665 GetMonitorInfo
-      481 GetMouseMovePoints
-      114 GetMsgQueueInfo
       397 GetOwnerProcess
-      10D GetPasswordActive
       110 GetPasswordStatus
       1B6 GetPrivateCallbacks
       393 GetProcAddrBits
@@ -282,19 +260,12 @@
       3A8 GetProcName
       3BD GetProcessIDFromIndex
       3BC GetProcessIndexFromID
-      32F GetProcessVersion
       371 GetRealTime
       377 GetRomFileBytes
       376 GetRomFileInfo
-      16F GetServiceByIndex
-      174 GetServiceHandle
       102 GetStoreInformation
-      14A GetSystemDefaultUILanguage
-      17C GetSystemMemoryDivision
-      15E GetSystemPowerState
-      40E GetSystemPowerStatusEx
-      40F GetSystemPowerStatusEx2
-      14B GetUserDefaultUILanguage
+-      40E GetSystemPowerStatusEx -> power.inc
+-      40F GetSystemPowerStatusEx2 -> power.inc
       2D0 GetUserDirectory
       1B7 GetWindowTextWDirect
       37E GiveKPhys
@@ -381,7 +352,6 @@
        E8 IsExiting
       39B IsPrimaryThread
         F IsProcessDying
-      339 IsProcessorFeaturePresent
       183 IsSystemFile
       375 KernExtractIcons
       34C KernelIoControl
@@ -391,8 +361,6 @@
       48B KeybdVKeyToUnicode
       396 KillAllOtherThreads
       38E LeaveCritSec
-      525 LineTo
-      41E LoadAnimatedCursor
       3AA LoadDriver
       151 LoadFSD
       152 LoadFSDEx
@@ -418,7 +386,6 @@
       30F NotifyForceCleanboot
       410 NotifyWinUserSystem
        C1 OpenDeviceKey
-      116 OpenMsgQueue
       395 OtherThreadsRunning
       3BB PPSHRestart
         C PSLNotify
@@ -445,7 +412,6 @@
       267 PlaySoundW
       48D PostKeybdMessage
       3A3 PowerOffSystem
-      169 PowerPolicyNotify
       37C PrintTrackedItem
       373 ProcessDetachAllDLLs
        94 ProfileCaptureStatus
@@ -483,9 +449,7 @@
       1F8 RasSetEntryDialParams
       1FA RasSetEntryProperties
       1FB RasValidateEntryName
-       F4 ReadFile
       181 ReadFileWithSeek
-      112 ReadMsgQueue
       3C0 ReadRegistryFromOEM
       52F RealizePalette
       1BE RectangleAnimation
@@ -499,16 +463,9 @@
       3B8 RegisterAPISet
       33D RegisterDbgZones
       4DB RegisterDesktop
-      14F RegisterDevice
-      165 RegisterPowerRelationship
       1BD RegisterSIPanel
-      16B RegisterService
-      4D9 RegisterTaskBar
-      4DA RegisterTaskBarEx
       380 RegisterTrackedItem
         E ReinitLocale
-      166 ReleasePowerRelationship
-      161 ReleasePowerRequirement
        36 RemoteHeapAlloc
        38 RemoteHeapFree
        37 RemoteHeapReAlloc
@@ -517,8 +474,6 @@
        3D RemoteLocalFree
        3B RemoteLocalReAlloc
        3C RemoteLocalSize
-      155 RequestDeviceNotifications
-      162 RequestPowerNotifications
       15A ResourceCreateList
       15C ResourceRelease
       15B ResourceRequest
@@ -529,10 +484,6 @@
       2EC SHLoadDIBitmap
       2EB SHShowOutOfMemory
       482 SendInput
-      171 ServiceAddPort
-      175 ServiceClosePort
-      170 ServiceIoControl
-      172 ServiceUnbindPorts
       11B SetACP
       1C0 SetAssociatedMenu
       522 SetBrushOrgEx
@@ -540,7 +491,6 @@
       2CE SetCurrentUser
       33E SetDaylightTime
       3A4 SetDbgZone
-      167 SetDevicePower
       2FB SetEventData
       37F SetExceptionHandler
       385 SetGwesOOMEvent
@@ -555,16 +505,12 @@
       11C SetOEMCP
       386 SetOOMEvent
       551 SetObjectOwner
-      10C SetPassword
-      10E SetPasswordActive
       10F SetPasswordStatus
       3B3 SetPowerOffHandler
-      160 SetPowerRequirement
       39C SetProcPermissions
       372 SetRealTime
       135 SetSystemDefaultLCID
       17D SetSystemMemoryDivision
-      15F SetSystemPowerState
       3A0 SetTimeZoneBias
       2CF SetUserData
       137 SetUserDefaultLCID
@@ -584,7 +530,6 @@
       659 SipStatus
       361 SleepTillTick
       156 StopDeviceNotifications
-      163 StopPowerNotifications
       648 StringCbCatA
       64A StringCbCatExA
        82 StringCbCatExW
@@ -645,7 +590,6 @@
        16 ThreadBaseFunc
       367 ThreadDetachAllDLLs
         B ThreadExceptionExit
-      4C7 TouchCalibrate
       3A6 TurnOffProfiling
       3A5 TurnOnProfiling
       36C U_rclose
@@ -662,7 +606,6 @@
       35E VirtualSetAttributes
       3C2 WriteDebugLED
       182 WriteFileWithSeek
-      113 WriteMsgQueue
       3C1 WriteRegistryToOEM
       67B _CountLeadingOnes
       67C _CountLeadingOnes64
@@ -2019,16 +1962,7 @@
       583 labs
       584 ldexp
       585 ldiv
-      586 log
-      587 log10
       589 longjmp
-      58E malloc
-       66 mbstowcs
-       2B memchr
-      591 memcmp
-      592 memcpy
-      594 memmove
-      595 memset
       2B2 mixerClose
       2A9 mixerGetControlDetails
       2AA mixerGetDevCaps
@@ -2127,24 +2061,6 @@
       26B waveOutSetVolume
       26F waveOutUnprepareHeader
       270 waveOutWrite
-       54 wcscat
-       55 wcschr
-       56 wcscmp
-       57 wcscpy
-       58 wcscspn
-       59 wcslen
-       5A wcsncat
-       5B wcsncmp
-       5C wcsncpy
-       5E wcspbrk
-       5F wcsrchr
-       62 wcsspn
-       63 wcsstr
-      5B5 wcstod
-       67 wcstok
-      5B6 wcstol
-       65 wcstombs
-      5B7 wcstoul
       632 wprintf
       631 wscanf
 
@@ -2173,7 +2089,7 @@ const
   CSIDL_DRIVES             = $0011;
   CSIDL_NETWORK            = $0012;
   CSIDL_NETHOOD            = $0013;
-  CSIDL_FONTS		           = $0014;
+  CSIDL_FONTS              = $0014;
   CSIDL_TEMPLATES          = $0015;
   CSIDL_APPDATA            = $001a;
   CSIDL_WINDOWS            = $0024;
@@ -2190,10 +2106,13 @@ const
 
 
 function AbortDoc(_para1:HDC):longint; external KernelDLL name 'AbortDoc';
+function ActivateDevice(lpszDevKey:LPCWSTR; dwClientInfo:DWORD):HANDLE; external KernelDLL name 'ActivateDevice'; // index 153
+function ActivateDeviceEx(lpszDevKey:LPCWSTR; lpRegEnts:LPCVOID; cRegEnts:DWORD; lpvParam:LPVOID):HANDLE; external KernelDLL name 'ActivateDeviceEx'; // index 154
 function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):HKL; external KernelDLL name 'ActivateKeyboardLayout';
 function AddFontResource(_para1:LPCWSTR):longint; external KernelDLL name 'AddFontResourceW';
 function AddFontResourceW(_para1:LPCWSTR):longint; external KernelDLL name 'AddFontResourceW';
 function AdjustWindowRectEx(lpRect:LPRECT; dwStyle:DWORD; bMenu:WINBOOL; dwExStyle:DWORD):WINBOOL; external KernelDLL name 'AdjustWindowRectEx';
+function AdvertiseInterface(devclass:LPGUID; name:LPCWSTR; fAdd:BOOL):BOOL; external KernelDLL name 'AdvertiseInterface'; // index 157
 function AppendMenu(hMenu:HMENU; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCWSTR):WINBOOL; external KernelDLL name 'AppendMenuW';
 function AppendMenuW(hMenu:HMENU; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCWSTR):WINBOOL; external KernelDLL name 'AppendMenuW';
 function BeginDeferWindowPos(nNumWindows:longint):HDWP; external KernelDLL name 'BeginDeferWindowPos';
@@ -2219,6 +2138,7 @@ function CharUpperBuffW(lpsz:LPWSTR; cchLength:DWORD):DWORD; external KernelDLL 
 function CheckDlgButton(hDlg:HWND; nIDButton:longint; uCheck:UINT):WINBOOL;
 function CheckMenuItem(hMenu:HMENU; uIDCheckItem:UINT; uCheck:UINT):DWORD; external KernelDLL name 'CheckMenuItem';
 function CheckMenuRadioItem(_para1:HMENU; _para2:UINT; _para3:UINT; _para4:UINT; _para5:UINT):WINBOOL; external KernelDLL name 'CheckMenuRadioItem';
+function CheckPassword(lpszPassword:LPWSTR):BOOL;  external KernelDLL name 'CheckPassword'; // index 10B
 function CheckRadioButton(hDlg:HWND; nIDFirstButton:longint; nIDLastButton:longint; nIDCheckButton:longint):WINBOOL; external KernelDLL name 'CheckRadioButton';
 function ChildWindowFromPoint(hWndParent:HWND; Point:POINT):HWND; external KernelDLL name 'ChildWindowFromPoint';
 function ClearCommBreak(hFile:HANDLE):WINBOOL; external KernelDLL name 'ClearCommBreak';
@@ -2294,6 +2214,7 @@ function CreateWindowEx(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWS
   external KernelDLL name 'CreateWindowExW';
 function CreateWindowExW(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
   external KernelDLL name 'CreateWindowExW';
+function DeactivateDevice(hDevice:HANDLE):BOOL; external KernelDLL name 'DeactivateDevice'; // index 158
 function DebugActiveProcess(dwProcessId:DWORD):WINBOOL; external KernelDLL name 'DebugActiveProcess';
 function DefDlgProc(hDlg:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'DefDlgProcW';
 function DefDlgProcW(hDlg:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'DefDlgProcW';
@@ -2307,6 +2228,7 @@ function DeleteFile(lpFileName:LPCWSTR):WINBOOL; external KernelDLL name 'Delete
 function DeleteFileW(lpFileName:LPCWSTR):WINBOOL; external KernelDLL name 'DeleteFileW';
 function DeleteMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external KernelDLL name 'DeleteMenu';
 function DeleteObject(_para1:HGDIOBJ):WINBOOL; external KernelDLL name 'DeleteObject';
+function DeregisterDevice(hDevice:HANDLE):BOOL; external KernelDLL name 'DeregisterDevice'; // index 150
 function DestroyAcceleratorTable(hAccel:HACCEL):WINBOOL; external KernelDLL name 'DestroyAcceleratorTable';
 function DestroyCaret:WINBOOL; external KernelDLL name 'DestroyCaret';
 function DestroyIcon(hIcon:HICON):WINBOOL; external KernelDLL name 'DestroyIcon';
@@ -2334,6 +2256,7 @@ function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTar
 function Ellipse(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external KernelDLL name 'Ellipse';
 function EqualRgn(_para1:HRGN; _para2:HRGN):WINBOOL; external KernelDLL name 'EqualRgn';
 function EmptyClipboard:WINBOOL; external KernelDLL name 'EmptyClipboard';
+function EnableHardwareKeyboard(bEnable:BOOL):BOOL; external KernelDLL name 'EnableHardwareKeyboard'; // index 486
 function EnableMenuItem(hMenu:HMENU; uIDEnableItem:UINT; uEnable:UINT):WINBOOL; external KernelDLL name 'EnableMenuItem';
 function EnableWindow(hWnd:HWND; bEnable:WINBOOL):WINBOOL; external KernelDLL name 'EnableWindow';
 function EnumCalendarInfo(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external KernelDLL name 'EnumCalendarInfoW';
@@ -2427,6 +2350,7 @@ function GetClipCursor(lpRect:LPRECT):WINBOOL; external KernelDLL name 'GetClipC
 function GetClipRgn(_para1:HDC; _para2:HRGN):longint; external KernelDLL name 'GetClipRgn';
 function GetCommandLine : LPWSTR; external KernelDLL name 'GetCommandLineW';
 function GetCommandLineW : LPWSTR; external KernelDLL name 'GetCommandLineW';
+function GetCommMask(hFile:HANDLE; lpEvtMask:LPDWORD):BOOL; external KernelDLL name 'GetCommMask'; // index B1
 function GetCommProperties(hFile:HANDLE; lpCommProp:LPCOMMPROP):WINBOOL; external KernelDLL name 'GetCommProperties';
 function GetCommModemStatus(hFile:HANDLE; lpModemStat:PDWORD):WINBOOL; external KernelDLL name 'GetCommModemStatus';
 function GetCommState(hFile:HANDLE; lpDCB:PDCB):WINBOOL; external KernelDLL name 'GetCommState';
@@ -2475,10 +2399,12 @@ function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWOR
 function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; var dwHandle:DWORD):DWORD; external KernelDLL name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfo(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external KernelDLL name 'GetFileVersionInfoW';
 function GetFileVersionInfoW(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external KernelDLL name 'GetFileVersionInfoW';
+function GetIdleTime:DWORD; external KernelDLL name 'GetIdleTime'; // index 399
 function GetKeyboardLayout(dwLayout:DWORD):HKL; external KernelDLL name 'GetKeyboardLayout';
 function GetKeyboardLayoutList(nBuff:longint; var lpList:HKL):UINT; external KernelDLL name 'GetKeyboardLayoutList';
 function GetKeyboardLayoutName(pwszKLID:LPWSTR):WINBOOL; external KernelDLL name 'GetKeyboardLayoutNameW';
 function GetKeyboardLayoutNameW(pwszKLID:LPWSTR):WINBOOL; external KernelDLL name 'GetKeyboardLayoutNameW';
+function GetKeyboardStatus:DWORD; external KernelDLL name 'GetKeyboardStatus'; // index 488
 function GetKeyboardType(nTypeFlag:longint):longint; external KernelDLL name 'GetKeyboardType';
 function GetKeyState(nVirtKey:longint):SHORT; external KernelDLL name 'GetKeyState';
 function GetLastError:DWORD; external KernelDLL name 'GetLastError';
@@ -2490,10 +2416,12 @@ function GetMenuItemInfoW(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPME
 function GetMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL; external KernelDLL name 'GetMessageW';
 function GetMessageW(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL; external KernelDLL name 'GetMessageW';
 function GetMessagePos:DWORD; external KernelDLL name 'GetMessagePos';
+function GetMessageSource:UINT; external KernelDLL name 'GetMessageSource';// index 4BF
 function GetModuleFileName(hModule:HMODULE; lpFilename:LPWSTR; nSize:DWORD):DWORD; external KernelDLL name 'GetModuleFileNameW';
 function GetModuleFileNameW(hModule:HMODULE; lpFilename:LPWSTR; nSize:DWORD):DWORD; external KernelDLL name 'GetModuleFileNameW';
 function GetModuleHandle(lpModuleName:LPCWSTR):HMODULE; external KernelDLL name 'GetModuleHandleW';
 function GetModuleHandleW(lpModuleName:LPCWSTR):HMODULE; external KernelDLL name 'GetModuleHandleW';
+function GetMouseMovePoints(pptBuf:PPOINT; nBufPoints:UINT; pnPointsRetrieved:PUINT):BOOL; external KernelDLL name 'GetMouseMovePoints'; // index 481
 function GetNearestColor(_para1:HDC; _para2:COLORREF):COLORREF; external KernelDLL name 'GetNearestColor';
 function GetNearestPaletteIndex(_para1:HPALETTE; _para2:COLORREF):UINT; external KernelDLL name 'GetNearestPaletteIndex';
 function GetNextDlgGroupItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external KernelDLL name 'GetNextDlgGroupItem';
@@ -2509,12 +2437,15 @@ function GetOpenFileName(_para1:LPOPENFILENAMEW):WINBOOL; external KernelDLL nam
 function GetOpenFileNameW(_para1:LPOPENFILENAMEW):WINBOOL; external KernelDLL name 'GetOpenFileNameW';
 function GetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external KernelDLL name 'GetPaletteEntries';
 function GetParent(hWnd:HWND):HWND; external KernelDLL name 'GetParent';
+function GetPasswordActive:BOOL; external KernelDLL name 'GetPasswordActive'; // index 10D
 function GetPriorityClipboardFormat(var paFormatPriorityList:UINT; cFormats:longint):longint; external KernelDLL name 'GetPriorityClipboardFormat';
 function GetPixel(_para1:HDC; _para2:longint; _para3:longint):COLORREF; external KernelDLL name 'GetPixel';
 function GetProcAddressA(hModule:HINST; lpProcName:LPCSTR):FARPROC; external KernelDLL name 'GetProcAddressA';
 function GetProcAddress(hModule:HINST; lpProcName:LPCWSTR):FARPROC; external KernelDLL name 'GetProcAddressW';
 function GetProcAddressW(hModule:HINST; lpProcName:LPCWSTR):FARPROC; external KernelDLL name 'GetProcAddressW';
 function GetProcessHeap:HANDLE; external KernelDLL name 'GetProcessHeap';
+function GetProcessVersion(ProcessId:DWORD):DWORD; external KernelDLL name 'GetProcessVersion'; // index 32F
+function GetDllVersion(hMod:HMODULE):DWORD;
 function GetProp(hWnd:HWND; lpString:LPCWSTR):HWND; external KernelDLL name 'GetProp';
 function GetQueueStatus(flags:UINT):DWORD; external KernelDLL name 'GetQueueStatus';
 function GetRegionData(_para1:HRGN; _para2:DWORD; _para3:LPRGNDATA):DWORD; external KernelDLL name 'GetRegionData';
@@ -2534,7 +2465,9 @@ function GetSysColor(nIndex:longint):DWORD; external KernelDLL name 'GetSysColor
 function GetSysColorBrush(nIndex:longint):HBRUSH; external KernelDLL name 'GetSysColorBrush';
 function GetSystemDefaultLangID:LANGID; external KernelDLL name 'GetSystemDefaultLangID';
 function GetSystemDefaultLCID:LCID; external KernelDLL name 'GetSystemDefaultLCID';
+function GetSystemDefaultUILanguage:LANGID; external KernelDLL name 'GetSystemDefaultUILanguage'; // index 14A
 procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external KernelDLL name 'GetSystemInfo';
+function GetSystemMemoryDivision(lpdwStorePages:LPDWORD; lpdwRamPages:LPDWORD; lpdwPageSize:LPDWORD):BOOL; external KernelDLL name 'GetSystemMemoryDivision'; // index 17C
 function GetSystemMetrics(nIndex:longint):longint; external KernelDLL name 'GetSystemMetrics';
 procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external KernelDLL name 'GetSystemTime';
 function GetSystemPaletteEntries(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external KernelDLL name 'GetSystemPaletteEntries';
@@ -2563,6 +2496,7 @@ function GetUpdateRect(hWnd:HWND; lpRect:LPRECT; bErase:WINBOOL):WINBOOL; extern
 function GetUpdateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):longint; external KernelDLL name 'GetUpdateRgn';
 function GetUserDefaultLangID:LANGID; external KernelDLL name 'GetUserDefaultLangID';
 function GetUserDefaultLCID:LCID; external KernelDLL name 'GetUserDefaultLCID';
+function GetUserDefaultUILanguage:LANGID; external KernelDLL name 'GetUserDefaultUILanguage'; // index 14B
 function GetUserNameEx(NameFormat:EXTENDED_NAME_FORMAT; lpNameBuffer:LPWSTR; nSize:PULONG):WINBOOL; external KernelDLL name 'GetUserNameExW';
 function GetUserNameExW(NameFormat:EXTENDED_NAME_FORMAT; lpNameBuffer:LPWSTR; nSize:PULONG):WINBOOL; external KernelDLL name 'GetUserNameExW';
 function GetVersionEx(VersionInformation:LPOSVERSIONINFOW):WINBOOL; external KernelDLL name 'GetVersionExW';
@@ -2677,6 +2611,7 @@ function IsDBCSLeadByte(TestChar:BYTE):WINBOOL; external KernelDLL name 'IsDBCSL
 function IsDBCSLeadByteEx(CodePage:UINT; TestChar:BYTE):WINBOOL; external KernelDLL name 'IsDBCSLeadByteEx';
 function IsDialogMessage(hDlg:HWND; lpMsg:LPMSG):WINBOOL; external KernelDLL name 'IsDialogMessageW';
 function IsDialogMessageW(hDlg:HWND; lpMsg:LPMSG):WINBOOL; external KernelDLL name 'IsDialogMessageW';
+function IsProcessorFeaturePresent(dwProcessorFeature:DWORD):BOOL; external KernelDLL name 'IsProcessorFeaturePresent'; // index 339
 function IsRectEmpty(const lprc:RECT):WINBOOL; external KernelDLL name 'IsRectEmpty';
 function IsValidCodePage(CodePage:UINT):WINBOOL; external KernelDLL name 'IsValidCodePage';
 function IsValidLocale(Locale:LCID; dwFlags:DWORD):WINBOOL; external KernelDLL name 'IsValidLocale';
@@ -2740,6 +2675,7 @@ function ListView_SortItems(hwndLV:HWND;_pfnCompare:PFNLVCOMPARE;_lPrm : LPARAM)
 function ListView_Update(hwndLV:HWND;i : longint) : LRESULT;
 function LoadAccelerators(hInstance:HINST; lpTableName:LPCWSTR):HACCEL; external KernelDLL name 'LoadAcceleratorsW';
 function LoadAcceleratorsW(hInstance:HINST; lpTableName:LPCWSTR):HACCEL; external KernelDLL name 'LoadAcceleratorsW';
+function LoadAnimatedCursor(hInstance:HINST; ResourceId:DWORD; cFrames:longint; FrameTimeInterval:longint):HCURSOR; external KernelDLL name 'LoadAnimatedCursor'; // index 41E
 function LoadBitmap(hInstance:HINST; lpBitmapName:LPCWSTR):HBITMAP; external KernelDLL name 'LoadBitmapW';
 function LoadBitmapW(hInstance:HINST; lpBitmapName:LPCWSTR):HBITMAP; external KernelDLL name 'LoadBitmapW';
 function LoadCursor(hInstance:HINST; lpCursorName:LPCWSTR):HCURSOR; external KernelDLL name 'LoadCursorW';
@@ -2768,10 +2704,13 @@ function LocalLock(hMem:HLOCAL):LPVOID;
 function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external KernelDLL name 'LocalReAlloc';
 function LocalSize(hMem:HLOCAL):UINT; external KernelDLL name 'LocalSize';
 function LocalUnlock(hMem:HLOCAL):WINBOOL;
+function log(x:double):double; external KernelDLL name 'log'; // index 586
+function log10(x:double):double; external KernelDLL name 'log10'; // index 587
 function lstrcmp(lpString1:LPCWSTR; lpString2:LPCWSTR):longint; external KernelDLL name 'lstrcmpW';
 function lstrcmpW(lpString1:LPCWSTR; lpString2:LPCWSTR):longint; external KernelDLL name 'lstrcmpW';
 function lstrcmpi(lpString1:LPCWSTR; lpString2:LPCWSTR):longint; external KernelDLL name 'lstrcmpiW';
 function lstrcmpiW(lpString1:LPCWSTR; lpString2:LPCWSTR):longint; external KernelDLL name 'lstrcmpiW';
+function malloc(size:SIZE_T):LPVOID; external KernelDLL name 'malloc'; // index 58E
 function MapCallerPtr(ptr: LPVOID; dwLen: DWORD):LPVOID; external KernelDLL name 'MapCallerPtr';
 function MapDialogRect(hDlg:HWND; lpRect:LPRECT):WINBOOL; external KernelDLL name 'MapDialogRect';
 function MapPtrToProcess(lpv: LPVOID; hProc: HANDLE ): LPVOID; external KernelDLL name 'MapPtrToProcess';
@@ -2782,6 +2721,12 @@ function MapVirtualKey(uCode:UINT; uMapType:UINT):UINT; external KernelDLL name 
 function MapVirtualKeyW(uCode:UINT; uMapType:UINT):UINT; external KernelDLL name 'MapVirtualKeyW';
 function MapWindowPoints(hWndFrom:HWND; hWndTo:HWND; lpPoints:LPPOINT; cPoints:UINT):longint; external KernelDLL name 'MapWindowPoints';
 function MaskBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:HBITMAP; _para10:longint;_para11:longint; _para12:DWORD):WINBOOL; external KernelDLL name 'MaskBlt';
+function mbstowcs(wcstr:LPWSTR; mbstr:LPCSTR; count:SIZE_T):SIZE_T; external KernelDll name 'mbstowcs'; // index 66
+function memchr(buf:pointer; c:integer; count:SIZE_T):pointer; external KernelDll name 'memchr'; // index 2B
+function memcmp(buf1:LPCWSTR; buf2:LPCWSTR; count:SIZE_T):integer; external KernelDll name 'memcmp'; // index 591
+function memcpy(dest:pointer; src:pointer; count:SIZE_T):pointer; external KernelDll name 'memcpy';
+function memmove(dest:pointer; src:pointer; count:SIZE_T):pointer; external KernelDll name 'memmove';
+function memset(dest:LPWSTR; c:WideChar; count:SIZE_T):LPWSTR; external KernelDll name 'memset'; // index 595
 function MessageBeep(uType:UINT):WINBOOL; external KernelDLL name 'MessageBeep';
 function MessageBox(hWnd:HWND; lpText:LPCWSTR; lpCaption:LPCWSTR; uType:UINT):longint; external KernelDLL name 'MessageBoxW'; //~winuser, result declared as int
 function MessageBoxW(hWnd:HWND; lpText:LPCWSTR; lpCaption:LPCWSTR; uType:UINT):longint; external KernelDLL name 'MessageBoxW'; //~winuser, result declared as int
@@ -2838,6 +2783,7 @@ function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL; external KernelDLL name
 function QueryPerformanceCounter(lpPerformanceCount:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceCounter';
 function QueryPerformanceFrequency(lpFrequency:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceFrequency';
 procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external KernelDLL name 'RaiseException';
+function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):BOOL;  external KernelDLL name 'ReadFile'; // index F4
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external KernelDLL name 'ReadProcessMemory';
 function RealizePalette(_para1:HDC):UINT; external KernelDLL name 'RealizePalette';
 function RectInRegion(_para1:HRGN; const _para2:RECT):WINBOOL; external KernelDLL name 'RectInRegion';
@@ -2864,6 +2810,9 @@ function RegisterClass(lpWndClass:LPWNDCLASS):ATOM; external KernelDLL name 'Reg
 function RegisterClassW(lpWndClass:LPWNDCLASS):ATOM; external KernelDLL name 'RegisterClassW';
 function RegisterClipboardFormat(lpszFormat:LPCWSTR):UINT; external KernelDLL name 'RegisterClipboardFormatW';
 function RegisterClipboardFormatW(lpszFormat:LPCWSTR):UINT; external KernelDLL name 'RegisterClipboardFormatW';
+function RegisterDevice(lpszType:LPCWSTR; dwIndex:DWORD; lpszLib:LPCWSTR; dwInfo:DWORD):HANDLE; external KernelDLL name 'RegisterDevice'; // index 14F
+function RegisterTaskBar(hwndTaskbar:HWND):BOOL; external KernelDLL name 'RegisterTaskBar'; // index 4D9
+function RegisterTaskBarEx(hwndTaskbar:HWND; bTaskBarOnTop:BOOL):BOOL; external KernelDLL name 'RegisterTaskBarEx'; // index 4DA
 function RegisterWindowMessage(lpString:LPCWSTR):UINT; external KernelDLL name 'RegisterWindowMessageW';
 function RegisterWindowMessageW(lpString:LPCWSTR):UINT; external KernelDLL name 'RegisterWindowMessageW';
 function RegOpenKeyEx(hKey:HKEY; lpSubKey:LPCWSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG; external KernelDLL name 'RegOpenKeyExW';
@@ -2888,6 +2837,7 @@ function RemoveFontResource(_para1:LPCWSTR):WINBOOL; external KernelDLL name 'Re
 function RemoveFontResourceW(_para1:LPCWSTR):WINBOOL; external KernelDLL name 'RemoveFontResourceW';
 function RemoveMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external KernelDLL name 'RemoveMenu';
 function RemoveProp(hWnd:HWND; lpString:LPCWSTR):HANDLE; external KernelDLL name 'RemoveProp';
+function RequestDeviceNotifications(devclass:LPGUID; hMsgQ:HANDLE; fAll:BOOL):HANDLE; external KernelDLL name 'RequestDeviceNotifications'; // index 155
 function ResetEvent(hEvent:HANDLE):WINBOOL;
 function RestoreDC(_para1:HDC; _para2:longint):WINBOOL; external KernelDLL name 'RestoreDC';
 function ResumeThread(hThread:HANDLE):DWORD; external KernelDLL name 'ResumeThread';
@@ -2946,6 +2896,8 @@ function SetMenuItemInfo(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCME
 function SetMenuItemInfoW(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFO):WINBOOL; external KernelDLL name 'SetMenuItemInfoW';
 function SetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):UINT; external KernelDLL name 'SetPaletteEntries';
 function SetParent(hWndChild:HWND; hWndNewParent:HWND):HWND; external KernelDLL name 'SetParent';
+function SetPassword(lpszOldPassword:LPWSTR; lpszNewPassword:LPWSTR):BOOL; external KernelDLL name 'SetPassword'; // index 10C
+function SetPasswordActive(bActive:BOOL; lpszPassword:LPWSTR):BOOL; external KernelDLL name 'SetPasswordActive'; // index 10E
 function SetPixel(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):COLORREF; external KernelDLL name 'SetPixel';
 function SetProp(hWnd:HWND; lpString:LPCWSTR; hData:HANDLE):WINBOOL; external KernelDLL name 'SetProp';
 function SetRect(lprc:LPRECT; xLeft:longint; yTop:longint; xRight:longint; yBottom:longint):WINBOOL; external KernelDLL name 'SetRect';
@@ -3024,6 +2976,7 @@ function TlsCall(p1:DWORD; p2:DWORD):DWORD; external KernelDLL name 'TlsCall';
 function TlsFree(dwTlsIndex:DWORD):WINBOOL;
 function TlsGetValue(dwTlsIndex:DWORD):LPVOID; external KernelDLL name 'TlsGetValue';
 function TlsSetValue(dwTlsIndex:DWORD; lpTlsValue:LPVOID):WINBOOL; external KernelDLL name 'TlsSetValue';
+function TouchCalibrate:BOOL; external KernelDLL name 'TouchCalibrate'; // index 4C7
 function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; prcRect: PRect):WINBOOL;
 function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;_para6:LPTPMPARAMS):WINBOOL; external KernelDLL name 'TrackPopupMenuEx';
 function TranslateAccelerator(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external KernelDLL name 'TranslateAcceleratorW';
@@ -3115,6 +3068,27 @@ function WNetGetUser(lpName:LPCWSTR; lpUserName:LPWSTR; lpnLength:LPDWORD):DWORD
 function WNetGetUserW(lpName:LPCWSTR; lpUserName:LPWSTR; lpnLength:LPDWORD):DWORD; external KernelDLL name 'WNetGetUserW';
 function WNetOpenEnum(dwScope:DWORD; dwType:DWORD; dwUsage:DWORD; lpNetResource:LPNETRESOURCEW; lphEnum:LPHANDLE):DWORD; external KernelDLL name 'WNetOpenEnumW';
 function WNetOpenEnumW(dwScope:DWORD; dwType:DWORD; dwUsage:DWORD; lpNetResource:LPNETRESOURCEW; lphEnum:LPHANDLE):DWORD; external KernelDLL name 'WNetOpenEnumW';
+function WriteFile(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; lpOverlapped:LPOVERLAPPED):BOOL; external KernelDLL name 'WriteFile';
+function wcscat(strDestination:PWideChar; strSource:PWideChar):PWideChar; external KernelDLL name 'wcscat'; // index 54
+function wcschr(_string:PWideChar; c:WideChar):PWideChar; external KernelDLL name 'wcschr'; // index 55
+function wcscmp(string1:PWideChar; string2:PWideChar):longint; external KernelDLL name 'wcscmp'; // index 56
+function wcscpy(strDestination:PWideChar; strSource:PWideChar):PWideChar; external KernelDLL name 'wcscpy'; // index 57
+function wcscspn(_string:PWideChar; strCharSet:PWideChar):SIZE_T; external KernelDLL name 'wcscspn'; // index 58
+
+// Returns the number of characters in string, excluding the terminal NULL.
+function wcslen(_string:PWideChar):SIZE_T; external KernelDLL name 'wcslen'; // index 59
+function wcsncat(strDest:PWideChar; strSource:PWideChar; _count:SIZE_T):PWideChar; external KernelDLL name 'wcsncat'; // index 5A
+function wcsncmp(string1:PWideChar; string2:PWideChar; _count:SIZE_T):longint; external KernelDLL name 'wcsncmp'; // index 5B
+function wcsncpy(strDest:PWideChar; strSource:PWideChar; _count:SIZE_T):PWideChar; external KernelDLL name 'wcsncpy'; // index 5C
+function wcspbrk(_string:PWideChar; strCharSet:PWideChar):PWideChar; external KernelDLL name 'wcspbrk'; // index 5E
+function wcsrchr(_string:PWideChar; c:longint):PWideChar; external KernelDLL name 'wcsrchr'; // index 5F
+function wcsspn(_string:PWideChar; strCharSet:PWideChar):SIZE_T; external KernelDLL name 'wcsspn'; // index 62
+function wcsstr(_string:PWideChar; strCharSet:PWideChar):PWideChar; external KernelDLL name 'wcsstr'; // index 63
+function wcstod(nptr:PWideChar; var endptr:PWideChar):double; external KernelDLL name 'wcstod'; // index 5B5
+function wcstok(strToken:PWideChar; strDelimit:PWideChar):PWideChar; external KernelDLL name 'wcstok'; // index 67
+function wcstol(nptr:PWideChar; var endptr:PWideChar; _base:longint):longint; external KernelDLL name 'wcstol'; // index 5B6
+function wcstombs(mbstr:PChar; wcstr:PWideChar; _count:SIZE_T):SIZE_T; external KernelDLL name 'wcstombs'; // index 65
+function wcstoul(nptr:PWideChar; var endptr:PWideChar; _base:longint):Cardinal; external KernelDLL name 'wcstoul'; // index 5B7
 function wsprintf(lpBuffer:LPWSTR; lpFormat:LPCWSTR; const args:array of const):longint; external KernelDLL name 'wsprintfW';
 function wsprintfW(lpBuffer:LPWSTR; lpFormat:LPCWSTR; const args:array of const):longint; external KernelDLL name 'wsprintfW';
 function wsprintf(lpBuffer:LPWSTR; lpFormat:LPCWSTR):longint; external KernelDLL name 'wsprintfW';
@@ -4204,6 +4178,13 @@ end;
 function ImageList_LoadBitmap(Instance: THandle; Bmp: LPCTSTR; CX, Grow: LongInt; Mask: TColorRef): HImageList;
 begin
   Result := ImageList_LoadImage(Instance, Bmp, CX, Grow, Mask, IMAGE_BITMAP, 0);
+end;
+
+function GetDllVersion(hMod:HMODULE):DWORD; inline;
+begin
+ // GetProcessVersion now takes module handle
+ // as parameter as well as process id.
+  Result:=GetProcessVersion(DWORD(hMod));
 end;
 
 {$endif read_implementation}
