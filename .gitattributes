@@ -1520,6 +1520,7 @@ packages/fcl-registry/tests/regtestframework.pp -text
 packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
 packages/fcl-res/Makefile svneol=native#text/plain
 packages/fcl-res/Makefile.fpc svneol=native#text/plain
+packages/fcl-res/fpmake.pp svneol=native#text/plain
 packages/fcl-res/src/acceleratorsresource.pp svneol=native#text/plain
 packages/fcl-res/src/bitmapresource.pp svneol=native#text/plain
 packages/fcl-res/src/coffconsts.pp svneol=native#text/plain
