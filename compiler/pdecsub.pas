@@ -165,6 +165,11 @@ implementation
                 assigned(tprocdef(pd)._class) and
                 (pd.parast.symtablelevel=normal_function_level) then
               begin
+                { static class methods have no hidden self/vmt pointer }
+                if (po_staticmethod in pd.procoptions) and
+                   (po_classmethod in pd.procoptions) then
+                   exit;
+
                 storepos:=current_tokenpos;
                 current_tokenpos:=tprocdef(pd).fileinfo;
 
