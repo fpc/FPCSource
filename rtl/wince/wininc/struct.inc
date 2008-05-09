@@ -7623,6 +7623,23 @@ type
   end;
   PTrackMouseEvent = ^TTrackMouseEvent;
 
+  tagBSTRBLOB = record
+    cbsize : ULONG;
+	  pdata  : pbyte;
+  end;
+  BSTRBLOB=TagBSTRBlob;
+  TBSTRBLOB=BSTRBLOB;
+  PBSTRBLOB=^BSTRBLOB;
+
+  tagCLIPDATA = record
+    cbsize : ULONG;
+    ulClipFmt : long;
+    pclipdata : pbyte;
+  end;
+  CLIPDATA=TagCLIPDATA;
+  TCLIPDATA=CLIPDATA;
+  PCLIPDATA=^CLIPDATA;
+
 {$endif read_interface}
 
 

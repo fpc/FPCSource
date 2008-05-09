@@ -9,7 +9,7 @@ version=2.2.0
 [target]
 units_wince=buildwinceunits
 implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi \
-                    gpsapi todaycmn windbase cesync gx
+                    gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl
 units_win32=rapi cesync
 
 [install]
