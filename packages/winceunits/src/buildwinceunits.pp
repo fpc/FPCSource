@@ -22,7 +22,7 @@ interface
 
 uses
   aygshell,commctrl,commdlg,iphlpapi,notify,oleaut32,power,shellapi,simmgr,tapi,
-  gpsapi,todaycmn,windbase,cesync,gx,winioctl,msgqueue,pm,service;
+  gpsapi,todaycmn,windbase,cesync,gx,winioctl,msgqueue,pm,service,htmlctrl;
 
 implementation
 

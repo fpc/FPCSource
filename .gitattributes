@@ -4454,6 +4454,7 @@ packages/winceunits/src/commctrl.pp svneol=native#text/plain
 packages/winceunits/src/commdlg.pp svneol=native#text/plain
 packages/winceunits/src/gpsapi.pp svneol=native#text/plain
 packages/winceunits/src/gx.pp svneol=native#text/plain
+packages/winceunits/src/htmlctrl.pp svneol=native#text/plain
 packages/winceunits/src/iphlpapi.pp svneol=native#text/plain
 packages/winceunits/src/msgqueue.pp svneol=native#text/plain
 packages/winceunits/src/notify.pp svneol=native#text/plain

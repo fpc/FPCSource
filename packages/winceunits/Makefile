@@ -263,10 +263,10 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_UNITS+=buildwinceunits
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleaut32 power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl
 endif
 override INSTALL_BUILDUNIT=buildwinceunits
 override INSTALL_FPCPACKAGE=y
