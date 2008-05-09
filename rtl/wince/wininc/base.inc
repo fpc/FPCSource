@@ -73,6 +73,9 @@
      SHORT = smallint;                //winnt
      WINT  = longint;
      LONG  = longint;                 //winnt
+     LONG64= int64;
+     ULONG64 = qword;                 // imagehlp header.
+     ULONG32 = cardinal;
      DWORD = Cardinal;                //windef
 
      PINTEGER = ^longint;
@@ -85,6 +88,17 @@
 
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
+     
+     INT_PTR = PtrInt;
+     UINT_PTR = PtrUInt;
+     LONG_PTR = PtrInt;
+     ULONG_PTR = PtrUInt;
+     DWORD_PTR   = ULONG_PTR;
+     PDWORD_PTR  = ^DWORD_PTR;
+     PULONG64    = ^ULONG64;
+     PULONG32    = ^ULONG32;
+     PULONG_PTR  = ^ULONG_PTR;
+     PLONG64     = ^LONG64;
 
      HANDLE = System.THandle;
      HRESULT = System.HResult;  //winnt LONG
