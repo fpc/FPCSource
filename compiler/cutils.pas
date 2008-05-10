@@ -1341,7 +1341,11 @@ implementation
 {$ifdef ver2_0}
 function SwapEndian(const AValue: SmallInt): SmallInt;
   begin
-    Result := (AValue shr 8) or (AValue shl 8);
+    { the extra Word type cast is necessary because the "AValue shr 8" }
+    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
+    { the sign bits from the upper 16 bits are shifted in rather than  }
+    { zeroes.                                                          }
+    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
   end;
 
 
