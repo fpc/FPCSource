@@ -640,7 +640,7 @@ implementation
         begin
           n:=comp_expr(true);
           { load strval and strlength of the constant tree }
-          if (n.nodetype=stringconstn) or is_widestring(def) then
+          if (n.nodetype=stringconstn) or is_widestring(def) or is_constwidecharnode(n) then
             begin
               { convert to the expected string type so that
                 for widestrings strval is a pcompilerwidestring }
