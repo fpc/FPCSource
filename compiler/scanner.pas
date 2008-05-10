@@ -201,8 +201,9 @@ interface
     procedure InitScanner;
     procedure DoneScanner;
 
-    {To be called when the language mode is finally determined}
+    { To be called when the language mode is finally determined }
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
+    Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
 
 
 implementation
@@ -256,6 +257,38 @@ implementation
       end;
 
 
+    Procedure HandleModeSwitches(changeInit: boolean);
+      begin
+        { turn ansistrings on by default ? }
+        if (m_default_ansistring in current_settings.modeswitches) then
+         begin
+           include(current_settings.localswitches,cs_ansistrings);
+           if changeinit then
+            include(init_settings.localswitches,cs_ansistrings);
+         end
+        else
+         begin
+           exclude(current_settings.localswitches,cs_ansistrings);
+           if changeinit then
+            exclude(init_settings.localswitches,cs_ansistrings);
+         end;
+
+        { turn inline on by default ? }
+        if (m_default_inline in current_settings.modeswitches) then
+         begin
+           include(current_settings.localswitches,cs_do_inline);
+           if changeinit then
+            include(init_settings.localswitches,cs_do_inline);
+         end
+        else
+         begin
+           exclude(current_settings.localswitches,cs_ansistrings);
+           if changeinit then
+            exclude(init_settings.localswitches,cs_ansistrings);
+         end;
+      end;
+
+
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
         b : boolean;
@@ -305,33 +338,7 @@ implementation
                localswitcheschanged:=false;
              end;
 
-           { turn ansistrings on by default ? }
-           if (m_default_ansistring in current_settings.modeswitches) then
-            begin
-              include(current_settings.localswitches,cs_ansistrings);
-              if changeinit then
-               include(init_settings.localswitches,cs_ansistrings);
-            end
-           else
-            begin
-              exclude(current_settings.localswitches,cs_ansistrings);
-              if changeinit then
-               exclude(init_settings.localswitches,cs_ansistrings);
-            end;
-
-           { turn inline on by default ? }
-           if (m_default_inline in current_settings.modeswitches) then
-            begin
-              include(current_settings.localswitches,cs_do_inline);
-              if changeinit then
-               include(init_settings.localswitches,cs_do_inline);
-            end
-           else
-            begin
-              exclude(current_settings.localswitches,cs_ansistrings);
-              if changeinit then
-               exclude(init_settings.localswitches,cs_ansistrings);
-            end;
+           HandleModeSwitches(changeinit);
 
            { turn on bitpacking for mode macpas }
            if (m_mac in current_settings.modeswitches) then
@@ -406,6 +413,46 @@ implementation
         SetCompileMode:=b;
       end;
 
+
+    Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
+      var
+        i : tmodeswitch;
+        doinclude : boolean;
+      begin
+        s:=upper(s);
+
+        { on/off? }
+        doinclude:=true;
+        case s[length(s)] of
+          '+':
+            s:=copy(s,1,length(s)-1);
+          '-':
+            begin
+              s:=copy(s,1,length(s)-1);
+              doinclude:=false;
+            end;
+        end;
+
+        Result:=false;
+        for i:=m_class to high(tmodeswitch) do
+          if s=modeswitchstr[i] then
+            begin
+              if changeInit then
+                current_settings.modeswitches:=init_settings.modeswitches;
+              Result:=true;
+              if doinclude then
+                include(current_settings.modeswitches,i)
+              else
+                exclude(current_settings.modeswitches,i);
+
+              { set other switches depending on changed mode switch }
+              HandleModeSwitches(changeinit);
+
+              if changeInit then
+                init_settings.modeswitches:=current_settings.modeswitches;
+              break;
+            end;
+      end;
 
 {*****************************************************************************
                            Conditional Directives

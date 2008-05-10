@@ -964,7 +964,8 @@ begin
              begin
                more:=Upper(more);
                if not SetCompileMode(more, true) then
-                 IllegalPara(opt);
+                 if not SetCompileModeSwitch(more, true) then
+                   IllegalPara(opt);
              end;
 
            'n' :
@@ -2016,7 +2017,7 @@ begin
     include(init_settings.moduleswitches,cs_create_pic)
   else
     exclude(init_settings.moduleswitches,cs_create_pic);
-    
+
   { Resources support }
   if (tf_has_winlike_resources in target_info.flags) then
     if def then

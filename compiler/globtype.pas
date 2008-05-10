@@ -41,7 +41,7 @@ interface
 {$else cpu64bitaddr}
        PUint = cardinal;
        PInt = longint;
-{$endif cpu64bitaddr}     
+{$endif cpu64bitaddr}
 
        { Natural integer register type and size for the target machine }
 {$ifdef cpu64bitalu}
@@ -315,6 +315,33 @@ interface
 {$else}
        pocall_default = pocall_stdcall;
 {$endif}
+
+       modeswitchstr : array[tmodeswitch] of string[18] = ('','',
+         '','','','','',
+         {$ifdef fpc_mode}'',{$endif}
+         { more specific }
+         'CLASS',
+         'OBJPAS',
+         'RESULT',
+         'PCHARTOSTRING',
+         'CVAR',
+         'NESTEDCOMMENTS',
+         'CLASSICPROCVARS',
+         'MACPROCVARS',
+         'REPEATFORWARD',
+         'POINTERTOPROCVAR',
+         'AUTODEREF',
+         'INITFINAL',
+         'POINTERARITHMETICS',
+         'ANSISTRINGS',
+         'OUT',
+         'DEFAULTPARAMETERS',
+         'HINTDIRECTIVE',
+         'DUPLICATELOCALS',
+         'PROPERTIES',
+         'ALLOWINLINE',
+         'EXCEPTIONS');
+
 
      type
        tprocinfoflag=(

@@ -763,6 +763,26 @@ implementation
       current_module.mode_switch_allowed:= false;
     end;
 
+
+    procedure dir_modeswitch;
+      var
+        s : string;
+      begin
+        if not current_module.in_global then
+          Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner.skipspace;
+            current_scanner.readstring;
+            s:=pattern;
+            if c in ['+','-'] then
+              s:=s+current_scanner.readstate;
+            if not SetCompileModeSwitch(s,false) then
+              Message1(scan_w_illegal_switch,s)
+          end;
+      end;
+
+
     procedure dir_mmx;
       begin
         do_localswitch(cs_mmx);
@@ -1354,6 +1374,7 @@ implementation
         AddDirective('MINSTACKSIZE',directive_all, @dir_minstacksize);
         AddDirective('MMX',directive_all, @dir_mmx);
         AddDirective('MODE',directive_all, @dir_mode);
+        AddDirective('MODESWITCH',directive_all, @dir_modeswitch);
         AddDirective('NODEFINE',directive_all, @dir_nodefine);
         AddDirective('NOTE',directive_all, @dir_note);
         AddDirective('NOTES',directive_all, @dir_notes);
