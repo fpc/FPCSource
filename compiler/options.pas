@@ -1155,7 +1155,9 @@ begin
                              end
                            else
                              begin
-                               if not(IncludeFeature(upper(copy(more,j,length(more)-j+1)))) then
+                               if (IncludeFeature(upper(copy(more,j,length(more)-j+1)))) then
+                                 j:=length(more)
+                               else
                                  IllegalPara(opt);
                              end;
                          end;
@@ -1958,6 +1960,7 @@ procedure TOption.TargetOptions(def:boolean);
 var
   s : string;
   i : integer;
+  target_unsup_features : tfeatures;
 begin
   if def then
    def_system_macro(target_info.shortname)
@@ -2020,6 +2023,22 @@ begin
       def_system_macro('FPC_HAS_WINLIKERESOURCES')
     else
       undef_system_macro('FPC_HAS_WINLIKERESOURCES');
+
+  { Features }
+  case target_info.system of
+    system_arm_gba:
+      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
+    system_arm_nds:
+      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
+    system_i386_go32v2:
+      target_unsup_features:=[f_threading,f_dynlibs]
+    else
+      target_unsup_features:=[];
+  end;
+  if def then
+    features:=features-target_unsup_features
+  else
+    features:=features+target_unsup_features;
 end;
 
 

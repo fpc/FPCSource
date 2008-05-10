@@ -121,12 +121,6 @@ implementation
              include(supported_calling_conventions,pocall_syscall);
            system_m68k_amiga:
              include(supported_calling_conventions,pocall_syscall);
-           system_arm_gba:
-             features:=features-[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio];
-           system_arm_nds:
-             features:=features-[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio];
-           system_i386_go32v2:
-             features:=features-[f_threading];
          end;
       end;
 
