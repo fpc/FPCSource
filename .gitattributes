@@ -5573,7 +5573,6 @@ rtl/objpas/classes/constss.inc svneol=native#text/plain
 rtl/objpas/classes/cregist.inc svneol=native#text/plain
 rtl/objpas/classes/dm.inc svneol=native#text/plain
 rtl/objpas/classes/filer.inc svneol=native#text/plain
-rtl/objpas/classes/filerec.inc svneol=native#text/plain
 rtl/objpas/classes/intf.inc svneol=native#text/plain
 rtl/objpas/classes/lists.inc svneol=native#text/plain
 rtl/objpas/classes/parser.inc svneol=native#text/plain
