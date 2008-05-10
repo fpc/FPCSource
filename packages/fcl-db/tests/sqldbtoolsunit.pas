@@ -94,6 +94,7 @@ implementation
 
 procedure TSQLDBConnector.CreateFConnection;
 var i : TSQLDBTypes;
+    t : integer;
 begin
   for i := low(DBTypesNames) to high(DBTypesNames) do
     if UpperCase(dbconnectorparams) = DBTypesNames[i] then sqldbtype := i;
@@ -102,6 +103,13 @@ begin
     
   if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
   if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
+  if SQLDbType in [mysql40,mysql41] then
+    begin
+    // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
+    // fields on insertion. So to test properly, we have to do the same
+    for t := 0 to testValuesCount-1 do
+      testStringValues[t] := TrimRight(testStringValues[t]);
+    end;
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
   if SQLDbType in MySQLdbTypes then
     FieldtypeDefinitions[ftLargeint] := 'BIGINT';
@@ -209,7 +217,7 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            sql1 := sql1 + ',''' + testValues[FType,CountID] + ''''
+            sql1 := sql1 + ',''' + StringReplace(testValues[FType,CountID],'''','''''',[rfReplaceAll]) + ''''
           else
             sql1 := sql1 + ',NULL';
           end;
@@ -227,26 +235,32 @@ end;
 
 procedure TSQLDBConnector.DropNDatasets;
 begin
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
+  if assigned(FTransaction) then
+    begin
+    try
+      if Ftransaction.Active then Ftransaction.Rollback;
+      Ftransaction.StartTransaction;
+      Fconnection.ExecuteDirect('DROP TABLE FPDEV');
+      Ftransaction.Commit;
+    Except
+      if Ftransaction.Active then Ftransaction.Rollback
+    end;
+    end;
 end;
 
 procedure TSQLDBConnector.DropFieldDataset;
 begin
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
+  if assigned(FTransaction) then
+    begin
+    try
+      if Ftransaction.Active then Ftransaction.Rollback;
+      Ftransaction.StartTransaction;
+      Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
+      Ftransaction.Commit;
+    Except
+      if Ftransaction.Active then Ftransaction.Rollback
+    end;
+    end;
 end;
 
 function TSQLDBConnector.InternalGetNDataset(n: integer): TDataset;
@@ -271,14 +285,17 @@ end;
 
 destructor TSQLDBConnector.Destroy;
 begin
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
+  if assigned(FTransaction) then
+    begin
+    try
+      if Ftransaction.Active then Ftransaction.Rollback;
+      Ftransaction.StartTransaction;
+      Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
+      Ftransaction.Commit;
+    Except
+      if Ftransaction.Active then Ftransaction.Rollback
+    end; // try
+    end;
   inherited Destroy;
 
   FreeAndNil(FQuery);

@@ -88,30 +88,6 @@ const
   testIntValuesCount = 17;
   testIntValues : Array[0..testIntValuesCount-1] of integer = (-maxInt,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt);
 
-  testStringValuesCount = 20;
-  testStringValues : Array[0..testStringValuesCount-1] of string = (
-    '',
-    'a',
-    'ab',
-    'abc',
-    'abcd',
-    'abcde',
-    'abcdef',
-    'abcdefg',
-    'abcdefgh',
-    'abcdefghi',
-    'abcdefghij',
-    'lMnOpQrStU',
-    '1234567890',
-    '_!@#$%^&*(',
-    ' ''quotes'' ',
-    ')-;:/?.<>',
-    '~`|{}- =',    // note that there's no \  (backslash) since some db's uses that as escape-character
-    '  WRaP  ',
-    'wRaP  ',
-    ' wRAP'
-  );
-
   testDateValuesCount = 18;
   testDateValues : Array[0..testDateValuesCount-1] of string = (
     '2000-01-01',
@@ -179,15 +155,25 @@ var Ascript : TSQLScript;
 
 begin
   Ascript := tsqlscript.create(nil);
-  with Ascript do
-    begin
-    DataBase := TSQLDBConnector(DBConnector).Connection;
-    transaction := TSQLDBConnector(DBConnector).Transaction;
-    script.clear;
-    script.append('create table a (id int);');
-    script.append('create table b (id int);');
-    ExecuteScript;
-    end;
+  try
+    with Ascript do
+      begin
+      DataBase := TSQLDBConnector(DBConnector).Connection;
+      transaction := TSQLDBConnector(DBConnector).Transaction;
+      script.clear;
+      script.append('create table a (id int);');
+      script.append('create table b (id int);');
+      ExecuteScript;
+      // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+      if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+      end;
+  finally
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  end;
 end;
 
 procedure TTestFieldTypes.TestInt;
@@ -311,8 +297,8 @@ begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      if (SQLDbType in MySQLdbTypes) then
-        AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL automatically trims strings
+      if (SQLDbType in [mysql40,mysql41]) then
+        AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL < 5.0.3 automatically trims strings
       else
         AssertEquals(testValues[i],fields[0].AsString);
       Next;
@@ -708,7 +694,7 @@ end;
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
-  TestXXParamQuery(ftString,'VARCHAR(10)',testStringValuesCount);
+  TestXXParamQuery(ftString,'VARCHAR(10)',testValuesCount);
 end;
 
 procedure TTestFieldTypes.TestDateParamQuery;
@@ -913,7 +899,7 @@ begin
     begin
     with query do
       begin
-      SQL.Text:='select TT.NAME from FPDEV left join FPDEV as TT on TT.ID=FPDEV.ID';
+      SQL.Text:='select TT.NAME from FPDEV left join FPDEV TT on TT.ID=FPDEV.ID';
       Open;
       close;
       end;
@@ -946,7 +932,7 @@ procedure TTestFieldTypes.TestNumericNames;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-    if sqQuoteFieldnames in Connection.ConnOptions then
+    if not (SQLDbType in MySQLdbTypes) then
       Connection.ExecuteDirect('create table FPDEV2 (         ' +
                                 '  "2ID" INT NOT NULL            , ' +
                                 '  "3TEST" VARCHAR(10),     ' +

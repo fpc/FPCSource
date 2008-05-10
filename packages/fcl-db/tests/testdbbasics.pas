@@ -905,6 +905,7 @@ procedure TTestDBBasics.TestAddIndexFieldType(AFieldType: TFieldType; ActiveDS :
 var ds : TBufDataset;
     FList : TStringList;
     LastValue : Variant;
+    StrValue : String;
 begin
   ds := DBConnector.GetFieldDataset as TBufDataset;
   with ds do
@@ -939,14 +940,20 @@ begin
     LastValue:=null;
     while not eof do
       begin
-      AssertTrue(LastValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
+      if AFieldType=ftString then
+        AssertTrue(AnsiCompareStr(VarToStr(LastValue),VarToStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString))<=0)
+      else
+        AssertTrue(LastValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
       LastValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant;
       Next;
       end;
 
     while not bof do
       begin
-      AssertTrue(LastValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
+      if AFieldType=ftString then
+        AssertTrue(AnsiCompareStr(VarToStr(LastValue),VarToStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString))>=0)
+      else
+        AssertTrue(LastValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
       LastValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant;
       Prior;
       end;
@@ -1187,7 +1194,7 @@ begin
     LastValue:=FieldByName('name').AsString;
     while not eof do
       begin
-      AssertTrue(LastValue<=FieldByName('name').AsString);
+      AssertTrue(AnsiCompareStr(LastValue,FieldByName('name').AsString)<=0);
       Next;
       end;
     end;
@@ -1314,48 +1321,45 @@ end;
 
 procedure TTestDBBasics.TestAddDblIndex;
 var ds : TBufDataset;
-    FList : TStringList;
-    i : integer;
+    LastInteger : Integer;
+    LastString : string;
 begin
   ds := DBConnector.GetFieldDataset as TBufDataset;
   with ds do
     begin
 
     AddIndex('testindex','F'+FieldTypeNames[ftString]+';F'+FieldTypeNames[ftInteger],[]);
-    FList := TStringList.Create;
-    FList.Sorted:=true;
-    FList.CaseSensitive:=True;
-    FList.Duplicates:=dupAccept;
     open;
-
-    while not eof do
-      begin
-      // If the first field of the index is null then the compound string in
-      // FList isn't sorted right...
-      if FieldByName('F'+FieldTypeNames[ftString]).IsNull then
-        flist.Add('         -'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]))
-      else
-        flist.Add(FieldByName('F'+FieldTypeNames[ftString]).AsString+'-'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]));
-      Next;
-      end;
 
     IndexName:='testindex';
     first;
-    i:=0;
 
+    LastString:='';
     while not eof do
       begin
-      if (not FieldByName('F'+FieldTypeNames[ftString]).IsNull) then
-        AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[ftString]).AsString+'-'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]));
-      inc(i);
-      Next;
+      AssertTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[ftString]).AsString,LastString)>=0);
+      LastString:= FieldByName('F'+FieldTypeNames[ftString]).AsString;
+
+      LastInteger:=-MaxInt;
+      while (FieldByName('F'+FieldTypeNames[ftString]).AsString=LastString) and not eof do
+        begin
+        AssertTrue(FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger>=LastInteger);
+        LastInteger:=FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger;
+        next;
+        end;
       end;
     while not bof do
       begin
-      dec(i);
-      if not FieldByName('F'+FieldTypeNames[ftString]).IsNull then
-        AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[ftString]).AsString+'-'+ Format('%.12d',[FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger]));
-      Prior;
+      AssertTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[ftString]).AsString,LastString)<=0);
+      LastString:= FieldByName('F'+FieldTypeNames[ftString]).AsString;
+
+      LastInteger:=+MaxInt;
+      while (FieldByName('F'+FieldTypeNames[ftString]).AsString=LastString) and not bof do
+        begin
+        AssertTrue(FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger<=LastInteger);
+        LastInteger:=FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger;
+        prior;
+        end;
       end;
     end;
 end;
@@ -1379,17 +1383,17 @@ begin
     AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
     next;
-    AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    AssertTrue(AnsiCompareStr(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
     prior;
     
     edit;
     FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ';
     post;
     prior;
-    AssertTrue('ZZZ'>=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    AssertTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0);
     next;
     next;
-    AssertTrue('ZZZ'<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    AssertTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
     close;
     end;
 end;
@@ -1410,7 +1414,7 @@ begin
     PrevValue:='';
     while not eof do
       begin
-      AssertTrue(FieldByName('F'+FieldTypeNames[AfieldType]).AsString>=PrevValue);
+      AssertTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString,PrevValue)>=0);
       PrevValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
       Next;
       end;

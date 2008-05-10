@@ -280,8 +280,8 @@ procedure TIBConnection.CreateDB;
 
 var ASQLDatabaseHandle,
     ASQLTransactionHandle : pointer;
-    CreateSQL             : String;
-
+    CreateSQL : String;
+    pagesize : String;
 begin
   CheckDisConnected;
 {$IfDef LinkDynamically}
@@ -289,10 +289,17 @@ begin
 {$EndIf}
   ASQLDatabaseHandle := nil;
   ASQLTransactionHandle := nil;
-  
+
   CreateSQL := 'CREATE DATABASE ';
   if HostName <> '' then CreateSQL := CreateSQL + ''''+ HostName+':'+DatabaseName + ''''
     else CreateSQL := CreateSQL + '''' + DatabaseName + '''';
+  if UserName <> '' then
+    CreateSQL := CreateSQL + ' USER ''' + Username + '''';
+  if Password <> '' then
+    CreateSQL := CreateSQL + ' PASSWORD ''' + Password + '''';
+  pagesize := params.Values['PAGE_SIZE'];
+  if pagesize <> '' then
+    CreateSQL := CreateSQL + ' PAGE_SIZE '+pagesize;
 
   if isc_dsql_execute_immediate(@FStatus[0],@ASQLDatabaseHandle,@ASQLTransactionHandle,length(CreateSQL),@CreateSQL[1],Dialect,nil) <> 0 then
     CheckError('CreateDB', FStatus);

@@ -124,7 +124,7 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash] + [sqQuoteFieldnames];
 end;
 
 procedure TPQConnection.CreateDB;
@@ -458,7 +458,7 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',
       'Unknown',
       'Unknown',
-      'Unknown',
+      'text',
       'Unknown',
       'Unknown',
       'Unknown',
@@ -851,6 +851,27 @@ begin
                         'where '+
                           'relkind=''r''' +
                         'order by relname';
+    stColumns    : s := 'select '+
+                          'a.attnum                 as recno, '+
+                          '''''                     as catalog_name, '+
+                          '''''                     as schema_name, '+
+                          'c.relname                as table_name, '+
+                          'a.attname                as column_name, '+
+                          '0                        as column_position, '+
+                          '0                        as column_type, '+
+                          '0                        as column_datatype, '+
+                          '''''                     as column_typename, '+
+                          '0                        as column_subtype, '+
+                          '0                        as column_precision, '+
+                          '0                        as column_scale, '+
+                          'a.atttypmod              as column_length, '+
+                          'not a.attnotnull         as column_nullable '+
+                        'from '+
+                          ' pg_class c, pg_attribute a '+
+                        'WHERE '+
+                        // This can lead to problems when case-sensitive tablenames are used.
+                          '(c.oid=a.attrelid) and (a.attnum>0) and (not a.attisdropped) and (upper(c.relname)=''' + Uppercase(SchemaObjectName) + ''') ' +
+                        'order by a.attname';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}

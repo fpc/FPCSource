@@ -276,35 +276,13 @@ implementation
 
 uses variants, dbconst;
 
-function DBCompareTextLen(substr, astr: pchar; len : integer; options: TLocateOptions): int64;
-
-var
-  i : integer; Chr1, Chr2: byte;
-begin
-  result := 0;
-  i := 0;
-  chr1 := 1;
-  while (result=0) and (i<=len) and (chr1 <> 0) do
-    begin
-    Chr1 := byte(substr[i]);
-    Chr2 := byte(astr[i]);
-    inc(i);
-    if loCaseInsensitive in options then
-      begin
-      if Chr1 in [97..122] then
-        dec(Chr1,32);
-      if Chr2 in [97..122] then
-        dec(Chr2,32);
-      end;
-    result := Chr1 - Chr2;
-    end;
-  if (result <> 0) and (chr1 = 0) and (loPartialKey in options) then result := 0;
-end;
-
 function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := DBCompareTextLen(subValue,aValue,Length(pchar(subValue)),options);
+  if loCaseInsensitive in options then
+    Result := AnsiCompareText(pchar(subValue),pchar(aValue))
+  else
+    Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
 end;
 
 function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
@@ -328,7 +306,14 @@ end;
 function DBCompareLargeInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PInt64(subValue)^-PInt64(aValue)^;
+  // A simple subtraction doesn't work, since it could be that the result
+  // doesn't fit into a LargeInt
+  if PLargeInt(subValue)^ < PLargeInt(aValue)^ then
+    result := -1
+  else if PLargeInt(subValue)^  > PLargeInt(aValue)^ then
+    result := 1
+  else
+    result := 0;
 end;
 
 function DBCompareWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
@@ -340,16 +325,27 @@ end;
 function DBCompareQWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
-  Result := PQWord(subValue)^-PQWord(aValue)^;
+  // A simple subtraction doesn't work, since it could be that the result
+  // doesn't fit into a LargeInt
+  if PQWord(subValue)^ < PQWord(aValue)^ then
+    result := -1
+  else if PQWord(subValue)^  > PQWord(aValue)^ then
+    result := 1
+  else
+    result := 0;
 end;
 
 function DBCompareDouble(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 var Dbl : Double;
 begin
-  Dbl := PDouble(subValue)^-PDouble(aValue)^;
-  if dbl < 0 then result := -1
-  else if dbl > 0 then result := 1
-  else result := 0;
+  // A simple subtraction doesn't work, since it could be that the result
+  // doesn't fit into a LargeInt
+  if PDouble(subValue)^ < PDouble(aValue)^ then
+    result := -1
+  else if PDouble(subValue)^  > PDouble(aValue)^ then
+    result := 1
+  else
+    result := 0;
 end;
 
 function IndexCompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : TDBCompareStruct) : LargeInt;
@@ -963,11 +959,11 @@ begin
   case AField.DataType of
     ftString : ACompareRec.Comparefunc := @DBCompareText;
     ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
-    ftInteger, ftCurrency, ftBCD : ACompareRec.Comparefunc :=
+    ftInteger, ftBCD : ACompareRec.Comparefunc :=
       @DBCompareInt;
     ftWord : ACompareRec.Comparefunc := @DBCompareWord;
     ftBoolean : ACompareRec.Comparefunc := @DBCompareByte;
-    ftFloat : ACompareRec.Comparefunc := @DBCompareDouble;
+    ftFloat, ftCurrency : ACompareRec.Comparefunc := @DBCompareDouble;
     ftDateTime, ftDate, ftTime : ACompareRec.Comparefunc :=
       @DBCompareDouble;
     ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
@@ -1125,8 +1121,7 @@ function TBufDataset.getnextpacket : integer;
 
 var i : integer;
     pb : pchar;
-    IndexNr : integer;
-    
+
 begin
   if FAllPacketsFetched then
     begin
@@ -1183,7 +1178,8 @@ begin
       ftword     : result := sizeof(longint);
     ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);
-    ftFloat      : result := sizeof(double);
+    ftFloat,
+      ftCurrency : result := sizeof(double);
     ftLargeInt   : result := sizeof(largeint);
     ftTime,
       ftDate,
