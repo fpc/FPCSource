@@ -67,5 +67,9 @@ const fpini : array[0..4,1..240] of char=(
   'Title5="svn ~b~lame"'#013#010+
   'Program5="svn"'#013#010+
   'Pa','rams5="blame $CAP_MSG() $EDNAME"'#013#010+
-  'HotKey5=34816'#013#010
+  'HotKey5=34816'#013#010+
+  'Title6="svn ~a~dd"'#013#010+
+  'Program6="svn"'#013#010+
+  'Params6="add $CAP_MSG() $EDNAME"'#013#010+
+  'HotKey6=0'#013#010
 );
