@@ -17,6 +17,10 @@ unit gd;
 
   interface
 
+{$if defined(FPC_HAS_FEATURE_DYNLIBS) and (not defined(go32v2))}
+  {$define DYNLINK}
+{$endif}
+
 {$linklib c}
 {$linklib m}
 {$linklib png}
@@ -88,11 +92,11 @@ var
   gdFontMediumBold : gdFontPtr; cvar; external;
   gdFontTiny       : gdFontPtr; cvar; external;
 {$else darwin}
-  gdFontLarge      : gdFontPtr; external libgd name 'gdFontLarge';
-  gdFontSmall      : gdFontPtr; external libgd name 'gdFontSmall';
-  gdFontGiant      : gdFontPtr; external libgd name 'gdFontGiant';
-  gdFontMediumBold : gdFontPtr; external libgd name 'gdFontMediumBold';
-  gdFontTiny       : gdFontPtr; external libgd name 'gdFontTiny';
+  gdFontLarge      : gdFontPtr; external {$ifdef DYNLINK} libgd {$endif} name 'gdFontLarge';
+  gdFontSmall      : gdFontPtr; external {$ifdef DYNLINK} libgd {$endif} name 'gdFontSmall';
+  gdFontGiant      : gdFontPtr; external {$ifdef DYNLINK} libgd {$endif} name 'gdFontGiant';
+  gdFontMediumBold : gdFontPtr; external {$ifdef DYNLINK} libgd {$endif} name 'gdFontMediumBold';
+  gdFontTiny       : gdFontPtr; external {$ifdef DYNLINK} libgd {$endif} name 'gdFontTiny';
 {$endif darwin}
 
 const
@@ -139,91 +143,91 @@ type
   GDIOCTXPTR = pgdIOCtx;
 
 { Translated from gd_io.h}
-function fopen(a,b:pchar):pFile; cdecl;external libc;
-procedure fclose(a:pFile); cdecl;external libc;
+function fopen(a,b:pchar):pFile; cdecl;external {$ifdef DYNLINK} libc {$endif};
+procedure fclose(a:pFile); cdecl;external {$ifdef DYNLINK} libc {$endif};
 
-procedure Putword(w:longint; ctx:PgdIOCtx); cdecl; external libgd;
-procedure Putchar(c:longint; ctx:PgdIOCtx); cdecl; external libgd;
-procedure gdPutC(c:byte; ctx:PgdIOCtx); cdecl; external libgd;
-function gdPutBuf(_para1:pointer; _para2:longint; _para3:PgdIOCtx):longint; cdecl; external libgd;
-procedure gdPutWord(w:longint; ctx:PgdIOCtx); cdecl; external libgd;
-procedure gdPutInt(w:longint; ctx:PgdIOCtx); cdecl; external libgd;
-function gdGetC(ctx:PgdIOCtx):longint; cdecl; external libgd;
-function gdGetBuf(_para1:pointer; _para2:longint; _para3:PgdIOCtx):longint; cdecl; external libgd;
-function gdGetByte(result:Plongint; ctx:PgdIOCtx):longint; cdecl; external libgd;
-function gdGetWord(result:Plongint; ctx:PgdIOCtx):longint; cdecl; external libgd;
-function gdGetInt(result:Plongint; ctx:PgdIOCtx):longint; cdecl; external libgd;
-function gdSeek(ctx:PgdIOCtx; _para2:longint):longint; cdecl; external libgd;
-function gdTell(ctx:PgdIOCtx):longint; cdecl; external libgd;
+procedure Putword(w:longint; ctx:PgdIOCtx); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure Putchar(c:longint; ctx:PgdIOCtx); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdPutC(c:byte; ctx:PgdIOCtx); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdPutBuf(_para1:pointer; _para2:longint; _para3:PgdIOCtx):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdPutWord(w:longint; ctx:PgdIOCtx); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdPutInt(w:longint; ctx:PgdIOCtx); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdGetC(ctx:PgdIOCtx):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdGetBuf(_para1:pointer; _para2:longint; _para3:PgdIOCtx):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdGetByte(result:Plongint; ctx:PgdIOCtx):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdGetWord(result:Plongint; ctx:PgdIOCtx):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdGetInt(result:Plongint; ctx:PgdIOCtx):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdSeek(ctx:PgdIOCtx; _para2:longint):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdTell(ctx:PgdIOCtx):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
 
-function gdImageCreate(sx:longint; sy:longint):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromPng(fd:PFILE):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromPngCtx(inIO:gdIOCtxPtr):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromWBMP(inFile:PFILE):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromWBMPCtx(infile:PgdIOCtx):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromJpeg(infile:PFILE):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromJpegCtx(infile:PgdIOCtx):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromPngSource(infile:gdSourcePtr):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromGd(infile:PFILE):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromGdCtx(infile:gdIOCtxPtr):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromGd2(infile:PFILE):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromGd2Ctx(infile:gdIOCtxPtr):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromGd2Part(infile:PFILE; srcx:longint; srcy:longint; w:longint; h:longint):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromGd2PartCtx(infile:gdIOCtxPtr; srcx:longint; srcy:longint; w:longint; h:longint):gdImagePtr; cdecl; external libgd;
-function gdImageCreateFromXbm(fd:PFILE):gdImagePtr; cdecl; external libgd;
-procedure gdImageDestroy(im:gdImagePtr); cdecl; external libgd;
-procedure gdImageSetPixel(im:gdImagePtr; x:longint; y:longint; color:longint); cdecl; external libgd;
-function gdImageGetPixel(im:gdImagePtr; x:longint; y:longint):longint; cdecl; external libgd;
-procedure gdImageLine(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;  color:longint); cdecl; external libgd;
-procedure gdImageDashedLine(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;               color:longint); cdecl; external libgd;
-procedure gdImageRectangle(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;              color:longint); cdecl; external libgd;
-procedure gdImageFilledRectangle(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;               color:longint); cdecl; external libgd;
-function gdImageBoundsSafe(im:gdImagePtr; x:longint; y:longint):longint; cdecl; external libgd;
-procedure gdImageChar(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; c:longint; color:longint); cdecl; external libgd;
-procedure gdImageCharUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; c:longint; color:longint); cdecl; external libgd;
-procedure gdImageString(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pbyte;  color:longint); cdecl; external libgd;
-procedure gdImageStringUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pbyte; color:longint); cdecl; external libgd;
-procedure gdImageString16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pword; color:longint); cdecl; external libgd;
-procedure gdImageStringUp16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pword; color:longint); cdecl; external libgd;
+function gdImageCreate(sx:longint; sy:longint):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromPng(fd:PFILE):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromPngCtx(inIO:gdIOCtxPtr):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromWBMP(inFile:PFILE):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromWBMPCtx(infile:PgdIOCtx):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromJpeg(infile:PFILE):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromJpegCtx(infile:PgdIOCtx):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromPngSource(infile:gdSourcePtr):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromGd(infile:PFILE):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromGdCtx(infile:gdIOCtxPtr):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromGd2(infile:PFILE):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromGd2Ctx(infile:gdIOCtxPtr):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromGd2Part(infile:PFILE; srcx:longint; srcy:longint; w:longint; h:longint):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromGd2PartCtx(infile:gdIOCtxPtr; srcx:longint; srcy:longint; w:longint; h:longint):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageCreateFromXbm(fd:PFILE):gdImagePtr; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageDestroy(im:gdImagePtr); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageSetPixel(im:gdImagePtr; x:longint; y:longint; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageGetPixel(im:gdImagePtr; x:longint; y:longint):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageLine(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;  color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageDashedLine(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;               color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageRectangle(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;              color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageFilledRectangle(im:gdImagePtr; x1:longint; y1:longint; x2:longint; y2:longint;               color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageBoundsSafe(im:gdImagePtr; x:longint; y:longint):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageChar(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; c:longint; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageCharUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; c:longint; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageString(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pbyte;  color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageStringUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pbyte; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageString16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pword; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageStringUp16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:Pword; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
 {$ifdef HasTTF}
-function gdImageStringTTF(im:PgdImage; brect:Plongint; fg:longint; fontlist:Pchar; ptsize:double; angle:double; x:longint; y:longint; astring:Pchar):Pchar; cdecl; external libgd;
-function gdImageStringFT(im:PgdImage; brect:Plongint; fg:longint; fontlist:Pchar; ptsize:double; angle:double; x:longint; y:longint; astring:Pchar):Pchar; cdecl; external libgd;
+function gdImageStringTTF(im:PgdImage; brect:Plongint; fg:longint; fontlist:Pchar; ptsize:double; angle:double; x:longint; y:longint; astring:Pchar):Pchar; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageStringFT(im:PgdImage; brect:Plongint; fg:longint; fontlist:Pchar; ptsize:double; angle:double; x:longint; y:longint; astring:Pchar):Pchar; cdecl; external {$ifdef DYNLINK} libgd {$endif};
 {$endif hasTTF}
-procedure gdImagePolygon(im:gdImagePtr; p:gdPointPtr; n:longint; c:longint); cdecl; external libgd;
-procedure gdImageFilledPolygon(im:gdImagePtr; p:gdPointPtr; n:longint; c:longint); cdecl; external libgd;
-function gdImageColorAllocate(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external libgd;
-function gdImageColorClosest(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external libgd;
-function gdImageColorExact(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external libgd;
-function gdImageColorResolve(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external libgd;
-procedure gdImageColorDeallocate(im:gdImagePtr; color:longint); cdecl; external libgd;
-procedure gdImageColorTransparent(im:gdImagePtr; color:longint); cdecl; external libgd;
-procedure gdImagePaletteCopy(dst:gdImagePtr; src:gdImagePtr); cdecl; external libgd;
-procedure gdImagePng(im:gdImagePtr; _out:PFILE); cdecl; external libgd;
-procedure gdImagePngCtx(im:gdImagePtr; _out:PgdIOCtx); cdecl; external libgd;
-procedure gdImageWBMP(image:gdImagePtr; fg:longint; _out:PFILE); cdecl; external libgd;
-procedure gdImageWBMPCtx(image:gdImagePtr; fg:longint; _out:PgdIOCtx); cdecl; external libgd;
-procedure gdFree(m:Pvoid); cdecl; external libgd;
-function gdImageWBMPPtr(im:gdImagePtr; size:Plongint; fg:longint):pointer; cdecl; external libgd;
-procedure gdImageJpeg(im:gdImagePtr; _out:PFILE; quality:longint); cdecl; external libgd;
-procedure gdImageJpegCtx(im:gdImagePtr; _out:PgdIOCtx; quality:longint); cdecl; external libgd;
-function gdImageJpegPtr(im:gdImagePtr; size:Plongint; quality:longint):pointer; cdecl; external libgd;
-procedure gdImagePngToSink(im:gdImagePtr; _out:gdSinkPtr); cdecl; external libgd;
-procedure gdImageGd(im:gdImagePtr; _out:PFILE); cdecl; external libgd;
-procedure gdImageGd2(im:gdImagePtr; _out:PFILE; cs:longint; fmt:longint); cdecl; external libgd;
-function gdImagePngPtr(im:gdImagePtr; size:Plongint):pointer; cdecl; external libgd;
-function gdImageGdPtr(im:gdImagePtr; size:Plongint):pointer; cdecl; external libgd;
-function gdImageGd2Ptr(im:gdImagePtr; cs:longint; fmt:longint; size:Plongint):pointer; cdecl; external libgd;
-procedure gdImageArc(im:gdImagePtr; cx:longint; cy:longint; w:longint; h:longint;  s:longint; e:longint; color:longint); cdecl; external libgd;
-procedure gdImageFillToBorder(im:gdImagePtr; x:longint; y:longint; border:longint; color:longint); cdecl; external libgd;
-procedure gdImageFill(im:gdImagePtr; x:longint; y:longint; color:longint); cdecl; external libgd;
-procedure gdImageCopy(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;             srcY:longint; w:longint; h:longint); cdecl; external libgd;
-procedure gdImageCopyMerge(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;              srcY:longint; w:longint; h:longint; pct:longint); cdecl; external libgd;
-procedure gdImageCopyMergeGray(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;              srcY:longint; w:longint; h:longint; pct:longint); cdecl; external libgd;
-procedure gdImageCopyResized(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;               srcY:longint; dstW:longint; dstH:longint; srcW:longint; srcH:longint); cdecl; external libgd;
-procedure gdImageSetBrush(im:gdImagePtr; brush:gdImagePtr); cdecl; external libgd;
-procedure gdImageSetTile(im:gdImagePtr; tile:gdImagePtr); cdecl; external libgd;
-procedure gdImageSetStyle(im:gdImagePtr; style:Plongint; noOfPixels:longint); cdecl; external libgd;
-procedure gdImageInterlace(im:gdImagePtr; interlaceArg:longint); cdecl; external libgd;
+procedure gdImagePolygon(im:gdImagePtr; p:gdPointPtr; n:longint; c:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageFilledPolygon(im:gdImagePtr; p:gdPointPtr; n:longint; c:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageColorAllocate(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageColorClosest(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageColorExact(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageColorResolve(im:gdImagePtr; r:longint; g:longint; b:longint):longint; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageColorDeallocate(im:gdImagePtr; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageColorTransparent(im:gdImagePtr; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImagePaletteCopy(dst:gdImagePtr; src:gdImagePtr); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImagePng(im:gdImagePtr; _out:PFILE); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImagePngCtx(im:gdImagePtr; _out:PgdIOCtx); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageWBMP(image:gdImagePtr; fg:longint; _out:PFILE); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageWBMPCtx(image:gdImagePtr; fg:longint; _out:PgdIOCtx); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdFree(m:Pvoid); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageWBMPPtr(im:gdImagePtr; size:Plongint; fg:longint):pointer; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageJpeg(im:gdImagePtr; _out:PFILE; quality:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageJpegCtx(im:gdImagePtr; _out:PgdIOCtx; quality:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageJpegPtr(im:gdImagePtr; size:Plongint; quality:longint):pointer; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImagePngToSink(im:gdImagePtr; _out:gdSinkPtr); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageGd(im:gdImagePtr; _out:PFILE); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageGd2(im:gdImagePtr; _out:PFILE; cs:longint; fmt:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImagePngPtr(im:gdImagePtr; size:Plongint):pointer; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageGdPtr(im:gdImagePtr; size:Plongint):pointer; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdImageGd2Ptr(im:gdImagePtr; cs:longint; fmt:longint; size:Plongint):pointer; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageArc(im:gdImagePtr; cx:longint; cy:longint; w:longint; h:longint;  s:longint; e:longint; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageFillToBorder(im:gdImagePtr; x:longint; y:longint; border:longint; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageFill(im:gdImagePtr; x:longint; y:longint; color:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageCopy(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;             srcY:longint; w:longint; h:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageCopyMerge(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;              srcY:longint; w:longint; h:longint; pct:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageCopyMergeGray(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;              srcY:longint; w:longint; h:longint; pct:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageCopyResized(dst:gdImagePtr; src:gdImagePtr; dstX:longint; dstY:longint; srcX:longint;               srcY:longint; dstW:longint; dstH:longint; srcW:longint; srcH:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageSetBrush(im:gdImagePtr; brush:gdImagePtr); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageSetTile(im:gdImagePtr; tile:gdImagePtr); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageSetStyle(im:gdImagePtr; style:Plongint; noOfPixels:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
+procedure gdImageInterlace(im:gdImagePtr; interlaceArg:longint); cdecl; external {$ifdef DYNLINK} libgd {$endif};
 
 { Translated macros }
 function gdImageSX(im : pgdimage) : longint;
@@ -235,10 +239,10 @@ function gdImageBlue(im : pgdimage; c : longint): longint;
 function gdImageGetTransparent(im : pgdimage) : longint;
 function gdImageGetInterlaced(im : pgdimage) : longint;
 
-function gdNewFileCtx(_para1:PFILE):PgdIOCtx; cdecl; external libgd;
-function gdNewDynamicCtx(_para1:longint; _para2:pointer):PgdIOCtx; cdecl; external libgd;
-function gdNewSSCtx(infile:gdSourcePtr; _out:gdSinkPtr):PgdIOCtx; cdecl; external libgd;
-function gdDPExtractData(ctx:pointer; size:Plongint):pointer; cdecl; external libgd;
+function gdNewFileCtx(_para1:PFILE):PgdIOCtx; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdNewDynamicCtx(_para1:longint; _para2:pointer):PgdIOCtx; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdNewSSCtx(infile:gdSourcePtr; _out:gdSinkPtr):PgdIOCtx; cdecl; external {$ifdef DYNLINK} libgd {$endif};
+function gdDPExtractData(ctx:pointer; size:Plongint):pointer; cdecl; external {$ifdef DYNLINK} libgd {$endif};
 
 {overloaded pascal functions}
 function fopen(a,b:string):pFile;
@@ -263,7 +267,7 @@ const
   GD2_FMT_RAW = 1;
   GD2_FMT_COMPRESSED = 2;
 
-function gdImageCompare(im1:gdImagePtr; im2:gdImagePtr):longint;cdecl; external libgd;
+function gdImageCompare(im1:gdImagePtr; im2:gdImagePtr):longint;cdecl; external {$ifdef DYNLINK} libgd {$endif};
 
 const
   GD_CMP_IMAGE = 1;
