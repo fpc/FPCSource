@@ -663,7 +663,7 @@ end;
 
 Function FindNestedComponent(Root : TComponent; APath : String; CStyle : Boolean = True) : TComponent;
 
-  Function GetNextName : String; inline;
+  Function GetNextName : String; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
   
   Var
     P : Integer;

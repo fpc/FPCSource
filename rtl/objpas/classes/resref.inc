@@ -12,8 +12,8 @@ type
     FGlobal,               // Global component.
     FRelative : string;    // Path relative to global component.
     Function Resolve(Instance : TPersistent) : Boolean; // Resolve this reference
-    Function RootMatches(ARoot : TComponent) : Boolean; Inline; // True if Froot matches or ARoot is nil.
-    Function NextRef : TUnresolvedReference; inline;
+    Function RootMatches(ARoot : TComponent) : Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE} // True if Froot matches or ARoot is nil.
+    Function NextRef : TUnresolvedReference; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
   end;
   
   TLocalUnResolvedReference = class(TUnresolvedReference)
@@ -29,7 +29,7 @@ type
     FUnresolved : TLinkedList; // The list
     Destructor Destroy; override;
     Function AddReference(ARoot : TComponent; APropInfo : PPropInfo; AGlobal,ARelative : String) : TUnresolvedReference;
-    Function RootUnresolved : TUnresolvedReference; inline; // Return root element in list.
+    Function RootUnresolved : TUnresolvedReference; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE} // Return root element in list.
     Function ResolveReferences : Boolean; // Return true if all unresolveds were resolved.
   end;
 
@@ -226,7 +226,7 @@ begin
     end;
 end; 
 
-Function TUnresolvedReference.RootMatches(ARoot : TComponent) : Boolean; Inline;
+Function TUnresolvedReference.RootMatches(ARoot : TComponent) : Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 
 begin
   Result:=(ARoot=Nil) or (ARoot=FRoot);

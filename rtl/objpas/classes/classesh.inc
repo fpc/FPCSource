@@ -1316,13 +1316,13 @@ type
     fLastTokenWStr : widestring;
     function GetTokenName(aTok : char) : string;
     procedure LoadBuffer;
-    procedure CheckLoadBuffer; inline;
-    procedure ProcessChar; inline;
-    function IsNumber : boolean; inline;
-    function IsHexNum : boolean; inline;
-    function IsAlpha : boolean; inline;
-    function IsAlphaNum : boolean; inline;
-    function GetHexValue(c : char) : byte; inline;
+    procedure CheckLoadBuffer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    procedure ProcessChar; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function IsNumber : boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function IsHexNum : boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function IsAlpha : boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function IsAlphaNum : boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function GetHexValue(c : char) : byte; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function GetAlphaNum : string;
     procedure HandleNewLine;
     procedure SkipSpaces;

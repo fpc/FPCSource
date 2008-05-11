@@ -53,39 +53,39 @@ begin
   fBufLen:=toread;
 end;
 
-procedure TParser.CheckLoadBuffer; inline;
+procedure TParser.CheckLoadBuffer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   if fBuf[fPos]=#0 then LoadBuffer;
 end;
 
-procedure TParser.ProcessChar; inline;
+procedure TParser.ProcessChar; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   fLastTokenStr:=fLastTokenStr+fBuf[fPos];
   inc(fPos);
   CheckLoadBuffer;
 end;
 
-function TParser.IsNumber: boolean; inline;
+function TParser.IsNumber: boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   Result:=fBuf[fPos] in ['0'..'9'];
 end;
 
-function TParser.IsHexNum: boolean; inline;
+function TParser.IsHexNum: boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   Result:=fBuf[fPos] in ['0'..'9','A'..'F','a'..'f'];
 end;
 
-function TParser.IsAlpha: boolean; inline;
+function TParser.IsAlpha: boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   Result:=fBuf[fPos] in ['_','A'..'Z','a'..'z'];
 end;
 
-function TParser.IsAlphaNum: boolean; inline;
+function TParser.IsAlphaNum: boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   Result:=IsAlpha or IsNumber;
 end;
 
-function TParser.GetHexValue(c: char): byte; inline;
+function TParser.GetHexValue(c: char): byte; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   case c of
     '0'..'9' : Result:=ord(c)-$30;
