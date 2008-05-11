@@ -240,7 +240,7 @@
        E2 VectorFromBstr
 }
 
-unit oleaut32;
+unit oleauto;
 
 interface
 
