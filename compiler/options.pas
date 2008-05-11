@@ -2030,9 +2030,7 @@ begin
     system_arm_gba:
       target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
     system_arm_nds:
-      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
-    system_i386_go32v2:
-      target_unsup_features:=[f_threading,f_dynlibs]
+      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs]
     else
       target_unsup_features:=[];
   end;
