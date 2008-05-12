@@ -162,6 +162,9 @@ end;
                                --- Exec ---
 ******************************************************************************}
 
+const
+  DOS_MAX_COMMAND_LINE_LENGTH = 126;
+
 procedure exec(const path : pathstr;const comline : comstr);
 type
   realptr = packed record
@@ -214,6 +217,8 @@ var
 begin
 { create command line }
   c:=comline;
+  if length(c)>DOS_MAX_COMMAND_LINE_LENGTH then
+    c[0]:=chr(DOS_MAX_COMMAND_LINE_LENGTH);
 { create path }
   p:=path;
 { allow slash as backslash }
