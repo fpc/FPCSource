@@ -84,9 +84,6 @@ interface
           function  pass1_inline:tnode;
        protected
           pushedparasize : longint;
-          { function return node for initialized types or supplied return variable.
-            When the result is passed in a parameter then it is set to nil }
-          funcretnode    : tnode;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -102,6 +99,9 @@ interface
           { initialize/finalization of temps }
           callinitblock,
           callcleanupblock : tblocknode;
+          { function return node for initialized types or supplied return variable.
+            When the result is passed in a parameter then it is set to nil }
+          funcretnode    : tnode;
           { varargs parasyms }
           varargsparas : tvarargsparalist;
 
