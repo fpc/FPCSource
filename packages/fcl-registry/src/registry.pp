@@ -69,7 +69,7 @@ type
     procedure SetCurrentKey(Value: HKEY);
   public
     constructor Create; overload;
-    constructor Create(aaccess:longword);
+    constructor Create(aaccess:longword); overload;
     destructor Destroy; override;
 
     function CreateKey(const Key: string): Boolean;
@@ -133,7 +133,7 @@ type
     fFileName: String;
     fPath    : String;
   public
-    constructor Create(const FN: string);
+    constructor Create(const FN: string); overload;
     constructor Create(const FN: string;aaccess:longword); overload;
     function ReadString(const Section, Ident, Default: string): string;
     function ReadInteger(const Section, Ident: string;
