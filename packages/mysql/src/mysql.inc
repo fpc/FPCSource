@@ -23,21 +23,21 @@ interface
 
 uses
 {$IFDEF LinkDynamically}
-     Dynlibs, sysutils,
+      sysutils,
 {$ENDIF}
-     ctypes;
+     dynlibs,ctypes;
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    mysqllib = 'libmysqlclient.so';
+    mysqllib = 'libmysqlclient.'+sharedsuffix;
 
   {$IF DEFINED(mysql50)}
-    mysqlvlib = 'libmysqlclient.so.15';
+    mysqlvlib = 'libmysqlclient.'+sharedsuffix+'.15';
   {$ELSEIF DEFINED(mysql41)}
-    mysqlvlib = 'libmysqlclient.so.14';
+    mysqlvlib = 'libmysqlclient.'+sharedsuffix+'.14';
   {$ELSE}
-    mysqlvlib = 'libmysqlclient.so.12';
+    mysqlvlib = 'libmysqlclient.'+sharedsuffix+'.12';
   {$ENDIF}
 
 {$ENDIF}

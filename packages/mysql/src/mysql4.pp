@@ -1,7 +1,7 @@
 unit mysql4;
 interface
 
-uses ctypes,my4_sys,mysql4_com;
+uses ctypes,my4_sys,mysql4_com,dynlibs;
 
 {
   Automatically converted by H2Pas 0.99.15 from mysql.ph
@@ -37,7 +37,7 @@ uses ctypes,my4_sys,mysql4_com;
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    External_library = 'libmysqlclient.so';
+    External_library = 'libmysqlclient.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}

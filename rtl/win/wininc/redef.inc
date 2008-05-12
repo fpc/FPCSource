@@ -580,6 +580,7 @@ function GetProcessShutdownParameters(var lpdwLevel, lpdwFlags: DWORD): BOOL; ex
 function GetProcessTimes(hProcess: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetProcessTimes';
 function GetProcessWorkingSetSize(hProcess: THandle; var lpMinimumWorkingSetSize, lpMaximumWorkingSetSize: DWORD): BOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
 function GetQueuedCompletionStatus(CompletionPort: THandle; var lpNumberOfBytesTransferred, lpCompletionKey: DWORD; var lpOverlapped: POverlapped; dwMilliseconds: DWORD): BOOL; external 'kernel32' name 'GetQueuedCompletionStatus';
+function PostQueuedCompletionStatus(CompletionPort: THandle; NumberOfBytesTransferred:dword; dwCompletionKey: ULONG_PTR; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'PostQueuedCompletionStatus';
 function GetRasterizerCaps(var p1: TRasterizerStatus; p2: UINT): BOOL; external 'gdi32' name 'GetRasterizerCaps';
 function GetRgnBox(RGN: HRGN; var p2: TRect): Integer; external 'gdi32' name 'GetRgnBox';
 function GetScrollInfo(hWnd: HWND; BarFlag: Integer; var ScrollInfo: TScrollInfo): BOOL; external 'user32' name 'GetScrollInfo';
@@ -790,9 +791,9 @@ function RegCreateKeyW(hKey: HKEY; lpSubKey: LPWSTR; var phkResult: HKEY): Longi
 function RegEnumKeyEx(hKey: HKEY; dwIndex: DWORD; lpName: PChar; var lpcbName: DWORD; lpReserved: Pointer; lpClass: PChar; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint;external 'advapi32' name 'RegEnumKeyExA';
 function RegEnumKeyExA(hKey: HKEY; dwIndex: DWORD; lpName: LPCSTR; var lpcbName: DWORD; lpReserved: Pointer; lpClass: LPCSTR; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint; external 'advapi32' name 'RegEnumKeyExA';
 function RegEnumKeyExW(hKey: HKEY; dwIndex: DWORD; lpName: LPWSTR; var lpcbName: DWORD; lpReserved: Pointer; lpClass: LPWSTR; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint; external 'advapi32' name 'RegEnumKeyExW';
-function RegEnumValue(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint;external 'advapi32' name 'RegEnumValueA';
-function RegEnumValueA(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueA';
-function RegEnumValueW(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueW';
+function RegEnumValue(hKey: HKEY; dwIndex: DWORD; lpValueName: LPCSTR; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint;external 'advapi32' name 'RegEnumValueA';
+function RegEnumValueA(hKey: HKEY; dwIndex: DWORD; lpValueName: LPCSTR; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueA';
+function RegEnumValueW(hKey: HKEY; dwIndex: DWORD; lpValueName: LPWSTR; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueW';
 function RegGetKeySecurity(hKey: HKEY; SecurityInformation: SECURITY_INFORMATION; pSecurityDescriptor: PSecurityDescriptor; var lpcbSecurityDescriptor: DWORD): Longint; external 'advapi32' name 'RegGetKeySecurity';
 function RegSetValueEx(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueExA';
 function RegSetValueExA(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueExA';

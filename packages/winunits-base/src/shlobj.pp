@@ -923,9 +923,9 @@ Type
           pszDisplayName : LPSTR;    { Return display name of item selected. }
           lpszTitle : LPCSTR;        { text to go in the banner over the tree. }
           ulFlags : UINT;            { Flags that control the return stuff }
-          lpfn : BFFCALLBACK;        { extra info that's passed back in callbacks }
-          lParam : LPARAM;           { output var: where to return the Image index. }
-          iImage : longint;
+          lpfn : BFFCALLBACK;        
+          lParam : LPARAM;           { extra info that's passed back in callbacks }
+          iImage : longint;          { output var: where to return the Image index. }
        end;
      BROWSEINFOA = _browseinfoA;
      PBROWSEINFOA = ^BROWSEINFOA;
@@ -940,9 +940,9 @@ Type
           pszDisplayName : LPWSTR;    { Return display name of item selected. }
           lpszTitle : LPCWSTR;        { text to go in the banner over the tree. }
           ulFlags : UINT;             { Flags that control the return stuff }
-          lpfn : BFFCALLBACK;         { extra info that's passed back in callbacks }
-          lParam : LPARAM;            { output var: where to return the Image index. }
-          iImage : longint;
+          lpfn : BFFCALLBACK;         
+          lParam : LPARAM;            { extra info that's passed back in callbacks }
+          iImage : longint;           { output var: where to return the Image index. }
        end;
      BROWSEINFOW = _browseinfoW;
      PBROWSEINFOW = ^BROWSEINFOW;

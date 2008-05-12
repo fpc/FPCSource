@@ -91,6 +91,7 @@
      PULONG64    = ^ULONG64;
      PULONG32    = ^ULONG32;
      PULONG_PTR  = ^ULONG_PTR;
+     PLONG64     = ^LONG64;
 
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;

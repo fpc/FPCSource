@@ -1,0 +1,7 @@
+#: nlshello:hello_world
+msgid "Hello world!"
+msgstr "Здравствуй мир!"
+
+#: nlshello:press_key
+msgid "Press any key to continue!"
+msgstr "Нажмите любую клавишу для продолжения!"

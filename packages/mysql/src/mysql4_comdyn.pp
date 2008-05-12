@@ -16,7 +16,7 @@ uses ctypes,my4_sys,dynlibs, sysutils;
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    Mysqllib = 'libmysqlclient.so';
+    Mysqllib = 'libmysqlclient.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}

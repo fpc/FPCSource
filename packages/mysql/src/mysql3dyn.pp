@@ -20,7 +20,7 @@ uses dynlibs, classes, sysutils, mysql3_comdyn;
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    Mysqllib = 'libmysqlclient.so';
+    Mysqllib = 'libmysqlclient.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}

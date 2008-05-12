@@ -259,9 +259,9 @@ procedure XSetWMClientMachine(para1:PDisplay; para2:TWindow; para3:PXTextPropert
 function XSetWMHints(para1:PDisplay; para2:TWindow; para3:PXWMHints):cint;cdecl;external libX11;
 procedure XSetWMIconName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
 procedure XSetWMName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
-procedure XSetWMNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints);cdecl;external libX11;
-procedure XSetWMProperties(para1:PDisplay; para2:TWindow; para3:PXTextProperty; para4:PXTextProperty; para5:PPchar;
-            para6:cint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external libX11;
+procedure XSetWMNormalHints(ADisplay:PDisplay; AWindow:TWindow; AHints:PXSizeHints);cdecl;external libX11;
+procedure XSetWMProperties(ADisplay:PDisplay; AWindow:TWindow; AWindowName:PXTextProperty; AIconName:PXTextProperty; AArgv:PPchar;
+            AArgc:cint; ANormalHints:PXSizeHints; AWMHints:PXWMHints; AClassHints:PXClassHint);cdecl;external libX11;
 procedure XmbSetWMProperties(para1:PDisplay; para2:TWindow; para3:Pchar; para4:Pchar; para5:PPchar;
             para6:cint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external libX11;
 procedure Xutf8SetWMProperties(para1:PDisplay; para2:TWindow; para3:Pchar; para4:Pchar; para5:PPchar;
