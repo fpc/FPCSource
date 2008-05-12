@@ -1194,6 +1194,7 @@ begin
     if l>h then
       goto error;
   until false;
+  code:=0;
   fpc_val_enum_shortstr:=sorted_array[m-1].o;
   exit;
 error:
