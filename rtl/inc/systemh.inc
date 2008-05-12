@@ -72,6 +72,7 @@
 {$define FPC_HAS_FEATURE_COMMANDARGS}
 {$define FPC_HAS_FEATURE_PROCESSES}
 {$define FPC_HAS_FEATURE_STACKCHECK}
+{$define FPC_HAS_FEATURE_DYNLIBS}
 {$endif FPC_HAS_FEATURE_SUPPORT}
 
 {****************************************************************************
