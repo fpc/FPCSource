@@ -2257,7 +2257,8 @@ implementation
                   if (cs_do_assertion in current_settings.localswitches) then
                     include(current_procinfo.flags,pi_do_call);
                 end;
-              in_prefetch_var,
+              in_prefetch_var:
+                resultdef:=voidtype;
               in_get_frame,
               in_get_caller_frame,
               in_get_caller_addr:
