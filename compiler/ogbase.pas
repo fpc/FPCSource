@@ -2218,8 +2218,9 @@ implementation
                       skipstab:=true;
                     if skipfun then
                       begin
-                        skipstab:=hstab.ntype in [N_TextLine,N_RSYM,N_LSYM,N_tsym,N_LBRAC,N_RBRAC,N_IncludeFile];
-                        skipfun:=skipstab;
+                        { Skip all stabs for function body until N_RBRAC }
+                        skipfun:=hstab.ntype<>N_RBRAC;
+                        skipstab:=true;
                       end;
                     if not skipstab then
                       begin
