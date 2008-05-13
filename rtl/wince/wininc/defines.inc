@@ -4088,8 +4088,182 @@
      PROCESSOR_INTEL_386 = 386;
      PROCESSOR_INTEL_486 = 486;
      PROCESSOR_INTEL_PENTIUM = 586;
-     PROCESSOR_MIPS_R4000 = 4000;
+     PROCESSOR_MIPS_R4000 = 4000; // incl R4101 & R3910 for Windows CE
      PROCESSOR_ALPHA_21064 = 21064;
+
+     PROCESSOR_INTEL_PENTIUMII = 686;
+     PROCESSOR_MIPS_R5000      = 5000;  // incl R5432 for Windows CE
+     PROCESSOR_PPC_403         = 403;
+     PROCESSOR_PPC_601         = 601;
+     PROCESSOR_PPC_603         = 603;
+     PROCESSOR_PPC_604         = 604;
+     PROCESSOR_PPC_620         = 620;
+     PROCESSOR_HITACHI_SH3     = 10003;   // Windows CE
+     PROCESSOR_HITACHI_SH3E    = 10004;   // Windows CE
+     PROCESSOR_HITACHI_SH4     = 10005;   // Windows CE
+     PROCESSOR_MOTOROLA_821    = 821;     // Windows CE
+     PROCESSOR_SHx_SH3         = 103;     // Windows CE
+     PROCESSOR_SHx_SH3DSP      = 105;     // Windows CE
+     PROCESSOR_SHx_SH4         = 104;     // Windows CE
+     PROCESSOR_STRONGARM       = 2577;    // Windows CE - 0xA11
+     PROCESSOR_ARM720          = 1824;    // Windows CE - 0x720
+     PROCESSOR_ARM820          = 2080;    // Windows CE - 0x820
+     PROCESSOR_ARM920          = 2336;    // Windows CE - 0x920
+     PROCESSOR_ARM_7TDMI       = 70001;   // Windows CE
+
+     PROCESSOR_ARCHITECTURE_INTEL = 0;
+     PROCESSOR_ARCHITECTURE_MIPS  = 1;
+     PROCESSOR_ARCHITECTURE_ALPHA = 2;
+     PROCESSOR_ARCHITECTURE_PPC   = 3;
+     PROCESSOR_ARCHITECTURE_SHX   = 4;
+     PROCESSOR_ARCHITECTURE_ARM   = 5;
+     PROCESSOR_ARCHITECTURE_IA64  = 6;
+     PROCESSOR_ARCHITECTURE_ALPHA64 = 7;
+     PROCESSOR_ARCHITECTURE_UNKNOWN = $FFFF;
+
+     PROCESSOR_X86_32BIT_CORE                = 1;
+
+     PROCESSOR_MIPS16_CORE                   = 1;
+     PROCESSOR_MIPSII_CORE                   = 2;
+     PROCESSOR_MIPSIV_CORE                   = 3;
+
+     PROCESSOR_HITACHI_SH3_CORE              = 1;
+     PROCESSOR_HITACHI_SH4_CORE              = 2;
+
+     PROCESSOR_ARM_V4_CORE                   = 1;
+     PROCESSOR_ARM_V4I_CORE                  = 2;
+     PROCESSOR_ARM_V4T_CORE                  = 3;
+
+     PROCESSOR_FEATURE_NOFP                  = 0;
+     PROCESSOR_FEATURE_FP                    = 1;
+     PROCESSOR_FEATURE_DSP                   = PROCESSOR_FEATURE_FP;
+
+     PROCESSOR_QUERY_INSTRUCTION             = $00000000;
+
+{
+#define PROCESSOR_INSTRUCTION_CODE(arch, core, feature)      \
+    ((arch) << 24 | (core) << 16 | (feature))
+}
+     
+     PROCESSOR_X86_32BIT_INSTRUCTION = (PROCESSOR_ARCHITECTURE_INTEL shl 24) or
+                                       (PROCESSOR_X86_32BIT_CORE shl 16) or
+                                       PROCESSOR_FEATURE_FP;
+
+     PROCESSOR_MIPS_MIPS16_INSTRUCTION = (PROCESSOR_ARCHITECTURE_MIPS shl 24) or
+                                         (PROCESSOR_MIPS16_CORE shl 16) or
+                                         PROCESSOR_FEATURE_NOFP;
+
+     PROCESSOR_MIPS_MIPSII_INSTRUCTION = (PROCESSOR_ARCHITECTURE_MIPS shl 24) or
+                                         (PROCESSOR_MIPSII_CORE shl 16) or
+                                         PROCESSOR_FEATURE_NOFP;
+
+     PROCESSOR_MIPS_MIPSIIFP_INSTRUCTION = (PROCESSOR_ARCHITECTURE_MIPS shl 24) or
+                                           (PROCESSOR_MIPSII_CORE shl 16) or
+                                           PROCESSOR_FEATURE_FP;
+
+     PROCESSOR_MIPS_MIPSIV_INSTRUCTION = (PROCESSOR_ARCHITECTURE_MIPS shl 24) or
+                                         (PROCESSOR_MIPSIV_CORE shl 16) or
+                                         PROCESSOR_FEATURE_NOFP;
+
+     PROCESSOR_MIPS_MIPSIVFP_INSTRUCTION = (PROCESSOR_ARCHITECTURE_MIPS shl 24) or
+                                           (PROCESSOR_MIPSIV_CORE shl 16) or
+                                           PROCESSOR_FEATURE_FP;
+
+     PROCESSOR_HITACHI_SH3_INSTRUCTION = (PROCESSOR_ARCHITECTURE_SHX shl 24) or
+                                         (PROCESSOR_HITACHI_SH3_CORE shl 16) or
+                                         PROCESSOR_FEATURE_NOFP;
+
+     PROCESSOR_HITACHI_SH3DSP_INSTRUCTION = (PROCESSOR_ARCHITECTURE_SHX shl 24) or
+                                            (PROCESSOR_HITACHI_SH3_CORE shl 16) or
+                                            PROCESSOR_FEATURE_DSP;
+
+     PROCESSOR_HITACHI_SH4_INSTRUCTION = (PROCESSOR_ARCHITECTURE_SHX shl 24) or
+                                         (PROCESSOR_HITACHI_SH4_CORE shl 16) or
+                                         PROCESSOR_FEATURE_FP;
+
+     PROCESSOR_ARM_V4_INSTRUCTION = (PROCESSOR_ARCHITECTURE_ARM shl 24) or
+                                    (PROCESSOR_ARM_V4_CORE shl 16) or
+                                    PROCESSOR_FEATURE_NOFP;
+
+     PROCESSOR_ARM_V4FP_INSTRUCTION = (PROCESSOR_ARCHITECTURE_ARM shl 24) or
+                                      (PROCESSOR_ARM_V4_CORE shl 16) or
+                                      PROCESSOR_FEATURE_FP;
+
+     PROCESSOR_ARM_V4I_INSTRUCTION = (PROCESSOR_ARCHITECTURE_ARM shl 24) or
+                                     (PROCESSOR_ARM_V4I_CORE shl 16) or
+                                     PROCESSOR_FEATURE_NOFP;
+
+     PROCESSOR_ARM_V4IFP_INSTRUCTION = (PROCESSOR_ARCHITECTURE_ARM shl 24) or
+                                       (PROCESSOR_ARM_V4I_CORE shl 16) or
+                                       PROCESSOR_FEATURE_FP;
+
+     PROCESSOR_ARM_V4T_INSTRUCTION = (PROCESSOR_ARCHITECTURE_ARM shl 24) or
+                                     (PROCESSOR_ARM_V4T_CORE shl 16) or
+                                     PROCESSOR_FEATURE_NOFP;
+
+     PROCESSOR_ARM_V4TFP_INSTRUCTION = (PROCESSOR_ARCHITECTURE_ARM shl 24) or
+                                       (PROCESSOR_ARM_V4T_CORE shl 16) or
+                                       PROCESSOR_FEATURE_FP;
+
+     PF_FLOATING_POINT_PRECISION_ERRATA  = 0;
+     PF_FLOATING_POINT_EMULATED          = 1;
+     PF_COMPARE_EXCHANGE_DOUBLE          = 2;
+     PF_MMX_INSTRUCTIONS_AVAILABLE       = 3;
+     PF_PPC_MOVEMEM_64BIT_OK             = 4;
+     PF_ALPHA_BYTE_INSTRUCTIONS          = 5;
+     PF_XMMI_INSTRUCTIONS_AVAILABLE      = 6;
+     PF_3DNOW_INSTRUCTIONS_AVAILABLE     = 7;
+     PF_RDTSC_INSTRUCTION_AVAILABLE      = 8;
+     PF_PAE_ENABLED                      = 9;
+     PF_XMMI64_INSTRUCTIONS_AVAILABLE    = 10;
+
+{ Table from MSDN. Instruction set compatibility.
+OS instructions set                    Supported instruction sets
+--------------------------------------------------------------------------------
+PROCESSOR_X86_32BIT_INSTRUCTION        PROCESSOR_X86_32BIT_INSTRUCTION
+
+PROCESSOR_MIPS_MIPS16_INSTRUCTION      PROCESSOR_MIPS_MIPS16_INSTRUCTION
+                                       PROCESSOR_MIPS_MIPSII_INSTRUCTION
+
+PROCESSOR_MIPS_MIPSII_INSTRUCTION      PROCESSOR_MIPS_MIPSII_INSTRUCTION
+
+PROCESSOR_MIPS_MIPSIIFP_INSTRUCTION    PROCESSOR_MIPS_MIPSIIFP_INSTRUCTION
+
+PROCESSOR_MIPS_MIPSIV_INSTRUCTION      PROCESSOR_MIPS_MIPSIV_INSTRUCTION
+
+PROCESSOR_MIPS_MIPSIVFP_INSTRUCTION    PROCESSOR_MIPS_MIPSIVFP_INSTRUCTION
+
+PROCESSOR_HITACHI_SH3_INSTRUCTION      PROCESSOR_HITACHI_SH3_INSTRUCTION
+
+PROCESSOR_HITACHI_SH3DSP_INSTRUCTION   PROCESSOR_HITACHI_SH3DSP_INSTRUCTION
+                                       PROCESSOR_HITACHI_SH3_INSTRUCTION
+
+PROCESSOR_HITACHI_SH4_INSTRUCTION      PROCESSOR_HITACHI_SH4_INSTRUCTION
+
+PROCESSOR_ARM_V4_INSTRUCTION           PROCESSOR_ARM_V4_INSTRUCTION
+
+PROCESSOR_ARM_V4FP_INSTRUCTION         PROCESSOR_ARM_V4FP_INSTRUCTION
+                                       PROCESSOR_ARM_V4_INSTRUCTION
+
+PROCESSOR_ARM_V4I_INSTRUCTION          PROCESSOR_ARM_V4I_INSTRUCTION
+                                       PROCESSOR_ARM_V4T_INSTRUCTION
+
+PROCESSOR_ARM_V4IFP_INSTRUCTION        PROCESSOR_ARM_V4IFP_INSTRUCTION
+                                       PROCESSOR_ARM_V4TFP_INSTRUCTION
+                                       PROCESSOR_ARM_V4I_INSTRUCTION
+                                       PROCESSOR_ARM_V4T_INSTRUCTION
+
+PROCESSOR_ARM_V4T_INSTRUCTION          PROCESSOR_ ARM_V4I_INSTRUCTION
+                                       PROCESSOR_ARM_V4T_INSTRUCTION
+
+PROCESSOR_ARM_V4TFP_INSTRUCTION        PROCESSOR_ARM_V4TFP_INSTRUCTION
+                                       PROCESSOR_ARM_V4IFP_INSTRUCTION
+                                       PROCESSOR_ARM_V4I_INSTRUCTION
+                                       PROCESSOR_ARM_V4T_INSTRUCTION
+}
+
+
+
   { FSCTL_SET_COMPRESSION  }
      COMPRESSION_FORMAT_NONE = 0;
      COMPRESSION_FORMAT_DEFAULT = 1;
@@ -5269,10 +5443,12 @@
      STATUS_STACK_OVERFLOW = $C00000FD;
      STATUS_CONTROL_C_EXIT = $C000013A;
 {$define EXCEPTION_CTRL_C}
+{ Declared above.
      PROCESSOR_ARCHITECTURE_INTEL = 0;
      PROCESSOR_ARCHITECTURE_MIPS = 1;
      PROCESSOR_ARCHITECTURE_ALPHA = 2;
      PROCESSOR_ARCHITECTURE_PPC = 3;
+}
   { was #define dname(params) def_expr }
   function FreeModule(h:HINST):WINBOOL;
 
