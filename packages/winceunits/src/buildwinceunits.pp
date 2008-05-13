@@ -22,7 +22,8 @@ interface
 
 uses
   aygshell,commctrl,commdlg,iphlpapi,notify,oleauto,power,shellapi,simmgr,tapi,
-  gpsapi,todaycmn,windbase,cesync,gx,winioctl,msgqueue,pm,service,htmlctrl;
+  gpsapi,todaycmn,windbase,cesync,gx,winioctl,msgqueue,pm,service,htmlctrl,
+  sipapi;
 
 implementation
 

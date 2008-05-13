@@ -264,10 +264,10 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_UNITS+=buildwinceunits comobj
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl activex ole2 comconst
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi activex ole2 comconst
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl activex ole2 comconst
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi activex ole2 comconst
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=comconst
