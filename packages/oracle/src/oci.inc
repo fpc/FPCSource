@@ -6,8 +6,9 @@ interface
 
 uses ctypes,
 {$IFDEF LinkDynamically}
-    Dynlibs, sysutils,
+ sysutils,
 {$ENDIF}
+    Dynlibs, // always for sharedsuffix
     oratypes;
 
 {
@@ -23,7 +24,7 @@ uses ctypes,
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    ocilib = 'libociei.so';
+    ocilib = 'libociei.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
