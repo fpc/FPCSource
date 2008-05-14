@@ -885,7 +885,7 @@ end;
 var
    __stklen : longword;external name '__stklen';
    __stkbottom : longword;external name '__stkbottom';
-   edata : longword; external name 'edata';
+   ebss : longword; external name 'end';
 {$endif go32v2}
 
 {$ifdef linux}
@@ -929,7 +929,7 @@ var
   loc_info: pheap_info;
 {$ifdef go32v2}
   get_ebp,stack_top : longword;
-  data_end : longword;
+  bss_end : longword;
 {$endif go32v2}
 {$ifdef morphos}
   stack_top: longword;
@@ -953,12 +953,12 @@ begin
     runerror(216);
   asm
      movl %ebp,get_ebp
-     leal edata,%eax
-     movl %eax,data_end
+     leal ebss,%eax
+     movl %eax,bss_end
   end;
   stack_top:=__stkbottom+__stklen;
-  { allow all between start of code and end of data }
-  if ptruint(p)<=data_end then
+  { allow all between start of code and end of bss }
+  if ptruint(p)<=bss_end then
     goto _exit;
   { stack can be above heap !! }
 
