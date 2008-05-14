@@ -4452,6 +4452,7 @@ packages/winceunits/src/buildwinceunits.pp svneol=native#text/plain
 packages/winceunits/src/cesync.pp svneol=native#text/plain
 packages/winceunits/src/commctrl.pp svneol=native#text/plain
 packages/winceunits/src/commdlg.pp svneol=native#text/plain
+packages/winceunits/src/cpl.pp svneol=native#text/plain
 packages/winceunits/src/gpsapi.pp svneol=native#text/plain
 packages/winceunits/src/gx.pp svneol=native#text/plain
 packages/winceunits/src/htmlctrl.pp svneol=native#text/plain

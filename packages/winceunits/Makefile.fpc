@@ -10,7 +10,7 @@ version=2.2.0
 units_wince=buildwinceunits comobj
 implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi \
                     gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl \
-                    sipapi \
+                    sipapi cpl \
                     activex ole2 comconst
 
 units_win32=rapi cesync
