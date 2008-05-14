@@ -375,9 +375,6 @@
       694 MD5Init
       695 MD5Update
        17 MainThreadBaseFunc
-      662 MonitorFromPoint
-      663 MonitorFromRect
-      664 MonitorFromWindow
       33C NKDbgPrintfW
       3A7 NKTerminateThread
       36F NKvDbgPrintfW
@@ -410,7 +407,6 @@
       1CE PegWriteRecordProps
       2F1 PerformCallBack4
       267 PlaySoundW
-      48D PostKeybdMessage
       3A3 PowerOffSystem
       37C PrintTrackedItem
       373 ProcessDetachAllDLLs
@@ -422,7 +418,6 @@
       484 QASetWindowsJournalHook
       485 QAUnhookWindowsJournalHook
       2F2 QueryAPISetID
-      338 QueryInstructionSet
        91 Random
       1FC RasDeleteEntry
       207 RasDevConfigDialogEditW
@@ -451,13 +446,11 @@
       1FB RasValidateEntryName
       181 ReadFileWithSeek
       3C0 ReadRegistryFromOEM
-      52F RealizePalette
       1BE RectangleAnimation
       383 RefreshKernelAlarm
       2CA RegCopyFile
       159 RegOpenProcessKey
       2CB RegRestoreFile
-      2C8 RegSetValueExW
       178 RegisterAFSEx
       17A RegisterAFSName
       3B8 RegisterAPISet
@@ -483,13 +476,10 @@
       2E9 SHGetShortcutTarget
       2EC SHLoadDIBitmap
       2EB SHShowOutOfMemory
-      482 SendInput
       11B SetACP
       1C0 SetAssociatedMenu
-      522 SetBrushOrgEx
       3A1 SetCleanRebootFlag
       2CE SetCurrentUser
-      33E SetDaylightTime
       3A4 SetDbgZone
       2FB SetEventData
       37F SetExceptionHandler
@@ -513,21 +503,10 @@
       17D SetSystemMemoryDivision
       3A0 SetTimeZoneBias
       2CF SetUserData
-      137 SetUserDefaultLCID
-      14C SetUserDefaultUILanguage
       3B5 SetWDevicePowerHandler
       406 ShellModalEnd
       1C4 ShowStartupWindow
       176 SignalStarted
-      65E SipEnumIM
-      65F SipGetCurrentIM
-      65C SipGetInfo
-      65A SipRegisterNotification
-      660 SipSetCurrentIM
-      661 SipSetDefaultRect
-      65D SipSetInfo
-      65B SipShowIM
-      659 SipStatus
       361 SleepTillTick
       156 StopDeviceNotifications
       648 StringCbCatA
@@ -2730,6 +2709,9 @@ function memset(dest:LPWSTR; c:WideChar; count:SIZE_T):LPWSTR; external KernelDl
 function MessageBeep(uType:UINT):WINBOOL; external KernelDLL name 'MessageBeep';
 function MessageBox(hWnd:HWND; lpText:LPCWSTR; lpCaption:LPCWSTR; uType:UINT):longint; external KernelDLL name 'MessageBoxW'; //~winuser, result declared as int
 function MessageBoxW(hWnd:HWND; lpText:LPCWSTR; lpCaption:LPCWSTR; uType:UINT):longint; external KernelDLL name 'MessageBoxW'; //~winuser, result declared as int
+function MonitorFromPoint(pt:POINT; dwFlags:DWORD):HMONITOR; external KernelDLL name 'MonitorFromPoint'; // index 662
+function MonitorFromRect(lprc:LPRECT; dwFlags:DWORD):HMONITOR; external KernelDLL name 'MonitorFromRect'; // index 663
+function MonitorFromWindow(hWin:HWND; dwFlags:DWORD):HMONITOR; external KernelDLL name 'MonitorFromWindow'; // index 664
 procedure mouse_event(dwFlags:DWORD; dx:DWORD; dy:DWORD; cButtons:DWORD; dwExtraInfo:DWORD); external KernelDLL name 'mouse_event';
 function MoveToEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external KernelDLL name 'MoveToEx';
 procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD);
@@ -2750,6 +2732,8 @@ procedure OutputDebugStringW(lpOutputString:LPCWSTR); external KernelDLL name 'O
 function PatBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD):WINBOOL; external KernelDLL name 'PatBlt';
 function PeekMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external KernelDLL name 'PeekMessageW';
 function PeekMessageW(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external KernelDLL name 'PeekMessageW';
+function PostKeybdMessage(hWin:HWND; VKey:UINT; KeyStateFlags:UINT{KEY_STATE_FLAGS};
+                          cCharacters:UINT; pShiftStateBuffer:PUINT; pCharacterBuffer:PUINT):BOOL; external KernelDLL name 'PostKeybdMessage'; // index 48D
 function PostMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external KernelDLL name 'PostMessageW';
 function PostMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external KernelDLL name 'PostMessageW';
 procedure PostQuitMessage(nExitCode:longint); external KernelDLL name 'PostQuitMessage';
@@ -2780,12 +2764,13 @@ function PtInRect(lprc:LPRECT; pt:POINT):WINBOOL; external KernelDLL name 'PtInR
 function PtInRegion(_para1:HRGN; _para2:longint; _para3:longint):WINBOOL; external KernelDLL name 'PtInRegion';
 function PulseEvent(hEvent:HANDLE):WINBOOL;
 function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL; external KernelDLL name 'PurgeComm';
+function QueryInstructionSet(dwInstructionSet:DWORD; lpdwCurrentInstructionSet:LPDWORD):BOOL; external KernelDLL name 'QueryInstructionSet'; // index 338
 function QueryPerformanceCounter(lpPerformanceCount:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceCounter';
 function QueryPerformanceFrequency(lpFrequency:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceFrequency';
 procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external KernelDLL name 'RaiseException';
-function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):BOOL;  external KernelDLL name 'ReadFile'; // index F4
+function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):BOOL; external KernelDLL name 'ReadFile'; // index F4
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external KernelDLL name 'ReadProcessMemory';
-function RealizePalette(_para1:HDC):UINT; external KernelDLL name 'RealizePalette';
+function RealizePalette(_para1:HDC):UINT; external KernelDLL name 'RealizePalette'; // index 52F
 function RectInRegion(_para1:HRGN; const _para2:RECT):WINBOOL; external KernelDLL name 'RectInRegion';
 function RectVisible(_para1:HDC; const _para2:RECT):WINBOOL; external KernelDLL name 'RectVisible';
 function Rectangle(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external KernelDLL name 'Rectangle';
@@ -2851,6 +2836,7 @@ function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external KernelDLL na
 function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external KernelDLL name 'SelectPalette';
 function SendDlgItemMessage(hDlg:HWND; nIDDlgItem:longint; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LONG; external KernelDLL name 'SendDlgItemMessageW';
 function SendDlgItemMessageW(hDlg:HWND; nIDDlgItem:longint; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LONG; external KernelDLL name 'SendDlgItemMessageW';
+function SendInput(nInputs:UINT; pInputs:LPINPUT; cbSize:longint):UINT; external KernelDLL name 'SendInput'; // index 482
 function SendMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'SendMessageW';
 function SendMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'SendMessageW';
 function SendMessageTimeout(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;uTimeout:UINT; lpdwResult:LPDWORD):LRESULT; external KernelDLL name 'SendMessageTimeout';
@@ -2874,6 +2860,7 @@ function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external KernelDLL nam
 function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external KernelDLL name 'SetCommTimeouts';
 function SetCursor(hCursor:HCURSOR):HCURSOR; external KernelDLL name 'SetCursor';
 function SetCursorPos(X:longint; Y:longint):WINBOOL; external KernelDLL name 'SetCursorPos';
+procedure SetDaylightTime(dst:DWORD); external KernelDLL name 'SetDaylightTime'; // index 33E
 function SetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external KernelDLL name 'SetDIBColorTable';
 function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD;_para6:longint; _para7:longint; _para8:UINT; _para9:UINT; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT):longint;
   external KernelDLL name 'SetDIBitsToDevice';
@@ -2916,6 +2903,8 @@ function SetTimer(hWnd:HWND; nIDEvent:UINT; uElapse:UINT; lpTimerFunc:TIMERPROC)
 function SetThreadPriority(hThread:HANDLE; nPriority:longint):WINBOOL; external KernelDLL name 'SetThreadPriority';
 function SetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):WINBOOL; external KernelDLL name 'SetTimeZoneInformation';
 function SetupComm(hFile:HANDLE; dwInQueue:DWORD; dwOutQueue:DWORD):WINBOOL; external KernelDLL name 'SetupComm';
+function SetUserDefaultLCID(_locale:LCID):BOOL; external KernelDLL name 'SetUserDefaultLCID'; // index 137
+function SetUserDefaultUILanguage(_langid:LANGID):BOOL; external KernelDLL name 'SetUserDefaultUILanguage'; // index 14C
 function SetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external KernelDLL name 'SetViewportOrgEx';
 function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint;cy:longint; uFlags:UINT):WINBOOL; external KernelDLL name 'SetWindowPos';
 function SetWindowRgn(hWnd:HWND; hRgn:HRGN; bRedraw:WINBOOL):longint; external KernelDLL name 'SetWindowRgn';
