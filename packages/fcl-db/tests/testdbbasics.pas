@@ -239,9 +239,9 @@ begin
 
         Next;
         if (i > ABufferCount) and not EOF then
-          AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;',DataEvents)
+          AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;',DataEvents)
         else
-          AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;',DataEvents);
+          AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;',DataEvents);
         DataEvents := '';
         end;
       AssertEquals(count,i-1);
