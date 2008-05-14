@@ -476,7 +476,6 @@
       2E9 SHGetShortcutTarget
       2EC SHLoadDIBitmap
       2EB SHShowOutOfMemory
-      482 SendInput
       11B SetACP
       1C0 SetAssociatedMenu
       3A1 SetCleanRebootFlag
@@ -2837,6 +2836,7 @@ function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external KernelDLL na
 function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external KernelDLL name 'SelectPalette';
 function SendDlgItemMessage(hDlg:HWND; nIDDlgItem:longint; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LONG; external KernelDLL name 'SendDlgItemMessageW';
 function SendDlgItemMessageW(hDlg:HWND; nIDDlgItem:longint; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LONG; external KernelDLL name 'SendDlgItemMessageW';
+function SendInput(nInputs:UINT; pInputs:LPINPUT; cbSize:longint):UINT; external KernelDLL name 'SendInput'; // index 482
 function SendMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'SendMessageW';
 function SendMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'SendMessageW';
 function SendMessageTimeout(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;uTimeout:UINT; lpdwResult:LPDWORD):LRESULT; external KernelDLL name 'SendMessageTimeout';

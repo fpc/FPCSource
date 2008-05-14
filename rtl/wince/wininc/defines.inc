@@ -2005,6 +2005,7 @@
   { keybd_event  }
      KEYEVENTF_EXTENDEDKEY = 1;
      KEYEVENTF_KEYUP = 2;
+     KEYEVENTF_SILENT = 4;
   { LoadBitmap  }
      OBM_BTNCORNERS = 32758;
      OBM_BTSIZE = 32761;
@@ -5746,6 +5747,12 @@ const
   // ShellExecuteEx mask
   SEE_MASK_NOCLOSEPROCESS =  $00000040;
   SEE_MASK_FLAG_NO_UI     =  $00000400;
+
+
+const
+      INPUT_MOUSE     = 0;
+      INPUT_KEYBOARD  = 1;
+      INPUT_HARDWARE  = 2;
 
 {$endif read_interface}
 

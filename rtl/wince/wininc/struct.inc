@@ -7640,6 +7640,52 @@ type
   TCLIPDATA=CLIPDATA;
   PCLIPDATA=^CLIPDATA;
 
+
+type
+     tagMOUSEINPUT = record
+       dx:LONG;
+       dy:LONG;
+       mouseData:DWORD;
+       dwFlags:DWORD;
+       time:DWORD;
+       dwExtraInfo:DWORD;
+     end;
+     MOUSEINPUT = tagMOUSEINPUT;
+     PMOUSEINPUT = ^tagMOUSEINPUT;
+     LPMOUSEINPUT = ^tagMOUSEINPUT;
+
+     tagKEYBDINPUT = record
+       wVk:word;
+       wScan:word;
+       dwFlags:DWORD;
+       time:DWORD;
+       dwExtraInfo:DWORD;
+     end;
+     KEYBDINPUT = tagKEYBDINPUT;
+     PKEYBDINPUT = ^tagKEYBDINPUT;
+     LPKEYBDINPUT = ^tagKEYBDINPUT;
+
+     tagHARDWAREINPUT = record
+       uMsg:DWORD;
+       wParamL:word;
+       wParamH:word;
+       dwExtraInfo:DWORD;
+     end;
+     HARDWAREINPUT = tagHARDWAREINPUT;
+     PHARDWAREINPUT = ^tagHARDWAREINPUT;
+     LPHARDWAREINPUT = ^tagHARDWAREINPUT;
+
+     tagINPUT = record
+       _type:DWORD;
+       case longint of
+         0: (mi:MOUSEINPUT);
+         1: (ki:KEYBDINPUT);
+         2: (hi:HARDWAREINPUT);
+     end;
+    INPUT = tagINPUT;
+    PINPUT = ^tagINPUT;
+    LPINPUT = ^tagINPUT;
+
 {$endif read_interface}
 
 
