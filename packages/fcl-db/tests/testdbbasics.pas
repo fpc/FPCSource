@@ -324,7 +324,7 @@ begin
     AssertEquals('deDataSetChange:0;',DataEvents);
     DataEvents := '';
     next;
-    AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;',DataEvents);
+    AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;',DataEvents);
     close;
     end;
   aDatasource.Free;
