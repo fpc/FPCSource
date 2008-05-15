@@ -1,3 +1,4 @@
+{ %fail }
 program IntfDel;
 
 {$ifdef fpc}
