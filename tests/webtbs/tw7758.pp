@@ -139,10 +139,12 @@ begin
      (w[1] <> c2) then
     halt(21);
 
+{$ifdef dummy}
   wc:=c2;
   writestr(s,wc);
   w:=s;
   if (length(w)<>1) or
      (w[1]<>c2) then
     halt(22);
+{$endif}
 end.
