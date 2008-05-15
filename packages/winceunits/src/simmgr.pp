@@ -386,6 +386,9 @@ type
 // functions
 //*****************************************************************************
 
+const
+      CellCoreDLL = 'cellcore.dll';
+
 // This function must be called by applications in order to use any of the
 // functions in this API.
 // Passing in a function callback is required only for applications that
@@ -395,19 +398,19 @@ type
 // Function callback for notifications, may be NULL if notifications are not desired
 // Parameter to pass on each notification function call, may be NULL
 // Points to a HSIM handle to use on subsequent function calls
-function SimInitialize(dwFlags:DWORD; lpfnCallBack:TSIMCALLBACK; dwParam:DWORD; lphSim:LPHSIM):HRESULT;external KernelDLL name 'SimInitialize';
+function SimInitialize(dwFlags:DWORD; lpfnCallBack:TSIMCALLBACK; dwParam:DWORD; lphSim:LPHSIM):HRESULT;external CellCoreDLL name 'SimInitialize';
 
 // This function deinitializes an HSIM handle.
 // -
 // A valid HSIM handle to deinitialize
-function SimDeinitialize(hSim:HSIM):HRESULT;external KernelDLL name 'SimDeinitialize';
+function SimDeinitialize(hSim:HSIM):HRESULT;external CellCoreDLL name 'SimDeinitialize';
 
 // Gets the device capabilities of the SIM.
 // -
 // Points to a valid HSIM handle
 // Which device capabilities are we interested in?
 // Capabilities structure
-function SimGetDevCaps(hSim:HSIM; dwCapsType:DWORD; lpSimCaps:LPSIMCAPS):HRESULT;external KernelDLL name 'SimGetDevCaps';
+function SimGetDevCaps(hSim:HSIM; dwCapsType:DWORD; lpSimCaps:LPSIMCAPS):HRESULT;external CellCoreDLL name 'SimGetDevCaps';
 
 // Reads a phonebook entry off the SIM card.
 // -
@@ -415,7 +418,7 @@ function SimGetDevCaps(hSim:HSIM; dwCapsType:DWORD; lpSimCaps:LPSIMCAPS):HRESULT
 // A SIMPBSTORAGE_* Constant
 // Index of the entry to retrieve
 // Points to a phonebook entry structure
-function SimReadPhonebookEntry(hSim:HSIM; dwLocation:DWORD; dwIndex:DWORD; lpPhonebookEntry:LPSIMPHONEBOOKENTRY):HRESULT;external KernelDLL name 'SimReadPhonebookEntry';
+function SimReadPhonebookEntry(hSim:HSIM; dwLocation:DWORD; dwIndex:DWORD; lpPhonebookEntry:LPSIMPHONEBOOKENTRY):HRESULT;external CellCoreDLL name 'SimReadPhonebookEntry';
 
 // Gets the status of a phonebook location.
 // -
@@ -423,7 +426,7 @@ function SimReadPhonebookEntry(hSim:HSIM; dwLocation:DWORD; dwIndex:DWORD; lpPho
 // A SIMPBSTORAGE_* Constant
 // Nubmer of used locations
 // Total number of locations
-function SimGetPhonebookStatus(hSim:HSIM; dwLocation:DWORD; lpdwUsed:LPDWORD; lpdwTotal:LPDWORD):HRESULT;external KernelDLL name 'SimGetPhonebookStatus';
+function SimGetPhonebookStatus(hSim:HSIM; dwLocation:DWORD; lpdwUsed:LPDWORD; lpdwTotal:LPDWORD):HRESULT;external CellCoreDLL name 'SimGetPhonebookStatus';
 
 // Writes a phonebook entry to the SIM card.
 // -
@@ -431,28 +434,28 @@ function SimGetPhonebookStatus(hSim:HSIM; dwLocation:DWORD; lpdwUsed:LPDWORD; lp
 // A SIMPBSTORAGE_* Constant
 // Index of the entry to retrieve (may be SIM_PBINDEX_FIRSTAVAILABLE)
 // Points to a phonebook entry structure
-function SimWritePhonebookEntry(hSim:HSIM; dwLocation:DWORD; dwIndex:DWORD; lpPhonebookEntry:LPSIMPHONEBOOKENTRY):HRESULT;external KernelDLL name 'SimWritePhonebookEntry';
+function SimWritePhonebookEntry(hSim:HSIM; dwLocation:DWORD; dwIndex:DWORD; lpPhonebookEntry:LPSIMPHONEBOOKENTRY):HRESULT;external CellCoreDLL name 'SimWritePhonebookEntry';
 
 // Deletes a phonebook entry from the SIM card.
 // -
 // Points to a valid HSIM handle
 // A SIMPBSTORAGE_* Constant
 // Index of the entry to retrieve
-function SimDeletePhonebookEntry(hSim:HSIM; dwLocation:DWORD; dwIndex:DWORD):HRESULT;external KernelDLL name 'SimDeletePhonebookEntry';
+function SimDeletePhonebookEntry(hSim:HSIM; dwLocation:DWORD; dwIndex:DWORD):HRESULT;external CellCoreDLL name 'SimDeletePhonebookEntry';
 
 // Checks if the SIM is currently awaiting a password.
 // This is called when powering on the phone.
 // -
 // Points to a valid HSIM handle
 // Points to a SIM_LOCKEDSTATE_* constant
-function SimGetPhoneLockedState(hSim:HSIM; lpdwLockedState:LPDWORD):HRESULT;external KernelDLL name 'SimGetPhoneLockedState';
+function SimGetPhoneLockedState(hSim:HSIM; lpdwLockedState:LPDWORD):HRESULT;external CellCoreDLL name 'SimGetPhoneLockedState';
 
 // Sends a password to unlock the phone.
 // -
 // Points to a valid HSIM handle
 // Points to password string
 // Some locked states require a second password (e.g. PUK requires a new PIN to replace the old, presumably forgotten PIN)
-function SimUnlockPhone(hSim:HSIM; lpszPassword:LPTSTR; lpszNewPin:LPTSTR):HRESULT;external KernelDLL name 'SimUnlockPhone';
+function SimUnlockPhone(hSim:HSIM; lpszPassword:LPTSTR; lpszNewPin:LPTSTR):HRESULT;external CellCoreDLL name 'SimUnlockPhone';
 
 // Gets the locking status of the phone.
 // -
@@ -460,7 +463,7 @@ function SimUnlockPhone(hSim:HSIM; lpszPassword:LPTSTR; lpszNewPin:LPTSTR):HRESU
 // A SIMLOCKFACILITY_* constant
 // Some facilities require a password
 // Enabled or diabled
-function SimGetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LPTSTR; var pfEnabled:BOOL):HRESULT;external KernelDLL name 'SimGetLockingStatus';
+function SimGetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LPTSTR; var pfEnabled:BOOL):HRESULT;external CellCoreDLL name 'SimGetLockingStatus';
 
 // Sets the locking status of the phone.
 // -
@@ -468,7 +471,7 @@ function SimGetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LP
 // A SIMLOCKFACILITY_* constant
 // Some facilities require a password
 // Enable or diable
-function SimSetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LPTSTR; fEnabled:BOOL):HRESULT;external KernelDLL name 'SimSetLockingStatus';
+function SimSetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LPTSTR; fEnabled:BOOL):HRESULT;external CellCoreDLL name 'SimSetLockingStatus';
 
 // Changes a locking password.
 // -
@@ -476,7 +479,7 @@ function SimSetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LP
 // A SIMLOCKFACILITY_* constant
 // The old password
 // The new password
-function SimChangeLockingPassword(hSim:HSIM; dwLockingFacility:DWORD; lpszOldPassword:LPTSTR; lpszNewPassword:LPTSTR):HRESULT;external KernelDLL name 'SimChangeLockingPassword';
+function SimChangeLockingPassword(hSim:HSIM; dwLockingFacility:DWORD; lpszOldPassword:LPTSTR; lpszNewPassword:LPTSTR):HRESULT;external CellCoreDLL name 'SimChangeLockingPassword';
 
 // Gets the status of a SMS storage location.
 // -
@@ -484,7 +487,7 @@ function SimChangeLockingPassword(hSim:HSIM; dwLockingFacility:DWORD; lpszOldPas
 // A SIM_SMSSTORAGE_* constant
 // Nubmer of used locations
 // Total number of locations
-function SimGetSmsStorageStatus(hSim:HSIM; dwStorage:DWORD; lpdwUsed:LPDWORD; lpdwTotal:LPDWORD):HRESULT;external KernelDLL name 'SimGetSmsStorageStatus';
+function SimGetSmsStorageStatus(hSim:HSIM; dwStorage:DWORD; lpdwUsed:LPDWORD; lpdwTotal:LPDWORD):HRESULT;external CellCoreDLL name 'SimGetSmsStorageStatus';
 
 // Reads an SMS from a particular storage location.
 // -
@@ -492,7 +495,7 @@ function SimGetSmsStorageStatus(hSim:HSIM; dwStorage:DWORD; lpdwUsed:LPDWORD; lp
 // A SIM_SMSSTORAGE_* constant
 // Index of the entry to retrieve
 // Points to an SMS message structure
-function SimReadMessage(hSim:HSIM; dwStorage:DWORD; dwIndex:DWORD; lpSimMessage:LPSIMMESSAGE):HRESULT;external KernelDLL name 'SimReadMessage';
+function SimReadMessage(hSim:HSIM; dwStorage:DWORD; dwIndex:DWORD; lpSimMessage:LPSIMMESSAGE):HRESULT;external CellCoreDLL name 'SimReadMessage';
 
 // Writes an SMS to a particular storage location.
 // Note that SMS messages are always written to the first available storage location
@@ -502,14 +505,14 @@ function SimReadMessage(hSim:HSIM; dwStorage:DWORD; dwIndex:DWORD; lpSimMessage:
 // A SIM_SMSSTORAGE_* constant
 // Set to the index where the message was written
 // Points to an SMS message structure
-function SimWriteMessage(hSim:HSIM; dwStorage:DWORD; lpdwIndex:LPDWORD; lpSimMessage:LPSIMMESSAGE):HRESULT;external KernelDLL name 'SimWriteMessage';
+function SimWriteMessage(hSim:HSIM; dwStorage:DWORD; lpdwIndex:LPDWORD; lpSimMessage:LPSIMMESSAGE):HRESULT;external CellCoreDLL name 'SimWriteMessage';
 
 // Deletes an SMS from a particular storage location.
 // -
 // Points to a valid HSIM handle
 // A SIM_SMSSTORAGE_* constant
 // Index of the entry to retrieve
-function SimDeleteMessage(hSim:HSIM; dwStorage:DWORD; dwIndex:DWORD):HRESULT;external KernelDLL name 'SimDeleteMessage';
+function SimDeleteMessage(hSim:HSIM; dwStorage:DWORD; dwIndex:DWORD):HRESULT;external CellCoreDLL name 'SimDeleteMessage';
 
 // Reads a file form the SIM.
 // -
@@ -521,7 +524,7 @@ function SimDeleteMessage(hSim:HSIM; dwStorage:DWORD; dwIndex:DWORD):HRESULT;ext
 // Size of data buffer
 // Number of bytes read
 function SimReadRecord(hSim:HSIM; dwAddress:DWORD; dwRecordType:DWORD; dwIndex:DWORD;
- lpData: LPBYTE; dwBufferSize: DWORD; lpdwBytesRead: LPDWORD):HRESULT;external KernelDLL name 'SimReadRecord';
+ lpData: LPBYTE; dwBufferSize: DWORD; lpdwBytesRead: LPDWORD):HRESULT;external CellCoreDLL name 'SimReadRecord';
 
 // Writes a file to the SIM.
 // -
@@ -530,14 +533,14 @@ function SimReadRecord(hSim:HSIM; dwAddress:DWORD; dwRecordType:DWORD; dwIndex:D
 // A SIM_RECORDTYPE_* constant
 // Applies only to SIM_RECORDTYPE_CYCLIC and SIM_RECORDTYPE_LINEAR, otherwise ignored
 function SimWriteRecord(hSim:HSIM; dwAddress:DWORD; dwRecordType:DWORD; dwIndex:DWORD;
- lpData: LPBYTE; dwByteCount: DWORD):HRESULT;external KernelDLL name 'SimWriteRecord';
+ lpData: LPBYTE; dwByteCount: DWORD):HRESULT;external CellCoreDLL name 'SimWriteRecord';
 
 // Gets information about a particular record.
 // -
 // Points to a valid HSIM handle
 // SIM address
 // Points to a SIM record information structure
-function SimGetRecordInfo(hSim:HSIM; dwAddress:DWORD; lpSimRecordInfo:LPSIMRECORDINFO):HRESULT;external KernelDLL name 'SimGetRecordInfo';
+function SimGetRecordInfo(hSim:HSIM; dwAddress:DWORD; lpSimRecordInfo:LPSIMRECORDINFO):HRESULT;external CellCoreDLL name 'SimGetRecordInfo';
 
 implementation
 
