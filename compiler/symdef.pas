@@ -4211,7 +4211,7 @@ implementation
       begin
         result:=false;
         { interfaces being implemented through delegation are not mergable (FK) }
-        if MergingIntf.IType<>etStandard then
+        if (MergingIntf.IType<>etStandard) or not(assigned(ProcDefs)) then
           exit;
         weight:=0;
         { empty interface is mergeable }
