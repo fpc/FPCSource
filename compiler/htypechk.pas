@@ -1974,6 +1974,7 @@ implementation
         pdoper   : tprocdef;
         releasecurrpt : boolean;
         cdoptions : tcompare_defs_options;
+        n : tnode;
 
     {$ifopt r+}{$define ena_rq}{$q-}{$r-}{$endif}
       const
@@ -2136,6 +2137,17 @@ implementation
                        hp^.ordinal_distance:=hp^.ordinal_distance+1;
                        objdef:=objdef.childof;
                      end;
+                 end
+               { compare_defs_ext compares sets and array constructors very poorly because
+                 it has too little information. So we do explicitly a detailed comparisation,
+                 see also bug #11288 (FK)
+               }
+               else if (def_to.typ=setdef) and is_array_constructor(currpt.left.resultdef) then
+                 begin
+                   n:=currpt.left.getcopy;
+                   arrayconstructor_to_set(n);
+                   eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
+                   n.free;
                  end
               else
               { generic type comparision }
