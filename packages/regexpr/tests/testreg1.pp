@@ -2,15 +2,9 @@
 {$MODE OBJFPC}
 {$ENDIF}
 
-{$DEFINE UseRegexCompat}
-
 program testreg1;
 uses
-{$IFDEF UseRegexCompat}
-   regexprcompat;
-{$ELSE}
    regexpr;
-{$ENDIF}
 
 var
    r         : tregexprengine;
@@ -325,7 +319,6 @@ begin
      do_error(705);
    DestroyregExprEngine(r);
 
-{$IFDEF UseRegexCompat}
    initok:=GenerateRegExprEngine('Cat(AZ){2,}Q',[],r);
    if not initok then
      do_error(705);
@@ -333,7 +326,6 @@ begin
      (index<>1) or (len<>12) then
      do_error(705);
    DestroyregExprEngine(r);
-{$ENDIF}
 
    initok:=GenerateRegExprEngine('CatAZ{0,}',[],r);
    if not initok then
@@ -675,13 +667,11 @@ begin
 
    { test real backtracking }
 
-{$IFDEF UseRegexCompat}
    r:=GenerateRegExprEngine('nofoo|foo',[]);
    if not(RegExprPos(r,'1234   foo1234XXXX',index,len)) or
      (index<>7) or (len<>3) then
      do_error(1300);
    DestroyregExprEngine(r);
-{$ENDIF}
 
   GenerateRegExprEngine('abc\(123\)$',[],r);
   if not (RegExprPos(r,'1234 abc(123)', index, len)) or
@@ -804,7 +794,6 @@ begin
      do_error(1507);
    DestroyregExprEngine(r);
 
-{$IFDEF UseRegexCompat}
   initok:=GenerateRegExprEngine('.*[^e]\.localhost$',[],r);
   if not initok then
      do_error(1508);
@@ -838,7 +827,6 @@ begin
      (index<>7) or (len<>7) then
      do_error(1010);
    DestroyregExprEngine(r);
-{$ENDIF}
 
   { *************************************************************************
                               replacement tests
