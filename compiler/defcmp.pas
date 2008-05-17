@@ -717,7 +717,12 @@ implementation
                              { array -> open array }
                              if not(cdo_parameter in cdoptions) and
                                 equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
-                               eq:=te_equal;
+                               begin
+                                 if fromtreetype=stringconstn then
+                                   eq:=te_convert_l1
+                                 else
+                                   eq:=te_equal;
+                               end;
                           end
                         else
                          { to array of const }

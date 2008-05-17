@@ -2780,8 +2780,8 @@ implementation
               LOC_CREFERENCE,
               LOC_REFERENCE:
                 begin
-                    reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
-                    cg.a_load_loc_reg(list,OS_ADDR,selfloc,href.base);
+                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
+                  cg.a_load_loc_reg(list,OS_ADDR,selfloc,href.base);
                 end;
               else
                 internalerror(200305057);
@@ -2838,5 +2838,3 @@ implementation
       end;
 
 end.
-
-
