@@ -203,7 +203,7 @@ begin
 {$IFDEF GnuLd}
      ExeCmd[1]:='gld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
      DllCmd[1]:='gld $OPT -shared -L. -o $EXE $RES';
-     DllCmd[2]:='strip --strip-unneeded $EXE';
+     DllCmd[2]:='gstrip --strip-unneeded $EXE';
      DynamicLinker:=''; { Gnu uses the default }
      Glibc21:=false;
 {$ELSE}
