@@ -1343,20 +1343,20 @@ implementation
               Internalerror(200006139);
             { mov  0(%rdi),%rax ; load vmt}
             reference_reset_base(href,NR_O0,0);
-            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_L0);
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
             { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_L0,procdef._class.vmtmethodoffset(procdef.extnumber));
-            list.concat(taicpu.op_ref_reg(A_LD,href,NR_L1));
-            list.concat(taicpu.op_reg(A_JMP,NR_L1));
+            reference_reset_base(href,NR_G1,procdef._class.vmtmethodoffset(procdef.extnumber));
+            list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
+            list.concat(taicpu.op_reg(A_JMP,NR_G1));
           end
         else
           begin
             reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0);
-            href.refaddr := addr_hi;
-            list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_L1));
-            href.refaddr := addr_lo;
-            list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G0,href,NR_L1));
-            list.concat(taicpu.op_reg(A_JMP,NR_L1));
+            href.refaddr := addr_high;
+            list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_G1));
+            href.refaddr := addr_low;
+            list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G0,href,NR_G1));
+            list.concat(taicpu.op_reg(A_JMP,NR_G1));
           end;
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
