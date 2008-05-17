@@ -844,13 +844,27 @@ implementation
                s8bit,
                u16bit,
                s16bit,
-               u32bit,
                s32bit,
-               s64bit,
+{$ifdef cpu64bit}
+               u32bit,
+{$endif cpu64bit}
+               s64bit:
+                 begin
+                   v:=int64(not int64(v));
+                   if (torddef(left.resultdef).ordtype<>s64bit) then
+                     def:=sinttype
+                   else
+                     def:=s64inttype;
+                 end;
+{$ifndef cpu64bit}
+               u32bit,
+{$endif not cpu64bit}
                u64bit :
                  begin
-                   v:=int64(not int64(v)); { maybe qword is required }
-                   int_to_type(v,def);
+                   { Delphi-compatible: not dword = dword (not word = longint) }
+                   { Extension: not qword = qword                              }
+                   v:=qword(not qword(v));
+                   { will be truncated by the ordconstnode for u32bit }
                  end;
                else
                  CGMessage(type_e_mismatch);
