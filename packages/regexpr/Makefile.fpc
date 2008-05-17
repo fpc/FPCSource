@@ -7,7 +7,7 @@ name=regexpr
 version=2.0.0
 
 [target]
-units=regexpr regex regexprcompat
+units=regex regexpr
 examples=testreg1
 
 [compiler]
