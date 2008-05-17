@@ -62,9 +62,6 @@ interface
           function  gen_vmt_tree:tnode;
           procedure bind_parasym;
 
-          { function return node, this is used to pass the data for a
-            ret_in_param return value }
-          _funcretnode    : tnode;
           procedure setfuncretnode(const returnnode: tnode);
           procedure convert_carg_array_of_const;
           procedure order_parameters;
@@ -89,6 +86,9 @@ interface
           procdefinitionderef : tderef;
           methodpointerinit,
           methodpointerdone : tblocknode;
+          { function return node, this is used to pass the data for a
+            ret_in_param return value }
+          _funcretnode    : tnode;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
           { varargs parasyms }
