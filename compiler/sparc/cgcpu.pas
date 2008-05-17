@@ -1350,7 +1350,14 @@ implementation
             list.concat(taicpu.op_reg(A_JMP,NR_L1));
           end
         else
-          list.concat(taicpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+          begin
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0);
+            href.refaddr := addr_hi;
+            list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_L1));
+            href.refaddr := addr_lo;
+            list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G0,href,NR_L1));
+            list.concat(taicpu.op_reg(A_JMP,NR_L1));
+          end;
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
 
