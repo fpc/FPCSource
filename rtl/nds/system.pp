@@ -18,6 +18,12 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
+{$define FPC_HAS_FEATURE_THREADING}
+{$define FPC_HAS_FEATURE_CONSOLEIO}
+{$define FPC_HAS_FEATURE_COMMANDARGS}
+{$define FPC_HAS_FEATURE_TEXTIO}
+{$define FPC_HAS_FEATURE_FILEIO}
+
 
 {$i ndsbiosh.inc}
 {$i systemh.inc}
@@ -152,6 +158,7 @@ begin
   random := (a * value) shr 15;
 end;
 
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 { number of args }
 function paramcount : longint;
 begin
@@ -163,7 +170,7 @@ function paramstr(l : longint) : string;
 begin
   paramstr := '';
 end;
-
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 procedure SysInitStdIO;
@@ -193,11 +200,16 @@ begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
-{ Setup stdin, stdout and stderr }
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { Setup stdin, stdout and stderr }
   SysInitStdIO;
-{ Reset IO Error }
+  { Reset IO Error }
   InOutRes:=0;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
 { Arguments }
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  { threading }
   InitSystemThreads;
+{$endif FPC_HAS_FEATURE_THREADING}
   initvariantmanager;
 end.

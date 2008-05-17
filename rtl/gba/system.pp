@@ -16,16 +16,20 @@
 unit System;
 
 interface
+{$define __ARM__}
 
-{$define __ARM__} (* For future usage! *)
 {$define FPC_IS_SYSTEM}
-
-{$i gbabiosh.inc}
+{$define FPC_HAS_FEATURE_THREADING}
+{$define FPC_HAS_FEATURE_CONSOLEIO}
+{$define FPC_HAS_FEATURE_COMMANDARGS}
+{$define FPC_HAS_FEATURE_TEXTIO}
+{$define FPC_HAS_FEATURE_FILEIO}
 
 {$i systemh.inc}
+{$i gbabiosh.inc}
 
 {$define fpc_softfpu_interface}
-{$i softfpu.pp}
+  {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
 
@@ -60,12 +64,14 @@ var
   argv: PPChar;
   envp: PPChar;
   errno: integer;
+  fake_heap_end: ^byte; cvar; external;
 
+procedure randomize(value: integer);
 
 implementation
 
 {$define fpc_softfpu_implementation}
-{$i softfpu.pp}
+  {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
 
 { we get these functions and types from the softfpu code }
@@ -76,12 +82,11 @@ implementation
 {$define FPC_SYSTEM_HAS_extractFloat64Frac1}
 {$define FPC_SYSTEM_HAS_extractFloat64Exp}
 {$define FPC_SYSTEM_HAS_extractFloat64Sign}
-{$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
+{$define FPC_SYSTEM_HAS_extractFloat32Frac}
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
 {$i system.inc}
-
 {$i gbabios.inc}
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
@@ -103,7 +108,41 @@ end;
 {*****************************************************************************
                              ParamStr/Randomize
 *****************************************************************************}
+const
+  QRAN_SHIFT  = 15;
+  QRAN_MASK   = ((1 shl QRAN_SHIFT) - 1);
+  QRAN_MAX    = QRAN_MASK;
+  QRAN_A      = 1664525;
+  QRAN_C      = 1013904223;
 
+{ set randseed to a new pseudo random value }
+procedure randomize();
+begin
+  RandSeed := 63458; 
+end;
+
+procedure randomize(value: integer);
+begin
+  RandSeed := value; 
+end;
+
+function random(): integer; 
+begin	
+	RandSeed := QRAN_A * RandSeed + QRAN_C;
+	random := (RandSeed shr 16) and QRAN_MAX;
+end;
+
+function random(value: integer): integer; 
+var
+  a: integer;
+begin	
+	RandSeed := QRAN_A * RandSeed + QRAN_C;
+	a := (RandSeed shr 16) and QRAN_MAX;
+  random := (a * value) shr 15;
+end;
+
+
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}  
 { number of args }
 function paramcount : longint;
 begin
@@ -115,13 +154,9 @@ function paramstr(l : longint) : string;
 begin
   paramstr:='';
 end;
+{$endif}
 
-{ set randseed to a new pseudo random value }
-procedure randomize;
-begin
-end;
-
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
@@ -145,11 +180,17 @@ begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
-{ Setup stdin, stdout and stderr }
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { Setup stdin, stdout and stderr }
   SysInitStdIO;
-{ Reset IO Error }
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { Reset IO Error }
   InOutRes:=0;
-{ Arguments }
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  { threading }
   InitSystemThreads;
+{$endif FPC_HAS_FEATURE_THREADING}
   initvariantmanager;
 end.

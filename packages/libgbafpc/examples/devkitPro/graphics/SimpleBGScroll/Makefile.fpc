@@ -1,0 +1,33 @@
+#
+#   Makefile.fpc for Free Pascal libgbafpc 2.x.y Examples
+#
+
+[target]
+loaders=data/r6502_portfont.bin
+programs=SimpleBGScroll
+
+[require]
+packages=libgbafpc
+tools=bin2s
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=arm
+target=gba
+fpcdir=../../../../..
+
+[clean]
+files=*.elf data/*.o data/*.s
+units=*
+
+[prerules]
+
+[rules]
+.NOTPARALLEL:
+ifneq ($(BIN2S),)
+data/r6502_portfont.bin.o:
+        $(BIN2S) data/r6502_portfont.bin > data/r6502_portfont.bin.s
+        $(AS) -o data/r6502_portfont.bin.o data/r6502_portfont.bin.s
+endif

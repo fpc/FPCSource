@@ -291,8 +291,8 @@ begin
       add('__eheap_end	=	ORIGIN(ewram) + LENGTH(ewram);');
       add('__iwram_start	=	ORIGIN(iwram);');
       add('__iwram_top	=	ORIGIN(iwram) + LENGTH(iwram);;');
-      add('__sp_irq	=	__iwram_top - 0x100;');
-      add('__sp_usr	=	__sp_irq - 0x100;');
+      add('__sp_irq	=	__iwram_top - 0x060;');
+      add('__sp_usr	=	__sp_irq - 0x0a0;');
       add('__irq_flags	=	0x03007ff8;');
       add('');
       add('SECTIONS');
@@ -313,13 +313,11 @@ begin
       add('	.text  :   /* ALIGN (4): */');
       add('	{');
       add('		*(EXCLUDE_FILE (*.iwram*) .text)');
-      add('		*(.text.*)');
-      add('		*(.stub)');
+      add('		*(.text .stub .text.* .gnu.linkonce.t.*)');
+      add('		KEEP (*(.text.*personality*))');
       add('		/* .gnu.warning sections are handled specially by elf32.em.  */');
       add('		*(.gnu.warning)');
-      add('		*(.gnu.linkonce.t*)');
-      add('		*(.glue_7)');
-      add('		*(.glue_7t)');
+      add('		*(.glue_7t) *(.glue_7) *(.vfp11_veneer)');
       add('		. = ALIGN(4);  /* REQUIRED. LD is flaky without it. */');
       add('	} >rom = 0xff');
       add('');
@@ -395,7 +393,7 @@ begin
       add('');
       add('	__data_lma = __iwram_lma + SIZEOF(.iwram) ;');
       add('');
-      add('	.bss ALIGN(4) :');
+      add('	.bss ALIGN(4) (NOLOAD) :');
       add('	{');
       add('		__bss_start = ABSOLUTE(.);');
       add('		__bss_start__ = ABSOLUTE(.);');
@@ -406,7 +404,7 @@ begin
       add('		. = ALIGN(4);    /* REQUIRED. LD is flaky without it. */');
       add('		__bss_end = ABSOLUTE(.) ;');
       add('');
-      add('	} >iwram');
+      add('	} AT>iwram');
       add('');
       add('	__bss_end__ = __bss_end ;');
       add('');
@@ -416,7 +414,7 @@ begin
       add('		*(.data)');
       add('		*(.data.*)');
       add('		*(.gnu.linkonce.d*)');
-      add('		*(.fpc*)');
+      add('		*(.fpc*)');      
       add('		CONSTRUCTORS');
       add('		. = ALIGN(4);');
       add('	} >iwram = 0xff');
@@ -461,9 +459,9 @@ begin
       add('		.iwram9 { *(.iwram9) . = ALIGN(4);}');
       add('	}>iwram = 0xff');
       add('');
-      add('	__ewram_lma = __load_stop_iwram9;');
-      add('');
       add('	__iwram_overlay_end = . ;');
+      add('  __ewram_lma = __iwram_overlay_lma + (__iwram_overlay_end - __iwram_overlay_start) ;');
+      add('');
       add('	__iheap_start = . ;');
       add('');
       add('	__ewram_start = ORIGIN(ewram);');
@@ -475,19 +473,18 @@ begin
       add('');
       add('	__pad_lma = __ewram_lma + SIZEOF(.ewram);');
       add('');
-      add('	.sbss ALIGN(4):');
+      add('	.sbss ALIGN(4)(NOLOAD):');
       add(' 	{');
       add('		__sbss_start = ABSOLUTE(.);');
       add(' 		*(.sbss)');
       add(' 		. = ALIGN(4);');
       add('		__sbss_end  = ABSOLUTE(.);');
-      add(' 	} >ewram');
+      add(' 	} AT>ewram');
       add('');
       add('');
       add('	__ewram_end = __sbss_end ;');
       add('	__eheap_start = __sbss_end;');
       add('	__end__ = __sbss_end;');
-      add('	end = __sbss_end;');
       add('');
       add('	/* EZF Advance strips trailing 0xff bytes, add a pad section so nothing important is removed */');
       add('	.pad ALIGN(4) : AT (__pad_lma)');
@@ -496,6 +493,7 @@ begin
       add('		LONG(0x4d)');
       add('		. = ALIGN(4);  /* REQUIRED. LD is flaky without it. */');
       add('	} = 0xff');
+      add('	__rom_end__ = __pad_lma + SIZEOF(.pad);');
       add('');
       add('');
       add('	/* Stabs debugging sections.  */');
@@ -605,6 +603,12 @@ begin
         ChangeFileExt(current_module.exefilename^,'.elf')+' '+
         current_module.exefilename^,true,false);
     end;
+
+  if success then 
+    begin
+      success:=DoExec(FindUtil('gbafix'), current_module.exefilename^,true,false);
+    end;
+
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

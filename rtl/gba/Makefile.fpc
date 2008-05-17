@@ -10,12 +10,12 @@ loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas strings \
 #      dos \
       sysutils \
-      classes math typinfo varutils fmtbcd \
+      classes math typinfo varutils fmtbcd ctypes \
       charset ucomplex getopts matrix \
       variants types rtlconsts sysconst dateutil fgl \
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
-#      clipboard datatypes asl ahi tinygl get9 muihelper \
+#      clipboard datatypes asl ahi tinygl get9 muihelper lineinfo \
 #rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
 # implicitunits=exeinfo
 
@@ -42,6 +42,7 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+BINUTILSPREFIX=arm-eabi-
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -224,3 +225,5 @@ tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
 get9$(PPUEXT): get9.pas exec$(PPUEXT)
 
 muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)

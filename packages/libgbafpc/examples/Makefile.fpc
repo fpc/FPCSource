@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for Free Pascal libgbafpc 2.x.y Examples
+#
+
+[target]
+dirs= devkitPro/audio/PlayBoyScout \
+      devkitPro/graphics/ansi_console devkitPro/graphics/PCXView devkitPro/graphics/SimpleBGScroll \
+      devkitPro/template
+
+[require]
+packages=libgbafpc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:

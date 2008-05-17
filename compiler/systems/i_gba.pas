@@ -83,7 +83,7 @@ unit i_gba;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
+            stacksize    : 16384;
             abi : abi_default
           );
 

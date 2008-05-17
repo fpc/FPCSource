@@ -18,9 +18,12 @@
  ****************************************************************************}
 
 
+var
+  heap_start: longint; external name '__eheap_start';
+
 function SysOSAlloc(size: ptruint): pointer;
 begin
-  result := pointer($02000000);
+  result := @heap_start;
 end;
 
 { $define HAS_SYSOSFREE}
