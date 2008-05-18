@@ -1836,7 +1836,7 @@ implementation
 
                _LECKKLAMMER:
                   begin
-                    if is_class_or_interface(p1.resultdef) then
+                    if is_class_or_interface_or_object(p1.resultdef) then
                       begin
                         { default property }
                         protsym:=search_default_property(tobjectdef(p1.resultdef));
