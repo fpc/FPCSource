@@ -338,6 +338,7 @@ interface
 {$endif i386}
 {$ifdef m68k}
         cputype : cpu_MC68020;
+        optimizecputype : cpu_MC68020;
         fputype : fpu_soft;
 {$endif m68k}
 {$ifdef powerpc}
@@ -352,18 +353,22 @@ interface
 {$endif POWERPC64}
 {$ifdef sparc}
         cputype : cpu_SPARC_V8;
+        optimizecputype : cpu_SPARC_V8;
         fputype : fpu_hard;
 {$endif sparc}
 {$ifdef arm}
         cputype : cpu_armv3;
+        optimizecputype : cpu_armv3;
         fputype : fpu_fpa;
 {$endif arm}
 {$ifdef x86_64}
         cputype : cpu_athlon64;
+        optimizecputype : cpu_athlon64;
         fputype : fpu_sse64;
 {$endif x86_64}
 {$ifdef avr}
         cputype : cpuinfo.cpu_avr;
+        optimizecputype : cpuinfo.cpu_avr;
         fputype : fpu_none;
 {$endif avr}
         asmmode : asmmode_standard;
