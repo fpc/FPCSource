@@ -38,7 +38,7 @@ dirs_linux=fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc 
                imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
 dirs_win32=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl gtk1 gtk2 a52 cdrom fpgtk openal fftw lua \
-               oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits
+               oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits cairo
 dirs_win64=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                 tcl opengl gtk1 gtk2 fpgtk fftw sdl openssl cdrom numlib
 dirs_wince=winceunits fcl-web tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
@@ -168,11 +168,19 @@ libpng_smart: zlib_smart
 libpng_release: zlib_release
 libpng_shared: zlib_shared
 
+#ifneq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
 cairo_all: x11_all fcl-image_all
 cairo_debug: x11_debug fcl-image_debug
 cairo_smart: x11_smart fcl-image_smart
 cairo_release: x11_release fcl-image_release
 cairo_shared: x11_shared fcl-image_shared
+#else
+cairo_all:  fcl-image_all
+cairo_debug:  fcl-image_debug
+cairo_smart:  fcl-image_smart
+cairo_release:  fcl-image_release
+cairo_shared:  fcl-image_shared
+#endif
 
 chm_all:  fcl-xml_all
 chm_shared:  fcl-xml_shared
