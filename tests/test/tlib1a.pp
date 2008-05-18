@@ -1,5 +1,5 @@
+{ %opt=-gl -O- }
 { %norun }
-{ %opt=-gl }
 {$goto on}
 library tlib1a;
 
