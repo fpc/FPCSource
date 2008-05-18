@@ -695,6 +695,7 @@ const
   unit_u_registering_new_unit=10057;
   unit_u_reresolving_unit=10058;
   unit_u_skipping_reresolving_unit=10059;
+  unit_u_unload_resunit=10060;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -732,13 +733,14 @@ const
   option_code_page_not_available=11039;
   option_config_is_dir=11040;
   option_confict_asm_debug=11041;
+  option_ppc386_deprecated=11042;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 45835;
+  MsgTxtSize = 45950;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,248,84,63,50,108,22,135,60,
-    42,1,1,1,1,1,1,1,1,1
+    24,87,248,84,63,50,108,22,135,61,
+    43,1,1,1,1,1,1,1,1,1
   );
