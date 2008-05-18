@@ -141,10 +141,9 @@ begin
 
   GetModuleByAddr(addr,baseaddr,filename);
 {$ifdef DEBUG_LINEINFO}
-  writeln(stderr,filename);
+  writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
 {$endif DEBUG_LINEINFO}
 
-  e.processaddress:=e.processaddress-dword(baseaddr);
   if not OpenExeFile(e,filename) then
     exit;
   if ReadDebugLink(e,dbgfn) then
@@ -153,6 +152,9 @@ begin
       if not OpenExeFile(e,dbgfn) then
         exit;
     end;
+
+  e.processaddress:=e.processaddress+dword(baseaddr);
+
   if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
     Opendwarf:=true
   else
@@ -693,6 +695,8 @@ begin
      if not OpenDwarf(pointer(addr)) then
       exit;
    end;
+
+  addr := addr - e.processaddress;
 
   current_offset := DwarfOffset;
   end_offset := DwarfOffset + DwarfSize;

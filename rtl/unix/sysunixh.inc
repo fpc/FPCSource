@@ -62,3 +62,10 @@ var argc:longint;external name 'operatingsystem_parameter_argc';
 {$endif}
 {$endif}
 
+{$ifdef unix}
+const
+  { hook for lineinfo, to get the module name from an address,
+    unit dl sets it if it is used
+  }
+  UnixGetModuleByAddrHook : procedure (addr: pointer; var baseaddr: pointer; var filename: string) = nil;
+{$endif unix}

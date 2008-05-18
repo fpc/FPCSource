@@ -24,7 +24,6 @@ interface
 
 function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
 
-
 implementation
 
 uses
@@ -85,10 +84,8 @@ begin
 
   GetModuleByAddr(addr,baseaddr,filename);
 {$ifdef DEBUG_LINEINFO}
-  writeln(stderr,filename);
+  writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
 {$endif DEBUG_LINEINFO}
-
-  e.processaddress:=e.processaddress-dword(baseaddr);
 
   if not OpenExeFile(e,filename) then
     exit;
@@ -98,6 +95,7 @@ begin
       if not OpenExeFile(e,dbgfn) then
         exit;
     end;
+  e.processaddress:=e.processaddress+dword(baseaddr);
   StabsFunctionRelative := E.FunctionRelative;
   if FindExeSection(e,'.stab',stabofs,stablen) and
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then
@@ -145,6 +143,10 @@ begin
   { correct the value to the correct address in the file }
   { processaddress is set in OpenStabs                   }
   addr := addr - e.processaddress;
+
+{$ifdef DEBUG_LINEINFO}
+  writeln(stderr,'Addr: ',hexstr(addr,sizeof(addr)*2));
+{$endif DEBUG_LINEINFO}
 
   fillchar(funcstab,sizeof(tstab),0);
   fillchar(filestab,sizeof(tstab),0);

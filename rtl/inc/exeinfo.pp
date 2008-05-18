@@ -48,7 +48,6 @@ function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
 
 procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
 
-
 implementation
 
 uses
@@ -56,21 +55,15 @@ uses
 
 {$ifdef unix}
 
-  var
-    dlinfo: dl_info;
-
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
-      baseaddr:= nil;
-      filename:=ParamStr(0);
-      {
-      FillChar(dlinfo, sizeof(dlinfo), 0);
-      dladdr(addr, @dlinfo);
-      baseaddr:= dlinfo.dli_fbase;
-      filename:= String(dlinfo.dli_fname);
-      if ExtractFileName(filename) = ExtractFileName(ParamStr(0)) then
-        baseaddr:= nil;
-      }
+      if assigned(UnixGetModuleByAddrHook) then
+        UnixGetModuleByAddrHook(addr,baseaddr,filename)
+      else
+        begin
+          baseaddr:=nil;
+          filename:=ParamStr(0);
+        end;
     end;
 
 {$else unix}
