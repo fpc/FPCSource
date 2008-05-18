@@ -747,13 +747,14 @@ const
   option_code_page_not_available=11039;
   option_config_is_dir=11040;
   option_confict_asm_debug=11041;
+  option_ppc386_deprecated=11042;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 47028;
+  MsgTxtSize = 47095;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,248,84,64,50,108,22,135,61,
-    42,1,1,1,1,1,1,1,1,1
+    43,1,1,1,1,1,1,1,1,1
   );

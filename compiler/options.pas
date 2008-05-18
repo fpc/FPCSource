@@ -2306,6 +2306,8 @@ begin
       if (not read_configfile) and
          (ppcaltcfg<>'') then
         read_configfile:=check_configfile(ppcaltcfg,ppccfg);
+        if read_configfile then
+          message(option_ppc386_deprecated);
     end
   else
     read_configfile := false;

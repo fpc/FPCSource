@@ -187,7 +187,7 @@ scan_e_illegal_pack_enum=02016_E_Illegal enum minimum-size specifier "$1"
 scan_e_endif_expected=02017_E_$ENDIF expected for $1 $2 defined in $3 line $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Syntax error while parsing a conditional compiling expression
-% There is an error in the expression following the \var{\{\$if ..\}}, \var{\{\$ifc \}} 
+% There is an error in the expression following the \var{\{\$if ..\}}, \var{\{\$ifc \}}
 % or \var{\{\$setc \}} compiler directives.
 scan_e_error_in_preproc_expr=02019_E_Evaluating a conditional compiling expression
 % There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
@@ -347,15 +347,15 @@ scanner_e_illegal_warn_state=02079_E_Illegal state for $WARN directive
 scan_e_only_packset=02080_E_Illegal set packing value
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameters.
 scan_w_pic_ignored=02081_W_PIC directive or switch ignored
-% Several targets, such as \windows, do not support nor need PIC, 
+% Several targets, such as \windows, do not support nor need PIC,
 % so the PIC directive and switch are ignored.
 scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by the currently selected target
 % Some compiler switches like \$E are not supported by all targets.
 scan_w_frameworks_darwin_only=02084_W_Framework-related options are only supported for Darwin/Mac OS X
-% Frameworks are not a known concept, or at least not supported by FPC, 
+% Frameworks are not a known concept, or at least not supported by FPC,
 % on operating systems other than Darwin/Mac OS X.
 scan_e_illegal_minfpconstprec=02085_E_Illegal minimal floating point constant precision "$1"
-% Valid minimal precisions for floating point constants are default, 32 and 64, 
+% Valid minimal precisions for floating point constants are default, 32 and 64,
 % which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
 scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure multiple times, was previously set to "$1"
 % The name for the main entry procedure is specified more than once. Only the last
@@ -372,7 +372,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 % are correct.
 % \begin{description}
 parser_e_syntax_error=03000_E_Parser - Syntax Error
-% An error against the Turbo Pascal language was encountered. This typically 
+% An error against the Turbo Pascal language was encountered. This typically
 % happens when an illegal character is found in the source file.
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT procedure can't be nested
 % An \var{INTERRUPT} procedure must be global.
@@ -428,7 +428,7 @@ parser_e_illegal_parameter_list=03024_E_Illegal parameter list
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
 parser_e_wrong_parameter_size=03026_E_Wrong number of parameters specified for call to "$1"
-% There is an error in the parameter list of the function or procedure -- 
+% There is an error in the parameter list of the function or procedure --
 % the number of parameters is not correct.
 parser_e_overloaded_no_procedure=03027_E_overloaded identifier "$1" isn't a function
 % The compiler encountered a symbol with the same name as an overloaded
@@ -553,7 +553,7 @@ parser_e_nothing_to_be_overridden=03058_E_There is no method in an ancestor clas
 parser_e_no_procedure_to_access_property=03059_E_No member is provided to access property
 % You specified no \var{read} directive for a property.
 parser_w_stored_not_implemented=03060_W_Stored property directive is not yet implemented
-% This message is no longer used, as the \var{stored} directive has been implemented. 
+% This message is no longer used, as the \var{stored} directive has been implemented.
 parser_e_ill_property_access_sym=03061_E_Illegal symbol for property access
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
@@ -826,7 +826,7 @@ parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for
 % You can't use direct assembler when using a binary writer. Choose an
 % other output format or use another assembler reader.
 parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use \{\$mode objfpc\} or \{\$mode delphi\} instead
-% You are trying to load the \file{ObjPas} unit manually from a \var{uses} clause. 
+% You are trying to load the \file{ObjPas} unit manually from a \var{uses} clause.
 % This is not a good idea. Use the \var{\{\$MODE OBJFPC\}} or
 % \var{\{\$mode delphi\}} directives which load the unit automatically.
 parser_e_no_object_override=03150_E_OVERRIDE can't be used in objects
@@ -930,8 +930,8 @@ parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" weren't init
 % (The compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
 parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive (or '...' in MacPas) without CDecl/CPPDecl/MWPascal and External
-% The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be 
-% used with procedures or functions that are declared with \var{external} and one of 
+% The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be
+% used with procedures or functions that are declared with \var{external} and one of
 % \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
 % is only supported to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
@@ -994,7 +994,7 @@ parser_e_no_object_reintroduce=03196_E_REINTRODUCE can't be used in objects
 parser_e_paraloc_only_one_para=03197_E_Each argument must have its own location
 % If locations for arguments are specified explicitly as it is required by
 % some syscall conventions, each argument must have its own location. Things
-% like 
+% like
 % \begin{verbatim}
 % procedure p(i,j : longint 'r1');
 % \end{verbatim}
@@ -1090,15 +1090,15 @@ parser_e_array_range_out_of_bounds=03220_E_The range of the array is too large
 % than high(ptrint) elements. Additionally, the range type must be a subrange
 % of ptrint.
 parser_e_packed_element_no_var_addr=03221_E_The address cannot be taken of bit packed array elements and record fields
-% If you declare an array or record as \var{packed} in Mac Pascal mode 
+% If you declare an array or record as \var{packed} in Mac Pascal mode
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. This means it becomes impossible to take addresses
-% of individual array elements or record fields. The only exception to this rule 
+% of individual array elements or record fields. The only exception to this rule
 % is in the case of packed arrays elements whose packed size is a multple of 8 bits.
 parser_e_packed_dynamic_open_array=03222_E_Dynamic arrays cannot be packed
 % Only regular (and possibly in the future also open) arrays can be packed.
 parser_e_packed_element_no_loop=03223_E_Bit packed array elements and record fields cannot be used as loop variables
-% If you declare an array or record as \var{packed} in Mac Pascal mode 
+% If you declare an array or record as \var{packed} in Mac Pascal mode
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
@@ -1108,8 +1108,8 @@ parser_e_type_and_var_only_in_generics=03224_E_VAR and TYPE are allowed only in 
 parser_e_cant_create_generics_of_this_type=03225_E_This type can't be a generic
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic.
 parser_w_no_lineinfo_use_switch=03226_W_Don't load LINEINFO unit manually, Use the -gl compiler switch instead
-% Do not use the \file{lineinfo} unit directly, Use the \var{-gl} switch which 
-% automatically adds the correct unit for reading the selected type of debugging 
+% Do not use the \file{lineinfo} unit directly, Use the \var{-gl} switch which
+% automatically adds the correct unit for reading the selected type of debugging
 % information. The unit that needs to be used depends on the type of
 % debug information used when compiling the binary.
 parser_e_no_funcret_specified=03227_E_No function result type specified for function "$1"
@@ -1159,9 +1159,9 @@ parser_e_class_doesnt_implement_interface=03245_E_Class "$1" does not implement 
 parser_e_class_implements_must_be_interface=03246_E_Type used by implements must be an interface
 % The \var{implements} keyword must be followed by an interface type.
 parser_e_cant_export_var_different_name=03247_E_Variables cannot be exported with a different name on this target, add the name to the declaration using the "export" directive (variable name: $1, declared export name: $2)
-% On most targets it is not possible to change the name under which a variable 
+% On most targets it is not possible to change the name under which a variable
 % is exported inside the \var{exports} statement of a library.
-% In that case, you have to specify the export name at the point where the 
+% In that case, you have to specify the export name at the point where the
 % variable is declared, using the \var{export} and \var{alias} directives.
 
 % \end{description}
@@ -1255,8 +1255,8 @@ type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_succ or pred on enum
 % then you cannot use the \var{Succ} or \var{Pred} functions with this enumeration.
 type_e_cant_read_write_type=04018_E_Can't read or write variables of this type
 % You are trying to \var{read} or \var{write} a variable from or to a
-% file of type text, which doesn't support that variable's type. 
-% Only integer types, reals, pchars and strings can be read from or 
+% file of type text, which doesn't support that variable's type.
+% Only integer types, reals, pchars and strings can be read from or
 % written to a text file. Booleans can only be written to text files.
 type_e_no_readln_writeln_for_typed_file=04019_E_Can't use readln or writeln on typed file
 % \var{readln} and \var{writeln} are only allowed for text files.
@@ -1292,7 +1292,7 @@ type_e_argument_cant_be_assigned=04029_E_Argument can't be assigned to
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference arguments.
 %
-% Remark: Properties can be used on the left side of an assignment, 
+% Remark: Properties can be used on the left side of an assignment,
 % nevertheless they cannot be used as arguments.
 type_e_cannot_local_proc_to_procvar=04030_E_Can't assign local procedure/function to procedure variable
 % It's not allowed to assign a local procedure/function to a
@@ -1420,7 +1420,7 @@ type_e_got_expected_packed_array=04062_E_Incompatible type for arg no. $1: Got "
 type_e_got_expected_unpacked_array=04063_E_Incompatible type for arg no. $1: Got "$2" expected "(not packed) Array"
 % The compiler expects a regular (i.e., not packed) array as the specified parameter.
 type_e_no_packed_inittable=04064_E_Elements of packed arrays cannot be of a type which need to be initialised
-% Support for packed arrays of types that need initialization 
+% Support for packed arrays of types that need initialization
 % (such as ansistrings, or records which contain ansistrings) is not yet implemented.
 type_e_no_const_packed_record=04065_E_Constant packed records and objects are not yet supported
 % You cannot declare a (bit)packed array as a typed constant at this time.
@@ -1444,10 +1444,10 @@ type_h_convert_mul_operands_to_prevent_overflow=04081_H_Converting the operands 
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
 type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may result in wrong comparison results and range errors, use an unsigned type instead.
-% The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff. 
-% Many operating systems allow you to allocate memory above \$80000000. 
+% The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff.
+% Many operating systems allow you to allocate memory above \$80000000.
 % For example both \windows and \linux allow pointers in the range \$0000000 to \$bfffffff.
-% If you convert pointers to signed types, this can cause overflow and range check errors, 
+% If you convert pointers to signed types, this can cause overflow and range check errors,
 % but also \$80000000 < \$7fffffff. This can cause random errors in code like "if p>q".
 type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 % When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
@@ -1506,7 +1506,7 @@ sym_e_ill_label_decl=05016_E_Illegal label declaration
 % This error should never happen; it occurs if a label is defined outside a
 % procedure or function.
 sym_e_goto_and_label_not_supported=05017_E_GOTO and LABEL are not supported (use switch -Sg)
-% You must use the -Sg switch to compile a program which has \var{label}s 
+% You must use the -Sg switch to compile a program which has \var{label}s
 % and \var{goto} statements. By default, \var{label} and \var{goto} aren't
 % supported.
 sym_e_label_not_found=05018_E_Label not found
@@ -1567,7 +1567,7 @@ sym_e_id_no_member=05038_E_identifier idents no member "$1"
 % This error is generated when an identifier of a record,
 % field or method is accessed while it is not defined.
 sym_h_param_list=05039_H_Found declaration: $1
-% You get this when you use the \var{-vh} switch.In the case of an overloaded procedure 
+% You get this when you use the \var{-vh} switch.In the case of an overloaded procedure
 % not being found. Then all candidate overloaded procedures are
 % listed, with their parameter lists.
 sym_e_segment_too_large=05040_E_Data element too large
@@ -2273,7 +2273,7 @@ unit_u_parsing_implementation=10035_U_Parsing implementation of $1
 % parsing the implementation part of the unit.
 unit_u_second_load_unit=10036_U_Second load for unit $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
-% recompiling a unit for the second time. This can happen with 
+% recompiling a unit for the second time. This can happen with
 % interdependent units.
 unit_u_check_time=10037_U_PPU Check file $1 time $2
 % When you use the \var{-vu} flag, the compiler shows the filename and
@@ -2352,10 +2352,10 @@ unit_u_reresolving_unit=10058_U_Re-resolving unit $1
 % has to recalculate the internal data of the unit.
 unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still loading used units
 % When you use the \var{-vu} flag, the compiler warns that it is
-% skipping the recalculation of the internal data of the unit 
+% skipping the recalculation of the internal data of the unit
 % because there is no data to recalculate.
-unit_u_unload_resunit=10060_U_Unloading resource unit $1 (not needed) 
-% When you use the \var{-vu} flag, the compiler warns that it is unloading the 
+unit_u_unload_resunit=10060_U_Unloading resource unit $1 (not needed)
+% When you use the \var{-vu} flag, the compiler warns that it is unloading the
 % resource handling unit, since no resources are used.
 % \end{description}
 # EndOfTeX
@@ -2457,10 +2457,10 @@ option_interpreting_file_option=11033_D_interpreting file option "$1"
 option_read_config_file=11034_D_Reading config file "$1"
 % The compiler is starting to read the configuration file.
 option_found_file=11035_D_found source file name "$1"
-% Additional information about options. 
+% Additional information about options.
 % Displayed when you have the debug option turned on.
 option_code_page_not_available=11039_E_Unknown code page
-% An unknown code page for the source files was requested. 
+% An unknown code page for the source files was requested.
 % The compiler is compiled with support for several code pages built-in.
 % The requested code page is not in that list. You will need to recompile
 % the compiler with support for the codepage you need.
@@ -2469,6 +2469,9 @@ option_config_is_dir=11040_F_Config file $1 is a directory
 option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate debug info, debugging disabled
 % The selected assembler output cannot generate
 % debugging information, debugging option is therefore disabled.
+option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc.cfg instead
+% Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
+% system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
 %\end{description}
 # EndOfTeX
 
