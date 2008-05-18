@@ -168,19 +168,19 @@ libpng_smart: zlib_smart
 libpng_release: zlib_release
 libpng_shared: zlib_shared
 
-#ifneq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
+ifneq ($(findstring $(OS_TARGET),linux darwin freebsd openbsd netbsd solaris),)
 cairo_all: x11_all fcl-image_all
 cairo_debug: x11_debug fcl-image_debug
 cairo_smart: x11_smart fcl-image_smart
 cairo_release: x11_release fcl-image_release
 cairo_shared: x11_shared fcl-image_shared
-#else
+else
 cairo_all:  fcl-image_all
 cairo_debug:  fcl-image_debug
 cairo_smart:  fcl-image_smart
 cairo_release:  fcl-image_release
 cairo_shared:  fcl-image_shared
-#endif
+endif
 
 chm_all:  fcl-xml_all
 chm_shared:  fcl-xml_shared
