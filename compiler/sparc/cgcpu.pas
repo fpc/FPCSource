@@ -1355,7 +1355,7 @@ implementation
             href.refaddr := addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_G1));
             href.refaddr := addr_low;
-            list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G0,href,NR_G1));
+            list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G1,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
           end;
         { Delay slot }
