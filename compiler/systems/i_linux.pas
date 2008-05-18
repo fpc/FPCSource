@@ -455,8 +455,10 @@ unit i_linux;
             system       : system_SPARC_Linux;
             name         : 'Linux for SPARC';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,tf_smartlink_library,
-                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_has_winlike_resources];
+            flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_smartlink_sections,
+                            tf_needs_symbol_type,tf_files_case_sensitive,tf_smartlink_library,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,
+                            tf_has_winlike_resources];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
