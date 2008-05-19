@@ -187,13 +187,6 @@ ide/fakegdb/fpcmade.*
 ide/fakegdb/units
 ide/fpcmade.*
 ide/units
-ide/utils/*.bak
-ide/utils/*.exe
-ide/utils/*.o
-ide/utils/*.ppu
-ide/utils/*.s
-ide/utils/fpcmade.*
-ide/utils/units
 installer/*.bak
 installer/*.exe
 installer/*.o
