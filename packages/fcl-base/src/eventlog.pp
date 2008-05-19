@@ -34,6 +34,7 @@ Type
     FLogHandle : Pointer;
     FStream : TFileStream;
     FActive: Boolean;
+    FRaiseExceptionOnError: Boolean;
     FIdentification: String;
     FDefaultEventType: TEventType;
     FLogtype: TLogType;
@@ -86,6 +87,7 @@ Type
     Property Identification : String Read FIdentification Write SetIdentification;
     Property LogType : TLogType Read Flogtype Write SetlogType;
     Property Active : Boolean Read FActive write SetActive;
+    Property RaiseExceptionOnError : Boolean Read FRaiseExceptionOnError Write FRaiseExceptionOnError;
     Property DefaultEventType : TEventType Read FDEfaultEventType Write FDefaultEventType;
     Property FileName : String Read FFileName Write SetFileName;
     Property TimeStampFormat : String Read FTimeStampFormat Write FTimeStampFormat;

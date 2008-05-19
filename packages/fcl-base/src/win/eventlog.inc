@@ -30,7 +30,7 @@ Procedure TEventLog.ActivateSystemLog;
 begin
   CheckIdentification;
   FLogHandle := Pointer(OpenEventLog(Nil,Pchar(Identification)));
-  If FLogHandle=Nil then
+  If (FLogHandle=Nil) and FRaiseExceptionOnError then
     Raise ELogError.CreateFmt(SErrNoSysLog,[GetLastError]);
 end;
 
@@ -60,7 +60,7 @@ begin
   FEventID:=MapTypeToEventID(EventType);
   FEventType:=MapTypeToEvent(EventType);
   P:=PChar(Msg);
-  If Not ReportEvent(Cardinal(FLogHandle),FEventType,FCategory,FEventID,Nil,1,0,@P,Nil) then
+  If Not ReportEvent(Cardinal(FLogHandle),FEventType,FCategory,FEventID,Nil,1,0,@P,Nil) and FRaiseExceptionOnError then
     begin
     I:=GetLastError;
     Raise ELogError.CreateFmt(SErrLogFailed,[I]);
