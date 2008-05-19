@@ -37,20 +37,19 @@ begin
 end;
 
 procedure TParser.LoadBuffer;
-var toread : integer;
+var
+  BytesRead: integer;
 begin
-  toread:=fStream.Size-fStream.Position;
-  if toread>ParseBufSize then toread:=ParseBufSize;
-  if toread=0 then
+  BytesRead := FStream.Read(FBuf^, ParseBufSize);
+  if BytesRead = 0 then
   begin
-    fEofReached:=true;
-    exit;
+    FEofReached := True;
+    Exit;
   end;
-  fStream.ReadBuffer(fBuf[0],toread);
-  fBuf[toread]:=#0;
-  inc(fDeltaPos,fPos);
-  fPos:=0;
-  fBufLen:=toread;
+  FBuf[BytesRead] := #0;
+  Inc(FDeltaPos, BytesRead);
+  FPos := 0;
+  FBufLen := BytesRead;
 end;
 
 procedure TParser.CheckLoadBuffer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
