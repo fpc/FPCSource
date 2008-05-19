@@ -992,11 +992,12 @@ Begin
         4 : begin {Esc[1}
               case ch of
                '~' : PushExt(71);
+               '5' : State := 8;
                '7' : PushExt(64);
                '8' : PushExt(65);
                '9' : PushExt(66);
               end;
-              if (Ch<>'~') then
+              if not (Ch in ['~', '5']) then
                State:=255;
             end;
         5 : begin {Esc[2}
@@ -1034,9 +1035,18 @@ Begin
                'B' : PushExt(80);
                'C' : PushExt(77);
                'D' : PushExt(75);
+               'P' : PushExt(59);
+               'Q' : PushExt(60); 
+               'R' : PushExt(61);
+               'S' : PushExt(62);
               end;
           end;
 {$endif}
+        8 : begin {Esc[15}
+            case ch of
+              '~' : PushExt(63);
+            end;
+          end;
       255 : ;
         end;
         if State<>0 then
