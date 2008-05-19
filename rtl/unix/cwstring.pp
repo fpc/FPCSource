@@ -26,7 +26,7 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+{$if not defined(linux) and not defined(solaris) and not defined(haiku)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
  {$linklib iconv}
  {$define useiconv}
 {$endif linux}
@@ -124,7 +124,7 @@ type
 function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
 {$endif}
 
-{$if (not defined(bsd) and not defined(beos)) or defined(darwin)}
+{$if (not defined(bsd) and not defined(beos)) or defined(darwin) or defined(haiku)}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';

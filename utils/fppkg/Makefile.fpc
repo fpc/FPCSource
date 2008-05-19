@@ -11,6 +11,7 @@ programs=fppkg
 implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 implicitunits_linux=pkgwget  pkglnet
 implicitunits_beos=pkgwget pkglnet
+implicitunits_haiku=pkgwget pkglnet
 implicitunits_freebsd=pkgwget pkglnet
 implicitunits_netbsd=pkgwget pkglnet
 implicitunits_openbsd=pkgwget pkglnet

@@ -31,14 +31,12 @@ Unit catch;
 interface
 uses
 {$ifdef unix}
- {$ifndef beos}
   {$define has_signal}
   {$ifdef havelinuxrtl10}
     Linux,
   {$else}
     BaseUnix,Unix,
   {$endif}
- {$endif}
 {$endif}
 {$ifdef go32v2}
 {$define has_signal}

@@ -65,6 +65,9 @@ implementation
     {$ifndef NOTARGETBEOS}
       ,t_beos
     {$endif}
+    {$ifndef NOTARGETHAIKU}
+      ,t_haiku
+    {$endif}
     {$ifndef NOTARGETWDOSX}
       ,t_wdosx
     {$endif}

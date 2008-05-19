@@ -1,7 +1,8 @@
 {
     Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 2008-2008 by Olivier Coursière
 
-    This unit implements support information structures for BeOS
+    This unit implements support information structures for Haiku
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,8 +19,8 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for BeOS. }
-unit i_beos;
+{ This unit implements support information structures for Haiku. }
+unit i_haiku;
 
   interface
 
@@ -27,16 +28,16 @@ unit i_beos;
        systems;
 
     const
-       system_i386_beos_info : tsysteminfo =
+       system_i386_haiku_info : tsysteminfo =
           (
-            system       : system_i386_BeOS;
-            name         : 'Beos for i386';
-            shortname    : 'Beos';
+            system       : system_i386_Haiku;
+            name         : 'Haiku for i386';
+            shortname    : 'Haiku';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses,
                             tf_smartlink_sections, tf_smartlink_library];
             cpu          : cpu_i386;
-            unit_env     : 'BEOSUNITS';
-            extradefines : 'UNIX;HASUNIX';
+            unit_env     : 'HAIKUUNITS';
+            extradefines : 'BEOS;UNIX;HASUNIX';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -101,10 +102,8 @@ unit i_beos;
 
 initialization
 {$ifdef cpu86}
-  {$ifdef beos}
-    {$ifndef haiku}
-      set_source_info(system_i386_beos_info);
-    {$endif haiku}
-  {$endif beos}
+  {$ifdef haiku}
+    set_source_info(system_i386_haiku_info);
+  {$endif haiku}
 {$endif cpu86}
 end.

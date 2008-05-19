@@ -712,7 +712,7 @@ implementation
                   AsmWriteln(#9#9+prefix); but not masm PM
                   prefix:=''; }
                   if target_asm.id in [as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
-                    as_i386_nasmelf,as_i386_nasmobj,as_i386_nasmbeos] then
+                    as_i386_nasmelf,as_i386_nasmobj,as_i386_nasmbeos,as_i386_nasmhaiku] then
                      begin
                        AsmWriteln(prefix);
                        prefix:='';

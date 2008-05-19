@@ -1,8 +1,9 @@
 {
     Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 2008-2008 by Olivier Coursiere
 
     This unit implements support import,export,link routines
-    for the (i386) BeOS target.
+    for the (i386) Haiku target.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +21,7 @@
 
  ****************************************************************************
 }
-unit t_beos;
+unit t_haiku;
 
 {$i fpcdefs.inc}
 
@@ -31,18 +32,18 @@ interface
     import,export,link;
 
   type
-    timportlibbeos=class(timportlib)
+    timportlibhaiku=class(timportlib)
       procedure generatelib;override;
     end;
 
-    texportlibbeos=class(texportlib)
+    texportlibhaiku=class(texportlib)
       procedure preparelib(const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib;override;
     end;
 
-    tlinkerbeos=class(texternallinker)
+    tlinkerhaiku=class(texternallinker)
     private
       Function  WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
     public
@@ -60,13 +61,13 @@ implementation
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_beos,ogbase;
+    fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_haiku,ogbase;
 
 {*****************************************************************************
-                               TIMPORTLIBBEOS
+                               TIMPORTLIBHAIKU
 *****************************************************************************}
 
-    procedure timportlibbeos.generatelib;
+    procedure timportlibhaiku.generatelib;
       var
         i : longint;
         ImportLibrary : TImportLibrary;
@@ -80,22 +81,22 @@ implementation
 
 
 {*****************************************************************************
-                               TEXPORTLIBBEOS
+                               TEXPORTLIBHAIKU
 *****************************************************************************}
 
-procedure texportlibbeos.preparelib(const s:string);
+procedure texportlibhaiku.preparelib(const s:string);
 begin
 end;
 
 
-procedure texportlibbeos.exportprocedure(hp : texported_item);
+procedure texportlibhaiku.exportprocedure(hp : texported_item);
 var
   hp2 : texported_item;
 begin
   { first test the index value }
   if (hp.options and eo_index)<>0 then
    begin
-     Message1(parser_e_no_export_with_index_for_target,'beos');
+     Message1(parser_e_no_export_with_index_for_target,'haiku');
      exit;
    end;
   { now place in correct order }
@@ -125,14 +126,14 @@ begin
 end;
 
 
-procedure texportlibbeos.exportvar(hp : texported_item);
+procedure texportlibhaiku.exportvar(hp : texported_item);
 begin
   hp.is_var:=true;
   exportprocedure(hp);
 end;
 
 
-procedure texportlibbeos.generatelib;
+procedure texportlibhaiku.generatelib;
 var
   hp2 : texported_item;
   pd  : tprocdef;
@@ -158,17 +159,17 @@ begin
          end;
       end
      else
-      Message1(parser_e_no_export_of_variables_for_target,'beos');
+      Message1(parser_e_no_export_of_variables_for_target,'haiku');
      hp2:=texported_item(hp2.next);
    end;
 end;
 
 
 {*****************************************************************************
-                                  TLINKERBEOS
+                                  TLINKERHAIKU
 *****************************************************************************}
 
-Constructor TLinkerBeos.Create;
+Constructor TLinkerHaiku.Create;
 var
   s : string;
   i : integer;
@@ -187,7 +188,7 @@ begin
 end;
 
 
-procedure TLinkerBeOS.SetDefaultInfo;
+procedure TLinkerHaiku.SetDefaultInfo;
 begin
   with Info do
    begin
@@ -207,7 +208,7 @@ begin
 end;
 
 
-function TLinkerBeOS.WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
+function TLinkerHaiku.WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : integer;
@@ -248,7 +249,6 @@ begin
    LinkRes.Add('ld -o $1 -e 0 $2 $3 $4 $5 $6 $7 $8 $9\');
   }
   LinkRes.Add('-m');
-//  LinkRes.Add('elf_i386_be');
   LinkRes.Add('elf_i386_haiku');
   LinkRes.Add('-shared');
   LinkRes.Add('-Bsymbolic');
@@ -359,7 +359,7 @@ begin
 end;
 
 
-function TLinkerBeOS.MakeExecutable:boolean;
+function TLinkerHaiku.MakeExecutable:boolean;
 var
   binstr,
   cmdstr : TCmdStr;
@@ -418,7 +418,7 @@ begin
 end;
 
 
-Function TLinkerBeOS.MakeSharedLibrary:boolean;
+Function TLinkerHaiku.MakeSharedLibrary:boolean;
 var
   binstr,
   cmdstr,
@@ -489,9 +489,9 @@ end;
 
 initialization
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_beos_info,TLinkerbeos);
-  RegisterImport(system_i386_beos,timportlibbeos);
-  RegisterExport(system_i386_beos,texportlibbeos);
-  RegisterTarget(system_i386_beos_info);
+  RegisterExternalLinker(system_i386_haiku_info,TLinkerhaiku);
+  RegisterImport(system_i386_haiku,timportlibhaiku);
+  RegisterExport(system_i386_haiku,texportlibhaiku);
+  RegisterTarget(system_i386_haiku_info);
 {$endif i386}
 end.

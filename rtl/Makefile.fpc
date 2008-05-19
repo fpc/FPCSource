@@ -18,6 +18,7 @@ dirs_emx=emx
 dirs_freebsd=freebsd
 dirs_darwin=darwin
 dirs_beos=beos
+dirs_haiku=haiku
 dirs_amiga=amiga
 dirs_netbsd=netbsd
 dirs_macos=macos

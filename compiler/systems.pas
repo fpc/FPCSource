@@ -143,7 +143,8 @@ interface
              system_i386_symbian,       { 59 }
              system_arm_symbian,        { 60 }
              system_x86_64_darwin,      { 61 }
-             system_avr_embedded        { 62 }
+             system_avr_embedded,       { 62 }
+             system_i386_haiku          { 63 }             
        );
 
      type
@@ -173,6 +174,7 @@ interface
              ,as_x86_64_elf64
              ,as_sparc_elf32
              ,as_ggas                  { gnu assembler called "gas" instead of "as" }
+             ,as_i386_nasmhaiku
        );
 
        tar = (ar_none

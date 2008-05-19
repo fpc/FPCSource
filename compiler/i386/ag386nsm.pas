@@ -1146,6 +1146,18 @@ interface
             labelprefix : '..@';
             comment : '; ';
           );
+          
+       as_i386_nasmhaiku_info : tasminfo =
+          (
+            id           : as_i386_nasmhaiku;
+            idtxt  : 'NASMELF';
+            asmbin : 'nasm';
+            asmcmd : '-f elf -o $OBJ $ASM';
+            supported_target : system_i386_haiku;
+            flags : [af_allowdirect,af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+          );
 
 
 initialization
@@ -1154,5 +1166,6 @@ initialization
   RegisterAssembler(as_i386_nasmwdosx_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmobj_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmbeos_info,T386NasmAssembler);
+  RegisterAssembler(as_i386_nasmhaiku_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmelf_info,T386NasmAssembler);
 end.
