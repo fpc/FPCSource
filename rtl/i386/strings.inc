@@ -524,10 +524,15 @@ end;
 {$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
 var
-  saveeax,saveedi : longint;
+  {$ifdef regcall}
+  saveeax,
+  {$endif}
+  saveedi : longint;
 asm
         movl    %edi,saveedi
+{$ifdef regcall}
         movl    %eax,saveeax
+{$endif regcall}
         movl    p,%edi
         xorl    %eax,%eax
         orl     %edi,%edi
@@ -539,7 +544,11 @@ asm
         scasb
         not     %ecx
         movb    c,%al
+{$ifdef regcall}
         movl    saveeax,%edi
+{$else}
+        movl    p,%edi
+{$endif}
         addl    %ecx,%edi
         decl    %edi
         std

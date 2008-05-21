@@ -30,7 +30,7 @@ begin
  geterrno:=geterrnolocation^;
 end;
 
-procedure seterrno(err:libcint); [public, alias: 'FPC_SYS_SETERRNO'];
+procedure seterrno(err:libcint); [public, alias: 'FPC_SYS_SETERRNO']; register;
 begin
   geterrnolocation^:=err;
 end;

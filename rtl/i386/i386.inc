@@ -94,7 +94,7 @@ function mmx_support : boolean;
        mmx_support:=false;
   end;
 
-{$ifndef FPC_SYSTEM_HAS_MOVE}
+{$if not defined(FPC_SYSTEM_HAS_MOVE) and defined(REGCALL) }
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
 {$endif FPC_SYSTEM_HAS_MOVE}
@@ -200,6 +200,10 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);assembler;
+{$ifndef regcall}
+var
+  saveedi: longint;
+{$endif}
 asm
         {A push is prefered over a local variable because a local
          variable causes the compiler to generate a stackframe.}
@@ -210,6 +214,7 @@ asm
         movzbl  %cl,%eax
         movl    %edx,%ecx
 {$else}
+        movl    %edi, saveedi
         movl    x,%edi
         movl    count,%ecx
         movzbl  value,%eax
@@ -232,6 +237,8 @@ asm
 .LFillEnd:
 {$ifdef REGCALL}
         pop %edi
+{$else}
+        movl   saveedi,%edi
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
@@ -665,9 +672,13 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
         movl    %edi,saveedi
         movl    %esi,saveesi
         cld
-        movl    %eax,%edi
-        movl    %ecx,%esi
+        movl    res,%edi
+        movl    sstr,%esi
+{$ifdef regcall}
         movl    %edx,%ecx
+{$else regcall}
+        movl    res+4,%ecx
+{$endif regcall}
         xorl    %eax,%eax
         lodsb
         cmpl    %ecx,%eax
@@ -999,7 +1010,7 @@ asm
 {$ifdef REGCALL}
         movl    saveres,%edi
 {$else}
-        movl    __RESULT,%edi
+        movl    res,%edi
 {$endif}
         addb    $255,%cl
         movb    %cl,(%edi)
@@ -1080,7 +1091,7 @@ end;
                                  Str()
 ****************************************************************************}
 
-{$ifdef disabled}
+{$if defined(disabled) and defined(regcall) }
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -1301,7 +1312,7 @@ asm
 {$else}
         movl    Target,%ecx
         movl    NewValue,%edx
-        movl    Comparand,%eax
+        movl    Comperand,%eax
 {$endif}
         lock
         cmpxchgl   %edx, (%ecx)
@@ -1420,7 +1431,7 @@ procedure fpc_cpucodeinit;
   end;
 
 
-{$ifndef darwin}
+{$if not defined(darwin) and defined(regcall) }
 { darwin requires that the stack is aligned to 16 bytes when calling another function }
 
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
@@ -1496,7 +1507,7 @@ asm
 // [442] end;
 end;
 
-{$endif darwin}
+{$endif ndef darwin and defined(regcall) }
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
