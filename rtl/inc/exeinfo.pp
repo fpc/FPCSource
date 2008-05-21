@@ -80,7 +80,6 @@ uses
         filename:=ParamStr(0)
       else
         begin
-          baseaddr:=Tmm.AllocationBase;
           TST[0]:= #0;
           GetModuleFileName(THandle(Tmm.AllocationBase), TST, SizeOf(TST));
           filename:= String(PChar(@TST));
