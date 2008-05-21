@@ -23,91 +23,91 @@
 function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint;
 Begin
   fpSocket:=Do_Syscall(syscall_nr_socket,Domain,xtype,Protocol);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 End;
 
 function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
   fpSend:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,0,0);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
   fpSendto:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,TSysParam(tox),tolen);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fprecv (s:cint; buf: pointer; len: size_t; flags:cint):ssize_t;
 begin
   fpRecv:=do_syscall(syscall_nr_Recvfrom,S,tsysparam(buf),len,flags,0,0);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fprecvfrom (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 begin
   fpRecvFrom:=do_syscall(syscall_nr_Recvfrom,S,TSysParam(buf),len,flags,TSysParam(from),TSysParam(fromlen));
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 begin
   fpBind:=do_syscall(syscall_nr_Bind,S,TSysParam(addrx),addrlen);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fplisten (s:cint; backlog : cint):cint;
 begin
   fpListen:=do_syscall(syscall_nr_Listen,S,backlog);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
   fpAccept:=do_syscall(syscall_nr_accept,S,TSysParam(addrx),TSysParam(addrlen));
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpconnect (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 begin
   fpConnect:=do_syscall(syscall_nr_connect,S,TSysParam(name),namelen);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpshutdown (s:cint; how:cint):cint;
 begin
   fpShutDown:=do_syscall(syscall_nr_shutdown,S,how);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetSockName:=do_syscall(syscall_nr_GetSockName,S,TSysParam(name),TSysParam(namelen));
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetPeerName:=do_syscall(syscall_nr_GetPeerName,S,TSysParam(name),TSysParam(namelen));
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint;
 begin
   fpSetSockOpt:=do_syscall(syscall_nr_SetSockOpt,S,level,optname,TSysParam(optval),optlen);
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
   fpGetSockOpt:=do_syscall(syscall_nr_GetSockOpt,S,level,TSysParam(optname),TSysParam(optval),TSysParam(optlen));
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpsocketpair (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 
 begin
   fpSocketPair:=do_syscall(syscall_nr_SocketPair,d,xtype,protocol,TSysParam(sv));
-  socketerror:=fpgeterrno;
+  internal_socketerror:=fpgeterrno;
 end;
 

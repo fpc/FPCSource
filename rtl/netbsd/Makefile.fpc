@@ -11,12 +11,12 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
-      $(LINUXUNIT) unix rtlconsts initc \
+      $(LINUXUNIT) unix rtlconsts ctypes initc \
       dos crt objects printer matrix \
       sysutils types fgl classes typinfo math varutils fmtbcd \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets terminfo \
-      video mouse keyboard  serial variants types sysctl sysconst fpmkunit $(CPU_UNITS) \
+      video mouse keyboard  serial variants types sysctl sysconst $(CPU_UNITS) \
       fpintres
       # ipc
 
@@ -258,3 +258,9 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
+
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
+
+gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
