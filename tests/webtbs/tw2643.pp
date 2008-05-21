@@ -21,7 +21,7 @@ begin
      end;
    str(d,s);
    if sizeof(extended) > 8 then
-     s1 := ' 5.168568500000000E+006'
+     s1 := ' 5.16856850000000E+006'
    else
      s1 := ' 5.16856850000000E+006';
    if s<>s1 then

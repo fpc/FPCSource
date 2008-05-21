@@ -173,7 +173,7 @@ const
         { the fractional part is not used for rounding later                }
         currprec := -1;
         { instead, round based on the next whole digit }
-        if (int(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
+        if (int(intPartStack[stackPtr]-corrVal+roundcorr) >= 5.0) then
            roundStr(temp,spos);
         end;
 {$ifdef DEBUG_NASM}
@@ -189,24 +189,13 @@ begin
          minlen:=8;
          explen:=4;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((16-4-3)*ln(10)));
+         roundCorr := 1.1920928955e-07;
       end;
     rt_s64real :
       begin
-{ if the maximum supported type is double, we can print out one digit }
-{ less, because otherwise we can't round properly and 1e-400 becomes   }
-{ 0.99999999999e-400 (JM)                                              }
-{$ifdef support_extended}
-         maxlen:=23;
-         { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((23-5-3)*ln(10)));
-{$else support_extended}
-{$ifdef support_double}
          maxlen := 22;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((22-4-3)*ln(10)));
-{$endif support_double}
-{$endif support_extended}
+         roundCorr := 2.2204460493e-16;
          minlen:=9;
          explen:=5;
       end;
@@ -217,7 +206,7 @@ begin
          minlen:=10;
          explen:=6;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((25-6-3)*ln(10)));
+         roundCorr := 1.0842021725e-19;
       end;
     rt_c64bit  :
       begin
@@ -226,7 +215,7 @@ begin
          { according to TP (was 5) (FK) }
          explen:=6;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((23-6-3)*ln(10)));
+         roundCorr := 2.2204460493e-16;
       end;
     rt_currency :
       begin
@@ -235,7 +224,7 @@ begin
          minlen:=10;
          explen:=0;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((25-6-3)*ln(10)));
+         roundCorr := 1.0842021725e-19;
       end;
     rt_s128real  :
       begin
@@ -244,7 +233,7 @@ begin
          minlen:=10;
          explen:=6;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((25-6-3)*ln(10)));
+         roundCorr := 1.0842021725e-19;
       end;
     end;
   { check parameters }
@@ -378,12 +367,13 @@ begin
           for fracCount := 1 to currPrec do
             factor := factor * 10.0;
           corrval := corrval / factor;
-          if d >= corrVal-roundCorr then
+          d:=d+roundCorr;
+          if d >= corrVal then
             d := d + corrVal;
-          if int(d+roundCorr) = 1 then
+          if int(d) = 1 then
             begin
               roundStr(temp,spos);
-              d := frac(d+roundCorr);
+              d := frac(d);
               if (f < 0) then
                 begin
                   dec(currprec);
@@ -397,7 +387,7 @@ begin
           { calculate the necessary fractional digits }
           for fracCount := 1 to currPrec do
             begin
-              if d > 1.0- roundCorr then
+              if d > 1.0 then
                 d := frac(d) * 10.0
               else d := d * 10.0;
               inc(spos);
