@@ -125,7 +125,11 @@
          IOffset     : ptruint;
          IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
          case boolean of
+{$ifdef ENDIAN_BIG}
+           true      : ({$IFDEF CPU64}__pad: longint;{$ENDIF}IType : tinterfaceentrytype);
+{$else ENDIAN_BIG}
            true      : (IType       : tinterfaceentrytype);
+{$endif ENDIAN_BIG}
            false     : (__pad_dummy : pointer);
        end;
 
