@@ -8,6 +8,8 @@
 uses
   {$ifdef unix}dl,{$endif unix}sysutils;
 
+{$linklib tlib1a}
+
 procedure p(var a : pointer);external 'tlib1a' name 'p';
 
 var
@@ -32,7 +34,7 @@ w:
   s2:=ExtractFilename(s2);
   writeln({ 'Func: ',s1,'} 'Source: ',s2,' Line: ',l);
   { GetLineInfo of dwarf doesn't return the function name }
-  if { (s1<>'P') or } (s2<>'tlib1.pp') or (l<>19) then
+  if { (s1<>'P') or } (s2<>'tlib1.pp') or (l<>21) then
     halt(1);
 
   writeln('ok');
