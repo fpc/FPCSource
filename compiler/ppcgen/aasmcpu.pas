@@ -504,8 +504,17 @@ uses cutils, cclasses;
                   labelpositions.count := tai_label(p).labsym.labelnr * 2;
                 labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
               end;
-            if p.typ = ait_instruction then
-              inc(instrpos);
+            { ait_const is for jump tables }
+            case p.typ of
+              ait_instruction:
+                inc(instrpos);
+              ait_const:
+                begin
+                  if (tai_const(p).consttype<>aitconst_32bit) then
+                    internalerror(2008052101); 
+                  inc(instrpos);
+                end;
+            end;
             p := tai(p.next);
           end;
 
@@ -571,6 +580,8 @@ uses cutils, cclasses;
                           end;
                     end;
                   end;
+                ait_const:
+                  inc(instrpos);
               end;
               p := tai(p.next);
             end;
