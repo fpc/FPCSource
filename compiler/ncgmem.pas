@@ -718,29 +718,33 @@ implementation
               case left.resultdef.typ of
                 arraydef :
                   begin
-                     if not(is_open_array(left.resultdef)) and
-                        not(is_array_of_const(left.resultdef)) and
-                        not(is_dynamic_array(left.resultdef)) and
-                        not(ado_isconvertedpointer in tarraydef(left.resultdef).arrayoptions) then
-                       begin
-                          if (tordconstnode(right).value.svalue>tarraydef(left.resultdef).highrange) or
-                             (tordconstnode(right).value.svalue<tarraydef(left.resultdef).lowrange) then
-                            begin
-                              { this should be caught in the typecheckpass! (JM) }
+		     { do not do any range checking when this is an array access to a pointer which has been
+		       typecasted from an array }
+		     if (not (ado_isconvertedpointer in tarraydef(left.resultdef).arrayoptions)) then
+		       begin
+                     	if not(is_open_array(left.resultdef)) and
+                           not(is_array_of_const(left.resultdef)) and
+                           not(is_dynamic_array(left.resultdef)) then
+                          begin
+                            if (tordconstnode(right).value.svalue>tarraydef(left.resultdef).highrange) or
+                               (tordconstnode(right).value.svalue<tarraydef(left.resultdef).lowrange) then
+                              begin
+                                { this should be caught in the typecheckpass! (JM) }
+                                if (cs_check_range in current_settings.localswitches) then
+                                  CGMessage(parser_e_range_check_error)
+                                else
+                                  CGMessage(parser_w_range_check_error);
+                              end;
+                           end
+                         else
+                           begin
+                              { range checking for open and dynamic arrays needs
+                                runtime code }
+                              secondpass(right);
                               if (cs_check_range in current_settings.localswitches) then
-                                CGMessage(parser_e_range_check_error)
-                              else
-                                CGMessage(parser_w_range_check_error);
-                            end;
-                       end
-                     else
-                       begin
-                          { range checking for open and dynamic arrays needs
-                            runtime code }
-                          secondpass(right);
-                          if (cs_check_range in current_settings.localswitches) then
-                            rangecheck_array;
-                       end;
+                                rangecheck_array;
+                           end;
+		       end;
                   end;
                 stringdef :
                   begin
