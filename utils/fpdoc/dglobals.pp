@@ -76,6 +76,7 @@ resourcestring
   SDocSynopsis               = 'Synopsis';
   SDocVisibility             = 'Visibility';
   SDocOpaque                 = 'Opaque type';
+  SDocDateGenerated          = 'Documentation generated on: %s';
   
   // Topics
   SDocRelatedTopics = 'Related topics';
@@ -98,6 +99,7 @@ resourcestring
   
   // HTML usage
   SHTMLUsageFooter = 'Append xhtml from file as footer to html page';
+  SHTMLUsageFooterDate = 'Append footer with date. fmt is Optional format for FormatDateTime';
   
   // CHM usage
   SCHMUsageTOC     = 'Use [File] as the table of contents. Usually a .hhc file.';

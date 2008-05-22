@@ -104,7 +104,8 @@ type
     HighlighterFlags: Byte;
 
     FooterFile: string;
-
+    FIDF : Boolean;
+    FDateFormat: String;
     function ResolveLinkID(const Name: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
       ASubpageIndex: Integer): String;
@@ -240,7 +241,8 @@ type
     property Allocator: TFileAllocator read FAllocator;
     property Package: TPasPackage read FPackage;
     property PageCount: Integer read GetPageCount;
-
+    Property IncludeDateInFooter : Boolean Read FIDF Write FIDF;
+    Property DateFormat : String Read FDateFormat Write FDateFormat;
     property OnTest: TNotifyEvent read FOnTest write SetOnTest;
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Procedure WriteDoc; override;
@@ -1949,9 +1951,24 @@ begin
 end;
 
 procedure THTMLWriter.AppendFooter;
+
+Var
+  S : String;
+  F : TDomElement;
 begin
   if FooterFile<>'' then
-    ReadXMLFragment(BodyElement, FooterFile);
+    ReadXMLFragment(BodyElement, FooterFile)
+  else if IncludeDateInFooter then
+    begin
+    CreateEl(BodyElement, 'hr');
+    F:=CreateEl(BodyElement,'span');
+    F['class']:='footer';
+    If (FDateFormat='') then
+      S:=DateToStr(Date)
+    else
+      S:=FormatDateTime(FDateFormat,Date);  
+    AppendText(F,Format(SDocDateGenerated,[S]));
+    end;
 end;
 
 procedure THTMLWriter.FinishElementPage(AElement: TPasElement);
@@ -2971,6 +2988,11 @@ begin
     SearchPage := Arg
   else if Cmd = '--footer' then
     FooterFile := Arg
+  else if Cmd = '--footer-date' then
+    begin
+    FIDF:=True;
+    FDateFormat:=Arg;
+    end
   else
     Result:=False;
 end;
@@ -2985,6 +3007,8 @@ class procedure THTMLWriter.Usage(List: TStrings);
 begin
   List.add('--footer');
   List.Add(SHTMLUsageFooter);
+  List.Add('--footer-date[=Fmt]');
+  List.Add(SHTMLUsageFooterDate);
 end;
 
 // private methods
