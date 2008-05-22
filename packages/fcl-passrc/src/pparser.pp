@@ -525,7 +525,8 @@ begin
         Result := TPasProcedureType(CreateElement(TPasProcedureType, '', nil));
         ParseProcedureOrFunctionHeader(Result,
           TPasProcedureType(Result), ptProcedure, True);
-        UngetToken;        // Unget semicolon
+        if CurToken=tkSemicolon then  
+          UngetToken;        // Unget semicolon
       end;
     tkFunction:
       begin
@@ -533,7 +534,8 @@ begin
 	  Scanner.CurFilename, Scanner.CurRow);
         ParseProcedureOrFunctionHeader(Result,
           TPasFunctionType(Result), ptFunction, True);
-        UngetToken;        // Unget semicolon
+        if CurToken=tkSemicolon then  
+          UngetToken;        // Unget semicolon
       end;
     else
     begin
