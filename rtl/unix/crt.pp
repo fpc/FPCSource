@@ -50,10 +50,20 @@ Const
 Var
   CurrX,CurrY : Byte;
   OutputRedir, InputRedir : boolean; { is the output/input being redirected (not a TTY) }
-
+{$ifdef debugcrt}
+  DebugFile : Text;
+{$endif}   
 {*****************************************************************************
                     Some Handy Functions Not in the System.PP
 *****************************************************************************}
+
+{$ifdef debugcrt}
+Procedure Debug(Msg : string);
+
+begin
+  Writeln(DebugFile,Msg);
+end;
+{$endif}
 
 Function Str(l:longint):string;
 {
@@ -419,7 +429,7 @@ begin
   ttySendStr(s);
 {Update MemCopy}
   idx:=(CurrY-1)*ScreenWidth-1;
-  for i:=1to length(s) do
+  for i:=1 to length(s) do
    if s[i]=#8 then
     begin
       if CurrX>1 then
@@ -430,8 +440,8 @@ begin
       ConsoleBuf^[idx+CurrX].ch:=s[i];
       ConsoleBuf^[idx+CurrX].attr:=TextAttr;
       inc(CurrX);
-      if CurrX>ScreenWidth then
-       CurrX:=ScreenWidth;
+      If CurrX>ScreenWidth then
+        CurrX:=$FF; // Mark as invalid.
     end;
 end;
 
@@ -1585,6 +1595,10 @@ end;
 
 
 Initialization
+{$ifdef debugcrt}
+  Assign(DebugFile,'debug.txt');
+  ReWrite(DebugFile);
+{$endif}  
 { Redirect the standard output }
   assigncrt(Output);
   Rewrite(Output);
@@ -1629,6 +1643,9 @@ Initialization
     end;
 
 Finalization
+{$ifdef debugcrt}
+  Close(DebugFile);
+{$endif}  
   ttyFlushOutput;
   if not OutputRedir then
     SetRawMode(False);
