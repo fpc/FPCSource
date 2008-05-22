@@ -181,6 +181,7 @@ interface
           constructor create_implicit(l,r,_t1:tnode);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify: tnode;override;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
 
@@ -1274,6 +1275,20 @@ implementation
          if assigned(t1) then
            firstpass(t1);
       end;
+
+
+   function ttryfinallynode.simplify: tnode;
+     begin
+       result:=nil;
+       { if the try contains no code, we can kill
+         the try and except and return only the
+         finally part }
+       if has_no_code(left) then
+         begin
+           result:=right;
+           right:=nil;
+         end;
+     end;
 
 
 {*****************************************************************************

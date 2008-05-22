@@ -82,6 +82,10 @@ interface
     { tries to simplify the given node }
     procedure dosimplify(var n : tnode);
 
+    { returns true if n is only a tree of administrative nodes
+      containing no code }
+    function has_no_code(n : tnode) : boolean;
+
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
@@ -904,5 +908,27 @@ implementation
         result:=sl;
       end;
 
+
+    function has_no_code(n : tnode) : boolean;
+      begin
+        if n=nil then
+          begin
+            result:=true;
+            exit;
+          end;
+        result:=false;
+        case n.nodetype of
+          nothingn:
+            begin
+               result:=true;
+               exit;
+            end;
+          blockn:
+            begin
+              result:=has_no_code(tblocknode(n).left);
+              exit;
+            end;
+        end;
+      end;
 
 end.
