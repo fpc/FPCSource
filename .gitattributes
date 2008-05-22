@@ -671,8 +671,6 @@ ide/test1.pas svneol=native#text/plain
 ide/test2.pas svneol=native#text/plain
 ide/tpgrep.tdf -text
 ide/unit.pt -text
-ide/utils/grep2msg.pas svneol=native#text/plain
-ide/utils/tphc.pas svneol=native#text/plain
 ide/vesa.pas svneol=native#text/plain
 ide/wansi.pas svneol=native#text/plain
 ide/wcedit.pas svneol=native#text/plain
@@ -8001,6 +7999,8 @@ tests/webtbs/tw1124.pp svneol=native#text/plain
 tests/webtbs/tw11254.pp svneol=native#text/plain
 tests/webtbs/tw11288.pp svneol=native#text/plain
 tests/webtbs/tw11290.pp svneol=native#text/plain
+tests/webtbs/tw11308.pp svneol=native#text/plain
+tests/webtbs/tw11309.pp svneol=native#text/plain
 tests/webtbs/tw11312.pp svneol=native#text/plain
 tests/webtbs/tw1132.pp svneol=native#text/plain
 tests/webtbs/tw1133.pp svneol=native#text/plain

@@ -10,7 +10,7 @@ var
   correct : string;
 begin
   case sizeof(extended) of
-    10: correct := '                   -Inf';
+    10: correct := '                  -Inf';
     8: correct := '                  -Inf';
   end;
   str(mindouble,s);

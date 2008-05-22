@@ -68,7 +68,7 @@ begin
   str(f,s);
   if (sizeof(extended) = 10) or
      (sizeof(extended) = 12) then
-    check('-1.123450000000000E+000')
+    check('-1.12345000000000E+000')
   else if sizeof(extended) = 8 then
     check('-1.12345000000000E+000')
   else
@@ -252,7 +252,7 @@ begin
   str(f,s);
   if (sizeof(extended) = 10) or
      (sizeof(extended) = 12) then
-    check('-1.123450000000000E+000')
+    check('-1.12345000000000E+000')
   else if sizeof(extended) = 8 then
     check('-1.12345000000000E+000')
   else
@@ -436,7 +436,7 @@ begin
 {$IFOPT E-}
   str(f,s);
   if sizeof(extended) = 10 then
-    check('-1.123450000000000E+000')
+    check('-1.12345000000000E+000')
   else if sizeof(extended) = 8 then
     check('-1.12345000000000E+000')
   else
