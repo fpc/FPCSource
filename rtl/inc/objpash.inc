@@ -89,6 +89,31 @@
        end;
 
        pstringmessagetable = ^tstringmessagetable;
+       pinterfacetable = ^tinterfacetable;
+
+       PVmt = ^TVmt;
+       TVmt = record
+         vInstanceSize: SizeInt;
+         vInstanceSize2: SizeInt;
+         vParent: PVmt;
+         vClassName: PShortString;
+         vDynamicTable: Pointer;
+         vMethodTable: Pointer;
+         vFieldTable: Pointer;
+         vTypeInfo: Pointer;
+         vInitTable: Pointer;
+         vAutoTable: Pointer;
+         vIntfTable: PInterfaceTable;
+         vMsgStrPtr: pstringmessagetable;
+         vDestroy: Pointer;
+         vNewInstance: Pointer;
+         vFreeInstance: Pointer;
+         vSafeCallException: Pointer;
+         vDefaultHandler: Pointer;
+         vAfterConstruction: Pointer;
+         vBeforeDestruction: Pointer;
+         vDefaultHandlerStr: Pointer;
+       end;
 
        PGuid = ^TGuid;
        TGuid = packed record
@@ -133,7 +158,6 @@
            false     : (__pad_dummy : pointer);
        end;
 
-       pinterfacetable = ^tinterfacetable;
        tinterfacetable = record
          EntryCount : ptruint;
          Entries    : array[0..0] of tinterfaceentry;

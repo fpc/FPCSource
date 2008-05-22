@@ -133,14 +133,11 @@
 {****************************************************************************
                                TOBJECT
 ****************************************************************************}
-
       constructor TObject.Create;
-
         begin
         end;
 
       destructor TObject.Destroy;
-
         begin
         end;
 
@@ -155,19 +152,24 @@
       class function TObject.InstanceSize : SizeInt;
 
         begin
-           InstanceSize:=pSizeInt(pointer(self)+vmtInstanceSize)^;
+           InstanceSize := PVmt(Self)^.vInstanceSize;
         end;
+
+      var
+        emptyintf: ptruint; public name 'FPC_EMPTYINTF';
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
         var
-          i: integer;
+          ovmt: PVmt;
+          i: longint;
           intftable: pinterfacetable;
           Res: pinterfaceentry;
         begin
-          while assigned(objclass) do
+          ovmt := PVmt(objclass);
+          while assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
             begin
-              intftable:=pinterfacetable((pointer(objclass)+vmtIntfTable)^);
+              intftable:=ovmt^.vIntfTable;
               if assigned(intftable) then
               begin
                 i:=intftable^.EntryCount;
@@ -180,7 +182,7 @@
                   dec(i);
                 end;
               end;
-              objclass:=pclass(pointer(objclass)+vmtParent)^;
+              ovmt:=ovmt^.vParent;
             end;
         end;
 
@@ -192,7 +194,8 @@
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
-           InitInterfacePointers(self,instance);
+           if PVmt(self)^.vIntfTable <> @emptyintf then
+             InitInterfacePointers(self,instance);
            InitInstance:=TObject(Instance);
         end;
 
@@ -201,7 +204,7 @@
         begin
            { type of self is class of tobject => it points to the vmt }
            { the parent vmt is saved at offset vmtParent              }
-           classparent:=pclass(pointer(self)+vmtParent)^;
+           classparent:=tclass(PVmt(Self)^.vParent);
         end;
 
       class function TObject.NewInstance : tobject;
@@ -247,13 +250,13 @@
         var
            methodtable : pmethodnametable;
            i : dword;
-           vmt : tclass;
+           ovmt : PVmt;
 
         begin
-           vmt:=self;
-           while assigned(vmt) do
+           ovmt:=PVmt(self);
+           while assigned(ovmt) do
              begin
-                methodtable:=pmethodnametable((Pointer(vmt)+vmtMethodTable)^);
+                methodtable:=pmethodnametable(ovmt^.vMethodTable);
                 if assigned(methodtable) then
                   begin
                      for i:=0 to methodtable^.count-1 do
@@ -263,7 +266,7 @@
                             exit;
                          end;
                   end;
-                vmt:=pclass(pointer(vmt)+vmtParent)^;
+                ovmt := ovmt^.vParent;
              end;
            MethodAddress:=nil;
         end;
@@ -273,12 +276,12 @@
         var
            methodtable : pmethodnametable;
            i : dword;
-           vmt : tclass;
+           ovmt : PVmt;
         begin
-           vmt:=self;
-           while assigned(vmt) do
+           ovmt:=PVmt(self);
+           while assigned(ovmt) do
              begin
-                methodtable:=pmethodnametable((Pointer(vmt)+vmtMethodTable)^);
+                methodtable:=pmethodnametable(ovmt^.vMethodTable);
                 if assigned(methodtable) then
                   begin
                      for i:=0 to methodtable^.count-1 do
@@ -288,7 +291,7 @@
                             exit;
                          end;
                   end;
-                vmt:=pclass(pointer(vmt)+vmtParent)^;
+                ovmt := ovmt^.vParent;
              end;
            MethodName:='';
         end;
@@ -321,18 +324,18 @@
            end;
 
         var
-           CurClassType: TClass;
+           ovmt: PVmt;
            FieldTable: PFieldTable;
            FieldInfo: PFieldInfo;
-           i: Integer;
+           i: longint;
 
         begin
            if Length(name) > 0 then
            begin
-             CurClassType := ClassType;
-             while CurClassType <> nil do
+             ovmt := PVmt(ClassType);
+             while ovmt <> nil do
              begin
-               FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
+               FieldTable := PFieldTable(ovmt^.vFieldTable);
                if FieldTable <> nil then
                begin
                  FieldInfo := @FieldTable^.Fields[0];
@@ -351,7 +354,7 @@
                  end;
                end;
                { Try again with the parent class type }
-               CurClassType:=pclass(pointer(CurClassType)+vmtParent)^;
+               ovmt:=ovmt^.vParent;
              end;
            end;
 
@@ -368,52 +371,42 @@
       class function TObject.ClassInfo : pointer;
 
         begin
-           ClassInfo:=ppointer(Pointer(self)+vmtTypeInfo)^;
+          ClassInfo := PVmt(Self)^.vTypeInfo;
         end;
 
       class function TObject.ClassName : ShortString;
 
         begin
-           ClassName:=PShortString((Pointer(Self)+vmtClassName)^)^;
+          ClassName := PVmt(Self)^.vClassName^;
         end;
 
       class function TObject.ClassNameIs(const name : string) : boolean;
 
         begin
-           ClassNameIs:=ShortCompareText(ClassName, name) = 0;
+        // call to ClassName inlined here, this eliminates stack and string copying.
+           ClassNameIs:=ShortCompareText(PVmt(Self)^.vClassName^, name) = 0;
         end;
 
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;
 
         var
-           vmt : tclass;
+           vmt: PVmt;
 
         begin
-           vmt:=self;
-           while assigned(vmt) do
-             begin
-                if vmt=aclass then
-                  begin
-                     InheritsFrom:=true;
-                     exit;
-                  end;
-                vmt:=pclass(pointer(vmt)+vmtParent)^;
-             end;
-           InheritsFrom:=false;
+           vmt:=PVmt(self);
+           while assigned(vmt) and (vmt <> PVmt(aclass)) do
+             vmt := vmt^.vParent;
+           InheritsFrom := (vmt = PVmt(aclass));
         end;
 
       class function TObject.stringmessagetable : pstringmessagetable;
 
         begin
-           stringmessagetable:=pstringmessagetable((pointer(Self)+vmtMsgStrPtr)^);
+          stringmessagetable:=PVmt(Self)^.vMsgStrPtr;
         end;
 
       type
          tmessagehandler = procedure(var msg) of object;
-         tmessagehandlerrec = packed record
-            proc : pointer;
-            obj : pointer;
-         end;
 
 
       procedure TObject.Dispatch(var message);
@@ -431,20 +424,20 @@
            count,i : longint;
            msgtable : pmsgtable;
            p : pointer;
-           vmt : tclass;
+           ovmt : PVmt;
            msghandler : tmessagehandler;
 
         begin
            index:=dword(message);
-           vmt:=ClassType;
-           while assigned(vmt) do
+           ovmt := PVmt(ClassType);
+           while assigned(ovmt) do
              begin
                 // See if we have messages at all in this class.
-                p:=pointer(vmt)+vmtDynamicTable;
-                If assigned(PPointer(p)^) then
+                p:=ovmt^.vDynamicTable;
+                If Assigned(p) then
                   begin
-                     msgtable:=pmsgtable(Pointer(p^)+4);
-                     count:=pdword(p^)^;
+                     msgtable:=pmsgtable(p+4);
+                     count:=pdword(p)^;
                   end
                 else
                   Count:=0;
@@ -453,14 +446,13 @@
                   begin
                      if index=msgtable[i].index then
                        begin
-                          p:=msgtable[i].method;
-                          tmessagehandlerrec(msghandler).proc:=p;
-                          tmessagehandlerrec(msghandler).obj:=self;
+                          TMethod(msghandler).Code:=msgtable[i].method;
+                          TMethod(msghandler).Data:=self;
                           msghandler(message);
                           exit;
                        end;
                   end;
-                vmt:=pclass(pointer(vmt)+vmtParent)^;
+                ovmt:=ovmt^.vParent;
              end;
            DefaultHandler(message);
         end;
@@ -474,20 +466,20 @@
            name : shortstring;
            count,i : longint;
            msgstrtable : pmsgstrtable;
-           p : pointer;
-           vmt : tclass;
+           p: pstringmessagetable;
+           ovmt : PVmt;
            msghandler : tmessagehandler;
 
         begin
            name:=pshortstring(@message)^;
-           vmt:=ClassType;
-           while assigned(vmt) do
-             begin
-                p:=(pointer(vmt)+vmtMsgStrPtr);
-                If (P<>Nil) and (PPtruInt(P)^<>0) then
+           ovmt:=PVmt(ClassType);
+           while assigned(ovmt) do
+           begin
+                p := ovmt^.vMsgStrPtr;
+                if (P<>Nil) and (p^.count<>0) then
                   begin
-                  count:=Pptruint(PSizeUInt(p)^)^;
-                  msgstrtable:=pmsgstrtable(PSizeUInt(P)^+sizeof(ptruint));
+                  count:=p^.count;
+                  msgstrtable:=@p^.msgstrtable;
                   end
                 else
                   Count:=0;
@@ -496,15 +488,14 @@
                   begin
                      if name=msgstrtable[i].name^ then
                        begin
-                          p:=msgstrtable[i].method;
-                          tmessagehandlerrec(msghandler).proc:=p;
-                          tmessagehandlerrec(msghandler).obj:=self;
+                          TMethod(msghandler).Code:=msgstrtable[i].method;
+                          TMethod(msghandler).Data:=self;
                           msghandler(message);
                           exit;
                        end;
                   end;
-                vmt:=pclass(pointer(vmt)+vmtParent)^;
-             end;
+                ovmt:=ovmt^.vParent;
+           end;
            DefaultHandlerStr(message);
         end;
 
@@ -535,7 +526,7 @@
           end;
 
         var
-           vmt  : tclass;
+           vmt  : PVmt;
            temp : pbyte;
            count,
            i    : longint;
@@ -543,12 +534,12 @@
            recelem  : TRecElem;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         begin
-           vmt:=ClassType;
+           vmt := PVmt(ClassType);
            while vmt<>nil do
              begin
                { This need to be included here, because Finalize()
                  has should support for tkClass }
-               Temp:=Pointer((Pointer(vmt)+vmtInitTable)^);
+               Temp:= vmt^.vInitTable;
                if Assigned(Temp) then
                  begin
                    inc(Temp);
@@ -572,7 +563,7 @@
                        int_Finalize (pointer(self)+Offset,Info);
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
                  end;
-               vmt:=pclass(pointer(vmt)+vmtParent)^;
+               vmt:= vmt^.vParent;
              end;
         end;
 
@@ -646,52 +637,55 @@
 
       class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
         var
-          i: integer;
+          i: longint;
           intftable: pinterfacetable;
-          Res: pinterfaceentry;
+          ovmt: PVmt;
         begin
-          getinterfaceentry:=nil;
-          intftable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
-          if assigned(intftable) then begin
-            i:=intftable^.EntryCount;
-            Res:=@intftable^.Entries[0];
-            while (i>0) and
-               not (assigned(Res^.iid) and IsGUIDEqual(Res^.iid^,iid)) do begin
-              inc(Res);
-              dec(i);
+          ovmt := PVmt(Self);
+          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          begin
+            intftable:=ovmt^.vIntfTable;
+            if assigned(intftable) then
+            begin
+              for i:=0 to intftable^.EntryCount-1 do
+              begin
+                result:=@intftable^.Entries[i];
+                if assigned(Result^.iid) and IsGUIDEqual(Result^.iid^,iid) then
+                  Exit;
+              end;
             end;
-            if (i>0) then
-              getinterfaceentry:=Res;
+            ovmt := ovmt^.vParent;
           end;
-          if (getinterfaceentry=nil)and not(classparent=nil) then
-            getinterfaceentry:=classparent.getinterfaceentry(iid)
+          result := nil;
         end;
 
       class function TObject.getinterfaceentrybystr(const iidstr : string) : pinterfaceentry;
         var
-          i: integer;
+          i: longint;
           intftable: pinterfacetable;
-          Res: pinterfaceentry;
+          ovmt: PVmt;
         begin
-          getinterfaceentrybystr:=nil;
-          intftable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
-          if assigned(intftable) then begin
-            i:=intftable^.EntryCount;
-            Res:=@intftable^.Entries[0];
-            while (i>0) and (Res^.iidstr^<>iidstr) do begin
-              inc(Res);
-              dec(i);
+          ovmt := PVmt(Self);
+          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          begin
+            intftable:=ovmt^.vIntfTable;
+            if assigned(intftable) then
+            begin
+              for i:=0 to intftable^.EntryCount-1 do
+              begin
+                result:=@intftable^.Entries[i];
+                if result^.iidstr^ = iidstr then
+                  Exit;
+              end;
             end;
-            if (i>0) then
-              getinterfaceentrybystr:=Res;
+            ovmt := ovmt^.vParent;
           end;
-          if (getinterfaceentrybystr=nil) and not(classparent=nil) then
-            getinterfaceentrybystr:=classparent.getinterfaceentrybystr(iidstr)
+          result:=nil;
         end;
 
       class function TObject.getinterfacetable : pinterfacetable;
         begin
-          getinterfacetable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
+          getinterfacetable:=PVmt(Self)^.vIntfTable;
         end;
 
 {****************************************************************************

@@ -1425,8 +1425,10 @@ implementation
             { interface table }
             if _class.ImplementedInterfaces.count>0 then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(interfacetable))
+            else if _class.implements_any_interfaces then
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF')));
             { table for string messages }
             if (oo_has_msgstr in _class.objectoptions) then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(strmessagetable))

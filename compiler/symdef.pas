@@ -263,6 +263,7 @@ interface
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
           function FindDestructor : tprocdef;
+          function implements_any_interfaces: boolean;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -4004,6 +4005,11 @@ implementation
           end;
      end;
 
+    function tobjectdef.implements_any_interfaces: boolean;
+      begin
+        result := (ImplementedInterfaces.Count > 0) or
+          (assigned(childof) and childof.implements_any_interfaces);
+      end;
 
     function tobjectdef.size : aint;
       begin
