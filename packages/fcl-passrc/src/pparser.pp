@@ -525,6 +525,7 @@ begin
         Result := TPasProcedureType(CreateElement(TPasProcedureType, '', nil));
         ParseProcedureOrFunctionHeader(Result,
           TPasProcedureType(Result), ptProcedure, True);
+//        Writeln('Parsecomplextype. After Procedure ',CurTokentext);
         if CurToken=tkSemicolon then  
           UngetToken;        // Unget semicolon
       end;
@@ -637,9 +638,9 @@ begin
       MayAppendSpace := True;
     if CurToken=tkString then
       begin
-      If (Length(CurTokenText)>0) and (CurTokenText[1]=#0) then
+{      If (Length(CurTokenText)>0) and (CurTokenText[1]=#0) then
         Writeln('First char is null : "',CurTokenText,'"');
-      Result := Result + ''''+StringReplace(CurTokenText,'''','''''',[rfReplaceAll])+''''
+}      Result := Result + ''''+StringReplace(CurTokenText,'''','''''',[rfReplaceAll])+''''
       end
     else
       Result := Result + CurTokenText;
@@ -1240,7 +1241,9 @@ begin
     if i > 0 then
       VarType.AddRef;
   end;
+//  Writeln('Token after parsecomplextype: ',CurtokenText);
   NextToken;
+//  Writeln('Token prior to equal test: ',CurtokenText);
   If CurToken=tkEqual then
     begin
     Value := ParseExpression;
@@ -1249,7 +1252,7 @@ begin
     end
   else
     UngetToken;
-
+//  Writeln('Token after equal test: ',CurtokenText);
   NextToken;
   if CurToken = tkAbsolute then
   begin
@@ -1267,8 +1270,9 @@ begin
       TPasVariable(List[i]).AbsoluteLocation:=S;
   end else
     UngetToken;
-
-  H:=CheckHint(Nil,True);
+//  Writeln('Hint');
+  H:=CheckHint(Nil,Curtoken<>tkIdentifier);
+//  Writeln('DoneHint');
   If (H<>[]) then
     for i := 0 to List.Count - 1 do
       TPasVariable(List[i]).Hints:=H;
@@ -1316,14 +1320,19 @@ begin
           // ExpectToken(tkSemicolon);
           end
         else if CurToken <> tkSemicolon then
+          begin
+//          Writeln('here');
           ParseExc(SParserSyntaxError);
+          end
       end else
       begin
+//        Writeln('here 2');
         UngetToken;
         break;
       end
     end else
     begin
+//      Writeln('here 3');
       UngetToken;
       break;
     end;
@@ -1503,6 +1512,7 @@ begin
     begin
     // CheckHint(Element,False);
     NextToken;
+//    Writeln('Checking modifiers',CurTokenString);
     if (CurToken = tkIdentifier) then
       begin
       Tok:=UpperCase(CurTokenString);
@@ -1600,7 +1610,9 @@ begin
         end
       else
         begin
+//        Writeln('No modifier. Ungetting', FTokenBuffersize,' ',FTokenBufferIndex);
         UnGetToken;
+//        Writeln('No modifier. Current token is :',curtokentext,' ', FTokenBuffersize,' ',FTokenBufferIndex);
         Break;
         end  
       end  
@@ -1618,6 +1630,7 @@ begin
       end 
     else
       begin
+//      Writeln('No modifier identifier. Ungetting');
       UngetToken;
       break;
       end;
@@ -2196,6 +2209,10 @@ var
       Move(Start^, s[1], l)
     else
       exit;
+    // Strip quote characters  
+    For l:=Length(S) downto 0 do
+      If S[l] in ['"',''''] then
+        Delete(S,l,1);
     if s[1] = '-' then
     begin
       case s[2] of
@@ -2222,6 +2239,9 @@ var
 
 var
   s: String;
+  LastQuote : Char;
+  InQuote : Boolean;
+  
 begin
   Result := nil;
   FileResolver := nil;
@@ -2260,18 +2280,32 @@ begin
 
     if FPCCommandLine<>'' then
       begin
-        Start := @FPCCommandLine[1];
-        CurPos := Start;
-        while CurPos[0] <> #0 do
+      InQuote:=False;
+      Start := @FPCCommandLine[1];
+      CurPos := Start;
+      while CurPos[0] <> #0 do
         begin
-          if CurPos[0] = ' ' then
+        if (CurPos[0] in ['''','"']) then
           begin
-            ProcessCmdLinePart;
-            Start := CurPos + 1;
+          If InQuote then
+            begin
+            if CurPos[0]=lastQuote then
+              InQuote:=False;
+            end
+          else
+            begin
+            InQuote:=True;
+            LastQuote:=CurPos[0];
+            end;    
+          end
+        else if (CurPos[0] = ' ') and (not inquote) then
+          begin
+          ProcessCmdLinePart;
+          Start := CurPos + 1;
           end;
-          Inc(CurPos);
+        Inc(CurPos);
         end;
-        ProcessCmdLinePart;
+      ProcessCmdLinePart;
       end;
 
     if Filename = '' then
