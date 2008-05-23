@@ -525,8 +525,7 @@ begin
         Result := TPasProcedureType(CreateElement(TPasProcedureType, '', nil));
         ParseProcedureOrFunctionHeader(Result,
           TPasProcedureType(Result), ptProcedure, True);
-        if CurToken=tkSemicolon then  
-          UngetToken;        // Unget semicolon
+        UngetToken;        // Unget semicolon
       end;
     tkFunction:
       begin
@@ -534,8 +533,7 @@ begin
 	  Scanner.CurFilename, Scanner.CurRow);
         ParseProcedureOrFunctionHeader(Result,
           TPasFunctionType(Result), ptFunction, True);
-        if CurToken=tkSemicolon then  
-          UngetToken;        // Unget semicolon
+        UngetToken;        // Unget semicolon
       end;
     else
     begin
@@ -1221,10 +1219,11 @@ var
   Value, S: String;
   M: string;
   H : TPasMemberHints;
-  
+  LastVar : String;
 begin
   while True do
   begin
+    LastVar:=CurTokenString;
     List.Add(CreateElement(TPasVariable, CurTokenString, Parent));
     NextToken;
     if CurToken = tkColon then
@@ -1240,15 +1239,20 @@ begin
     if i > 0 then
       VarType.AddRef;
   end;
-  NextToken;
+//  Writeln(LastVar,': Parsed complex type: ',CurtokenText);
+  // NextToken;
+  // Writeln(LastVar,': Parsed complex type, next: ',CurtokenText);
   If CurToken=tkEqual then
     begin
+    NextToken;
     Value := ParseExpression;
+  //  Writeln(LastVar,' Value :',Value);
     for i := 0 to List.Count - 1 do
       TPasVariable(List[i]).Value := Value;
+//    Writeln(LastVar,': Parsed expression:',CurTokenText);
     end
-  else
-    UngetToken;
+{  else
+    UngetToken};
 
   NextToken;
   if CurToken = tkAbsolute then
