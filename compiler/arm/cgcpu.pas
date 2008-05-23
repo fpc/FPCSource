@@ -2009,6 +2009,10 @@ unit cgcpu;
         else
           list.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
+        { the wrapper might need aktlocaldata for the additional data to
+          load the constant }
+        current_procinfo:=cprocinfo.create(nil);
+
         { set param1 interface to self  }
         g_adjust_self_value(list,procdef,ioffset);
 
@@ -2021,6 +2025,10 @@ unit cgcpu;
         { case 0 }
         else
           list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+        list.concatlist(current_procinfo.aktlocaldata);
+
+        current_procinfo.Free;
+        current_procinfo:=nil;
 
         list.concat(Tai_symbol_end.Createname(labelname));
       end;
