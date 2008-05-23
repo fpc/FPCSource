@@ -1340,9 +1340,13 @@ var
   StringType: TValueType;
 begin
   StringType := FDriver.ReadValue;
-  if StringType in [vaString, vaLString] then
-    Result := FDriver.ReadString(StringType)
-  else if StringType in [vaWString,vaUTF8String] then
+  if StringType in [vaString, vaLString,vaUTF8String] then
+    begin
+    Result := FDriver.ReadString(StringType);
+    if (StringType=vaUTF8String) then
+      Result:=utf8Decode(Result);
+    end
+  else if StringType in [vaWString] then
     Result:= FDriver.ReadWidestring
   else
     raise EReadError.Create(SInvalidPropertyValue);
