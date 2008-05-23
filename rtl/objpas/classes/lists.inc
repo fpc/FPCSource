@@ -544,7 +544,11 @@ end;
 
 procedure TList.SetCount(NewCount: Integer);
 begin
-  FList.SetCount(NewCount);
+  if NewCount < FList.Count then
+    while FList.Count > NewCount do
+      Delete(FList.Count - 1)
+  else
+    FList.SetCount(NewCount);
 end;
 
 constructor TList.Create;
