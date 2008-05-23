@@ -159,12 +159,14 @@ type
   TFileResolver = class
   private
     FIncludePaths: TStringList;
+    FStrictFileCase : Boolean;
   public
     constructor Create;
     destructor Destroy; override;
     procedure AddIncludePath(const APath: string);
     function FindSourceFile(const AName: string): TLineReader;
     function FindIncludeFile(const AName: string): TLineReader;
+    Property StrictFileCase : Boolean Read FStrictFileCase Write FStrictFileCase;
   end;
 
   EScannerError       = class(Exception);
@@ -413,7 +415,20 @@ begin
       begin
       Try
         FN:=FIncludePaths[i]+AName;
-        If FileExists(FN) then
+        If not FileExists(FN) then
+          If StrictFileCase then
+            FN:=''
+          else
+            begin 
+            fn:=LowerCase(FN);
+            If not FileExists(Fn) then
+              begin
+              FN:=uppercase(Fn);
+              If not FileExists(FN) then
+                FN:='';
+              end;    
+            end;  
+        If (FN<>'') then
           Result := TFileLineReader.Create(FN);
       except
         Result:=Nil;
