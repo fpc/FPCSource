@@ -57,8 +57,7 @@ begin
     writeln('Passed!');
 end;
 
-const
-  lb = longbool(false);
+
 
 var
  longres :  longint;
@@ -127,10 +126,6 @@ Begin
    byteboolres:= not ((intres = 1));
    Write('Value should be FALSE...');
    test(ord(byteboolres),0);
-
-  longboolres:=not(lb);
-  Write('Value should be 1...');
-  test(ord(longboolres),1);
 
   { !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
   { CURRENT_NODE : LOC_JUMP }
