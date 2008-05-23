@@ -654,6 +654,7 @@ begin
       state.append_row := false;
       if (state.end_sequence) then begin
         InitStateRegisters(state, header64.default_is_stmt);
+        first_row := true;
       end;
     end;
 
