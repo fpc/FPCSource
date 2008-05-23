@@ -71,8 +71,11 @@ uses
 
   var
     Tmm: TMemoryBasicInformation;
+{$ifdef wince}
+    TST: array[0..Max_Path] of WideChar;
+{$else wince}
     TST: array[0..Max_Path] of Char;
-
+{$endif wince}
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
       baseaddr:= nil;
@@ -81,8 +84,12 @@ uses
       else
         begin
           TST[0]:= #0;
-          GetModuleFileName(THandle(Tmm.AllocationBase), TST, SizeOf(TST));
+          GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST));
+{$ifdef wince}
+          filename:= String(PWideChar(@TST));
+{$else wince}
           filename:= String(PChar(@TST));
+{$endif wince}
         end;
     end;
 
