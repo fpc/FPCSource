@@ -1016,7 +1016,7 @@ begin
       end;}
   until not(assigned(Current)) or
         (current.typ <> ait_Marker) or
-        not(tai_Marker(current).Kind in [mark_NoPropInfoStart,mark_NoPropInfoEnd,mark_InlineStart,mark_InlineEnd,mark_Position]);
+        not(tai_Marker(current).Kind in [mark_NoPropInfoStart,mark_NoPropInfoEnd]);
   Next := Current;
   if assigned(Current) and
      not((current.typ in SkipInstr) or
@@ -1058,7 +1058,7 @@ begin
       end;}
   until not(assigned(Current)) or
         (current.typ <> ait_Marker) or
-        not(tai_Marker(current).Kind in [mark_NoPropInfoStart,mark_NoPropInfoEnd,mark_InlineStart,mark_InlineEnd,mark_Position]);
+        not(tai_Marker(current).Kind in [mark_NoPropInfoStart,mark_NoPropInfoEnd]);
   if not(assigned(Current)) or
      (current.typ in SkipInstr) or
      ((current.typ = ait_label) and
