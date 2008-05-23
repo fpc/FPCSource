@@ -106,7 +106,7 @@ unit cgcpu;
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);
       private
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
@@ -1907,6 +1907,59 @@ unit cgcpu;
         ai.SetCondition(OpCmp2AsmCond[cond]);
         ai.is_jmp:=true;
         list.concat(ai);
+      end;
+
+
+    procedure tcgarm.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);
+      var
+        hsym : tsym;
+        href : treference;
+        paraloc : Pcgparalocation;
+        shift : byte;
+      begin
+        { calculate the parameter info for the procdef }
+        if not procdef.has_paraloc_info then
+          begin
+            procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
+            procdef.has_paraloc_info:=true;
+          end;
+        hsym:=tsym(procdef.parast.Find('self'));
+        if not(assigned(hsym) and
+          (hsym.typ=paravarsym)) then
+          internalerror(200305251);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        while paraloc<>nil do
+          with paraloc^ do
+            begin
+              case loc of
+                LOC_REGISTER:
+                  begin
+                    if is_shifter_const(ioffset,shift) then
+                      a_op_const_reg(list,OP_SUB,size,ioffset,register)
+                    else
+                      begin
+                        a_load_const_reg(list,OS_ADDR,ioffset,NR_R12);
+                        a_op_reg_reg(list,OP_SUB,size,NR_R12,register);
+                      end;
+                  end;
+                LOC_REFERENCE:
+                  begin
+                    { offset in the wrapper needs to be adjusted for the stored
+                      return address }
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint));
+                    if is_shifter_const(ioffset,shift) then
+                      a_op_const_ref(list,OP_SUB,size,ioffset,href)
+                    else
+                      begin
+                        a_load_const_reg(list,OS_ADDR,ioffset,NR_R12);
+                        a_op_reg_ref(list,OP_SUB,size,NR_R12,href);
+                      end;
+                  end
+                else
+                  internalerror(200309189);
+              end;
+              paraloc:=next;
+            end;
       end;
 
 
