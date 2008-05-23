@@ -1071,8 +1071,11 @@ begin
 
         Result := tkIdentifier;
       end;
-  else
-    Error(SErrInvalidCharacter, [TokenStr[0]]);
+  else 
+    if PPIsSkipping then
+      Inc(TokenStr)
+    else  
+      Error(SErrInvalidCharacter, [TokenStr[0]]);
   end;
 
   FCurToken := Result;
