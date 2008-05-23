@@ -658,7 +658,7 @@ begin
   Consts.Free;
   Types.Free;
   ResStrings.Free;
-
+  Properties.Free;
   for i := 0 to Declarations.Count - 1 do
     TPasElement(Declarations[i]).Release;
   Declarations.Free;
