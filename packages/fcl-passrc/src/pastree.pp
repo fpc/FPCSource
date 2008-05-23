@@ -109,7 +109,7 @@ type
   public
     UsesList: TList;            // TPasUnresolvedTypeRef or TPasModule elements
     Declarations, ResStrings, Types, Consts, Classes,
-      Functions, Variables: TList;
+    Functions, Variables, Properties: TList;
   end;
 
   TPasModule = class(TPasElement)
@@ -645,6 +645,7 @@ begin
   Classes := TList.Create;
   Functions := TList.Create;
   Variables := TList.Create;
+  Properties := TList.Create;
 end;
 
 destructor TPasSection.Destroy;
