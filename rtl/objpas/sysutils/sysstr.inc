@@ -1024,9 +1024,19 @@ Var
 
 Begin
   S:=StrPas(Buffer);
-  P:=Pos(FormatSettings.DecimalSeparator,S);
-  If (P<>0) Then
-    S[P] := '.';
+  if (FormatSettings.DecimalSeparator<>'.') then
+    begin
+      { only decimalseparator may appear in the string }
+      P:=Pos('.',S);
+      if (P<>0) then
+        begin
+          result:=false;
+          exit;
+        end;
+      P:=Pos(FormatSettings.DecimalSeparator,S);
+      If (P<>0) Then
+        S[P] := '.';
+    end;
   Val(trim(S),Value,E);
   Result:=(E=0);
 End;

@@ -9133,6 +9133,7 @@ tests/webtbs/tw9098.pp svneol=native#text/plain
 tests/webtbs/tw9107.pp svneol=native#text/plain
 tests/webtbs/tw9108.pp svneol=native#text/plain
 tests/webtbs/tw9113.pp svneol=native#text/plain
+tests/webtbs/tw9126.pp svneol=native#text/plain
 tests/webtbs/tw9128.pp svneol=native#text/plain
 tests/webtbs/tw9139.pp svneol=native#text/plain
 tests/webtbs/tw9139a.pp svneol=native#text/plain
