@@ -1,3 +1,4 @@
+{$mode objfpc}
 program test;
 
 type
