@@ -156,7 +156,8 @@ const
 
 
 type
-  ppureal=extended;
+  { bestreal is defined based on the target architecture }
+  ppureal=bestreal;
 
   tppuerror=(ppuentrytoobig,ppuentryerror);
 
