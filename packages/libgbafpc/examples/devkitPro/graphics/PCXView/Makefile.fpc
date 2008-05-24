@@ -16,7 +16,7 @@ fpcpackage=y
 [default]
 cpu=arm
 target=gba
-fpcdir=../../../../..
+fpcdir=../../../../../..
 
 [clean]
 files=*.elf data/*.o data/*.s
