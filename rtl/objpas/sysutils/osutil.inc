@@ -121,6 +121,12 @@ begin
   Result:=GetAppConfigFile(Global,False);
 end;
 
+Function DGetUserDir : String;
+
+begin
+  Result:=ExtractFilePath(Paramstr(0));
+end;
+
 
 { ---------------------------------------------------------------------
     Fallback implementations for AppConfigDir implementation.
@@ -143,6 +149,26 @@ Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
   Result:=DGetAppConfigFile(Global,Subdir);
+end;
+{$endif}
+
+{ ---------------------------------------------------------------------
+    Fallback implementations for GetUserDir implementation.
+  ---------------------------------------------------------------------}
+{
+ If a particular OS does it different:
+ - set the HAVE_OSUSERDIR define before including sysutils.inc.
+ - implement the function.
+ Default makes it the application directory. Rationale is that the result
+ will be used for config files, and it should exist. The application directory
+ has this for sure.
+}
+
+{$ifndef HAS_OSUSERDIR}
+Function GetUserDir : String;
+
+begin
+  Result:=DGetUserDir;
 end;
 {$endif}
 
