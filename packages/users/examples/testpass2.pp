@@ -42,7 +42,9 @@ Begin
       printpchar('pw_shell',p^.pw_shell);
      {$ifdef BSD}
       printpchar('pw_expire',inttostr(p^.pw_expire));
-      printpchar('pw_fields',inttostr(p^.pw_fields));
+      {$ifdef FreeBSD}
+        printpchar('pw_fields',inttostr(p^.pw_fields)); 
+      {$endif}
      {$endif}
     End;
   nrgids := 100;
