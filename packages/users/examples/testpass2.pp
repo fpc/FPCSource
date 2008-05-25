@@ -1,6 +1,8 @@
 Program TestPass2;
 
-Uses pwd,grp,baseunix;
+Uses pwd,grp,baseunix,sysutils;
+
+{$mode objfpc}{$h+}
 
 Procedure printpchar(fieldname:String;p:pchar);
 
@@ -13,11 +15,16 @@ Begin
     End;
 End;
 
+Procedure printpchar(fieldname,p:string);
+
+Begin
+  printpchar(fieldname,pchar(p));
+End;
+
 Var p : PPasswd;
   supplementary_gids : array[0..99] Of gid_t;
   i,nrgids: cint;
   pgrp: PGroup;
-
 Begin
   p := fpgetpwnam('marcov');
   If assigned(p) Then
@@ -27,15 +34,15 @@ Begin
       writeln('pw_uid:',' ':9,p^.pw_uid);
       writeln('pw_gid:',' ':9,p^.pw_gid);
      {$ifdef BSD}
-      printpchar('pw_change',p^.pw_change);
+      printpchar('pw_change',inttostr(p^.pw_change));
       printpchar('pw_class',p^.pw_class);
      {$endif}
       printpchar('pw_gecos',p^.pw_gecos);
       printpchar('pw_dir',p^.pw_dir);
       printpchar('pw_shell',p^.pw_shell);
      {$ifdef BSD}
-      printpchar('pw_expire',p^.pw_expire);
-      printpchar('pw_fields',p^.pw_fields);
+      printpchar('pw_expire',inttostr(p^.pw_expire));
+      printpchar('pw_fields',inttostr(p^.pw_fields));
      {$endif}
     End;
   nrgids := 100;
