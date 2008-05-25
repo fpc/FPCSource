@@ -693,6 +693,7 @@ procedure TIBConnection.SetParameters(cursor : TSQLCursor;AParams : TParams);
 var ParNr,SQLVarNr : integer;
     s               : string;
     i               : integer;
+    si              : smallint;
     li              : LargeInt;
     currbuff        : pchar;
     w               : word;
@@ -736,30 +737,40 @@ var ParNr,SQLVarNr : integer;
 {$R+}
   end;
 
+var
+  VSQLVar: XSQLVAR;
 begin
 {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
     begin
     ParNr := ParamBinding[SQLVarNr];
+    VSQLVar := in_sqlda^.SQLvar[SQLVarNr];
     if AParams[ParNr].IsNull then
       begin
-      If Assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then
-        in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := -1;
+      If Assigned(VSQLVar.SQLInd) then
+        VSQLVar.SQLInd^ := -1;
       end
     else
       begin
-      if assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := 0;
+      if assigned(VSQLVar.SQLInd) then VSQLVar.SQLInd^ := 0;
 
-      case (in_sqlda^.SQLvar[SQLVarNr].sqltype and not 1) of
+      case (VSQLVar.sqltype and not 1) of
         SQL_LONG :
           begin
-          i := AParams[ParNr].AsInteger;
-          Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+            if VSQLVar.sqlscale = 0 then
+              i := AParams[ParNr].AsInteger
+            else
+              i := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar.sqlscale));
+            Move(i, VSQLVar.SQLData^, VSQLVar.SQLLen);
           end;
         SQL_SHORT :
           begin
-          i := AParams[ParNr].AsSmallInt;
-          Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+            if VSQLVar.sqlscale = 0 then
+              si := AParams[ParNr].AsSmallint
+            else
+              si := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar.sqlscale));
+            i := si;
+            Move(i, VSQLVar.SQLData^, VSQLVar.SQLLen);
           end;
         SQL_BLOB :
           SetBlobParam;
@@ -767,27 +778,30 @@ begin
           begin
           s := AParams[ParNr].AsString;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
-          if ((in_sqlda^.SQLvar[SQLVarNr].SQLType and not 1) = SQL_VARYING) then
+          if ((VSQLVar.SQLType and not 1) = SQL_VARYING) then
             begin
-            in_sqlda^.SQLvar[SQLVarNr].SQLLen := w;
-            ReAllocMem(in_sqlda^.SQLvar[SQLVarNr].SQLData,in_SQLDA^.SQLVar[SQLVarNr].SQLLen+2);
-            CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
+            VSQLVar.SQLLen := w;
+            ReAllocMem(VSQLVar.SQLData, VSQLVar.SQLLen+2);
+            CurrBuff := VSQLVar.SQLData;
             move(w,CurrBuff^,sizeof(w));
             inc(CurrBuff,2);
             end
           else
-            CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
+            CurrBuff := VSQLVar.SQLData;
           Move(s[1], CurrBuff^, w);
           end;
         SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
-          SetDateTime(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsDateTime, in_SQLDA^.SQLVar[SQLVarNr].SQLType);
+          SetDateTime(VSQLVar.SQLData, AParams[ParNr].AsDateTime, VSQLVar.SQLType);
         SQL_INT64:
           begin
-          li := AParams[ParNr].AsLargeInt;
-          Move(li, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+            if VSQLVar.sqlscale = 0 then
+              li := AParams[ParNr].AsLargeInt
+            else
+              li := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar.sqlscale));
+            Move(li, VSQLVar.SQLData^, VSQLVar.SQLLen);
           end;
         SQL_DOUBLE, SQL_FLOAT:
-          SetFloat(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsFloat, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+          SetFloat(VSQLVar.SQLData, AParams[ParNr].AsFloat, VSQLVar.SQLLen);
       else
         DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}
