@@ -270,7 +270,7 @@ ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
@@ -321,7 +321,7 @@ ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
@@ -378,7 +378,7 @@ ifeq ($(FULL_TARGET),x86_64-linux)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib
@@ -1774,6 +1774,7 @@ TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_USERS=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_HASH=1
@@ -2468,6 +2469,7 @@ TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_USERS=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_HASH=1
@@ -3331,6 +3333,7 @@ TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_USERS=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_HASH=1
