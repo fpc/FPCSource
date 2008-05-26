@@ -20,6 +20,7 @@ type
   published
     procedure TestParseSQL;
     procedure TestInitFielddefsFromFields;
+    procedure TestDoubleFieldDef;
   end;
 
 implementation
@@ -141,6 +142,23 @@ begin
   CompareFieldAndFieldDef(F1,ds.FieldDefs[0]);
   CompareFieldAndFieldDef(F2,ds.FieldDefs[1]);
   CompareFieldAndFieldDef(F3,ds.FieldDefs[2]);
+end;
+
+procedure TTestBasics.TestDoubleFieldDef;
+var ds : TDataset;
+    PassException : boolean;
+begin
+  // If a second field with the same name is added to a TFieldDefs, an exception
+  // should occur
+  ds := TDataset.create(nil);
+  ds.FieldDefs.Add('Field1',ftInteger);
+  PassException:=False;
+  try
+    ds.FieldDefs.Add('Field1',ftString,10,false)
+  except
+    on E: EDatabaseError do PassException := True;
+  end;
+  AssertTrue(PassException);
 end;
 
 initialization

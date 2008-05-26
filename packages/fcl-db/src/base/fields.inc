@@ -42,8 +42,8 @@ begin
 {$ifdef dsdebug }
   Writeln('TFieldDef.Create : ',Aname,'(',AFieldNo,')');
 {$endif}
-  Name:=Aname;
   Inherited Create(AOwner);
+  Name:=Aname;
   FDatatype:=ADatatype;
   FSize:=ASize;
   FRequired:=ARequired;
@@ -252,6 +252,18 @@ begin
     If Assigned(Dataset) then
       DataSet.InitFieldDefs;
     Updated := True;
+    end;
+end;
+
+function TFieldDefs.MakeNameUnique(const AName: String): string;
+var DblFieldCount : integer;
+begin
+  DblFieldCount := 0;
+  Result := AName;
+  while assigned(inherited Find(Result)) do
+    begin
+    inc(DblFieldCount);
+    Result := AName + '_' + IntToStr(DblFieldCount);
     end;
 end;
 

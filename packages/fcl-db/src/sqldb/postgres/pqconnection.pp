@@ -632,7 +632,7 @@ begin
     for i := 0 to nFields-1 do
       begin
       fieldtype := TranslateFldType(Res, i,size);
-      with TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1)) do
+      with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(PQfname(Res, i)), fieldtype,size, False, (i + 1)) do
         FieldBinding[FieldNo-1] := i;
       end;
     CurTuple := -1;

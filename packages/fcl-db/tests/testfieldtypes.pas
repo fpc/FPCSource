@@ -30,6 +30,7 @@ type
     procedure TestClearUpdateableStatus;
     procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestParseJoins; // bug 10148
+    procedure TestDoubleFieldNames; // bug 8457
     procedure TestParseUnion; // bug 8442
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
@@ -1001,6 +1002,28 @@ begin
       begin
       SQL.Text:='select TT.NAME from FPDEV left join FPDEV TT on TT.ID=FPDEV.ID';
       Open;
+      close;
+      end;
+    end;
+end;
+
+procedure TTestFieldTypes.TestDoubleFieldNames;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    with query do
+      begin
+      SQL.Text:='select FPDEV.*,TT.* from FPDEV left join FPDEV TT on TT.ID=FPDEV.ID';
+      Open;
+      AssertTrue(assigned(FindField('ID')));
+      AssertTrue (assigned(FindField('ID_1')));
+      AssertTrue(assigned(FindField('NAME')));
+      AssertTrue(assigned(FindField('NAME_1')));
+      
+      AssertEquals(1,fieldbyname('ID').AsInteger);
+      AssertEquals(1,fieldbyname('ID_1').AsInteger);
+      AssertEquals('TestName1',fieldbyname('NAME').AsString);
+      AssertEquals('TestName1',fieldbyname('NAME_1').AsString);
       close;
       end;
     end;

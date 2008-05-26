@@ -218,6 +218,7 @@ type
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
     procedure Update; overload;
+    Function MakeNameUnique(const AName : String) : string; virtual;
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
   end;
@@ -2011,12 +2012,15 @@ begin
 end;
 
 procedure TNamedItem.SetDisplayName(const AValue: string);
+Var TmpInd : Integer;
 begin
   if FName=AValue then exit;
-  if (AValue <> '') and
-     (Collection is TOwnedCollection) and
-     (TFieldDefs(Collection).IndexOf(AValue) >= 0) then
-     DatabaseErrorFmt(SDuplicateName, [AValue, Collection.ClassName]);
+  if (AValue <> '') and (Collection is TFieldDefs) then
+    begin
+    TmpInd :=  (TDefCollection(Collection).IndexOf(AValue));
+    if (TmpInd >= 0) and (TmpInd <> Index) then
+      DatabaseErrorFmt(SDuplicateName, [AValue, Collection.ClassName]);
+    end;
   FName:=AValue;
   inherited SetDisplayName(AValue);
 end;
