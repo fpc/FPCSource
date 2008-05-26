@@ -37,6 +37,7 @@ function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar)
 Function GetAppConfigDir(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
+Function GetUserDir : String;
 Function VendorName : String;
 Function ApplicationName : String;
 

@@ -27,6 +27,7 @@ uses
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
+{$DEFINE HAS_OSUSERDIR}
 {$DEFINE HAS_CREATEGUID}
 
 { Include platform independent interface part }
@@ -1059,6 +1060,12 @@ Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
   result:=DGetAppConfigFile(Global,SubDir);
+end;
+
+Function GetUserDir : String;
+
+begin
+  Result:=GetSpecialDir(CSIDL_PROFILE);
 end;
 
 Procedure InitSysConfigDir;

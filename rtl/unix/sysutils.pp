@@ -31,6 +31,7 @@ interface
 {$DEFINE HAS_TEMPDIR}
 {$DEFINE HASUNIX}
 {$DEFINE HASCREATEGUID}
+{$DEFINE HAS_OSUSERDIR}
 
 uses
   Unix,errors,sysconst,Unixtype;
@@ -1033,7 +1034,7 @@ end;
 
 
 {****************************************************************************
-                              Initialization code
+                              GetTempDir 
 ****************************************************************************}
 
 
@@ -1052,6 +1053,27 @@ begin
     end;
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);
+end;
+
+{****************************************************************************
+                              GetUserDir 
+****************************************************************************}
+
+Var
+  TheUserDir : String;
+
+Function GetUserDir : String;
+
+begin
+  If (TheUserDir='') then
+    begin
+    TheUserDir:=GetEnvironmentVariable('HOME'); 
+    if (TheUserDir<>'') then
+      TheUserDir:=IncludeTrailingPathDelimiter(TheUserDir)
+    else
+      TheUserDir:=GetTempDir(False);
+    end;
+  Result:=TheUserDir;    
 end;
 
 
