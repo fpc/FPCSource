@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="6"/>
+    <General>
+      <MainUnit Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
+    </General>
+    <VersionInfo>
+      <ProjectVersion Value=""/>
+      <Language Value=""/>
+      <CharSet Value=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <CommandLineParams Value="--suite=TTestTStringList --format=plain"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FPCUnitConsoleRunner"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="11">
+      <Unit0>
+        <Filename Value="tstrutils.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tstrutils"/>
+        <CursorPos X="37" Y="6"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="6"/>
+        <UsageCount Value="44"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="tcstrutils.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcstrutils"/>
+        <CursorPos X="1" Y="163"/>
+        <TopLine Value="148"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="44"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="tcstringlist.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcstringlist"/>
+        <CursorPos X="19" Y="47"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="44"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../../../fpc/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <UnitName Value="fpcunit"/>
+        <CursorPos X="6" Y="554"/>
+        <TopLine Value="524"/>
+        <UsageCount Value="8"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../../../../fpc/rtl/objpas/classes/classesh.inc"/>
+        <CursorPos X="1" Y="233"/>
+        <TopLine Value="212"/>
+        <EditorIndex Value="4"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="searchbuf.inc"/>
+        <CursorPos X="47" Y="117"/>
+        <TopLine Value="65"/>
+        <UsageCount Value="8"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="tclist.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tclist"/>
+        <CursorPos X="66" Y="341"/>
+        <TopLine Value="346"/>
+        <EditorIndex Value="3"/>
+        <UsageCount Value="44"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../../../../fpc/rtl/objpas/classes/resreference.inc"/>
+        <CursorPos X="39" Y="345"/>
+        <TopLine Value="311"/>
+        <UsageCount Value="21"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../../../fpc/rtl/objpas/classes/lists.inc"/>
+        <CursorPos X="20" Y="271"/>
+        <TopLine Value="222"/>
+        <EditorIndex Value="5"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="testll.pp"/>
+        <UnitName Value="Testll"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="20"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../../../../testsi.pp"/>
+        <UnitName Value="testsi"/>
+        <CursorPos X="1" Y="12"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit10>
+    </Units>
+    <JumpHistory Count="2" HistoryIndex="1">
+      <Position1>
+        <Filename Value="tcstrutils.pp"/>
+        <Caret Line="164" Column="5" TopLine="109"/>
+      </Position1>
+      <Position2>
+        <Filename Value="tcstrutils.pp"/>
+        <Caret Line="163" Column="1" TopLine="161"/>
+      </Position2>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+      </Debugging>
+    </Linking>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
