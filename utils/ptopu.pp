@@ -448,9 +448,12 @@ begin
                                       withsym, colon, equals];
     option[t,endsym]^.dindsym       := [ifsym, thensym, elsesym, forsym, whilesym,
                                       withsym, casevarsym, colon, equals, recordsym,
-                                      trysym,classsym,objectsym];
+                                      trysym,classsym,objectsym,protectedsym,privatesym,
+                                      publicsym,publishedsym,finallysym,exceptsym];
     option[t,semicolon]^.dindsym    := [ifsym, thensym, elsesym, forsym,
                                       whilesym, withsym, colon, equals];
+    option[t,implementationsym]^.dindsym    := [labelsym, varsym, typesym, constsym,
+                                      endsym,propertysym];
     end;
 end;
 
@@ -478,10 +481,10 @@ begin
     option[t,recordsym]^.selected       := [capital,inbyIndent, crafter];
     option[t,objectsym]^.selected       := [capital,inbyIndent];
     option[t,classsym]^.selected        := [capital,inbyIndent];
-    option[t,publicsym]^.selected       := [capital,crbefore, dindonkey, spaft];
-    option[t,publishedsym]^.selected    := [capital,crbefore, dindonkey, spaft];
-    option[t,protectedsym]^.selected    := [capital,crbefore, dindonkey, spaft];
-    option[t,privatesym]^.selected      := [capital,crbefore, dindonkey, spaft];
+    option[t,publicsym]^.selected       := [capital,crbefore, dindonkey, spaft,inbytab];
+    option[t,publishedsym]^.selected    := [capital,crbefore, dindonkey, spaft,inbytab];
+    option[t,protectedsym]^.selected    := [capital,crbefore, dindonkey, spaft,inbytab];
+    option[t,privatesym]^.selected      := [capital,crbefore, dindonkey, spaft,inbytab];
     option[t,trysym]^.Selected          := [capital,crbefore,crafter,inbytab];
     option[t,finallysym]^.selected      := [capital,crbefore,dindent,crafter,inbytab];
     option[t,exceptsym]^.selected       := [capital,crbefore,dindent,crafter,inbytab];
@@ -493,7 +496,7 @@ begin
     option[t,withsym]^.selected         := [capital,spaft, inbytab, gobsym, crafter];
     option[t,dosym]^.selected           := [capital,crsupp, spbef];
     option[t,ifsym]^.selected           := [capital,spaft, inbytab, gobsym];
-    option[t,implementationsym]^.selected := [capital,blinbefore,crafter];
+    option[t,implementationsym]^.selected := [capital,blinbefore,crafter,dindonkey];
     option[t,interfacesym]^.selected    := [capital,blinbefore,crafter];
     option[t,usessym]^.selected         := [capital,blinbefore,spaft];
     option[t,thensym]^.selected         := [capital];
