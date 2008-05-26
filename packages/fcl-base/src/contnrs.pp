@@ -471,12 +471,101 @@ type
     Property OwnsObjects : Boolean Read FOwnsObjects Write FOwnsObjects;
   end;
 
-
   EDuplicate = class(Exception);
   EKeyNotFound = class(Exception);
 
-
   function RSHash(const S: string; const TableSize: Longword): Longword;
+
+{ ---------------------------------------------------------------------
+    Bucket lists as in Delphi
+  ---------------------------------------------------------------------}
+  
+
+Type
+  TBucketItem = record
+    Item, Data: Pointer;
+  end;
+  TBucketItemArray = array of TBucketItem;
+
+  TBucket = record
+    Count : Integer;
+    Items : TBucketItemArray;
+  end;
+  PBucket = ^TBucket;
+  TBucketArray = array of TBucket;
+
+  TBucketProc = procedure(AInfo, AItem, AData: Pointer; out AContinue: Boolean);
+  TBucketProcObject = procedure(AItem, AData: Pointer; out AContinue: Boolean) of Object;
+
+{ ---------------------------------------------------------------------
+  TCustomBucketList
+  ---------------------------------------------------------------------}
+
+  { TCustomBucketList }
+
+  TCustomBucketList = class(TObject)
+  private
+    FBuckets: TBucketArray;
+    function GetBucketCount: Integer;
+    function GetData(AItem: Pointer): Pointer;
+    procedure SetData(AItem: Pointer; const AData: Pointer);
+    procedure SetBucketCount(const Value: Integer);
+  protected
+    Procedure GetBucketItem(AItem: Pointer; out ABucket, AIndex: Integer);
+    function AddItem(ABucket: Integer; AItem, AData: Pointer): Pointer; virtual;
+    function BucketFor(AItem: Pointer): Integer; virtual; abstract;
+    function DeleteItem(ABucket: Integer; AIndex: Integer): Pointer; virtual;
+    Procedure Error(Msg : String; Args : Array of Const);
+    function FindItem(AItem: Pointer; out ABucket, AIndex: Integer): Boolean; virtual;
+    property Buckets: TBucketArray read FBuckets;
+    property BucketCount: Integer read GetBucketCount write SetBucketCount;
+  public
+    destructor Destroy; override;
+    procedure Clear;
+    function Add(AItem, AData: Pointer): Pointer;
+    procedure Assign(AList: TCustomBucketList);
+    function Exists(AItem: Pointer): Boolean;
+    function Find(AItem: Pointer; out AData: Pointer): Boolean;
+    function ForEach(AProc: TBucketProc; AInfo: Pointer = nil): Boolean;
+    function ForEach(AProc: TBucketProcObject): Boolean;
+    function Remove(AItem: Pointer): Pointer;
+    property Data[AItem: Pointer]: Pointer read GetData write SetData; default;
+  end;
+
+{ ---------------------------------------------------------------------
+  TBucketList
+  ---------------------------------------------------------------------}
+  
+
+  TBucketListSizes = (bl2, bl4, bl8, bl16, bl32, bl64, bl128, bl256);
+
+  { TBucketList }
+
+  TBucketList = class(TCustomBucketList)
+  private
+    FBucketMask: Byte;
+  protected
+    function BucketFor(AItem: Pointer): Integer; override;
+  public
+    constructor Create(ABuckets: TBucketListSizes = bl16);
+  end;
+
+{ ---------------------------------------------------------------------
+  TObjectBucketList
+  ---------------------------------------------------------------------}
+  
+  { TObjectBucketList }
+
+  TObjectBucketList = class(TBucketList)
+  protected
+    function GetData(AItem: TObject): TObject;
+    procedure SetData(AItem: TObject; const AData: TObject);
+  public
+    function Add(AItem, AData: TObject): TObject;
+    function Remove(AItem: TObject): TObject;
+    property Data[AItem: TObject]: TObject read GetData write SetData; default;
+  end;
+
 
 implementation
 
@@ -484,9 +573,11 @@ uses
   RtlConsts;
 
 ResourceString
-  DuplicateMsg = 'An item with key %0:s already exists';
+  DuplicateMsg   = 'An item with key %0:s already exists';
   KeyNotFoundMsg = 'Method: %0:s key [''%1:s''] not found in container';
-  NotEmptyMsg = 'Hash table not empty.';
+  NotEmptyMsg    = 'Hash table not empty.';
+  SErrNoSuchItem = 'No item in list for %p';
+  SDuplicateItem = 'Item already exists in list: %p';
 
 const
   NPRIMES = 28;
@@ -2340,6 +2431,293 @@ Destructor THTOwnedObjectNode.Destroy;
 begin
   FreeAndNil(FData);
   Inherited;
+end;
+
+{ TCustomBucketList }
+
+function TCustomBucketList.GetData(AItem: Pointer): Pointer;
+
+Var
+  B,I : Integer;
+
+begin
+  GetBucketItem(AItem,B,I);
+  Result:=FBuckets[B].Items[I].Data;
+end;
+
+function TCustomBucketList.GetBucketCount: Integer;
+begin
+  Result:=Length(FBuckets);
+end;
+
+procedure TCustomBucketList.SetData(AItem: Pointer; const AData: Pointer);
+
+Var
+  B,I : Integer;
+
+begin
+  GetBucketItem(AItem,B,I);
+  FBuckets[B].Items[I].Data:=AData;
+end;
+
+procedure TCustomBucketList.SetBucketCount(const Value: Integer);
+
+begin
+  If (Value<>GetBucketCount) then
+    SetLength(FBuckets,Value);
+end;
+
+procedure TCustomBucketList.GetBucketItem(AItem: Pointer; out ABucket,
+  AIndex: Integer);
+begin
+  If Not FindItem(AItem,ABucket,AIndex) then
+    Error(SErrNoSuchItem,[AItem]);
+end;
+
+function TCustomBucketList.AddItem(ABucket: Integer; AItem, AData: Pointer
+  ): Pointer;
+  
+Var
+  B : PBucket;
+  L : Integer;
+  
+begin
+  B:=@FBuckets[ABucket];
+  L:=Length(B^.Items);
+  If (B^.Count=L) then
+    begin
+    If L<8 then
+      L:=8
+    else
+      L:=L+L div 2;
+    SetLength(B^.Items,L);
+    end;
+  With B^ do
+    begin
+    Items[Count].Item:=AItem;
+    Items[Count].Data:=AData;
+    Result:=AData;
+    Inc(Count);
+    end;
+end;
+
+function TCustomBucketList.DeleteItem(ABucket: Integer; AIndex: Integer): Pointer;
+  
+Var
+  B : PBucket;
+  L : Integer;
+  
+begin
+  B:=@FBuckets[ABucket];
+  Result:=B^.Items[Aindex].Data;
+  If B^.Count=1 then
+    SetLength(B^.Items,0)
+  else
+    begin
+    L:=(B^.Count-AIndex-1);// No point in moving if last one...
+    If L>0 then
+      Move(B^.Items[AIndex+1],B^.Items[AIndex],L*SizeOf(TBucketItem));
+    end;
+  Dec(B^.Count);
+end;
+
+procedure TCustomBucketList.Error(Msg: String; Args: array of const);
+begin
+  Raise ElistError.CreateFmt(Msg,Args);
+end;
+
+function TCustomBucketList.FindItem(AItem: Pointer; out ABucket, AIndex: Integer
+  ): Boolean;
+  
+Var
+  I : Integer;
+  B : TBucket;
+  
+begin
+  ABucket:=BucketFor(AItem);
+  B:=FBuckets[ABucket];
+  I:=B.Count-1;
+  While (I>=0) And (B.Items[I].Item<>AItem) do
+    Dec(I);
+  Result:=I>=0;
+  If Result then
+    AIndex:=I;
+end;
+
+destructor TCustomBucketList.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+procedure TCustomBucketList.Clear;
+
+Var
+  B : TBucket;
+  I,J : Integer;
+
+begin
+  For I:=0 to Length(FBuckets)-1 do
+    begin
+    B:=FBuckets[I];
+    For J:=B.Count-1 downto 0 do
+      DeleteItem(I,J);
+    end;
+  SetLength(FBuckets,0);
+end;
+
+function TCustomBucketList.Add(AItem, AData: Pointer): Pointer;
+
+Var
+  B,I : Integer;
+
+begin
+  If FindItem(AItem,B,I) then
+    Error(SDuplicateItem,[AItem]);
+  Result:=AddItem(B,AItem,AData);
+end;
+
+procedure TCustomBucketList.Assign(AList: TCustomBucketList);
+
+Var
+  I,J : Integer;
+
+begin
+  Clear;
+  SetLength(FBuckets,Length(Alist.FBuckets));
+  For I:=0 to BucketCount-1 do
+    begin
+    SetLength(FBuckets[i].Items,Length(AList.Fbuckets[I].Items));
+    For J:=0 to AList.Fbuckets[I].Count-1 do
+      With AList.Fbuckets[I].Items[J] do
+        AddItem(I,Item,Data);
+    end;
+end;
+
+function TCustomBucketList.Exists(AItem: Pointer): Boolean;
+
+Var
+  B,I : Integer;
+
+begin
+  Result:=FindItem(Aitem,B,I);
+end;
+
+function TCustomBucketList.Find(AItem: Pointer; out AData: Pointer): Boolean;
+
+Var
+  B,I : integer;
+
+begin
+  Result:=FindItem(AItem,B,I);
+  If Result then
+    AData:=FBuckets[B].Items[I].Data;
+end;
+
+function TCustomBucketList.ForEach(AProc: TBucketProc; AInfo: Pointer
+  ): Boolean;
+  
+Var
+  I,J,S : Integer;
+  Bu : TBucket;
+  
+begin
+  I:=0;
+  Result:=True;
+  S:=GetBucketCount;
+  While Result and (I<S) do
+    begin
+    J:=0;
+    Bu:=FBuckets[I];
+    While Result and (J<Bu.Count) do
+      begin
+      With Bu.Items[J] do
+        AProc(AInfo,Item,Data,Result);
+      Inc(J);
+      end;
+    Inc(I);
+    end;
+end;
+
+function TCustomBucketList.ForEach(AProc: TBucketProcObject): Boolean;
+
+Var
+  I,J,S : Integer;
+  Bu : TBucket;
+
+begin
+  I:=0;
+  Result:=True;
+  S:=GetBucketCount;
+  While Result and (I<S) do
+    begin
+    J:=0;
+    Bu:=FBuckets[I];
+    While Result and (J<Bu.Count) do
+      begin
+      With Bu.Items[J] do
+        AProc(Item,Data,Result);
+      Inc(J);
+      end;
+    Inc(I);
+    end;
+end;
+
+function TCustomBucketList.Remove(AItem: Pointer): Pointer;
+
+Var
+  B,I : integer;
+
+begin
+  If FindItem(AItem,B,I) then
+    begin
+    Result:=FBuckets[B].Items[I].Data;
+    DeleteItem(B,I);
+    end
+  else
+    Result:=Nil;
+end;
+
+{ TBucketList }
+
+function TBucketList.BucketFor(AItem: Pointer): Integer;
+begin
+  // Pointers on average have a granularity of 4
+  Result:=(PtrInt(AItem) shr 2) and FBucketMask;
+end;
+
+constructor TBucketList.Create(ABuckets: TBucketListSizes);
+
+Var
+  L : Integer;
+  
+begin
+  Inherited Create;
+  L:=1 shl (Ord(Abuckets)+1);
+  SetBucketCount(L);
+  FBucketMask:=L-1;
+end;
+
+{ TObjectBucketList }
+
+function TObjectBucketList.GetData(AItem: TObject): TObject;
+begin
+  Result:=TObject(Inherited GetData(AItem));
+end;
+
+procedure TObjectBucketList.SetData(AItem: TObject; const AData: TObject);
+begin
+  Inherited SetData(Pointer(AItem),Pointer(AData));
+end;
+
+function TObjectBucketList.Add(AItem, AData: TObject): TObject;
+begin
+  Result:=TObject(Inherited Add(Pointer(AItem),Pointer(AData)));
+end;
+
+function TObjectBucketList.Remove(AItem: TObject): TObject;
+begin
+  Result:=TObject(Inherited Remove(Pointer(AItem)));
 end;
 
 end.
