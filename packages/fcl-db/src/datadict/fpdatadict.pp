@@ -352,7 +352,7 @@ Function IsDictionaryEngineRegistered(AEngine :TFPDDEngineClass) : boolean;
 Procedure RegisterConnectionStringCallback(Const AName: String; CallBack : TGetConnectionEvent);
 Procedure UnRegisterDictionaryEngine(AEngine :TFPDDEngineClass);
 Function  GetDictionaryEngineList(List : TStrings) : Integer;
-Function  GetDictionaryEngineInfo(Const AName : String; Var ADescription,ADBType: String; var ACapabilities : TFPDDEngineCapabilities) : boolean;
+Function  GetDictionaryEngineInfo(Const AName : String; out ADescription,ADBType: String; out ACapabilities : TFPDDEngineCapabilities) : boolean;
 Function  CreateDictionaryEngine(AName : String; AOWner : TComponent) : TFPDDEngine;
 Function IndexOptionsToString (Options : TIndexOptions) : String;
 
@@ -633,7 +633,7 @@ begin
   Result:=GetEngineRegistration(AName).FCallBack;
 end;
 
-Function  GetDictionaryEngineInfo(Const AName : String; Var ADescription,ADBType: String;var ACapabilities : TFPDDEngineCapabilities) : boolean;
+Function  GetDictionaryEngineInfo(Const AName : String; out ADescription,ADBType: String;out ACapabilities : TFPDDEngineCapabilities) : boolean;
 
 Var
   DDEC : TFPDDEngineClass;
