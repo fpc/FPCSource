@@ -132,7 +132,7 @@ begin
     Result:=QuoteChar+QuoteChar;
 end;
 
-procedure TStrings.GetNameValue(Index : Integer; Var AName,AValue : String);
+procedure TStrings.GetNameValue(Index : Integer; Out AName,AValue : String);
 
 Var L : longint;
 
