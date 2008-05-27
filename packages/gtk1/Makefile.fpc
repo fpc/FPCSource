@@ -11,7 +11,16 @@ libc=y
 packages=opengl
 
 [target]
-units=glib gmodule gdk gtk gdkpixbuf gtkglarea
+units=glib gmodule gdk gtk gdkpixbuf
+units_beos=gtkglarea
+units_freebsd=gtkglarea
+units_darwin=gtkglarea
+units_solaris=gtkglarea
+units_netbsd=gtkglarea
+units_openbsd=gtkglarea
+units_linux=gtkglarea
+units_win32=gtkglarea
+units_win64=gtkglarea
 exampledirs=examples
 
 [compiler]
