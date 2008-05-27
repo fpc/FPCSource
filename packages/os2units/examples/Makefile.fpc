@@ -1,0 +1,16 @@
+#
+#  Makefile.fpc for paszlib units example
+#
+
+[target]
+programs=clktest ftptest lvmtest mciapi1 mciapi2
+
+[require]
+packages=os2units
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+

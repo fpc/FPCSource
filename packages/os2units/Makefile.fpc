@@ -10,7 +10,9 @@ version=1.0.0
 libc=y
 
 [target]
-units=buildall clkdll clktest dive ftpapi hwvideo lvm mciapi mcidrv mci mmbase mmio som sw wpstk
+units=buildall clkdll clktest dive ftpapi hwvideo lvm mciapi mcidrv mci mmbase mmio sw
+# som wpstk
+exampledirs=examples
 
 [install]
 fpcpackage=y

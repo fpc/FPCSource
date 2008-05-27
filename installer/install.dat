@@ -475,15 +475,16 @@ package=units-ibase.source.zip[uibassrc.zip],Interbase interface units
 # Source-2 5
 package=units-mysql.source.zip[umysqsrc.zip],MySQL interface units
 # Source-2 6
-package=units-ftpapi.source.zip[uftpsrc.zip],OS/2 FTP API interface units
+#package=units-ftpapi.source.zip[uftpsrc.zip],OS/2 FTP API interface units
 # Source-2 7
-package=units-hwvideo.source.zip[uhwvsrc.zip],OS/2 HWVideo interface units
+#package=units-hwvideo.source.zip[uhwvsrc.zip],OS/2 HWVideo interface units
 # Source-2 8
-package=units-mmtk.source.zip[ummtksrc.zip],MMOS/2 interface units
+#package=units-mmtk.source.zip[ummtksrc.zip],MMOS/2 interface units
 # Source-2 9
-package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
+package=units-os2units.source.zip[uos2src.zip],Units interfacing libraries delivered with OS/2/eCS
+#package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 10
-package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit
+#package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit
 # Source-2 11
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
 # Source-2 12
