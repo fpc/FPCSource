@@ -7,7 +7,7 @@ unit timer;
 
     var
        verbosetimer : boolean = true;
-       
+
     procedure start;
     procedure stop;
     function MSec:cardinal;
@@ -46,12 +46,12 @@ unit timer;
          etime:=gt;
          s:=etime-stime;
 	 if verbosetimer then
-           write(s div 1000,'.',s mod 1000,' Seconds');
+           write(stderr,s div 1000,'.',s mod 1000,' Seconds');
      end;
 
     function MSec:cardinal;
       begin
         Msec:=etime-stime;
       end;
-      
+
 end.
