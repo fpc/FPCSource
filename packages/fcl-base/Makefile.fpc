@@ -49,6 +49,14 @@ includedir_win64=src/win
 includedir_wince=src/win
 sourcedir=src/$(OS_TARGET) src
 
+[prerules]
+ifeq ($(OS_TARGET),win32)
+INSTALL_DATADIR=${INSTALL_UNITDIR}
+endif
+ifeq ($(OS_TARGET),win64)
+INSTALL_DATADIR=${INSTALL_UNITDIR}
+endif
+
 [install]
 fpcpackage=y
 files_win32=src/win/fclel.res
