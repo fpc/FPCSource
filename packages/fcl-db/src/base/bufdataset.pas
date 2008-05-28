@@ -1553,6 +1553,7 @@ begin
   r := 0;
   FailedCount := 0;
   Response := rrApply;
+  DisableControls;
   try
     while (r < Length(FUpdateBuffer)) and (Response <> rrAbort) do
       begin
@@ -1618,6 +1619,7 @@ begin
 
     FCurrentRecBuf := StoreRecBuf;
     Resync([]);
+    EnableControls;
   end;
 {$ENDIF}
 end;

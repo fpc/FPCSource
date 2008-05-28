@@ -48,10 +48,8 @@ type
   private
     fhandle: psqlite3;
     foptions: TSQLiteOptions;
-    function blobscached: boolean;
     procedure setoptions(const avalue: tsqliteoptions);
   protected
-    function stringquery(const asql: string): TStringArray;
     function stringsquery(const asql: string): TArrayStringArray;
     procedure checkerror(const aerror: integer);
     
@@ -83,11 +81,15 @@ type
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     // New methods
     procedure execsql(const asql: string);
-    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs; const TableName : string); // Differs from SQLDB.
-    function  getprimarykeyfield(const atablename: string; const acursor: tsqlcursor): string; 
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override; // Differs from SQLDB.
+    function getprimarykeyfield(const atablename: string; const acursor: tsqlcursor): string;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    function StrToStatementType(s : string) : TStatementType; override;
   public
-    function GetInsertID: int64; 
+    constructor Create(AOwner : TComponent); override;
+    function GetInsertID: int64;
+    procedure GetFieldNames(const TableName : string; List :  TStrings); override;
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
   end;
@@ -200,12 +202,14 @@ begin
   if assigned(aparams) and (aparams.count > 0) then 
     buf := aparams.parsesql(buf,false,false,false,psinterbase,fparambinding);
   checkerror(sqlite3_prepare(fhandle,pchar(buf),length(buf),@fstatement,@ftail));
+  FPrepared:=True;
 end;
 
 Procedure TSQLite3Cursor.UnPrepare;
 
 begin
   sqlite3_finalize(fstatement); // No check.
+  FPrepared:=False;
 end;
 
 Procedure TSQLite3Cursor.Execute;
@@ -224,8 +228,8 @@ begin
   finally  
     set8087cw(wo1);                    //restore
   end;
-{$endif}  
-  if (fstate<=sqliteerrormax) then 
+{$endif}
+  if (fstate<=sqliteerrormax) then
     checkerror(sqlite3_reset(fstatement));
   RowsAffected:=sqlite3_changes(fhandle);
   if (fstate=sqlite_row) then 
@@ -251,25 +255,20 @@ end;
 procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); 
 
 var
- blobid: integer;
- int1,int2: integer;
- str1: string;
- bo1: boolean;
+ int1: integer;
+ st: psqlite3_stmt;
+ fnum: integer;
+
 begin
-{$WARNING TSQLite3Connection.LoadBlobIntoBuffer not implemented !}
-{ if (mode = bmwrite) and (field.dataset is tmsesqlquery) then begin
-  result:= tmsebufdataset(field.dataset).createblobbuffer(field);
- end
- else begin
-  result:= nil;
-  if mode = bmread then begin
-   if field.getData(@blobId) then begin
-    result:= acursor.getcachedblob(blobid);
-   end;
-  end;
- end;
- }
- 
+  st:=TSQLite3Cursor(cursor).fstatement;
+  fnum:= FieldDef.fieldno - 1;
+
+  int1:= sqlite3_column_bytes(st,fnum);
+
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,int1);
+  if int1 > 0 then
+    move(sqlite3_column_text(st,fnum)^,ABlobBuf^.BlobBuffer^.Buffer^,int1);
+  ABlobBuf^.BlobBuffer^.Size := int1;
 end;
 
 function TSQLite3Connection.AllocateTransactionHandle: TSQLHandle;
@@ -334,7 +333,7 @@ Const
    (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftmemo),
    (n:'BLOB'; t: ftBlob)
-{ Template:   
+{ Template:
   (n:''; t: ft)
 }
   );
@@ -363,6 +362,9 @@ begin
       ft1:=FieldMap[fi].t;
       break;
       end;
+    // Empty field types are allowed and used in calculated columns (aggregates)
+    // and by pragma-statements
+    if FD='' then ft1 := ftString;
     // handle some specials.
     size1:=0;
     case ft1 of
@@ -399,6 +401,7 @@ var
             
 begin
   SC:=TSQLite3Cursor(cursor);
+  checkerror(sqlite3_reset(sc.fstatement));
   If (AParams<>Nil) and (AParams.count > 0) then
     SC.BindParams(AParams);
   SC.Execute;    
@@ -515,13 +518,7 @@ begin
                  move(sqlite3_column_text(st,fnum)^,buffer^,int1);
               end;
     ftMemo,
-    ftBlob: begin
-            CreateBlob:=True;
-            int2:= sqlite3_column_bytes(st,fnum);
-            {$WARNING Blob data not handled correctly }
-            // int1:= addblobdata(sqlite3_column_text(st,fnum),int2);
-            move(int1,buffer^,sizeof(int1)); //save id
-            end;
+    ftBlob: CreateBlob:=True;
   else { Case }
    result:= false; // unknown
   end; { Case }
@@ -631,11 +628,6 @@ begin
    databaseerror(str1);
 end;
 
-function TSQLite3Connection.blobscached: boolean;
-begin
-  result:= true;
-end;
-
 function execcallback(adata: pointer; ncols: longint; //adata = PStringArray
                 avalues: PPchar; anames: PPchar):longint; cdecl;
 var
@@ -650,12 +642,6 @@ begin
   result:= 0;
 end;
 
-function TSQLite3Connection.stringquery(const asql: string): TStringArray;
-begin
-  SetLength(result,0);
-  CheckError(sqlite3_exec(fhandle,pchar(asql),@execcallback,@result,nil));
-end;
-
 function execscallback(adata: pointer; ncols: longint; //adata = PArrayStringArray
                 avalues: PPchar; anames: PPchar):longint; cdecl;
 var
@@ -667,7 +653,7 @@ begin
  PP:=PArrayStringArray(adata);
  N:=high(PP^); // Length-1;
  setlength(PP^,N+2); // increase with 1;
- p:= @(PP^[N]); // newly added array, fill with data.
+ p:= @(PP^[N+1]); // newly added array, fill with data.
  setlength(p^,ncols); 
  for i:= 0 to ncols - 1 do 
    p^[i]:= strPas(avalues[i]);
@@ -711,8 +697,32 @@ begin
     Result := -1;
 end;
 
-procedure TSQLite3Connection.UpdateIndexDefs(var IndexDefs: TIndexDefs;
-                              const TableName: string);
+function TSQLite3Connection.GetSchemaInfoSQL(SchemaType: TSchemaType;
+  SchemaObjectName, SchemaPattern: string): string;
+  
+begin
+  case SchemaType of
+    stTables     : result := 'select name as table_name from sqlite_master where type = ''table''';
+    stColumns    : result := 'pragma table_info(''' + (SchemaObjectName) + ''')';
+  else
+    DatabaseError(SMetadataUnavailable)
+  end; {case}
+end;
+
+function TSQLite3Connection.StrToStatementType(s: string): TStatementType;
+begin
+  S:=Lowercase(s);
+  if s = 'pragma' then exit(stSelect);
+  result := inherited StrToStatementType(s);
+end;
+
+constructor TSQLite3Connection.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash] + [sqQuoteFieldnames];
+end;
+
+procedure TSQLite3Connection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
   str1: string;
   
@@ -744,6 +754,12 @@ end;
 function TSQLite3Connection.getinsertid: int64;
 begin
  result:= sqlite3_last_insert_rowid(fhandle);
+end;
+
+procedure TSQLite3Connection.GetFieldNames(const TableName: string;
+  List: TStrings);
+begin
+  GetDBInfo(stColumns,TableName,'name',List);
 end;
 
 procedure TSQLite3Connection.setoptions(const avalue: tsqliteoptions);

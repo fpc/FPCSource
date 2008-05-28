@@ -88,8 +88,8 @@ Resourcestring
   SFieldIsNull             = 'The field is null';
   SOnUpdateError           = 'An error occured while applying the updates in a record: %s';
   SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
-  SNoWhereFields           = 'There are no fields found to generate the where-clause';
-  SNoUpdateFields          = 'There are no fields found to include in the update- or insert-clause';
+  SNoWhereFields           = 'No %s query specified and failed to generate one. (No fields for inclusion in where statement found)';
+  SNoUpdateFields          = 'No %s query specified and failed to generate one. (No fields found for insert- or update-statement found)';
   SNotSupported            = 'Operation is not supported by this type of database';
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
   SMaxIndexes              = 'The maximum amount of indexes is reached';

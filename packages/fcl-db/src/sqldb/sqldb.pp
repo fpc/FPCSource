@@ -293,9 +293,9 @@ type
     property Transaction;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly;
     property SQL : TStringlist read FSQL write FSQL;
-    property UpdateSQL : TStringlist read FUpdateSQL write FUpdateSQL;
-    property InsertSQL : TStringlist read FInsertSQL write FInsertSQL;
-    property DeleteSQL : TStringlist read FDeleteSQL write FDeleteSQL;
+    property UpdateSQL : TStringlist read FUpdateSQL;
+    property InsertSQL : TStringlist read FInsertSQL;
+    property DeleteSQL : TStringlist read FDeleteSQL;
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
@@ -1134,6 +1134,11 @@ begin
                          FWhereStopPos := PhraseP-PSQL+1
                        else
                          FWhereStopPos := CurrentP-PSQL+1;
+                       end
+                     else if (s = 'UNION') then
+                       begin
+                       ParsePart := ppBogus;
+                       FUpdateable := False;
                        end;
                      end;
         end; {case}
@@ -1151,20 +1156,6 @@ begin
 end;
 
 procedure TCustomSQLQuery.InternalOpen;
-
-  procedure InitialiseModifyQuery(var qry : TCustomSQLQuery; aSQL: TSTringList);
-  
-  begin
-    qry := TCustomSQLQuery.Create(nil);
-    with qry do
-      begin
-      ParseSQL := False;
-      DataBase := Self.DataBase;
-      Transaction := Self.Transaction;
-      SQL.Assign(aSQL);
-      end;
-  end;
-
 
 var tel, fieldc : integer;
     f           : TField;
@@ -1208,12 +1199,11 @@ begin
         end
       else
         BindFields(True);
-      if FUpdateable then
+      if not ReadOnly and not FUpdateable then
         begin
-        InitialiseModifyQuery(FDeleteQry,FDeleteSQL);
-        InitialiseModifyQuery(FUpdateQry,FUpdateSQL);
-        InitialiseModifyQuery(FInsertQry,FInsertSQL);
-        end;
+        if (trim(FDeleteSQL.Text) <> '') or (trim(FUpdateSQL.Text) <> '') or
+           (trim(FInsertSQL.Text) <> '') then FUpdateable := True;
+        end
       end
     else
       DatabaseError(SErrNoSelectStatement,Self);
@@ -1285,12 +1275,7 @@ procedure TCustomSQLQuery.SetReadOnly(AValue : Boolean);
 
 begin
   CheckInactive;
-  if not AValue then
-    begin
-    if FParseSQL then FReadOnly := False
-      else DatabaseErrorFmt(SNoParseSQL,['Updating ']);
-    end
-  else FReadOnly := True;
+  FReadOnly:=AValue;
 end;
 
 procedure TCustomSQLQuery.SetParseSQL(AValue : Boolean);
@@ -1299,7 +1284,6 @@ begin
   CheckInactive;
   if not AValue then
     begin
-    FReadOnly := True;
     FServerFiltered := False;
     FParseSQL := False;
     end
@@ -1330,6 +1314,19 @@ Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
 var FieldNamesQuoteChar : char;
 
+  procedure InitialiseModifyQuery(var qry : TCustomSQLQuery; aSQL: String);
+
+  begin
+    qry := TCustomSQLQuery.Create(nil);
+    with qry do
+      begin
+      ParseSQL := False;
+      DataBase := Self.DataBase;
+      Transaction := Self.Transaction;
+      SQL.text := aSQL;
+      end;
+  end;
+
   procedure UpdateWherePart(var sql_where : string;x : integer);
 
   begin
@@ -1356,9 +1353,9 @@ var FieldNamesQuoteChar : char;
         sql_set := sql_set +FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar +'=:' + fields[x].FieldName + ',';
       end;
 
-    if length(sql_set) = 0 then DatabaseError(sNoUpdateFields,self);
+    if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
     setlength(sql_set,length(sql_set)-1);
-    if length(sql_where) = 0 then DatabaseError(sNoWhereFields,self);
+    if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['update'],self);
     setlength(sql_where,length(sql_where)-5);
     result := 'update ' + FTableName + ' set ' + sql_set + ' where ' + sql_where;
 
@@ -1381,7 +1378,7 @@ var FieldNamesQuoteChar : char;
         sql_values := sql_values + ':' + fields[x].FieldName + ',';
         end;
       end;
-    if length(sql_fields) = 0 then DatabaseError(sNoUpdateFields,self);
+    if length(sql_fields) = 0 then DatabaseErrorFmt(sNoUpdateFields,['insert'],self);
     setlength(sql_fields,length(sql_fields)-1);
     setlength(sql_values,length(sql_values)-1);
 
@@ -1398,7 +1395,7 @@ var FieldNamesQuoteChar : char;
     for x := 0 to Fields.Count -1 do
       UpdateWherePart(sql_where,x);
 
-    if length(sql_where) = 0 then DatabaseError(sNoWhereFields,self);
+    if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['delete'],self);
     setlength(sql_where,length(sql_where)-5);
 
     result := 'delete from ' + FTableName + ' where ' + sql_where;
@@ -1413,20 +1410,34 @@ begin
     FieldNamesQuoteChar := '"'
   else
     FieldNamesQuoteChar := ' ';
-    case UpdateKind of
-      ukModify : begin
-                 qry := FUpdateQry;
-                 if trim(qry.sql.Text) = '' then qry.SQL.Add(ModifyRecQuery);
+
+  case UpdateKind of
+    ukModify : begin
+               if not assigned(FUpdateQry) then
+                 begin
+                 if (trim(FUpdateSQL.Text)<> '') then
+                   InitialiseModifyQuery(FUpdateQry,FUpdateSQL.Text)
+                 else
+                   InitialiseModifyQuery(FUpdateQry,ModifyRecQuery);
                  end;
-      ukInsert : begin
-                 qry := FInsertQry;
-                 if trim(qry.sql.Text) = '' then qry.SQL.Add(InsertRecQuery);
-                 end;
-      ukDelete : begin
-                 qry := FDeleteQry;
-                 if trim(qry.sql.Text) = '' then qry.SQL.Add(DeleteRecQuery);
-                 end;
-    end;
+               qry := FUpdateQry;
+               end;
+    ukInsert : begin
+               if not assigned(FInsertQry) and (trim(FInsertSQL.Text)<> '') then
+                 InitialiseModifyQuery(FInsertQry,FInsertSQL.Text)
+               else
+                 InitialiseModifyQuery(FInsertQry,InsertRecQuery);
+               qry := FInsertQry;
+               end;
+    ukDelete : begin
+               if not assigned(FDeleteQry) and (trim(FDeleteSQL.Text)<> '') then
+                 InitialiseModifyQuery(FDeleteQry,FDeleteSQL.Text)
+               else
+                 InitialiseModifyQuery(FDeleteQry,DeleteRecQuery);
+               qry := FDeleteQry;
+               end;
+  end;
+  assert(qry.sql.Text<>'');
   with qry do
     begin
     for x := 0 to Params.Count-1 do with params[x] do if leftstr(name,4)='OLD_' then

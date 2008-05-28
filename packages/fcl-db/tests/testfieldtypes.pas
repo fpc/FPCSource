@@ -28,7 +28,9 @@ type
     procedure RunTest; override;
   published
     procedure TestClearUpdateableStatus;
+    procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestParseJoins; // bug 10148
+    procedure TestParseUnion; // bug 8442
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
     procedure Test11Params;
@@ -893,6 +895,104 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestReadOnlyParseSQL;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+
+    GetFieldDataset(True);
+    with query do
+      begin
+      AssertFalse(ReadOnly);
+      AssertTrue(ParseSQL);
+
+      // If ParseSQL is false, and no update-queries are given, the query
+      // shouldn't be updateable after open.
+      ParseSQL := False;
+      AssertFalse(ParseSQL);
+      AssertFalse(ReadOnly);
+      SQL.Text := 'select * from FPDEV;';
+      open;
+      AssertFalse(ParseSQL);
+      AssertFalse(ReadOnly);
+      AssertFalse(CanModify);
+      close;
+
+      // If ParseSQL is true, the query should be updateable after open.
+      ReadOnly := False;
+      ParseSQL := True;
+      AssertTrue(ParseSQL);
+      AssertFalse(ReadOnly);
+      SQL.Text := 'select * from FPDEV;';
+      open;
+      AssertTrue(ParseSQL);
+      AssertFalse(ReadOnly);
+      AssertTrue(CanModify);
+      edit;
+      FieldByName('ID').AsInteger:=321;
+      post;
+      Applyupdates;
+      close;
+      
+      // If ParseSQL is true, but the supplied query isn't updateable, then
+      // the query shouldn't be updateable after open.
+      ReadOnly := False;
+      SQL.Text:='select ID,NAME from FPDEV where ID<5';
+      sql.Add('union');
+      sql.Add('select ID,NAME from FPDEV where ID>5');
+      AssertTrue(ParseSQL);
+      AssertFalse(ReadOnly);
+      open;
+      AssertTrue(ParseSQL);
+      AssertFalse(ReadOnly);
+      AssertFalse(CanModify);
+      close;
+
+      // As above, but now with an update-query, so that the query should
+      // be updateable again.
+      ReadOnly := False;
+      AssertTrue(ParseSQL);
+      AssertFalse(ReadOnly);
+      UpdateSQL.Text:='update FPDEV set ID=:ID where ID=:OLD_ID';
+      open;
+      AssertTrue(ParseSQL);
+      AssertFalse(ReadOnly);
+      AssertTrue(CanModify);
+      edit;
+      post;
+      Applyupdates;
+      close;
+
+      // Also if ParseSQL is False, the query should be updateable if a update-
+      // query is given.
+      ReadOnly := False;
+      ParseSQL := False;
+      AssertFalse(ParseSQL);
+      AssertFalse(ReadOnly);
+      open;
+      AssertFalse(ParseSQL);
+      AssertFalse(ReadOnly);
+      AssertTrue(CanModify);
+      edit;
+      FieldByName('ID').AsInteger:=1;
+      post;
+      Applyupdates;
+      close;
+
+      // But if ReadOnly is true, then CanModify should always be false
+      ReadOnly := True;
+      ParseSQL := False;
+      AssertFalse(ParseSQL);
+      AssertTrue(ReadOnly);
+      open;
+      AssertFalse(ParseSQL);
+      AssertTrue(ReadOnly);
+      AssertFalse(CanModify);
+      close;
+      end;
+    end;
+end;
+
 procedure TTestFieldTypes.TestParseJoins;
 begin
   with TSQLDBConnector(DBConnector) do
@@ -900,6 +1000,21 @@ begin
     with query do
       begin
       SQL.Text:='select TT.NAME from FPDEV left join FPDEV TT on TT.ID=FPDEV.ID';
+      Open;
+      close;
+      end;
+    end;
+end;
+
+procedure TTestFieldTypes.TestParseUnion;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    with query do
+      begin
+      SQL.Text:='select NAME from FPDEV where ID<5';
+      sql.Add('union');
+      sql.Add('select NAME from FPDEV where ID>5');
       Open;
       close;
       end;
