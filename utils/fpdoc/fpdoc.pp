@@ -69,6 +69,7 @@ begin
   Writeln(SUsageOption150);
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
+  Writeln(SUsageOption180);
   L:=TStringList.Create;
   Try
     If (Backend='') then
@@ -204,6 +205,8 @@ begin
       OSTarget := Arg
     else if Cmd = '--cputarget' then
       CPUTarget := Arg
+    else if Cmd = '--mo-dir' then
+      modir := Arg
     else
       begin
       BackendOptions.Add(Cmd);

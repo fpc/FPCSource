@@ -27,7 +27,8 @@ uses Classes, DOM, PasTree, PParser;
 
 Var
   LEOL : Integer;
-
+  modir : string;
+  
 resourcestring
   // Output strings
   SDocPackageTitle           = 'Reference for package ''%s''';
@@ -132,6 +133,8 @@ resourcestring
   SUsageOption150  = '--package=name    Set the package name for which to create output';
   SUsageOption160  = '--show-private    Show private methods.';
   SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
+  SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
+  
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';
@@ -1231,13 +1234,26 @@ end;
 { Global helpers }
 
 procedure TranslateDocStrings(const Lang: String);
+
+Const
+{$ifdef unix}
+  DefDir = '/usr/local/share/locale';
+{$else}  
+  DefDir = 'intl'
+{$endif}
+
 var
   mo: TMOFile;
+  dir : string;
 begin
+  dir:=modir;
+  If Dir='' then
+    Dir:=DefDir;
+  Dir:=IncludeTrailingPathDelimiter(Dir);
 {$IFDEF Unix}
-  mo := TMOFile.Create(Format('/usr/local/share/locale/%s/LC_MESSAGES/dglobals.mo', [Lang]));
+  mo := TMOFile.Create(Format(Dir+'%s/LC_MESSAGES/dglobals.mo', [Lang]));
 {$ELSE}
-  mo := TMOFile.Create(Format('intl/dglobals.%s.mo', [Lang]));
+  mo := TMOFile.Create(Format(Dir+'dglobals.%s.mo', [Lang]));
 {$ENDIF}
   try
     TranslateResourceStrings(mo);
