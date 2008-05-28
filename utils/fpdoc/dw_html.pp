@@ -108,6 +108,7 @@ type
     FIDF : Boolean;
     FDateFormat: String;
     function ResolveLinkID(const Name: String): DOMString;
+    function ResolveLinkIDInUnit(const Name,UnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
       ASubpageIndex: Integer): String;
 
@@ -488,6 +489,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     ClassEl: TPasClassType;
     FPEl, AncestorMemberEl: TPasElement;
     DocNode: TDocNode;
+    ALink : DOMString;
     DidAutolink: Boolean;
   begin
     AddPage(AModule, 0);
@@ -527,7 +529,14 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
               continue;
 
             DocNode := Engine.FindDocNode(FPEl);
-            if not Assigned(DocNode) then
+            if Assigned(DocNode) then
+            begin
+              ALink:=DocNode.Node['link'];
+              If (ALink<>'') then
+                Engine.AddLink(FPEl.PathName,ResolveLinkIDInUnit(ALink,AModule.name))
+              else
+                AddPage(FPEl, 0);
+            end else  
             begin
               DidAutolink := False;
               if Assigned(ClassEl.AncestorType) and
@@ -552,8 +561,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
               end;
               if not DidAutolink then
                 AddPage(FPEl, 0);
-            end else
-              AddPage(FPEl, 0);
+            end;
           end;
         end;
       end;
@@ -738,6 +746,14 @@ end;
   - AppendHyperlink (for unresolved parse tree element links)
 }
 
+function THTMLWriter.ResolveLinkIDInUnit(const Name,UnitName: String): DOMString;
+
+begin
+  Result:=ResolveLinkID(Name);
+  If (Result='') and (UnitName<>'')  then
+    Result:=ResolveLinkID(UnitName+'.'+Name);
+end;
+
 function THTMLWriter.ResolveLinkID(const Name: String): DOMString;
 var
   i: Integer;
@@ -762,8 +778,10 @@ begin
       if Length(Result) = 0 then
       begin
         if Assigned(Module) then
+          begin
           Result := Engine.FindAbsoluteLink(Module.PathName + '.' + Name);
-        // WriteLn('Searching for ', Module.PathName + '.' + Name, ' => ', Result);
+//          WriteLn('Searching for ', Module.PathName + '.' + Name, ' => ', Result);
+          end;
         if Length(Result) = 0 then
           for i := Length(Name) downto 1 do
             if Name[i] = '.' then
