@@ -9059,6 +9059,7 @@ utils/fpdoc/fpdoc.css -text
 utils/fpdoc/fpdoc.pp svneol=native#text/plain
 utils/fpdoc/intl/Makefile svneol=native#text/plain
 utils/fpdoc/intl/dglobals.de.po svneol=native#text/plain
+utils/fpdoc/intl/dglobals.sk.po svneol=native#text/plain
 utils/fpdoc/intl/dwriter.de.po svneol=native#text/plain
 utils/fpdoc/intl/fpdoc.de.po svneol=native#text/plain
 utils/fpdoc/intl/fpdocmk.de.po svneol=native#text/plain

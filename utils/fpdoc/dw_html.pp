@@ -84,6 +84,7 @@ type
   private
     FOnTest: TNotifyEvent;
     FPackage: TPasPackage;
+    FCharSet : String;
     function GetPageCount: Integer;
     procedure SetOnTest(const AValue: TNotifyEvent);
   protected
@@ -244,6 +245,7 @@ type
     Property IncludeDateInFooter : Boolean Read FIDF Write FIDF;
     Property DateFormat : String Read FDateFormat Write FDateFormat;
     property OnTest: TNotifyEvent read FOnTest write SetOnTest;
+    Property CharSet : String Read FCharSet Write FCharSet;
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Procedure WriteDoc; override;
     class procedure Usage(List: TStrings); override;
@@ -564,6 +566,7 @@ var
   i: Integer;
 begin
   inherited ;
+  Charset:='iso-8859-1';
   CreateAllocator;
   FPackage := APackage;
   OutputNodeStack := TList.Create;
@@ -608,7 +611,8 @@ begin
   El := Doc.CreateElement('meta');
   HeadEl.AppendChild(El);
   El['http-equiv'] := 'Content-Type';
-  El['content'] := 'text/html; charset=iso-8859-1';
+  
+  El['content'] := Format('text/html; charset=%s',[charset]);
   TitleElement := Doc.CreateElement('title');
   HeadEl.AppendChild(TitleElement);
   El := Doc.CreateElement('link');
@@ -2988,6 +2992,8 @@ begin
     SearchPage := Arg
   else if Cmd = '--footer' then
     FooterFile := Arg
+  else if Cmd = '--charset' then
+    CharSet := Arg
   else if Cmd = '--footer-date' then
     begin
     FIDF:=True;
