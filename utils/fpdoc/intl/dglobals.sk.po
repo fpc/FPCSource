@@ -1,0 +1,185 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: FPDOC Slovak Translation\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Dusan Halicky <dusan.halicky@gmail.com>\n"
+"Language-Team:  <dusan.halicky@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Slovak\n"
+"X-Poedit-Country: SLOVAKIA\n"
+
+#: dglobals:sdocpackagetitle
+msgid "Reference for package '%s'"
+msgstr "Referencia pre balíček '%s'"
+
+#: dglobals:sdocprograms
+msgid "Programs"
+msgstr "Programy"
+
+#: dglobals:sdocunits
+msgid "Units"
+msgstr "Unity"
+
+#: dglobals:sdocunittitle
+msgid "Reference for unit '%s'"
+msgstr "Referencie pre Unit '%s'"
+
+#: dglobals:sdocinterfacesection
+msgid "Interface section"
+msgstr "Sekcia Interface"
+
+#: dglobals:sdocimplementationsection
+msgid "Implementation section"
+msgstr "Sekcia Implementation"
+
+#: dglobals:sdocusedunits
+msgid "Used units"
+msgstr "Použité Unity"
+
+#: dglobals:sdocusedunitsbyunitxy
+msgid "Used units by unit '%s'"
+msgstr "Unity použité unitou '%s'"
+
+#: dglobals:sdocconststypesvars
+msgid "Constants, types and variables"
+msgstr "Konštanty, typy a premenné"
+
+#: dglobals:sdocresstrings
+msgid "Resource strings"
+msgstr "Resource retazec"
+
+#: dglobals:sdoctypes
+msgid "Types"
+msgstr "Typy"
+
+#: dglobals:sdocconstants
+msgid "Constants"
+msgstr "Konštanty"
+
+#: dglobals:sdocclasses
+msgid "Classes"
+msgstr "Triedy"
+
+#: dglobals:sdocproceduresandfunctions
+msgid "Procedures and functions"
+msgstr "Procedúry a funkcie"
+
+#: dglobals:sdocvariables
+msgid "Variables"
+msgstr "Premenné"
+
+#: dglobals:sdocunitoverview
+msgid "Overview of unit '%s'"
+msgstr "Prehľad unity '%s'"
+
+#: dglobals:sdocoverview
+msgid "Overview"
+msgstr "Prehľad"
+
+#: dglobals:sdocsearch
+msgid "Search"
+msgstr "Hľadať"
+
+#: dglobals:sdocdeclaration
+msgid "Declaration"
+msgstr "Deklarácia"
+
+#: dglobals:sdocdescription
+msgid "Description"
+msgstr "Popis"
+
+#: dglobals:sdocerrors
+msgid "Errors"
+msgstr "Chyby"
+
+#: dglobals:sdocseealso
+msgid "See also"
+msgstr "Pozri tiež"
+
+#: dglobals:sdocexample
+msgid "Example"
+msgstr "Príklad"
+
+#: dglobals:sdocarguments
+msgid "Arguments"
+msgstr "Argumenty"
+
+#: dglobals:sdocfunctionresult
+msgid "Function result"
+msgstr "Návratová hodnota funkcie"
+
+#: dglobals:sdocremark
+msgid "Remark:   "
+msgstr "Poznámka:   "
+
+#: dglobals:sdocmethodoverview
+msgid "Method overview"
+msgstr "Prehľad metódy"
+
+#: dglobals:sdocpropertyoverview
+msgid "Property overview"
+msgstr "Prehľad property"
+
+#: dglobals:sdocpage
+msgid "Page"
+msgstr "Stránka"
+
+#: dglobals:sdocmethod
+msgid "Method"
+msgstr "Metóda"
+
+#: dglobals:sdocproperty
+msgid "Property"
+msgstr "Property"
+
+#: dglobals:sdocaccess
+msgid "Access"
+msgstr "Prístup"
+
+#: dglobals:sdocinheritance
+msgid "Inheritance"
+msgstr "Dedičnosť"
+
+#: dglobals:sdocproperties
+msgid "Properties"
+msgstr "Properties"
+
+#: dglobals:sdocmethods
+msgid "Methods"
+msgstr "Metódy"
+
+#: dglobals:sdocevents
+msgid "Events"
+msgstr "Udalosti"
+
+#: dglobals:sdocbyname
+msgid "by Name"
+msgstr "poľa Mena"
+
+#: dglobals:sdocvalue
+msgid "Value"
+msgstr "Hodnota"
+
+#: dglobals:sdocexplanation
+msgid "Explanation"
+msgstr "Vysvetlenie"
+
+#: dglobals:sdocvaluesforenum
+msgid "Enumeration values for type %s"
+msgstr "Vymenovanie hodnôt pre typ %s"
+
+#: dglobals.sdocup
+msgid "Up"
+msgstr "Hore"
+
+#: dglobals.sdocnext
+msgid "Next"
+msgstr "Ďalší"
+
+#: dglobals.sdocprevious
+msgid "Previous"
+msgstr "Predchádzajúci"
+
