@@ -57,9 +57,11 @@ end;
 
 procedure TPipeClientComm.Connect;
 begin
-  If Not ServerRunning then
+  try
+    FStream := TFileStream.Create (FFileName, fmOpenWrite);
+  finally
     Owner.DoError (SErrServerNotActive, [Owner.ServerID]);
-  FStream := TFileStream.Create (FFileName, fmOpenWrite);
+  end;
 end;
 
 
@@ -83,7 +85,8 @@ end;
 
 function TPipeClientComm.ServerRunning: boolean;
 begin
-  Result := FileExists (FFileName);
+{$WARNING Fake TPipeClientComm.ServerRunning - no safe solution known}
+  Result := true;
 end;
 
 
@@ -124,7 +127,7 @@ procedure TPipeServerComm.StartServer;
 var
   H: THandle;
 begin
-  if not FileExists (FFileName) then
+  if not (Assigned (FStream)) then
     if (DosCreateNPipe (PChar (FFileName), H, np_Access_Inbound,
         np_ReadMode_Message or np_WriteMode_Message or 1, PipeBufSize,
                                                PipeBufSize, 0) <> 0) or
