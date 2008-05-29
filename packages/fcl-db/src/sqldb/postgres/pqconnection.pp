@@ -103,6 +103,7 @@ ResourceString
   SErrPrepareFailed = 'Preparation of query failed.';
 
 const Oid_Bool     = 16;
+      Oid_Bytea    = 17;
       Oid_Text     = 25;
       Oid_Oid      = 26;
       Oid_Name     = 19;
@@ -395,6 +396,7 @@ begin
                              end;
 //    Oid_text               : Result := ftstring;
     Oid_text               : Result := ftBlob;
+    Oid_Bytea              : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
     Oid_int4               : Result := ftInteger;
@@ -566,10 +568,16 @@ begin
         for i := 0 to AParams.count -1 do if not AParams[i].IsNull then
           begin
           case AParams[i].DataType of
-            ftdatetime : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
-            ftdate     : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
-          else
-            s := AParams[i].asstring;
+            ftDateTime:
+              s := FormatDateTime('yyyy-mm-dd hh:nn:ss', AParams[i].AsDateTime);
+            ftDate:
+              s := FormatDateTime('yyyy-mm-dd', AParams[i].AsDateTime);
+            ftTime:
+              s := FormatDateTime('hh:nn:ss', AParams[i].AsDateTime);
+            ftFloat, ftCurrency:
+              Str(AParams[i].AsFloat, s);
+            else
+              s := AParams[i].AsString;
           end; {case}
           GetMem(ar[i],length(s)+1);
           StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
@@ -632,7 +640,7 @@ begin
     for i := 0 to nFields-1 do
       begin
       fieldtype := TranslateFldType(Res, i,size);
-      with TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1)) do
+      with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(PQfname(Res, i)), fieldtype,size, False, (i + 1)) do
         FieldBinding[FieldNo-1] := i;
       end;
     CurTuple := -1;

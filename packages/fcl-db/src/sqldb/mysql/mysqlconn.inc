@@ -546,7 +546,7 @@ begin
 
     if MySQLDataType(field^.ftype, field^.length, field^.decimals, DFT, DFS) then
       begin
-      TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, TF);
+      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(field^.name), DFT, DFS, False, TF);
       c.MapDSRowToMSQLRow[TF-1] := I;
       inc(TF);
       end

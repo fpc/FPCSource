@@ -218,6 +218,7 @@ type
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
     procedure Update; overload;
+    Function MakeNameUnique(const AName : String) : string; virtual;
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
   end;
@@ -256,8 +257,8 @@ type
   { TField }
 
   TField = class(TComponent)
-  Private
-    FAlignMent : TAlignment;
+  private
+    FAlignment : TAlignment;
     FAttributeSet : String;
     FCalculated : Boolean;
     FConstraintErrorMessage : String;
@@ -295,16 +296,17 @@ type
     FValidating : Boolean;
     FVisible : Boolean;
     FProviderFlags : TProviderFlags;
-    Function GetIndex : longint;
+    function GetIndex : longint;
+    function GetLookup: Boolean;
     procedure SetAlignment(const AValue: TAlignMent);
     procedure SetIndex(const AValue: Integer);
-    Procedure SetDataset(AValue : TDataset);
     function GetDisplayText: String;
     function GetEditText: String;
     procedure SetEditText(const AValue: string);
     procedure SetDisplayLabel(const AValue: string);
     procedure SetDisplayWidth(const AValue: Longint);
     function GetDisplayWidth: integer;
+    procedure SetLookup(const AValue: Boolean);
     procedure SetReadOnly(const AValue: Boolean);
     procedure SetVisible(const AValue: Boolean);
     function IsDisplayStored : Boolean;
@@ -349,9 +351,10 @@ type
     procedure SetAsLongint(AValue: Longint); virtual;
     procedure SetAsInteger(AValue: Integer); virtual;
     procedure SetAsLargeint(AValue: Largeint); virtual;
-    procedure SetAsVariant(AValue: variant); virtual;
+    procedure SetAsVariant(const AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetAsWideString(const aValue: WideString); virtual;
+    procedure SetDataset(AValue : TDataset); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetNewValue(const AValue: Variant);
     procedure SetSize(AValue: Word); virtual;
@@ -405,7 +408,7 @@ type
     property OldValue: variant read GetOldValue;
     property LookupList: TLookupList read GetLookupList;
   published
-    property AlignMent : TAlignMent Read FAlignMent write SetAlignment default taLeftJustify;
+    property Alignment : TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
@@ -416,11 +419,12 @@ type
     property HasConstraints: Boolean read FHasConstraints;
     property Index: Longint read GetIndex write SetIndex;
     property ImportedConstraint: string read FImportedConstraint write FImportedConstraint;
+    property KeyFields: string read FKeyFields write FKeyFields;
+    property Lookup: Boolean read GetLookup write SetLookup;
+    property LookupCache: Boolean read FLookupCache write FLookupCache;
     property LookupDataSet: TDataSet read FLookupDataSet write FLookupDataSet;
     property LookupKeyFields: string read FLookupKeyFields write FLookupKeyFields;
     property LookupResultField: string read FLookupResultField write FLookupResultField;
-    property KeyFields: string read FKeyFields write FKeyFields;
-    property LookupCache: Boolean read FLookupCache write FLookupCache;
     property Origin: string read FOrigin write FOrigin;
     property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
@@ -1202,6 +1206,7 @@ type
     procedure SetBufListSize(Value: Longint); virtual;
     procedure SetChildOrder(Component: TComponent; Order: Longint); override;
     procedure SetCurrentRecord(Index: Longint); virtual;
+    procedure SetDefaultFields(const Value: Boolean);
     procedure SetFiltered(Value: Boolean); virtual;
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
@@ -2011,12 +2016,15 @@ begin
 end;
 
 procedure TNamedItem.SetDisplayName(const AValue: string);
+Var TmpInd : Integer;
 begin
   if FName=AValue then exit;
-  if (AValue <> '') and
-     (Collection is TOwnedCollection) and
-     (TFieldDefs(Collection).IndexOf(AValue) >= 0) then
-     DatabaseErrorFmt(SDuplicateName, [AValue, Collection.ClassName]);
+  if (AValue <> '') and (Collection is TFieldDefs) then
+    begin
+    TmpInd :=  (TDefCollection(Collection).IndexOf(AValue));
+    if (TmpInd >= 0) and (TmpInd <> Index) then
+      DatabaseErrorFmt(SDuplicateName, [AValue, Collection.ClassName]);
+    end;
   FName:=AValue;
   inherited SetDisplayName(AValue);
 end;
