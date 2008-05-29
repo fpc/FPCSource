@@ -103,6 +103,7 @@ ResourceString
   SErrPrepareFailed = 'Preparation of query failed.';
 
 const Oid_Bool     = 16;
+      Oid_Bytea    = 17;
       Oid_Text     = 25;
       Oid_Oid      = 26;
       Oid_Name     = 19;
@@ -395,6 +396,7 @@ begin
                              end;
 //    Oid_text               : Result := ftstring;
     Oid_text               : Result := ftBlob;
+    Oid_Bytea              : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
     Oid_int4               : Result := ftInteger;
