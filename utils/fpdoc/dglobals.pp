@@ -1239,7 +1239,7 @@ Const
 {$ifdef unix}
   DefDir = '/usr/local/share/locale';
 {$else}  
-  DefDir = 'intl'
+  DefDir = 'intl';
 {$endif}
 
 var
