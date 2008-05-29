@@ -61,15 +61,14 @@ begin
   fd:=FileOpen(KernelUUID,fmOpenRead);
   Result:=(Fd>=0);
   if Result then
-    begin
-    SetLength(S,UUIDLen);
-    SetLength(S,FileRead(fd,S[1],UUIDLen));
-    Result:=(Length(S)=UUIDLen);
-    If Result then
-      begin
-      GUID:=StringToGUID('{'+S+'}');
-      //Writeln('Kernel ID = ',GuidToString(GUID));
-      end;
+    try
+      SetLength(S,UUIDLen);
+      SetLength(S,FileRead(fd,S[1],UUIDLen));
+      Result:=(Length(S)=UUIDLen);
+      If Result then
+        GUID:=StringToGUID('{'+S+'}');
+    finally
+      FileClose(FD);  
     end;
 end;
 
