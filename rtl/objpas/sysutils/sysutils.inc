@@ -567,6 +567,9 @@ begin
   Result := DoForceDirectories(SetDirSeparators(Dir));
 end;
 
+Var
+  GUIDCalledRandomize : Boolean = False;
+
 Procedure GetRandomBytes(Var Buf; NBytes : Integer);
 
 Var
@@ -575,7 +578,11 @@ Var
 
 begin
   P:=@Buf;
-  Randomize;
+  If Not GUIDCalledRandomize then
+    begin
+    GUIDCalledRandomize:=True;
+    Randomize;
+    end;
   For I:=0 to NBytes-1 do
     P[i]:=Random(256);
 end;
