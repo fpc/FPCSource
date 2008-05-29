@@ -608,6 +608,11 @@ begin
     Result:=-1;
 end;
 
+function TField.GetLookup: Boolean;
+begin
+  Result := FieldKind = fkLookup;
+end;
+
 function TField.GetAsLargeInt: LargeInt;
 begin
   Raise AccessError(SLargeInt);
@@ -742,7 +747,7 @@ begin
   Raise AccessError(SFloat);
 end;
 
-procedure TField.SetAsVariant(AValue: Variant);
+procedure TField.SetAsVariant(const AValue: Variant);
 
 begin
   if VarIsNull(AValue) then
@@ -937,6 +942,13 @@ begin
     result:=GetDefaultWidth
   else
     result:=FDisplayWidth;
+end;
+
+procedure TField.SetLookup(const AValue: Boolean);
+const
+  ValueToLookupMap: array[Boolean] of TFieldKind = (fkData, fkLookup);
+begin
+  FieldKind := ValueToLookupMap[AValue];
 end;
 
 procedure TField.SetReadOnly(const AValue: Boolean);

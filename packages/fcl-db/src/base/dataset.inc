@@ -1177,6 +1177,11 @@ begin
     end;
 end;
 
+procedure TDataSet.SetDefaultFields(const Value: Boolean);
+begin
+  FDefaultFields := Value;
+end;
+
 Procedure TDataset.SetField (Index : Longint;Value : TField);
 
 begin
