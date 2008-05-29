@@ -568,10 +568,16 @@ begin
         for i := 0 to AParams.count -1 do if not AParams[i].IsNull then
           begin
           case AParams[i].DataType of
-            ftdatetime : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
-            ftdate     : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
-          else
-            s := AParams[i].asstring;
+            ftDateTime:
+              s := FormatDateTime('yyyy-mm-dd hh:nn:ss', AParams[i].AsDateTime);
+            ftDate:
+              s := FormatDateTime('yyyy-mm-dd', AParams[i].AsDateTime);
+            ftTime:
+              s := FormatDateTime('hh:nn:ss', AParams[i].AsDateTime);
+            ftFloat, ftCurrency:
+              Str(AParams[i].AsFloat, s);
+            else
+              s := AParams[i].AsString;
           end; {case}
           GetMem(ar[i],length(s)+1);
           StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
