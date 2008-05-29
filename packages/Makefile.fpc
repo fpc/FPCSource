@@ -17,7 +17,7 @@ dirs_beos=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sql
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
 dirs_freebsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
 dirs_darwin=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib
