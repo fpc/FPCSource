@@ -62,14 +62,13 @@ begin
   Result:=(Fd>=0);
   if Result then
     try
-    SetLength(S,UUIDLen);
-    SetLength(S,FileRead(fd,S[1],UUIDLen));
-    Result:=(Length(S)=UUIDLen);
-    If Result then
-      GUID:=StringToGUID('{'+S+'}');
+      SetLength(S,UUIDLen);
+      SetLength(S,FileRead(fd,S[1],UUIDLen));
+      Result:=(Length(S)=UUIDLen);
+      If Result then
+        GUID:=StringToGUID('{'+S+'}');
     finally
       FileClose(FD);  
-    end;
     end;
 end;
 
