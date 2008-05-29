@@ -582,8 +582,8 @@ begin
   P:=@Buf;
   If Not GUIDCalledRandomize then
     begin
-    GUIDCalledRandomize:=True;
     Randomize;
+    GUIDCalledRandomize:=True;
     end;
   For I:=0 to NBytes-1 do
     P[i]:=Random(256);
