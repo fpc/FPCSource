@@ -1807,12 +1807,20 @@ var x : longint;
 
 begin
   FNullmaskSize := 1+((FieldDefs.count-1) div 8);
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+  if (FNullmaskSize and 3 <> 0) then
+    FNullmaskSize := (FNullmaskSize and not 3)+4;
+{$ENDIF}
   FRecordSize := FNullmaskSize;
   SetLength(FFieldBufPositions,FieldDefs.count);
   for x := 0 to FieldDefs.count-1 do
     begin
     FFieldBufPositions[x] := FRecordSize;
     inc(FRecordSize, GetFieldSize(FieldDefs[x]));
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+  if (FRecordSize and 3 <> 0) then
+    FRecordSize := (FRecordSize and not 3)+4;
+{$ENDIF}
     end;
 end;
 
