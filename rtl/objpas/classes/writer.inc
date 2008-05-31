@@ -259,17 +259,16 @@ begin
 end;
 
 procedure TBinaryObjectWriter.WriteSet(Value: LongInt; SetType: Pointer);
+type
+  tset = set of 0..31;
 var
   i: Integer;
-  Mask: LongInt;
 begin
   WriteValue(vaSet);
-  Mask := 1;
   for i := 0 to 31 do
   begin
-    if (Value and Mask) <> 0 then
+    if (i in tset(Value)) then
       WriteStr(GetEnumName(PTypeInfo(SetType), i));
-    Mask := Mask shl 1;
   end;
   WriteStr('');
 end;

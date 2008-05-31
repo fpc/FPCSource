@@ -253,6 +253,8 @@ begin
 end;
 
 function TBinaryObjectReader.ReadSet(EnumType: Pointer): Integer;
+type
+  tset = set of 0..31;
 var
   Name: String;
   Value: Integer;
@@ -267,7 +269,7 @@ begin
       Value := GetEnumValue(PTypeInfo(EnumType), Name);
       if Value = -1 then
         raise EReadError.Create(SInvalidPropertyValue);
-      Result := Result or (1 shl Value);
+      include(tset(result),Value);
     end;
   except
     SkipSetBody;
