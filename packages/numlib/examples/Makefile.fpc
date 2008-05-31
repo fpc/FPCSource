@@ -21,7 +21,7 @@ files=$(wildcard ../units/$(CPU_TARGET)-$(OS_TARGET)/*$(OEXT)) \
       $(wildcard ../units/$(CPU_TARGET)-$(OS_TARGET)/*$(RSTEXT))
 
 [default]
-fpcdir=../../../..
+fpcdir=../../..
 
 
 [rules]

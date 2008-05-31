@@ -333,6 +333,9 @@ const
 {$IFDEF DARWIN}
   SDLLibName = 'libSDL-1.2.0.dylib';
   {$linklib libSDL-1.2.0}
+  {$linklib SDLmain}
+  {$linkframework Cocoa}
+  {$PASCALMAINNAME SDL_main}
 {$ELSE}
   {$IFDEF FPC}
   SDLLibName = 'libSDL.so';

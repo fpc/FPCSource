@@ -1311,22 +1311,9 @@ end;
 
 
 Function Pos (c : WideChar; Const s : AnsiString) : SizeInt;
-var
-  i: SizeInt;
-  pc : pchar;
-begin
-  pc:=@s[1];
-  for i:=1 to length(s) do
-   begin
-     if widechar(pc^)=c then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
-   end;
-  pos:=0;
-end;
+  begin
+    result:=Pos(c,WideString(s));
+  end;
 
 
 Function Pos (c : AnsiString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}

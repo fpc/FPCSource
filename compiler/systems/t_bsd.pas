@@ -61,6 +61,7 @@ implementation
       LdSupportsNoResponseFile : boolean;
       LibrarySuffix : Char;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
+      Function GetDarwinPrtobjName(isdll: boolean): TCmdStr;
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
@@ -151,11 +152,11 @@ begin
            end
          else
            begin
-             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
              if (apptype<>app_bundle) then
-               DllCmd[1]:='libtool $OPT -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='libtool $PRTOBJ $OPT -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
-               DllCmd[1]:='ld $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
        end
      else
@@ -196,6 +197,33 @@ else
           LinkLibraryOrder.add('c','',50);
    end;
 End;
+
+
+Function TLinkerBSD.GetDarwinPrtobjName(isdll: boolean): TCmdStr;
+begin
+  if not(isdll) then
+    if not(cs_profile in current_settings.moduleswitches) then
+      begin
+        if not librarysearchpath.FindFile('crt1.o',false,result) then
+          result:='/usr/lib/crt1.o';
+      end
+    else
+      begin
+        if not librarysearchpath.FindFile('gcrt1.o',false,result) then
+          result:='/usr/lib/gcrt1.o';
+      end
+  else
+    begin
+      if (apptype=app_bundle) then
+        begin
+          if not librarysearchpath.FindFile('bundle1.o',false,result) then
+            result:='/usr/lib/bundle1.o'
+        end
+      else
+        result:=''
+    end;
+end;    
+
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
 Var
@@ -258,33 +286,7 @@ begin
         AddSharedLibrary('SystemStubs_profile');
 {$endif MACOSX104ORHIGHER}
       reorder:=reorderentries;
-      if not(isdll) then
-        if not(cs_profile in current_settings.moduleswitches) then
-          begin
-            if librarysearchpath.FindFile('crt1.o',false,s) then
-             prtobj:=s
-            else
-             prtobj:='/usr/lib/crt1.o';
-          end
-        else
-          begin
-            if librarysearchpath.FindFile('gcrt1.o',false,s) then
-             prtobj:=s
-            else
-             prtobj:='/usr/lib/gcrt1.o';
-          end
-      else
-        begin
-          if (apptype=app_bundle) then
-            begin
-              if librarysearchpath.FindFile('bundle1.o',false,s) then
-                prtobj:=s
-              else
-                prtobj:='/usr/lib/bundle1.o'
-            end
-          else
-            prtobj:=''
-        end;
+      prtobj:='';
     end;
 
   if reorder Then
@@ -538,6 +540,8 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  if (target_info.system in systems_darwin) then
+    Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(false));
   BinStr:=FindUtil(utilsprefix+BinStr);
 
   { create dsym file? }
@@ -623,6 +627,8 @@ begin
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
+  if (target_info.system in systems_darwin) then
+    Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(true));
   BinStr:=FindUtil(utilsprefix+BinStr);
 
   { create dsym file? }
