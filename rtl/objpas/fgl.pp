@@ -131,7 +131,7 @@ type
     function GetKey(Index: Integer): Pointer;
     function GetKeyData(AKey: Pointer): Pointer;
     function GetData(Index: Integer): Pointer;
-    procedure InitOnPtrCompare;
+    procedure InitOnPtrCompare; virtual;
     function LinearIndexOf(AKey: Pointer): Integer;
     procedure PutKey(Index: Integer; AKey: Pointer);
     procedure PutKeyData(AKey: Pointer; NewData: Pointer);
@@ -165,16 +165,20 @@ type
   generic TFPGMap<TKey, TData> = class(TFPSMap)
   type public
     TCompareFunc = function(const Key1, Key2: TKey): Integer;
+    PKey = ^TKey;
+    PData = ^TData;
   var protected
     FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure CopyKey(Src, Dest: Pointer); override;
     procedure CopyData(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
+    procedure InitOnPtrCompare; override;
     function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
-    function KeyPtrCompare(Key1, Key2: Pointer): Integer;
+    function KeyCompare(Key1, Key2: Pointer): Integer;
+    function KeyCustomCompare(Key1, Key2: Pointer): Integer;
     procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
@@ -897,7 +901,22 @@ begin
   Result := TData(inherited GetKeyData(@AKey)^);
 end;
 
-function TFPGMap.KeyPtrCompare(Key1, Key2: Pointer): Integer;
+procedure TFPGMap.InitOnPtrCompare;
+begin
+  OnPtrCompare := @KeyCompare;
+end;
+
+function TFPGMap.KeyCompare(Key1, Key2: Pointer): Integer;
+begin
+  if PKey(Key1)^ < PKey(Key2)^ then
+    Result := -1
+  else if PKey(Key1)^ > PKey(Key2)^ then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function TFPGMap.KeyCustomCompare(Key1, Key2: Pointer): Integer;
 begin
   Result := FOnCompare(TKey(Key1^), TKey(Key2^));
 end;
@@ -921,7 +940,7 @@ procedure TFPGMap.SetOnCompare(NewCompare: TCompareFunc);
 begin
   FOnCompare := NewCompare;
   if NewCompare <> nil then
-    OnPtrCompare := @KeyPtrCompare
+    OnPtrCompare := @KeyCustomCompare
   else
     InitOnPtrCompare;
 end;
