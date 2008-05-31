@@ -368,4 +368,31 @@ Const
   MSG_COMPAT    = $8000;
   MSG_SOCALLBCK = $10000;
   MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
+  
+     TCP_NODELAY = 1;
+  { set maximum segment size  }
+     TCP_MAXSEG = 2;
+     TCP_KEEPIDLE = 3;
+  { reserved for FreeBSD compat  }
+     TCP_NOPUSH = 4;
+     TCP_KEEPINTVL = 5;
+     TCP_KEEPCNT = 6;
+     TCP_KEEPINIT = 7;
+  { reserved for FreeBSD compat  }
+     TCP_NOOPT = 8;
+  { use MD5 digests (RFC2385)  }
+     TCP_MD5SIG = $10;
+  { selected congestion control  }
+     TCP_CONGCTL = $20;
+  { socket options for UDP  }
+     UDP_ENCAP = 100;
+  { Encapsulation types  }
+  { draft-ietf-ipsec-nat-t-ike-00/01  }
+     UDP_ENCAP_ESPINUDP_NON_IKE = 1;
+  { draft-ietf-ipsec-udp-encaps-06  }
+     UDP_ENCAP_ESPINUDP = 2;
+  { Default encapsulation port  }
+     UDP_ENCAP_ESPINUDP_PORT = 500;
+  { Maximum UDP fragment size for ESP over UDP  }
+     UDP_ENCAP_ESPINUDP_MAXFRAGLEN = 552;
 

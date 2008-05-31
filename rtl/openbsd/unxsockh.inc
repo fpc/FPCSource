@@ -118,4 +118,32 @@ const
      PF_BPF = pseudo_AF_HDRCMPLT;
      PF_BLUETOOTH = AF_BLUETOOTH;
      PF_MAX = AF_MAX;
+     
+     MSG_OOB = $1;
+  { peek at incoming message  }
+     MSG_PEEK = $2;
+  { send without using routing tables  }
+     MSG_DONTROUTE = $4;
+  { data completes record  }
+     MSG_EOR = $8;
+  { data discarded before delivery  }
+     MSG_TRUNC = $10;
+  { control data lost before delivery  }
+     MSG_CTRUNC = $20;
+  { wait for full request or error  }
+     MSG_WAITALL = $40;
+  { this message should be nonblocking  }
+     MSG_DONTWAIT = $80;
+  { this message rec'd as broadcast  }
+     MSG_BCAST = $100;
+  { this message rec'd as multicast  }
+     MSG_MCAST = $200;
+     
+     TCP_NODELAY = $01;
+  { set maximum segment size  }
+     TCP_MAXSEG = $02;
+  { enable TCP MD5 signature option  }
+     TCP_MD5SIG = $04;
+  { enable SACKs (if disabled by def.)  }
+     TCP_SACK_ENABLE = $08;
 

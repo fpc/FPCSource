@@ -349,3 +349,12 @@ Const
   
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;
+  
+     TCP_NODELAY = $01;
+  { don't delay sending smaller packets  }
+     TCP_MAXSEG = $02;
+  { set maximum segment size  }
+     TCP_NOPUSH = $04;
+  { don't use TH_PUSH  }
+     TCP_NOOPT = $08;
+  { don't use any TCP options  }

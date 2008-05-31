@@ -349,3 +349,17 @@ Const
   
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;
+  
+     TCP_NODELAY = $01;
+  { set maximum segment size  }
+     TCP_MAXSEG = $02;
+  { don't push last block of write  }
+     TCP_NOPUSH = $04;
+  { don't use TCP options  }
+     TCP_NOOPT = $08;
+  { use MD5 digests (RFC2385)  }
+     TCP_MD5SIG = $10;
+  { retrieve tcp_info structure  }
+     TCP_INFO = $20;
+
+
