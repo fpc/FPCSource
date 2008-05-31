@@ -21,7 +21,7 @@
   {$Linklib root}
   // Out of date atm.
 const clib = 'root';
-const netlib = 'net';
+const netlib = 'network';
 
 
 {$ifdef FPC_IS_SYSTEM}
@@ -1057,4 +1057,5 @@ begin
     seterrno(0);
 end;
 *)
+
 

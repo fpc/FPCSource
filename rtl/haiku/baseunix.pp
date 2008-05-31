@@ -37,7 +37,7 @@ uses UnixType;
 
 {$ifdef FPC_USE_LIBC}
 const clib = 'root';
-const netlib = 'net';
+const netlib = 'network';
 {$i oscdeclh.inc}
 {$ELSE}
 {$i bunxh.inc}		{ Functions}

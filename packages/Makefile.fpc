@@ -15,6 +15,9 @@ dirs_m68k_linux=graph
 dirs_beos=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
+dirs_haiku=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
 dirs_freebsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
@@ -128,7 +131,7 @@ fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
 fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
 fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
 
-ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
 fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
 fcl-db_debug: fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug
 fcl-db_smart: fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart pxlib_smart
@@ -297,4 +300,5 @@ ptc_shared: hermes_shared x11_shared
 ptc_smart: hermes_smart x11_smart
 ptc_debug: hermes_debug x11_debug
 ptc_release: hermes_release x11_release
+
 

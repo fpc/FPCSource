@@ -83,7 +83,11 @@ const
     function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; cdecl; external clib name 'ioctl';
 {$endif bsd or solaris}
 {$ifdef beos}
+  {$ifdef haiku}
+    Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';  
+  {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
+  {$endif}  
 {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
 {$endif}

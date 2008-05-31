@@ -150,7 +150,7 @@ INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 # Skipped by default for cross compiles, because it depends on libc
 ifndef CROSSCOMPILE
 ifneq ($(wildcard ide),)
-IDETARGETS=go32v2 win32 linux freebsd os2 emx beos
+IDETARGETS=go32v2 win32 linux freebsd os2 emx beos haiku
 ifneq ($(findstring $(OS_TARGET),$(IDETARGETS)),)
 IDE=1
 endif
