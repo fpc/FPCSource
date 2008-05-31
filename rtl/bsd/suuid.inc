@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-{$IFDEF FREEBSD5}
+{$IF DEFINED(FREEBSD) AND NOT DEFINED(FREEBSD4)} 
 {$IFDEF FPC_USE_LIBC}
 
 function cuuidgen(p:PGUID;x:cint):cint; external clib name 'uuidgen';
