@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ImageCompression;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -117,119 +117,119 @@ type
 
 
 const
-	kRawCodecType				= $72617720 (* 'raw ' *);
-	kCinepakCodecType			= $63766964 (* 'cvid' *);
-	kGraphicsCodecType			= $736D6320 (* 'smc ' *);
-	kAnimationCodecType			= $726C6520 (* 'rle ' *);
-	kVideoCodecType				= $72707A61 (* 'rpza' *);
-	kComponentVideoCodecType	= $79757632 (* 'yuv2' *);
-	kJPEGCodecType				= $6A706567 (* 'jpeg' *);
-	kMotionJPEGACodecType		= $6D6A7061 (* 'mjpa' *);
-	kMotionJPEGBCodecType		= $6D6A7062 (* 'mjpb' *);
-	kSGICodecType				= $2E534749 (* '.SGI' *);
-	kPlanarRGBCodecType			= $38425053 (* '8BPS' *);
-	kMacPaintCodecType			= $504E5447 (* 'PNTG' *);
-	kGIFCodecType				= $67696620 (* 'gif ' *);
-	kPhotoCDCodecType			= $6B706364 (* 'kpcd' *);
-	kQuickDrawGXCodecType		= $71646778 (* 'qdgx' *);
-	kAVRJPEGCodecType			= $61767220 (* 'avr ' *);
-	kOpenDMLJPEGCodecType		= $646D6231 (* 'dmb1' *);
-	kBMPCodecType				= $57524C45 (* 'WRLE' *);
-	kWindowsRawCodecType		= $57524157 (* 'WRAW' *);
-	kVectorCodecType			= $70617468 (* 'path' *);
-	kQuickDrawCodecType			= $71647277 (* 'qdrw' *);
-	kWaterRippleCodecType		= $7269706C (* 'ripl' *);
-	kFireCodecType				= $66697265 (* 'fire' *);
-	kCloudCodecType				= $636C6F75 (* 'clou' *);
-	kH261CodecType				= $68323631 (* 'h261' *);
-	kH263CodecType				= $68323633 (* 'h263' *);
-	kDVCNTSCCodecType			= $64766320 (* 'dvc ' *);						{  DV - NTSC and DVCPRO NTSC (available in QuickTime 6.0 or later) }
+	kRawCodecType				= FourCharCode('raw ');
+	kCinepakCodecType			= FourCharCode('cvid');
+	kGraphicsCodecType			= FourCharCode('smc ');
+	kAnimationCodecType			= FourCharCode('rle ');
+	kVideoCodecType				= FourCharCode('rpza');
+	kComponentVideoCodecType	= FourCharCode('yuv2');
+	kJPEGCodecType				= FourCharCode('jpeg');
+	kMotionJPEGACodecType		= FourCharCode('mjpa');
+	kMotionJPEGBCodecType		= FourCharCode('mjpb');
+	kSGICodecType				= FourCharCode('.SGI');
+	kPlanarRGBCodecType			= FourCharCode('8BPS');
+	kMacPaintCodecType			= FourCharCode('PNTG');
+	kGIFCodecType				= FourCharCode('gif ');
+	kPhotoCDCodecType			= FourCharCode('kpcd');
+	kQuickDrawGXCodecType		= FourCharCode('qdgx');
+	kAVRJPEGCodecType			= FourCharCode('avr ');
+	kOpenDMLJPEGCodecType		= FourCharCode('dmb1');
+	kBMPCodecType				= FourCharCode('WRLE');
+	kWindowsRawCodecType		= FourCharCode('WRAW');
+	kVectorCodecType			= FourCharCode('path');
+	kQuickDrawCodecType			= FourCharCode('qdrw');
+	kWaterRippleCodecType		= FourCharCode('ripl');
+	kFireCodecType				= FourCharCode('fire');
+	kCloudCodecType				= FourCharCode('clou');
+	kH261CodecType				= FourCharCode('h261');
+	kH263CodecType				= FourCharCode('h263');
+	kDVCNTSCCodecType			= FourCharCode('dvc ');						{  DV - NTSC and DVCPRO NTSC (available in QuickTime 6.0 or later) }
 																{  NOTE: kDVCProNTSCCodecType is deprecated.   }
 																{  Use kDVCNTSCCodecType instead -- as far as the codecs are concerned,  }
 																{  the two data formats are identical. }
-	kDVCPALCodecType			= $64766370 (* 'dvcp' *);
-	kDVCProPALCodecType			= $64767070 (* 'dvpp' *);						{  available in QuickTime 6.0 or later }
-	kBaseCodecType				= $62617365 (* 'base' *);
-	kFLCCodecType				= $666C6963 (* 'flic' *);
-	kTargaCodecType				= $74676120 (* 'tga ' *);
-	kPNGCodecType				= $706E6720 (* 'png ' *);
-	kTIFFCodecType				= $74696666 (* 'tiff' *);						{     NOTE: despite what might seem obvious from the two constants }
+	kDVCPALCodecType			= FourCharCode('dvcp');
+	kDVCProPALCodecType			= FourCharCode('dvpp');						{  available in QuickTime 6.0 or later }
+	kBaseCodecType				= FourCharCode('base');
+	kFLCCodecType				= FourCharCode('flic');
+	kTargaCodecType				= FourCharCode('tga ');
+	kPNGCodecType				= FourCharCode('png ');
+	kTIFFCodecType				= FourCharCode('tiff');						{     NOTE: despite what might seem obvious from the two constants }
 																{     below and their names, they really are correct. 'yuvu' really  }
 																{     does mean signed, and 'yuvs' really does mean unsigned. Really.  }
-	kComponentVideoSigned		= $79757675 (* 'yuvu' *);
-	kComponentVideoUnsigned		= $79757673 (* 'yuvs' *);
-	kCMYKCodecType				= $636D796B (* 'cmyk' *);
-	kMicrosoftVideo1CodecType	= $6D737663 (* 'msvc' *);
-	kSorensonCodecType			= $53565131 (* 'SVQ1' *);
-	kSorenson3CodecType			= $53565133 (* 'SVQ3' *);						{  available in QuickTime 5 and later }
-	kIndeo4CodecType			= $49563431 (* 'IV41' *);
-	kMPEG4VisualCodecType		= $6D703476 (* 'mp4v' *);
-	k64ARGBCodecType			= $62363461 (* 'b64a' *);
-	k48RGBCodecType				= $62343872 (* 'b48r' *);
-	k32AlphaGrayCodecType		= $62333261 (* 'b32a' *);
-	k16GrayCodecType			= $62313667 (* 'b16g' *);
-	kMpegYUV420CodecType		= $6D797576 (* 'myuv' *);
-	kYUV420CodecType			= $79343230 (* 'y420' *);
-	kSorensonYUV9CodecType		= $73797639 (* 'syv9' *);
-	k422YpCbCr8CodecType		= $32767579 (* '2vuy' *);						{  Component Y'CbCr 8-bit 4:2:2   }
-	k444YpCbCr8CodecType		= $76333038 (* 'v308' *);						{  Component Y'CbCr 8-bit 4:4:4   }
-	k4444YpCbCrA8CodecType		= $76343038 (* 'v408' *);						{  Component Y'CbCrA 8-bit 4:4:4:4  }
-	k422YpCbCr16CodecType		= $76323136 (* 'v216' *);						{  Component Y'CbCr 10,12,14,16-bit 4:2:2 }
-	k422YpCbCr10CodecType		= $76323130 (* 'v210' *);						{  Component Y'CbCr 10-bit 4:2:2  }
-	k444YpCbCr10CodecType		= $76343130 (* 'v410' *);						{  Component Y'CbCr 10-bit 4:4:4  }
-	k4444YpCbCrA8RCodecType		= $72343038 (* 'r408' *);						{  Component Y'CbCrA 8-bit 4:4:4:4, rendering format. full range alpha, zero biased yuv }
+	kComponentVideoSigned		= FourCharCode('yuvu');
+	kComponentVideoUnsigned		= FourCharCode('yuvs');
+	kCMYKCodecType				= FourCharCode('cmyk');
+	kMicrosoftVideo1CodecType	= FourCharCode('msvc');
+	kSorensonCodecType			= FourCharCode('SVQ1');
+	kSorenson3CodecType			= FourCharCode('SVQ3');						{  available in QuickTime 5 and later }
+	kIndeo4CodecType			= FourCharCode('IV41');
+	kMPEG4VisualCodecType		= FourCharCode('mp4v');
+	k64ARGBCodecType			= FourCharCode('b64a');
+	k48RGBCodecType				= FourCharCode('b48r');
+	k32AlphaGrayCodecType		= FourCharCode('b32a');
+	k16GrayCodecType			= FourCharCode('b16g');
+	kMpegYUV420CodecType		= FourCharCode('myuv');
+	kYUV420CodecType			= FourCharCode('y420');
+	kSorensonYUV9CodecType		= FourCharCode('syv9');
+	k422YpCbCr8CodecType		= FourCharCode('2vuy');						{  Component Y'CbCr 8-bit 4:2:2   }
+	k444YpCbCr8CodecType		= FourCharCode('v308');						{  Component Y'CbCr 8-bit 4:4:4   }
+	k4444YpCbCrA8CodecType		= FourCharCode('v408');						{  Component Y'CbCrA 8-bit 4:4:4:4  }
+	k422YpCbCr16CodecType		= FourCharCode('v216');						{  Component Y'CbCr 10,12,14,16-bit 4:2:2 }
+	k422YpCbCr10CodecType		= FourCharCode('v210');						{  Component Y'CbCr 10-bit 4:2:2  }
+	k444YpCbCr10CodecType		= FourCharCode('v410');						{  Component Y'CbCr 10-bit 4:4:4  }
+	k4444YpCbCrA8RCodecType		= FourCharCode('r408');						{  Component Y'CbCrA 8-bit 4:4:4:4, rendering format. full range alpha, zero biased yuv }
 
 
 	{	 one source effects 	}
-	kBlurImageFilterType		= $626C7572 (* 'blur' *);
-	kSharpenImageFilterType		= $73687270 (* 'shrp' *);
-	kEdgeDetectImageFilterType	= $65646765 (* 'edge' *);
-	kEmbossImageFilterType		= $656D6273 (* 'embs' *);
-	kConvolveImageFilterType	= $67656E6B (* 'genk' *);
-	kAlphaGainImageFilterType	= $6761696E (* 'gain' *);
-	kRGBColorBalanceImageFilterType = $72676262 (* 'rgbb' *);
-	kHSLColorBalanceImageFilterType = $68736C62 (* 'hslb' *);
-	kColorSyncImageFilterType	= $73796E63 (* 'sync' *);
-	kFilmNoiseImageFilterType	= $666D6E73 (* 'fmns' *);
-	kSolarizeImageFilterType	= $736F6C72 (* 'solr' *);
-	kColorTintImageFilterType	= $74696E74 (* 'tint' *);
-	kLensFlareImageFilterType	= $6C656E73 (* 'lens' *);
-	kBrightnessContrastImageFilterType = $6272636F (* 'brco' *);
+	kBlurImageFilterType		= FourCharCode('blur');
+	kSharpenImageFilterType		= FourCharCode('shrp');
+	kEdgeDetectImageFilterType	= FourCharCode('edge');
+	kEmbossImageFilterType		= FourCharCode('embs');
+	kConvolveImageFilterType	= FourCharCode('genk');
+	kAlphaGainImageFilterType	= FourCharCode('gain');
+	kRGBColorBalanceImageFilterType = FourCharCode('rgbb');
+	kHSLColorBalanceImageFilterType = FourCharCode('hslb');
+	kColorSyncImageFilterType	= FourCharCode('sync');
+	kFilmNoiseImageFilterType	= FourCharCode('fmns');
+	kSolarizeImageFilterType	= FourCharCode('solr');
+	kColorTintImageFilterType	= FourCharCode('tint');
+	kLensFlareImageFilterType	= FourCharCode('lens');
+	kBrightnessContrastImageFilterType = FourCharCode('brco');
 
 	{	 two source effects 	}
-	kAlphaCompositorTransitionType = $626C6E64 (* 'blnd' *);
-	kCrossFadeTransitionType	= $64736C76 (* 'dslv' *);
-	kChannelCompositeEffectType	= $6368616E (* 'chan' *);
-	kChromaKeyTransitionType	= $636B6579 (* 'ckey' *);
-	kImplodeTransitionType		= $6D706C6F (* 'mplo' *);
-	kExplodeTransitionType		= $78706C6F (* 'xplo' *);
-	kGradientTransitionType		= $6D617474 (* 'matt' *);
-	kPushTransitionType			= $70757368 (* 'push' *);
-	kSlideTransitionType		= $736C6964 (* 'slid' *);
-	kWipeTransitionType			= $736D7074 (* 'smpt' *);
-	kIrisTransitionType			= $736D7032 (* 'smp2' *);
-	kRadialTransitionType		= $736D7033 (* 'smp3' *);
-	kMatrixTransitionType		= $736D7034 (* 'smp4' *);
-	kZoomTransitionType			= $7A6F6F6D (* 'zoom' *);
+	kAlphaCompositorTransitionType = FourCharCode('blnd');
+	kCrossFadeTransitionType	= FourCharCode('dslv');
+	kChannelCompositeEffectType	= FourCharCode('chan');
+	kChromaKeyTransitionType	= FourCharCode('ckey');
+	kImplodeTransitionType		= FourCharCode('mplo');
+	kExplodeTransitionType		= FourCharCode('xplo');
+	kGradientTransitionType		= FourCharCode('matt');
+	kPushTransitionType			= FourCharCode('push');
+	kSlideTransitionType		= FourCharCode('slid');
+	kWipeTransitionType			= FourCharCode('smpt');
+	kIrisTransitionType			= FourCharCode('smp2');
+	kRadialTransitionType		= FourCharCode('smp3');
+	kMatrixTransitionType		= FourCharCode('smp4');
+	kZoomTransitionType			= FourCharCode('zoom');
 
 	{	 three source effects 	}
-	kTravellingMatteEffectType	= $74726176 (* 'trav' *);
+	kTravellingMatteEffectType	= FourCharCode('trav');
 
 
 	{	 Supported by QTNewGWorld in QuickTime 4.0 and later 	}
-	kCMYKPixelFormat			= $636D796B (* 'cmyk' *);						{  CMYK, 8-bit  }
-	k64ARGBPixelFormat			= $62363461 (* 'b64a' *);						{  ARGB, 16-bit big-endian samples  }
-	k48RGBPixelFormat			= $62343872 (* 'b48r' *);						{  RGB, 16-bit big-endian samples  }
-	k32AlphaGrayPixelFormat		= $62333261 (* 'b32a' *);						{  AlphaGray, 16-bit big-endian samples  }
-	k16GrayPixelFormat			= $62313667 (* 'b16g' *);						{  Grayscale, 16-bit big-endian samples  }
-	k422YpCbCr8PixelFormat		= $32767579 (* '2vuy' *);						{  Component Y'CbCr 8-bit 4:2:2, ordered Cb Y'0 Cr Y'1  }
+	kCMYKPixelFormat			= FourCharCode('cmyk');						{  CMYK, 8-bit  }
+	k64ARGBPixelFormat			= FourCharCode('b64a');						{  ARGB, 16-bit big-endian samples  }
+	k48RGBPixelFormat			= FourCharCode('b48r');						{  RGB, 16-bit big-endian samples  }
+	k32AlphaGrayPixelFormat		= FourCharCode('b32a');						{  AlphaGray, 16-bit big-endian samples  }
+	k16GrayPixelFormat			= FourCharCode('b16g');						{  Grayscale, 16-bit big-endian samples  }
+	k422YpCbCr8PixelFormat		= FourCharCode('2vuy');						{  Component Y'CbCr 8-bit 4:2:2, ordered Cb Y'0 Cr Y'1  }
 
 	{	 Supported by QTNewGWorld in QuickTime 4.1.2 and later 	}
-	k4444YpCbCrA8PixelFormat	= $76343038 (* 'v408' *);						{  Component Y'CbCrA 8-bit 4:4:4:4, ordered Cb Y' Cr A  }
-	k4444YpCbCrA8RPixelFormat	= $72343038 (* 'r408' *);						{  Component Y'CbCrA 8-bit 4:4:4:4, rendering format. full range alpha, zero biased yuv, ordered A Y' Cb Cr  }
+	k4444YpCbCrA8PixelFormat	= FourCharCode('v408');						{  Component Y'CbCrA 8-bit 4:4:4:4, ordered Cb Y' Cr A  }
+	k4444YpCbCrA8RPixelFormat	= FourCharCode('r408');						{  Component Y'CbCrA 8-bit 4:4:4:4, rendering format. full range alpha, zero biased yuv, ordered A Y' Cb Cr  }
 
 	{	 Supported by QTNewGWorld in QuickTime 6.0 and later 	}
-	kYUV420PixelFormat			= $79343230 (* 'y420' *);						{  Planar Component Y'CbCr 8-bit 4:2:0.  PixMap baseAddr points to a big-endian PlanarPixmapInfoYUV420 struct; see ImageCodec.i.  }
+	kYUV420PixelFormat			= FourCharCode('y420');						{  Planar Component Y'CbCr 8-bit 4:2:0.  PixMap baseAddr points to a big-endian PlanarPixmapInfoYUV420 struct; see ImageCodec.i.  }
 
 
 	{	 These are the bits that are set in the Component flags, and also in the codecInfo struct. 	}
@@ -308,8 +308,8 @@ const
 	codecMinimumDataSize		= 32768;
 
 
-	compressorComponentType		= $696D636F (* 'imco' *);						{  the type for "Components" which compress images  }
-	decompressorComponentType	= $696D6463 (* 'imdc' *);						{  the type for "Components" which decompress images  }
+	compressorComponentType		= FourCharCode('imco');						{  the type for "Components" which compress images  }
+	decompressorComponentType	= FourCharCode('imdc');						{  the type for "Components" which decompress images  }
 
 
 type
@@ -1206,9 +1206,9 @@ type
 	{  selectors for ICMSequenceGet/SetInfo }
 
 const
-	kICMSequenceTaskWeight		= $74776569 (* 'twei' *);						{  data is pointer to UInt32 }
-	kICMSequenceTaskName		= $746E616D (* 'tnam' *);						{  data is pointer to OSType }
-	kICMSequenceUserPreferredCodecs = $70756E74 (* 'punt' *);					{  data is pointer to CodecComponentHandle }
+	kICMSequenceTaskWeight		= FourCharCode('twei');						{  data is pointer to UInt32 }
+	kICMSequenceTaskName		= FourCharCode('tnam');						{  data is pointer to OSType }
+	kICMSequenceUserPreferredCodecs = FourCharCode('punt');					{  data is pointer to CodecComponentHandle }
 
 	{
 	 *  ICMSequenceGetInfo()
@@ -1381,13 +1381,13 @@ function GetCompressedImageSize(desc: ImageDescriptionHandle; data: Ptr; bufferS
  }
 function GetSimilarity(src: PixMapHandle; const (*var*) srcRect: Rect; desc: ImageDescriptionHandle; data: Ptr; var similarity: Fixed): OSErr; external name '_GetSimilarity';
 const
-	kImageDescriptionSampleFormat = $6964666D (* 'idfm' *);						{  image description extension describing sample format }
-	kImageDescriptionClassicAtomFormat = $61746F6D (* 'atom' *);				{  sample contains classic atom structure (ie, GX codec and Curve codec) }
-	kImageDescriptionQTAtomFormat = $71746174 (* 'qtat' *);						{  sample contains QT atom structure }
-	kImageDescriptionEffectDataFormat = $66786174 (* 'fxat' *);					{  sample describes an effect (as QTAtoms) }
-	kImageDescriptionPrivateDataFormat = $70726976 (* 'priv' *);				{  sample is in a private codec specific format }
-	kImageDescriptionAlternateCodec = $73756273 (* 'subs' *);					{  image description extension containing the OSType of a substitute codec should the main codec not be available }
-	kImageDescriptionColorSpace	= $63737063 (* 'cspc' *);						{  image description extension containing an OSType naming the native pixel format of an image (only used for pixel formats not supported by classic Color QuickDraw) }
+	kImageDescriptionSampleFormat = FourCharCode('idfm');						{  image description extension describing sample format }
+	kImageDescriptionClassicAtomFormat = FourCharCode('atom');				{  sample contains classic atom structure (ie, GX codec and Curve codec) }
+	kImageDescriptionQTAtomFormat = FourCharCode('qtat');						{  sample contains QT atom structure }
+	kImageDescriptionEffectDataFormat = FourCharCode('fxat');					{  sample describes an effect (as QTAtoms) }
+	kImageDescriptionPrivateDataFormat = FourCharCode('priv');				{  sample is in a private codec specific format }
+	kImageDescriptionAlternateCodec = FourCharCode('subs');					{  image description extension containing the OSType of a substitute codec should the main codec not be available }
+	kImageDescriptionColorSpace	= FourCharCode('cspc');						{  image description extension containing an OSType naming the native pixel format of an image (only used for pixel formats not supported by classic Color QuickDraw) }
 
 	{
 	 *  GetImageDescriptionCTable()
@@ -2796,14 +2796,14 @@ type
 	GraphicsImportComponent				= ComponentInstance;
 
 const
-	GraphicsImporterComponentType = $67726970 (* 'grip' *);
+	GraphicsImporterComponentType = FourCharCode('grip');
 
 	graphicsImporterUsesImageDecompressor = $00800000;
 
-	quickTimeImageFileImageDescriptionAtom = $69647363 (* 'idsc' *);
-	quickTimeImageFileImageDataAtom = $69646174 (* 'idat' *);
-	quickTimeImageFileMetaDataAtom = $6D657461 (* 'meta' *);
-	quickTimeImageFileColorSyncProfileAtom = $69696363 (* 'iicc' *);
+	quickTimeImageFileImageDescriptionAtom = FourCharCode('idsc');
+	quickTimeImageFileImageDataAtom = FourCharCode('idat');
+	quickTimeImageFileMetaDataAtom = FourCharCode('meta');
+	quickTimeImageFileColorSyncProfileAtom = FourCharCode('iicc');
 
 	graphicsImporterDrawsAllPixels = 0;
 	graphicsImporterDoesntDrawAllPixels = 1;
@@ -2814,26 +2814,26 @@ const
 	kGraphicsImporterTrustResolutionFromFile = $00000002;
 	kGraphicsImporterEnableSubPixelPositioning = $00000004;
 
-	kGraphicsExportGroup		= $6578706F (* 'expo' *);
-	kGraphicsExportFileType		= $66747970 (* 'ftyp' *);
-	kGraphicsExportMIMEType		= $6D696D65 (* 'mime' *);
-	kGraphicsExportExtension	= $65787420 (* 'ext ' *);
-	kGraphicsExportDescription	= $64657363 (* 'desc' *);
+	kGraphicsExportGroup		= FourCharCode('expo');
+	kGraphicsExportFileType		= FourCharCode('ftyp');
+	kGraphicsExportMIMEType		= FourCharCode('mime');
+	kGraphicsExportExtension	= FourCharCode('ext ');
+	kGraphicsExportDescription	= FourCharCode('desc');
 
 	{	 User data types for layers of Photoshop files 	}
-	kQTPhotoshopLayerMode		= $6C6D6F64 (* 'lmod' *);						{  OSType  }
-	kQTPhotoshopLayerOpacity	= $6C6F7061 (* 'lopa' *);						{  UInt8, 0 = transparent .. 255 = opaque  }
-	kQTPhotoshopLayerClipping	= $6C636C70 (* 'lclp' *);						{  UInt8, 0 = base, 1 = non-base  }
-	kQTPhotoshopLayerFlags		= $6C666C67 (* 'lflg' *);						{  UInt8  }
-	kQTPhotoshopLayerName		= $C2A96C6E (* '©lnm' *);						{  Text  }
-	kQTPhotoshopLayerUnicodeName = $6C756E69 (* 'luni' *);						{  Unicode characters, not terminated  }
+	kQTPhotoshopLayerMode		= FourCharCode('lmod');						{  OSType  }
+	kQTPhotoshopLayerOpacity	= FourCharCode('lopa');						{  UInt8, 0 = transparent .. 255 = opaque  }
+	kQTPhotoshopLayerClipping	= FourCharCode('lclp');						{  UInt8, 0 = base, 1 = non-base  }
+	kQTPhotoshopLayerFlags		= FourCharCode('lflg');						{  UInt8  }
+	kQTPhotoshopLayerName		= FourCharCode('©lnm');						{  Text  }
+	kQTPhotoshopLayerUnicodeName = FourCharCode('luni');						{  Unicode characters, not terminated  }
 
 	{	 User data returned by graphics importers to suggest intended use for indexed images 	}
-	kQTIndexedImageType			= $6E74683F (* 'nth?' *);						{  1 or more OSTypes, such as the following values:  }
-	kQTIndexedImageIsThumbnail	= $6E3D7468 (* 'n=th' *);						{  The image at this index is a thumbnail.  }
-	kQTIndexedImageIsLayer		= $6E3D6C79 (* 'n=ly' *);						{  The image at this index is a layer.  }
-	kQTIndexedImageIsPage		= $6E3D7067 (* 'n=pg' *);						{  The image at this index is a page.  }
-	kQTIndexedImageIsMultiResolution = $6E3D7273 (* 'n=rs' *);					{  The image at this index is one of several identical images at different resolutions.  }
+	kQTIndexedImageType			= FourCharCode('nth?');						{  1 or more OSTypes, such as the following values:  }
+	kQTIndexedImageIsThumbnail	= FourCharCode('n=th');						{  The image at this index is a thumbnail.  }
+	kQTIndexedImageIsLayer		= FourCharCode('n=ly');						{  The image at this index is a layer.  }
+	kQTIndexedImageIsPage		= FourCharCode('n=pg');						{  The image at this index is a page.  }
+	kQTIndexedImageIsMultiResolution = FourCharCode('n=rs');					{  The image at this index is one of several identical images at different resolutions.  }
 
 	{	 Other user data types returned by graphics importers 	}
 	kQTTIFFUserDataPrefix		= $74690000;					{  Added to some tag values in TIFF IFDs to generate user data codes.  (0x7469 is 'ti'.)  }
@@ -2842,9 +2842,9 @@ const
 																{  For example, DateTimeOriginal is tag 0x9003, so its user data code is 0x65789003.  }
 	kQTTIFFExifGPSUserDataPrefix = $67700000;					{  Added to tag values in Exif GPS IFDs to generate user data codes.  (0x6770 is 'gp'.)  }
 																{  For example, GPSAltitude is tag 0x0006, so its user data code is 0x6770006.  }
-	kQTAlphaMode				= $616C6D6F (* 'almo' *);						{  UInt32; eg, graphicsModeStraightAlpha or graphicsModePreBlackAlpha  }
-	kQTAlphaModePreMulColor		= $616C6D70 (* 'almp' *);						{  RGBColor; used if kQTAlphaMode is graphicsModePreMulColorAlpha  }
-	kUserDataIPTC				= $69707463 (* 'iptc' *);
+	kQTAlphaMode				= FourCharCode('almo');						{  UInt32; eg, graphicsModeStraightAlpha or graphicsModePreBlackAlpha  }
+	kQTAlphaModePreMulColor		= FourCharCode('almp');						{  RGBColor; used if kQTAlphaMode is graphicsModePreMulColorAlpha  }
+	kUserDataIPTC				= FourCharCode('iptc');
 
 	{	 Found in TIFF and Exif JPEG files 	}
 	kQTTIFFUserDataOrientation	= $74690112;					{  1 SHORT  }
@@ -3541,8 +3541,8 @@ type
 	GraphicsExportComponent				= ComponentInstance;
 
 const
-	GraphicsExporterComponentType = $67726578 (* 'grex' *);
-	kBaseGraphicsExporterSubType = $62617365 (* 'base' *);
+	GraphicsExporterComponentType = FourCharCode('grex');
+	kBaseGraphicsExporterSubType = FourCharCode('base');
 
 	graphicsExporterIsBaseExporter = $00000001;
 	graphicsExporterCanTranscode = $00000002;
@@ -3570,29 +3570,29 @@ type
 
 
 const
-	kQTResolutionSettings		= $7265736F (* 'reso' *);
-	kQTTargetDataSize			= $6461737A (* 'dasz' *);
-	kQTDontRecompress			= $646E7472 (* 'dntr' *);
-	kQTInterlaceStyle			= $696C6163 (* 'ilac' *);
-	kQTColorSyncProfile			= $69636370 (* 'iccp' *);
-	kQTThumbnailSettings		= $7468756D (* 'thum' *);
-	kQTEnableExif				= $65786966 (* 'exif' *);						{  UInt8 (boolean) }
-	kQTMetaData					= $6D657461 (* 'meta' *);
+	kQTResolutionSettings		= FourCharCode('reso');
+	kQTTargetDataSize			= FourCharCode('dasz');
+	kQTDontRecompress			= FourCharCode('dntr');
+	kQTInterlaceStyle			= FourCharCode('ilac');
+	kQTColorSyncProfile			= FourCharCode('iccp');
+	kQTThumbnailSettings		= FourCharCode('thum');
+	kQTEnableExif				= FourCharCode('exif');						{  UInt8 (boolean) }
+	kQTMetaData					= FourCharCode('meta');
 
-	kQTTIFFCompressionMethod	= $74696663 (* 'tifc' *);						{  UInt32 }
+	kQTTIFFCompressionMethod	= FourCharCode('tifc');						{  UInt32 }
 	kQTTIFFCompression_None		= 1;
 	kQTTIFFCompression_PackBits	= 32773;
-	kQTTIFFLittleEndian			= $74696665 (* 'tife' *);						{  UInt8 (boolean) }
+	kQTTIFFLittleEndian			= FourCharCode('tife');						{  UInt8 (boolean) }
 
-	kQTPNGFilterPreference		= $706E6766 (* 'pngf' *);						{  UInt32 }
-	kQTPNGFilterBestForColorType = $62666C74 (* 'bflt' *);
+	kQTPNGFilterPreference		= FourCharCode('pngf');						{  UInt32 }
+	kQTPNGFilterBestForColorType = FourCharCode('bflt');
 	kQTPNGFilterNone			= 0;
 	kQTPNGFilterSub				= 1;
 	kQTPNGFilterUp				= 2;
 	kQTPNGFilterAverage			= 3;
 	kQTPNGFilterPaeth			= 4;
-	kQTPNGFilterAdaptivePerRow	= $61666C74 (* 'aflt' *);
-	kQTPNGInterlaceStyle		= $696C6163 (* 'ilac' *);						{  UInt32 }
+	kQTPNGFilterAdaptivePerRow	= FourCharCode('aflt');
+	kQTPNGInterlaceStyle		= FourCharCode('ilac');						{  UInt32 }
 	kQTPNGInterlaceNone			= 0;
 	kQTPNGInterlaceAdam7		= 1;
 
@@ -4378,7 +4378,7 @@ type
 	ImageTranscoderComponent			= ComponentInstance;
 
 const
-	ImageTranscodererComponentType = $696D7463 (* 'imtc' *);
+	ImageTranscodererComponentType = FourCharCode('imtc');
 
 
 	{	* These are ImageTranscoder procedures *	}

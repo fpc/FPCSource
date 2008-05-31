@@ -17,7 +17,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -25,12 +25,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit DriverFamilyMatching;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -177,37 +177,37 @@ type
 	{	 Categories 	}
 
 const
-	kServiceCategoryDisplay		= $64697370 (* 'disp' *);						{  Display Manager }
-	kServiceCategoryOpenTransport = $6F74616E (* 'otan' *);						{  Open Transport }
-	kServiceCategoryBlockStorage = $626C6F6B (* 'blok' *);						{  Block Storage }
-	kServiceCategoryNdrvDriver	= $6E647276 (* 'ndrv' *);						{  Generic Native Driver }
-	kServiceCategoryScsiSIM		= $73637369 (* 'scsi' *);						{  SCSI  }
-	kServiceCategoryFileManager	= $66696C65 (* 'file' *);						{  File Manager  }
-	kServiceCategoryIDE			= $6964652D (* 'ide-' *);						{  ide  }
-	kServiceCategoryADB			= $6164622D (* 'adb-' *);						{  adb  }
-	kServiceCategoryPCI			= $7063692D (* 'pci-' *);						{  pci bus  }
+	kServiceCategoryDisplay		= FourCharCode('disp');						{  Display Manager }
+	kServiceCategoryOpenTransport = FourCharCode('otan');						{  Open Transport }
+	kServiceCategoryBlockStorage = FourCharCode('blok');						{  Block Storage }
+	kServiceCategoryNdrvDriver	= FourCharCode('ndrv');						{  Generic Native Driver }
+	kServiceCategoryScsiSIM		= FourCharCode('scsi');						{  SCSI  }
+	kServiceCategoryFileManager	= FourCharCode('file');						{  File Manager  }
+	kServiceCategoryIDE			= FourCharCode('ide-');						{  ide  }
+	kServiceCategoryADB			= FourCharCode('adb-');						{  adb  }
+	kServiceCategoryPCI			= FourCharCode('pci-');						{  pci bus  }
 																{  Nu Bus  }
-	kServiceCategoryDFM			= $64666D2D (* 'dfm-' *);						{  DFM  }
-	kServiceCategoryMotherBoard	= $6D726264 (* 'mrbd' *);						{  mother Board  }
-	kServiceCategoryKeyboard	= $6B796264 (* 'kybd' *);						{  Keyboard  }
-	kServiceCategoryPointing	= $706F6974 (* 'poit' *);						{  Pointing  }
-	kServiceCategoryRTC			= $7274632D (* 'rtc-' *);						{  RTC  }
-	kServiceCategoryNVRAM		= $6E72616D (* 'nram' *);						{  NVRAM  }
-	kServiceCategorySound		= $736F6E64 (* 'sond' *);						{  Sound (1/3/96 MCS)  }
-	kServiceCategoryPowerMgt	= $70676D74 (* 'pgmt' *);						{  Power Management  }
-	kServiceCategoryGeneric		= $67656E72 (* 'genr' *);						{  Generic Service Category to receive general Events  }
+	kServiceCategoryDFM			= FourCharCode('dfm-');						{  DFM  }
+	kServiceCategoryMotherBoard	= FourCharCode('mrbd');						{  mother Board  }
+	kServiceCategoryKeyboard	= FourCharCode('kybd');						{  Keyboard  }
+	kServiceCategoryPointing	= FourCharCode('poit');						{  Pointing  }
+	kServiceCategoryRTC			= FourCharCode('rtc-');						{  RTC  }
+	kServiceCategoryNVRAM		= FourCharCode('nram');						{  NVRAM  }
+	kServiceCategorySound		= FourCharCode('sond');						{  Sound (1/3/96 MCS)  }
+	kServiceCategoryPowerMgt	= FourCharCode('pgmt');						{  Power Management  }
+	kServiceCategoryGeneric		= FourCharCode('genr');						{  Generic Service Category to receive general Events  }
 
 	{	 Ndrv ServiceCategory Types 	}
-	kNdrvTypeIsGeneric			= $67656E72 (* 'genr' *);						{  generic }
-	kNdrvTypeIsVideo			= $7669646F (* 'vido' *);						{  video }
-	kNdrvTypeIsBlockStorage		= $626C6F6B (* 'blok' *);						{  block storage }
-	kNdrvTypeIsNetworking		= $6E657477 (* 'netw' *);						{  networking }
-	kNdrvTypeIsSerial			= $7365726C (* 'serl' *);						{  serial }
-	kNdrvTypeIsParallel			= $7061726C (* 'parl' *);						{  parallel  }
-	kNdrvTypeIsSound			= $736F6E64 (* 'sond' *);						{  sound }
-	kNdrvTypeIsBusBridge		= $62726467 (* 'brdg' *);
-	kNdrvTypeIsFWConference		= $63727368 (* 'crsh' *);						{  FireWire conference camera  }
-	kNdrvTypeIsAVC				= $61766320 (* 'avc ' *);						{  FireWire AVC devices (DV cameras)  }
+	kNdrvTypeIsGeneric			= FourCharCode('genr');						{  generic }
+	kNdrvTypeIsVideo			= FourCharCode('vido');						{  video }
+	kNdrvTypeIsBlockStorage		= FourCharCode('blok');						{  block storage }
+	kNdrvTypeIsNetworking		= FourCharCode('netw');						{  networking }
+	kNdrvTypeIsSerial			= FourCharCode('serl');						{  serial }
+	kNdrvTypeIsParallel			= FourCharCode('parl');						{  parallel  }
+	kNdrvTypeIsSound			= FourCharCode('sond');						{  sound }
+	kNdrvTypeIsBusBridge		= FourCharCode('brdg');
+	kNdrvTypeIsFWConference		= FourCharCode('crsh');						{  FireWire conference camera  }
+	kNdrvTypeIsAVC				= FourCharCode('avc ');						{  FireWire AVC devices (DV cameras)  }
 
 
 type
@@ -216,8 +216,8 @@ type
 	{	  The Driver Description 	}
 
 const
-	kTheDescriptionSignature	= $6D74656A (* 'mtej' *);
-	kDriverDescriptionSignature	= $70646573 (* 'pdes' *);
+	kTheDescriptionSignature	= FourCharCode('mtej');
+	kDriverDescriptionSignature	= FourCharCode('pdes');
 
 	kInitialDriverDescriptor	= 0;
 	kVersionOneDriverDescriptor	= 1;

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit LanguageAnalysis;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -156,24 +156,24 @@ type
 	LAHomographPtr 						= ^LAHomograph;
 
 const
-	keyAELAMorphemeBundle		= $6C6D6662 (* 'lmfb' *);
-	keyAELAMorphemePath			= $6C6D6670 (* 'lmfp' *);
-	keyAELAMorpheme				= $6C6D666E (* 'lmfn' *);
-	keyAELAHomograph			= $6C6D6668 (* 'lmfh' *);
+	keyAELAMorphemeBundle		= FourCharCode('lmfb');
+	keyAELAMorphemePath			= FourCharCode('lmfp');
+	keyAELAMorpheme				= FourCharCode('lmfn');
+	keyAELAHomograph			= FourCharCode('lmfh');
 
-	typeLAMorphemeBundle		= $7265636F (* 'reco' *);
-	typeLAMorphemePath			= $7265636F (* 'reco' *);
-	typeLAMorpheme				= $6C697374 (* 'list' *);
-	typeLAHomograph				= $6C697374 (* 'list' *);
+	typeLAMorphemeBundle		= FourCharCode('reco');
+	typeLAMorphemePath			= FourCharCode('reco');
+	typeLAMorpheme				= FourCharCode('list');
+	typeLAHomograph				= FourCharCode('list');
 
 	{	
 	    Definitions for morpheme/homograph information
 		}
-	keyAEMorphemePartOfSpeechCode = $6C616D63 (* 'lamc' *);
-	keyAEMorphemeTextRange		= $6C616D74 (* 'lamt' *);
+	keyAEMorphemePartOfSpeechCode = FourCharCode('lamc');
+	keyAEMorphemeTextRange		= FourCharCode('lamt');
 
-	typeAEMorphemePartOfSpeechCode = $6C616D63 (* 'lamc' *);
-	typeAEMorphemeTextRange		= $6C616D74 (* 'lamt' *);
+	typeAEMorphemePartOfSpeechCode = FourCharCode('lamc');
+	typeAEMorphemeTextRange		= FourCharCode('lamt');
 
 
 type
@@ -438,7 +438,7 @@ function LAResetAnalysis(context: LAContextRef): OSStatus; external name '_LARes
 }
 
 const
-	kAppleJapaneseDictionarySignature = $6A6C616E (* 'jlan' *);
+	kAppleJapaneseDictionarySignature = FourCharCode('jlan');
 
 	{	
 	    Engine limitations
@@ -458,13 +458,13 @@ type
 		}
 
 const
-	keyAEHomographDicInfo		= $6C616864 (* 'lahd' *);
-	keyAEHomographWeight		= $6C616877 (* 'lahw' *);
-	keyAEHomographAccent		= $6C616861 (* 'laha' *);
+	keyAEHomographDicInfo		= FourCharCode('lahd');
+	keyAEHomographWeight		= FourCharCode('lahw');
+	keyAEHomographAccent		= FourCharCode('laha');
 
-	typeAEHomographDicInfo		= $6C616864 (* 'lahd' *);
-	typeAEHomographWeight		= $73686F72 (* 'shor' *);
-	typeAEHomographAccent		= $6C616861 (* 'laha' *);
+	typeAEHomographDicInfo		= FourCharCode('lahd');
+	typeAEHomographWeight		= FourCharCode('shor');
+	typeAEHomographAccent		= FourCharCode('laha');
 
 	{	
 	    Structure for dictionary information of homograph

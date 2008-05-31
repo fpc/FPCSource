@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit PMDefinitions;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -159,18 +159,18 @@ type
 	PMTag 						= UInt32;
 const
 																{  common tags  }
-	kPMCurrentValue				= $63757272 (* 'curr' *);						{  current setting or value  }
-	kPMDefaultValue				= $64666C74 (* 'dflt' *);						{  default setting or value  }
-	kPMMinimumValue				= $6D696E76 (* 'minv' *);						{  the minimum setting or value  }
-	kPMMaximumValue				= $6D617876 (* 'maxv' *);						{  the maximum setting or value  }
+	kPMCurrentValue				= FourCharCode('curr');						{  current setting or value  }
+	kPMDefaultValue				= FourCharCode('dflt');						{  default setting or value  }
+	kPMMinimumValue				= FourCharCode('minv');						{  the minimum setting or value  }
+	kPMMaximumValue				= FourCharCode('maxv');						{  the maximum setting or value  }
 																{  profile tags  }
-	kPMSourceProfile			= $73726370 (* 'srcp' *);						{  source profile  }
+	kPMSourceProfile			= FourCharCode('srcp');						{  source profile  }
 																{  resolution tags  }
-	kPMMinRange					= $6D6E7267 (* 'mnrg' *);						{  Min range supported by a printer  }
-	kPMMaxRange					= $6D787267 (* 'mxrg' *);						{  Max range supported by a printer  }
-	kPMMinSquareResolution		= $6D696E73 (* 'mins' *);						{  Min with X and Y resolution equal  }
-	kPMMaxSquareResolution		= $6D617873 (* 'maxs' *);						{  Max with X and Y resolution equal  }
-	kPMDefaultResolution		= $64667472 (* 'dftr' *);						{  printer default resolution  }
+	kPMMinRange					= FourCharCode('mnrg');						{  Min range supported by a printer  }
+	kPMMaxRange					= FourCharCode('mxrg');						{  Max range supported by a printer  }
+	kPMMinSquareResolution		= FourCharCode('mins');						{  Min with X and Y resolution equal  }
+	kPMMaxSquareResolution		= FourCharCode('maxs');						{  Max with X and Y resolution equal  }
+	kPMDefaultResolution		= FourCharCode('dftr');						{  printer default resolution  }
 
 
 type

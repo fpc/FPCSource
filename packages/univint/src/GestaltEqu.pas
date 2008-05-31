@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit GestaltEqu;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -490,12 +490,12 @@ function InvokeSelectorFunctionUPP(selector: OSType; var response: SInt32; userR
 { Environment Selectors }
 
 const
-	gestaltAddressingModeAttr	= $61646472 (* 'addr' *);						{  addressing mode attributes  }
+	gestaltAddressingModeAttr	= FourCharCode('addr');						{  addressing mode attributes  }
 	gestalt32BitAddressing		= 0;							{  using 32-bit addressing mode  }
 	gestalt32BitSysZone			= 1;							{  32-bit compatible system zone  }
 	gestalt32BitCapable			= 2;							{  Machine is 32-bit capable  }
 
-	gestaltAFPClient			= $61667073 (* 'afps' *);
+	gestaltAFPClient			= FourCharCode('afps');
 	gestaltAFPClientVersionMask	= $0000FFFF;					{  low word of long is the  }
 																{  client version 0x0001 -> 0x0007 }
 	gestaltAFPClient3_5			= $0001;
@@ -517,7 +517,7 @@ const
 	gestaltAFPClientMultiReq	= 31;							{  Client supports multiple outstanding requests }
 
 
-	gestaltAliasMgrAttr			= $616C6973 (* 'alis' *);						{  Alias Mgr Attributes  }
+	gestaltAliasMgrAttr			= FourCharCode('alis');						{  Alias Mgr Attributes  }
 	gestaltAliasMgrPresent		= 0;							{  True if the Alias Mgr is present  }
 	gestaltAliasMgrSupportsRemoteAppletalk = 1;					{  True if the Alias Mgr knows about Remote Appletalk  }
 	gestaltAliasMgrSupportsAOCEKeychain = 2;					{  True if the Alias Mgr knows about the AOCE Keychain  }
@@ -529,7 +529,7 @@ const
 	gestaltAliasMgrRequiresAccessors = 8;                       {  Set if Alias Manager requires accessors for size and usertype }
 
 	{	 Gestalt selector and values for the Appearance Manager 	}
-	gestaltAppearanceAttr		= $61707072 (* 'appr' *);
+	gestaltAppearanceAttr		= FourCharCode('appr');
 	gestaltAppearanceExists		= 0;
 	gestaltAppearanceCompatMode	= 1;
 
@@ -539,23 +539,23 @@ const
 	{	 gestalt returns a BCD number representing the version of the  	}
 	{	 Appearance Manager that is currently running, e.g. 0x0101 for 	}
 	{	 version 1.0.1.                                                	}
-	gestaltAppearanceVersion	= $61707672 (* 'apvr' *);
+	gestaltAppearanceVersion	= FourCharCode('apvr');
 
-	gestaltArbitorAttr			= $61726220 (* 'arb ' *);
+	gestaltArbitorAttr			= FourCharCode('arb ');
 	gestaltSerialArbitrationExists = 0;							{  this bit if the serial port arbitrator exists }
 
-	gestaltAppleScriptVersion	= $61736376 (* 'ascv' *);						{  AppleScript version }
+	gestaltAppleScriptVersion	= FourCharCode('ascv');						{  AppleScript version }
 
-	gestaltAppleScriptAttr		= $61736372 (* 'ascr' *);						{  AppleScript attributes }
+	gestaltAppleScriptAttr		= FourCharCode('ascr');						{  AppleScript attributes }
 	gestaltAppleScriptPresent	= 0;
 	gestaltAppleScriptPowerPCSupport = 1;
 
-	gestaltATAAttr				= $61746120 (* 'ata ' *);						{  ATA is the driver to support IDE hard disks  }
+	gestaltATAAttr				= FourCharCode('ata ');						{  ATA is the driver to support IDE hard disks  }
 	gestaltATAPresent			= 0;							{  if set, ATA Manager is present  }
 
-	gestaltATalkVersion			= $61746B76 (* 'atkv' *);						{  Detailed AppleTalk version; see comment above for format  }
+	gestaltATalkVersion			= FourCharCode('atkv');						{  Detailed AppleTalk version; see comment above for format  }
 
-	gestaltAppleTalkVersion		= $61746C6B (* 'atlk' *);						{  appletalk version  }
+	gestaltAppleTalkVersion		= FourCharCode('atlk');						{  appletalk version  }
 
 	{	
 	    FORMAT of gestaltATalkVersion RESPONSE
@@ -579,38 +579,38 @@ const
 	    For example, if you call Gestalt with the 'atkv' selector when AppleTalk version 57
 	    is loaded, you receive the long SInt16 response value 0x39008000.
 		}
-	gestaltAUXVersion			= $612F7578 (* 'a/ux' *);						{  a/ux version, if present  }
+	gestaltAUXVersion			= FourCharCode('a/ux');						{  a/ux version, if present  }
 
-	gestaltMacOSCompatibilityBoxAttr = $62626F78 (* 'bbox' *);					{  Classic presence and features  }
+	gestaltMacOSCompatibilityBoxAttr = FourCharCode('bbox');					{  Classic presence and features  }
 	gestaltMacOSCompatibilityBoxPresent = 0;					{  True if running under the Classic  }
 	gestaltMacOSCompatibilityBoxHasSerial = 1;					{  True if Classic serial support is implemented.  }
 	gestaltMacOSCompatibilityBoxless = 2;						{  True if we're Boxless (screen shared with Carbon/Cocoa)  }
 
-	gestaltBusClkSpeed			= $62636C6B (* 'bclk' *);		{  main I/O bus clock speed in hertz  }
+	gestaltBusClkSpeed			= FourCharCode('bclk');		{  main I/O bus clock speed in hertz  }
 
-	gestaltBusClkSpeedMHz = $62636C6D (* 'bclm' *);             { main I/O bus clock speed in megahertz ( an unsigned long ) }
+	gestaltBusClkSpeedMHz = FourCharCode('bclm');             { main I/O bus clock speed in megahertz ( an unsigned long ) }
 
-	gestaltCloseViewAttr		= $42534461 (* 'BSDa' *);						{  CloseView attributes  }
+	gestaltCloseViewAttr		= FourCharCode('BSDa');						{  CloseView attributes  }
 	gestaltCloseViewEnabled		= 0;							{  Closeview enabled (dynamic bit - returns current state)  }
 	gestaltCloseViewDisplayMgrFriendly = 1;						{  Closeview compatible with Display Manager (FUTURE)  }
 
-	gestaltCarbonVersion		= $63626F6E (* 'cbon' *);						{  version of Carbon API present in system  }
+	gestaltCarbonVersion		= FourCharCode('cbon');						{  version of Carbon API present in system  }
 
-	gestaltCFMAttr				= $63667267 (* 'cfrg' *);						{  Selector for information about the Code Fragment Manager  }
+	gestaltCFMAttr				= FourCharCode('cfrg');						{  Selector for information about the Code Fragment Manager  }
 	gestaltCFMPresent			= 0;							{  True if the Code Fragment Manager is present  }
 	gestaltCFMPresentMask		= $0001;
 	gestaltCFM99Present			= 2;							{  True if the CFM-99 features are present.  }
 	gestaltCFM99PresentMask		= $0004;
 
-	gestaltProcessorCacheLineSize = $6373697A (* 'csiz' *);     { The size, in bytes, of the processor cache line. }
+	gestaltProcessorCacheLineSize = FourCharCode('csiz');     { The size, in bytes, of the processor cache line. }
 
-	gestaltCollectionMgrVersion	= $636C746E (* 'cltn' *);						{  Collection Manager version  }
+	gestaltCollectionMgrVersion	= FourCharCode('cltn');						{  Collection Manager version  }
 
-	gestaltColorMatchingAttr	= $636D7461 (* 'cmta' *);						{  ColorSync attributes  }
+	gestaltColorMatchingAttr	= FourCharCode('cmta');						{  ColorSync attributes  }
 	gestaltHighLevelMatching	= 0;
 	gestaltColorMatchingLibLoaded = 1;
 
-	gestaltColorMatchingVersion	= $636D7463 (* 'cmtc' *);
+	gestaltColorMatchingVersion	= FourCharCode('cmtc');
 	gestaltColorSync10			= $0100;						{  0x0100 & 0x0110 _Gestalt versions for 1.0-1.0.3 product  }
 	gestaltColorSync11			= $0110;						{    0x0100 == low-level matching only  }
 	gestaltColorSync104			= $0104;						{  Real version, by popular demand  }
@@ -625,26 +625,26 @@ const
 	gestaltColorSync261			= $0261;
 	gestaltColorSync30			= $0300;
 
-	gestaltControlMgrVersion	= $636D7672 (* 'cmvr' *);						{  NOTE: The first version we return is 3.0.1, on Mac OS X plus update 2 }
+	gestaltControlMgrVersion	= FourCharCode('cmvr');						{  NOTE: The first version we return is 3.0.1, on Mac OS X plus update 2 }
 
-	gestaltControlMgrAttr		= $636E746C (* 'cntl' *);						{  Control Mgr }
+	gestaltControlMgrAttr		= FourCharCode('cntl');						{  Control Mgr }
 	gestaltControlMgrPresent	= $00000001;					{  NOTE: this is a bit mask, whereas all other Gestalt constants of }
 																{  this type are bit index values.   Universal Interfaces 3.2 slipped }
 																{  out the door with this mistake. }
 	gestaltControlMgrPresentBit	= 0;							{  bit number }
 	gestaltControlMsgPresentMask = $00000001;
 
-	gestaltConnMgrAttr			= $636F6E6E (* 'conn' *);						{  connection mgr attributes     }
+	gestaltConnMgrAttr			= FourCharCode('conn');						{  connection mgr attributes     }
 	gestaltConnMgrPresent		= 0;
 	gestaltConnMgrCMSearchFix	= 1;							{  Fix to CMAddSearch?      }
 	gestaltConnMgrErrorString	= 2;							{  has CMGetErrorString()  }
 	gestaltConnMgrMultiAsyncIO	= 3;							{  CMNewIOPB, CMDisposeIOPB, CMPBRead, CMPBWrite, CMPBIOKill  }
 
-	gestaltColorPickerVersion	= $63706B72 (* 'cpkr' *);						{  returns version of ColorPicker  }
-	gestaltColorPicker			= $63706B72 (* 'cpkr' *);						{  gestaltColorPicker is old name for gestaltColorPickerVersion  }
+	gestaltColorPickerVersion	= FourCharCode('cpkr');						{  returns version of ColorPicker  }
+	gestaltColorPicker			= FourCharCode('cpkr');						{  gestaltColorPicker is old name for gestaltColorPickerVersion  }
 
-	gestaltComponentMgr			= $63706E74 (* 'cpnt' *);						{  Component Mgr version  }
-	gestaltComponentPlatform	= $636F706C (* 'copl' *);						{  Component Platform number  }
+	gestaltComponentMgr			= FourCharCode('cpnt');						{  Component Mgr version  }
+	gestaltComponentPlatform	= FourCharCode('copl');						{  Component Platform number  }
 
 	{	
 	    The gestaltNativeCPUtype ('cput') selector can be used to determine the
@@ -675,8 +675,8 @@ const
 	    gestaltNativeCPUfamily uses the same results as gestaltNativeCPUtype, but
 	    will only return certain CPU values.
 		}
-	gestaltNativeCPUtype		= $63707574 (* 'cput' *);						{  Native CPU type                           }
-	gestaltNativeCPUfamily		= $63707566 (* 'cpuf' *);						{  Native CPU family                       }
+	gestaltNativeCPUtype		= FourCharCode('cput');						{  Native CPU type                           }
+	gestaltNativeCPUfamily		= FourCharCode('cpuf');						{  Native CPU family                       }
 	gestaltCPU68000				= 0;							{  Various 68k CPUs...     }
 	gestaltCPU68010				= 1;
 	gestaltCPU68020				= 2;
@@ -700,40 +700,40 @@ const
 	gestaltCPU970FX             = $013C;                        { another G5 }
 
 																{  x86 CPUs all start with 'i' in the high nybble  }
-	gestaltCPU486				= $69343836 (* 'i486' *);
-	gestaltCPUPentium			= $69353836 (* 'i586' *);
-	gestaltCPUPentiumPro		= $69357072 (* 'i5pr' *);
-	gestaltCPUPentiumII			= $69356969 (* 'i5ii' *);
-	gestaltCPUX86				= $69787878 (* 'ixxx' *);
-	gestaltCPUPentium4          = $69356976 (* 'i5iv' *);
+	gestaltCPU486				= FourCharCode('i486');
+	gestaltCPUPentium			= FourCharCode('i586');
+	gestaltCPUPentiumPro		= FourCharCode('i5pr');
+	gestaltCPUPentiumII			= FourCharCode('i5ii');
+	gestaltCPUX86				= FourCharCode('ixxx');
+	gestaltCPUPentium4          = FourCharCode('i5iv');
 
 
-	gestaltCRMAttr				= $63726D20 (* 'crm ' *);						{  comm resource mgr attributes  }
+	gestaltCRMAttr				= FourCharCode('crm ');						{  comm resource mgr attributes  }
 	gestaltCRMPresent			= 0;
 	gestaltCRMPersistentFix		= 1;							{  fix for persistent tools  }
 	gestaltCRMToolRsrcCalls		= 2;							{  has CRMGetToolResource/ReleaseToolResource  }
 
-	gestaltControlStripVersion	= $63737672 (* 'csvr' *);						{  Control Strip version (was 'sdvr')  }
+	gestaltControlStripVersion	= FourCharCode('csvr');						{  Control Strip version (was 'sdvr')  }
 
-	gestaltCountOfCPUs          = $63707573 (* 'cpus' *);       { the number of CPUs on the computer, Mac OS X 10.4 and later }
+	gestaltCountOfCPUs          = FourCharCode('cpus');       { the number of CPUs on the computer, Mac OS X 10.4 and later }
 
-	gestaltCTBVersion			= $63746276 (* 'ctbv' *);						{  CommToolbox version  }
+	gestaltCTBVersion			= FourCharCode('ctbv');						{  CommToolbox version  }
 
-	gestaltDBAccessMgrAttr		= $64626163 (* 'dbac' *);						{  Database Access Mgr attributes  }
+	gestaltDBAccessMgrAttr		= FourCharCode('dbac');						{  Database Access Mgr attributes  }
 	gestaltDBAccessMgrPresent	= 0;							{  True if Database Access Mgr present  }
 
-	gestaltDiskCacheSize		= $6463737A (* 'dcsz' *);						{  Size of disk cache's buffers, in bytes  }
+	gestaltDiskCacheSize		= FourCharCode('dcsz');						{  Size of disk cache's buffers, in bytes  }
 
-	gestaltSDPFindVersion		= $64666E64 (* 'dfnd' *);						{  OCE Standard Directory Panel }
+	gestaltSDPFindVersion		= FourCharCode('dfnd');						{  OCE Standard Directory Panel }
 
-	gestaltDictionaryMgrAttr	= $64696374 (* 'dict' *);						{  Dictionary Manager attributes  }
+	gestaltDictionaryMgrAttr	= FourCharCode('dict');						{  Dictionary Manager attributes  }
 	gestaltDictionaryMgrPresent	= 0;							{  Dictionary Manager attributes  }
 
-	gestaltDITLExtAttr			= $6469746C (* 'ditl' *);						{  AppenDITL, etc. calls from CTB  }
+	gestaltDITLExtAttr			= FourCharCode('ditl');						{  AppenDITL, etc. calls from CTB  }
 	gestaltDITLExtPresent		= 0;							{  True if calls are present  }
 	gestaltDITLExtSupportsIctb	= 1;							{  True if AppendDITL, ShortenDITL support 'ictb's  }
 
-	gestaltDialogMgrAttr		= $646C6F67 (* 'dlog' *);						{  Dialog Mgr }
+	gestaltDialogMgrAttr		= FourCharCode('dlog');						{  Dialog Mgr }
 	gestaltDialogMgrPresent		= $00000001;					{  NOTE: this is a bit mask, whereas all other Gestalt constants of }
 																{  this type are bit index values.   Universal Interfaces 3.2 slipped }
 																{  out the door with this mistake. }
@@ -743,13 +743,13 @@ const
 	gestaltDialogMgrHasAquaAlertMask = $00000004;
 	gestaltDialogMsgPresentMask	= $00000001;					{  compatibility mask }
 
-	gestaltDesktopPicturesAttr	= $646B7078 (* 'dkpx' *);						{  Desktop Pictures attributes  }
+	gestaltDesktopPicturesAttr	= FourCharCode('dkpx');						{  Desktop Pictures attributes  }
 	gestaltDesktopPicturesInstalled = 0;						{  True if control panel is installed  }
 	gestaltDesktopPicturesDisplayed = 1;						{  True if a picture is currently displayed  }
 
-	gestaltDisplayMgrVers		= $64706C76 (* 'dplv' *);						{  Display Manager version  }
+	gestaltDisplayMgrVers		= FourCharCode('dplv');						{  Display Manager version  }
 
-	gestaltDisplayMgrAttr		= $64706C79 (* 'dply' *);						{  Display Manager attributes  }
+	gestaltDisplayMgrAttr		= FourCharCode('dply');						{  Display Manager attributes  }
 	gestaltDisplayMgrPresent	= 0;							{  True if Display Mgr is present  }
 	gestaltDisplayMgrCanSwitchMirrored = 2;						{  True if Display Mgr can switch modes on mirrored displays  }
 	gestaltDisplayMgrSetDepthNotifies = 3;						{  True SetDepth generates displays mgr notification  }
@@ -758,7 +758,7 @@ const
 	gestaltDisplayMgrGeneratesProfiles = 6;						{  True if Display Manager will automatically generate profiles for displays  }
 	gestaltDisplayMgrSleepNotifies = 7;                         {  True if Display Mgr generates "displayWillSleep", "displayDidWake" notifications }
 
-	gestaltDragMgrAttr			= $64726167 (* 'drag' *);						{  Drag Manager attributes  }
+	gestaltDragMgrAttr			= FourCharCode('drag');						{  Drag Manager attributes  }
 	gestaltDragMgrPresent		= 0;							{  Drag Manager is present  }
 	gestaltDragMgrFloatingWind	= 1;							{  Drag Manager supports floating windows  }
 	gestaltPPCDragLibPresent	= 2;							{  Drag Manager PPC DragLib is present  }
@@ -766,15 +766,15 @@ const
 	gestaltCanStartDragInFloatWindow = 4;						{  Drag Manager supports starting a drag in a floating window  }
 	gestaltSetDragImageUpdates	= 5;							{  Drag Manager supports drag image updating via SetDragImage  }
 
-	gestaltDrawSprocketVersion	= $64737076 (* 'dspv' *);						{  Draw Sprocket version (as a NumVersion)  }
+	gestaltDrawSprocketVersion	= FourCharCode('dspv');						{  Draw Sprocket version (as a NumVersion)  }
 
-	gestaltDigitalSignatureVersion = $64736967 (* 'dsig' *);					{  returns Digital Signature Toolbox version in low-order word }
+	gestaltDigitalSignatureVersion = FourCharCode('dsig');					{  returns Digital Signature Toolbox version in low-order word }
 
 	{
 	   Desktop Printing Feature Gestalt
 	   Use this gestalt to check if third-party printer driver support is available
 	}
-	gestaltDTPFeatures			= $64747066 (* 'dtpf' *);
+	gestaltDTPFeatures			= FourCharCode('dtpf');
 	kDTPThirdPartySupported		= $00000004;					{  mask for checking if third-party drivers are supported }
 
 
@@ -782,46 +782,46 @@ const
 	   Desktop Printer Info Gestalt
 	   Use this gestalt to get a hold of information for all of the active desktop printers
 	}
-	gestaltDTPInfo				= $64747078 (* 'dtpx' *);						{  returns GestaltDTPInfoHdle }
+	gestaltDTPInfo				= FourCharCode('dtpx');						{  returns GestaltDTPInfoHdle }
 
-	gestaltEasyAccessAttr		= $65617379 (* 'easy' *);						{  Easy Access attributes  }
+	gestaltEasyAccessAttr		= FourCharCode('easy');						{  Easy Access attributes  }
 	gestaltEasyAccessOff		= 0;							{  if Easy Access present, but off (no icon)  }
 	gestaltEasyAccessOn			= 1;							{  if Easy Access "On"  }
 	gestaltEasyAccessSticky		= 2;							{  if Easy Access "Sticky"  }
 	gestaltEasyAccessLocked		= 3;							{  if Easy Access "Locked"  }
 
-	gestaltEditionMgrAttr		= $6564746E (* 'edtn' *);						{  Edition Mgr attributes  }
+	gestaltEditionMgrAttr		= FourCharCode('edtn');						{  Edition Mgr attributes  }
 	gestaltEditionMgrPresent	= 0;							{  True if Edition Mgr present  }
 	gestaltEditionMgrTranslationAware = 1;						{  True if edition manager is translation manager aware  }
 
-	gestaltAppleEventsAttr		= $65766E74 (* 'evnt' *);						{  Apple Events attributes  }
+	gestaltAppleEventsAttr		= FourCharCode('evnt');						{  Apple Events attributes  }
 	gestaltAppleEventsPresent	= 0;							{  True if Apple Events present  }
 	gestaltScriptingSupport		= 1;
 	gestaltOSLInSystem			= 2;							{  OSL is in system so don’t use the one linked in to app  }
 	gestaltSupportsApplicationURL = 4;							{  Supports the typeApplicationURL addressing mode  }
 
-	gestaltExtensionTableVersion = $6574626C (* 'etbl' *);						{  ExtensionTable version  }
+	gestaltExtensionTableVersion = FourCharCode('etbl');						{  ExtensionTable version  }
 
 
-	gestaltFBCIndexingState		= $66626369 (* 'fbci' *);						{  Find By Content indexing state }
+	gestaltFBCIndexingState		= FourCharCode('fbci');						{  Find By Content indexing state }
 	gestaltFBCindexingSafe		= 0;							{  any search will result in synchronous wait }
 	gestaltFBCindexingCritical	= 1;							{  any search will execute immediately }
 
-	gestaltFBCVersion			= $66626376 (* 'fbcv' *);						{  Find By Content version }
+	gestaltFBCVersion			= FourCharCode('fbcv');						{  Find By Content version }
 	gestaltFBCCurrentVersion	= $0011;						{  First release for OS 8/9 }
 	gestaltOSXFBCCurrentVersion	= $0100;						{  First release for OS X }
 
 
-	gestaltFileMappingAttr		= $666C6D70 (* 'flmp' *);						{  File mapping attributes }
+	gestaltFileMappingAttr		= FourCharCode('flmp');						{  File mapping attributes }
 	gestaltFileMappingPresent	= 0;							{  bit is set if file mapping APIs are present }
 	gestaltFileMappingMultipleFilesFix = 1;						{  bit is set if multiple files per volume can be mapped }
 
-	gestaltFloppyAttr			= $666C7079 (* 'flpy' *);						{  Floppy disk drive/driver attributes  }
+	gestaltFloppyAttr			= FourCharCode('flpy');						{  Floppy disk drive/driver attributes  }
 	gestaltFloppyIsMFMOnly		= 0;							{  Floppy driver only supports MFM disk formats  }
 	gestaltFloppyIsManualEject	= 1;							{  Floppy drive, driver, and file system are in manual-eject mode  }
 	gestaltFloppyUsesDiskInPlace = 2;							{  Floppy drive must have special DISK-IN-PLACE output; standard DISK-CHANGED not used  }
 
-	gestaltFinderAttr			= $666E6472 (* 'fndr' *);						{  Finder attributes  }
+	gestaltFinderAttr			= FourCharCode('fndr');						{  Finder attributes  }
 	gestaltFinderDropEvent		= 0;							{  Finder recognizes drop event  }
 	gestaltFinderMagicPlacement	= 1;							{  Finder supports magic icon placement  }
 	gestaltFinderCallsAEProcess	= 2;							{  Finder calls AEProcessAppleEvent  }
@@ -834,7 +834,7 @@ const
 	gestaltFinderUsesExtensibleFolderManager = 10;				{  Finder uses Extensible Folder Manager (for example, for Magic Routing)  }
 	gestaltFinderUnderstandsRedirectedDesktopFolder = 11;		{  Finder deals with startup disk's desktop folder residing on another disk  }
 
-	gestaltFindFolderAttr		= $666F6C64 (* 'fold' *);						{  Folder Mgr attributes  }
+	gestaltFindFolderAttr		= FourCharCode('fold');						{  Folder Mgr attributes  }
 	gestaltFindFolderPresent	= 0;							{  True if Folder Mgr present  }
 	gestaltFolderDescSupport	= 1;							{  True if Folder Mgr has FolderDesc calls  }
 	gestaltFolderMgrFollowsAliasesWhenResolving = 2;			{  True if Folder Mgr follows folder aliases  }
@@ -842,19 +842,19 @@ const
 	gestaltFolderMgrSupportsDomains = 4;						{  True if Folder Mgr supports domains for the first parameter to FindFolder  }
 	gestaltFolderMgrSupportsFSCalls = 5;						{  True if FOlder manager supports __FindFolderFSRef & __FindFolderExtendedFSRef  }
 
-	gestaltFindFolderRedirectionAttr = $666F6C65 (* 'fole' *);
+	gestaltFindFolderRedirectionAttr = FourCharCode('fole');
 
 
-	gestaltFontMgrAttr			= $666F6E74 (* 'font' *);						{  Font Mgr attributes  }
+	gestaltFontMgrAttr			= FourCharCode('font');						{  Font Mgr attributes  }
 	gestaltOutlineFonts			= 0;							{  True if Outline Fonts supported  }
 
-	gestaltFPUType				= $66707520 (* 'fpu ' *);						{  fpu type  }
+	gestaltFPUType				= FourCharCode('fpu ');						{  fpu type  }
 	gestaltNoFPU				= 0;							{  no FPU  }
 	gestalt68881				= 1;							{  68881 FPU  }
 	gestalt68882				= 2;							{  68882 FPU  }
 	gestalt68040FPU				= 3;							{  68040 built-in FPU  }
 
-	gestaltFSAttr				= $66732020 (* 'fs  ' *);						{  file system attributes  }
+	gestaltFSAttr				= FourCharCode('fs  ');						{  file system attributes  }
 	gestaltFullExtFSDispatching	= 0;							{  has really cool new HFSDispatch dispatcher  }
 	gestaltHasFSSpecCalls		= 1;							{  has FSSpec calls  }
 	gestaltHasFileSystemManager	= 2;							{  has a file system manager  }
@@ -876,26 +876,26 @@ const
 	gestaltFSSupportsHardLinkDetection = 16;                    {  File system returns if an item is a hard link }
 	gestaltFSAllowsConcurrentAsyncIO = 17;                      {  File Manager supports concurrent async reads and writes }
 
-	gestaltAdminFeaturesFlagsAttr = $66726564 (* 'fred' *);						{  a set of admin flags, mostly useful internally.  }
+	gestaltAdminFeaturesFlagsAttr = FourCharCode('fred');						{  a set of admin flags, mostly useful internally.  }
 	gestaltFinderUsesSpecialOpenFoldersFile = 0;				{  the Finder uses a special file to store the list of open folders  }
 
-	gestaltFSMVersion			= $66736D20 (* 'fsm ' *);						{  returns version of HFS External File Systems Manager (FSM)  }
+	gestaltFSMVersion			= FourCharCode('fsm ');						{  returns version of HFS External File Systems Manager (FSM)  }
 
-	gestaltFXfrMgrAttr			= $66786672 (* 'fxfr' *);						{  file transfer manager attributes  }
+	gestaltFXfrMgrAttr			= FourCharCode('fxfr');						{  file transfer manager attributes  }
 	gestaltFXfrMgrPresent		= 0;
 	gestaltFXfrMgrMultiFile		= 1;							{  supports FTSend and FTReceive  }
 	gestaltFXfrMgrErrorString	= 2;							{  supports FTGetErrorString  }
 	gestaltFXfrMgrAsync			= 3;							{ supports FTSendAsync, FTReceiveAsync, FTCompletionAsync }
 
-	gestaltGraphicsAttr			= $67667861 (* 'gfxa' *);						{  Quickdraw GX attributes selector  }
+	gestaltGraphicsAttr			= FourCharCode('gfxa');						{  Quickdraw GX attributes selector  }
 	gestaltGraphicsIsDebugging	= $00000001;
 	gestaltGraphicsIsLoaded		= $00000002;
 	gestaltGraphicsIsPowerPC	= $00000004;
 
-	gestaltGraphicsVersion		= $67726678 (* 'grfx' *);						{  Quickdraw GX version selector  }
+	gestaltGraphicsVersion		= FourCharCode('grfx');						{  Quickdraw GX version selector  }
 	gestaltCurrentGraphicsVersion = $00010200;					{  the version described in this set of headers  }
 
-	gestaltHardwareAttr			= $68647772 (* 'hdwr' *);						{  hardware attributes  }
+	gestaltHardwareAttr			= FourCharCode('hdwr');						{  hardware attributes  }
 	gestaltHasVIA1				= 0;							{  VIA1 exists  }
 	gestaltHasVIA2				= 1;							{  VIA2 exists  }
 	gestaltHasASC				= 3;							{  Apple Sound Chip exists  }
@@ -907,31 +907,31 @@ const
 	gestaltHasUniversalROM		= 24;							{  Do we have a Universal ROM?  }
 	gestaltHasEnhancedLtalk		= 30;							{  Do we have Enhanced LocalTalk?  }
 
-	gestaltHelpMgrAttr			= $68656C70 (* 'help' *);						{  Help Mgr Attributes  }
+	gestaltHelpMgrAttr			= FourCharCode('help');						{  Help Mgr Attributes  }
 	gestaltHelpMgrPresent		= 0;							{  true if help mgr is present  }
 	gestaltHelpMgrExtensions	= 1;							{  true if help mgr extensions are installed  }
 	gestaltAppleGuideIsDebug	= 30;
 	gestaltAppleGuidePresent	= 31;							{  true if AppleGuide is installed  }
 
-	gestaltHardwareVendorCode	= $68726164 (* 'hrad' *);						{  Returns hardware vendor information  }
-	gestaltHardwareVendorApple	= $4170706C (* 'Appl' *);						{  Hardware built by Apple  }
+	gestaltHardwareVendorCode	= FourCharCode('hrad');						{  Returns hardware vendor information  }
+	gestaltHardwareVendorApple	= FourCharCode('Appl');						{  Hardware built by Apple  }
 
-	gestaltCompressionMgr		= $69636D70 (* 'icmp' *);						{  returns version of the Image Compression Manager  }
+	gestaltCompressionMgr		= FourCharCode('icmp');						{  returns version of the Image Compression Manager  }
 
-	gestaltIconUtilitiesAttr	= $69636F6E (* 'icon' *);						{  Icon Utilities attributes  (Note: available in System 7.0, despite gestalt)  }
+	gestaltIconUtilitiesAttr	= FourCharCode('icon');						{  Icon Utilities attributes  (Note: available in System 7.0, despite gestalt)  }
 	gestaltIconUtilitiesPresent	= 0;							{  true if icon utilities are present  }
 	gestaltIconUtilitiesHas48PixelIcons = 1;					{  true if 48x48 icons are supported by IconUtilities  }
 	gestaltIconUtilitiesHas32BitIcons = 2;						{  true if 32-bit deep icons are supported  }
 	gestaltIconUtilitiesHas8BitDeepMasks = 3;					{  true if 8-bit deep masks are supported  }
 	gestaltIconUtilitiesHasIconServices = 4;					{  true if IconServices is present  }
 
-	gestaltInternalDisplay		= $69647370 (* 'idsp' *);						{  slot number of internal display location  }
+	gestaltInternalDisplay		= FourCharCode('idsp');						{  slot number of internal display location  }
 
 	{	
 	    To obtain information about the connected keyboard(s), one should
 	    use the ADB Manager API.  See Technical Note OV16 for details.
 		}
-	gestaltKeyboardType			= $6B626420 (* 'kbd ' *);						{  keyboard type  }
+	gestaltKeyboardType			= FourCharCode('kbd ');						{  keyboard type  }
 	gestaltMacKbd				= 1;
 	gestaltMacAndPad			= 2;
 	gestaltMacPlusKbd			= 3;
@@ -988,11 +988,11 @@ const
 	    This gestalt indicates the highest UDF version that the active UDF implementation supports.
 	    The value should be assembled from a read version (upper word) and a write version (lower word)
 	}
-	gestaltUDFSupport			= $6B756466 (* 'kudf' *);						{     Used for communication between UDF implementations }
+	gestaltUDFSupport			= FourCharCode('kudf');						{     Used for communication between UDF implementations }
 
-	gestaltLowMemorySize		= $6C6D656D (* 'lmem' *);						{  size of low memory area  }
+	gestaltLowMemorySize		= FourCharCode('lmem');						{  size of low memory area  }
 
-	gestaltLogicalRAMSize		= $6C72616D (* 'lram' *);						{  logical ram size  }
+	gestaltLogicalRAMSize		= FourCharCode('lram');						{  logical ram size  }
 
 	{	
 	    MACHINE type CONSTANTS NAMING CONVENTION
@@ -1091,7 +1091,7 @@ const
 	        Power Macintosh 8500            gestaltPowerMac8500
 		}
 
-	gestaltMachineType			= $6D616368 (* 'mach' *);						{  machine type  }
+	gestaltMachineType			= FourCharCode('mach');						{  machine type  }
 	gestaltClassic				= 1;
 	gestaltMacXL				= 2;
 	gestaltMac512KE				= 3;
@@ -1239,18 +1239,18 @@ const
 
 	kMachineNameStrID			= -16395;
 
-	gestaltSMPMailerVersion		= $6D616C72 (* 'malr' *);						{  OCE StandardMail }
+	gestaltSMPMailerVersion		= FourCharCode('malr');						{  OCE StandardMail }
 
-	gestaltMediaBay				= $6D626568 (* 'mbeh' *);						{  media bay driver type  }
+	gestaltMediaBay				= FourCharCode('mbeh');						{  media bay driver type  }
 	gestaltMBLegacy				= 0;							{  media bay support in PCCard 2.0  }
 	gestaltMBSingleBay			= 1;							{  single bay media bay driver  }
 	gestaltMBMultipleBays		= 2;							{  multi-bay media bay driver  }
 
-	gestaltMessageMgrVersion	= $6D657373 (* 'mess' *);						{  GX Printing Message Manager Gestalt Selector  }
+	gestaltMessageMgrVersion	= FourCharCode('mess');						{  GX Printing Message Manager Gestalt Selector  }
 
 
 	{   Menu Manager Gestalt (Mac OS 8.5 and later) }
-	gestaltMenuMgrAttr			= $6D656E75 (* 'menu' *);						{  If this Gestalt exists, the Mac OS 8.5 Menu Manager is installed  }
+	gestaltMenuMgrAttr			= FourCharCode('menu');						{  If this Gestalt exists, the Mac OS 8.5 Menu Manager is installed  }
 	gestaltMenuMgrPresent		= $00000001;					{  NOTE: this is a bit mask, whereas all other Gestalt constants of this nature  }
 																{  are bit index values. 3.2 interfaces slipped out with this mistake unnoticed.  }
 																{  Sincere apologies for any inconvenience. }
@@ -1271,12 +1271,12 @@ const
 	gestaltMenuMgrCGImageMenuTitleMask = 1 shl gestaltMenuMgrCGImageMenuTitleBit;
 
 
-	gestaltMultipleUsersState	= $6D666472 (* 'mfdr' *);						{  Gestalt selector returns MultiUserGestaltHandle (in Folders.h) }
+	gestaltMultipleUsersState	= FourCharCode('mfdr');						{  Gestalt selector returns MultiUserGestaltHandle (in Folders.h) }
 
 
-	gestaltMachineIcon			= $6D69636E (* 'micn' *);						{  machine icon  }
+	gestaltMachineIcon			= FourCharCode('micn');						{  machine icon  }
 
-	gestaltMiscAttr				= $6D697363 (* 'misc' *);						{  miscellaneous attributes  }
+	gestaltMiscAttr				= FourCharCode('misc');						{  miscellaneous attributes  }
 	gestaltScrollingThrottle	= 0;							{  true if scrolling throttle on  }
 	gestaltSquareMenuBar		= 2;							{  true if menu bar is square  }
 
@@ -1295,21 +1295,21 @@ const
 	    of Mixed Mode, however, the 'mixd' selector will not respond with an increasing
 	    version number, but rather, with 32 attribute bits with various meanings.
 		}
-	gestaltMixedModeVersion		= $6D697864 (* 'mixd' *);						{  returns version of Mixed Mode  }
+	gestaltMixedModeVersion		= FourCharCode('mixd');						{  returns version of Mixed Mode  }
 
-	gestaltMixedModeAttr		= $6D697864 (* 'mixd' *);						{  returns Mixed Mode attributes  }
+	gestaltMixedModeAttr		= FourCharCode('mixd');						{  returns Mixed Mode attributes  }
 	gestaltMixedModePowerPC		= 0;							{  true if Mixed Mode supports PowerPC ABI calling conventions  }
 	gestaltPowerPCAware			= 0;							{  old name for gestaltMixedModePowerPC  }
 	gestaltMixedModeCFM68K		= 1;							{  true if Mixed Mode supports CFM-68K calling conventions  }
 	gestaltMixedModeCFM68KHasTrap = 2;							{  true if CFM-68K Mixed Mode implements _MixedModeDispatch (versions 1.0.1 and prior did not)  }
 	gestaltMixedModeCFM68KHasState = 3;							{  true if CFM-68K Mixed Mode exports Save/RestoreMixedModeState  }
 
-	gestaltQuickTimeConferencing = $6D746C6B (* 'mtlk' *);						{  returns QuickTime Conferencing version  }
+	gestaltQuickTimeConferencing = FourCharCode('mtlk');						{  returns QuickTime Conferencing version  }
 
-	gestaltMemoryMapAttr		= $6D6D6170 (* 'mmap' *);						{  Memory map type  }
+	gestaltMemoryMapAttr		= FourCharCode('mmap');						{  Memory map type  }
 	gestaltMemoryMapSparse		= 0;							{  Sparse memory is on  }
 
-	gestaltMMUType				= $6D6D7520 (* 'mmu ' *);						{  mmu type  }
+	gestaltMMUType				= FourCharCode('mmu ');						{  mmu type  }
 	gestaltNoMMU				= 0;							{  no MMU  }
 	gestaltAMU					= 1;							{  address management unit  }
 	gestalt68851				= 2;							{  68851 PMMU  }
@@ -1320,37 +1320,37 @@ const
                                                                 { On Mac OS X, the user visible machine name may something like "PowerMac3,4", which is}
                                                                 { a unique string for each signifigant Macintosh computer which Apple creates, but is}
                                                                 { not terribly useful as a user visible string.}
-	gestaltUserVisibleMachineName = $6D6E616D (* 'mnam' *);						{  Coerce response into a StringPtr to get a user visible machine name  }
+	gestaltUserVisibleMachineName = FourCharCode('mnam');						{  Coerce response into a StringPtr to get a user visible machine name  }
 
-	gestaltMPCallableAPIsAttr	= $6D707363 (* 'mpsc' *);						{  Bitmap of toolbox/OS managers that can be called from MPLibrary MPTasks  }
+	gestaltMPCallableAPIsAttr	= FourCharCode('mpsc');						{  Bitmap of toolbox/OS managers that can be called from MPLibrary MPTasks  }
 	gestaltMPFileManager		= 0;							{  True if File Manager calls can be made from MPTasks  }
 	gestaltMPDeviceManager		= 1;							{  True if synchronous Device Manager calls can be made from MPTasks  }
 	gestaltMPTrapCalls			= 2;							{  True if most trap-based calls can be made from MPTasks  }
 
-	gestaltStdNBPAttr			= $6E6C7570 (* 'nlup' *);						{  standard nbp attributes  }
+	gestaltStdNBPAttr			= FourCharCode('nlup');						{  standard nbp attributes  }
 	gestaltStdNBPPresent		= 0;
 	gestaltStdNBPSupportsAutoPosition = 1;						{  StandardNBP takes (-1,-1) to mean alert position main screen  }
 
-	gestaltNotificationMgrAttr	= $6E6D6772 (* 'nmgr' *);						{  notification manager attributes  }
+	gestaltNotificationMgrAttr	= FourCharCode('nmgr');						{  notification manager attributes  }
 	gestaltNotificationPresent	= 0;							{  notification manager exists  }
 
-	gestaltNameRegistryVersion	= $6E726567 (* 'nreg' *);						{  NameRegistryLib version number, for System 7.5.2+ usage  }
+	gestaltNameRegistryVersion	= FourCharCode('nreg');						{  NameRegistryLib version number, for System 7.5.2+ usage  }
 
-	gestaltNuBusSlotCount		= $6E756273 (* 'nubs' *);						{  count of logical NuBus slots present  }
+	gestaltNuBusSlotCount		= FourCharCode('nubs');						{  count of logical NuBus slots present  }
 
-	gestaltOCEToolboxVersion	= $6F636574 (* 'ocet' *);						{  OCE Toolbox version  }
+	gestaltOCEToolboxVersion	= FourCharCode('ocet');						{  OCE Toolbox version  }
 	gestaltOCETB				= $0102;						{  OCE Toolbox version 1.02  }
 	gestaltSFServer				= $0100;						{  S&F Server version 1.0  }
 
-	gestaltOCEToolboxAttr		= $6F636575 (* 'oceu' *);						{  OCE Toolbox attributes  }
+	gestaltOCEToolboxAttr		= FourCharCode('oceu');						{  OCE Toolbox attributes  }
 	gestaltOCETBPresent			= $01;							{  OCE toolbox is present, not running  }
 	gestaltOCETBAvailable		= $02;							{  OCE toolbox is running and available  }
 	gestaltOCESFServerAvailable	= $04;							{  S&F Server is running and available  }
 	gestaltOCETBNativeGlueAvailable = $10;						{  Native PowerPC Glue routines are availible  }
 
-	gestaltOpenFirmwareInfo		= $6F706677 (* 'opfw' *);						{  Open Firmware info  }
+	gestaltOpenFirmwareInfo		= FourCharCode('opfw');						{  Open Firmware info  }
 
-	gestaltOSAttr				= $6F732020 (* 'os  ' *);						{  o/s attributes  }
+	gestaltOSAttr				= FourCharCode('os  ');						{  o/s attributes  }
 	gestaltSysZoneGrowable		= 0;							{  system heap is growable  }
 	gestaltLaunchCanReturn		= 1;							{  can return from launch  }
 	gestaltLaunchFullFileSpec	= 2;							{  can launch from full file spec  }
@@ -1363,7 +1363,7 @@ const
 	gestaltNativeProcessMgrBit	= 19;							{  the process manager itself is native  }
 	gestaltAltivecRegistersSwappedCorrectlyBit = 20;			{  Altivec registers are saved correctly on process switches  }
 
-	gestaltOSTable				= $6F737474 (* 'ostt' *);						{   OS trap table base   }
+	gestaltOSTable				= FourCharCode('ostt');						{   OS trap table base   }
 
 
 	{	******************************************************************************
@@ -1372,12 +1372,12 @@ const
 	*   Note: possible values for the version "stage" byte are:
 	*   development = 0x20, alpha = 0x40, beta = 0x60, final & release = 0x80
 	*******************************************************************************	}
-	gestaltOpenTptNetworkSetup	= $6F746366 (* 'otcf' *);
+	gestaltOpenTptNetworkSetup	= FourCharCode('otcf');
 	gestaltOpenTptNetworkSetupLegacyImport = 0;
 	gestaltOpenTptNetworkSetupLegacyExport = 1;
 	gestaltOpenTptNetworkSetupSupportsMultihoming = 2;
 
-	gestaltOpenTptNetworkSetupVersion = $6F746376 (* 'otcv' *);
+	gestaltOpenTptNetworkSetupVersion = FourCharCode('otcv');
 
 	{	******************************************************************************
 	*   Gestalt Selectors for Open Transport-based Remote Access/PPP
@@ -1385,7 +1385,7 @@ const
 	*   Note: possible values for the version "stage" byte are:
 	*   development = 0x20, alpha = 0x40, beta = 0x60, final & release = 0x80
 	*******************************************************************************	}
-	gestaltOpenTptRemoteAccess	= $6F747261 (* 'otra' *);
+	gestaltOpenTptRemoteAccess	= FourCharCode('otra');
 	gestaltOpenTptRemoteAccessPresent = 0;
 	gestaltOpenTptRemoteAccessLoaded = 1;
 	gestaltOpenTptRemoteAccessClientOnly = 2;
@@ -1394,15 +1394,15 @@ const
 	gestaltOpenTptPPPPresent	= 5;
 	gestaltOpenTptARAPPresent	= 6;
 
-	gestaltOpenTptRemoteAccessVersion = $6F747276 (* 'otrv' *);
+	gestaltOpenTptRemoteAccessVersion = FourCharCode('otrv');
 
 
 	{  ***** Open Transport Gestalt ***** }
 
 
-	gestaltOpenTptVersions		= $6F747672 (* 'otvr' *);						{  Defined by OT 1.1 and higher, response is NumVersion. }
+	gestaltOpenTptVersions		= FourCharCode('otvr');						{  Defined by OT 1.1 and higher, response is NumVersion. }
 
-	gestaltOpenTpt				= $6F74616E (* 'otan' *);						{  Defined by all versions, response is defined below. }
+	gestaltOpenTpt				= FourCharCode('otan');						{  Defined by all versions, response is defined below. }
 	gestaltOpenTptPresentMask	= $00000001;
 	gestaltOpenTptLoadedMask	= $00000002;
 	gestaltOpenTptAppleTalkPresentMask = $00000004;
@@ -1421,23 +1421,23 @@ const
 	gestaltOpenTptIPXSPXLoadedBit = 7;
 
 
-	gestaltPCCard				= $70636364 (* 'pccd' *);						{     PC Card attributes }
+	gestaltPCCard				= FourCharCode('pccd');						{     PC Card attributes }
 	gestaltCardServicesPresent	= 0;							{     PC Card 2.0 (68K) API is present }
 	gestaltPCCardFamilyPresent	= 1;							{     PC Card 3.x (PowerPC) API is present }
 	gestaltPCCardHasPowerControl = 2;							{     PCCardSetPowerLevel is supported }
 	gestaltPCCardSupportsCardBus = 3;							{     CardBus is supported }
 
-	gestaltProcClkSpeed			= $70636C6B (* 'pclk' *);						{  processor clock speed in hertz  }
+	gestaltProcClkSpeed			= FourCharCode('pclk');						{  processor clock speed in hertz  }
 
-	gestaltProcClkSpeedMHz = $6D636C6B (* 'mclk' *); { processor clock speed in megahertz (an unsigned long) }
+	gestaltProcClkSpeedMHz = FourCharCode('mclk'); { processor clock speed in megahertz (an unsigned long) }
 
-	gestaltPCXAttr				= $70637867 (* 'pcxg' *);						{  PC Exchange attributes  }
+	gestaltPCXAttr				= FourCharCode('pcxg');						{  PC Exchange attributes  }
 	gestaltPCXHas8and16BitFAT	= 0;							{  PC Exchange supports both 8 and 16 bit FATs  }
 	gestaltPCXHasProDOS			= 1;							{  PC Exchange supports ProDOS  }
 	gestaltPCXNewUI				= 2;
 	gestaltPCXUseICMapping		= 3;							{  PC Exchange uses InternetConfig for file mappings  }
 
-	gestaltLogicalPageSize		= $7067737A (* 'pgsz' *);						{  logical page size  }
+	gestaltLogicalPageSize		= FourCharCode('pgsz');						{  logical page size  }
 
 	{	    System 7.6 and later.  If gestaltScreenCaptureMain is not implemented,
 	    PictWhap proceeds with screen capture in the usual way.
@@ -1449,15 +1449,15 @@ const
 	    low word of gestaltScreenCaptureMain, and put the directory ID in
 	    gestaltScreenCaptureDir.
 		}
-	gestaltScreenCaptureMain	= $70696331 (* 'pic1' *);						{  Zero, or vRefNum of disk to hold picture  }
-	gestaltScreenCaptureDir		= $70696332 (* 'pic2' *);						{  Directory ID of folder to hold picture  }
+	gestaltScreenCaptureMain	= FourCharCode('pic1');						{  Zero, or vRefNum of disk to hold picture  }
+	gestaltScreenCaptureDir		= FourCharCode('pic2');						{  Directory ID of folder to hold picture  }
 
-	gestaltGXPrintingMgrVersion	= $706D6772 (* 'pmgr' *);						{  QuickDraw GX Printing Manager Version }
+	gestaltGXPrintingMgrVersion	= FourCharCode('pmgr');						{  QuickDraw GX Printing Manager Version }
 
-	gestaltPopupAttr			= $706F7021 (* 'pop!' *);						{  popup cdef attributes  }
+	gestaltPopupAttr			= FourCharCode('pop!');						{  popup cdef attributes  }
 	gestaltPopupPresent			= 0;
 
-	gestaltPowerMgrAttr			= $706F7772 (* 'powr' *);						{  power manager attributes  }
+	gestaltPowerMgrAttr			= FourCharCode('powr');						{  power manager attributes  }
 	gestaltPMgrExists			= 0;
 	gestaltPMgrCPUIdle			= 1;
 	gestaltPMgrSCC				= 2;
@@ -1465,7 +1465,7 @@ const
 	gestaltPMgrDispatchExists	= 4;
 	gestaltPMgrSupportsAVPowerStateAtSleepWake = 5;
 
-	gestaltPowerMgrVers			= $70777276 (* 'pwrv' *);						{  power manager version  }
+	gestaltPowerMgrVers			= FourCharCode('pwrv');						{  power manager version  }
 
 	{	
 	 * PPC will return the combination of following bit fields.
@@ -1473,7 +1473,7 @@ const
 	 * indicates PPC is cuurently is only supports real time delivery
 	 * and both incoming and outgoing network sessions are allowed.
 	 * By default local real time delivery is supported as long as PPCInit has been called.	}
-	gestaltPPCToolboxAttr		= $70706320 (* 'ppc ' *);						{  PPC toolbox attributes  }
+	gestaltPPCToolboxAttr		= FourCharCode('ppc ');						{  PPC toolbox attributes  }
 	gestaltPPCToolboxPresent	= $0000;						{  PPC Toolbox is present  Requires PPCInit to be called  }
 	gestaltPPCSupportsRealTime	= $1000;						{  PPC Supports real-time delivery  }
 	gestaltPPCSupportsIncoming	= $0001;						{  PPC will allow incoming network requests  }
@@ -1489,7 +1489,7 @@ const
     migrate to using sysctl() and sysctlbyname() to get this kind of information.  No new
     information will be added to the 'ppcf' selector going forward.
 }
-	gestaltPowerPCProcessorFeatures = $70706366 (* 'ppcf' *);					{  Optional PowerPC processor features  }
+	gestaltPowerPCProcessorFeatures = FourCharCode('ppcf');					{  Optional PowerPC processor features  }
 	gestaltPowerPCHasGraphicsInstructions = 0;					{  has fres, frsqrte, and fsel instructions  }
 	gestaltPowerPCHasSTFIWXInstruction = 1;						{  has stfiwx instruction  }
 	gestaltPowerPCHasSquareRootInstructions = 2;				{  has fsqrt and fsqrts instructions  }
@@ -1501,22 +1501,22 @@ const
 	gestaltPowerPCASArchitecture = 8;                           {  chip uses new 'A/S' architecture }
 	gestaltPowerPCIgnoresDCBST = 9;                             { }
 
-	gestaltProcessorType		= $70726F63 (* 'proc' *);						{  processor type  }
+	gestaltProcessorType		= FourCharCode('proc');						{  processor type  }
 	gestalt68000				= 1;
 	gestalt68010				= 2;
 	gestalt68020				= 3;
 	gestalt68030				= 4;
 	gestalt68040				= 5;
 
-	gestaltSDPPromptVersion		= $70727076 (* 'prpv' *);						{  OCE Standard Directory Panel }
+	gestaltSDPPromptVersion		= FourCharCode('prpv');						{  OCE Standard Directory Panel }
 
-	gestaltParityAttr			= $70727479 (* 'prty' *);						{  parity attributes  }
+	gestaltParityAttr			= FourCharCode('prty');						{  parity attributes  }
 	gestaltHasParityCapability	= 0;							{  has ability to check parity  }
 	gestaltParityEnabled		= 1;							{  parity checking enabled  }
 
-	gestaltQD3DVersion			= $71337620 (* 'q3v ' *);						{  Quickdraw 3D version in pack BCD }
+	gestaltQD3DVersion			= FourCharCode('q3v ');						{  Quickdraw 3D version in pack BCD }
 
-	gestaltQD3DViewer			= $71337663 (* 'q3vc' *);						{  Quickdraw 3D viewer attributes }
+	gestaltQD3DViewer			= FourCharCode('q3vc');						{  Quickdraw 3D viewer attributes }
 	gestaltQD3DViewerPresent	= 0;							{  bit 0 set if QD3D Viewer is available }
 
 {$ifc OLDROUTINENAMES}
@@ -1525,7 +1525,7 @@ const
 
 {$endc}  {OLDROUTINENAMES}
 
-	gestaltQuickdrawVersion		= $71642020 (* 'qd  ' *);						{  quickdraw version  }
+	gestaltQuickdrawVersion		= FourCharCode('qd  ');						{  quickdraw version  }
 	gestaltOriginalQD			= $0000;						{  original 1-bit QD  }
 	gestalt8BitQD				= $0100;						{  8-bit color QD  }
 	gestalt32BitQD				= $0200;						{  32-bit color QD  }
@@ -1535,7 +1535,7 @@ const
 	gestaltAllegroQD			= $0250;						{  Allegro QD OS 8.5  }
 	gestaltMacOSXQD				= $0300;						{  0x310, 0x320 etc. for 10.x.y  }
 
-	gestaltQD3D					= $71643364 (* 'qd3d' *);						{  Quickdraw 3D attributes }
+	gestaltQD3D					= FourCharCode('qd3d');						{  Quickdraw 3D attributes }
 	gestaltQD3DPresent			= 0;							{  bit 0 set if QD3D available }
 
 {$ifc OLDROUTINENAMES}
@@ -1544,9 +1544,9 @@ const
 
 {$endc}  {OLDROUTINENAMES}
 
-	gestaltGXVersion			= $71646778 (* 'qdgx' *);						{  Overall QuickDraw GX Version }
+	gestaltGXVersion			= FourCharCode('qdgx');						{  Overall QuickDraw GX Version }
 
-	gestaltQuickdrawFeatures	= $71647277 (* 'qdrw' *);						{  quickdraw features  }
+	gestaltQuickdrawFeatures	= FourCharCode('qdrw');						{  quickdraw features  }
 	gestaltHasColor				= 0;							{  color quickdraw present  }
 	gestaltHasDeepGWorlds		= 1;							{  GWorlds can be deeper than 1-bit  }
 	gestaltHasDirectPixMaps		= 2;							{  PixMaps can be direct (16 or 32 bit)  }
@@ -1554,12 +1554,12 @@ const
 	gestaltSupportsMirroring	= 4;							{  Supports video mirroring via the Display Manager.  }
 	gestaltQDHasLongRowBytes	= 5;							{  Long rowBytes supported in GWorlds  }
 
-	gestaltQDTextVersion		= $71647478 (* 'qdtx' *);						{  QuickdrawText version  }
+	gestaltQDTextVersion		= FourCharCode('qdtx');						{  QuickdrawText version  }
 	gestaltOriginalQDText		= $0000;						{  up to and including 8.1  }
 	gestaltAllegroQDText		= $0100;						{  starting with 8.5  }
 	gestaltMacOSXQDText			= $0200;						{  we are in Mac OS X  }
 
-	gestaltQDTextFeatures		= $71647466 (* 'qdtf' *);						{  QuickdrawText features  }
+	gestaltQDTextFeatures		= FourCharCode('qdtf');						{  QuickdrawText features  }
 	gestaltWSIISupport			= 0;							{  bit 0: WSII support included  }
 	gestaltSbitFontSupport		= 1;							{  sbit-only fonts supported  }
 	gestaltAntiAliasedTextAvailable = 2;						{  capable of antialiased text  }
@@ -1569,19 +1569,19 @@ const
 	gestaltCanUseCGTextRendering = 6;
 
 
-	gestaltQuickTimeConferencingInfo = $71746369 (* 'qtci' *);					{  returns pointer to QuickTime Conferencing information  }
+	gestaltQuickTimeConferencingInfo = FourCharCode('qtci');					{  returns pointer to QuickTime Conferencing information  }
 
-	gestaltQuickTimeVersion		= $7174696D (* 'qtim' *);						{  returns version of QuickTime  }
-	gestaltQuickTime			= $7174696D (* 'qtim' *);						{  gestaltQuickTime is old name for gestaltQuickTimeVersion  }
+	gestaltQuickTimeVersion		= FourCharCode('qtim');						{  returns version of QuickTime  }
+	gestaltQuickTime			= FourCharCode('qtim');						{  gestaltQuickTime is old name for gestaltQuickTimeVersion  }
 
-	gestaltQuickTimeFeatures	= $71747273 (* 'qtrs' *);
+	gestaltQuickTimeFeatures	= FourCharCode('qtrs');
 	gestaltPPCQuickTimeLibPresent = 0;							{  PowerPC QuickTime glue library is present  }
 
-	gestaltQuickTimeStreamingFeatures = $71747366 (* 'qtsf' *);
+	gestaltQuickTimeStreamingFeatures = FourCharCode('qtsf');
 
-	gestaltQuickTimeStreamingVersion = $71747374 (* 'qtst' *);
+	gestaltQuickTimeStreamingVersion = FourCharCode('qtst');
 
-	gestaltQuickTimeThreadSafeFeaturesAttr = $71747468 (* 'qtth' *); { Quicktime thread safety attributes }
+	gestaltQuickTimeThreadSafeFeaturesAttr = FourCharCode('qtth'); { Quicktime thread safety attributes }
 	gestaltQuickTimeThreadSafeICM = 0;
 	gestaltQuickTimeThreadSafeMovieToolbox = 1;
 	gestaltQuickTimeThreadSafeMovieImport = 2;
@@ -1590,13 +1590,13 @@ const
 	gestaltQuickTimeThreadSafeGraphicsExport = 5;
 	gestaltQuickTimeThreadSafeMoviePlayback = 6;
 
-	gestaltQTVRMgrAttr			= $71747672 (* 'qtvr' *);						{  QuickTime VR attributes                                }
+	gestaltQTVRMgrAttr			= FourCharCode('qtvr');						{  QuickTime VR attributes                                }
 	gestaltQTVRMgrPresent		= 0;							{  QTVR API is present                                    }
 	gestaltQTVRObjMoviesPresent	= 1;							{  QTVR runtime knows about object movies                 }
 	gestaltQTVRCylinderPanosPresent = 2;						{  QTVR runtime knows about cylindrical panoramic movies  }
 	gestaltQTVRCubicPanosPresent = 3;							{  QTVR runtime knows about cubic panoramic movies        }
 
-	gestaltQTVRMgrVers			= $71747676 (* 'qtvv' *);						{  QuickTime VR version                                   }
+	gestaltQTVRMgrVers			= FourCharCode('qtvv');						{  QuickTime VR version                                   }
 
 {    
     Because some PowerPC machines now support very large physical memory capacities, including
@@ -1610,21 +1610,21 @@ const
     gestaltPhysicalRAMSize selector would be a signed quantity of bytes, this selector will
     now return 2 gigabytes-1 ( LONG_MAX ) if the system has 2 gigabytes of physical memory or more.
 }
-	gestaltPhysicalRAMSize		= $72616D20 (* 'ram ' *);						{  physical RAM size  }
+	gestaltPhysicalRAMSize		= FourCharCode('ram ');						{  physical RAM size  }
 
-	gestaltPhysicalRAMSizeInMegabytes = $72616D6D (* 'ramm' *);                 { physical RAM size, scaled in megabytes }
+	gestaltPhysicalRAMSizeInMegabytes = FourCharCode('ramm');                 { physical RAM size, scaled in megabytes }
 
-	gestaltRBVAddr				= $72627620 (* 'rbv ' *);						{  RBV base address   }
+	gestaltRBVAddr				= FourCharCode('rbv ');						{  RBV base address   }
 
-	gestaltROMSize				= $726F6D20 (* 'rom ' *);						{  rom size  }
+	gestaltROMSize				= FourCharCode('rom ');						{  rom size  }
 
-	gestaltROMVersion			= $726F6D76 (* 'romv' *);						{  rom version  }
+	gestaltROMVersion			= FourCharCode('romv');						{  rom version  }
 
-	gestaltResourceMgrAttr		= $72737263 (* 'rsrc' *);						{  Resource Mgr attributes  }
+	gestaltResourceMgrAttr		= FourCharCode('rsrc');						{  Resource Mgr attributes  }
 	gestaltPartialRsrcs			= 0;							{  True if partial resources exist  }
 	gestaltHasResourceOverrides	= 1;							{  Appears in the ROM; so put it here.  }
 
-	gestaltResourceMgrBugFixesAttrs = $726D6267 (* 'rmbg' *);					{  Resource Mgr bug fixes  }
+	gestaltResourceMgrBugFixesAttrs = FourCharCode('rmbg');					{  Resource Mgr bug fixes  }
 	gestaltRMForceSysHeapRolledIn = 0;
 	gestaltRMFakeAppleMenuItemsRolledIn = 1;
 	gestaltSanityCheckResourceFiles = 2;						{  Resource manager does sanity checking on resource files before opening them  }
@@ -1633,11 +1633,11 @@ const
 	gestaltRMTypeIndexOrderingReverse = 8;						{  GetIndType() calls return resource types in opposite order to original 68k resource manager  }
 
 
-	gestaltRealtimeMgrAttr		= $72746D72 (* 'rtmr' *);						{  Realtime manager attributes          }
+	gestaltRealtimeMgrAttr		= FourCharCode('rtmr');						{  Realtime manager attributes          }
 	gestaltRealtimeMgrPresent	= 0;							{  true if the Realtime manager is present     }
 
 
-	gestaltSafeOFAttr			= $73616665 (* 'safe' *);
+	gestaltSafeOFAttr			= FourCharCode('safe');
 	gestaltVMZerosPagesBit		= 0;
 	gestaltInitHeapZerosOutHeapsBit = 1;
 	gestaltNewHandleReturnsZeroedMemoryBit = 2;
@@ -1645,32 +1645,32 @@ const
 	gestaltFileAllocationZeroedBlocksBit = 4;
 
 
-	gestaltSCCReadAddr			= $73636372 (* 'sccr' *);						{  scc read base address   }
+	gestaltSCCReadAddr			= FourCharCode('sccr');						{  scc read base address   }
 
-	gestaltSCCWriteAddr			= $73636377 (* 'sccw' *);						{  scc read base address   }
+	gestaltSCCWriteAddr			= FourCharCode('sccw');						{  scc read base address   }
 
-	gestaltScrapMgrAttr			= $73637261 (* 'scra' *);						{  Scrap Manager attributes  }
+	gestaltScrapMgrAttr			= FourCharCode('scra');						{  Scrap Manager attributes  }
 	gestaltScrapMgrTranslationAware = 0;						{  True if scrap manager is translation aware  }
 
-	gestaltScriptMgrVersion		= $73637269 (* 'scri' *);						{  Script Manager version number      }
+	gestaltScriptMgrVersion		= FourCharCode('scri');						{  Script Manager version number      }
 
-	gestaltScriptCount			= $73637223 (* 'scr#' *);						{  number of active script systems    }
+	gestaltScriptCount			= FourCharCode('scr#');						{  number of active script systems    }
 
-	gestaltSCSI					= $73637369 (* 'scsi' *);						{  SCSI Manager attributes  }
+	gestaltSCSI					= FourCharCode('scsi');						{  SCSI Manager attributes  }
 	gestaltAsyncSCSI			= 0;							{  Supports Asynchronous SCSI  }
 	gestaltAsyncSCSIINROM		= 1;							{  Async scsi is in ROM (available for booting)  }
 	gestaltSCSISlotBoot			= 2;							{  ROM supports Slot-style PRAM for SCSI boots (PDM and later)  }
 	gestaltSCSIPollSIH			= 3;							{  SCSI Manager will poll for interrupts if Secondary Interrupts are busy.  }
 
-	gestaltControlStripAttr		= $73646576 (* 'sdev' *);						{  Control Strip attributes  }
+	gestaltControlStripAttr		= FourCharCode('sdev');						{  Control Strip attributes  }
 	gestaltControlStripExists	= 0;							{  Control Strip is installed  }
 	gestaltControlStripVersionFixed = 1;						{  Control Strip version Gestalt selector was fixed  }
 	gestaltControlStripUserFont	= 2;							{  supports user-selectable font/size  }
 	gestaltControlStripUserHotKey = 3;							{  support user-selectable hot key to show/hide the window  }
 
-	gestaltSDPStandardDirectoryVersion = $73647672 (* 'sdvr' *);				{  OCE Standard Directory Panel }
+	gestaltSDPStandardDirectoryVersion = FourCharCode('sdvr');				{  OCE Standard Directory Panel }
 
-	gestaltSerialAttr			= $73657220 (* 'ser ' *);						{  Serial attributes  }
+	gestaltSerialAttr			= FourCharCode('ser ');						{  Serial attributes  }
 	gestaltHasGPIaToDCDa		= 0;							{  GPIa connected to DCDa }
 	gestaltHasGPIaToRTxCa		= 1;							{  GPIa connected to RTxCa clock input }
 	gestaltHasGPIbToDCDb		= 2;							{  GPIb connected to DCDb  }
@@ -1679,21 +1679,21 @@ const
 	gestaltPortADisabled		= 5;							{  Modem port (A) disabled and should not be used by SW  }
 	gestaltPortBDisabled		= 6;							{  Printer port (B) disabled and should not be used by SW  }
 
-	gestaltShutdownAttributes	= $73687574 (* 'shut' *);						{  ShutDown Manager Attributes  }
+	gestaltShutdownAttributes	= FourCharCode('shut');						{  ShutDown Manager Attributes  }
 	gestaltShutdownHassdOnBootVolUnmount = 0;					{  True if ShutDown Manager unmounts boot & VM volume at shutdown time.  }
 
-	gestaltNuBusConnectors		= $736C7463 (* 'sltc' *);						{  bitmap of NuBus connectors }
+	gestaltNuBusConnectors		= FourCharCode('sltc');						{  bitmap of NuBus connectors }
 
-	gestaltSlotAttr				= $736C6F74 (* 'slot' *);						{  slot attributes   }
+	gestaltSlotAttr				= FourCharCode('slot');						{  slot attributes   }
 	gestaltSlotMgrExists		= 0;							{  true is slot mgr exists   }
 	gestaltNuBusPresent			= 1;							{  NuBus slots are present   }
 	gestaltSESlotPresent		= 2;							{  SE PDS slot present   }
 	gestaltSE30SlotPresent		= 3;							{  SE/30 slot present   }
 	gestaltPortableSlotPresent	= 4;							{  Portable’s slot present   }
 
-	gestaltFirstSlotNumber		= $736C7431 (* 'slt1' *);						{  returns first physical slot  }
+	gestaltFirstSlotNumber		= FourCharCode('slt1');						{  returns first physical slot  }
 
-	gestaltSoundAttr			= $736E6420 (* 'snd ' *);						{  sound attributes  }
+	gestaltSoundAttr			= FourCharCode('snd ');						{  sound attributes  }
 	gestaltStereoCapability		= 0;							{  sound hardware has stereo capability  }
 	gestaltStereoMixing			= 1;							{  stereo mixing on external speaker  }
 	gestaltSoundIOMgrPresent	= 3;							{  The Sound I/O Manager is present  }
@@ -1708,38 +1708,38 @@ const
 	gestaltMultiChannels		= 11;							{  multiple channel support, set by Sound Mgr 3.0 and later  }
 	gestalt16BitAudioSupport	= 12;							{  16 bit audio data supported, set by Sound Mgr 3.0 and later  }
 
-	gestaltSplitOSAttr			= $73706F73 (* 'spos' *);
+	gestaltSplitOSAttr			= FourCharCode('spos');
 	gestaltSplitOSBootDriveIsNetworkVolume = 0;					{  the boot disk is a network 'disk', from the .LANDisk drive.  }
 	gestaltSplitOSAware			= 1;							{  the system includes the code to deal with a split os situation.  }
 	gestaltSplitOSEnablerVolumeIsDifferentFromBootVolume = 2;	{  the active enabler is on a different volume than the system file.  }
 	gestaltSplitOSMachineNameSetToNetworkNameTemp = 3;			{  The machine name was set to the value given us from the BootP server  }
 	gestaltSplitOSMachineNameStartupDiskIsNonPersistent = 5;	{  The startup disk ( vRefNum == -1 ) is non-persistent, meaning changes won't persist across a restart.  }
 
-	gestaltSMPSPSendLetterVersion = $7370736C (* 'spsl' *);						{  OCE StandardMail }
+	gestaltSMPSPSendLetterVersion = FourCharCode('spsl');						{  OCE StandardMail }
 
-	gestaltSpeechRecognitionAttr = $73727461 (* 'srta' *);						{  speech recognition attributes  }
+	gestaltSpeechRecognitionAttr = FourCharCode('srta');						{  speech recognition attributes  }
 	gestaltDesktopSpeechRecognition = 1;						{  recognition thru the desktop microphone is available  }
 	gestaltTelephoneSpeechRecognition = 2;						{  recognition thru the telephone is available  }
 
-	gestaltSpeechRecognitionVersion = $73727462 (* 'srtb' *);					{  speech recognition version (0x0150 is the first version that fully supports the API)  }
+	gestaltSpeechRecognitionVersion = FourCharCode('srtb');					{  speech recognition version (0x0150 is the first version that fully supports the API)  }
 
-	gestaltSoftwareVendorCode	= $73726164 (* 'srad' *);						{  Returns system software vendor information  }
-	gestaltSoftwareVendorApple	= $4170706C (* 'Appl' *);						{  System software sold by Apple  }
-	gestaltSoftwareVendorLicensee = $4C636E73 (* 'Lcns' *);						{  System software sold by licensee  }
+	gestaltSoftwareVendorCode	= FourCharCode('srad');						{  Returns system software vendor information  }
+	gestaltSoftwareVendorApple	= FourCharCode('Appl');						{  System software sold by Apple  }
+	gestaltSoftwareVendorLicensee = FourCharCode('Lcns');						{  System software sold by licensee  }
 
-	gestaltStandardFileAttr		= $73746466 (* 'stdf' *);						{  Standard File attributes  }
+	gestaltStandardFileAttr		= FourCharCode('stdf');						{  Standard File attributes  }
 	gestaltStandardFile58		= 0;							{  True if selectors 5-8 (StandardPutFile-CustomGetFile) are supported  }
 	gestaltStandardFileTranslationAware = 1;					{  True if standard file is translation manager aware  }
 	gestaltStandardFileHasColorIcons = 2;						{  True if standard file has 16x16 color icons  }
 	gestaltStandardFileUseGenericIcons = 3;						{  Standard file LDEF to use only the system generic icons if true  }
 	gestaltStandardFileHasDynamicVolumeAllocation = 4;			{  True if standard file supports more than 20 volumes  }
 
-	gestaltSysArchitecture		= $73797361 (* 'sysa' *);						{  Native System Architecture  }
+	gestaltSysArchitecture		= FourCharCode('sysa');						{  Native System Architecture  }
 	gestalt68k					= 1;							{  Motorola MC68k architecture  }
 	gestaltPowerPC				= 2;							{  IBM PowerPC architecture  }
 	gestaltIntel                = 10;                           {  Intel x86 architecture }
 
-	gestaltSystemUpdateVersion	= $73797375 (* 'sysu' *);						{  System Update version  }
+	gestaltSystemUpdateVersion	= FourCharCode('sysu');						{  System Update version  }
 
 {  
     Returns the system version as a 32 bit packed BCD ( binary coded decimal )
@@ -1760,14 +1760,14 @@ const
     A better way to get version information on Mac OS X would be to read in the
     system version information from the file /System/Library/CoreServices/SystemVersion.plist.
 }
-	gestaltSystemVersion		= $73797376 (* 'sysv' *);						{  system version }
-	gestaltSystemVersionMajor   = $73797331 (* 'sys1' *);                       {  The major system version number; in 10.4.17 this would be the decimal value 10 }
-	gestaltSystemVersionMinor   = $73797332 (* 'sys2' *);                       {  The minor system version number; in 10.4.17 this would be the decimal value 4 }
-	gestaltSystemVersionBugFix  = $73797333 (* 'sys3' *);                       {  The bug fix system version number; in 10.4.17 this would be the decimal value 17 }
+	gestaltSystemVersion		= FourCharCode('sysv');						{  system version }
+	gestaltSystemVersionMajor   = FourCharCode('sys1');                       {  The major system version number; in 10.4.17 this would be the decimal value 10 }
+	gestaltSystemVersionMinor   = FourCharCode('sys2');                       {  The minor system version number; in 10.4.17 this would be the decimal value 4 }
+	gestaltSystemVersionBugFix  = FourCharCode('sys3');                       {  The bug fix system version number; in 10.4.17 this would be the decimal value 17 }
 
-	gestaltToolboxTable			= $74627474 (* 'tbtt' *);						{   OS trap table base   }
+	gestaltToolboxTable			= FourCharCode('tbtt');						{   OS trap table base   }
 
-	gestaltTextEditVersion		= $74652020 (* 'te  ' *);						{  TextEdit version number  }
+	gestaltTextEditVersion		= FourCharCode('te  ');						{  TextEdit version number  }
 	gestaltTE1					= 1;							{  TextEdit in MacIIci ROM  }
 	gestaltTE2					= 2;							{  TextEdit with 6.0.4 Script Systems on MacIIci (Script bug fixes for MacIIci)  }
 	gestaltTE3					= 3;							{  TextEdit with 6.0.4 Script Systems all but MacIIci  }
@@ -1776,13 +1776,13 @@ const
 
 	gestaltTE6                  = 6;                            { TextEdit with integrated TSMTE and improved UI }
 
-	gestaltTEAttr				= $74656174 (* 'teat' *);						{  TextEdit attributes  }
+	gestaltTEAttr				= FourCharCode('teat');						{  TextEdit attributes  }
 	gestaltTEHasGetHiliteRgn	= 0;							{  TextEdit has TEGetHiliteRgn  }
 	gestaltTESupportsInlineInput = 1;							{  TextEdit does Inline Input  }
 	gestaltTESupportsTextObjects = 2;							{  TextEdit does Text Objects  }
 	gestaltTEHasWhiteBackground	= 3;							{  TextEdit supports overriding the TERec's background to white  }
 
-	gestaltTeleMgrAttr			= $74656C65 (* 'tele' *);						{  Telephone manager attributes  }
+	gestaltTeleMgrAttr			= FourCharCode('tele');						{  Telephone manager attributes  }
 	gestaltTeleMgrPresent		= 0;
 	gestaltTeleMgrPowerPCSupport = 1;
 	gestaltTeleMgrSoundStreams	= 2;
@@ -1791,36 +1791,36 @@ const
 	gestaltTeleMgrSilenceDetect	= 5;
 	gestaltTeleMgrNewTELNewSupport = 6;
 
-	gestaltTermMgrAttr			= $7465726D (* 'term' *);						{  terminal mgr attributes  }
+	gestaltTermMgrAttr			= FourCharCode('term');						{  terminal mgr attributes  }
 	gestaltTermMgrPresent		= 0;
 	gestaltTermMgrErrorString	= 2;
 
-	gestaltThreadMgrAttr		= $74686473 (* 'thds' *);						{  Thread Manager attributes  }
+	gestaltThreadMgrAttr		= FourCharCode('thds');						{  Thread Manager attributes  }
 	gestaltThreadMgrPresent		= 0;							{  bit true if Thread Mgr is present  }
 	gestaltSpecificMatchSupport	= 1;							{  bit true if Thread Mgr supports exact match creation option  }
 	gestaltThreadsLibraryPresent = 2;							{  bit true if Thread Mgr shared library is present  }
 
-	gestaltTimeMgrVersion		= $746D6772 (* 'tmgr' *);						{  time mgr version  }
+	gestaltTimeMgrVersion		= FourCharCode('tmgr');						{  time mgr version  }
 	gestaltStandardTimeMgr		= 1;							{  standard time mgr is present  }
 	gestaltRevisedTimeMgr		= 2;							{  revised time mgr is present  }
 	gestaltExtendedTimeMgr		= 3;							{  extended time mgr is present  }
 	gestaltNativeTimeMgr		= 4;							{  PowerPC native TimeMgr is present  }
 
-	gestaltTSMTEVersion			= $746D5456 (* 'tmTV' *);
+	gestaltTSMTEVersion			= FourCharCode('tmTV');
 	gestaltTSMTE1				= $0100;						{  Original version of TSMTE  }
 	gestaltTSMTE15				= $0150;						{  System 8.0  }
 	gestaltTSMTE152				= $0152;						{  System 8.2  }
 
-	gestaltTSMTEAttr			= $746D5445 (* 'tmTE' *);
+	gestaltTSMTEAttr			= FourCharCode('tmTE');
 	gestaltTSMTEPresent			= 0;
 	gestaltTSMTE				= 0;							{  gestaltTSMTE is old name for gestaltTSMTEPresent  }
 
-	gestaltAVLTreeAttr			= $74726565 (* 'tree' *);						{  AVLTree utility routines attributes.  }
+	gestaltAVLTreeAttr			= FourCharCode('tree');						{  AVLTree utility routines attributes.  }
 	gestaltAVLTreePresentBit	= 0;							{  if set, then the AVL Tree routines are available.  }
 	gestaltAVLTreeSupportsHandleBasedTreeBit = 1;				{  if set, then the AVL Tree routines can store tree data in a single handle  }
 	gestaltAVLTreeSupportsTreeLockingBit = 2;					{  if set, the AVLLockTree() and AVLUnlockTree() routines are available.  }
 
-	gestaltALMAttr				= $74726970 (* 'trip' *);						{  Settings Manager attributes (see also gestaltALMVers)  }
+	gestaltALMAttr				= FourCharCode('trip');						{  Settings Manager attributes (see also gestaltALMVers)  }
 	gestaltALMPresent			= 0;							{  bit true if ALM is available  }
 	gestaltALMHasSFGroup		= 1;							{  bit true if Put/Get/Merge Group calls are implmented  }
 	gestaltALMHasCFMSupport		= 2;							{  bit true if CFM-based modules are supported  }
@@ -1828,21 +1828,21 @@ const
 
 	gestaltALMHasSFLocation		= 1;
 
-	gestaltTSMgrVersion			= $74736D76 (* 'tsmv' *);						{  Text Services Mgr version, if present  }
+	gestaltTSMgrVersion			= FourCharCode('tsmv');						{  Text Services Mgr version, if present  }
 	gestaltTSMgr15				= $0150;
 	gestaltTSMgr20				= $0200;                        { Version 2.0 as of MacOSX 10.0 }
 	gestaltTSMgr22              = $0220;                        { Version 2.2 as of MacOSX 10.3 }
 	gestaltTSMgr23              = $0230;                        { Version 2.3 as of MacOSX 10.4 }
 
-	gestaltTSMgrAttr			= $74736D61 (* 'tsma' *);						{  Text Services Mgr attributes, if present  }
+	gestaltTSMgrAttr			= FourCharCode('tsma');						{  Text Services Mgr attributes, if present  }
 	gestaltTSMDisplayMgrAwareBit = 0;							{  TSM knows about display manager  }
 	gestaltTSMdoesTSMTEBit		= 1;							{  TSM has integrated TSMTE  }
 
-	gestaltSpeechAttr			= $74747363 (* 'ttsc' *);						{  Speech Manager attributes  }
+	gestaltSpeechAttr			= FourCharCode('ttsc');						{  Speech Manager attributes  }
 	gestaltSpeechMgrPresent		= 0;							{  bit set indicates that Speech Manager exists  }
 	gestaltSpeechHasPPCGlue		= 1;							{  bit set indicates that native PPC glue for Speech Manager API exists  }
 
-	gestaltTVAttr				= $74762020 (* 'tv  ' *);						{  TV version  }
+	gestaltTVAttr				= FourCharCode('tv  ');						{  TV version  }
 	gestaltHasTVTuner			= 0;							{  supports Philips FL1236F video tuner  }
 	gestaltHasSoundFader		= 1;							{  supports Philips TEA6330 Sound Fader chip  }
 	gestaltHasHWClosedCaptioning = 2;							{  supports Philips SAA5252 Closed Captioning  }
@@ -1857,7 +1857,7 @@ const
 	gestaltHasZoomedVideo		= 11;							{  Has Zoomed Video PC Card video input.  }
 
 
-	gestaltATSUVersion			= $75697376 (* 'uisv' *);
+	gestaltATSUVersion			= FourCharCode('uisv');
 	gestaltOriginalATSUVersion	= $00010000;					{  ATSUI version 1.0  }
 	gestaltATSUUpdate1			= $00020000;					{  ATSUI version 1.1  }
 	gestaltATSUUpdate2			= $00030000;					{  ATSUI version 1.2  }
@@ -1867,7 +1867,7 @@ const
 	gestaltATSUUpdate6          = 7 shl 16;                     {  ATSUI version 2.4 in MacOS 10.2 }
 	gestaltATSUUpdate7          = 8 shl 16;                     {  ATSUI version 2.5 in MacOS 10.3 }
 
-	gestaltATSUFeatures			= $75697366 (* 'uisf' *);
+	gestaltATSUFeatures			= FourCharCode('uisf');
 	gestaltATSUTrackingFeature	= $00000001;					{  feature introduced in ATSUI version 1.1  }
 	gestaltATSUMemoryFeature	= $00000001;					{  feature introduced in ATSUI version 1.1  }
 	gestaltATSUFallbacksFeature	= $00000001;					{  feature introduced in ATSUI version 1.1  }
@@ -1894,38 +1894,38 @@ const
 	gestaltATSUStrikeThroughStyleFeature = $00000020;           {  feature introduced in ATSUI version 2.5 }
 	gestaltATSUDropShadowStyleFeature = $00000020;              {  feature introduced in ATSUI version 2.5 }
 
-	gestaltUSBAttr				= $75736220 (* 'usb ' *);						{  USB Attributes  }
+	gestaltUSBAttr				= FourCharCode('usb ');						{  USB Attributes  }
 	gestaltUSBPresent			= 0;							{  USB Support available  }
 	gestaltUSBHasIsoch			= 1;							{  USB Isochronous features available  }
 
-	gestaltUSBVersion			= $75736276 (* 'usbv' *);						{  USB version  }
+	gestaltUSBVersion			= FourCharCode('usbv');						{  USB version  }
 
-	gestaltVersion				= $76657273 (* 'vers' *);						{  gestalt version  }
+	gestaltVersion				= FourCharCode('vers');						{  gestalt version  }
 	gestaltValueImplementedVers	= 5;							{  version of gestalt where gestaltValue is implemented.  }
 
-	gestaltVIA1Addr				= $76696131 (* 'via1' *);						{  via 1 base address   }
+	gestaltVIA1Addr				= FourCharCode('via1');						{  via 1 base address   }
 
-	gestaltVIA2Addr				= $76696132 (* 'via2' *);						{  via 2 base address   }
+	gestaltVIA2Addr				= FourCharCode('via2');						{  via 2 base address   }
 
-	gestaltVMAttr				= $766D2020 (* 'vm  ' *);						{  virtual memory attributes  }
+	gestaltVMAttr				= FourCharCode('vm  ');						{  virtual memory attributes  }
 	gestaltVMPresent			= 0;							{  true if virtual memory is present  }
 	gestaltVMHasLockMemoryForOutput = 1;						{  true if LockMemoryForOutput is available  }
 	gestaltVMFilemappingOn		= 3;							{  true if filemapping is available  }
 	gestaltVMHasPagingControl	= 4;							{  true if MakeMemoryResident, MakeMemoryNonResident, FlushMemory, and ReleaseMemoryData are available  }
 
-	gestaltVMInfoType			= $766D696E (* 'vmin' *);						{  Indicates how the Finder should display information about VM in  }
+	gestaltVMInfoType			= FourCharCode('vmin');						{  Indicates how the Finder should display information about VM in  }
 																{  the Finder about box.  }
 	gestaltVMInfoSizeStorageType = 0;							{  Display VM on/off, backing store size and name  }
 	gestaltVMInfoSizeType		= 1;							{  Display whether VM is on or off and the size of the backing store  }
 	gestaltVMInfoSimpleType		= 2;							{  Display whether VM is on or off  }
 	gestaltVMInfoNoneType		= 3;							{  Display no VM information  }
 
-	gestaltVMBackingStoreFileRefNum = $766D6273 (* 'vmbs' *);					{  file refNum of virtual memory's main backing store file (returned in low word of result)  }
+	gestaltVMBackingStoreFileRefNum = FourCharCode('vmbs');					{  file refNum of virtual memory's main backing store file (returned in low word of result)  }
 
 
-	gestaltALMVers				= $77616C6B (* 'walk' *);						{  Settings Manager version (see also gestaltALMAttr)  }
+	gestaltALMVers				= FourCharCode('walk');						{  Settings Manager version (see also gestaltALMAttr)  }
 
-	gestaltWindowMgrAttr		= $77696E64 (* 'wind' *);						{  If this Gestalt exists, the Mac OS 8.5 Window Manager is installed }
+	gestaltWindowMgrAttr		= FourCharCode('wind');						{  If this Gestalt exists, the Mac OS 8.5 Window Manager is installed }
 	gestaltWindowMgrPresent		= $00000001;					{  NOTE: this is a bit mask, whereas all other Gestalt constants of }
 																{  this type are bit index values.   Universal Interfaces 3.2 slipped }
 																{  out the door with this mistake. }
@@ -1961,7 +1961,7 @@ const
    OS may not support all of these features.  These bitfields
    correspond directly to the bits returned by cpuid }
 
-	gestaltX86Features			= $78383666 (* 'x86f' *);
+	gestaltX86Features			= FourCharCode('x86f');
 	gestaltX86HasFPU			= 0;							{  has an FPU that supports the 387 instructions }
 	gestaltX86HasVME			= 1;							{  supports Virtual-8086 Mode Extensions }
 	gestaltX86HasDE				= 2;							{  supports I/O breakpoints (Debug Extensions) }
@@ -1998,7 +1998,7 @@ const
     gestalt selector and field definitions apply
     to the extended form of this instruction }
 
-	gestaltX86AdditionalFeatures = $78383661 (* 'x86a' *);
+	gestaltX86AdditionalFeatures = FourCharCode('x86a');
 	gestaltX86HasSSE3           = 0;                            {  Prescott New Inst.}
 	gestaltX86HasMONITOR        = 3;                            {  Monitor/mwait}
 	gestaltX86HasDSCPL          = 4;                            {  Debug Store CPL}
@@ -2012,24 +2012,24 @@ const
 	gestaltX86HasxTPR           = 14;                           {  Send Task PRiority msgs}
 
 
-	gestaltTranslationAttr		= $786C6174 (* 'xlat' *);						{  Translation Manager attributes  }
+	gestaltTranslationAttr		= FourCharCode('xlat');						{  Translation Manager attributes  }
 	gestaltTranslationMgrExists	= 0;							{  True if translation manager exists  }
 	gestaltTranslationMgrHintOrder = 1;							{  True if hint order reversal in effect  }
 	gestaltTranslationPPCAvail	= 2;
 	gestaltTranslationGetPathAPIAvail = 3;
 
-	gestaltExtToolboxTable		= $78747474 (* 'xttt' *);						{  Extended Toolbox trap table base  }
+	gestaltExtToolboxTable		= FourCharCode('xttt');						{  Extended Toolbox trap table base  }
 
-	gestaltUSBPrinterSharingVersion = $7A616B20 (* 'zak ' *);					{  USB Printer Sharing Version }
+	gestaltUSBPrinterSharingVersion = FourCharCode('zak ');					{  USB Printer Sharing Version }
 	gestaltUSBPrinterSharingVersionMask = $0000FFFF;			{  mask for bits in version }
-	gestaltUSBPrinterSharingAttr = $7A616B20 (* 'zak ' *);						{  USB Printer Sharing Attributes }
+	gestaltUSBPrinterSharingAttr = FourCharCode('zak ');						{  USB Printer Sharing Attributes }
 	gestaltUSBPrinterSharingAttrMask = $FFFF0000;				{   mask for attribute bits }
 	gestaltUSBPrinterSharingAttrRunning = $80000000;			{  printer sharing is running }
 	gestaltUSBPrinterSharingAttrBooted = $40000000;				{  printer sharing was installed at boot time }
 
 	{ WorldScript settings; }
-	gestaltWorldScriptIIVersion	= $646F7562 (* 'doub' *);
-	gestaltWorldScriptIIAttr	= $77736174 (* 'wsat' *);
+	gestaltWorldScriptIIVersion	= FourCharCode('doub');
+	gestaltWorldScriptIIAttr	= FourCharCode('wsat');
 	gestaltWSIICanPrintWithoutPrGeneralBit = 0;					{  bit 0 is on if WS II knows about PrinterStatus callback  }
 
 

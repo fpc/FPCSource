@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit SpeechRecognition;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -235,9 +235,9 @@ const
 	kSRDefaultRecognitionSystemID = 0;
 
 	{	 Recognition System Properties 	}
-	kSRFeedbackAndListeningModes = $6662776E (* 'fbwn' *);						{  short: one of kSRNoFeedbackHasListenModes, kSRHasFeedbackHasListenModes, kSRNoFeedbackNoListenModes  }
-	kSRRejectedWord				= $72656A71 (* 'rejq' *);						{  the SRWord used to represent a rejection  }
-	kSRCleanupOnClientExit		= $636C7570 (* 'clup' *);						{  Boolean: Default is true. The rec system and everything it owns is disposed when the client application quits  }
+	kSRFeedbackAndListeningModes = FourCharCode('fbwn');						{  short: one of kSRNoFeedbackHasListenModes, kSRHasFeedbackHasListenModes, kSRNoFeedbackNoListenModes  }
+	kSRRejectedWord				= FourCharCode('rejq');						{  the SRWord used to represent a rejection  }
+	kSRCleanupOnClientExit		= FourCharCode('clup');						{  Boolean: Default is true. The rec system and everything it owns is disposed when the client application quits  }
 
 	kSRNoFeedbackNoListenModes	= 0;							{  next allocated recognizer has no feedback window and doesn't use listening modes    }
 	kSRHasFeedbackHasListenModes = 1;							{  next allocated recognizer has feedback window and uses listening modes           }
@@ -245,8 +245,8 @@ const
 
 	{	 Speech Source Types 	}
 	kSRDefaultSpeechSource		= 0;
-	kSRLiveDesktopSpeechSource	= $646B6C76 (* 'dklv' *);						{  live desktop sound input  }
-	kSRCanned22kHzSpeechSource	= $63613232 (* 'ca22' *);						{  AIFF file based 16 bit, 22.050 KHz sound input  }
+	kSRLiveDesktopSpeechSource	= FourCharCode('dklv');						{  live desktop sound input  }
+	kSRCanned22kHzSpeechSource	= FourCharCode('ca22');						{  AIFF file based 16 bit, 22.050 KHz sound input  }
 
 	{	 Notification via Apple Event or Callback 	}
 	{	 Notification Flags 	}
@@ -255,47 +255,47 @@ const
 
 	{	 Apple Event selectors 	}
 	{	 AppleEvent message class  	}
-	kAESpeechSuite				= $73707263 (* 'sprc' *);
+	kAESpeechSuite				= FourCharCode('sprc');
 
 	{	 AppleEvent message event ids 	}
-	kAESpeechDone				= $73727364 (* 'srsd' *);
-	kAESpeechDetected			= $73726264 (* 'srbd' *);
+	kAESpeechDone				= FourCharCode('srsd');
+	kAESpeechDetected			= FourCharCode('srbd');
 
 	{	 AppleEvent Parameter ids 	}
-	keySRRecognizer				= $6B726563 (* 'krec' *);
-	keySRSpeechResult			= $6B737072 (* 'kspr' *);
-	keySRSpeechStatus			= $6B737374 (* 'ksst' *);
+	keySRRecognizer				= FourCharCode('krec');
+	keySRSpeechResult			= FourCharCode('kspr');
+	keySRSpeechStatus			= FourCharCode('ksst');
 
 	{	 AppleEvent Parameter types 	}
-	typeSRRecognizer			= $74726563 (* 'trec' *);
-	typeSRSpeechResult			= $74737072 (* 'tspr' *);
+	typeSRRecognizer			= FourCharCode('trec');
+	typeSRSpeechResult			= FourCharCode('tspr');
 
 
 	{	 SRRecognizer Properties 	}
-	kSRNotificationParam		= $6E6F7469 (* 'noti' *);						{  see notification flags below  }
-	kSRCallBackParam			= $63616C6C (* 'call' *);						{  type SRCallBackParam  }
-	kSRSearchStatusParam		= $73746174 (* 'stat' *);						{  see status flags below  }
-	kSRAutoFinishingParam		= $6166696E (* 'afin' *);						{  automatic finishing applied on LM for search  }
-	kSRForegroundOnly			= $66676F6E (* 'fgon' *);						{  Boolean. Default is true. If true, client recognizer only active when in foreground.    }
-	kSRBlockBackground			= $626C6267 (* 'blbg' *);						{  Boolean. Default is false. If true, when client recognizer in foreground, rest of LMs are inactive.     }
-	kSRBlockModally				= $626C6D64 (* 'blmd' *);						{  Boolean. Default is false. When true, this client's LM is only active LM; all other LMs are inactive. Be nice, don't be modal for long periods!  }
-	kSRWantsResultTextDrawn		= $74786662 (* 'txfb' *);						{  Boolean. Default is true. If true, search results are posted to Feedback window  }
-	kSRWantsAutoFBGestures		= $64666272 (* 'dfbr' *);						{  Boolean. Default is true. If true, client needn't call SRProcessBegin/End to get default feedback behavior  }
-	kSRSoundInVolume			= $766F6C75 (* 'volu' *);						{  short in [0..100] log scaled sound input power. Can't set this property  }
-	kSRReadAudioFSSpec			= $61757264 (* 'aurd' *);						{  *FSSpec. Specify FSSpec where raw audio is to be read (AIFF format) using kSRCanned22kHzSpeechSource. Reads until EOF  }
-	kSRCancelOnSoundOut			= $6361736F (* 'caso' *);						{  Boolean: Default is true.  If any sound is played out during utterance, recognition is aborted.  }
-	kSRSpeedVsAccuracyParam		= $73706564 (* 'sped' *);						{  SRSpeedSetting between 0 and 100  }
+	kSRNotificationParam		= FourCharCode('noti');						{  see notification flags below  }
+	kSRCallBackParam			= FourCharCode('call');						{  type SRCallBackParam  }
+	kSRSearchStatusParam		= FourCharCode('stat');						{  see status flags below  }
+	kSRAutoFinishingParam		= FourCharCode('afin');						{  automatic finishing applied on LM for search  }
+	kSRForegroundOnly			= FourCharCode('fgon');						{  Boolean. Default is true. If true, client recognizer only active when in foreground.    }
+	kSRBlockBackground			= FourCharCode('blbg');						{  Boolean. Default is false. If true, when client recognizer in foreground, rest of LMs are inactive.     }
+	kSRBlockModally				= FourCharCode('blmd');						{  Boolean. Default is false. When true, this client's LM is only active LM; all other LMs are inactive. Be nice, don't be modal for long periods!  }
+	kSRWantsResultTextDrawn		= FourCharCode('txfb');						{  Boolean. Default is true. If true, search results are posted to Feedback window  }
+	kSRWantsAutoFBGestures		= FourCharCode('dfbr');						{  Boolean. Default is true. If true, client needn't call SRProcessBegin/End to get default feedback behavior  }
+	kSRSoundInVolume			= FourCharCode('volu');						{  short in [0..100] log scaled sound input power. Can't set this property  }
+	kSRReadAudioFSSpec			= FourCharCode('aurd');						{  *FSSpec. Specify FSSpec where raw audio is to be read (AIFF format) using kSRCanned22kHzSpeechSource. Reads until EOF  }
+	kSRCancelOnSoundOut			= FourCharCode('caso');						{  Boolean: Default is true.  If any sound is played out during utterance, recognition is aborted.  }
+	kSRSpeedVsAccuracyParam		= FourCharCode('sped');						{  SRSpeedSetting between 0 and 100  }
 
 	{	 0 means more accurate but slower. 	}
 	{	 100 means (much) less accurate but faster. 	}
 	kSRUseToggleListen			= 0;							{  listen key modes  }
 	kSRUsePushToTalk			= 1;
 
-	kSRListenKeyMode			= $6C6B6D64 (* 'lkmd' *);						{  short: either kSRUseToggleListen or kSRUsePushToTalk  }
-	kSRListenKeyCombo			= $6C6B6579 (* 'lkey' *);						{  short: Push-To-Talk key combination; high byte is high byte of event->modifiers, the low byte is the keycode from event->message  }
-	kSRListenKeyName			= $6C6E616D (* 'lnam' *);						{  Str63: string representing ListenKeyCombo  }
-	kSRKeyWord					= $6B777264 (* 'kwrd' *);						{  Str255: keyword preceding spoken commands in kSRUseToggleListen mode  }
-	kSRKeyExpected				= $6B657870 (* 'kexp' *);						{  Boolean: Must the PTT key be depressed or the key word spoken before recognition can occur?  }
+	kSRListenKeyMode			= FourCharCode('lkmd');						{  short: either kSRUseToggleListen or kSRUsePushToTalk  }
+	kSRListenKeyCombo			= FourCharCode('lkey');						{  short: Push-To-Talk key combination; high byte is high byte of event->modifiers, the low byte is the keycode from event->message  }
+	kSRListenKeyName			= FourCharCode('lnam');						{  Str63: string representing ListenKeyCombo  }
+	kSRKeyWord					= FourCharCode('kwrd');						{  Str255: keyword preceding spoken commands in kSRUseToggleListen mode  }
+	kSRKeyExpected				= FourCharCode('kexp');						{  Boolean: Must the PTT key be depressed or the key word spoken before recognition can occur?  }
 
 	{	 Operational Status Flags 	}
 	kSRIdleRecognizer			= $00000001;					{  engine is not active  }
@@ -305,27 +305,27 @@ const
 	kSRPendingSearch			= $00000010;					{  we're about to start searching  }
 
 	{	 Recognition Result Properties 	}
-	kSRTEXTFormat				= $54455854 (* 'TEXT' *);						{  raw text in user supplied memory  }
-	kSRPhraseFormat				= $6C6D7068 (* 'lmph' *);						{  SRPhrase containing result words  }
-	kSRPathFormat				= $6C6D7074 (* 'lmpt' *);						{  SRPath containing result phrases or words  }
-	kSRLanguageModelFormat		= $6C6D666D (* 'lmfm' *);						{  top level SRLanguageModel for post parse  }
+	kSRTEXTFormat				= FourCharCode('TEXT');						{  raw text in user supplied memory  }
+	kSRPhraseFormat				= FourCharCode('lmph');						{  SRPhrase containing result words  }
+	kSRPathFormat				= FourCharCode('lmpt');						{  SRPath containing result phrases or words  }
+	kSRLanguageModelFormat		= FourCharCode('lmfm');						{  top level SRLanguageModel for post parse  }
 
 	{	 SRLanguageObject Family Properties 	}
-	kSRSpelling					= $7370656C (* 'spel' *);						{  spelling of a SRWord or SRPhrase or SRPath, or name of a SRLanguageModel  }
-	kSRLMObjType				= $6C6D7470 (* 'lmtp' *);						{  Returns one of SRLanguageObject Types listed below  }
-	kSRRefCon					= $72656663 (* 'refc' *);						{  4 bytes of user storage  }
-	kSROptional					= $6F70746C (* 'optl' *);						{  Boolean -- true if SRLanguageObject is optional     }
-	kSREnabled					= $656E626C (* 'enbl' *);						{  Boolean -- true if SRLanguageObject enabled  }
-	kSRRepeatable				= $72707462 (* 'rptb' *);						{  Boolean -- true if SRLanguageObject is repeatable  }
-	kSRRejectable				= $726A626C (* 'rjbl' *);						{  Boolean -- true if SRLanguageObject is rejectable (Recognition System's kSRRejectedWord  }
+	kSRSpelling					= FourCharCode('spel');						{  spelling of a SRWord or SRPhrase or SRPath, or name of a SRLanguageModel  }
+	kSRLMObjType				= FourCharCode('lmtp');						{  Returns one of SRLanguageObject Types listed below  }
+	kSRRefCon					= FourCharCode('refc');						{  4 bytes of user storage  }
+	kSROptional					= FourCharCode('optl');						{  Boolean -- true if SRLanguageObject is optional     }
+	kSREnabled					= FourCharCode('enbl');						{  Boolean -- true if SRLanguageObject enabled  }
+	kSRRepeatable				= FourCharCode('rptb');						{  Boolean -- true if SRLanguageObject is repeatable  }
+	kSRRejectable				= FourCharCode('rjbl');						{  Boolean -- true if SRLanguageObject is rejectable (Recognition System's kSRRejectedWord  }
 																{        object can be returned in place of SRLanguageObject with this property)    }
-	kSRRejectionLevel			= $726A6374 (* 'rjct' *);						{  SRRejectionLevel between 0 and 100  }
+	kSRRejectionLevel			= FourCharCode('rjct');						{  SRRejectionLevel between 0 and 100  }
 
 	{	 LM Object Types -- returned as kSRLMObjType property of language model objects 	}
-	kSRLanguageModelType		= $6C6D6F62 (* 'lmob' *);						{  SRLanguageModel  }
-	kSRPathType					= $70617468 (* 'path' *);						{  SRPath  }
-	kSRPhraseType				= $70687261 (* 'phra' *);						{  SRPhrase  }
-	kSRWordType					= $776F7264 (* 'word' *);						{  SRWord  }
+	kSRLanguageModelType		= FourCharCode('lmob');						{  SRLanguageModel  }
+	kSRPathType					= FourCharCode('path');						{  SRPath  }
+	kSRPhraseType				= FourCharCode('phra');						{  SRPhrase  }
+	kSRWordType					= FourCharCode('word');						{  SRWord  }
 
 	{	 a normal and reasonable rejection level 	}
 	kSRDefaultRejectionLevel	= 50;

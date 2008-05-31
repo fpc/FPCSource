@@ -16,7 +16,7 @@
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CarbonEventsCore;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -242,8 +242,8 @@ const
 {  ¥ Core Event Parameters                                                             }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
-	kEventParamDirectObject = $2D2D2D2D (* '----' *); { type varies depending on event}
-	kEventParamDragRef = $64726167 (* 'drag' *); { typeDragRef}
+	kEventParamDirectObject = FourCharCode('----'); { type varies depending on event}
+	kEventParamDragRef = FourCharCode('drag'); { typeDragRef}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Core Event Types                                                                  }
@@ -278,14 +278,14 @@ const
     count of an instance of that data type before and after adding it to an EventRef.
 }
 const
-	typeCFStringRef = $63667374 (* 'cfst' *); { CFStringRef}
-	typeCFMutableStringRef = $63666D73 (* 'cfms' *); { CFMutableStringRef}
-	typeCFArrayRef = $63666172 (* 'cfar' *); { CFArrayRef}
-	typeCFMutableArrayRef = $63666D61 (* 'cfma' *); { CFMutableArrayRef}
-	typeCFDictionaryRef = $63666463 (* 'cfdc' *); { CFDictionaryRef}
-	typeCFMutableDictionaryRef = $63666D64 (* 'cfmd' *); { CFMutableDictionaryRef}
-	typeCFTypeRef = $63667479 (* 'cfty' *); { CFTypeRef}
-	typeDragRef = $64726167 (* 'drag' *); { DragRef}
+	typeCFStringRef = FourCharCode('cfst'); { CFStringRef}
+	typeCFMutableStringRef = FourCharCode('cfms'); { CFMutableStringRef}
+	typeCFArrayRef = FourCharCode('cfar'); { CFArrayRef}
+	typeCFMutableArrayRef = FourCharCode('cfma'); { CFMutableArrayRef}
+	typeCFDictionaryRef = FourCharCode('cfdc'); { CFDictionaryRef}
+	typeCFMutableDictionaryRef = FourCharCode('cfmd'); { CFMutableDictionaryRef}
+	typeCFTypeRef = FourCharCode('cfty'); { CFTypeRef}
+	typeDragRef = FourCharCode('drag'); { DragRef}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Event Flags, options                                                              }

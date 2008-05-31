@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit HTMLRendering;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -130,7 +130,7 @@ function HRGetHTMLRenderingLibVersion(var returnVers: NumVersion): OSStatus; ext
 
 
 const
-	kHRRendererHTML32Type		= $68743332 (* 'ht32' *);						{  HTML 3.2  }
+	kHRRendererHTML32Type		= FourCharCode('ht32');						{  HTML 3.2  }
 
 
 	{

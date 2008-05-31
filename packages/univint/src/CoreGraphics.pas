@@ -3,9 +3,11 @@
  * All rights reserved.
  }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -13,12 +15,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CoreGraphics;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -91,7 +93,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CGBase,CGAffineTransforms,CGBitmapContext,CGColor,CGColorSpace,CGContext,CGDataConsumer,CGDataProvider,CGDirectDisplay,CGDirectPalette,CGDisplayConfiguration,CGDisplayFade,CGErrors,CGEvent,CGEventSource,CGEventTypes,CGFont,CGFunction,CGGLContext,CGGeometry,CGImage,CGLayer,CGPDFArray,CGPDFContentStream,CGPDFContext,CGPDFDictionary,CGPDFDocument,CGPDFObject,CGPDFOperatorTable,CGPDFPage,CGPDFScanner,CGPDFStream,CGPDFString,CGPSConverter,CGPath,CGPattern,CGRemoteOperation,CGSession,CGShading,CGWindowLevels;
+uses MacTypes,CGBase,CGAffineTransforms,CGBitmapContext,CGColor,CGColorSpace,CGContext,CGDataConsumer,CGDataProvider,CGDirectDisplay,CGDirectPalette,CGDisplayConfiguration,CGDisplayFades,CGErrors,CGEvent,CGEventSource,CGEventTypes,CGFont,CGFunction,CGGLContext,CGGeometry,CGImage,CGLayer,CGPDFArray,CGPDFContentStream,CGPDFContext,CGPDFDictionary,CGPDFDocument,CGPDFObject,CGPDFOperatorTable,CGPDFPage,CGPDFScanner,CGPDFStream,CGPDFString,CGPSConverter,CGPath,CGPattern,CGRemoteOperation,CGSession,CGShading,CGWindowLevels;
 {$ALIGN POWER}
 
 

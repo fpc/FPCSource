@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit FontSync;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -249,7 +249,7 @@ function FNSReferenceUnflatten(iFlatReference: UnivPtr; iFlattenedSize: ByteCoun
 
 const
 	kFNSCreatorDefault			= 0;
-	kFNSProfileFileType			= $666E7370 (* 'fnsp' *);
+	kFNSProfileFileType			= FourCharCode('fnsp');
 
 
 type

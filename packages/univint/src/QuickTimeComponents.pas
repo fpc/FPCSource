@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit QuickTimeComponents;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -111,11 +111,11 @@ uses MacTypes,Files,Events,QDOffscreen,Menus,Dialogs,Aliases,MixedMode,Component
 
 
 const
-	clockComponentType			= $636C6F6B (* 'clok' *);
-	systemTickClock				= $7469636B (* 'tick' *);						{  subtype: 60ths since boot    }
-	systemSecondClock			= $7365636F (* 'seco' *);						{  subtype: seconds since 1904        }
-	systemMillisecondClock		= $6D696C6C (* 'mill' *);						{  subtype: 1000ths since boot        }
-	systemMicrosecondClock		= $6D696372 (* 'micr' *);						{  subtype: 1000000ths since boot  }
+	clockComponentType			= FourCharCode('clok');
+	systemTickClock				= FourCharCode('tick');						{  subtype: 60ths since boot    }
+	systemSecondClock			= FourCharCode('seco');						{  subtype: seconds since 1904        }
+	systemMillisecondClock		= FourCharCode('mill');						{  subtype: 1000ths since boot        }
+	systemMicrosecondClock		= FourCharCode('micr');						{  subtype: 1000000ths since boot  }
 
 	kClockRateIsLinear			= 1;
 	kClockImplementsCallBacks	= 2;
@@ -223,9 +223,9 @@ function ClockStartStopChanged(aClock: ComponentInstance; cb: QTCallBack; startC
  }
 function ClockGetRate(aClock: ComponentInstance; var rate: Fixed): ComponentResult; external name '_ClockGetRate';
 const
-	StandardCompressionType		= $73636469 (* 'scdi' *);
-	StandardCompressionSubType	= $696D6167 (* 'imag' *);
-	StandardCompressionSubTypeSound = $736F756E (* 'soun' *);
+	StandardCompressionType		= FourCharCode('scdi');
+	StandardCompressionSubType	= FourCharCode('imag');
+	StandardCompressionSubTypeSound = FourCharCode('soun');
 
 
 type
@@ -321,29 +321,29 @@ type
 	{   Get/SetInfo selectors }
 
 const
-	scSpatialSettingsType		= $7370746C (* 'sptl' *);						{  pointer to SCSpatialSettings struct }
-	scTemporalSettingsType		= $7470726C (* 'tprl' *);						{  pointer to SCTemporalSettings struct }
-	scDataRateSettingsType		= $64726174 (* 'drat' *);						{  pointer to SCDataRateSettings struct }
-	scColorTableType			= $636C7574 (* 'clut' *);						{  pointer to CTabHandle }
-	scProgressProcType			= $70726F67 (* 'prog' *);						{  pointer to ProgressRecord struct }
-	scExtendedProcsType			= $78707263 (* 'xprc' *);						{  pointer to SCExtendedProcs struct }
-	scPreferenceFlagsType		= $70726566 (* 'pref' *);						{  pointer to long }
-	scSettingsStateType			= $73737461 (* 'ssta' *);						{  pointer to Handle }
-	scSequenceIDType			= $73657175 (* 'sequ' *);						{  pointer to ImageSequence }
-	scWindowPositionType		= $776E6477 (* 'wndw' *);						{  pointer to Point }
-	scCodecFlagsType			= $63666C67 (* 'cflg' *);						{  pointer to CodecFlags }
-	scCodecSettingsType			= $63646563 (* 'cdec' *);						{  pointer to Handle }
-	scForceKeyValueType			= $6B73696D (* 'ksim' *);						{  pointer to long }
-	scSoundSampleRateType		= $73737274 (* 'ssrt' *);						{  pointer to UnsignedFixed }
-	scSoundSampleSizeType		= $73737373 (* 'ssss' *);						{  pointer to short }
-	scSoundChannelCountType		= $73736363 (* 'sscc' *);						{  pointer to short }
-	scSoundCompressionType		= $73736374 (* 'ssct' *);						{  pointer to OSType }
-	scCompressionListType		= $6374796C (* 'ctyl' *);						{  pointer to OSType Handle }
-	scCodecManufacturerType		= $636D6672 (* 'cmfr' *);						{  pointer to OSType }
-	scSoundVBRCompressionOK		= $63766272 (* 'cvbr' *);						{  pointer to Boolean }
-	scSoundInputSampleRateType	= $73736972 (* 'ssir' *);						{  pointer to UnsignedFixed }
-	scSoundSampleRateChangeOK	= $72636F6B (* 'rcok' *);						{  pointer to Boolean }
-	scAvailableCompressionListType = $61766169 (* 'avai' *);					{  pointer to OSType Handle }
+	scSpatialSettingsType		= FourCharCode('sptl');						{  pointer to SCSpatialSettings struct }
+	scTemporalSettingsType		= FourCharCode('tprl');						{  pointer to SCTemporalSettings struct }
+	scDataRateSettingsType		= FourCharCode('drat');						{  pointer to SCDataRateSettings struct }
+	scColorTableType			= FourCharCode('clut');						{  pointer to CTabHandle }
+	scProgressProcType			= FourCharCode('prog');						{  pointer to ProgressRecord struct }
+	scExtendedProcsType			= FourCharCode('xprc');						{  pointer to SCExtendedProcs struct }
+	scPreferenceFlagsType		= FourCharCode('pref');						{  pointer to long }
+	scSettingsStateType			= FourCharCode('ssta');						{  pointer to Handle }
+	scSequenceIDType			= FourCharCode('sequ');						{  pointer to ImageSequence }
+	scWindowPositionType		= FourCharCode('wndw');						{  pointer to Point }
+	scCodecFlagsType			= FourCharCode('cflg');						{  pointer to CodecFlags }
+	scCodecSettingsType			= FourCharCode('cdec');						{  pointer to Handle }
+	scForceKeyValueType			= FourCharCode('ksim');						{  pointer to long }
+	scSoundSampleRateType		= FourCharCode('ssrt');						{  pointer to UnsignedFixed }
+	scSoundSampleSizeType		= FourCharCode('ssss');						{  pointer to short }
+	scSoundChannelCountType		= FourCharCode('sscc');						{  pointer to short }
+	scSoundCompressionType		= FourCharCode('ssct');						{  pointer to OSType }
+	scCompressionListType		= FourCharCode('ctyl');						{  pointer to OSType Handle }
+	scCodecManufacturerType		= FourCharCode('cmfr');						{  pointer to OSType }
+	scSoundVBRCompressionOK		= FourCharCode('cvbr');						{  pointer to Boolean }
+	scSoundInputSampleRateType	= FourCharCode('ssir');						{  pointer to UnsignedFixed }
+	scSoundSampleRateChangeOK	= FourCharCode('rcok');						{  pointer to Boolean }
+	scAvailableCompressionListType = FourCharCode('avai');					{  pointer to OSType Handle }
 
 	{   scTypeNotFoundErr returned by Get/SetInfo when type cannot be found. }
 
@@ -372,9 +372,9 @@ const
 	scCompressFlagIgnoreIdenticalFrames = 1;
 
 	{  QTAtomTypes for atoms found in settings atom containers }
-	kQTSettingsVideo			= $76696465 (* 'vide' *);						{  Container for video/image compression related atoms (Get/SetInfo selectors) }
-	kQTSettingsSound			= $736F756E (* 'soun' *);						{  Container for sound compression related atoms (Get/SetInfo selectors) }
-	kQTSettingsComponentVersion	= $76657273 (* 'vers' *);						{  . Version of component that wrote settings (QTSettingsVersionAtomRecord) }
+	kQTSettingsVideo			= FourCharCode('vide');						{  Container for video/image compression related atoms (Get/SetInfo selectors) }
+	kQTSettingsSound			= FourCharCode('soun');						{  Container for sound compression related atoms (Get/SetInfo selectors) }
+	kQTSettingsComponentVersion	= FourCharCode('vers');						{  . Version of component that wrote settings (QTSettingsVersionAtomRecord) }
 
 	{  Format of 'vers' atom found in settings atom containers }
 
@@ -669,7 +669,7 @@ function SCCompressSequenceFrameAsync(ci: ComponentInstance; src: PixMapHandle; 
  }
 function SCAsyncIdle(ci: ComponentInstance): ComponentResult; external name '_SCAsyncIdle';
 const
-	TweenComponentType			= $7477656E (* 'twen' *);
+	TweenComponentType			= FourCharCode('twen');
 
 
 type
@@ -705,7 +705,7 @@ function TweenerDoTween(tc: TweenerComponent; var tr: TweenRecord): ComponentRes
  }
 function TweenerReset(tc: TweenerComponent): ComponentResult; external name '_TweenerReset';
 const
-	TCSourceRefNameType			= $6E616D65 (* 'name' *);
+	TCSourceRefNameType			= FourCharCode('name');
 
 	tcDropFrame					= $01;
 	tc24HourMax					= $02;
@@ -898,8 +898,8 @@ type
 	MovieExportComponent				= ComponentInstance;
 
 const
-	MovieImportType				= $65617420 (* 'eat ' *);
-	MovieExportType				= $73706974 (* 'spit' *);
+	MovieImportType				= FourCharCode('eat ');
+	MovieExportType				= FourCharCode('spit');
 
 	canMovieImportHandles		= $01;
 	canMovieImportFiles			= $02;
@@ -947,11 +947,11 @@ const
 	kMIDIImportWantLyrics		= $08;
 
 
-	kQTMediaConfigResourceType	= $6D636667 (* 'mcfg' *);
+	kQTMediaConfigResourceType	= FourCharCode('mcfg');
 	kQTMediaConfigResourceVersion = 2;
-	kQTMediaGroupResourceType	= $6D677270 (* 'mgrp' *);
+	kQTMediaGroupResourceType	= FourCharCode('mgrp');
 	kQTMediaGroupResourceVersion = 1;
-	kQTBrowserInfoResourceType	= $62727773 (* 'brws' *);
+	kQTBrowserInfoResourceType	= FourCharCode('brws');
 	kQTBrowserInfoResourceVersion = 1;
 
 
@@ -974,83 +974,83 @@ const
 
 
 	{  mime type group constants for groupID field of 'mcfg' resource }
-	kQTMediaConfigStreamGroupID	= $7374726D (* 'strm' *);
-	kQTMediaConfigInteractiveGroupID = $696E7472 (* 'intr' *);
-	kQTMediaConfigVideoGroupID	= $65796573 (* 'eyes' *);
-	kQTMediaConfigAudioGroupID	= $65617273 (* 'ears' *);
-	kQTMediaConfigMPEGGroupID	= $6D706567 (* 'mpeg' *);
-	kQTMediaConfigMP3GroupID	= $6D703320 (* 'mp3 ' *);
-	kQTMediaConfigImageGroupID	= $6F676C65 (* 'ogle' *);
-	kQTMediaConfigMiscGroupID	= $6D697363 (* 'misc' *);
+	kQTMediaConfigStreamGroupID	= FourCharCode('strm');
+	kQTMediaConfigInteractiveGroupID = FourCharCode('intr');
+	kQTMediaConfigVideoGroupID	= FourCharCode('eyes');
+	kQTMediaConfigAudioGroupID	= FourCharCode('ears');
+	kQTMediaConfigMPEGGroupID	= FourCharCode('mpeg');
+	kQTMediaConfigMP3GroupID	= FourCharCode('mp3 ');
+	kQTMediaConfigImageGroupID	= FourCharCode('ogle');
+	kQTMediaConfigMiscGroupID	= FourCharCode('misc');
 
 	{  file type group constants for groupID field of 'mcfg' resource }
-	kQTMediaInfoNetGroup		= $6E657420 (* 'net ' *);
-	kQTMediaInfoWinGroup		= $77696E20 (* 'win ' *);
-	kQTMediaInfoMacGroup		= $6D616320 (* 'mac ' *);
+	kQTMediaInfoNetGroup		= FourCharCode('net ');
+	kQTMediaInfoWinGroup		= FourCharCode('win ');
+	kQTMediaInfoMacGroup		= FourCharCode('mac ');
 	kQTMediaInfoMiscGroup		= $3F3F3F3F;					{  '????' }
 
 
-	kMimeInfoMimeTypeTag		= $6D696D65 (* 'mime' *);
-	kMimeInfoFileExtensionTag	= $65787420 (* 'ext ' *);
-	kMimeInfoDescriptionTag		= $64657363 (* 'desc' *);
-	kMimeInfoGroupTag			= $67726F70 (* 'grop' *);
-	kMimeInfoDoNotOverrideExistingFileTypeAssociation = $6E6F6661 (* 'nofa' *);
+	kMimeInfoMimeTypeTag		= FourCharCode('mime');
+	kMimeInfoFileExtensionTag	= FourCharCode('ext ');
+	kMimeInfoDescriptionTag		= FourCharCode('desc');
+	kMimeInfoGroupTag			= FourCharCode('grop');
+	kMimeInfoDoNotOverrideExistingFileTypeAssociation = FourCharCode('nofa');
 
-	kQTFileTypeAIFF				= $41494646 (* 'AIFF' *);
-	kQTFileTypeAIFC				= $41494643 (* 'AIFC' *);
-	kQTFileTypeDVC				= $64766321 (* 'dvc!' *);
-	kQTFileTypeMIDI				= $4D696469 (* 'Midi' *);
-	kQTFileTypePicture			= $50494354 (* 'PICT' *);
-	kQTFileTypeMovie			= $4D6F6F56 (* 'MooV' *);
-	kQTFileTypeText				= $54455854 (* 'TEXT' *);
-	kQTFileTypeWave				= $57415645 (* 'WAVE' *);
-	kQTFileTypeSystemSevenSound	= $7366696C (* 'sfil' *);
-	kQTFileTypeMuLaw			= $554C4157 (* 'ULAW' *);
-	kQTFileTypeAVI				= $56665720 (* 'VfW ' *);
-	kQTFileTypeSoundDesignerII	= $53643266 (* 'Sd2f' *);
-	kQTFileTypeAudioCDTrack		= $7472616B (* 'trak' *);
-	kQTFileTypePICS				= $50494353 (* 'PICS' *);
-	kQTFileTypeGIF				= $47494666 (* 'GIFf' *);
-	kQTFileTypePNG				= $504E4766 (* 'PNGf' *);
-	kQTFileTypeTIFF				= $54494646 (* 'TIFF' *);
-	kQTFileTypePhotoShop		= $38425053 (* '8BPS' *);
-	kQTFileTypeSGIImage			= $2E534749 (* '.SGI' *);
-	kQTFileTypeBMP				= $424D5066 (* 'BMPf' *);
-	kQTFileTypeJPEG				= $4A504547 (* 'JPEG' *);
-	kQTFileTypeJFIF				= $4A504547 (* 'JPEG' *);
-	kQTFileTypeMacPaint			= $504E5447 (* 'PNTG' *);
-	kQTFileTypeTargaImage		= $54504943 (* 'TPIC' *);
-	kQTFileTypeQuickDrawGXPicture = $71646778 (* 'qdgx' *);
-	kQTFileTypeQuickTimeImage	= $71746966 (* 'qtif' *);
-	kQTFileType3DMF				= $33444D46 (* '3DMF' *);
-	kQTFileTypeFLC				= $464C4320 (* 'FLC ' *);
-	kQTFileTypeFlash			= $5357464C (* 'SWFL' *);
-	kQTFileTypeFlashPix			= $46506978 (* 'FPix' *);
-	kQTFileTypeMP4				= $6D706734 (* 'mpg4' *);
+	kQTFileTypeAIFF				= FourCharCode('AIFF');
+	kQTFileTypeAIFC				= FourCharCode('AIFC');
+	kQTFileTypeDVC				= FourCharCode('dvc!');
+	kQTFileTypeMIDI				= FourCharCode('Midi');
+	kQTFileTypePicture			= FourCharCode('PICT');
+	kQTFileTypeMovie			= FourCharCode('MooV');
+	kQTFileTypeText				= FourCharCode('TEXT');
+	kQTFileTypeWave				= FourCharCode('WAVE');
+	kQTFileTypeSystemSevenSound	= FourCharCode('sfil');
+	kQTFileTypeMuLaw			= FourCharCode('ULAW');
+	kQTFileTypeAVI				= FourCharCode('VfW ');
+	kQTFileTypeSoundDesignerII	= FourCharCode('Sd2f');
+	kQTFileTypeAudioCDTrack		= FourCharCode('trak');
+	kQTFileTypePICS				= FourCharCode('PICS');
+	kQTFileTypeGIF				= FourCharCode('GIFf');
+	kQTFileTypePNG				= FourCharCode('PNGf');
+	kQTFileTypeTIFF				= FourCharCode('TIFF');
+	kQTFileTypePhotoShop		= FourCharCode('8BPS');
+	kQTFileTypeSGIImage			= FourCharCode('.SGI');
+	kQTFileTypeBMP				= FourCharCode('BMPf');
+	kQTFileTypeJPEG				= FourCharCode('JPEG');
+	kQTFileTypeJFIF				= FourCharCode('JPEG');
+	kQTFileTypeMacPaint			= FourCharCode('PNTG');
+	kQTFileTypeTargaImage		= FourCharCode('TPIC');
+	kQTFileTypeQuickDrawGXPicture = FourCharCode('qdgx');
+	kQTFileTypeQuickTimeImage	= FourCharCode('qtif');
+	kQTFileType3DMF				= FourCharCode('3DMF');
+	kQTFileTypeFLC				= FourCharCode('FLC ');
+	kQTFileTypeFlash			= FourCharCode('SWFL');
+	kQTFileTypeFlashPix			= FourCharCode('FPix');
+	kQTFileTypeMP4				= FourCharCode('mpg4');
 
 	{  QTAtomTypes for atoms in import/export settings containers }
-	kQTSettingsDVExportNTSC		= $64766376 (* 'dvcv' *);						{  True is export as NTSC, false is export as PAL. (Boolean) }
-	kQTSettingsDVExportLockedAudio = $6C6F636B (* 'lock' *);					{  True if audio locked to video. (Boolean) }
-	kQTSettingsEffect			= $65666665 (* 'effe' *);						{  Parent atom whose contents are atoms of an effects description }
-	kQTSettingsGraphicsFileImportSequence = $73657175 (* 'sequ' *);				{  Parent atom of graphic file movie import component }
-	kQTSettingsGraphicsFileImportSequenceEnabled = $656E6162 (* 'enab' *);		{  . If true, import numbered image sequence (Boolean) }
-	kQTSettingsMovieExportEnableVideo = $656E7669 (* 'envi' *);					{  Enable exporting of video track (Boolean) }
-	kQTSettingsMovieExportEnableSound = $656E736F (* 'enso' *);					{  Enable exporting of sound track (Boolean) }
-	kQTSettingsMovieExportSaveOptions = $73617665 (* 'save' *);					{  Parent atom of save options }
-	kQTSettingsMovieExportSaveForInternet = $66617374 (* 'fast' *);				{  . Save for Internet }
-	kQTSettingsMovieExportSaveCompressedMovie = $636D706D (* 'cmpm' *);			{  . Save compressed movie resource }
-	kQTSettingsMIDI				= $4D494449 (* 'MIDI' *);						{  MIDI import related container }
-	kQTSettingsMIDISettingFlags	= $73747467 (* 'sttg' *);						{  . MIDI import settings (UInt32) }
-	kQTSettingsText				= $74657874 (* 'text' *);						{  Text related container }
-	kQTSettingsTextDescription	= $64657363 (* 'desc' *);						{  . Text import settings (TextDescription record) }
-	kQTSettingsTextSize			= $73697A65 (* 'size' *);						{  . Width/height to create during import (FixedPoint) }
-	kQTSettingsTextSettingFlags	= $73747467 (* 'sttg' *);						{  . Text export settings (UInt32) }
-	kQTSettingsTextTimeFraction	= $74696D66 (* 'timf' *);						{  . Movie time fraction for export (UInt32) }
-	kQTSettingsTime				= $74696D65 (* 'time' *);						{  Time related container }
-	kQTSettingsTimeDuration		= $64757261 (* 'dura' *);						{  . Time related container }
-	kQTSettingsAudioCDTrack		= $7472616B (* 'trak' *);						{  Audio CD track related container }
-	kQTSettingsAudioCDTrackRateShift = $72736866 (* 'rshf' *);					{  . Rate shift to be performed (SInt16) }
-	kQTSettingsDVExportDVFormat	= $64766366 (* 'dvcf' *);						{  Exported DV Format, DV('dv  ') or DVCPRO('dvp '). (OSType) }
+	kQTSettingsDVExportNTSC		= FourCharCode('dvcv');						{  True is export as NTSC, false is export as PAL. (Boolean) }
+	kQTSettingsDVExportLockedAudio = FourCharCode('lock');					{  True if audio locked to video. (Boolean) }
+	kQTSettingsEffect			= FourCharCode('effe');						{  Parent atom whose contents are atoms of an effects description }
+	kQTSettingsGraphicsFileImportSequence = FourCharCode('sequ');				{  Parent atom of graphic file movie import component }
+	kQTSettingsGraphicsFileImportSequenceEnabled = FourCharCode('enab');		{  . If true, import numbered image sequence (Boolean) }
+	kQTSettingsMovieExportEnableVideo = FourCharCode('envi');					{  Enable exporting of video track (Boolean) }
+	kQTSettingsMovieExportEnableSound = FourCharCode('enso');					{  Enable exporting of sound track (Boolean) }
+	kQTSettingsMovieExportSaveOptions = FourCharCode('save');					{  Parent atom of save options }
+	kQTSettingsMovieExportSaveForInternet = FourCharCode('fast');				{  . Save for Internet }
+	kQTSettingsMovieExportSaveCompressedMovie = FourCharCode('cmpm');			{  . Save compressed movie resource }
+	kQTSettingsMIDI				= FourCharCode('MIDI');						{  MIDI import related container }
+	kQTSettingsMIDISettingFlags	= FourCharCode('sttg');						{  . MIDI import settings (UInt32) }
+	kQTSettingsText				= FourCharCode('text');						{  Text related container }
+	kQTSettingsTextDescription	= FourCharCode('desc');						{  . Text import settings (TextDescription record) }
+	kQTSettingsTextSize			= FourCharCode('size');						{  . Width/height to create during import (FixedPoint) }
+	kQTSettingsTextSettingFlags	= FourCharCode('sttg');						{  . Text export settings (UInt32) }
+	kQTSettingsTextTimeFraction	= FourCharCode('timf');						{  . Movie time fraction for export (UInt32) }
+	kQTSettingsTime				= FourCharCode('time');						{  Time related container }
+	kQTSettingsTimeDuration		= FourCharCode('dura');						{  . Time related container }
+	kQTSettingsAudioCDTrack		= FourCharCode('trak');						{  Audio CD track related container }
+	kQTSettingsAudioCDTrackRateShift = FourCharCode('rshf');					{  . Rate shift to be performed (SInt16) }
+	kQTSettingsDVExportDVFormat	= FourCharCode('dvcf');						{  Exported DV Format, DV('dv  ') or DVCPRO('dvp '). (OSType) }
 
 
 type
@@ -1086,8 +1086,8 @@ type
 
 
 const
-	kQTPresetsListResourceType	= $73746723 (* 'stg#' *);
-	kQTPresetsPlatformListResourceType = $73746770 (* 'stgp' *);
+	kQTPresetsListResourceType	= FourCharCode('stg#');
+	kQTPresetsPlatformListResourceType = FourCharCode('stgp');
 
 	kQTPresetInfoIsDivider		= 1;
 
@@ -1116,7 +1116,7 @@ type
 
 
 const
-	kQTMovieExportSourceInfoResourceType = $73726323 (* 'src#' *);
+	kQTMovieExportSourceInfoResourceType = FourCharCode('src#');
 	kQTMovieExportSourceInfoIsMediaType = $00000001;
 	kQTMovieExportSourceInfoIsMediaCharacteristic = $00000002;
 	kQTMovieExportSourceInfoIsSourceType = $00000004;
@@ -1864,12 +1864,12 @@ function MovieExportNewGetDataAndPropertiesProcs(ci: MovieExportComponent; track
  }
 function MovieExportDisposeGetDataAndPropertiesProcs(ci: MovieExportComponent; getPropertyProc: MovieExportGetPropertyUPP; getDataProc: MovieExportGetDataUPP; refCon: UnivPtr): ComponentResult; external name '_MovieExportDisposeGetDataAndPropertiesProcs';
 const
-	movieExportUseConfiguredSettings = $75636667 (* 'ucfg' *);					{  pointer to Boolean }
-	movieExportWidth			= $77647468 (* 'wdth' *);						{  pointer to Fixed }
-	movieExportHeight			= $68656774 (* 'hegt' *);						{  pointer to Fixed }
-	movieExportDuration			= $64757261 (* 'dura' *);						{  pointer to TimeRecord }
-	movieExportVideoFilter		= $69666C74 (* 'iflt' *);						{  pointer to QTAtomContainer }
-	movieExportTimeScale		= $746D7363 (* 'tmsc' *);						{  pointer to TimeScale }
+	movieExportUseConfiguredSettings = FourCharCode('ucfg');					{  pointer to Boolean }
+	movieExportWidth			= FourCharCode('wdth');						{  pointer to Fixed }
+	movieExportHeight			= FourCharCode('hegt');						{  pointer to Fixed }
+	movieExportDuration			= FourCharCode('dura');						{  pointer to TimeRecord }
+	movieExportVideoFilter		= FourCharCode('iflt');						{  pointer to QTAtomContainer }
+	movieExportTimeScale		= FourCharCode('tmsc');						{  pointer to TimeScale }
 
 	{
 	 *  GraphicsImageImportSetSequenceEnabled()
@@ -1918,8 +1918,8 @@ const
 	pnotComponentWantsEvents	= 1;
 	pnotComponentNeedsNoCache	= 2;
 
-	ShowFilePreviewComponentType = $706E6F74 (* 'pnot' *);
-	CreateFilePreviewComponentType = $706D616B (* 'pmak' *);
+	ShowFilePreviewComponentType = FourCharCode('pnot');
+	CreateFilePreviewComponentType = FourCharCode('pmak');
 
 	{
 	 *  PreviewShowData()
@@ -1967,10 +1967,10 @@ type
 	DataCodecComponent					= ComponentInstance;
 
 const
-	DataCompressorComponentType	= $64636F6D (* 'dcom' *);
-	DataDecompressorComponentType = $64646563 (* 'ddec' *);
-	AppleDataCompressorSubType	= $61646563 (* 'adec' *);
-	zlibDataCompressorSubType	= $7A6C6962 (* 'zlib' *);
+	DataCompressorComponentType	= FourCharCode('dcom');
+	DataDecompressorComponentType = FourCharCode('ddec');
+	AppleDataCompressorSubType	= FourCharCode('adec');
+	zlibDataCompressorSubType	= FourCharCode('zlib');
 
 
 	{	* These are DataCodec procedures *	}
@@ -2089,12 +2089,12 @@ type
 	{  Data reference extensions }
 
 const
-	kDataRefExtensionChokeSpeed	= $63686F6B (* 'chok' *);
-	kDataRefExtensionFileName	= $666E616D (* 'fnam' *);
-	kDataRefExtensionMIMEType	= $6D696D65 (* 'mime' *);
-	kDataRefExtensionMacOSFileType = $66747970 (* 'ftyp' *);
-	kDataRefExtensionInitializationData = $64617461 (* 'data' *);
-	kDataRefExtensionQuickTimeMediaType = $6D747970 (* 'mtyp' *);
+	kDataRefExtensionChokeSpeed	= FourCharCode('chok');
+	kDataRefExtensionFileName	= FourCharCode('fnam');
+	kDataRefExtensionMIMEType	= FourCharCode('mime');
+	kDataRefExtensionMacOSFileType = FourCharCode('ftyp');
+	kDataRefExtensionInitializationData = FourCharCode('data');
+	kDataRefExtensionQuickTimeMediaType = FourCharCode('mtyp');
 
 	kDataHChokeToMovieDataRate	= $01;							{  param is 0 }
 	kDataHChokeToParam			= $02;							{  param is bytes per second }
@@ -2118,7 +2118,7 @@ type
 	DataHVolumeList						= ^DataHVolumeListPtr;
 
 const
-	kDataHExtendedSchedule		= $78746E64 (* 'xtnd' *);
+	kDataHExtendedSchedule		= FourCharCode('xtnd');
 
 
 type
@@ -2140,9 +2140,9 @@ const
 
 
 	{  Types for DataHGetFileTypeOrdering }
-	kDataHFileTypeMacOSFileType	= $66747970 (* 'ftyp' *);
-	kDataHFileTypeExtension		= $66657874 (* 'fext' *);
-	kDataHFileTypeMIME			= $6D696D65 (* 'mime' *);
+	kDataHFileTypeMacOSFileType	= FourCharCode('ftyp');
+	kDataHFileTypeExtension		= FourCharCode('fext');
+	kDataHFileTypeMIME			= FourCharCode('mime');
 
 
 type
@@ -2896,7 +2896,7 @@ function DataHSetTimeHints(dh: DataHandler; flags: SInt32; bandwidthPriority: SI
 { Standard type for video digitizers }
 
 const
-	videoDigitizerComponentType	= $76646967 (* 'vdig' *);
+	videoDigitizerComponentType	= FourCharCode('vdig');
 	vdigInterfaceRev			= 2;
 
 	{	 Input Format Standards 	}
@@ -4055,8 +4055,8 @@ function VDGetUniqueIDs(ci: VideoDigitizerComponent; var outDeviceID: UInt64; va
  }
 function VDSelectUniqueIDs(ci: VideoDigitizerComponent; (*const*) var inDeviceID: UInt64; (*const*) var inInputID: UInt64): VideoDigitizerError; external name '_VDSelectUniqueIDs';
 const
-	xmlParseComponentType		= $70617273 (* 'pars' *);
-	xmlParseComponentSubType	= $786D6C20 (* 'xml ' *);
+	xmlParseComponentType		= FourCharCode('pars');
+	xmlParseComponentSubType	= FourCharCode('xml ');
 
 	xmlIdentifierInvalid		= 0;
 	xmlIdentifierUnrecognized	= $FFFFFFFF;
@@ -4579,11 +4579,11 @@ type
 	SGChannel							= ComponentInstance;
 
 const
-	SeqGrabComponentType		= $62617267 (* 'barg' *);
-	SeqGrabChannelType			= $73676368 (* 'sgch' *);
-	SeqGrabPanelType			= $7367706E (* 'sgpn' *);
-	SeqGrabCompressionPanelType	= $636D7072 (* 'cmpr' *);
-	SeqGrabSourcePanelType		= $736F7572 (* 'sour' *);
+	SeqGrabComponentType		= FourCharCode('barg');
+	SeqGrabChannelType			= FourCharCode('sgch');
+	SeqGrabPanelType			= FourCharCode('sgpn');
+	SeqGrabCompressionPanelType	= FourCharCode('cmpr');
+	SeqGrabSourcePanelType		= FourCharCode('sour');
 
 	seqGrabToDisk				= 1;
 	seqGrabToMemory				= 2;
@@ -6608,45 +6608,45 @@ function SGGetInstrument(c: SGChannel; var td: ToneDescription): ComponentResult
  }
 function SGSetInstrument(c: SGChannel; var td: ToneDescription): ComponentResult; external name '_SGSetInstrument';
 const
-	sgChannelAtom				= $6368616E (* 'chan' *);
-	sgChannelSettingsAtom		= $63746F6D (* 'ctom' *);
-	sgChannelDescription		= $63647363 (* 'cdsc' *);
-	sgChannelSettings			= $63736574 (* 'cset' *);
+	sgChannelAtom				= FourCharCode('chan');
+	sgChannelSettingsAtom		= FourCharCode('ctom');
+	sgChannelDescription		= FourCharCode('cdsc');
+	sgChannelSettings			= FourCharCode('cset');
 
-	sgDeviceNameType			= $6E616D65 (* 'name' *);
-	sgDeviceDisplayNameType		= $646E616D (* 'dnam' *);
-	sgDeviceUIDType				= $64756964 (* 'duid' *);
-	sgInputUIDType				= $69756964 (* 'iuid' *);
-	sgUsageType					= $75736520 (* 'use ' *);
-	sgPlayFlagsType				= $706C7966 (* 'plyf' *);
-	sgClipType					= $636C6970 (* 'clip' *);
-	sgMatrixType				= $6D747278 (* 'mtrx' *);
-	sgVolumeType				= $766F6C75 (* 'volu' *);
+	sgDeviceNameType			= FourCharCode('name');
+	sgDeviceDisplayNameType		= FourCharCode('dnam');
+	sgDeviceUIDType				= FourCharCode('duid');
+	sgInputUIDType				= FourCharCode('iuid');
+	sgUsageType					= FourCharCode('use ');
+	sgPlayFlagsType				= FourCharCode('plyf');
+	sgClipType					= FourCharCode('clip');
+	sgMatrixType				= FourCharCode('mtrx');
+	sgVolumeType				= FourCharCode('volu');
 
-	sgPanelSettingsAtom			= $70746F6D (* 'ptom' *);
-	sgPanelDescription			= $70647363 (* 'pdsc' *);
-	sgPanelSettings				= $70736574 (* 'pset' *);
+	sgPanelSettingsAtom			= FourCharCode('ptom');
+	sgPanelDescription			= FourCharCode('pdsc');
+	sgPanelSettings				= FourCharCode('pset');
 
-	sgcSoundCompressionType		= $73636D70 (* 'scmp' *);
-	sgcSoundCodecSettingsType	= $63646563 (* 'cdec' *);
-	sgcSoundSampleRateType		= $73726174 (* 'srat' *);
-	sgcSoundChannelCountType	= $7363686E (* 'schn' *);
-	sgcSoundSampleSizeType		= $7373697A (* 'ssiz' *);
-	sgcSoundInputType			= $73696E70 (* 'sinp' *);
-	sgcSoundGainType			= $6761696E (* 'gain' *);
+	sgcSoundCompressionType		= FourCharCode('scmp');
+	sgcSoundCodecSettingsType	= FourCharCode('cdec');
+	sgcSoundSampleRateType		= FourCharCode('srat');
+	sgcSoundChannelCountType	= FourCharCode('schn');
+	sgcSoundSampleSizeType		= FourCharCode('ssiz');
+	sgcSoundInputType			= FourCharCode('sinp');
+	sgcSoundGainType			= FourCharCode('gain');
 
-	sgcVideoHueType				= $68756520 (* 'hue ' *);
-	sgcVideoSaturationType		= $73617472 (* 'satr' *);
-	sgcVideoContrastType		= $74727374 (* 'trst' *);
-	sgcVideoSharpnessType		= $73687270 (* 'shrp' *);
-	sgcVideoBrigtnessType		= $62726974 (* 'brit' *);
-	sgcVideoBlackLevelType		= $626C6B6C (* 'blkl' *);
-	sgcVideoWhiteLevelType		= $7768746C (* 'whtl' *);
-	sgcVideoInputType			= $76696E70 (* 'vinp' *);
-	sgcVideoFormatType			= $76737464 (* 'vstd' *);
-	sgcVideoFilterType			= $76666C74 (* 'vflt' *);
-	sgcVideoRectType			= $76726374 (* 'vrct' *);
-	sgcVideoDigitizerType		= $76646967 (* 'vdig' *);
+	sgcVideoHueType				= FourCharCode('hue ');
+	sgcVideoSaturationType		= FourCharCode('satr');
+	sgcVideoContrastType		= FourCharCode('trst');
+	sgcVideoSharpnessType		= FourCharCode('shrp');
+	sgcVideoBrigtnessType		= FourCharCode('brit');
+	sgcVideoBlackLevelType		= FourCharCode('blkl');
+	sgcVideoWhiteLevelType		= FourCharCode('whtl');
+	sgcVideoInputType			= FourCharCode('vinp');
+	sgcVideoFormatType			= FourCharCode('vstd');
+	sgcVideoFilterType			= FourCharCode('vflt');
+	sgcVideoRectType			= FourCharCode('vrct');
+	sgcVideoDigitizerType		= FourCharCode('vdig');
 
 
 type
@@ -6654,8 +6654,8 @@ type
 	{  Component type and subtype enumerations }
 
 const
-	QTVideoOutputComponentType	= $766F7574 (* 'vout' *);
-	QTVideoOutputComponentBaseSubType = $62617365 (* 'base' *);
+	QTVideoOutputComponentType	= FourCharCode('vout');
+	QTVideoOutputComponentBaseSubType = FourCharCode('base');
 
 
 	{  QTVideoOutput Component flags }
@@ -6664,17 +6664,17 @@ const
 
 	{  Display mode atom types }
 
-	kQTVODisplayModeItem		= $71646D69 (* 'qdmi' *);
-	kQTVODimensions				= $64696D6E (* 'dimn' *);						{  atom contains two longs - pixel count - width, height }
-	kQTVOResolution				= $7265736C (* 'resl' *);						{  atom contains two Fixed - hRes, vRes in dpi }
-	kQTVORefreshRate			= $72656672 (* 'refr' *);						{  atom contains one Fixed - refresh rate in Hz }
-	kQTVOPixelType				= $7069786C (* 'pixl' *);						{  atom contains one OSType - pixel format of mode }
-	kQTVOName					= $6E616D65 (* 'name' *);						{  atom contains string (no length byte) - name of mode for display to user }
-	kQTVODecompressors			= $6465636F (* 'deco' *);						{  atom contains other atoms indicating supported decompressors }
+	kQTVODisplayModeItem		= FourCharCode('qdmi');
+	kQTVODimensions				= FourCharCode('dimn');						{  atom contains two longs - pixel count - width, height }
+	kQTVOResolution				= FourCharCode('resl');						{  atom contains two Fixed - hRes, vRes in dpi }
+	kQTVORefreshRate			= FourCharCode('refr');						{  atom contains one Fixed - refresh rate in Hz }
+	kQTVOPixelType				= FourCharCode('pixl');						{  atom contains one OSType - pixel format of mode }
+	kQTVOName					= FourCharCode('name');						{  atom contains string (no length byte) - name of mode for display to user }
+	kQTVODecompressors			= FourCharCode('deco');						{  atom contains other atoms indicating supported decompressors }
 																{  kQTVODecompressors sub-atoms }
-	kQTVODecompressorType		= $64657479 (* 'dety' *);						{  atom contains one OSType - decompressor type code }
-	kQTVODecompressorContinuous	= $636F6E74 (* 'cont' *);						{  atom contains one Boolean - true if this type is displayed continuously }
-	kQTVODecompressorComponent	= $636D7074 (* 'cmpt' *);						{  atom contains one Component - component id of decompressor }
+	kQTVODecompressorType		= FourCharCode('dety');						{  atom contains one OSType - decompressor type code }
+	kQTVODecompressorContinuous	= FourCharCode('cont');						{  atom contains one Boolean - true if this type is displayed continuously }
+	kQTVODecompressorComponent	= FourCharCode('cmpt');						{  atom contains one Component - component id of decompressor }
 
 	{	* These are QTVideoOutput procedures *	}
 	{

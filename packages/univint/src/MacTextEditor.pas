@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit MacTextEditor;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -465,13 +465,13 @@ type
 type
 	TXNFileType = OSType;
 const
-	kTXNTextensionFile = $7478746E (* 'txtn' *);
-	kTXNTextFile = $54455854 (* 'TEXT' *);
-	kTXNPictureFile = $50494354 (* 'PICT' *);
-	kTXNMovieFile = $4D6F6F56 (* 'MooV' *);
-	kTXNSoundFile = $7366696C (* 'sfil' *);
-	kTXNAIFFFile = $41494646 (* 'AIFF' *);
-	kTXNUnicodeTextFile = $75747874 (* 'utxt' *);
+	kTXNTextensionFile = FourCharCode('txtn');
+	kTXNTextFile = FourCharCode('TEXT');
+	kTXNPictureFile = FourCharCode('PICT');
+	kTXNMovieFile = FourCharCode('MooV');
+	kTXNSoundFile = FourCharCode('sfil');
+	kTXNAIFFFile = FourCharCode('AIFF');
+	kTXNUnicodeTextFile = FourCharCode('utxt');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Text Encoding Types                                                                               }
@@ -498,13 +498,13 @@ type
 	TXNDataTypePtr = ^TXNDataType;
 	TXNDataType = OSType;
 const
-	kTXNTextData = $54455854 (* 'TEXT' *);
-	kTXNPictureData = $50494354 (* 'PICT' *);
-	kTXNMovieData = $6D6F6F76 (* 'moov' *);
-	kTXNSoundData = $736E6420 (* 'snd ' *);
-	kTXNUnicodeTextData = $75747874 (* 'utxt' *);
-	kTXNTextAndMultimediaData = $7478746E (* 'txtn' *);
-	kTXNRichTextFormatData = $52544620 (* 'RTF ' *);
+	kTXNTextData = FourCharCode('TEXT');
+	kTXNPictureData = FourCharCode('PICT');
+	kTXNMovieData = FourCharCode('moov');
+	kTXNSoundData = FourCharCode('snd ');
+	kTXNUnicodeTextData = FourCharCode('utxt');
+	kTXNTextAndMultimediaData = FourCharCode('txtn');
+	kTXNRichTextFormatData = FourCharCode('RTF ');
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -886,31 +886,31 @@ type
 	TXNControlTag = FourCharCode;
 	TXNControlTagPtr			= ^TXNControlTag; { when a VAR xx: TXNControlTag parameter can be nil, it is changed to xx: TXNControlTagPtr }
 const
-	kTXNLineDirectionTag = $6C6E6472 (* 'lndr' *); { Not functional when userIO is not allowed   }
-	kTXNJustificationTag = $6A757374 (* 'just' *); { Not functional when userIO is not allowed   }
-	kTXNIOPrivilegesTag = $696F7076 (* 'iopv' *);
-	kTXNSelectionStateTag = $736C7374 (* 'slst' *);
-	kTXNInlineStateTag = $696E7374 (* 'inst' *);
-	kTXNWordWrapStateTag = $77777273 (* 'wwrs' *);
-	kTXNKeyboardSyncStateTag = $6B627379 (* 'kbsy' *);
-	kTXNAutoIndentStateTag = $6175696E (* 'auin' *);
-	kTXNTabSettingsTag = $74616273 (* 'tabs' *);
-	kTXNRefConTag = $7266636E (* 'rfcn' *);
-	kTXNMarginsTag = $6D617267 (* 'marg' *);
-	kTXNFlattenMoviesTag = $666C6174 (* 'flat' *);
-	kTXNDoFontSubstitution = $66537562 (* 'fSub' *); { Note: This can degrade performance greatly in the case of large documents }
-	kTXNNoUserIOTag = $6E75696F (* 'nuio' *);
+	kTXNLineDirectionTag = FourCharCode('lndr'); { Not functional when userIO is not allowed   }
+	kTXNJustificationTag = FourCharCode('just'); { Not functional when userIO is not allowed   }
+	kTXNIOPrivilegesTag = FourCharCode('iopv');
+	kTXNSelectionStateTag = FourCharCode('slst');
+	kTXNInlineStateTag = FourCharCode('inst');
+	kTXNWordWrapStateTag = FourCharCode('wwrs');
+	kTXNKeyboardSyncStateTag = FourCharCode('kbsy');
+	kTXNAutoIndentStateTag = FourCharCode('auin');
+	kTXNTabSettingsTag = FourCharCode('tabs');
+	kTXNRefConTag = FourCharCode('rfcn');
+	kTXNMarginsTag = FourCharCode('marg');
+	kTXNFlattenMoviesTag = FourCharCode('flat');
+	kTXNDoFontSubstitution = FourCharCode('fSub'); { Note: This can degrade performance greatly in the case of large documents }
+	kTXNNoUserIOTag = FourCharCode('nuio');
 
   {
    * In Mac OS X version 10.4 and later this constant is deprecated. 
    * The functions TXNSetEventTarget and TXNGetEventTarget should be
    * used instead.
    }
-	kTXNUseCarbonEvents = $63626362 (* 'cbcb' *);
-	kTXNDrawSelectionWhenInactiveTag = $64736C6E (* 'dsln' *);
-	kTXNDisableDragAndDropTag = $64726167 (* 'drag' *);
-	kTXNSingleLevelUndoTag = $756E646F (* 'undo' *); { Set this state during creation of the object.  Switching Undo level back and forth is not recommended.}
-	kTXNVisibilityTag = $76697362 (* 'visb' *); { Set the visibility state of the object }
+	kTXNUseCarbonEvents = FourCharCode('cbcb');
+	kTXNDrawSelectionWhenInactiveTag = FourCharCode('dsln');
+	kTXNDisableDragAndDropTag = FourCharCode('drag');
+	kTXNSingleLevelUndoTag = FourCharCode('undo'); { Set this state during creation of the object.  Switching Undo level back and forth is not recommended.}
+	kTXNVisibilityTag = FourCharCode('visb'); { Set the visibility state of the object }
 
   {
    * In Mac OS X version 10.4 or later use this tag to disable and
@@ -924,7 +924,7 @@ const
    * autoscroll behaviour.  See the discussion below for the enum
    * TXNAutoScrollBehavior for the types of autoscrolling supported.
    }
-	kTXNAutoScrollBehaviorTag = $73626576 (* 'sbev' *);
+	kTXNAutoScrollBehaviorTag = FourCharCode('sbev');
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -1065,8 +1065,8 @@ const
 { Useful for saving document.                                                                          }
 
 const
-	kTXNSingleStylePerTextDocumentResType = $4D505352 (* 'MPSR' *);
-	kTXNMultipleStylesPerTextDocumentResType = $7374796C (* 'styl' *);
+	kTXNSingleStylePerTextDocumentResType = FourCharCode('MPSR');
+	kTXNMultipleStylesPerTextDocumentResType = FourCharCode('styl');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ URL Constants                                                                                     }
@@ -1096,15 +1096,15 @@ const
 type
 	TXNTypeRunAttributes = FourCharCode;
 const
-	kTXNQDFontNameAttribute = $666E746E (* 'fntn' *);
-	kTXNQDFontFamilyIDAttribute = $666F6E74 (* 'font' *);
-	kTXNQDFontStyleAttribute = $66616365 (* 'face' *);
-	kTXNQDFontColorAttribute = $6B6C6F72 (* 'klor' *);
-	kTXNTextEncodingAttribute = $656E6364 (* 'encd' *);
-	kTXNATSUIFontFeaturesAttribute = $61746665 (* 'atfe' *);
-	kTXNATSUIFontVariationsAttribute = $61747661 (* 'atva' *);
-	kTXNURLAttribute = $75726C61 (* 'urla' *);
-	kTXNATSUIStyle = $6173746C (* 'astl' *);
+	kTXNQDFontNameAttribute = FourCharCode('fntn');
+	kTXNQDFontFamilyIDAttribute = FourCharCode('font');
+	kTXNQDFontStyleAttribute = FourCharCode('face');
+	kTXNQDFontColorAttribute = FourCharCode('klor');
+	kTXNTextEncodingAttribute = FourCharCode('encd');
+	kTXNATSUIFontFeaturesAttribute = FourCharCode('atfe');
+	kTXNATSUIFontVariationsAttribute = FourCharCode('atva');
+	kTXNURLAttribute = FourCharCode('urla');
+	kTXNATSUIStyle = FourCharCode('astl');
 
 type
 	TXNTypeRunAttributeSizes = ByteCount;
@@ -5617,7 +5617,7 @@ function TXNGetAccessibilityHIObject( iTXNObject: TXNObject; var oHIObjectRef: H
 {$endc}
 { ControlKind}
 const
-	kControlKindHITextView = $68697478 (* 'hitx' *);
+	kControlKindHITextView = FourCharCode('hitx');
 
 
 {
@@ -5828,7 +5828,7 @@ const
 }
 
 const
-	kTXNQDFontSizeAttribute = $73697A65 (* 'size' *);
+	kTXNQDFontSizeAttribute = FourCharCode('size');
 
 const
 	kTXNQDFontSizeAttributeSize = SizeOf(SInt16);
@@ -5858,7 +5858,7 @@ const
 }
 
 const
-	kTXNDrawCaretWhenInactiveTag = $64637274 (* 'dcrt' *); { Caret will never be drawn when inactive.}
+	kTXNDrawCaretWhenInactiveTag = FourCharCode('dcrt'); { Caret will never be drawn when inactive.}
 
 const
 	kTXNDontDrawCaretWhenInactive = false;

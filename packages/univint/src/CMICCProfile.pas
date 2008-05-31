@@ -17,7 +17,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -25,12 +25,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CMICCProfile;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -122,7 +122,7 @@ const
 	cmCurrentProfileMajorVersion = $02000000;
 
 	{	 magic cookie number for anonymous file ID 	}
-	cmMagicNumber				= $61637370 (* 'acsp' *);
+	cmMagicNumber				= FourCharCode('acsp');
 
 
 	{	**********************************************************************	}
@@ -181,117 +181,117 @@ const
 	cmNumHeaderElements			= 10;
 
 	{	 public tags 	}
-	cmAToB0Tag					= $41324230 (* 'A2B0' *);
-	cmAToB1Tag					= $41324231 (* 'A2B1' *);
-	cmAToB2Tag					= $41324232 (* 'A2B2' *);
-	cmBlueColorantTag			= $6258595A (* 'bXYZ' *);
-	cmBlueTRCTag				= $62545243 (* 'bTRC' *);
-	cmBToA0Tag					= $42324130 (* 'B2A0' *);
-	cmBToA1Tag					= $42324131 (* 'B2A1' *);
-	cmBToA2Tag					= $42324132 (* 'B2A2' *);
-	cmCalibrationDateTimeTag	= $63616C74 (* 'calt' *);
-	cmChromaticAdaptationTag	= $63686164 (* 'chad' *);
-	cmCharTargetTag				= $74617267 (* 'targ' *);
-	cmCopyrightTag				= $63707274 (* 'cprt' *);
-	cmDeviceMfgDescTag			= $646D6E64 (* 'dmnd' *);
-	cmDeviceModelDescTag		= $646D6464 (* 'dmdd' *);
-	cmGamutTag					= $67616D74 (* 'gamt' *);
-	cmGrayTRCTag				= $6B545243 (* 'kTRC' *);
-	cmGreenColorantTag			= $6758595A (* 'gXYZ' *);
-	cmGreenTRCTag				= $67545243 (* 'gTRC' *);
-	cmLuminanceTag				= $6C756D69 (* 'lumi' *);
-	cmMeasurementTag			= $6D656173 (* 'meas' *);
-	cmMediaBlackPointTag		= $626B7074 (* 'bkpt' *);
-	cmMediaWhitePointTag		= $77747074 (* 'wtpt' *);
-	cmNamedColorTag				= $6E636F6C (* 'ncol' *);
-	cmNamedColor2Tag			= $6E636C32 (* 'ncl2' *);
-	cmPreview0Tag				= $70726530 (* 'pre0' *);
-	cmPreview1Tag				= $70726531 (* 'pre1' *);
-	cmPreview2Tag				= $70726532 (* 'pre2' *);
-	cmProfileDescriptionTag		= $64657363 (* 'desc' *);
-	cmProfileSequenceDescTag	= $70736571 (* 'pseq' *);
-	cmPS2CRD0Tag				= $70736430 (* 'psd0' *);
-	cmPS2CRD1Tag				= $70736431 (* 'psd1' *);
-	cmPS2CRD2Tag				= $70736432 (* 'psd2' *);
-	cmPS2CRD3Tag				= $70736433 (* 'psd3' *);
-	cmPS2CSATag					= $70733273 (* 'ps2s' *);
-	cmPS2RenderingIntentTag		= $70733269 (* 'ps2i' *);
-	cmRedColorantTag			= $7258595A (* 'rXYZ' *);
-	cmRedTRCTag					= $72545243 (* 'rTRC' *);
-	cmScreeningDescTag			= $73637264 (* 'scrd' *);
-	cmScreeningTag				= $7363726E (* 'scrn' *);
-	cmTechnologyTag				= $74656368 (* 'tech' *);
-	cmUcrBgTag					= $62666420 (* 'bfd ' *);
-	cmViewingConditionsDescTag	= $76756564 (* 'vued' *);
-	cmViewingConditionsTag		= $76696577 (* 'view' *);
+	cmAToB0Tag					= FourCharCode('A2B0');
+	cmAToB1Tag					= FourCharCode('A2B1');
+	cmAToB2Tag					= FourCharCode('A2B2');
+	cmBlueColorantTag			= FourCharCode('bXYZ');
+	cmBlueTRCTag				= FourCharCode('bTRC');
+	cmBToA0Tag					= FourCharCode('B2A0');
+	cmBToA1Tag					= FourCharCode('B2A1');
+	cmBToA2Tag					= FourCharCode('B2A2');
+	cmCalibrationDateTimeTag	= FourCharCode('calt');
+	cmChromaticAdaptationTag	= FourCharCode('chad');
+	cmCharTargetTag				= FourCharCode('targ');
+	cmCopyrightTag				= FourCharCode('cprt');
+	cmDeviceMfgDescTag			= FourCharCode('dmnd');
+	cmDeviceModelDescTag		= FourCharCode('dmdd');
+	cmGamutTag					= FourCharCode('gamt');
+	cmGrayTRCTag				= FourCharCode('kTRC');
+	cmGreenColorantTag			= FourCharCode('gXYZ');
+	cmGreenTRCTag				= FourCharCode('gTRC');
+	cmLuminanceTag				= FourCharCode('lumi');
+	cmMeasurementTag			= FourCharCode('meas');
+	cmMediaBlackPointTag		= FourCharCode('bkpt');
+	cmMediaWhitePointTag		= FourCharCode('wtpt');
+	cmNamedColorTag				= FourCharCode('ncol');
+	cmNamedColor2Tag			= FourCharCode('ncl2');
+	cmPreview0Tag				= FourCharCode('pre0');
+	cmPreview1Tag				= FourCharCode('pre1');
+	cmPreview2Tag				= FourCharCode('pre2');
+	cmProfileDescriptionTag		= FourCharCode('desc');
+	cmProfileSequenceDescTag	= FourCharCode('pseq');
+	cmPS2CRD0Tag				= FourCharCode('psd0');
+	cmPS2CRD1Tag				= FourCharCode('psd1');
+	cmPS2CRD2Tag				= FourCharCode('psd2');
+	cmPS2CRD3Tag				= FourCharCode('psd3');
+	cmPS2CSATag					= FourCharCode('ps2s');
+	cmPS2RenderingIntentTag		= FourCharCode('ps2i');
+	cmRedColorantTag			= FourCharCode('rXYZ');
+	cmRedTRCTag					= FourCharCode('rTRC');
+	cmScreeningDescTag			= FourCharCode('scrd');
+	cmScreeningTag				= FourCharCode('scrn');
+	cmTechnologyTag				= FourCharCode('tech');
+	cmUcrBgTag					= FourCharCode('bfd ');
+	cmViewingConditionsDescTag	= FourCharCode('vued');
+	cmViewingConditionsTag		= FourCharCode('view');
 
 	{	 custom tags 	}
-	cmPS2CRDVMSizeTag			= $7073766D (* 'psvm' *);
-	cmVideoCardGammaTag			= $76636774 (* 'vcgt' *);
-	cmMakeAndModelTag			= $6D6D6F64 (* 'mmod' *);
-	cmProfileDescriptionMLTag	= $6473636D (* 'dscm' *);
-	cmNativeDisplayInfoTag      = $6E64696E (* 'ndin' *);
+	cmPS2CRDVMSizeTag			= FourCharCode('psvm');
+	cmVideoCardGammaTag			= FourCharCode('vcgt');
+	cmMakeAndModelTag			= FourCharCode('mmod');
+	cmProfileDescriptionMLTag	= FourCharCode('dscm');
+	cmNativeDisplayInfoTag      = FourCharCode('ndin');
 
 	{	 public type signatures 	}
-	cmSigCrdInfoType            = $63726469 (* 'crdi' *);
-	cmSigCurveType				= $63757276 (* 'curv' *);
-	cmSigDataType				= $64617461 (* 'data' *);
-	cmSigDateTimeType			= $6474696D (* 'dtim' *);
-	cmSigLut16Type				= $6D667432 (* 'mft2' *);
-	cmSigLut8Type				= $6D667431 (* 'mft1' *);
-	cmSigMeasurementType		= $6D656173 (* 'meas' *);
-	cmSigMultiFunctA2BType      = $6D414220 (* 'mAB ' *);
-	cmSigMultiFunctB2AType      = $6D424120 (* 'mBA ' *);
-	cmSigNamedColorType			= $6E636F6C (* 'ncol' *);
-	cmSigNamedColor2Type		= $6E636C32 (* 'ncl2' *);
-	cmSigParametricCurveType    = $70617261 (* 'para' *);
-	cmSigProfileDescriptionType	= $64657363 (* 'desc' *);
-	cmSigProfileSequenceDescType = $70736571 (* 'pseq' *);
-	cmSigScreeningType			= $7363726E (* 'scrn' *);
-	cmSigS15Fixed16Type			= $73663332 (* 'sf32' *);
-	cmSigSignatureType			= $73696720 (* 'sig ' *);
-	cmSigTextType				= $74657874 (* 'text' *);
-	cmSigU16Fixed16Type			= $75663332 (* 'uf32' *);
-	cmSigU1Fixed15Type			= $75663136 (* 'uf16' *);
-	cmSigUInt8Type				= $75693038 (* 'ui08' *);
-	cmSigUInt16Type				= $75693136 (* 'ui16' *);
-	cmSigUInt32Type				= $75693332 (* 'ui32' *);
-	cmSigUInt64Type				= $75693634 (* 'ui64' *);
-	cmSigUcrBgType				= $62666420 (* 'bfd ' *);
-	cmSigUnicodeTextType		= $75747874 (* 'utxt' *);
-	cmSigViewingConditionsType	= $76696577 (* 'view' *);
-	cmSigXYZType				= $58595A20 (* 'XYZ ' *);
+	cmSigCrdInfoType            = FourCharCode('crdi');
+	cmSigCurveType				= FourCharCode('curv');
+	cmSigDataType				= FourCharCode('data');
+	cmSigDateTimeType			= FourCharCode('dtim');
+	cmSigLut16Type				= FourCharCode('mft2');
+	cmSigLut8Type				= FourCharCode('mft1');
+	cmSigMeasurementType		= FourCharCode('meas');
+	cmSigMultiFunctA2BType      = FourCharCode('mAB ');
+	cmSigMultiFunctB2AType      = FourCharCode('mBA ');
+	cmSigNamedColorType			= FourCharCode('ncol');
+	cmSigNamedColor2Type		= FourCharCode('ncl2');
+	cmSigParametricCurveType    = FourCharCode('para');
+	cmSigProfileDescriptionType	= FourCharCode('desc');
+	cmSigProfileSequenceDescType = FourCharCode('pseq');
+	cmSigScreeningType			= FourCharCode('scrn');
+	cmSigS15Fixed16Type			= FourCharCode('sf32');
+	cmSigSignatureType			= FourCharCode('sig ');
+	cmSigTextType				= FourCharCode('text');
+	cmSigU16Fixed16Type			= FourCharCode('uf32');
+	cmSigU1Fixed15Type			= FourCharCode('uf16');
+	cmSigUInt8Type				= FourCharCode('ui08');
+	cmSigUInt16Type				= FourCharCode('ui16');
+	cmSigUInt32Type				= FourCharCode('ui32');
+	cmSigUInt64Type				= FourCharCode('ui64');
+	cmSigUcrBgType				= FourCharCode('bfd ');
+	cmSigUnicodeTextType		= FourCharCode('utxt');
+	cmSigViewingConditionsType	= FourCharCode('view');
+	cmSigXYZType				= FourCharCode('XYZ ');
 
 	{	 custom type signatures 	}
-	cmSigPS2CRDVMSizeType		= $7073766D (* 'psvm' *);
-	cmSigVideoCardGammaType		= $76636774 (* 'vcgt' *);
-	cmSigMakeAndModelType		= $6D6D6F64 (* 'mmod' *);
-	cmSigNativeDisplayInfoType  = $6E64696E (* 'ndin' *);
-	cmSigMultiLocalizedUniCodeType = $6D6C7563 (* 'mluc' *);
+	cmSigPS2CRDVMSizeType		= FourCharCode('psvm');
+	cmSigVideoCardGammaType		= FourCharCode('vcgt');
+	cmSigMakeAndModelType		= FourCharCode('mmod');
+	cmSigNativeDisplayInfoType  = FourCharCode('ndin');
+	cmSigMultiLocalizedUniCodeType = FourCharCode('mluc');
 
 	{	 technology tag descriptions 	}
-	cmTechnologyDigitalCamera   = $6463616D (* 'dcam' *);
-	cmTechnologyFilmScanner		= $6673636E (* 'fscn' *);
-	cmTechnologyReflectiveScanner = $7273636E (* 'rscn' *);
-	cmTechnologyInkJetPrinter	= $696A6574 (* 'ijet' *);
-	cmTechnologyThermalWaxPrinter = $74776178 (* 'twax' *);
-	cmTechnologyElectrophotographicPrinter = $6570686F (* 'epho' *);
-	cmTechnologyElectrostaticPrinter = $65737461 (* 'esta' *);
-	cmTechnologyDyeSublimationPrinter = $64737562 (* 'dsub' *);
-	cmTechnologyPhotographicPaperPrinter = $7270686F (* 'rpho' *);
-	cmTechnologyFilmWriter		= $6670726E (* 'fprn' *);
-	cmTechnologyVideoMonitor	= $7669646D (* 'vidm' *);
-	cmTechnologyVideoCamera		= $76696463 (* 'vidc' *);
-	cmTechnologyProjectionTelevision = $706A7476 (* 'pjtv' *);
-	cmTechnologyCRTDisplay		= $43525420 (* 'CRT ' *);
-	cmTechnologyPMDisplay		= $504D4420 (* 'PMD ' *);
-	cmTechnologyAMDisplay		= $414D4420 (* 'AMD ' *);
-	cmTechnologyPhotoCD			= $4B504344 (* 'KPCD' *);
-	cmTechnologyPhotoImageSetter = $696D6773 (* 'imgs' *);
-	cmTechnologyGravure			= $67726176 (* 'grav' *);
-	cmTechnologyOffsetLithography = $6F666673 (* 'offs' *);
-	cmTechnologySilkscreen		= $73696C6B (* 'silk' *);
-	cmTechnologyFlexography		= $666C6578 (* 'flex' *);
+	cmTechnologyDigitalCamera   = FourCharCode('dcam');
+	cmTechnologyFilmScanner		= FourCharCode('fscn');
+	cmTechnologyReflectiveScanner = FourCharCode('rscn');
+	cmTechnologyInkJetPrinter	= FourCharCode('ijet');
+	cmTechnologyThermalWaxPrinter = FourCharCode('twax');
+	cmTechnologyElectrophotographicPrinter = FourCharCode('epho');
+	cmTechnologyElectrostaticPrinter = FourCharCode('esta');
+	cmTechnologyDyeSublimationPrinter = FourCharCode('dsub');
+	cmTechnologyPhotographicPaperPrinter = FourCharCode('rpho');
+	cmTechnologyFilmWriter		= FourCharCode('fprn');
+	cmTechnologyVideoMonitor	= FourCharCode('vidm');
+	cmTechnologyVideoCamera		= FourCharCode('vidc');
+	cmTechnologyProjectionTelevision = FourCharCode('pjtv');
+	cmTechnologyCRTDisplay		= FourCharCode('CRT ');
+	cmTechnologyPMDisplay		= FourCharCode('PMD ');
+	cmTechnologyAMDisplay		= FourCharCode('AMD ');
+	cmTechnologyPhotoCD			= FourCharCode('KPCD');
+	cmTechnologyPhotoImageSetter = FourCharCode('imgs');
+	cmTechnologyGravure			= FourCharCode('grav');
+	cmTechnologyOffsetLithography = FourCharCode('offs');
+	cmTechnologySilkscreen		= FourCharCode('silk');
+	cmTechnologyFlexography		= FourCharCode('flex');
 
 
 	{	 Measurement type encodings 	}
@@ -331,52 +331,52 @@ const
 	cmSpotFunctionCross			= 7;
 
 	{	 Color Space Signatures 	}
-	cmXYZData					= $58595A20 (* 'XYZ ' *);
-	cmLabData					= $4C616220 (* 'Lab ' *);
-	cmLuvData					= $4C757620 (* 'Luv ' *);
-	cmYCbCrData                 = $59436272 (* 'YCbr' *);
-	cmYxyData					= $59787920 (* 'Yxy ' *);
-	cmRGBData					= $52474220 (* 'RGB ' *);
-	cmSRGBData					= $73524742 (* 'sRGB' *);
-	cmGrayData					= $47524159 (* 'GRAY' *);
-	cmHSVData					= $48535620 (* 'HSV ' *);
-	cmHLSData					= $484C5320 (* 'HLS ' *);
-	cmCMYKData					= $434D594B (* 'CMYK' *);
-	cmCMYData					= $434D5920 (* 'CMY ' *);
-	cmMCH5Data					= $4D434835 (* 'MCH5' *);
-	cmMCH6Data					= $4D434836 (* 'MCH6' *);
-	cmMCH7Data					= $4D434837 (* 'MCH7' *);
-	cmMCH8Data					= $4D434838 (* 'MCH8' *);
-	cm3CLRData					= $33434C52 (* '3CLR' *);
-	cm4CLRData					= $34434C52 (* '4CLR' *);
-	cm5CLRData					= $35434C52 (* '5CLR' *);
-	cm6CLRData					= $36434C52 (* '6CLR' *);
-	cm7CLRData					= $37434C52 (* '7CLR' *);
-	cm8CLRData					= $38434C52 (* '8CLR' *);
-	cm9CLRData                  = $39434C52 (* '9CLR' *);
-	cm10CLRData                 = $41434C52 (* 'ACLR' *);
-	cm11CLRData                 = $42434C52 (* 'BCLR' *);
-	cm12CLRData                 = $43434C52 (* 'CCLR' *);
-	cm13CLRData                 = $44434C52 (* 'DCLR' *);
-	cm14CLRData                 = $45434C52 (* 'ECLR' *);
-	cm15CLRData                 = $46434C52 (* 'FCLR' *);
-	cmNamedData					= $4E414D45 (* 'NAME' *);
+	cmXYZData					= FourCharCode('XYZ ');
+	cmLabData					= FourCharCode('Lab ');
+	cmLuvData					= FourCharCode('Luv ');
+	cmYCbCrData                 = FourCharCode('YCbr');
+	cmYxyData					= FourCharCode('Yxy ');
+	cmRGBData					= FourCharCode('RGB ');
+	cmSRGBData					= FourCharCode('sRGB');
+	cmGrayData					= FourCharCode('GRAY');
+	cmHSVData					= FourCharCode('HSV ');
+	cmHLSData					= FourCharCode('HLS ');
+	cmCMYKData					= FourCharCode('CMYK');
+	cmCMYData					= FourCharCode('CMY ');
+	cmMCH5Data					= FourCharCode('MCH5');
+	cmMCH6Data					= FourCharCode('MCH6');
+	cmMCH7Data					= FourCharCode('MCH7');
+	cmMCH8Data					= FourCharCode('MCH8');
+	cm3CLRData					= FourCharCode('3CLR');
+	cm4CLRData					= FourCharCode('4CLR');
+	cm5CLRData					= FourCharCode('5CLR');
+	cm6CLRData					= FourCharCode('6CLR');
+	cm7CLRData					= FourCharCode('7CLR');
+	cm8CLRData					= FourCharCode('8CLR');
+	cm9CLRData                  = FourCharCode('9CLR');
+	cm10CLRData                 = FourCharCode('ACLR');
+	cm11CLRData                 = FourCharCode('BCLR');
+	cm12CLRData                 = FourCharCode('CCLR');
+	cm13CLRData                 = FourCharCode('DCLR');
+	cm14CLRData                 = FourCharCode('ECLR');
+	cm15CLRData                 = FourCharCode('FCLR');
+	cmNamedData					= FourCharCode('NAME');
 
 	{	 profileClass enumerations 	}
-	cmInputClass				= $73636E72 (* 'scnr' *);
-	cmDisplayClass				= $6D6E7472 (* 'mntr' *);
-	cmOutputClass				= $70727472 (* 'prtr' *);
-	cmLinkClass					= $6C696E6B (* 'link' *);
-	cmAbstractClass				= $61627374 (* 'abst' *);
-	cmColorSpaceClass			= $73706163 (* 'spac' *);
-	cmNamedColorClass			= $6E6D636C (* 'nmcl' *);
+	cmInputClass				= FourCharCode('scnr');
+	cmDisplayClass				= FourCharCode('mntr');
+	cmOutputClass				= FourCharCode('prtr');
+	cmLinkClass					= FourCharCode('link');
+	cmAbstractClass				= FourCharCode('abst');
+	cmColorSpaceClass			= FourCharCode('spac');
+	cmNamedColorClass			= FourCharCode('nmcl');
 
 	{	 platform enumerations 	}
-	cmMacintosh					= $4150504C (* 'APPL' *);
-	cmMicrosoft					= $4D534654 (* 'MSFT' *);
-	cmSolaris					= $53554E57 (* 'SUNW' *);
-	cmSiliconGraphics			= $53474920 (* 'SGI ' *);
-	cmTaligent					= $54474E54 (* 'TGNT' *);
+	cmMacintosh					= FourCharCode('APPL');
+	cmMicrosoft					= FourCharCode('MSFT');
+	cmSolaris					= FourCharCode('SUNW');
+	cmSiliconGraphics			= FourCharCode('SGI ');
+	cmTaligent					= FourCharCode('TGNT');
 
 	{ parametric curve type enumerations }
 	cmParametricType0           = 0;    { Y = X^gamma }
@@ -387,10 +387,10 @@ const
 
 
 	{ ColorSync 1.0 elements }
-	cmCS1ChromTag				= $6368726D (* 'chrm' *);
-	cmCS1TRCTag					= $74726320 (* 'trc ' *);
-	cmCS1NameTag				= $6E616D65 (* 'name' *);
-	cmCS1CustTag				= $63757374 (* 'cust' *);
+	cmCS1ChromTag				= FourCharCode('chrm');
+	cmCS1TRCTag					= FourCharCode('trc ');
+	cmCS1NameTag				= FourCharCode('name');
+	cmCS1CustTag				= FourCharCode('cust');
 
 	{	 General element data types 	}
 
@@ -903,9 +903,9 @@ const
 
 
 	{	 Device types 	}
-	cmMonitorDevice				= $6D6E7472 (* 'mntr' *);
-	cmScannerDevice				= $73636E72 (* 'scnr' *);
-	cmPrinterDevice				= $70727472 (* 'prtr' *);
+	cmMonitorDevice				= FourCharCode('mntr');
+	cmScannerDevice				= FourCharCode('scnr');
+	cmPrinterDevice				= FourCharCode('prtr');
 
 
 type
@@ -990,14 +990,14 @@ const
 	bgResponse					= 8;
 	onePlusLastResponse			= 9;
 
-	rgbData						= $52474220 (* 'RGB ' *);
-	cmykData					= $434D594B (* 'CMYK' *);
-	grayData					= $47524159 (* 'GRAY' *);
-	xyzData						= $58595A20 (* 'XYZ ' *);
+	rgbData						= FourCharCode('RGB ');
+	cmykData					= FourCharCode('CMYK');
+	grayData					= FourCharCode('GRAY');
+	xyzData						= FourCharCode('XYZ ');
 
-	monitorDevice				= $6D6E7472 (* 'mntr' *);
-	scannerDevice				= $73636E72 (* 'scnr' *);
-	printerDevice				= $70727472 (* 'prtr' *);
+	monitorDevice				= FourCharCode('mntr');
+	scannerDevice				= FourCharCode('scnr');
+	printerDevice				= FourCharCode('prtr');
 
 
 type

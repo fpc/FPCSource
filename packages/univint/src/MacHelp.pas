@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit MacHelp;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -125,14 +125,14 @@ const
 type
 	HMContentType = UInt32;
 const
-	kHMNoContent = $6E6F6E65 (* 'none' *);
-	kHMCFStringContent = $63667374 (* 'cfst' *); { CFStringRef}
-	kHMCFStringLocalizedContent = $6366736C (* 'cfsl' *); { CFStringRef; name of a localized string. Supported by Jaguar and later.}
-	kHMPascalStrContent = $70737472 (* 'pstr' *);
-	kHMStringResContent = $73747223 (* 'str#' *);
-	kHMTEHandleContent = $74787468 (* 'txth' *); { Supported by CarbonLib and Jaguar and later}
-	kHMTextResContent = $74657874 (* 'text' *); { Supported by CarbonLib and Jaguar and later}
-	kHMStrResContent = $73747220 (* 'str ' *);
+	kHMNoContent = FourCharCode('none');
+	kHMCFStringContent = FourCharCode('cfst'); { CFStringRef}
+	kHMCFStringLocalizedContent = FourCharCode('cfsl'); { CFStringRef; name of a localized string. Supported by Jaguar and later.}
+	kHMPascalStrContent = FourCharCode('pstr');
+	kHMStringResContent = FourCharCode('str#');
+	kHMTEHandleContent = FourCharCode('txth'); { Supported by CarbonLib and Jaguar and later}
+	kHMTextResContent = FourCharCode('text'); { Supported by CarbonLib and Jaguar and later}
+	kHMStrResContent = FourCharCode('str ');
 
 
 {
@@ -287,7 +287,7 @@ const
 	kHMIllegalContentForMinimumState = errHMIllegalContentForMinimumState;
 
 const
-	kHelpTagEventHandlerTag = $68657674 (* 'hevt' *);
+	kHelpTagEventHandlerTag = FourCharCode('hevt');
 
 type
 	HMStringResType = record

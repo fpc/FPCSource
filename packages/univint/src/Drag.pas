@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Drag;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -243,19 +243,19 @@ const
 }
 
 const
-	kDragFlavorTypeHFS = $68667320 (* 'hfs ' *); { flavor type for HFS data}
-	kDragFlavorTypePromiseHFS = $70686673 (* 'phfs' *); { flavor type for promised HFS data}
+	kDragFlavorTypeHFS = FourCharCode('hfs '); { flavor type for HFS data}
+	kDragFlavorTypePromiseHFS = FourCharCode('phfs'); { flavor type for promised HFS data}
 	flavorTypeHFS = kDragFlavorTypeHFS; { old name}
 	flavorTypePromiseHFS = kDragFlavorTypePromiseHFS; { old name}
 
 const
-	kDragPromisedFlavorFindFile = $72576D31 (* 'rWm1' *); { promisedFlavor value for Find File}
-	kDragPromisedFlavor = $66737350 (* 'fssP' *); { promisedFlavor value for everything else}
+	kDragPromisedFlavorFindFile = FourCharCode('rWm1'); { promisedFlavor value for Find File}
+	kDragPromisedFlavor = FourCharCode('fssP'); { promisedFlavor value for everything else}
 
 const
-	kDragPseudoCreatorVolumeOrDirectory = $4D414353 (* 'MACS' *); { "creator code" for volume or directory}
-	kDragPseudoFileTypeVolume = $6469736B (* 'disk' *); { "file type" for volume}
-	kDragPseudoFileTypeDirectory = $666F6C64 (* 'fold' *); { "file type" for directory}
+	kDragPseudoCreatorVolumeOrDirectory = FourCharCode('MACS'); { "creator code" for volume or directory}
+	kDragPseudoFileTypeVolume = FourCharCode('disk'); { "file type" for volume}
+	kDragPseudoFileTypeDirectory = FourCharCode('fold'); { "file type" for directory}
 
 {
   _________________________________________________________________________________________________________
@@ -265,7 +265,7 @@ const
 }
 
 const
-	flavorTypeDirectory = $64697279 (* 'diry' *); { flavor type for AOCE directories}
+	flavorTypeDirectory = FourCharCode('diry'); { flavor type for AOCE directories}
 
 {
   _________________________________________________________________________________________________________
@@ -275,12 +275,12 @@ const
 }
 
 const
-	kFlavorTypeClippingName = $636C6E6D (* 'clnm' *); { name hint for clipping file (preferred over 'clfn')}
-	kFlavorTypeClippingFilename = $636C666E (* 'clfn' *); { name for clipping file}
-	kFlavorTypeUnicodeClippingName = $75636C6E (* 'ucln' *); { unicode name hint for clipping file (preferred over 'uclf')}
-	kFlavorTypeUnicodeClippingFilename = $75636C66 (* 'uclf' *); { unicode name for clipping file}
-	kFlavorTypeDragToTrashOnly = $66647474 (* 'fdtt' *); { for apps that want to allow dragging private data to the trash}
-	kFlavorTypeFinderNoTrackingBehavior = $666E7462 (* 'fntb' *); { Finder completely ignores any drag containing this flavor}
+	kFlavorTypeClippingName = FourCharCode('clnm'); { name hint for clipping file (preferred over 'clfn')}
+	kFlavorTypeClippingFilename = FourCharCode('clfn'); { name for clipping file}
+	kFlavorTypeUnicodeClippingName = FourCharCode('ucln'); { unicode name hint for clipping file (preferred over 'uclf')}
+	kFlavorTypeUnicodeClippingFilename = FourCharCode('uclf'); { unicode name for clipping file}
+	kFlavorTypeDragToTrashOnly = FourCharCode('fdtt'); { for apps that want to allow dragging private data to the trash}
+	kFlavorTypeFinderNoTrackingBehavior = FourCharCode('fntb'); { Finder completely ignores any drag containing this flavor}
 
 {
   _________________________________________________________________________________________________________
@@ -319,12 +319,12 @@ const
    * sets the traditional drop location to an alias to the trash folder
    * automatically.
    }
-	kDragStandardDropLocationTrash = $74727368 (* 'trsh' *);
+	kDragStandardDropLocationTrash = FourCharCode('trsh');
 
   {
    * The receiver did not specify a drop lcoation. This is the default.
    }
-	kDragStandardDropLocationUnknown = $756E6B6E (* 'unkn' *);
+	kDragStandardDropLocationUnknown = FourCharCode('unkn');
 
 type
 	StandardDropLocation = OSType;

@@ -7,7 +7,7 @@ name=univint
 version=2.0.0
 
 [target]
-units=FPCMacOSAll MacOS GPCStrings
+units=MacOSAll MacOS
 implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   AEDataModel AEHelpers AEInteraction AEMach AEObjects \
   AEPackObject AERegistry AEUserTermTypes AIFF ASDebugging \
@@ -81,7 +81,13 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   TranslationServices AXActionConstants HIMovieView \
   CGImageDestination AXValueConstants AXAttributeConstants \
   AXTextAttributedString CGImageProperties CGImageSource \
-  UniversalAccess HostTime
+  UniversalAccess HostTime GPCStrings \
+  CGDisplayFades CGLTypes CVBase CVBuffer \
+  CVDisplayLink CVHostTime CVImageBuffer CVPixelBuffer \
+  CVPixelBufferPool CVPixelFormatDescription CVReturns \
+  ObjCRuntime
+
+  
 exampledirs=examples
 
 [libs]
@@ -101,5 +107,5 @@ sourcedir=src tests
 fpcdir=../..
 
 [rules]
-FPCMacOSAll$(PPUEXT): $(filter-out MacOS.pas GPCStrings.pas,$(wildcard *.pas))
-MacOS$(PPUEXT): $(filter-out FPCMacOSAll.pas GPCStrings.pas,$(wildcard *.pas))
+MacOSAll$(PPUEXT): $(filter-out MacOS.pas GPCStrings.pas,$(wildcard *.pas))
+MacOS$(PPUEXT): $(filter-out MacOSAll.pas,$(wildcard *.pas))

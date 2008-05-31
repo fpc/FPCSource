@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Folders;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -124,23 +124,23 @@ const
 	kCreateFolder				= true;
 	kDontCreateFolder			= false;
 
-	kSystemFolderType			= $6D616373 (* 'macs' *);						{  the system folder  }
-	kDesktopFolderType			= $6465736B (* 'desk' *);						{  the desktop folder; objects in this folder show on the desk top.  }
-	kSystemDesktopFolderType	= $7364736B (* 'sdsk' *);						{  the desktop folder at the root of the hard drive, never the redirected user desktop folder  }
-	kTrashFolderType			= $74727368 (* 'trsh' *);						{  the trash folder; objects in this folder show up in the trash  }
-	kSystemTrashFolderType		= $73747273 (* 'strs' *);						{  the trash folder at the root of the drive, never the redirected user trash folder  }
-	kWhereToEmptyTrashFolderType = $656D7074 (* 'empt' *);						{  the "empty trash" folder; Finder starts empty from here down  }
-	kPrintMonitorDocsFolderType	= $70726E74 (* 'prnt' *);						{  Print Monitor documents  }
-	kStartupFolderType			= $73747274 (* 'strt' *);						{  Finder objects (applications, documents, DAs, aliases, to...) to open at startup go here  }
-	kShutdownFolderType			= $73686466 (* 'shdf' *);						{  Finder objects (applications, documents, DAs, aliases, to...) to open at shutdown go here  }
-	kAppleMenuFolderType		= $616D6E75 (* 'amnu' *);						{  Finder objects to put into the Apple menu go here  }
-	kControlPanelFolderType		= $6374726C (* 'ctrl' *);						{  Control Panels go here (may contain INITs)  }
-	kSystemControlPanelFolderType = $7363746C (* 'sctl' *);						{  System control panels folder - never the redirected one, always "Control Panels" inside the System Folder  }
-	kExtensionFolderType		= $6578746E (* 'extn' *);						{  System extensions go here  }
-	kFontsFolderType			= $666F6E74 (* 'font' *);						{  Fonts go here  }
-	kPreferencesFolderType		= $70726566 (* 'pref' *);						{  preferences for applications go here  }
-	kSystemPreferencesFolderType = $73707266 (* 'sprf' *);						{  System-type Preferences go here - this is always the system's preferences folder, never a logged in user's  }
-	kTemporaryFolderType		= $74656D70 (* 'temp' *);						{  temporary files go here (deleted periodically, but don't rely on it.)  }
+	kSystemFolderType			= FourCharCode('macs');						{  the system folder  }
+	kDesktopFolderType			= FourCharCode('desk');						{  the desktop folder; objects in this folder show on the desk top.  }
+	kSystemDesktopFolderType	= FourCharCode('sdsk');						{  the desktop folder at the root of the hard drive, never the redirected user desktop folder  }
+	kTrashFolderType			= FourCharCode('trsh');						{  the trash folder; objects in this folder show up in the trash  }
+	kSystemTrashFolderType		= FourCharCode('strs');						{  the trash folder at the root of the drive, never the redirected user trash folder  }
+	kWhereToEmptyTrashFolderType = FourCharCode('empt');						{  the "empty trash" folder; Finder starts empty from here down  }
+	kPrintMonitorDocsFolderType	= FourCharCode('prnt');						{  Print Monitor documents  }
+	kStartupFolderType			= FourCharCode('strt');						{  Finder objects (applications, documents, DAs, aliases, to...) to open at startup go here  }
+	kShutdownFolderType			= FourCharCode('shdf');						{  Finder objects (applications, documents, DAs, aliases, to...) to open at shutdown go here  }
+	kAppleMenuFolderType		= FourCharCode('amnu');						{  Finder objects to put into the Apple menu go here  }
+	kControlPanelFolderType		= FourCharCode('ctrl');						{  Control Panels go here (may contain INITs)  }
+	kSystemControlPanelFolderType = FourCharCode('sctl');						{  System control panels folder - never the redirected one, always "Control Panels" inside the System Folder  }
+	kExtensionFolderType		= FourCharCode('extn');						{  System extensions go here  }
+	kFontsFolderType			= FourCharCode('font');						{  Fonts go here  }
+	kPreferencesFolderType		= FourCharCode('pref');						{  preferences for applications go here  }
+	kSystemPreferencesFolderType = FourCharCode('sprf');						{  System-type Preferences go here - this is always the system's preferences folder, never a logged in user's  }
+	kTemporaryFolderType		= FourCharCode('temp');						{  temporary files go here (deleted periodically, but don't rely on it.)  }
 
 	{
 	 *  FindFolder()
@@ -150,7 +150,7 @@ const
 	 *    CarbonLib:        in CarbonLib 1.0 and later
 	 *    Mac OS X:         in version 10.0 and later
 	 	}
-function FindFolder(vRefNum: SInt16; folderType: OSType; createFolder: boolean; var foundVRefNum: SInt16; var foundDirID: UInt32): OSErr; external name '_FindFolder';
+function FindFolder(vRefNum: SInt16; folderType: OSType; createFolder: boolean; var foundVRefNum: SInt16; var foundDirID: DirIDType): OSErr; external name '_FindFolder';
 {
  *  FindFolderExtended()
  *  
@@ -159,7 +159,7 @@ function FindFolder(vRefNum: SInt16; folderType: OSType; createFolder: boolean; 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function FindFolderExtended(vol: SInt16; foldType: OSType; createFolder: boolean; flags: UInt32; data: UnivPtr; var vRefNum: SInt16; var dirID: UInt32): OSErr; external name '_FindFolderExtended';
+function FindFolderExtended(vol: SInt16; foldType: OSType; createFolder: boolean; flags: UInt32; data: UnivPtr; var vRefNum: SInt16; var dirID: DirIDType): OSErr; external name '_FindFolderExtended';
 {
  *  ReleaseFolder()
  *  
@@ -182,7 +182,7 @@ function ReleaseFolder(vRefNum: SInt16; folderType: OSType): OSErr; external nam
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function FindFolderEx(vRefNum: SInt16; folderType: OSType; createFolder: boolean; var foundVRefNum: SInt16; var foundDirID: UInt32; foundFolder: CStringPtr): OSErr; external name '_FindFolderEx';
+function FindFolderEx(vRefNum: SInt16; folderType: OSType; createFolder: boolean; var foundVRefNum: SInt16; var foundDirID: DirIDType; foundFolder: CStringPtr): OSErr; external name '_FindFolderEx';
 
 {$endc}  {CALL_NOT_IN_CARBON}
 {$endc}
@@ -215,134 +215,134 @@ function FSFindFolderExtended(vol: SInt16; foldType: OSType; createFolder: boole
 
 
 const
-	kExtensionDisabledFolderType = $65787444 (* 'extD' *);
-	kControlPanelDisabledFolderType = $63747244 (* 'ctrD' *);
-	kSystemExtensionDisabledFolderType = $6D616344 (* 'macD' *);
-	kStartupItemsDisabledFolderType = $73747244 (* 'strD' *);
-	kShutdownItemsDisabledFolderType = $73686444 (* 'shdD' *);
-	kApplicationsFolderType		= $61707073 (* 'apps' *);
-	kDocumentsFolderType		= $646F6373 (* 'docs' *);
+	kExtensionDisabledFolderType = FourCharCode('extD');
+	kControlPanelDisabledFolderType = FourCharCode('ctrD');
+	kSystemExtensionDisabledFolderType = FourCharCode('macD');
+	kStartupItemsDisabledFolderType = FourCharCode('strD');
+	kShutdownItemsDisabledFolderType = FourCharCode('shdD');
+	kApplicationsFolderType		= FourCharCode('apps');
+	kDocumentsFolderType		= FourCharCode('docs');
 
 																{  new constants  }
-	kVolumeRootFolderType		= $726F6F74 (* 'root' *);						{  root folder of a volume  }
-	kChewableItemsFolderType	= $666C6E74 (* 'flnt' *);						{  items deleted at boot  }
-	kApplicationSupportFolderType = $61737570 (* 'asup' *);						{  third-party items and folders  }
-	kTextEncodingsFolderType	= $C6927465 (* 'Ätex' *);						{  encoding tables  }
-	kStationeryFolderType		= $6F647374 (* 'odst' *);						{  stationery  }
-	kOpenDocFolderType			= $6F646F64 (* 'odod' *);						{  OpenDoc root  }
-	kOpenDocShellPlugInsFolderType = $6F647370 (* 'odsp' *);					{  OpenDoc Shell Plug-Ins in OpenDoc folder  }
-	kEditorsFolderType			= $6F646564 (* 'oded' *);						{  OpenDoc editors in MacOS Folder  }
-	kOpenDocEditorsFolderType	= $C6926F64 (* 'Äodf' *);						{  OpenDoc subfolder of Editors folder  }
-	kOpenDocLibrariesFolderType	= $6F646C62 (* 'odlb' *);						{  OpenDoc libraries folder  }
-	kGenEditorsFolderType		= $C6926564 (* 'Äedi' *);						{  CKH general editors folder at root level of Sys folder  }
-	kHelpFolderType				= $C692686C (* 'Ählp' *);						{  CKH help folder currently at root of system folder  }
-	kInternetPlugInFolderType	= $C6926E65 (* 'Änet' *);						{  CKH internet plug ins for browsers and stuff  }
-	kModemScriptsFolderType		= $C6926D6F (* 'Ämod' *);						{  CKH modem scripts, get 'em OUT of the Extensions folder  }
-	kPrinterDescriptionFolderType = $70706466 (* 'ppdf' *);						{  CKH new folder at root of System folder for printer descs.  }
-	kPrinterDriverFolderType	= $C6927072 (* 'Äprd' *);						{  CKH new folder at root of System folder for printer drivers  }
-	kScriptingAdditionsFolderType = $C6927363 (* 'Äscr' *);						{  CKH at root of system folder  }
-	kSharedLibrariesFolderType	= $C6926C69 (* 'Älib' *);						{  CKH for general shared libs.  }
-	kVoicesFolderType			= $66766F63 (* 'fvoc' *);						{  CKH macintalk can live here  }
-	kControlStripModulesFolderType = $73646576 (* 'sdev' *);					{  CKH for control strip modules  }
-	kAssistantsFolderType		= $617374C6 (* 'astÄ' *);						{  SJF for Assistants (MacOS Setup Assistant, etc)  }
-	kUtilitiesFolderType		= $757469C6 (* 'utiÄ' *);						{  SJF for Utilities folder  }
-	kAppleExtrasFolderType		= $616578C6 (* 'aexÄ' *);						{  SJF for Apple Extras folder  }
-	kContextualMenuItemsFolderType = $636D6E75 (* 'cmnu' *);					{  SJF for Contextual Menu items  }
-	kMacOSReadMesFolderType		= $6D6F72C6 (* 'morÄ' *);						{  SJF for MacOS ReadMes folder  }
-	kALMModulesFolderType		= $77616C6B (* 'walk' *);						{  EAS for Location Manager Module files except type 'thng' (within kExtensionFolderType)  }
-	kALMPreferencesFolderType	= $74726970 (* 'trip' *);						{  EAS for Location Manager Preferences (within kPreferencesFolderType; contains kALMLocationsFolderType)  }
-	kALMLocationsFolderType		= $66616C6C (* 'fall' *);						{  EAS for Location Manager Locations (within kALMPreferencesFolderType)  }
-	kColorSyncProfilesFolderType = $70726F66 (* 'prof' *);						{  for ColorSyncª Profiles  }
-	kThemesFolderType			= $74686D65 (* 'thme' *);						{  for Theme data files  }
-	kFavoritesFolderType		= $66617673 (* 'favs' *);						{  Favorties folder for Navigation Services  }
-	kInternetFolderType			= $696E74C6 (* 'intÄ' *);						{  Internet folder (root level of startup volume)  }
-	kAppearanceFolderType		= $61707072 (* 'appr' *);						{  Appearance folder (root of system folder)  }
-	kSoundSetsFolderType		= $736E6473 (* 'snds' *);						{  Sound Sets folder (in Appearance folder)  }
-	kDesktopPicturesFolderType	= $647470C6 (* 'dtpÄ' *);						{  Desktop Pictures folder (in Appearance folder)  }
-	kInternetSearchSitesFolderType = $69737366 (* 'issf' *);					{  Internet Search Sites folder  }
-	kFindSupportFolderType		= $666E6473 (* 'fnds' *);						{  Find support folder  }
-	kFindByContentFolderType	= $66626366 (* 'fbcf' *);						{  Find by content folder  }
-	kInstallerLogsFolderType	= $696C6766 (* 'ilgf' *);						{  Installer Logs folder  }
-	kScriptsFolderType			= $736372C6 (* 'scrÄ' *);						{  Scripts folder  }
-	kFolderActionsFolderType	= $66617366 (* 'fasf' *);						{  Folder Actions Scripts folder  }
-	kLauncherItemsFolderType	= $6C61756E (* 'laun' *);						{  Launcher Items folder  }
-	kRecentApplicationsFolderType = $72617070 (* 'rapp' *);						{  Recent Applications folder  }
-	kRecentDocumentsFolderType	= $72646F63 (* 'rdoc' *);						{  Recent Documents folder  }
-	kRecentServersFolderType	= $72737672 (* 'rsvr' *);						{  Recent Servers folder  }
-	kSpeakableItemsFolderType	= $73706B69 (* 'spki' *);						{  Speakable Items folder  }
-	kKeychainFolderType			= $6B63686E (* 'kchn' *);						{  Keychain folder  }
-	kQuickTimeExtensionsFolderType = $71746578 (* 'qtex' *);					{  QuickTime Extensions Folder (in Extensions folder)  }
-	kDisplayExtensionsFolderType = $6473706C (* 'dspl' *);						{  Display Extensions Folder (in Extensions folder)  }
-	kMultiprocessingFolderType	= $6D707866 (* 'mpxf' *);						{  Multiprocessing Folder (in Extensions folder)  }
-	kPrintingPlugInsFolderType	= $70706C67 (* 'pplg' *);						{  Printing Plug-Ins Folder (in Extensions folder)  }
+	kVolumeRootFolderType		= FourCharCode('root');						{  root folder of a volume  }
+	kChewableItemsFolderType	= FourCharCode('flnt');						{  items deleted at boot  }
+	kApplicationSupportFolderType = FourCharCode('asup');						{  third-party items and folders  }
+	kTextEncodingsFolderType	= FourCharCode('Ätex');						{  encoding tables  }
+	kStationeryFolderType		= FourCharCode('odst');						{  stationery  }
+	kOpenDocFolderType			= FourCharCode('odod');						{  OpenDoc root  }
+	kOpenDocShellPlugInsFolderType = FourCharCode('odsp');					{  OpenDoc Shell Plug-Ins in OpenDoc folder  }
+	kEditorsFolderType			= FourCharCode('oded');						{  OpenDoc editors in MacOS Folder  }
+	kOpenDocEditorsFolderType	= FourCharCode('Äodf');						{  OpenDoc subfolder of Editors folder  }
+	kOpenDocLibrariesFolderType	= FourCharCode('odlb');						{  OpenDoc libraries folder  }
+	kGenEditorsFolderType		= FourCharCode('Äedi');						{  CKH general editors folder at root level of Sys folder  }
+	kHelpFolderType				= FourCharCode('Ählp');						{  CKH help folder currently at root of system folder  }
+	kInternetPlugInFolderType	= FourCharCode('Änet');						{  CKH internet plug ins for browsers and stuff  }
+	kModemScriptsFolderType		= FourCharCode('Ämod');						{  CKH modem scripts, get 'em OUT of the Extensions folder  }
+	kPrinterDescriptionFolderType = FourCharCode('ppdf');						{  CKH new folder at root of System folder for printer descs.  }
+	kPrinterDriverFolderType	= FourCharCode('Äprd');						{  CKH new folder at root of System folder for printer drivers  }
+	kScriptingAdditionsFolderType = FourCharCode('Äscr');						{  CKH at root of system folder  }
+	kSharedLibrariesFolderType	= FourCharCode('Älib');						{  CKH for general shared libs.  }
+	kVoicesFolderType			= FourCharCode('fvoc');						{  CKH macintalk can live here  }
+	kControlStripModulesFolderType = FourCharCode('sdev');					{  CKH for control strip modules  }
+	kAssistantsFolderType		= FourCharCode('astÄ');						{  SJF for Assistants (MacOS Setup Assistant, etc)  }
+	kUtilitiesFolderType		= FourCharCode('utiÄ');						{  SJF for Utilities folder  }
+	kAppleExtrasFolderType		= FourCharCode('aexÄ');						{  SJF for Apple Extras folder  }
+	kContextualMenuItemsFolderType = FourCharCode('cmnu');					{  SJF for Contextual Menu items  }
+	kMacOSReadMesFolderType		= FourCharCode('morÄ');						{  SJF for MacOS ReadMes folder  }
+	kALMModulesFolderType		= FourCharCode('walk');						{  EAS for Location Manager Module files except type 'thng' (within kExtensionFolderType)  }
+	kALMPreferencesFolderType	= FourCharCode('trip');						{  EAS for Location Manager Preferences (within kPreferencesFolderType; contains kALMLocationsFolderType)  }
+	kALMLocationsFolderType		= FourCharCode('fall');						{  EAS for Location Manager Locations (within kALMPreferencesFolderType)  }
+	kColorSyncProfilesFolderType = FourCharCode('prof');						{  for ColorSyncª Profiles  }
+	kThemesFolderType			= FourCharCode('thme');						{  for Theme data files  }
+	kFavoritesFolderType		= FourCharCode('favs');						{  Favorties folder for Navigation Services  }
+	kInternetFolderType			= FourCharCode('intÄ');						{  Internet folder (root level of startup volume)  }
+	kAppearanceFolderType		= FourCharCode('appr');						{  Appearance folder (root of system folder)  }
+	kSoundSetsFolderType		= FourCharCode('snds');						{  Sound Sets folder (in Appearance folder)  }
+	kDesktopPicturesFolderType	= FourCharCode('dtpÄ');						{  Desktop Pictures folder (in Appearance folder)  }
+	kInternetSearchSitesFolderType = FourCharCode('issf');					{  Internet Search Sites folder  }
+	kFindSupportFolderType		= FourCharCode('fnds');						{  Find support folder  }
+	kFindByContentFolderType	= FourCharCode('fbcf');						{  Find by content folder  }
+	kInstallerLogsFolderType	= FourCharCode('ilgf');						{  Installer Logs folder  }
+	kScriptsFolderType			= FourCharCode('scrÄ');						{  Scripts folder  }
+	kFolderActionsFolderType	= FourCharCode('fasf');						{  Folder Actions Scripts folder  }
+	kLauncherItemsFolderType	= FourCharCode('laun');						{  Launcher Items folder  }
+	kRecentApplicationsFolderType = FourCharCode('rapp');						{  Recent Applications folder  }
+	kRecentDocumentsFolderType	= FourCharCode('rdoc');						{  Recent Documents folder  }
+	kRecentServersFolderType	= FourCharCode('rsvr');						{  Recent Servers folder  }
+	kSpeakableItemsFolderType	= FourCharCode('spki');						{  Speakable Items folder  }
+	kKeychainFolderType			= FourCharCode('kchn');						{  Keychain folder  }
+	kQuickTimeExtensionsFolderType = FourCharCode('qtex');					{  QuickTime Extensions Folder (in Extensions folder)  }
+	kDisplayExtensionsFolderType = FourCharCode('dspl');						{  Display Extensions Folder (in Extensions folder)  }
+	kMultiprocessingFolderType	= FourCharCode('mpxf');						{  Multiprocessing Folder (in Extensions folder)  }
+	kPrintingPlugInsFolderType	= FourCharCode('pplg');						{  Printing Plug-Ins Folder (in Extensions folder)  }
 
 
 	{	 New Folder Types to accommodate the Mac OS X Folder Manager 	}
 	{	 These folder types are not applicable on Mac OS 9.          	}
-	kDomainTopLevelFolderType	= $64746F70 (* 'dtop' *);						{  The top-level of a Folder domain, e.g. "/System" }
-	kDomainLibraryFolderType	= $646C6962 (* 'dlib' *);						{  the Library subfolder of a particular domain }
-	kColorSyncFolderType		= $73796E63 (* 'sync' *);						{  Contains ColorSync-related folders }
-	kColorSyncCMMFolderType		= $63636D6D (* 'ccmm' *);						{  ColorSync CMMs }
-	kColorSyncScriptingFolderType = $63736372 (* 'cscr' *);						{  ColorSync Scripting support }
-	kPrintersFolderType			= $696D7072 (* 'impr' *);						{  Contains Printing-related folders }
-	kSpeechFolderType			= $73706368 (* 'spch' *);						{  Contains Speech-related folders }
-	kCarbonLibraryFolderType	= $63617262 (* 'carb' *);						{  Contains Carbon-specific file }
-	kDocumentationFolderType	= $696E666F (* 'info' *);						{  Contains Documentation files (not user documents) }
-	kDeveloperDocsFolderType	= $64646F63 (* 'ddoc' *);						{  Contains Developer Documentation files and folders }
-	kDeveloperHelpFolderType	= $64657668 (* 'devh' *);						{  Contains Developer Help related files }
-	kISSDownloadsFolderType		= $69737364 (* 'issd' *);						{  Contains Internet Search Sites downloaded from the Internet }
-	kUserSpecificTmpFolderType	= $75746D70 (* 'utmp' *);						{  Contains temporary items created on behalf of the current user }
-	kCachedDataFolderType		= $63616368 (* 'cach' *);						{  Contains various cache files for different clients }
-	kFrameworksFolderType		= $6672616D (* 'fram' *);						{  Contains MacOS X Framework folders      }
-	kPrivateFrameworksFolderType = $7066726D (* 'pfrm' *);						{  Contains MacOS X Private Framework folders      }
-	kClassicDesktopFolderType	= $7364736B (* 'sdsk' *);						{  MacOS 9 compatible desktop folder - same as  }
+	kDomainTopLevelFolderType	= FourCharCode('dtop');						{  The top-level of a Folder domain, e.g. "/System" }
+	kDomainLibraryFolderType	= FourCharCode('dlib');						{  the Library subfolder of a particular domain }
+	kColorSyncFolderType		= FourCharCode('sync');						{  Contains ColorSync-related folders }
+	kColorSyncCMMFolderType		= FourCharCode('ccmm');						{  ColorSync CMMs }
+	kColorSyncScriptingFolderType = FourCharCode('cscr');						{  ColorSync Scripting support }
+	kPrintersFolderType			= FourCharCode('impr');						{  Contains Printing-related folders }
+	kSpeechFolderType			= FourCharCode('spch');						{  Contains Speech-related folders }
+	kCarbonLibraryFolderType	= FourCharCode('carb');						{  Contains Carbon-specific file }
+	kDocumentationFolderType	= FourCharCode('info');						{  Contains Documentation files (not user documents) }
+	kDeveloperDocsFolderType	= FourCharCode('ddoc');						{  Contains Developer Documentation files and folders }
+	kDeveloperHelpFolderType	= FourCharCode('devh');						{  Contains Developer Help related files }
+	kISSDownloadsFolderType		= FourCharCode('issd');						{  Contains Internet Search Sites downloaded from the Internet }
+	kUserSpecificTmpFolderType	= FourCharCode('utmp');						{  Contains temporary items created on behalf of the current user }
+	kCachedDataFolderType		= FourCharCode('cach');						{  Contains various cache files for different clients }
+	kFrameworksFolderType		= FourCharCode('fram');						{  Contains MacOS X Framework folders      }
+	kPrivateFrameworksFolderType = FourCharCode('pfrm');						{  Contains MacOS X Private Framework folders      }
+	kClassicDesktopFolderType	= FourCharCode('sdsk');						{  MacOS 9 compatible desktop folder - same as  }
 																{  kSystemDesktopFolderType but with a more appropriate }
 																{  name for Mac OS X code. }
-	kDeveloperFolderType		= $64657666 (* 'devf' *);						{  Contains MacOS X Developer Resources }
-	kSystemSoundsFolderType		= $73736E64 (* 'ssnd' *);						{  Contains Mac OS X System Sound Files }
-	kComponentsFolderType		= $636D7064 (* 'cmpd' *);						{  Contains Mac OS X components }
-	kQuickTimeComponentsFolderType = $77636D70 (* 'wcmp' *);					{  Contains QuickTime components for Mac OS X }
-	kCoreServicesFolderType		= $63737276 (* 'csrv' *);						{  Refers to the "CoreServices" folder on Mac OS X }
-	kPictureDocumentsFolderType	= $70646F63 (* 'pdoc' *);						{  Refers to the "Pictures" folder in a users home directory }
-	kMovieDocumentsFolderType	= $6D646F63 (* 'mdoc' *);						{  Refers to the "Movies" folder in a users home directory }
-	kMusicDocumentsFolderType	= $C2B5646F (* 'µdoc' *);						{  Refers to the "Music" folder in a users home directory }
-	kInternetSitesFolderType	= $73697465 (* 'site' *);						{  Refers to the "Sites" folder in a users home directory }
-	kPublicFolderType			= $70756262 (* 'pubb' *);						{  Refers to the "Public" folder in a users home directory }
-	kAudioSupportFolderType		= $6164696F (* 'adio' *);						{  Refers to the Audio support folder for Mac OS X }
-	kAudioSoundsFolderType		= $61736E64 (* 'asnd' *);						{  Refers to the Sounds subfolder of Audio Support }
-	kAudioSoundBanksFolderType	= $62616E6B (* 'bank' *);						{  Refers to the Banks subfolder of the Sounds Folder }
-	kAudioAlertSoundsFolderType	= $616C7274 (* 'alrt' *);						{  Refers to the Alert Sounds subfolder of the Sound Folder }
-	kAudioPlugInsFolderType		= $61706C67 (* 'aplg' *);						{  Refers to the Plug-ins subfolder of the Audio Folder    }
-	kAudioComponentsFolderType	= $61636D70 (* 'acmp' *);						{  Refers to the Components subfolder of the Audio Plug-ins Folder     }
-	kKernelExtensionsFolderType	= $6B657874 (* 'kext' *);						{  Refers to the Kernel Extensions Folder on Mac OS X }
-	kDirectoryServicesFolderType = $64737276 (* 'dsrv' *);						{  Refers to the Directory Services folder on Mac OS X }
-	kDirectoryServicesPlugInsFolderType = $64706C67 (* 'dplg' *);				{  Refers to the Directory Services Plug-Ins folder on Mac OS X  }
-	kInstallerReceiptsFolderType = $72637074 (* 'rcpt' *);						{  Refers to the "Receipts" folder in Mac OS X }
-	kFileSystemSupportFolderType = $66737973 (* 'fsys' *);						{  Refers to the [domain]/Library/Filesystems folder in Mac OS X }
-	kAppleShareSupportFolderType = $73686172 (* 'shar' *);						{  Refers to the [domain]/Library/Filesystems/AppleShare folder in Mac OS X }
-	kAppleShareAuthenticationFolderType = $61757468 (* 'auth' *);				{  Refers to the [domain]/Library/Filesystems/AppleShare/Authentication folder in Mac OS X }
-	kMIDIDriversFolderType		= $6D696469 (* 'midi' *);						{  Refers to the MIDI Drivers folder on Mac OS X }
+	kDeveloperFolderType		= FourCharCode('devf');						{  Contains MacOS X Developer Resources }
+	kSystemSoundsFolderType		= FourCharCode('ssnd');						{  Contains Mac OS X System Sound Files }
+	kComponentsFolderType		= FourCharCode('cmpd');						{  Contains Mac OS X components }
+	kQuickTimeComponentsFolderType = FourCharCode('wcmp');					{  Contains QuickTime components for Mac OS X }
+	kCoreServicesFolderType		= FourCharCode('csrv');						{  Refers to the "CoreServices" folder on Mac OS X }
+	kPictureDocumentsFolderType	= FourCharCode('pdoc');						{  Refers to the "Pictures" folder in a users home directory }
+	kMovieDocumentsFolderType	= FourCharCode('mdoc');						{  Refers to the "Movies" folder in a users home directory }
+	kMusicDocumentsFolderType	= FourCharCode('µdoc');						{  Refers to the "Music" folder in a users home directory }
+	kInternetSitesFolderType	= FourCharCode('site');						{  Refers to the "Sites" folder in a users home directory }
+	kPublicFolderType			= FourCharCode('pubb');						{  Refers to the "Public" folder in a users home directory }
+	kAudioSupportFolderType		= FourCharCode('adio');						{  Refers to the Audio support folder for Mac OS X }
+	kAudioSoundsFolderType		= FourCharCode('asnd');						{  Refers to the Sounds subfolder of Audio Support }
+	kAudioSoundBanksFolderType	= FourCharCode('bank');						{  Refers to the Banks subfolder of the Sounds Folder }
+	kAudioAlertSoundsFolderType	= FourCharCode('alrt');						{  Refers to the Alert Sounds subfolder of the Sound Folder }
+	kAudioPlugInsFolderType		= FourCharCode('aplg');						{  Refers to the Plug-ins subfolder of the Audio Folder    }
+	kAudioComponentsFolderType	= FourCharCode('acmp');						{  Refers to the Components subfolder of the Audio Plug-ins Folder     }
+	kKernelExtensionsFolderType	= FourCharCode('kext');						{  Refers to the Kernel Extensions Folder on Mac OS X }
+	kDirectoryServicesFolderType = FourCharCode('dsrv');						{  Refers to the Directory Services folder on Mac OS X }
+	kDirectoryServicesPlugInsFolderType = FourCharCode('dplg');				{  Refers to the Directory Services Plug-Ins folder on Mac OS X  }
+	kInstallerReceiptsFolderType = FourCharCode('rcpt');						{  Refers to the "Receipts" folder in Mac OS X }
+	kFileSystemSupportFolderType = FourCharCode('fsys');						{  Refers to the [domain]/Library/Filesystems folder in Mac OS X }
+	kAppleShareSupportFolderType = FourCharCode('shar');						{  Refers to the [domain]/Library/Filesystems/AppleShare folder in Mac OS X }
+	kAppleShareAuthenticationFolderType = FourCharCode('auth');				{  Refers to the [domain]/Library/Filesystems/AppleShare/Authentication folder in Mac OS X }
+	kMIDIDriversFolderType		= FourCharCode('midi');						{  Refers to the MIDI Drivers folder on Mac OS X }
 
-	kLocalesFolderType			= $C6926C6F (* 'Äloc' *);						{  PKE for Locales folder  }
-	kFindByContentPluginsFolderType = $66626370 (* 'fbcp' *);					{  Find By Content Plug-ins  }
+	kLocalesFolderType			= FourCharCode('Äloc');						{  PKE for Locales folder  }
+	kFindByContentPluginsFolderType = FourCharCode('fbcp');					{  Find By Content Plug-ins  }
 
-	kUsersFolderType			= $75737273 (* 'usrs' *);						{  "Users" folder, contains one folder for each user.  }
-	kCurrentUserFolderType		= $63757372 (* 'cusr' *);						{  The folder for the currently logged on user.  }
-	kCurrentUserRemoteFolderLocation = $72757366 (* 'rusf' *);					{  The remote folder for the currently logged on user  }
-	kCurrentUserRemoteFolderType = $72757372 (* 'rusr' *);						{  The remote folder location for the currently logged on user  }
-	kSharedUserDataFolderType	= $73646174 (* 'sdat' *);						{  A Shared "Documents" folder, readable & writeable by all users  }
-	kVolumeSettingsFolderType	= $76736664 (* 'vsfd' *);						{  Volume specific user information goes here  }
+	kUsersFolderType			= FourCharCode('usrs');						{  "Users" folder, contains one folder for each user.  }
+	kCurrentUserFolderType		= FourCharCode('cusr');						{  The folder for the currently logged on user.  }
+	kCurrentUserRemoteFolderLocation = FourCharCode('rusf');					{  The remote folder for the currently logged on user  }
+	kCurrentUserRemoteFolderType = FourCharCode('rusr');						{  The remote folder location for the currently logged on user  }
+	kSharedUserDataFolderType	= FourCharCode('sdat');						{  A Shared "Documents" folder, readable & writeable by all users  }
+	kVolumeSettingsFolderType	= FourCharCode('vsfd');						{  Volume specific user information goes here  }
 
-	kAppleshareAutomountServerAliasesFolderType = $737276C6 (* 'srvÄ' *);		{  Appleshare puts volumes to automount inside this folder.  }
-	kPreMacOS91ApplicationsFolderType = $C3A57070 (* 'Œpps' *);					{  The "Applications" folder, pre Mac OS 9.1  }
-	kPreMacOS91InstallerLogsFolderType = $C3AE6C67 (* '”lgf' *);				{  The "Installer Logs" folder, pre Mac OS 9.1  }
-	kPreMacOS91AssistantsFolderType = $C3A57374 (* 'ŒstÄ' *);					{  The "Assistants" folder, pre Mac OS 9.1  }
-	kPreMacOS91UtilitiesFolderType = $C3BC7469 (* 'ŸtiÄ' *);					{  The "Utilities" folder, pre Mac OS 9.1  }
-	kPreMacOS91AppleExtrasFolderType = $C3A56578 (* 'ŒexÄ' *);					{  The "Apple Extras" folder, pre Mac OS 9.1  }
-	kPreMacOS91MacOSReadMesFolderType = $C2B56F72 (* 'µorÄ' *);					{  The "Mac OS ReadMes" folder, pre Mac OS 9.1  }
-	kPreMacOS91InternetFolderType = $C3AE6E74 (* '”ntÄ' *);						{  The "Internet" folder, pre Mac OS 9.1  }
-	kPreMacOS91AutomountedServersFolderType = $C39F7276 (* '§rvÄ' *);			{  The "Servers" folder, pre Mac OS 9.1  }
-	kPreMacOS91StationeryFolderType = $C3B86473 (* '¿dst' *);					{  The "Stationery" folder, pre Mac OS 9.1  }
+	kAppleshareAutomountServerAliasesFolderType = FourCharCode('srvÄ');		{  Appleshare puts volumes to automount inside this folder.  }
+	kPreMacOS91ApplicationsFolderType = FourCharCode('Œpps');					{  The "Applications" folder, pre Mac OS 9.1  }
+	kPreMacOS91InstallerLogsFolderType = FourCharCode('”lgf');				{  The "Installer Logs" folder, pre Mac OS 9.1  }
+	kPreMacOS91AssistantsFolderType = FourCharCode('ŒstÄ');					{  The "Assistants" folder, pre Mac OS 9.1  }
+	kPreMacOS91UtilitiesFolderType = FourCharCode('ŸtiÄ');					{  The "Utilities" folder, pre Mac OS 9.1  }
+	kPreMacOS91AppleExtrasFolderType = FourCharCode('ŒexÄ');					{  The "Apple Extras" folder, pre Mac OS 9.1  }
+	kPreMacOS91MacOSReadMesFolderType = FourCharCode('µorÄ');					{  The "Mac OS ReadMes" folder, pre Mac OS 9.1  }
+	kPreMacOS91InternetFolderType = FourCharCode('”ntÄ');						{  The "Internet" folder, pre Mac OS 9.1  }
+	kPreMacOS91AutomountedServersFolderType = FourCharCode('§rvÄ');			{  The "Servers" folder, pre Mac OS 9.1  }
+	kPreMacOS91StationeryFolderType = FourCharCode('¿dst');					{  The "Stationery" folder, pre Mac OS 9.1  }
 
 	{	 FolderDescFlags values 	}
 	kCreateFolderAtBoot			= $00000002;
@@ -374,8 +374,8 @@ type
 	{	 FolderClass values 	}
 
 const
-	kRelativeFolder				= $72656C66 (* 'relf' *);
-	kSpecialFolder				= $73706366 (* 'spcf' *);
+	kRelativeFolder				= FourCharCode('relf');
+	kSpecialFolder				= FourCharCode('spcf');
 
 
 type
@@ -383,10 +383,10 @@ type
 	{	 special folder locations 	}
 
 const
-	kBlessedFolder				= $626C7366 (* 'blsf' *);
-	kRootFolder					= $726F7466 (* 'rotf' *);
+	kBlessedFolder				= FourCharCode('blsf');
+	kRootFolder					= FourCharCode('rotf');
 
-	kCurrentUserFolderLocation	= $63757366 (* 'cusf' *);						{     the magic 'Current User' folder location }
+	kCurrentUserFolderLocation	= FourCharCode('cusf');						{     the magic 'Current User' folder location }
 
 
 type
@@ -441,9 +441,9 @@ type
 		userName:				Str31;
 		userNameScript:			SInt16;
 		currentUserFolderVRefNum: SInt16;
-		currentUserFolderDirID:	UInt32;
+		currentUserFolderDirID:	DirIDType;
 		remoteUserFolderVRefNum: SInt16;
-		remoteUserFolderDirID:	UInt32;
+		remoteUserFolderDirID:	DirIDType;
 	end;
 
 
@@ -502,12 +502,12 @@ procedure DisposeFolderManagerNotificationUPP(userUPP: FolderManagerNotification
  }
 function InvokeFolderManagerNotificationUPP(message: OSType; arg: UnivPtr; userRefCon: UnivPtr; userRoutine: FolderManagerNotificationUPP): OSStatus; external name '_InvokeFolderManagerNotificationUPP'; { old name was CallFolderManagerNotificationProc }
 const
-	kFolderManagerNotificationMessageUserLogIn = $6C6F672B (* 'log+' *);		{     Sent by system & third party software after a user logs in.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
-	kFolderManagerNotificationMessagePreUserLogIn = $6C6F676A (* 'logj' *);		{     Sent by system & third party software before a user logs in.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
-	kFolderManagerNotificationMessageUserLogOut = $6C6F672D (* 'log-' *);		{     Sent by system & third party software before a user logs out.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
-	kFolderManagerNotificationMessagePostUserLogOut = $6C6F6770 (* 'logp' *);	{     Sent by system & third party software after a user logs out.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
-	kFolderManagerNotificationDiscardCachedData = $64636865 (* 'dche' *);		{     Sent by system & third party software when the entire Folder Manager cache should be flushed }
-	kFolderManagerNotificationMessageLoginStartup = $73747570 (* 'stup' *);		{     Sent by 'Login' application the first time it starts up after each boot }
+	kFolderManagerNotificationMessageUserLogIn = FourCharCode('log+');		{     Sent by system & third party software after a user logs in.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
+	kFolderManagerNotificationMessagePreUserLogIn = FourCharCode('logj');		{     Sent by system & third party software before a user logs in.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
+	kFolderManagerNotificationMessageUserLogOut = FourCharCode('log-');		{     Sent by system & third party software before a user logs out.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
+	kFolderManagerNotificationMessagePostUserLogOut = FourCharCode('logp');	{     Sent by system & third party software after a user logs out.  arg should point to a valid FindFolderUserRedirectionGlobals structure or nil for the owner }
+	kFolderManagerNotificationDiscardCachedData = FourCharCode('dche');		{     Sent by system & third party software when the entire Folder Manager cache should be flushed }
+	kFolderManagerNotificationMessageLoginStartup = FourCharCode('stup');		{     Sent by 'Login' application the first time it starts up after each boot }
 
 
 	{   These get used in the options parameter of FolderManagerRegisterNotificationProc() }
@@ -612,7 +612,7 @@ function GetFolderRoutings(requestedRoutingCount: UInt32; var totalRoutingCount:
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function InvalidateFolderDescriptorCache(vRefNum: SInt16; dirID: UInt32): OSErr; external name '_InvalidateFolderDescriptorCache';
+function InvalidateFolderDescriptorCache(vRefNum: SInt16; dirID: DirIDType): OSErr; external name '_InvalidateFolderDescriptorCache';
 {
  *  IdentifyFolder()
  *  
@@ -621,7 +621,7 @@ function InvalidateFolderDescriptorCache(vRefNum: SInt16; dirID: UInt32): OSErr;
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function IdentifyFolder(vRefNum: SInt16; dirID: UInt32; var foldType: FolderType): OSErr; external name '_IdentifyFolder';
+function IdentifyFolder(vRefNum: SInt16; dirID: DirIDType; var foldType: FolderType): OSErr; external name '_IdentifyFolder';
 {
  *  FolderManagerRegisterNotificationProc()
  *  
@@ -673,7 +673,7 @@ type
 		giReserved4:			FSSpec;									{  [OBSOLETE with v6] location of At Ease Items folder }
 																		{     Version 2 fields. }
 		giDocsVRefNum:			SInt16;								{  vrefnum of user's documents location (only valid if not on floppy) }
-		giDocsDirID:			UInt32;								{  directory id of user's documents folder (only valid if not on floppy) }
+		giDocsDirID:			DirIDType;							{  directory id of user's documents folder (only valid if not on floppy) }
 		giForceSaves:			SInt16;								{  true if user is forced to save to their documents folder }
 		giForceOpens:			SInt16;								{  true if user is forced to open from their documents folder }
 		giSetupName:			Str31;									{  name of current setup }
@@ -693,7 +693,7 @@ type
 																		{     Version 5 fields. }
 		giSupportsAsyncFSCalls:	boolean;								{  Finder uses this to tell if our patches support async trap patches }
 		giPrefsVRefNum:			SInt16;								{  vrefnum of preferences }
-		giPrefsDirID:			UInt32;								{  dirID of the At Ease Items folder on preferences volume }
+		giPrefsDirID:			DirIDType;							{  dirID of the At Ease Items folder on preferences volume }
 		giUserLogInTime:		UInt32;									{  time in seconds we've been logged in (0 or 1 mean not logged in) }
 		giUsingPrintQuotas:		boolean;								{  true if logged in user is using printer quotas }
 		giUsingDiskQuotas:		boolean;								{  true if logged in user has disk quotas active }

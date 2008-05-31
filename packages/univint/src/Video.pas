@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Video;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -146,8 +146,8 @@ const
 
 	{	 csTimingFormat values in VDTimingInfo 	}
 	{	 look in the declaration rom for timing info 	}
-	kDeclROMtables				= $6465636C (* 'decl' *);
-	kDetailedTimingFormat		= $61726261 (* 'arba' *);						{  Timing is a detailed timing }
+	kDeclROMtables				= FourCharCode('decl');
+	kDetailedTimingFormat		= FourCharCode('arba');						{  Timing is a detailed timing }
 
 	{	 Size of a block of EDID (Extended Display Identification Data) 	}
 	kDDCBlockSize				= 128;

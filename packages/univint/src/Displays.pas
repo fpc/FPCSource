@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Displays;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -117,48 +117,48 @@ type
 
 const
 																{  AppleEvents Core Suite  }
-	kAESystemConfigNotice		= $636E6667 (* 'cnfg' *);						{  Core Suite types  }
-	kAEDisplayNotice			= $6473706C (* 'dspl' *);
-	kAEDisplaySummary			= $6473756D (* 'dsum' *);
-	keyDMConfigVersion			= $646D6376 (* 'dmcv' *);
-	keyDMConfigFlags			= $646D6366 (* 'dmcf' *);
-	keyDMConfigReserved			= $646D6372 (* 'dmcr' *);
-	keyDisplayID				= $646D6964 (* 'dmid' *);
-	keyDisplayComponent			= $646D6463 (* 'dmdc' *);
-	keyDisplayDevice			= $646D6464 (* 'dmdd' *);
-	keyDisplayFlags				= $646D6466 (* 'dmdf' *);
-	keyDisplayMode				= $646D646D (* 'dmdm' *);
-	keyDisplayModeReserved		= $646D6D72 (* 'dmmr' *);
-	keyDisplayReserved			= $646D6472 (* 'dmdr' *);
-	keyDisplayMirroredId		= $646D6D69 (* 'dmmi' *);
-	keyDeviceFlags				= $64646466 (* 'dddf' *);
-	keyDeviceDepthMode			= $6464646D (* 'dddm' *);
-	keyDeviceRect				= $64646472 (* 'dddr' *);
-	keyPixMapRect				= $64706472 (* 'dpdr' *);
-	keyPixMapHResolution		= $64706872 (* 'dphr' *);
-	keyPixMapVResolution		= $64707672 (* 'dpvr' *);
-	keyPixMapPixelType			= $64707074 (* 'dppt' *);
-	keyPixMapPixelSize			= $64707073 (* 'dpps' *);
-	keyPixMapCmpCount			= $64706363 (* 'dpcc' *);
-	keyPixMapCmpSize			= $64706373 (* 'dpcs' *);
-	keyPixMapAlignment			= $64707061 (* 'dppa' *);
-	keyPixMapResReserved		= $64707272 (* 'dprr' *);
-	keyPixMapReserved			= $64707072 (* 'dppr' *);
-	keyPixMapColorTableSeed		= $64706374 (* 'dpct' *);
-	keySummaryMenubar			= $64736D62 (* 'dsmb' *);
-	keySummaryChanges			= $64736368 (* 'dsch' *);
-	keyDisplayOldConfig			= $646F6C64 (* 'dold' *);
-	keyDisplayNewConfig			= $646E6577 (* 'dnew' *);
+	kAESystemConfigNotice		= FourCharCode('cnfg');						{  Core Suite types  }
+	kAEDisplayNotice			= FourCharCode('dspl');
+	kAEDisplaySummary			= FourCharCode('dsum');
+	keyDMConfigVersion			= FourCharCode('dmcv');
+	keyDMConfigFlags			= FourCharCode('dmcf');
+	keyDMConfigReserved			= FourCharCode('dmcr');
+	keyDisplayID				= FourCharCode('dmid');
+	keyDisplayComponent			= FourCharCode('dmdc');
+	keyDisplayDevice			= FourCharCode('dmdd');
+	keyDisplayFlags				= FourCharCode('dmdf');
+	keyDisplayMode				= FourCharCode('dmdm');
+	keyDisplayModeReserved		= FourCharCode('dmmr');
+	keyDisplayReserved			= FourCharCode('dmdr');
+	keyDisplayMirroredId		= FourCharCode('dmmi');
+	keyDeviceFlags				= FourCharCode('dddf');
+	keyDeviceDepthMode			= FourCharCode('dddm');
+	keyDeviceRect				= FourCharCode('dddr');
+	keyPixMapRect				= FourCharCode('dpdr');
+	keyPixMapHResolution		= FourCharCode('dphr');
+	keyPixMapVResolution		= FourCharCode('dpvr');
+	keyPixMapPixelType			= FourCharCode('dppt');
+	keyPixMapPixelSize			= FourCharCode('dpps');
+	keyPixMapCmpCount			= FourCharCode('dpcc');
+	keyPixMapCmpSize			= FourCharCode('dpcs');
+	keyPixMapAlignment			= FourCharCode('dppa');
+	keyPixMapResReserved		= FourCharCode('dprr');
+	keyPixMapReserved			= FourCharCode('dppr');
+	keyPixMapColorTableSeed		= FourCharCode('dpct');
+	keySummaryMenubar			= FourCharCode('dsmb');
+	keySummaryChanges			= FourCharCode('dsch');
+	keyDisplayOldConfig			= FourCharCode('dold');
+	keyDisplayNewConfig			= FourCharCode('dnew');
 
 	dmOnlyActiveDisplays		= true;
 	dmAllDisplays				= false;
 
 
 																{  DMSendDependentNotification notifyClass  }
-	kDependentNotifyClassShowCursor = $73686372 (* 'shcr' *);					{  When display mgr shows a hidden cursor during an unmirror  }
-	kDependentNotifyClassDriverOverride = $6E647276 (* 'ndrv' *);				{  When a driver is overridden  }
-	kDependentNotifyClassDisplayMgrOverride = $646D6772 (* 'dmgr' *);			{  When display manager is upgraded  }
-	kDependentNotifyClassProfileChanged = $70726F66 (* 'prof' *);				{  When DMSetProfileByAVID is called  }
+	kDependentNotifyClassShowCursor = FourCharCode('shcr');					{  When display mgr shows a hidden cursor during an unmirror  }
+	kDependentNotifyClassDriverOverride = FourCharCode('ndrv');				{  When a driver is overridden  }
+	kDependentNotifyClassDisplayMgrOverride = FourCharCode('dmgr');			{  When display manager is upgraded  }
+	kDependentNotifyClassProfileChanged = FourCharCode('prof');				{  When DMSetProfileByAVID is called  }
 
 
 																{  Switch Flags  }
@@ -266,10 +266,10 @@ const
 
 
 	{  Display Gestalt for DMDisplayGestalt }
-	kDisplayGestaltDisplayCommunicationAttr = $636F6D6D (* 'comm' *);
+	kDisplayGestaltDisplayCommunicationAttr = FourCharCode('comm');
 	kDisplayGestaltForbidI2CMask = $01;							{  Some displays have firmware problems if they get I2C communication.  If this bit is set, then I2C communication is forbidden }
 	kDisplayGestaltUseI2CPowerMask = $02;						{  Some displays require I2C power settings (most use DPMS). }
-	kDisplayGestaltCalibratorAttr = $63616C69 (* 'cali' *);
+	kDisplayGestaltCalibratorAttr = FourCharCode('cali');
 	kDisplayGestaltBrightnessAffectsGammaMask = $01;			{  Used by default calibrator (should we show brightness panel)  }
 	kDisplayGestaltViewAngleAffectsGammaMask = $02;				{  Currently not used by color sync }
 

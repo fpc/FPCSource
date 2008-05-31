@@ -17,7 +17,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -25,12 +25,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CMApplication;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -115,7 +115,7 @@ uses MacTypes,CFBase,CFData,Files,CMICCProfile,MacErrors,CMTypes,CFString,CFDict
 
 
 const
-	kDefaultCMMSignature		= $6170706C (* 'appl' *);
+	kDefaultCMMSignature		= FourCharCode('appl');
 
 	{	 Macintosh 68K trap word 	}
 	cmTrap						= $ABEE;
@@ -188,10 +188,10 @@ const
 
 
 	{	 Use types for CMGet/SetDefaultProfileByUse() 	}
-	cmInputUse					= $696E7074 (* 'inpt' *);
-	cmOutputUse					= $6F757470 (* 'outp' *);
-	cmDisplayUse				= $64706C79 (* 'dply' *);
-	cmProofUse					= $70727566 (* 'pruf' *);
+	cmInputUse					= FourCharCode('inpt');
+	cmOutputUse					= FourCharCode('outp');
+	cmDisplayUse				= FourCharCode('dply');
+	cmProofUse					= FourCharCode('pruf');
 
 
 	{	 Union of 1.0, 2.0, and 4.0 profile header variants 	}
@@ -2189,8 +2189,8 @@ function CMGetProfileAdditionalDataOffset(myProfile: CMProfileHandle): SInt32; e
 {$endc}  {CALL_NOT_IN_CARBON}
 
 const
-	cmSystemDevice				= $73797320 (* 'sys ' *);
-	cmGDevice					= $67646576 (* 'gdev' *);
+	cmSystemDevice				= FourCharCode('sys ');
+	cmGDevice					= FourCharCode('gdev');
 
 	{	 ProfileResponder functions 	}
 {$ifc CALL_NOT_IN_CARBON}
@@ -2249,8 +2249,8 @@ type
 	CMProfileFilterProc					= CMProfileFilterProcPtr;
 
 const
-	qdSystemDevice				= $73797320 (* 'sys ' *);
-	qdGDevice					= $67646576 (* 'gdev' *);
+	qdSystemDevice				= FourCharCode('sys ');
+	qdGDevice					= FourCharCode('gdev');
 
 
 	kMatchCMMType				= $00000001;

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit AppleDiskPartitions;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -202,12 +202,12 @@ const
 
 
 	{	 Well known driver signatures, stored in the first four byte of pmPad. 	}
-	kPatchDriverSignature		= $70744452 (* 'ptDR' *);						{  SCSI and ATA[PI] patch driver     }
+	kPatchDriverSignature		= FourCharCode('ptDR');						{  SCSI and ATA[PI] patch driver     }
 	kSCSIDriverSignature		= $00010600;					{  SCSI  hard disk driver            }
-	kATADriverSignature			= $77696B69 (* 'wiki' *);						{  ATA   hard disk driver            }
-	kSCSICDDriverSignature		= $43447672 (* 'CDvr' *);						{  SCSI  CD-ROM    driver            }
-	kATAPIDriverSignature		= $41545049 (* 'ATPI' *);						{  ATAPI CD-ROM    driver            }
-	kDriveSetupHFSSignature		= $44535531 (* 'DSU1' *);						{  Drive Setup HFS partition         }
+	kATADriverSignature			= FourCharCode('wiki');						{  ATA   hard disk driver            }
+	kSCSICDDriverSignature		= FourCharCode('CDvr');						{  SCSI  CD-ROM    driver            }
+	kATAPIDriverSignature		= FourCharCode('ATPI');						{  ATAPI CD-ROM    driver            }
+	kDriveSetupHFSSignature		= FourCharCode('DSU1');						{  Drive Setup HFS partition         }
 
 
 {$ALIGN MAC68K}

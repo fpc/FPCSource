@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit AEUserTermTypes;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -111,10 +111,10 @@ uses MacTypes,ConditionalMacros;
 
 
 const
-	kAEUserTerminology			= $61657574 (* 'aeut' *);						{   0x61657574   }
-	kAETerminologyExtension		= $61657465 (* 'aete' *);						{   0x61657465   }
-	kAEScriptingSizeResource	= $7363737A (* 'scsz' *);						{   0x7363737a   }
-	kAEOSAXSizeResource			= $6F73697A (* 'osiz' *);
+	kAEUserTerminology			= FourCharCode('aeut');						{   0x61657574   }
+	kAETerminologyExtension		= FourCharCode('aete');						{   0x61657465   }
+	kAEScriptingSizeResource	= FourCharCode('scsz');						{   0x7363737a   }
+	kAEOSAXSizeResource			= FourCharCode('osiz');
 
 	kAEUTHasReturningParam		= 31;							{  if event has a keyASReturning param  }
 	kAEUTOptional				= 15;							{  if something is optional  }

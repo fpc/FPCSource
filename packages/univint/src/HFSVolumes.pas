@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit HFSVolumes;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -115,7 +115,7 @@ const
 	kHFSSigWord					= $4244;						{  'BD' in ASCII  }
 	kHFSPlusSigWord				= $482B;						{  'H+' in ASCII  }
 	kHFSPlusVersion				= $0004;						{  will change as format changes (version 4 shipped with Mac OS 8.1)  }
-	kHFSPlusMountVersion		= $382E3130 (* '8.10' *);						{  will change as implementations change ('8.10' in Mac OS 8.1)  }
+	kHFSPlusMountVersion		= FourCharCode('8.10');						{  will change as implementations change ('8.10' in Mac OS 8.1)  }
 
 
 	{	 CatalogNodeID is used to track catalog objects 	}

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit QuickTimeVRFormat;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -112,53 +112,53 @@ uses MacTypes,Files,ConditionalMacros,Movies,QuickTimeVR;
 {  User data type for the Movie Controller type specifier }
 
 const
-	kQTControllerType			= $63747970 (* 'ctyp' *);						{  Atom & ID of where our }
+	kQTControllerType			= FourCharCode('ctyp');						{  Atom & ID of where our }
 	kQTControllerID				= 1;							{  ...controller name is stored }
 
 	{  VRWorld atom types }
-	kQTVRWorldHeaderAtomType	= $76727363 (* 'vrsc' *);
-	kQTVRImagingParentAtomType	= $696D6770 (* 'imgp' *);
-	kQTVRPanoImagingAtomType	= $696D706E (* 'impn' *);
-	kQTVRObjectImagingAtomType	= $696D6F62 (* 'imob' *);
-	kQTVRNodeParentAtomType		= $76726E70 (* 'vrnp' *);
-	kQTVRNodeIDAtomType			= $76726E69 (* 'vrni' *);
-	kQTVRNodeLocationAtomType	= $6E6C6F63 (* 'nloc' *);
-	kQTVRCursorParentAtomType	= $76726370 (* 'vrcp' *);						{  New with 2.1 }
-	kQTVRCursorAtomType			= $43555253 (* 'CURS' *);						{  New with 2.1 }
-	kQTVRColorCursorAtomType	= $63727372 (* 'crsr' *);						{  New with 2.1 }
+	kQTVRWorldHeaderAtomType	= FourCharCode('vrsc');
+	kQTVRImagingParentAtomType	= FourCharCode('imgp');
+	kQTVRPanoImagingAtomType	= FourCharCode('impn');
+	kQTVRObjectImagingAtomType	= FourCharCode('imob');
+	kQTVRNodeParentAtomType		= FourCharCode('vrnp');
+	kQTVRNodeIDAtomType			= FourCharCode('vrni');
+	kQTVRNodeLocationAtomType	= FourCharCode('nloc');
+	kQTVRCursorParentAtomType	= FourCharCode('vrcp');						{  New with 2.1 }
+	kQTVRCursorAtomType			= FourCharCode('CURS');						{  New with 2.1 }
+	kQTVRColorCursorAtomType	= FourCharCode('crsr');						{  New with 2.1 }
 
 	{  NodeInfo atom types }
-	kQTVRNodeHeaderAtomType		= $6E646864 (* 'ndhd' *);
-	kQTVRHotSpotParentAtomType	= $68737061 (* 'hspa' *);
-	kQTVRHotSpotAtomType		= $686F7473 (* 'hots' *);
-	kQTVRHotSpotInfoAtomType	= $6873696E (* 'hsin' *);
-	kQTVRLinkInfoAtomType		= $6C696E6B (* 'link' *);
+	kQTVRNodeHeaderAtomType		= FourCharCode('ndhd');
+	kQTVRHotSpotParentAtomType	= FourCharCode('hspa');
+	kQTVRHotSpotAtomType		= FourCharCode('hots');
+	kQTVRHotSpotInfoAtomType	= FourCharCode('hsin');
+	kQTVRLinkInfoAtomType		= FourCharCode('link');
 
 	{  Miscellaneous atom types }
-	kQTVRStringAtomType			= $76727367 (* 'vrsg' *);
-	kQTVRStringEncodingAtomType	= $76727365 (* 'vrse' *);						{  New with 2.1 }
-	kQTVRPanoSampleDataAtomType	= $70646174 (* 'pdat' *);
-	kQTVRObjectInfoAtomType		= $6F626A69 (* 'obji' *);
-	kQTVRImageTrackRefAtomType	= $696D7472 (* 'imtr' *);						{  Parent is kQTVRObjectInfoAtomType. Required if track ref is not 1 as required by 2.0 format. }
-	kQTVRHotSpotTrackRefAtomType = $68737472 (* 'hstr' *);						{  Parent is kQTVRObjectInfoAtomType. Required if track ref is not 1 as required by 2.0 format. }
-	kQTVRAngleRangeAtomType		= $61726E67 (* 'arng' *);
-	kQTVRTrackRefArrayAtomType	= $74726566 (* 'tref' *);
-	kQTVRPanConstraintAtomType	= $70636F6E (* 'pcon' *);
-	kQTVRTiltConstraintAtomType	= $74636F6E (* 'tcon' *);
-	kQTVRFOVConstraintAtomType	= $66636F6E (* 'fcon' *);
-	kQTVRCubicViewAtomType		= $63757677 (* 'cuvw' *);						{  New with 5.0 }
-	kQTVRCubicFaceDataAtomType	= $63756661 (* 'cufa' *);						{  New with 5.0 }
+	kQTVRStringAtomType			= FourCharCode('vrsg');
+	kQTVRStringEncodingAtomType	= FourCharCode('vrse');						{  New with 2.1 }
+	kQTVRPanoSampleDataAtomType	= FourCharCode('pdat');
+	kQTVRObjectInfoAtomType		= FourCharCode('obji');
+	kQTVRImageTrackRefAtomType	= FourCharCode('imtr');						{  Parent is kQTVRObjectInfoAtomType. Required if track ref is not 1 as required by 2.0 format. }
+	kQTVRHotSpotTrackRefAtomType = FourCharCode('hstr');						{  Parent is kQTVRObjectInfoAtomType. Required if track ref is not 1 as required by 2.0 format. }
+	kQTVRAngleRangeAtomType		= FourCharCode('arng');
+	kQTVRTrackRefArrayAtomType	= FourCharCode('tref');
+	kQTVRPanConstraintAtomType	= FourCharCode('pcon');
+	kQTVRTiltConstraintAtomType	= FourCharCode('tcon');
+	kQTVRFOVConstraintAtomType	= FourCharCode('fcon');
+	kQTVRCubicViewAtomType		= FourCharCode('cuvw');						{  New with 5.0 }
+	kQTVRCubicFaceDataAtomType	= FourCharCode('cufa');						{  New with 5.0 }
 
 	kQTVRObjectInfoAtomID		= 1;
 	kQTVRObjectImageTrackRefAtomID = 1;							{  New with 2.1, it adds a track reference to select between multiple image tracks }
 	kQTVRObjectHotSpotTrackRefAtomID = 1;						{  New with 2.1, it adds a track reference to select between multiple hotspot tracks }
 
 	{  Track reference types }
-	kQTVRImageTrackRefType		= $696D6774 (* 'imgt' *);
-	kQTVRHotSpotTrackRefType	= $686F7474 (* 'hott' *);
+	kQTVRImageTrackRefType		= FourCharCode('imgt');
+	kQTVRHotSpotTrackRefType	= FourCharCode('hott');
 
 	{  Old hot spot types }
-	kQTVRHotSpotNavigableType	= $6E617667 (* 'navg' *);
+	kQTVRHotSpotNavigableType	= FourCharCode('navg');
 
 	{  Valid bits used in QTVRLinkHotSpotAtom }
 	kQTVRValidPan				= $00000001;
@@ -468,29 +468,29 @@ type
 	}
 
 const
-	kQTVRFlattenerManufacturer	= $76727765 (* 'vrwe' *);						{  aka QTVRFlattenerType }
-	kQTVRSplitterManufacturer	= $76727370 (* 'vrsp' *);
-	kQTVRObjExporterManufacturer = $76726F62 (* 'vrob' *);
+	kQTVRFlattenerManufacturer	= FourCharCode('vrwe');						{  aka QTVRFlattenerType }
+	kQTVRSplitterManufacturer	= FourCharCode('vrsp');
+	kQTVRObjExporterManufacturer = FourCharCode('vrob');
 
 	{  QuickTime VR Flattener atom types }
-	kQTVRFlattenerSettingsParentAtomType = $56525765 (* 'VRWe' *);				{  parent of settings atoms (other than compression) }
-	kQTVRFlattenerPreviewResAtomType = $50526573 (* 'PRes' *);					{  preview resolution Int16 }
-	kQTVRFlattenerImportSpecAtomType = $49537065 (* 'ISpe' *);					{  import file spec FSSpec }
-	kQTVRFlattenerCreatePreviewAtomType = $50726576 (* 'Prev' *);				{  Boolean }
-	kQTVRFlattenerImportPreviewAtomType = $49507265 (* 'IPre' *);				{  Boolean }
-	kQTVRFlattenerBlurPreviewAtomType = $426C7572 (* 'Blur' *);					{  Boolean }
+	kQTVRFlattenerSettingsParentAtomType = FourCharCode('VRWe');				{  parent of settings atoms (other than compression) }
+	kQTVRFlattenerPreviewResAtomType = FourCharCode('PRes');					{  preview resolution Int16 }
+	kQTVRFlattenerImportSpecAtomType = FourCharCode('ISpe');					{  import file spec FSSpec }
+	kQTVRFlattenerCreatePreviewAtomType = FourCharCode('Prev');				{  Boolean }
+	kQTVRFlattenerImportPreviewAtomType = FourCharCode('IPre');				{  Boolean }
+	kQTVRFlattenerBlurPreviewAtomType = FourCharCode('Blur');					{  Boolean }
 
 	{  QuickTime VR Splitter atom types }
-	kQTVRSplitterSettingsParentAtomType = $56525370 (* 'VRSp' *);				{  parent of settings atoms (other than compression) }
-	kQTVRSplitterGenerateHTMLAtomType = $4768746D (* 'Ghtm' *);					{  Boolean }
-	kQTVRSplitterOverwriteFilesAtomType = $4F776669 (* 'Owfi' *);				{  Boolean }
-	kQTVRSplitterUseFlattenerAtomType = $55736566 (* 'Usef' *);					{  Boolean }
-	kQTVRSplitterShowControllerAtomType = $5368636F (* 'Shco' *);				{  Boolean }
-	kQTVRSplitterTargetMyselfAtomType = $5467746D (* 'Tgtm' *);					{  Boolean }
+	kQTVRSplitterSettingsParentAtomType = FourCharCode('VRSp');				{  parent of settings atoms (other than compression) }
+	kQTVRSplitterGenerateHTMLAtomType = FourCharCode('Ghtm');					{  Boolean }
+	kQTVRSplitterOverwriteFilesAtomType = FourCharCode('Owfi');				{  Boolean }
+	kQTVRSplitterUseFlattenerAtomType = FourCharCode('Usef');					{  Boolean }
+	kQTVRSplitterShowControllerAtomType = FourCharCode('Shco');				{  Boolean }
+	kQTVRSplitterTargetMyselfAtomType = FourCharCode('Tgtm');					{  Boolean }
 
 	{  QuickTime VR Object Exporter atom types }
-	kQTVRObjExporterSettingsBlockSize = $6273697A (* 'bsiz' *);					{  block size for compression }
-	kQTVRObjExporterSettingsTargetSize = $7473697A (* 'tsiz' *);				{  target file size }
+	kQTVRObjExporterSettingsBlockSize = FourCharCode('bsiz');					{  block size for compression }
+	kQTVRObjExporterSettingsTargetSize = FourCharCode('tsiz');				{  target file size }
 
 
 {$ifc OLDROUTINENAMES}

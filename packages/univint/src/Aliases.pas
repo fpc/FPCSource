@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Aliases;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -111,7 +111,7 @@ uses MacTypes,Files;
 
 
 const
-	rAliasType					= $616C6973 (* 'alis' *);						{  Aliases are stored as resources of this type  }
+	rAliasType					= FourCharCode('alis');						{  Aliases are stored as resources of this type  }
 
 																{  define alias resolution action rules mask  }
 	kARMMountVol				= $00000001;					{  mount the volume automatically  }

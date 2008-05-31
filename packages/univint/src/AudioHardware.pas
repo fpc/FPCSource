@@ -14,7 +14,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -22,12 +22,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit AudioHardware;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -208,17 +208,17 @@ uses MacTypes, CFRunLoop, CoreAudioTypes;
 }
 const
 	kAudioHardwareNoError = 0;
-	kAudioHardwareNotRunningError = $73746F70 (* 'stop' *);
-	kAudioHardwareUnspecifiedError = $77686174 (* 'what' *);
-	kAudioHardwareUnknownPropertyError = $77686F3F (* 'who?' *);
-	kAudioHardwareBadPropertySizeError = $2173697A (* '!siz' *);
-	kAudioHardwareIllegalOperationError = $6E6F7065 (* 'nope' *);
-	kAudioHardwareBadObjectError = $216F626A (* '!obj' *);
-	kAudioHardwareBadDeviceError = $21646576 (* '!dev' *);
-	kAudioHardwareBadStreamError = $21737472 (* '!str' *);
-	kAudioHardwareUnsupportedOperationError = $756E6F70 (* 'unop' *);
-	kAudioDeviceUnsupportedFormatError = $21646174 (* '!dat' *);
-	kAudioDevicePermissionsError = $21686F67 (* '!hog' *);
+	kAudioHardwareNotRunningError = FourCharCode('stop');
+	kAudioHardwareUnspecifiedError = FourCharCode('what');
+	kAudioHardwareUnknownPropertyError = FourCharCode('who?');
+	kAudioHardwareBadPropertySizeError = FourCharCode('!siz');
+	kAudioHardwareIllegalOperationError = FourCharCode('nope');
+	kAudioHardwareBadObjectError = FourCharCode('!obj');
+	kAudioHardwareBadDeviceError = FourCharCode('!dev');
+	kAudioHardwareBadStreamError = FourCharCode('!str');
+	kAudioHardwareUnsupportedOperationError = FourCharCode('unop');
+	kAudioDeviceUnsupportedFormatError = FourCharCode('!dat');
+	kAudioDevicePermissionsError = FourCharCode('!hog');
 
 //==================================================================================================
 //#pragma mark    Property Support Types
@@ -305,8 +305,8 @@ type
 						A synonym for kAudioObjectPropertyElementWildcard.
 }
 const
-	kAudioObjectPropertySelectorWildcard = $2A2A2A2A (* '****' *);
-	kAudioObjectPropertyScopeWildcard = $2A2A2A2A (* '****' *);
+	kAudioObjectPropertySelectorWildcard = FourCharCode('****');
+	kAudioObjectPropertyScopeWildcard = FourCharCode('****');
 	kAudioObjectPropertyElementWildcard = $FFFFFFFF;
 	kAudioPropertyWildcardPropertyID = kAudioObjectPropertySelectorWildcard;
 	kAudioPropertyWildcardSection = $FF;
@@ -376,10 +376,10 @@ type
                         The AudioObjectID for a non-existant AudioObject.
 }
 const
-	kAudioObjectPropertyScopeGlobal = $676C6F62 (* 'glob' *);
+	kAudioObjectPropertyScopeGlobal = FourCharCode('glob');
 	kAudioObjectPropertyElementMaster = 0;
-	kAudioObjectClassID = $616F626A (* 'aobj' *);
-	kAudioObjectClassIDWildcard = $2A2A2A2A (* '****' *);
+	kAudioObjectClassID = FourCharCode('aobj');
+	kAudioObjectClassIDWildcard = FourCharCode('****');
 	kAudioObjectUnknown = 0;
 
 //==================================================================================================
@@ -434,17 +434,17 @@ const
                         AudioPlugIn when a listener is removed.
 }
 const
-	kAudioObjectPropertyClass = $636C6173 (* 'clas' *);
-	kAudioObjectPropertyOwner = $73746476 (* 'stdv' *);
-	kAudioObjectPropertyCreator = $6F706C67 (* 'oplg' *);
-	kAudioObjectPropertyName = $6C6E616D (* 'lnam' *);
-	kAudioObjectPropertyManufacturer = $6C6D616B (* 'lmak' *);
-	kAudioObjectPropertyElementName = $6C63686E (* 'lchn' *);
-	kAudioObjectPropertyElementCategoryName = $6C63636E (* 'lccn' *);
-	kAudioObjectPropertyElementNumberName = $6C636E6E (* 'lcnn' *);
-	kAudioObjectPropertyOwnedObjects = $6F776E64 (* 'ownd' *);
-	kAudioObjectPropertyListenerAdded = $6C697361 (* 'lisa' *);
-	kAudioObjectPropertyListenerRemoved = $6C697372 (* 'lisr' *);
+	kAudioObjectPropertyClass = FourCharCode('clas');
+	kAudioObjectPropertyOwner = FourCharCode('stdv');
+	kAudioObjectPropertyCreator = FourCharCode('oplg');
+	kAudioObjectPropertyName = FourCharCode('lnam');
+	kAudioObjectPropertyManufacturer = FourCharCode('lmak');
+	kAudioObjectPropertyElementName = FourCharCode('lchn');
+	kAudioObjectPropertyElementCategoryName = FourCharCode('lccn');
+	kAudioObjectPropertyElementNumberName = FourCharCode('lcnn');
+	kAudioObjectPropertyOwnedObjects = FourCharCode('ownd');
+	kAudioObjectPropertyListenerAdded = FourCharCode('lisa');
+	kAudioObjectPropertyListenerRemoved = FourCharCode('lisr');
 
 //==================================================================================================
 //#pragma mark    AudioObject Functions
@@ -630,11 +630,11 @@ function AudioObjectRemovePropertyListener( inObjectID: AudioObjectID; const (*v
                         panning a mono signal between a left/right pair of outputs.
 }
 const
-	kAudioControlClassID = $6163746C (* 'actl' *);
-	kAudioLevelControlClassID = $6C65766C (* 'levl' *);
-	kAudioBooleanControlClassID = $746F676C (* 'togl' *);
-	kAudioSelectorControlClassID = $736C6374 (* 'slct' *);
-	kAudioStereoPanControlClassID = $7370616E (* 'span' *);
+	kAudioControlClassID = FourCharCode('actl');
+	kAudioLevelControlClassID = FourCharCode('levl');
+	kAudioBooleanControlClassID = FourCharCode('togl');
+	kAudioSelectorControlClassID = FourCharCode('slct');
+	kAudioStereoPanControlClassID = FourCharCode('span');
 
 {!
     @enum           AudioLevelControl Subclass IDs
@@ -651,9 +651,9 @@ const
                         An AudioLevelControl for the boot chime of the CPU.
 }
 const
-	kAudioVolumeControlClassID = $766C6D65 (* 'vlme' *);
-	kAudioLFEVolumeControlClassID = $73756276 (* 'subv' *);
-	kAudioBootChimeVolumeControlClassID = $7072616D (* 'pram' *);
+	kAudioVolumeControlClassID = FourCharCode('vlme');
+	kAudioLFEVolumeControlClassID = FourCharCode('subv');
+	kAudioBootChimeVolumeControlClassID = FourCharCode('pram');
 
 {!
     @enum           AudioBooleanControl Subclass IDs
@@ -679,11 +679,11 @@ const
                         ultimately owns the control also owns any iSub attached to the CPU.
 }
 const
-	kAudioMuteControlClassID = $6D757465 (* 'mute' *);
-	kAudioSoloControlClassID = $736F6C6F (* 'solo' *);
-	kAudioJackControlClassID = $6A61636B (* 'jack' *);
-	kAudioLFEMuteControlClassID = $7375626D (* 'subm' *);
-	kAudioISubOwnerControlClassID = $61746368 (* 'atch' *);
+	kAudioMuteControlClassID = FourCharCode('mute');
+	kAudioSoloControlClassID = FourCharCode('solo');
+	kAudioJackControlClassID = FourCharCode('jack');
+	kAudioLFEMuteControlClassID = FourCharCode('subm');
+	kAudioISubOwnerControlClassID = FourCharCode('atch');
 
 {!
     @enum           AudioSelectorControl Subclass IDs
@@ -705,10 +705,10 @@ const
                         instrument, etc.
 }
 const
-	kAudioDataSourceControlClassID = $64737263 (* 'dsrc' *);
-	kAudioDataDestinationControlClassID = $64657374 (* 'dest' *);
-	kAudioClockSourceControlClassID = $636C636B (* 'clck' *);
-	kAudioLineLevelControlClassID = $6E6C766C (* 'nlvl' *);
+	kAudioDataSourceControlClassID = FourCharCode('dsrc');
+	kAudioDataDestinationControlClassID = FourCharCode('dest');
+	kAudioClockSourceControlClassID = FourCharCode('clck');
+	kAudioLineLevelControlClassID = FourCharCode('nlvl');
 
 //==================================================================================================
 //#pragma mark    AudioControl Properties
@@ -732,9 +732,9 @@ const
                         control.
 }
 const
-	kAudioControlPropertyScope = $63736370 (* 'cscp' *);
-	kAudioControlPropertyElement = $63656C6D (* 'celm' *);
-	kAudioControlPropertyVariant = $63766172 (* 'cvar' *);
+	kAudioControlPropertyScope = FourCharCode('cscp');
+	kAudioControlPropertyElement = FourCharCode('celm');
+	kAudioControlPropertyVariant = FourCharCode('cvar');
 
 {!
     @enum           AudioLevelControl Properties
@@ -757,11 +757,11 @@ const
                         exit contains the equivalent scalar value.
 }
 const
-	kAudioLevelControlPropertyScalarValue = $6C637376 (* 'lcsv' *);
-	kAudioLevelControlPropertyDecibelValue = $6C636476 (* 'lcdv' *);
-	kAudioLevelControlPropertyDecibelRange = $6C636472 (* 'lcdr' *);
-	kAudioLevelControlPropertyConvertScalarToDecibels = $6C637364 (* 'lcsd' *);
-	kAudioLevelControlPropertyConvertDecibelsToScalar = $6C636473 (* 'lcds' *);
+	kAudioLevelControlPropertyScalarValue = FourCharCode('lcsv');
+	kAudioLevelControlPropertyDecibelValue = FourCharCode('lcdv');
+	kAudioLevelControlPropertyDecibelRange = FourCharCode('lcdr');
+	kAudioLevelControlPropertyConvertScalarToDecibels = FourCharCode('lcsd');
+	kAudioLevelControlPropertyConvertDecibelsToScalar = FourCharCode('lcds');
 
 {!
     @enum           AudioBooleanControl Properties
@@ -772,7 +772,7 @@ const
                         A UInt32 where 0 means false and 1 means true.
 }
 const
-	kAudioBooleanControlPropertyValue = $6263766C (* 'bcvl' *);
+	kAudioBooleanControlPropertyValue = FourCharCode('bcvl');
 
 {!
     @enum           AudioSelectorControl Properties
@@ -790,9 +790,9 @@ const
                         the returned CFObject.
 }
 const
-	kAudioSelectorControlPropertyCurrentItem = $73636369 (* 'scci' *);
-	kAudioSelectorControlPropertyAvailableItems = $73636169 (* 'scai' *);
-	kAudioSelectorControlPropertyItemName = $7363696E (* 'scin' *);
+	kAudioSelectorControlPropertyCurrentItem = FourCharCode('scci');
+	kAudioSelectorControlPropertyAvailableItems = FourCharCode('scai');
+	kAudioSelectorControlPropertyItemName = FourCharCode('scin');
 
 {!
     @enum           AudioClockSourceControl Properties
@@ -804,7 +804,7 @@ const
                         this property are defined in <IOAudio/audio/IOAudioTypes.h>.
 }
 const
-	kAudioClockSourceControlPropertyItemKind = $636C6B6B (* 'clkk' *);
+	kAudioClockSourceControlPropertyItemKind = FourCharCode('clkk');
 
 {!
     @enum           AudioStereoPanControl Properties
@@ -818,8 +818,8 @@ const
                         the signal is being panned between.
 }
 const
-	kAudioStereoPanControlPropertyValue = $73706376 (* 'spcv' *);
-	kAudioStereoPanControlPropertyPanningChannels = $73706363 (* 'spcc' *);
+	kAudioStereoPanControlPropertyValue = FourCharCode('spcv');
+	kAudioStereoPanControlPropertyPanningChannels = FourCharCode('spcc');
 
 //==================================================================================================
 //#pragma mark    AudioSystemObject Types
@@ -860,7 +860,7 @@ type
                         AudioSystemObject.
 }
 const
-	kAudioSystemObjectClassID = $61737973 (* 'asys' *);
+	kAudioSystemObjectClassID = FourCharCode('asys');
 	kAudioObjectSystemObject = 1;
 
 //==================================================================================================
@@ -920,18 +920,18 @@ const
                         given bundle ID doesn't match any AudioPlugIns.
 }
 const
-	kAudioHardwarePropertyProcessIsMaster = $6D617374 (* 'mast' *);
-	kAudioHardwarePropertyIsInitingOrExiting = $696E6F74 (* 'inot' *);
-	kAudioHardwarePropertyDevices = $64657623 (* 'dev#' *);
-	kAudioHardwarePropertyDefaultInputDevice = $64496E20 (* 'dIn ' *);
-	kAudioHardwarePropertyDefaultOutputDevice = $644F7574 (* 'dOut' *);
-	kAudioHardwarePropertyDefaultSystemOutputDevice = $734F7574 (* 'sOut' *);
-	kAudioHardwarePropertyDeviceForUID = $64756964 (* 'duid' *);
-	kAudioHardwarePropertySleepingIsAllowed = $736C6570 (* 'slep' *);
-	kAudioHardwarePropertyUnloadingIsAllowed = $756E6C64 (* 'unld' *);
-	kAudioHardwarePropertyHogModeIsAllowed = $686F6772 (* 'hogr' *);
-	kAudioHardwarePropertyRunLoop = $726E6C70 (* 'rnlp' *);
-	kAudioHardwarePropertyPlugInForBundleID = $70696269 (* 'pibi' *);
+	kAudioHardwarePropertyProcessIsMaster = FourCharCode('mast');
+	kAudioHardwarePropertyIsInitingOrExiting = FourCharCode('inot');
+	kAudioHardwarePropertyDevices = FourCharCode('dev#');
+	kAudioHardwarePropertyDefaultInputDevice = FourCharCode('dIn ');
+	kAudioHardwarePropertyDefaultOutputDevice = FourCharCode('dOut');
+	kAudioHardwarePropertyDefaultSystemOutputDevice = FourCharCode('sOut');
+	kAudioHardwarePropertyDeviceForUID = FourCharCode('duid');
+	kAudioHardwarePropertySleepingIsAllowed = FourCharCode('slep');
+	kAudioHardwarePropertyUnloadingIsAllowed = FourCharCode('unld');
+	kAudioHardwarePropertyHogModeIsAllowed = FourCharCode('hogr');
+	kAudioHardwarePropertyRunLoop = FourCharCode('rnlp');
+	kAudioHardwarePropertyPlugInForBundleID = FourCharCode('pibi');
 
 {!
     @enum           AudioSystemObject Properties Implemented via AudioControl objects
@@ -962,11 +962,11 @@ const
                         an AudioControl object that is a subclass of AudioBootChimeVolumeControl.
 }
 const
-	kAudioHardwarePropertyBootChimeVolumeScalar = $62627673 (* 'bbvs' *);
-	kAudioHardwarePropertyBootChimeVolumeDecibels = $62627664 (* 'bbvd' *);
-	kAudioHardwarePropertyBootChimeVolumeRangeDecibels = $62626423 (* 'bbd#' *);
-	kAudioHardwarePropertyBootChimeVolumeScalarToDecibels = $62763264 (* 'bv2d' *);
-	kAudioHardwarePropertyBootChimeVolumeDecibelsToScalar = $62643276 (* 'bd2v' *);
+	kAudioHardwarePropertyBootChimeVolumeScalar = FourCharCode('bbvs');
+	kAudioHardwarePropertyBootChimeVolumeDecibels = FourCharCode('bbvd');
+	kAudioHardwarePropertyBootChimeVolumeRangeDecibels = FourCharCode('bbd#');
+	kAudioHardwarePropertyBootChimeVolumeScalarToDecibels = FourCharCode('bv2d');
+	kAudioHardwarePropertyBootChimeVolumeDecibelsToScalar = FourCharCode('bd2v');
 
 //==================================================================================================
 //#pragma mark    AudioSystemObject Functions
@@ -1112,7 +1112,7 @@ function AudioHardwareRemovePropertyListener( inPropertyID: AudioHardwarePropert
                         The AudioClassID that identifies the AudioPlugIn class.
 }
 const
-	kAudioPlugInClassID = $61706C67 (* 'aplg' *);
+	kAudioPlugInClassID = FourCharCode('aplg');
 
 //==================================================================================================
 //#pragma mark    AudioPlugIn Properties
@@ -1140,9 +1140,9 @@ const
                         destroy.
 }
 const
-	kAudioPlugInPropertyBundleID = $70696964 (* 'piid' *);
-	kAudioPlugInCreateAggregateDevice = $63616767 (* 'cagg' *);
-	kAudioPlugInDestroyAggregateDevice = $64616767 (* 'dagg' *);
+	kAudioPlugInPropertyBundleID = FourCharCode('piid');
+	kAudioPlugInCreateAggregateDevice = FourCharCode('cagg');
+	kAudioPlugInDestroyAggregateDevice = FourCharCode('dagg');
 
 //==================================================================================================
 //#pragma mark    AudioDevice Types
@@ -1272,10 +1272,10 @@ type
                         The AudioObjectID for a nonexistent AudioObject.
 }
 const
-	kAudioDevicePropertyScopeInput = $696E7074 (* 'inpt' *);
-	kAudioDevicePropertyScopeOutput = $6F757470 (* 'outp' *);
-	kAudioDevicePropertyScopePlayThrough = $70747275 (* 'ptru' *);
-	kAudioDeviceClassID = $61646576 (* 'adev' *);
+	kAudioDevicePropertyScopeInput = FourCharCode('inpt');
+	kAudioDevicePropertyScopeOutput = FourCharCode('outp');
+	kAudioDevicePropertyScopePlayThrough = FourCharCode('ptru');
+	kAudioDeviceClassID = FourCharCode('adev');
 	kAudioDeviceUnknown = kAudioObjectUnknown;
 
 {!
@@ -1452,35 +1452,35 @@ const
                         as measured by it's time stamps.
 }
 const
-	kAudioDevicePropertyPlugIn = $706C7567 (* 'plug' *);
-	kAudioDevicePropertyConfigurationApplication = $63617070 (* 'capp' *);
-	kAudioDevicePropertyDeviceUID = $75696420 (* 'uid ' *);
-	kAudioDevicePropertyModelUID = $6D756964 (* 'muid' *);
-	kAudioDevicePropertyTransportType = $7472616E (* 'tran' *);
-	kAudioDevicePropertyRelatedDevices = $616B696E (* 'akin' *);
-	kAudioDevicePropertyClockDomain = $636C6B64 (* 'clkd' *);
-	kAudioDevicePropertyDeviceIsAlive = $6C69766E (* 'livn' *);
-	kAudioDevicePropertyDeviceHasChanged = $64696666 (* 'diff' *);
-	kAudioDevicePropertyDeviceIsRunning = $676F696E (* 'goin' *);
-	kAudioDevicePropertyDeviceIsRunningSomewhere = $676F6E65 (* 'gone' *);
-	kAudioDevicePropertyDeviceCanBeDefaultDevice = $64666C74 (* 'dflt' *);
-	kAudioDevicePropertyDeviceCanBeDefaultSystemDevice = $73666C74 (* 'sflt' *);
-	kAudioDeviceProcessorOverload = $6F766572 (* 'over' *);
-	kAudioDevicePropertyHogMode = $6F696E6B (* 'oink' *);
-	kAudioDevicePropertyLatency = $6C746E63 (* 'ltnc' *);
-	kAudioDevicePropertyBufferFrameSize = $6673697A (* 'fsiz' *);
-	kAudioDevicePropertyBufferFrameSizeRange = $66737A23 (* 'fsz#' *);
-	kAudioDevicePropertyUsesVariableBufferFrameSizes = $7666737A (* 'vfsz' *);
-	kAudioDevicePropertyStreams = $73746D23 (* 'stm#' *);
-	kAudioDevicePropertySafetyOffset = $73616674 (* 'saft' *);
-	kAudioDevicePropertyIOCycleUsage = $6E637963 (* 'ncyc' *);
-	kAudioDevicePropertyStreamConfiguration = $736C6179 (* 'slay' *);
-	kAudioDevicePropertyIOProcStreamUsage = $73757365 (* 'suse' *);
-	kAudioDevicePropertyPreferredChannelsForStereo = $64636832 (* 'dch2' *);
-	kAudioDevicePropertyPreferredChannelLayout = $73726E64 (* 'srnd' *);
-	kAudioDevicePropertyNominalSampleRate = $6E737274 (* 'nsrt' *);
-	kAudioDevicePropertyAvailableNominalSampleRates = $6E737223 (* 'nsr#' *);
-	kAudioDevicePropertyActualSampleRate = $61737274 (* 'asrt' *);
+	kAudioDevicePropertyPlugIn = FourCharCode('plug');
+	kAudioDevicePropertyConfigurationApplication = FourCharCode('capp');
+	kAudioDevicePropertyDeviceUID = FourCharCode('uid ');
+	kAudioDevicePropertyModelUID = FourCharCode('muid');
+	kAudioDevicePropertyTransportType = FourCharCode('tran');
+	kAudioDevicePropertyRelatedDevices = FourCharCode('akin');
+	kAudioDevicePropertyClockDomain = FourCharCode('clkd');
+	kAudioDevicePropertyDeviceIsAlive = FourCharCode('livn');
+	kAudioDevicePropertyDeviceHasChanged = FourCharCode('diff');
+	kAudioDevicePropertyDeviceIsRunning = FourCharCode('goin');
+	kAudioDevicePropertyDeviceIsRunningSomewhere = FourCharCode('gone');
+	kAudioDevicePropertyDeviceCanBeDefaultDevice = FourCharCode('dflt');
+	kAudioDevicePropertyDeviceCanBeDefaultSystemDevice = FourCharCode('sflt');
+	kAudioDeviceProcessorOverload = FourCharCode('over');
+	kAudioDevicePropertyHogMode = FourCharCode('oink');
+	kAudioDevicePropertyLatency = FourCharCode('ltnc');
+	kAudioDevicePropertyBufferFrameSize = FourCharCode('fsiz');
+	kAudioDevicePropertyBufferFrameSizeRange = FourCharCode('fsz#');
+	kAudioDevicePropertyUsesVariableBufferFrameSizes = FourCharCode('vfsz');
+	kAudioDevicePropertyStreams = FourCharCode('stm#');
+	kAudioDevicePropertySafetyOffset = FourCharCode('saft');
+	kAudioDevicePropertyIOCycleUsage = FourCharCode('ncyc');
+	kAudioDevicePropertyStreamConfiguration = FourCharCode('slay');
+	kAudioDevicePropertyIOProcStreamUsage = FourCharCode('suse');
+	kAudioDevicePropertyPreferredChannelsForStereo = FourCharCode('dch2');
+	kAudioDevicePropertyPreferredChannelLayout = FourCharCode('srnd');
+	kAudioDevicePropertyNominalSampleRate = FourCharCode('nsrt');
+	kAudioDevicePropertyAvailableNominalSampleRates = FourCharCode('nsr#');
+	kAudioDevicePropertyActualSampleRate = FourCharCode('asrt');
 
 {!
     @enum           AudioDevice Properties Implemented via AudioControl objects
@@ -1685,45 +1685,45 @@ const
                         object that is a subclass of AudioLFEMuteControl.
 }
 const
-	kAudioDevicePropertyJackIsConnected = $6A61636B (* 'jack' *);
-	kAudioDevicePropertyVolumeScalar = $766F6C6D (* 'volm' *);
-	kAudioDevicePropertyVolumeDecibels = $766F6C64 (* 'vold' *);
-	kAudioDevicePropertyVolumeRangeDecibels = $76646223 (* 'vdb#' *);
-	kAudioDevicePropertyVolumeScalarToDecibels = $76326462 (* 'v2db' *);
-	kAudioDevicePropertyVolumeDecibelsToScalar = $64623276 (* 'db2v' *);
-	kAudioDevicePropertyStereoPan = $7370616E (* 'span' *);
-	kAudioDevicePropertyStereoPanChannels = $73706E23 (* 'spn#' *);
-	kAudioDevicePropertyMute = $6D757465 (* 'mute' *);
-	kAudioDevicePropertySolo = $736F6C6F (* 'solo' *);
-	kAudioDevicePropertyDataSource = $73737263 (* 'ssrc' *);
-	kAudioDevicePropertyDataSources = $73736323 (* 'ssc#' *);
-	kAudioDevicePropertyDataSourceNameForIDCFString = $6C73636E (* 'lscn' *);
-	kAudioDevicePropertyClockSource = $63737263 (* 'csrc' *);
-	kAudioDevicePropertyClockSources = $63736323 (* 'csc#' *);
-	kAudioDevicePropertyClockSourceNameForIDCFString = $6C63736E (* 'lcsn' *);
-	kAudioDevicePropertyClockSourceKindForID = $6373636B (* 'csck' *);
-	kAudioDevicePropertyPlayThru = $74687275 (* 'thru' *);
-	kAudioDevicePropertyPlayThruSolo = $74687273 (* 'thrs' *);
-	kAudioDevicePropertyPlayThruVolumeScalar = $6D767363 (* 'mvsc' *);
-	kAudioDevicePropertyPlayThruVolumeDecibels = $6D766462 (* 'mvdb' *);
-	kAudioDevicePropertyPlayThruVolumeRangeDecibels = $6D766423 (* 'mvd#' *);
-	kAudioDevicePropertyPlayThruVolumeScalarToDecibels = $6D763264 (* 'mv2d' *);
-	kAudioDevicePropertyPlayThruVolumeDecibelsToScalar = $6D763273 (* 'mv2s' *);
-	kAudioDevicePropertyPlayThruStereoPan = $6D73706E (* 'mspn' *);
-	kAudioDevicePropertyPlayThruStereoPanChannels = $6D737023 (* 'msp#' *);
-	kAudioDevicePropertyPlayThruDestination = $6D646473 (* 'mdds' *);
-	kAudioDevicePropertyPlayThruDestinations = $6D646423 (* 'mdd#' *);
-	kAudioDevicePropertyPlayThruDestinationNameForIDCFString = $6D646463 (* 'mddc' *);
-	kAudioDevicePropertyChannelNominalLineLevel = $6E6C766C (* 'nlvl' *);
-	kAudioDevicePropertyChannelNominalLineLevels = $6E6C7623 (* 'nlv#' *);
-	kAudioDevicePropertyChannelNominalLineLevelNameForIDCFString = $6C636E6C (* 'lcnl' *);
-	kAudioDevicePropertyDriverShouldOwniSub = $69737562 (* 'isub' *);
-	kAudioDevicePropertySubVolumeScalar = $73766C6D (* 'svlm' *);
-	kAudioDevicePropertySubVolumeDecibels = $73766C64 (* 'svld' *);
-	kAudioDevicePropertySubVolumeRangeDecibels = $73766423 (* 'svd#' *);
-	kAudioDevicePropertySubVolumeScalarToDecibels = $73763264 (* 'sv2d' *);
-	kAudioDevicePropertySubVolumeDecibelsToScalar = $73643276 (* 'sd2v' *);
-	kAudioDevicePropertySubMute = $736D7574 (* 'smut' *);
+	kAudioDevicePropertyJackIsConnected = FourCharCode('jack');
+	kAudioDevicePropertyVolumeScalar = FourCharCode('volm');
+	kAudioDevicePropertyVolumeDecibels = FourCharCode('vold');
+	kAudioDevicePropertyVolumeRangeDecibels = FourCharCode('vdb#');
+	kAudioDevicePropertyVolumeScalarToDecibels = FourCharCode('v2db');
+	kAudioDevicePropertyVolumeDecibelsToScalar = FourCharCode('db2v');
+	kAudioDevicePropertyStereoPan = FourCharCode('span');
+	kAudioDevicePropertyStereoPanChannels = FourCharCode('spn#');
+	kAudioDevicePropertyMute = FourCharCode('mute');
+	kAudioDevicePropertySolo = FourCharCode('solo');
+	kAudioDevicePropertyDataSource = FourCharCode('ssrc');
+	kAudioDevicePropertyDataSources = FourCharCode('ssc#');
+	kAudioDevicePropertyDataSourceNameForIDCFString = FourCharCode('lscn');
+	kAudioDevicePropertyClockSource = FourCharCode('csrc');
+	kAudioDevicePropertyClockSources = FourCharCode('csc#');
+	kAudioDevicePropertyClockSourceNameForIDCFString = FourCharCode('lcsn');
+	kAudioDevicePropertyClockSourceKindForID = FourCharCode('csck');
+	kAudioDevicePropertyPlayThru = FourCharCode('thru');
+	kAudioDevicePropertyPlayThruSolo = FourCharCode('thrs');
+	kAudioDevicePropertyPlayThruVolumeScalar = FourCharCode('mvsc');
+	kAudioDevicePropertyPlayThruVolumeDecibels = FourCharCode('mvdb');
+	kAudioDevicePropertyPlayThruVolumeRangeDecibels = FourCharCode('mvd#');
+	kAudioDevicePropertyPlayThruVolumeScalarToDecibels = FourCharCode('mv2d');
+	kAudioDevicePropertyPlayThruVolumeDecibelsToScalar = FourCharCode('mv2s');
+	kAudioDevicePropertyPlayThruStereoPan = FourCharCode('mspn');
+	kAudioDevicePropertyPlayThruStereoPanChannels = FourCharCode('msp#');
+	kAudioDevicePropertyPlayThruDestination = FourCharCode('mdds');
+	kAudioDevicePropertyPlayThruDestinations = FourCharCode('mdd#');
+	kAudioDevicePropertyPlayThruDestinationNameForIDCFString = FourCharCode('mddc');
+	kAudioDevicePropertyChannelNominalLineLevel = FourCharCode('nlvl');
+	kAudioDevicePropertyChannelNominalLineLevels = FourCharCode('nlv#');
+	kAudioDevicePropertyChannelNominalLineLevelNameForIDCFString = FourCharCode('lcnl');
+	kAudioDevicePropertyDriverShouldOwniSub = FourCharCode('isub');
+	kAudioDevicePropertySubVolumeScalar = FourCharCode('svlm');
+	kAudioDevicePropertySubVolumeDecibels = FourCharCode('svld');
+	kAudioDevicePropertySubVolumeRangeDecibels = FourCharCode('svd#');
+	kAudioDevicePropertySubVolumeScalarToDecibels = FourCharCode('sv2d');
+	kAudioDevicePropertySubVolumeDecibelsToScalar = FourCharCode('sd2v');
+	kAudioDevicePropertySubMute = FourCharCode('smut');
 
 {!
     @enum           AudioDevice Properties That Ought To Some Day Be Deprecated
@@ -1876,28 +1876,28 @@ const
                         better for localization.)
 }
 const
-	kAudioDevicePropertyDeviceName = $6E616D65 (* 'name' *);
+	kAudioDevicePropertyDeviceName = FourCharCode('name');
 	kAudioDevicePropertyDeviceNameCFString = kAudioObjectPropertyName;
-	kAudioDevicePropertyDeviceManufacturer = $6D616B72 (* 'makr' *);
+	kAudioDevicePropertyDeviceManufacturer = FourCharCode('makr');
 	kAudioDevicePropertyDeviceManufacturerCFString = kAudioObjectPropertyManufacturer;
-	kAudioDevicePropertyRegisterBufferList = $72627566 (* 'rbuf' *);
-	kAudioDevicePropertyBufferSize = $6273697A (* 'bsiz' *);
-	kAudioDevicePropertyBufferSizeRange = $62737A23 (* 'bsz#' *);
-	kAudioDevicePropertyChannelName = $63686E6D (* 'chnm' *);
+	kAudioDevicePropertyRegisterBufferList = FourCharCode('rbuf');
+	kAudioDevicePropertyBufferSize = FourCharCode('bsiz');
+	kAudioDevicePropertyBufferSizeRange = FourCharCode('bsz#');
+	kAudioDevicePropertyChannelName = FourCharCode('chnm');
 	kAudioDevicePropertyChannelNameCFString = kAudioObjectPropertyElementName;
-	kAudioDevicePropertyChannelCategoryName = $63636E6D (* 'ccnm' *);
+	kAudioDevicePropertyChannelCategoryName = FourCharCode('ccnm');
 	kAudioDevicePropertyChannelCategoryNameCFString = kAudioObjectPropertyElementCategoryName;
-	kAudioDevicePropertyChannelNumberName = $636E6E6D (* 'cnnm' *);
+	kAudioDevicePropertyChannelNumberName = FourCharCode('cnnm');
 	kAudioDevicePropertyChannelNumberNameCFString = kAudioObjectPropertyElementNumberName;
-	kAudioDevicePropertySupportsMixing = $6D69783F (* 'mix?' *);
-	kAudioDevicePropertyStreamFormat = $73666D74 (* 'sfmt' *);
-	kAudioDevicePropertyStreamFormats = $73666D23 (* 'sfm#' *);
-	kAudioDevicePropertyStreamFormatSupported = $73666D3F (* 'sfm?' *);
-	kAudioDevicePropertyStreamFormatMatch = $73666D6D (* 'sfmm' *);
-	kAudioDevicePropertyDataSourceNameForID = $7373636E (* 'sscn' *);
-	kAudioDevicePropertyClockSourceNameForID = $6373636E (* 'cscn' *);
-	kAudioDevicePropertyPlayThruDestinationNameForID = $6D64646E (* 'mddn' *);
-	kAudioDevicePropertyChannelNominalLineLevelNameForID = $636E6C76 (* 'cnlv' *);
+	kAudioDevicePropertySupportsMixing = FourCharCode('mix?');
+	kAudioDevicePropertyStreamFormat = FourCharCode('sfmt');
+	kAudioDevicePropertyStreamFormats = FourCharCode('sfm#');
+	kAudioDevicePropertyStreamFormatSupported = FourCharCode('sfm?');
+	kAudioDevicePropertyStreamFormatMatch = FourCharCode('sfmm');
+	kAudioDevicePropertyDataSourceNameForID = FourCharCode('sscn');
+	kAudioDevicePropertyClockSourceNameForID = FourCharCode('cscn');
+	kAudioDevicePropertyPlayThruDestinationNameForID = FourCharCode('mddn');
+	kAudioDevicePropertyChannelNominalLineLevelNameForID = FourCharCode('cnlv');
 
 //==================================================================================================
 //#pragma mark    AudioDevice Functions
@@ -2265,7 +2265,7 @@ type
                         The AudioObjectID for a nonexistent AudioObject.
 }
 const
-	kAudioStreamClassID = $61737472 (* 'astr' *);
+	kAudioStreamClassID = FourCharCode('astr');
 	kAudioStreamUnknown = kAudioObjectUnknown;
 
 //==================================================================================================
@@ -2316,14 +2316,14 @@ const
                         transactions.
 }
 const
-	kAudioStreamPropertyDirection = $73646972 (* 'sdir' *);
-	kAudioStreamPropertyTerminalType = $7465726D (* 'term' *);
-	kAudioStreamPropertyStartingChannel = $7363686E (* 'schn' *);
+	kAudioStreamPropertyDirection = FourCharCode('sdir');
+	kAudioStreamPropertyTerminalType = FourCharCode('term');
+	kAudioStreamPropertyStartingChannel = FourCharCode('schn');
 	kAudioStreamPropertyLatency = kAudioDevicePropertyLatency;
-	kAudioStreamPropertyVirtualFormat = $73666D74 (* 'sfmt' *);
-	kAudioStreamPropertyAvailableVirtualFormats = $73666D61 (* 'sfma' *);
-	kAudioStreamPropertyPhysicalFormat = $70667420 (* 'pft ' *);
-	kAudioStreamPropertyAvailablePhysicalFormats = $70667461 (* 'pfta' *);
+	kAudioStreamPropertyVirtualFormat = FourCharCode('sfmt');
+	kAudioStreamPropertyAvailableVirtualFormats = FourCharCode('sfma');
+	kAudioStreamPropertyPhysicalFormat = FourCharCode('pft ');
+	kAudioStreamPropertyAvailablePhysicalFormats = FourCharCode('pfta');
 
 
 {!
@@ -2367,9 +2367,9 @@ const
 }
 const
 	kAudioStreamPropertyOwningDevice = kAudioObjectPropertyOwner;
-	kAudioStreamPropertyPhysicalFormats = $70667423 (* 'pft#' *);
-	kAudioStreamPropertyPhysicalFormatSupported = $7066743F (* 'pft?' *);
-	kAudioStreamPropertyPhysicalFormatMatch = $7066746D (* 'pftm' *);
+	kAudioStreamPropertyPhysicalFormats = FourCharCode('pft#');
+	kAudioStreamPropertyPhysicalFormatSupported = FourCharCode('pft?');
+	kAudioStreamPropertyPhysicalFormatMatch = FourCharCode('pftm');
 
 //==================================================================================================
 //#pragma mark    AudioStream Functions
@@ -2505,9 +2505,9 @@ function AudioStreamRemovePropertyListener( inStream: AudioStreamID; inChannel: 
                         automatically generated aggregate devices.
 }
 const
-	kAudioAggregateDeviceClassID = $61616767 (* 'aagg' *);
-	kAudioDeviceTransportTypeAggregate = $67727570 (* 'grup' *);
-	kAudioDeviceTransportTypeAutoAggregate = $66677270 (* 'fgrp' *);
+	kAudioAggregateDeviceClassID = FourCharCode('aagg');
+	kAudioDeviceTransportTypeAggregate = FourCharCode('grup');
+	kAudioDeviceTransportTypeAutoAggregate = FourCharCode('fgrp');
 
 {!
     @defined        kAudioAggregateDeviceUIDKey
@@ -2582,9 +2582,9 @@ const
                         Constants section.
 }
 const
-	kAudioAggregateDevicePropertyFullSubDeviceList = $67727570 (* 'grup' *);
-	kAudioAggregateDevicePropertyActiveSubDeviceList = $61677270 (* 'agrp' *);
-	kAudioAggregateDevicePropertyComposition = $61636F6D (* 'acom' *);
+	kAudioAggregateDevicePropertyFullSubDeviceList = FourCharCode('grup');
+	kAudioAggregateDevicePropertyActiveSubDeviceList = FourCharCode('agrp');
+	kAudioAggregateDevicePropertyComposition = FourCharCode('acom');
 
 {!
     @enum           AudioAggregateDevice Properties Implemented via AudioControl objects
@@ -2600,7 +2600,7 @@ const
                         global scope of the AudioAggregateDevice.
 }
 const
-	kAudioAggregateDevicePropertyMasterSubDevice = $616D7374 (* 'amst' *);
+	kAudioAggregateDevicePropertyMasterSubDevice = FourCharCode('amst');
 
 //==================================================================================================
 //#pragma mark    AudioSubDevice Constants
@@ -2612,7 +2612,7 @@ const
                         The AudioClassID that identifies the AudioSubDevice class.
 }
 const
-	kAudioSubDeviceClassID = $61737562 (* 'asub' *);
+	kAudioSubDeviceClassID = FourCharCode('asub');
 
 {!
     @enum           AudioSubDevice Clock Drift Compensation Methods
@@ -2661,9 +2661,9 @@ const
                         compensation.
 }
 const
-	kAudioSubDevicePropertyExtraLatency = $786C7463 (* 'xltc' *);
-	kAudioSubDevicePropertyDriftCompensation = $64726674 (* 'drft' *);
-	kAudioSubDevicePropertyDriftCompensationQuality = $64726671 (* 'drfq' *);
+	kAudioSubDevicePropertyExtraLatency = FourCharCode('xltc');
+	kAudioSubDevicePropertyDriftCompensation = FourCharCode('drft');
+	kAudioSubDevicePropertyDriftCompensationQuality = FourCharCode('drfq');
 
 //==================================================================================================
 

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit QuickTimeMusic;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -111,23 +111,23 @@ uses MacTypes,Dialogs,Files,Components,Quickdraw,Video,MacMemory,Sound,Endian,Im
 
 
 const
-	kaiToneDescType				= $746F6E65 (* 'tone' *);
-	kaiNoteRequestInfoType		= $6E747271 (* 'ntrq' *);
-	kaiKnobListType				= $6B6E626C (* 'knbl' *);
-	kaiKeyRangeInfoType			= $73696E66 (* 'sinf' *);
-	kaiSampleDescType			= $73647363 (* 'sdsc' *);
-	kaiSampleInfoType			= $736D696E (* 'smin' *);
-	kaiSampleDataType			= $73646174 (* 'sdat' *);
-	kaiSampleDataQUIDType		= $71756964 (* 'quid' *);
-	kaiInstInfoType				= $69696E66 (* 'iinf' *);
-	kaiPictType					= $70696374 (* 'pict' *);
-	kaiWriterType				= $C2A97772 (* '©wrt' *);
-	kaiCopyrightType			= $C2A96370 (* '©cpy' *);
-	kaiOtherStrType				= $73747220 (* 'str ' *);
-	kaiInstrumentRefType		= $69726566 (* 'iref' *);
-	kaiInstGMQualityType		= $7175616C (* 'qual' *);
-	kaiLibraryInfoType			= $6C696E66 (* 'linf' *);
-	kaiLibraryDescType			= $6C647363 (* 'ldsc' *);
+	kaiToneDescType				= FourCharCode('tone');
+	kaiNoteRequestInfoType		= FourCharCode('ntrq');
+	kaiKnobListType				= FourCharCode('knbl');
+	kaiKeyRangeInfoType			= FourCharCode('sinf');
+	kaiSampleDescType			= FourCharCode('sdsc');
+	kaiSampleInfoType			= FourCharCode('smin');
+	kaiSampleDataType			= FourCharCode('sdat');
+	kaiSampleDataQUIDType		= FourCharCode('quid');
+	kaiInstInfoType				= FourCharCode('iinf');
+	kaiPictType					= FourCharCode('pict');
+	kaiWriterType				= FourCharCode('©wrt');
+	kaiCopyrightType			= FourCharCode('©cpy');
+	kaiOtherStrType				= FourCharCode('str ');
+	kaiInstrumentRefType		= FourCharCode('iref');
+	kaiInstGMQualityType		= FourCharCode('qual');
+	kaiLibraryInfoType			= FourCharCode('linf');
+	kaiLibraryDescType			= FourCharCode('ldsc');
 
 
 type
@@ -186,12 +186,12 @@ type
 	AtomicInstrumentPtr					= Ptr;
 
 const
-	kQTMIDIComponentType		= $6D696469 (* 'midi' *);
+	kQTMIDIComponentType		= FourCharCode('midi');
 
-	kOMSComponentSubType		= $4F4D5320 (* 'OMS ' *);
-	kFMSComponentSubType		= $464D5320 (* 'FMS ' *);
-	kMIDIManagerComponentSubType = $6D6D6772 (* 'mmgr' *);
-	kOSXMIDIComponentSubType	= $6F73786D (* 'osxm' *);
+	kOMSComponentSubType		= FourCharCode('OMS ');
+	kFMSComponentSubType		= FourCharCode('FMS ');
+	kMIDIManagerComponentSubType = FourCharCode('mmgr');
+	kOSXMIDIComponentSubType	= FourCharCode('osxm');
 
 
 type
@@ -313,11 +313,11 @@ function QTMIDIUseSendPort(ci: QTMIDIComponent; portIndex: SInt32; inUse: SInt32
  }
 function QTMIDISendMIDI(ci: QTMIDIComponent; portIndex: SInt32; var mp: MusicMIDIPacket): ComponentResult; external name '_QTMIDISendMIDI';
 const
-	kMusicComponentType			= $6D757369 (* 'musi' *);
-	kInstrumentComponentType	= $696E7374 (* 'inst' *);
+	kMusicComponentType			= FourCharCode('musi');
+	kInstrumentComponentType	= FourCharCode('inst');
 
-	kSoftSynthComponentSubType	= $73732020 (* 'ss  ' *);
-	kGMSynthComponentSubType	= $676D2020 (* 'gm  ' *);
+	kSoftSynthComponentSubType	= FourCharCode('ss  ');
+	kGMSynthComponentSubType	= FourCharCode('gm  ');
 
 
 type
@@ -632,7 +632,7 @@ const
 	 * Structures specific to the GenericMusicComponent
 	 	}
 
-	kGenericMusicComponentSubtype = $67656E65 (* 'gene' *);
+	kGenericMusicComponentSubtype = FourCharCode('gene');
 
 
 type
@@ -1361,7 +1361,7 @@ const
 	kPickEditControllers		= 64;							{  edit the controllers of the notechannel  }
 
 
-	kNoteAllocatorComponentType	= $6E6F7461 (* 'nota' *);
+	kNoteAllocatorComponentType	= FourCharCode('nota');
 
 
 	{	--------------------------------
@@ -1743,7 +1743,7 @@ type
 	TunePlayer							= ComponentInstance;
 
 const
-	kTunePlayerComponentType	= $74756E65 (* 'tune' *);
+	kTunePlayerComponentType	= FourCharCode('tune');
 
 
 	{

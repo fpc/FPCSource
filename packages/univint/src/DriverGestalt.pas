@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit DriverGestalt;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -128,47 +128,47 @@ const
 
 	{	__________________________________________________________________________________	}
 	{	 Driver Gestalt selectors 	}
-	kdgVersion					= $76657273 (* 'vers' *);						{  Version number of the driver in standard Apple format  }
-	kdgDeviceType				= $64657674 (* 'devt' *);						{  The type of device the driver is driving.  }
-	kdgInterface				= $696E7466 (* 'intf' *);						{  The underlying interface that the driver is using (if any)  }
-	kdgSync						= $73796E63 (* 'sync' *);						{  True if driver only behaves synchronously.  }
-	kdgBoot						= $626F6F74 (* 'boot' *);						{  value to place in PRAM for this drive (long)  }
-	kdgWide						= $77696465 (* 'wide' *);						{  True if driver supports ioWPosOffset  }
-	kdgPurge					= $70757267 (* 'purg' *);						{  Driver purge permission (True = purge; False = no purge)  }
-	kdgSupportsSwitching		= $6C707772 (* 'lpwr' *);						{  True if driver supports power switching  }
-	kdgMin3VPower				= $706D6E33 (* 'pmn3' *);						{  Minimum 3.3V power consumption in microWatts  }
-	kdgMin5VPower				= $706D6E35 (* 'pmn5' *);						{  Minimum 5V power consumption in microWatts  }
-	kdgMax3VPower				= $706D7833 (* 'pmx3' *);						{  Maximum 3.3V power consumption in microWatts  }
-	kdgMax5VPower				= $706D7835 (* 'pmx5' *);						{  Maximum 5V power consumption in microWatts  }
-	kdgInHighPower				= $70737461 (* 'psta' *);						{  True if device is currently in high power mode  }
-	kdgSupportsPowerCtl			= $70737570 (* 'psup' *);						{  True if driver supports following five calls  }
-	kdgAPI						= $64415049 (* 'dAPI' *);						{  API support for PC Exchange  }
-	kdgEject					= $656A6563 (* 'ejec' *);						{  Eject options for shutdown/restart (Shutdown Mgr)  }
-	kdgFlush					= $666C7573 (* 'flus' *);						{  Determine if disk driver supports flush and if it needs a flush  }
-	kdgVMOptions				= $766D6F70 (* 'vmop' *);						{  Disk drive's Virtual Memory options  }
-	kdgMediaInfo				= $6D696E66 (* 'minf' *);						{  return media specific information  }
-	kdgPhysDriveIconSuite		= $64696373 (* 'dics' *);						{  Return a pointer to a IconFamily ('icns') data structure for  }
+	kdgVersion					= FourCharCode('vers');						{  Version number of the driver in standard Apple format  }
+	kdgDeviceType				= FourCharCode('devt');						{  The type of device the driver is driving.  }
+	kdgInterface				= FourCharCode('intf');						{  The underlying interface that the driver is using (if any)  }
+	kdgSync						= FourCharCode('sync');						{  True if driver only behaves synchronously.  }
+	kdgBoot						= FourCharCode('boot');						{  value to place in PRAM for this drive (long)  }
+	kdgWide						= FourCharCode('wide');						{  True if driver supports ioWPosOffset  }
+	kdgPurge					= FourCharCode('purg');						{  Driver purge permission (True = purge; False = no purge)  }
+	kdgSupportsSwitching		= FourCharCode('lpwr');						{  True if driver supports power switching  }
+	kdgMin3VPower				= FourCharCode('pmn3');						{  Minimum 3.3V power consumption in microWatts  }
+	kdgMin5VPower				= FourCharCode('pmn5');						{  Minimum 5V power consumption in microWatts  }
+	kdgMax3VPower				= FourCharCode('pmx3');						{  Maximum 3.3V power consumption in microWatts  }
+	kdgMax5VPower				= FourCharCode('pmx5');						{  Maximum 5V power consumption in microWatts  }
+	kdgInHighPower				= FourCharCode('psta');						{  True if device is currently in high power mode  }
+	kdgSupportsPowerCtl			= FourCharCode('psup');						{  True if driver supports following five calls  }
+	kdgAPI						= FourCharCode('dAPI');						{  API support for PC Exchange  }
+	kdgEject					= FourCharCode('ejec');						{  Eject options for shutdown/restart (Shutdown Mgr)  }
+	kdgFlush					= FourCharCode('flus');						{  Determine if disk driver supports flush and if it needs a flush  }
+	kdgVMOptions				= FourCharCode('vmop');						{  Disk drive's Virtual Memory options  }
+	kdgMediaInfo				= FourCharCode('minf');						{  return media specific information  }
+	kdgPhysDriveIconSuite		= FourCharCode('dics');						{  Return a pointer to a IconFamily ('icns') data structure for  }
 																{  Disk Driver physical drive (formerly in csCode 21) in driverGestaltResponse.  }
-	kdgMediaIconSuite			= $6D696373 (* 'mics' *);						{  Return a pointer to a IconFamily ('icns') data structure for  }
+	kdgMediaIconSuite			= FourCharCode('mics');						{  Return a pointer to a IconFamily ('icns') data structure for  }
 																{  Disk Driver media (formerly in csCode 22) in driverGestaltResponse.  }
 																{  See IconServices.r for information detailing the 'icns' resource data format  }
-	kdgMediaName				= $6D6E616D (* 'mnam' *);						{  Return a pointer to a pascal string describing the Disk Driver (formerly in csCode 21) in driverGestaltResponse.  }
-	kdgGetDriveAddInfo			= $64696774 (* 'digt' *);						{  Get a disk driver's add-drive information record  }
-	kdcAddDriveWithInfo			= $64696164 (* 'diad' *);						{  Tell disk driver to add the drive specified with the drive information record  }
+	kdgMediaName				= FourCharCode('mnam');						{  Return a pointer to a pascal string describing the Disk Driver (formerly in csCode 21) in driverGestaltResponse.  }
+	kdgGetDriveAddInfo			= FourCharCode('digt');						{  Get a disk driver's add-drive information record  }
+	kdcAddDriveWithInfo			= FourCharCode('diad');						{  Tell disk driver to add the drive specified with the drive information record  }
 																{  DriverGestalt selector for ATA drivers to signify that they are device 0/1 compliant.  }
 																{  see http://developer.apple.com/techpubs/hardware/Developer_Notes/System_Software/ATA_Device_Zero_One.pdf  }
-	kdgATADev1					= $64657631 (* 'dev1' *);
-	kdgDeviceReference			= $64767266 (* 'dvrf' *);						{  Returns a 32-bit reference number for the device, format is interface specific  }
-	kdgNameRegistryEntry		= $6E6D7267 (* 'nmrg' *);						{  Returns a pointer to the Name Registry ID for the device  }
-	kdgDeviceModelInfo			= $696E666F (* 'info' *);						{  Returns a pointer to a Device Model Info structure  }
-	kdgSupportedMediaTypes		= $6D647479 (* 'mdty' *);						{  Returns a count and a pointer to list of all media types supported by the device  }
-	kdgOpenFirmwareBootSupport	= $6F667074 (* 'ofpt' *);						{  Returns information that Open Firmware needs to support booting from the device  }
-	kdgOpenFirmwareBootingSupport = $6F666274 (* 'ofbt' *);						{  Returns same information as kdgOpenFirmwareBootSupport, but is only used during booting }
+	kdgATADev1					= FourCharCode('dev1');
+	kdgDeviceReference			= FourCharCode('dvrf');						{  Returns a 32-bit reference number for the device, format is interface specific  }
+	kdgNameRegistryEntry		= FourCharCode('nmrg');						{  Returns a pointer to the Name Registry ID for the device  }
+	kdgDeviceModelInfo			= FourCharCode('info');						{  Returns a pointer to a Device Model Info structure  }
+	kdgSupportedMediaTypes		= FourCharCode('mdty');						{  Returns a count and a pointer to list of all media types supported by the device  }
+	kdgOpenFirmwareBootSupport	= FourCharCode('ofpt');						{  Returns information that Open Firmware needs to support booting from the device  }
+	kdgOpenFirmwareBootingSupport = FourCharCode('ofbt');						{  Returns same information as kdgOpenFirmwareBootSupport, but is only used during booting }
 
 	{	__________________________________________________________________________________	}
 	{	 Driver Configure selectors 	}
-	kdcFlush					= $666C7573 (* 'flus' *);						{  Tell a disk driver to flush its cache and any hardware caches  }
-	kdcVMOptions				= $766D6F70 (* 'vmop' *);						{  Change the disk driver's Virtual Memory options  }
+	kdcFlush					= FourCharCode('flus');						{  Tell a disk driver to flush its cache and any hardware caches  }
+	kdcVMOptions				= FourCharCode('vmop');						{  Change the disk driver's Virtual Memory options  }
 
 	{	__________________________________________________________________________________	}
 	{	 control parameter block for Driver Configure calls 	}
@@ -221,16 +221,16 @@ type
 
 
 const
-	kdgDiskType					= $6469736B (* 'disk' *);						{  standard r/w disk drive  }
-	kdgTapeType					= $74617065 (* 'tape' *);						{  tape drive  }
-	kdgPrinterType				= $70726E74 (* 'prnt' *);						{  printer  }
-	kdgProcessorType			= $70726F63 (* 'proc' *);						{  processor  }
-	kdgWormType					= $776F726D (* 'worm' *);						{  write-once  }
-	kdgCDType					= $6364726D (* 'cdrm' *);						{  cd-rom drive  }
-	kdgFloppyType				= $666C6F70 (* 'flop' *);						{  floppy disk drive  }
-	kdgScannerType				= $7363616E (* 'scan' *);						{  scanner  }
-	kdgFileType					= $66696C65 (* 'file' *);						{  Logical Partition type based on a file (Drive Container)  }
-	kdgRemovableType			= $7264736B (* 'rdsk' *);						{  A removable media hard disk drive ie. Syquest, Bernioulli  }
+	kdgDiskType					= FourCharCode('disk');						{  standard r/w disk drive  }
+	kdgTapeType					= FourCharCode('tape');						{  tape drive  }
+	kdgPrinterType				= FourCharCode('prnt');						{  printer  }
+	kdgProcessorType			= FourCharCode('proc');						{  processor  }
+	kdgWormType					= FourCharCode('worm');						{  write-once  }
+	kdgCDType					= FourCharCode('cdrm');						{  cd-rom drive  }
+	kdgFloppyType				= FourCharCode('flop');						{  floppy disk drive  }
+	kdgScannerType				= FourCharCode('scan');						{  scanner  }
+	kdgFileType					= FourCharCode('file');						{  Logical Partition type based on a file (Drive Container)  }
+	kdgRemovableType			= FourCharCode('rdsk');						{  A removable media hard disk drive ie. Syquest, Bernioulli  }
 
 	{	__________________________________________________________________________________	}
 	{	 Device Interfaces response 	}
@@ -243,13 +243,13 @@ type
 
 
 const
-	kdgScsiIntf					= $73637369 (* 'scsi' *);
-	kdgPcmciaIntf				= $70636D63 (* 'pcmc' *);
-	kdgATAIntf					= $61746120 (* 'ata ' *);
-	kdgUSBIntf					= $75736220 (* 'usb ' *);
-	kdgFireWireIntf				= $66697265 (* 'fire' *);
-	kdgExtBus					= $63617264 (* 'card' *);
-	kdgNetworkIntf				= $6E657420 (* 'net ' *);
+	kdgScsiIntf					= FourCharCode('scsi');
+	kdgPcmciaIntf				= FourCharCode('pcmc');
+	kdgATAIntf					= FourCharCode('ata ');
+	kdgUSBIntf					= FourCharCode('usb ');
+	kdgFireWireIntf				= FourCharCode('fire');
+	kdgExtBus					= FourCharCode('card');
+	kdgNetworkIntf				= FourCharCode('net ');
 
 	{	__________________________________________________________________________________	}
 	{	 Power Saving 	}
@@ -758,7 +758,7 @@ const
 
 	{  GestaltSelector for Finding Driver information }
 
-	kGetDriverInfo				= $76647263 (* 'vdrc' *);
+	kGetDriverInfo				= FourCharCode('vdrc');
 
 	{	 VerifyCmd, FormatCmd and EjectCmd are now defined in Disks.h/p/a 	}
 	{  Partition information passed back and forth between PCX and the driver }

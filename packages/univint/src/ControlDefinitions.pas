@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ControlDefinitions;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -120,8 +120,8 @@ uses MacTypes,TextEdit,AXUIElement,AEDataModel,CFBase,Events,Quickdraw,Icons,CFD
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 
 const
-	kControlTabListResType = $74616223 (* 'tab#' *); { used for tab control (Appearance 1.0 and later)}
-	kControlListDescResType = $6C646573 (* 'ldes' *); { used for list box control (Appearance 1.0 and later)}
+	kControlTabListResType = FourCharCode('tab#'); { used for tab control (Appearance 1.0 and later)}
+	kControlListDescResType = FourCharCode('ldes'); { used for list box control (Appearance 1.0 and later)}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Check Box Values                                                                  }
@@ -310,7 +310,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindBevelButton = $6265766C (* 'bevl' *);
+	kControlKindBevelButton = FourCharCode('bevl');
 
 { The HIObject class ID for the HIBevelButton class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -370,22 +370,22 @@ const
 
 { Data tags supported by the bevel button controls }
 const
-	kControlBevelButtonContentTag = $636F6E74 (* 'cont' *); { ButtonContentInfo}
-	kControlBevelButtonTransformTag = $7472616E (* 'tran' *); { IconTransformType}
-	kControlBevelButtonTextAlignTag = $74616C69 (* 'tali' *); { ButtonTextAlignment}
-	kControlBevelButtonTextOffsetTag = $746F6666 (* 'toff' *); { SInt16}
-	kControlBevelButtonGraphicAlignTag = $67616C69 (* 'gali' *); { ButtonGraphicAlignment}
-	kControlBevelButtonGraphicOffsetTag = $676F6666 (* 'goff' *); { Point}
-	kControlBevelButtonTextPlaceTag = $74706C63 (* 'tplc' *); { ButtonTextPlacement}
-	kControlBevelButtonMenuValueTag = $6D76616C (* 'mval' *); { SInt16}
-	kControlBevelButtonMenuHandleTag = $6D686E64 (* 'mhnd' *); { MenuRef}
-	kControlBevelButtonMenuRefTag = $6D686E64 (* 'mhnd' *); { MenuRef}
-	kControlBevelButtonCenterPopupGlyphTag = $70676C63 (* 'pglc' *); { Boolean: true = center, false = bottom right}
+	kControlBevelButtonContentTag = FourCharCode('cont'); { ButtonContentInfo}
+	kControlBevelButtonTransformTag = FourCharCode('tran'); { IconTransformType}
+	kControlBevelButtonTextAlignTag = FourCharCode('tali'); { ButtonTextAlignment}
+	kControlBevelButtonTextOffsetTag = FourCharCode('toff'); { SInt16}
+	kControlBevelButtonGraphicAlignTag = FourCharCode('gali'); { ButtonGraphicAlignment}
+	kControlBevelButtonGraphicOffsetTag = FourCharCode('goff'); { Point}
+	kControlBevelButtonTextPlaceTag = FourCharCode('tplc'); { ButtonTextPlacement}
+	kControlBevelButtonMenuValueTag = FourCharCode('mval'); { SInt16}
+	kControlBevelButtonMenuHandleTag = FourCharCode('mhnd'); { MenuRef}
+	kControlBevelButtonMenuRefTag = FourCharCode('mhnd'); { MenuRef}
+	kControlBevelButtonCenterPopupGlyphTag = FourCharCode('pglc'); { Boolean: true = center, false = bottom right}
 
 { These are tags in 1.0.1 or later }
 const
-	kControlBevelButtonLastMenuTag = $6C6D6E75 (* 'lmnu' *); { SInt16: menuID of last menu item selected from}
-	kControlBevelButtonMenuDelayTag = $6D646C79 (* 'mdly' *); { SInt32: ticks to delay before menu appears}
+	kControlBevelButtonLastMenuTag = FourCharCode('lmnu'); { SInt16: menuID of last menu item selected from}
+	kControlBevelButtonMenuDelayTag = FourCharCode('mdly'); { SInt32: ticks to delay before menu appears}
 
 { tags available with Appearance 1.1 or later }
 const
@@ -394,12 +394,12 @@ const
                                         { smaller icon to the ideal size. False = don't}
                                         { scale; draw a smaller icon or clip a larger icon.}
                                         { Default is false. Only applies to IconSuites and}
-	kControlBevelButtonScaleIconTag = $7363616C (* 'scal' *); { IconRefs.}
+	kControlBevelButtonScaleIconTag = FourCharCode('scal'); { IconRefs.}
 
 { tags available in Mac OS X and later }
 const
-	kControlBevelButtonOwnedMenuRefTag = $6F6D7266 (* 'omrf' *); { MenuRef (control will dispose)}
-	kControlBevelButtonKindTag = $6265626B (* 'bebk' *); { ThemeButtonKind ( kTheme[Small,Medium,Large,Rounded]BevelButton )}
+	kControlBevelButtonOwnedMenuRefTag = FourCharCode('omrf'); { MenuRef (control will dispose)}
+	kControlBevelButtonKindTag = FourCharCode('bebk'); { ThemeButtonKind ( kTheme[Small,Medium,Large,Rounded]BevelButton )}
 
 
 {
@@ -412,7 +412,7 @@ const
    * associated menu is a multi-value menu or not.  True means that the
    * menu can have multiple selections.
    }
-	kControlBevelButtonIsMultiValueMenuTag = $6D756C74 (* 'mult' *);
+	kControlBevelButtonIsMultiValueMenuTag = FourCharCode('mult');
 
 { Helper routines are available only thru the shared library/glue. }
 {
@@ -612,7 +612,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindSlider = $736C6472 (* 'sldr' *);
+	kControlKindSlider = FourCharCode('sldr');
 
 { The HIObject class ID for the HISlider class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -658,7 +658,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindDisclosureTriangle = $64697374 (* 'dist' *);
+	kControlKindDisclosureTriangle = FourCharCode('dist');
 
 { The HIObject class ID for the HIDisclosureTriangle class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -739,7 +739,7 @@ function CreateDisclosureTriangleControl( inWindow: WindowRef; const (*var*) inB
 
 { Tagged data supported by disclosure triangles }
 const
-	kControlTriangleLastValueTag = $6C617374 (* 'last' *); { SInt16}
+	kControlTriangleLastValueTag = FourCharCode('last'); { SInt16}
 
 { Helper routines are available only thru the shared library/glue. }
 {
@@ -772,8 +772,8 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindProgressBar = $70726762 (* 'prgb' *);
-	kControlKindRelevanceBar = $72656C62 (* 'relb' *);
+	kControlKindProgressBar = FourCharCode('prgb');
+	kControlKindRelevanceBar = FourCharCode('relb');
 
 { The HIObject class ID for the HIProgressBar class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -816,8 +816,8 @@ function CreateRelevanceBarControl( window: WindowRef; const (*var*) boundsRect:
 
 { Tagged data supported by progress bars }
 const
-	kControlProgressBarIndeterminateTag = $696E6465 (* 'inde' *); { Boolean}
-	kControlProgressBarAnimatingTag = $616E696D (* 'anim' *); { Boolean}
+	kControlProgressBarIndeterminateTag = FourCharCode('inde'); { Boolean}
+	kControlProgressBarAnimatingTag = FourCharCode('anim'); { Boolean}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ LITTLE ARROWS (CDEF 6)                                                            }
@@ -830,7 +830,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindLittleArrows = $6C617272 (* 'larr' *);
+	kControlKindLittleArrows = FourCharCode('larr');
 
 
 {
@@ -842,7 +842,7 @@ const
    * Passed data is an SInt32.  Gets or sets the increment value of the
    * control.
    }
-	kControlLittleArrowsIncrementValueTag = $696E6372 (* 'incr' *);
+	kControlLittleArrowsIncrementValueTag = FourCharCode('incr');
 
 { The HIObject class ID for the HILittleArrows class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -874,7 +874,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindChasingArrows = $63617272 (* 'carr' *);
+	kControlKindChasingArrows = FourCharCode('carr');
 
 { The HIObject class ID for the HIChasingArrows class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -898,7 +898,7 @@ function CreateChasingArrowsControl( window: WindowRef; const (*var*) boundsRect
 
 { Tagged data supported by the Chasing Arrows control }
 const
-	kControlChasingArrowsAnimatingTag = $616E696D (* 'anim' *); { Boolean}
+	kControlChasingArrowsAnimatingTag = FourCharCode('anim'); { Boolean}
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -967,7 +967,7 @@ type
 	end;
 { Control Kind Tag }
 const
-	kControlKindTabs = $74616273 (* 'tabs' *);
+	kControlKindTabs = FourCharCode('tabs');
 
 { The HIObject class ID for the HITabbedView class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -991,17 +991,17 @@ function CreateTabsControl( window: WindowRef; const (*var*) boundsRect: Rect; s
 
 { Tagged data supported by tabs }
 const
-	kControlTabContentRectTag = $72656374 (* 'rect' *); { Rect}
-	kControlTabEnabledFlagTag = $656E6162 (* 'enab' *); { Boolean}
+	kControlTabContentRectTag = FourCharCode('rect'); { Rect}
+	kControlTabEnabledFlagTag = FourCharCode('enab'); { Boolean}
 	kControlTabFontStyleTag = kControlFontStyleTag; { ControlFontStyleRec}
 
 { New tags in 1.0.1 or later }
 const
-	kControlTabInfoTag = $74616269 (* 'tabi' *); { ControlTabInfoRec}
+	kControlTabInfoTag = FourCharCode('tabi'); { ControlTabInfoRec}
 
 { New tags in X 10.1 or later }
 const
-	kControlTabImageContentTag = $636F6E74 (* 'cont' *); { ControlButtonContentInfo}
+	kControlTabImageContentTag = FourCharCode('cont'); { ControlButtonContentInfo}
 
 const
 	kControlTabInfoVersionZero = 0;    { ControlTabInfoRec}
@@ -1064,7 +1064,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindSeparator = $73657061 (* 'sepa' *);
+	kControlKindSeparator = FourCharCode('sepa');
 
 { The HIObject class ID for the HIVisualSeparator class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -1103,9 +1103,9 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindGroupBox = $67727062 (* 'grpb' *);
-	kControlKindCheckGroupBox = $63677270 (* 'cgrp' *);
-	kControlKindPopupGroupBox = $70677270 (* 'pgrp' *);
+	kControlKindGroupBox = FourCharCode('grpb');
+	kControlKindCheckGroupBox = FourCharCode('cgrp');
+	kControlKindPopupGroupBox = FourCharCode('pgrp');
 
 { The HIObject class ID for the HIGroupBox class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -1251,13 +1251,13 @@ function CreatePopupGroupBoxControl( window: WindowRef; const (*var*) boundsRect
 
 { Tagged data supported by group box }
 const
-	kControlGroupBoxMenuHandleTag = $6D68616E (* 'mhan' *); { MenuRef (popup title only)}
-	kControlGroupBoxMenuRefTag = $6D68616E (* 'mhan' *); { MenuRef (popup title only)}
+	kControlGroupBoxMenuHandleTag = FourCharCode('mhan'); { MenuRef (popup title only)}
+	kControlGroupBoxMenuRefTag = FourCharCode('mhan'); { MenuRef (popup title only)}
 	kControlGroupBoxFontStyleTag = kControlFontStyleTag; { ControlFontStyleRec}
 
 { tags available with Appearance 1.1 or later }
 const
-	kControlGroupBoxTitleRectTag = $74726563 (* 'trec' *); { Rect. Rectangle that the title text/control is drawn in. (get only)}
+	kControlGroupBoxTitleRectTag = FourCharCode('trec'); { Rect. Rectangle that the title text/control is drawn in. (get only)}
 
 
 {
@@ -1270,7 +1270,7 @@ const
    * drawn in (get only). This is slightly different than the content
    * region, as it also includes the frame drawn around the content.
    }
-	kControlGroupBoxFrameRectTag = $66726563 (* 'frec' *);
+	kControlGroupBoxFrameRectTag = FourCharCode('frec');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ IMAGE WELL (CDEF 11)                                                              }
@@ -1297,7 +1297,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindImageWell = $77656C6C (* 'well' *);
+	kControlKindImageWell = FourCharCode('well');
 
 { The HIObject class ID for the HIImageWell class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -1321,9 +1321,9 @@ function CreateImageWellControl( window: WindowRef; const (*var*) boundsRect: Re
 
 { Tagged data supported by image wells }
 const
-	kControlImageWellContentTag = $636F6E74 (* 'cont' *); { ButtonContentInfo}
-	kControlImageWellTransformTag = $7472616E (* 'tran' *); { IconTransformType}
-	kControlImageWellIsDragDestinationTag = $64726167 (* 'drag' *); { Boolean}
+	kControlImageWellContentTag = FourCharCode('cont'); { ButtonContentInfo}
+	kControlImageWellTransformTag = FourCharCode('tran'); { IconTransformType}
+	kControlImageWellIsDragDestinationTag = FourCharCode('drag'); { Boolean}
 
 { Helper routines are available only thru the shared library/glue. }
 {
@@ -1408,7 +1408,7 @@ type
 	ControlPopupArrowSize = UInt16;
 { Control Kind Tag }
 const
-	kControlKindPopupArrow = $70617272 (* 'parr' *);
+	kControlKindPopupArrow = FourCharCode('parr');
 
 {
  *  CreatePopupArrowControl()
@@ -1455,7 +1455,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindPlacard = $706C6163 (* 'plac' *);
+	kControlKindPlacard = FourCharCode('plac');
 
 { The HIObject class ID for the HIPlacardView class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -1537,7 +1537,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindClock = $636C636B (* 'clck' *);
+	kControlKindClock = FourCharCode('clck');
 
 { The HIObject class ID for the HIClock class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -1561,9 +1561,9 @@ function CreateClockControl( window: WindowRef; const (*var*) boundsRect: Rect; 
 
 { Tagged data supported by clocks }
 const
-	kControlClockLongDateTag = $64617465 (* 'date' *); { LongDateRec}
+	kControlClockLongDateTag = FourCharCode('date'); { LongDateRec}
 	kControlClockFontStyleTag = kControlFontStyleTag; { ControlFontStyleRec}
-	kControlClockAnimatingTag = $616E696D (* 'anim' *); { Boolean}
+	kControlClockAnimatingTag = FourCharCode('anim'); { Boolean}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ USER PANE (CDEF 16)                                                               }
@@ -1590,7 +1590,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindUserPane = $7570616E (* 'upan' *);
+	kControlKindUserPane = FourCharCode('upan');
 
 { The HIObject class ID for the HIUserPane class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -1615,15 +1615,15 @@ function CreateUserPaneControl( window: WindowRef; const (*var*) boundsRect: Rec
 { Tagged data supported by user panes }
 { Currently, they are all proc ptrs for doing things like drawing and hit testing, etc. }
 const
-	kControlUserItemDrawProcTag = $75696470 (* 'uidp' *); { UserItemUPP}
-	kControlUserPaneDrawProcTag = $64726177 (* 'draw' *); { ControlUserPaneDrawUPP}
-	kControlUserPaneHitTestProcTag = $68697474 (* 'hitt' *); { ControlUserPaneHitTestUPP}
-	kControlUserPaneTrackingProcTag = $7472616B (* 'trak' *); { ControlUserPaneTrackingUPP}
-	kControlUserPaneIdleProcTag = $69646C65 (* 'idle' *); { ControlUserPaneIdleUPP}
-	kControlUserPaneKeyDownProcTag = $6B657964 (* 'keyd' *); { ControlUserPaneKeyDownUPP}
-	kControlUserPaneActivateProcTag = $61637469 (* 'acti' *); { ControlUserPaneActivateUPP}
-	kControlUserPaneFocusProcTag = $666F6369 (* 'foci' *); { ControlUserPaneFocusUPP}
-	kControlUserPaneBackgroundProcTag = $6261636B (* 'back' *); { ControlUserPaneBackgroundUPP}
+	kControlUserItemDrawProcTag = FourCharCode('uidp'); { UserItemUPP}
+	kControlUserPaneDrawProcTag = FourCharCode('draw'); { ControlUserPaneDrawUPP}
+	kControlUserPaneHitTestProcTag = FourCharCode('hitt'); { ControlUserPaneHitTestUPP}
+	kControlUserPaneTrackingProcTag = FourCharCode('trak'); { ControlUserPaneTrackingUPP}
+	kControlUserPaneIdleProcTag = FourCharCode('idle'); { ControlUserPaneIdleUPP}
+	kControlUserPaneKeyDownProcTag = FourCharCode('keyd'); { ControlUserPaneKeyDownUPP}
+	kControlUserPaneActivateProcTag = FourCharCode('acti'); { ControlUserPaneActivateUPP}
+	kControlUserPaneFocusProcTag = FourCharCode('foci'); { ControlUserPaneFocusUPP}
+	kControlUserPaneBackgroundProcTag = FourCharCode('back'); { ControlUserPaneBackgroundUPP}
 
 type
 	ControlUserPaneDrawProcPtr = procedure( control: ControlRef; part: SInt16 );
@@ -1937,7 +1937,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindEditText = $65747874 (* 'etxt' *);
+	kControlKindEditText = FourCharCode('etxt');
 
 {
  *  CreateEditTextControl()   *** DEPRECATED ***
@@ -2002,22 +2002,22 @@ function CreateEditTextControl( window: WindowRef; const (*var*) boundsRect: Rec
 { Tagged data supported by edit text }
 const
 	kControlEditTextStyleTag = kControlFontStyleTag; { ControlFontStyleRec}
-	kControlEditTextTextTag = $74657874 (* 'text' *); { Buffer of chars - you supply the buffer}
-	kControlEditTextTEHandleTag = $7468616E (* 'than' *); { The TEHandle of the text edit record}
+	kControlEditTextTextTag = FourCharCode('text'); { Buffer of chars - you supply the buffer}
+	kControlEditTextTEHandleTag = FourCharCode('than'); { The TEHandle of the text edit record}
 	kControlEditTextKeyFilterTag = kControlKeyFilterTag;
-	kControlEditTextSelectionTag = $73656C65 (* 'sele' *); { ControlEditTextSelectionRec}
-	kControlEditTextPasswordTag = $70617373 (* 'pass' *); { The clear text password text}
-	kControlEditTextCharCount = $63687263 (* 'chrc' *); { Count of characters in the control's text}
+	kControlEditTextSelectionTag = FourCharCode('sele'); { ControlEditTextSelectionRec}
+	kControlEditTextPasswordTag = FourCharCode('pass'); { The clear text password text}
+	kControlEditTextCharCount = FourCharCode('chrc'); { Count of characters in the control's text}
 
 { tags available with Appearance 1.1 or later }
 const
-	kControlEditTextKeyScriptBehaviorTag = $6B736372 (* 'kscr' *); { ControlKeyScriptBehavior. Defaults to "PrefersRoman" for password fields,}
+	kControlEditTextKeyScriptBehaviorTag = FourCharCode('kscr'); { ControlKeyScriptBehavior. Defaults to "PrefersRoman" for password fields,}
                                         {       or "AllowAnyScript" for non-password fields.}
-	kControlEditTextLockedTag = $6C6F636B (* 'lock' *); { Boolean. Locking disables editability.}
-	kControlEditTextFixedTextTag = $66747874 (* 'ftxt' *); { Like the normal text tag, but fixes inline input first}
-	kControlEditTextValidationProcTag = $76616C69 (* 'vali' *); { ControlEditTextValidationUPP. Called when a key filter can't be: after cut, paste, etc.}
-	kControlEditTextInlinePreUpdateProcTag = $70727570 (* 'prup' *); { TSMTEPreUpdateUPP and TSMTEPostUpdateUpp. For use with inline input variant...}
-	kControlEditTextInlinePostUpdateProcTag = $706F7570 (* 'poup' *); { ...The refCon parameter will contain the ControlRef.}
+	kControlEditTextLockedTag = FourCharCode('lock'); { Boolean. Locking disables editability.}
+	kControlEditTextFixedTextTag = FourCharCode('ftxt'); { Like the normal text tag, but fixes inline input first}
+	kControlEditTextValidationProcTag = FourCharCode('vali'); { ControlEditTextValidationUPP. Called when a key filter can't be: after cut, paste, etc.}
+	kControlEditTextInlinePreUpdateProcTag = FourCharCode('prup'); { TSMTEPreUpdateUPP and TSMTEPostUpdateUpp. For use with inline input variant...}
+	kControlEditTextInlinePostUpdateProcTag = FourCharCode('poup'); { ...The refCon parameter will contain the ControlRef.}
 
 
 {
@@ -2030,14 +2030,14 @@ const
    * forget that you own the returned CFStringRef and are responsible
    * for CFReleasing it.
    }
-	kControlEditTextCFStringTag = $63667374 (* 'cfst' *); { CFStringRef (Also available on CarbonLib 1.5)}
+	kControlEditTextCFStringTag = FourCharCode('cfst'); { CFStringRef (Also available on CarbonLib 1.5)}
 
   {
    * Extract the content of the edit text field as a CFString, if it is
    * a password field.  Don't forget that you own the returned
    * CFStringRef and are responsible for CFReleasing it.
    }
-	kControlEditTextPasswordCFStringTag = $70776366 (* 'pwcf' *); { CFStringRef}
+	kControlEditTextPasswordCFStringTag = FourCharCode('pwcf'); { CFStringRef}
 
 
 { Structure for getting the edit text selection }
@@ -2095,7 +2095,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindStaticText = $73747874 (* 'stxt' *);
+	kControlKindStaticText = FourCharCode('stxt');
 
 { The HIObject class ID for the HIStaticTextView class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -2161,14 +2161,14 @@ const
    * Carbon in favor of kControlStaticTextCFStringTag. Available with
    * Appearance Manager 1.0 (Mac OS 8.0) and later.
    }
-	kControlStaticTextTextTag = $74657874 (* 'text' *);
+	kControlStaticTextTextTag = FourCharCode('text');
 
   {
    * Used to get the height of the control's text. May not be used with
    * SetControlData. Data is of type SInt16. Available with Appearance
    * Manager 1.0 (Mac OS 8.0) and later.
    }
-	kControlStaticTextTextHeightTag = $74686569 (* 'thei' *);
+	kControlStaticTextTextHeightTag = FourCharCode('thei');
 
   {
    * Used to get or set the control's text truncation style. Data is of
@@ -2177,7 +2177,7 @@ const
    * later. Truncation will not occur unless
    * kControlStaticTextIsMultilineTag is set to false.
    }
-	kControlStaticTextTruncTag = $7472756E (* 'trun' *);
+	kControlStaticTextTruncTag = FourCharCode('trun');
 
   {
    * Used to get or set the control's current text. Data is of type
@@ -2190,7 +2190,7 @@ const
    * must release the string after you are done with it. Available in
    * CarbonLib 1.5 and Mac OS X 10.0 and later.
    }
-	kControlStaticTextCFStringTag = $63667374 (* 'cfst' *);
+	kControlStaticTextCFStringTag = FourCharCode('cfst');
 
   {
    * Used to get or set whether the control draws its text in multiple
@@ -2198,7 +2198,7 @@ const
    * then the control always draws the text in a single line. Data is
    * of type Boolean. Available in Mac OS X 10.1 and later.
    }
-	kControlStaticTextIsMultilineTag = $7374696D (* 'stim' *);
+	kControlStaticTextIsMultilineTag = FourCharCode('stim');
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -2214,7 +2214,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindPicture = $70696374 (* 'pict' *);
+	kControlKindPicture = FourCharCode('pict');
 
 {
  *  CreatePictureControl()
@@ -2255,7 +2255,7 @@ function CreatePictureControl( window: WindowRef { can be NULL }; const (*var*) 
 
 { Tagged data supported by picture controls }
 const
-	kControlPictureHandleTag = $70696368 (* 'pich' *); { PicHandle}
+	kControlPictureHandleTag = FourCharCode('pich'); { PicHandle}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ ICON CONTROL (CDEF 20)                                                            }
@@ -2279,7 +2279,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindIcon = $69636F6E (* 'icon' *);
+	kControlKindIcon = FourCharCode('icon');
 
 { The HIObject class ID for the HIIconView class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -2340,13 +2340,13 @@ function CreateIconControl( inWindow: WindowRef { can be NULL }; const (*var*) i
 
 { Tagged data supported by icon controls }
 const
-	kControlIconTransformTag = $7472666D (* 'trfm' *); { IconTransformType}
-	kControlIconAlignmentTag = $616C676E (* 'algn' *); { IconAlignmentType}
+	kControlIconTransformTag = FourCharCode('trfm'); { IconTransformType}
+	kControlIconAlignmentTag = FourCharCode('algn'); { IconAlignmentType}
 
 { Tags available with appearance 1.1 or later }
 const
-	kControlIconResourceIDTag = $69726573 (* 'ires' *); { SInt16 resource ID of icon to use}
-	kControlIconContentTag = $636F6E74 (* 'cont' *); { accepts a ControlButtonContentInfo}
+	kControlIconResourceIDTag = FourCharCode('ires'); { SInt16 resource ID of icon to use}
+	kControlIconContentTag = FourCharCode('cont'); { accepts a ControlButtonContentInfo}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ WINDOW HEADER (CDEF 21)                                                           }
@@ -2358,7 +2358,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindWindowHeader = $77686564 (* 'whed' *);
+	kControlKindWindowHeader = FourCharCode('whed');
 
 
 {
@@ -2370,7 +2370,7 @@ const
    * Passed data is a Boolean.  Set to true if the control is to draw
    * as a list header.
    }
-	kControlWindowHeaderIsListHeaderTag = $69736C68 (* 'islh' *);
+	kControlWindowHeaderIsListHeaderTag = FourCharCode('islh');
 
 { The HIObject class ID for the HIWindowHeaderView class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -2409,7 +2409,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindListBox = $6C626F78 (* 'lbox' *);
+	kControlKindListBox = FourCharCode('lbox');
 
 { Creation API: Carbon Only }
 {
@@ -2429,14 +2429,14 @@ function CreateListBoxControl( window: WindowRef; const (*var*) boundsRect: Rect
 
 { Tagged data supported by list box }
 const
-	kControlListBoxListHandleTag = $6C68616E (* 'lhan' *); { ListHandle}
+	kControlListBoxListHandleTag = FourCharCode('lhan'); { ListHandle}
 	kControlListBoxKeyFilterTag = kControlKeyFilterTag; { ControlKeyFilterUPP}
 	kControlListBoxFontStyleTag = kControlFontStyleTag; { ControlFontStyleRec}
 
 { New tags in 1.0.1 or later }
 const
-	kControlListBoxDoubleClickTag = $64626C63 (* 'dblc' *); { Boolean. Was last click a double-click?}
-	kControlListBoxLDEFTag = $6C646566 (* 'ldef' *); { SInt16. ID of LDEF to use.}
+	kControlListBoxDoubleClickTag = FourCharCode('dblc'); { Boolean. Was last click a double-click?}
+	kControlListBoxLDEFTag = FourCharCode('ldef'); { SInt16. ID of LDEF to use.}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ PUSH BUTTON (CDEF 23)                                                             }
@@ -2478,10 +2478,10 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindPushButton = $70757368 (* 'push' *);
-	kControlKindPushIconButton = $7069636E (* 'picn' *);
-	kControlKindRadioButton = $7264696F (* 'rdio' *);
-	kControlKindCheckBox = $63626F78 (* 'cbox' *);
+	kControlKindPushButton = FourCharCode('push');
+	kControlKindPushIconButton = FourCharCode('picn');
+	kControlKindRadioButton = FourCharCode('rdio');
+	kControlKindCheckBox = FourCharCode('cbox');
 
 { The HIObject class ID for the HIPushButton class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -2660,8 +2660,8 @@ function CreateCheckBoxControl( window: WindowRef; const (*var*) boundsRect: Rec
 
 { Tagged data supported by standard buttons }
 const
-	kControlPushButtonDefaultTag = $64666C74 (* 'dflt' *); { default ring flag}
-	kControlPushButtonCancelTag = $636E636C (* 'cncl' *); { cancel button flag (1.1 and later)}
+	kControlPushButtonDefaultTag = FourCharCode('dflt'); { default ring flag}
+	kControlPushButtonCancelTag = FourCharCode('cncl'); { cancel button flag (1.1 and later)}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ SCROLL BAR (CDEF 24)                                                              }
@@ -2693,7 +2693,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindScrollBar = $73626172 (* 'sbar' *);
+	kControlKindScrollBar = FourCharCode('sbar');
 
 { The HIObject class ID for the HIScrollBar class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -2759,7 +2759,7 @@ function CreateScrollBarControl( window: WindowRef; const (*var*) boundsRect: Re
 
 { These tags are available in Mac OS X or later }
 const
-	kControlScrollBarShowsArrowsTag = $6172726F (* 'arro' *); { Boolean whether or not to draw the scroll arrows}
+	kControlScrollBarShowsArrowsTag = FourCharCode('arro'); { Boolean whether or not to draw the scroll arrows}
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -2783,7 +2783,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindPopupButton = $706F7062 (* 'popb' *);
+	kControlKindPopupButton = FourCharCode('popb');
 
 { The HIObject class ID for the HIPopupButton class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -2848,18 +2848,18 @@ function CreatePopupButtonControl( window: WindowRef { can be NULL }; const (*va
 
 { These tags are available in 1.0.1 or later of Appearance }
 const
-	kControlPopupButtonMenuHandleTag = $6D68616E (* 'mhan' *); { MenuRef}
-	kControlPopupButtonMenuRefTag = $6D68616E (* 'mhan' *); { MenuRef}
-	kControlPopupButtonMenuIDTag = $6D6E6964 (* 'mnid' *); { SInt16}
+	kControlPopupButtonMenuHandleTag = FourCharCode('mhan'); { MenuRef}
+	kControlPopupButtonMenuRefTag = FourCharCode('mhan'); { MenuRef}
+	kControlPopupButtonMenuIDTag = FourCharCode('mnid'); { SInt16}
 
 { These tags are available in 1.1 or later of Appearance }
 const
-	kControlPopupButtonExtraHeightTag = $65786874 (* 'exht' *); { SInt16 - extra vertical whitespace within the button}
-	kControlPopupButtonOwnedMenuRefTag = $6F6D7266 (* 'omrf' *); { MenuRef}
+	kControlPopupButtonExtraHeightTag = FourCharCode('exht'); { SInt16 - extra vertical whitespace within the button}
+	kControlPopupButtonOwnedMenuRefTag = FourCharCode('omrf'); { MenuRef}
 
 { These tags are available in Mac OS X }
 const
-	kControlPopupButtonCheckCurrentTag = $6368636B (* 'chck' *); { Boolean    - whether the popup puts a checkmark next to the current item (defaults to true)}
+	kControlPopupButtonCheckCurrentTag = FourCharCode('chck'); { Boolean    - whether the popup puts a checkmark next to the current item (defaults to true)}
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -2883,7 +2883,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindRadioGroup = $72677270 (* 'rgrp' *);
+	kControlKindRadioGroup = FourCharCode('rgrp');
 
 { The HIObject class ID for the HIRadioGroup class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -2927,7 +2927,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindScrollingTextBox = $73746278 (* 'stbx' *);
+	kControlKindScrollingTextBox = FourCharCode('stbx');
 
 { Creation API: Carbon Only }
 {
@@ -2947,11 +2947,11 @@ function CreateScrollingTextBoxControl( window: WindowRef; const (*var*) boundsR
 
 { Tagged data supported by Scroll Text Box }
 const
-	kControlScrollTextBoxDelayBeforeAutoScrollTag = $7374646C (* 'stdl' *); { UInt32 (ticks until autoscrolling starts)}
-	kControlScrollTextBoxDelayBetweenAutoScrollTag = $7363646C (* 'scdl' *); { UInt32 (ticks between scrolls)}
-	kControlScrollTextBoxAutoScrollAmountTag = $73616D74 (* 'samt' *); { UInt16 (pixels per scroll) -- defaults to 1}
-	kControlScrollTextBoxContentsTag = $74726573 (* 'tres' *); { SInt16 (resource ID of 'TEXT'/'styl') -- write only!}
-	kControlScrollTextBoxAnimatingTag = $616E696D (* 'anim' *); { Boolean (whether the text box should auto-scroll)}
+	kControlScrollTextBoxDelayBeforeAutoScrollTag = FourCharCode('stdl'); { UInt32 (ticks until autoscrolling starts)}
+	kControlScrollTextBoxDelayBetweenAutoScrollTag = FourCharCode('scdl'); { UInt32 (ticks between scrolls)}
+	kControlScrollTextBoxAutoScrollAmountTag = FourCharCode('samt'); { UInt16 (pixels per scroll) -- defaults to 1}
+	kControlScrollTextBoxContentsTag = FourCharCode('tres'); { SInt16 (resource ID of 'TEXT'/'styl') -- write only!}
+	kControlScrollTextBoxAnimatingTag = FourCharCode('anim'); { Boolean (whether the text box should auto-scroll)}
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -3011,7 +3011,7 @@ function CreateDisclosureButtonControl( inWindow: WindowRef; const (*var*) inBou
 
 { Control Kind Tag }
 const
-	kControlKindDisclosureButton = $64697362 (* 'disb' *);
+	kControlKindDisclosureButton = FourCharCode('disb');
 
 
 {
@@ -3056,12 +3056,12 @@ const
 
 { Data tags supported by the round button controls }
 const
-	kControlRoundButtonContentTag = $636F6E74 (* 'cont' *); { ControlButtonContentInfo}
+	kControlRoundButtonContentTag = FourCharCode('cont'); { ControlButtonContentInfo}
 	kControlRoundButtonSizeTag = kControlSizeTag; { ControlRoundButtonSize}
 
 { Control Kind Tag }
 const
-	kControlKindRoundButton = $726E6462 (* 'rndb' *);
+	kControlKindRoundButton = FourCharCode('rndb');
 
 { The HIObject class ID for the HIRoundButton class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -3152,7 +3152,7 @@ function CreateRoundButtonControl( inWindow: WindowRef { can be NULL }; const (*
 {$endc}
 { Control Kind Tag }
 const
-	kControlKindDataBrowser = $64617462 (* 'datb' *);
+	kControlKindDataBrowser = FourCharCode('datb');
 
 { Error Codes }
 const
@@ -3166,7 +3166,7 @@ const
 
 const
 { Generic Control Tags }
-	kControlDataBrowserIncludesFrameAndFocusTag = $62726472 (* 'brdr' *); { Boolean }
+	kControlDataBrowserIncludesFrameAndFocusTag = FourCharCode('brdr'); { Boolean }
 	kControlDataBrowserKeyFilterTag = kControlEditTextKeyFilterTag;
 	kControlDataBrowserEditTextKeyFilterTag = kControlDataBrowserKeyFilterTag;
 	kControlDataBrowserEditTextValidationProcTag = kControlEditTextValidationProcTag;
@@ -3175,9 +3175,9 @@ const
 type
 	DataBrowserViewStyle = OSType;
 const
-	kDataBrowserNoView = $3F3F3F3F (* '????' *); {  Error State  }
-	kDataBrowserListView = $6C737476 (* 'lstv' *);
-	kDataBrowserColumnView = $636C6D76 (* 'clmv' *);
+	kDataBrowserNoView = FourCharCode('????'); {  Error State  }
+	kDataBrowserListView = FourCharCode('lstv');
+	kDataBrowserColumnView = FourCharCode('clmv');
 
 { Selection Flags }
 type
@@ -3363,15 +3363,15 @@ type
 const
 { == Corresponding data type or structure == }
 	kDataBrowserCustomType = $3F3F3F3F; { No associated data, custom callbacks used }
-	kDataBrowserIconType = $69636E72 (* 'icnr' *); { IconRef, IconTransformType, RGBColor }
-	kDataBrowserTextType = $74657874 (* 'text' *); { CFStringRef }
-	kDataBrowserDateTimeType = $64617465 (* 'date' *); { DateTime or LongDateTime }
-	kDataBrowserSliderType = $736C6472 (* 'sldr' *); { Min, Max, Value }
-	kDataBrowserCheckboxType = $63686278 (* 'chbx' *); { ThemeButtonValue }
-	kDataBrowserProgressBarType = $70726F67 (* 'prog' *); { Min, Max, Value }
-	kDataBrowserRelevanceRankType = $72616E6B (* 'rank' *); { Min, Max, Value }
-	kDataBrowserPopupMenuType = $6D656E75 (* 'menu' *); { MenuRef, Value }
-	kDataBrowserIconAndTextType = $7469636E (* 'ticn' *); { IconRef, CFStringRef, etc }
+	kDataBrowserIconType = FourCharCode('icnr'); { IconRef, IconTransformType, RGBColor }
+	kDataBrowserTextType = FourCharCode('text'); { CFStringRef }
+	kDataBrowserDateTimeType = FourCharCode('date'); { DateTime or LongDateTime }
+	kDataBrowserSliderType = FourCharCode('sldr'); { Min, Max, Value }
+	kDataBrowserCheckboxType = FourCharCode('chbx'); { ThemeButtonValue }
+	kDataBrowserProgressBarType = FourCharCode('prog'); { Min, Max, Value }
+	kDataBrowserRelevanceRankType = FourCharCode('rank'); { Min, Max, Value }
+	kDataBrowserPopupMenuType = FourCharCode('menu'); { MenuRef, Value }
+	kDataBrowserIconAndTextType = FourCharCode('ticn'); { IconRef, CFStringRef, etc }
 
 { DataBrowser Property Parts }
 {      Visual components of a property type.      }
@@ -3380,8 +3380,8 @@ type
 	DataBrowserPropertyPart = OSType;
 const
 	kDataBrowserPropertyEnclosingPart = 0;
-	kDataBrowserPropertyContentPart = $2D2D2D2D (* '----' *);
-	kDataBrowserPropertyDisclosurePart = $64697363 (* 'disc' *);
+	kDataBrowserPropertyContentPart = FourCharCode('----');
+	kDataBrowserPropertyDisclosurePart = FourCharCode('disc');
 	kDataBrowserPropertyTextPart = kDataBrowserTextType;
 	kDataBrowserPropertyIconPart = kDataBrowserIconType;
 	kDataBrowserPropertySliderPart = kDataBrowserSliderType;
@@ -6787,7 +6787,7 @@ const
 
 { Control Kind Tag }
 const
-	kControlKindEditUnicodeText = $65757478 (* 'eutx' *);
+	kControlKindEditUnicodeText = FourCharCode('eutx');
 
 { The HIObject class ID for the HITextField class. }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -6862,10 +6862,10 @@ function CreateEditUnicodeTextControl( window: WindowRef; const (*var*) boundsRe
 }
 { Tagged data supported by EditUnicodeText control only }
 const
-	kControlEditTextSingleLineTag = $73676C63 (* 'sglc' *); { data is a Boolean; indicates whether the control should always be single-line}
-	kControlEditTextInsertTextBufferTag = $696E7478 (* 'intx' *); { data is an array of char; get or set the control's text as WorldScript-encoded text}
-	kControlEditTextInsertCFStringRefTag = $696E6366 (* 'incf' *); { data is a CFStringRef; get or set the control's text as a CFStringRef. Caller should release CFString if getting.}
-	kControlEditUnicodeTextPostUpdateProcTag = $75707570 (* 'upup' *); { data is a UnicodePostUpdateUPP; get or set the post-update proc}
+	kControlEditTextSingleLineTag = FourCharCode('sglc'); { data is a Boolean; indicates whether the control should always be single-line}
+	kControlEditTextInsertTextBufferTag = FourCharCode('intx'); { data is an array of char; get or set the control's text as WorldScript-encoded text}
+	kControlEditTextInsertCFStringRefTag = FourCharCode('incf'); { data is a CFStringRef; get or set the control's text as a CFStringRef. Caller should release CFString if getting.}
+	kControlEditUnicodeTextPostUpdateProcTag = FourCharCode('upup'); { data is a UnicodePostUpdateUPP; get or set the post-update proc}
 
 {$ifc OLDROUTINENAMES}
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}

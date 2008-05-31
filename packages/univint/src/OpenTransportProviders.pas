@@ -16,7 +16,7 @@
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit OpenTransportProviders;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -594,14 +594,14 @@ const
 { XTI Levels}
 
 const
-	ATK_DDP = $44445020 (* 'DDP ' *);
-	ATK_AARP = $41415250 (* 'AARP' *);
-	ATK_ATP = $41545020 (* 'ATP ' *);
-	ATK_ADSP = $41445350 (* 'ADSP' *);
-	ATK_ASP = $41535020 (* 'ASP ' *);
-	ATK_PAP = $50415020 (* 'PAP ' *);
-	ATK_NBP = $4E425020 (* 'NBP ' *);
-	ATK_ZIP = $5A495020 (* 'ZIP ' *);
+	ATK_DDP = FourCharCode('DDP ');
+	ATK_AARP = FourCharCode('AARP');
+	ATK_ATP = FourCharCode('ATP ');
+	ATK_ADSP = FourCharCode('ADSP');
+	ATK_ASP = FourCharCode('ASP ');
+	ATK_PAP = FourCharCode('PAP ');
+	ATK_NBP = FourCharCode('NBP ');
+	ATK_ZIP = FourCharCode('ZIP ');
 
 { Module Names}
 
@@ -1193,10 +1193,10 @@ const
 { XTI Levels}
 
 const
-	LNK_ENET = $454E4554 (* 'ENET' *);
-	LNK_TOKN = $544F4B4E (* 'TOKN' *);
-	LNK_FDDI = $46444449 (* 'FDDI' *);
-	LNK_TPI = $4C545049 (* 'LTPI' *);
+	LNK_ENET = FourCharCode('ENET');
+	LNK_TOKN = FourCharCode('TOKN');
+	LNK_FDDI = FourCharCode('FDDI');
+	LNK_TPI = FourCharCode('LTPI');
 
 { Options}
 
@@ -1355,7 +1355,7 @@ const
 { XTI Level}
 
 const
-	COM_SERIAL = $5345524C (* 'SERL' *);
+	COM_SERIAL = FourCharCode('SERL');
 
 { Version Number}
 
@@ -1514,7 +1514,7 @@ const
 { XTI Level}
 
 const
-	COM_ISDN = $4953444E (* 'ISDN' *);
+	COM_ISDN = FourCharCode('ISDN');
 
 { Module Names}
 
@@ -1680,7 +1680,7 @@ const
 { XTI Level}
 
 const
-	COM_PPP = $50505043 (* 'PPPC' *);
+	COM_PPP = FourCharCode('PPPC');
 
 { Options limits}
 

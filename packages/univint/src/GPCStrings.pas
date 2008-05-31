@@ -12,7 +12,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -20,12 +20,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit GPCStrings;
 interface
 {$definec UNIVERSAL_INTERFACES_VERSION $0342}
-{$definec GAP_INTERFACES_VERSION $0200}
+{$definec GAP_INTERFACES_VERSION $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$definec USE_CFSTR_CONSTANT_MACROS TRUE}

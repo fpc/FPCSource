@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CMCalibrator;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -127,7 +127,7 @@ type
 
 
 const
-	kCalibratorNamePrefix		= $63616C69 (* 'cali' *);
+	kCalibratorNamePrefix		= FourCharCode('cali');
 
 
 type
@@ -264,7 +264,7 @@ function CMCalibrateDisplay(var theInfo: CalibratorInfo): OSErr; external name '
 {  Interface for original ColorSync monitor calibrators (ColorSync 2.5.x)  }
 
 const
-	kOldCalibratorNamePrefix	= $43616C69 (* 'Cali' *);
+	kOldCalibratorNamePrefix	= FourCharCode('Cali');
 
 
 type

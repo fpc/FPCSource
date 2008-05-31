@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CarbonEvents;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -122,12 +122,12 @@ const
    * target, or to the application target if no more specific target is
    * appropriate. Available in CarbonLib 1.3.1 and later, and Mac OS X.
    }
-	kEventParamPostTarget = $70747267 (* 'ptrg' *); { typeEventTargetRef}
+	kEventParamPostTarget = FourCharCode('ptrg'); { typeEventTargetRef}
 
   {
    * Indicates an event parameter of type EventTargetRef.
    }
-	typeEventTargetRef = $65747267 (* 'etrg' *); { EventTargetRef}
+	typeEventTargetRef = FourCharCode('etrg'); { EventTargetRef}
 
 { Generic toolbox parameters and types}
 
@@ -144,321 +144,321 @@ const
 
 
 const
-	kEventParamWindowRef = $77696E64 (* 'wind' *); { typeWindowRef}
-	kEventParamGrafPort = $67726166 (* 'graf' *); { typeGrafPtr}
-	kEventParamMenuRef = $6D656E75 (* 'menu' *); { typeMenuRef}
-	kEventParamEventRef = $65766E74 (* 'evnt' *); { typeEventRef}
-	kEventParamControlRef = $6374726C (* 'ctrl' *); { typeControlRef}
-	kEventParamRgnHandle = $72676E68 (* 'rgnh' *); { typeQDRgnHandle}
-	kEventParamEnabled = $656E6162 (* 'enab' *); { typeBoolean}
-	kEventParamDimensions = $64696D73 (* 'dims' *); { typeQDPoint}
-	kEventParamBounds = $626F756E (* 'boun' *); { typeQDRectangle}
-	kEventParamAvailableBounds = $61766C62 (* 'avlb' *); { typeQDRectangle}
+	kEventParamWindowRef = FourCharCode('wind'); { typeWindowRef}
+	kEventParamGrafPort = FourCharCode('graf'); { typeGrafPtr}
+	kEventParamMenuRef = FourCharCode('menu'); { typeMenuRef}
+	kEventParamEventRef = FourCharCode('evnt'); { typeEventRef}
+	kEventParamControlRef = FourCharCode('ctrl'); { typeControlRef}
+	kEventParamRgnHandle = FourCharCode('rgnh'); { typeQDRgnHandle}
+	kEventParamEnabled = FourCharCode('enab'); { typeBoolean}
+	kEventParamDimensions = FourCharCode('dims'); { typeQDPoint}
+	kEventParamBounds = FourCharCode('boun'); { typeQDRectangle}
+	kEventParamAvailableBounds = FourCharCode('avlb'); { typeQDRectangle}
 	kEventParamAEEventID = keyAEEventID; { typeType}
 	kEventParamAEEventClass = keyAEEventClass; { typeType}
-	kEventParamCGContextRef = $636E7478 (* 'cntx' *); { typeCGContextRef}
-	kEventParamDeviceDepth = $64657664 (* 'devd' *); { typeShortInteger}
-	kEventParamDeviceColor = $64657663 (* 'devc' *); { typeBoolean}
-	kEventParamMutableArray = $6D617272 (* 'marr' *); { typeCFMutableArrayRef}
-	kEventParamResult = $616E7372 (* 'ansr' *); { any type - depends on event like direct object}
-	kEventParamMinimumSize = $6D6E737A (* 'mnsz' *); { typeHISize}
-	kEventParamMaximumSize = $6D78737A (* 'mxsz' *); { typeHISize}
-	kEventParamAttributes = $61747472 (* 'attr' *); { typeUInt32}
-	kEventParamReason = $7768793F (* 'why?' *); { typeUInt32}
-	kEventParamTransactionID = $74726E73 (* 'trns' *); { typeUInt32}
-	kEventParamGDevice = $67646576 (* 'gdev' *); { typeGDHandle}
-	kEventParamIndex = $696E6478 (* 'indx' *); { typeCFIndex}
-	kEventParamUserData = $75737264 (* 'usrd' *); { typeVoidPtr}
-	kEventParamShape = $73686170 (* 'shap' *); { typeHIShapeRef}
-	typeWindowRef = $77696E64 (* 'wind' *); { WindowRef}
-	typeGrafPtr = $67726166 (* 'graf' *); { CGrafPtr}
-	typeGWorldPtr = $67776C64 (* 'gwld' *); { GWorldPtr}
-	typeMenuRef = $6D656E75 (* 'menu' *); { MenuRef}
-	typeControlRef = $6374726C (* 'ctrl' *); { ControlRef}
-	typeCollection = $636C746E (* 'cltn' *); { Collection}
-	typeQDRgnHandle = $72676E68 (* 'rgnh' *); { RgnHandle}
-	typeOSStatus = $6F737374 (* 'osst' *); { OSStatus}
-	typeCFIndex = $63666978 (* 'cfix' *); { CFIndex}
-	typeCGContextRef = $636E7478 (* 'cntx' *); { CGContextRef}
-	typeHIPoint = $68697074 (* 'hipt' *); { HIPoint}
-	typeHISize = $6869737A (* 'hisz' *); { HISize}
-	typeHIRect = $68697263 (* 'hirc' *); { HIRect}
-	typeHIShapeRef = $73686170 (* 'shap' *); { HIShapeRef}
-	typeVoidPtr = $766F6964 (* 'void' *); { void * (used for HIObject fun)}
-	typeGDHandle = $67646576 (* 'gdev' *); { GDHandle}
+	kEventParamCGContextRef = FourCharCode('cntx'); { typeCGContextRef}
+	kEventParamDeviceDepth = FourCharCode('devd'); { typeShortInteger}
+	kEventParamDeviceColor = FourCharCode('devc'); { typeBoolean}
+	kEventParamMutableArray = FourCharCode('marr'); { typeCFMutableArrayRef}
+	kEventParamResult = FourCharCode('ansr'); { any type - depends on event like direct object}
+	kEventParamMinimumSize = FourCharCode('mnsz'); { typeHISize}
+	kEventParamMaximumSize = FourCharCode('mxsz'); { typeHISize}
+	kEventParamAttributes = FourCharCode('attr'); { typeUInt32}
+	kEventParamReason = FourCharCode('why?'); { typeUInt32}
+	kEventParamTransactionID = FourCharCode('trns'); { typeUInt32}
+	kEventParamGDevice = FourCharCode('gdev'); { typeGDHandle}
+	kEventParamIndex = FourCharCode('indx'); { typeCFIndex}
+	kEventParamUserData = FourCharCode('usrd'); { typeVoidPtr}
+	kEventParamShape = FourCharCode('shap'); { typeHIShapeRef}
+	typeWindowRef = FourCharCode('wind'); { WindowRef}
+	typeGrafPtr = FourCharCode('graf'); { CGrafPtr}
+	typeGWorldPtr = FourCharCode('gwld'); { GWorldPtr}
+	typeMenuRef = FourCharCode('menu'); { MenuRef}
+	typeControlRef = FourCharCode('ctrl'); { ControlRef}
+	typeCollection = FourCharCode('cltn'); { Collection}
+	typeQDRgnHandle = FourCharCode('rgnh'); { RgnHandle}
+	typeOSStatus = FourCharCode('osst'); { OSStatus}
+	typeCFIndex = FourCharCode('cfix'); { CFIndex}
+	typeCGContextRef = FourCharCode('cntx'); { CGContextRef}
+	typeHIPoint = FourCharCode('hipt'); { HIPoint}
+	typeHISize = FourCharCode('hisz'); { HISize}
+	typeHIRect = FourCharCode('hirc'); { HIRect}
+	typeHIShapeRef = FourCharCode('shap'); { HIShapeRef}
+	typeVoidPtr = FourCharCode('void'); { void * (used for HIObject fun)}
+	typeGDHandle = FourCharCode('gdev'); { GDHandle}
 
 { Mouse event parameters and types}
 
 const
-	kEventParamMouseLocation = $6D6C6F63 (* 'mloc' *); { typeHIPoint}
-	kEventParamWindowMouseLocation = $776D6F75 (* 'wmou' *); { typeHIPoint (Mac OS X 10.1 or later)}
-	kEventParamMouseButton = $6D62746E (* 'mbtn' *); { typeMouseButton}
-	kEventParamClickCount = $63636E74 (* 'ccnt' *); { typeUInt32}
-	kEventParamMouseWheelAxis = $6D776178 (* 'mwax' *); { typeMouseWheelAxis}
-	kEventParamMouseWheelDelta = $6D77646C (* 'mwdl' *); { typeSInt32}
-	kEventParamMouseDelta = $6D647461 (* 'mdta' *); { typeHIPoint (10.2 or later) or typeQDPoint}
-	kEventParamMouseChord = $63686F72 (* 'chor' *); { typeUInt32}
-	kEventParamTabletEventType = $74626C74 (* 'tblt' *); { typeUInt32}
-	kEventParamMouseTrackingRef = $6D747266 (* 'mtrf' *); { typeMouseTrackingRef}
-	typeMouseButton = $6D62746E (* 'mbtn' *); { EventMouseButton}
-	typeMouseWheelAxis = $6D776178 (* 'mwax' *); { EventMouseWheelAxis}
-	typeMouseTrackingRef = $6D747266 (* 'mtrf' *); { MouseTrackingRef}
+	kEventParamMouseLocation = FourCharCode('mloc'); { typeHIPoint}
+	kEventParamWindowMouseLocation = FourCharCode('wmou'); { typeHIPoint (Mac OS X 10.1 or later)}
+	kEventParamMouseButton = FourCharCode('mbtn'); { typeMouseButton}
+	kEventParamClickCount = FourCharCode('ccnt'); { typeUInt32}
+	kEventParamMouseWheelAxis = FourCharCode('mwax'); { typeMouseWheelAxis}
+	kEventParamMouseWheelDelta = FourCharCode('mwdl'); { typeSInt32}
+	kEventParamMouseDelta = FourCharCode('mdta'); { typeHIPoint (10.2 or later) or typeQDPoint}
+	kEventParamMouseChord = FourCharCode('chor'); { typeUInt32}
+	kEventParamTabletEventType = FourCharCode('tblt'); { typeUInt32}
+	kEventParamMouseTrackingRef = FourCharCode('mtrf'); { typeMouseTrackingRef}
+	typeMouseButton = FourCharCode('mbtn'); { EventMouseButton}
+	typeMouseWheelAxis = FourCharCode('mwax'); { EventMouseWheelAxis}
+	typeMouseTrackingRef = FourCharCode('mtrf'); { MouseTrackingRef}
 
 { Keyboard event parameter and types}
 
 const
-	kEventParamKeyCode = $6B636F64 (* 'kcod' *); { typeUInt32}
-	kEventParamKeyMacCharCodes = $6B636872 (* 'kchr' *); { typeChar}
-	kEventParamKeyModifiers = $6B6D6F64 (* 'kmod' *); { typeUInt32}
-	kEventParamKeyUnicodes = $6B756E69 (* 'kuni' *); { typeUnicodeText}
-	kEventParamKeyboardType = $6B626474 (* 'kbdt' *); { typeUInt32}
-	typeEventHotKeyID = $686B6964 (* 'hkid' *); { EventHotKeyID}
+	kEventParamKeyCode = FourCharCode('kcod'); { typeUInt32}
+	kEventParamKeyMacCharCodes = FourCharCode('kchr'); { typeChar}
+	kEventParamKeyModifiers = FourCharCode('kmod'); { typeUInt32}
+	kEventParamKeyUnicodes = FourCharCode('kuni'); { typeUnicodeText}
+	kEventParamKeyboardType = FourCharCode('kbdt'); { typeUInt32}
+	typeEventHotKeyID = FourCharCode('hkid'); { EventHotKeyID}
 
 { General TSM event parameters}
 
 const
-	kEventParamTSMSendRefCon = $74737263 (* 'tsrc' *); {    typeLongInteger}
-	kEventParamTSMSendComponentInstance = $74736369 (* 'tsci' *); {    typeComponentInstance}
+	kEventParamTSMSendRefCon = FourCharCode('tsrc'); {    typeLongInteger}
+	kEventParamTSMSendComponentInstance = FourCharCode('tsci'); {    typeComponentInstance}
 
 { TextInput event parameters}
 
 const
 	kEventParamTextInputSendRefCon = kEventParamTSMSendRefCon; {    typeLongInteger}
 	kEventParamTextInputSendComponentInstance = kEventParamTSMSendComponentInstance; {    typeComponentInstance}
-	kEventParamTextInputSendSLRec = $7473736C (* 'tssl' *); {    typeIntlWritingCode}
-	kEventParamTextInputReplySLRec = $7472736C (* 'trsl' *); {    typeIntlWritingCode}
-	kEventParamTextInputSendText = $74737478 (* 'tstx' *); {    typeUnicodeText (if TSMDocument is Unicode), otherwise typeChar}
-	kEventParamTextInputReplyText = $74727478 (* 'trtx' *); {    typeUnicodeText (if TSMDocument is Unicode), otherwise typeChar}
-	kEventParamTextInputSendUpdateRng = $74737570 (* 'tsup' *); {    typeTextRangeArray}
-	kEventParamTextInputSendHiliteRng = $74736869 (* 'tshi' *); {    typeTextRangeArray}
-	kEventParamTextInputSendClauseRng = $7473636C (* 'tscl' *); {    typeOffsetArray}
-	kEventParamTextInputSendPinRng = $7473706E (* 'tspn' *); {    typeTextRange}
-	kEventParamTextInputSendFixLen = $74736678 (* 'tsfx' *); {    typeLongInteger}
-	kEventParamTextInputSendLeadingEdge = $74736C65 (* 'tsle' *); {    typeBoolean}
-	kEventParamTextInputReplyLeadingEdge = $74726C65 (* 'trle' *); {    typeBoolean}
-	kEventParamTextInputSendTextOffset = $7473746F (* 'tsto' *); {    typeLongInteger}
-	kEventParamTextInputReplyTextOffset = $7472746F (* 'trto' *); {    typeLongInteger}
-	kEventParamTextInputReplyRegionClass = $74727267 (* 'trrg' *); {    typeLongInteger}
-	kEventParamTextInputSendCurrentPoint = $74736370 (* 'tscp' *); {    typeQDPoint}
-	kEventParamTextInputSendDraggingMode = $7473646D (* 'tsdm' *); {    typeBoolean}
-	kEventParamTextInputReplyPoint = $74727074 (* 'trpt' *); {    typeQDPoint}
-	kEventParamTextInputReplyFont = $74726674 (* 'trft' *); {    typeLongInteger}
-	kEventParamTextInputReplyFMFont = $7472666D (* 'trfm' *); {    typeUInt32}
-	kEventParamTextInputReplyPointSize = $7472707A (* 'trpz' *); {    typeFixed}
-	kEventParamTextInputReplyLineHeight = $74726C68 (* 'trlh' *); {    typeShortInteger}
-	kEventParamTextInputReplyLineAscent = $74726C61 (* 'trla' *); {    typeShortInteger}
-	kEventParamTextInputReplyTextAngle = $74727461 (* 'trta' *); {    typeFixed}
-	kEventParamTextInputSendShowHide = $74737368 (* 'tssh' *); {    typeBoolean}
-	kEventParamTextInputReplyShowHide = $74727368 (* 'trsh' *); {    typeBoolean}
-	kEventParamTextInputSendKeyboardEvent = $74736B65 (* 'tske' *); {    typeEventRef}
-	kEventParamTextInputSendTextServiceEncoding = $74737365 (* 'tsse' *); {    typeUInt32}
-	kEventParamTextInputSendTextServiceMacEncoding = $7473736D (* 'tssm' *); {    typeUInt32}
-	kEventParamTextInputReplyMacEncoding = $74726D65 (* 'trme' *); {    typeUInt32}
-	kEventParamTextInputGlyphInfoArray = $676C7068 (* 'glph' *); {    typeGlyphInfoArray}
+	kEventParamTextInputSendSLRec = FourCharCode('tssl'); {    typeIntlWritingCode}
+	kEventParamTextInputReplySLRec = FourCharCode('trsl'); {    typeIntlWritingCode}
+	kEventParamTextInputSendText = FourCharCode('tstx'); {    typeUnicodeText (if TSMDocument is Unicode), otherwise typeChar}
+	kEventParamTextInputReplyText = FourCharCode('trtx'); {    typeUnicodeText (if TSMDocument is Unicode), otherwise typeChar}
+	kEventParamTextInputSendUpdateRng = FourCharCode('tsup'); {    typeTextRangeArray}
+	kEventParamTextInputSendHiliteRng = FourCharCode('tshi'); {    typeTextRangeArray}
+	kEventParamTextInputSendClauseRng = FourCharCode('tscl'); {    typeOffsetArray}
+	kEventParamTextInputSendPinRng = FourCharCode('tspn'); {    typeTextRange}
+	kEventParamTextInputSendFixLen = FourCharCode('tsfx'); {    typeLongInteger}
+	kEventParamTextInputSendLeadingEdge = FourCharCode('tsle'); {    typeBoolean}
+	kEventParamTextInputReplyLeadingEdge = FourCharCode('trle'); {    typeBoolean}
+	kEventParamTextInputSendTextOffset = FourCharCode('tsto'); {    typeLongInteger}
+	kEventParamTextInputReplyTextOffset = FourCharCode('trto'); {    typeLongInteger}
+	kEventParamTextInputReplyRegionClass = FourCharCode('trrg'); {    typeLongInteger}
+	kEventParamTextInputSendCurrentPoint = FourCharCode('tscp'); {    typeQDPoint}
+	kEventParamTextInputSendDraggingMode = FourCharCode('tsdm'); {    typeBoolean}
+	kEventParamTextInputReplyPoint = FourCharCode('trpt'); {    typeQDPoint}
+	kEventParamTextInputReplyFont = FourCharCode('trft'); {    typeLongInteger}
+	kEventParamTextInputReplyFMFont = FourCharCode('trfm'); {    typeUInt32}
+	kEventParamTextInputReplyPointSize = FourCharCode('trpz'); {    typeFixed}
+	kEventParamTextInputReplyLineHeight = FourCharCode('trlh'); {    typeShortInteger}
+	kEventParamTextInputReplyLineAscent = FourCharCode('trla'); {    typeShortInteger}
+	kEventParamTextInputReplyTextAngle = FourCharCode('trta'); {    typeFixed}
+	kEventParamTextInputSendShowHide = FourCharCode('tssh'); {    typeBoolean}
+	kEventParamTextInputReplyShowHide = FourCharCode('trsh'); {    typeBoolean}
+	kEventParamTextInputSendKeyboardEvent = FourCharCode('tske'); {    typeEventRef}
+	kEventParamTextInputSendTextServiceEncoding = FourCharCode('tsse'); {    typeUInt32}
+	kEventParamTextInputSendTextServiceMacEncoding = FourCharCode('tssm'); {    typeUInt32}
+	kEventParamTextInputReplyMacEncoding = FourCharCode('trme'); {    typeUInt32}
+	kEventParamTextInputGlyphInfoArray = FourCharCode('glph'); {    typeGlyphInfoArray}
 	kEventParamTextInputSendGlyphInfoArray = kEventParamTextInputGlyphInfoArray;
-	kEventParamTextInputReplyGlyphInfoArray = $72677068 (* 'rgph' *); {    typeGlyphInfoArray}
-	kEventParamTextInputSendReplaceRange = $74737270 (* 'tsrp' *); {    typeCFRange}
+	kEventParamTextInputReplyGlyphInfoArray = FourCharCode('rgph'); {    typeGlyphInfoArray}
+	kEventParamTextInputSendReplaceRange = FourCharCode('tsrp'); {    typeCFRange}
 
 { TSMDocumentAccess event parameters and types}
 
 const
 	kEventParamTSMDocAccessSendRefCon = kEventParamTSMSendRefCon; {    typeLongInteger}
 	kEventParamTSMDocAccessSendComponentInstance = kEventParamTSMSendComponentInstance; {    typeComponentInstance}
-	kEventParamTSMDocAccessCharacterCount = $74646374 (* 'tdct' *); {    typeCFIndex}
-	kEventParamTSMDocAccessReplyCharacterRange = $74647272 (* 'tdrr' *); {    typeCFRange}
-	kEventParamTSMDocAccessReplyCharactersPtr = $74647270 (* 'tdrp' *); {    typePtr}
-	kEventParamTSMDocAccessSendCharacterIndex = $74647369 (* 'tdsi' *); {    typeCFIndex}
-	kEventParamTSMDocAccessSendCharacterRange = $74647372 (* 'tdsr' *); {    typeCFRange}
-	kEventParamTSMDocAccessSendCharactersPtr = $74647370 (* 'tdsp' *); {    typePtr}
-	kEventParamTSMDocAccessRequestedCharacterAttributes = $74646361 (* 'tdca' *); {    typeUInt32}
-	kEventParamTSMDocAccessReplyATSFont = $74646166 (* 'tdaf' *); {    typeATSFontRef}
-	kEventParamTSMDocAccessReplyFontSize = $74647273 (* 'tdrs' *); {    typeFloat}
-	kEventParamTSMDocAccessEffectiveRange = $74646572 (* 'tder' *); {    typeRange}
-	kEventParamTSMDocAccessReplyATSUGlyphSelector = $74647267 (* 'tdrg' *); {    typeGlyphSelector}
-	kEventParamTSMDocAccessLockCount = $74646C63 (* 'tdlc' *); {    typeCFIndex}
-	kEventParamTSMDocAccessLineBounds = $74646C62 (* 'tdlb' *); {  typeCFMutableArrayRef}
-	typeATSFontRef = $61747366 (* 'atsf' *); {    ATSFontRef}
-	typeGlyphSelector = $676C6673 (* 'glfs' *); {    ATSUGlyphSelector}
+	kEventParamTSMDocAccessCharacterCount = FourCharCode('tdct'); {    typeCFIndex}
+	kEventParamTSMDocAccessReplyCharacterRange = FourCharCode('tdrr'); {    typeCFRange}
+	kEventParamTSMDocAccessReplyCharactersPtr = FourCharCode('tdrp'); {    typePtr}
+	kEventParamTSMDocAccessSendCharacterIndex = FourCharCode('tdsi'); {    typeCFIndex}
+	kEventParamTSMDocAccessSendCharacterRange = FourCharCode('tdsr'); {    typeCFRange}
+	kEventParamTSMDocAccessSendCharactersPtr = FourCharCode('tdsp'); {    typePtr}
+	kEventParamTSMDocAccessRequestedCharacterAttributes = FourCharCode('tdca'); {    typeUInt32}
+	kEventParamTSMDocAccessReplyATSFont = FourCharCode('tdaf'); {    typeATSFontRef}
+	kEventParamTSMDocAccessReplyFontSize = FourCharCode('tdrs'); {    typeFloat}
+	kEventParamTSMDocAccessEffectiveRange = FourCharCode('tder'); {    typeRange}
+	kEventParamTSMDocAccessReplyATSUGlyphSelector = FourCharCode('tdrg'); {    typeGlyphSelector}
+	kEventParamTSMDocAccessLockCount = FourCharCode('tdlc'); {    typeCFIndex}
+	kEventParamTSMDocAccessLineBounds = FourCharCode('tdlb'); {  typeCFMutableArrayRef}
+	typeATSFontRef = FourCharCode('atsf'); {    ATSFontRef}
+	typeGlyphSelector = FourCharCode('glfs'); {    ATSUGlyphSelector}
 
 { Command event parameters and types}
 
 const
-	kEventParamHICommand = $68636D64 (* 'hcmd' *); { typeHICommand}
-	typeHICommand = $68636D64 (* 'hcmd' *); { HICommand}
+	kEventParamHICommand = FourCharCode('hcmd'); { typeHICommand}
+	typeHICommand = FourCharCode('hcmd'); { HICommand}
 
 { Window event parameters and types}
 
 const
-	kEventParamWindowFeatures = $77667472 (* 'wftr' *); { typeUInt32}
-	kEventParamWindowDefPart = $77647063 (* 'wdpc' *); { typeWindowDefPartCode}
-	kEventParamWindowPartCode = $77706172 (* 'wpar' *); { typeWindowPartCode}
-	kEventParamCurrentBounds = $63726374 (* 'crct' *); { typeQDRectangle}
-	kEventParamOriginalBounds = $6F726374 (* 'orct' *); { typeQDRectangle}
-	kEventParamPreviousBounds = $70726374 (* 'prct' *); { typeQDRectangle}
-	kEventParamClickActivation = $636C6163 (* 'clac' *); { typeClickActivationResult}
-	kEventParamWindowRegionCode = $77736870 (* 'wshp' *); { typeWindowRegionCode}
-	kEventParamWindowDragHiliteFlag = $77646866 (* 'wdhf' *); { typeBoolean}
-	kEventParamWindowModifiedFlag = $776D6666 (* 'wmff' *); { typeBoolean}
-	kEventParamWindowProxyGWorldPtr = $77706777 (* 'wpgw' *); { typeGWorldPtr}
-	kEventParamWindowProxyImageRgn = $77706972 (* 'wpir' *); { typeQDRgnHandle}
-	kEventParamWindowProxyOutlineRgn = $77706F72 (* 'wpor' *); { typeQDRgnHandle}
-	kEventParamWindowStateChangedFlags = $77736366 (* 'wscf' *); { typeUInt32 }
-	kEventParamWindowTitleFullWidth = $77746677 (* 'wtfw' *); { typeSInt16}
-	kEventParamWindowTitleTextWidth = $77747477 (* 'wttw' *); { typeSInt16}
-	kEventParamWindowGrowRect = $67726374 (* 'grct' *); { typeQDRectangle}
-	kEventParamPreviousDockRect = $70647263 (* 'pdrc' *); { typeHIRect}
-	kEventParamPreviousDockDevice = $70646764 (* 'pdgd' *); { typeGDHandle}
-	kEventParamCurrentDockRect = $63647263 (* 'cdrc' *); { typeHIRect}
-	kEventParamCurrentDockDevice = $63646764 (* 'cdgd' *); { typeGDHandle}
-	kEventParamWindowTransitionAction = $77746163 (* 'wtac' *); { typeWindowTransitionAction}
-	kEventParamWindowTransitionEffect = $77746566 (* 'wtef' *); { typeWindowTransitionEffect}
-	typeWindowRegionCode = $77736870 (* 'wshp' *); { WindowRegionCode}
-	typeWindowDefPartCode = $77647074 (* 'wdpt' *); { WindowDefPartCode}
-	typeWindowPartCode = $77706172 (* 'wpar' *); { WindowPartCode}
-	typeClickActivationResult = $636C6163 (* 'clac' *); { ClickActivationResult}
-	typeWindowTransitionAction = $77746163 (* 'wtac' *); { WindowTransitionAction}
-	typeWindowTransitionEffect = $77746566 (* 'wtef' *); { WindowTransitionEffect}
+	kEventParamWindowFeatures = FourCharCode('wftr'); { typeUInt32}
+	kEventParamWindowDefPart = FourCharCode('wdpc'); { typeWindowDefPartCode}
+	kEventParamWindowPartCode = FourCharCode('wpar'); { typeWindowPartCode}
+	kEventParamCurrentBounds = FourCharCode('crct'); { typeQDRectangle}
+	kEventParamOriginalBounds = FourCharCode('orct'); { typeQDRectangle}
+	kEventParamPreviousBounds = FourCharCode('prct'); { typeQDRectangle}
+	kEventParamClickActivation = FourCharCode('clac'); { typeClickActivationResult}
+	kEventParamWindowRegionCode = FourCharCode('wshp'); { typeWindowRegionCode}
+	kEventParamWindowDragHiliteFlag = FourCharCode('wdhf'); { typeBoolean}
+	kEventParamWindowModifiedFlag = FourCharCode('wmff'); { typeBoolean}
+	kEventParamWindowProxyGWorldPtr = FourCharCode('wpgw'); { typeGWorldPtr}
+	kEventParamWindowProxyImageRgn = FourCharCode('wpir'); { typeQDRgnHandle}
+	kEventParamWindowProxyOutlineRgn = FourCharCode('wpor'); { typeQDRgnHandle}
+	kEventParamWindowStateChangedFlags = FourCharCode('wscf'); { typeUInt32 }
+	kEventParamWindowTitleFullWidth = FourCharCode('wtfw'); { typeSInt16}
+	kEventParamWindowTitleTextWidth = FourCharCode('wttw'); { typeSInt16}
+	kEventParamWindowGrowRect = FourCharCode('grct'); { typeQDRectangle}
+	kEventParamPreviousDockRect = FourCharCode('pdrc'); { typeHIRect}
+	kEventParamPreviousDockDevice = FourCharCode('pdgd'); { typeGDHandle}
+	kEventParamCurrentDockRect = FourCharCode('cdrc'); { typeHIRect}
+	kEventParamCurrentDockDevice = FourCharCode('cdgd'); { typeGDHandle}
+	kEventParamWindowTransitionAction = FourCharCode('wtac'); { typeWindowTransitionAction}
+	kEventParamWindowTransitionEffect = FourCharCode('wtef'); { typeWindowTransitionEffect}
+	typeWindowRegionCode = FourCharCode('wshp'); { WindowRegionCode}
+	typeWindowDefPartCode = FourCharCode('wdpt'); { WindowDefPartCode}
+	typeWindowPartCode = FourCharCode('wpar'); { WindowPartCode}
+	typeClickActivationResult = FourCharCode('clac'); { ClickActivationResult}
+	typeWindowTransitionAction = FourCharCode('wtac'); { WindowTransitionAction}
+	typeWindowTransitionEffect = FourCharCode('wtef'); { WindowTransitionEffect}
 
 { Control event parameters and types}
 
 const
-	kEventParamControlPart = $63707274 (* 'cprt' *); { typeControlPartCode}
-	kEventParamInitCollection = $69636F6C (* 'icol' *); { typeCollection}
-	kEventParamControlMessage = $636D7367 (* 'cmsg' *); { typeShortInteger}
-	kEventParamControlParam = $6370726D (* 'cprm' *); { typeLongInteger}
-	kEventParamControlResult = $6372736C (* 'crsl' *); { typeLongInteger}
-	kEventParamControlRegion = $6372676E (* 'crgn' *); { typeQDRgnHandle}
-	kEventParamControlAction = $63617570 (* 'caup' *); { typeControlActionUPP}
-	kEventParamControlIndicatorDragConstraint = $63696463 (* 'cidc' *); { typeIndicatorDragConstraint}
-	kEventParamControlIndicatorRegion = $6369726E (* 'cirn' *); { typeQDRgnHandle}
-	kEventParamControlIsGhosting = $63677374 (* 'cgst' *); { typeBoolean}
-	kEventParamControlIndicatorOffset = $63696F66 (* 'ciof' *); { typeQDPoint}
-	kEventParamControlClickActivationResult = $63636172 (* 'ccar' *); { typeClickActivationResult}
-	kEventParamControlSubControl = $63737562 (* 'csub' *); { typeControlRef}
-	kEventParamControlOptimalBounds = $636F626E (* 'cobn' *); { typeQDRectangle}
-	kEventParamControlOptimalBaselineOffset = $636F626F (* 'cobo' *); { typeShortInteger}
-	kEventParamControlDataTag = $63647467 (* 'cdtg' *); { typeEnumeration}
-	kEventParamControlDataBuffer = $63646266 (* 'cdbf' *); { typePtr}
-	kEventParamControlDataBufferSize = $63646273 (* 'cdbs' *); { typeLongInteger}
-	kEventParamControlDrawDepth = $63646470 (* 'cddp' *); { typeShortInteger}
-	kEventParamControlDrawInColor = $63646963 (* 'cdic' *); { typeBoolean}
-	kEventParamControlFeatures = $63667472 (* 'cftr' *); { typeUInt32}
-	kEventParamControlPartBounds = $63706264 (* 'cpbd' *); { typeQDRectangle}
-	kEventParamControlOriginalOwningWindow = $636F6F77 (* 'coow' *); { typeWindowRef}
-	kEventParamControlCurrentOwningWindow = $63636F77 (* 'ccow' *); { typeWindowRef}
-	kEventParamControlFocusEverything = $63666576 (* 'cfev' *); { typeBoolean}
-	kEventParamNextControl = $636E7863 (* 'cnxc' *); { typeControlRef}
-	kEventParamStartControl = $63737463 (* 'cstc' *); { typeControlRef}
-	kEventParamControlSubview = $63737677 (* 'csvw' *); { typeControlRef}
-	kEventParamControlPreviousPart = $636F7063 (* 'copc' *); { typeControlPartCode}
-	kEventParamControlCurrentPart = $636E7063 (* 'cnpc' *); { typeControlPartCode}
-	kEventParamControlInvalRgn = $63697672 (* 'civr' *); { typeQDRgnHandle}
-	kEventParamControlValue = $6376616C (* 'cval' *); { typeLongInteger}
-	kEventParamControlHit = $63686974 (* 'chit' *); { typeBoolean}
-	kEventParamControlPartAutoRepeats = $63617572 (* 'caur' *); { typeBoolean}
-	kEventParamControlFrameMetrics = $63666D74 (* 'cfmt' *); { typeControlFrameMetrics}
-	kEventParamControlWouldAcceptDrop = $636C6467 (* 'cldg' *); { typeBoolean}
-	kEventParamControlPrefersShape = $63707368 (* 'cpsh' *); { typeBoolean}
-	typeControlActionUPP = $63617570 (* 'caup' *); { ControlActionUPP}
-	typeIndicatorDragConstraint = $63696463 (* 'cidc' *); { IndicatorDragConstraint}
-	typeControlPartCode = $63707274 (* 'cprt' *); { ControlPartCode}
-	typeControlFrameMetrics = $63696E73 (* 'cins' *); { HIViewFrameMetrics}
+	kEventParamControlPart = FourCharCode('cprt'); { typeControlPartCode}
+	kEventParamInitCollection = FourCharCode('icol'); { typeCollection}
+	kEventParamControlMessage = FourCharCode('cmsg'); { typeShortInteger}
+	kEventParamControlParam = FourCharCode('cprm'); { typeLongInteger}
+	kEventParamControlResult = FourCharCode('crsl'); { typeLongInteger}
+	kEventParamControlRegion = FourCharCode('crgn'); { typeQDRgnHandle}
+	kEventParamControlAction = FourCharCode('caup'); { typeControlActionUPP}
+	kEventParamControlIndicatorDragConstraint = FourCharCode('cidc'); { typeIndicatorDragConstraint}
+	kEventParamControlIndicatorRegion = FourCharCode('cirn'); { typeQDRgnHandle}
+	kEventParamControlIsGhosting = FourCharCode('cgst'); { typeBoolean}
+	kEventParamControlIndicatorOffset = FourCharCode('ciof'); { typeQDPoint}
+	kEventParamControlClickActivationResult = FourCharCode('ccar'); { typeClickActivationResult}
+	kEventParamControlSubControl = FourCharCode('csub'); { typeControlRef}
+	kEventParamControlOptimalBounds = FourCharCode('cobn'); { typeQDRectangle}
+	kEventParamControlOptimalBaselineOffset = FourCharCode('cobo'); { typeShortInteger}
+	kEventParamControlDataTag = FourCharCode('cdtg'); { typeEnumeration}
+	kEventParamControlDataBuffer = FourCharCode('cdbf'); { typePtr}
+	kEventParamControlDataBufferSize = FourCharCode('cdbs'); { typeLongInteger}
+	kEventParamControlDrawDepth = FourCharCode('cddp'); { typeShortInteger}
+	kEventParamControlDrawInColor = FourCharCode('cdic'); { typeBoolean}
+	kEventParamControlFeatures = FourCharCode('cftr'); { typeUInt32}
+	kEventParamControlPartBounds = FourCharCode('cpbd'); { typeQDRectangle}
+	kEventParamControlOriginalOwningWindow = FourCharCode('coow'); { typeWindowRef}
+	kEventParamControlCurrentOwningWindow = FourCharCode('ccow'); { typeWindowRef}
+	kEventParamControlFocusEverything = FourCharCode('cfev'); { typeBoolean}
+	kEventParamNextControl = FourCharCode('cnxc'); { typeControlRef}
+	kEventParamStartControl = FourCharCode('cstc'); { typeControlRef}
+	kEventParamControlSubview = FourCharCode('csvw'); { typeControlRef}
+	kEventParamControlPreviousPart = FourCharCode('copc'); { typeControlPartCode}
+	kEventParamControlCurrentPart = FourCharCode('cnpc'); { typeControlPartCode}
+	kEventParamControlInvalRgn = FourCharCode('civr'); { typeQDRgnHandle}
+	kEventParamControlValue = FourCharCode('cval'); { typeLongInteger}
+	kEventParamControlHit = FourCharCode('chit'); { typeBoolean}
+	kEventParamControlPartAutoRepeats = FourCharCode('caur'); { typeBoolean}
+	kEventParamControlFrameMetrics = FourCharCode('cfmt'); { typeControlFrameMetrics}
+	kEventParamControlWouldAcceptDrop = FourCharCode('cldg'); { typeBoolean}
+	kEventParamControlPrefersShape = FourCharCode('cpsh'); { typeBoolean}
+	typeControlActionUPP = FourCharCode('caup'); { ControlActionUPP}
+	typeIndicatorDragConstraint = FourCharCode('cidc'); { IndicatorDragConstraint}
+	typeControlPartCode = FourCharCode('cprt'); { ControlPartCode}
+	typeControlFrameMetrics = FourCharCode('cins'); { HIViewFrameMetrics}
 
 { Menu event parameters and types}
 
 const
-	kEventParamCurrentMenuTrackingMode = $636D746D (* 'cmtm' *); { typeMenuTrackingMode}
-	kEventParamNewMenuTrackingMode = $6E6D746D (* 'nmtm' *); { typeMenuTrackingMode}
-	kEventParamMenuFirstOpen = $3173746F (* '1sto' *); { typeBoolean}
-	kEventParamMenuItemIndex = $6974656D (* 'item' *); { typeMenuItemIndex}
-	kEventParamMenuCommand = $6D636D64 (* 'mcmd' *); { typeMenuCommand}
-	kEventParamEnableMenuForKeyEvent = $666F726B (* 'fork' *); { typeBoolean}
-	kEventParamMenuEventOptions = $6D656F70 (* 'meop' *); { typeMenuEventOptions}
-	kEventParamMenuContext = $6D637478 (* 'mctx' *); { typeUInt32}
-	kEventParamMenuDismissed = $6D646973 (* 'mdis' *); { typeUInt32}
-	kEventParamMenuItemBounds = $6D697462 (* 'mitb' *); { typeQDRectangle}
-	kEventParamMenuMarkBounds = $6D6D6B62 (* 'mmkb' *); { typeQDRectangle}
-	kEventParamMenuIconBounds = $6D696362 (* 'micb' *); { typeQDRectangle}
-	kEventParamMenuTextBounds = $6D747862 (* 'mtxb' *); { typeQDRectangle}
-	kEventParamMenuTextBaseline = $6D74626C (* 'mtbl' *); { typeShortInteger}
-	kEventParamMenuCommandKeyBounds = $6D636D62 (* 'mcmb' *); { typeQDRectangle}
-	kEventParamMenuVirtualTop = $6D767274 (* 'mvrt' *); { typeLongInteger}
-	kEventParamMenuVirtualBottom = $6D767262 (* 'mvrb' *); { typeLongInteger}
-	kEventParamMenuDrawState = $6D647273 (* 'mdrs' *); { typeThemeMenuState}
-	kEventParamMenuItemType = $6D697470 (* 'mitp' *); { typeThemeMenuItemType}
-	kEventParamMenuItemWidth = $6D697477 (* 'mitw' *); { typeShortInteger}
-	kEventParamMenuItemHeight = $6D697468 (* 'mith' *); { typeShortInteger}
-	kEventParamMenuFrameView = $6D667276 (* 'mfrv' *); { typeControlRef}
-	kEventParamMenuType = $6D747970 (* 'mtyp' *); { typeThemeMenuType}
-	kEventParamMenuIsPopup = $6D706F70 (* 'mpop' *); { typeBoolean}
-	kEventParamMenuDirection = $6D646972 (* 'mdir' *); { typeMenuDirection}
-	kEventParamParentMenu = $6D70726D (* 'mprm' *); { typeMenuRef}
-	kEventParamParentMenuItem = $6D707269 (* 'mpri' *); { typeMenuItemIndex}
-	kEventParamMenuPopupItem = $6D706974 (* 'mpit' *); { typeMenuItemIndex}
-	typeMenuItemIndex = $6D696478 (* 'midx' *); { MenuItemIndex}
-	typeMenuCommand = $6D636D64 (* 'mcmd' *); { MenuCommand}
-	typeMenuTrackingMode = $6D746D64 (* 'mtmd' *); { MenuTrackingMode}
-	typeMenuEventOptions = $6D656F70 (* 'meop' *); { MenuEventOptions}
-	typeThemeMenuState = $746D6E73 (* 'tmns' *); { ThemeMenuState}
-	typeThemeMenuItemType = $746D6974 (* 'tmit' *); { ThemeMenuItemType}
-	typeMenuDirection = $6D646972 (* 'mdir' *); { UInt32}
-	typeThemeMenuType = $746D7479 (* 'tmty' *); { ThemeMenuType}
+	kEventParamCurrentMenuTrackingMode = FourCharCode('cmtm'); { typeMenuTrackingMode}
+	kEventParamNewMenuTrackingMode = FourCharCode('nmtm'); { typeMenuTrackingMode}
+	kEventParamMenuFirstOpen = FourCharCode('1sto'); { typeBoolean}
+	kEventParamMenuItemIndex = FourCharCode('item'); { typeMenuItemIndex}
+	kEventParamMenuCommand = FourCharCode('mcmd'); { typeMenuCommand}
+	kEventParamEnableMenuForKeyEvent = FourCharCode('fork'); { typeBoolean}
+	kEventParamMenuEventOptions = FourCharCode('meop'); { typeMenuEventOptions}
+	kEventParamMenuContext = FourCharCode('mctx'); { typeUInt32}
+	kEventParamMenuDismissed = FourCharCode('mdis'); { typeUInt32}
+	kEventParamMenuItemBounds = FourCharCode('mitb'); { typeQDRectangle}
+	kEventParamMenuMarkBounds = FourCharCode('mmkb'); { typeQDRectangle}
+	kEventParamMenuIconBounds = FourCharCode('micb'); { typeQDRectangle}
+	kEventParamMenuTextBounds = FourCharCode('mtxb'); { typeQDRectangle}
+	kEventParamMenuTextBaseline = FourCharCode('mtbl'); { typeShortInteger}
+	kEventParamMenuCommandKeyBounds = FourCharCode('mcmb'); { typeQDRectangle}
+	kEventParamMenuVirtualTop = FourCharCode('mvrt'); { typeLongInteger}
+	kEventParamMenuVirtualBottom = FourCharCode('mvrb'); { typeLongInteger}
+	kEventParamMenuDrawState = FourCharCode('mdrs'); { typeThemeMenuState}
+	kEventParamMenuItemType = FourCharCode('mitp'); { typeThemeMenuItemType}
+	kEventParamMenuItemWidth = FourCharCode('mitw'); { typeShortInteger}
+	kEventParamMenuItemHeight = FourCharCode('mith'); { typeShortInteger}
+	kEventParamMenuFrameView = FourCharCode('mfrv'); { typeControlRef}
+	kEventParamMenuType = FourCharCode('mtyp'); { typeThemeMenuType}
+	kEventParamMenuIsPopup = FourCharCode('mpop'); { typeBoolean}
+	kEventParamMenuDirection = FourCharCode('mdir'); { typeMenuDirection}
+	kEventParamParentMenu = FourCharCode('mprm'); { typeMenuRef}
+	kEventParamParentMenuItem = FourCharCode('mpri'); { typeMenuItemIndex}
+	kEventParamMenuPopupItem = FourCharCode('mpit'); { typeMenuItemIndex}
+	typeMenuItemIndex = FourCharCode('midx'); { MenuItemIndex}
+	typeMenuCommand = FourCharCode('mcmd'); { MenuCommand}
+	typeMenuTrackingMode = FourCharCode('mtmd'); { MenuTrackingMode}
+	typeMenuEventOptions = FourCharCode('meop'); { MenuEventOptions}
+	typeThemeMenuState = FourCharCode('tmns'); { ThemeMenuState}
+	typeThemeMenuItemType = FourCharCode('tmit'); { ThemeMenuItemType}
+	typeMenuDirection = FourCharCode('mdir'); { UInt32}
+	typeThemeMenuType = FourCharCode('tmty'); { ThemeMenuType}
 
 { Application event parameters}
 
 const
-	kEventParamProcessID = $70736E20 (* 'psn ' *); { typeProcessSerialNumber}
-	kEventParamLaunchRefCon = $6C726566 (* 'lref' *); { typeUInt32}
-	kEventParamLaunchErr = $65727220 (* 'err ' *); { typeOSStatus}
-	kEventParamSystemUIMode = $75696D64 (* 'uimd' *); { typeUInt32}
-	kEventParamIsInInstantMouser = $696D6F75 (* 'imou' *); { typeBoolean}
-	kEventParamPreviousWindow = $70727677 (* 'prvw' *); { typeWindowRef}
-	kEventParamCurrentWindow = $63757277 (* 'curw' *); { typeWindowRef}
+	kEventParamProcessID = FourCharCode('psn '); { typeProcessSerialNumber}
+	kEventParamLaunchRefCon = FourCharCode('lref'); { typeUInt32}
+	kEventParamLaunchErr = FourCharCode('err '); { typeOSStatus}
+	kEventParamSystemUIMode = FourCharCode('uimd'); { typeUInt32}
+	kEventParamIsInInstantMouser = FourCharCode('imou'); { typeBoolean}
+	kEventParamPreviousWindow = FourCharCode('prvw'); { typeWindowRef}
+	kEventParamCurrentWindow = FourCharCode('curw'); { typeWindowRef}
 
 { Tablet event parameters and types}
 
 const
-	kEventParamTabletPointRec = $74627263 (* 'tbrc' *); { typeTabletPointRec}
-	kEventParamTabletProximityRec = $74627078 (* 'tbpx' *); { typeTabletProximityRec}
-	typeTabletPointRec = $74627263 (* 'tbrc' *); { kEventParamTabletPointRec}
-	typeTabletProximityRec = $74627078 (* 'tbpx' *); { kEventParamTabletProximityRec}
+	kEventParamTabletPointRec = FourCharCode('tbrc'); { typeTabletPointRec}
+	kEventParamTabletProximityRec = FourCharCode('tbpx'); { typeTabletProximityRec}
+	typeTabletPointRec = FourCharCode('tbrc'); { kEventParamTabletPointRec}
+	typeTabletProximityRec = FourCharCode('tbpx'); { kEventParamTabletProximityRec}
 
 { Appearance event parameters}
 
 const
-	kEventParamNewScrollBarVariant = $6E736276 (* 'nsbv' *); { typeShortInteger}
+	kEventParamNewScrollBarVariant = FourCharCode('nsbv'); { typeShortInteger}
 
 { Service event parameters}
 
 const
-	kEventParamPasteboardRef = $70627264 (* 'pbrd' *); {    typePasteboardRef}
-	kEventParamScrapRef = $73637270 (* 'scrp' *); {    typeScrapRef}
-	kEventParamServiceCopyTypes = $73767364 (* 'svsd' *); {    typeCFMutableArrayRef}
-	kEventParamServicePasteTypes = $73767074 (* 'svpt' *); {    typeCFMutableArrayRef}
-	kEventParamServiceMessageName = $73766D67 (* 'svmg' *); {    typeCFStringRef}
-	kEventParamServiceUserData = $73767564 (* 'svud' *); {    typeCFStringRef}
-	typePasteboardRef = $70627264 (* 'pbrd' *); {    PasteboardRef}
-	typeScrapRef = $73637270 (* 'scrp' *); {    ScrapRef}
+	kEventParamPasteboardRef = FourCharCode('pbrd'); {    typePasteboardRef}
+	kEventParamScrapRef = FourCharCode('scrp'); {    typeScrapRef}
+	kEventParamServiceCopyTypes = FourCharCode('svsd'); {    typeCFMutableArrayRef}
+	kEventParamServicePasteTypes = FourCharCode('svpt'); {    typeCFMutableArrayRef}
+	kEventParamServiceMessageName = FourCharCode('svmg'); {    typeCFStringRef}
+	kEventParamServiceUserData = FourCharCode('svud'); {    typeCFStringRef}
+	typePasteboardRef = FourCharCode('pbrd'); {    PasteboardRef}
+	typeScrapRef = FourCharCode('scrp'); {    ScrapRef}
 
 { Accessibility event parameters}
 
 const
-	kEventParamAccessibleObject = $616F626A (* 'aobj' *); { typeCFTypeRef with an AXUIElementRef}
-	kEventParamAccessibleChild = $6163686C (* 'achl' *); { typeCFTypeRef with an AXUIElementRef}
-	kEventParamAccessibleAttributeName = $61746E6D (* 'atnm' *); { typeCFStringRef}
-	kEventParamAccessibleAttributeNames = $61746E73 (* 'atns' *); { typeCFMutableArrayRef of CFStringRefs}
-	kEventParamAccessibleAttributeValue = $6174766C (* 'atvl' *); { variable}
-	kEventParamAccessibleAttributeSettable = $61747374 (* 'atst' *); { typeBoolean}
-	kEventParamAccessibleAttributeParameter = $61747061 (* 'atpa' *); { typeCFTypeRef}
-	kEventParamAccessibleActionName = $61636E6D (* 'acnm' *); { typeCFStringRef}
-	kEventParamAccessibleActionNames = $61636E73 (* 'acns' *); { typeCFMutableArrayRef of CFStringRefs}
-	kEventParamAccessibleActionDescription = $61636473 (* 'acds' *); { typeCFMutableStringRef}
-	kEventParamAccessibilityEventQueued = $61657175 (* 'aequ' *); { typeBoolean}
+	kEventParamAccessibleObject = FourCharCode('aobj'); { typeCFTypeRef with an AXUIElementRef}
+	kEventParamAccessibleChild = FourCharCode('achl'); { typeCFTypeRef with an AXUIElementRef}
+	kEventParamAccessibleAttributeName = FourCharCode('atnm'); { typeCFStringRef}
+	kEventParamAccessibleAttributeNames = FourCharCode('atns'); { typeCFMutableArrayRef of CFStringRefs}
+	kEventParamAccessibleAttributeValue = FourCharCode('atvl'); { variable}
+	kEventParamAccessibleAttributeSettable = FourCharCode('atst'); { typeBoolean}
+	kEventParamAccessibleAttributeParameter = FourCharCode('atpa'); { typeCFTypeRef}
+	kEventParamAccessibleActionName = FourCharCode('acnm'); { typeCFStringRef}
+	kEventParamAccessibleActionNames = FourCharCode('acns'); { typeCFMutableArrayRef of CFStringRefs}
+	kEventParamAccessibleActionDescription = FourCharCode('acds'); { typeCFMutableStringRef}
+	kEventParamAccessibilityEventQueued = FourCharCode('aequ'); { typeBoolean}
 
 { Text field event type}
 
 const
-	typeCFRange = $6366726E (* 'cfrn' *); { CFRange}
+	typeCFRange = FourCharCode('cfrn'); { CFRange}
 
 {--------------------------------------------------------------------------------------}
 {  • Helpful utilities                                                                 }
@@ -714,7 +714,7 @@ const
    * this mode, the menu is tracked even though the mouse has already
    * been released.
    }
-	kMouseParamsSticky = $73746963 (* 'stic' *);
+	kMouseParamsSticky = FourCharCode('stic');
 
 {
  *  HIMouseTrackingGetParameters()
@@ -932,99 +932,99 @@ const
 {
    * Events related to the mouse (mouse down/up/moved).
    }
-	kEventClassMouse = $6D6F7573 (* 'mous' *);
+	kEventClassMouse = FourCharCode('mous');
 
   {
    * Events related to the keyboard.
    }
-	kEventClassKeyboard = $6B657962 (* 'keyb' *);
+	kEventClassKeyboard = FourCharCode('keyb');
 
   {
    * Events related to text input (by keyboard, or by input method).
    }
-	kEventClassTextInput = $74657874 (* 'text' *);
+	kEventClassTextInput = FourCharCode('text');
 
   {
    * Application-level events (launch, quit, etc.).
    }
-	kEventClassApplication = $6170706C (* 'appl' *);
+	kEventClassApplication = FourCharCode('appl');
 
   {
    * Apple Events.
    }
-	kEventClassAppleEvent = $65707063 (* 'eppc' *);
+	kEventClassAppleEvent = FourCharCode('eppc');
 
   {
    * Events related to menus.
    }
-	kEventClassMenu = $6D656E75 (* 'menu' *);
+	kEventClassMenu = FourCharCode('menu');
 
   {
    * Events related to windows.
    }
-	kEventClassWindow = $77696E64 (* 'wind' *);
+	kEventClassWindow = FourCharCode('wind');
 
   {
    * Events related to controls.
    }
-	kEventClassControl = $636E746C (* 'cntl' *);
+	kEventClassControl = FourCharCode('cntl');
 
   {
    * Events related to commands generated by menu items or controls.
    * These events contain HICommand structures.
    }
-	kEventClassCommand = $636D6473 (* 'cmds' *);
+	kEventClassCommand = FourCharCode('cmds');
 
   {
    * Events related to tablets.
    }
-	kEventClassTablet = $74626C74 (* 'tblt' *);
+	kEventClassTablet = FourCharCode('tblt');
 
   {
    * Events related to File Manager volumes.
    }
-	kEventClassVolume = $766F6C20 (* 'vol ' *);
+	kEventClassVolume = FourCharCode('vol ');
 
   {
    * Events related to the Appearance Manager.
    }
-	kEventClassAppearance = $6170706D (* 'appm' *);
+	kEventClassAppearance = FourCharCode('appm');
 
   {
    * Events related to the Services Manager.
    }
-	kEventClassService = $73657276 (* 'serv' *);
+	kEventClassService = FourCharCode('serv');
 
   {
    * Events related to toolbars.
    }
-	kEventClassToolbar = $74626172 (* 'tbar' *);
+	kEventClassToolbar = FourCharCode('tbar');
 
   {
    * Events related to toolbar items.
    }
-	kEventClassToolbarItem = $74626974 (* 'tbit' *);
+	kEventClassToolbarItem = FourCharCode('tbit');
 
   {
    * Events related to toolbar item views.
    }
-	kEventClassToolbarItemView = $74626976 (* 'tbiv' *);
+	kEventClassToolbarItemView = FourCharCode('tbiv');
 
   {
    * Events related to application accessibility.
    }
-	kEventClassAccessibility = $61636365 (* 'acce' *);
+	kEventClassAccessibility = FourCharCode('acce');
 
   {
    * Events related to the system.
    }
-	kEventClassSystem = $6D616373 (* 'macs' *);
+	kEventClassSystem = FourCharCode('macs');
 
   {
    * Events related to Ink.
    }
-	kEventClassInk = $696E6B20 (* 'ink ' *);
-	kEventClassTSMDocumentAccess = $74646163 (* 'tdac' *);
+	kEventClassInk = FourCharCode('ink ');
+	kEventClassTSMDocumentAccess = FourCharCode('tdac');
 
 {--------------------------------------------------------------------------------------}
 { Mouse Events                                                                         }
@@ -4373,10 +4373,10 @@ const
 type
 	HIModalClickResult = UInt32;
 const
-	typeModalClickResult = $776D6372 (* 'wmcr' *); { HIModalClickResult}
-	typeWindowModality = $776D6F64 (* 'wmod' *); { WindowModality}
+	typeModalClickResult = FourCharCode('wmcr'); { HIModalClickResult}
+	typeWindowModality = FourCharCode('wmod'); { WindowModality}
 	kEventParamModalClickResult = typeModalClickResult; { typeModalClickResult}
-	kEventParamModalWindow = $6D77696E (* 'mwin' *); { typeWindowRef}
+	kEventParamModalWindow = FourCharCode('mwin'); { typeWindowRef}
 	kEventParamWindowModality = typeWindowModality; { typeWindowModality}
 
 {
@@ -8962,78 +8962,78 @@ const
 {
    * The OK button in a dialog or alert.
    }
-	kHICommandOK = $6F6B2020 (* 'ok  ' *);
+	kHICommandOK = FourCharCode('ok  ');
 
   {
    * The Cancel button in a dialog or alert.
    }
-	kHICommandCancel = $6E6F7421 (* 'not!' *);
+	kHICommandCancel = FourCharCode('not!');
 
   {
    * The application should quit.
    }
-	kHICommandQuit = $71756974 (* 'quit' *);
+	kHICommandQuit = FourCharCode('quit');
 
   {
    * The last editing operation should be undone.
    }
-	kHICommandUndo = $756E646F (* 'undo' *);
+	kHICommandUndo = FourCharCode('undo');
 
   {
    * The last editing operation should be redone.
    }
-	kHICommandRedo = $7265646F (* 'redo' *);
+	kHICommandRedo = FourCharCode('redo');
 
   {
    * The selected items should be cut.
    }
-	kHICommandCut = $63757420 (* 'cut ' *);
+	kHICommandCut = FourCharCode('cut ');
 
   {
    * The selected items should be copied.
    }
-	kHICommandCopy = $636F7079 (* 'copy' *);
+	kHICommandCopy = FourCharCode('copy');
 
   {
    * The contents of the clipboard should be pasted.
    }
-	kHICommandPaste = $70617374 (* 'past' *);
+	kHICommandPaste = FourCharCode('past');
 
   {
    * The selected items should be deleted.
    }
-	kHICommandClear = $636C6561 (* 'clea' *);
+	kHICommandClear = FourCharCode('clea');
 
   {
    * All items in the active window should be selected.
    }
-	kHICommandSelectAll = $73616C6C (* 'sall' *);
+	kHICommandSelectAll = FourCharCode('sall');
 
   {
    * The application should be hidden. The Menu Manager will respond to
    * this command automatically; your application does not need to
    * handle it.
    }
-	kHICommandHide = $68696465 (* 'hide' *);
+	kHICommandHide = FourCharCode('hide');
 
   {
    * Other applications should be hidden. The Menu Manager will respond
    * to this command automatically; your application does not need to
    * handle it.
    }
-	kHICommandHideOthers = $6869646F (* 'hido' *);
+	kHICommandHideOthers = FourCharCode('hido');
 
   {
    * All applications should become visible. The Menu Manager will
    * respond to this command automatically; your application does not
    * need to handle it.
    }
-	kHICommandShowAll = $7368616C (* 'shal' *);
+	kHICommandShowAll = FourCharCode('shal');
 
   {
    * The Preferences menu item has been selected.
    }
-	kHICommandPreferences = $70726566 (* 'pref' *);
+	kHICommandPreferences = FourCharCode('pref');
 
   {
    * The active window should be zoomed in or out. The default
@@ -9042,41 +9042,41 @@ const
    * install a Carbon event handler for kEventWindowGetIdealSize to
    * return the ideal size for your document windows.
    }
-	kHICommandZoomWindow = $7A6F6F6D (* 'zoom' *);
+	kHICommandZoomWindow = FourCharCode('zoom');
 
   {
    * The active window should be minimized. The default application
    * handler will respond to this event automatically; your application
    * does not need to handle it.
    }
-	kHICommandMinimizeWindow = $6D696E69 (* 'mini' *);
+	kHICommandMinimizeWindow = FourCharCode('mini');
 
   {
    * All collapsable windows should be minimized. The default
    * application handler will respond to this event automatically; your
    * application does not need to handle it.
    }
-	kHICommandMinimizeAll = $6D696E61 (* 'mina' *);
+	kHICommandMinimizeAll = FourCharCode('mina');
 
   {
    * The active window should be maximized. Only sent on Mac OS 9. The
    * default application handler will respond to this event
    * automatically; your application does not need to handle it.
    }
-	kHICommandMaximizeWindow = $6D617869 (* 'maxi' *);
+	kHICommandMaximizeWindow = FourCharCode('maxi');
 
   {
    * All collapsable windows should be maximized. This command is not
    * sent or handled on Mac OS X.
    }
-	kHICommandMaximizeAll = $6D617861 (* 'maxa' *);
+	kHICommandMaximizeAll = FourCharCode('maxa');
 
   {
    * All document-class windows should be arranged in a stack. The
    * default application handler will respond to this event
    * automatically; your application does not need to handle it.
    }
-	kHICommandArrangeInFront = $66726E74 (* 'frnt' *);
+	kHICommandArrangeInFront = FourCharCode('frnt');
 
   {
    * All windows of this application should be brought in front of
@@ -9084,7 +9084,7 @@ const
    * default application handler will respond to this event
    * automatically; your application does not need to handle it.
    }
-	kHICommandBringAllToFront = $62667274 (* 'bfrt' *);
+	kHICommandBringAllToFront = FourCharCode('bfrt');
 
   {
    * This command ID is used as a placeholder to mark the separator
@@ -9095,7 +9095,7 @@ const
    * menu item with this command ID using GetIndMenuItemWithCommandID,
    * and insert your menu items before the item with this ID.
    }
-	kHICommandWindowListSeparator = $776C6476 (* 'wldv' *);
+	kHICommandWindowListSeparator = FourCharCode('wldv');
 
   {
    * This command ID is used as a placeholder to mark the end of the
@@ -9105,7 +9105,7 @@ const
    * command ID using GetIndMenuItemWithCommandID, and insert your
    * items after the item with this ID.
    }
-	kHICommandWindowListTerminator = $776C7374 (* 'wlst' *);
+	kHICommandWindowListTerminator = FourCharCode('wlst');
 
   {
    * A window in the standard Window menu has been selected and should
@@ -9117,7 +9117,7 @@ const
    * handler will respond to this event automatically; your application
    * does not need to handle it.
    }
-	kHICommandSelectWindow = $7377696E (* 'swin' *);
+	kHICommandSelectWindow = FourCharCode('swin');
 
   {
    * The Rotate Windows hotkey (cmd-~ by default) has been pressed, and
@@ -9126,7 +9126,7 @@ const
    * will respond to this event automatically; your application does
    * not need to handle it.
    }
-	kHICommandRotateWindowsForward = $726F7477 (* 'rotw' *);
+	kHICommandRotateWindowsForward = FourCharCode('rotw');
 
   {
    * The Rotate Windows hotkey (cmd-~ by default) has been pressed, and
@@ -9135,7 +9135,7 @@ const
    * will respond to this event automatically; your application does
    * not need to handle it.
    }
-	kHICommandRotateWindowsBackward = $726F7462 (* 'rotb' *);
+	kHICommandRotateWindowsBackward = FourCharCode('rotb');
 
   {
    * The floating window focus hotkey (ctl-F6 by default) has been
@@ -9144,7 +9144,7 @@ const
    * handler will respond to this event automatically; your application
    * does not need to handle it.
    }
-	kHICommandRotateFloatingWindowsForward = $72746677 (* 'rtfw' *);
+	kHICommandRotateFloatingWindowsForward = FourCharCode('rtfw');
 
   {
    * The floating window focus hotkey (ctl-F6 by default) has been
@@ -9153,7 +9153,7 @@ const
    * handler will respond to this event automatically; your application
    * does not need to handle it.
    }
-	kHICommandRotateFloatingWindowsBackward = $72746662 (* 'rtfb' *);
+	kHICommandRotateFloatingWindowsBackward = FourCharCode('rtfb');
 
   {
    * The About menu item has been selected. In Mac OS X 10.3 and later,
@@ -9162,17 +9162,17 @@ const
    * by calling HIAboutBox. Your application may install its own
    * handler if it wishes to display a customized about box.
    }
-	kHICommandAbout = $61626F75 (* 'abou' *);
+	kHICommandAbout = FourCharCode('abou');
 
   {
    * A new document or item should be created.
    }
-	kHICommandNew = $6E657720 (* 'new ' *);
+	kHICommandNew = FourCharCode('new ');
 
   {
    * The user wants to open an existing document.
    }
-	kHICommandOpen = $6F70656E (* 'open' *);
+	kHICommandOpen = FourCharCode('open');
 
   {
    * The active window should be closed. This command would typically
@@ -9181,34 +9181,34 @@ const
    * kEventWindowClose event; on earlier systems, only the standard
    * window event handler responded to this event.
    }
-	kHICommandClose = $636C6F73 (* 'clos' *);
+	kHICommandClose = FourCharCode('clos');
 
   {
    * The active document should be saved.
    }
-	kHICommandSave = $73617665 (* 'save' *);
+	kHICommandSave = FourCharCode('save');
 
   {
    * The user wants to save the active document under a new name.
    }
-	kHICommandSaveAs = $73766173 (* 'svas' *);
+	kHICommandSaveAs = FourCharCode('svas');
 
   {
    * The contents of the active document should be reverted to the last
    * saved version.
    }
-	kHICommandRevert = $72767274 (* 'rvrt' *);
+	kHICommandRevert = FourCharCode('rvrt');
 
   {
    * The active window should be printed.
    }
-	kHICommandPrint = $70726E74 (* 'prnt' *);
+	kHICommandPrint = FourCharCode('prnt');
 
   {
    * The user wants to configure the current page margins, formatting,
    * and print options.
    }
-	kHICommandPageSetup = $70616765 (* 'page' *);
+	kHICommandPageSetup = FourCharCode('page');
 
   {
    * The application’s help book should be displayed. Used by the Help
@@ -9217,7 +9217,7 @@ const
    * the Help menu returned by HMGetHelpMenu, and will respond to this
    * event automatically; your application does not need to handle it.
    }
-	kHICommandAppHelp = $61686C70 (* 'ahlp' *);
+	kHICommandAppHelp = FourCharCode('ahlp');
 
   {
    * The character palette needs to be shown. Events with this command
@@ -9225,7 +9225,7 @@ const
    * respond to this event automatically; your application does not
    * need to handle it.
    }
-	kHICommandShowCharacterPalette = $63687270 (* 'chrp' *);
+	kHICommandShowCharacterPalette = FourCharCode('chrp');
 
   {
    * Display the spelling panel if it is not already visible. Events
@@ -9233,7 +9233,7 @@ const
    * later.  If spell checking has been enabled in MLTE or an
    * HITextView then this command is handled automatically.
    }
-	kHICommandShowSpellingPanel = $73687370 (* 'shsp' *);
+	kHICommandShowSpellingPanel = FourCharCode('shsp');
 
   {
    * Spell check the document now.  Events with this command ID are
@@ -9241,8 +9241,8 @@ const
    * been enabled in MLTE or an HITextView then this command is handled
    * automatically.
    }
-	kHICommandCheckSpelling = $636B7370 (* 'cksp' *);
-	kHICommandChangeSpelling = $63687370 (* 'chsp' *);
+	kHICommandCheckSpelling = FourCharCode('cksp');
+	kHICommandChangeSpelling = FourCharCode('chsp');
 
   {
    * Begin interactive spell checking. Events with this command ID are
@@ -9250,7 +9250,7 @@ const
    * been enabled in MLTE or an HITextView then this command is handled
    * automatically.
    }
-	kHICommandCheckSpellingAsYouType = $61737063 (* 'aspc' *);
+	kHICommandCheckSpellingAsYouType = FourCharCode('aspc');
 
   {
    * Ignore this word while spell checking this text view. Events with
@@ -9258,7 +9258,7 @@ const
    * spell checking has been enabled in MLTE or an HITextView then this
    * command is handled automatically.
    }
-	kHICommandIgnoreSpelling = $69677370 (* 'igsp' *);
+	kHICommandIgnoreSpelling = FourCharCode('igsp');
 
   {
    * Learn this spelling for all documents.  Events with this command
@@ -9266,7 +9266,7 @@ const
    * checking has been enabled in MLTE or an HITextView then this
    * command is handled automatically.
    }
-	kHICommandLearnWord = $6C727764 (* 'lrwd' *);
+	kHICommandLearnWord = FourCharCode('lrwd');
 
 
 {
@@ -11372,7 +11372,7 @@ type
     kEventVolumeUnmounted           = 2         // volume has been ejected or unmounted
 }
 const
-	typeFSVolumeRefNum = $766F6C6E (* 'voln' *); { FSVolumeRefNum}
+	typeFSVolumeRefNum = FourCharCode('voln'); { FSVolumeRefNum}
 
 {
  *  kEventClassVolume / kEventVolumeMounted
@@ -13415,11 +13415,11 @@ function GetSymbolicHotKeyMode: OptionBits; external name '_GetSymbolicHotKeyMod
 {  Ink Events                                                                          }
 {--------------------------------------------------------------------------------------}
 const
-	kEventParamInkTextRef = $69777264 (* 'iwrd' *); { typePtr }
-	kEventParamInkKeyboardShortcut = $696B6264 (* 'ikbd' *); { typeBoolean }
-	kEventParamInkGestureKind = $676B6E64 (* 'gknd' *); { typeUInt32 }
-	kEventParamInkGestureBounds = $67626E64 (* 'gbnd' *); { typeHIRect }
-	kEventParamInkGestureHotspot = $67686F74 (* 'ghot' *); { typeHIPoint }
+	kEventParamInkTextRef = FourCharCode('iwrd'); { typePtr }
+	kEventParamInkKeyboardShortcut = FourCharCode('ikbd'); { typeBoolean }
+	kEventParamInkGestureKind = FourCharCode('gknd'); { typeUInt32 }
+	kEventParamInkGestureBounds = FourCharCode('gbnd'); { typeHIRect }
+	kEventParamInkGestureHotspot = FourCharCode('ghot'); { typeHIPoint }
 
 
 {
@@ -14196,8 +14196,8 @@ function UnregisterToolboxObjectClass( inClassRef: ToolboxObjectClassRef ): OSSt
 { Obsolete constant names - use the new ones.                                          }
 {--------------------------------------------------------------------------------------}
 const
-	kEventParamTabletPointerRec = $74627263 (* 'tbrc' *); { typeTabletPointerRec      -- deprecated, for compatibility only}
-	typeTabletPointerRec = $74627263 (* 'tbrc' *); { kEventParamTabletPointerRec    -- deprecated, for compatibility only}
+	kEventParamTabletPointerRec = FourCharCode('tbrc'); { typeTabletPointerRec      -- deprecated, for compatibility only}
+	typeTabletPointerRec = FourCharCode('tbrc'); { kEventParamTabletPointerRec    -- deprecated, for compatibility only}
 
 const
 	kEventWindowDefDrawFrame = kEventWindowDrawFrame;

@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Menus;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -3378,8 +3378,15 @@ procedure SetItemMark( theMenu: MenuRef; item: MenuItemIndex; markChar: CharPara
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure GetItemMark( theMenu: MenuRef; item: MenuItemIndex; var markChar: CharParameter ); external name '_GetItemMark';
+
+procedure __GetItemMark( theMenu: MenuRef; item: MenuItemIndex; var markChar: UInt16 ); external name '_GetItemMark';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+		With GPC and FPC on Intel we have an endian issue, because markChar is expected to be 16-bit
+}
+
+procedure GetItemMark( theMenu: MenuRef; item: MenuItemIndex; var markChar: CharParameter ); inline;
 
 
 {
@@ -3408,8 +3415,15 @@ procedure SetItemCmd( theMenu: MenuRef; item: MenuItemIndex; cmdChar: CharParame
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure GetItemCmd( theMenu: MenuRef; item: MenuItemIndex; var cmdChar: CharParameter ); external name '_GetItemCmd';
+
+procedure __GetItemCmd( theMenu: MenuRef; item: MenuItemIndex; var cmdChar: UInt16 ); external name '_GetItemCmd';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+{
+		With GPC and FPC on Intel we have an endian issue, because cmdChar is expected to be 16-bit
+}
+
+procedure GetItemCmd( theMenu: MenuRef; item: MenuItemIndex; var cmdChar: CharParameter ); inline;
 
 
 {
@@ -3536,7 +3550,7 @@ function GetMenuItemCommandID( inMenu: MenuRef; inItem: MenuItemIndex; var outCo
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function SetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; inModifiers: UInt8 ): OSErr; external name '_SetMenuItemModifiers';
+function SetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; inModifiers: SInt8 ): OSErr; external name '_SetMenuItemModifiers';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -3551,7 +3565,7 @@ function SetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; inModifie
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function GetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; var outModifiers: UInt8 ): OSErr; external name '_GetMenuItemModifiers';
+function GetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; var outModifiers: SInt8 ): OSErr; external name '_GetMenuItemModifiers';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -3566,7 +3580,7 @@ function GetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; var outMo
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function SetMenuItemIconHandle( inMenu: MenuRef; inItem: MenuItemIndex; inIconType: UInt8; inIconHandle: Handle ): OSErr; external name '_SetMenuItemIconHandle';
+function SetMenuItemIconHandle( inMenu: MenuRef; inItem: MenuItemIndex; inIconType: SInt8; inIconHandle: Handle ): OSErr; external name '_SetMenuItemIconHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -3581,7 +3595,7 @@ function SetMenuItemIconHandle( inMenu: MenuRef; inItem: MenuItemIndex; inIconTy
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function GetMenuItemIconHandle( inMenu: MenuRef; inItem: MenuItemIndex; var outIconType: UInt8; var outIconHandle: Handle ): OSErr; external name '_GetMenuItemIconHandle';
+function GetMenuItemIconHandle( inMenu: MenuRef; inItem: MenuItemIndex; var outIconType: SInt8; var outIconHandle: Handle ): OSErr; external name '_GetMenuItemIconHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -5457,7 +5471,7 @@ function GetFontFamilyFromMenuSelection( menu: MenuRef; item: MenuItemIndex; var
 { Gestalt Selector for classic 68K apps only. }
 { CFM apps should weak link and check the symbols. }
 const
-	gestaltContextualMenuAttr = $636D6E75 (* 'cmnu' *);
+	gestaltContextualMenuAttr = FourCharCode('cmnu');
 	gestaltContextualMenuUnusedBit = 0;
 	gestaltContextualMenuTrapAvailable = 1;
 	gestaltContextualMenuHasAttributeAndModifierKeys = 2; { Contextual Menu Manager supports keyContextualMenuAttributes and keyContextualMenuModifiers }
@@ -5548,27 +5562,27 @@ const
    * your plugin should retain the CFStringRef before inserting it into
    * the AERecord.
    }
-	keyContextualMenuName = $706E616D (* 'pnam' *);
+	keyContextualMenuName = FourCharCode('pnam');
 
   {
    * Specifies the command ID of an item in a contextual menu. Data for
    * this parameter should be typeLongInteger.
    }
-	keyContextualMenuCommandID = $636D6364 (* 'cmcd' *);
+	keyContextualMenuCommandID = FourCharCode('cmcd');
 
   {
    * Specifies a contextual menu item with a submenu. Typically used
    * with AEPutKeyDesc to add an entire AEDesc containing the submenu
    * as the data for the parameter.
    }
-	keyContextualMenuSubmenu = $636D7362 (* 'cmsb' *);
+	keyContextualMenuSubmenu = FourCharCode('cmsb');
 
   {
    * Specifies the menu item attributes of an item in a contextual
    * menu. Data for this parameter should be typeLongInteger. Available
    * in Mac OS X 10.2 and later.
    }
-	keyContextualMenuAttributes = $636D6174 (* 'cmat' *);
+	keyContextualMenuAttributes = FourCharCode('cmat');
 
   {
    * Specifies the modifier keys of an item in a contextual menu (see
@@ -5579,7 +5593,7 @@ const
    * to the modifier keys pressed by the user. Available in Mac OS X
    * 10.2 and later.
    }
-	keyContextualMenuModifiers = $636D6D64 (* 'cmmd' *);
+	keyContextualMenuModifiers = FourCharCode('cmmd');
 
 {
  *  InitContextualMenus()
@@ -6148,6 +6162,26 @@ function SetMenuTitle( menu: MenuRef; const (*var*) title: Str255 ): OSStatus; e
 function SetMenuDefinition( menu: MenuRef; const (*var*) defSpec: MenuDefSpec ): OSStatus; external name '_SetMenuDefinition';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+implementation
+
+
+
+procedure GetItemMark( theMenu: MenuRef; item: MenuItemIndex; var markChar: CharParameter ); inline;
+var
+	markCharInt: UInt16;
+begin
+	__GetItemMark( theMenu, item, markCharInt);
+	markChar:= CharParameter( markCharInt)
+end;
+
+procedure GetItemCmd( theMenu: MenuRef; item: MenuItemIndex; var cmdChar: CharParameter ); inline;
+var
+	cmdCharInt: UInt16;
+begin
+	__GetItemCmd( theMenu, item, cmdCharInt);
+	cmdChar:= CharParameter( cmdCharInt)
+end;
 
 
 

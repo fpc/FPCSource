@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit AEDataModel;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -112,91 +112,91 @@ uses MacTypes,MixedMode;
 { Apple event descriptor types }
 
 const
-	typeBoolean					= $626F6F6C (* 'bool' *);
-	typeChar					= $54455854 (* 'TEXT' *); { Deprecated, use typeUTF8Text instead. }
+	typeBoolean					= FourCharCode('bool');
+	typeChar					= FourCharCode('TEXT'); { Deprecated, use typeUTF8Text instead. }
 
 { The preferred unicode text types.  In both cases, there is no explicit null termination or length byte. }
 
-	typeUTF16ExternalRepresentation = $75743136 (* 'ut16' *); { big-endian 16 bit unicode with optional byte-order-mark, or little-endian 16 bit unicode with required byte-order-mark. }
-	typeUTF8Text                = $75746638 (* 'utf8' *); { 8 bit unicode }
+	typeUTF16ExternalRepresentation = FourCharCode('ut16'); { big-endian 16 bit unicode with optional byte-order-mark, or little-endian 16 bit unicode with required byte-order-mark. }
+	typeUTF8Text                = FourCharCode('utf8'); { 8 bit unicode }
 
 	{	 Preferred numeric Apple event descriptor types 	}
-	typeSInt16					= $73686F72 (* 'shor' *);
-	typeSInt32					= $6C6F6E67 (* 'long' *);
-	typeUInt32					= $6D61676E (* 'magn' *);
-	typeSInt64					= $636F6D70 (* 'comp' *);
-	typeIEEE32BitFloatingPoint	= $73696E67 (* 'sing' *);
-	typeIEEE64BitFloatingPoint	= $646F7562 (* 'doub' *);
-	type128BitFloatingPoint		= $6C64626C (* 'ldbl' *);
-	typeDecimalStruct			= $6465636D (* 'decm' *);
+	typeSInt16					= FourCharCode('shor');
+	typeSInt32					= FourCharCode('long');
+	typeUInt32					= FourCharCode('magn');
+	typeSInt64					= FourCharCode('comp');
+	typeIEEE32BitFloatingPoint	= FourCharCode('sing');
+	typeIEEE64BitFloatingPoint	= FourCharCode('doub');
+	type128BitFloatingPoint		= FourCharCode('ldbl');
+	typeDecimalStruct			= FourCharCode('decm');
 
 	{	 Non-preferred Apple event descriptor types 	}
-	typeSMInt					= $73686F72 (* 'shor' *);
-	typeShortInteger			= $73686F72 (* 'shor' *);
-	typeInteger					= $6C6F6E67 (* 'long' *);
-	typeLongInteger				= $6C6F6E67 (* 'long' *);
-	typeMagnitude				= $6D61676E (* 'magn' *);
-	typeComp					= $636F6D70 (* 'comp' *);
-	typeSMFloat					= $73696E67 (* 'sing' *);
-	typeShortFloat				= $73696E67 (* 'sing' *);
-	typeFloat					= $646F7562 (* 'doub' *);
-	typeLongFloat				= $646F7562 (* 'doub' *);
-	typeExtended				= $65787465 (* 'exte' *);
+	typeSMInt					= FourCharCode('shor');
+	typeShortInteger			= FourCharCode('shor');
+	typeInteger					= FourCharCode('long');
+	typeLongInteger				= FourCharCode('long');
+	typeMagnitude				= FourCharCode('magn');
+	typeComp					= FourCharCode('comp');
+	typeSMFloat					= FourCharCode('sing');
+	typeShortFloat				= FourCharCode('sing');
+	typeFloat					= FourCharCode('doub');
+	typeLongFloat				= FourCharCode('doub');
+	typeExtended				= FourCharCode('exte');
 
 	{	 More Apple event descriptor types 	}
-	typeAEList					= $6C697374 (* 'list' *);
-	typeAERecord				= $7265636F (* 'reco' *);
-	typeAppleEvent				= $61657674 (* 'aevt' *);
-	typeEventRecord				= $65767263 (* 'evrc' *);
-	typeTrue					= $74727565 (* 'true' *);
-	typeFalse					= $66616C73 (* 'fals' *);
-	typeAlias					= $616C6973 (* 'alis' *);
-	typeEnumerated				= $656E756D (* 'enum' *);
-	typeType					= $74797065 (* 'type' *);
-	typeAppParameters			= $61707061 (* 'appa' *);
-	typeProperty				= $70726F70 (* 'prop' *);
-	typeFSS						= $66737320 (* 'fss ' *);
-	typeFSRef					= $66737266 (* 'fsrf' *);
-	typeFileURL					= $6675726C (* 'furl' *);
-	typeKeyword					= $6B657977 (* 'keyw' *);
-	typeSectionH				= $73656374 (* 'sect' *);
-	typeWildCard				= $2A2A2A2A (* '****' *);
-	typeApplSignature			= $7369676E (* 'sign' *);
-	typeQDRectangle				= $71647274 (* 'qdrt' *);
-	typeFixed					= $66697864 (* 'fixd' *);
-	typeProcessSerialNumber		= $70736E20 (* 'psn ' *);
-	typeApplicationURL			= $6170726C (* 'aprl' *);
-	typeNull					= $6E756C6C (* 'null' *);						{  null or nonexistent data  }
+	typeAEList					= FourCharCode('list');
+	typeAERecord				= FourCharCode('reco');
+	typeAppleEvent				= FourCharCode('aevt');
+	typeEventRecord				= FourCharCode('evrc');
+	typeTrue					= FourCharCode('true');
+	typeFalse					= FourCharCode('fals');
+	typeAlias					= FourCharCode('alis');
+	typeEnumerated				= FourCharCode('enum');
+	typeType					= FourCharCode('type');
+	typeAppParameters			= FourCharCode('appa');
+	typeProperty				= FourCharCode('prop');
+	typeFSS						= FourCharCode('fss ');
+	typeFSRef					= FourCharCode('fsrf');
+	typeFileURL					= FourCharCode('furl');
+	typeKeyword					= FourCharCode('keyw');
+	typeSectionH				= FourCharCode('sect');
+	typeWildCard				= FourCharCode('****');
+	typeApplSignature			= FourCharCode('sign');
+	typeQDRectangle				= FourCharCode('qdrt');
+	typeFixed					= FourCharCode('fixd');
+	typeProcessSerialNumber		= FourCharCode('psn ');
+	typeApplicationURL			= FourCharCode('aprl');
+	typeNull					= FourCharCode('null');						{  null or nonexistent data  }
 
 {$ifc CALL_NOT_IN_CARBON}
 	{	 Deprecated addressing modes under Carbon 	}
-	typeSessionID				= $73736964 (* 'ssid' *);
-	typeTargetID				= $74617267 (* 'targ' *);
-	typeDispatcherID			= $64737074 (* 'dspt' *);
+	typeSessionID				= FourCharCode('ssid');
+	typeTargetID				= FourCharCode('targ');
+	typeDispatcherID			= FourCharCode('dspt');
 
 {$endc}  {CALL_NOT_IN_CARBON}
 
 	{ New addressing modes for MacOS X }
-	typeKernelProcessID         = $6B706964 (* 'kpid' *);
-	typeMachPort                = $706F7274 (* 'port' *);
+	typeKernelProcessID         = FourCharCode('kpid');
+	typeMachPort                = FourCharCode('port');
 
 	{ Targeting applications by bundle ID is only available in Mac OS X 10.3 or later. }
-	typeApplicationBundleID     = $62756E64 (* 'bund' *);
+	typeApplicationBundleID     = FourCharCode('bund');
 
 	{	 Keywords for Apple event attributes 	}
-	keyTransactionIDAttr		= $7472616E (* 'tran' *);
-	keyReturnIDAttr				= $72746964 (* 'rtid' *);
-	keyEventClassAttr			= $6576636C (* 'evcl' *);
-	keyEventIDAttr				= $65766964 (* 'evid' *);
-	keyAddressAttr				= $61646472 (* 'addr' *);
-	keyOptionalKeywordAttr		= $6F70746B (* 'optk' *);
-	keyTimeoutAttr				= $74696D6F (* 'timo' *);
-	keyInteractLevelAttr		= $696E7465 (* 'inte' *);						{  this attribute is read only - will be set in AESend  }
-	keyEventSourceAttr			= $65737263 (* 'esrc' *);						{  this attribute is read only - returned as typeShortInteger  }
-	keyMissedKeywordAttr		= $6D697373 (* 'miss' *);						{  this attribute is read only  }
-	keyOriginalAddressAttr		= $66726F6D (* 'from' *);						{  new in 1.0.1  }
-	keyAcceptTimeoutAttr		= $6163746D (* 'actm' *);						{  new for Mac OS X  }
-	keyReplyRequestedAttr       = $72657071 (* 'repq' *);                       { Was a reply requested for this event - returned as typeBoolean }
+	keyTransactionIDAttr		= FourCharCode('tran');
+	keyReturnIDAttr				= FourCharCode('rtid');
+	keyEventClassAttr			= FourCharCode('evcl');
+	keyEventIDAttr				= FourCharCode('evid');
+	keyAddressAttr				= FourCharCode('addr');
+	keyOptionalKeywordAttr		= FourCharCode('optk');
+	keyTimeoutAttr				= FourCharCode('timo');
+	keyInteractLevelAttr		= FourCharCode('inte');						{  this attribute is read only - will be set in AESend  }
+	keyEventSourceAttr			= FourCharCode('esrc');						{  this attribute is read only - returned as typeShortInteger  }
+	keyMissedKeywordAttr		= FourCharCode('miss');						{  this attribute is read only  }
+	keyOriginalAddressAttr		= FourCharCode('from');						{  new in 1.0.1  }
+	keyAcceptTimeoutAttr		= FourCharCode('actm');						{  new for Mac OS X  }
+	keyReplyRequestedAttr       = FourCharCode('repq');                       { Was a reply requested for this event - returned as typeBoolean }
 
 	{ These bits are specified in the keyXMLDebuggingAttr (an SInt32) }
 	kAEDebugPOSTHeader          = 1 shl 0; { headers of the HTTP post we sent - typeChar }
@@ -209,36 +209,36 @@ const
     SOAP message to specify the serialization schema.  If not
     specified, kSOAP1999Schema is the default. These should be added as
     typeType. }
-	kSOAP1999Schema             = $73733939 (* 'ss99' *);
-	kSOAP2001Schema             = $73733031 (* 'ss01' *);
+	kSOAP1999Schema             = FourCharCode('ss99');
+	kSOAP2001Schema             = FourCharCode('ss01');
 
 	{ outgoing event attributes }
-	keyUserNameAttr             = $756E616D (* 'unam' *);
-	keyUserPasswordAttr         = $70617373 (* 'pass' *); { not sent with the event }
-	keyDisableAuthenticationAttr = $61757468 (* 'auth' *); { When present and with a non zero value (that is, false, or integer 0), }
+	keyUserNameAttr             = FourCharCode('unam');
+	keyUserPasswordAttr         = FourCharCode('pass'); { not sent with the event }
+	keyDisableAuthenticationAttr = FourCharCode('auth'); { When present and with a non zero value (that is, false, or integer 0), }
                                                            { AESend will not authenticate the user.  If not present, or with a non-zero}
                                                            { value, AESend will prompt for authentication information from the user if the interaction level allows. }
-	keyXMLDebuggingAttr         = $78646267 (* 'xdbg' *); { a bitfield of specifying which XML debugging data is to be returned with the event }
+	keyXMLDebuggingAttr         = FourCharCode('xdbg'); { a bitfield of specifying which XML debugging data is to be returned with the event }
                                                           { Event class / id }
-	kAERPCClass                 = $72706320 (* 'rpc ' *); { for outgoing XML events }
-	kAEXMLRPCScheme             = $52504332 (* 'RPC2' *); { event ID: event should be sent to an XMLRPC endpoint }
-	kAESOAPScheme               = $534F4150 (* 'SOAP' *); { event ID: event should be sent to a SOAP endpoint }
-	kAESharedScriptHandler      = $77736370 (* 'wscp' *); { event ID: handler for incoming XML requests }
+	kAERPCClass                 = FourCharCode('rpc '); { for outgoing XML events }
+	kAEXMLRPCScheme             = FourCharCode('RPC2'); { event ID: event should be sent to an XMLRPC endpoint }
+	kAESOAPScheme               = FourCharCode('SOAP'); { event ID: event should be sent to a SOAP endpoint }
+	kAESharedScriptHandler      = FourCharCode('wscp'); { event ID: handler for incoming XML requests }
                                                           { these parameters exist as part of the direct object of the event for both incoming and outgoing requests }
-	keyRPCMethodName            = $6D657468 (* 'meth' *); { name of the method to call }
-	keyRPCMethodParam           = $7061726D (* 'parm' *); { the list (or structure) of parameters }
-	keyRPCMethodParamOrder      = $2F6F7264 (* '/ord' *); { if a structure, the order of parameters (a list) }
+	keyRPCMethodName            = FourCharCode('meth'); { name of the method to call }
+	keyRPCMethodParam           = FourCharCode('parm'); { the list (or structure) of parameters }
+	keyRPCMethodParamOrder      = FourCharCode('/ord'); { if a structure, the order of parameters (a list) }
                                                           { when keyXMLDebugginAttr so specifies, these additional parameters will be part of the reply. }
-	keyAEPOSTHeaderData         = $70686564 (* 'phed' *); { what we sent to the server }
-	keyAEReplyHeaderData        = $72686564 (* 'rhed' *); { what the server sent to us }
-	keyAEXMLRequestData         = $78726571 (* 'xreq' *); { what we sent to the server }
-	keyAEXMLReplyData           = $78726570 (* 'xrep' *); { what the server sent to us }
+	keyAEPOSTHeaderData         = FourCharCode('phed'); { what we sent to the server }
+	keyAEReplyHeaderData        = FourCharCode('rhed'); { what the server sent to us }
+	keyAEXMLRequestData         = FourCharCode('xreq'); { what we sent to the server }
+	keyAEXMLReplyData           = FourCharCode('xrep'); { what the server sent to us }
                                                           { additional parameters that can be specified in the direct object of the event }
-	keyAdditionalHTTPHeaders    = $61686564 (* 'ahed' *); { list of additional HTTP headers (a list of 2 element lists) }
-	keySOAPAction               = $73616374 (* 'sact' *); { the SOAPAction header (required for SOAP messages) }
-	keySOAPMethodNameSpace      = $6D737063 (* 'mspc' *); { Optional namespace (defaults to m:) }
-	keySOAPMethodNameSpaceURI   = $6D737075 (* 'mspu' *); { Required namespace URI }
-	keySOAPSchemaVersion        = $73736368 (* 'ssch' *); { Optional XML Schema version, defaults to kSOAP1999Schama }
+	keyAdditionalHTTPHeaders    = FourCharCode('ahed'); { list of additional HTTP headers (a list of 2 element lists) }
+	keySOAPAction               = FourCharCode('sact'); { the SOAPAction header (required for SOAP messages) }
+	keySOAPMethodNameSpace      = FourCharCode('mspc'); { Optional namespace (defaults to m:) }
+	keySOAPMethodNameSpaceURI   = FourCharCode('mspu'); { Required namespace URI }
+	keySOAPSchemaVersion        = FourCharCode('ssch'); { Optional XML Schema version, defaults to kSOAP1999Schama }
 
 { 
    When serializing AERecords as SOAP structures, it is possible
@@ -255,10 +255,10 @@ const
     </myStruct>
 
 }
-	keySOAPStructureMetaData    = $2F736D64 (* '/smd' *);
-	keySOAPSMDNamespace         = $73736E73 (* 'ssns' *); { "myNamespace"}
-	keySOAPSMDNamespaceURI      = $73736E75 (* 'ssnu' *); { "http://myUri.org/xsd"}
-	keySOAPSMDType              = $73737470 (* 'sstp' *); { "MyStructType"}
+	keySOAPStructureMetaData    = FourCharCode('/smd');
+	keySOAPSMDNamespace         = FourCharCode('ssns'); { "myNamespace"}
+	keySOAPSMDNamespaceURI      = FourCharCode('ssnu'); { "http://myUri.org/xsd"}
+	keySOAPSMDType              = FourCharCode('sstp'); { "MyStructType"}
 
 { 
  * Web Services Proxy support.  Available only on Mac OS X 10.2 or later.
@@ -266,10 +266,10 @@ const
  * being sent (not part of the direct object.)
  }
    { Automatically configure the proxy based on System Configuration }
-	kAEUseHTTPProxyAttr         = $78757072 (* 'xupr' *); { a typeBoolean.  Defaults to true.}
+	kAEUseHTTPProxyAttr         = FourCharCode('xupr'); { a typeBoolean.  Defaults to true.}
                                                           { manually specify the proxy host and port. }
-	kAEHTTPProxyPortAttr        = $78687470 (* 'xhtp' *); { a typeSInt32}
-	kAEHTTPProxyHostAttr        = $78687468 (* 'xhth' *); { a typeChar}
+	kAEHTTPProxyPortAttr        = FourCharCode('xhtp'); { a typeSInt32}
+	kAEHTTPProxyHostAttr        = FourCharCode('xhth'); { a typeChar}
 
 {
  * Web Services SOCKS support.  kAEUseSocksAttr is a boolean that
@@ -279,15 +279,15 @@ const
 	kAESocks4Protocol           = 4;
 	kAESocks5Protocol           = 5;
 
-	kAEUseSocksAttr             = $78736373 (* 'xscs' *); { a typeBoolean.  Defaults to true.}
+	kAEUseSocksAttr             = FourCharCode('xscs'); { a typeBoolean.  Defaults to true.}
                                                           { This attribute specifies a specific SOCKS protocol to be used }
-	kAESocksProxyAttr           = $78736F6B (* 'xsok' *); { a typeSInt32}
+	kAESocksProxyAttr           = FourCharCode('xsok'); { a typeSInt32}
                                                      { if version >= 4 }
-	kAESocksHostAttr            = $78736873 (* 'xshs' *); { a typeChar}
-	kAESocksPortAttr            = $78736870 (* 'xshp' *); { a typeSInt32}
-	kAESocksUserAttr            = $78736875 (* 'xshu' *); { a typeChar}
+	kAESocksHostAttr            = FourCharCode('xshs'); { a typeChar}
+	kAESocksPortAttr            = FourCharCode('xshp'); { a typeSInt32}
+	kAESocksUserAttr            = FourCharCode('xshu'); { a typeChar}
                                                      { if version >= 5 }
-	kAESocksPasswordAttr        = $78736877 (* 'xshw' *); { a typeChar}
+	kAESocksPasswordAttr        = FourCharCode('xshw'); { a typeChar}
 
 
 

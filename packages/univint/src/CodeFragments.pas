@@ -24,7 +24,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -32,12 +32,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CodeFragments;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -124,9 +124,9 @@ uses MacTypes,CFBundle,Files,Multiprocessing;
 
 
 const
-	kCFragResourceType			= $63667267 (* 'cfrg' *);
+	kCFragResourceType			= FourCharCode('cfrg');
 	kCFragResourceID			= 0;
-	kCFragLibraryFileType		= $73686C62 (* 'shlb' *);
+	kCFragLibraryFileType		= FourCharCode('shlb');
 	kCFragAllFileTypes			= $FFFFFFFF;
 
 
@@ -135,21 +135,21 @@ type
 
 const
 																{  Values for type CFragArchitecture. }
-	kPowerPCCFragArch			= $70777063 (* 'pwpc' *);
-	kMotorola68KCFragArch		= $6D36386B (* 'm68k' *);
+	kPowerPCCFragArch			= FourCharCode('pwpc');
+	kMotorola68KCFragArch		= FourCharCode('m68k');
 	kAnyCFragArch				= $3F3F3F3F;
 
 
 {$ifc TARGET_CPU_PPC}
-	kCompiledCFragArch			= $70777063 (* 'pwpc' *);
+	kCompiledCFragArch			= FourCharCode('pwpc');
 {$endc}
 
 {$ifc TARGET_CPU_68K}
-	kCompiledCFragArch			= $6D36386B (* 'm68k' *);
+	kCompiledCFragArch			= FourCharCode('m68k');
 {$endc}
 
 {$ifc TARGET_CPU_X86}
-	kCompiledCFragArch			= $6E6F6E65 (* 'none' *);
+	kCompiledCFragArch			= FourCharCode('none');
 {$endc}
 
 
@@ -609,8 +609,8 @@ type
 	CFragHFSLocatorPtr 					= ^CFragHFSLocator;
 
 const
-	kPowerPCArch				= $70777063 (* 'pwpc' *);
-	kMotorola68KArch			= $6D36386B (* 'm68k' *);
+	kPowerPCArch				= FourCharCode('pwpc');
+	kMotorola68KArch			= FourCharCode('m68k');
 	kAnyArchType				= $3F3F3F3F;
 	kNoLibName					= 0;
 	kNoConnectionID				= 0;
@@ -633,13 +633,13 @@ const
 	kFullLib					= 0;
 	kUpdateLib					= 1;
 	kWholeFork					= 0;
-	kCFMRsrcType				= $63667267 (* 'cfrg' *);
+	kCFMRsrcType				= FourCharCode('cfrg');
 	kCFMRsrcID					= 0;
-	kSHLBFileType				= $73686C62 (* 'shlb' *);
+	kSHLBFileType				= FourCharCode('shlb');
 	kUnresolvedSymbolAddress	= 0;
 
-	kPowerPC					= $70777063 (* 'pwpc' *);
-	kMotorola68K				= $6D36386B (* 'm68k' *);
+	kPowerPC					= FourCharCode('pwpc');
+	kMotorola68K				= FourCharCode('m68k');
 
 {$endc}  {OLDROUTINENAMES}
 

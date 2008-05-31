@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit GXTypes;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -955,7 +955,7 @@ type
 
 const
 	gxOriginalGraphicsFunction	= -1;
-	gxOriginalGraphicsIdentifier = $67726678 (* 'grfx' *);
+	gxOriginalGraphicsIdentifier = FourCharCode('grfx');
 
 
 type
@@ -968,8 +968,8 @@ type
 
 
 const
-	gxBitmapFileAliasTagType	= $6266696C (* 'bfil' *);
-	gxPICTFileAliasTagType		= $70696374 (* 'pict' *);
+	gxBitmapFileAliasTagType	= FourCharCode('bfil');
+	gxPICTFileAliasTagType		= FourCharCode('pict');
 	gxBitmapFileAliasImageValue	= 1;
 
 
@@ -1219,10 +1219,10 @@ type
 	gxFontFeature						= SInt32;
 
 const
-	gxResourceFontStorage		= $72737263 (* 'rsrc' *);
-	gxHandleFontStorage			= $686E646C (* 'hndl' *);
-	gxFileFontStorage			= $62617373 (* 'bass' *);
-	gxNfntFontStorage			= $6E666E74 (* 'nfnt' *);
+	gxResourceFontStorage		= FourCharCode('rsrc');
+	gxHandleFontStorage			= FourCharCode('hndl');
+	gxFileFontStorage			= FourCharCode('bass');
+	gxNfntFontStorage			= FourCharCode('nfnt');
 
 
 type
@@ -1845,7 +1845,7 @@ type
 
 
 const
-	gxFlatFontListItemTag		= $666C7374 (* 'flst' *);
+	gxFlatFontListItemTag		= FourCharCode('flst');
 
 
 type
@@ -1887,8 +1887,8 @@ const
 	gxOmitOverrideInkShift		= $02;
 	gxOmitOverrideTransformShift = $00;
 
-	gxPostScriptTag				= $706F7374 (* 'post' *);
-	gxPostControlTag			= $70736374 (* 'psct' *);
+	gxPostScriptTag				= FourCharCode('post');
+	gxPostControlTag			= FourCharCode('psct');
 
 	gxNoSave					= 1;							{  don't do save-restore around PS data  }
 	gxPSContinueNext			= 2;							{  next shape is continuation of this shape's PS -- only obeyed if gxNoSave is true  }
@@ -1902,7 +1902,7 @@ type
 
 
 const
-	gxDashSynonymTag			= $73647368 (* 'sdsh' *);
+	gxDashSynonymTag			= FourCharCode('sdsh');
 
 
 type
@@ -1914,7 +1914,7 @@ type
 
 
 const
-	gxLineCapSynonymTag			= $6C636170 (* 'lcap' *);
+	gxLineCapSynonymTag			= FourCharCode('lcap');
 
 	gxButtCap					= 0;
 	gxRoundCap					= 1;
@@ -1927,7 +1927,7 @@ type
 	gxLineCapSynonym					= SInt32;
 
 const
-	gxCubicSynonymTag			= $63756278 (* 'cubx' *);
+	gxCubicSynonymTag			= FourCharCode('cubx');
 
 	gxIgnoreFlag				= $0000;						{  Ignore this word, get next one  }
 	gxLineToFlag				= $0001;						{  Draw a gxLine to gxPoint following this flag  }
@@ -1948,7 +1948,7 @@ type
 	gxCubicSynonymFlags					= SInt16;
 
 const
-	gxPatternSynonymTag			= $7074726E (* 'ptrn' *);
+	gxPatternSynonymTag			= FourCharCode('ptrn');
 
 	gxHatch						= 0;
 	gxCrossHatch				= 1;
@@ -1966,7 +1966,7 @@ type
 
 
 const
-	gxURLTag					= $75726C74 (* 'urlt' *);
+	gxURLTag					= FourCharCode('urlt');
 
 {$ALIGN MAC68K}
 

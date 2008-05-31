@@ -16,7 +16,7 @@
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Endian;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -314,8 +314,8 @@ type
         types.
   }
 const
-	kCoreEndianResourceManagerDomain = $72737263 (* 'rsrc' *);
-	kCoreEndianAppleEventManagerDomain = $61657674 (* 'aevt' *);
+	kCoreEndianResourceManagerDomain = FourCharCode('rsrc');
+	kCoreEndianAppleEventManagerDomain = FourCharCode('aevt');
 
 
 {

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ImageCodec;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -193,7 +193,7 @@ const
 	codecConditionCodecChangedMask = $80000000;
 
 
-	codecInfoResourceType		= $63646369 (* 'cdci' *);						{  codec info resource type  }
+	codecInfoResourceType		= FourCharCode('cdci');						{  codec info resource type  }
 	codecInterfaceVersion		= 2;							{  high word returned in component GetVersion  }
 
 
@@ -530,34 +530,34 @@ type
 
 
 const
-	codecSuggestedBufferSentinel = $73656E74 (* 'sent' *);						{  codec public resource containing suggested data pattern to put past end of data buffer  }
+	codecSuggestedBufferSentinel = FourCharCode('sent');						{  codec public resource containing suggested data pattern to put past end of data buffer  }
 
 
 	{  name of parameters or effect -- placed in root container, required  }
-	kParameterTitleName			= $6E616D65 (* 'name' *);
+	kParameterTitleName			= FourCharCode('name');
 	kParameterTitleID			= 1;
 
 	{  codec sub-type of parameters or effect -- placed in root container, required  }
-	kParameterWhatName			= $77686174 (* 'what' *);
+	kParameterWhatName			= FourCharCode('what');
 	kParameterWhatID			= 1;
 
 	{  effect version -- placed in root container, optional, but recommended  }
-	kParameterVersionName		= $76657273 (* 'vers' *);
+	kParameterVersionName		= FourCharCode('vers');
 	kParameterVersionID			= 1;
 
 	{  is effect repeatable -- placed in root container, optional, default is TRUE }
-	kParameterRepeatableName	= $70657465 (* 'pete' *);
+	kParameterRepeatableName	= FourCharCode('pete');
 	kParameterRepeatableID		= 1;
 
 	kParameterRepeatableTrue	= 1;
 	kParameterRepeatableFalse	= 0;
 
 	{  substitution codec in case effect is missing -- placed in root container, recommended  }
-	kParameterAlternateCodecName = $73756273 (* 'subs' *);
+	kParameterAlternateCodecName = FourCharCode('subs');
 	kParameterAlternateCodecID	= 1;
 
 	{  maximum number of sources -- placed in root container, required  }
-	kParameterSourceCountName	= $73726373 (* 'srcs' *);
+	kParameterSourceCountName	= FourCharCode('srcs');
 	kParameterSourceCountID		= 1;
 
 	{  EFFECT CLASSES }
@@ -575,14 +575,14 @@ const
 	   Effects that fail to include a
 	   kEffectMajorClassType will be classified as kMiscMajorClass.
 	}
-	kEffectMajorClassType		= $636C7361 (* 'clsa' *);
+	kEffectMajorClassType		= FourCharCode('clsa');
 	kEffectMajorClassID			= 1;
 
-	kGeneratorMajorClass		= $67656E72 (* 'genr' *);						{  zero source effects }
-	kFilterMajorClass			= $66696C74 (* 'filt' *);						{  one source effects }
-	kTransitionMajorClass		= $7472616E (* 'tran' *);						{  multisource morph effects  }
-	kCompositorMajorClass		= $636F6D70 (* 'comp' *);						{  multisource layer effects }
-	kMiscMajorClass				= $6D697363 (* 'misc' *);						{  all other effects }
+	kGeneratorMajorClass		= FourCharCode('genr');						{  zero source effects }
+	kFilterMajorClass			= FourCharCode('filt');						{  one source effects }
+	kTransitionMajorClass		= FourCharCode('tran');						{  multisource morph effects  }
+	kCompositorMajorClass		= FourCharCode('comp');						{  multisource layer effects }
+	kMiscMajorClass				= FourCharCode('misc');						{  all other effects }
 
 	{
 	   The effect minor class defines the grouping of effects for the purposes
@@ -604,26 +604,26 @@ const
 	   Effects that fail to supply a kEffectMinorClassType will be 
 	   classified as kMiscMinorClass.
 	}
-	kEffectMinorClassType		= $636C7369 (* 'clsi' *);
+	kEffectMinorClassType		= FourCharCode('clsi');
 	kEffectMinorClassID			= 1;
-	kEffectMinorClassNameType	= $636C736E (* 'clsn' *);
+	kEffectMinorClassNameType	= FourCharCode('clsn');
 	kEffectMinorClassNameID		= 1;
 
-	kGeneratorMinorClass		= $67656E72 (* 'genr' *);						{  "Generators" }
-	kRenderMinorClass			= $72656E64 (* 'rend' *);						{  "Render" }
-	kFilterMinorClass			= $66696C74 (* 'filt' *);						{  "Filters" }
-	kArtisticMinorClass			= $61727473 (* 'arts' *);						{  "Artistic }
-	kBlurMinorClass				= $626C7572 (* 'blur' *);						{  "Blur" }
-	kSharpenMinorClass			= $73687270 (* 'shrp' *);						{  "Sharpen" }
-	kDistortMinorClass			= $64697374 (* 'dist' *);						{  "Distort" }
-	kNoiseMinorClass			= $6E6F6973 (* 'nois' *);						{  "Noise" }
-	kAdjustmentMinorClass		= $61647374 (* 'adst' *);						{  "Adjustments" }
-	kTransitionMinorClass		= $7472616E (* 'tran' *);						{  "Transitions" }
-	kWipeMinorClass				= $77697065 (* 'wipe' *);						{  "Wipes" }
-	k3DMinorClass				= $707A7265 (* 'pzre' *);						{  "3D Transitions" }
-	kCompositorMinorClass		= $636F6D70 (* 'comp' *);						{  "Compositors" }
-	kEffectsMinorClass			= $66786678 (* 'fxfx' *);						{  "Special Effects" }
-	kMiscMinorClass				= $6D697363 (* 'misc' *);						{  "Miscellaneous" }
+	kGeneratorMinorClass		= FourCharCode('genr');						{  "Generators" }
+	kRenderMinorClass			= FourCharCode('rend');						{  "Render" }
+	kFilterMinorClass			= FourCharCode('filt');						{  "Filters" }
+	kArtisticMinorClass			= FourCharCode('arts');						{  "Artistic }
+	kBlurMinorClass				= FourCharCode('blur');						{  "Blur" }
+	kSharpenMinorClass			= FourCharCode('shrp');						{  "Sharpen" }
+	kDistortMinorClass			= FourCharCode('dist');						{  "Distort" }
+	kNoiseMinorClass			= FourCharCode('nois');						{  "Noise" }
+	kAdjustmentMinorClass		= FourCharCode('adst');						{  "Adjustments" }
+	kTransitionMinorClass		= FourCharCode('tran');						{  "Transitions" }
+	kWipeMinorClass				= FourCharCode('wipe');						{  "Wipes" }
+	k3DMinorClass				= FourCharCode('pzre');						{  "3D Transitions" }
+	kCompositorMinorClass		= FourCharCode('comp');						{  "Compositors" }
+	kEffectsMinorClass			= FourCharCode('fxfx');						{  "Special Effects" }
+	kMiscMinorClass				= FourCharCode('misc');						{  "Miscellaneous" }
 
 	{
 	   Effects can define a number of "preset" values which will be presented to the user
@@ -634,19 +634,19 @@ const
 	    2) a preview picture for the preset, 86 x 64 pixels in size
 	    3) the ENTIRE set of parameter values needed to create a sample of this preset.
 	}
-	kEffectPresetType			= $70656666 (* 'peff' *);
-	kPresetNameType				= $706E616D (* 'pnam' *);
+	kEffectPresetType			= FourCharCode('peff');
+	kPresetNameType				= FourCharCode('pnam');
 	kPresetNameID				= 1;
-	kPresetPreviewPictureType	= $70706374 (* 'ppct' *);
+	kPresetPreviewPictureType	= FourCharCode('ppct');
 	kPresetPreviewPictureID		= 1;
-	kPresetSettingsType			= $70737374 (* 'psst' *);
+	kPresetSettingsType			= FourCharCode('psst');
 	kPresetSettingsID			= 1;
 
-	kParameterDependencyName	= $64656570 (* 'deep' *);
+	kParameterDependencyName	= FourCharCode('deep');
 	kParameterDependencyID		= 1;
 
-	kParameterListDependsUponColorProfiles = $70726F66 (* 'prof' *);
-	kParameterListDependsUponFonts = $666F6E74 (* 'font' *);
+	kParameterListDependsUponColorProfiles = FourCharCode('prof');
+	kParameterListDependsUponFonts = FourCharCode('font');
 
 
 type
@@ -662,7 +662,7 @@ type
 	}
 
 const
-	kParameterEnumList			= $656E756D (* 'enum' *);
+	kParameterEnumList			= FourCharCode('enum');
 
 
 type
@@ -681,9 +681,9 @@ type
 	{  atom type of parameter }
 
 const
-	kParameterAtomTypeAndID		= $74797065 (* 'type' *);
+	kParameterAtomTypeAndID		= FourCharCode('type');
 
-	kNoAtom						= $6E6F6E65 (* 'none' *);						{  atom type for no data got/set }
+	kNoAtom						= FourCharCode('none');						{  atom type for no data got/set }
 	kAtomNoFlags				= $00000000;
 	kAtomNotInterpolated		= $00000001;					{  atom can never be interpolated }
 	kAtomInterpolateIsOptional	= $00000002;					{  atom can be interpolated, but it is an advanced user operation }
@@ -702,16 +702,16 @@ type
 	{  data type of a parameter }
 
 const
-	kParameterDataType			= $64617461 (* 'data' *);
+	kParameterDataType			= FourCharCode('data');
 
 	kParameterTypeDataLong		= 2;							{  SInt16 value }
 	kParameterTypeDataFixed		= 3;							{  fixed point value }
 	kParameterTypeDataRGBValue	= 8;							{  RGBColor data }
 	kParameterTypeDataDouble	= 11;							{  IEEE 64 bit floating point value }
-	kParameterTypeDataText		= $74657874 (* 'text' *);						{  editable text item }
-	kParameterTypeDataEnum		= $656E756D (* 'enum' *);						{  enumerated lookup value }
-	kParameterTypeDataBitField	= $626F6F6C (* 'bool' *);						{  bit field value (something that holds boolean(s)) }
-	kParameterTypeDataImage		= $696D6167 (* 'imag' *);						{  reference to an image via Picture data }
+	kParameterTypeDataText		= FourCharCode('text');						{  editable text item }
+	kParameterTypeDataEnum		= FourCharCode('enum');						{  enumerated lookup value }
+	kParameterTypeDataBitField	= FourCharCode('bool');						{  bit field value (something that holds boolean(s)) }
+	kParameterTypeDataImage		= FourCharCode('imag');						{  reference to an image via Picture data }
 
 
 type
@@ -727,10 +727,10 @@ type
 	}
 
 const
-	kParameterAlternateDataType	= $616C7431 (* 'alt1' *);
-	kParameterTypeDataColorValue = $636D6C72 (* 'cmlr' *);						{  CMColor data (supported on machines with ColorSync) }
-	kParameterTypeDataCubic		= $63756269 (* 'cubi' *);						{  cubic bezier(s) (no built-in support) }
-	kParameterTypeDataNURB		= $6E757262 (* 'nurb' *);						{  nurb(s) (no built-in support) }
+	kParameterAlternateDataType	= FourCharCode('alt1');
+	kParameterTypeDataColorValue = FourCharCode('cmlr');						{  CMColor data (supported on machines with ColorSync) }
+	kParameterTypeDataCubic		= FourCharCode('cubi');						{  cubic bezier(s) (no built-in support) }
+	kParameterTypeDataNURB		= FourCharCode('nurb');						{  nurb(s) (no built-in support) }
 
 
 type
@@ -749,7 +749,7 @@ type
 	{  legal values for the parameter }
 
 const
-	kParameterDataRange			= $72616E67 (* 'rang' *);
+	kParameterDataRange			= FourCharCode('rang');
 
 	kNoMinimumLongFixed			= $7FFFFFFF;					{  ignore minimum/maxiumum values }
 	kNoMaximumLongFixed			= $80000000;
@@ -809,7 +809,7 @@ const
 	kParameterImageNoFlags		= 0;
 	kParameterImageIsPreset		= 1;
 
-	kStandardPresetGroup		= $70736574 (* 'pset' *);
+	kStandardPresetGroup		= FourCharCode('pset');
 
 
 type
@@ -824,24 +824,24 @@ type
 	{  UI behavior of a parameter }
 
 const
-	kParameterDataBehavior		= $6469746C (* 'ditl' *);
+	kParameterDataBehavior		= FourCharCode('ditl');
 
 																{  items edited via typing }
-	kParameterItemEditText		= $65646974 (* 'edit' *);						{  edit text box }
-	kParameterItemEditLong		= $6C6F6E67 (* 'long' *);						{  long number editing box }
-	kParameterItemEditFixed		= $66697864 (* 'fixd' *);						{  fixed point number editing box }
-	kParameterItemEditDouble	= $646F7562 (* 'doub' *);						{  double number editing box }
+	kParameterItemEditText		= FourCharCode('edit');						{  edit text box }
+	kParameterItemEditLong		= FourCharCode('long');						{  long number editing box }
+	kParameterItemEditFixed		= FourCharCode('fixd');						{  fixed point number editing box }
+	kParameterItemEditDouble	= FourCharCode('doub');						{  double number editing box }
 																{  items edited via control(s) }
-	kParameterItemPopUp			= $706F7075 (* 'popu' *);						{  pop up value for enum types }
-	kParameterItemRadioCluster	= $72616469 (* 'radi' *);						{  radio cluster for enum types }
-	kParameterItemCheckBox		= $63686578 (* 'chex' *);						{  check box for booleans }
-	kParameterItemControl		= $636E746C (* 'cntl' *);						{  item controlled via a standard control of some type }
+	kParameterItemPopUp			= FourCharCode('popu');						{  pop up value for enum types }
+	kParameterItemRadioCluster	= FourCharCode('radi');						{  radio cluster for enum types }
+	kParameterItemCheckBox		= FourCharCode('chex');						{  check box for booleans }
+	kParameterItemControl		= FourCharCode('cntl');						{  item controlled via a standard control of some type }
 																{  special user items }
-	kParameterItemLine			= $6C696E65 (* 'line' *);						{  line }
-	kParameterItemColorPicker	= $7069636B (* 'pick' *);						{  color swatch & picker }
-	kParameterItemGroupDivider	= $64697669 (* 'divi' *);						{  start of a new group of items }
-	kParameterItemStaticText	= $73746174 (* 'stat' *);						{  display "parameter name" as static text }
-	kParameterItemDragImage		= $696D6167 (* 'imag' *);						{  allow image display, along with drag and drop }
+	kParameterItemLine			= FourCharCode('line');						{  line }
+	kParameterItemColorPicker	= FourCharCode('pick');						{  color swatch & picker }
+	kParameterItemGroupDivider	= FourCharCode('divi');						{  start of a new group of items }
+	kParameterItemStaticText	= FourCharCode('stat');						{  display "parameter name" as static text }
+	kParameterItemDragImage		= FourCharCode('imag');						{  allow image display, along with drag and drop }
 																{  flags valid for lines and groups }
 	kGraphicsNoFlags			= $00000000;					{  no options for graphics }
 	kGraphicsFlagsGray			= $00000001;					{  draw lines with gray }
@@ -881,21 +881,21 @@ type
 	{  higher level purpose of a parameter or set of parameters }
 
 const
-	kParameterDataUsage			= $75736520 (* 'use ' *);
+	kParameterDataUsage			= FourCharCode('use ');
 
-	kParameterUsagePixels		= $7069786C (* 'pixl' *);
-	kParameterUsageRectangle	= $72656374 (* 'rect' *);
-	kParameterUsagePoint		= $78792020 (* 'xy  ' *);
-	kParameterUsage3DPoint		= $78797A20 (* 'xyz ' *);
-	kParameterUsageDegrees		= $64656772 (* 'degr' *);
-	kParameterUsageRadians		= $72616473 (* 'rads' *);
-	kParameterUsagePercent		= $70636E74 (* 'pcnt' *);
-	kParameterUsageSeconds		= $73656373 (* 'secs' *);
-	kParameterUsageMilliseconds	= $6D736563 (* 'msec' *);
-	kParameterUsageMicroseconds	= $C2B57365 (* 'µsec' *);
-	kParameterUsage3by3Matrix	= $33627933 (* '3by3' *);
-	kParameterUsageCircularDegrees = $64656763 (* 'degc' *);
-	kParameterUsageCircularRadians = $72616463 (* 'radc' *);
+	kParameterUsagePixels		= FourCharCode('pixl');
+	kParameterUsageRectangle	= FourCharCode('rect');
+	kParameterUsagePoint		= FourCharCode('xy  ');
+	kParameterUsage3DPoint		= FourCharCode('xyz ');
+	kParameterUsageDegrees		= FourCharCode('degr');
+	kParameterUsageRadians		= FourCharCode('rads');
+	kParameterUsagePercent		= FourCharCode('pcnt');
+	kParameterUsageSeconds		= FourCharCode('secs');
+	kParameterUsageMilliseconds	= FourCharCode('msec');
+	kParameterUsageMicroseconds	= FourCharCode('µsec');
+	kParameterUsage3by3Matrix	= FourCharCode('3by3');
+	kParameterUsageCircularDegrees = FourCharCode('degc');
+	kParameterUsageCircularRadians = FourCharCode('radc');
 
 
 type
@@ -907,15 +907,15 @@ type
 	{  default value(s) for a parameter }
 
 const
-	kParameterDataDefaultItem	= $64666C74 (* 'dflt' *);
+	kParameterDataDefaultItem	= FourCharCode('dflt');
 
 	{	 atoms that help to fill in data within the info window 	}
-	kParameterInfoLongName		= $C2A96E61 (* '©nam' *);
-	kParameterInfoCopyright		= $C2A96370 (* '©cpy' *);
-	kParameterInfoDescription	= $C2A9696E (* '©inf' *);
-	kParameterInfoWindowTitle	= $C2A9776E (* '©wnt' *);
-	kParameterInfoPicture		= $C2A97069 (* '©pix' *);
-	kParameterInfoManufacturer	= $C2A96D61 (* '©man' *);
+	kParameterInfoLongName		= FourCharCode('©nam');
+	kParameterInfoCopyright		= FourCharCode('©cpy');
+	kParameterInfoDescription	= FourCharCode('©inf');
+	kParameterInfoWindowTitle	= FourCharCode('©wnt');
+	kParameterInfoPicture		= FourCharCode('©pix');
+	kParameterInfoManufacturer	= FourCharCode('©man');
 	kParameterInfoIDs			= 1;
 
 	{	 flags for ImageCodecValidateParameters 	}
@@ -928,21 +928,21 @@ type
 	{  QTAtomTypes for atoms in image compressor settings containers }
 
 const
-	kImageCodecSettingsFieldCount = $6669656C (* 'fiel' *);						{  Number of fields (UInt8)  }
-	kImageCodecSettingsFieldOrdering = $66646F6D (* 'fdom' *);					{  Ordering of fields (UInt8) }
+	kImageCodecSettingsFieldCount = FourCharCode('fiel');						{  Number of fields (UInt8)  }
+	kImageCodecSettingsFieldOrdering = FourCharCode('fdom');					{  Ordering of fields (UInt8) }
 	kImageCodecSettingsFieldOrderingF1F2 = 1;
 	kImageCodecSettingsFieldOrderingF2F1 = 2;
 
 
 	{  Additional Image Description Extensions }
-	kColorInfoImageDescriptionExtension = $636F6C72 (* 'colr' *);				{  image description extension describing the color properties     }
-	kPixelAspectRatioImageDescriptionExtension = $70617370 (* 'pasp' *);		{  image description extension describing the pixel aspect ratio }
-	kCleanApertureImageDescriptionExtension = $636C6170 (* 'clap' *);			{  image description extension describing the pixel aspect ratio }
+	kColorInfoImageDescriptionExtension = FourCharCode('colr');				{  image description extension describing the color properties     }
+	kPixelAspectRatioImageDescriptionExtension = FourCharCode('pasp');		{  image description extension describing the pixel aspect ratio }
+	kCleanApertureImageDescriptionExtension = FourCharCode('clap');			{  image description extension describing the pixel aspect ratio }
 
 
 	{  Color Info Image Description Extension types }
-	kVideoColorInfoImageDescriptionExtensionType = $6E636C63 (* 'nclc' *);		{  For video color descriptions (defined below)     }
-	kICCProfileColorInfoImageDescriptionExtensionType = $70726F66 (* 'prof' *);	{  For ICC Profile color descriptions (not defined here) }
+	kVideoColorInfoImageDescriptionExtensionType = FourCharCode('nclc');		{  For video color descriptions (defined below)     }
+	kICCProfileColorInfoImageDescriptionExtensionType = FourCharCode('prof');	{  For ICC Profile color descriptions (not defined here) }
 
 
 	{  Video Color Info Image Description Extensions }
@@ -1656,10 +1656,10 @@ function ImageCodecScheduleFrame(ci: ComponentInstance; const (*var*) drp: Image
  }
 function ImageCodecCancelTrigger(ci: ComponentInstance): ComponentResult; external name '_ImageCodecCancelTrigger';
 const
-	kMotionJPEGTag				= $6D6A7067 (* 'mjpg' *);
-	kJPEGQuantizationTablesImageDescriptionExtension = $6D6A7174 (* 'mjqt' *);
-	kJPEGHuffmanTablesImageDescriptionExtension = $6D6A6874 (* 'mjht' *);
-	kFieldInfoImageDescriptionExtension = $6669656C (* 'fiel' *);				{  image description extension describing the field count and field orderings }
+	kMotionJPEGTag				= FourCharCode('mjpg');
+	kJPEGQuantizationTablesImageDescriptionExtension = FourCharCode('mjqt');
+	kJPEGHuffmanTablesImageDescriptionExtension = FourCharCode('mjht');
+	kFieldInfoImageDescriptionExtension = FourCharCode('fiel');				{  image description extension describing the field count and field orderings }
 
 	kFieldOrderUnknown			= 0;
 	kFieldsStoredF1F2DisplayedF1F2 = 1;
@@ -1733,15 +1733,15 @@ function QTPhotoDefineQuantizationTable(codec: ComponentInstance; componentNumbe
 { source identifier -- placed in root container of description, one or more required }
 
 const
-	kEffectSourceName			= $73726320 (* 'src ' *);
+	kEffectSourceName			= FourCharCode('src ');
 
 
 	{	 source type -- placed in the input map to identify the source kind 	}
-	kEffectDataSourceType		= $64747374 (* 'dtst' *);
+	kEffectDataSourceType		= FourCharCode('dtst');
 
 	{	  default effect types 	}
 	kEffectRawSource			= 0;							{  the source is raw image data }
-	kEffectGenericType			= $67656666 (* 'geff' *);						{  generic effect for combining others }
+	kEffectGenericType			= FourCharCode('geff');						{  generic effect for combining others }
 
 
 type
@@ -2029,23 +2029,23 @@ function ImageCodecEffectRenderSMPTEFrame(effect: ComponentInstance; destPixMap:
 { curve atom types and data structures }
 
 const
-	kCurvePathAtom				= $70617468 (* 'path' *);
-	kCurveEndAtom				= $7A65726F (* 'zero' *);
-	kCurveAntialiasControlAtom	= $616E7469 (* 'anti' *);
+	kCurvePathAtom				= FourCharCode('path');
+	kCurveEndAtom				= FourCharCode('zero');
+	kCurveAntialiasControlAtom	= FourCharCode('anti');
 	kCurveAntialiasOff			= 0;
 	kCurveAntialiasOn			= $FFFFFFFF;
-	kCurveFillTypeAtom			= $66696C6C (* 'fill' *);
-	kCurvePenThicknessAtom		= $70656E74 (* 'pent' *);
-	kCurveMiterLimitAtom		= $6D697472 (* 'mitr' *);
-	kCurveJoinAttributesAtom	= $6A6F696E (* 'join' *);
-	kCurveMinimumDepthAtom		= $6D696E64 (* 'mind' *);
+	kCurveFillTypeAtom			= FourCharCode('fill');
+	kCurvePenThicknessAtom		= FourCharCode('pent');
+	kCurveMiterLimitAtom		= FourCharCode('mitr');
+	kCurveJoinAttributesAtom	= FourCharCode('join');
+	kCurveMinimumDepthAtom		= FourCharCode('mind');
 	kCurveDepthAlwaysOffscreenMask = $80000000;
-	kCurveTransferModeAtom		= $78666572 (* 'xfer' *);
-	kCurveGradientAngleAtom		= $616E676C (* 'angl' *);
-	kCurveGradientRadiusAtom	= $72616469 (* 'radi' *);
-	kCurveGradientOffsetAtom	= $63656E74 (* 'cent' *);
+	kCurveTransferModeAtom		= FourCharCode('xfer');
+	kCurveGradientAngleAtom		= FourCharCode('angl');
+	kCurveGradientRadiusAtom	= FourCharCode('radi');
+	kCurveGradientOffsetAtom	= FourCharCode('cent');
 
-	kCurveARGBColorAtom			= $61726762 (* 'argb' *);
+	kCurveARGBColorAtom			= FourCharCode('argb');
 
 
 type
@@ -2059,7 +2059,7 @@ type
 
 
 const
-	kCurveGradientRecordAtom	= $67726164 (* 'grad' *);
+	kCurveGradientRecordAtom	= FourCharCode('grad');
 
 
 type
@@ -2072,7 +2072,7 @@ type
 	GradientColorPtr					= ^GradientColorRecord;
 
 const
-	kCurveGradientTypeAtom		= $67726474 (* 'grdt' *);
+	kCurveGradientTypeAtom		= FourCharCode('grdt');
 
 	{	 currently supported gradient types 	}
 	kLinearGradient				= 0;

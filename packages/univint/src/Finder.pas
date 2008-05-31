@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Finder;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -112,24 +112,24 @@ uses MacTypes;
 { Creator and type of clipping files }
 
 const
-	kClippingCreator			= $64726167 (* 'drag' *);
-	kClippingPictureType		= $636C7070 (* 'clpp' *);
-	kClippingTextType			= $636C7074 (* 'clpt' *);
-	kClippingSoundType			= $636C7073 (* 'clps' *);
-	kClippingUnknownType		= $636C7075 (* 'clpu' *);
+	kClippingCreator			= FourCharCode('drag');
+	kClippingPictureType		= FourCharCode('clpp');
+	kClippingTextType			= FourCharCode('clpt');
+	kClippingSoundType			= FourCharCode('clps');
+	kClippingUnknownType		= FourCharCode('clpu');
 
 
 	{	 Creator and type of Internet Location files 	}
-	kInternetLocationCreator	= $64726167 (* 'drag' *);
-	kInternetLocationHTTP		= $696C6874 (* 'ilht' *);
-	kInternetLocationFTP		= $696C6674 (* 'ilft' *);
-	kInternetLocationFile		= $696C6669 (* 'ilfi' *);
-	kInternetLocationMail		= $696C6D61 (* 'ilma' *);
-	kInternetLocationNNTP		= $696C6E77 (* 'ilnw' *);
-	kInternetLocationAFP		= $696C6166 (* 'ilaf' *);
-	kInternetLocationAppleTalk	= $696C6174 (* 'ilat' *);
-	kInternetLocationNSL		= $696C6E73 (* 'ilns' *);
-	kInternetLocationGeneric	= $696C6765 (* 'ilge' *);
+	kInternetLocationCreator	= FourCharCode('drag');
+	kInternetLocationHTTP		= FourCharCode('ilht');
+	kInternetLocationFTP		= FourCharCode('ilft');
+	kInternetLocationFile		= FourCharCode('ilfi');
+	kInternetLocationMail		= FourCharCode('ilma');
+	kInternetLocationNNTP		= FourCharCode('ilnw');
+	kInternetLocationAFP		= FourCharCode('ilaf');
+	kInternetLocationAppleTalk	= FourCharCode('ilat');
+	kInternetLocationNSL		= FourCharCode('ilns');
+	kInternetLocationGeneric	= FourCharCode('ilge');
 
 
 	kCustomIconResource			= -16455;						{  Custom icon family resource ID  }
@@ -139,7 +139,7 @@ const
 	{	 and set kExtendedFlagHasCustomBadge of the FXInfo.fdXFlags or DXInfo.frXFlags field, 	}
 	{	 and add a resource of type kCustomBadgeResourceType and ID kCustomBadgeResourceID to 	}
 	{	 the file or to the "Icon/n" file for a folder 	}
-	kCustomBadgeResourceType	= $62616467 (* 'badg' *);
+	kCustomBadgeResourceType	= FourCharCode('badg');
 	kCustomBadgeResourceID		= -16455;
 	kCustomBadgeResourceVersion	= 0;
 
@@ -173,7 +173,7 @@ type
 		}
 
 const
-	kRoutingResourceType		= $726F7574 (* 'rout' *);
+	kRoutingResourceType		= FourCharCode('rout');
 	kRoutingResourceID			= 0;
 
 
@@ -193,34 +193,34 @@ type
 	{	 Types for special container aliases 	}
 
 const
-	kContainerFolderAliasType	= $66647270 (* 'fdrp' *);						{  type for folder aliases  }
-	kContainerTrashAliasType	= $74727368 (* 'trsh' *);						{  type for trash folder aliases  }
-	kContainerHardDiskAliasType	= $6864736B (* 'hdsk' *);						{  type for hard disk aliases  }
-	kContainerFloppyAliasType	= $666C7079 (* 'flpy' *);						{  type for floppy aliases  }
-	kContainerServerAliasType	= $73727672 (* 'srvr' *);						{  type for server aliases  }
-	kApplicationAliasType		= $61647270 (* 'adrp' *);						{  type for application aliases  }
-	kContainerAliasType			= $64726F70 (* 'drop' *);						{  type for all other containers  }
-	kDesktopPrinterAliasType	= $64747061 (* 'dtpa' *);						{  type for Desktop Printer alias  }
-	kContainerCDROMAliasType	= $63646472 (* 'cddr' *);						{  type for CD-ROM alias  }
-	kApplicationCPAliasType		= $61636470 (* 'acdp' *);						{  type for application control panel alias  }
-	kApplicationDAAliasType		= $61646470 (* 'addp' *);						{  type for application DA alias  }
-	kPackageAliasType			= $66706B61 (* 'fpka' *);						{  type for plain package alias  }
-	kAppPackageAliasType		= $66617061 (* 'fapa' *);						{  type for application package alias  }
+	kContainerFolderAliasType	= FourCharCode('fdrp');						{  type for folder aliases  }
+	kContainerTrashAliasType	= FourCharCode('trsh');						{  type for trash folder aliases  }
+	kContainerHardDiskAliasType	= FourCharCode('hdsk');						{  type for hard disk aliases  }
+	kContainerFloppyAliasType	= FourCharCode('flpy');						{  type for floppy aliases  }
+	kContainerServerAliasType	= FourCharCode('srvr');						{  type for server aliases  }
+	kApplicationAliasType		= FourCharCode('adrp');						{  type for application aliases  }
+	kContainerAliasType			= FourCharCode('drop');						{  type for all other containers  }
+	kDesktopPrinterAliasType	= FourCharCode('dtpa');						{  type for Desktop Printer alias  }
+	kContainerCDROMAliasType	= FourCharCode('cddr');						{  type for CD-ROM alias  }
+	kApplicationCPAliasType		= FourCharCode('acdp');						{  type for application control panel alias  }
+	kApplicationDAAliasType		= FourCharCode('addp');						{  type for application DA alias  }
+	kPackageAliasType			= FourCharCode('fpka');						{  type for plain package alias  }
+	kAppPackageAliasType		= FourCharCode('fapa');						{  type for application package alias  }
 
 	{	 Types for Special folder aliases 	}
-	kSystemFolderAliasType		= $66617379 (* 'fasy' *);
-	kAppleMenuFolderAliasType	= $6661616D (* 'faam' *);
-	kStartupFolderAliasType		= $66617374 (* 'fast' *);
-	kPrintMonitorDocsFolderAliasType = $6661706E (* 'fapn' *);
-	kPreferencesFolderAliasType	= $66617066 (* 'fapf' *);
-	kControlPanelFolderAliasType = $66616374 (* 'fact' *);
-	kExtensionFolderAliasType	= $66616578 (* 'faex' *);
+	kSystemFolderAliasType		= FourCharCode('fasy');
+	kAppleMenuFolderAliasType	= FourCharCode('faam');
+	kStartupFolderAliasType		= FourCharCode('fast');
+	kPrintMonitorDocsFolderAliasType = FourCharCode('fapn');
+	kPreferencesFolderAliasType	= FourCharCode('fapf');
+	kControlPanelFolderAliasType = FourCharCode('fact');
+	kExtensionFolderAliasType	= FourCharCode('faex');
 
 	{	 Types for AppleShare folder aliases 	}
-	kExportedFolderAliasType	= $66616574 (* 'faet' *);
-	kDropFolderAliasType		= $66616472 (* 'fadr' *);
-	kSharedFolderAliasType		= $66617368 (* 'fash' *);
-	kMountedFolderAliasType		= $66616D6E (* 'famn' *);
+	kExportedFolderAliasType	= FourCharCode('faet');
+	kDropFolderAliasType		= FourCharCode('fadr');
+	kSharedFolderAliasType		= FourCharCode('fash');
+	kMountedFolderAliasType		= FourCharCode('famn');
 
 	{	 Finder flags (finderFlags, fdFlags and frFlags) 	}
 	{	 Any flag reserved or not specified should be set to 0. 	}
@@ -276,8 +276,8 @@ const
 	{	 is fully created. -- If you provide a series of 'BNDL' icons for your creator 	}
 	{	 and some of these filetypes, you can achieve limited icon animation while 	}
 	{	 the file creation progresses. 	}
-	kFirstMagicBusyFiletype		= $627A7920 (* 'bzy ' *);
-	kLastMagicBusyFiletype		= $627A793F (* 'bzy?' *);
+	kFirstMagicBusyFiletype		= FourCharCode('bzy ');
+	kLastMagicBusyFiletype		= FourCharCode('bzy?');
 
 	{	 Use this date as a file's or folder's creation date to indicate that it is 	}
 	{	 temporarily busy (while it is being downloaded or installed, for example). 	}

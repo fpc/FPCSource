@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit TextServices;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -108,7 +108,7 @@ uses MacTypes,Quickdraw,ConditionalMacros,CFBase,CarbonEventsCore,ATSTypes,CFArr
 {$ALIGN MAC68K}
 
 const
-	kTextService = $74737663 (* 'tsvc' *); { component type for the component description }
+	kTextService = FourCharCode('tsvc'); { component type for the component description }
 
 const
 	kTSMVersion = $0150; { Version 1.5 of the Text Services Manager }
@@ -151,7 +151,7 @@ const
    * input sessions by TextEdit (the text engine.)  See Technote TE27 -
    * Inline Input for TextEdit with TSMTE.
    }
-	kTSMTEDocumentInterfaceType = $746D5445 (* 'tmTE' *); { TSM Document type for TSMTE document (see kTSMTEInterfaceType - TSMTE.h) }
+	kTSMTEDocumentInterfaceType = FourCharCode('tmTE'); { TSM Document type for TSMTE document (see kTSMTEInterfaceType - TSMTE.h) }
 
   {
    * Unicode-savvy TSMDocument.  TSM will pass thru all Unicode text
@@ -159,7 +159,7 @@ const
    * input sources is available to the user, such as Unicode keyboard
    * layouts.
    }
-	kUnicodeDocumentInterfaceType = $75646F63 (* 'udoc' *); { TSM Document type for Unicode-savvy application }
+	kUnicodeDocumentInterfaceType = FourCharCode('udoc'); { TSM Document type for Unicode-savvy application }
                                         {    Older names, to be deprecated}
 	kUnicodeDocument = kUnicodeDocumentInterfaceType; { TSM Document type for Unicode-savvy application }
 
@@ -197,7 +197,7 @@ const
    * with several scripts by adopting the Input Mode protocol. 
    * Keyboard input methods are always visible in the System UI.
    }
-	kKeyboardInputMethodClass = $696E706D (* 'inpm' *);
+	kKeyboardInputMethodClass = FourCharCode('inpm');
 
   {
    * Text service class for Ink (Handwriting) input methods.  Behavior
@@ -220,7 +220,7 @@ const
    * instead.  Mac OS X only provides System UI for Apple's Ink input
    * method.
    }
-	kInkInputMethodClass = $696E6B20 (* 'ink ' *);
+	kInkInputMethodClass = FourCharCode('ink ');
 
   {
    * Text service class for Character Palette input methods.  Behavior
@@ -243,7 +243,7 @@ const
    * Use the kComponentBundleInvisibleInSystemUIKey plist key to make
    * Character Palette input methods invisible to the System UI.
    }
-	kCharacterPaletteInputMethodClass = $63706C74 (* 'cplt' *);
+	kCharacterPaletteInputMethodClass = FourCharCode('cplt');
 
   {
    * Text Service class for Speech input methods.  Behavior is
@@ -252,7 +252,7 @@ const
    * Similar to Character palette class.  System UI for these has not
    * yet been determined.
    }
-	kSpeechInputMethodClass = $766F6963 (* 'voic' *);
+	kSpeechInputMethodClass = FourCharCode('voic');
 
   {
    * Text Service class for Optical Character Recognition input
@@ -261,7 +261,7 @@ const
    * Similar to Character palette class.  System UI for these has not
    * yet been determined.
    }
-	kOCRInputMethodClass = $6F637220 (* 'ocr ' *);
+	kOCRInputMethodClass = FourCharCode('ocr ');
 
 { New opaque definitions for types }
 type
@@ -348,7 +348,7 @@ const
    * existence of the property. Property available in TSM 1.5 from
    * MacOSX 10.2 and later
    }
-	kTSMDocumentSupportGlyphInfoPropertyTag = $64706769 (* 'dpgi' *); {  property value is arbitrary}
+	kTSMDocumentSupportGlyphInfoPropertyTag = FourCharCode('dpgi'); {  property value is arbitrary}
 
   {
    * Property is value-independent.  The presence of this property tag
@@ -360,7 +360,7 @@ const
    * Simply test for existence of the property. Property available in
    * TSM 2.2 and later
    }
-	kTSMDocumentUseFloatingWindowPropertyTag = $7573776D (* 'uswm' *); {    use bottom-line input (floating TSM) window for text input}
+	kTSMDocumentUseFloatingWindowPropertyTag = FourCharCode('uswm'); {    use bottom-line input (floating TSM) window for text input}
 
   {
    * Property is value-independent.  The presence of this property tag
@@ -372,7 +372,7 @@ const
    * value of 0, but this is really arbitrary.  Simply test for
    * existence of the property. Property available in TSM 2.2 and later
    }
-	kTSMDocumentUnicodeInputWindowPropertyTag = $64707562 (* 'dpub' *); {    Unicode support in bottom line input window}
+	kTSMDocumentUnicodeInputWindowPropertyTag = FourCharCode('dpub'); {    Unicode support in bottom line input window}
 
   {
    * Property is value-independent.  The presence of this property tag
@@ -386,7 +386,7 @@ const
    * Simply test for existence of the property. Property available in
    * TSM 2.2 and later
    }
-	kTSMDocumentSupportDocumentAccessPropertyTag = $64617079 (* 'dapy' *); {    support TSM Document Access protocol}
+	kTSMDocumentSupportDocumentAccessPropertyTag = FourCharCode('dapy'); {    support TSM Document Access protocol}
                                         {    Older names, to be deprecated}
 	kTSMDocumentPropertySupportGlyphInfo = kTSMDocumentSupportGlyphInfoPropertyTag;
 	kTSMDocumentPropertyUnicodeInputWindow = kTSMDocumentUnicodeInputWindowPropertyTag; {    }
@@ -400,7 +400,7 @@ const
    * has been created. The refcon value is a long, the same as that
    * passed to NewTSMDocument. Property available in TSM 2.2 and later
    }
-	kTSMDocumentRefconPropertyTag = $72656663 (* 'refc' *); {    refcon passed to TSMDocument (UInt32)}
+	kTSMDocumentRefconPropertyTag = FourCharCode('refc'); {    refcon passed to TSMDocument (UInt32)}
 
   {
    * Property is value-dependent.  The property value indicates which
@@ -419,7 +419,7 @@ const
    * CFString... in either case the caller is responsible for releasing
    * its reference. Property available in TSM 2.2 and later
    }
-	kTSMDocumentInputModePropertyTag = $696D696D (* 'imim' *); {    Input mode property for input methods (CFStringRef - see Input Modes below)}
+	kTSMDocumentInputModePropertyTag = FourCharCode('imim'); {    Input mode property for input methods (CFStringRef - see Input Modes below)}
 
   {
    * Property is value-dependent.  The property value indicates the
@@ -435,7 +435,7 @@ const
    * NSWindow's (int)level method. Property available in TSM 2.3 and
    * later
    }
-	kTSMDocumentWindowLevelPropertyTag = $74776C70 (* 'twlp' *); {    document window level (CGWindowLevel)}
+	kTSMDocumentWindowLevelPropertyTag = FourCharCode('twlp'); {    document window level (CGWindowLevel)}
 
 
 {
@@ -1194,7 +1194,7 @@ const
    * mechanism is being superceded by kTextServiceInputModePropertyTag.
    * Property available in TSM 1.5 on MacOSX 10.0 and later
    }
-	kTextServiceJaTypingMethodPropertyTag = $6A747970 (* 'jtyp' *); { Japanese input method typing property}
+	kTextServiceJaTypingMethodPropertyTag = FourCharCode('jtyp'); { Japanese input method typing property}
 
   {
    * The InputMode property is a CFStringRef that uniquely identifies
@@ -1235,8 +1235,8 @@ const
                                         {    NOTE:  This property is being deprecated.  Use kTextServiceInputModePropertyTag instead. }
 	kIMJaTypingMethodProperty = kTextServiceJaTypingMethodPropertyTag; { Typing method property for Japanese input methods}
                                         { Typing method property values for kTextServiceJaTypingMethodPropertyTag }
-	kIMJaTypingMethodRoman = $726F6D61 (* 'roma' *); { Roman typing}
-	kIMJaTypingMethodKana = $6B616E61 (* 'kana' *); { Kana typing}
+	kIMJaTypingMethodRoman = FourCharCode('roma'); { Roman typing}
+	kIMJaTypingMethodKana = FourCharCode('kana'); { Kana typing}
 
 type
 	TextServicePropertyValue = SInt32;
@@ -1658,7 +1658,7 @@ const
 	kInputMethodService = kKeyboardInputMethodClass;
 
 const
-	kUnicodeTextService = $75747376 (* 'utsv' *); { Component type for Unicode Text Service }
+	kUnicodeTextService = FourCharCode('utsv'); { Component type for Unicode Text Service }
 
 {$endc}  { OLDROUTINENAMES }
 

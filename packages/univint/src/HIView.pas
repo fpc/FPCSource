@@ -49,7 +49,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -57,12 +57,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit HIView;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -960,7 +960,7 @@ const
 {
    * The signature of all HIToolbox views.
    }
-	kHIViewKindSignatureApple = $6170706C (* 'appl' *);
+	kHIViewKindSignatureApple = FourCharCode('appl');
 
 {
  *  HIViewSetVisible()
@@ -2238,8 +2238,8 @@ function HIViewGetSubviewHit( inView: HIViewRef; const (*var*) inPoint: HIPoint;
 type
 	HIViewTrackingAreaRef = ^SInt32; { an opaque 32-bit type }
 const
-	kEventParamHIViewTrackingArea = $63747261 (* 'ctra' *); { typeHIViewTrackingAreaRef}
-	typeHIViewTrackingAreaRef = $63747261 (* 'ctra' *);
+	kEventParamHIViewTrackingArea = FourCharCode('ctra'); { typeHIViewTrackingAreaRef}
+	typeHIViewTrackingAreaRef = FourCharCode('ctra');
 
 {
  *  kEventClassControl / kEventControlTrackingAreaEntered
@@ -4029,7 +4029,7 @@ function HIViewGetEventTarget( inView: HIViewRef ): EventTargetRef; external nam
 {$endc}
 { Control Kind}
 const
-	kControlKindHIGrowBoxView = $67726F77 (* 'grow' *);
+	kControlKindHIGrowBoxView = FourCharCode('grow');
 
 { Currently there is no direct creation API for the grow box, so you must use  }
 { HIObjectCreate if you wish to create one directly. Normally, a window will   }
@@ -4119,7 +4119,7 @@ function HIGrowBoxViewIsTransparent( inGrowBoxView: HIViewRef ): Boolean; extern
 {$endc}
 { Control Kind}
 const
-	kControlKindHIScrollView = $7363726C (* 'scrl' *);
+	kControlKindHIScrollView = FourCharCode('scrl');
 
 {
     kEventClassScrollable quick reference:
@@ -4131,13 +4131,13 @@ const
     kEventScrollableScrollTo        = 10
 }
 const
-	kEventClassScrollable = $7363726C (* 'scrl' *);
+	kEventClassScrollable = FourCharCode('scrl');
 
 const
-	kEventParamImageSize = $696D737A (* 'imsz' *); { typeHISize}
-	kEventParamViewSize = $7677737A (* 'vwsz' *); { typeHISize}
-	kEventParamLineSize = $6C6E737A (* 'lnsz' *); { typeHISize}
-	kEventParamOrigin = $6F72676E (* 'orgn' *); { typeHIPoint}
+	kEventParamImageSize = FourCharCode('imsz'); { typeHISize}
+	kEventParamViewSize = FourCharCode('vwsz'); { typeHISize}
+	kEventParamLineSize = FourCharCode('lnsz'); { typeHISize}
+	kEventParamOrigin = FourCharCode('orgn'); { typeHIPoint}
 
 {
  *  kEventClassScrollable / kEventScrollableGetInfo
@@ -4502,7 +4502,7 @@ function HIScrollViewCanNavigate( inView: HIViewRef; inAction: HIScrollViewActio
 {$endc}
 { ControlKind}
 const
-	kControlKindHIImageView = $696D6167 (* 'imag' *);
+	kControlKindHIImageView = FourCharCode('imag');
 
 {
  *  HIImageViewCreate()
@@ -4537,7 +4537,7 @@ function HIImageViewCreate( inImage: CGImageRef { can be NULL }; var outControl:
 
 
 const
-	kHIImageViewImageTag = $696D6167 (* 'imag' *); { CGImageRef (THIS TAG IS GOING AWAY!!! USE THE APIS BELOW!)}
+	kHIImageViewImageTag = FourCharCode('imag'); { CGImageRef (THIS TAG IS GOING AWAY!!! USE THE APIS BELOW!)}
 
 {
  *  HIImageViewSetOpaque()
@@ -4802,10 +4802,10 @@ function HIImageViewCopyImage( inView: HIViewRef ): CGImageRef; external name '_
     kEventComboBoxListItemSelected  = 1
 }
 const
-	kEventClassHIComboBox = $68696362 (* 'hicb' *);
+	kEventClassHIComboBox = FourCharCode('hicb');
 
 const
-	kEventParamComboBoxListSelectedItemIndex = $63626C69 (* 'cbli' *);
+	kEventParamComboBoxListSelectedItemIndex = FourCharCode('cbli');
 
 {
  *  kEventClassHIComboBox / kEventComboBoxListItemSelected
@@ -4883,7 +4883,7 @@ const
 
 { ControlKind}
 const
-	kControlKindHIComboBox = $63626278 (* 'cbbx' *);
+	kControlKindHIComboBox = FourCharCode('cbbx');
 
 { ComboBox Part codes}
 const
@@ -4917,25 +4917,25 @@ const
    * will be required to release it; if you set it the toolbox makes a
    * copy of it and you are free to release your reference.
    }
-	kHIComboBoxListTag = $63626C73 (* 'cbls' *); { CFArrayRef; bumps the refCount on get/retains on set}
+	kHIComboBoxListTag = FourCharCode('cbls'); { CFArrayRef; bumps the refCount on get/retains on set}
 
   {
    * The width of the ComboBox list. This can be customized. This
    * disables the autosize attribute.
    }
-	kHIComboBoxListPixelWidthTag = $63626C77 (* 'cblw' *); { UInt32 }
+	kHIComboBoxListPixelWidthTag = FourCharCode('cblw'); { UInt32 }
 
   {
    * The height of the ComboBox list. This can be customized. This
    * disables the autosize attribute.
    }
-	kHIComboBoxListPixelHeightTag = $63626C68 (* 'cblh' *); { UInt32}
+	kHIComboBoxListPixelHeightTag = FourCharCode('cblh'); { UInt32}
 
   {
    * The number of visible items in the list. This can be customized.
    * This disables the autosize attribute.
    }
-	kHIComboBoxNumVisibleItemsTag = $63626E69 (* 'cbni' *); { UInt32}
+	kHIComboBoxNumVisibleItemsTag = FourCharCode('cbni'); { UInt32}
 
 {
  *  HIComboBoxCreate()
@@ -5275,7 +5275,7 @@ function HIComboBoxSetListVisible( inComboBox: HIViewRef; inVisible: Boolean ): 
 {$endc}
 { ControlKind}
 const
-	kControlKindHISearchField = $73726664 (* 'srfd' *);
+	kControlKindHISearchField = FourCharCode('srfd');
 
 { HISearchField part codes}
 const
@@ -5323,7 +5323,7 @@ const
 
 { Event Classes}
 const
-	kEventClassSearchField = $73726664 (* 'srfd' *);
+	kEventClassSearchField = FourCharCode('srfd');
 
 {
  *  kEventClassSearchField / kEventSearchFieldCancelClicked
@@ -5662,14 +5662,14 @@ function HISearchFieldCopyDescriptiveText( inSearchField: HIViewRef; var outDesc
     kEventTextDidChange             = 3
 }
 const
-	kEventClassTextField = $74786664 (* 'txfd' *);
+	kEventClassTextField = FourCharCode('txfd');
 
 const
-	kEventParamTextSelection = $7478736C (* 'txsl' *); { typeCFRange}
-	kEventParamCandidateText = $74737478 (* 'tstx' *); { typeCFStringRef}
-	kEventParamReplacementText = $74727478 (* 'trtx' *); { typeCFStringRef}
-	kEventParamUnconfirmedRange = $74756E72 (* 'tunr' *); { typeCFRange}
-	kEventParamUnconfirmedText = $7478756E (* 'txun' *); { typeCFStringRef}
+	kEventParamTextSelection = FourCharCode('txsl'); { typeCFRange}
+	kEventParamCandidateText = FourCharCode('tstx'); { typeCFStringRef}
+	kEventParamReplacementText = FourCharCode('trtx'); { typeCFStringRef}
+	kEventParamUnconfirmedRange = FourCharCode('tunr'); { typeCFRange}
+	kEventParamUnconfirmedText = FourCharCode('txun'); { typeCFStringRef}
 
 {
  *  kEventClassTextField / kEventTextAccepted
@@ -5880,8 +5880,8 @@ const
 {$endc}
 { Control Kinds (only used in Mac OS X 10.4 and later)}
 const
-	kControlKindHIMenuView = $6D656E75 (* 'menu' *);
-	kControlKindHIStandardMenuView = $736D6E75 (* 'smnu' *);
+	kControlKindHIMenuView = FourCharCode('menu');
+	kControlKindHIStandardMenuView = FourCharCode('smnu');
 
 {
     The kEventHIObjectInitialize event for HIMenuView and HIStandardMenuView is expected to contain
@@ -6008,7 +6008,7 @@ function HIMenuGetContentView( inMenu: MenuRef; inMenuType: ThemeMenuType; var o
 {$endc}
 { Control Kind}
 const
-	kHISegmentedViewKind = $73676D74 (* 'sgmt' *);
+	kHISegmentedViewKind = FourCharCode('sgmt');
 
 {
  *  HISegmentedViewCreate()
@@ -6782,7 +6782,7 @@ function HISegmentedViewCopySegmentImage( inSegmentedView: HIViewRef; inSegmentI
 {  Clock view events                                                           }
 {==============================================================================}
 const
-	kEventClassClockView = $636C6F63 (* 'cloc' *);
+	kEventClassClockView = FourCharCode('cloc');
 
 {
  *  kEventClassClockView / kEventClockDateOrTimeChanged

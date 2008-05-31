@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit AppleEvents;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -119,36 +119,36 @@ uses MacTypes,MixedMode,AEDataModel,AEInteraction, CFArray, CFBase, CFRunLoop, C
 
 const
 																{  Keywords for Apple event parameters  }
-	keyDirectObject				= $2D2D2D2D (* '----' *);
-	keyErrorNumber				= $6572726E (* 'errn' *);
-	keyErrorString				= $65727273 (* 'errs' *);
-	keyProcessSerialNumber		= $70736E20 (* 'psn ' *);						{  Keywords for special handlers  }
-	keyPreDispatch				= $70686163 (* 'phac' *);						{  preHandler accessor call  }
-	keySelectProc				= $73656C68 (* 'selh' *);						{  more selector call  }
+	keyDirectObject				= FourCharCode('----');
+	keyErrorNumber				= FourCharCode('errn');
+	keyErrorString				= FourCharCode('errs');
+	keyProcessSerialNumber		= FourCharCode('psn ');						{  Keywords for special handlers  }
+	keyPreDispatch				= FourCharCode('phac');						{  preHandler accessor call  }
+	keySelectProc				= FourCharCode('selh');						{  more selector call  }
 																{  Keyword for recording  }
-	keyAERecorderCount			= $72656372 (* 'recr' *);						{  available only in vers 1.0.1 and greater  }
+	keyAERecorderCount			= FourCharCode('recr');						{  available only in vers 1.0.1 and greater  }
 																{  Keyword for version information  }
-	keyAEVersion				= $76657273 (* 'vers' *);						{  available only in vers 1.0.1 and greater  }
+	keyAEVersion				= FourCharCode('vers');						{  available only in vers 1.0.1 and greater  }
 
 	{	 Event Class 	}
-	kCoreEventClass				= $61657674 (* 'aevt' *);
+	kCoreEventClass				= FourCharCode('aevt');
 
 	{	 Event IDÕs 	}
-	kAEOpenApplication			= $6F617070 (* 'oapp' *);
-	kAEOpenDocuments			= $6F646F63 (* 'odoc' *);
-	kAEPrintDocuments			= $70646F63 (* 'pdoc' *);
-	kAEQuitApplication			= $71756974 (* 'quit' *);
-	kAEAnswer					= $616E7372 (* 'ansr' *);
-	kAEApplicationDied			= $6F626974 (* 'obit' *);
-	kAEShowPreferences			= $70726566 (* 'pref' *);						{  sent by Mac OS X when the user chooses the Preferences item  }
-	kAEAutosaveNow              = $61736176 (* 'asav' *);                       { sent by Mac OS X when it is advisable to autosave all the user's documents with uncommitted changes. }
+	kAEOpenApplication			= FourCharCode('oapp');
+	kAEOpenDocuments			= FourCharCode('odoc');
+	kAEPrintDocuments			= FourCharCode('pdoc');
+	kAEQuitApplication			= FourCharCode('quit');
+	kAEAnswer					= FourCharCode('ansr');
+	kAEApplicationDied			= FourCharCode('obit');
+	kAEShowPreferences			= FourCharCode('pref');						{  sent by Mac OS X when the user chooses the Preferences item  }
+	kAEAutosaveNow              = FourCharCode('asav');                       { sent by Mac OS X when it is advisable to autosave all the user's documents with uncommitted changes. }
 
 	{	 Constants for recording 	}
-	kAEStartRecording			= $72656361 (* 'reca' *);						{  available only in vers 1.0.1 and greater  }
-	kAEStopRecording			= $72656363 (* 'recc' *);						{  available only in vers 1.0.1 and greater  }
-	kAENotifyStartRecording		= $72656331 (* 'rec1' *);						{  available only in vers 1.0.1 and greater  }
-	kAENotifyStopRecording		= $72656330 (* 'rec0' *);						{  available only in vers 1.0.1 and greater  }
-	kAENotifyRecording			= $72656372 (* 'recr' *);						{  available only in vers 1.0.1 and greater  }
+	kAEStartRecording			= FourCharCode('reca');						{  available only in vers 1.0.1 and greater  }
+	kAEStopRecording			= FourCharCode('recc');						{  available only in vers 1.0.1 and greater  }
+	kAENotifyStartRecording		= FourCharCode('rec1');						{  available only in vers 1.0.1 and greater  }
+	kAENotifyStopRecording		= FourCharCode('rec0');						{  available only in vers 1.0.1 and greater  }
+	kAENotifyRecording			= FourCharCode('recr');						{  available only in vers 1.0.1 and greater  }
 
 
 	{	

@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Scrap;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -131,14 +131,14 @@ type
     flavor type constants! Apple triumphs again!
 }
 const
-	kScrapFlavorTypePicture = $50494354 (* 'PICT' *); { contents of a PicHandle}
-	kScrapFlavorTypeText = $54455854 (* 'TEXT' *); { stream of characters}
-	kScrapFlavorTypeTextStyle = $7374796C (* 'styl' *); { see TEGetStyleScrapHandle}
-	kScrapFlavorTypeMovie = $6D6F6F76 (* 'moov' *); { reference to a movie}
-	kScrapFlavorTypeSound = $736E6420 (* 'snd ' *); { see SndRecord and SndPlay}
-	kScrapFlavorTypeUnicode = $75747874 (* 'utxt' *); { stream of UTF16 characters (internal representation)}
-	kScrapFlavorTypeUTF16External = $75743136 (* 'ut16' *); { stream of UTF16 characters (external representation)}
-	kScrapFlavorTypeUnicodeStyle = $7573746C (* 'ustl' *); { ATSUI defines; Textension uses}
+	kScrapFlavorTypePicture = FourCharCode('PICT'); { contents of a PicHandle}
+	kScrapFlavorTypeText = FourCharCode('TEXT'); { stream of characters}
+	kScrapFlavorTypeTextStyle = FourCharCode('styl'); { see TEGetStyleScrapHandle}
+	kScrapFlavorTypeMovie = FourCharCode('moov'); { reference to a movie}
+	kScrapFlavorTypeSound = FourCharCode('snd '); { see SndRecord and SndPlay}
+	kScrapFlavorTypeUnicode = FourCharCode('utxt'); { stream of UTF16 characters (internal representation)}
+	kScrapFlavorTypeUTF16External = FourCharCode('ut16'); { stream of UTF16 characters (external representation)}
+	kScrapFlavorTypeUnicodeStyle = FourCharCode('ustl'); { ATSUI defines; Textension uses}
 
 {
     If you are a Carbon client and you need to run on Mac OS 8,
@@ -245,7 +245,7 @@ const
 }
 
 const
-	kScrapReservedFlavorType = $73726674 (* 'srft' *);
+	kScrapReservedFlavorType = FourCharCode('srft');
 
 {
     We've added scrap flavor flags ala Drag Manager.

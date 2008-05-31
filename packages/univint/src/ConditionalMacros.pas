@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ConditionalMacros;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -188,7 +188,7 @@ interface
     This conditional does the proper byte swapping to assue that a four character code (e.g. 'TEXT')
     is compiled down to the correct value on all compilers.
 
-        $61626364 (* 'abcd' *)  - Convert a four-char-code to the correct 32-bit value
+        FourCharCode('abcd')  - Convert a four-char-code to the correct 32-bit value
 
 
     TYPE_Å

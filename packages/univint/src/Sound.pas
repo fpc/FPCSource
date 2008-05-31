@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Sound;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -158,7 +158,7 @@ const twelfthRootTwo = 1.05946309435;
 
 
 const
-	soundListRsrc				= $736E6420 (* 'snd ' *);						{ Resource type used by Sound Manager }
+	soundListRsrc				= FourCharCode('snd ');						{ Resource type used by Sound Manager }
 
 	kSimpleBeepID				= 1;							{ reserved resource ID for Simple Beep }
 
@@ -313,186 +313,186 @@ const
 	initCompMask				= $FF00;						{ mask for compression IDs }
 
 	{	Get&Set Sound Information Selectors	}
-	siActiveChannels			= $63686163 (* 'chac' *);						{ active channels }
-	siActiveLevels				= $6C6D6163 (* 'lmac' *);						{ active meter levels }
-	siAGCOnOff					= $61676320 (* 'agc ' *);						{ automatic gain control state }
-	siAsync						= $6173796E (* 'asyn' *);						{ asynchronous capability }
-	siAVDisplayBehavior			= $61766462 (* 'avdb' *);
-	siChannelAvailable			= $63686176 (* 'chav' *);						{ number of channels available }
-	siCompressionAvailable		= $636D6176 (* 'cmav' *);						{ compression types available }
-	siCompressionChannels		= $63706374 (* 'cpct' *);						{ compressor's number of channels }
-	siCompressionFactor			= $636D6661 (* 'cmfa' *);						{ current compression factor }
-	siCompressionHeader			= $636D6864 (* 'cmhd' *);						{ return compression header }
-	siCompressionNames			= $636E616D (* 'cnam' *);						{ compression type names available }
-	siCompressionParams			= $65766177 (* 'evaw' *);						{ compression parameters }
-	siCompressionSampleRate		= $63707274 (* 'cprt' *);						{ compressor's sample rate }
-	siCompressionType			= $636F6D70 (* 'comp' *);						{ current compression type }
-	siContinuous				= $636F6E74 (* 'cont' *);						{ continous recording }
-	siDecompressionParams		= $77617665 (* 'wave' *);						{ decompression parameters }
-	siDeviceBufferInfo			= $6462696E (* 'dbin' *);						{ size of interrupt buffer }
-	siDeviceConnected			= $64636F6E (* 'dcon' *);						{ input device connection status }
-	siDeviceIcon				= $69636F6E (* 'icon' *);						{ input device icon }
-	siDeviceName				= $6E616D65 (* 'name' *);						{ input device name }
-	siEQSpectrumBands			= $65717362 (* 'eqsb' *);						{  number of spectrum bands }
-	siEQSpectrumLevels			= $65716C76 (* 'eqlv' *);						{  gets spectum meter levels }
-	siEQSpectrumOnOff			= $65716C6F (* 'eqlo' *);						{  turn on/off spectum meter levels }
-	siEQSpectrumResolution		= $65717273 (* 'eqrs' *);						{  set the resolution of the FFT, 0 = low res (<=16 bands), 1 = high res (16-64 bands) }
-	siEQToneControlGain			= $65717467 (* 'eqtg' *);						{  set the bass and treble gain }
-	siEQToneControlOnOff		= $65717463 (* 'eqtc' *);						{  turn on equalizer attenuation }
-	siHardwareBalance			= $6862616C (* 'hbal' *);
-	siHardwareBalanceSteps		= $68626C73 (* 'hbls' *);
-	siHardwareBass				= $68626173 (* 'hbas' *);
-	siHardwareBassSteps			= $68627374 (* 'hbst' *);
-	siHardwareBusy				= $68776273 (* 'hwbs' *);						{ sound hardware is in use }
-	siHardwareFormat			= $6877666D (* 'hwfm' *);						{ get hardware format }
-	siHardwareMute				= $686D7574 (* 'hmut' *);						{ mute state of all hardware }
-	siHardwareMuteNoPrefs		= $686D6E70 (* 'hmnp' *);						{ mute state of all hardware, but don't store in prefs  }
-	siHardwareTreble			= $68747262 (* 'htrb' *);
-	siHardwareTrebleSteps		= $68777473 (* 'hwts' *);
-	siHardwareVolume			= $68766F6C (* 'hvol' *);						{ volume level of all hardware }
-	siHardwareVolumeSteps		= $68737470 (* 'hstp' *);						{ number of volume steps for hardware }
-	siHeadphoneMute				= $706D7574 (* 'pmut' *);						{ mute state of headphones }
-	siHeadphoneVolume			= $70766F6C (* 'pvol' *);						{ volume level of headphones }
-	siHeadphoneVolumeSteps		= $68647374 (* 'hdst' *);						{ number of volume steps for headphones }
-	siInputAvailable			= $696E6176 (* 'inav' *);						{ input sources available }
-	siInputGain					= $6761696E (* 'gain' *);						{ input gain }
-	siInputSource				= $736F7572 (* 'sour' *);						{ input source selector }
-	siInputSourceNames			= $736E616D (* 'snam' *);						{ input source names }
-	siLevelMeterOnOff			= $6C6D6574 (* 'lmet' *);						{ level meter state }
-	siModemGain					= $6D676169 (* 'mgai' *);						{ modem input gain }
-	siMonitorAvailable			= $6D6E6176 (* 'mnav' *);
-	siMonitorSource				= $6D6F6E73 (* 'mons' *);
-	siNumberChannels			= $6368616E (* 'chan' *);						{ current number of channels }
-	siOptionsDialog				= $6F707464 (* 'optd' *);						{ display options dialog }
-	siOSTypeInputSource			= $696E7074 (* 'inpt' *);						{ input source by OSType }
-	siOSTypeInputAvailable		= $696E6176 (* 'inav' *);						{ list of available input source OSTypes }
-	siOutputDeviceName			= $6F6E616D (* 'onam' *);						{ output device name }
-	siPlayThruOnOff				= $706C7468 (* 'plth' *);						{ playthrough state }
-	siPostMixerSoundComponent	= $70736D78 (* 'psmx' *);						{ install post-mixer effect }
-	siPreMixerSoundComponent	= $70726D78 (* 'prmx' *);						{ install pre-mixer effect }
-	siQuality					= $7175616C (* 'qual' *);						{ quality setting }
-	siRateMultiplier			= $726D756C (* 'rmul' *);						{ throttle rate setting }
-	siRecordingQuality			= $7175616C (* 'qual' *);						{ recording quality }
-	siSampleRate				= $73726174 (* 'srat' *);						{ current sample rate }
-	siSampleRateAvailable		= $73726176 (* 'srav' *);						{ sample rates available }
-	siSampleSize				= $7373697A (* 'ssiz' *);						{ current sample size }
-	siSampleSizeAvailable		= $73736176 (* 'ssav' *);						{ sample sizes available }
-	siSetupCDAudio				= $73756364 (* 'sucd' *);						{ setup sound hardware for CD audio }
-	siSetupModemAudio			= $73756D64 (* 'sumd' *);						{ setup sound hardware for modem audio }
-	siSlopeAndIntercept			= $666C6170 (* 'flap' *);						{ floating point variables for conversion }
-	siSoundClock				= $73636C6B (* 'sclk' *);
-	siUseThisSoundClock			= $73636C63 (* 'sclc' *);						{ sdev uses this to tell the mixer to use his sound clock }
-	siSpeakerMute				= $736D7574 (* 'smut' *);						{ mute state of all built-in speaker }
-	siSpeakerVolume				= $73766F6C (* 'svol' *);						{ volume level of built-in speaker }
-	siSSpCPULoadLimit			= $33646C6C (* '3dll' *);
-	siSSpLocalization			= $33646966 (* '3dif' *);
-	siSSpSpeakerSetup			= $33647374 (* '3dst' *);
-	siStereoInputGain			= $73676169 (* 'sgai' *);						{ stereo input gain }
-	siSubwooferMute				= $626D7574 (* 'bmut' *);						{ mute state of sub-woofer }
-	siTerminalType				= $74747970 (* 'ttyp' *);						{  usb terminal type  }
-	siTwosComplementOnOff		= $74776F73 (* 'twos' *);						{ two's complement state }
-	siVendorProduct				= $7670726F (* 'vpro' *);						{  vendor and product ID  }
-	siVolume					= $766F6C75 (* 'volu' *);						{ volume level of source }
-	siVoxRecordInfo				= $766F7872 (* 'voxr' *);						{ VOX record parameters }
-	siVoxStopInfo				= $766F7873 (* 'voxs' *);						{ VOX stop parameters }
-	siWideStereo				= $77696465 (* 'wide' *);						{ wide stereo setting }
-	siSupportedExtendedFlags	= $6578666C (* 'exfl' *);						{ which flags are supported in Extended sound data structures }
-	siRateConverterRollOffSlope	= $72636462 (* 'rcdb' *);						{ the roll-off slope for the rate converter's filter, in whole dB as a long this value is a long whose range is from 20 (worst quality/fastest performance) to 90 (best quality/slowest performance) }
-	siOutputLatency				= $6F6C7465 (* 'olte' *);						{ latency of sound output component }
+	siActiveChannels			= FourCharCode('chac');						{ active channels }
+	siActiveLevels				= FourCharCode('lmac');						{ active meter levels }
+	siAGCOnOff					= FourCharCode('agc ');						{ automatic gain control state }
+	siAsync						= FourCharCode('asyn');						{ asynchronous capability }
+	siAVDisplayBehavior			= FourCharCode('avdb');
+	siChannelAvailable			= FourCharCode('chav');						{ number of channels available }
+	siCompressionAvailable		= FourCharCode('cmav');						{ compression types available }
+	siCompressionChannels		= FourCharCode('cpct');						{ compressor's number of channels }
+	siCompressionFactor			= FourCharCode('cmfa');						{ current compression factor }
+	siCompressionHeader			= FourCharCode('cmhd');						{ return compression header }
+	siCompressionNames			= FourCharCode('cnam');						{ compression type names available }
+	siCompressionParams			= FourCharCode('evaw');						{ compression parameters }
+	siCompressionSampleRate		= FourCharCode('cprt');						{ compressor's sample rate }
+	siCompressionType			= FourCharCode('comp');						{ current compression type }
+	siContinuous				= FourCharCode('cont');						{ continous recording }
+	siDecompressionParams		= FourCharCode('wave');						{ decompression parameters }
+	siDeviceBufferInfo			= FourCharCode('dbin');						{ size of interrupt buffer }
+	siDeviceConnected			= FourCharCode('dcon');						{ input device connection status }
+	siDeviceIcon				= FourCharCode('icon');						{ input device icon }
+	siDeviceName				= FourCharCode('name');						{ input device name }
+	siEQSpectrumBands			= FourCharCode('eqsb');						{  number of spectrum bands }
+	siEQSpectrumLevels			= FourCharCode('eqlv');						{  gets spectum meter levels }
+	siEQSpectrumOnOff			= FourCharCode('eqlo');						{  turn on/off spectum meter levels }
+	siEQSpectrumResolution		= FourCharCode('eqrs');						{  set the resolution of the FFT, 0 = low res (<=16 bands), 1 = high res (16-64 bands) }
+	siEQToneControlGain			= FourCharCode('eqtg');						{  set the bass and treble gain }
+	siEQToneControlOnOff		= FourCharCode('eqtc');						{  turn on equalizer attenuation }
+	siHardwareBalance			= FourCharCode('hbal');
+	siHardwareBalanceSteps		= FourCharCode('hbls');
+	siHardwareBass				= FourCharCode('hbas');
+	siHardwareBassSteps			= FourCharCode('hbst');
+	siHardwareBusy				= FourCharCode('hwbs');						{ sound hardware is in use }
+	siHardwareFormat			= FourCharCode('hwfm');						{ get hardware format }
+	siHardwareMute				= FourCharCode('hmut');						{ mute state of all hardware }
+	siHardwareMuteNoPrefs		= FourCharCode('hmnp');						{ mute state of all hardware, but don't store in prefs  }
+	siHardwareTreble			= FourCharCode('htrb');
+	siHardwareTrebleSteps		= FourCharCode('hwts');
+	siHardwareVolume			= FourCharCode('hvol');						{ volume level of all hardware }
+	siHardwareVolumeSteps		= FourCharCode('hstp');						{ number of volume steps for hardware }
+	siHeadphoneMute				= FourCharCode('pmut');						{ mute state of headphones }
+	siHeadphoneVolume			= FourCharCode('pvol');						{ volume level of headphones }
+	siHeadphoneVolumeSteps		= FourCharCode('hdst');						{ number of volume steps for headphones }
+	siInputAvailable			= FourCharCode('inav');						{ input sources available }
+	siInputGain					= FourCharCode('gain');						{ input gain }
+	siInputSource				= FourCharCode('sour');						{ input source selector }
+	siInputSourceNames			= FourCharCode('snam');						{ input source names }
+	siLevelMeterOnOff			= FourCharCode('lmet');						{ level meter state }
+	siModemGain					= FourCharCode('mgai');						{ modem input gain }
+	siMonitorAvailable			= FourCharCode('mnav');
+	siMonitorSource				= FourCharCode('mons');
+	siNumberChannels			= FourCharCode('chan');						{ current number of channels }
+	siOptionsDialog				= FourCharCode('optd');						{ display options dialog }
+	siOSTypeInputSource			= FourCharCode('inpt');						{ input source by OSType }
+	siOSTypeInputAvailable		= FourCharCode('inav');						{ list of available input source OSTypes }
+	siOutputDeviceName			= FourCharCode('onam');						{ output device name }
+	siPlayThruOnOff				= FourCharCode('plth');						{ playthrough state }
+	siPostMixerSoundComponent	= FourCharCode('psmx');						{ install post-mixer effect }
+	siPreMixerSoundComponent	= FourCharCode('prmx');						{ install pre-mixer effect }
+	siQuality					= FourCharCode('qual');						{ quality setting }
+	siRateMultiplier			= FourCharCode('rmul');						{ throttle rate setting }
+	siRecordingQuality			= FourCharCode('qual');						{ recording quality }
+	siSampleRate				= FourCharCode('srat');						{ current sample rate }
+	siSampleRateAvailable		= FourCharCode('srav');						{ sample rates available }
+	siSampleSize				= FourCharCode('ssiz');						{ current sample size }
+	siSampleSizeAvailable		= FourCharCode('ssav');						{ sample sizes available }
+	siSetupCDAudio				= FourCharCode('sucd');						{ setup sound hardware for CD audio }
+	siSetupModemAudio			= FourCharCode('sumd');						{ setup sound hardware for modem audio }
+	siSlopeAndIntercept			= FourCharCode('flap');						{ floating point variables for conversion }
+	siSoundClock				= FourCharCode('sclk');
+	siUseThisSoundClock			= FourCharCode('sclc');						{ sdev uses this to tell the mixer to use his sound clock }
+	siSpeakerMute				= FourCharCode('smut');						{ mute state of all built-in speaker }
+	siSpeakerVolume				= FourCharCode('svol');						{ volume level of built-in speaker }
+	siSSpCPULoadLimit			= FourCharCode('3dll');
+	siSSpLocalization			= FourCharCode('3dif');
+	siSSpSpeakerSetup			= FourCharCode('3dst');
+	siStereoInputGain			= FourCharCode('sgai');						{ stereo input gain }
+	siSubwooferMute				= FourCharCode('bmut');						{ mute state of sub-woofer }
+	siTerminalType				= FourCharCode('ttyp');						{  usb terminal type  }
+	siTwosComplementOnOff		= FourCharCode('twos');						{ two's complement state }
+	siVendorProduct				= FourCharCode('vpro');						{  vendor and product ID  }
+	siVolume					= FourCharCode('volu');						{ volume level of source }
+	siVoxRecordInfo				= FourCharCode('voxr');						{ VOX record parameters }
+	siVoxStopInfo				= FourCharCode('voxs');						{ VOX stop parameters }
+	siWideStereo				= FourCharCode('wide');						{ wide stereo setting }
+	siSupportedExtendedFlags	= FourCharCode('exfl');						{ which flags are supported in Extended sound data structures }
+	siRateConverterRollOffSlope	= FourCharCode('rcdb');						{ the roll-off slope for the rate converter's filter, in whole dB as a long this value is a long whose range is from 20 (worst quality/fastest performance) to 90 (best quality/slowest performance) }
+	siOutputLatency				= FourCharCode('olte');						{ latency of sound output component }
 
-	siCloseDriver				= $636C6F73 (* 'clos' *);						{ reserved for internal use only }
-	siInitializeDriver			= $696E6974 (* 'init' *);						{ reserved for internal use only }
-	siPauseRecording			= $70617573 (* 'paus' *);						{ reserved for internal use only }
-	siUserInterruptProc			= $75736572 (* 'user' *);						{ reserved for internal use only }
+	siCloseDriver				= FourCharCode('clos');						{ reserved for internal use only }
+	siInitializeDriver			= FourCharCode('init');						{ reserved for internal use only }
+	siPauseRecording			= FourCharCode('paus');						{ reserved for internal use only }
+	siUserInterruptProc			= FourCharCode('user');						{ reserved for internal use only }
 
 	{  input source Types }
 	kInvalidSource				= $FFFFFFFF;					{ this source may be returned from GetInfo if no other source is the monitored source }
-	kNoSource					= $6E6F6E65 (* 'none' *);						{ no source selection }
-	kCDSource					= $63642020 (* 'cd  ' *);						{ internal CD player input }
-	kExtMicSource				= $656D6963 (* 'emic' *);						{ external mic input }
-	kSoundInSource				= $73696E6A (* 'sinj' *);						{ sound input jack }
-	kRCAInSource				= $69726361 (* 'irca' *);						{ RCA jack input }
-	kTVFMTunerSource			= $7476666D (* 'tvfm' *);
-	kDAVInSource				= $69646176 (* 'idav' *);						{ DAV analog input }
-	kIntMicSource				= $696D6963 (* 'imic' *);						{ internal mic input }
-	kMediaBaySource				= $6D626179 (* 'mbay' *);						{ media bay input }
-	kModemSource				= $6D6F646D (* 'modm' *);						{ modem input (internal modem on desktops, PCI input on PowerBooks) }
-	kPCCardSource				= $70636D20 (* 'pcm ' *);						{ PC Card pwm input }
-	kZoomVideoSource			= $7A767063 (* 'zvpc' *);						{ zoom video input }
-	kDVDSource					= $64766461 (* 'dvda' *);						{  DVD audio input }
-	kMicrophoneArray			= $6D696361 (* 'mica' *);						{  microphone array }
+	kNoSource					= FourCharCode('none');						{ no source selection }
+	kCDSource					= FourCharCode('cd  ');						{ internal CD player input }
+	kExtMicSource				= FourCharCode('emic');						{ external mic input }
+	kSoundInSource				= FourCharCode('sinj');						{ sound input jack }
+	kRCAInSource				= FourCharCode('irca');						{ RCA jack input }
+	kTVFMTunerSource			= FourCharCode('tvfm');
+	kDAVInSource				= FourCharCode('idav');						{ DAV analog input }
+	kIntMicSource				= FourCharCode('imic');						{ internal mic input }
+	kMediaBaySource				= FourCharCode('mbay');						{ media bay input }
+	kModemSource				= FourCharCode('modm');						{ modem input (internal modem on desktops, PCI input on PowerBooks) }
+	kPCCardSource				= FourCharCode('pcm ');						{ PC Card pwm input }
+	kZoomVideoSource			= FourCharCode('zvpc');						{ zoom video input }
+	kDVDSource					= FourCharCode('dvda');						{  DVD audio input }
+	kMicrophoneArray			= FourCharCode('mica');						{  microphone array }
 
 	{ Sound Component Types and Subtypes }
-	kNoSoundComponentType		= $2A2A2A2A (* '****' *);
-	kSoundComponentType			= $73696674 (* 'sift' *);						{ component type }
-	kSoundComponentPPCType		= $6E696674 (* 'nift' *);						{ component type for PowerPC code }
-	kRate8SubType				= $72617462 (* 'ratb' *);						{ 8-bit rate converter }
-	kRate16SubType				= $72617477 (* 'ratw' *);						{ 16-bit rate converter }
-	kConverterSubType			= $636F6E76 (* 'conv' *);						{ sample format converter }
-	kSndSourceSubType			= $736F7572 (* 'sour' *);						{ generic source component }
-	kMixerType					= $6D697872 (* 'mixr' *);
-	kMixer8SubType				= $6D697862 (* 'mixb' *);						{ 8-bit mixer }
-	kMixer16SubType				= $6D697877 (* 'mixw' *);						{ 16-bit mixer }
-	kSoundInputDeviceType		= $73696E70 (* 'sinp' *);						{ sound input component }
-	kWaveInSubType				= $77617669 (* 'wavi' *);						{ Windows waveIn }
-	kWaveInSnifferSubType		= $7769736E (* 'wisn' *);						{ Windows waveIn sniffer }
-	kSoundOutputDeviceType		= $73646576 (* 'sdev' *);						{ sound output component }
-	kClassicSubType				= $636C6173 (* 'clas' *);						{ classic hardware, i.e. Mac Plus }
-	kASCSubType					= $61736320 (* 'asc ' *);						{ Apple Sound Chip device }
-	kDSPSubType					= $64737020 (* 'dsp ' *);						{ DSP device }
-	kAwacsSubType				= $61776163 (* 'awac' *);						{ Another of Will's Audio Chips device }
-	kGCAwacsSubType				= $61776763 (* 'awgc' *);						{ Awacs audio with Grand Central DMA }
-	kSingerSubType				= $73696E67 (* 'sing' *);						{ Singer (via Whitney) based sound }
-	kSinger2SubType				= $736E6732 (* 'sng2' *);						{ Singer 2 (via Whitney) for Acme }
-	kWhitSubType				= $77686974 (* 'whit' *);						{ Whit sound component for PrimeTime 3 }
-	kSoundBlasterSubType		= $73626C73 (* 'sbls' *);						{ Sound Blaster for CHRP }
-	kWaveOutSubType				= $7761766F (* 'wavo' *);						{ Windows waveOut }
-	kWaveOutSnifferSubType		= $776F736E (* 'wosn' *);						{ Windows waveOut sniffer }
-	kDirectSoundSubType			= $64736E64 (* 'dsnd' *);						{ Windows DirectSound }
-	kDirectSoundSnifferSubType	= $6473736E (* 'dssn' *);						{ Windows DirectSound sniffer }
-	kUNIXsdevSubType			= $756E3178 (* 'un1x' *);						{ UNIX base sdev }
-	kUSBSubType					= $75736220 (* 'usb ' *);						{ USB device }
-	kBlueBoxSubType				= $62736E64 (* 'bsnd' *);						{ Blue Box sound component }
-	kSoundCompressor			= $73636F6D (* 'scom' *);
-	kSoundDecompressor			= $73646563 (* 'sdec' *);
-	kAudioComponentType			= $6164696F (* 'adio' *);						{ Audio components and sub-types }
-	kAwacsPhoneSubType			= $6870686E (* 'hphn' *);
-	kAudioVisionSpeakerSubType	= $74656C63 (* 'telc' *);
-	kAudioVisionHeadphoneSubType = $74656C68 (* 'telh' *);
-	kPhilipsFaderSubType		= $74766176 (* 'tvav' *);
-	kSGSToneSubType				= $73677330 (* 'sgs0' *);
-	kSoundEffectsType			= $736E6678 (* 'snfx' *);						{ sound effects type }
-	kEqualizerSubType			= $6571616C (* 'eqal' *);						{ frequency equalizer }
-	kSSpLocalizationSubType		= $736E6433 (* 'snd3' *);
+	kNoSoundComponentType		= FourCharCode('****');
+	kSoundComponentType			= FourCharCode('sift');						{ component type }
+	kSoundComponentPPCType		= FourCharCode('nift');						{ component type for PowerPC code }
+	kRate8SubType				= FourCharCode('ratb');						{ 8-bit rate converter }
+	kRate16SubType				= FourCharCode('ratw');						{ 16-bit rate converter }
+	kConverterSubType			= FourCharCode('conv');						{ sample format converter }
+	kSndSourceSubType			= FourCharCode('sour');						{ generic source component }
+	kMixerType					= FourCharCode('mixr');
+	kMixer8SubType				= FourCharCode('mixb');						{ 8-bit mixer }
+	kMixer16SubType				= FourCharCode('mixw');						{ 16-bit mixer }
+	kSoundInputDeviceType		= FourCharCode('sinp');						{ sound input component }
+	kWaveInSubType				= FourCharCode('wavi');						{ Windows waveIn }
+	kWaveInSnifferSubType		= FourCharCode('wisn');						{ Windows waveIn sniffer }
+	kSoundOutputDeviceType		= FourCharCode('sdev');						{ sound output component }
+	kClassicSubType				= FourCharCode('clas');						{ classic hardware, i.e. Mac Plus }
+	kASCSubType					= FourCharCode('asc ');						{ Apple Sound Chip device }
+	kDSPSubType					= FourCharCode('dsp ');						{ DSP device }
+	kAwacsSubType				= FourCharCode('awac');						{ Another of Will's Audio Chips device }
+	kGCAwacsSubType				= FourCharCode('awgc');						{ Awacs audio with Grand Central DMA }
+	kSingerSubType				= FourCharCode('sing');						{ Singer (via Whitney) based sound }
+	kSinger2SubType				= FourCharCode('sng2');						{ Singer 2 (via Whitney) for Acme }
+	kWhitSubType				= FourCharCode('whit');						{ Whit sound component for PrimeTime 3 }
+	kSoundBlasterSubType		= FourCharCode('sbls');						{ Sound Blaster for CHRP }
+	kWaveOutSubType				= FourCharCode('wavo');						{ Windows waveOut }
+	kWaveOutSnifferSubType		= FourCharCode('wosn');						{ Windows waveOut sniffer }
+	kDirectSoundSubType			= FourCharCode('dsnd');						{ Windows DirectSound }
+	kDirectSoundSnifferSubType	= FourCharCode('dssn');						{ Windows DirectSound sniffer }
+	kUNIXsdevSubType			= FourCharCode('un1x');						{ UNIX base sdev }
+	kUSBSubType					= FourCharCode('usb ');						{ USB device }
+	kBlueBoxSubType				= FourCharCode('bsnd');						{ Blue Box sound component }
+	kSoundCompressor			= FourCharCode('scom');
+	kSoundDecompressor			= FourCharCode('sdec');
+	kAudioComponentType			= FourCharCode('adio');						{ Audio components and sub-types }
+	kAwacsPhoneSubType			= FourCharCode('hphn');
+	kAudioVisionSpeakerSubType	= FourCharCode('telc');
+	kAudioVisionHeadphoneSubType = FourCharCode('telh');
+	kPhilipsFaderSubType		= FourCharCode('tvav');
+	kSGSToneSubType				= FourCharCode('sgs0');
+	kSoundEffectsType			= FourCharCode('snfx');						{ sound effects type }
+	kEqualizerSubType			= FourCharCode('eqal');						{ frequency equalizer }
+	kSSpLocalizationSubType		= FourCharCode('snd3');
 
 	{ Format Types }
-	kSoundNotCompressed			= $4E4F4E45 (* 'NONE' *);						{ sound is not compressed }
-	k8BitOffsetBinaryFormat		= $72617720 (* 'raw ' *);						{ 8-bit offset binary }
-	k16BitBigEndianFormat		= $74776F73 (* 'twos' *);						{ 16-bit big endian }
-	k16BitLittleEndianFormat	= $736F7774 (* 'sowt' *);						{ 16-bit little endian }
-	kFloat32Format				= $666C3332 (* 'fl32' *);						{ 32-bit floating point }
-	kFloat64Format				= $666C3634 (* 'fl64' *);						{ 64-bit floating point }
-	k24BitFormat				= $696E3234 (* 'in24' *);						{ 24-bit SInt16 }
-	k32BitFormat				= $696E3332 (* 'in32' *);						{ 32-bit SInt16 }
-	k32BitLittleEndianFormat	= $32336E69 (* '23ni' *);						{ 32-bit little endian SInt16  }
-	kMACE3Compression			= $4D414333 (* 'MAC3' *);						{ MACE 3:1 }
-	kMACE6Compression			= $4D414336 (* 'MAC6' *);						{ MACE 6:1 }
-	kCDXA4Compression			= $63647834 (* 'cdx4' *);						{ CD/XA 4:1 }
-	kCDXA2Compression			= $63647832 (* 'cdx2' *);						{ CD/XA 2:1 }
-	kIMACompression				= $696D6134 (* 'ima4' *);						{ IMA 4:1 }
-	kULawCompression			= $756C6177 (* 'ulaw' *);						{ µLaw 2:1 }
-	kALawCompression			= $616C6177 (* 'alaw' *);						{ aLaw 2:1 }
+	kSoundNotCompressed			= FourCharCode('NONE');						{ sound is not compressed }
+	k8BitOffsetBinaryFormat		= FourCharCode('raw ');						{ 8-bit offset binary }
+	k16BitBigEndianFormat		= FourCharCode('twos');						{ 16-bit big endian }
+	k16BitLittleEndianFormat	= FourCharCode('sowt');						{ 16-bit little endian }
+	kFloat32Format				= FourCharCode('fl32');						{ 32-bit floating point }
+	kFloat64Format				= FourCharCode('fl64');						{ 64-bit floating point }
+	k24BitFormat				= FourCharCode('in24');						{ 24-bit SInt16 }
+	k32BitFormat				= FourCharCode('in32');						{ 32-bit SInt16 }
+	k32BitLittleEndianFormat	= FourCharCode('23ni');						{ 32-bit little endian SInt16  }
+	kMACE3Compression			= FourCharCode('MAC3');						{ MACE 3:1 }
+	kMACE6Compression			= FourCharCode('MAC6');						{ MACE 6:1 }
+	kCDXA4Compression			= FourCharCode('cdx4');						{ CD/XA 4:1 }
+	kCDXA2Compression			= FourCharCode('cdx2');						{ CD/XA 2:1 }
+	kIMACompression				= FourCharCode('ima4');						{ IMA 4:1 }
+	kULawCompression			= FourCharCode('ulaw');						{ µLaw 2:1 }
+	kALawCompression			= FourCharCode('alaw');						{ aLaw 2:1 }
 	kMicrosoftADPCMFormat		= $6D730002;					{ Microsoft ADPCM - ACM code 2 }
 	kDVIIntelIMAFormat			= $6D730011;					{ DVI/Intel IMA ADPCM - ACM code 17 }
-	kDVAudioFormat				= $64766361 (* 'dvca' *);						{ DV Audio }
-	kQDesignCompression			= $51444D43 (* 'QDMC' *);						{ QDesign music }
-	kQDesign2Compression		= $51444D32 (* 'QDM2' *);						{ QDesign2 music }
-	kQUALCOMMCompression		= $51636C70 (* 'Qclp' *);						{ QUALCOMM PureVoice }
-	kOffsetBinary				= $72617720 (* 'raw ' *);						{ for compatibility }
-	kTwosComplement				= $74776F73 (* 'twos' *);						{ for compatibility }
-	kLittleEndianFormat			= $736F7774 (* 'sowt' *);						{ for compatibility }
+	kDVAudioFormat				= FourCharCode('dvca');						{ DV Audio }
+	kQDesignCompression			= FourCharCode('QDMC');						{ QDesign music }
+	kQDesign2Compression		= FourCharCode('QDM2');						{ QDesign2 music }
+	kQUALCOMMCompression		= FourCharCode('Qclp');						{ QUALCOMM PureVoice }
+	kOffsetBinary				= FourCharCode('raw ');						{ for compatibility }
+	kTwosComplement				= FourCharCode('twos');						{ for compatibility }
+	kLittleEndianFormat			= FourCharCode('sowt');						{ for compatibility }
 	kMPEGLayer3Format			= $6D730055;					{ MPEG Layer 3, CBR only (pre QT4.1) }
-	kFullMPEGLay3Format			= $2E6D7033 (* '.mp3' *);						{ MPEG Layer 3, CBR & VBR (QT4.1 and later) }
+	kFullMPEGLay3Format			= FourCharCode('.mp3');						{ MPEG Layer 3, CBR & VBR (QT4.1 and later) }
 
 {$ifc TARGET_RT_LITTLE_ENDIAN}
 	k16BitNativeEndianFormat	= k16BitLittleEndianFormat;
@@ -553,9 +553,9 @@ const
 	kSoundComponentBits			= $00FFFFFF;
 
 	{ audio atom types }
-	kAudioFormatAtomType		= $66726D61 (* 'frma' *);
-	kAudioEndianAtomType		= $656E6461 (* 'enda' *);
-	kAudioVBRAtomType			= $76627261 (* 'vbra' *);
+	kAudioFormatAtomType		= FourCharCode('frma');
+	kAudioEndianAtomType		= FourCharCode('enda');
+	kAudioVBRAtomType			= FourCharCode('vbra');
 	kAudioTerminatorAtomType	= 0;
 
 	{ siAVDisplayBehavior types }
@@ -578,11 +578,11 @@ const
 	audioDoesIndependentChannels = $00000004;					{ Device supports independent software control of each channel }
 
 	{	Sound Input Qualities	}
-	siCDQuality					= $63642020 (* 'cd  ' *);						{ 44.1kHz, stereo, 16 bit }
-	siBestQuality				= $62657374 (* 'best' *);						{ 22kHz, mono, 8 bit }
-	siBetterQuality				= $62657472 (* 'betr' *);						{ 22kHz, mono, MACE 3:1 }
-	siGoodQuality				= $676F6F64 (* 'good' *);						{ 22kHz, mono, MACE 6:1 }
-	siNoneQuality				= $6E6F6E65 (* 'none' *);						{ settings don't match any quality for a get call }
+	siCDQuality					= FourCharCode('cd  ');						{ 44.1kHz, stereo, 16 bit }
+	siBestQuality				= FourCharCode('best');						{ 22kHz, mono, 8 bit }
+	siBetterQuality				= FourCharCode('betr');						{ 22kHz, mono, MACE 3:1 }
+	siGoodQuality				= FourCharCode('good');						{ 22kHz, mono, MACE 6:1 }
+	siNoneQuality				= FourCharCode('none');						{ settings don't match any quality for a get call }
 
 	siDeviceIsConnected			= 1;							{ input device is connected and ready for input }
 	siDeviceNotConnected		= 0;							{ input device is not connected }

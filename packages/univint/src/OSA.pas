@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit OSA;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -118,44 +118,44 @@ uses MacTypes,AEDataModel,MacErrors,AppleEvents,AEObjects,AEInteraction,Componen
 { 0x6f736120 }
 
 const
-	kOSAComponentType			= $6F736120 (* 'osa ' *);
+	kOSAComponentType			= FourCharCode('osa ');
 
 	{	 0x73637074 	}
-	kOSAGenericScriptingComponentSubtype = $73637074 (* 'scpt' *);
+	kOSAGenericScriptingComponentSubtype = FourCharCode('scpt');
 
 	{	  Type of script document files.  	}
 	{	 0x6f736173 	}
-	kOSAFileType				= $6F736173 (* 'osas' *);
+	kOSAFileType				= FourCharCode('osas');
 
 	{	
 	        Suite and event code of the RecordedText event. 
 	        (See OSAStartRecording, below.)
 	    	}
 	{	 0x61736372 	}
-	kOSASuite					= $61736372 (* 'ascr' *);
+	kOSASuite					= FourCharCode('ascr');
 
 	{	 0x72656364 	}
-	kOSARecordedText			= $72656364 (* 'recd' *);
+	kOSARecordedText			= FourCharCode('recd');
 
 	{	 Selector returns boolean 	}
 	{	 0x6d6f6469 	}
-	kOSAScriptIsModified		= $6D6F6469 (* 'modi' *);
+	kOSAScriptIsModified		= FourCharCode('modi');
 
 	{	 Selector returns boolean 	}
 	{	 0x63736372 	}
-	kOSAScriptIsTypeCompiledScript = $63736372 (* 'cscr' *);
+	kOSAScriptIsTypeCompiledScript = FourCharCode('cscr');
 
 	{	 Selector returns boolean 	}
 	{	 0x76616c75 	}
-	kOSAScriptIsTypeScriptValue	= $76616C75 (* 'valu' *);
+	kOSAScriptIsTypeScriptValue	= FourCharCode('valu');
 
 	{	 Selector returns boolean 	}
 	{	 0x636e7478 	}
-	kOSAScriptIsTypeScriptContext = $636E7478 (* 'cntx' *);
+	kOSAScriptIsTypeScriptContext = FourCharCode('cntx');
 
 	{	 Selector returns a DescType which may be passed to OSACoerceToDesc 	}
 	{	 0x62657374 	}
-	kOSAScriptBestType			= $62657374 (* 'best' *);
+	kOSAScriptBestType			= FourCharCode('best');
 
 	{	
 	        This selector is used to determine whether a script has source 
@@ -163,14 +163,14 @@ const
 	        fail.  The selector returns a boolean.
 	    	}
 	{	 0x67737263 	}
-	kOSACanGetSource			= $67737263 (* 'gsrc' *);
+	kOSACanGetSource			= FourCharCode('gsrc');
 
 
-	typeOSADialectInfo			= $6469666F (* 'difo' *);						{   0x6469666f    }
-	keyOSADialectName			= $646E616D (* 'dnam' *);						{   0x646e616d    }
-	keyOSADialectCode			= $64636F64 (* 'dcod' *);						{   0x64636f64    }
-	keyOSADialectLangCode		= $646C6364 (* 'dlcd' *);						{   0x646c6364    }
-	keyOSADialectScriptCode		= $64736364 (* 'dscd' *);						{   0x64736364    }
+	typeOSADialectInfo			= FourCharCode('difo');						{   0x6469666f    }
+	keyOSADialectName			= FourCharCode('dnam');						{   0x646e616d    }
+	keyOSADialectCode			= FourCharCode('dcod');						{   0x64636f64    }
+	keyOSADialectLangCode		= FourCharCode('dlcd');						{   0x646c6364    }
+	keyOSADialectScriptCode		= FourCharCode('dscd');						{   0x64736364    }
 
 
 type
@@ -493,13 +493,13 @@ const
 		}
 
 	{	 Resource type for scripts 	}
-	kOSAScriptResourceType		= $73637074 (* 'scpt' *);
+	kOSAScriptResourceType		= FourCharCode('scpt');
 
 	{	
 	        Default type given to OSAStore which creates "generic" loadable script
 	        data descriptors.
 	    	}
-	typeOSAGenericStorage		= $73637074 (* 'scpt' *);
+	typeOSAGenericStorage		= FourCharCode('scpt');
 
 	{
 	 *  OSALoad()
@@ -645,7 +645,7 @@ function OSAScriptError(scriptingComponent: ComponentInstance; selector: OSType;
     }
 
 const
-	kOSAErrorNumber				= $6572726E (* 'errn' *);
+	kOSAErrorNumber				= FourCharCode('errn');
 
 	{	
 	        This selector is used to determine the full error message associated
@@ -656,7 +656,7 @@ const
 	        Required desiredTypes:
 	            typeChar                    error message string
 	    	}
-	kOSAErrorMessage			= $65727273 (* 'errs' *);
+	kOSAErrorMessage			= FourCharCode('errs');
 
 	{	
 	        This selector is used to determine a brief error message associated with
@@ -668,7 +668,7 @@ const
 	            typeChar                    brief error message string
 	    	}
 	{	  0x65727262  	}
-	kOSAErrorBriefMessage		= $65727262 (* 'errb' *);
+	kOSAErrorBriefMessage		= FourCharCode('errb');
 
 	{	
 	        This selector is used to determine which application actually got the
@@ -679,7 +679,7 @@ const
 	            typeChar                    name of the errant application
 	    	}
 	{	  0x65726170  	}
-	kOSAErrorApp				= $65726170 (* 'erap' *);
+	kOSAErrorApp				= FourCharCode('erap');
 
 	{	
 	        This selector is used to determine any partial result returned by an 
@@ -689,7 +689,7 @@ const
 	            typeBest                    AEDesc of any partial result
 	    	}
 	{	  0x70746c72   	}
-	kOSAErrorPartialResult		= $70746C72 (* 'ptlr' *);
+	kOSAErrorPartialResult		= FourCharCode('ptlr');
 
 	{	
 	        This selector is used to determine any object which caused the error
@@ -699,14 +699,14 @@ const
 	            typeBest                    AEDesc of any offending object
 	    	}
 	{	  0x65726f62   	}
-	kOSAErrorOffendingObject	= $65726F62 (* 'erob' *);
+	kOSAErrorOffendingObject	= FourCharCode('erob');
 
 	{	
 	        This selector is used to determine the type expected by a coercion 
 	        operation if a type error occurred.
 	    	}
 	{	  0x65727274   	}
-	kOSAErrorExpectedType		= $65727274 (* 'errt' *);
+	kOSAErrorExpectedType		= FourCharCode('errt');
 
 	{	
 	        This selector is used to determine the source text range (start and 
@@ -715,22 +715,22 @@ const
 	            typeOSAErrorRange
 	    	}
 	{	  0x65726e67  	}
-	kOSAErrorRange				= $65726E67 (* 'erng' *);
+	kOSAErrorRange				= FourCharCode('erng');
 
 	{	
 	        An AERecord type containing keyOSASourceStart and keyOSASourceEnd fields
 	        of type short.
 	    	}
 	{	  0x65726e67   	}
-	typeOSAErrorRange			= $65726E67 (* 'erng' *);
+	typeOSAErrorRange			= FourCharCode('erng');
 
 	{	 Field of a typeOSAErrorRange record of typeShortInteger 	}
 	{	  0x73726373    	}
-	keyOSASourceStart			= $73726373 (* 'srcs' *);
+	keyOSASourceStart			= FourCharCode('srcs');
 
 	{	 Field of a typeOSAErrorRange record of typeShortInteger 	}
 	{	  0x73726365   	}
-	keyOSASourceEnd				= $73726365 (* 'srce' *);
+	keyOSASourceEnd				= FourCharCode('srce');
 
 	{	 Disposing Script IDs: 	}
 	{
@@ -1652,7 +1652,7 @@ const
 	{	
 	 * Session Information
 	 	}
-	keyProgramState				= $64737073 (* 'dsps' *);
+	keyProgramState				= FourCharCode('dsps');
 
 	{	
 	 * Call Frame Information
@@ -1667,13 +1667,13 @@ type
 
 
 const
-	typeStatementRange			= $73726E67 (* 'srng' *);
+	typeStatementRange			= FourCharCode('srng');
 
-	keyProcedureName			= $64666E6D (* 'dfnm' *);						{  typeChar  }
-	keyStatementRange			= $64667372 (* 'dfsr' *);						{  typeStatementRange  }
-	keyLocalsNames				= $64666C6E (* 'dfln' *);						{  typeAEList of typeChar  }
-	keyGlobalsNames				= $6466676E (* 'dfgn' *);						{  typeAEList of typeChar  }
-	keyParamsNames				= $6466706E (* 'dfpn' *);						{  typeAEList of typeChar  }
+	keyProcedureName			= FourCharCode('dfnm');						{  typeChar  }
+	keyStatementRange			= FourCharCode('dfsr');						{  typeStatementRange  }
+	keyLocalsNames				= FourCharCode('dfln');						{  typeAEList of typeChar  }
+	keyGlobalsNames				= FourCharCode('dfgn');						{  typeAEList of typeChar  }
+	keyParamsNames				= FourCharCode('dfpn');						{  typeAEList of typeChar  }
 
 	{	
 	 * Sessions

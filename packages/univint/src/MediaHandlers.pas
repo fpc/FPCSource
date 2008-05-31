@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit MediaHandlers;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -170,7 +170,7 @@ const
 	mInvisible					= $00000002;
 
 	{	 MediaSetPublicInfo/MediaGetPublicInfo selectors 	}
-	kMediaQTIdleFrequencySelector = $69646671 (* 'idfq' *);
+	kMediaQTIdleFrequencySelector = FourCharCode('idfq');
 
 
 type
@@ -209,7 +209,7 @@ const
 	kMediaVideoParamWhiteLevel	= 7;
 
 	{  These are for MediaGetInfo() and MediaSetInfo(). }
-	kMHInfoEncodedFrameRate		= $6F726174 (* 'orat' *);						{  Parameter is a MHInfoEncodedFrameRateRecord*. }
+	kMHInfoEncodedFrameRate		= FourCharCode('orat');						{  Parameter is a MHInfoEncodedFrameRateRecord*. }
 
 	{  This holds the frame rate at which the track was encoded. }
 
